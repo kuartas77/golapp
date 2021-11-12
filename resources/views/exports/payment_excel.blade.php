@@ -1,0 +1,42 @@
+<table>
+    <thead>
+    <tr>
+        <th>Año</th>
+        <th>Código Unico</th>
+        <th>Nombres</th>
+        <th>Enero</th>
+        <th>Febrero</th>
+        <th>Marzo</th>
+        <th>Abril</th>
+        <th>Mayo</th>
+        <th>Junio</th>
+        <th>Julio</th>
+        <th>Agosto</th>
+        <th>Septiembre</th>
+        <th>Octubre</th>
+        <th>Noviembre</th>
+        <th>Diciembre</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach($payments as $payment)
+        <tr>
+            <td>{{$payment->year}}</td>
+            <td>{{$payment->unique_code}}</td>
+            <td>{{$payment->inscription->player->full_names}}</td>
+            <td>{{getPay($payment->january)}}</td>
+            <td>{{getPay($payment->february)}}</td>
+            <td>{{getPay($payment->march)}}</td>
+            <td>{{getPay($payment->april)}}</td>
+            <td>{{getPay($payment->may)}}</td>
+            <td>{{getPay($payment->june)}}</td>
+            <td>{{getPay($payment->july)}}</td>
+            <td>{{getPay($payment->august)}}</td>
+            <td>{{getPay($payment->september)}}</td>
+            <td>{{getPay($payment->october)}}</td>
+            <td>{{getPay($payment->november)}}</td>
+            <td>{{getPay($payment->december)}}</td>
+        </tr>
+    @endforeach
+    </tbody>
+</table>
