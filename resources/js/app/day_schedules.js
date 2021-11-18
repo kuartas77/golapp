@@ -19,7 +19,7 @@ const template = (item, id = "", schedule = "") => {
         '       <label for="schedule[' + item + ']" class="text-themecolor">Horario ' + item + '</label>\n' +
         '       <span class="bar"></span>\n' +
         '       <input type="hidden" name="schedule[' + item + '][id]" value="' + id + '">\n' +
-        '       <input type="text" name="schedule[' + item + '][value]" class="form-control form-control-sm schedule" value="' + schedule + '">\n' +
+        '       <input type="text" name="schedule[' + item + '][value]" class="form-control form-control-sm schedule" value="' + schedule + '" oninput="this.value = this.value.toUpperCase()">\n' +
         '       <span class="text-muted">Ej: 04:30 pm - 06:00 pm</span>' +
         '       </div>\n' +
         '   </div>' +

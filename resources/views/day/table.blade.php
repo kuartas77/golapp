@@ -6,13 +6,13 @@
         </li>
 
         <li class=" nav-item ml-auto">
-            @role('administrador')
+            @hasanyrole('super-admin|school')
                 <a class="float-right btn waves-effect waves-light btn-rounded btn-info" id="btn-add"
                    href="javascript:void(0)" data-toggle="modal" data-target="#create" data-backdrop="static" data-keyboard="false">
                     <i class="fa fa-plus" aria-hidden="true"></i>
                     @lang('messages.day_add')
                 </a>
-            @endrole
+            @endhasanyrole
         </li>
     </ul>
 </nav>

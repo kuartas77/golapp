@@ -2,7 +2,8 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController, HistoricController, IncidentController, DataTableController};
+use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
+use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Schedule\DayController;
 use App\Http\Controllers\Assists\AssistController;
@@ -15,7 +16,7 @@ use App\Http\Controllers\Groups\CompetitionGroupController;
 use App\Http\Controllers\Inscription\InscriptionController;
 use App\Http\Controllers\Groups\InscriptionCGroupController;
 use App\Http\Controllers\Groups\InscriptionTGroupController;
-use Spatie\Permission\Models\Role;
+
 Route::get('/', function () {
     return redirect(\route('login'));
 });
@@ -105,7 +106,7 @@ Route::middleware(['auth'])->group(function ($route) {
         $route->get('search_unique_code', [MasterController::class, 'searchUniqueCode'])->name('autocomplete.search_unique_code');
     });
 
-    // $route->prefix('backoffice')->middleware(['role:super-admin'])->group(function ($route){});
+    $route->prefix('backoffice')->middleware(['role:super-admin'])->group(function ($route){});
 
 });
 

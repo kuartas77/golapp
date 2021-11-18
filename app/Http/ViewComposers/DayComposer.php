@@ -16,7 +16,6 @@ class DayComposer
             $week = Cache::remember(env('KEY_WEEKS'), now()->addYear(), function () {
                 return config('variables.KEY_WEEKS');
             });
-
             $view->with('week', $week);
         }
     }

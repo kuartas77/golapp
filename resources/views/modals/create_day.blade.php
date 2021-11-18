@@ -107,7 +107,7 @@
                                 <div class="form-group">
                                     <label for="schedule[1]" class="text-themecolor">Horario 1</label>
                                     <span class="bar"></span>
-                                    <input type="text" name="schedule[1][value]" class="form-control form-control-sm">
+                                    <input type="text" name="schedule[1][value]" class="form-control form-control-sm" onkeypress="forceKeyPressUppercase()">
                                     <span class="text-muted">Ej: 04:30 pm</span>
                                 </div>
                             </div>
