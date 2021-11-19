@@ -17,11 +17,11 @@
 @endsection
 @section('scripts')
     <script>
-        let url_current = '{{URL::current()}}/';
-        let url_days = '{{route('days.index')}}/';
-        let url_enabled = '{{route('training_groups.enabled')}}';
-        let url_disabled = '{{route('training_groups.retired')}}';
+        let url_current = "{{URL::current()}}/";
+        let url_days = "{{route('days.index')}}/";
+        let url_enabled = "{{route('training_groups.enabled')}}";
+        let url_disabled = "{{route('training_groups.retired')}}";
     </script>
-    <script src="{{asset('js/app/trainingGroupIndex.js')}}" defer></script>
+    <script src="{{asset('js/trainingGroupIndex.js')}}" defer></script>
 @endsection
 

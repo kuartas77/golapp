@@ -15,7 +15,7 @@ class IncidentComposer
     public function compose(View $view)
     {
         if (Auth::check()) {
-            $users = Cache::remember(env('KEY_USERS'), now()->addDay(), function () {
+            $users = Cache::remember('KEY_USERS', now()->addDay(), function () {
                 return User::where('id', '!=', 1)->orderBy('name')->pluck('name', 'id');
             });
             $view->with('users', $users);
