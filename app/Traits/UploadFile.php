@@ -10,20 +10,25 @@ use Illuminate\Foundation\Http\FormRequest;
 
 trait UploadFile
 {
-    public function saveFile(FormRequest $request)
-    {
-        
-        $is_player = get_class($this) === "App\Repositories\PlayerRepository";
-        
-        $school = Str::slug("test example");
+    public function saveFile(FormRequest $request, $field)
+    {        
         $path = null;
-        $folder =  $is_player ? $school . DIRECTORY_SEPARATOR ."players" : $school;
 
-        if($request->hasFile('image'))
-        {
-            $file = $request->file('image');
-            $path = $file->hashName($folder);
+        if($request->hasFile($field)) {
+            
+            $file = $request->file($field);
+            $school = School::find($request->school_id)->slug;
 
+            switch ($field) {
+                case 'player':
+                    $path = $file->hashName($school . DIRECTORY_SEPARATOR ."players");
+                    break;
+                case 'logo':
+                default:
+                    $path = $file->hashName($school);
+                    break;
+            }
+            
             $img = Image::make($file)->resize(420, 420, function ($constraint) {
                 $constraint->aspectRatio();
             });

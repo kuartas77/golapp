@@ -16,13 +16,13 @@ class CreateSchoolsTable extends Migration
         Schema::create('schools', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('slug');
             $table->string('agent')->nullable();
             $table->string('address')->nullable();
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->boolean('is_enable')->default(false);
             $table->string('logo')->nullable();
-            $table->string('logo_min')->nullable();
             $table->timestamps();
         });
     }

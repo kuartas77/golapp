@@ -10,6 +10,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
@@ -50,6 +51,10 @@ class User extends Authenticatable
         'url_activate'
     ];
 
+    protected $with = [
+        'school'
+    ];
+
     public function competition_groups(): HasMany
     {
         return $this->hasMany(CompetitionGroup::class);
@@ -68,5 +73,10 @@ class User extends Authenticatable
     public function getUrlActivateAttribute()
     {
         return route('users.activate', [$this->attributes['id']]);
+    }
+
+    public function school(): HasOneThrough
+    {
+        return $this->hasOneThrough(School::class, SchoolUser::class, 'school_id','id');
     }
 }

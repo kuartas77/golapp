@@ -27,7 +27,15 @@ class CompetitionGroupRequest extends FormRequest
             'name' => ['required', 'string'],
             'tournament_id' => ['required', 'exists:tournaments,id'],
             'user_id' => ['required'],
-            'year' => ['required', 'date_format:Y']
+            'year' => ['required', 'date_format:Y'],
+            'school_id' => ['required'],
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'school_id' => auth()->user()->school->id
+        ]);
     }
 }

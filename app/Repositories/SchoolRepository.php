@@ -4,12 +4,14 @@ namespace App\Repositories;
 
 use App\Models\School;
 use App\Traits\ErrorTrait;
+use App\Traits\UploadFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Foundation\Http\FormRequest;
 
 class SchoolRepository
 {
     use ErrorTrait;
+    use UploadFile;
 
     private School $model;
 
@@ -23,27 +25,15 @@ class SchoolRepository
         return $this->model->query()->get();
     }
 
-    public function create($request): School
+    public function create(FormRequest $request): School
     {
         try {
             DB::beginTransaction();
 
-            $this->model->name = $request->name;
-            $this->model->agent = $request->agent;
-            $this->model->address = $request->address;
-            $this->model->phone = $request->phone;
-            $this->model->email = $request->email;
-            $this->model->is_enable = false;
+            $data = $request->validated();
+            $data['logo'] = $this->saveFile($request, 'logo');
 
-            if ($request->hasFile('logo'))
-            {
-                $this->model->logo = $this->saveFileLogo($request, 'logo');
-            }
-            if ($request->hasFile('logo_min'))
-            {
-                $this->model->logo_min = $this->saveFileLogo($request, 'logo_min');
-            }
-            $this->model->save();
+            $this->model->create($data);
 
             DB::commit();
 
@@ -54,13 +44,4 @@ class SchoolRepository
 
         return $this->model;
     }
-
-
-    private function saveFileLogo($request, $file)
-    {
-        $folder = Str::slug($request->name, '_', 'es');
-        return $request->file($file)->store("logos/{$folder}");
-    }
-
-
 }

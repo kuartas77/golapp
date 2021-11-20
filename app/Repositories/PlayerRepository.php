@@ -98,10 +98,12 @@ class PlayerRepository
      */
     public function makePdf(Player $player, bool $stream = true): string
     {
-        $player->load('peoples');
-        $data['school'] = 'soccercity';
-        $data['player'] = $player->load('inscription.trainingGroup','inscription.competitionGroup');
+        $player->load(['schoolData', 'peoples','inscription' => fn($query) => $query->with(['trainingGroup','competitionGroup'])]);
+
+        $data['player'] = $player;
+        $data['school'] = $player->schoolData;
         $filename = "Deportista {$player->unique_code}.pdf";
+        
         $this->setConfigurationMpdf(['format' => [213, 140]]);        
         $this->createPDF($data, 'inscription.blade.php');
 
@@ -170,7 +172,7 @@ class PlayerRepository
     private function setAttributes(FormRequest $request, Player $player = null)
     {
         $dataPlayer = $request->only($this->getAttributes());
-        if($file_name = $this->saveFile($request)){
+        if($file_name = $this->saveFile($request, 'image')){
             $dataPlayer['photo'] = $file_name;
         }
         $dataPlayer['date_birth'] = Date::parse(request('date_birth'));

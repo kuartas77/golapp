@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\BackOffice;
 
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -14,7 +15,7 @@ class SchoolUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return auth()->user()->hasRole('super-admin');
     }
 
     /**
@@ -26,13 +27,20 @@ class SchoolUpdateRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', Rule::exists('schools', 'name')],
+            'slug' => ['required', 'string'],
             'agent' => ['required', 'string'],
             'address' => ['required', 'string'],
             'phone' => ['required', 'string'],
             'email' => ['required', 'string'],
             'is_enable' => ['required', 'bool'],
             'logo' => ['required', 'image', 'mimes:jpeg,png,jpg'],
-            'logo_min' => ['nullable', 'image', 'mimes:jpeg,png,jpg'],
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'slug' => Str::slug($this->name),
+        ]);
     }
 }

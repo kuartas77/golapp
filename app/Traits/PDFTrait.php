@@ -3,13 +3,12 @@
 
 namespace App\Traits;
 
-
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use Illuminate\Http\File;
-use Illuminate\Support\Facades\Storage;
 use Mpdf\Mpdf;
+use Illuminate\Http\File;
 use Mpdf\Output\Destination;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 
 trait PDFTrait
 {
@@ -50,11 +49,14 @@ trait PDFTrait
     {
         $this->mpdf = new Mpdf($this->configDefault);
 
-        if ($this->existsTemplate($logo = "logo/{$data['school']}.png")) {
-            $this->mpdf->SetWatermarkImage($data['logoPath'] = storage_path("app/{$logo}"));
-            $this->mpdf->showWatermarkImage = true;
+        if($data['school']){
+            if ($this->existsTemplate($data['school']->logo)){
+                $this->mpdf->SetWatermarkImage($data['pathLogo'] = $data['school']->logo_file);
+                $this->mpdf->showWatermarkImage = true;
+            }
         }
-        //$this->mpdf->SetHTMLHeader()
+
+        //$this->mpdf->SetHTMLHeader();
         $this->mpdf->WriteHTML(view()->file($this->getTemplate($template), $data));
         $this->mpdf->SetHTMLFooter(view()->file($this->getTemplate('footer.blade.php')));
     }
@@ -79,7 +81,7 @@ trait PDFTrait
      */
     private function existsTemplate(string $path): bool
     {
-        return Storage::exists($path);
+        return Storage::disk('public')->exists($path);
     }
 
     /**

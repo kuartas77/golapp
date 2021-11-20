@@ -51,6 +51,8 @@ class InscriptionRequest extends FormRequest
             'period_two' => 'nullable',
             'period_three' => 'nullable',
             'period_four' => 'nullable',
+
+            'school_id' => ['required'],
         ];
     }
 
@@ -64,7 +66,8 @@ class InscriptionRequest extends FormRequest
         $this->merge([
             'year' => $startDate->year,
             'start_date' => $startDate,
-            'category' => Date::parse($dateBirth)->year
+            'category' => Date::parse($dateBirth)->year,
+            'school_id' => auth()->user()->school->id
         ]);
     }
 
