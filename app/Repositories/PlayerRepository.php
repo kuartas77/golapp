@@ -9,15 +9,19 @@ use Mpdf\MpdfException;
 use App\Traits\PDFTrait;
 use Jenssegers\Date\Date;
 use App\Traits\ErrorTrait;
+use App\Traits\UploadFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Database\Eloquent\Collection;
+use App\Http\Requests\Player\PlayerCreateRequest;
 use App\Http\Requests\Player\PlayerUpdateRequest;
 
 class PlayerRepository
 {
     use PDFTrait;
     use ErrorTrait;
+    use UploadFile;
 
     private Player $model;
 
@@ -39,12 +43,12 @@ class PlayerRepository
         return Player::query()->with('peoples')->get();
     }
 
-    public function createPlayer($request): Player
+    public function createPlayer(PlayerCreateRequest $request): Player
     {
         try {
             DB::beginTransaction();
 
-            $dataPlayer = $this->setAttributes('store', $request);
+            $dataPlayer = $this->setAttributes($request);
             $player = $this->model->create($dataPlayer);
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
             $player->peoples()->sync($peopleIds);
@@ -64,7 +68,7 @@ class PlayerRepository
         try {
             DB::beginTransaction();
 
-            $dataPlayer = $this->setAttributes('update', $request, $player);
+            $dataPlayer = $this->setAttributes($request, $player);
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
             $player->peoples()->sync($peopleIds);
             $save = $player->fill($dataPlayer)->save();
@@ -98,7 +102,7 @@ class PlayerRepository
         $data['school'] = 'soccercity';
         $data['player'] = $player->load('inscription.trainingGroup','inscription.competitionGroup');
         $filename = "Deportista {$player->unique_code}.pdf";
-        $this->setConfigurationMpdf(['format' => [213, 140]]);
+        $this->setConfigurationMpdf(['format' => [213, 140]]);        
         $this->createPDF($data, 'inscription.blade.php');
 
         if ($stream) {
@@ -163,11 +167,12 @@ class PlayerRepository
      * @param Player|null $player
      * @return mixed
      */
-    private function setAttributes(string $method, $request, Player $player = null)
+    private function setAttributes(FormRequest $request, Player $player = null)
     {
-        $file_name = $this->model->fileName($method, $request);
         $dataPlayer = $request->only($this->getAttributes());
-        $dataPlayer['photo'] = $file_name;
+        if($file_name = $this->saveFile($request)){
+            $dataPlayer['photo'] = $file_name;
+        }
         $dataPlayer['date_birth'] = Date::parse(request('date_birth'));
         $dataPlayer['unique_code'] = request('unique_code', optional($player)->unique_code);
         return $dataPlayer;

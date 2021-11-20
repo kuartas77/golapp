@@ -19,15 +19,15 @@ class TrainingGroupComposer
     public function compose(View $view)
     {
         if (Auth::check()) {
-            $users = Cache::remember(env('KEY_USERS'), now()->addDay(), function () {
+            $users = Cache::remember('KEY_USERS', now()->addDay(), function () {
                 return User::where('id', '!=', 1)->orderBy('name')->pluck('name', 'id');
             });
 
-            $days = Cache::remember(env('KEY_DAYS'), now()->addDay(), function () {
+            $days = Cache::remember('KEY_DAYS', now()->addDay(), function () {
                 return Day::orderBy('days')->pluck('days', 'id');
             });
 
-            $tournaments = Cache::remember(env('KEY_TOURNAMENT'), now()->addDay(), function () {
+            $tournaments = Cache::remember('KEY_TOURNAMENT', now()->addDay(), function () {
                 return Tournament::orderBy('name')->pluck('name', 'id');
             });
 

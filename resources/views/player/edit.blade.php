@@ -40,8 +40,28 @@
             events();
 
             form_player.validate({
-                errorElement: 'span',
                 rules: {
+                    unique_code : {},
+                    names : {required: true},
+                    last_names : {required: true},
+                    identification_document : {required: true},
+                    gender : {required: true},
+                    date_birth : {required: true},
+                    place_birth : {required: true},
+                    rh : {required: true},
+                    eps : {required: true},
+                    email : {required: true},
+                    address : {required: true},
+                    municipality : {required: true},
+                    neighborhood : {required: true},
+                    zone : {},
+                    commune : {},
+                    phones : {required: true},
+                    mobile : {required: true},
+                    school : {required: true},
+                    degree : {required: true},
+                    position_field : {required: true},
+                    dominant_profile : {required: true},
                     "people[0][relationship]": {required: true},
                     "people[0][names]": {required: true},
                     "people[0][phone]": {

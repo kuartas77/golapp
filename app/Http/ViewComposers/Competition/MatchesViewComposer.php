@@ -15,11 +15,11 @@ class MatchesViewComposer
     public function compose(View $view)
     {
         if (Auth::check()) {
-            $tournaments = Cache::remember(env('KEY_TOURNAMENT'), now()->addDay(), function () {
+            $tournaments = Cache::remember('KEY_TOURNAMENT', now()->addDay(), function () {
                 return Tournament::orderBy('name')->pluck('name', 'id');
             });
 
-            $positions = Cache::remember(env('KEY_POSITIONS'), now()->addYear(), function () {
+            $positions = Cache::remember('KEY_POSITIONS', now()->addYear(), function () {
                 return config('variables.KEY_POSITIONS');
             });
 

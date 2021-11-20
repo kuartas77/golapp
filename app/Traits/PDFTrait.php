@@ -54,7 +54,6 @@ trait PDFTrait
             $this->mpdf->SetWatermarkImage($data['logoPath'] = storage_path("app/{$logo}"));
             $this->mpdf->showWatermarkImage = true;
         }
-
         //$this->mpdf->SetHTMLHeader()
         $this->mpdf->WriteHTML(view()->file($this->getTemplate($template), $data));
         $this->mpdf->SetHTMLFooter(view()->file($this->getTemplate('footer.blade.php')));

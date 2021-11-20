@@ -8,14 +8,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use App\Repositories\PlayerRepository;
 use Illuminate\Contracts\View\Factory;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Contracts\Foundation\Application;
 use App\Http\Requests\Player\PlayerCreateRequest;
 use App\Http\Requests\Player\PlayerUpdateRequest;
 
 class PlayerController extends Controller
 {
-
     /**
      * @var PlayerRepository
      */

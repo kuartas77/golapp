@@ -278,6 +278,9 @@ jQuery.validator.setDefaults({
         } else { // This is the default behavior
             error.insertAfter(element);
         }
+        if(element.prop('nodeName') === 'SELECT'){
+            error.appendTo(element.closest("div.form-group"));
+        }
     }
     /*     ,errorElement: 'span',
         highlight: function(element, errorClass, validClass) {

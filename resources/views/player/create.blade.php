@@ -4,7 +4,7 @@
     @include('templates.bread_crumb', ['title' => 'Deportista', 'option' => 0])
     <div class="row">
         <div class="card col-12">
-            <div class="card-body ">
+            <div class="card-body">
                 <div class="wizard-content">
                 {!! Form::open(['route' => 'players.store', 'id'=>'form_player', 'files'=>true, 'class'=>'wizard-circle']) !!}
                     @include('player.fields.basic_information')
@@ -31,84 +31,94 @@
         });
 
         const form_player = $("#form_player");
-        // $(':file').filestyle({
-        //     text: 'Selecciona Foto...',
-        //     htmlIcon: '<i class="far fa-folder-open"><i> ',
-        //     btnClass: 'btn-info',
-        //     input : false,
-        //
-        //     dragdrop: false,
-        //     disabled: false,
-        //     placeholder: ''
-        // });
+
         $(document).ready(function () {
 
-
-
-            // form_player.validate({
-            //     errorElement: 'span',
-            //     rules: {
-            //         "people[0][relationship]": {required: true},
-            //         "people[0][names]": {required: true},
-            //         "people[0][phone]": {
-            //             required: function () {
-            //                 return $('input[name="people[0][mobile]"]').val() === "";
-            //             }
-            //         },
-            //         "people[0][mobile]": {
-            //             required: function () {
-            //                 return $('input[name="people[0][phone]"]').val() === "";
-            //             }
-            //         },
-            //         "people[0][identification_card]": {
-            //             required: function () {
-            //                 return $('input[name="people[0][tutor]"]').is(":checked");
-            //             }
-            //         },
-            //
-            //         "people[1][relationship]": {required: true},
-            //         "people[1][names]": {required: true},
-            //         "people[1][phone]": {
-            //             required: function () {
-            //                 return $('input[name="people[1][mobile]"]').val() === "";
-            //             }
-            //         },
-            //         "people[1][mobile]": {
-            //             required: function () {
-            //                 return $('input[name="people[1][phone]"]').val() === "";
-            //             }
-            //         },
-            //         "people[1][identification_card]": {
-            //             required: function () {
-            //                 return $('input[name="people[1][tutor]"]').is(":checked");
-            //             }
-            //         },
-            //
-            //         "people[2][relationship]": {required: true},
-            //         "people[2][names]": {required: true},
-            //         "people[2][phone]": {
-            //             required: function () {
-            //                 return $('input[name="people[2][mobile]"]').val() === "";
-            //             }
-            //         },
-            //         "people[2][mobile]": {
-            //             required: function () {
-            //                 return $('input[name="people[2][phone]"]').val() === "";
-            //             }
-            //         },
-            //         "people[2][identification_card]": {
-            //             required: function () {
-            //                 return $('input[name="people[2][tutor]"]').is(":checked");
-            //             }
-            //         },
-            //     }
-            // });
+            form_player.validate({
+                // errorElement: 'span',
+                rules: {
+                    unique_code : {required: true},
+                    names : {required: true},
+                    last_names : {required: true},
+                    identification_document : {required: true},
+                    gender : {required: true},
+                    date_birth : {required: true},
+                    place_birth : {required: true},
+                    rh : {required: true},
+                    eps : {required: true},
+                    email : {required: true},
+                    address : {required: true},
+                    municipality : {required: true},
+                    neighborhood : {required: true},
+                    zone : {},
+                    commune : {},
+                    phones : {required: true},
+                    mobile : {required: true},
+                    school : {required: true},
+                    degree : {required: true},
+                    position_field : {required: true},
+                    dominant_profile : {required: true},
+                    "people[0][relationship]": {required: true},
+                    "people[0][names]": {required: true},
+                    "people[0][phone]": {
+                        required: function () {
+                            return $('input[name="people[0][mobile]"]').val() === "";
+                        }
+                    },
+                    "people[0][mobile]": {
+                        required: function () {
+                            return $('input[name="people[0][phone]"]').val() === "";
+                        }
+                    },
+                    "people[0][identification_card]": {
+                        required: function () {
+                            return $('input[name="people[0][tutor]"]').is(":checked");
+                        }
+                    },
+            
+                    "people[1][relationship]": {required: true},
+                    "people[1][names]": {required: true},
+                    "people[1][phone]": {
+                        required: function () {
+                            return $('input[name="people[1][mobile]"]').val() === "";
+                        }
+                    },
+                    "people[1][mobile]": {
+                        required: function () {
+                            return $('input[name="people[1][phone]"]').val() === "";
+                        }
+                    },
+                    "people[1][identification_card]": {
+                        required: function () {
+                            return $('input[name="people[1][tutor]"]').is(":checked");
+                        }
+                    },
+            
+                    "people[2][relationship]": {required: true},
+                    "people[2][names]": {required: true},
+                    "people[2][phone]": {
+                        required: function () {
+                            return $('input[name="people[2][mobile]"]').val() === "";
+                        }
+                    },
+                    "people[2][mobile]": {
+                        required: function () {
+                            return $('input[name="people[2][phone]"]').val() === "";
+                        }
+                    },
+                    "people[2][identification_card]": {
+                        required: function () {
+                            return $('input[name="people[2][tutor]"]').is(":checked");
+                        }
+                    },
+                }
+            });
 
             form_player.steps({
                 headerTag: "h6",
                 bodyTag: "section",
                 transitionEffect: "fade",
-                stepsOrientation: "vertical",
+                stepsOrientation: "horizontal",
                 titleTemplate: '<span class="step">#index#</span> #title#',
                 autoFocus: true,
                 enableAllSteps: true,
@@ -118,11 +128,10 @@
                     previous: "Anterior"
                 }
                 , onStepChanging: function (event, currentIndex, newIndex) {
-                    return currentIndex > newIndex || (currentIndex < newIndex)
-                    // &&
-                    // (form_player.find(".body:eq(" + newIndex + ") label.error").remove(),
-                    //     form_player.find(".body:eq(" + newIndex + ") .error").removeClass("error")),
-                    //     form_player.validate().settings.ignore = ":disabled,:hidden", form_player.valid())
+                    return currentIndex > newIndex || (currentIndex < newIndex &&
+                    (form_player.find(".body:eq(" + newIndex + ") label.error").remove(),
+                        form_player.find(".body:eq(" + newIndex + ") .error").removeClass("error")),
+                        form_player.validate().settings.ignore = ":disabled,:hidden", form_player.valid())
                 }
                 , onFinishing: function (event, currentIndex) {
                     return form_player.validate().settings.ignore = ":disabled", form_player.valid()

@@ -9,7 +9,7 @@
 <table class="table-full title">
     <tr>
         <td class="text-left" width="20%">
-            <img src="{{ asset('ms-icon-310x310.png') }}" width="70" height="70">
+            <img src="{{ $player->photo_file }}" width="70" height="70">
         </td>
         <td class="text-center school-title" width="60%">{{env('APP_NAME', 'Laravel')}}<br>FICHA DEL DEPORTISTA
         </td>
@@ -59,7 +59,7 @@
         <td colspan="2"><strong class="bold">Instituto/Colegio/Escuela:</strong> {{ $player->school }}</td>
         <td><strong class="bold">Grado:</strong> {{ $player->degree }}</td>
     </tr>
-
+    @if($player->inscription)
     <tr>
         <td colspan="3" class="text-center"><strong class="bold">Documentos</strong></td>
     </tr>
@@ -94,26 +94,28 @@
     <tr>
         <td colspan="3" class="text-center"><strong class="bold">Familiares</strong></td>
     </tr>
+    @endif
     @foreach($player->peoples as $people)
-        <tr>
-            <td colspan="3" class="text-left">
-                <strong
-                    class="bold">{{$people->is_tutor ? '(Acudiente)' : ''}} {{\Illuminate\Support\Str::upper($people->relationship_name)}}</strong>
-            </td>
-        </tr>
-        <tr>
-            <td><strong class="bold">Nombres:</strong> {{ $people->names }}</td>
-            <td><strong class="bold">Cédula:</strong> {{ $people->identification_card }}</td>
-            <td><strong class="bold">Teléfonos:</strong> {{ "{$people->phone} {$people->mobile}" }}</td>
-        </tr>
-        <tr>
-            <td><strong class="bold">Profesión:</strong> {{ $people->profession }}</td>
-            <td><strong class="bold">Empresa:</strong> {{ $people->business }}</td>
-            <td><strong class="bold">Cargo:</strong> {{ $people->position }}</td>
-        </tr>
+    <tr>
+        <td colspan="3" class="text-left">
+            <strong
+                class="bold">{{$people->is_tutor ? '(Acudiente)' : ''}} {{\Illuminate\Support\Str::upper($people->relationship_name)}}</strong>
+        </td>
+    </tr>
+    <tr>
+        <td><strong class="bold">Nombres:</strong> {{ $people->names }}</td>
+        <td><strong class="bold">Cédula:</strong> {{ $people->identification_card }}</td>
+        <td><strong class="bold">Teléfonos:</strong> {{ "{$people->phone} {$people->mobile}" }}</td>
+    </tr>
+    <tr>
+        <td><strong class="bold">Profesión:</strong> {{ $people->profession }}</td>
+        <td><strong class="bold">Empresa:</strong> {{ $people->business }}</td>
+        <td><strong class="bold">Cargo:</strong> {{ $people->position }}</td>
+    </tr>
     @endforeach
 </table>
 
+@if($player->inscription)
 <table class="table-full title">
     <tr>
         <td class="text-left" width="49%">
@@ -129,6 +131,6 @@
         </td>
     </tr>
 </table>
-
+@endif
 </body>
 </html>

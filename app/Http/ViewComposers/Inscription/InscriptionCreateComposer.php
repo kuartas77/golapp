@@ -35,35 +35,35 @@ class InscriptionCreateComposer
     {
         if (Auth::check()) {
 
-            $genders = Cache::remember(env('KEY_GENDERS'), now()->addYear(), function () {
+            $genders = Cache::remember('KEY_GENDERS', now()->addYear(), function () {
                 return config('variables.KEY_GENDERS');
             });
 
-            $positions = Cache::remember(env('KEY_POSITIONS'), now()->addYear(), function () {
+            $positions = Cache::remember('KEY_POSITIONS', now()->addYear(), function () {
                 return config('variables.KEY_POSITIONS');
             });
 
-            $blood_types = Cache::remember(env('KEY_BLOOD_TYPES'), now()->addYear(), function () {
+            $blood_types = Cache::remember('KEY_BLOOD_TYPES', now()->addYear(), function () {
                 return config('variables.KEY_BLOOD_TYPES');
             });
 
-            $averages = Cache::remember(env('KEY_AVERAGES'), now()->addYear(), function () {
+            $averages = Cache::remember('KEY_AVERAGES', now()->addYear(), function () {
                 return config('variables.KEY_AVERAGES');
             });
 
-            $training_groups = Cache::remember(env('KEY_TRAINING_GROUPS'), now()->addYear(), function () {
+            $training_groups = Cache::remember('KEY_TRAINING_GROUPS', now()->addYear(), function () {
                 return $this->trainingGroupRepository->getListGroupsSchedule(false);
             });
 
-            $dominant_profile = Cache::remember(env('KEY_DOMINANT_PROFILE'), now()->addYear(), function () {
+            $dominant_profile = Cache::remember('KEY_DOMINANT_PROFILE', now()->addYear(), function () {
                 return config('variables.KEY_DOMINANT_PROFILE');
             });
 
-            $competition_groups = Cache::remember(env('KEY_COMPETITION_GROUPS'), now()->addYear(), function () {
+            $competition_groups = Cache::remember('KEY_COMPETITION_GROUPS', now()->addYear(), function () {
                 return $this->competitionGroupRepository->getListGroupFullName();
             });
 
-            $relationships = Cache::remember(env('KEY_RELATIONSHIPS_SELECT'), now()->addYear(), function () {
+            $relationships = Cache::remember('KEY_RELATIONSHIPS_SELECT', now()->addYear(), function () {
                 return config('variables.KEY_RELATIONSHIPS_SELECT');
             });
 
