@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\BackOffice;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\BackOffice\SchoolCreateRequest;
-use App\Http\Requests\BackOffice\SchoolUpdateRequest;
 use App\Models\School;
-use App\Repositories\SchoolRepository;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use App\Repositories\SchoolRepository;
+use App\Http\Requests\BackOffice\SchoolCreateRequest;
+use App\Http\Requests\BackOffice\SchoolUpdateRequest;
 
 class SchoolController extends Controller
 {

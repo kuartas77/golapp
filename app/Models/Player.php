@@ -130,7 +130,7 @@ class Player extends Model
 
     public function inscription(): HasOne
     {
-        return $this->hasOne(Inscription::class)->where('year', now())->latest('year');
+        return $this->hasOne(Inscription::class)->where('year', now());
     }
 
     public function inscriptions(): HasMany

@@ -15,7 +15,7 @@
 @endsection
 @section('scripts')
     <script>
-        const isAdmin = {{auth()->user()->hasRole('administrador') ? 1 : 0}};
+        const isAdmin = {{isAdmin()}};
         const urlCurrent = "{{route('players.enabled')}}";
         $(document).ready(function () {
             const active_table = $('#table_players').DataTable({
@@ -87,10 +87,10 @@
         const format = (d) => {
             let rows = "";
             d.peoples.forEach(function (people) {
-                let tutor = people.is_tutor ? "Acudiente" : "";
+                let tutor = people.is_tutor ? "ACUDIENTE" : "";
                 rows += '<tr>' +
-                    '<th><strong>' + tutor + ' ' + people.relationship_name + '</strong></th><td>' + people.names + '</td>' +
-                    '<th><strong>teléfonos:</strong></th><td>' + people.phone + ' - ' + people.mobile + '</td>' +
+                    '<th><strong>' + tutor + '</strong> <span>' + people.relationship_name + '</span></th><td>' + people.names + '</td>' +
+                    '<th><span>teléfonos:</span></th><td>' + people.phone + ' - ' + people.mobile + '</td>' +
                     '</tr>';
             });
 

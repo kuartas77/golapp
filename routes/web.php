@@ -106,7 +106,7 @@ Route::middleware(['auth'])->group(function ($route) {
         $route->get('search_unique_code', [MasterController::class, 'searchUniqueCode'])->name('autocomplete.search_unique_code');
     });
 
-    $route->prefix('backoffice')->middleware(['role:super-admin'])->group(function ($route){});
+    
 
 });
 
