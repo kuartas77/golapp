@@ -24,26 +24,26 @@ class PlayerCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'unique_code' => 'required',
-            'names' => 'required',
-            'last_names' => 'required',
-            'gender' => 'required',
-            'date_birth' => 'required',
-            'place_birth' => 'required',
-            'identification_document' => 'required',
-            'rh' => 'required',
-            'eps' => 'required',
-            'email' => 'required',
-            'address' => 'required',
-            'municipality' => 'required',
-            'neighborhood' => 'required',
-            'zone' => 'nullable',
-            'commune' => 'nullable',
-            'phones' => 'required',
-            'mobile' => 'required',
-            'school' => 'required',
-            'degree' => 'required',
-            'photo' => 'nullable',
+            'unique_code' => ['required'],
+            'names' => ['required'],
+            'last_names' => ['required'],
+            'gender' => ['required'],
+            'date_birth' => ['required'],
+            'place_birth' => ['required'],
+            'identification_document' => ['required'],
+            'rh' => ['required'],
+            'eps' => ['required'],
+            'email' => ['required'],
+            'address' => ['required'],
+            'municipality' => ['required'],
+            'neighborhood' => ['required'],
+            'zone' => ['nullable'],
+            'commune' => ['nullable'],
+            'phones' => ['required'],
+            'mobile' => ['required'],
+            'school' => ['required'],
+            'degree' => ['required'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg'],
 
             'people'=> 'array',
             'people.*.relationship',
@@ -56,6 +56,14 @@ class PlayerCreateRequest extends FormRequest
             'people.*.profession',
             'people.*.business',
             'people.*.position',
+            'school_id' => ['required'],
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'school_id' => auth()->user()->school->id
+        ]);
     }
 }

@@ -27,6 +27,14 @@ class IncidentStore extends FormRequest
             'user_incident_id' => 'required',
             'incidence' => 'required|string',
             'description' => 'required|string',
+            'school_id' => ['required'],
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'school_id' => auth()->user()->school->id
+        ]);
     }
 }

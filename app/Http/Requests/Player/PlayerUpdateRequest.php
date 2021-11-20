@@ -55,6 +55,14 @@ class PlayerUpdateRequest extends FormRequest
             'people.*.profession',
             'people.*.business',
             'people.*.position',
+            'school_id' => ['required'],
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'school_id' => auth()->user()->school->id
+        ]);
     }
 }

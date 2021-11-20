@@ -49,7 +49,15 @@ class AsistUpdateRequest extends FormRequest
             'assistance_twenty_three' => ['nullable', 'string'],
             'assistance_twenty_four' => ['nullable', 'string'],
             'assistance_twenty_five' => ['nullable', 'string'],
-            'observations' => ['nullable', 'string']
+            'observations' => ['nullable', 'string'],
+            'school_id' => ['required'],
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'school_id' => auth()->user()->school->id
+        ]);
     }
 }

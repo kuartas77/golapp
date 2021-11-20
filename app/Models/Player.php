@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
@@ -53,9 +54,7 @@ class Player extends Model
         'email',
         'mobile',
         'eps',
-        'created_at',
-        'updated_at',
-        'deleted_at',
+        'school_id'
     ];
 
     protected $casts = [
@@ -123,11 +122,6 @@ class Player extends Model
         return url('img/user.png');
     }
 
-    public function getTutorPeopleAttribute()
-    {
-        return $this->peoples->where('is_tutor', true)->first();
-    }
-
     public function inscription(): HasOne
     {
         return $this->hasOne(Inscription::class)->where('year', now());
@@ -148,31 +142,8 @@ class Player extends Model
         return $this->hasMany(Payment::class, 'unique_code','unique_code');
     }
 
-    /**
-     * @param $method
-     * @param Request $request
-     * @return string|null
-     */
-    public function fileName($method, Request $request): ?string
+    public function schoolData(): BelongsTo
     {
-        $path = null;
-        if ($method == 'store') {
-            $path = 'user.png';
-        }
-        if ($request->hasFile('image')) {
-
-            if ($method == 'update') {
-                Storage::disk('public')->delete($this->photo);
-            }
-
-            $file = $request->file('image');
-            $path = $file->hashName('img');
-
-            $img = Image::make($file)->resize(420, 420, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-            Storage::disk('public')->put($path, (string)$img->encode());
-        }
-        return $path;
+        return $this->belongsTo(School::class, 'school_id');
     }
 }

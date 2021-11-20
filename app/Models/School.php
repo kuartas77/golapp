@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
@@ -16,7 +17,6 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
  * @property string email
  * @property bool is_enable
  * @property string logo
- * @property string logo_min
  */
 class School extends Model
 {
@@ -31,12 +31,25 @@ class School extends Model
         'email',
         'is_enable',
         'logo',
-        'logo_min',
     ];
 
     protected $casts = [
         'is_enable' => 'boolean'
     ];
+
+    public function setLogoAttribute($value)
+    {
+        if (!empty($value)) {
+            $this->attributes['logo'] = $value;
+        }
+    }
+    public function getLogoFileAttribute(): string
+    {
+        if (Storage::disk('public')->exists($this->attributes['logo'])) {
+            return url("storage/{$this->attributes['logo']}");
+        }
+        return url('img/ballon.png');
+    }
 
     public function users(): HasManyThrough
     {
