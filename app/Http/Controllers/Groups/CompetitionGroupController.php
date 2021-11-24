@@ -4,14 +4,13 @@ namespace App\Http\Controllers\Groups;
 
 use Illuminate\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use App\Models\CompetitionGroup;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\Factory;
-use App\Http\Requests\CompetitionGroupRequest;
 use App\Repositories\CompetitionGroupRepository;
 use Illuminate\Contracts\Foundation\Application;
+use App\Http\Requests\Groups\CompetitionGroupRequest;
 
 class CompetitionGroupController extends Controller
 {

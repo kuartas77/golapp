@@ -165,6 +165,20 @@ if (!function_exists('isAdmin')) {
     }
 }
 
+if (!function_exists('isSchool')) {
+    function isSchool(): bool
+    {
+        return auth()->user()->hasRole(['school']);
+    }
+}
+
+if (!function_exists('isInstructor')) {
+    function isInstructor(): bool
+    {
+        return auth()->user()->hasRole(['instructor']);
+    }
+}
+
 //
 //if (!function_exists('')){}
 //

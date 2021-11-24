@@ -98,7 +98,7 @@ class DataTableController extends Controller
     {
         abort_if(!$request->ajax(), 403);
 
-        return datatables()->collection($this->competitionGroupRepository->listGroupEnabled())->toJson();
+        return datatables()->collection($this->competitionGroupRepository->listGroupDisabled())->toJson();
     }
 
     /**

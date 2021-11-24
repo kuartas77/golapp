@@ -2,18 +2,19 @@
 
 namespace App\Http\Controllers\Groups;
 
-use App\Http\Controllers\Controller;
-use App\Models\TrainingGroup;
-use App\Repositories\TrainingGroupRepository;
 use Exception;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Routing\Redirector;
 use Illuminate\View\View;
+use Illuminate\Http\Request;
+use App\Models\TrainingGroup;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Routing\Redirector;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Contracts\View\Factory;
+use App\Repositories\TrainingGroupRepository;
+use Illuminate\Contracts\Foundation\Application;
+use App\Http\Requests\Groups\TrainingGroupRequest;
 
 class TrainingGroupController extends Controller
 {
@@ -35,6 +36,7 @@ class TrainingGroupController extends Controller
      */
     public function index()
     {
+       
         return view('groups.training.index');
     }
 
@@ -54,7 +56,7 @@ class TrainingGroupController extends Controller
      * @param Request $request
      * @return Application|Redirector|RedirectResponse
      */
-    public function store(Request $request)
+    public function store(TrainingGroupRequest $request)
     {
         $training_group = $this->repository->setTrainingGroup($request, true);
         if (is_null($training_group))
@@ -95,7 +97,7 @@ class TrainingGroupController extends Controller
      * @param TrainingGroup $trainingGroup
      * @return Application|Redirector|RedirectResponse
      */
-    public function update(Request $request, TrainingGroup $trainingGroup)
+    public function update(TrainingGroupRequest $request, TrainingGroup $trainingGroup)
     {
         $trainingGroup = $this->repository->setTrainingGroup($request, false, $trainingGroup);
         if (is_null($trainingGroup))

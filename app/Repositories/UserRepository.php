@@ -2,8 +2,9 @@
 
 namespace App\Repositories;
 
-use App\Models\User;
 use Exception;
+use App\Models\User;
+use App\Models\SchoolUser;
 use App\Traits\ErrorTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -33,8 +34,15 @@ class UserRepository
     public function create(FormRequest $request)
     {
         try {
+            $school = auth()->user()->school;
             $user = $this->model->query()->create($request->validated());
             $user->syncRoles([$request->input('rol_id')]);
+
+            $relationSchool = new SchoolUser();
+            $relationSchool->user_id = $user->id;
+            $relationSchool->school_id = $school->id;
+            $relationSchool->save();
+
             //$user->notify(new RegisterNotification($user, $request->input('password')));
             alert()->success(__('messages.user_stored_success'));
             Cache::forget('users');

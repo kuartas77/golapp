@@ -32,6 +32,7 @@ class CompetitionGroup extends Model
         'tournament_id',
         'user_id',
         'category',
+        'school_id'
     ];
 
     protected $casts = [

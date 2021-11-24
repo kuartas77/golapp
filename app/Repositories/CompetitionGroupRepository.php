@@ -30,12 +30,12 @@ class CompetitionGroupRepository
 
     public function listGroupEnabled()
     {
-        return $this->model->query()->with('tournament', 'professor')->get();
+        return $this->model->query()->school()->with('tournament', 'professor')->get();
     }
 
     public function listGroupDisabled()
     {
-        return $this->model->query()->onlyTrashedRelations()->get();
+        return $this->model->query()->school()->onlyTrashedRelations()->get();
     }
 
     public function createOrUpdateTeam(FormRequest $request, bool $create = true , $competitionGroup = null): Model
@@ -43,8 +43,12 @@ class CompetitionGroupRepository
         try {
             DB::beginTransaction();
         
-            if ($create) { $competitionGroup = $this->model->create($request->validated()); } 
-            else { $competitionGroup->update($request->validated()); }
+            if ($create) { 
+                $competitionGroup = $this->model->create($request->validated()); 
+            } 
+            else { 
+                $competitionGroup->update($request->validated()); 
+            }
 
             DB::commit();
             return $competitionGroup;

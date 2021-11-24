@@ -14,6 +14,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * @method static create(array $group)
@@ -31,12 +32,12 @@ class TrainingGroupRepository
 
     public function listGroupEnabled()
     {
-        return $this->model->query()->with('schedule.day', 'professor')->get();
+        return $this->model->query()->school()->with('schedule.day', 'professor')->get();
     }
 
     public function listGroupDisabled()
     {
-        return $this->model->onlyTrashedRelations()->get();
+        return $this->model->query()->onlyTrashedRelations()->school()->get();
     }
 
     /**
@@ -45,7 +46,7 @@ class TrainingGroupRepository
      * @param null $trainingGroup
      * @return mixed
      */
-    public function setTrainingGroup($request, $create, $trainingGroup = null)
+    public function setTrainingGroup(FormRequest $request, bool $create, TrainingGroup $trainingGroup = null)
     {
         $group = $this->setTrainingGroupParams($request);
 
@@ -54,7 +55,7 @@ class TrainingGroupRepository
             if ($create) {
                 $trainingGroup = $this->model->create($group);
             } else {
-                $trainingGroup->fill($group)->save();
+                $trainingGroup->update($group);
             }
             DB::commit();
             return $trainingGroup;
@@ -88,7 +89,8 @@ class TrainingGroupRepository
             'year_eleven' => $request->input('years.10', null),
             'year_twelve' => $request->input('years.11', null),
             'schedule_id' => $request->input('schedule_id'),
-            'day_id' => $request->input('day_id')
+            'day_id' => $request->input('day_id'),
+            'school_id' => $request->input('school_id')
         ];
     }
 
@@ -189,11 +191,12 @@ class TrainingGroupRepository
      */
     public function historicAssistData()
     {
-        return $this->model->query()->whereHas('assists', function ($query) {
-            $query->withTrashed()->where('year', '<', now()->year);
-        })->onlyTrashedRelationsFilter()->orderBy('created_at', 'desc')->get()->each(function ($group) {
-            $group->assists->setAppends(['url_historic','months']);
-        });
+        return $this->model->query()
+        ->whereHas('assists', fn ($query) => $query->withTrashed()->where('year', '<', now()->year))
+        ->onlyTrashedRelationsFilter()
+        ->orderBy('created_at', 'desc')
+        ->get()
+        ->each(fn ($group) => $group->assists->setAppends(['url_historic','months']) );
     }
 
     /**
@@ -201,11 +204,12 @@ class TrainingGroupRepository
      */
     public function historicPaymentData()
     {
-        return $this->model->query()->whereHas('payments', function ($query) {
-            $query->withTrashed()->where('year', '<', now()->year);
-        })->onlyTrashedRelationsPayments()->orderBy('created_at', 'desc')->get()->each(function ($group) {
-            $group->payments->setAppends(['url_historic']);
-        });
+        return $this->model->query()
+        ->whereHas('payments', fn ($query) => $query->withTrashed()->where('year', '<', now()->year))
+        ->onlyTrashedRelationsPayments()
+        ->orderBy('created_at', 'desc')
+        ->get()
+        ->each(fn ($group) => $group->payments->setAppends(['url_historic']));
     }
 
     /**

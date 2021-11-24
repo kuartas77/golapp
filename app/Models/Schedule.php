@@ -16,7 +16,7 @@ class Schedule extends Model
     
     protected $table = "schedules";
     protected $fillable = [
-        'schedule', 'day_id'
+        'schedule', 'day_id','school_id',
     ];
 
     protected $hidden = [

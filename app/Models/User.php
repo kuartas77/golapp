@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,8 +11,8 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class User extends Authenticatable
 {
@@ -55,6 +56,13 @@ class User extends Authenticatable
         'school'
     ];
 
+    public function setPasswordAttribute($value)
+    {
+        if($value){
+            $this->attributes['password'] = Hash::make($value);
+        }
+    }
+
     public function competition_groups(): HasMany
     {
         return $this->hasMany(CompetitionGroup::class);
@@ -77,6 +85,6 @@ class User extends Authenticatable
 
     public function school(): HasOneThrough
     {
-        return $this->hasOneThrough(School::class, SchoolUser::class, 'school_id','id');
+        return $this->hasOneThrough(School::class, SchoolUser::class, 'user_id','id','id','school_id');
     }
 }

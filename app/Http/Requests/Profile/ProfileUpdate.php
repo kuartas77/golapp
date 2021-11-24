@@ -24,18 +24,31 @@ class ProfileUpdate extends FormRequest
     public function rules(): array
     {
         return [
-            'date_birth' => 'nullable',
-            'identification_document' => 'nullable',
-            'gender' => 'nullable',
-            'address' => 'nullable',
-            'phone' => 'nullable',
-            'mobile' => 'nullable',
-            'studies' => 'nullable',
-            'references' => 'nullable',
-            'contacts' => 'nullable',
-            'experience' => 'nullable',
-            'position' => 'nullable',
-            'aptitude' => 'nullable',
+            'date_birth' => ['nullable'],
+            'identification_document' => ['nullable'],
+            'gender' => ['nullable'],
+            'address' => ['nullable'],
+            'phone' => ['nullable'],
+            'mobile' => ['nullable'],
+            'studies' => ['nullable'],
+            'references' => ['nullable'],
+            'contacts' => ['nullable'],
+            'experience' => ['nullable'],
+            'position' => ['nullable'],
+            'aptitude' => ['nullable'],
+            'school_id' => ['required']
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'school_id' => auth()->user()->school->id
+        ]);
     }
 }

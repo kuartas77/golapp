@@ -59,7 +59,8 @@ class TrainingGroup extends Model
         'year_twelve',
         'category',
         'schedule_id',
-        'day_id'
+        'day_id',
+        'school_id'
     ];
 
     protected $appends = [
@@ -75,41 +76,37 @@ class TrainingGroup extends Model
     {
         return $query->with([
             'schedule.day' => function ($query) {
-                $query->withTrashed();
+                $query->onlyTrashed();
             },
             'professor' => function ($query) {
-                $query->withTrashed();
+                $query->onlyTrashed();
             }
-        ])->withTrashed();
+        ])->onlyTrashed();
     }
 
     public function scopeOnlyTrashedRelationsFilter($query)
     {
         return $query->with([
-            'schedule.day' => function ($query) {
-                $query->withTrashed();
-            },
-            'professor' => function ($query) {
-                $query->withTrashed();
-            },
-            'assists' => function ($query) {
-                $query->select('training_group_id','year')->distinct()
-                    ->where('year','<', now()->year)->orderBy('year','desc')->withTrashed();
-            }
-        ])->withTrashed();
+            'schedule.day' => fn ($query) => $query->withTrashed(),
+            'professor' => fn ($query) => $query->withTrashed(),
+            'assists' => fn ($query) => $query->select('training_group_id','year')
+                ->distinct()
+                ->where('year','<', now()->year)
+                ->orderBy('year','desc')
+                ->withTrashed()
+        ])->onlyTrashed();
     }
 
     public function scopeOnlyTrashedRelationsPayments($query)
     {
         return $query->with([
-            'schedule.day' => function ($query) {
-                $query->withTrashed();
-            },
-            'payments' => function ($query) {
-                $query->select('training_group_id','year')->distinct()
-                    ->where('year','<', now()->year)->orderBy('year','desc')->withTrashed();
-            }
-        ])->withTrashed();
+            'schedule.day' => fn ($query) => $query->withTrashed(),
+            'payments' => fn ($query) => $query->select('training_group_id','year')
+                ->distinct()
+                ->where('year','<', now()->year)
+                ->orderBy('year','desc')
+                ->withTrashed()
+        ])->onlyTrashed();
     }
 
     public function getExplodeNameAttribute(): Collection

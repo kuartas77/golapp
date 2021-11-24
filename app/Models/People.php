@@ -34,7 +34,8 @@ class People extends Model
         'profession',
         'business',
         'position',
-        'relationship_name'
+        'relationship_name',
+        'school_id',
     ];
 
     public function setNamesAttribute($value)

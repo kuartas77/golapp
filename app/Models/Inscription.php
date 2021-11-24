@@ -70,9 +70,7 @@ class Inscription extends Model
         'period_two',
         'period_three',
         'period_four',
-        'created_at',
-        'updated_at',
-        'deleted_at',
+        'school_id',
     ];
 
     protected $withCount = [
