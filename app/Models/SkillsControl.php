@@ -31,9 +31,7 @@ class SkillsControl extends Model
         'yellow_cards',
         'qualification',
         'observation',
-        'created_at',
-        'updated_at',
-        'deleted_at',
+        'school_id',
     ];
 
     public function inscription(): BelongsTo

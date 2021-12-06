@@ -78,7 +78,7 @@ class PlayerController extends Controller
     public function edit(Player $player)
     {
         abort_unless(isAdmin(), 404);
-        $player->load('peoples');
+        $player->load('people');
         view()->share('edit', true);
         view()->share('player', $player);
         return view('player.edit');

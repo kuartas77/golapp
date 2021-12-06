@@ -24,7 +24,6 @@
         <th>Acudiente Nombres</th>
         <th>Acudiente Cedula</th>
         <th>Acudiente Teléfonos</th>
-        <th>Acudiente Correo</th>
     </tr>
     </thead>
     <tbody>
@@ -50,16 +49,17 @@
             <td>{{$player->eps}}</td>
             <td>{{$player->email}}</td>
             <td>{{$player->inscription ? $player->inscription->trainingGroup->name : ''}}</td>
-            @if(is_null($player->tutor_people))
-                <td>No Registra</td>
+            @if(is_null($player->people->isEmpty()))
                 <td>No Registra</td>
                 <td>No Registra</td>
                 <td>No Registra</td>
             @else
-                <td>{{$player->tutor_people->names}}</td>
-                <td>{{$player->tutor_people->identification_card}}</td>
-                <td>{{"{$player->tutor_people->phone} {$player->tutor_people->mobile}"}}</td>
-                <td>{{$player->tutor_people->acudiente_correo}}</td>
+                @php
+                    $tutor = $player->people->first();
+                @endphp
+                <td>{{$tutor->names}}</td>
+                <td>{{$tutor->identification_card}}</td>
+                <td>{{$tutor->phone ?? '' . " " . $tutor->mobile ?? '' }}</td>
             @endif
         </tr>
     @endforeach

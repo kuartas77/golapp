@@ -12,7 +12,7 @@ const onClickDetails = (tr, row) => {
 
 const format = (d) => {
     let data_people = "";
-    d.player.peoples.forEach(function (people) {
+    d.player.people.forEach(function (people) {
         let tutor = people.is_tutor ? "Acudiente" : "";
         data_people += '<tr>' +
             '<th><strong>' + tutor + ' ' + people.relationship_name + '</strong></th><td>' + people.names + '</td>' +
@@ -137,7 +137,6 @@ const columnDefs = [
     {"targets": [0, 1, 6, 10, 11, 12], "searchable": false},
     {"targets": [0, 1, 6, 8, 10, 11, 12], "orderable": false},
 ];
-
 $(document).ready(function () {
 
     const active_table = $('#active_table').DataTable({
@@ -180,7 +179,7 @@ $(document).ready(function () {
             $("#form_create #unique_code").val(response.unique_code).attr('readonly',true);
             $("#form_create #member_name").val(response.player.full_names);
             $("#form_create #player_id").val(response.player_id);
-            $("#form_create #start_date").val(response.start_date).attr('readonly',true);
+            $("#form_create #start_date").val(response.start_date).attr('disabled',true);
             $("#form_create #training_group_id").val(response.training_group_id).trigger('change');
             $("#form_create #competition_group_id").val(response.competition_group_id).trigger('change');
 
@@ -216,7 +215,4 @@ $(document).ready(function () {
         form.clearForm();
         $("#btn_add_inscription").attr('disabled', true);
     });
-
-
-
 });

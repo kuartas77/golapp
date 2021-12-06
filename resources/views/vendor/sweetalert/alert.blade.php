@@ -2,10 +2,11 @@
 @if (Session::has('alert.config'))
     <script>
         let config = {!! Session::get('alert.config') !!};
-        console.log(config)
+        // console.log(config)
         config.type = config.icon;
         delete config.icon
         delete config.customClass
+        delete config.timerProgressBar
         swal(config);
     </script>
 @endif

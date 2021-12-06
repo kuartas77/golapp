@@ -1,33 +1,25 @@
-# For more information: https://laravel.com/docs/sail
 version: '3'
 services:
-    laravel.test:
-        build:
-            context: ./vendor/laravel/sail/runtimes/8.0
-            dockerfile: Dockerfile
-            args:
-                WWWGROUP: '${WWWGROUP}'
-        image: sail-8.0/app
-        extra_hosts:
-            - 'host.docker.internal:host-gateway'
+    php:
+        restart: always
+        container_name: php
+        build: 
+            context: .
+            dockerfile: docker/php/Dockerfile
+        volumes:
+            - ./:/var/www/html
+            # - ./docker/php/prod.ini:/usr/local/etc/php/php.ini
         ports:
-            - '${APP_PORT:-80}:80'
+            - "9000:9000"
         environment:
-            WWWUSER: '${WWWUSER}'
-            LARAVEL_SAIL: 1
             XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
             XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
-        volumes:
-            - '.:/var/www/html'
         networks:
-            - sail
-        depends_on:
-            - mysql
-            - redis
-            - meilisearch
-            - selenium
+          - laravel
     mysql:
+        restart: always
         image: 'mysql:8.0'
+        container_name: mysql
         ports:
             - '${FORWARD_DB_PORT:-3306}:3306'
         environment:
@@ -37,57 +29,56 @@ services:
             MYSQL_PASSWORD: '${DB_PASSWORD}'
             MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
         volumes:
-            - 'sailmysql:/var/lib/mysql'
+            - 'laravelmysql:/var/lib/mysql'
         networks:
-            - sail
+            - laravel
         healthcheck:
             test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
             retries: 3
             timeout: 5s
+    nginx:
+        restart: always
+        image: nginx:stable-alpine
+        container_name: nginx
+        ports:
+            - "80:80"
+        volumes:
+            - ./public:/var/www/html/public
+            - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+            - ./docker/nginx/logs:/var/log/nginx
+        depends_on:
+          - php
+          - mysql
+        networks:
+          - laravel
     redis:
+        restart: always
         image: 'redis:alpine'
+        container_name: redis
         ports:
             - '${FORWARD_REDIS_PORT:-6379}:6379'
         volumes:
-            - 'sailredis:/data'
+            - 'laravelredis:/data'
         networks:
-            - sail
+            - laravel
         healthcheck:
             test: ["CMD", "redis-cli", "ping"]
             retries: 3
             timeout: 5s
-    meilisearch:
-        image: 'getmeili/meilisearch:latest'
-        ports:
-            - '${FORWARD_MEILISEARCH_PORT:-7700}:7700'
-        volumes:
-            - 'sailmeilisearch:/data.ms'
-        networks:
-            - sail
-        healthcheck:
-            test: ["CMD", "wget", "--no-verbose", "--spider",  "http://localhost:7700/health"]
-            retries: 3
-            timeout: 5s
     mailhog:
+        restart: always
         image: 'mailhog/mailhog:latest'
+        container_name: mailhog
         ports:
             - '${FORWARD_MAILHOG_PORT:-1025}:1025'
             - '${FORWARD_MAILHOG_DASHBOARD_PORT:-8025}:8025'
         networks:
-            - sail
-    selenium:
-        image: 'selenium/standalone-chrome'
-        volumes:
-            - '/dev/shm:/dev/shm'
-        networks:
-            - sail
+            - laravel
 networks:
-    sail:
+    laravel:
         driver: bridge
 volumes:
-    sailmysql:
+    laravelmysql:
         driver: local
-    sailredis:
-        driver: local
-    sailmeilisearch:
+    laravelredis:
         driver: local

@@ -54,18 +54,16 @@ class Assist extends Model
         'assistance_twenty_four',
         'assistance_twenty_five',
         'observations',
-        'created_at',
-        'updated_at',
-        'deleted_at',
+        'school_id',
     ];
 
     protected $appends = [];
 
     public function scopeOnlyTrashedRelations($query)
     {
-        return $query->with(['inscription' => function ($query) {
-            $query->withTrashed();
-        }])->withTrashed();
+        return $query->with([
+            'inscription' => fn ($query) => $query->withTrashed()
+        ])->withTrashed();
     }
 
     /**

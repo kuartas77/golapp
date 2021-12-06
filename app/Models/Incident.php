@@ -28,6 +28,7 @@ class Incident extends Model
         'incidence',
         'description',
         'slug_name',
+        'school_id',
     ];
 
     protected $appends = [

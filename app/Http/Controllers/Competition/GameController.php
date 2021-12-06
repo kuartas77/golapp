@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Competition;
 
 use App\Http\Controllers\Controller;
 use App\Models\Game;
-use App\Repositories\MatchRepository;
+use App\Repositories\GameRepository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\JsonResponse;
@@ -13,15 +13,11 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
 use Illuminate\View\View;
 
-class MatchController extends Controller
+class GameController extends Controller
 {
+    private GameRepository $repository;
 
-    /**
-     * @var MatchRepository
-     */
-    private MatchRepository $repository;
-
-    public function __construct(MatchRepository $repository)
+    public function __construct(GameRepository $repository)
     {
         $this->repository = $repository;
     }

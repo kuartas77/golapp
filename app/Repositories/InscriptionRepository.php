@@ -3,7 +3,6 @@
 namespace App\Repositories;
 
 use Exception;
-use Jenssegers\Date\Date;
 use App\Traits\ErrorTrait;
 use App\Models\Inscription;
 use Illuminate\Http\Request;
@@ -11,7 +10,6 @@ use App\Events\InscriptionAdded;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Barryvdh\Snappy\Facades\SnappyPdf as PDF;
 
 class InscriptionRepository
 {
@@ -47,9 +45,9 @@ class InscriptionRepository
     public function findById($id, bool $trashed = false)
     {
         if ($trashed) {
-            return Inscription::onlyTrashed()->findOrFail($id);
+            return Inscription::onlyTrashed()->school()->findOrFail($id);
         }
-        return Inscription::query()->findOrFail($id);
+        return Inscription::query()->school()->findOrFail($id);
 
     }
 
@@ -74,7 +72,7 @@ class InscriptionRepository
                     'year' => $inscriptionData['year']
                 ],$inscriptionData);
             }else{
-                $inscription->fill($inscriptionData)->save();
+                $inscription->update($inscriptionData);
             }
 
             DB::commit();
@@ -94,7 +92,7 @@ class InscriptionRepository
      */
     public function getInscriptionsEnabled()
     {
-       $inscriptions = $this->model->with(['player.peoples', 'trainingGroup.schedule.day'])
+       $inscriptions = $this->model->school()->with(['player.people', 'trainingGroup.schedule.day'])
             ->where('year', now())->get();
        if ($inscriptions->isNotEmpty()){
            $inscriptions->setAppends(['url_edit','url_update','url_show', 'url_impression']);
@@ -104,7 +102,7 @@ class InscriptionRepository
 
     public function searchInscriptionCompetition(array $fields)
     {
-        return $this->model->query()->where('unique_code', $fields['unique_code'])
+        return $this->model->query()->school()->where('unique_code', $fields['unique_code'])
             ->where('competition_group_id', '!=', $fields['competition_group_id'])
             ->where('year', now())
             ->first();
@@ -112,7 +110,7 @@ class InscriptionRepository
 
     public function searchInsUniqueCode($id)
     {
-        return $this->model->with('player')->findOrFail($id);
+        return $this->model->with('player')->school()->findOrFail($id);
     }
 
 }

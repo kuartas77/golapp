@@ -32,6 +32,7 @@ class CompetitionGroup extends Model
         'tournament_id',
         'user_id',
         'category',
+        'school_id'
     ];
 
     protected $casts = [
@@ -48,9 +49,10 @@ class CompetitionGroup extends Model
 
     public function scopeOnlyTrashedRelations($query)
     {
-        return $query->with(['tournament', 'professor' => function ($query) {
-            $query->withTrashed()->get();
-        }])->onlyTrashed();
+        return $query->with([
+            'tournament', 
+            'professor' => fn ($query) => $query->withTrashed()->get()
+        ])->onlyTrashed();
     }
 
     public function getFullNameGroupAttribute()

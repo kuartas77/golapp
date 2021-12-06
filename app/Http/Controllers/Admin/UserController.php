@@ -48,7 +48,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        view()->share('roles', Role::query()->where('id', '<>', 1)->pluck('name', 'id'));
+        view()->share('roles', Role::query()->whereNotIn('id', [1,2])->pluck('name', 'id'));
 
         return view('admin.user.create');
     }
@@ -89,7 +89,7 @@ class UserController extends Controller
     public function edit(User $user)
     {
         if (isAdmin()) {
-            view()->share('roles', Role::query()->where('id', '<>', 1)->pluck('name', 'id'));
+            view()->share('roles', Role::query()->whereNotIn('id', [1,2])->pluck('name', 'id'));
             view()->share('user', $user->loadMissing('roles'));
             $this->deleteCacheData('users');
             return view('admin.user.edit');

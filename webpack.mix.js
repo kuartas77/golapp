@@ -18,8 +18,10 @@ const mix = require('laravel-mix');
  mix.disableNotifications();
  
  mix.styles('public/css/default.css', 'public/css/default-mix.css').version();
+ mix.styles('public/css/all.css', 'public/css/all.css').version();
  mix.scripts('public/js/config.js','public/js/config-mix.js').version();
- 
+ mix.scripts('public/js/all.js','public/js/all.js').version();
+
  mix.copy('resources/js/app/adminInscriptionGCompetition.js','public/js/adminInscriptionGCompetition.js').version();
  mix.copy('resources/js/app/adminInscriptionGTraining.js','public/js/adminInscriptionGTraining.js').version();
  mix.copy('resources/js/app/assist.js','public/js/assist.js').version();

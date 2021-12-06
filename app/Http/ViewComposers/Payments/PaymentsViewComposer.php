@@ -23,15 +23,15 @@ class PaymentsViewComposer
     public function compose(View $view)
     {
         if (Auth::check()) {
-            if (auth()->user()->hasRole('administrador')) {
+            if (isSchool() || isAdmin()) {
                 $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(false);
-            } else {
+            } elseif(isInstructor()){
                 $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(false, auth()->id());
             }
 
             $view->with('yearMax', now()->year);
             $view->with('yearMin', now()->year);
-            $view->with('training_groups', $training_groups);
+            $view->with('training_groups', ($training_groups ?? collect()));
         }
     }
 }

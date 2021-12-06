@@ -1,1 +1,73 @@
-$("#training_group_id").select2({placeholder:"Seleccione...",allowClear:!0});let table=$("#active_table");function initTable(){table=$("#active_table").DataTable({paging:!1,ordering:!1,info:!1,scrollX:!0,scrollY:!0,columns:[{width:"3%"},{width:"5%"},{width:"5%"},{width:"7%"},{width:"7%"},{width:"7%"},{width:"7%"},{width:"7%"},{width:"7%"},{width:"7%"},{width:"7%"},{width:"7%"},{width:"7%"},{width:"7%"},{width:"7%"}]})}$(document).ready((()=>{$("#export").attr("disabled",!0),table=$("#active_table").DataTable(),$("#form_payments").validate({submitHandler:function(t){let e=$(t).serializeArray();$.get(url_current,e,(function(t){t.count>0?(table.destroy(),$("#table_body").empty(),$("#table_body").append(t.rows),initTable(),$("#export").attr("href",t.url_export)):($("#export").attr("disabled",!0),$("#export").attr("href","javascript:void(0)"),table.destroy(),$("#table_body").empty(),initTable())}))}})})),$("body").on("change","select.payments",(function(){let t=$(this),e=t.parent().parent().find("input, select").serializeArray(),a=t.parent().parent().find("input").val();e.push({name:"_method",value:"PUT"}),$.post(url_current+"/"+a,e,(t=>{t.data}))}));
+$('#training_group_id').select2({placeholder:'Seleccione...',allowClear: true});
+let table = $('#active_table');
+$(document).ready(() => {
+    $("#export").attr('disabled',true);
+    table = $('#active_table').DataTable();
+
+    $("#form_payments").validate({
+        submitHandler: function (form) {
+            let data = $(form).serializeArray();
+            $.get(url_current, data, function (response) {
+                if (response.count > 0) {
+                    table.destroy();
+                    $('#table_body').empty();
+                    $('#table_body').append(response.rows);
+                    initTable();
+                    $("#export").attr("href", response.url_export);
+                } else {
+                    $("#export").attr('disabled',true);
+                    $("#export").attr("href","javascript:void(0)");
+                    table.destroy();
+                    $('#table_body').empty();
+                    initTable();
+                }
+            });
+        }
+    })
+
+
+
+});
+
+// Evento click en los select de la tabla
+$('body').on('change', 'select.payments', function () {
+    let element = $(this);
+    let data = element.parent().parent().find('input, select').serializeArray();
+    let id = element.parent().parent().find('input').val();
+    data.push({name: '_method', value: 'PUT'});
+
+    $.post(url_current + '/' + id, data, (response) =>{
+        if (response.data) {
+            //
+        }
+    });
+
+});
+
+//inicia la tabla con datatables
+function initTable() {
+    table = $('#active_table').DataTable({
+        "paging": false,
+        "ordering": false,
+        "info": false,
+        "scrollX": true,
+        "scrollY": true,
+        "columns": [
+            {'width': '3%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '7%'},
+            {'width': '7%'},
+            {'width': '7%'},
+            {'width': '7%'},
+            {'width': '7%'},
+            {'width': '7%'},
+            {'width': '7%'},
+            {'width': '7%'},
+            {'width': '7%'},
+            {'width': '7%'},
+            {'width': '7%'},
+            {'width': '7%'},
+        ]
+    });
+}

@@ -31,9 +31,7 @@ class Game extends Model
         'rival_name',
         'final_score',
         'general_concept',
-        'created_at',
-        'updated_at',
-        'deleted_at',
+        'school_id',
     ];
 
     protected $appends = [

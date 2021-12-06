@@ -1,23 +1,14 @@
 @extends('layouts.app')
-@section('title', 'Deportista')
 @section('content')
-    @include('templates.bread_crumb', ['title' => 'Deportista', 'option' => 0])
-    <div class="row">
-        <div class="col-12">
-            <div class="card wizard-content">
-                <div class="card-body">
-                    {!! Form::model($player, ['route' => ['players.update', $player->unique_code], 'method' => 'patch', 'files'=>true, 'id'=>'form_player', 'class'=>'validation-wizard wizard-circle'])!!}
-
-                    @include('player.fields.basic_information')
-
-                    @includeWhen($player->peoples->isNotEmpty(), 'player.fields.family_information_edit')
-                    @includeWhen($player->peoples->isEmpty(), 'player.fields.family_information', ['peoples'=>[1,2,3]])
-
-                    {!! Form::close() !!}
-                </div>
-            </div>
+    <x-bread-crumb title="{{__('messages.player_title_edit', ['unique_code' => $player->unique_code])}}" :option="0"/>
+    <x-row-card-eight>
+        <div class="wizard-content">
+            {!! Form::model($player, ['route' => ['players.update', $player->unique_code], 'method' => 'patch', 'files'=>true, 'id'=>'form_player', 'class'=>'validation-wizard wizard-circle'])!!}
+                @include('player.fields.basic_information')
+                @include('player.fields.family_information', ['people'=> $player->people ?? [1,2,3]])
+            {!! Form::close() !!}
         </div>
-    </div>
+    </x-row-card-eight>
 @endsection
 @section('scripts')
     <script>
@@ -161,8 +152,23 @@
                     })
                 }
             });
-
         });
+
+
+        function readURL(input) {
+            let label = $(input).next('label')
+            if (input.files && input.files[0]) {
+                let reader = new FileReader();                
+                reader.onload = function (e) {
+                    $('#player-img').attr('src', e.target.result);
+                }                
+                reader.readAsDataURL(input.files[0]);
+                label.html(input.files[0].name)
+            }else{
+                label.html("Selecciona una imagen...")
+                $('#player-img').attr('src', 'http://golapp.local/img/user.png');                
+            }
+        }
 
         function events() {
             // campos los cuales se van a buscar en la tabla maestra para autocompletado
@@ -252,6 +258,9 @@
                 }
             });
 
+            $('#file-upload').on('change', function(){
+                readURL(this);
+            });
         }
     </script>
 @endsection

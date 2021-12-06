@@ -3,7 +3,8 @@
 @section('content')
     @include('templates.bread_crumb', ['title' => 'Usuario', 'option' => 0])
 <div class="row">
-    <div class="col-12">
+    <div class="col-2"></div>
+    <div class="col-8">
         <div class="card">
             <div class="card-body">
                 {!! Form::open(['route' => 'users.store', 'id'=>'form_user', 'class' => 'form-material m-t-0']) !!}
@@ -18,6 +19,7 @@
             </div>
         </div>
     </div>
+    <div class="col-2"></div>
 </div>
 @endsection
 @section('modals')

@@ -20,7 +20,8 @@ class Day extends Model
     protected $table = "days";
 
     protected $fillable = [
-        'days'
+        'days',
+        'school_id',
     ];
 
     protected $hidden = [

@@ -9,7 +9,7 @@ use App\Models\Player;
 use App\Repositories\AssistRepository;
 use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
-use App\Repositories\MatchRepository;
+use App\Repositories\GameRepository;
 use App\Repositories\PlayerRepository;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -17,37 +17,27 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ExportController extends Controller
 {
-    /**
-     * @var InscriptionRepository
-     */
-    private $inscriptionRepository;
-    /**
-     * @var AssistRepository
-     */
-    private $assistRepository;
-    /**
-     * @var IncidentRepository
-     */
-    private $incidentRepository;
-    /**
-     * @var MatchRepository
-     */
-    private $matchRepository;
-    /**
-     * @var PlayerRepository
-     */
-    private $playerRepository;
+    
+    private InscriptionRepository $inscriptionRepository;
+    
+    private AssistRepository $assistRepository;
+
+    private IncidentRepository $incidentRepository;
+
+    private GameRepository $gameRepository;
+
+    private PlayerRepository $playerRepository;
 
     public function __construct(InscriptionRepository $inscriptionRepository,
                                 AssistRepository $assistRepository,
                                 IncidentRepository $incidentRepository,
-                                MatchRepository $matchRepository,
+                                GameRepository $gameRepository,
                                 PlayerRepository $playerRepository)
     {
         $this->inscriptionRepository = $inscriptionRepository;
         $this->assistRepository = $assistRepository;
         $this->incidentRepository = $incidentRepository;
-        $this->matchRepository = $matchRepository;
+        $this->gameRepository = $gameRepository;
         $this->playerRepository = $playerRepository;
     }
 
@@ -117,7 +107,7 @@ class ExportController extends Controller
 
     public function exportMatchPDF($match)
     {
-        return $this->matchRepository->makePDF($match);
+        return $this->gameRepository->makePDF($match);
     }
 
     public function exportIncidentsPDF($slug_name)

@@ -95,6 +95,9 @@ return [
     'incident_created' => 'Se Ha Agregado Correctamente La Incidencia',
     'incident_fail' => '¡Se Ha Presentado Un Error!. Ha Sido Reportada La Falla',
 
+    
+    'player_title' => 'Agregar Deportista',
+    'player_title_edit' => 'Código Deportista: :unique_code',
     'player_created' =>'Deportista Creado Correctamente.',
     'player_updated' =>'Deportista Actualizado Correctamente.',
     'player_title' => 'Deportista :unique_code',

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Groups;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -24,18 +24,25 @@ class CompetitionGroupRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => ['required', 'string'],
+            'name' => ['required'],
+            'year' => ['required'],
             'tournament_id' => ['required', 'exists:tournaments,id'],
             'user_id' => ['required'],
-            'year' => ['required', 'date_format:Y'],
-            'school_id' => ['required'],
+            'category' => ['required'],
+            'school_id' => ['required']
         ];
     }
 
+    /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => auth()->user()->school->id
+            'school_id' => auth()->user()->school->id,
+            'category' => categoriesName((int)$this->year)
         ]);
     }
 }

@@ -30,14 +30,14 @@ class SendInscriptionEmail
     public function handle(InscriptionAdded $event)
     {
         $inscription = $event->inscription;
-        $inscription->load('peoples');
-        $tutor = $inscription->peoples->where('is_tutor', true)->first();
+        $inscription->load('people');
+        $tutor = $inscription->people->where('is_tutor', true)->first();
 
         $emails = [$inscription->email];
         if (!empty($tutor)){
             $inscription->email === $tutor->email ?? array_push($emails, $tutor->email);
         }
 
-        Mail::to($emails)->later(now()->addMinute(), new SendInscriptionMail($inscription));
+        // Mail::to($emails)->later(now()->addMinute(), new SendInscriptionMail($inscription));
     }
 }

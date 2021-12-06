@@ -4,10 +4,15 @@ namespace App\Traits;
 
 trait GeneralScopes
 {
-    public function scopeSchool($query, int $school_id = null)
+    public function scopeSchool($query)
     {
-        return $query->when($school_id, function($q) use($school_id){
-            $q->where('school_id', $school_id);
+        return $query->when(isSchool() || isInstructor(), fn($query) => $query->where('school_id', auth()->user()->school->id));
+    }
+
+    public function scopeTrainingTeam($query, $training_team_id = null)
+    {
+        return $query->when($training_team_id, function($q) use($training_team_id){
+            $q->where('training_team_id', $training_team_id);
         });
     }
 }

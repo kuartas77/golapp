@@ -82,7 +82,7 @@ class Migration
 
                 $peoplesIds = self::createPeoples($inscripcion);
 
-                $player->peoples()->sync($peoplesIds);
+                $player->people()->sync($peoplesIds);
 
                 $pagos = DB::connection('mysql_old')->table('pagos')->where('inscripcion_id', '=', $inscripcion->id)->get();
 

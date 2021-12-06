@@ -23,15 +23,8 @@ class PlayerRepository
     use ErrorTrait;
     use UploadFile;
 
-    private Player $model;
-
-    private PeopleRepository $peopleRepository;
-
-    public function __construct(Player $model, PeopleRepository $peopleRepository)
-    {
-        $this->model = $model;
-        $this->peopleRepository = $peopleRepository;
-    }
+    public function __construct(private Player $model, private PeopleRepository $peopleRepository)
+    {}
 
     public function getAttributes(): array
     {
@@ -40,7 +33,7 @@ class PlayerRepository
 
     public function getPlayersPeople()
     {
-        return Player::query()->with('peoples')->get();
+        return $this->model->query()->with('people')->school()->get();
     }
 
     public function createPlayer(PlayerCreateRequest $request): Player
@@ -51,14 +44,14 @@ class PlayerRepository
             $dataPlayer = $this->setAttributes($request);
             $player = $this->model->create($dataPlayer);
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
-            $player->peoples()->sync($peopleIds);
+            $player->people()->sync($peopleIds);
 
             DB::commit();
 
             return $player;
         } catch (\Exception $exception) {
             DB::rollBack();
-            $this->logError("PlayerRepository createPlayer", $exception);
+            $this->logError("PlayerRepository@createPlayer", $exception);
             return $this->model;
         }
     }
@@ -71,23 +64,21 @@ class PlayerRepository
             $dataPlayer = $this->setAttributes($request, $player);
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
             $player->peoples()->sync($peopleIds);
-            $save = $player->fill($dataPlayer)->save();
+            $save = $player->update($dataPlayer);
 
             DB::commit();
 
             return $save;
         } catch (\Exception $exception) {
             DB::rollBack();
-            $this->logError("PlayerRepository updatePlayer", $exception);
+            $this->logError("PlayerRepository@updatePlayer", $exception);
             return false;
         }
     }
 
     public function loadShow(Player $player): Player
     {
-        $player->load(['peoples', 'inscriptions' => function ($q) {
-            $q->withTrashedRelations();
-        }]);
+        $player->load(['people', 'inscriptions' => fn ($q) => $q->withTrashedRelations() ]);
         $player->inscriptions->setAppends(['format_average']);
         return $player;
     }
@@ -98,7 +89,7 @@ class PlayerRepository
      */
     public function makePdf(Player $player, bool $stream = true): string
     {
-        $player->load(['schoolData', 'peoples','inscription' => fn($query) => $query->with(['trainingGroup','competitionGroup'])]);
+        $player->load(['schoolData', 'people','inscription' => fn($query) => $query->with(['trainingGroup','competitionGroup'])]);
 
         $data['player'] = $player;
         $data['school'] = $player->schoolData;
@@ -118,20 +109,22 @@ class PlayerRepository
     {
         $collection = new Collection(['enabled' => collect(), 'disabled' => collect()]);
 
-        $playersEnabled = $this->model->query()->whereHas('inscription')
-            ->with(['peoples', 'inscription.trainingGroup.schedule.day', 'payments' => function ($q) {
-                $q->withTrashed();
-            }])
-            ->get();
+        $playersEnabled = $this->model->query()->school()
+        ->whereHas('inscription')
+        ->with([
+            'inscription.trainingGroup.schedule.day', 
+            'people' => fn($query)=> $query->where('is_tutor', true),
+            'payments' => fn ($q) => $q->withTrashed() 
+        ])->get();
 
-        $playersDisabled = $this->model->query()->whereDoesntHave('inscription')
-            ->with(['peoples', 'inscription.trainingGroup.schedule.day', 'payments' => function ($q) {
-                $q->withTrashed();
-            }])
-            ->get();
+        $playersDisabled = $this->model->query()->school()
+        ->whereDoesntHave('inscription')
+        ->with([
+            'inscription.trainingGroup.schedule.day', 
+            'people' => fn($query)=> $query->where('is_tutor', true),
+            'payments' => fn ($q) => $q->withTrashed() 
+        ])->get();
 
-        $playersEnabled->setAppends(['tutor_people', 'pay_years']);
-        $playersDisabled->setAppends(['tutor_people', 'pay_years']);
         $collection['enabled'] = $playersEnabled;
         $collection['disabled'] = $playersDisabled;
 
@@ -144,7 +137,7 @@ class PlayerRepository
      */
     public function checkDocumentExists($request): bool
     {
-        return $this->model->query()->where('identification_document', $request->input('doc'))->exists();
+        return $this->model->query()->school()->where('identification_document', $request->input('doc'))->exists();
     }
 
     /**
@@ -153,14 +146,25 @@ class PlayerRepository
      */
     public function checkUniqueCode($request): bool
     {
-        return $this->model->query()->withTrashed()->where('unique_code', $request->input('unique_code'))->exists();
+        return $this->model->query()->school()->withTrashed()->where('unique_code', $request->input('unique_code'))->exists();
     }
 
     public function searchUniqueCode(array $fields)
     {
-        return $this->model->query()->whereDoesntHave('inscription', function ($q) {
-            $q->where('year', now());
-        })->where('unique_code', $fields['unique_code'])->first();
+        return $this->model->query()->school()->whereDoesntHave('inscription', fn ($q) => $q->where('year', now()))
+        ->firstWhere('unique_code', $fields['unique_code']);
+    }
+
+    public function getListPlayersNotInscription(bool $isTrashed = true)
+    {
+        $enabled = $this->model->query()->school()->select(['id','unique_code'])->whereHas('inscription')->get();
+
+        if ($isTrashed) {
+            $players = $this->model->query()->school()->whereNotIn('id', $enabled->pluck('id'))->pluck('unique_code');
+        } else {
+            $players = $enabled->pluck('unique_code');
+        }
+        return $players;
     }
 
     /**
@@ -172,7 +176,7 @@ class PlayerRepository
     private function setAttributes(FormRequest $request, Player $player = null)
     {
         $dataPlayer = $request->only($this->getAttributes());
-        if($file_name = $this->saveFile($request, 'image')){
+        if($file_name = $this->saveFile($request, 'player')){
             $dataPlayer['photo'] = $file_name;
         }
         $dataPlayer['date_birth'] = Date::parse(request('date_birth'));

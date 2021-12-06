@@ -32,6 +32,7 @@ class Profile extends Model
         'experience',
         'position',
         'aptitude',
+        'school_id',
     ];
 
     protected $appends = ['url_update', 'url_show'];

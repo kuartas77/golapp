@@ -1,7 +1,7 @@
 <h6>Información Familiar</h6>
 <section>
-
-    @foreach($peoples as $people)
+    <h6 class="row block-helper justify-content-center">Los Campos con (<span class="text-danger">*</span>) son requeridos.</h6>
+    @foreach($people as $people)
         <fieldset class="col-md-12  p-2">
             <legend class="w-auto text-center">Familiar</legend>
 
@@ -9,7 +9,7 @@
                 <input type="checkbox"
                        name="people[{{$loop->index}}][tutor]"
                        id="tutor_{{$loop->index}}"
-                       class="chk-col-blue"
+                       class="chk-col-blue" {{ is_object($people) ? $people->is_tutor ? 'checked':'': ''}}
                        value="true">
                 <label for="tutor_{{$loop->index}}">¿Es Acudiente?</label>
             </div>
@@ -32,7 +32,7 @@
 
                 <div class="col-md-3">
                     <div class="form-group">
-                        {!! Form::label("people[{$loop->index}][identification_card]", 'Número De Cédula') !!}
+                        {!! Form::label("people[{$loop->index}][identification_card]", 'Número De Cédula') !!}<span class="text-danger">*</span>
                         {!! Form::text("people[{$loop->index}][identification_card]", null, ['class' => 'form-control form-control-sm']) !!}
                     </div>
                 </div>
