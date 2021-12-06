@@ -12,20 +12,8 @@ use App\Repositories\InscriptionRepository;
 class MasterController extends Controller
 {
 
-    /**
-     * @var PlayerRepository
-     */
-    private PlayerRepository $playerRepository;
-    /**
-     * @var InscriptionRepository
-     */
-    private InscriptionRepository $inscriptionRepository;
-
-    public function __construct(PlayerRepository $playerRepository, InscriptionRepository $inscriptionRepository)
-    {
-        $this->playerRepository = $playerRepository;
-        $this->inscriptionRepository = $inscriptionRepository;
-    }
+    public function __construct(private PlayerRepository $playerRepository, private InscriptionRepository $inscriptionRepository)
+    {}
 
     /**
      * @param Request $request
@@ -65,18 +53,7 @@ class MasterController extends Controller
     public function listUniqueCode(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 401);
-
-        $enabled = Player::query()->whereHas('inscriptions', function ($q) {
-            $q->where('year', now());
-        });
-
-        if ($request->filled('trashed')) {
-            $players = Player::query()->whereHas('inscriptions', function ($q) use ($enabled) {
-                $q->withTrashed()->whereNotIn('player_id', $enabled->pluck('id'));
-            })->pluck('unique_code');
-        } else {
-            $players = $enabled->pluck('unique_code');
-        }
+        $players = $this->playerRepository->getListPlayersNotInscription($request->filled('trashed'));
         return $this->responseJson($players);
     }
 

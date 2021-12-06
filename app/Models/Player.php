@@ -12,9 +12,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 /**
  * @property mixed inscriptions
@@ -132,7 +133,7 @@ class Player extends Model
         return $this->hasMany(Inscription::class);
     }
 
-    public function peoples(): BelongsToMany
+    public function people(): BelongsToMany
     {
         return $this->belongsToMany(People::class, 'peoples_players');
     }
@@ -145,5 +146,10 @@ class Player extends Model
     public function schoolData(): BelongsTo
     {
         return $this->belongsTo(School::class, 'school_id');
+    }
+
+    public function scopeSchool($query)
+    {
+        return $query->when(isSchool() || isInstructor(), fn($query) => $query->where('school_id', auth()->user()->school->id));
     }
 }

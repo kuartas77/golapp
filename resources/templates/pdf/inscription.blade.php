@@ -69,7 +69,7 @@
         <tr>
             <td colspan="3" class="text-center"><strong class="bold">Familiares</strong></td>
         </tr>
-        @foreach($player->peoples as $people)
+        @foreach($player->people as $people)
         <tr>
             <td colspan="3" class="text-left">
                 <strong

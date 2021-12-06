@@ -2,20 +2,20 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
-use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Schedule\DayController;
 use App\Http\Controllers\Assists\AssistController;
 use App\Http\Controllers\Players\PlayerController;
+use App\Http\Controllers\Competition\GameController;
 use App\Http\Controllers\Payments\PaymentController;
-use App\Http\Controllers\Competition\MatchController;
 use App\Http\Controllers\Groups\TrainingGroupController;
 use App\Http\Controllers\Tournaments\TournamentController;
 use App\Http\Controllers\Groups\CompetitionGroupController;
 use App\Http\Controllers\Inscription\InscriptionController;
 use App\Http\Controllers\Groups\InscriptionCGroupController;
 use App\Http\Controllers\Groups\InscriptionTGroupController;
+use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
+use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 
 Route::get('/', function () {
     return redirect(\route('login'));
@@ -34,7 +34,7 @@ Route::middleware(['auth'])->group(function ($route) {
     $route->resource("inscriptions", InscriptionController::class)->except(['create','show','destroy']);
     $route->resource("payments", PaymentController::class)->only(['index','update']);
     $route->resource("assists", AssistController::class)->except(['create','edit', 'destroy']);
-    $route->resource("matches", MatchController::class)->except(['show']);
+    $route->resource("matches", GameController::class)->except(['show']);
     $route->resource("players", PlayerController::class);
 
     $route->resource("profiles", ProfileController::class)->except(['index','create','store','destroy']);

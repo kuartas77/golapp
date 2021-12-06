@@ -1,1 +1,218 @@
-const onClickDetails=(t,e)=>{e.child.isShown()?(e.child.hide(),t.removeClass("shown")):(e.child(format(e.data())).show(),t.addClass("shown"))},format=t=>{let e="";return t.player.peoples.forEach((function(t){let a=t.is_tutor?"Acudiente":"";e+="<tr><th><strong>"+a+" "+t.relationship_name+"</strong></th><td>"+t.names+"</td><th><strong>teléfonos:</strong></th><td>"+t.phone+" - "+t.mobile+"</td><th></th><td></td>"})),'<table class="w-100">'+e+"<tr><th>EPS:</th><td><strong>"+t.player.eps+"</strong></td><th>Fotos:</th><td>"+validateCheck(t.photos)+"</td><th>Fotocopia Doc Identificación:</th><td>"+validateCheck(t.copy_identification_document)+"</td></tr><tr><th>Certificado EPS,SISBEN:</th><td>"+validateCheck(t.eps_certificate)+"</label></td><th>Certificado médico:</th><td>"+validateCheck(t.medic_certificate)+"</label></td><th>Fotocopia Doc Acudiente:</th><td>"+validateCheck(t.study_certificate)+"</label></td></tr><tr><th>Peto:</th><td>"+validateCheck(t.overalls)+"</label></td><th>Balón:</th><td>"+validateCheck(t.ball)+"</label></td><th>Morral:</th><td>"+validateCheck(t.presentation_uniform)+"</label></td></tr><tr><th>Uniforme presentación:</th><td>"+validateCheck(t.presentation_uniform)+"</label></td><th>Uniforme competencia:</th><td>"+validateCheck(t.competition_uniform)+"</label></td><th>Pagó inscripción en torneo:</th><td>"+validateCheck(t.tournament_pay)+"</label></td></tr></table>"},validateCheck=t=>1!==t?'<span class="label label-warning">NO</span>':'<span class="label label-success">SI</span>',confirmAction=(t,e)=>{const a=$(t).closest("form");e.preventDefault();let i="";i=$(t).hasClass("btn-danger")?"Desactivar Este Deportista":"Activar Este Deportista",Swal.fire({title:app_name,text:`¿Estas Seguro Que Quieres ${i}?`,type:"warning",showCancelButton:!0,confirmButtonColor:"#3085d6",cancelButtonColor:"#d33",confirmButtonText:"Sí",cancelButtonText:"No"}).then((t=>{t.value&&a.submit()}))};function filterTable(){let t=this.api().columns(8);$("<input type='search' class='' placeholder='Buscar Categoría' />").appendTo($(t.header()).empty()).on("keyup change search",(function(){t.search()!==this.value&&t.search(this.value).draw()})),$.fn.dataTable.tables({visible:!0,api:!0}).columns.adjust()}const columns=[{className:"details-control",orderable:!1,data:null,defaultContent:""},{data:"id",render:function(t,e,a){return"<img class='media-object img-rounded' src='"+a.player.photo+"' width='60' height='60' alt='"+a.player.full_names+"'>"}},{data:"unique_code"},{data:"player.identification_document"},{data:"player.full_names"},{data:"player.date_birth"},{data:"player.gender"},{data:"start_date"},{data:"category",name:"category",className:"text-center"},{data:"training_group.name"},{data:"medic_certificate",render:function(t){return 1===t?'<span class="label label-success">SI</span>':'<span class="label label-warning">NO</span>'}},{data:"player.mobile"},{data:"id",render:function(t,e,a){let i="";return isAdmin&&(i='<a href="javascript:void(0)" data-toggle="modal" data-target-custom="#create_inscription" data-backdrop="static"\ndata-keyboard="false" data-href="'+a.url_edit+'" data-update="'+a.url_update+'" class="btn btn-warning btn-xs edit_inscription"><i class="fas fa-pencil-alt"></i></a>'),'<div class="btn-group"><a href="'+a.url_show+'" class="btn btn-info btn-xs"><i class="fas fa-eye"></i></a>'+i+'<a href="'+a.url_impression+'" target="_blank" class="btn btn-info btn-xs"><i class="fas fa-print" aria-hidden="true"></i></a></div>'}}],columnDefs=[{targets:[0,1,6,10,11,12],searchable:!1},{targets:[0,1,6,8,10,11,12],orderable:!1}];$(document).ready((function(){const t=$("#active_table").DataTable({lengthMenu:[[10,30,50,70,100],[10,30,50,70,100]],order:[[2,"desc"]],scrollX:!0,processing:!0,serverSide:!0,deferRender:!0,fixedColumns:!0,columns:columns,columnDefs:columnDefs,initComplete:filterTable,ajax:$.fn.dataTable.pipeline({url:url_inscriptions_enabled,pages:5})});$('a[data-toggle="tab"]').on("shown.bs.tab",(function(){$.fn.dataTable.tables({visible:!0,api:!0}).columns.adjust()})),$("#active_table tbody").on("click","td.details-control",(function(){let e=$(this).closest("tr"),a=t.row(e);onClickDetails(e,a)})),$("#active_table tbody").on("click","a.edit_inscription",(function(){let t=$(this),e=$("#form_create");e.clearForm(),$.get(t.data("href"),(function(a){$("#modal_title").html(`Actualizar Inscripción: ${a.unique_code}`),e.attr("action",t.data("update")),0===e.find("#method").length&&e.prepend("<input name='_method' value='PUT' type='hidden' id='method'>"),$("#form_create #unique_code").val(a.unique_code).attr("readonly",!0),$("#form_create #member_name").val(a.player.full_names),$("#form_create #player_id").val(a.player_id),$("#form_create #start_date").val(a.start_date).attr("readonly",!0),$("#form_create #training_group_id").val(a.training_group_id).trigger("change"),$("#form_create #competition_group_id").val(a.competition_group_id).trigger("change"),$("#form_create #photos").prop("checked",1==a.photos),$("#form_create #copy_identification_document").prop("checked",1==a.copy_identification_document),$("#form_create #eps_certificate").prop("checked",1==a.eps_certificate),$("#form_create #medic_certificate").prop("checked",1==a.medic_certificate),$("#form_create #study_certificate").prop("checked",1==a.study_certificate),$("#form_create #overalls").prop("checked",1==a.overalls),$("#form_create #ball").prop("checked",1==a.ball),$("#form_create #bag").prop("checked",1==a.bag),$("#form_create #presentation_uniform").prop("checked",1==a.presentation_uniform),$("#form_create #competition_uniform").prop("checked",1==a.competition_uniform),$("#form_create #tournament_pay").prop("checked",1==a.tournament_pay),$("#create_inscription").modal("show"),$("#btn_add_inscription").attr("disabled",!1)})).fail((function(){Swal.fire({title:app_name,text:"No Tienes Los Permisos Suficientes.",type:"info"})}))})),$(".create_inscription").on("click",(function(){let t=$("#form_create");$("#modal_title").html("Nueva Inscripción"),t.attr("action",urlCreate),t.find("#method").remove(),$("#form_create #start_date").attr("disabled",!1),t.clearForm(),$("#btn_add_inscription").attr("disabled",!0)}))}));
+const onClickDetails = (tr, row) => {
+    if (row.child.isShown()) {
+        // This row is already open - close it
+        row.child.hide();
+        tr.removeClass('shown');
+    } else {
+        // Open this row
+        row.child(format(row.data())).show();
+        tr.addClass('shown');
+    }
+}
+
+const format = (d) => {
+    let data_people = "";
+    d.player.people.forEach(function (people) {
+        let tutor = people.is_tutor ? "Acudiente" : "";
+        data_people += '<tr>' +
+            '<th><strong>' + tutor + ' ' + people.relationship_name + '</strong></th><td>' + people.names + '</td>' +
+            '<th><strong>teléfonos:</strong></th><td>' + people.phone + ' - ' + people.mobile + '</td>' +
+            '<th></th><td></td>'
+            '</tr>';
+    });
+
+    return '<table class="w-100">' +
+        data_people +
+        '<tr>' +
+        '<th>EPS:</th><td><strong>' + d.player.eps + '</strong></td>' +
+        '<th>Fotos:</th><td>' + validateCheck(d.photos) + '</td>' +
+        '<th>Fotocopia Doc Identificación:</th><td>' + validateCheck(d.copy_identification_document) + '</td>' +
+        '</tr>' +
+        '<tr>' +
+        '<th>Certificado EPS,SISBEN:</th><td>' + validateCheck(d.eps_certificate) + '</label></td>' +
+        '<th>Certificado médico:</th><td>' + validateCheck(d.medic_certificate) + '</label></td>' +
+        '<th>Fotocopia Doc Acudiente:</th><td>' + validateCheck(d.study_certificate) + '</label></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<th>Peto:</th><td>' + validateCheck(d.overalls) + '</label></td>' +
+        '<th>Balón:</th><td>' + validateCheck(d.ball) + '</label></td>' +
+        '<th>Morral:</th><td>' + validateCheck(d.presentation_uniform) + '</label></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<th>Uniforme presentación:</th><td>' + validateCheck(d.presentation_uniform) + '</label></td>' +
+        '<th>Uniforme competencia:</th><td>' + validateCheck(d.competition_uniform) + '</label></td>' +
+        '<th>Pagó inscripción en torneo:</th><td>' + validateCheck(d.tournament_pay) + '</label></td>' +
+        '</tr>' +
+        '</table>';
+}
+
+const validateCheck = (value) => {
+    return value !== 1 ? '<span class="label label-warning">NO</span>' : '<span class="label label-success">SI</span>';
+}
+
+const confirmAction = (element, event) => {
+    const form = $(element).closest('form');
+    event.preventDefault();
+    let message = "";
+    if ($(element).hasClass('btn-danger')) {
+        message = "Desactivar Este Deportista"
+    } else {
+        message = "Activar Este Deportista"
+    }
+    Swal.fire({
+        title: app_name,
+        text: `¿Estas Seguro Que Quieres ${message}?`,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No'
+    }).then((result) => {
+        if (result.value) {
+            form.submit();
+        }
+    })
+}
+
+function filterTable() {
+    // Apply the search
+    let column = this.api().columns(8);
+    $("<input type='search' class='' placeholder='Buscar Categoría' />")
+        .appendTo($(column.header()).empty())
+        .on('keyup change search', function () {
+            if (column.search() !== this.value) {
+                column.search(this.value)
+                    .draw();
+            }
+        });
+    $.fn.dataTable.tables({visible: true, api: true}).columns.adjust();
+}
+
+const columns = [
+    {
+        "className": 'details-control',
+        "orderable": false,
+        "data": null,
+        "defaultContent": ''
+    },
+    {
+        data: 'id', "render": function (data, type, row) {
+            return "<img class='media-object img-rounded' src='" + row.player.photo + "' width='60' height='60' alt='" + row.player.full_names + "'>";
+        }
+    },
+    {data: 'unique_code'},//2
+    {data: 'player.identification_document'},//3
+    {data: 'player.full_names'},//4
+    {data: 'player.date_birth'},//5
+    {data: 'player.gender'},//6
+    {data: 'start_date'},//7
+    {data: 'category', name: 'category', "className": 'text-center'},//8
+    {data: 'training_group.name'},//9
+    {
+        data: 'medic_certificate', "render": function (data) {
+            return data === 1 ? '<span class="label label-success">SI</span>' : '<span class="label label-warning">NO</span>';
+        }
+    },//10
+    {data: 'player.mobile'},//11
+    {
+        data: 'id',
+        "render": function (data, type, row) {
+            let edit = "";
+            if(isAdmin){
+                edit = '<a href="javascript:void(0)" data-toggle="modal" data-target-custom="#create_inscription" data-backdrop="static"\n' +
+                    'data-keyboard="false" data-href="' + row.url_edit + '" data-update="'+row.url_update+'" class="btn btn-warning btn-xs edit_inscription"><i class="fas fa-pencil-alt"></i></a>';
+            }
+
+            return '<div class="btn-group">' +
+                '<a href="' + row.url_show + '" class="btn btn-info btn-xs"><i class="fas fa-eye"></i></a>' +
+                edit +
+                '<a href="' + row.url_impression + '" target="_blank" class="btn btn-info btn-xs"><i class="fas fa-print" aria-hidden="true"></i></a>' +
+                '</div>';
+        }
+    },//12
+];
+
+const columnDefs = [
+    {"targets": [0, 1, 6, 10, 11, 12], "searchable": false},
+    {"targets": [0, 1, 6, 8, 10, 11, 12], "orderable": false},
+];
+$(document).ready(function () {
+
+    const active_table = $('#active_table').DataTable({
+        "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
+        "order": [[2, "desc"]],
+        "scrollX": true,
+        "processing": true,
+        "serverSide": true,
+        "deferRender": true,
+        "fixedColumns": true,
+        "columns": columns,
+        "columnDefs": columnDefs,
+        initComplete: filterTable,
+        "ajax": $.fn.dataTable.pipeline({
+            url: url_inscriptions_enabled,
+            pages: 5 // number of pages to cache
+        })
+    });
+
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function () {
+        $.fn.dataTable.tables({visible: true, api: true}).columns.adjust();
+    });
+
+    $('#active_table tbody').on('click', 'td.details-control', function () {
+        let tr = $(this).closest('tr');
+        let row = active_table.row(tr);
+        onClickDetails(tr, row);
+    });
+
+    $('#active_table tbody').on('click', 'a.edit_inscription', function () {
+        let btn = $(this);
+        let form = $("#form_create");
+        form.clearForm();
+        $.get(btn.data('href'), function(response){
+            $("#modal_title").html(`Actualizar Inscripción: ${response.unique_code}`);
+            form.attr('action', btn.data('update'));
+            if (form.find('#method').length === 0){
+                form.prepend("<input name='_method' value='PUT' type='hidden' id='method'>");
+            }
+            $("#form_create #unique_code").val(response.unique_code).attr('readonly',true);
+            $("#form_create #member_name").val(response.player.full_names);
+            $("#form_create #player_id").val(response.player_id);
+            $("#form_create #start_date").val(response.start_date).attr('disabled',true);
+            $("#form_create #training_group_id").val(response.training_group_id).trigger('change');
+            $("#form_create #competition_group_id").val(response.competition_group_id).trigger('change');
+
+            $("#form_create #photos").prop('checked', response.photos == 1 );
+            $("#form_create #copy_identification_document").prop('checked', response.copy_identification_document == 1 );
+            $("#form_create #eps_certificate").prop('checked', response.eps_certificate == 1 );
+            $("#form_create #medic_certificate").prop('checked', response.medic_certificate == 1 );
+            $("#form_create #study_certificate").prop('checked', response.study_certificate == 1 );
+            $("#form_create #overalls").prop('checked', response.overalls == 1 );
+            $("#form_create #ball").prop('checked', response.ball == 1 );
+            $("#form_create #bag").prop('checked', response.bag == 1 );
+            $("#form_create #presentation_uniform").prop('checked', response.presentation_uniform == 1 );
+            $("#form_create #competition_uniform").prop('checked', response.competition_uniform == 1 );
+            $("#form_create #tournament_pay").prop('checked', response.tournament_pay == 1 );
+
+            $("#create_inscription").modal('show');
+            $("#btn_add_inscription").attr('disabled', false);
+        }).fail(function() {
+            Swal.fire({
+                title: app_name,
+                text: 'No Tienes Los Permisos Suficientes.',
+                type: 'info',
+            });
+        });
+    });
+
+    $(".create_inscription").on('click',function (){
+        let form = $("#form_create");
+        $("#modal_title").html("Nueva Inscripción");
+        form.attr('action', urlCreate);
+        form.find('#method').remove();
+        $("#form_create #start_date").attr('disabled',false);
+        form.clearForm();
+        $("#btn_add_inscription").attr('disabled', true);
+    });
+});

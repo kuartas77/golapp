@@ -14,7 +14,7 @@ use App\Models\CompetitionGroup;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 
-class MatchRepository
+class GameRepository
 {
     use Fields;
     use PDFTrait;
@@ -32,17 +32,10 @@ class MatchRepository
 
     public function getDatatable($year)
     {
-
         return Game::with([
-            'tournament' => function ($q) {
-                $q->withTrashed();
-            },
-            'competitionGroup' => function ($q) {
-                $q->with('professor')->withTrashed();
-            }
-        ])->whereYear('created_at', $year)
-            ->orderBy('date', 'desc')
-            ->get();
+            'tournament' => fn ($q) => $q->withTrashed(),
+            'competitionGroup' => fn ($q) => $q->with('professor')->withTrashed(),
+        ])->whereYear('created_at', $year)->orderBy('date', 'desc')->get();
     }
 
     /**
@@ -64,9 +57,10 @@ class MatchRepository
      */
     public function makeMatch($competitionGroup): object
     {
-        $competitionGroup->load(['inscriptions' => function ($q) {
-            $q->with('player');
-        }, 'tournament:id,name', 'professor:id,name']);
+        $competitionGroup->load([
+            'inscriptions' => fn ($q) => $q->with('player'), 
+            'tournament:id,name', 'professor:id,name'
+        ]);
         $rows = "";
         $count = 0;
         foreach ($competitionGroup->inscriptions as $inscription) {
@@ -227,19 +221,15 @@ class MatchRepository
     public function makePDF($matchId)
     {
         $match = $this->model->query()->with([
-            'tournament' => function ($query) {
-                $query->withTrashed();
-            },
-            'competitionGroup' => function ($query) {
-                $query->with(['professor' => function ($query) {
-                    $query->withTrashed();
-                }])->withTrashed();
-            },
-            'skillsControls' => function ($query) {
-                $query->with(['inscription' => function ($query) {
-                    $query->with('player')->withTrashed();
-                }])->withTrashed();
-            }
+            'tournament' => fn ($query) => $query->withTrashed(),
+            'competitionGroup' => fn ($query) => 
+                $query->with([
+                    'professor' => fn ($query) => $query->withTrashed()
+                ])->withTrashed(),
+            'skillsControls' => fn ($query) => $query->with([
+                'inscription' => fn ($query) => $query->with('player')->withTrashed()
+            ])->withTrashed()
+            
         ])->findOrFail($matchId);
 
 

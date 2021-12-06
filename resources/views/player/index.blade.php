@@ -86,7 +86,7 @@
 
         const format = (d) => {
             let rows = "";
-            d.peoples.forEach(function (people) {
+            d.people.forEach(function (people) {
                 let tutor = people.is_tutor ? "ACUDIENTE" : "";
                 rows += '<tr>' +
                     '<th><strong>' + tutor + '</strong> <span>' + people.relationship_name + '</span></th><td>' + people.names + '</td>' +

@@ -55,12 +55,12 @@ class PaymentRepository
      */
     public function filterSelect($request, bool $deleted = false): Builder
     {
-        $query = $this->model->query()->with('inscription.player');
+        $query = $this->model->query()->school()->with('inscription.player');
 
         if ($deleted) {
-            $query = $this->model->with(['inscription' => function ($query) {
-                $query->with('player')->withTrashed();
-            }])->withTrashed();
+            $query = $this->model->school()->with([
+                'inscription' => fn ($query) => $query->with('player')->withTrashed()
+            ])->withTrashed();
         }
 
         $query->where('year', $request->input('year', now()->year));
@@ -89,8 +89,9 @@ class PaymentRepository
     public function dataGraphicsYear(int $year = 0): Collection
     {
         $year = $year == 0 ? now()->year : $year;
+        $school_id = (isSchool() || isInstructor()) ? auth()->user()->school->id : null;
 
-        return Cache::remember("graphics.year.{$year}", now()->addMinutes(5), function () use ($year) {
+        return Cache::remember("graphics.year.{$year}", now()->addMinutes(10), function () use ($year, $school_id) {
             $consult = DB::table('payments')->selectRaw("
             COALESCE(SUM(case when january = 1 then 1 else 0 end),0) january_payment,
             COALESCE(SUM(case when january = 2 then 1 else 0 end),0) january_due,
@@ -116,7 +117,9 @@ class PaymentRepository
             COALESCE(SUM(case when november = 2 then 1 else 0 end),0) november_due,
             COALESCE(SUM(case when december = 1 then 1 else 0 end),0) december_payment,
             COALESCE(SUM(case when december = 2 then 1 else 0 end),0) december_due")
-                ->where('year', $year)->first();
+            ->where('year', $year)
+            ->where('school_id', $school_id)
+            ->first();
 
             $labels = config('variables.KEY_LABEL_MONTHS');
 

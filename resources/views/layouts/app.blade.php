@@ -3,7 +3,7 @@
 
 <head>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'Laravel') }} | @yield('title')</title>
+    <title>{{ config('app.name', 'Laravel') }}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <meta name="X-UA-Compatible" content="IE=edge, chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1">

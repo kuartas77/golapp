@@ -49,9 +49,10 @@ class CompetitionGroup extends Model
 
     public function scopeOnlyTrashedRelations($query)
     {
-        return $query->with(['tournament', 'professor' => function ($query) {
-            $query->withTrashed()->get();
-        }])->onlyTrashed();
+        return $query->with([
+            'tournament', 
+            'professor' => fn ($query) => $query->withTrashed()->get()
+        ])->onlyTrashed();
     }
 
     public function getFullNameGroupAttribute()

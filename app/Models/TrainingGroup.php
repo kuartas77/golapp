@@ -75,12 +75,8 @@ class TrainingGroup extends Model
     public function scopeOnlyTrashedRelations($query)
     {
         return $query->with([
-            'schedule.day' => function ($query) {
-                $query->onlyTrashed();
-            },
-            'professor' => function ($query) {
-                $query->onlyTrashed();
-            }
+            'schedule.day' => fn ($query) => $query->onlyTrashed(),
+            'professor' => fn ($query) => $query->onlyTrashed()
         ])->onlyTrashed();
     }
 

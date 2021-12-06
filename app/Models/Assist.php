@@ -61,9 +61,9 @@ class Assist extends Model
 
     public function scopeOnlyTrashedRelations($query)
     {
-        return $query->with(['inscription' => function ($query) {
-            $query->withTrashed();
-        }])->withTrashed();
+        return $query->with([
+            'inscription' => fn ($query) => $query->withTrashed()
+        ])->withTrashed();
     }
 
     /**

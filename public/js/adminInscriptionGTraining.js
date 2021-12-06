@@ -1,1 +1,89 @@
-$("#training_group_origin").select2({allowClear:!0}),$("#training_group_destiny").select2({allowClear:!0}),$(".space").slimScroll({size:"8px",height:"100%",color:"#FBCC01"}),$("#training_group_origin").on("change",(function(){let e=$("#training_group_destiny").val();if($(this).val()===e)return alertSwal("Los grupos seleccionados son los mismos!"),void $("#origin").empty();changeSelect($(this).val(),"#origin")})),$("#training_group_destiny").on("change",(function(){let e=$("#training_group_origin").val();if($(this).val()===e)return alertSwal("Los grupos seleccionados son los mismos!"),void $("#destiny").empty();changeSelect($(this).val(),"#destiny")}));const changeSelect=(e,r)=>{""!==e?$.get(urlCurrent+`/${e}`,(({rows:e})=>{$(r).empty().append(e)})):$(r).empty()},alertSwal=(e,r="warning")=>{Swal.fire(app_name,e,r)};$(document).ready((()=>{dragula([document.querySelector("#origin"),document.querySelector("#destiny"),{removeOnSpill:!0}]).on("drop",(function(e,r,o,i){let n=$("#training_group_origin").val(),a=$("#training_group_destiny").val(),t=$(e).attr("data-id"),l={};return n===a?(alertSwal("Los grupos seleccionados son los mismos!"),void o.appendChild(e)):""===n?(alertSwal("Debes de seleccionar un grupo de origen!"),void o.appendChild(e)):""===a?(alertSwal("Debes de seleccionar un grupo de destino!"),void o.appendChild(e)):("destiny"===$(r).attr("id")?(l.origin_group=n,l.target_group=a):(l.origin_group=a,l.target_group=n),void $.post(urlCurrent+`/${t}`,l,(({data:r})=>{r?alertSwal("Se Agregó Al Grupo Correctamente.","success"):(alertSwal("No Se Ha Realizado El Cambio De Grupo.","error"),o.appendChild(e))})))}))}));
+$("#training_group_origin").select2({allowClear: true});
+$("#training_group_destiny").select2({allowClear: true});
+$('.space').slimScroll({
+    size: "8px",
+    height: '100%',
+    color: '#FBCC01'
+});
+
+$('#training_group_origin').on('change', function () {
+    let destiny = $('#training_group_destiny').val();
+    if ($(this).val() === destiny){
+        alertSwal('Los grupos seleccionados son los mismos!');
+        $("#origin").empty();
+        return;
+    }
+    changeSelect($(this).val(), "#origin");
+});
+
+$('#training_group_destiny').on('change', function () {
+    let origin = $('#training_group_origin').val();
+    if ($(this).val() === origin){
+        alertSwal('Los grupos seleccionados son los mismos!');
+        $("#destiny").empty();
+        return;
+    }
+    changeSelect($(this).val(), "#destiny");
+});
+
+const changeSelect = (element_id, container) => {
+    if (element_id !== '') {
+        $.get(urlCurrent + `/${element_id}`, ({rows}) => {
+            $(container).empty().append(rows);
+        });
+    } else {
+        $(container).empty();
+    }
+}
+
+const alertSwal = (message, type = 'warning') => {
+    Swal.fire(app_name,
+        message,
+        type
+    );
+}
+
+$(document).ready(() => {
+    dragula([
+        document.querySelector('#origin'),
+        document.querySelector('#destiny'),
+        {removeOnSpill: true}
+    ]).on('drop', function (el, target, source, sibling) {
+        let origin = $('#training_group_origin').val();
+        let destiny = $('#training_group_destiny').val();
+        let id = $(el).attr('data-id');
+        let assignment = {};
+
+        if (origin === destiny) {
+            alertSwal('Los grupos seleccionados son los mismos!');
+            source.appendChild(el);
+            return;
+        }
+        if (origin === '') {
+            alertSwal('Debes de seleccionar un grupo de origen!');
+            source.appendChild(el);
+            return;
+        }
+        if (destiny === '') {
+            alertSwal('Debes de seleccionar un grupo de destino!');
+            source.appendChild(el);
+            return;
+        }
+
+        if ($(target).attr('id') === 'destiny') {
+            assignment.origin_group = origin;
+            assignment.target_group = destiny;
+        } else {
+            assignment.origin_group = destiny;
+            assignment.target_group = origin;
+        }
+        $.post(urlCurrent + `/${id}`, assignment, ({data}) =>{
+            if (data){
+                alertSwal("Se Agregó Al Grupo Correctamente.", "success");
+            }else{
+                alertSwal("No Se Ha Realizado El Cambio De Grupo.", "error");
+                source.appendChild(el);
+            }
+        });
+    });
+});

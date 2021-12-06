@@ -1,1 +1,64 @@
-const formMatches=$("#form_matches");$("#date").bootstrapMaterialDatePicker({time:!1,clearButton:!1,lang:"es",cancelText:"Cancelar",okText:"Aceptar",minDate:moment().subtract(1,"year"),maxDate:moment()}),$(".timepicker").bootstrapMaterialDatePicker({format:"hh:mm A",shortTime:!0,time:!0,date:!1,lang:"es",clearButton:!1,cancelText:"Cancelar",okText:"Aceptar"}),$(document).ready((()=>{getAutoCompletes(),formMatches.validate({rules:{competition_group_id:{required:!0},tournament_id:{required:!0},num_match:{required:!0,numbers:!0},place:{required:!0},user_id:{required:!0},rival_name:{required:!0},date:{required:!0},hour:{required:!0},"final_score[soccer]":{required:!0,numbers:!0},"final_score[rival]":{required:!0,numbers:!0}}}),$("#form_search").on("submit",(function(e){e.preventDefault();let r=$("#form_search #unique_code").val(),a=$("#competition_group_id").val();if(""===r)return;const t={};t.unique_code=r,t.competition_group_id=a,$.get(urlSearch,t,(({data:e})=>{null==e||findMemberInMatch(e.id)?alertSwalError():(member_add=e,$("#member_name_add").removeClass("hide"),$("#member_name").val(member_add.full_names),$("#accept_add").attr("disabled",!1))})).fail((()=>{alertSwalError()}))}))}));
+const formMatches = $('#form_matches');
+$("#date").bootstrapMaterialDatePicker({
+    time: false,
+    clearButton: false,
+    lang: 'es',
+    cancelText: 'Cancelar',
+    okText: 'Aceptar',
+    minDate: moment().subtract(1, 'year'),
+    maxDate: moment()
+});
+
+$(".timepicker").bootstrapMaterialDatePicker({
+    format: 'hh:mm A',
+    shortTime: true,
+    time: true,
+    date: false,
+    lang: 'es',
+    clearButton: false,
+    cancelText: 'Cancelar',
+    okText: 'Aceptar',
+});
+
+$(document).ready(() => {
+    getAutoCompletes();
+    formMatches.validate({
+        rules: {
+            competition_group_id: {required: true},
+            tournament_id: {required: true},
+            num_match: {required: true, numbers: true},
+            place: {required: true},
+            user_id: {required: true},
+            rival_name: {required: true},
+            date: {required: true},
+            hour: {required: true},
+            "final_score[soccer]": {required: true, numbers: true},
+            "final_score[rival]": {required: true, numbers: true},
+        }
+    });
+
+    $('#form_search').on('submit', function(e) {
+
+        e.preventDefault();
+        let code = $('#form_search #unique_code').val();
+        let group_id = $('#competition_group_id').val();
+        if (code === "") return;
+        const form = {};
+        form.unique_code = code;
+        form.competition_group_id = group_id;
+        $.get(urlSearch, form, ({data}) => {
+            if (data != null && !findMemberInMatch(data.id)) {
+
+                member_add = data;
+                $("#member_name_add").removeClass('hide');
+                $("#member_name").val(member_add.full_names);
+                $('#accept_add').attr('disabled', false);
+
+            } else {
+                alertSwalError();
+            }
+        }).fail(() => {
+            alertSwalError();
+        });
+    });
+});

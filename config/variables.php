@@ -17,7 +17,7 @@ return [
         4 => 'Jueves',
         5 => 'Viernes',
         6 => 'Sábado',
-        0 => 'Domingo'
+        7 => 'Domingo'
     ],
     'KEY_ASSIST_LETTER' => [
         'as' => 'X',

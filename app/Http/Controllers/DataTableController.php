@@ -13,38 +13,12 @@ use Illuminate\Http\Request;
 
 class DataTableController extends Controller
 {
-    /**
-     * @var InscriptionRepository
-     */
-    private $inscriptionRepository;
-    /**
-     * @var TrainingGroupRepository
-     */
-    private $trainingGroupRepository;
-    /**
-     * @var CompetitionGroupRepository
-     */
-    private $competitionGroupRepository;
-    /**
-     * @var PlayerRepository
-     */
-    private $playerRepository;
-    /**
-     * @var DayRepository
-     */
-    private $dayRepository;
-
-    public function __construct(InscriptionRepository $inscriptionRepository,
-                                TrainingGroupRepository $trainingGroupRepository,
-                                CompetitionGroupRepository $competitionGroupRepository,
-                                PlayerRepository $playerRepository, DayRepository $dayRepository)
-    {
-        $this->inscriptionRepository = $inscriptionRepository;
-        $this->trainingGroupRepository = $trainingGroupRepository;
-        $this->competitionGroupRepository = $competitionGroupRepository;
-        $this->playerRepository = $playerRepository;
-        $this->dayRepository = $dayRepository;
-    }
+    public function __construct(private InscriptionRepository $inscriptionRepository,
+                                private TrainingGroupRepository $trainingGroupRepository,
+                                private CompetitionGroupRepository $competitionGroupRepository,
+                                private PlayerRepository $playerRepository, 
+                                private DayRepository $dayRepository)
+    {}
 
     /**
      * @param Request $request

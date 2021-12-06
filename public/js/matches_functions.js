@@ -1,1 +1,91 @@
-const selectPositions=()=>{let e="<option value=''>Selecciona...</option>";return $.each(positions,(function(o,t){e+="<option value='"+o+"'>"+t+"</option>"})),e},selectOptions=()=>"<option value='1'>Sí</option><option value='0' selected>No</option>",selectMinutes=()=>{let e="<option value=''>Selecciona...</option>";for(let o=0;o<=90;o++)e+=0===o?"<option value='"+o+"' selected>"+o+" MIN</option>":"<option value='"+o+"'>"+o+" MIN</option>";return e},selectGoals=()=>{let e="<option value='0'>0</option>";for(let o=1;o<=10;o++)e+="<option value='"+o+"'>"+o+"</option>";return e},selectScore=()=>{let e="<option value='' selected>Seleccionar...</option>";for(let o=1;o<=5;o++)e+="<option value='"+o+"'>"+o+"</option>";return e},selectYellowCards=()=>"<option value='0'>0</option><option value='1'>1</option><option value='2'>2</option>",selectRedCards=()=>"<option value='0'>0</option><option value='1'>1</option>",alertSwalError=()=>{Swal.fire("Atención!","El Deportista ya hace parte del equipo ó no se encontro.","warning")},findMemberInMatch=e=>{let o=!1;return $("input.inscriptions").each((function(){$(this).val()==e&&(o=!0)})),o},getAutoCompletes=()=>{$.get(urlList,(({data:e})=>{$("#unique_code").typeahead({source:e,scrollBar:!0})})),$.get(urlAutoComplete,{fields:["lugar","nombre_rival"]},(({lugar:e,nombre_rival:o})=>{$("#place").typeahead({source:e,scrollBar:!0}),$("#rival_name").typeahead({source:o,scrollBar:!0})}))},cancelAddMember=()=>{member_add=null,$("#member_name_add").addClass("hide"),$("#unique_code").val(""),$("#member_name").val(""),$("#accept_add").attr("disabled",!0)};
+const selectPositions = () => {
+    let options = "<option value=''>Selecciona...</option>";
+    $.each(positions, function (i, d) {
+        options += "<option value='" + i + "'>" + d + "</option>";
+    });
+    return options;
+}
+
+const selectOptions = () => {
+    return "<option value='1'>Sí</option><option value='0' selected>No</option>";
+}
+
+const selectMinutes = () => {
+    let select = "<option value=''>Selecciona...</option>";
+    for (let index = 0; index <= 90; index++) {
+        if (index === 0) {
+            select += "<option value='" + index + "' selected>" + index + " MIN</option>";
+        } else {
+            select += "<option value='" + index + "'>" + index + " MIN</option>";
+        }
+    }
+    return select;
+}
+
+const selectGoals = () => {
+    let select = "<option value='0'>0</option>";
+    for (let index = 1; index <= 10; index++) {
+        select += "<option value='" + index + "'>" + index + "</option>";
+    }
+    return select;
+}
+
+const selectScore = () => {
+    let score = "<option value='' selected>Seleccionar...</option>";
+    for (let index = 1; index <= 5; index++) {
+        score += "<option value='" + index + "'>" + index + "</option>";
+    }
+    return score;
+}
+
+const selectYellowCards = () => {
+    return "<option value='0'>0</option><option value='1'>1</option><option value='2'>2</option>";
+}
+
+const selectRedCards = () => {
+    return "<option value='0'>0</option><option value='1'>1</option>";
+}
+
+const alertSwalError = () => {
+    Swal.fire('Atención!',
+        'El Deportista ya hace parte del equipo ó no se encontro.',
+        'warning'
+    );
+}
+
+const findMemberInMatch = (inscription_id) => {
+    let find = false;
+    $('input.inscriptions').each(function () {
+        if ($(this).val() == inscription_id)
+            find = true;
+    });
+    return find;
+}
+
+const getAutoCompletes = () => {
+    $.get(urlList, ({data}) => {
+        $('#unique_code').typeahead({
+            source: data,
+            scrollBar: true
+        });
+    });
+    $.get(urlAutoComplete, {fields: ['lugar', 'nombre_rival']}, ({lugar, nombre_rival}) => {
+        $('#place').typeahead({
+            source: lugar,
+            scrollBar: true
+        });
+
+        $('#rival_name').typeahead({
+            source: nombre_rival,
+            scrollBar: true
+        });
+    });
+}
+
+const cancelAddMember = () => {
+    member_add = null;
+    $("#member_name_add").addClass('hide');
+    $("#unique_code").val('');
+    $("#member_name").val('');
+    $('#accept_add').attr('disabled', true);
+}

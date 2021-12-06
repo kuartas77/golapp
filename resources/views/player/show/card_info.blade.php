@@ -73,7 +73,7 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="row">
-                                    @foreach($player->peoples as $people)
+                                    @foreach($player->people as $people)
                                         <div class="col-md-3">
                                             <h5 class="text-center">{{$people->is_tutor ? '(Acudiente)' : ''}} {{\Illuminate\Support\Str::upper($people->relationship_name)}}</h5>
                                             <ul class="small-list">

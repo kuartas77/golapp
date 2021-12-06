@@ -42,6 +42,7 @@ class InscriptionController extends Controller
      */
     public function store(InscriptionRequest $request): JsonResponse
     {
+        abort_unless(isAdmin(), 401);
         $inscription = $this->repository->setInscription($request);
         if (is_null($inscription) || $inscription->getDirty() > 0) {
             return response()->json([__('messages.ins_create_success')]);

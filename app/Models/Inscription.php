@@ -71,6 +71,7 @@ class Inscription extends Model
         'period_three',
         'period_four',
         'school_id',
+        'deleted_at'
     ];
 
     protected $withCount = [
@@ -95,15 +96,10 @@ class Inscription extends Model
     public function scopeWithTrashedRelations($query)
     {
         return $query->withTrashed()->with([
-            'payments' => function ($q) {
-                $q->withTrashed();
-            },
-            'assistance' => function ($q) {
-                $q->withTrashed();
-            },
-            'skillsControls' => function ($q) {
-                $q->withTrashed();
-            }]);
+            'payments' => fn ($query) => $query->withTrashed(),
+            'assistance' => fn ($query) => $query->withTrashed(),
+            'skillsControls' => fn ($query) => $query->withTrashed()
+        ]);
     }
 
 
@@ -184,5 +180,10 @@ class Inscription extends Model
             'qualification' => round($this->skillsControls->avg('qualification'), 1),
             'positions' => $this->skillsControls->pluck('position')->unique()->implode(','),
         ];
+    }
+
+    public function scopeCodeYear($query, string $code, int $year)
+    {
+        return $query->where('unique_code', $code)->where('year', $year);
     }
 }

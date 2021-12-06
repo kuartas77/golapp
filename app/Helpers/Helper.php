@@ -1,6 +1,7 @@
 <?php
 
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -11,7 +12,8 @@ if (!function_exists('getPay')) {
      */
     function getPay($value): string
     {
-        return config('variables.KEY_PAYMENTS_SELECT')[$value];
+        $payments = config('variables.KEY_PAYMENTS_SELECT');
+        return in_array($value, $payments)? $payments[$value] : number_format($value, 0,'','');
     }
 }
 
@@ -34,7 +36,8 @@ if (!function_exists('getEloquentSqlWithBindings')) {
 if (!function_exists('checkAssists')) {
     function checkAssists($value): string
     {
-        return config('variables.KEY_ASSIST_LETTER')[$value];
+        $assist = config('variables.KEY_ASSIST_LETTER');
+        return in_array($value, $assist) ? $assist[$value] : '-';
     }
 }
 
@@ -86,29 +89,15 @@ if (!function_exists('getMonths')) {
 if (!function_exists('classDaysMonth')) {
     function classDaysMonth($year, int $month, array $classDays): Collection
     {
-        $date = Carbon::createFromDate($year, $month, 01);
-        $year = $date->year;
-        $month = $date->month;
-        $daysInMonth = $date->daysInMonth;
+        $date = Carbon::createFromDate($year, $month);
+
+        $periods = CarbonPeriod::create($date->copy()->startOfMonth(), $date->copy()->endOfMonth());
         $dayList = collect();
 
-        foreach (range(1, $daysInMonth) as $day) 
-        {
-            $date = Carbon::createFromDate($year, $month, $day);                        
-
-            if (in_array(1, $classDays)){$dayList->push(arrayDay($date));}//isMonday
-                
-            if (in_array(2, $classDays)){$dayList->push(arrayDay($date));}//isTuesday
-
-            if (in_array(3, $classDays)){$dayList->push(arrayDay($date));}//isWednesday
-
-            if (in_array(4, $classDays)){$dayList->push(arrayDay($date));}//isThursday
-
-            if (in_array(5, $classDays)){$dayList->push(arrayDay($date));}//isFriday
-
-            if (in_array(6, $classDays)){$dayList->push(arrayDay($date));}//isSaturday
-
-            if (in_array(0, $classDays)){$dayList->push(arrayDay($date));}//isSunday
+        foreach ($periods as $date) {
+            if(in_array($date->isoWeekday(), $classDays)){
+                $dayList->push(arrayDay($date));
+            }
         }
         return $dayList;
     }
@@ -168,14 +157,14 @@ if (!function_exists('isAdmin')) {
 if (!function_exists('isSchool')) {
     function isSchool(): bool
     {
-        return auth()->user()->hasRole(['school']);
+        return auth()->user()->hasAnyRole(['school']);
     }
 }
 
 if (!function_exists('isInstructor')) {
     function isInstructor(): bool
     {
-        return auth()->user()->hasRole(['instructor']);
+        return auth()->user()->hasAnyRole(['instructor']);
     }
 }
 

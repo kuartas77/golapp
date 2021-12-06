@@ -25,14 +25,18 @@
 </div>
 @push('scripts')
     <script>
+        const urlSearchPlayers = "{{route('autocomplete.search_unique_code')}}?unique=true";
+        const urlList = "{{route('autocomplete.list_code_unique')}}?trashed=true";
+        
         optionsDateTimePicker.timePicker24Hour = false;
         optionsDateTimePicker.locale.format = 'YYYY-MM-DD';
         optionsDateTimePicker.timePicker = false;
         optionsDateTimePicker.autoUpdateInput = false;
-        optionsDateTimePicker.minDate = moment().startOf('year');
+        optionsDateTimePicker.minDate = moment().startOf('month');
         optionsDateTimePicker.maxDate = moment().add(1, 'years').endOf('year');
         optionsDateTimePicker.minYear = parseInt(moment().format('YYYY'), 10);
         optionsDateTimePicker.maxYear = parseInt(moment().add(1, 'years').format('YYYY'), 10);
+        // optionsDateTimePicker.singleDatePicker = false;
         const urlCreate = "{{route('inscriptions.store')}}";
 
         let options = {
@@ -42,10 +46,34 @@
             resetForm: true        // reset the form after successful submit
         };
 
-        const urlSearchPlayers = "{{route('autocomplete.search_unique_code')}}?unique=true";
-        const urlList = "{{route('autocomplete.list_code_unique')}}?trashed=true";
+        function alertSwalMessage(message, type = 'warning') {
+            Swal.fire('Atención!',
+                message,
+                type
+            );
+        }
+
+        function getAutoCompletes(){
+            $.get(urlList, ({data}) => {
+                $('#unique_code').typeahead({
+                    source: data,
+                    scrollBar: true
+                });
+            });
+        }
+
+        function showResponse(responseText, statusText, xhr, $form) {
+            $(active_table).DataTable().clearPipeline().draw();
+            $('#create_inscription').modal('hide');
+            alertSwalMessage(xhr.responseJSON[0], 'success');
+        }
+
+        function showError(xhr,  statusText, serverError, $form) {
+            alertSwalMessage(xhr.responseJSON[0], 'error');
+        }
+
+        getAutoCompletes();
         $(document).ready(function () {
-            getAutoCompletes();
             $('.date').inputmask("yyyy-mm-dd");
             $(".form-control").attr('autocomplete', 'off');
             $(".select2").select2({dropdownParent: $('#create_inscription')});
@@ -80,30 +108,5 @@
                 });
             });
         });
-
-        const alertSwalMessage = (message, type = 'warning') => {
-            Swal.fire('Atención!',
-                message,
-                type
-            );
-        }
-
-        const getAutoCompletes = () => {
-            $.get(urlList, ({data}) => {
-                $('#unique_code').typeahead({
-                    source: data,
-                    scrollBar: true
-                });
-            });
-        }
-
-        function showResponse(responseText, statusText, xhr, $form) {
-            $('#create_inscription').modal('hide');
-            alertSwalMessage(xhr.responseJSON[0], 'success');
-        }
-
-        function showError(xhr,  statusText, serverError, $form) {
-            alertSwalMessage(xhr.responseJSON[0], 'error');
-        }
     </script>
 @endpush

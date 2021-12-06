@@ -1,29 +1,32 @@
 <h6>Información Básica</h6>
 <section>
+    <h6 class="row block-helper justify-content-center">Los Campos Con (<span class="text-danger">*</span>) Son Requeridos.</h6>
     <fieldset class="col-md-12 p-2">
 
         <div class="row justify-content-center">
-            <div class="col-md-3 col-sm-12 col-xs-12 form-group">
-                @if($edit)
-                    <label for="unique_code" class="">Código Único</label>
-                    {!! Form::text('unique_code', null, ['class' => 'form-control form-control-sm','disabled']) !!}
-                @else
-                    <label for="unique_code" class=""> Código Único <span class="text-danger">*</span></label>
-                    {!! Form::text('unique_code', null, ['class' => 'form-control form-control-sm']) !!}
-                @endif
-            </div>
+            <img src="{{$edit ? $player->photo : 'http://golapp.local/img/user.png' }}" class="rounded" alt="player" id="player-img" width="200" height="200">
         </div>
 
         <div class="row justify-content-center">
-            <div class="col-4">
-                <div class="form-group custom-file">
-                    <label class="" for="file-upload">Seleccionar Foto:</label>
-                    <input
-                        id="file-upload"
-                        class=""
-                        type="file"
-                        name="image"
-                        accept="image/jpeg , image/jpg, image/png"/>
+            <div class="col-md-3 col-sm-12 col-xs-12">
+                <div class="form-group">
+                @if($edit)
+                    <label for="unique_code" class="">Código Único</label>
+                    {!! Form::text('unique_code', null, ['class' => 'form-control form-control-sm','disabled','id'=>'unique_code']) !!}
+                @else
+                    <label for="unique_code" class=""> Código Único <span class="text-danger">*</span></label>
+                    {!! Form::text('unique_code', null, ['class' => 'form-control form-control-sm','id'=>'unique_code']) !!}
+                @endif
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-12 col-xs-12">
+                <div class="form-group">
+                    <label>Foto</label> 
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="file-upload" accept="image/x-png,image/jpeg" name="player">
+                        <label class="custom-file-label" for="file-upload">Seleccionar...</label>
+                    </div>
                 </div>
             </div>
         </div>

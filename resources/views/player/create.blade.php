@@ -1,26 +1,21 @@
 @extends('layouts.app')
-@section('title', 'Deportista')
+
 @section('content')
-    @include('templates.bread_crumb', ['title' => 'Deportista', 'option' => 0])
-    <div class="row">
-        <div class="card col-12">
-            <div class="card-body">
-                <div class="wizard-content">
-                {!! Form::open(['route' => 'players.store', 'id'=>'form_player', 'files'=>true, 'class'=>'wizard-circle']) !!}
-                    @include('player.fields.basic_information')
-                    @include('player.fields.family_information')
-                {!! Form::close() !!}
-                </div>
-            </div>
+    <x-bread-crumb title="Agregar Deportista" :option="0"/>
+    <x-row-card-eight>
+        <div class="wizard-content">
+            {!! Form::open(['route' => 'players.store', 'id'=>'form_player', 'files'=>true, 'class'=>'validation-wizard wizard-circle']) !!}
+                @include('player.fields.basic_information')
+                @include('player.fields.family_information', ['people'=> [1,2,3]])
+            {!! Form::close() !!}
         </div>
-    </div>
+    </x-row-card-eight>
 @endsection
 @section('scripts')
     <script>
         let url_document_exists = "{{ route('autocomplete.document_exists') }}";
         let url_verify_unique_code = "{{ route('autocomplete.verify_code') }}";
         let url_autocomplete = "{{ route('autocomplete.fields') }}";
-        let urlValidarCodigo = "{{ url('existecod') }}";
 
         optionsDateTimePicker.timePicker24Hour = false;
         optionsDateTimePicker.locale.format = 'YYYY-MM-DD';
@@ -158,10 +153,24 @@
             });
 
             events();
-
+            
         });
 
 
+        function readURL(input) {
+            let label = $(input).next('label')
+            if (input.files && input.files[0]) {
+                let reader = new FileReader();                
+                reader.onload = function (e) {
+                    $('#player-img').attr('src', e.target.result);
+                }                
+                reader.readAsDataURL(input.files[0]);
+                label.html(input.files[0].name)
+            }else{
+                label.html("Selecciona una imagen...")
+                $('#player-img').attr('src', 'http://golapp.local/img/user.png');                
+            }
+        }
 
         function events() {
             // campos los cuales se van a buscar en la tabla maestra para autocompletado
@@ -219,7 +228,7 @@
 
             $("#unique_code").on('keyup', function () {
                 let element = $(this);
-                if (element.val().length >= 8) {
+                if (element.val().length >= 7) {
                     $.get(url_verify_unique_code, {'unique_code': element.val()}, function (response) {
                         if (response.data === true) {
                             element.val('').focus();
@@ -248,6 +257,9 @@
                 }
             });
 
+            $('#file-upload').on('change', function(){
+                readURL(this);
+            });
         }
     </script>
 @endsection

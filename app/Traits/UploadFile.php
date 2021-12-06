@@ -3,7 +3,6 @@
 namespace App\Traits;
 
 use App\Models\School;
-use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Http\FormRequest;

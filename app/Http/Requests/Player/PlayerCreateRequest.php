@@ -43,7 +43,7 @@ class PlayerCreateRequest extends FormRequest
             'mobile' => ['required'],
             'school' => ['required'],
             'degree' => ['required'],
-            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg'],
+            'player' => ['nullable', 'image', 'mimes:jpeg,png,jpg'],
 
             'people'=> 'array',
             'people.*.relationship',

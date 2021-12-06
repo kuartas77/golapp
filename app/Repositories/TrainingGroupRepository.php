@@ -174,9 +174,9 @@ class TrainingGroupRepository
     public function getListGroupsSchedule($deleted = false, $whereUser = null): Collection
     {
         if ($deleted) {
-            $query = $this->model->query()->onlyTrashedRelations();
+            $query = $this->model->query()->school()->onlyTrashedRelations();
         } else {
-            $query = $this->model->query()->with('schedule.day');
+            $query = $this->model->query()->school()->with('schedule.day');
         }
 
         if ($whereUser) {
