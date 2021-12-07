@@ -53,6 +53,11 @@ class Payment extends Model
         return $this->belongsTo(TrainingGroup::class, 'training_group_id', 'id');
     }
 
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class, 'school_id');
+    }
+
     public function getUrlHistoricAttribute()
     {
         return route('historic.payments.group', [

@@ -1,30 +1,14 @@
 @extends('layouts.app')
-@section('title', 'Asistencias')
 @section('content')
-    @include('templates.bread_crumb', ['title' => 'Asistencias', 'option' => 0])
-    <div class="row">
-        <div class="col-2"></div>
-        <div class="col-8">
-            <div class="card">
-                <div class="card-body">
-
-                    <h6 class="card-subtitle">El año de busqueda será el actual.</h6>
-
-                    @include('assists.assist.form')
-                </div>
-            </div>
-        </div>
-        <div class="col-2"></div>
-
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-subtitle text-themecolor m-b-0 m-t-0" id="group_name"></h6>
-                    @include('assists.assist.table')
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-bread-crumb title="Asistencias" :option="0"/>
+    <x-row-card col-outside="3" col-inside="6" >
+        <h6 class="card-subtitle">El año de busqueda será el actual.</h6>
+        @include('assists.assist.form')
+    </x-row-card >
+    <x-row-card col-inside="12" >
+        <h6 class="card-subtitle text-themecolor m-b-0 m-t-0" id="group_name"></h6>
+        @include('assists.assist.table')
+    </x-row-card >
 @endsection
 @section('modals')
     @include('modals.assist_observation')

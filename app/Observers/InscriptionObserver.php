@@ -69,21 +69,22 @@ class InscriptionObserver
         $inscription->payments()->withTrashed()->updateOrCreate(
             [
                 'unique_code' => $inscription->unique_code,
-                'year' => $start_date->year
+                'year' => $start_date->year,
+                'school_id' => $inscription->school_id
             ],
             [
                 'training_group_id' => $inscription->training_group_id,
                 'deleted_at' => null,
+                'school_id' => $inscription->school_id
             ]);
 
-        $inscription->assistance()->withTrashed()->updateOrCreate([
+        $assistance = [
             'training_group_id' => $inscription->training_group_id,
             'year' => $start_date->year,
             'month' => getMonth($start_date->month),
-        ], [
-            'training_group_id' => $inscription->training_group_id,
-            'year' => $start_date->year,
-            'month' => getMonth($start_date->month),
-        ]);
+            'school_id' => $inscription->school_id
+        ];
+
+        $inscription->assistance()->withTrashed()->updateOrCreate($assistance, $assistance);
     }
 }

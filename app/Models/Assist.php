@@ -89,6 +89,11 @@ class Assist extends Model
         return $this->hasOneThrough(Player::class, Inscription::class, 'id','id','inscription_id', 'player_id');
     }
 
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class, 'school_id');
+    }
+
     public function getUrlHistoricAttribute()
     {
         return route('historic.assists.group', [

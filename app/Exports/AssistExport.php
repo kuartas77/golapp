@@ -31,11 +31,15 @@ class AssistExport implements FromView, WithTitle
 
     public function view(): View
     {
-        list($assists, $classDays, $group_name) = app(AssistRepository::class)->dataExport($this->params, $this->deleted);
+        list($assists, $classDays, $group_name, $group) = app(AssistRepository::class)->dataExport($this->params, $this->deleted);
+ 
         $this->group_name = $group_name;
         return view('exports.assists_excel', [
+            'group' => $group,
             'assists' => $assists,
             'classDays' => $classDays,
+            'count' => $assists->count() + 1,
+            'result' => (40 - $assists->count() + 1),
             'optionAssist' => config('variables.KEY_ASSIST_LETTER')
         ]);
     }

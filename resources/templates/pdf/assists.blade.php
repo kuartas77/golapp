@@ -10,13 +10,13 @@
 <table class="table-full title">
     <tr>
         <td class="text-left" width="20%">
-            <img src="{{ asset('ms-icon-310x310.png') }}" width="70" height="70">
+            <img src="{{ $school->logo_file }}" width="70" height="70">
         </td>
-        <td class="text-center school-title" width="60%">{{env('APP_NAME', 'Laravel')}}<br>PLANILLA DE ASISTENCIA
+        <td class="text-center school-title" width="60%">{{ $school->name }}<br>PLANILLA DE ASISTENCIA
             AÑO {{$year}} - MES: {{strtoupper($month)}}
         </td>
         <td class="text-right" width="20%">
-            <img src="{{ asset('ms-icon-310x310.png') }}" width="70" height="70">
+            <img src="{{ $school->logo_file }}" width="70" height="70">
         </td>
     </tr>
 </table>
