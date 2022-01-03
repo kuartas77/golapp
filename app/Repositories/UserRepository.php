@@ -59,6 +59,7 @@ class UserRepository
             DB::beginTransaction();
             $user->update($request->validated());
             $user->syncRoles([$request->input('rol_id')]);
+            Cache::forget('users');
             DB::commit();
 
             alert()->success(config('app.name'), __('messages.user_updated', ['user_name' => $user->name]));

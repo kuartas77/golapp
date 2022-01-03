@@ -1,10 +1,11 @@
 @extends('layouts.app')
 @section('title', 'Conformar Grupos Entrenamiento')
 @section('content')
-    @include('templates.bread_crumb', ['title' => 'Conformar Grupos Entrenamiento', 'option' => 0])
-    <div class="row no-gutters">
+    <x-bread-crumb title="Conformar Grupos Entrenamiento" :option="0"/>
+    <div class="row">
 
-        <div class="col-lg-6 col-md-6 col-sm-12">
+        <div class="col-xl-1 col-lg-1 col-md-1"></div>
+        <div class="col-xl-5 col-lg-5 col-md-5 col-sm-12">
             <div class="card">
                 <div class="card-body">
                     <div class="form-group">
@@ -16,7 +17,7 @@
             </div>
         </div>
 
-        <div class="col-lg-6 col-md-6 col-sm-12">
+        <div class="col-xl-5 col-lg-5 col-md-5 col-sm-12">
             <div class="card">
                 <div class="card-body">
                     <div class="form-group">
@@ -27,7 +28,7 @@
                 </div>
             </div>
         </div>
-
+        <div class="col-xl-1 col-lg-1 col-md-1"></div>
     </div>
 @endsection
 @section('scripts')

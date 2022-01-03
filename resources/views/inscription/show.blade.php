@@ -1,7 +1,6 @@
 @extends('layouts.app')
-@section('title', __('messages.inscription_title', ['unique_code'=> $inscription->unique_code]))
 @section('content')
-    @include('templates.bread_crumb', ['title' => __('messages.inscription_title', ['unique_code'=> $inscription->unique_code]), 'option' => 0])
+    <x-bread-crumb :title="__('messages.inscription_title', ['unique_code'=> $inscription->unique_code])" :option="0"/>
     <div class="row">
         @include('inscription.profile.card_person')
         @include('inscription.profile.card_info')

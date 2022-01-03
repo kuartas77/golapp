@@ -90,8 +90,7 @@ class UserController extends Controller
     {
         if (isAdmin()) {
             view()->share('roles', Role::query()->whereNotIn('id', [1,2])->pluck('name', 'id'));
-            view()->share('user', $user->loadMissing('roles'));
-            $this->deleteCacheData('users');
+            view()->share('user', $user->load('roles'));
             return view('admin.user.edit');
         } else {
             alert()->error(config('app.name'), __('messages.denied'));
@@ -112,9 +111,9 @@ class UserController extends Controller
     {
         $this->repository->update($user, $request);
 
-        if (auth()->id() == 1) {
+        if (isAdmin() || isSchool()) {
             return redirect()->to(route('users.index'));
-        } elseif (auth()->id() > 1) {
+        } elseif (isInstructor()) {
             return redirect()->to(route('home'));
         }
         return back();
@@ -130,6 +129,8 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        abort_unless(isAdmin() || isSchool(), 401);
+
         $user->delete();
         alert()->success(config('app.name'), __('messages.user_disabled'));
 
@@ -142,6 +143,8 @@ class UserController extends Controller
      */
     public function activate($id): RedirectResponse
     {
+        abort_unless(isAdmin() || isSchool(), 401);
+
         if($this->repository->restore($id)){
             alert()->success(config('app.name'), __('messages.user_enabled'));
         }   

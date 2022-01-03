@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Collection;
@@ -25,6 +27,10 @@ class GolAppProvider extends ServiceProvider
      */
     public function boot()
     {
+        if(env('APP_ENV', null) == 'local'){
+            DB::listen(fn($query)=> logger(Str::replaceArray('?', $query->bindings, $query->sql)));
+        }
+        
         Collection::macro('setAppends', function ($attributes) {
             return $this->map(function ($item) use ($attributes) {
                 return $item->setAppends($attributes);

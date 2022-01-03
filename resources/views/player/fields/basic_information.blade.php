@@ -24,7 +24,7 @@
                 <div class="form-group">
                     <label>Foto</label> 
                     <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="file-upload" accept="image/x-png,image/jpeg" name="player">
+                        <input type="file" class="custom-file-input" id="file-upload" accept="image/png, image/jpeg" name="player">
                         <label class="custom-file-label" for="file-upload">Seleccionar...</label>
                     </div>
                 </div>

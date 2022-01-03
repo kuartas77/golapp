@@ -1,27 +1,20 @@
 @extends('layouts.app')
-@section('title', 'Control De Competencia')
 @section('content')
-    @include('templates.bread_crumb', ['title' => 'Control De Competencia', 'option' => 0])
-    <div class="row">
+    <x-bread-crumb title="Control De Competencia" :option="0"/>
+    <x-row-card col-inside="12" >
         {!! Form::model($information->match,['url' => $information->match->url_update, 'id'=>'form_matches','class'=>'form-horizontal','method'=>'PUT']) !!}
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="form-body">
-                        @include('competition.match.fields')
+            <div class="form-body">
+                @include('competition.match.fields')
 
-                        @include('competition.match.table_members')
-                    </div>
-                    <div class="form-actions m-t-0 text-center">
-                        <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info">
-                            Guardar Cambios
-                        </button>
-                    </div>
-                </div>
+                @include('competition.match.table_members')
             </div>
-        </div>
+            <div class="form-actions m-t-0 text-center">
+                <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info">
+                    Guardar Cambios
+                </button>
+            </div>
         {!! Form::close() !!}
-    </div>
+    </x-row-card >
 @endsection
 @section('modals')
     @include('modals.add_member_match')

@@ -28,8 +28,6 @@
 
         $(document).ready(function () {
 
-            events();
-
             form_player.validate({
                 rules: {
                     unique_code : {},
@@ -68,7 +66,7 @@
                     "people[0][identification_card]": {
                         required: function () {
                             return $('input[name="people[0][tutor]"]').is(":checked");
-                        }
+                        }, numbers:true
                     },
 
                     "people[1][relationship]": {required: true},
@@ -86,7 +84,7 @@
                     "people[1][identification_card]": {
                         required: function () {
                             return $('input[name="people[1][tutor]"]').is(":checked");
-                        }
+                        }, numbers:true
                     },
                     "people[2][relationship]": {required: true},
                     "people[2][names]": {required: true},
@@ -103,7 +101,7 @@
                     "people[2][identification_card]": {
                         required: function () {
                             return $('input[name="people[2][tutor]"]').is(":checked");
-                        }
+                        }, numbers:true
                     },
                 }
             });
@@ -152,23 +150,9 @@
                     })
                 }
             });
+
+            events();
         });
-
-
-        function readURL(input) {
-            let label = $(input).next('label')
-            if (input.files && input.files[0]) {
-                let reader = new FileReader();                
-                reader.onload = function (e) {
-                    $('#player-img').attr('src', e.target.result);
-                }                
-                reader.readAsDataURL(input.files[0]);
-                label.html(input.files[0].name)
-            }else{
-                label.html("Selecciona una imagen...")
-                $('#player-img').attr('src', 'http://golapp.local/img/user.png');                
-            }
-        }
 
         function events() {
             // campos los cuales se van a buscar en la tabla maestra para autocompletado
@@ -183,7 +167,6 @@
                     source: result.colegio_escuela,
                     scrollBar: true
                 });
-
 
                 $('#municipality').typeahead({
                     source: result.lugar_nacimiento,
@@ -259,8 +242,24 @@
             });
 
             $('#file-upload').on('change', function(){
-                readURL(this);
+                readFile(this);
             });
+        }
+
+        function readFile(input) {
+            let label = $(input).next('label.custom-file-label')
+            if (input.files && input.files[0]) {
+                let reader = new FileReader();                
+                reader.onload = function (e) {
+                    $('#player-img').attr('src', e.target.result);
+                }                
+                reader.readAsDataURL(input.files[0]);
+                // label.empty().html(input.files[0].name)
+                label.empty().html('Seleccionada.')
+            }else{
+                label.empty().html("Seleccionar...")
+                $('#player-img').attr('src', 'http://golapp.local/img/user.png');                
+            }
         }
     </script>
 @endsection

@@ -1,16 +1,10 @@
 @extends('layouts.app')
 @section('title', 'Incidencias')
 @section('content')
-    @include('templates.bread_crumb', ['title' => 'Incidencias', 'option' => 0])
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    @include('incidents.table')
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-bread-crumb title="Incidencias" :option="0"/>
+    <x-row-card col-inside="12" >
+    @include('incidents.table')
+    </x-row-card >
 @endsection
 @section('modals')
     @include('modals.incident_cu')

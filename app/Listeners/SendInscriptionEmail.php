@@ -3,14 +3,18 @@
 namespace App\Listeners;
 
 use App\Events\InscriptionAdded;
+use App\Mail\InscriptionMail;
 use App\Mail\SendInscriptionMail;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
-class SendInscriptionEmail
+class SendInscriptionEmail implements ShouldQueue
 {
+    use InteractsWithQueue;
+
     /**
      * Create the event listener.
      *
@@ -29,15 +33,8 @@ class SendInscriptionEmail
      */
     public function handle(InscriptionAdded $event)
     {
-        $inscription = $event->inscription;
-        $inscription->load('people');
-        $tutor = $inscription->people->where('is_tutor', true)->first();
-
-        $emails = [$inscription->email];
-        if (!empty($tutor)){
-            $inscription->email === $tutor->email ?? array_push($emails, $tutor->email);
-        }
-
-        // Mail::to($emails)->later(now()->addMinute(), new SendInscriptionMail($inscription));
+        DB::afterCommit(function() use($event){
+            Mail::to([$event->inscription->email])->queue((new InscriptionMail($event->inscription))->onQueue('emails'));
+        });
     }
 }

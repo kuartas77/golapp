@@ -1,32 +1,22 @@
 @extends('layouts.app')
 @section('title', "Perfil {$profile->user->name}")
 @section('content')
-    @include('templates.bread_crumb', ['title' => "Perfil {$profile->user->name}", 'option' => 0])
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-
-                    <form action="{{$profile->url_update}}" id="form_create" class="form-material m-t-0" method="POST">
-                        @method('PUT')
-                        @csrf
-                        <div class="form-body">
-
-                            @include('profile.fields')
-
-                        </div>
-
-                        <div class="form-actions text-center">
-                            <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info">Guardar
-                            </button>
-                        </div>
-
-                    </form>
-
-                </div>
-            </div>
+<x-bread-crumb title="Perfil {{$profile->user->name}}" :option="0"/>
+<x-row-card col-inside="8" col-outside="2" >
+    <form action="{{$profile->url_update}}" id="form_create" class="form-material" method="POST">
+        @method('PUT')
+        @csrf
+        <div class="form-body">
+            @include('profile.fields')
         </div>
-    </div>
+
+        <div class="form-actions text-center">
+            <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info">Guardar
+            </button>
+        </div>
+
+    </form>
+</x-row-card>
 @endsection
 @section('modals')
 @endsection

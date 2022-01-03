@@ -5,9 +5,11 @@ namespace App\Providers;
 use App\Models\Game;
 use App\Models\Inscription;
 use App\Models\TrainingGroup;
+use App\Events\InscriptionAdded;
 use App\Observers\MatchObserver;
 use App\Observers\InscriptionObserver;
 use Illuminate\Auth\Events\Registered;
+use App\Listeners\SendInscriptionEmail;
 use App\Observers\TrainingGroupObserver;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -23,6 +25,9 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        InscriptionAdded::class => [
+            SendInscriptionEmail::class,
+        ]
     ];
 
     /**

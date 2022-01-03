@@ -29,8 +29,6 @@ class InscriptionRepository
      * @param Inscription $model
      * @param PeopleRepository $peopleRepository
      */
-
-
     public function __construct(Inscription $model, PeopleRepository $peopleRepository)
     {
         $this->model = $model;
@@ -71,6 +69,8 @@ class InscriptionRepository
                     'unique_code' => $inscriptionData['unique_code'],
                     'year' => $inscriptionData['year']
                 ],$inscriptionData);
+
+                event(new InscriptionAdded($inscription));
             }else{
                 $inscription->update($inscriptionData);
             }

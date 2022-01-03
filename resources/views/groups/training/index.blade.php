@@ -1,16 +1,10 @@
 @extends('layouts.app')
 @section('title', 'Grupos Entrenamiento')
 @section('content')
-    @include('templates.bread_crumb', ['title' => 'Grupos Entrenamiento', 'option' => 0])
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    @include('groups.training.table')
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-bread-crumb title="Grupos Entrenamiento" :option="0"/>
+    <x-row-card col-inside="12" >
+        @include('groups.training.table')
+    </x-row-card >
 @endsection
 @section('modals')
     @include('modals.create_training_groups')
