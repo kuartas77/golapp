@@ -31,29 +31,41 @@ class School extends Model
         'email',
         'is_enable',
         'logo',
+        'slug'
     ];
+
+    // Estamos Probando
 
     protected $casts = [
         'is_enable' => 'boolean'
     ];
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function setLogoAttribute($value)
     {
         if (!empty($value)) {
+            if(!empty($this->attributes['logo'])){
+                Storage::disk('public')->delete($this->attributes['logo']);
+            }
+
             $this->attributes['logo'] = $value;
         }
     }
     public function getLogoFileAttribute(): string
     {
         if (Storage::disk('public')->exists($this->attributes['logo'])) {
-            return url("storage/{$this->attributes['logo']}");
+            return route('images', $this->attributes['logo']);
         }
-        return url('img/ballon.png');
+        return asset('img/ballon.png');
     }
 
     public function users(): HasManyThrough
     {
-        return $this->hasManyThrough(User::class, 'schools_users', 'school_id', 'user_id');
+        return $this->hasManyThrough(User::class, SchoolUser::class, 'school_id','id','id','user_id');
     }
 
     public function players(): HasMany
@@ -104,6 +116,26 @@ class School extends Model
     public function settingsValues(): HasMany
     {
         return $this->hasMany(SettingValue::class);
+    }
+
+    public function getUrlEditAttribute(): string
+    {
+        return route('config.schools.edit', [$this->attributes['slug']]);
+    }
+
+    public function getUrlUpdateAttribute(): string
+    {
+        return route('config.schools.update', [$this->attributes['slug']]);
+    }
+
+    public function getUrlShowAttribute(): string
+    {
+        return route('config.schools.show', [$this->attributes['slug']]);
+    }
+
+    public function getUrlDestroyAttribute(): string
+    {
+        return route('config.schools.destroy', [$this->attributes['slug']]);
     }
 
 }

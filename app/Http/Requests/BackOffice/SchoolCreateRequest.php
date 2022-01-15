@@ -31,9 +31,9 @@ class SchoolCreateRequest extends FormRequest
             'agent' => ['required', 'string'],
             'address' => ['required', 'string'],
             'phone' => ['required', 'string'],
-            'email' => ['required', 'string'],
+            'email' => ['required', 'string', 'email'],
             'is_enable' => ['required', 'bool'],
-            'logo' => ['required', 'image', 'mimes:jpeg,png,jpg'],
+            'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg'],
         ];
     }
 

@@ -4,15 +4,31 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class FileController extends Controller
 {
-    public function fileStorageServe($filePath): BinaryFileResponse
+    public function fileStorageServe($file)
     {
-        if (Storage::disk('public')->exists($filePath)){
-            return response()->file(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.($filePath)));
+        try
+        {
+            $file_path = explode('?', $file)[0];
+
+            if(!Storage::disk('public')->exists($file_path) || Storage::disk('public')->getVisibility($file_path) == 'private' )
+            {
+                return response(file_get_contents(public_path('img/not-found.png')))->withHeaders([
+                    'Content-Type' => "image/png",
+                    'Cache-Control' => 'public, no-transform, max-age=31536000'
+                ]);
+            }
+
+            return response(Storage::disk('public')->get($file_path))->withHeaders([
+                'Content-Type' => Storage::disk('public')->mimeType($file_path),
+                'Cache-Control' => 'public, no-transform, max-age=31536000'
+            ]);
         }
-        return response()->file(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'img'.DIRECTORY_SEPARATOR.'user.png'));
+        catch(\Exception $e)
+        {
+            return response(null, 404);
+        }
     }
 }

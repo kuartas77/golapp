@@ -27,14 +27,13 @@ class PeopleRepository
                 'identification_card' => $person['identification_card']
             ],
             [
-                'is_tutor' => $person['tutor'],
+                'tutor' => $person['tutor'],
                 'relationship' => $person['relationship'],
                 'phone' => $person['phone'],
                 'mobile' => $person['mobile'],
                 'profession' => $person['profession'],
                 'business' => $person['business'],
                 'position' => $person['position'],
-                'relationship_name' => $person['relationship_name']
             ]
         );
     }

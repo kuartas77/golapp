@@ -103,6 +103,8 @@ return [
     'player_title' => 'Deportista :unique_code',
     'profile_save' => 'Perfil Actualizado.',
 
+    'schools_button_add' => 'Agregar Escuela',
+
 
 
 

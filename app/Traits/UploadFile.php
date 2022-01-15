@@ -16,7 +16,8 @@ trait UploadFile
         if($request->hasFile($field)) {
             
             $file = $request->file($field);
-            $school = School::find($request->school_id)->slug;
+            $searchSchool = School::find($request->school_id); 
+            $school = ($searchSchool->slug ?? $request->slug);
 
             switch ($field) {
                 case 'player':
@@ -31,7 +32,7 @@ trait UploadFile
             $img = Image::make($file)->resize(420, 420, function ($constraint) {
                 $constraint->aspectRatio();
             });
-            Storage::disk('public')->put($path, (string)$img->encode());
+            Storage::disk('public')->put($path, (string)$img->encode(), 'public');
         }
         return $path;
     }

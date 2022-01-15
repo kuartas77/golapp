@@ -33,7 +33,7 @@ class SchoolUpdateRequest extends FormRequest
             'phone' => ['required', 'string'],
             'email' => ['required', 'string'],
             'is_enable' => ['required', 'bool'],
-            'logo' => ['required', 'image', 'mimes:jpeg,png,jpg'],
+            'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg'],
         ];
     }
 

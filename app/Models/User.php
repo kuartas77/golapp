@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\GeneralScopes;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Traits\HasRoles;
@@ -87,4 +88,6 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOneThrough(School::class, SchoolUser::class, 'user_id','id','id','school_id');
     }
+
+
 }

@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Repositories\CompetitionGroupRepository;
-use App\Repositories\DayRepository;
-use App\Repositories\InscriptionRepository;
-use App\Repositories\PlayerRepository;
-use App\Repositories\TrainingGroupRepository;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use App\Repositories\DayRepository;
+use Illuminate\Http\RedirectResponse;
+use App\Repositories\PlayerRepository;
+use App\Repositories\SchoolRepository;
+use App\Repositories\InscriptionRepository;
+use App\Repositories\TrainingGroupRepository;
+use App\Repositories\CompetitionGroupRepository;
 
 class DataTableController extends Controller
 {
@@ -17,7 +18,8 @@ class DataTableController extends Controller
                                 private TrainingGroupRepository $trainingGroupRepository,
                                 private CompetitionGroupRepository $competitionGroupRepository,
                                 private PlayerRepository $playerRepository, 
-                                private DayRepository $dayRepository)
+                                private DayRepository $dayRepository,
+                                private SchoolRepository $schoolRepository)
     {}
 
     /**
@@ -26,7 +28,7 @@ class DataTableController extends Controller
      */
     public function enabledInscriptions(Request $request): JsonResponse
     {
-        abort_if(!$request->ajax(), 403);
+        abort_unless($request->ajax(), 403);
 
         return datatables()->collection($this->inscriptionRepository->getInscriptionsEnabled())->toJson();
     }
@@ -37,7 +39,7 @@ class DataTableController extends Controller
      */
     public function enabledTrainingGroups(Request $request): JsonResponse
     {
-        abort_if(!$request->ajax(), 403);
+        abort_unless($request->ajax(), 403);
 
         return datatables()->collection($this->trainingGroupRepository->listGroupEnabled())->toJson();
     }
@@ -48,7 +50,7 @@ class DataTableController extends Controller
      */
     public function disabledTrainingGroups(Request $request): JsonResponse
     {
-        abort_if(!$request->ajax(), 403);
+        abort_unless($request->ajax(), 403);
 
         return datatables()->collection($this->trainingGroupRepository->listGroupDisabled())->toJson();
     }
@@ -59,7 +61,7 @@ class DataTableController extends Controller
      */
     public function enabledCompetitionGroups(Request $request): JsonResponse
     {
-        abort_if(!$request->ajax(), 403);
+        abort_unless($request->ajax(), 403);
 
         return datatables()->collection($this->competitionGroupRepository->listGroupEnabled())->toJson();
     }
@@ -70,7 +72,7 @@ class DataTableController extends Controller
      */
     public function disabledCompetitionGroups(Request $request): JsonResponse
     {
-        abort_if(!$request->ajax(), 403);
+        abort_unless($request->ajax(), 403);
 
         return datatables()->collection($this->competitionGroupRepository->listGroupDisabled())->toJson();
     }
@@ -81,7 +83,7 @@ class DataTableController extends Controller
      */
     public function enabledDays(Request $request): JsonResponse
     {
-        abort_if(!$request->ajax(), 403);
+        abort_unless($request->ajax(), 403);
 
         return datatables()->collection($this->dayRepository->all())->toJson();
     }
@@ -92,8 +94,15 @@ class DataTableController extends Controller
      */
     public function enabledPlayers(Request $request): JsonResponse
     {
-        abort_if(!$request->ajax(), 403);
+        abort_unless($request->ajax(), 403);
 
         return datatables()->collection($this->playerRepository->getPlayersPeople())->toJson();
+    }
+
+    public function schools(Request $request)
+    {
+        abort_unless($request->ajax() && isAdmin(), 403);
+
+        return datatables()->collection($this->schoolRepository->getAll())->toJson();
     }
 }

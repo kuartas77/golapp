@@ -56,7 +56,7 @@
     @yield('modals')
     <script>
         window.token = {!! json_encode(['csrfToken' => csrf_token(), ]) !!};
-        window.app_name = '{{config('app.name', 'Laravel') }}';
+        window.app_name = "{{config('app.name', 'Laravel') }}";
         window.img_login = "{{asset('img/login.png')}}";
         window.img_logout = "{{asset('img/logout.png')}}";
     </script>

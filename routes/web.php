@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Schedule\DayController;
 use App\Http\Controllers\Assists\AssistController;
@@ -25,7 +26,7 @@ Auth::routes(['register' => false, 'verify' => false]);
 
 Route::middleware(['auth'])->group(function ($route) {
 
-    //$route->get('/file/{filePath}', 'FileController@fileStorageServe')->where(['filePath' => '.*']);
+    $route->get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
 
     $route->get('/home', [HomeController::class, 'index'])->name('home');
 

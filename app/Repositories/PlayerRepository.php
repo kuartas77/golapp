@@ -16,6 +16,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Database\Eloquent\Collection;
 use App\Http\Requests\Player\PlayerCreateRequest;
 use App\Http\Requests\Player\PlayerUpdateRequest;
+use App\Notifications\RegisterPlayerNotification;
 
 class PlayerRepository
 {
@@ -46,6 +47,8 @@ class PlayerRepository
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
             $player->people()->sync($peopleIds);
 
+            $player->notify(new RegisterPlayerNotification($player));
+            
             DB::commit();
 
             return $player;

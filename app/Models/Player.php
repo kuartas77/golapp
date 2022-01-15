@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Notifications\Notifiable;
 
 /**
  * @property mixed inscriptions
@@ -27,6 +28,7 @@ class Player extends Model
     use Fields;
     use GeneralScopes;
     use HasFactory;
+    use Notifiable;
 
     protected $table = "players";
     protected $dateFormat = "Y-m-d";
@@ -73,6 +75,10 @@ class Player extends Model
     public function setPhotoAttribute($value)
     {
         if (!empty($value)) {
+            if(!empty($this->attributes['photo'])){
+                Storage::disk('public')->delete($this->attributes['photo']);
+            }
+
             $this->attributes['photo'] = $value;
         }
     }
@@ -110,17 +116,15 @@ class Player extends Model
     public function getPhotoAttribute(): string
     {
         if (Storage::disk('public')->exists($this->attributes['photo'])) {
-            return url("storage/{$this->attributes['photo']}");
+            return route('images', $this->attributes['photo']);
         }
         return url('img/user.png');
     }
 
-    public function getPhotoFileAttribute():string
+    public function routeNotificationForMail($notification)
     {
-        if (Storage::disk('public')->exists($this->attributes['photo'])) {
-            return url("storage/{$this->attributes['photo']}");
-        }
-        return url('img/user.png');
+        // Return email address and name...
+        return [$this->email => $this->full_names];
     }
 
     public function inscription(): HasOne
