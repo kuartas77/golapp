@@ -33,10 +33,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = $this->repository->getAll();
-        $usersTrash = $this->repository->getAllTrash();
-        view()->share('users', $users);
-        view()->share('usersTrash', $usersTrash);
+        view()->share('users', $this->repository->getAll());
+        view()->share('usersTrash', $this->repository->getAllTrash());
 
         return view('admin.user.index');
     }

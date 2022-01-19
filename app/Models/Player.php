@@ -4,19 +4,16 @@ namespace App\Models;
 
 use App\Traits\Fields;
 use Jenssegers\Date\Date;
-use Illuminate\Http\Request;
 use App\Traits\GeneralScopes;
-use Intervention\Image\Facades\Image;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
-use Illuminate\Notifications\Notifiable;
 
 /**
  * @property mixed inscriptions
@@ -44,6 +41,7 @@ class Player extends Model
         'identification_document',
         'rh',
         'photo',
+        'category',
         'position_field',
         'dominant_profile',
         'school',
@@ -65,7 +63,7 @@ class Player extends Model
         'created_at' => "datetime:Y-m-d",
     ];
 
-    protected $appends = ['full_names', 'url_edit', 'url_show', 'url_impression'];
+    protected $appends = ['full_names', 'url_edit', 'url_show', 'url_impression','photo_url'];
 
     public function getRouteKeyName(): string
     {
@@ -75,7 +73,7 @@ class Player extends Model
     public function setPhotoAttribute($value)
     {
         if (!empty($value)) {
-            if(!empty($this->attributes['photo'])){
+            if(!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])){
                 Storage::disk('public')->delete($this->attributes['photo']);
             }
 
@@ -113,7 +111,7 @@ class Player extends Model
         return $this->payments->pluck('year');
     }
 
-    public function getPhotoAttribute(): string
+    public function getPhotoUrlAttribute(): string
     {
         if (Storage::disk('public')->exists($this->attributes['photo'])) {
             return route('images', $this->attributes['photo']);
@@ -129,7 +127,7 @@ class Player extends Model
 
     public function inscription(): HasOne
     {
-        return $this->hasOne(Inscription::class)->where('year', now());
+        return $this->hasOne(Inscription::class)->where('year', now()->year);
     }
 
     public function inscriptions(): HasMany

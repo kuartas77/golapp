@@ -51,11 +51,11 @@ trait PDFTrait
 
         if($data['school']){
             if ($this->existsTemplate($data['school']->logo)){
-                $this->mpdf->SetWatermarkImage($data['pathLogo'] = $data['school']->logo_file);
+                $this->mpdf->SetWatermarkImage(storage_path("app/public/{$data['school']->logo}"));
                 $this->mpdf->showWatermarkImage = true;
             }
         }
-
+        // return view()->file($this->getTemplate($template), $data)->render();
         //$this->mpdf->SetHTMLHeader();
         $this->mpdf->WriteHTML(view()->file($this->getTemplate($template), $data));
         $this->mpdf->SetHTMLFooter(view()->file($this->getTemplate('footer.blade.php')));
@@ -101,7 +101,7 @@ trait PDFTrait
      */
     public function output($filename): string
     {
-        return Storage::disk('files')->put("{$filename}.pdf", $this->mpdf->Output(null, Destination::STRING_RETURN));
+        return Storage::disk('public')->put("{$filename}.pdf", $this->mpdf->Output(null, Destination::STRING_RETURN));
     }
 
     /**

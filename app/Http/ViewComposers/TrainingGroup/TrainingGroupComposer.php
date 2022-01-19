@@ -20,16 +20,17 @@ class TrainingGroupComposer
     {
         if (Auth::check()) {
             $users = Cache::remember('KEY_USERS', now()->addDay(), function () {
-                return User::where('id', '!=', 1)->orderBy('name')->pluck('name', 'id');
+                $school = auth()->user()->school->load('users');
+                return $school->users->pluck('name','id');
             });
 
-            $days = Cache::remember('KEY_DAYS', now()->addDay(), function () {
-                return Day::orderBy('days')->pluck('days', 'id');
-            });
+            $days = Cache::remember('KEY_DAYS', now()->addDay(), fn () =>
+                Day::orderBy('days')->whereRelation('schedules', 'school_id', auth()->user()->school->id)->pluck('days', 'id')
+            );
 
-            $tournaments = Cache::remember('KEY_TOURNAMENT', now()->addDay(), function () {
-                return Tournament::orderBy('name')->pluck('name', 'id');
-            });
+            $tournaments = Cache::remember('KEY_TOURNAMENT', now()->addDay(), fn () =>
+                Tournament::orderBy('name')->schoolId()->pluck('name', 'id')
+            );
 
             $view->with('users', $users);
             $view->with('days', $days);

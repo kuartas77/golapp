@@ -34,7 +34,7 @@ class PlayerRepository
 
     public function getPlayersPeople()
     {
-        return $this->model->query()->with('people')->school()->get();
+        return $this->model->query()->with('people')->schoolId()->get();
     }
 
     public function createPlayer(PlayerCreateRequest $request): Player
@@ -104,7 +104,7 @@ class PlayerRepository
         if ($stream) {
             return $this->stream($filename);
         }
-        return $this->output($filename);
+        // return $this->output($filename);
     }
 
 
@@ -112,7 +112,7 @@ class PlayerRepository
     {
         $collection = new Collection(['enabled' => collect(), 'disabled' => collect()]);
 
-        $playersEnabled = $this->model->query()->school()
+        $playersEnabled = $this->model->query()->schoolId()
         ->whereHas('inscription')
         ->with([
             'inscription.trainingGroup.schedule.day', 
@@ -120,7 +120,7 @@ class PlayerRepository
             'payments' => fn ($q) => $q->withTrashed() 
         ])->get();
 
-        $playersDisabled = $this->model->query()->school()
+        $playersDisabled = $this->model->query()->schoolId()
         ->whereDoesntHave('inscription')
         ->with([
             'inscription.trainingGroup.schedule.day', 
@@ -140,7 +140,7 @@ class PlayerRepository
      */
     public function checkDocumentExists($request): bool
     {
-        return $this->model->query()->school()->where('identification_document', $request->input('doc'))->exists();
+        return $this->model->query()->schoolId()->where('identification_document', $request->input('doc'))->exists();
     }
 
     /**
@@ -149,21 +149,21 @@ class PlayerRepository
      */
     public function checkUniqueCode($request): bool
     {
-        return $this->model->query()->school()->withTrashed()->where('unique_code', $request->input('unique_code'))->exists();
+        return $this->model->query()->schoolId()->withTrashed()->where('unique_code', $request->input('unique_code'))->exists();
     }
 
     public function searchUniqueCode(array $fields)
     {
-        return $this->model->query()->school()->whereDoesntHave('inscription', fn ($q) => $q->where('year', now()))
+        return $this->model->query()->schoolId()->whereDoesntHave('inscription', fn ($q) => $q->where('year', now()->year))
         ->firstWhere('unique_code', $fields['unique_code']);
     }
 
     public function getListPlayersNotInscription(bool $isTrashed = true)
     {
-        $enabled = $this->model->query()->school()->select(['id','unique_code'])->whereHas('inscription')->get();
+        $enabled = $this->model->query()->schoolId()->select(['id','unique_code'])->whereHas('inscription')->get();
 
         if ($isTrashed) {
-            $players = $this->model->query()->school()->whereNotIn('id', $enabled->pluck('id'))->pluck('unique_code');
+            $players = $this->model->query()->schoolId()->whereNotIn('id', $enabled->pluck('id'))->pluck('unique_code');
         } else {
             $players = $enabled->pluck('unique_code');
         }
@@ -183,6 +183,7 @@ class PlayerRepository
             $dataPlayer['photo'] = $file_name;
         }
         $dataPlayer['date_birth'] = Date::parse(request('date_birth'));
+        $dataPlayer['category'] = categoriesName(Date::parse(request('date_birth')->year));
         $dataPlayer['unique_code'] = request('unique_code', optional($player)->unique_code);
         return $dataPlayer;
     }

@@ -17,29 +17,14 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ExportController extends Controller
 {
-    
-    private InscriptionRepository $inscriptionRepository;
-    
-    private AssistRepository $assistRepository;
 
-    private IncidentRepository $incidentRepository;
-
-    private GameRepository $gameRepository;
-
-    private PlayerRepository $playerRepository;
-
-    public function __construct(InscriptionRepository $inscriptionRepository,
-                                AssistRepository $assistRepository,
-                                IncidentRepository $incidentRepository,
-                                GameRepository $gameRepository,
-                                PlayerRepository $playerRepository)
-    {
-        $this->inscriptionRepository = $inscriptionRepository;
-        $this->assistRepository = $assistRepository;
-        $this->incidentRepository = $incidentRepository;
-        $this->gameRepository = $gameRepository;
-        $this->playerRepository = $playerRepository;
-    }
+    public function __construct(
+        private InscriptionRepository $inscriptionRepository,
+        private AssistRepository $assistRepository,
+        private IncidentRepository $incidentRepository,
+        private GameRepository $gameRepository,
+        private PlayerRepository $playerRepository
+    ){}
 
     /**
      * @throws \Mpdf\MpdfException

@@ -42,6 +42,7 @@ class InscriptionUpdateRequest extends FormRequest
             'presentation_uniform' => ['nullable'],
             'competition_uniform' => ['nullable'],
             'tournament_pay' => ['nullable'],
+            'scholarship' => ['nullable', 'boolean'],
         ];
     }
 
@@ -53,10 +54,10 @@ class InscriptionUpdateRequest extends FormRequest
         $dateBirth = Player::find($this->player_id)->date_birth;
         $startDate = Date::parse($this->start_date);
         $this->merge([
+            'school_id' => auth()->user()->school->id,
             'year' => $startDate->year,
             'start_date' => $startDate,
             'category' => Date::parse($dateBirth)->year,
-            'school_id' => auth()->user()->school->id,
             'photos' => $this->photos ?? false,
             'copy_identification_document' => $this->copy_identification_document ?? false,
             'eps_certificate' => $this->eps_certificate ?? false,
@@ -68,6 +69,7 @@ class InscriptionUpdateRequest extends FormRequest
             'presentation_uniform' => $this->presentation_uniform ?? false,
             'competition_uniform' => $this->competition_uniform ?? false,
             'tournament_pay' => $this->tournament_pay ?? false,
+            'scholarship' => $this->scholarship ?? false,
         ]);
     }
 }

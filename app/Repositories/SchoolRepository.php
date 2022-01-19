@@ -54,6 +54,8 @@ class SchoolRepository
             $relationSchool->school_id = $school->id;
             $relationSchool->save();
 
+            // TODO: crear grupo de entrenamiento por defecto
+
             $user->notify(new RegisterNotification($user, Str::of($password)->mask("*", 4)));
             DB::commit();
 

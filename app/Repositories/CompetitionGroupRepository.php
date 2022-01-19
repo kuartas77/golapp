@@ -30,12 +30,12 @@ class CompetitionGroupRepository
 
     public function listGroupEnabled()
     {
-        return $this->model->query()->school()->with('tournament', 'professor')->get();
+        return $this->model->query()->schoolId()->with('tournament', 'professor')->get();
     }
 
     public function listGroupDisabled()
     {
-        return $this->model->query()->school()->onlyTrashedRelations()->get();
+        return $this->model->query()->schoolId()->onlyTrashedRelations()->get();
     }
 
     public function createOrUpdateTeam(FormRequest $request, bool $create = true , $competitionGroup = null): Model

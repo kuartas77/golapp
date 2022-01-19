@@ -23,27 +23,36 @@ class MatchesViewComposer
                 return config('variables.KEY_POSITIONS');
             });
 
-            if (auth()->user()->hasRole('administrador')){
-                $competitionGroups = CompetitionGroup::get()
-                    ->pluck('full_name', 'id');
+            $played = Cache::rememberForever('KEY_TIME', function () {
+                $played = collect();
+                for ($i = 0; $i <= 90; ++$i) {
+                    $played->put($i, "{$i} MIN");
+                }
+                return $played;
+            });
+
+            $scores = Cache::rememberForever('KEY_SCORE', function () {
+                $scores = collect();
+                for ($i = 0; $i <= 10; ++$i) {
+                    $scores->put($i, $i);
+                }
+                return $scores;
+            });
+
+            $qualifications = Cache::rememberForever('KEY_SCORE', function () {
+                $qualifications = collect();
+                for ($i = 1; $i <= 5; ++$i) {
+                    $qualifications->put($i, $i);
+                }
+                return $qualifications;
+            });
+
+            if (isAdmin()){
+                $competitionGroups = CompetitionGroup::get()->pluck('full_name', 'id');
+            }elseif(isSchool()){
+                $competitionGroups = CompetitionGroup::query()->schoolId()->get()->pluck('full_name', 'id');
             }else{
-                $competitionGroups = CompetitionGroup::where('user_id', auth()->id())->get()
-                    ->pluck('full_name', 'id');
-            }
-
-            $played = collect();
-            for ($i = 0; $i <= 90; ++$i) {
-                $played->put($i, "{$i} MIN");
-            }
-
-            $scores = collect();
-            for ($i = 0; $i <= 10; ++$i) {
-                $scores->put($i, $i);
-            }
-
-            $qualifications = collect();
-            for ($i = 1; $i <= 5; ++$i) {
-                $qualifications->put($i, $i);
+                $competitionGroups = CompetitionGroup::query()->schoolId()->where('user_id', auth()->id())->get()->pluck('full_name', 'id');
             }
 
             $view->with('played', $played);

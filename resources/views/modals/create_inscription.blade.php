@@ -36,7 +36,7 @@
         optionsDateTimePicker.maxDate = moment().add(1, 'years').endOf('year');
         optionsDateTimePicker.minYear = parseInt(moment().format('YYYY'), 10);
         optionsDateTimePicker.maxYear = parseInt(moment().add(1, 'years').format('YYYY'), 10);
-        // optionsDateTimePicker.singleDatePicker = false;
+
         const urlCreate = "{{route('inscriptions.store')}}";
 
         let options = {
@@ -77,8 +77,18 @@
             $('.date').inputmask("yyyy-mm-dd");
             $(".form-control").attr('autocomplete', 'off');
             $(".select2").select2({dropdownParent: $('#create_inscription')});
-            $("#start_date").daterangepicker(optionsDateTimePicker).on('apply.daterangepicker', function (ev, picker) {
-                $(this).val(picker.startDate.format('YYYY-MM-DD'));
+            // $("#start_date").daterangepicker(optionsDateTimePicker).on('apply.daterangepicker', function (ev, picker) {
+            //     $(this).val(picker.startDate.format('YYYY-MM-DD'));
+            // });
+
+            $("#start_date").bootstrapMaterialDatePicker({
+                time: false,
+                clearButton: false,
+                lang: 'es',
+                cancelText: 'Cancelar',
+                okText: 'Aceptar',
+                minDate: moment().startOf('month'),//TODO: settings
+                maxDate: moment().add(1, 'year')// TODO: settings
             });
 
             $("#form_create").validate({

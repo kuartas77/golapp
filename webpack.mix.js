@@ -32,4 +32,4 @@ const mix = require('laravel-mix');
  mix.copy('resources/js/app/matches_functions.js','public/js/matches_functions.js').version();
  mix.copy('resources/js/app/payments.js','public/js/payments.js').version();
  mix.copy('resources/js/app/trainingGroupIndex.js','public/js/trainingGroupIndex.js').version();
- mix.copy('resources/js/app/formPlayer.js','public/js/formPlayer.js').version();
+//  mix.copy('resources/js/app/formPlayer.js','public/js/formPlayer.js').version();

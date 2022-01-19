@@ -30,6 +30,7 @@ class CreateInscriptionsTable extends Migration
             $table->string('identification_document');
             $table->string('rh')->nullable();
             $table->string('photo')->nullable();
+            $table->boolean('scholarship')->nullable()->default(0);
             $table->string('category')->nullable();
             $table->string('position_field')->nullable();
             $table->string('dominant_profile')->nullable();

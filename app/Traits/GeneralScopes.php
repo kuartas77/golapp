@@ -4,7 +4,7 @@ namespace App\Traits;
 
 trait GeneralScopes
 {
-    public function scopeSchool($query)
+    public function scopeSchoolId($query)
     {
         return $query->when(isSchool() || isInstructor(), fn($query) => $query->where('school_id', auth()->user()->school->id));
     }

@@ -2,25 +2,27 @@
 
 namespace App\Notifications;
 
-use App\Models\User;
+use App\Models\Inscription;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class RegisterNotification extends Notification implements ShouldQueue
+class InscriptionNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
+    private Inscription $inscription;
     /**
      * Create a new notification instance.
      *
      * @param User $user
      * @param $pass
      */
-    public function __construct(private User $user, private string $pass)
+    public function __construct(Inscription $inscription)
     {
         $this->afterCommit();
+        $this->inscription = $inscription;
     }
 
     /**
@@ -44,10 +46,7 @@ class RegisterNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject("Notificación de Registro.")
-            ->markdown('emails.register', [
-                'user' => $this->user,
-                'pass' => $this->pass
-            ]);
+            ->markdown('emails.inscriptions.added', ['inscription' => $this->inscription]);
     }
 
     /**

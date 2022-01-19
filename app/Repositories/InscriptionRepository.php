@@ -10,6 +10,7 @@ use App\Events\InscriptionAdded;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use App\Notifications\InscriptionNotification;
 
 class InscriptionRepository
 {
@@ -43,9 +44,9 @@ class InscriptionRepository
     public function findById($id, bool $trashed = false)
     {
         if ($trashed) {
-            return Inscription::onlyTrashed()->school()->findOrFail($id);
+            return Inscription::onlyTrashed()->schoolId()->findOrFail($id);
         }
-        return Inscription::query()->school()->findOrFail($id);
+        return Inscription::query()->schoolId()->findOrFail($id);
 
     }
 
@@ -70,7 +71,7 @@ class InscriptionRepository
                     'year' => $inscriptionData['year']
                 ],$inscriptionData);
 
-                event(new InscriptionAdded($inscription));
+                $inscription->player->notify(new InscriptionNotification($inscription));
             }else{
                 $inscription->update($inscriptionData);
             }
@@ -92,8 +93,8 @@ class InscriptionRepository
      */
     public function getInscriptionsEnabled()
     {
-       $inscriptions = $this->model->school()->with(['player.people', 'trainingGroup.schedule.day'])
-            ->where('year', now())->get();
+       $inscriptions = $this->model->schoolId()->with(['player.people', 'trainingGroup.schedule.day'])
+            ->where('year', now()->year)->get();
        if ($inscriptions->isNotEmpty()){
            $inscriptions->setAppends(['url_edit','url_update','url_show', 'url_impression']);
        }
@@ -102,15 +103,19 @@ class InscriptionRepository
 
     public function searchInscriptionCompetition(array $fields)
     {
-        return $this->model->query()->school()->where('unique_code', $fields['unique_code'])
-            ->where('competition_group_id', '!=', $fields['competition_group_id'])
-            ->where('year', now())
-            ->first();
+        return $this->model->query()->with('player')->schoolId()
+        ->where('unique_code', $fields['unique_code'])
+        ->where(function($query) use($fields){
+            $query->where('competition_group_id', '<>', $fields['competition_group_id'])
+            ->orWhere('competition_group_id', null);
+        })
+        ->where('year', now()->year)
+        ->first();
     }
 
     public function searchInsUniqueCode($id)
     {
-        return $this->model->with('player')->school()->findOrFail($id);
+        return $this->model->query()->with('player')->schoolId()->findOrFail($id);
     }
 
 }

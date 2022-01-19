@@ -202,9 +202,18 @@
             $('.date').inputmask("yyyy-mm-dd");
             $(".form-control").attr('autocomplete', 'off');
 
-            $('#date_birth').daterangepicker(optionsDateTimePicker).on('apply.daterangepicker', function (ev, picker) {
-                $(this).val(picker.startDate.format('YYYY-MM-DD'));
+            $("#date_birth").bootstrapMaterialDatePicker({
+                time: false,
+                clearButton: false,
+                lang: 'es',
+                cancelText: 'Cancelar',
+                okText: 'Aceptar',
+                minDate: moment().subtract(18, 'year'),//TODO: settings
+                maxDate: moment().subtract(2, 'year')// TODO: settings
             });
+            // $('#date_birth').daterangepicker(optionsDateTimePicker).on('apply.daterangepicker', function (ev, picker) {
+            //     $(this).val(picker.startDate.format('YYYY-MM-DD'));
+            // });
 
             $("#unique_code").on('keyup', function () {
                 let element = $(this);

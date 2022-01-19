@@ -39,17 +39,17 @@ class AssistRepository
     {
         $months = config('variables.KEY_MONTHS_INDEX');
         if ($deleted) {
-            $group = TrainingGroup::query()->onlyTrashedRelations()->school()->find($params['training_group_id']);
+            $group = TrainingGroup::query()->onlyTrashedRelations()->schoolId()->find($params['training_group_id']);
 
-            $assists = $this->model->onlyTrashedRelations()->school()->where([
+            $assists = $this->model->onlyTrashedRelations()->schoolId()->where([
                 'training_group_id' => $params['training_group_id'],
                 'month' => $params['month'], 'year' => $params['year']
             ])->get();
         } else {
-            $group = TrainingGroup::query()->school()->with('schedule.day', 'professor:id,name')
+            $group = TrainingGroup::query()->schoolId()->with('schedule.day', 'professor:id,name')
                 ->find($params['training_group_id']);
 
-            $assists = $this->model->query()->school()->with(['inscription.player'])->where([
+            $assists = $this->model->query()->schoolId()->with(['inscription.player'])->where([
                 'training_group_id' => $params['training_group_id'],
                 'month' => $params['month'], 'year' => $params['year']
             ])->get();
@@ -99,27 +99,30 @@ class AssistRepository
      */
     public function create($request): array
     {
-        $trainingGroup = TrainingGroup::query()->school()->with('schedule.day')->find($request->input('training_group_id'));
-        $inscriptionIds = Inscription::query()->school()->where('training_group_id', $request->input('training_group_id'))
+        $trainingGroup = TrainingGroup::query()->schoolId()
+            ->with(['schedule.day'])->find($request->input('training_group_id'));
+        $inscriptionIds = Inscription::query()->schoolId()
+            ->where('training_group_id', $request->input('training_group_id'))
             ->where('year', now()->year)->pluck('id');
 
-        $school_id = auth()->user()->school->id;
-
-        $request->merge(['year' => now()->year]);
-
-        $assists = $this->model->school()->with('inscription.player')
-            ->where($request->only(['training_group_id', 'year', 'month']));
-
-        $assistsIds = $assists->pluck('inscription_id');
-
         if ($inscriptionIds->isNotEmpty()) {
-
-            $idsDiff = $inscriptionIds->diff($assistsIds);
-
-            try {
-                DB::beginTransaction();
-                foreach ($idsDiff as $id) {
                 
+            try {
+                $school_id = auth()->user()->school->id;
+        
+                $request->merge(['year' => now()->year]);
+        
+                $assists = $this->model->schoolId()->with('inscription.player')
+                    ->where($request->only(['training_group_id', 'year', 'month']));
+        
+                $assistsIds = $assists->pluck('inscription_id');
+    
+                $idsDiff = $inscriptionIds->diff($assistsIds);
+
+                DB::beginTransaction();
+                
+                foreach ($idsDiff as $id) {
+                    
                     $this->model->updateOrCreate(
                         [
                             'inscription_id' => $id,
@@ -173,10 +176,10 @@ class AssistRepository
      */
     public function search($request, $deleted = false): array
     {
-        $trainingGroup = TrainingGroup::query()->school()->with('schedule.day')
+        $trainingGroup = TrainingGroup::query()->schoolId()->with('schedule.day')
         ->when($deleted, fn($q) => $q->onlyTrashedRelations())->findOrFail($request->input('training_group_id'));
 
-        $assists = $this->model->school()->with( 'inscription.player')
+        $assists = $this->model->schoolId()->with('inscription.player')
         ->when($deleted, fn($q) => $q->onlyTrashed())
         ->where($request->only(['training_group_id', 'year', 'month']));
 

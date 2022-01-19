@@ -32,12 +32,12 @@ class TrainingGroupRepository
 
     public function listGroupEnabled()
     {
-        return $this->model->query()->school()->with('schedule.day', 'professor')->get();
+        return $this->model->query()->schoolId()->with('schedule.day', 'professor')->get();
     }
 
     public function listGroupDisabled()
     {
-        return $this->model->query()->onlyTrashedRelations()->school()->get();
+        return $this->model->query()->onlyTrashedRelations()->schoolId()->get();
     }
 
     /**
@@ -174,9 +174,9 @@ class TrainingGroupRepository
     public function getListGroupsSchedule($deleted = false, $whereUser = null): Collection
     {
         if ($deleted) {
-            $query = $this->model->query()->school()->onlyTrashedRelations();
+            $query = $this->model->query()->schoolId()->onlyTrashedRelations();
         } else {
-            $query = $this->model->query()->school()->with('schedule.day');
+            $query = $this->model->query()->schoolId()->with('schedule.day');
         }
 
         if ($whereUser) {

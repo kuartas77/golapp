@@ -1,7 +1,7 @@
 <tr>
     <td style="display: flex;">
         <input name="inscriptions_id[{{$index}}]" type="hidden" value="{{$inscription->id}}">
-        <img class="media-object img-rounded" src="{{$inscription->player->photo}}" width="60" height="60">
+        <img class="media-object img-rounded" src="{{$inscription->player->photo_url}}" width="60" height="60">
         <p>
             {{$inscription->player->full_names}}<br>
             Teléfono: <small>{{$inscription->player->phones}}</small><br>

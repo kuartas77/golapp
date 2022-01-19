@@ -55,10 +55,10 @@ class PaymentRepository
      */
     public function filterSelect($request, bool $deleted = false): Builder
     {
-        $query = $this->model->query()->school()->with('inscription.player');
+        $query = $this->model->query()->schoolId()->with('inscription.player');
 
         if ($deleted) {
-            $query = $this->model->school()->with([
+            $query = $this->model->schoolId()->with([
                 'inscription' => fn ($query) => $query->with('player')->withTrashed()
             ])->withTrashed();
         }

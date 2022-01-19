@@ -2,8 +2,8 @@
 
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Support\Collection;
 
 if (!function_exists('getPay')) {
     /**
@@ -119,7 +119,7 @@ if (!function_exists('classDays')) {
 if (!function_exists('numbersToLetters')) {
     function numbersToLetters($number, $assist = true): string
     {
-        $formatter = new NumberFormatter("en_CA", NumberFormatter::SPELLOUT);
+        $formatter = NumberFormatter::create("en_CA", NumberFormatter::SPELLOUT);
         $numberFormat = str_replace('-', '_', $formatter->format(intval($number)));
         return $assist ? "assistance_{$numberFormat}" : "year_{$numberFormat}";
     }

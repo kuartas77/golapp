@@ -24,7 +24,7 @@ Route::get('/', function () {
 
 Auth::routes(['register' => false, 'verify' => false]);
 
-Route::middleware(['auth'])->group(function ($route) {
+Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 
     $route->get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
 

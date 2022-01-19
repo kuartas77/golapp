@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
     <x-bread-crumb title="Control De Competencia" :option="0"/>
-    <x-row-card col-outside="12" :col-inside="null" >
+    <x-row-card col-inside="12" >
         {!! Form::open(['route' => 'matches.store', 'id'=>'form_matches','class'=>'form-horizontal']) !!}
             <div class="form-body">
                 @include('competition.match.fields')

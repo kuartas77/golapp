@@ -104,6 +104,7 @@ return [
     'profile_save' => 'Perfil Actualizado.',
 
     'schools_button_add' => 'Agregar Escuela',
+    'schools_dissabled' => 'Escuela Deshabilitada, Comuniquese Con El Administrador.',
 
 
 
