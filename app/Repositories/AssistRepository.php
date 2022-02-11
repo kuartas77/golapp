@@ -176,16 +176,20 @@ class AssistRepository
      */
     public function search($request, $deleted = false): array
     {
+        if (!$deleted) {
+            $request->merge(['year' => now()->year]);
+        }
+
         $trainingGroup = TrainingGroup::query()->schoolId()->with('schedule.day')
         ->when($deleted, fn($q) => $q->onlyTrashedRelations())->findOrFail($request->input('training_group_id'));
 
         $assists = $this->model->schoolId()->with('inscription.player')
-        ->when($deleted, fn($q) => $q->onlyTrashed())
-        ->where($request->only(['training_group_id', 'year', 'month']));
-
-        if (!$deleted) {
-            $request->merge(['year' => now()->year]);
-        }
+        ->when($deleted, fn($q) => $q->withTrashed())
+        ->where([
+            ['training_group_id', $request->training_group_id],
+            ['month', $request->month],
+            ['year',$request->year]
+        ]);
 
         return $this->generateTable($assists, $trainingGroup, $request, $deleted);
     }
@@ -221,19 +225,16 @@ class AssistRepository
         $thead = View::make('templates.assists.thead', ['classDays' => $classDays])->render();
         $table = View::make('templates.assists.table', ['thead' => $thead, 'rows' => $rows])->render();
 
-        $urlPrint = route('export.pdf.assists', [
+        $params = [
             'training_group_id' => $request->input('training_group_id'),
             'year' => $request->input('year'),
             'month' => $request->input('month'),
             'deleted' => $deleted
-        ]);
+        ];
 
-        $urlPrintExcel = route('export.assists', [
-            'training_group_id' => $request->input('training_group_id'),
-            'year' => $request->input('year'),
-            'month' => $request->input('month'),
-            'deleted' => $deleted
-        ]);
+        $urlPrint = route('export.pdf.assists', $params);
+
+        $urlPrintExcel = route('export.assists', $params);
 
         return [
             'table' => $table,

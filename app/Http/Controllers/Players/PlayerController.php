@@ -29,7 +29,8 @@ class PlayerController extends Controller
      */
     public function index()
     {
-        return view('player.index');
+        $admin = isAdmin() ? 1 : 0;
+        return view('player.index', compact('admin'));
     }
 
     /**

@@ -13,7 +13,7 @@ if (!function_exists('getPay')) {
     function getPay($value): string
     {
         $payments = config('variables.KEY_PAYMENTS_SELECT');
-        return in_array($value, $payments)? $payments[$value] : number_format($value, 0,'','');
+        return array_key_exists($value, $payments)? $payments[$value] : number_format($value, 0,'','');
     }
 }
 
@@ -37,7 +37,7 @@ if (!function_exists('checkAssists')) {
     function checkAssists($value): string
     {
         $assist = config('variables.KEY_ASSIST_LETTER');
-        return in_array($value, $assist) ? $assist[$value] : '-';
+        return array_key_exists($value, $assist) ? $assist[$value] : '-';
     }
 }
 

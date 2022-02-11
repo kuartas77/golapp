@@ -29,6 +29,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
     $route->get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
 
     $route->get('/home', [HomeController::class, 'index'])->name('home');
+    $route->get('/birthDays', [HomeController::class, 'birthDays'])->name('birthDays');
 
     $route->post('inscriptions/activate/{id}', [InscriptionController::class, 'activate'])->name('inscriptions.activate');
 

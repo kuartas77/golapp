@@ -20,7 +20,7 @@ class SkillsControl extends Model
     public $table = 'skills_control';
 
     protected $fillable = [
-        'match_id',
+        'game_id',
         'inscription_id',
         'assistance',
         'titular',
@@ -46,7 +46,7 @@ class SkillsControl extends Model
 
     public function match(): BelongsTo
     {
-        return $this->belongsTo(Game::class, 'match_id', 'id');
+        return $this->belongsTo(Game::class, 'game_id', 'id');
     }
 
 }

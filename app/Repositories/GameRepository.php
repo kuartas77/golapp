@@ -235,6 +235,8 @@ class GameRepository
 
         $data['school'] = 'soccercity';
         $data['match'] = $match;
+        $data['count'] = $match->skillsControls->count() + 1;
+        $data['result'] = (20 - $data['count']);
         $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'match.blade.php');
 

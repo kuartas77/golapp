@@ -10,7 +10,7 @@
                     <a class="nav-link" data-toggle="tab" href="#family" role="tab">Información Familiar</a>
                 </li>
                 <li class="nav-item ml-auto card-actions">
-                    <a class="nav-link" data-action="collapse" data-toggle="tooltip" data-placement="left" title="Click acá"><i class="ti-minus"></i></a>
+                    <a class="nav-link" data-action="collapse" data-toggle="tooltip" data-placement="left" title="Click acá"><i class="ti-plus"></i></a>
                 </li>
             </ul>
 
@@ -119,7 +119,7 @@
                     </li>
 
                     <li class="nav-item ml-auto card-actions">
-                        <a class="nav-link" data-action="collapse" data-toggle="tooltip" data-placement="left" title="Click acá"><i class="ti-minus"></i></a>
+                        <a class="nav-link" data-action="collapse" data-toggle="tooltip" data-placement="left" title="Click acá"><i class="ti-plus"></i></a>
                     </li>
                 </ul>
 

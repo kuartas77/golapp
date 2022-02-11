@@ -31,7 +31,7 @@ class PlayerCreateRequest extends FormRequest
             'date_birth' => ['required'],
             'place_birth' => ['required'],
             'identification_document' => ['required'],
-            'rh' => ['required'],
+            'rh' => ['nullable'],
             'eps' => ['required'],
             'email' => ['required'],
             'address' => ['required'],
@@ -44,6 +44,8 @@ class PlayerCreateRequest extends FormRequest
             'school' => ['required'],
             'degree' => ['required'],
             'player' => ['nullable', 'image', 'mimes:jpeg,png,jpg'],
+            'position_field' => ['nullable'],
+            'dominant_profile' => ['nullable'],
 
             'people'=> 'array',
             'people.*.relationship',

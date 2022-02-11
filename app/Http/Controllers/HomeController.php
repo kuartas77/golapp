@@ -7,6 +7,7 @@ use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use App\Repositories\PlayerRepository;
 use Illuminate\Contracts\View\Factory;
 use App\Repositories\PaymentRepository;
 use Illuminate\Contracts\Foundation\Application;
@@ -15,16 +16,18 @@ class HomeController extends Controller
 {
 
     private PaymentRepository $paymentRepository;
+    private PlayerRepository $playerRepository;
 
     /**
      * Create a new controller instance.
      *
      * @param PaymentRepository $paymentRepository
      */
-    public function __construct(PaymentRepository $paymentRepository)
+    public function __construct(PaymentRepository $paymentRepository, PlayerRepository $playerRepository)
     {
         $this->middleware('auth');
         $this->paymentRepository = $paymentRepository;
+        $this->playerRepository = $playerRepository;
     }
 
     /**
@@ -49,6 +52,15 @@ class HomeController extends Controller
                 'past' => $this->paymentRepository->dataGraphicsYear(now()->subYear()->year)
             ]);
         }
-        return view('home');
+        $birthdays = $this->playerRepository->birthdayToday()->count();
+
+        return view('home', compact('birthdays'));
+    }
+
+    public function birthDays()
+    {
+        $birthdays = $this->playerRepository->birthdayToday();
+
+        return view('players.birthdays', compact('birthdays'));
     }
 }

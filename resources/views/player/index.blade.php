@@ -10,10 +10,11 @@
 @endsection
 @section('scripts')
     <script>
-        const isAdmin = {{isAdmin()}};
+        const isAdmin = {{ $admin }};
         const urlCurrent = "{{route('players.enabled')}}";
+        let active_table = $('#table_players');
         $(document).ready(function () {
-            const active_table = $('#table_players').DataTable({
+            active_table = $('#table_players').DataTable({
                 "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
                 "order": [[2, "desc"]],
                 "scrollX": true,
@@ -81,11 +82,12 @@
 
         const format = (d) => {
             let rows = "";
-            d.people.forEach(function (people) {
-                let tutor = people.is_tutor ? "ACUDIENTE" : "";
+            d.people.forEach(function ({tutor, relationship_name, names, phone, mobile}) {
+                let is_tutor = tutor === 1 ? "ACUDIENTE" : "";
                 rows += '<tr>' +
-                    '<th><strong>' + tutor + '</strong> <span>' + people.relationship_name + '</span></th><td>' + people.names + '</td>' +
-                    '<th><span>teléfonos:</span></th><td>' + people.phone + ' - ' + people.mobile + '</td>' +
+                    '<th><strong>' + is_tutor + '</strong></th>'+
+                    '<th><span>' + relationship_name + '</span></th><th>' + names + '</th>' +
+                    '<th><span>Teléfonos:</span></th><th>' + phone + ' - ' + mobile + '</th>' +
                     '</tr>';
             });
 

@@ -10,9 +10,6 @@ use App\Repositories\InscriptionRepository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Routing\Redirector;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class InscriptionController extends Controller
@@ -79,5 +76,11 @@ class InscriptionController extends Controller
         } else {
             return response()->json([__('messages.ins_create_failure')], 422);
         }
+    }
+
+    public function destroy(Inscription $inscription)
+    {
+        $this->repository->disable($inscription);
+        return back();
     }
 }

@@ -27,7 +27,7 @@
     <div class="sidebar-footer">
         {{-- <a href="" class="link" data-toggle="tooltip" title="Settings"><i class="ti-settings"></i></a>
         <a href="" class="link" data-toggle="tooltip" title="Email"><i class="mdi mdi-gmail"></i></a> --}}
-        <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="link" data-toggle="tooltip" title="{{ __('Logout') }}"><i class="mdi mdi-power"></i></a>
+        <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="link"><i class="mdi mdi-power"></i></a>
     </div>
     {{-- End Bottom points--}}
 </aside>

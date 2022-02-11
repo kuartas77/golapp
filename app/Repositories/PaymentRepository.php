@@ -32,6 +32,7 @@ class PaymentRepository
     {
         $payments = $this->filterSelect($request, $deleted)->get();
         $rows = "";
+        $payments->setAppends(['check_payments']);
         foreach ($payments as $pay) {
             $rows .= View::make('templates.payments.row', [
                 'payment' => $pay,

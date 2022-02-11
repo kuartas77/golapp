@@ -34,16 +34,15 @@ class TrainingGroupController extends Controller
      *
      * @return Application|Factory|View
      */
-    public function index()
+    public function index(): Factory|View|Application
     {
-       
         return view('groups.training.index');
     }
 
     /**
      * Show the form for creating a new resource.
      *
-     * @return Response|void
+     * @return Response
      */
     public function create(): Response
     {
@@ -53,10 +52,10 @@ class TrainingGroupController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param Request $request
+     * @param TrainingGroupRequest $request
      * @return Application|Redirector|RedirectResponse
      */
-    public function store(TrainingGroupRequest $request)
+    public function store(TrainingGroupRequest $request): Redirector|RedirectResponse|Application
     {
         $training_group = $this->repository->setTrainingGroup($request, true);
         if (is_null($training_group))
@@ -99,6 +98,8 @@ class TrainingGroupController extends Controller
      */
     public function update(TrainingGroupRequest $request, TrainingGroup $trainingGroup)
     {
+        abort_if($trainingGroup->id === 1, 401 , 'El Grupo Provicional No Se Puede Eliminar o Modificar');
+
         $trainingGroup = $this->repository->setTrainingGroup($request, false, $trainingGroup);
         if (is_null($trainingGroup))
             alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
@@ -117,8 +118,8 @@ class TrainingGroupController extends Controller
      */
     public function destroy(TrainingGroup $trainingGroup)
     {
-        abort_unless(isAdmin(), 401);
-        abort_if($trainingGroup->id === 1, 401);
+        abort_if($trainingGroup->id === 1, 401 , 'El Grupo Provicional No Se Puede Eliminar o Modificar');
+
         if ($trainingGroup->delete()) {
             alert()->success(env('APP_NAME'), __('messages.ins_delete_success'));
         } else {

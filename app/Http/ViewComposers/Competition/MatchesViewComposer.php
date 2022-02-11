@@ -4,8 +4,10 @@
 namespace App\Http\ViewComposers\Competition;
 
 
-use App\Models\CompetitionGroup;
+use Carbon\Carbon;
 use App\Models\Tournament;
+use App\Models\CompetitionGroup;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -15,6 +17,10 @@ class MatchesViewComposer
     public function compose(View $view)
     {
         if (Auth::check()) {
+
+            $minYear = Cache::remember('KEY_MIN_YEAR', now()->addDay(), function () {
+                return Carbon::parse(DB::table('games')->when(isSchool() || isInstructor(), fn($query) => $query->where('school_id', auth()->user()->school->id))->min('created_at'))->year;
+            });
             $tournaments = Cache::remember('KEY_TOURNAMENT', now()->addDay(), function () {
                 return Tournament::orderBy('name')->pluck('name', 'id');
             });
@@ -57,6 +63,7 @@ class MatchesViewComposer
 
             $view->with('played', $played);
             $view->with('scores', $scores);
+            $view->with('minYear', $minYear);
             $view->with('positions', $positions);
             $view->with('tournaments', $tournaments);
             $view->with('qualifications', $qualifications);

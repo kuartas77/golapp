@@ -16,9 +16,9 @@ class CreateSkillsControlTable extends Migration
         Schema::create('skills_control', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('match_id');
+            $table->unsignedBigInteger('game_id');
             $table->unsignedBigInteger('inscription_id');
-            $table->foreign('match_id')->references('id')->on('matches');
+            $table->foreign('game_id')->references('id')->on('games');
             $table->foreign('inscription_id')->references('id')->on('inscriptions');
 
             $table->boolean('assistance')->default(false);

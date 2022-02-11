@@ -47,7 +47,7 @@ class Master extends Model
 
                 $key = $keys[$i];
                 $fieldRequest = Str::title($request[$key]);
-                $master = static::select('autocomplete')
+                $master = static::query()->select('autocomplete')
                     ->firstWhere('field', $fields[$key]);
 
                 $value = array_unique(

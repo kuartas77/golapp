@@ -49,6 +49,16 @@
             'placeholder'=>'Seleccionar...','id'=>'competition_group_id']) !!}
         </div>
     </div>
+
+    <div class="check col-md-4 col-sm-4 col-lg-4 col-xs-12">
+        <small class="form-text text-muted">Al Ser Becado, Todos Los Pagos Del Año Se Estableceran Cómo: "<span class="text-danger">Becado</span>"</small>
+        <div class="form-group">
+            <div class="checkbox">
+                <input type="checkbox" name="scholarship" id="scholarship" value="1">
+                <label for="scholarship" class="checkboxsizeletter">¿ Becado ?</label>
+            </div>
+        </div>
+    </div>
 </div>
 
 <h6 class="text-center w-auto">Documentos</h6>

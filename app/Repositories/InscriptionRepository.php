@@ -44,9 +44,9 @@ class InscriptionRepository
     public function findById($id, bool $trashed = false)
     {
         if ($trashed) {
-            return Inscription::onlyTrashed()->schoolId()->findOrFail($id);
+            return Inscription::onlyTrashed()->findOrFail($id);
         }
-        return Inscription::query()->schoolId()->findOrFail($id);
+        return Inscription::query()->findOrFail($id);
 
     }
 
@@ -56,7 +56,7 @@ class InscriptionRepository
      * @param Inscription|null $inscription
      * @return Inscription|null
      */
-    public function setInscription(Request $request,bool $created = true, Inscription $inscription = null): Inscription
+    public function setInscription(Request $request, bool $created = true, Inscription $inscription = null): Inscription
     {
         try {
             DB::beginTransaction();
@@ -65,14 +65,16 @@ class InscriptionRepository
             $inscriptionData['training_group_id'] = request('training_group_id', 1);
             $inscriptionData['deleted_at'] = null;
 
-            if ($created){
+            if ($created) {
                 $inscription = $this->model->withTrashed()->updateOrCreate([
                     'unique_code' => $inscriptionData['unique_code'],
                     'year' => $inscriptionData['year']
-                ],$inscriptionData);
+                ], $inscriptionData);
 
                 $inscription->player->notify(new InscriptionNotification($inscription));
-            }else{
+            } else {
+                $inscriptionData['unique_code'] = $inscription->unique_code;
+                $inscriptionData['start_date'] = $inscription->start_date;
                 $inscription->update($inscriptionData);
             }
 
@@ -93,29 +95,43 @@ class InscriptionRepository
      */
     public function getInscriptionsEnabled()
     {
-       $inscriptions = $this->model->schoolId()->with(['player.people', 'trainingGroup.schedule.day'])
+        $inscriptions = $this->model->with(['player.people', 'trainingGroup.schedule.day'])
             ->where('year', now()->year)->get();
-       if ($inscriptions->isNotEmpty()){
-           $inscriptions->setAppends(['url_edit','url_update','url_show', 'url_impression']);
-       }
-       return $inscriptions;
+        if ($inscriptions->isNotEmpty()) {
+            $inscriptions->setAppends(['url_edit', 'url_update', 'url_show', 'url_impression', 'url_destroy']);
+        }
+        return $inscriptions;
     }
 
     public function searchInscriptionCompetition(array $fields)
     {
-        return $this->model->query()->with('player')->schoolId()
-        ->where('unique_code', $fields['unique_code'])
-        ->where(function($query) use($fields){
-            $query->where('competition_group_id', '<>', $fields['competition_group_id'])
-            ->orWhere('competition_group_id', null);
-        })
-        ->where('year', now()->year)
-        ->first();
+        return $this->model->query()->with('player')
+            ->where('unique_code', $fields['unique_code'])
+            ->where(function ($query) use ($fields) {
+                $query->where('competition_group_id', '<>', $fields['competition_group_id'])
+                    ->orWhere('competition_group_id', null);
+            })
+            ->where('year', now()->year)
+            ->first();
     }
 
     public function searchInsUniqueCode($id)
     {
-        return $this->model->query()->with('player')->schoolId()->findOrFail($id);
+        return $this->model->query()->with('player')->findOrFail($id);
+    }
+
+    public function disable(Inscription $inscription)
+    {
+        try {
+            DB::beginTransaction();
+            $inscription->delete();
+            DB::commit();
+            alert()->success(env('APP_NAME'), __('messages.ins_delete_success'));
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            $this->logError("InscriptionRepository disable", $th);
+            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+        }
     }
 
 }

@@ -44,11 +44,12 @@
             $countAS = 0;
         @endphp
         <tr class="tr-info">
-            <td class="center texto">{{$loop->iteration}}</td>
-            <td class="center texto">{{ $assist->inscription->player->full_names }}</td>
-            <td class="center texto">{{ $assist->inscription->category }}</td>
-            <td class="center texto">{{ $assist->inscription->player->phones}}
-                - {{ $assist->inscription->player->mobile}}</td>
+            <td class="center texto" style="width:3%">{{$loop->iteration}}</td>
+            <td class="center texto"><small>{{ $assist->inscription->player->unique_code }}</small> - {{ $assist->inscription->player->full_names }}</td>
+            <td class="center texto" style="width:5%">{{ $assist->inscription->category }}</td>
+            <td class="center texto">
+                <small>{{ ($assist->inscription->player->phones ?? '') }} {{$assist->inscription->player->mobile ? ' - '.$assist->inscription->player->mobile: ''}}</small>
+            </td>
             @for ($index = 1; $index <= count($classDays); $index++)
                 <td class="center texto">
                     @php
@@ -61,14 +62,11 @@
             <td class="center texto"> {{percent($countAS, count($classDays))}}%</td>
         </tr>
     @endforeach
-    @php
-        $resultado = (40 - $count);
-    @endphp
-    @for ($i = 0; $i <= $resultado; $i++)
+    @for ($i = 0; $i <= $result; $i++)
         <tr class="tr-info">
-            <td class="center texto">{{ $count++ }}</td>
+            <td class="center texto" style="width:3%">{{ $count++ }}</td>
             <td class="texto">&nbsp;</td>
-            <td class="texto">&nbsp;</td>
+            <td class="texto" style="width:5%">&nbsp;</td>
             <td class="texto">&nbsp;</td>
             @for ($j = 1; $j <= count($classDays); $j++)
                 <td class="texto">&nbsp;</td>

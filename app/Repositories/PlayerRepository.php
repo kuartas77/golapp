@@ -4,6 +4,8 @@
 namespace App\Repositories;
 
 
+use Carbon\Carbon;
+use App\Models\Master;
 use App\Models\Player;
 use Mpdf\MpdfException;
 use App\Traits\PDFTrait;
@@ -11,6 +13,7 @@ use Jenssegers\Date\Date;
 use App\Traits\ErrorTrait;
 use App\Traits\UploadFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Database\Eloquent\Collection;
@@ -41,7 +44,7 @@ class PlayerRepository
     {
         try {
             DB::beginTransaction();
-
+            Master::saveAutoComplete($request);
             $dataPlayer = $this->setAttributes($request);
             $player = $this->model->create($dataPlayer);
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
@@ -63,7 +66,7 @@ class PlayerRepository
     {
         try {
             DB::beginTransaction();
-
+            Master::saveAutoComplete($request);
             $dataPlayer = $this->setAttributes($request, $player);
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
             $player->peoples()->sync($peopleIds);
@@ -186,5 +189,14 @@ class PlayerRepository
         $dataPlayer['category'] = categoriesName(Date::parse(request('date_birth')->year));
         $dataPlayer['unique_code'] = request('unique_code', optional($player)->unique_code);
         return $dataPlayer;
+    }
+
+    public function birthdayToday(): Collection
+    {
+        return Cache::remember('BIRTHDAYS', Carbon::now()->addDay(), function(){
+            return $this->model->query()->schoolId()->whereHas('inscription')
+            ->whereDay('date_birth', Carbon::now()->day)->whereMonth('date_birth', Carbon::now()->month)
+            ->get();
+        });
     }
 }

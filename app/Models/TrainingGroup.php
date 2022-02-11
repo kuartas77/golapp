@@ -77,7 +77,7 @@ class TrainingGroup extends Model
         return $query->with([
             'schedule.day' => fn ($query) => $query->onlyTrashed(),
             'professor' => fn ($query) => $query->onlyTrashed()
-        ])->onlyTrashed();
+        ])->withTrashed();
     }
 
     public function scopeOnlyTrashedRelationsFilter($query)
@@ -90,7 +90,7 @@ class TrainingGroup extends Model
                 ->where('year','<', now()->year)
                 ->orderBy('year','desc')
                 ->withTrashed()
-        ])->onlyTrashed();
+        ])->withTrashed();
     }
 
     public function scopeOnlyTrashedRelationsPayments($query)
@@ -102,7 +102,7 @@ class TrainingGroup extends Model
                 ->where('year','<', now()->year)
                 ->orderBy('year','desc')
                 ->withTrashed()
-        ])->onlyTrashed();
+        ])->withTrashed();
     }
 
     public function getExplodeNameAttribute(): Collection
@@ -121,7 +121,7 @@ class TrainingGroup extends Model
 
     private function nameGroup($full = false): string
     {
-        $var = trim("({$this->created_at->format('Y')}) {$this->name} {$this->stage}");
+        $var = trim("{$this->name} {$this->stage}");
         $var .= ' (' . trim("{$this->year} {$this->year_two} {$this->year_three} {$this->year_four} {$this->year_five} {$this->year_six} {$this->year_seven} {$this->year_eight} {$this->year_nine} {$this->year_ten} {$this->year_eleven} {$this->year_twelve}") . ') ';
         if ($this->relationLoaded('schedule') && $full) {
             $var .= trim("{$this->schedule->day->days} {$this->schedule->schedule}");

@@ -2,7 +2,7 @@
 # Notificación de Inscripción
 
 @component('mail::panel')
-* Nombres: {{$inscription->full_names}}
+* Nombres: {{$inscription->player->full_names}}
 * Fecha De Inicio: {{$inscription->start_date->format('Y-m-d')}}
 @endcomponent
 

@@ -242,9 +242,7 @@ class TrainingGroupRepository
      */
     public function makeRows(TrainingGroup $trainingGroup): string
     {
-        $trainingGroup->load(['inscriptions'=>function($q){
-            $q->with('player')->where('year', now()->year);
-        }]);
+        $trainingGroup->load(['inscriptions' => fn($q) => $q->with('player')->where('year', now()->year)]);
         $rows = '';
         foreach ($trainingGroup->inscriptions as $inscription) {
             $rows .= View::make('templates.groups.div_row', [

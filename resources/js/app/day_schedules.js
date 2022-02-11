@@ -192,7 +192,7 @@ $(document).ready(() => {
                 "render": (data, type, row, meta) => {
                     return '<form method="POST" action="' + row.url_destroy + '" accept-charset="UTF-8">' +
                         '<input name="_method" type="hidden" value="DELETE">' +
-                        '<input name="_token" type="hidden" value="' + row.token + '">' +
+                        '<input name="_token" type="hidden" value="' + window.token.csrfToken + '">' +
                         '<div class="btn-group">' +
                         '<a href="javascript:void(0)" class="edit btn btn-default btn-xs" data-id="' + data + '">' +
                         '<i class="fas fa-pencil-alt"></i>' +

@@ -31,59 +31,48 @@
         <td class="bold">Hora: {{ $match->hour }}</td>
         <td class="bold">Lugar: {{ $match->place }}</td>
         <td class="bold">Director Tecnico: {{ $match->competitionGroup->professor->name }}</td>
-        <td class="bold">Nombre del rival: {{ $match->nombre_rival }}</td>
-        <td class="bold text-center">SOCCER: {{ $match->final_score_format }} :RIVAL</td>
+        <td colspan="2" class="bold text-center">{{ $school->name }}: {{ $match->final_score->soccer }} - {{ $match->final_score->rival }} :{{ $match->rival_name }}</td>
     </tr>
 </table>
 
 <table class="table-full detail detail-lines">
-    <tr class="tr-tit">
+<tr class="tr-tit">
         <td width="2%" class="bold text-center">#</td>
         <td width="20%" class="bold text-center">Deportista</td>
         <td width="4%" class="bold text-center">Cat</td>
-        <td width="6%" class="bold text-center">Tel</td>
+        <!-- <td width="6%" class="bold text-center">Tel</td> -->
         <td width="3%" class="bold text-center">Ast</td>
         <td width="4%" class="bold text-center">Titular</td>
         <td width="5%" class="bold text-center">Jugó Apx.</td>
-        <td width="15%" class="bold text-center">Pos</td>
+        <td width="15%" class="bold text-center">Posición</td>
         <td width="3%" class="bold text-center">Goles</td>
         <td width="4%" class="bold text-center">T. Ama</td>
         <td width="4%" class="bold text-center">T. Roj</td>
         <td width="3%" class="bold text-center">Cal</td>
-        <td width="27%" class="bold text-center">Observación</td>
+        <td width="33%" class="bold text-center">Observación</td>
     </tr>
-    @php
-        $cantidad = 0;
-    @endphp
     @foreach($match->skillsControls as $control)
-        @php
-            $cantidad = $loop->count + 1;
-        @endphp
         <tr class="tr-info">
             <td class="bold text-center">{{$loop->iteration}}</td>
-            <td class="text-center">{{ $control->inscription->player->full_names }}</td>
+            <td class="">{{$control->inscription->player->unique_code}} - {{ $control->inscription->player->full_names }}</td>
             <td class="text-center">{{ $control->inscription->category }}</td>
-            <td class="text-center">{{ $control->inscription->player->mobile }}</td>
-            <td class="text-center">{!! $control->assistance == 1 ? '&#10003;':'' !!}</td>
-            <td class="text-center">{!! $control->titular == 1 ? '&#10003;':'' !!}</td>
+            <!-- <td class="text-center"><small>{{ $control->inscription->player->mobile }}</small></td> -->
+            <td class="text-center">{!! $control->assistance == 1 ? '&#10004;':'&#10008;' !!}</td>
+            <td class="text-center">{!! $control->titular == 1 ? '&#10004;':'&#10008;' !!}</td>
             <td class="text-center">{{ $control->played_approx }}</td>
             <td class="text-center">{{ $control->position }}</td>
-            <td class="text-center">{{ $control->goals == 0 ? 0 : $control->goles }}</td>
+            <td class="text-center">{{ $control->goals}}</td>
             <td class="text-center">{{ $control->yellow_cards }}</td>
             <td class="text-center">{{ $control->red_cards }}</td>
             <td class="text-center">{{ $control->qualification }}</td>
             <td>{{ mb_strtolower($control->observation, 'UTF-8') }}</td>
-
         </tr>
     @endforeach
-    @php
-        $resultado = (20 - $cantidad);
-    @endphp
-    @for ($i = 0; $i <= $resultado; $i++)
+    @for ($i = 0; $i <= $result; $i++)
         <tr class="tr-info">
-            <td class="bold text-center">{{$cantidad++}}</td>
+            <td class="bold text-center">{{$count++}}</td>
             <td>&nbsp;</td>
-            <td>&nbsp;</td>
+            <!-- <td>&nbsp;</td> -->
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
