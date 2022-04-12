@@ -18,11 +18,12 @@ use App\Http\Controllers\Groups\InscriptionTGroupController;
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 
+Auth::routes(['register' => false, 'verify' => false]);
+
 Route::get('/', function () {
     return redirect(\route('login'));
 });
 
-Auth::routes(['register' => false, 'verify' => false]);
 
 Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 

@@ -27,9 +27,11 @@ class ExportController extends Controller
     ){}
 
     /**
-     * @throws \Mpdf\MpdfException
+     * @param Player $player
+     * @return mixed
+     * @throws MpdfException
      */
-    public function exportPlayerPDF(Player $player)
+    public function exportPlayerPDF(Player $player): mixed
     {
         return $this->playerRepository->makePdf($player);
     }

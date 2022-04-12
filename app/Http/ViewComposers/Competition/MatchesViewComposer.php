@@ -7,6 +7,7 @@ namespace App\Http\ViewComposers\Competition;
 use Carbon\Carbon;
 use App\Models\Tournament;
 use App\Models\CompetitionGroup;
+use App\Models\Game;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -18,14 +19,18 @@ class MatchesViewComposer
     {
         if (Auth::check()) {
 
-            $minYear = Cache::remember('KEY_MIN_YEAR', now()->addDay(), function () {
-                return Carbon::parse(DB::table('games')->when(isSchool() || isInstructor(), fn($query) => $query->where('school_id', auth()->user()->school->id))->min('created_at'))->year;
-            });
-            $tournaments = Cache::remember('KEY_TOURNAMENT', now()->addDay(), function () {
-                return Tournament::orderBy('name')->pluck('name', 'id');
+
+            $school_id = isAdmin() ? 0 : auth()->user()->school->id;
+
+            $minYear = Cache::remember("KEY_MIN_YEAR_{$school_id}", now()->addDay(), function () use($school_id) {
+                return Carbon::parse(Game::getMinYear($school_id))->year;
             });
 
-            $positions = Cache::remember('KEY_POSITIONS', now()->addYear(), function () {
+            $tournaments = Cache::remember("KEY_TOURNAMENT_{$school_id}", now()->addDay(), function () {
+                return Tournament::query()->schoolId()->orderBy('name')->pluck('name', 'id');
+            });
+
+            $positions = Cache::rememberForever("KEY_POSITIONS", function () {
                 return config('variables.KEY_POSITIONS');
             });
 
@@ -53,12 +58,10 @@ class MatchesViewComposer
                 return $qualifications;
             });
 
-            if (isAdmin()){
-                $competitionGroups = CompetitionGroup::get()->pluck('full_name', 'id');
-            }elseif(isSchool()){
-                $competitionGroups = CompetitionGroup::query()->schoolId()->get()->pluck('full_name', 'id');
-            }else{
-                $competitionGroups = CompetitionGroup::query()->schoolId()->where('user_id', auth()->id())->get()->pluck('full_name', 'id');
+            if (isAdmin() || isSchool()){
+                $competitionGroups = CompetitionGroup::query()->schoolId()->get()->pluck('full_name_group', 'id');
+            }else if(isInstructor()){
+                $competitionGroups = CompetitionGroup::query()->schoolId()->where('user_id', auth()->id())->get()->pluck('full_name_group', 'id');
             }
 
             $view->with('played', $played);

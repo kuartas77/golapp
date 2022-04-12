@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property string name
@@ -23,6 +24,8 @@ class School extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
+    public const KEY_SCHOOL_CACHE = 'school_';
     
     protected $table = "schools";
     protected $fillable = [
@@ -68,6 +71,11 @@ class School extends Model
     public function users(): HasManyThrough
     {
         return $this->hasManyThrough(User::class, SchoolUser::class, 'school_id','id','id','user_id');
+    }
+
+    public function admin(): HasOneThrough
+    {
+        return $this->hasOneThrough(User::class, SchoolUser::class, 'school_id','id','id','user_id');
     }
 
     public function players(): HasMany
@@ -120,6 +128,11 @@ class School extends Model
         return $this->hasMany(SettingValue::class);
     }
 
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(Schedule::class);
+    }
+
     public function getUrlEditAttribute(): string
     {
         return route('config.schools.edit', [$this->attributes['slug']]);
@@ -138,6 +151,26 @@ class School extends Model
     public function getUrlDestroyAttribute(): string
     {
         return route('config.schools.destroy', [$this->attributes['slug']]);
+    }
+
+    public function configDefault()
+    {
+        $day = Day::query()->firstOrCreate(['days' => 'Lunes,Miércoles']);
+
+        $schedule = $this->schedules()->create([
+            'schedule' => "10:00AM - 11:00AM",
+            'day_id' => $day->id,
+        ]);
+
+        $this->trainingGroups()->create([
+            'name' => 'Provisional',
+            'year' => now()->year,
+            'category' => 'Todas Las Categorías',
+            'day_id' => $schedule->day_id,
+            'schedule_id' => $schedule->id
+        ]);
+
+        $this->settingsValues()->createMany(SettingValue::settingsDefault($this->id));
     }
 
 }

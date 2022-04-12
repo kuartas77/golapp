@@ -150,7 +150,7 @@ if (!function_exists('dayToNumber')) {
 if (!function_exists('isAdmin')) {
     function isAdmin(): bool
     {
-        return auth()->user()->hasAnyRole(['super-admin','school']);
+        return auth()->user()->hasAnyRole(['super-admin']);
     }
 }
 

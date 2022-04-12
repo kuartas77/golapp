@@ -124,10 +124,10 @@ class Inscription extends Model
         return route('players.show', [$this->attributes['unique_code']]);
     }
 
-    public function getUrlDestroyAttribute(): string
-    {
-        return route('inscriptions.destroy', [$this->attributes['id']]);
-    }
+    // public function getUrlDestroyAttribute(): string
+    // {
+    //     return route('inscriptions.destroy', [$this->attributes['id']]);
+    // }
 
     public function player(): BelongsTo
     {

@@ -12,7 +12,7 @@
                         {!! Form::label('training_group_origin', 'Grupo De Origen:') !!}
                         {!! Form::select('training_group_origin', $groups, null, ['class' => 'form-control form-control-sm', 'placeholder'=>'seleccionar...']) !!}
                     </div>
-                    <div class="space col-sm-12" id="origin"></div>
+                    <div class="row row-cols-3 space col-sm-12" id="origin"></div>
                 </div>
             </div>
         </div>
@@ -24,7 +24,7 @@
                         {!! Form::label('training_group_destiny', 'Grupo De Destino:') !!}
                         {!! Form::select('training_group_destiny', $groups, null, ['class' => 'form-control form-control-sm', 'placeholder'=>'seleccionar...']) !!}
                     </div>
-                    <div class="space col-sm-12" id="destiny"></div>
+                    <div class="row row-cols-3 space col-sm-12" id="destiny"></div>
                 </div>
             </div>
         </div>

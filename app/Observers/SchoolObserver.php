@@ -2,11 +2,7 @@
 
 namespace App\Observers;
 
-use App\Models\Day;
-use App\Models\Schedule;
 use App\Models\School;
-use App\Models\TrainingGroup;
-
 class SchoolObserver
 {
     /**
@@ -17,22 +13,7 @@ class SchoolObserver
      */
     public function created(School $school)
     {
-        $day = Day::query()->firstOrCreate([
-            'days' => 'Lunes,Miércoles'
-        ]);
-
-        $schedule = Schedule::create([
-            'schedule' => "10:00AM - 11:00AM",
-            'school_id' => $school->id
-        ]);
-        TrainingGroup::create([
-            'name' => 'Provicional',
-            'year' => now()->year,
-            'category' => 'Todas Las Categorías',
-            'day_id' => $day->id,
-            'schedule_id' => $schedule->id,
-            'school_id' => $school->id
-        ]);
+        $school->configDefault();
     }
 
     /**

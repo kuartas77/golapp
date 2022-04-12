@@ -30,7 +30,7 @@ class UserRepository
             $school = auth()->user()->school->load('users.roles');
             return $school->users;
         }
-
+        
         return $this->model->query()->with('roles')->where('id', '!=', 1)->get();
     }
 
@@ -38,9 +38,9 @@ class UserRepository
     {
         if(isSchool()){
             $school = auth()->user()->school->load('users.roles');
-            return $school->users()->with('roles')->onlyTrashed()->get();  
+            return $school->users()->with('roles')->onlyTrashed()->get();
         }
-        
+
         return $this->model->query()->with('roles')->onlyTrashed()->get();
     }
 
@@ -59,9 +59,11 @@ class UserRepository
             $user->notify(new RegisterNotification($user, Str::of($school->name)->mask("*", 4)));
             alert()->success(__('messages.user_stored_success'));
             Cache::forget('users');
+            return $user;
         } catch (Exception $exception) {
             $this->logError("UserRepository create", $exception);
             alert()->error(__('messages.error'));
+            return $this->model;
         }
     }
 

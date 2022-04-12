@@ -93,7 +93,7 @@ class PlayerRepository
     /**
      * @throws MpdfException
      */
-    public function makePdf(Player $player, bool $stream = true): string
+    public function makePdf(Player $player, bool $stream = true): mixed
     {
         $player->load(['schoolData', 'people','inscription' => fn($query) => $query->with(['trainingGroup','competitionGroup'])]);
 
@@ -104,10 +104,7 @@ class PlayerRepository
         $this->setConfigurationMpdf(['format' => [213, 140]]);        
         $this->createPDF($data, 'inscription.blade.php');
 
-        if ($stream) {
-            return $this->stream($filename);
-        }
-        // return $this->output($filename);
+        return $stream ? $this->stream($filename) : $this->output($filename);
     }
 
 

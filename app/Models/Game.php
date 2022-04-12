@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Traits\Fields;
 use Illuminate\Support\Str;
 use App\Traits\GeneralScopes;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -80,5 +82,11 @@ class Game extends Model
     public function skillsControls(): HasMany
     {
         return $this->hasMany(SkillsControl::class);
+    }
+
+    public static function getMinYear(int $school_id = 0): ?string
+    {
+        return self::query()->when($school_id, fn($query)=> $query->where('school_id', $school_id))->min('created_at');
+
     }
 }

@@ -32,6 +32,7 @@ $(document).ready(() => {
             rival_name: {required: true},
             date: {required: true},
             hour: {required: true},
+            general_concept: {required: true},
             "final_score[soccer]": {required: true, numbers: true},
             "final_score[rival]": {required: true, numbers: true},
         }

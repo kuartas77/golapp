@@ -5,12 +5,11 @@ namespace App\Repositories;
 use Exception;
 use App\Traits\ErrorTrait;
 use App\Models\Inscription;
-use Illuminate\Http\Request;
-use App\Events\InscriptionAdded;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use App\Notifications\InscriptionNotification;
+use App\Http\Requests\Inscription\InscriptionRequest;
 
 class InscriptionRepository
 {
@@ -44,19 +43,19 @@ class InscriptionRepository
     public function findById($id, bool $trashed = false)
     {
         if ($trashed) {
-            return Inscription::onlyTrashed()->findOrFail($id);
+            return Inscription::onlyTrashed()->schoolId()->findOrFail($id);
         }
-        return Inscription::query()->findOrFail($id);
+        return Inscription::query()->schoolId()->findOrFail($id);
 
     }
 
     /**
-     * @param Request $request
+     * @param InscriptionRequest $request
      * @param bool $created
      * @param Inscription|null $inscription
      * @return Inscription|null
      */
-    public function setInscription(Request $request, bool $created = true, Inscription $inscription = null): Inscription
+    public function setInscription(InscriptionRequest $request, bool $created = true, Inscription $inscription = null): Inscription
     {
         try {
             DB::beginTransaction();
@@ -96,9 +95,9 @@ class InscriptionRepository
     public function getInscriptionsEnabled()
     {
         $inscriptions = $this->model->with(['player.people', 'trainingGroup.schedule.day'])
-            ->where('year', now()->year)->get();
+            ->where('year', now()->year)->schoolId()->get();
         if ($inscriptions->isNotEmpty()) {
-            $inscriptions->setAppends(['url_edit', 'url_update', 'url_show', 'url_impression', 'url_destroy']);
+            $inscriptions->setAppends(['url_edit', 'url_update', 'url_show', 'url_impression'/*, 'url_destroy'*/]);
         }
         return $inscriptions;
     }
@@ -117,7 +116,7 @@ class InscriptionRepository
 
     public function searchInsUniqueCode($id)
     {
-        return $this->model->query()->with('player')->findOrFail($id);
+        return $this->model->query()->with('player')->schoolId()->findOrFail($id);
     }
 
     public function disable(Inscription $inscription)

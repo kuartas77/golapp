@@ -99,35 +99,36 @@ class AssistRepository
      */
     public function create($request): array
     {
-        $trainingGroup = TrainingGroup::query()->schoolId()
-            ->with(['schedule.day'])->find($request->input('training_group_id'));
-        $inscriptionIds = Inscription::query()->schoolId()
-            ->where('training_group_id', $request->input('training_group_id'))
-            ->where('year', now()->year)->pluck('id');
+        $table = [];
+        try {
 
-        if ($inscriptionIds->isNotEmpty()) {
+            $trainingGroup = TrainingGroup::query()->schoolId()
+                ->with(['schedule.day'])->find($request->input('training_group_id'));
+            $inscriptionIds = Inscription::query()->schoolId()
+                ->where('training_group_id', $request->input('training_group_id'))
+                ->where('year', now()->year)->pluck('id');
+
+            $school_id = auth()->user()->school->id;
+
+            $request->merge(['year' => now()->year]);
+
+            $assists = $this->model->schoolId()->with('inscription.player')
+                ->where($request->only(['training_group_id', 'year', 'month']));
+
+            if ($inscriptionIds->isNotEmpty()) {
                 
-            try {
-                $school_id = auth()->user()->school->id;
-        
-                $request->merge(['year' => now()->year]);
-        
-                $assists = $this->model->schoolId()->with('inscription.player')
-                    ->where($request->only(['training_group_id', 'year', 'month']));
-        
                 $assistsIds = $assists->pluck('inscription_id');
     
                 $idsDiff = $inscriptionIds->diff($assistsIds);
 
                 DB::beginTransaction();
-                
                 foreach ($idsDiff as $id) {
-                    
                     $this->model->updateOrCreate(
                         [
                             'inscription_id' => $id,
                             'year' => $request->input('year'),
                             'month' => $request->input('month'),
+                            'training_group_id' => $request->input('training_group_id'),
                             'school_id' => $school_id
                         ],
                         [
@@ -140,13 +141,16 @@ class AssistRepository
                     );
                 }
                 DB::commit();
-            } catch (Exception $th) {
-                DB::rollBack();
-                $this->logError("AssistRepository create", $th);
             }
+
+            $table = $this->generateTable($assists, $trainingGroup, $request);
+
+        } catch (Exception $th) {
+            DB::rollBack();
+            $this->logError("AssistRepository create", $th);
         }
 
-        return $this->generateTable($assists, $trainingGroup, $request);
+        return $table;
     }
 
     /**

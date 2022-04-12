@@ -12,9 +12,8 @@
 
         <div class="col-md-4">
             <div class="form-group">
-                {!! Form::label('tournament_name', 'Torneo:') !!}
-                {!! Form::text('tournament_name', $information->tournament->name, ['class' => 'form-control form-control-sm', 'readonly']) !!}
-                {!! Form::hidden('tournament_id', $information->tournament->id, ['id' => 'tournament_id']) !!}
+                {!! Form::label('tournament_id', 'Torneo:') !!}
+                {!! Form::select('tournament_id', $tournaments , $information->tournament->id, ['id'=>'tournament_id','class' => 'form-control form-control-sm select2','placeholder' =>'Seleccione uno...','required']) !!}
             </div>
         </div>
 

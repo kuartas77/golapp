@@ -123,7 +123,7 @@ class TrainingGroup extends Model
     {
         $var = trim("{$this->name} {$this->stage}");
         $var .= ' (' . trim("{$this->year} {$this->year_two} {$this->year_three} {$this->year_four} {$this->year_five} {$this->year_six} {$this->year_seven} {$this->year_eight} {$this->year_nine} {$this->year_ten} {$this->year_eleven} {$this->year_twelve}") . ') ';
-        if ($this->relationLoaded('schedule') && $full) {
+        if ($this->relationLoaded('schedule.day')  && $full) {
             $var .= trim("{$this->schedule->day->days} {$this->schedule->schedule}");
         }
         return $var;
