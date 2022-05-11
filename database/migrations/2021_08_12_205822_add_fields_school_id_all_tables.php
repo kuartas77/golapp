@@ -41,7 +41,7 @@ class AddFieldsSchoolIdAllTables extends Migration
             $table->unsignedBigInteger('school_id')->nullable();
             $table->foreign('school_id')->references('id')->on('schools');
         });
-        Schema::table('matches', function (Blueprint $table) {
+        Schema::table('games', function (Blueprint $table) {
             $table->unsignedBigInteger('school_id')->nullable();
             $table->foreign('school_id')->references('id')->on('schools');
         });
