@@ -63,8 +63,7 @@ class AssistRepository
             array_map('dayToNumber', $group->explode_name['days'])
         );
 
-        $school_id = auth()->user()->school_id;
-        $school = Cache::remember(School::KEY_SCHOOL_CACHE. "_{$school_id}", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn()=> auth()->user()->school);
+        $school = getSchool(auth()->user());
         
         return [$assists, $classDays, $group->full_schedule_group, $group, $school];
     }

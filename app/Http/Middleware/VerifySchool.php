@@ -19,9 +19,8 @@ class VerifySchool
     public function handle(Request $request, Closure $next)
     {
         if(auth()->check()){
-            $school_id = auth()->user()->school_id;
 
-            $school = Cache::remember(School::KEY_SCHOOL_CACHE. "_{$school_id}", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn()=> auth()->user()->school);
+            $school = getSchool(auth()->user());
 
             if (empty($school) || !($school->is_enable)) {
                 return $this->logout();

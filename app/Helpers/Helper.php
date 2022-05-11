@@ -1,9 +1,11 @@
 <?php
 
 use Carbon\Carbon;
+use App\Models\School;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 if (!function_exists('getPay')) {
     /**
@@ -167,6 +169,14 @@ if (!function_exists('isInstructor')) {
         return auth()->user()->hasAnyRole(['instructor']);
     }
 }
+
+if (!function_exists('getSchool')){
+    function getSchool($user){
+        return Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn()=> $user->school);
+    }
+}
+
+
 
 //
 //if (!function_exists('')){}
