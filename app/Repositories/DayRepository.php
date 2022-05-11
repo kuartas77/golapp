@@ -29,7 +29,7 @@ class DayRepository
 
     public function all()
     {
-        $days = $this->model->query()->whereHas('schedules')->with('schedules')->get();
+        $days = $this->model->query()->whereRelation('schedules', 'school_id', auth()->user()->school_id)->with('schedules')->get();
         $days->setAppends(['schedul']);
         return $days;
     }
@@ -40,18 +40,15 @@ class DayRepository
      */
     public function store(Request $request)
     {
-        $days_class = $this->getDaysClass();
-
         try {
             DB::beginTransaction();
-            $day = $this->model->query()->create([
-                'days' => $days_class->implode(',')
-            ]);
+            $day = $this->model->query()->create(['days' => $this->getDaysClass()]);
 
             foreach ($request->input('schedule') as $schedule) {
                 if (!is_null($schedule['value'])) {
                     $day->schedules()->create([
                         'schedule' => $schedule['value'],
+                        'school_id' => auth()->user()->school_id
                     ]);
                 }
             }
@@ -72,13 +69,9 @@ class DayRepository
      */
     public function updateDay(Request $request, Day $day)
     {
-        $days_class = $this->getDaysClass();
-
-        DB::beginTransaction();
         try {
-            $day->fill([
-                'days' => $days_class->implode(',')
-            ])->save();
+            DB::beginTransaction();
+            $day->update(['days' => $this->getDaysClass()]);
 
             foreach ($request->input('schedule') as $schedule) {
                 if (!is_null($schedule['value'])) {
@@ -95,7 +88,7 @@ class DayRepository
         }
     }
 
-    private function getDaysClass(): Collection
+    private function getDaysClass(): string
     {
         $days_class = collect();
         $days_class->push(request('day_one'));
@@ -103,6 +96,6 @@ class DayRepository
         is_null(request('day_three')) ?: $days_class->push(request('day_three'));
         is_null(request('day_four')) ?: $days_class->push(request('day_four'));
         is_null(request('day_five')) ?: $days_class->push(request('day_five'));
-        return $days_class;
+        return $days_class->implode(',');
     }
 }

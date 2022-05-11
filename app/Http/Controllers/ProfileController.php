@@ -22,7 +22,7 @@ class ProfileController extends Controller
      */
     public function show(Profile $profile)
     {
-        if (auth()->id() === $profile->id || isAdmin()) {
+        if (auth()->id() === $profile->id || isAdmin() || isSchool()) {
             $profile->load('user');
             view()->share('profile', $profile);
             return view('profile.show');
@@ -39,7 +39,7 @@ class ProfileController extends Controller
      */
     public function edit(Profile $profile)
     {
-        if (auth()->id() === $profile->id || isAdmin()) {
+        if (auth()->id() === $profile->id || isAdmin() || isSchool()) {
             $profile->load('user');
             view()->share('profile', $profile);
             return view('profile.edit');

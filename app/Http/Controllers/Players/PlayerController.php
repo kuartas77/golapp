@@ -29,7 +29,8 @@ class PlayerController extends Controller
      */
     public function index()
     {
-        return view('player.index');
+        $admin = isAdmin() || isSchool() ? 1 : 0;
+        return view('player.index', compact('admin'));
     }
 
     /**
@@ -37,7 +38,7 @@ class PlayerController extends Controller
      */
     public function create()
     {
-        abort_unless(isAdmin(), 404);
+        abort_unless(isAdmin() || isSchool(), 404);
         view()->share('edit', false);
         view()->share('peoples', collect([1, 2, 3]));
         return view('player.create');
@@ -49,7 +50,7 @@ class PlayerController extends Controller
      */
     public function store(PlayerCreateRequest $request): RedirectResponse
     {
-        abort_unless(isAdmin(), 404);
+        abort_unless(isAdmin() || isSchool(), 404);
         $player = $this->repository->createPlayer($request);
         if (!$player->wasRecentlyCreated) {
             alert()->error(env('APP_NAME'), __('messages.error_general'));
@@ -77,7 +78,7 @@ class PlayerController extends Controller
      */
     public function edit(Player $player)
     {
-        abort_unless(isAdmin(), 404);
+        abort_unless(isAdmin() || isSchool(), 404);
         $player->load('people');
         view()->share('edit', true);
         view()->share('player', $player);
@@ -91,7 +92,7 @@ class PlayerController extends Controller
      */
     public function update(PlayerUpdateRequest $request, Player $player): RedirectResponse
     {
-        abort_unless(isAdmin(), 404);
+        abort_unless(isAdmin() || isSchool(), 404);
         $player = $this->repository->updatePlayer($player, $request);
         if (is_null($player)) {
             alert()->error(env('APP_NAME'), __('messages.error_general'));

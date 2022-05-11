@@ -11,7 +11,7 @@ class BreadCrumb extends Component
      *
      * @return void
      */
-    public function __construct(public string $title, public int $option)
+    public function __construct(public string $title, public int $option, public int $birthdays = 0)
     {
         //
     }

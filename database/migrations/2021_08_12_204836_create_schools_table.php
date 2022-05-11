@@ -24,6 +24,7 @@ class CreateSchoolsTable extends Migration
             $table->boolean('is_enable')->default(false);
             $table->string('logo')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

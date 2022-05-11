@@ -1,16 +1,10 @@
 @extends('layouts.app')
 @section('title', 'Días de Entrenamiento')
 @section('content')
-    @include('templates.bread_crumb', ['title' => 'Días de Entrenamiento', 'option' => 0])
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    @include('day.table')
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-bread-crumb title="Días de Entrenamiento" :option="0"/>
+    <x-row-card col-inside="12" >
+        @include('day.table')
+    </x-row-card >
 @endsection
 @section('modals')
     @include('modals.create_day')

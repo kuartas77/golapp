@@ -4,7 +4,7 @@
     <fieldset class="col-md-12 p-2">
 
         <div class="row justify-content-center">
-            <img src="{{$edit ? $player->photo : 'http://golapp.local/img/user.png' }}" class="rounded" alt="player" id="player-img" width="200" height="200">
+            <img src="{{$edit ? $player->photo_url : 'http://golapp.local/img/user.png' }}" class="rounded" alt="player" id="player-img" width="200" height="200">
         </div>
 
         <div class="row justify-content-center">
@@ -24,7 +24,7 @@
                 <div class="form-group">
                     <label>Foto</label> 
                     <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="file-upload" accept="image/x-png,image/jpeg" name="player">
+                        <input type="file" class="custom-file-input" id="file-upload" accept="image/png, image/jpeg" name="player">
                         <label class="custom-file-label" for="file-upload">Seleccionar...</label>
                     </div>
                 </div>

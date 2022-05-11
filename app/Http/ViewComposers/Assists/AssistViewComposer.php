@@ -24,7 +24,7 @@ class AssistViewComposer
     {
         if (Auth::check()) {
 
-            if (isSchool() || isAdmin()) {
+            if (isAdmin() || isSchool()) {
                 $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(false);
             } elseif(isInstructor()){
                 $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(false, auth()->id());

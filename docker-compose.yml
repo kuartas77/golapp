@@ -1,14 +1,17 @@
 version: '3'
 services:
     php:
-        restart: always
+        # restart: always
         container_name: php
         build: 
+            args:
+                user: skidrunk77 # your username (echo $USER)
+                uid: 1000 # your uid (id -u)
             context: .
             dockerfile: docker/php/Dockerfile
         volumes:
             - ./:/var/www/html
-            # - ./docker/php/prod.ini:/usr/local/etc/php/php.ini
+            - ./docker/php/prod.ini:/usr/local/etc/php/php.ini
         ports:
             - "9000:9000"
         environment:
@@ -17,7 +20,7 @@ services:
         networks:
           - laravel
     mysql:
-        restart: always
+        # restart: always
         image: 'mysql:8.0'
         container_name: mysql
         ports:
@@ -37,7 +40,7 @@ services:
             retries: 3
             timeout: 5s
     nginx:
-        restart: always
+        # restart: always
         image: nginx:stable-alpine
         container_name: nginx
         ports:
@@ -51,22 +54,22 @@ services:
           - mysql
         networks:
           - laravel
-    redis:
-        restart: always
-        image: 'redis:alpine'
-        container_name: redis
-        ports:
-            - '${FORWARD_REDIS_PORT:-6379}:6379'
-        volumes:
-            - 'laravelredis:/data'
-        networks:
-            - laravel
-        healthcheck:
-            test: ["CMD", "redis-cli", "ping"]
-            retries: 3
-            timeout: 5s
+    # redis:
+    #     restart: always
+    #     image: 'redis:alpine'
+    #     container_name: redis
+    #     ports:
+    #         - '${FORWARD_REDIS_PORT:-6379}:6379'
+    #     volumes:
+    #         - 'laravelredis:/data'
+    #     networks:
+    #         - laravel
+    #     healthcheck:
+    #         test: ["CMD", "redis-cli", "ping"]
+    #         retries: 3
+    #         timeout: 5s
     mailhog:
-        restart: always
+        # restart: always
         image: 'mailhog/mailhog:latest'
         container_name: mailhog
         ports:

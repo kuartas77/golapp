@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Traits\Fields;
 use Illuminate\Support\Str;
 use App\Traits\GeneralScopes;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,7 +20,7 @@ class Game extends Model
     use GeneralScopes;
     use HasFactory;
 
-    protected $table = "matches";
+    protected $table = "games";
 
     protected $fillable = [
         'id',
@@ -35,12 +37,16 @@ class Game extends Model
     ];
 
     protected $appends = [
-        'general_concept_short', 'url_destroy', 'url_edit', 'url_update', 'url_show', 'final_score_format', 'final_score_array', 'token'
+        'general_concept_short', 'url_destroy', 'url_edit', 'url_update', 'url_show',
+    ];
+
+    protected $casts = [
+        'final_score' => 'object'
     ];
 
     public function getGeneralConceptShortAttribute()
     {
-        return Str::limit($this->attributes['general_concept'], 120, '...');
+        return Str::limit($this->attributes['general_concept'], 100, '...');
     }
 
     public function getUrlDestroyAttribute()
@@ -63,24 +69,6 @@ class Game extends Model
         return route('export.pdf.match', [$this->attributes['id']]);
     }
 
-    public function getFinalScoreFormatAttribute()
-    {
-        $final_score = json_decode($this->attributes['final_score'], true);
-        return "{$final_score['soccer']} - {$final_score['rival']}";
-    }
-
-    public function getFinalScoreArrayAttribute()
-    {
-        if ($this->attributes) {
-            return json_decode($this->attributes['final_score']);
-        }
-    }
-
-    public function setFinalScoreAttribute($value)
-    {
-        $this->attributes['final_score'] = json_encode($value);
-    }
-
     public function competitionGroup(): BelongsTo
     {
         return $this->belongsTo(CompetitionGroup::class, 'competition_group_id');
@@ -94,5 +82,11 @@ class Game extends Model
     public function skillsControls(): HasMany
     {
         return $this->hasMany(SkillsControl::class);
+    }
+
+    public static function getMinYear(int $school_id = 0): ?string
+    {
+        return self::query()->when($school_id, fn($query)=> $query->where('school_id', $school_id))->min('created_at');
+
     }
 }

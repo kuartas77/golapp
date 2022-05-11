@@ -1,24 +1,20 @@
 @extends('layouts.app')
-@section('title', 'Deportistas')
 @section('content')
-    @include('templates.bread_crumb', ['title' => 'Deportistas', 'option' => 0])
-    <div class="row">
-        <div class="card col-12">
-            <div class="card-body">
-                @include('player.table')
-            </div>
-        </div>
-    </div>
+    <x-bread-crumb title="Deportistas" :option="0"/>
+    <x-row-card col-inside="12" >
+    @include('player.table')
+    </x-row-card >
 @endsection
 @section('modals')
     @include('modals.create_inscription')
 @endsection
 @section('scripts')
     <script>
-        const isAdmin = {{isAdmin()}};
+        const isAdmin = {{ $admin }};
         const urlCurrent = "{{route('players.enabled')}}";
+        let active_table = $('#table_players');
         $(document).ready(function () {
-            const active_table = $('#table_players').DataTable({
+            active_table = $('#table_players').DataTable({
                 "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
                 "order": [[2, "desc"]],
                 "scrollX": true,
@@ -35,7 +31,7 @@
                     },
                     {
                         data: 'id', "render": function (data, type, row) {
-                            return "<img class='media-object img-rounded' src='" + row.photo + "' width='60' height='60' alt='" + row.full_names + "'>";
+                            return "<img class='media-object img-rounded' src='" + row.photo_url + "' width='60' height='60' alt='" + row.full_names + "'>";
                         }
                     },
                     {data: 'unique_code'},
@@ -86,11 +82,12 @@
 
         const format = (d) => {
             let rows = "";
-            d.people.forEach(function (people) {
-                let tutor = people.is_tutor ? "ACUDIENTE" : "";
+            d.people.forEach(function ({tutor, relationship_name, names, phone, mobile}) {
+                let is_tutor = tutor === 1 ? "ACUDIENTE" : "";
                 rows += '<tr>' +
-                    '<th><strong>' + tutor + '</strong> <span>' + people.relationship_name + '</span></th><td>' + people.names + '</td>' +
-                    '<th><span>teléfonos:</span></th><td>' + people.phone + ' - ' + people.mobile + '</td>' +
+                    '<th><strong>' + is_tutor + '</strong></th>'+
+                    '<th><span>' + relationship_name + '</span></th><th>' + names + '</th>' +
+                    '<th><span>Teléfonos:</span></th><th>' + phone + ' - ' + mobile + '</th>' +
                     '</tr>';
             });
 

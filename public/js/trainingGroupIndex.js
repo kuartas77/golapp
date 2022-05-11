@@ -44,8 +44,24 @@ $(document).ready(() => {
             {
                 data: 'id',
                 "render": (data, type, row, meta) => {
-                    return '<form method="POST" action="' + row.url_destroy + '" accept-charset="UTF-8"><input name="_method" type="hidden" value="DELETE"><input name="_token" type="hidden" value="' + row.token + '"><div class="btn-group">'
-                        + '<a href="javascript:void(0)" class="edit btn btn-default btn-xs" data-id="' + row.id + '"><i class="fas fa-pencil-alt"></i></a></div></form>'
+                    if(row.name.includes('Provisional')){
+                        button_edit = ''
+                        button_disable = ''
+                    }else{
+                        button_edit = '<a href="javascript:void(0)" class="edit btn btn-info btn-xs" data-id="' + row.id + '"><i class="fas fa-pencil-alt"></i></a>'
+                        button_disable = '<button class="btn btn-danger btn-xs" type="submit"><i class="fas fa-trash-alt"></i></button>'
+                    }
+                    return '<form method="POST" action="' + row.url_destroy + '" accept-charset="UTF-8"><input name="_method" type="hidden" value="DELETE"><input name="_token" type="hidden" value="' + window.token.csrfToken + '"><div class="btn-group">'
+                        + button_edit
+                        + button_disable
+                        + '</div></form>'
+
+
+
+                    return '<form method="POST" action="' + row.url_destroy + '" accept-charset="UTF-8"><input name="_method" type="hidden" value="DELETE"><input name="_token" type="hidden" value="' + window.token.csrfToken + '"><div class="btn-group">'
+                        + '<a href="javascript:void(0)" class="edit btn btn-info btn-xs" data-id="' + row.id + '"><i class="fas fa-pencil-alt"></i></a>'
+                        + '<button class="btn btn-danger btn-xs" type="submit"><i class="fas fa-trash-alt"></i></button>'
+                        + '</div></form>'
                 }
             },
         ],

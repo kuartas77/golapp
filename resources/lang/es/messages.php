@@ -67,9 +67,9 @@ return [
     'ins_create_failure' => '¡Se Ha Presentado Un Error!. Ha Sido Reportada La Falla',
     'ins_not_found' => 'Inscripción no encontrada.',
     'ins_update_success' => 'Inscripción actualizada exitosamente.',
-    'ins_delete_success' => 'Alumno retirado exitosamente.',
-    'ins_enabled' => 'Alumno habilitado exitosamente.',
-    'ins_send_created_success' => 'Alumno Inscrito y Correo enviado exitosamente.',
+    'ins_delete_success' => 'Deportista retirado exitosamente.',
+    'ins_enabled' => 'Deportista habilitado exitosamente.',
+    'ins_send_created_success' => 'Deportista Inscrito y Correo enviado exitosamente.',
     'not_found' => 'No se encontró.',
     'disabled' => 'Opción deshabilitada.',
     'payments_add' => 'Se agregaron los pagos.',
@@ -102,6 +102,9 @@ return [
     'player_updated' =>'Deportista Actualizado Correctamente.',
     'player_title' => 'Deportista :unique_code',
     'profile_save' => 'Perfil Actualizado.',
+
+    'schools_button_add' => 'Agregar Escuela',
+    'schools_dissabled' => 'Escuela Deshabilitada, Comuniquese Con El Administrador.',
 
 
 

@@ -1,16 +1,10 @@
 @extends('layouts.app')
 @section('title', 'Grupos Competencia')
 @section('content')
-    @include('templates.bread_crumb', ['title' => 'Grupos Competencia', 'option' => 0])
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    @include('groups.competition.table')
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-bread-crumb title="Grupos Competencia" :option="0"/>
+    <x-row-card col-inside="12" >
+        @include('groups.competition.table')
+    </x-row-card >
 @endsection
 @section('modals')
     @include('modals.create_competition_groups')

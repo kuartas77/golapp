@@ -15,11 +15,7 @@ use Illuminate\Contracts\Foundation\Application;
 
 class AssistController extends Controller
 {
-
-    /**
-     * @var AssistRepository
-     */
-    private $repository;
+    private AssistRepository $repository;
 
     public function __construct(AssistRepository $repository)
     {
@@ -28,12 +24,12 @@ class AssistController extends Controller
 
     /**
      * @param Request $request
-     * @return array|Application|Factory|View
+     * @return Application|Factory|\Illuminate\Contracts\View\View|JsonResponse
      */
-    public function index(Request $request)
+    public function index(Request $request): Application|Factory|\Illuminate\Contracts\View\View|JsonResponse
     {
         if ($request->ajax()) {
-            return $this->repository->search($request, false);
+            return response()->json($this->repository->search($request));
         }
         return view('assists.assist.index');
     }

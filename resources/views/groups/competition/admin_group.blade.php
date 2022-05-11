@@ -1,8 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Conformar Grupos De Competencia')
 @section('content')
-    @include('templates.bread_crumb', ['title' => 'Conformar Grupos De Competencia', 'option' => 0])
-
+    <x-bread-crumb title="Conformar Grupos De Competencia" :option="0"/>
     <div class="row no-gutters">
 
         <div class="col-lg-2 col-md-2"></div>
@@ -37,25 +36,29 @@
         </div>
         <div class="col-lg-2 col-md-2"></div>
 
-        <div class="col-lg-6 col-md-6 col-sm-12">
+        <div class="col-lg-6 col-md-6 col-sm-6">
             <div class="card m-b-0">
                 <div class="card-body m-b-0">
-                    <h6 class="card-subtitle text-themecolor m-t-5">Deportistas Sin Grupo De Competencia <strong id="inscriptions_count"></strong></h6>
+                    <h6 class="card-subtitle text-themecolor m-t-5">Deportistas Sin Grupo De Competencia 
+                        <strong id="inscriptions_count"></strong>
+                    </h6>
                     <hr>
-                    <div class="space col-sm-12" id="inscriptions">
+                    <div class="row row-cols-3 space col-sm-12" id="inscriptions">
                         @each('templates.groups.div_row', $insWithOutGroup, 'inscription')
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-6 col-md-6 col-sm-12 ">
+        <div class="col-lg-6 col-md-6 col-sm-6 ">
             <div class="card m-b-0">
                 <div class="card-body m-b-0">
-                    <h6 class="card-subtitle text-themecolor m-t-5">Grupo Seleccionado: <strong id="group_selected">Selecciona
-                            Un Grupo...</strong> <strong id="destination_count"></strong></h6>
+                    <h6 class="card-subtitle text-themecolor m-t-5">Grupo Seleccionado: 
+                        <strong id="group_selected">Selecciona...</strong> 
+                        <strong id="destination_count"></strong>
+                    </h6>
                     <hr>
-                    <div class="space col-sm-12" id="destination">
+                    <div class="row row-cols-3 space col-sm-12" id="destination">
                         @each('templates.groups.div_row', $insWithGroup, 'inscription')
                     </div>
                 </div>

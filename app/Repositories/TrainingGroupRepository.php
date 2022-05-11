@@ -32,12 +32,12 @@ class TrainingGroupRepository
 
     public function listGroupEnabled()
     {
-        return $this->model->query()->school()->with('schedule.day', 'professor')->get();
+        return $this->model->query()->schoolId()->with('schedule.day', 'professor')->get();
     }
 
     public function listGroupDisabled()
     {
-        return $this->model->query()->onlyTrashedRelations()->school()->get();
+        return $this->model->query()->onlyTrashedRelations()->schoolId()->get();
     }
 
     /**
@@ -174,9 +174,9 @@ class TrainingGroupRepository
     public function getListGroupsSchedule($deleted = false, $whereUser = null): Collection
     {
         if ($deleted) {
-            $query = $this->model->query()->school()->onlyTrashedRelations();
+            $query = $this->model->query()->schoolId()->onlyTrashedRelations();
         } else {
-            $query = $this->model->query()->school()->with('schedule.day');
+            $query = $this->model->query()->schoolId()->with('schedule.day');
         }
 
         if ($whereUser) {
@@ -242,9 +242,7 @@ class TrainingGroupRepository
      */
     public function makeRows(TrainingGroup $trainingGroup): string
     {
-        $trainingGroup->load(['inscriptions'=>function($q){
-            $q->with('player')->where('year', now()->year);
-        }]);
+        $trainingGroup->load(['inscriptions' => fn($q) => $q->with('player')->where('year', now()->year)]);
         $rows = '';
         foreach ($trainingGroup->inscriptions as $inscription) {
             $rows .= View::make('templates.groups.div_row', [

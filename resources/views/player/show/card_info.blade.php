@@ -1,4 +1,4 @@
-<div class="col-lg-9 col-xlg-9 col-md-3">
+<div class="col-xl-9 col-lg-9 col-md-12 col-sm-12">
 
     <div class="card">
         <div class="card-header">
@@ -10,7 +10,7 @@
                     <a class="nav-link" data-toggle="tab" href="#family" role="tab">Información Familiar</a>
                 </li>
                 <li class="nav-item ml-auto card-actions">
-                    <a class="nav-link" data-action="collapse" data-toggle="tooltip" data-placement="left" title="Click acá"><i class="ti-minus"></i></a>
+                    <a class="nav-link" data-action="collapse" data-toggle="tooltip" data-placement="left" title="Click acá"><i class="ti-plus"></i></a>
                 </li>
             </ul>
 
@@ -119,7 +119,7 @@
                     </li>
 
                     <li class="nav-item ml-auto card-actions">
-                        <a class="nav-link" data-action="collapse" data-toggle="tooltip" data-placement="left" title="Click acá"><i class="ti-minus"></i></a>
+                        <a class="nav-link" data-action="collapse" data-toggle="tooltip" data-placement="left" title="Click acá"><i class="ti-plus"></i></a>
                     </li>
                 </ul>
 

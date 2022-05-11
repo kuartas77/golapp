@@ -1,6 +1,6 @@
 <tr>
     <td>{{$payment->year}}</td>
-    <td><small>{{$payment->inscription->player->full_names}}</small></td>
+    <td bgcolor="{{$payment->inscription->scholarship ? 'green': ''}}{{$payment->check_payments >= 1 ?'red': ''}}"><small>{{$payment->inscription->player->full_names}}</small></td>
     <td><input type="hidden" name="id" value="{{$payment->id}}">{{$payment->unique_code}}</td>
     <td>@include('templates.payments.select', ['mes' => 'january', 'value' => $payment->january, 'deleted' => $deleted])</td>
     <td>@include('templates.payments.select', ['mes' => 'february', 'value' => $payment->february, 'deleted' => $deleted])</td>

@@ -1,27 +1,20 @@
 @extends('layouts.app')
 @section('title', 'Control De Competencias')
 @section('content')
-    @include('templates.bread_crumb', ['title' => 'Control De Competencias', 'option' => 0])
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <a class="float-right btn waves-effect waves-light btn-rounded btn-info" id="btn-add"
-                       href="{{route('matches.create')}}">
-                        <i class="fa fa-plus" aria-hidden="true"></i>
-                        @lang('messages.match_add')
-                    </a>
-                    <div class="row">
-                        <div class="form-group col-sm-3 ">
-                            {!! Form::selectYear('year', 2018, now()->year, now()->year,['class' => 'form-control input-sm sl', 'placeholder' => 'Seleccione...', 'id' => 'year']) !!}
-                        </div>
-                    </div>
-
-                    @include('competition.match.table')
-                </div>
+<x-bread-crumb title="Control De Competencia" :option="0"/>
+    <x-row-card col-inside="12" >
+        <a class="float-right btn waves-effect waves-light btn-rounded btn-info" id="btn-add" href="{{route('matches.create')}}">
+            <i class="fa fa-plus" aria-hidden="true"></i>
+            @lang('messages.match_add')
+        </a>
+        <div class="row">
+            <div class="form-group col-sm-3 ">
+                {!! Form::selectYear('year', $minYear, now()->year, now()->year,['class' => 'form-control input-sm sl', 'placeholder' => 'Seleccione...', 'id' => 'year']) !!}
             </div>
         </div>
-    </div>
+
+        @include('competition.match.table')
+    </x-row-card >
 @endsection
 @section('scripts')
     <script>
@@ -49,7 +42,9 @@
                     {data: 'place'},
                     {data: 'num_match'},
                     {data: 'rival_name'},
-                    {data: 'final_score_format'},
+                    {data: 'final_score', render: function (data, type, row, meta) {
+                        return `${data.soccer} - ${data.rival}`;
+                    }},
                     {data: 'general_concept_short'},
                     {
                         data: 'id', render: function (data, type, row, meta) {

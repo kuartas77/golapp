@@ -5,7 +5,7 @@ $("#date").bootstrapMaterialDatePicker({
     lang: 'es',
     cancelText: 'Cancelar',
     okText: 'Aceptar',
-    minDate: moment().subtract(1, 'year'),
+    minDate: moment().subtract(1, 'month'),
     maxDate: moment()
 });
 
@@ -32,6 +32,7 @@ $(document).ready(() => {
             rival_name: {required: true},
             date: {required: true},
             hour: {required: true},
+            general_concept: {required: true},
             "final_score[soccer]": {required: true, numbers: true},
             "final_score[rival]": {required: true, numbers: true},
         }
@@ -51,7 +52,7 @@ $(document).ready(() => {
 
                 member_add = data;
                 $("#member_name_add").removeClass('hide');
-                $("#member_name").val(member_add.full_names);
+                $("#member_name").val(member_add.player.full_names);
                 $('#accept_add').attr('disabled', false);
 
             } else {

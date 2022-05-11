@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\Fields;
+use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,6 +14,7 @@ class Schedule extends Model
     use SoftDeletes;
     use Fields;
     use HasFactory;
+    use GeneralScopes;
     
     protected $table = "schedules";
     protected $fillable = [
@@ -27,6 +29,6 @@ class Schedule extends Model
 
     public function day(): BelongsTo
     {
-        return $this->belongsTo(Day::class, 'day_id', 'id');
+        return $this->belongsTo(Day::class);
     }
 }

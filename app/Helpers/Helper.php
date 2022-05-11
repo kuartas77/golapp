@@ -1,9 +1,11 @@
 <?php
 
 use Carbon\Carbon;
+use App\Models\School;
 use Carbon\CarbonPeriod;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 if (!function_exists('getPay')) {
     /**
@@ -13,7 +15,7 @@ if (!function_exists('getPay')) {
     function getPay($value): string
     {
         $payments = config('variables.KEY_PAYMENTS_SELECT');
-        return in_array($value, $payments)? $payments[$value] : number_format($value, 0,'','');
+        return array_key_exists($value, $payments)? $payments[$value] : number_format($value, 0,'','');
     }
 }
 
@@ -37,7 +39,7 @@ if (!function_exists('checkAssists')) {
     function checkAssists($value): string
     {
         $assist = config('variables.KEY_ASSIST_LETTER');
-        return in_array($value, $assist) ? $assist[$value] : '-';
+        return array_key_exists($value, $assist) ? $assist[$value] : '-';
     }
 }
 
@@ -119,7 +121,7 @@ if (!function_exists('classDays')) {
 if (!function_exists('numbersToLetters')) {
     function numbersToLetters($number, $assist = true): string
     {
-        $formatter = new NumberFormatter("en_CA", NumberFormatter::SPELLOUT);
+        $formatter = NumberFormatter::create("en_CA", NumberFormatter::SPELLOUT);
         $numberFormat = str_replace('-', '_', $formatter->format(intval($number)));
         return $assist ? "assistance_{$numberFormat}" : "year_{$numberFormat}";
     }
@@ -150,7 +152,7 @@ if (!function_exists('dayToNumber')) {
 if (!function_exists('isAdmin')) {
     function isAdmin(): bool
     {
-        return auth()->user()->hasAnyRole(['super-admin','school']);
+        return auth()->user()->hasAnyRole(['super-admin']);
     }
 }
 
@@ -167,6 +169,14 @@ if (!function_exists('isInstructor')) {
         return auth()->user()->hasAnyRole(['instructor']);
     }
 }
+
+if (!function_exists('getSchool')){
+    function getSchool($user){
+        return Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn()=> $user->school);
+    }
+}
+
+
 
 //
 //if (!function_exists('')){}

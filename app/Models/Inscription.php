@@ -56,6 +56,7 @@ class Inscription extends Model
         'start_date',
         'category',
         'photos',
+        'scholarship',
         'copy_identification_document',
         'eps_certificate',
         'medic_certificate',
@@ -71,7 +72,7 @@ class Inscription extends Model
         'period_three',
         'period_four',
         'school_id',
-        'deleted_at'
+        'deleted_at',
     ];
 
     protected $withCount = [
@@ -123,10 +124,10 @@ class Inscription extends Model
         return route('players.show', [$this->attributes['unique_code']]);
     }
 
-    public function getUrlDestroyAttribute(): string
-    {
-        return route('inscriptions.destroy', [$this->attributes['id']]);
-    }
+    // public function getUrlDestroyAttribute(): string
+    // {
+    //     return route('inscriptions.destroy', [$this->attributes['id']]);
+    // }
 
     public function player(): BelongsTo
     {

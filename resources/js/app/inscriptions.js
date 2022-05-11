@@ -12,12 +12,13 @@ const onClickDetails = (tr, row) => {
 
 const format = (d) => {
     let data_people = "";
-    d.player.people.forEach(function (people) {
-        let tutor = people.is_tutor ? "Acudiente" : "";
+    d.player.people.forEach(function ({tutor, relationship_name, names, phone, mobile}) {
+        let is_tutor = tutor === 1 ? "ACUDIENTE" : "";
         data_people += '<tr>' +
-            '<th><strong>' + tutor + ' ' + people.relationship_name + '</strong></th><td>' + people.names + '</td>' +
-            '<th><strong>teléfonos:</strong></th><td>' + people.phone + ' - ' + people.mobile + '</td>' +
-            '<th></th><td></td>'
+            '<th><strong>' + is_tutor +'</strong></th>' +
+            '<th>'+ relationship_name +'</th><th>' + names + '</th>' +
+            '<th><strong>Teléfonos:</strong></th><th>' + phone + ' - ' + mobile + '</th>' +
+            '<th></th>'
             '</tr>';
     });
 
@@ -50,31 +51,6 @@ const validateCheck = (value) => {
     return value !== 1 ? '<span class="label label-warning">NO</span>' : '<span class="label label-success">SI</span>';
 }
 
-const confirmAction = (element, event) => {
-    const form = $(element).closest('form');
-    event.preventDefault();
-    let message = "";
-    if ($(element).hasClass('btn-danger')) {
-        message = "Desactivar Este Deportista"
-    } else {
-        message = "Activar Este Deportista"
-    }
-    Swal.fire({
-        title: app_name,
-        text: `¿Estas Seguro Que Quieres ${message}?`,
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí',
-        cancelButtonText: 'No'
-    }).then((result) => {
-        if (result.value) {
-            form.submit();
-        }
-    })
-}
-
 function filterTable() {
     // Apply the search
     let column = this.api().columns(8);
@@ -98,7 +74,7 @@ const columns = [
     },
     {
         data: 'id', "render": function (data, type, row) {
-            return "<img class='media-object img-rounded' src='" + row.player.photo + "' width='60' height='60' alt='" + row.player.full_names + "'>";
+            return "<img class='media-object img-rounded' src='" + row.player.photo_url + "' width='60' height='60' alt='" + row.player.full_names + "'>";
         }
     },
     {data: 'unique_code'},//2
@@ -124,11 +100,12 @@ const columns = [
                     'data-keyboard="false" data-href="' + row.url_edit + '" data-update="'+row.url_update+'" class="btn btn-warning btn-xs edit_inscription"><i class="fas fa-pencil-alt"></i></a>';
             }
 
-            return '<div class="btn-group">' +
-                '<a href="' + row.url_show + '" class="btn btn-info btn-xs"><i class="fas fa-eye"></i></a>' +
-                edit +
-                '<a href="' + row.url_impression + '" target="_blank" class="btn btn-info btn-xs"><i class="fas fa-print" aria-hidden="true"></i></a>' +
-                '</div>';
+            return '<form method="POST" action="' + row.url_destroy + '" accept-charset="UTF-8"><input name="_method" type="hidden" value="DELETE"><input name="_token" type="hidden" value="' + window.token.csrfToken + '"><div class="btn-group">'
+            +'<a href="' + row.url_show + '" class="btn btn-info btn-xs"><i class="fas fa-eye"></i></a>'
+            + edit
+            + '<a href="' + row.url_impression + '" target="_blank" class="btn btn-info btn-xs"><i class="fas fa-print" aria-hidden="true"></i></a>'
+            + '<button class="btn btn-danger btn-xs disable-inscription"><i class="fas fa-trash-alt"></i></button>'
+            + '</div></form>';
         }
     },//12
 ];
@@ -137,6 +114,7 @@ const columnDefs = [
     {"targets": [0, 1, 6, 10, 11, 12], "searchable": false},
     {"targets": [0, 1, 6, 8, 10, 11, 12], "orderable": false},
 ];
+
 $(document).ready(function () {
 
     const active_table = $('#active_table').DataTable({
@@ -213,6 +191,33 @@ $(document).ready(function () {
         form.find('#method').remove();
         $("#form_create #start_date").attr('disabled',false);
         form.clearForm();
+        $("#form_create #training_group_id").val('').trigger('change');
+        $("#form_create #competition_group_id").val('').trigger('change');
         $("#btn_add_inscription").attr('disabled', true);
+    });
+
+    $('#active_table tbody').on('click', '.disable-inscription', function(event){
+        event.preventDefault();
+        let message = "";
+        const form = $(this).closest('form');
+        if ($(this).hasClass('btn-danger')) {
+            message = "Desactivar Este Deportista"
+        } else {
+            message = "Activar Este Deportista"
+        }
+        Swal.fire({
+            title: app_name,
+            text: `¿Estas Seguro Que Quieres ${message}?`,
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.value) {
+                form.submit();
+            }
+        })
     });
 });

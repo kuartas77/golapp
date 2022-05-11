@@ -13,7 +13,7 @@ class PlayerUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return isAdmin();
+        return isAdmin() || isSchool();
     }
 
     /**
@@ -30,7 +30,7 @@ class PlayerUpdateRequest extends FormRequest
             'date_birth' => ['required'],
             'place_birth' => ['required'],
             'identification_document' => ['required'],
-            'rh' => ['required'],
+            'rh' => ['nullable'],
             'eps' => ['required'],
             'email' => ['required'],
             'address' => ['required'],
@@ -43,6 +43,8 @@ class PlayerUpdateRequest extends FormRequest
             'school' => ['required'],
             'degree' => ['required'],
             'player' => ['nullable', 'image', 'mimes:jpeg,png,jpg'],
+            'position_field' => ['nullable'],
+            'dominant_profile' => ['nullable'],
 
             'people'=> 'array',
             'people.*.relationship',
@@ -62,7 +64,7 @@ class PlayerUpdateRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => auth()->user()->school->id
+            'school_id' => auth()->user()->school_id
         ]);
     }
 }

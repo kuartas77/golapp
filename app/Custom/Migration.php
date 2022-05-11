@@ -4,53 +4,49 @@
 namespace App\Custom;
 
 
-use App\Models\Assist;
-use App\Models\Inscription;
 use App\Models\Game;
-use App\Models\Payment;
+use App\Models\Assist;
 use App\Models\People;
 use App\Models\Player;
+use App\Models\Payment;
+use Jenssegers\Date\Date;
+use App\Models\Inscription;
 use App\Models\SkillsControl;
 use Illuminate\Support\Facades\DB;
-use Jenssegers\Date\Date;
 
 class Migration
 {
 
     public static function InscriptionMigration()
     {
+        try {
+            DB::beginTransaction();
 
-        foreach (DB::connection('mysql_old')->table('partidos')->cursor() as $partido) {
-            try {
-                DB::beginTransaction();
-                Game::create([
-                    'id' => $partido->id,
-                    'tournament_id' => $partido->torneos_id,
-                    'competition_group_id' => $partido->grupo_competencias_id,
-                    'date' => Date::createFromFormat('d-m-Y', $partido->fecha)->format('Y-m-d'),
-                    'hour' => $partido->hora,
-                    'num_match' => $partido->num_partido,
-                    'place' => $partido->lugar,
-                    'rival_name' => $partido->nombre_rival,
-                    'final_score' => $partido->resultado_final,
-                    'general_concept' => $partido->concepto_general,
-                    'created_at' => $partido->created_at,
-                    'updated_at' => $partido->updated_at,
-                    'deleted_at' => $partido->deleted_at,
-                ]);
-                DB::commit();
-            } catch (\Exception $exception) {
-                logger("match", [$exception]);
-                DB::rollBack();
+            foreach (DB::connection('mysql_old')->table('partidos')->cursor() as $partido) {
+                $game = new Game();
+                $game->id = $partido->id;
+                $game->tournament_id = $partido->torneos_id;
+                $game->competition_group_id = $partido->grupo_competencias_id;
+                $game->date = Date::createFromFormat('d-m-Y', $partido->fecha)->format('Y-m-d');
+                $game->hour = $partido->hora;
+                $game->num_match = $partido->num_partido;
+                $game->place = $partido->lugar;
+                $game->rival_name = $partido->nombre_rival;
+                $game->final_score = $partido->resultado_final;
+                $game->general_concept = $partido->concepto_general;
+                $game->created_at = $partido->created_at;
+                $game->updated_at = $partido->updated_at;
+                $game->deleted_at = $partido->deleted_at;
+
+                Game::withoutEvents(function () use ($game) {
+                    $game->save();
+                });
             }
-        }
 
+            $inscripciones = DB::connection('mysql_old')->table('inscripciones')->orderBy('recibo')->get();
 
-        $inscripciones = DB::connection('mysql_old')->table('inscripciones')->orderBy('id')->get();
-
-        foreach ($inscripciones as $inscripcion) {
-            try {
-                DB::beginTransaction();
+            foreach ($inscripciones as $inscripcion) {
+                $date_birth = Date::parse($inscripcion->fecha_nacimiento);
                 $player = new Player();
                 $player->id = $inscripcion->id;
                 $player->unique_code = $inscripcion->recibo;
@@ -71,7 +67,8 @@ class Migration
                 $player->neighborhood = $inscripcion->barrio;
                 $player->zone = $inscripcion->zona;
                 $player->commune = $inscripcion->comuna;
-
+                $player->category = categoriesName($date_birth->year);
+    
                 $player->phones = $inscripcion->telefonos;
                 $player->email = $inscripcion->correo;
                 $player->mobile = $inscripcion->movil;
@@ -79,22 +76,22 @@ class Migration
                 $player->created_at = $inscripcion->created_at;
                 $player->updated_at = $inscripcion->updated_at;
                 $player->save();
-
+    
                 $peoplesIds = self::createPeoples($inscripcion);
-
+    
                 $player->people()->sync($peoplesIds);
-
+    
                 $pagos = DB::connection('mysql_old')->table('pagos')->where('inscripcion_id', '=', $inscripcion->id)->get();
-
+    
                 if ($pagos->count() == 0) {
                     logger("{$inscripcion->id} {$inscripcion->recibo} => pagos", [$pagos->count()]);
                 }
                 foreach ($pagos as $pago) {
-
+    
                     $inscription = self::createInscription($player, $inscripcion, $pago);
-
+    
                     self::createPayment($pago, $inscription);
-
+    
                     $controls = DB::connection('mysql_old')->table('control_competencias')
                         ->where('inscripciones_id', '=', $inscripcion->id)
                         ->whereYear('created_at', "=", "{$pago->anio}-01-01")
@@ -102,7 +99,7 @@ class Migration
                     if (($countControls = $controls->count()) == 0) {
                         logger("{$pago->anio} {$inscripcion->id} {$inscripcion->recibo} => control_competencias", [$countControls]);
                     }
-
+    
                     $asistencias = DB::connection('mysql_old')->table('asistencias')
                         ->where('inscripcion_id', '=', $player->id)
                         ->where('anio', $pago->anio)
@@ -110,20 +107,22 @@ class Migration
                     if (($countAssists = $asistencias->count()) == 0) {
                         logger("{$pago->anio} {$player->id} {$player->unique_code} => asistencias", [$countAssists]);
                     }
-
+    
                     self::createAssists($asistencias, $inscription);
-
+    
                     self::createSkillsControls($controls, $inscription);
                 }
-
-                DB::commit();
-            } catch (\Exception $exception) {
-                logger("insert {$inscripcion->id}", [$exception]);
-                DB::rollback();
             }
+            DB::commit();
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            logger()->error('InscriptionMigration', [
+                "error" => $ex->getMessage(),
+                "line" => $ex->getLine(),
+                "file" => $ex->getFile(),
+                "code" => $ex->getCode(),
+            ]);
         }
-
-
     }
 
     /**
@@ -244,60 +243,36 @@ class Migration
         foreach ($controls as $control) {
 
             switch (strtolower($control->tarjetas)) {
+                case "roja":
                 case "r":
                     $roja = 1;
                     $amarilla = 0;
                     break;
-                case "roja":
-                    $roja = 1;
-                    $amarilla = 0;
-                    break;
+                case "1":
+                case "amarillo":
+                case "amarilla":
+                case "ama":
+                case "aarilla":
                 case "a":
                     $roja = 0;
                     $amarilla = 1;
                     break;
+                case "2 amarilla":
+                case "2":
                 case "doble amonestacion":
                     $roja = 1;
                     $amarilla = 2;
                     break;
-                case "amarillo":
-                    $roja = 0;
-                    $amarilla = 1;
-                    break;
-                case "amarilla":
-                    $roja = 0;
-                    $amarilla = 1;
-                    break;
                 case "0":
                     $roja = 0;
                     $amarilla = 0;
-                    break;
-                case "ama":
-                    $roja = 0;
-                    $amarilla = 1;
-                    break;
-                case "aarilla":
-                    $roja = 0;
-                    $amarilla = 1;
-                    break;
-                case "2 amarilla":
-                    $roja = 1;
-                    $amarilla = 2;
-                    break;
-                case "2":
-                    $roja = 1;
-                    $amarilla = 2;
-                    break;
-                case "1":
-                    $roja = 0;
-                    $amarilla = 1;
                     break;
                 default:
                     $roja = 0;
                     $amarilla = 0;
             }
             $skill_control = new SkillsControl();
-            $skill_control->match_id = $control->partidos_id;
+            $skill_control->game_id = $control->partidos_id;
             $skill_control->inscription_id = $inscription->id;
             $skill_control->assistance = boolval($control->asistencia);
             $skill_control->titular = boolval($control->titular);
@@ -311,8 +286,10 @@ class Migration
             $skill_control->created_at = $control->created_at;
             $skill_control->updated_at = $control->updated_at;
             $skill_control->deleted_at = $control->deleted_at;
-            $skill_control->save();
 
+            SkillsControl::withoutEvents(function () use ($skill_control) {
+                $skill_control->save();
+            });
         }
     }
 
@@ -323,31 +300,33 @@ class Migration
     public static function createAssists($asistencias, Inscription $inscription): void
     {
         foreach ($asistencias as $asistencia) {
-            Assist::create([
-                'training_group_id' => $asistencia->grupo_id,
-                'inscription_id' => $inscription->id,
-                'year' => intval($asistencia->anio),
-                'month' => $asistencia->mes,
-                'assistance_one' => $asistencia->asistencia_1,
-                'assistance_two' => $asistencia->asistencia_2,
-                'assistance_three' => $asistencia->asistencia_3,
-                'assistance_four' => $asistencia->asistencia_4,
-                'assistance_five' => $asistencia->asistencia_5,
-                'assistance_six' => $asistencia->asistencia_6,
-                'assistance_seven' => $asistencia->asistencia_7,
-                'assistance_eight' => $asistencia->asistencia_8,
-                'assistance_nine' => $asistencia->asistencia_9,
-                'assistance_ten' => $asistencia->asistencia_10,
-                'assistance_eleven' => $asistencia->asistencia_11,
-                'assistance_twelve' => $asistencia->asistencia_12,
-                'assistance_thirteen' => $asistencia->asistencia_13,
-                'assistance_fourteen' => $asistencia->asistencia_14,
-                'assistance_fifteen' => $asistencia->asistencia_15,
-                'observations' => $asistencia->observaciones,
-                'created_at' => $asistencia->created_at,
-                'updated_at' => $asistencia->updated_at,
-                'deleted_at' => $asistencia->deleted_at,
-            ]);
+            $assist = new Assist();            
+            $assist->training_group_id = $asistencia->grupo_id;
+            $assist->inscription_id = $inscription->id;
+            $assist->year = intval($asistencia->anio);
+            $assist->month = $asistencia->mes;
+            $assist->assistance_one = $asistencia->asistencia_1;
+            $assist->assistance_two = $asistencia->asistencia_2;
+            $assist->assistance_three = $asistencia->asistencia_3;
+            $assist->assistance_four = $asistencia->asistencia_4;
+            $assist->assistance_five = $asistencia->asistencia_5;
+            $assist->assistance_six = $asistencia->asistencia_6;
+            $assist->assistance_seven = $asistencia->asistencia_7;
+            $assist->assistance_eight = $asistencia->asistencia_8;
+            $assist->assistance_nine = $asistencia->asistencia_9;
+            $assist->assistance_ten = $asistencia->asistencia_10;
+            $assist->assistance_eleven = $asistencia->asistencia_11;
+            $assist->assistance_twelve = $asistencia->asistencia_12;
+            $assist->assistance_thirteen = $asistencia->asistencia_13;
+            $assist->assistance_fourteen = $asistencia->asistencia_14;
+            $assist->assistance_fifteen = $asistencia->asistencia_15;
+            $assist->observations = $asistencia->observaciones;
+            $assist->created_at = $asistencia->created_at;
+            $assist->updated_at = $asistencia->updated_at;
+            $assist->deleted_at = $asistencia->deleted_at;
+            Assist::withoutEvents(function () use ($assist) {
+                $assist->save();
+            });
         }
     }
 
@@ -357,27 +336,30 @@ class Migration
      */
     public static function createPayment($pago, Inscription $inscription): void
     {
-        Payment::create([
-            'year' => $pago->anio,
-            'training_group_id' => $pago->grupo_id,
-            'inscription_id' => $inscription->id,
-            'unique_code' => $pago->doc_identidad,
-            'january' => $pago->enero,
-            'february' => $pago->febrero,
-            'march' => $pago->marzo,
-            'april' => $pago->abril,
-            'may' => $pago->mayo,
-            'june' => $pago->junio,
-            'july' => $pago->julio,
-            'august' => $pago->agosto,
-            'september' => $pago->septiembre,
-            'october' => $pago->octubre,
-            'november' => $pago->noviembre,
-            'december' => $pago->diciembre,
-            'created_at' => $pago->created_at,
-            'updated_at' => $pago->updated_at,
-            'deleted_at' => $pago->deleted_at,
-        ]);
+        $payment = new Payment();
+        $payment->year = $pago->anio;
+        $payment->training_group_id = $pago->grupo_id;
+        $payment->inscription_id = $inscription->id;
+        $payment->unique_code = $pago->doc_identidad;
+        $payment->january = $pago->enero;
+        $payment->february = $pago->febrero;
+        $payment->march = $pago->marzo;
+        $payment->april = $pago->abril;
+        $payment->may = $pago->mayo;
+        $payment->june = $pago->junio;
+        $payment->july = $pago->julio;
+        $payment->august = $pago->agosto;
+        $payment->september = $pago->septiembre;
+        $payment->october = $pago->octubre;
+        $payment->november = $pago->noviembre;
+        $payment->december = $pago->diciembre;
+        $payment->created_at = $pago->created_at;
+        $payment->updated_at = $pago->updated_at;
+        $payment->deleted_at = $pago->deleted_at;
+
+        Payment::withoutEvents(function () use ($payment) {
+            $payment->save();
+        });
     }
 
     /**
@@ -408,14 +390,10 @@ class Migration
         $inscription->competition_uniform = $inscripcion->uniforme_competencia;
         $inscription->tournament_pay = $inscripcion->pago_torneo;
 
-        $p1 = '1p';
-        $p2 = '2p';
-        $p3 = '3p';
-        $p4 = '4p';
-        $inscription->period_one = $inscripcion->$p1;
-        $inscription->period_two = $inscripcion->$p2;
-        $inscription->period_three = $inscripcion->$p3;
-        $inscription->period_four = $inscripcion->$p4;
+        $inscription->period_one = $inscripcion->{'1p'};
+        $inscription->period_two = $inscripcion->{'2p'};
+        $inscription->period_three = $inscripcion->{'3p'};
+        $inscription->period_four = $inscripcion->{'4p'};
         $inscription->year = $pago->anio;
         $inscription->created_at = $pago->created_at;
         $inscription->updated_at = $pago->updated_at;

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\Fields;
+use App\Traits\PaymentTrait;
 use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -16,6 +17,7 @@ class Payment extends Model
     use Fields;
     use GeneralScopes;
     use HasFactory;
+    use PaymentTrait;
 
     protected $table = "payments";
     protected $fillable = [
@@ -51,6 +53,11 @@ class Payment extends Model
     public function training_group(): BelongsTo
     {
         return $this->belongsTo(TrainingGroup::class, 'training_group_id', 'id');
+    }
+
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class, 'school_id');
     }
 
     public function getUrlHistoricAttribute()

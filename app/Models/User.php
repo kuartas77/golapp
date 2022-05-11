@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\GeneralScopes;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Traits\HasRoles;
@@ -14,9 +15,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasRoles;
+
+    public const SUPER_ADMIN = 1;
+    public const SCHOOL = 2;
+    public const INSTRUCTOR = 3;
 
     /**
      * The attributes that are mass assignable.
@@ -52,9 +57,9 @@ class User extends Authenticatable
         'url_activate'
     ];
 
-    protected $with = [
-        'school'
-    ];
+    // protected $with = [
+    //     'school'
+    // ];
 
     public function setPasswordAttribute($value)
     {
@@ -87,4 +92,6 @@ class User extends Authenticatable
     {
         return $this->hasOneThrough(School::class, SchoolUser::class, 'user_id','id','id','school_id');
     }
+
+
 }

@@ -4,18 +4,16 @@ namespace App\Models;
 
 use App\Traits\Fields;
 use Jenssegers\Date\Date;
-use Illuminate\Http\Request;
 use App\Traits\GeneralScopes;
-use Intervention\Image\Facades\Image;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 /**
  * @property mixed inscriptions
@@ -27,6 +25,7 @@ class Player extends Model
     use Fields;
     use GeneralScopes;
     use HasFactory;
+    use Notifiable;
 
     protected $table = "players";
     protected $dateFormat = "Y-m-d";
@@ -42,6 +41,7 @@ class Player extends Model
         'identification_document',
         'rh',
         'photo',
+        'category',
         'position_field',
         'dominant_profile',
         'school',
@@ -63,7 +63,7 @@ class Player extends Model
         'created_at' => "datetime:Y-m-d",
     ];
 
-    protected $appends = ['full_names', 'url_edit', 'url_show', 'url_impression'];
+    protected $appends = ['full_names', 'url_edit', 'url_show', 'url_impression','photo_url'];
 
     public function getRouteKeyName(): string
     {
@@ -73,6 +73,10 @@ class Player extends Model
     public function setPhotoAttribute($value)
     {
         if (!empty($value)) {
+            if(!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])){
+                Storage::disk('public')->delete($this->attributes['photo']);
+            }
+
             $this->attributes['photo'] = $value;
         }
     }
@@ -107,25 +111,23 @@ class Player extends Model
         return $this->payments->pluck('year');
     }
 
-    public function getPhotoAttribute(): string
+    public function getPhotoUrlAttribute(): string
     {
         if (Storage::disk('public')->exists($this->attributes['photo'])) {
-            return url("storage/{$this->attributes['photo']}");
+            return route('images', $this->attributes['photo']);
         }
         return url('img/user.png');
     }
 
-    public function getPhotoFileAttribute():string
+    public function routeNotificationForMail($notification)
     {
-        if (Storage::disk('public')->exists($this->attributes['photo'])) {
-            return url("storage/{$this->attributes['photo']}");
-        }
-        return url('img/user.png');
+        // Return email address and name...
+        return [$this->email => $this->full_names];
     }
 
     public function inscription(): HasOne
     {
-        return $this->hasOne(Inscription::class)->where('year', now());
+        return $this->hasOne(Inscription::class)->where('year', now()->year);
     }
 
     public function inscriptions(): HasMany
@@ -150,6 +152,6 @@ class Player extends Model
 
     public function scopeSchool($query)
     {
-        return $query->when(isSchool() || isInstructor(), fn($query) => $query->where('school_id', auth()->user()->school->id));
+        return $query->when(isSchool() || isInstructor(), fn($query) => $query->where('school_id', auth()->user()->school_id));
     }
 }

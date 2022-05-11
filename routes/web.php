@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Schedule\DayController;
 use App\Http\Controllers\Assists\AssistController;
@@ -17,17 +18,19 @@ use App\Http\Controllers\Groups\InscriptionTGroupController;
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 
+Auth::routes(['register' => false, 'verify' => false]);
+
 Route::get('/', function () {
     return redirect(\route('login'));
 });
 
-Auth::routes(['register' => false, 'verify' => false]);
 
-Route::middleware(['auth'])->group(function ($route) {
+Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 
-    //$route->get('/file/{filePath}', 'FileController@fileStorageServe')->where(['filePath' => '.*']);
+    $route->get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
 
     $route->get('/home', [HomeController::class, 'index'])->name('home');
+    $route->get('/birthDays', [HomeController::class, 'birthDays'])->name('birthDays');
 
     $route->post('inscriptions/activate/{id}', [InscriptionController::class, 'activate'])->name('inscriptions.activate');
 

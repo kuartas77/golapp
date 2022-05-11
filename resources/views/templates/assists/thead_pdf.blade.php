@@ -1,6 +1,6 @@
 <tr class="tr-tit">
     <td colspan="3" rowspan="2"></td>
-    <td class="center texto">Días:</td>
+    <td class="center texto">Fecha:</td>
     @foreach ($classDays as $class)
         <th class="text-center">{{$class['day']}}</th>
     @endforeach

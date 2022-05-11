@@ -2,12 +2,15 @@
 
 namespace App\Repositories;
 
+use App\Models\School;
 use Exception;
 use App\Models\User;
 use App\Models\SchoolUser;
 use App\Traits\ErrorTrait;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use App\Notifications\RegisterNotification;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UserRepository
@@ -23,11 +26,21 @@ class UserRepository
 
     public function getAll()
     {
+        if(isSchool()){
+            $school = auth()->user()->school->load('users.roles');
+            return $school->users;
+        }
+        
         return $this->model->query()->with('roles')->where('id', '!=', 1)->get();
     }
 
     public function getAllTrash()
     {
+        if(isSchool()){
+            $school = auth()->user()->school->load('users.roles');
+            return $school->users()->with('roles')->onlyTrashed()->get();
+        }
+
         return $this->model->query()->with('roles')->onlyTrashed()->get();
     }
 
@@ -43,12 +56,14 @@ class UserRepository
             $relationSchool->school_id = $school->id;
             $relationSchool->save();
 
-            //$user->notify(new RegisterNotification($user, $request->input('password')));
+            $user->notify(new RegisterNotification($user, Str::of($school->name)->mask("*", 4)));
             alert()->success(__('messages.user_stored_success'));
             Cache::forget('users');
+            return $user;
         } catch (Exception $exception) {
             $this->logError("UserRepository create", $exception);
             alert()->error(__('messages.error'));
+            return $this->model;
         }
     }
 
@@ -59,6 +74,7 @@ class UserRepository
             DB::beginTransaction();
             $user->update($request->validated());
             $user->syncRoles([$request->input('rol_id')]);
+            Cache::forget('users');
             DB::commit();
 
             alert()->success(config('app.name'), __('messages.user_updated', ['user_name' => $user->name]));

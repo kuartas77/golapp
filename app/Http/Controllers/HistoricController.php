@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\TrainingGroup;
 use Illuminate\Support\Facades\DB;
@@ -27,23 +31,21 @@ class HistoricController extends Controller
         $this->paymentRepository = $paymentRepository;
     }
 
-    public function assists(Request $request)
+    public function assists(Request $request): View|Factory|JsonResponse|Application
     {
         if ($request->ajax()) {
-            return datatables()
-                ->collection($this->groupRepository->historicAssistData())
-                ->toJson();
+            return datatables()->collection($this->groupRepository->historicAssistData())->toJson();
         }
 
         return view('assists.historic.index');
     }
 
-    public function assistsGroup(Request $request, $trainingGroup, $year)
+    public function assistsGroup(Request $request, $trainingGroup, $year): View|Factory|array|Application
     {
         if ($request->ajax()) {
             return $this->assistRepository->search($request, true);
         }
-        $trainingGroup = TrainingGroup::onlyTrashedRelations()->findOrFail($trainingGroup);
+        $trainingGroup = TrainingGroup::query()->onlyTrashedRelations()->findOrFail($trainingGroup);
 
         $months = DB::table('assists')->select('month')
             ->where('year', $year)

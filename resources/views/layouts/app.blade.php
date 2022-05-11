@@ -7,7 +7,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <meta name="X-UA-Compatible" content="IE=edge, chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" href="/img/ballon.png" />
     <link href="{{mix('css/all.css')}}" rel="stylesheet">
     @yield('css')
     {{--<link href="{{mix('css/default-mix.css')}}" rel="stylesheet">--}}
@@ -56,7 +56,7 @@
     @yield('modals')
     <script>
         window.token = {!! json_encode(['csrfToken' => csrf_token(), ]) !!};
-        window.app_name = '{{config('app.name', 'Laravel') }}';
+        window.app_name = "{{config('app.name', 'Laravel') }}";
         window.img_login = "{{asset('img/login.png')}}";
         window.img_logout = "{{asset('img/logout.png')}}";
     </script>

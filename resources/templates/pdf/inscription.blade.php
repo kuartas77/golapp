@@ -2,19 +2,19 @@
 <html lang="es">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>{{ $player->schoolData->name }} Deportista {{$player->unique_code}}</title>
+    <title>{{ $school->name }} Deportista {{$player->unique_code}}</title>
     <link rel="stylesheet" href="{{ asset('css/dompdf.css') }}" media="all">
 </head>
 <body>
     <table class="table-full title">
         <tr>
             <td class="text-left" width="20%">
-                <img src="{{ $player->schoolData->logo_file }}" width="70" height="70">
+                <img src="{{ storage_path('app/public/'.$school->logo)}}" width="70" height="70">
             </td>
-            <td class="text-center school-title" width="60%">{{ $player->schoolData->name }}<br>FICHA DEL DEPORTISTA
+            <td class="text-center school-title" width="60%">{{ $school->name }}<br>FICHA DEL DEPORTISTA
             </td>
             <td class="text-right" width="20%">
-                <img src="{{ $player->photo_file }}" width="70" height="70">
+                <img src="{{ $player->photo ? storage_path('app/public/'.$player->photo) : public_path('img/user.png') }}" width="70" height="70">
             </td>
         </tr>
         <tr class="tr-tit">

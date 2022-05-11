@@ -1,5 +1,4 @@
 @extends('layouts.app')
-
 @section('content')
     <x-bread-crumb title="Agregar Deportista" :option="0"/>
     <x-row-card-eight>
@@ -30,7 +29,6 @@
         $(document).ready(function () {
 
             form_player.validate({
-                // errorElement: 'span',
                 rules: {
                     unique_code : {required: true},
                     names : {required: true},
@@ -39,7 +37,7 @@
                     gender : {required: true},
                     date_birth : {required: true},
                     place_birth : {required: true},
-                    rh : {required: true},
+                    rh : {},
                     eps : {required: true},
                     email : {required: true},
                     address : {required: true},
@@ -51,8 +49,8 @@
                     mobile : {required: true},
                     school : {required: true},
                     degree : {required: true},
-                    position_field : {required: true},
-                    dominant_profile : {required: true},
+                    position_field : {},
+                    dominant_profile : {},
                     "people[0][relationship]": {required: true},
                     "people[0][names]": {required: true},
                     "people[0][phone]": {
@@ -68,7 +66,7 @@
                     "people[0][identification_card]": {
                         required: function () {
                             return $('input[name="people[0][tutor]"]').is(":checked");
-                        }
+                        }, numbers:true
                     },
             
                     "people[1][relationship]": {required: true},
@@ -86,9 +84,8 @@
                     "people[1][identification_card]": {
                         required: function () {
                             return $('input[name="people[1][tutor]"]').is(":checked");
-                        }
+                        }, numbers:true
                     },
-            
                     "people[2][relationship]": {required: true},
                     "people[2][names]": {required: true},
                     "people[2][phone]": {
@@ -104,7 +101,7 @@
                     "people[2][identification_card]": {
                         required: function () {
                             return $('input[name="people[2][tutor]"]').is(":checked");
-                        }
+                        }, numbers:true
                     },
                 }
             });
@@ -150,27 +147,10 @@
                         }
                     })
                 }
-            });
-
-            events();
+            }); 
             
+            events();
         });
-
-
-        function readURL(input) {
-            let label = $(input).next('label')
-            if (input.files && input.files[0]) {
-                let reader = new FileReader();                
-                reader.onload = function (e) {
-                    $('#player-img').attr('src', e.target.result);
-                }                
-                reader.readAsDataURL(input.files[0]);
-                label.html(input.files[0].name)
-            }else{
-                label.html("Selecciona una imagen...")
-                $('#player-img').attr('src', 'http://golapp.local/img/user.png');                
-            }
-        }
 
         function events() {
             // campos los cuales se van a buscar en la tabla maestra para autocompletado
@@ -222,9 +202,18 @@
             $('.date').inputmask("yyyy-mm-dd");
             $(".form-control").attr('autocomplete', 'off');
 
-            $('#date_birth').daterangepicker(optionsDateTimePicker).on('apply.daterangepicker', function (ev, picker) {
-                $(this).val(picker.startDate.format('YYYY-MM-DD'));
+            $("#date_birth").bootstrapMaterialDatePicker({
+                time: false,
+                clearButton: false,
+                lang: 'es',
+                cancelText: 'Cancelar',
+                okText: 'Aceptar',
+                minDate: moment().subtract(18, 'year'),//TODO: settings
+                maxDate: moment().subtract(2, 'year')// TODO: settings
             });
+            // $('#date_birth').daterangepicker(optionsDateTimePicker).on('apply.daterangepicker', function (ev, picker) {
+            //     $(this).val(picker.startDate.format('YYYY-MM-DD'));
+            // });
 
             $("#unique_code").on('keyup', function () {
                 let element = $(this);
@@ -258,8 +247,24 @@
             });
 
             $('#file-upload').on('change', function(){
-                readURL(this);
+                readFile(this);
             });
+        }
+
+        function readFile(input) {
+            let label = $(input).next('label.custom-file-label')
+            if (input.files && input.files[0]) {
+                let reader = new FileReader();                
+                reader.onload = function (e) {
+                    $('#player-img').attr('src', e.target.result);
+                }                
+                reader.readAsDataURL(input.files[0]);
+                // label.empty().html(input.files[0].name)
+                label.empty().html('Seleccionada.')
+            }else{
+                label.empty().html("Seleccionar...")
+                $('#player-img').attr('src', 'http://golapp.local/img/user.png');                
+            }
         }
     </script>
 @endsection

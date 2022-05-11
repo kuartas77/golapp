@@ -2,9 +2,9 @@
 
     <div class="row form-body">
 
-        <div class="col-md-2"></div>
+        <div class="col-md-1"></div>
 
-        <div class="col-md-4">
+        <div class="col-md-5">
             <div class="form-group">
                 <label for="training_group_id">Grupo De Entrenamiento</label>
                 <span class="bar"></span>
@@ -12,7 +12,7 @@
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-5">
             <div class="form-group">
                 <label for="unique_code">Código Único</label>
                 <span class="bar"></span>
@@ -20,7 +20,7 @@
             </div>
         </div>
 
-        <div class="col-md-2"></div>
+        <div class="col-md-1"></div>
 
     </div>
 

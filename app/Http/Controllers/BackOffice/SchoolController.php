@@ -8,6 +8,7 @@ use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Repositories\SchoolRepository;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\BackOffice\SchoolCreateRequest;
 use App\Http\Requests\BackOffice\SchoolUpdateRequest;
 
@@ -28,7 +29,7 @@ class SchoolController extends Controller
      */
     public function index()
     {
-        $this->repository->getAll();
+        return view('backoffice.school.index');
     }
 
     /**
@@ -65,7 +66,9 @@ class SchoolController extends Controller
      */
     public function update(SchoolUpdateRequest $request, School $school)
     {
-        //
+        abort_unless($request->ajax(), 404);
+        $school = $this->repository->update($request, $school);
+        return response()->json($school->isDirty());
     }
 
     /**

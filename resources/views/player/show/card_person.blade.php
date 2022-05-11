@@ -1,14 +1,16 @@
-<div class="col-lg-3 col-xlg-3 col-md-3 col-sm-3">
+<div class="col-lg-3 col-xl-3 col-md-12 col-sm-12">
     <div class="card">
         <div class="card-body">
-            <div class="text-center"><img src="{{$player->photo}}" class="img-circle" width="150"/>
+            <div class="text-center"><img src="{{$player->photo_url}}" class="img-circle" width="150"/>
                 <h4 class="card-title m-t-10">{{$player->full_names}}</h4>
                 <h6 class="card-subtitle">@lang('messages.unique_code', ['unique_code'=> $player->unique_code])</h6>
+                @if($player->dominant_profile)
                 <div class="row text-center justify-content-md-center">
                     <div class="col-12">
                         <span class="form-control-static">@lang('messages.dominant_profile', ['profile'=>$player->dominant_profile])</span>
                     </div>
                 </div>
+                @endif
             </div>
             <hr>
             <small class="text-muted">@lang('messages.identification_document') <strong>{{$player->identification_document}}</strong> </small>
