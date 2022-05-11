@@ -3,7 +3,9 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use App\Models\School;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class VerifySchool
 {
@@ -17,7 +19,11 @@ class VerifySchool
     public function handle(Request $request, Closure $next)
     {
         if(auth()->check()){
-            if (!auth()->user()->school->is_enable) {
+            $school_id = auth()->user()->school_id;
+
+            $school = Cache::remember(School::KEY_SCHOOL_CACHE. "_{$school_id}", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn()=> auth()->user()->school);
+
+            if (empty($school) || !($school->is_enable)) {
                 return $this->logout();
             }
         }

@@ -7,9 +7,9 @@ use App\Traits\ErrorTrait;
 use App\Models\Inscription;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Database\Eloquent\Collection;
 use App\Notifications\InscriptionNotification;
-use App\Http\Requests\Inscription\InscriptionRequest;
 
 class InscriptionRepository
 {
@@ -50,12 +50,12 @@ class InscriptionRepository
     }
 
     /**
-     * @param InscriptionRequest $request
+     * @param FormRequest $request
      * @param bool $created
      * @param Inscription|null $inscription
      * @return Inscription|null
      */
-    public function setInscription(InscriptionRequest $request, bool $created = true, Inscription $inscription = null): Inscription
+    public function setInscription(FormRequest $request, bool $created = true, Inscription $inscription = null): Inscription
     {
         try {
             DB::beginTransaction();

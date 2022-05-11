@@ -41,6 +41,8 @@ class RegisterService
 
             $school = School::query()->create($validated);
 
+            $user->update(['school_id' => $school->id]);
+
             $relationSchool = new SchoolUser();
             $relationSchool->user_id = $user->id;
             $relationSchool->school_id = $school->id;

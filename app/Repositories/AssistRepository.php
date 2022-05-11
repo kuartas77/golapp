@@ -14,6 +14,7 @@ use App\Models\Inscription;
 use App\Models\TrainingGroup;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Cache;
 
 class AssistRepository
 {
@@ -61,7 +62,9 @@ class AssistRepository
             array_search($params['month'], $months, true),
             array_map('dayToNumber', $group->explode_name['days'])
         );
-        $school = School::find(auth()->user()->school->id);
+
+        $school_id = auth()->user()->school_id;
+        $school = Cache::remember(School::KEY_SCHOOL_CACHE. "_{$school_id}", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn()=> auth()->user()->school);
         
         return [$assists, $classDays, $group->full_schedule_group, $group, $school];
     }
@@ -108,7 +111,7 @@ class AssistRepository
                 ->where('training_group_id', $request->input('training_group_id'))
                 ->where('year', now()->year)->pluck('id');
 
-            $school_id = auth()->user()->school->id;
+            $school_id = auth()->user()->school_id;
 
             $request->merge(['year' => now()->year]);
 

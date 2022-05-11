@@ -5,10 +5,9 @@ namespace App\Http\ViewComposers\Competition;
 
 
 use Carbon\Carbon;
+use App\Models\Game;
 use App\Models\Tournament;
 use App\Models\CompetitionGroup;
-use App\Models\Game;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -20,7 +19,7 @@ class MatchesViewComposer
         if (Auth::check()) {
 
 
-            $school_id = isAdmin() ? 0 : auth()->user()->school->id;
+            $school_id = isAdmin() ? 0 : auth()->user()->school_id;
 
             $minYear = Cache::remember("KEY_MIN_YEAR_{$school_id}", now()->addDay(), function () use($school_id) {
                 return Carbon::parse(Game::getMinYear($school_id))->year;

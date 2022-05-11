@@ -86,7 +86,7 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        if (isAdmin()) {
+        if (isAdmin() || isSchool()) {
             view()->share('roles', Role::query()->whereNotIn('id', [1,2])->pluck('name', 'id'));
             view()->share('user', $user->load('roles'));
             return view('admin.user.edit');

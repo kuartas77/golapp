@@ -48,7 +48,7 @@ class ProfileUpdate extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => auth()->user()->school->id
+            'school_id' => auth()->user()->school_id
         ]);
     }
 }

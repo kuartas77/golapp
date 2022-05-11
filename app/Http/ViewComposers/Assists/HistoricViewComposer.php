@@ -4,10 +4,11 @@
 namespace App\Http\ViewComposers\Assists;
 
 use App\Models\Assist;
-use App\Repositories\TrainingGroupRepository;
+use App\Models\School;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use App\Repositories\TrainingGroupRepository;
 
 class HistoricViewComposer
 {
@@ -25,13 +26,15 @@ class HistoricViewComposer
     {
         if (Auth::check()) {
 
+            $school_id = auth()->user()->school_id;
+
             $months = Cache::remember("KEY_MONTHS", now()->addYear(), function () {
                 return config('variables.KEY_MONTHS');
             });
 
             $view->with('months', $months);
-            $view->with('yearMax', Assist::select('year')->max('year') - 1);
-            $view->with('yearMin', Assist::select('year')->min('year'));
+            $view->with('yearMax', Assist::query()->select('year')->schoolId()->max('year') - 1);
+            $view->with('yearMin', Assist::query()->select('year')->schoolId()->min('year'));
             $view->with('training_groups', $this->trainingGroupRepository->getListGroupsSchedule(true));
         }
     }

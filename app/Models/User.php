@@ -57,9 +57,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'url_activate'
     ];
 
-    protected $with = [
-        'school'
-    ];
+    // protected $with = [
+    //     'school'
+    // ];
 
     public function setPasswordAttribute($value)
     {

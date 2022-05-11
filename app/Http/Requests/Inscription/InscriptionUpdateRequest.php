@@ -15,7 +15,7 @@ class InscriptionUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return isAdmin();
+        return isAdmin() || isSchool();
     }
 
     /**
@@ -54,7 +54,7 @@ class InscriptionUpdateRequest extends FormRequest
         $dateBirth = Player::find($this->player_id)->date_birth;
         $startDate = Date::parse($this->start_date);
         $this->merge([
-            'school_id' => auth()->user()->school->id,
+            'school_id' => auth()->user()->school_id,
             'year' => $startDate->year,
             'start_date' => $startDate,
             'category' => Date::parse($dateBirth)->year,

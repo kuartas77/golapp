@@ -5,12 +5,13 @@ namespace App\Http\ViewComposers\TrainingGroup;
 
 
 use App\Models\Day;
-use App\Models\Tournament;
-use App\Traits\Commons;
 use App\Models\User;
+use App\Models\School;
+use App\Traits\Commons;
+use Illuminate\View\View;
+use App\Models\Tournament;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\View\View;
 
 class TrainingGroupComposer
 {
@@ -20,7 +21,7 @@ class TrainingGroupComposer
     {
         if (Auth::check()) {
 
-            $school_id = isAdmin() ? 0 : auth()->user()->school->id;
+            $school_id = isAdmin() ? 0 : auth()->user()->school_id;
 
             $users = Cache::remember("KEY_USERS_{$school_id}", now()->addDay(), function () {
                 $school = auth()->user()->school->load('users');

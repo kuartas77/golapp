@@ -13,7 +13,7 @@ class PlayerCreateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return isAdmin();
+        return isAdmin() || isSchool();
     }
 
     /**
@@ -65,7 +65,7 @@ class PlayerCreateRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => auth()->user()->school->id
+            'school_id' => auth()->user()->school_id
         ]);
     }
 }

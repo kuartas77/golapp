@@ -90,7 +90,7 @@ class PaymentRepository
     public function dataGraphicsYear(int $year = 0): Collection
     {
         $year = $year == 0 ? now()->year : $year;
-        $school_id = (isSchool() || isInstructor()) ? auth()->user()->school->id : null;
+        $school_id = (isSchool() || isInstructor()) ? auth()->user()->school_id : null;
 
         return Cache::remember("graphics.year.{$year}", now()->addMinutes(10), function () use ($year, $school_id) {
             $consult = DB::table('payments')->selectRaw("
@@ -131,7 +131,7 @@ class PaymentRepository
             COALESCE(SUM(case when december IN (0,2) then 1 else 0 end),0) december_due,
             COALESCE(SUM(case when december = 8 then 1 else 0 end),0) december_scholarship")
             ->where('year', $year)
-            ->where('school_id', $school_id)
+            ->when(!is_null($school_id), fn($query) => $query->where('school_id', $school_id))
             ->first();
 
             $labels = config('variables.KEY_LABEL_MONTHS');

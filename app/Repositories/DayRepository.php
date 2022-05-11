@@ -29,7 +29,7 @@ class DayRepository
 
     public function all()
     {
-        $days = $this->model->query()->whereRelation('schedules', 'school_id', auth()->user()->school->id)->with('schedules')->get();
+        $days = $this->model->query()->whereRelation('schedules', 'school_id', auth()->user()->school_id)->with('schedules')->get();
         $days->setAppends(['schedul']);
         return $days;
     }
@@ -48,7 +48,7 @@ class DayRepository
                 if (!is_null($schedule['value'])) {
                     $day->schedules()->create([
                         'schedule' => $schedule['value'],
-                        'school_id' => auth()->user()->school->id
+                        'school_id' => auth()->user()->school_id
                     ]);
                 }
             }
