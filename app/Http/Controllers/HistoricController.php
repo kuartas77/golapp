@@ -74,7 +74,7 @@ class HistoricController extends Controller
         if ($request->ajax()) {
             return $this->paymentRepository->filter($request, true);
         }
-        $trainingGroup = TrainingGroup::withTrashed()->find($trainingGroup);
+        $trainingGroup = TrainingGroup::query()->schoolId()->withTrashed()->find($trainingGroup);
         view()->share('year', $year);
         view()->share('trainingGroup', $trainingGroup);
         return view('payments.historic.show');

@@ -37,8 +37,7 @@
             {!! Form::select('training_group_id', $training_groups , null, ['class' => 'form-control form-control-sm select2','placeholder' =>
             'Seleccione uno...', 'id'=>'training_group_id']) !!}
             <small
-                class="form-text text-muted">Si No se Selecciona, Se Agregara Al Grupo
-                Provicional</small>
+                class="form-text text-muted">Si No se Selecciona, Se Agregara Al Grupo Provisional</small>
         </div>
     </div>
 

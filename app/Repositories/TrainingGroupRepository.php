@@ -133,7 +133,7 @@ class TrainingGroupRepository
 
         DB::beginTransaction();
         try {
-            Payment::query()->updateOrCreate(
+            Payment::query()->schoolId()->updateOrCreate(
                 [
                     'inscription_id' => $inscription->id,
                     'year' => $year,
@@ -144,7 +144,7 @@ class TrainingGroupRepository
                 ]
             );
 
-            Assist::query()->updateOrCreate(
+            Assist::query()->schoolId()->updateOrCreate(
                 [
                     'inscription_id' => $inscription->id,
                     'year' => $year,
@@ -191,7 +191,7 @@ class TrainingGroupRepository
      */
     public function historicAssistData()
     {
-        return $this->model->query()
+        return $this->model->query()->schoolId()
         ->whereHas('assists', fn ($query) => $query->withTrashed()->where('year', '<', now()->year))
         ->onlyTrashedRelationsFilter()
         ->orderBy('created_at', 'desc')
@@ -204,7 +204,7 @@ class TrainingGroupRepository
      */
     public function historicPaymentData()
     {
-        return $this->model->query()
+        return $this->model->query()->schoolId()
         ->whereHas('payments', fn ($query) => $query->withTrashed()->where('year', '<', now()->year))
         ->onlyTrashedRelationsPayments()
         ->orderBy('created_at', 'desc')
@@ -218,7 +218,7 @@ class TrainingGroupRepository
      */
     public function getGroupsYear($year): Collection
     {
-        return $this->model->query()->with('schedule.day')
+        return $this->model->query()->schoolId()->with('schedule.day')
             ->where('year', $year)
             ->orWhere('year_two', $year)
             ->orWhere('year_three', $year)

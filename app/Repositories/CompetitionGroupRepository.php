@@ -75,7 +75,7 @@ class CompetitionGroupRepository
      */
     public function getGroupsYear($year = null): Collection
     {
-        $groups =  $this->model->query()->with('professor','tournament')
+        $groups =  $this->model->query()->schoolId()->with('professor','tournament')
             ->orderBy('name','ASC');
         if($year){
             $groups->where('year', $year);

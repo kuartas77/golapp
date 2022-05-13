@@ -12,7 +12,8 @@ class TemplatesComposer
     public function compose(View $view)
     {
         if (Auth::check()) {
-            $optionAssist = Cache::remember("KEY_ASSIST", now()->addYear(), function () {
+            $school_id = auth()->user()->school_id;
+            $optionAssist = Cache::remember("KEY_ASSIST_{$school_id}", now()->addYear(), function () {
                 return config('variables.KEY_ASSIST');
             });
             $view->with('optionAssist', $optionAssist);

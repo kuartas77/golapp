@@ -14,7 +14,7 @@ class ProfileComposer
     public function compose(View $view)
     {
         if (Auth::check()) {
-            $genders = Cache::remember('KEY_GENDERS', now()->addYear(), function () {
+            $genders = Cache::rememberForever('KEY_GENDERS', function () {
                 return config('variables.KEY_GENDERS');
             });
 

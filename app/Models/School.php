@@ -133,6 +133,11 @@ class School extends Model
         return $this->hasMany(Schedule::class);
     }
 
+    public function incidents(): HasMany
+    {
+        return $this->hasMany(Incident::class);
+    }
+
     public function getUrlEditAttribute(): string
     {
         return route('config.schools.edit', [$this->attributes['slug']]);

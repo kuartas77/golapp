@@ -15,7 +15,7 @@ class SchoolController extends Controller
      */
     public function index()
     {
-        return School::withCount(['users','inscriptions','players','payments','assists','skillControls','matches','tournaments','trainingGroups','competitionGroups'])->get();
+        return School::withCount(['users','inscriptions','players','payments','assists','skillControls','matches','tournaments','trainingGroups','competitionGroups','incidents'])->get();
     }
 
     /**

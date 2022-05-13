@@ -5,6 +5,7 @@ namespace App\Repositories;
 
 
 use App\Models\Payment;
+use App\Models\School;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -92,8 +93,14 @@ class PaymentRepository
         $year = $year == 0 ? now()->year : $year;
         $school_id = (isSchool() || isInstructor()) ? auth()->user()->school_id : null;
 
-        return Cache::remember("graphics.year.{$year}", now()->addMinutes(10), function () use ($year, $school_id) {
-            $consult = DB::table('payments')->selectRaw("
+        return Cache::remember("graphics.year.{$year}.{$school_id}", now()->addMinutes(10), function () use ($year, $school_id) {
+            return $this->queryGraphics($year, $school_id);
+        });
+    }
+
+    private function queryGraphics($year, $school_id)
+    {
+        $consult = DB::table('payments')->selectRaw("
             COALESCE(SUM(case when january = 1 then 1 else 0 end),0) january_payment,
             COALESCE(SUM(case when january IN (0,2) then 1 else 0 end),0) january_due,
             COALESCE(SUM(case when january = 8 then 1 else 0 end),0) january_scholarship,
@@ -169,9 +176,6 @@ class PaymentRepository
             $series->push($payments);
             $series->push($due);
             return collect(['labels' => $labels, 'series' => $series]);
-        });
-
-
     }
 
 }

@@ -43,15 +43,15 @@ class InscriptionCreateComposer
                 return config('variables.KEY_POSITIONS');
             });
 
-            $blood_types = Cache::remember('KEY_BLOOD_TYPES', now()->addYear(), function () {
+            $blood_types = Cache::rememberForever('KEY_BLOOD_TYPES', function () {
                 return config('variables.KEY_BLOOD_TYPES');
             });
 
-            $averages = Cache::remember('KEY_AVERAGES', now()->addYear(), function () {
+            $averages = Cache::rememberForever('KEY_AVERAGES', function () {
                 return config('variables.KEY_AVERAGES');
             });
 
-            $dominant_profile = Cache::remember('KEY_DOMINANT_PROFILE', now()->addYear(), function () {
+            $dominant_profile = Cache::rememberForever('KEY_DOMINANT_PROFILE', function () {
                 return config('variables.KEY_DOMINANT_PROFILE');
             });
 
@@ -59,11 +59,11 @@ class InscriptionCreateComposer
                 return config('variables.KEY_RELATIONSHIPS_SELECT');
             });
 
-            $training_groups = Cache::remember('KEY_TRAINING_GROUPS_'. auth()->user()->school_id, now()->addYear(), function () {
+            $training_groups = Cache::remember('KEY_TRAINING_GROUPS_'. auth()->user()->school_id, now()->addWeek(), function () {
                 return $this->trainingGroupRepository->getListGroupsSchedule(false);
             });
 
-            $competition_groups = Cache::remember('KEY_COMPETITION_GROUPS_'. auth()->user()->school_id, now()->addYear(), function () {
+            $competition_groups = Cache::remember('KEY_COMPETITION_GROUPS_'. auth()->user()->school_id, now()->addWeek(), function () {
                 return $this->competitionGroupRepository->getListGroupFullName();
             });
 

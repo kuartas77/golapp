@@ -10,6 +10,7 @@ use App\Models\School;
 use App\Traits\Commons;
 use Illuminate\View\View;
 use App\Models\Tournament;
+use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
@@ -24,8 +25,7 @@ class TrainingGroupComposer
             $school_id = isAdmin() ? 0 : auth()->user()->school_id;
 
             $users = Cache::remember("KEY_USERS_{$school_id}", now()->addDay(), function () {
-                $school = auth()->user()->school->load('users');
-                return $school->users->pluck('name','id');
+                return (new UserRepository(new User()))->getAll()->pluck('name', 'id');
             });
 
             $days = Cache::remember("KEY_DAYS_{$school_id}", now()->addDay(), fn () =>

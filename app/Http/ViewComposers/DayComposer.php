@@ -13,7 +13,7 @@ class DayComposer
     public function compose(View $view)
     {
         if (Auth::check()) {
-            $week = Cache::remember('KEY_WEEKS', now()->addYear(), function () {
+            $week = Cache::rememberForever('KEY_WEEKS', function () {
                 return config('variables.KEY_WEEKS');
             });
             $view->with('week', $week);

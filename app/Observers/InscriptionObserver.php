@@ -3,6 +3,8 @@
 namespace App\Observers;
 
 use App\Models\Inscription;
+use App\Models\School;
+use App\Models\TrainingGroup;
 use App\Traits\ErrorTrait;
 use Illuminate\Support\Facades\DB;
 use Jenssegers\Date\Date;
@@ -70,6 +72,12 @@ class InscriptionObserver
     {
         try {
             DB::beginTransaction();
+
+            if(!$inscription->training_group_id){
+                $trainingGroup = TrainingGroup::orderBy('id','asc')->firstWhere('school_id', $inscription->school_id);
+                $inscription->training_group_id = $trainingGroup->id;
+                $inscription->save();
+            }
 
             $start_date = Date::parse($inscription->start_date);
 

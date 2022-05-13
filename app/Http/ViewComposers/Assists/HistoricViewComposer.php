@@ -26,9 +26,7 @@ class HistoricViewComposer
     {
         if (Auth::check()) {
 
-            $school_id = auth()->user()->school_id;
-
-            $months = Cache::remember("KEY_MONTHS", now()->addYear(), function () {
+            $months = Cache::rememberForever("KEY_MONTHS", function () {
                 return config('variables.KEY_MONTHS');
             });
 
