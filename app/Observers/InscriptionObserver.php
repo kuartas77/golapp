@@ -78,7 +78,8 @@ class InscriptionObserver
                 'year' => $start_date->year,
                 'training_group_id' => $inscription->training_group_id,
                 'unique_code' => $inscription->unique_code,
-                'deleted_at' => null
+                'deleted_at' => null,
+                'school_id' => $inscription->school_id
             ];
 
             if($inscription->wasRecentlyCreated){

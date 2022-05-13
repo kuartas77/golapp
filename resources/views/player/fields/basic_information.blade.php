@@ -170,7 +170,7 @@
 
             <div class="col-md-3 col-sm-12 col-xs-12">
                 <div class="form-group">
-                    {!! Form::label('position_field', 'Posición en el campo:') !!}<span class="text-danger">*</span>
+                    {!! Form::label('position_field', 'Posición en el campo:') !!}
                     {!! Form::select('position_field', $positions , null, ['class' => 'form-control form-control-sm select2','placeholder' =>
                     'Seleccione uno...']) !!}
                 </div>
@@ -178,7 +178,7 @@
 
             <div class="col-md-3 col-sm-12 col-xs-12">
                 <div class="form-group">
-                    {!! Form::label('dominant_profile', 'Perfil dominante:') !!}<span class="text-danger">*</span>
+                    {!! Form::label('dominant_profile', 'Perfil dominante:') !!}
                     {!! Form::select('dominant_profile', $dominant_profile , null, ['class' => 'form-control form-control-sm select2','placeholder' =>
                     'Seleccione uno...']) !!}
                 </div>

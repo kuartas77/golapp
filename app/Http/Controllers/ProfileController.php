@@ -22,6 +22,7 @@ class ProfileController extends Controller
      */
     public function show(Profile $profile)
     {
+        dd("aaa");
         if (auth()->id() === $profile->id || isAdmin() || isSchool()) {
             $profile->load('user');
             view()->share('profile', $profile);

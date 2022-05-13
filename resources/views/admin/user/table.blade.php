@@ -38,7 +38,7 @@
                         <div class='btn-group'>
                             <a
                                 class="btn btn-warning btn-xs"
-                                href="{!! route('profiles.show', [$user->id]) !!}">
+                                href="{!! route('profiles.show', [$user->profile->id]) !!}">
                                 <i
                                     class="fas fa-user"
                                     aria-hidden="true"></i>

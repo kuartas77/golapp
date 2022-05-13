@@ -164,6 +164,11 @@ class Inscription extends Model
         return $this->hasMany(Assist::class);
     }
 
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
     public function getFormatAverageAttribute(): array
     {
         return [

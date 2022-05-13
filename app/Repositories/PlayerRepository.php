@@ -44,7 +44,7 @@ class PlayerRepository
     {
         try {
             DB::beginTransaction();
-            Master::saveAutoComplete($request);
+            // Master::saveAutoComplete($request);
             $dataPlayer = $this->setAttributes($request);
             $player = $this->model->create($dataPlayer);
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
@@ -66,10 +66,10 @@ class PlayerRepository
     {
         try {
             DB::beginTransaction();
-            Master::saveAutoComplete($request);
+            // Master::saveAutoComplete($request);
             $dataPlayer = $this->setAttributes($request, $player);
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
-            $player->peoples()->sync($peopleIds);
+            $player->people()->sync($peopleIds);
             $save = $player->update($dataPlayer);
 
             DB::commit();
@@ -183,7 +183,7 @@ class PlayerRepository
             $dataPlayer['photo'] = $file_name;
         }
         $dataPlayer['date_birth'] = Date::parse(request('date_birth'));
-        $dataPlayer['category'] = categoriesName(Date::parse(request('date_birth')->year));
+        $dataPlayer['category'] = categoriesName($dataPlayer['date_birth']->year);
         $dataPlayer['unique_code'] = request('unique_code', optional($player)->unique_code);
         return $dataPlayer;
     }

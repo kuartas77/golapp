@@ -29,11 +29,11 @@ class PeopleRepository
             [
                 'tutor' => $person['tutor'],
                 'relationship' => $person['relationship'],
-                'phone' => $person['phone'],
-                'mobile' => $person['mobile'],
-                'profession' => $person['profession'],
-                'business' => $person['business'],
-                'position' => $person['position'],
+                'phone' => $person['phone'] ?? null,
+                'mobile' => $person['mobile'] ?? null,
+                'profession' => $person['profession'] ?? null,
+                'business' => $person['business'] ?? null,
+                'position' => $person['position'] ?? null,
             ]
         );
     }
@@ -46,6 +46,7 @@ class PeopleRepository
     {
         $relationship = config('variables.KEY_RELATIONSHIPS_SELECT');
         $peopleIds = collect();
+        logger("peoples", [$people]);
         foreach ($people as $person) {
             $person['tutor'] = isset($person['tutor']);
             $person['relationship_name'] = $relationship[$person['relationship']];

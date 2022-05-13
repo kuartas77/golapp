@@ -130,7 +130,8 @@ if (!function_exists('numbersToLetters')) {
 if (!function_exists('percent')) {
     function percent($number, $count): float
     {
-        return round(($number * 100) / $count, 2);
+        $divisor = $count ?: 1;
+        return round(($number * 100) / $divisor, 2);
     }
 }
 

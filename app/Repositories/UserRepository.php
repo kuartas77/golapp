@@ -27,7 +27,7 @@ class UserRepository
     public function getAll()
     {
         if(isSchool()){
-            $school = auth()->user()->school->load('users.roles');
+            $school = auth()->user()->school->load(['users.roles','users.profile']);
             return $school->users;
         }
         
@@ -50,6 +50,7 @@ class UserRepository
             $school = auth()->user()->school;
             $user = $this->model->query()->create($request->validated());
             $user->syncRoles([$request->input('rol_id')]);
+            $user->profile()->create();
 
             $relationSchool = new SchoolUser();
             $relationSchool->user_id = $user->id;

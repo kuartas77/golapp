@@ -51,20 +51,20 @@ class InscriptionCreateComposer
                 return config('variables.KEY_AVERAGES');
             });
 
-            $training_groups = Cache::remember('KEY_TRAINING_GROUPS', now()->addYear(), function () {
-                return $this->trainingGroupRepository->getListGroupsSchedule(false);
-            });
-
             $dominant_profile = Cache::remember('KEY_DOMINANT_PROFILE', now()->addYear(), function () {
                 return config('variables.KEY_DOMINANT_PROFILE');
             });
 
-            $competition_groups = Cache::remember('KEY_COMPETITION_GROUPS', now()->addYear(), function () {
-                return $this->competitionGroupRepository->getListGroupFullName();
-            });
-
             $relationships = Cache::remember('KEY_RELATIONSHIPS_SELECT', now()->addYear(), function () {
                 return config('variables.KEY_RELATIONSHIPS_SELECT');
+            });
+
+            $training_groups = Cache::remember('KEY_TRAINING_GROUPS_'. auth()->user()->school_id, now()->addYear(), function () {
+                return $this->trainingGroupRepository->getListGroupsSchedule(false);
+            });
+
+            $competition_groups = Cache::remember('KEY_COMPETITION_GROUPS_'. auth()->user()->school_id, now()->addYear(), function () {
+                return $this->competitionGroupRepository->getListGroupFullName();
             });
 
             $view->with('genders', $genders);

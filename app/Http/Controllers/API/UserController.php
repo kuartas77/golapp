@@ -28,7 +28,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        event(new Registered(auth()->user()));
+        // event(new Registered(auth()->user()));
         return new UserCollection($this->userRepository->getAll());
     }
 
