@@ -38,14 +38,6 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
-        //  Auth::loginUsingId(6);
-        //  dd(auth()->user());
-
-        // $user = User::find(6);
-        // dd($user->school);
-        //Auth::loginUsingId(1);
-        //auth()->user()->assignRole('administrador');
-
         if ($request->ajax()) {
             return response()->json([
                 'current' => $this->paymentRepository->dataGraphicsYear(now()->year),

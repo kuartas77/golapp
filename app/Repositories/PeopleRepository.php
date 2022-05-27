@@ -46,7 +46,6 @@ class PeopleRepository
     {
         $relationship = config('variables.KEY_RELATIONSHIPS_SELECT');
         $peopleIds = collect();
-        logger("peoples", [$people]);
         foreach ($people as $person) {
             $person['tutor'] = isset($person['tutor']);
             $person['relationship_name'] = $relationship[$person['relationship']];

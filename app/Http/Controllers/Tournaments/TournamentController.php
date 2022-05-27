@@ -26,7 +26,7 @@ class TournamentController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            return datatables()->collection(Tournament::all())->toJson();
+            return datatables()->collection(Tournament::schoolId()->get())->toJson();
         }
         return view('tournaments.index');
     }

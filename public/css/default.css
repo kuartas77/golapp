@@ -557,3 +557,11 @@ select.swal2-select{
 .custom-file-input:lang(es)~.custom-file-label::after {
     content: "Buscar";
 }
+
+
+.typeahead.dropdown-menu {
+	z-index: 1051;
+	position:relative;
+	top:0!important;
+	left:0!important;	
+}

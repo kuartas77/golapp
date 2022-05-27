@@ -39,8 +39,6 @@ class School extends Model
         'slug'
     ];
 
-    // Estamos Probando
-
     protected $casts = [
         'is_enable' => 'boolean'
     ];
@@ -60,6 +58,7 @@ class School extends Model
             $this->attributes['logo'] = $value;
         }
     }
+
     public function getLogoFileAttribute(): string
     {
         if (Storage::disk('public')->exists($this->attributes['logo'])) {
@@ -67,6 +66,17 @@ class School extends Model
         }
         return asset('img/ballon.png');
     }
+
+    public function getLogoLocalAttribute(): string
+    {
+        if (Storage::disk('public')->exists($this->attributes['logo'])) {
+            return storage_path("app/public/{$this->attributes['logo']}");
+        }
+        return storage_path('standard/ballon.png');
+    }
+
+
+    
 
     public function users(): HasManyThrough
     {

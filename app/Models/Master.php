@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
+use App\Traits\ErrorTrait;
 use App\Traits\Fields;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\DB;
 
 class Master extends Model
 {
     use Fields;
     use HasFactory;
+    use ErrorTrait;
     
     protected $table = "master";
     protected $fillable = [
@@ -26,6 +29,7 @@ class Master extends Model
     public static function getAutocomplete($request): Collection
     {
         $response = collect();
+
         $masters = Master::whereIn('field', $request->input('fields', []))->get();
         foreach ($masters as $key => $master) {
             $response->put($master->field, $master->autocomplete_explode);
@@ -36,29 +40,33 @@ class Master extends Model
     public static function saveAutoComplete($request)
     {
         $keys = ['school', 'place_birth', 'neighborhood', 'eps', 'place', 'rival_name', 'zone', 'commune', 'degree'];
-        $fields = [
-            'school' => 'colegio_escuela', 'place_birth' => 'lugar_nacimiento', 
-            'neighborhood' => 'barrio', 'eps' => 'eps', 'place' => 'lugar', 
-            'rival_name' => 'nombre_rival', 'zone' => 'zona', 
-            'commune' => 'comuna', 'degree' => 'grado'
-        ];
-        for ($i = 0; $i < count($keys); ++$i) {
-            if (array_key_exists($keys[$i], $request->all())) {
-
+        
+        try {
+            DB::beginTransaction();
+            for ($i = 0; $i < count($keys); ++$i) {
                 $key = $keys[$i];
-                $fieldRequest = Str::title($request[$key]);
-                $master = static::query()->select('autocomplete')
-                    ->firstWhere('field', $fields[$key]);
+                if (array_key_exists($key, $request->all())) {
 
-                $value = array_unique(
-                    array_merge(
-                        explode(',', $master->autocomplete),
-                        explode(',', $fieldRequest)
-                    )
-                );
-                $master->update(['autocomplete' => $value]);
+                    $fieldRequest = Str::title($request[$key]);
+
+                    $master = static::firstOrCreate(
+                        ['field' => $key],
+                    );
+
+                    $autocomplete = array_unique(
+                        array_merge(
+                            explode(',', $master->autocomplete),
+                            explode(',', $fieldRequest)
+                        )
+                    );
+                    $master->update(['autocomplete' => $autocomplete]);
+                }
             }
-        }
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            (new Master())->logError(__METHOD__, $th);
+        }   
     }
 
     public function getAutoCompleteExplodeAttribute()

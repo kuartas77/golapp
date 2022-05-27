@@ -44,7 +44,7 @@ class PlayerRepository
     {
         try {
             DB::beginTransaction();
-            // Master::saveAutoComplete($request);
+            Master::saveAutoComplete($request);
             $dataPlayer = $this->setAttributes($request);
             $player = $this->model->create($dataPlayer);
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
@@ -66,7 +66,7 @@ class PlayerRepository
     {
         try {
             DB::beginTransaction();
-            // Master::saveAutoComplete($request);
+            Master::saveAutoComplete($request);
             $dataPlayer = $this->setAttributes($request, $player);
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
             $player->people()->sync($peopleIds);
@@ -116,7 +116,7 @@ class PlayerRepository
         ->whereHas('inscription')
         ->with([
             'inscription.trainingGroup.schedule.day', 
-            'people' => fn($query)=> $query->where('is_tutor', true),
+            'people' => fn($query)=> $query->where('tutor', true),
             'payments' => fn ($q) => $q->withTrashed() 
         ])->get();
 
@@ -124,7 +124,7 @@ class PlayerRepository
         ->whereDoesntHave('inscription')
         ->with([
             'inscription.trainingGroup.schedule.day', 
-            'people' => fn($query)=> $query->where('is_tutor', true),
+            'people' => fn($query)=> $query->where('tutor', true),
             'payments' => fn ($q) => $q->withTrashed() 
         ])->get();
 

@@ -69,14 +69,14 @@ const getAutoCompletes = () => {
             scrollBar: true
         });
     });
-    $.get(urlAutoComplete, {fields: ['lugar', 'nombre_rival']}, ({lugar, nombre_rival}) => {
+    $.get(urlAutoComplete, {fields: ['zone', 'rival_name']}, ({zone, rival_name}) => {
         $('#place').typeahead({
-            source: lugar,
+            source: zone,
             scrollBar: true
         });
 
         $('#rival_name').typeahead({
-            source: nombre_rival,
+            source: rival_name,
             scrollBar: true
         });
     });

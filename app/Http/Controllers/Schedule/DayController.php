@@ -67,7 +67,9 @@ class DayController extends Controller
     {
         abort_if(!$request->ajax(), 404);
 
-        $day->load('schedules');
+        $day->load(['schedules' => function($query){
+            $query->schoolId();
+        }]);
         $response = collect();
         $day->schedules->sortBy('id')->map(function ($schedule) use (&$response) {
             $response->push([
@@ -87,7 +89,13 @@ class DayController extends Controller
      */
     public function edit(Day $day): JsonResponse
     {
-        $day->load('schedules')->loadCount('schedules');
+        $day->load(['schedules' => function($query){
+            $query->schoolId();
+        }])->loadCount([
+            'schedules'=> function($query){
+                $query->schoolId();
+            }
+        ]);
         return $this->responseJson($day);
     }
 

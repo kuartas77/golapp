@@ -154,26 +154,26 @@
 
         function events() {
             // campos los cuales se van a buscar en la tabla maestra para autocompletado
-            campos = ['colegio_escuela', 'lugar_nacimiento', 'barrio', 'eps', 'zona', 'comuna', 'grado'];
-            $.get(url_autocomplete, {fields: campos}, function (result) {
+            let fields = ['school', 'place_birth', 'neighborhood', 'eps', 'zone', 'commune', 'degree'];
+            $.get(url_autocomplete, {fields: fields}, function (result) {
                 $('#place_birth').typeahead({
-                    source: result.lugar_nacimiento,
+                    source: result.place_birth,
                     scrollBar: true
                 });
 
                 $('#school').typeahead({
-                    source: result.colegio_escuela,
+                    source: result.school,
                     scrollBar: true
                 });
 
 
                 $('#municipality').typeahead({
-                    source: result.lugar_nacimiento,
+                    source: result.place_birth,
                     scrollBar: true
                 });
 
                 $('#neighborhood').typeahead({
-                    source: result.barrio,
+                    source: result.neighborhood,
                     scrollBar: true
                 });
 
@@ -183,17 +183,17 @@
                 });
 
                 $('#zone').typeahead({
-                    source: result.zona,
+                    source: result.zone,
                     scrollBar: true
                 });
 
                 $('#commune').typeahead({
-                    source: result.comuna,
+                    source: result.commune,
                     scrollBar: true
                 });
 
                 $('#degree').typeahead({
-                    source: result.grado,
+                    source: result.degree,
                     scrollBar: true
                 });
             });

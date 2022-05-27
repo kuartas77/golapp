@@ -29,7 +29,9 @@ class DayRepository
 
     public function all()
     {
-        $days = $this->model->query()->whereRelation('schedules', 'school_id', auth()->user()->school_id)->with('schedules')->get();
+        $days = $this->model->query()->whereRelation('schedules', 'school_id', auth()->user()->school_id)->with(['schedules' => function($query){
+            $query->schoolId();
+        }])->get();
         $days->setAppends(['schedul']);
         return $days;
     }

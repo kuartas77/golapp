@@ -9,7 +9,7 @@
     <table class="table-full title">
         <tr>
             <td class="text-left" width="20%">
-                <img src="{{ storage_path('app/public/'.$school->logo)}}" width="70" height="70">
+                <img src="{{ $school->logo_local }}" width="70" height="70">
             </td>
             <td class="text-center school-title" width="60%">{{ $school->name }}<br>FICHA DEL DEPORTISTA
             </td>

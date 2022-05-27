@@ -50,7 +50,11 @@ class CompetitionGroupController extends Controller
     public function store(CompetitionGroupRequest $request)
     {
         $competitionGroup = $this->repository->createOrUpdateTeam($request);
-
+        if ($competitionGroup->wasRecentlyCreated) {
+            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+        } else {
+            alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));
+        }
         return back();
     }
 
@@ -83,7 +87,11 @@ class CompetitionGroupController extends Controller
     public function update(CompetitionGroupRequest $request, CompetitionGroup $competitionGroup)
     {
         $competitionGroup = $this->repository->createOrUpdateTeam($request, false, $competitionGroup);
-
+        if (!$competitionGroup->exists)
+            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+        else{
+            alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));
+        }
         return back();
     }
 

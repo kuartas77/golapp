@@ -3,7 +3,7 @@
 @section('content')
 <x-bread-crumb title="Perfil {{$profile->user->name}}" :option="0"/>
 <x-row-card col-inside="8" col-outside="2" >
-    <form action="{{$profile->url_update}}" id="form_create" class="form-material" method="POST">
+    {!! Form::model($profile, ['url' => $profile->url_update, 'method' => 'patch', 'files'=>true, 'id'=>'form_create', 'class'=>''])!!}
         @method('PUT')
         @csrf
         <div class="form-body">
@@ -15,27 +15,47 @@
             </button>
         </div>
 
-    </form>
+    {!! Form::close() !!}
 </x-row-card>
 @endsection
 @section('modals')
 @endsection
 @section('scripts')
     <script>
-        let limitDate = moment().subtract(18,'years');
-        optionsDateTimePicker.timePicker24Hour = false;
-        optionsDateTimePicker.locale.format = 'YYYY-MM-DD';
-        optionsDateTimePicker.timePicker = false;
-        optionsDateTimePicker.autoUpdateInput = false;
-        optionsDateTimePicker.startDate = limitDate.startOf('month').format('YYYY-MM-DD');
-        optionsDateTimePicker.maxDate = limitDate.endOf('month').format('YYYY-MM-DD');
+
 
         $(document).ready(function () {
             $('.date').inputmask("yyyy-mm-dd");
 
-            $('#date_birth').daterangepicker(optionsDateTimePicker).on('apply.daterangepicker', function (ev, picker) {
-                $(this).val(picker.startDate.format('YYYY-MM-DD'));
+            $("#date_birth").bootstrapMaterialDatePicker({
+                time: false,
+                clearButton: false,
+                lang: 'es',
+                cancelText: 'Cancelar',
+                okText: 'Aceptar',
+                minDate: moment().subtract(60, 'year'),//TODO: settings
+                maxDate: moment().subtract(17, 'year')// TODO: settings
+            });
+
+            $('#file-upload').on('change', function(){
+                readFile(this);
             });
         });
+
+        function readFile(input) {
+            let label = $(input).next('label.custom-file-label')
+            if (input.files && input.files[0]) {
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#player-img').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]);
+                // label.empty().html(input.files[0].name)
+                label.empty().html('Seleccionada.')
+            }else{
+                label.empty().html("Seleccionar...")
+                $('#player-img').attr('src', 'http://golapp.local/img/user.png');
+            }
+        }
     </script>
 @endsection

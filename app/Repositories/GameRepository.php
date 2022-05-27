@@ -120,7 +120,7 @@ class GameRepository
         $match = $this->model;
         try {
             DB::beginTransaction();
-            // Master::saveAutoComplete($request);
+            Master::saveAutoComplete($request);
             $match = $this->model->create(
                 $request->only([
                     'tournament_id',
@@ -181,7 +181,7 @@ class GameRepository
     {
         try {
             DB::beginTransaction();
-            // Master::saveAutoComplete($request);
+            Master::saveAutoComplete($request);
             $match->fill(
                 $request->only([
                     'tournament_id',
@@ -233,7 +233,7 @@ class GameRepository
         ])->findOrFail($matchId);
 
 
-        $data['school'] = 'soccercity';
+        $data['school'] = getSchool(auth()->user());
         $data['match'] = $match;
         $data['count'] = $match->skillsControls->count() + 1;
         $data['result'] = (20 - $data['count']);

@@ -5,6 +5,7 @@ namespace App\Repositories;
 use Exception;
 use App\Traits\ErrorTrait;
 use App\Models\Inscription;
+use App\Models\TrainingGroup;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Http\FormRequest;
@@ -61,7 +62,7 @@ class InscriptionRepository
             DB::beginTransaction();
 
             $inscriptionData = $request->only($this->model->getFillable());
-            $inscriptionData['training_group_id'] = request('training_group_id', 1);
+            $inscriptionData['training_group_id'] = request('training_group_id', TrainingGroup::orderBy('id', 'asc')->firstWhere('school_id', auth()->user()->school_id)->id);
             $inscriptionData['deleted_at'] = null;
 
             if ($created) {
