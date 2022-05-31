@@ -35,6 +35,8 @@ class InscriptionCreateComposer
     {
         if (Auth::check()) {
 
+            $school_id = auth()->user()->school_id;
+
             $genders = Cache::remember('KEY_GENDERS', now()->addYear(), function () {
                 return config('variables.KEY_GENDERS');
             });
@@ -59,11 +61,11 @@ class InscriptionCreateComposer
                 return config('variables.KEY_RELATIONSHIPS_SELECT');
             });
 
-            $training_groups = Cache::remember('KEY_TRAINING_GROUPS_'. auth()->user()->school_id, now()->addWeek(), function () {
+            $training_groups = Cache::remember("KEY_TRAINING_GROUPS_{$school_id}", now()->addDay(), function () {
                 return $this->trainingGroupRepository->getListGroupsSchedule(false);
             });
 
-            $competition_groups = Cache::remember('KEY_COMPETITION_GROUPS_'. auth()->user()->school_id, now()->addWeek(), function () {
+            $competition_groups = Cache::remember("KEY_COMPETITION_GROUPS_{$school_id}", now()->addDay(), function () {
                 return $this->competitionGroupRepository->getListGroupFullName();
             });
 

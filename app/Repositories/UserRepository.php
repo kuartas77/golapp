@@ -58,8 +58,10 @@ class UserRepository
             $relationSchool->save();
 
             $user->notify(new RegisterNotification($user, Str::of($school->name)->mask("*", 4)));
+            Cache::forget("KEY_USERS_{$school->id}");
+            
             alert()->success(__('messages.user_stored_success'));
-            Cache::forget('users');
+
             return $user;
         } catch (Exception $exception) {
             $this->logError("UserRepository create", $exception);
@@ -75,7 +77,7 @@ class UserRepository
             DB::beginTransaction();
             $user->update($request->validated());
             $user->syncRoles([$request->input('rol_id')]);
-            Cache::forget('users');
+            Cache::forget("KEY_USERS_{$user->school_id}");
             DB::commit();
 
             alert()->success(config('app.name'), __('messages.user_updated', ['user_name' => $user->name]));

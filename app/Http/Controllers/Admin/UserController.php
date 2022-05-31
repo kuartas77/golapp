@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Exception;
 use App\Models\User;
 use Illuminate\View\View;
-use Illuminate\Http\Response;
+use App\Traits\ErrorTrait;
 use Illuminate\Routing\Redirector;
 use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
@@ -19,6 +19,8 @@ use Illuminate\Contracts\Foundation\Application;
 
 class UserController extends Controller
 {
+    use ErrorTrait;
+
     private UserRepository $repository;
 
     public function __construct(UserRepository $repository)
@@ -129,7 +131,18 @@ class UserController extends Controller
     {
         abort_unless(isAdmin() || isSchool(), 401);
 
-        $user->delete();
+        try {
+
+            $user->delete();
+            
+            if($school_id = auth()->user()->school_id){
+                Cache::forget("KEY_USERS_{$school_id}");
+            }
+
+        } catch (\Throwable $th) {
+            $this->logError("MatchRepository updateMatchSkill", $th);
+        }
+
         alert()->success(config('app.name'), __('messages.user_disabled'));
 
         return redirect(route('users.index'));
@@ -143,9 +156,18 @@ class UserController extends Controller
     {
         abort_unless(isAdmin() || isSchool(), 401);
 
-        if($this->repository->restore($id)){
-            alert()->success(config('app.name'), __('messages.user_enabled'));
-        }   
+        try {
+
+            if($this->repository->restore($id)){
+                if($school_id = auth()->user()->school_id){
+                    Cache::forget("KEY_USERS_{$school_id}");
+                }
+                alert()->success(config('app.name'), __('messages.user_enabled'));
+            }
+
+        } catch (\Throwable $th) {
+            $this->logError("MatchRepository updateMatchSkill", $th);
+        }
 
         return back();
     }

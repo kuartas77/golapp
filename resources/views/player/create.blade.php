@@ -1,4 +1,14 @@
 @extends('layouts.app')
+@section('css')
+<style>
+    .typeahead.dropdown-menu {
+	z-index: 1051;
+	position:relative;
+	top:0!important;
+	left:0!important;	
+}
+</style>
+@endsection
 @section('content')
     <x-bread-crumb title="Agregar Deportista" :option="0"/>
     <x-row-card-eight>

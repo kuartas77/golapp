@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Cache;
 
 class DayRepository
 {
@@ -44,19 +45,22 @@ class DayRepository
     {
         try {
             DB::beginTransaction();
+            $school_id = auth()->user()->school_id;
             $day = $this->model->query()->create(['days' => $this->getDaysClass()]);
 
             foreach ($request->input('schedule') as $schedule) {
                 if (!is_null($schedule['value'])) {
                     $day->schedules()->create([
                         'schedule' => $schedule['value'],
-                        'school_id' => auth()->user()->school_id
+                        'school_id' => $school_id
                     ]);
                 }
             }
 
             DB::commit();
+            Cache::forget("KEY_DAYS");
             alert()->success(env('APP_NAME'), __('messages.day_create_success'));
+            
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("DayRepository store", $exception);
@@ -82,6 +86,8 @@ class DayRepository
             }
 
             DB::commit();
+
+            Cache::forget("KEY_DAYS");
             alert()->success(env('APP_NAME'), __('messages.day_create_success'));
         } catch (Exception $exception) {
             DB::rollBack();

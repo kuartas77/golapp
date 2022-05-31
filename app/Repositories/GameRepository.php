@@ -117,27 +117,30 @@ class GameRepository
      */
     public function createMatchSkill($request): Game
     {
+        $school_id = auth()->user()->school_id;
+        $match_data = $request->only([
+            'tournament_id',
+            'competition_group_id',
+            'date',
+            'hour',
+            'num_match',
+            'place',
+            'rival_name',
+            'final_score',
+            'general_concept'
+        ]);
+        $match_data['school_id'] = $school_id;
+
         $match = $this->model;
         try {
             DB::beginTransaction();
             Master::saveAutoComplete($request);
-            $match = $this->model->create(
-                $request->only([
-                    'tournament_id',
-                    'competition_group_id',
-                    'date',
-                    'hour',
-                    'num_match',
-                    'place',
-                    'rival_name',
-                    'final_score',
-                    'general_concept'])
-            );
+            $match = $this->model->create($match_data);
             $inscriptions = $request->input('inscriptions_id');
             $skillControls = collect();
             for ($i = 0; $i < count($inscriptions); ++$i) {
                 if (!empty($inscriptions[$i])) {
-                    $skillControls->push(new SkillsControl($this->dataSkills($request, $i)));
+                    $skillControls->push(new SkillsControl($this->dataSkills($request, $i, $school_id)));
                 }
             }
             $match->skillsControls()->saveMany($skillControls);
@@ -145,10 +148,9 @@ class GameRepository
             return $match;
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError("MatchRepository createMatchSkill", $exception);
+            $this->logError(__METHOD__, $exception);
             return $match;
         }
-
     }
 
     /**
@@ -156,7 +158,7 @@ class GameRepository
      * @param $i
      * @return array
      */
-    private function dataSkills($request, $i): array
+    private function dataSkills($request, $i, $school_id): array
     {
         return [
             'inscription_id' => $request->input("inscriptions_id.{$i}"),
@@ -169,6 +171,7 @@ class GameRepository
             'yellow_cards' => $request->input("yellow_cards.{$i}"),
             'qualification' => $request->input("qualification.{$i}"),
             'observation' => $request->input("observation.{$i}"),
+            'school_id' => $school_id
         ];
     }
 
@@ -209,7 +212,7 @@ class GameRepository
             return true;
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError("MatchRepository updateMatchSkill", $exception);
+            $this->logError(__METHOD__, $exception);
             return false;
         }
     }

@@ -24,7 +24,7 @@ class CreateMatchesTable extends Migration
             $table->text('place');
             $table->text('rival_name');
             $table->text('final_score');
-            $table->text('general_concept');
+            $table->text('general_concept')->nullable();
             $table->timestamps();
             $table->softDeletes();
 

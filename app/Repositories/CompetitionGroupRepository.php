@@ -10,6 +10,7 @@ use App\Models\CompetitionGroup;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -51,6 +52,9 @@ class CompetitionGroupRepository
             }
 
             DB::commit();
+
+            Cache::forget("KEY_COMPETITION_GROUPS_{$request->input('school_id')}");
+
             return $competitionGroup;
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -64,7 +68,8 @@ class CompetitionGroupRepository
      */
     public function getListGroupFullName(): Collection
     {
-        return $this->model->query()->with('tournament', 'professor')
+        return $this->model->query()->schoolId()
+            ->with('tournament', 'professor')
             ->orderBy('name','ASC')
             ->get()->pluck('full_name_group', 'id');
     }

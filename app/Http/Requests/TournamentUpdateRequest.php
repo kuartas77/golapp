@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Support\Str;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TournamentUpdateRequest extends FormRequest
@@ -32,6 +33,7 @@ class TournamentUpdateRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
+            'name' => Str::upper($this->name),
             'school_id' => auth()->user()->school_id
         ]);
     }

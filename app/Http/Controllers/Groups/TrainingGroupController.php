@@ -59,9 +59,9 @@ class TrainingGroupController extends Controller
     {
         $training_group = $this->repository->setTrainingGroup($request, true);
         if ($training_group->wasRecentlyCreated) {
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+            alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));            
         } else{
-            alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));
+            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
         }
 
         return redirect(route('training_groups.index'));

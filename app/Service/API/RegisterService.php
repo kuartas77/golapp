@@ -35,13 +35,15 @@ class RegisterService
             ]);
 
             $user->syncRoles([User::SCHOOL]);
+            $user->profile()->create();
 
             $validated = $request->validated();
             $validated['is_enable'] = true;
 
             $school = School::query()->create($validated);
 
-            $user->update(['school_id' => $school->id]);
+            $user->school_id = $school->id;
+            $user->save();
 
             $relationSchool = new SchoolUser();
             $relationSchool->user_id = $user->id;

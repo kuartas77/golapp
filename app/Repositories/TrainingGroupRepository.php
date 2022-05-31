@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @method static create(array $group)
@@ -57,8 +58,13 @@ class TrainingGroupRepository
             } else {
                 $trainingGroup->update($group);
             }
+            
             DB::commit();
+
+            Cache::forget("KEY_TRAINING_GROUPS_{$request->input('school_id')}");
+            
             return $trainingGroup;
+            
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("TrainingGroupRepository setTrainingGroup", $exception);
