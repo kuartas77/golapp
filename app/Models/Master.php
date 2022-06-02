@@ -47,7 +47,7 @@ class Master extends Model
                 $key = $keys[$i];
                 if (array_key_exists($key, $request->all())) {
 
-                    $fieldRequest = Str::title($request[$key]);
+                    $fieldRequest = Str::upper(trim($request[$key]));
 
                     $master = static::firstOrCreate(
                         ['field' => $key],
@@ -58,7 +58,7 @@ class Master extends Model
                             explode(',', $master->autocomplete),
                             explode(',', $fieldRequest)
                         )
-                    );
+                    , SORT_STRING);
                     $master->update(['autocomplete' => $autocomplete]);
                 }
             }

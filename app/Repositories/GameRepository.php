@@ -182,30 +182,31 @@ class GameRepository
      */
     public function updateMatchSkill($request, Game $match): bool
     {
+        $school_id = auth()->user()->school_id;
+        $match_data = $request->only([
+            'tournament_id',
+            'competition_group_id',
+            'date',
+            'hour',
+            'num_match',
+            'place',
+            'rival_name',
+            'final_score',
+            'general_concept'
+        ]);
+        $match_data['school_id'] = $school_id;
+
         try {
             DB::beginTransaction();
             Master::saveAutoComplete($request);
-            $match->fill(
-                $request->only([
-                    'tournament_id',
-                    'competition_group_id',
-                    'date',
-                    'hour',
-                    'num_match',
-                    'place',
-                    'rival_name',
-                    'final_score',
-                    'general_concept'])
-            )->save();
+            $match->update($match_data);
             $ids = $request->input('ids');
             for ($i = 0; $i < count($ids); ++$i) {
-                $data = $this->dataSkills($request, $i);
+                $data = $this->dataSkills($request, $i, $school_id);
                 if (!empty($ids[$i])) {
-                    $skillControl = SkillsControl::find($ids[$i]);
-                    $skillControl->fill($data)->save();
+                    SkillsControl::find($ids[$i])->update($data);
                 } else {
-                    $skillControl = new SkillsControl($data);
-                    $match->skillsControls()->save($skillControl);
+                    $match->skillsControls()->save(new SkillsControl($data));
                 }
             }
             DB::commit();
