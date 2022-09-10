@@ -28,7 +28,14 @@ class GolAppProvider extends ServiceProvider
     public function boot()
     {
         if(env('APP_ENV', null) == 'local'){
-            DB::listen(fn($query)=> logger(Str::replaceArray('?', $query->bindings, $query->sql)));
+            DB::listen(function($query){
+                foreach($query->bindings as $key => $binding){
+                    if(is_bool($query->bindings[$key])){
+                        $query->bindings[$key] = $query->bindings[$key] ? 'true': 'false';
+                    }
+                }
+                logger(Str::replaceArray('?', $query->bindings, $query->sql));
+            });
         }
         
         Collection::macro('setAppends', function ($attributes) {

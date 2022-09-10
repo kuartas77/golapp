@@ -2,7 +2,6 @@
 
 namespace App\Repositories;
 
-use App\Models\School;
 use Exception;
 use App\Models\User;
 use App\Models\SchoolUser;
@@ -27,26 +26,27 @@ class UserRepository
     public function getAll()
     {
         if(isSchool()){
-            $school = auth()->user()->school->load(['users.roles','users.profile']);
-            return $school->users;
+            $school = auth()->user()->school;
+            return $school->users()->with(['roles','profile'])->get();
         }
         
-        return $this->model->query()->with('roles')->where('id', '!=', 1)->get();
+        return $this->model->query()->with(['roles','profile'])->where('id', '!=', 1)->get();
     }
 
     public function getAllTrash()
     {
         if(isSchool()){
-            $school = auth()->user()->school->load('users.roles');
-            return $school->users()->with('roles')->onlyTrashed()->get();
+            $school = auth()->user()->school;
+            return $school->users()->with(['roles','profile'])->onlyTrashed()->get();
         }
 
-        return $this->model->query()->with('roles')->onlyTrashed()->get();
+        return $this->model->query()->with(['roles','profile'])->onlyTrashed()->get();
     }
 
     public function create(FormRequest $request)
     {
         try {
+            DB::beginTransaction();
             $school = auth()->user()->school;
             $user = $this->model->query()->create($request->validated());
             $user->syncRoles([$request->input('rol_id')]);
@@ -58,12 +58,14 @@ class UserRepository
             $relationSchool->save();
 
             $user->notify(new RegisterNotification($user, Str::of($school->name)->mask("*", 4)));
+            DB::commit();
             Cache::forget("KEY_USERS_{$school->id}");
             
             alert()->success(__('messages.user_stored_success'));
 
             return $user;
         } catch (Exception $exception) {
+            DB::rollBack();
             $this->logError("UserRepository create", $exception);
             alert()->error(__('messages.error'));
             return $this->model;

@@ -7,9 +7,9 @@ use App\Models\User;
 use App\Models\School;
 use App\Models\SchoolUser;
 use App\Traits\ErrorTrait;
+use App\Traits\UploadFile;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use App\Notifications\RegisterNotification;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
@@ -17,6 +17,7 @@ use Illuminate\Validation\ValidationException;
 class RegisterService
 {
     use ErrorTrait;
+    use UploadFile;
     
     /**
      * @throws ValidationException
@@ -38,6 +39,7 @@ class RegisterService
             $user->profile()->create();
 
             $validated = $request->validated();
+            $validated['logo'] = $this->saveFile($request, 'logo');
             $validated['is_enable'] = true;
 
             $school = School::query()->create($validated);
@@ -56,14 +58,7 @@ class RegisterService
 
             DB::commit();
 
-            if (!$user || !Hash::check($request->input('password'), $user->password)) {
-                throw ValidationException::withMessages([
-                    'email' => ['The provided credentials are incorrect.'],
-                ]);
-            }
-
-            $response->user = $user;
-            $response->token = $user->createToken($request->input('email'))->plainTextToken;
+            $response->success = true;
 
         } catch (\Throwable $th) {
             DB::rollBack();

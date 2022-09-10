@@ -144,10 +144,13 @@
                 resetModalForm(false, id);
                 $("#name").val(name).attr('readonly', true);
                 $("#agent").val(agent);
-                $("#email").val(email);
+                $("#email").val(email).attr('readonly', true);
                 $("#address").val(address);
                 $("#phone").val(phone);
                 $("#is_enable").val(is_enable ? 1 : 0);
+                
+                $("#password_div").hide();
+                $("#password_confirmation_div").hide();
                 $("#create").modal('show');
             });
         });
@@ -156,10 +159,15 @@
             $("#method").val('')
             $("#name").val('').attr('readonly', false);
             $("#agent").val('');
-            $("#email").val('');
+            $("#email").val('').attr('readonly', false);
             $("#address").val('');
             $("#phone").val('');
-            $("#is_enable").val(is_enable);
+            $("#is_enable").val(1);
+            $("#password").val('');
+            $("#password_confirmation").val('');
+            $('#player-img').attr('src', 'https://golapp.softdreamc.com/img/ballon.png');   
+            $("#password_div").show();
+            $("#password_confirmation_div").show();   
             resetModalForm(true, 0);
         });
 

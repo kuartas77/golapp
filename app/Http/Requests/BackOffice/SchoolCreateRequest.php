@@ -4,6 +4,7 @@ namespace App\Http\Requests\BackOffice;
 
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SchoolCreateRequest extends FormRequest
@@ -26,13 +27,13 @@ class SchoolCreateRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => ['required', 'string', Rule::unique('schools', 'name')],
-            'slug' => ['required', 'string'],
+            'email' => ['required','email', Rule::unique('schools','email'), Rule::unique('users','email')],
+            'password' => ['required', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()->symbols()->uncompromised()],
+            'name' => ['required', 'string'],
             'agent' => ['required', 'string'],
-            'address' => ['required', 'string'],
-            'phone' => ['required', 'string'],
-            'email' => ['required', 'string', 'email'],
-            'is_enable' => ['required', 'bool'],
+            'address' => ['nullable', 'string'],
+            'phone' => ['nullable', 'string'],
+            'slug' => ['required', 'string'],
             'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg'],
         ];
     }

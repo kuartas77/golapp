@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Models\User;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\API\UserRequest;
 use App\Repositories\UserRepository;
 use Illuminate\Auth\Events\Registered;
 use App\Http\Requests\StoreUserRequest;
@@ -26,10 +27,16 @@ class UserController extends Controller
      *
      * @return AnonymousResourceCollection
      */
-    public function index()
+    public function index(UserRequest $request)
     {
         // event(new Registered(auth()->user()));
-        return new UserCollection($this->userRepository->getAll());
+ 
+        $users = User::query()
+        ->when(isSchool(), fn($query) => $query->where('school_id', auth()->user()->school_id))
+        ->when($request->orderBy, fn($query) => $query->orderBy($request->orderBy, $request->order))
+        ->orderByRaw('-school_id ASC');
+        
+        return new UserCollection($users->paginate($request->per_page));
     }
 
     /**
@@ -52,7 +59,7 @@ class UserController extends Controller
      */
     public function show(User $user): UserResource
     {
-        return new UserResource($user);
+        return new UserResource($user->load(['profile','school']));
     }
 
     /**
@@ -79,4 +86,6 @@ class UserController extends Controller
         $user->delete();
         return response()->noContent();
     }
+
+
 }

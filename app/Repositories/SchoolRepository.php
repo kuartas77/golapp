@@ -31,42 +31,6 @@ class SchoolRepository
         return $schools;
     }
 
-    public function create(FormRequest $request): School
-    {
-        try {
-            DB::beginTransaction();
-
-            $data = $request->validated();
-            $data['logo'] = $this->saveFile($request, 'logo');
-
-            $school = $this->model->create($data);
-            
-            $password = Str::slug($data['name'], '');
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => $password
-            ]);
-            $user->assignRole(['school']);
-
-            $relationSchool = new SchoolUser();
-            $relationSchool->user_id = $user->id;
-            $relationSchool->school_id = $school->id;
-            $relationSchool->save();
-
-            // TODO: crear grupo de entrenamiento por defecto
-
-            $user->notify(new RegisterNotification($user, Str::of($password)->mask("*", 4)));
-            DB::commit();
-
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            $this->logError("SchoolRepository create", $exception);
-        }
-
-        return $this->model;
-    }
-
     public function update(FormRequest $request, School $school): School
     {
         try {
