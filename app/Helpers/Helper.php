@@ -172,7 +172,7 @@ if (!function_exists('isInstructor')) {
 }
 
 if (!function_exists('getSchool')){
-    function getSchool($user){
+    function getSchool($user): School{
         return Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn()=> $user->school);
     }
 }

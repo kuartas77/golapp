@@ -32,7 +32,7 @@ class UserController extends Controller
         // event(new Registered(auth()->user()));
  
         $users = User::query()
-        ->when(isSchool(), fn($query) => $query->where('school_id', auth()->user()->school_id))
+        ->when(isSchool(), fn($query) => $query->where('school_id', getSchool(auth()->user())->id))
         ->when($request->orderBy, fn($query) => $query->orderBy($request->orderBy, $request->order))
         ->orderByRaw('-school_id ASC');
         

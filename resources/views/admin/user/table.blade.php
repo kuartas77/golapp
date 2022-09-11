@@ -22,6 +22,9 @@
 
         <table class="table display compact" id="user-table" style="width:100%">
             <thead>
+            @hasanyrole('super-admin')
+            <td>Escuela</td>
+            @endhasanyrole
             <th>Usuarios</th>
             <th>Rol</th>
             <th>Correo</th>
@@ -30,6 +33,9 @@
             <tbody>
             @foreach($users as $user)
                 <tr>
+                    @hasanyrole('super-admin')
+                    <td>{!! $user->school->name !!}</td>
+                    @endhasanyrole
                     <td>{!! $user->name !!}</td>
                     <td>{!! $user->roles->implode('name',', ') !!}</td>
                     <td>{!! $user->email !!}</td>
@@ -64,6 +70,9 @@
     <div class="tab-pane" id="inactivos" role="tabpanel" aria-labelledby="inactivos-tab">
         <table class="table display compact" id="userTrash-table" style="width:100%">
             <thead>
+            @hasanyrole('super-admin')
+            <td>Escuela</td>
+            @endhasanyrole
             <th>Usuarios</th>
             <th>Rol</th>
             <th>Correo</th>
@@ -72,6 +81,9 @@
             <tbody>
             @foreach($usersTrash as $user)
                 <tr>
+                    @hasanyrole('super-admin')
+                    <td>{!! $user->school->name !!}</td>
+                    @endhasanyrole
                     <td>{!! $user->name !!}</td>
                     <td>{!! $user->roles->implode('name',', ') !!}</td>
                     <td>{!! $user->email !!}</td>

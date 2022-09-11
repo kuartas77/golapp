@@ -62,7 +62,7 @@ class InscriptionRepository
             DB::beginTransaction();
 
             $inscriptionData = $request->only($this->model->getFillable());
-            $inscriptionData['training_group_id'] = request('training_group_id', TrainingGroup::orderBy('id', 'asc')->firstWhere('school_id', auth()->user()->school_id)->id);
+            $inscriptionData['training_group_id'] = request('training_group_id', TrainingGroup::orderBy('id', 'asc')->firstWhere('school_id', getSchool(auth()->user())->id)->id);
             $inscriptionData['deleted_at'] = null;
 
             if ($created) {

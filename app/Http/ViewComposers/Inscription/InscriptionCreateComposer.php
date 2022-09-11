@@ -35,7 +35,7 @@ class InscriptionCreateComposer
     {
         if (Auth::check()) {
 
-            $school_id = auth()->user()->school_id;
+            $school_id = getSchool(auth()->user())->id;
 
             $genders = Cache::remember('KEY_GENDERS', now()->addYear(), function () {
                 return config('variables.KEY_GENDERS');

@@ -110,7 +110,7 @@ class AssistRepository
                 ->where('training_group_id', $request->input('training_group_id'))
                 ->where('year', now()->year)->pluck('id');
 
-            $school_id = auth()->user()->school_id;
+            $school_id = getSchool(auth()->user())->id;
 
             $request->merge(['year' => now()->year]);
 

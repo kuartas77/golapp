@@ -117,7 +117,7 @@ class GameRepository
      */
     public function createMatchSkill($request): Game
     {
-        $school_id = auth()->user()->school_id;
+        $school_id = getSchool(auth()->user())->id;
         $match_data = $request->only([
             'tournament_id',
             'competition_group_id',
@@ -182,7 +182,7 @@ class GameRepository
      */
     public function updateMatchSkill($request, Game $match): bool
     {
-        $school_id = auth()->user()->school_id;
+        $school_id = getSchool(auth()->user())->id;
         $match_data = $request->only([
             'tournament_id',
             'competition_group_id',

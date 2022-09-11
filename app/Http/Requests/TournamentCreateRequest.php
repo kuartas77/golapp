@@ -34,7 +34,7 @@ class TournamentCreateRequest extends FormRequest
     {
         $this->merge([
             'name' => Str::upper($this->name),
-            'school_id' => auth()->user()->school_id
+            'school_id' => getSchool(auth()->user())->id
         ]);
     }
 }

@@ -10,6 +10,7 @@ use App\Traits\UploadFile;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use App\Notifications\RegisterNotification;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SchoolRepository
@@ -49,5 +50,18 @@ class SchoolRepository
         }
 
         return $school;
+    }
+
+    public function schoolsInfo(int $school_id = null)
+    {
+        $query = School::withCount(['users','inscriptions','players','payments','assists','skillControls','matches','tournaments','trainingGroups','competitionGroups','incidents']);
+        $response = new Collection();
+        if($school_id){
+            $response = $query->where('id', $school_id)->first();
+        }else{
+            $response = $query->get();
+        }
+
+        return $response;
     }
 }

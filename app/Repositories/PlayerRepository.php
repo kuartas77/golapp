@@ -190,7 +190,7 @@ class PlayerRepository
 
     public function birthdayToday(): Collection
     {
-        $school_id = isAdmin() ? 0 : auth()->user()->school_id;
+        $school_id = isAdmin() ? 0 : getSchool(auth()->user())->id;
         return Cache::remember("BIRTHDAYS_{$school_id}", Carbon::now()->addDay(), function(){
             return $this->model->query()->schoolId()->whereHas('inscription')
             ->whereDay('date_birth', Carbon::now()->day)->whereMonth('date_birth', Carbon::now()->month)

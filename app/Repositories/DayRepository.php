@@ -30,7 +30,7 @@ class DayRepository
 
     public function all()
     {
-        $days = $this->model->query()->whereRelation('schedules', 'school_id', auth()->user()->school_id)->with(['schedules' => function($query){
+        $days = $this->model->query()->whereRelation('schedules', 'school_id', getSchool(auth()->user())->id)->with(['schedules' => function($query){
             $query->schoolId();
         }])->get();
         $days->setAppends(['schedul']);
@@ -45,7 +45,7 @@ class DayRepository
     {
         try {
             DB::beginTransaction();
-            $school_id = auth()->user()->school_id;
+            $school_id = getSchool(auth()->user())->id;
             $day = $this->model->query()->create(['days' => $this->getDaysClass()]);
 
             foreach ($request->input('schedule') as $schedule) {

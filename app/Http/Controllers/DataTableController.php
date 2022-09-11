@@ -105,4 +105,11 @@ class DataTableController extends Controller
 
         return datatables()->collection($this->schoolRepository->getAll())->toJson();
     }
+
+    public function schoolsInfo(Request $request)
+    {
+        abort_unless($request->ajax() && isAdmin(), 403);
+
+        return datatables()->collection($this->schoolRepository->schoolsInfo())->toJson();
+    }
 }

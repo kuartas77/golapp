@@ -41,7 +41,7 @@ class CompetitionGroupRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => auth()->user()->school_id,
+            'school_id' => getSchool(auth()->user())->id,
             'category' => categoriesName((int)$this->year)
         ]);
     }

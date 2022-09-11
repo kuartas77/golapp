@@ -22,7 +22,7 @@ class TrainingGroupComposer
     {
         if (Auth::check()) {
 
-            $school_id = isAdmin() ? 0 : auth()->user()->school_id;
+            $school_id = isAdmin() ? 0 : getSchool(auth()->user())->id;
 
             $users = Cache::remember("KEY_USERS_{$school_id}", now()->addDay(), function () {
                 return (new UserRepository(new User()))->getAll()->pluck('name', 'id');

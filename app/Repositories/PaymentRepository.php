@@ -91,7 +91,7 @@ class PaymentRepository
     public function dataGraphicsYear(int $year = 0): Collection
     {
         $year = $year == 0 ? now()->year : $year;
-        $school_id = (isSchool() || isInstructor()) ? auth()->user()->school_id : null;
+        $school_id = (isSchool() || isInstructor()) ? getSchool(auth()->user())->id : null;
 
         return Cache::remember("graphics.year.{$year}.{$school_id}", now()->addMinutes(10), function () use ($year, $school_id) {
             return $this->queryGraphics($year, $school_id);

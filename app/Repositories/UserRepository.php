@@ -27,20 +27,20 @@ class UserRepository
     {
         if(isSchool()){
             $school = auth()->user()->school;
-            return $school->users()->with(['roles','profile'])->get();
+            return $school->users()->with(['roles','profile','school'])->get();
         }
         
-        return $this->model->query()->with(['roles','profile'])->where('id', '!=', 1)->get();
+        return $this->model->query()->with(['roles','profile','school'])->where('id', '!=', 1)->get();
     }
 
     public function getAllTrash()
     {
         if(isSchool()){
             $school = auth()->user()->school;
-            return $school->users()->with(['roles','profile'])->onlyTrashed()->get();
+            return $school->users()->with(['roles','profile','school'])->onlyTrashed()->get();
         }
 
-        return $this->model->query()->with(['roles','profile'])->onlyTrashed()->get();
+        return $this->model->query()->with(['roles','profile','school'])->onlyTrashed()->get();
     }
 
     public function create(FormRequest $request)

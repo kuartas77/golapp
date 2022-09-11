@@ -135,7 +135,7 @@ class UserController extends Controller
 
             $user->delete();
             
-            if($school_id = auth()->user()->school_id){
+            if($school_id = getSchool(auth()->user())->id){
                 Cache::forget("KEY_USERS_{$school_id}");
             }
 
@@ -159,7 +159,7 @@ class UserController extends Controller
         try {
 
             if($this->repository->restore($id)){
-                if($school_id = auth()->user()->school_id){
+                if($school_id = getSchool(auth()->user())->id){
                     Cache::forget("KEY_USERS_{$school_id}");
                 }
                 alert()->success(config('app.name'), __('messages.user_enabled'));
