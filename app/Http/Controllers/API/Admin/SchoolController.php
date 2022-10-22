@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Admin;
 use App\Models\School;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\API\SchoolCollection;
 
 class SchoolController extends Controller
 {
@@ -13,9 +14,14 @@ class SchoolController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return School::withCount(['users','inscriptions','players','payments','assists','skillControls','matches','tournaments','trainingGroups','competitionGroups','incidents'])->get();
+        $schools = School::withCount([
+            'users','inscriptions','players','payments','assists','skillControls','matches','tournaments','trainingGroups','competitionGroups','incidents'
+        ])->when($request->orderBy, fn($query) => $query->orderBy($request->orderBy, $request->order))
+        ->orderByRaw('-id ASC');
+        
+        return new SchoolCollection($schools->paginate($request->per_page));
     }
 
     /**

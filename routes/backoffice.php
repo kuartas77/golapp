@@ -14,7 +14,7 @@ Route::middleware(['auth', 'role:super-admin'])->group(function ($route) {
     $route->prefix('config')->name('config.')->group(function ($route){
         
         $route->resource("schools", SchoolController::class);
-        $route->resource("schools", SchoolInfoController::class);
+        $route->resource("schools_info", SchoolInfoController::class);
         $route->resource("settings", SettingValueController::class);
         $route->resource("users", UserController::class);
 

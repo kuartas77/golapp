@@ -43,6 +43,10 @@ class School extends Model
         'is_enable' => 'boolean'
     ];
 
+    protected $appends = [
+        'logo_file'
+    ];
+
     public function getRouteKeyName(): string
     {
         return 'slug';
