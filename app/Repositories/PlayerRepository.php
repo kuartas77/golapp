@@ -19,6 +19,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Database\Eloquent\Collection;
 use App\Http\Requests\Player\PlayerCreateRequest;
 use App\Http\Requests\Player\PlayerUpdateRequest;
+use App\Models\Inscription;
 use App\Notifications\RegisterPlayerNotification;
 
 class PlayerRepository
@@ -87,6 +88,20 @@ class PlayerRepository
         $player->load(['people', 'inscriptions' => fn ($q) => $q->withTrashedRelations() ]);
         $player->inscriptions->setAppends(['format_average']);
         return $player;
+    }
+
+    public function loadPDFInscription($player_id, $inscription_id, bool $stream = true)
+    {
+        $player = $this->model->find($player_id);
+
+        $player->load(['schoolData', 'inscriptions' => fn ($q) => $q->where('id', $inscription_id)->with('payments') ]);
+        $player->inscriptions->setAppends(['format_average']);
+        $data['player'] = $player;
+        $data['school'] = $player->schoolData;
+        $filename = "Deportista {$player->unique_code}.pdf";
+        $this->setConfigurationMpdf(['format' => 'A4-L']);        
+        $this->createPDF($data, 'inscription_detail.blade.php');
+        return $stream ? $this->stream($filename) : $this->output($filename);
     }
 
 

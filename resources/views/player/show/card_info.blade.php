@@ -15,7 +15,7 @@
             </ul>
 
         </div>
-        <div class="card-body collapse show" style="">
+        <div class="card-body collapse show">
 
             <div class="tab-content">
                 <div class="tab-pane show active" id="info" role="tabpanel">
@@ -117,6 +117,9 @@
                         <a class="nav-link" data-toggle="tab" href="#asisstances_{{$loop->index}}" role="tab">Asistencias A
                             Entrenamientos</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="btn btn-info" href="{{route('export.inscription', [$inscription->player_id, $inscription->id])}}" target="_blank" role="tab">Descargar PDF</a>
+                    </li>
 
                     <li class="nav-item ml-auto card-actions">
                         <a class="nav-link" data-action="collapse" data-toggle="tooltip" data-placement="left" title="Click acá"><i class="ti-plus"></i></a>
@@ -124,7 +127,7 @@
                 </ul>
 
             </div>
-            <div class="card-body collapse show" style="">
+            <div class="card-body collapse show">
                 <div class="tab-content">
 
                     <div class="tab-pane active" id="average_{{$loop->index}}" role="tabpanel">

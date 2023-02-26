@@ -106,7 +106,7 @@ class Inscription extends Model
 
     public function getUrlImpressionAttribute(): string
     {
-        return route('export.player', [$this->attributes['unique_code']]);
+        return route('export.inscription', [$this->attributes['player_id'], $this->attributes['id']]);
     }
 
     public function getUrlEditAttribute(): string

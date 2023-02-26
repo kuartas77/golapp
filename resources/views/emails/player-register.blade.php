@@ -1,7 +1,7 @@
 @component('mail::message')
 # Notificación de Deportista Registrado
 
-* Nombre: {{$player->name}}
+* Nombre: {{$player->full_names}}
 * Correo: {{$player->email}}
 * Fecha de Creación: {{$player->created_at->format('d-m-Y')}}
 * El Deportista Ha Sido Registrado Correctamente.

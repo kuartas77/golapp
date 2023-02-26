@@ -91,6 +91,7 @@ return [
         'Octubre', 'Noviembre', 'Diciembre',
     ],
     'KEY_PAYMENTS_SELECT' => [
+        '0' => "Pendiente",
         '1' => "Pagó",
         '2' => "Debe",
         '3' => "Abonó",

@@ -91,6 +91,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
         $route->get('inscriptions/excel', [ExportController::class, 'exportInscriptionsExcel'])->name('inscriptions');
         $route->get('payments', [ExportController::class, 'exportPaymentsExcel'])->name('payments');
         $route->get('assists/excel/{training_group_id}/{year}/{month}/{deleted?}', [ExportController::class, 'exportAssistsExcel'])->name('assists');
+        $route->get('inscription/{player_id}/{inscription_id}', [ExportController::class, 'exportInscription'])->name('inscription');
 
     });
 

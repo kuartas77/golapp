@@ -33,12 +33,12 @@
                 <th></th>
                 <th>Foto</th>
                 <th>Código</th>
-                <th>F.Registro</th>
-                <th>F.Nacimiento</th>
-                <th>Nombres</th>
-                <th>Genero</th>
                 <th>Doc.Identidad</th>
+                <th>Nombres</th>
                 <th>Teléfonos</th>
+                <th>Genero</th>
+                <th>F.Nacimiento</th>
+                <th>F.Registro</th>
                 <th>Opciones</th>
             </tr>
             </thead>

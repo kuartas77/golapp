@@ -53,12 +53,22 @@ const validateCheck = (value) => {
 
 function filterTable() {
     // Apply the search
-    let column = this.api().columns(8);
+    let column = this.api().columns(11);
     $("<input type='search' class='' placeholder='Buscar Categoría' />")
         .appendTo($(column.header()).empty())
         .on('keyup change search', function () {
             if (column.search() !== this.value) {
                 column.search(this.value)
+                    .draw();
+            }
+        });
+    
+    let start_date = this.api().columns(10);
+    $("<input type='search' class='' placeholder='Buscar F.Inicio' />")
+        .appendTo($(start_date.header()).empty())
+        .on('keyup change search', function () {
+            if (start_date.search() !== this.value) {
+                start_date.search(this.value)
                     .draw();
             }
         });
@@ -82,15 +92,15 @@ const columns = [
     {data: 'player.full_names'},//4
     {data: 'player.date_birth'},//5
     {data: 'player.gender'},//6
-    {data: 'start_date'},//7
-    {data: 'category', name: 'category', "className": 'text-center'},//8
-    {data: 'training_group.name'},//9
+    {data: 'training_group.name'},//7
     {
         data: 'medic_certificate', "render": function (data) {
             return data === 1 ? '<span class="label label-success">SI</span>' : '<span class="label label-warning">NO</span>';
         }
-    },//10
-    {data: 'player.mobile'},//11
+    },//8
+    {data: 'player.mobile'},//9
+    {data: 'start_date'},//10
+    {data: 'category', name: 'category', "className": 'text-center'},//11
     {
         data: 'id',
         "render": function (data, type, row) {
@@ -111,8 +121,10 @@ const columns = [
 ];
 
 const columnDefs = [
-    {"targets": [0, 1, 6, 10, 11, 12], "searchable": false},
-    {"targets": [0, 1, 6, 8, 10, 11, 12], "orderable": false},
+    {"searchable": false, "targets": [0, 1, 6, 8, 9, 12]},
+    {"orderable": false, "targets": [0, 1, 6, 10, 11, 12]},
+    {"width": "1%" , "targets": [10, 11] }
+       
 ];
 
 $(document).ready(function () {

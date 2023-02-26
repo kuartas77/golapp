@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\AssistExport;
-use App\Exports\InscriptionSheetsExport;
-use App\Exports\PaymentsExport;
 use App\Models\Player;
+use App\Models\Inscription;
+use Illuminate\Http\Request;
+use App\Exports\AssistExport;
+use App\Exports\PaymentsExport;
+use App\Repositories\GameRepository;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Repositories\AssistRepository;
+use App\Repositories\PlayerRepository;
+use App\Exports\InscriptionSheetsExport;
 use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
-use App\Repositories\GameRepository;
-use App\Repositories\PlayerRepository;
-use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ExportController extends Controller
@@ -107,5 +108,10 @@ class ExportController extends Controller
         //return view('exports.incidents_pdf');
         //$pdf = PDF::loadView('exports.incidents_pdf');
         //return $pdf->stream("Incidencias");
+    }
+
+    public function exportInscription($player_id, $inscription_id)
+    {
+        $this->playerRepository->loadPDFInscription($player_id, $inscription_id);
     }
 }
