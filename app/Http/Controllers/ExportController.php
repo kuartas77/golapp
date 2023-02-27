@@ -12,6 +12,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Repositories\AssistRepository;
 use App\Repositories\PlayerRepository;
 use App\Exports\InscriptionSheetsExport;
+use App\Exports\MatchDetailExport;
 use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -113,5 +114,11 @@ class ExportController extends Controller
     public function exportInscription($player_id, $inscription_id)
     {
         $this->playerRepository->loadPDFInscription($player_id, $inscription_id);
+    }
+
+    public function exportMatchDetail($competition_group)
+    {
+        $date = now()->timestamp;
+        return Excel::download(new MatchDetailExport($competition_group), "{$date}.xlsx");
     }
 }

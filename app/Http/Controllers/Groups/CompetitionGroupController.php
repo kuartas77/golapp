@@ -51,9 +51,9 @@ class CompetitionGroupController extends Controller
     {
         $competitionGroup = $this->repository->createOrUpdateTeam($request);
         if ($competitionGroup->wasRecentlyCreated) {
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
-        } else {
             alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));
+        } else {
+            alert()->error(env('APP_NAME'), __('messages.ins_create_failure') );
         }
         return back();
     }

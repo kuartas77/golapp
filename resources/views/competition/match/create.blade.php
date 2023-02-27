@@ -26,6 +26,7 @@
         const urlList = "{{route('autocomplete.list_code_unique')}}";
         const urlSearch = "{{route('autocomplete.search_unique_code')}}";
         const urlAutoComplete = "{{route('autocomplete.fields')}}";
+        const urlUploadFile = "{{route('import.match', [$information->id])}}";
         const positions = @json($positions);
     </script>
     <script src="{{mix('js/matches_functions.js')}}"></script>
@@ -62,6 +63,27 @@
 
             $("#cancel_add").on('click', () => {
                 cancelAddMember();
+            });
+
+            $('#file-upload').on('change', function(){
+                if($('#file-upload')[0].files[0] !== undefined){
+                    let formData = new FormData()
+                    formData.append('file', $('#file-upload')[0].files[0]);
+    
+                    $.ajax({
+                        url : urlUploadFile,
+                        type : 'POST',
+                        data : formData,
+                        processData: false,  // tell jQuery not to process the data
+                        contentType: false,  // tell jQuery not to set contentType
+                        success : function(data) {
+                            $('#body_members').empty().prepend(data.rows);
+                            count = data.count
+                            $('#file-upload').val(null)
+                        }
+                    });
+                }
+                
             });
         });
     </script>

@@ -45,7 +45,7 @@ class InscriptionNotification extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject("Notificación de Registro.")
+            ->subject("Notificación de inscripción {$this->inscription->school->name}.")
             ->markdown('emails.inscriptions.added', ['inscription' => $this->inscription]);
     }
 

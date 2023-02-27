@@ -1,5 +1,7 @@
 <table>
+    <thead>
     @include('templates.assists.thead_excel', ['classDays' => $classDays])
+    </thead>
     <tbody>
     @foreach($assists as $assist)
         @php
@@ -8,9 +10,9 @@
         <tr>
             <td>{{$loop->iteration}}</td>
             <td>{{ $assist->inscription->player->full_names }}</td>
+            <td>{{ $assist->inscription->player->unique_code }}</td>
             <td>{{ $assist->inscription->category }}</td>
-            <td>{{ $assist->inscription->player->phones}}
-                - {{ $assist->inscription->player->mobile}}</td>
+            <td>{{ $assist->inscription->player->phones}} - {{ $assist->inscription->player->mobile}}</td>
             @for ($index = 1; $index <= count($classDays); $index++)
                 <td>
                     @php
@@ -29,6 +31,7 @@
     @for ($i = 0; $i <= $resultado; $i++)
         <tr>
             <td>{{ $count++ }}</td>
+            <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>

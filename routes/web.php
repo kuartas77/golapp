@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Schedule\DayController;
 use App\Http\Controllers\Assists\AssistController;
@@ -39,6 +40,12 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
     $route->resource("assists", AssistController::class)->except(['create','edit', 'destroy']);
     $route->resource("matches", GameController::class)->except(['show']);
     $route->resource("players", PlayerController::class);
+
+    $route->prefix('import')->group(function($route){
+        $route->post('matches/{competition_group}', [ImportController::class, 'importMatchDetail'])->name('import.match');
+
+
+    });
 
     $route->resource("profiles", ProfileController::class)->except(['index','create','store','destroy']);
 
@@ -92,6 +99,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
         $route->get('payments', [ExportController::class, 'exportPaymentsExcel'])->name('payments');
         $route->get('assists/excel/{training_group_id}/{year}/{month}/{deleted?}', [ExportController::class, 'exportAssistsExcel'])->name('assists');
         $route->get('inscription/{player_id}/{inscription_id}', [ExportController::class, 'exportInscription'])->name('inscription');
+        $route->get('matches/create/{competition_group}/format', [ExportController::class, 'exportMatchDetail'])->name('match_detail');
 
     });
 

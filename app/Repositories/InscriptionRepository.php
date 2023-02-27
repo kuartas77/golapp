@@ -71,6 +71,8 @@ class InscriptionRepository
                     'year' => $inscriptionData['year']
                 ], $inscriptionData);
 
+                $inscription->load(['player', 'school']);
+
                 $inscription->player->notify(new InscriptionNotification($inscription));
             } else {
                 $inscriptionData['unique_code'] = $inscription->unique_code;

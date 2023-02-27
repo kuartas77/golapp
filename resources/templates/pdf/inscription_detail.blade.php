@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>{{ $school->name }} Deportista {{$player->unique_code}}</title>
+    <title>Deportista {{$player->unique_code}}</title>
     <link rel="stylesheet" href="{{ asset('css/dompdf.css') }}" media="all">
 </head>
 <body>

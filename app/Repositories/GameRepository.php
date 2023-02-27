@@ -247,4 +247,32 @@ class GameRepository
         return $this->stream("Control De Competencia.pdf");
 
     }
+
+    public function exportMatchDetail($competitionGroupId)
+    {
+        $competitionGroup = CompetitionGroup::find($competitionGroupId)->load([
+            'inscriptions' => fn ($q) => $q->with('player')
+        ]);
+
+        return $competitionGroup->inscriptions;
+    }
+
+    public function loadDataFromFile($skillControls)
+    {
+        $rows = "";
+        $count = 0;
+        foreach ($skillControls as $skillControl) {
+            $rows .= View::make("templates.competitions.row_edit", [
+                'index' => $count,
+                'inscription' => $skillControl->inscription,
+                'skillControl' => $skillControl
+            ])->render();
+            $count++;
+        }
+
+        return (object)[
+            'count' => $count,
+            'rows' => $rows,
+        ];
+    }
 }

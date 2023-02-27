@@ -112,7 +112,7 @@
 
     <div class="row">
         <div class="col-md-12 text-center">
-            <h6 class="help-block">Al Final De La Página Está El Botón Guardar.</h6>
+            <h6 class="help-block">Al final de la página está el botón guardar.</h6>
         </div>
         <div class="col-md-12">
             <div class="form-group">
@@ -120,15 +120,35 @@
                 {!! Form::textarea('general_concept', null, ['class' => 'form-control form-control-sm','size'=>'3x5']) !!}
             </div>
         </div>
+    </div>
 
+    <div class="row col-12 text-center">
         @if(!stripos(Request::url(),'/edit'))
+            <div class="col-4">
+                <div class="form-group">
+                    <button type="button" class="btn waves-effect waves-light btn-rounded btn-primary m-b-10"
+                            data-toggle="modal" data-target="#modal_search_member">Agregar Deportista
+                    </button>
+                    <h6 class="help-block">El deportista se agregará temporalmente, cómo refuerzo.</h6>
+                </div>
+            </div>
 
-        <div class="col-md-12 text-center">
-            <button type="button" class="btn waves-effect waves-light btn-rounded btn-primary m-b-10"
-                    data-toggle="modal" data-target="#modal_search_member">Agregar Deportista
-            </button>
-            <h6 class="help-block">El Deportista Se Agregará Temporalmente, Cómo Refuerzo.</h6>
-        </div>
+            <div class="col-4">
+                <div class="form-group">
+                    <label>Formato</label> 
+                    <a href="{{route('export.match_detail', [$information->id])}}" class="btn waves-effect waves-light btn-rounded btn-primary m-b-10">Descargar</a>
+                    <h6 class="help-block">Descargar el formato en excel.</h6>
+                    <small class="help-block">Es el mismo formato que se debe subir</small>
+                </div>
+            </div>
+
+            <div class="col-4">
+                <div class="form-group">
+                    <label>Archivo</label> 
+                    <input type="file" id="file-upload" name="details" class="btn waves-effect waves-light btn-rounded btn-primary m-b-10">
+                    <h6 class="help-block">Se guardará la información que contenga el archivo.</h6>
+                </div>
+            </div>
         @endif
     </div>
 </div>
