@@ -23,49 +23,22 @@
             "serverSide": true,
             "ajax": $.fn.dataTable.pipeline({
                 url: url,
-                pages: 5 // number of pages to cache
+                pages: 5
             }),
-            "order": [
-                [6, 'desc'],
-            ],
+            "order": [ [2, 'desc'] ],
             "columns": [
-                {
-                    data: 'name'
-                },
-                {
-                    data: 'users_count'
-                },
-                {
-                    data: 'inscriptions_count'
-                },
-                {
-                    data: 'players_count'
-                },
-                {
-                    data: 'payments_count'
-                },
-                {
-                    data: 'assists_count'
-                },
-                {
-                    data: 'skill_controls_count'
-                },
-                {
-                    data: 'matches_count'
-                },
-                {
-                    data: 'tournaments_count'
-                },
-                {
-                    data: 'training_groups_count'
-                },
-                {
-                    data: 'competition_groups_count'
-                },
-                {
-                    data: 'incidents_count'
-                },
-                
+                { data: 'name', name: 'name' },
+                { data: 'users_count', name: 'users_count' },
+                { data: 'inscriptions_count', name: 'inscriptions_count' },
+                { data: 'players_count', name: 'players_count' },
+                { data: 'payments_count', name: 'payments_count' },
+                { data: 'assists_count', name: 'assists_count' },
+                { data: 'skill_controls_count', name: 'skill_controls_count' },
+                { data: 'matches_count', name: 'matches_count' },
+                { data: 'tournaments_count', name: 'tournaments_count' },
+                { data: 'training_groups_count', name: 'training_groups_count' },
+                { data: 'competition_groups_count', name: 'competition_groups_count' },
+                { data: 'incidents_count', name: 'incidents_count' },
             ]
         });
     });

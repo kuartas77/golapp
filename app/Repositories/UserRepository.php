@@ -57,7 +57,7 @@ class UserRepository
             $relationSchool->school_id = $school->id;
             $relationSchool->save();
 
-            $user->notify(new RegisterNotification($user, Str::of($school->name)->mask("*", 4)));
+            $user->notify(new RegisterNotification($user, Str::of(($request->password ?? $school->name))->mask("*", 4)));
             DB::commit();
             Cache::forget("KEY_USERS_{$school->id}");
             

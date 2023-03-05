@@ -28,7 +28,7 @@ class TrainingGroupComposer
                 return (new UserRepository(new User()))->getAll()->pluck('name', 'id');
             });
 
-            $days = Cache::remember("KEY_DAYS", now()->addDay(), fn () =>
+            $days = Cache::remember("KEY_DAYS_{$school_id}", now()->addDay(), fn () =>
                 Day::orderBy('days')->whereRelation('schedules', 'school_id', $school_id)->pluck('days', 'id')
             );
 

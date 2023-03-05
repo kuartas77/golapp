@@ -28,41 +28,22 @@
                 pages: 5 // number of pages to cache
             }),
             "order": [
-                [6, 'desc'],
+                [6, 'ASC'],
             ],
-            "columns": [{
-                    data: 'logo',
+            "columns": [
+                {
+                    data: 'logo', name: 'logo',
                     "render": function(data, type, row) {
                         return "<img class='media-object img-rounded' src='" + row.logo_file + "' width='60' height='60' alt='" + row.name + "'>";
                     }
                 },
-                {
-                    data: 'name'
-                },
-                {
-                    data: 'agent'
-                },
-                {
-                    data: 'address'
-                },
-                {
-                    data: 'phone'
-                },
-                {
-                    data: 'email'
-                },
-                {
-                    data: 'is_enable',
-                    "render": function(data, type, row) {
-                        return validateCheck(data);
-                    }
-                },
-                {
-                    data: 'created_at',
-                    "render": function(data, type, row) {
-                        return moment(data).format('DD-MM-YYYY');
-                    }
-                },
+                { data: 'name', name: 'name' },
+                { data: 'agent', name: 'agent'},
+                { data: 'address', name: 'address' },
+                { data: 'phone', name: 'phone' },
+                { data: 'email', name: 'email' },
+                { data: 'is_enable', name: 'is_enable' },
+                { data: 'created_at', name: 'created_at' },
                 {
                     data: 'id',
                     "render": function(data, type, row, meta) {

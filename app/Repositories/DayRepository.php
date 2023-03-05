@@ -80,7 +80,21 @@ class DayRepository
             $day->update(['days' => $this->getDaysClass()]);
 
             foreach ($request->input('schedule') as $schedule) {
-                if (!is_null($schedule['value'])) {
+
+                if(isset($schedule['delete']) && $schedule['delete'] == 'true'){
+                    $schedule = Schedule::query()->find($schedule['id']);
+                    $schedule->delete();
+                    continue;
+                }
+
+                if(is_null($schedule['id'])){
+                    $day->schedules()->create([
+                        'schedule' => $schedule['value']
+                    ]);
+                    continue;
+                }
+
+                if (!is_null($schedule['id']) && !is_null($schedule['value'])) {
                     Schedule::query()->find($schedule['id'])->update(['schedule' => $schedule['value']]);
                 }
             }

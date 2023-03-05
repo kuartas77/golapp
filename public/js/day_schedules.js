@@ -1,33 +1,61 @@
 const addSchedule = () => {
+
+    // if(item > 1 && $(`#schedule-${item}`)){
+    //     $(`#schedule-${item}`).removeClass('hide')
+    //     $(`#schedule-button-${item}`).removeClass('hide')
+    // }
+
     if (schedule_current >= schedule_max) {
         swal({
             type: 'warning',
             title: 'Oops...',
-            text: 'No Se Pueden Agregar Más De 10 Horarios.',
+            text: `No Se Pueden Agregar Más De ${schedule_max} Horarios.`,
         })
     } else {
-        schedule_current++;
-        let element = template(schedule_current);
-        $("#create .schedules").append(element)
+        schedule_current++
+        $("#create .schedules").append( template(schedule_current) )
     }
 }
 
+function removeSchedule(item) {
+    
+    if(schedule_current >= 2){
+        schedule_current--;
+    }
+    
+    if($(`input[name="schedule[${item}][id]"]`).val() !== ''){
+        $(`#schedule-${item}`).addClass('hide')
+        $(`#schedule-button-${item}`).addClass('hide')
+        $(`input[name="schedule[${item}][delete]"]`).val(true)
+    }else{
+        $(`#schedule-${item}`).remove()
+        $(`#schedule-button-${item}`).remove()
+    }
+    
+}
+
 const template = (item, id = "", schedule = "") => {
-    let button = item === 1 ? '<button class="btn btn-outline-success" onclick="addSchedule()" type="button"><i class="fa fa-plus" aria-hidden="true"></i></button>' : '';
-    return '<div class="col-md-8">\n' +
+    let button = item === 1
+    ? '<button class="btn btn-outline-success" onclick="addSchedule()" type="button"><i class="fa fa-plus" aria-hidden="true"></i></button>'
+    : '<button class="btn btn-outline-danger" onclick="removeSchedule('+item+')" type="button"><i class="fa fa-minus" aria-hidden="true"></i></button>';
+
+    return '<div class="col-md-8" id="schedule-'+item+'">\n' +
         '       <div class="form-group">\n' +
-        '       <label for="schedule[' + item + ']" class="text-themecolor">Horario ' + item + '</label>\n' +
+        '       <label for="schedule[' + item + ']" class="text-themecolor">Horario </label>\n' +
         '       <span class="bar"></span>\n' +
         '       <input type="hidden" name="schedule[' + item + '][id]" value="' + id + '">\n' +
+        '       <input type="hidden" name="schedule[' + item + '][delete]" value="false">\n' +
         '       <input type="text" name="schedule[' + item + '][value]" class="form-control form-control-sm schedule" value="' + schedule + '" oninput="this.value = this.value.toUpperCase()">\n' +
         '       <span class="text-muted">Ej: 04:30 pm - 06:00 pm</span>' +
         '       </div>\n' +
         '   </div>' +
-        '<div class="col-md-4">\n' +
+        '<div class="col-md-4" id="schedule-button-'+item+'">\n' +
         '     <div class="form-group">\n' +
         button +
         '     </div>' +
         '</div>';
+    
+
 }
 
 const resetModalForm = (create = true, id) => {
@@ -37,6 +65,7 @@ const resetModalForm = (create = true, id) => {
         title.html("Agregar Días de Entrenamiento");
         form.prop("action", url_current)
         form.prop("method", 'POST');
+        form.append("<input name='_method' value='' type='hidden'>");
     } else {
         title.html("Actualizar Días de Entrenamiento.");
         form.prop("action", url_current + id)
@@ -54,8 +83,28 @@ jQuery.propHooks.disabled = {
     }
 };
 let schedule_min = 1;
-let schedule_max = 10;
+let schedule_max = 5;
 let schedule_current = 1;
+let schedule_to_delete = [];
+
+const confirmDelete = (element, event) => {
+    event.preventDefault();
+    const form = $(element).closest('form');
+    Swal.fire({
+        title: '¿Deseas Eliminar Esto',
+        text: "¡Esto No Se Podrá Revertir!",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No'
+    }).then((result) => {
+        if (result.value) {
+            form.submit();
+        }
+    });
+}
 
 $(document).ready(() => {
     let class_one = $("#class_one");
@@ -197,6 +246,7 @@ $(document).ready(() => {
                         '<a href="javascript:void(0)" class="edit btn btn-default btn-xs" data-id="' + data + '">' +
                         '<i class="fas fa-pencil-alt"></i>' +
                         '</a>' +
+                        '<button type="submit" class="btn btn-danger btn-xs" onclick="confirmDelete(this, event)"><i class="fas fa-trash-alt" aria-hidden="true"></i></button>'+
                         '</div>' +
                         '</form>'
 
@@ -267,9 +317,9 @@ $(document).ready(() => {
                 $("#create #num_class").empty().html(response.data.schedules_count)
                 $("#create .schedules").empty()
                 $.each(response.data.schedules, (index, schedule) => {
+                    schedule_current++;
                     let element = template(index + 1, schedule.id, schedule.schedule);
                     $("#create .schedules").append(element);
-                    schedule_current++;
                 });
                 if (response.data.schedules.length === 0) {
                     let element = template(1);
