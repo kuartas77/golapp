@@ -17,7 +17,7 @@ class IncidentComposer
     {
         if (Auth::check()) {
             $school_id = isAdmin() ? 0 : getSchool(auth()->user())->id;
-            $users = Cache::remember("KEY_USERS_{$school_id}", now()->addDay(), function () {
+            $users = Cache::remember("KEY_USERS_{$school_id}", now()->addMinute(), function () {
                 return (new UserRepository(new User()))->getAll()->pluck('name', 'id');
             });
             $view->with('users', $users);

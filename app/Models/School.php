@@ -26,7 +26,7 @@ class School extends Model
     use SoftDeletes;
 
     public const KEY_SCHOOL_CACHE = 'school_';
-    
+
     protected $table = "schools";
     protected $fillable = [
         'name',
@@ -80,7 +80,7 @@ class School extends Model
     }
 
 
-    
+
 
     public function users(): HasManyThrough
     {

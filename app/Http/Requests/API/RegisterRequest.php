@@ -33,7 +33,8 @@ class RegisterRequest extends FormRequest
             'agent' => ['required', 'string'],
             'address' => ['nullable', 'string'],
             'phone' => ['nullable', 'string'],
-            'slug' => ['required', 'string']
+            'slug' => ['required', 'string'],
+            'is_enable' => ['required']
         ];
     }
 

@@ -89,7 +89,6 @@
                     data.append('logo', $('input[name="logo"]')[0].files[0]);
                 }
 
-                console.log(data);
                 $.ajax({
                     url: url,
                     method: "post",
@@ -121,15 +120,15 @@
         $(document).on('click', 'a.edit', function() {
             let id = $(this).data('slug');
 
-            $.get(`${url_current}/${id}`, function({name, agent, email, address, phone, is_enable, logo_file}){
+            $.get(`${url_current}/${id}`, function(data){
                 resetModalForm(false, id);
-                $("#name").val(name).attr('readonly', true);
-                $("#agent").val(agent);
-                $("#email").val(email).attr('readonly', true);
-                $("#address").val(address);
-                $("#phone").val(phone);
-                $("#is_enable").val(is_enable ? 1 : 0);
-                $('#player-img').attr('src', logo_file);   
+                $("#name").val(data.name).attr('readonly', true);
+                $("#agent").val(data.agent);
+                $("#email").val(data.email).attr('readonly', true);
+                $("#address").val(data.address);
+                $("#phone").val(data.phone);
+                $("#is_enable").val(data.is_enable ? 1 : 0);
+                $('#player-img').attr('src', data.logo_file);   
                 
                 $("#password_div").hide();
                 $("#password_confirmation_div").hide();

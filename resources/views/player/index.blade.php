@@ -1,12 +1,15 @@
 @extends('layouts.app')
 @section('content')
-    <x-bread-crumb title="Deportistas" :option="0"/>
+    <x-bread-crumb title="Deportistas" :option="2"/>
     <x-row-card col-inside="12" >
     @include('player.table')
     </x-row-card >
 @endsection
 @section('modals')
     @include('modals.create_inscription')
+    @hasanyrole('super-admin')
+        @include('modals.import_players')
+    @endhasanyrole
 @endsection
 @section('scripts')
     <script>

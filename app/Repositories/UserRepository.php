@@ -57,7 +57,7 @@ class UserRepository
             $relationSchool->school_id = $school->id;
             $relationSchool->save();
 
-            $user->notify(new RegisterNotification($user, Str::of(($request->password ?? $school->name))->mask("*", 4)));
+            $user->notify(new RegisterNotification($user, ($request->password ?? $this->randomPassword())));
             DB::commit();
             Cache::forget("KEY_USERS_{$school->id}");
             
@@ -94,5 +94,16 @@ class UserRepository
     public function restore(int $id)
     {
         return User::onlyTrashed()->where('id', $id)->restore();
+    }
+
+    private function randomPassword() {
+        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+        $pass = array(); //remember to declare $pass as an array
+        $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
+        for ($i = 0; $i < 8; $i++) {
+            $n = rand(0, $alphaLength);
+            $pass[] = $alphabet[$n];
+        }
+        return implode($pass); //turn the array into a string
     }
 }

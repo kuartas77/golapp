@@ -6,9 +6,6 @@
 * Contraseña: {{$pass}}
 * Fecha de Creación: {{$user->created_at->format('d-m-Y')}}
 * La Contraseña Enviada En Este Correo Puede Ser Cambiada Por Una Más Segura.
-@hasanyrole('school')
-* La Contraseña Actual Es El Nombre De La Escuela Sin Espacios y En Minúscula.
-@endhasanyrole
 
 @component('mail::panel')
     @component('mail::button', ['url' => config('app.url')])

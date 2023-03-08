@@ -11,6 +11,15 @@
                     <a href="{{route('birthdays')}}" class="btn waves-effect waves-light btn-rounded btn-info" id="export"><strong>Cumpleaños</strong></a>
                     @endif
                     @break
+                    @case(2)
+                    @hasanyrole('super-admin')
+                        <button type="button" class="btn waves-effect waves-light btn-rounded btn-info"
+                                data-toggle="modal" data-target="#import_players" id="import"><strong
+                                class="text-warning">Importar</strong> Deportistas
+                        </button>
+                    @endhasanyrole
+                    @break
+
 
                     @default
                 @endswitch

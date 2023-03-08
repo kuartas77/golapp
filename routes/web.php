@@ -43,6 +43,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 
     $route->prefix('import')->group(function($route){
         $route->post('matches/{competition_group}', [ImportController::class, 'importMatchDetail'])->name('import.match');
+        $route->post('players', [ImportController::class, 'importPlayers'])->name('import.players');
 
 
     });

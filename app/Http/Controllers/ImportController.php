@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Traits\ErrorTrait;
 use Illuminate\Http\Request;
-use App\Models\CompetitionGroup;
+use App\Imports\ImportPlayers;
 use App\Imports\ImportMatchDetail;
 use App\Repositories\GameRepository;
-use Illuminate\Support\Facades\View;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Repositories\AssistRepository;
 use App\Repositories\PlayerRepository;
@@ -15,6 +15,7 @@ use App\Repositories\InscriptionRepository;
 
 class ImportController extends Controller
 {
+    use ErrorTrait;
 
     public function __construct(
         private InscriptionRepository $inscriptionRepository,
@@ -38,5 +39,19 @@ class ImportController extends Controller
 
     }
 
+    public function importPlayers(Request $request)
+    {
+        try {
+            $importPlayers = new ImportPlayers($request->school_id);
+            Excel::import($importPlayers, $request->file('file'));
 
+            alert()->success(env('APP_NAME'), __('messages.player_created'));
+        
+        } catch (\Throwable $th) {
+            $this->logError('importPlayers', $th);
+            alert()->error(env('APP_NAME'), __('messages.error_general'));
+        }
+
+        return back();
+    }
 }

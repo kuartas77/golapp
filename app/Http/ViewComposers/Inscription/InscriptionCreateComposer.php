@@ -5,6 +5,7 @@ namespace App\Http\ViewComposers\Inscription;
 
 
 use App\Models\CompetitionGroup;
+use App\Models\School;
 use App\Repositories\CompetitionGroupRepository;
 use App\Repositories\TrainingGroupRepository;
 use App\Traits\Commons;
@@ -69,6 +70,12 @@ class InscriptionCreateComposer
                 return $this->competitionGroupRepository->getListGroupFullName();
             });
 
+            $schools = [];
+            if(isAdmin()){
+                $schools = School::query()->pluck('name','id');
+            }
+
+            $view->with('schools', $schools);
             $view->with('genders', $genders);
             $view->with('averages', $averages);
             $view->with('positions', $positions);

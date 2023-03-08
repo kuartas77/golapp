@@ -18,17 +18,17 @@ class RegisterService
 {
     use ErrorTrait;
     use UploadFile;
-    
+
     /**
      * @throws ValidationException
      */
     public function createUserSchoolUsesCase(FormRequest $request): stdClass
     {
         $response = new stdClass();
-        
+
         try {
             DB::beginTransaction();
-            
+
             $user = User::query()->create([
                 'name' => $request->agent,
                 'email' => $request->email,
@@ -40,7 +40,7 @@ class RegisterService
 
             $validated = $request->validated();
             $validated['logo'] = $this->saveFile($request, 'logo');
-            $validated['is_enable'] = true;
+            $validated['is_enable'] = ($request->is_enable ?? true);
 
             $school = School::query()->create($validated);
 
