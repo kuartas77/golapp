@@ -5,11 +5,14 @@ use App\Http\Controllers\DataTableController;
 use App\Http\Controllers\BackOffice\UserController;
 use App\Http\Controllers\BackOffice\SchoolController;
 use App\Http\Controllers\BackOffice\SchoolInfoController;
+use App\Http\Controllers\BackOffice\ManualEmailController;
 use App\Http\Controllers\BackOffice\SettingValueController;
 
 
 
 Route::middleware(['auth', 'role:super-admin'])->group(function ($route) {
+
+    $route->get('emails_registration_school', ManualEmailController::class);
 
     $route->prefix('config')->name('config.')->group(function ($route){
         

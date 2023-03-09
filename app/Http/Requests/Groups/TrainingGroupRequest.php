@@ -24,7 +24,7 @@ class TrainingGroupRequest extends FormRequest
     public function rules()
     {
         return [
-            'user_id' => ['required'],
+            'user_id' => ['required','array'],
             'name' => ['required'],
             'stage' => ['nullable'],
             'years' => ['required', 'array'],

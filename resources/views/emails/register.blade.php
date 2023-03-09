@@ -4,8 +4,8 @@
 * Nombre: {{$user->name}}
 * Correo: {{$user->email}}
 * Contraseña: {{$pass}}
-* Fecha de Creación: {{$user->created_at->format('d-m-Y')}}
-* La Contraseña Enviada En Este Correo Puede Ser Cambiada Por Una Más Segura.
+* Fecha de creación: {{$user->created_at->format('d-m-Y')}}
+* La contraseña enviada en este correo debe ser cambiada por una personal y más segura, desde la opción "Recuperar contraseña".
 
 @component('mail::panel')
     @component('mail::button', ['url' => config('app.url')])

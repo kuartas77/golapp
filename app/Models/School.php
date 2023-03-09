@@ -71,6 +71,26 @@ class School extends Model
         return asset('img/ballon.png');
     }
 
+    public function getUrlEditAttribute(): string
+    {
+        return route('config.schools.edit', [$this->attributes['slug']]);
+    }
+
+    public function getUrlUpdateAttribute(): string
+    {
+        return route('config.schools.update', [$this->attributes['slug']]);
+    }
+
+    public function getUrlShowAttribute(): string
+    {
+        return route('config.schools.show', [$this->attributes['slug']]);
+    }
+
+    public function getUrlDestroyAttribute(): string
+    {
+        return route('config.schools.destroy', [$this->attributes['slug']]);
+    }
+
     public function getLogoLocalAttribute(): string
     {
         if (Storage::disk('public')->exists($this->attributes['logo'])) {
@@ -78,9 +98,6 @@ class School extends Model
         }
         return storage_path('standard/ballon.png');
     }
-
-
-
 
     public function users(): HasManyThrough
     {
@@ -150,26 +167,6 @@ class School extends Model
     public function incidents(): HasMany
     {
         return $this->hasMany(Incident::class);
-    }
-
-    public function getUrlEditAttribute(): string
-    {
-        return route('config.schools.edit', [$this->attributes['slug']]);
-    }
-
-    public function getUrlUpdateAttribute(): string
-    {
-        return route('config.schools.update', [$this->attributes['slug']]);
-    }
-
-    public function getUrlShowAttribute(): string
-    {
-        return route('config.schools.show', [$this->attributes['slug']]);
-    }
-
-    public function getUrlDestroyAttribute(): string
-    {
-        return route('config.schools.destroy', [$this->attributes['slug']]);
     }
 
     public function configDefault()

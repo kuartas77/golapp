@@ -100,7 +100,7 @@ class TrainingGroupController extends Controller
     public function update(TrainingGroupRequest $request, TrainingGroup $trainingGroup)
     {
         abort_if($trainingGroup->id === 1, 401 , 'El Grupo Provicional No Se Puede Eliminar o Modificar');
-
+        
         $trainingGroup = $this->repository->setTrainingGroup($request, false, $trainingGroup);
         if ($trainingGroup->exists){
             alert()->success(env('APP_NAME'), __('messages.training_group_edit_success'));

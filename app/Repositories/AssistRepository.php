@@ -44,10 +44,11 @@ class AssistRepository
 
             $assists = $this->model->onlyTrashedRelations()->schoolId()->where([
                 'training_group_id' => $params['training_group_id'],
-                'month' => $params['month'], 'year' => $params['year']
+                'month' => $params['month'], 
+                'year' => $params['year']
             ])->get();
         } else {
-            $group = TrainingGroup::query()->schoolId()->with('schedule.day', 'professor:id,name')
+            $group = TrainingGroup::query()->schoolId()->with('schedule.day', 'instructors')
                 ->find($params['training_group_id']);
 
             $assists = $this->model->query()->schoolId()->with(['inscription.player'])->where([
@@ -83,12 +84,13 @@ class AssistRepository
         $data['count'] = $assists->count() + 1;
         $data['result'] = (40 - $data['count']);
         $data['classDays'] = $classDays;
+        $group->instructors_names = $group->instructors_names;
         $data['group'] = $group;
         $data['group_name'] = $group_name;
         $data['month'] = $params['month'];
         $data['year'] = $params['year'];
         $data['optionAssist'] = config('variables.KEY_ASSIST_LETTER');
-        
+
         $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'assists.blade.php');
 

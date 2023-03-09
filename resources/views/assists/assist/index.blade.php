@@ -1,8 +1,7 @@
 @extends('layouts.app')
 @section('content')
     <x-bread-crumb title="Asistencias" :option="0"/>
-    <x-row-card col-outside="3" col-inside="6" >
-        <h6 class="card-subtitle">El año de busqueda será el actual.</h6>
+    <x-row-card col-outside="3" col-inside="6" class="m-b-0">
         @include('assists.assist.form')
     </x-row-card >
     <x-row-card col-inside="12" >

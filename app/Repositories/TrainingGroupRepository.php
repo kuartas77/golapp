@@ -33,7 +33,8 @@ class TrainingGroupRepository
 
     public function listGroupEnabled()
     {
-        return $this->model->query()->schoolId()->with('schedule.day', 'professor')->get();
+        return $this->model->query()->schoolId()->with(['schedule.day', 'instructors'])
+            ->get();
     }
 
     public function listGroupDisabled()
@@ -53,10 +54,13 @@ class TrainingGroupRepository
 
         DB::beginTransaction();
         try {
-            if ($create) {
+            if ($create && !$trainingGroup) {
                 $trainingGroup = $this->model->create($group);
             } else {
+                $userInstructors = $group['user_id'];
+                unset($group['user_id']);
                 $trainingGroup->update($group);
+                $trainingGroup->instructors()->syncWithPivotValues($userInstructors, ['assigned_year' => now()->year]);
             }
             
             DB::commit();
@@ -106,7 +110,7 @@ class TrainingGroupRepository
      */
     public function getTrainingGroup(TrainingGroup $trainingGroup): Model
     {
-        $trainingGroup->load('schedule.day', 'professor');
+        $trainingGroup->load('schedule.day', 'instructors');
 
         $years = collect();
         $trainingGroup->year == null ?: $years->push($trainingGroup->year);
@@ -177,7 +181,7 @@ class TrainingGroupRepository
      * @param null $whereUser
      * @return Collection
      */
-    public function getListGroupsSchedule($deleted = false, $whereUser = null): Collection
+    public function getListGroupsSchedule($deleted = false, $user_id = null): Collection
     {
         if ($deleted) {
             $query = $this->model->query()->schoolId()->onlyTrashedRelations();
@@ -185,8 +189,8 @@ class TrainingGroupRepository
             $query = $this->model->query()->schoolId()->with('schedule.day');
         }
 
-        if ($whereUser) {
-            $query->where('user_id', $whereUser);
+        if ($user_id) {
+            $query->whereRelation('instructors', 'training_group_user.user_id', $user_id);
         }
         return $query->orderBy('name', 'ASC')
             ->get()->pluck('full_schedule_group', 'id');

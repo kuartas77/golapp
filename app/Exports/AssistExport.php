@@ -34,6 +34,7 @@ class AssistExport implements FromView, WithTitle
         list($assists, $classDays, $group_name, $group) = app(AssistRepository::class)->dataExport($this->params, $this->deleted);
  
         $this->group_name = $group_name;
+        $group->instructors_names = $group->instructors_names;
         return view('exports.assists_excel', [
             'group' => $group,
             'assists' => $assists,

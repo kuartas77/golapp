@@ -112,6 +112,7 @@ class InscriptionObserver
                     'year' => $start_date->year,
                     'training_group_id' => $inscription->training_group_id,
                     'unique_code' => $inscription->unique_code,
+                    'school_id' => $inscription->school_id
                 ], $dataPayment
             );
 
@@ -127,7 +128,8 @@ class InscriptionObserver
                     'inscription_id' => $inscription->id, 
                     'training_group_id' => $inscription->training_group_id,
                     'year' => $start_date->year,
-                    'month' => getMonth($start_date->month)
+                    'month' => getMonth($start_date->month),
+                    'school_id' => $inscription->school_id
                 ], $assistance);
             DB::commit();
         } catch (\Throwable $th) {

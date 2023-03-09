@@ -56,10 +56,10 @@
                                 </div>
                             </li>
                             <li role="separator" class="divider"></li>
-                            {{-- @can('sistemas_crear_ticket')
-                            <li><a href="{{route('sistemas.tickets.create')}}"><i class="ti-ticket"></i> Tickets Sistemas</a></li>
+                            @if(auth()->user()->profile)
+                            <li><a href="{{route('profiles.show', [auth()->user()->profile->id])}}"><i class="fas fa-user"></i> {{ __('messages.Profile') }}</a></li>
                             <li role="separator" class="divider"></li>
-                            @endcan --}}
+                            @endif
                             <li><a href="{{ route('logout') }}"
                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i
                                         class="fa fa-power-off"></i> {{ __('Logout') }}</a>

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @method static onlyTrashedRelations()
@@ -69,14 +69,16 @@ class TrainingGroup extends Model
         'explode_name',
         'url_edit',
         'url_show',
-        'url_destroy'
+        'url_destroy',
+        'instructors_names',
+        'instructors_ids'
     ];
 
     public function scopeOnlyTrashedRelations($query)
     {
         return $query->with([
             'schedule.day' => fn ($query) => $query->withTrashed(),
-            'professor' => fn ($query) => $query->withTrashed()
+            'instructors' => fn ($query) => $query->withTrashed()
         ])->withTrashed();
     }
 
@@ -84,7 +86,7 @@ class TrainingGroup extends Model
     {
         return $query->with([
             'schedule.day' => fn ($query) => $query->withTrashed(),
-            'professor' => fn ($query) => $query->withTrashed(),
+            'instructors' => fn ($query) => $query->withTrashed(),
             'assists' => fn ($query) => $query->select('training_group_id','year')
                 ->distinct()
                 ->where('year','<', now()->year)
@@ -161,6 +163,24 @@ class TrainingGroup extends Model
         return explode(',', $this->attributes['category']);
     }
 
+    public function getInstructorsNamesAttribute()
+    {
+        $names = '';
+        if($this->relationLoaded('instructors')){
+            $names = $this->instructors->implode('name',', ');
+        }
+        return $names;
+    }
+
+    public function getInstructorsIdsAttribute()
+    {
+        $ids = [];
+        if($this->relationLoaded('instructors')){
+            $ids = $this->instructors->pluck('id');
+        }
+        return $ids;
+    }
+
     public function professor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
@@ -184,6 +204,11 @@ class TrainingGroup extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'training_group_id');
+    }
+
+    public function instructors(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)->withPivot('assigned_year');
     }
 
 }

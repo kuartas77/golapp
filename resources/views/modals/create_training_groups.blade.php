@@ -12,30 +12,21 @@
                     <div class="col-lg-12">
                         <div class="row">
 
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="form-group">
-                                    <label for="name">Nombre</label>
+                                    <label for="name">Nombre del grupo</label><span class="text-danger">*</span>
                                     <span class="bar"></span>
                                     <input type="text" name="name" id="name" class="form-control" required
                                            autocomplete="off">
                                 </div>
                             </div>
-
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="user_id">Formador</label>
-                                    <span class="bar"></span>
-                                    {!! Form::select('user_id', $users , null, ['id'=>'user_id','class' => 'form-control form-control-sm select2','placeholder' =>'Seleccione uno...','required']) !!}
-                                </div>
-                            </div>
-
                         </div>
 
                         <div class="row">
 
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="day_id">Días</label>
+                                    <label for="day_id">Días</label><span class="text-danger">*</span>
                                     <span class="bar"></span>
                                     {!! Form::select('day_id', $days , null, ['id'=>'day_id','class' => 'form-control form-control-sm select2','placeholder' =>'Seleccione uno...','required']) !!}
                                 </div>
@@ -43,7 +34,7 @@
 
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="schedule_id">Horario</label>
+                                    <label for="schedule_id">Horario</label><span class="text-danger">*</span>
                                     <span class="bar"></span>
                                     <select name="schedule_id" id="schedule_id" class="form-control">
                                         <option value="" selected>Seleccione...</option>
@@ -54,9 +45,17 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-3"></div>
                             <div class="col-md-6">
-                                <label for="years">Categorias</label>
+                                <label for="user_id">Formador(es)</label><span class="text-danger">*</span>
+                                <span class="bar"></span>
+                                <select name="user_id[]" id='users_id' multiple='multiple'>
+                                    @foreach($users as $key => $value)
+                                        <option value='{{$key}}'>{{$value}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="years">Categoria(s)</label><span class="text-danger">*</span>
                                 <span class="bar"></span>
                                 <select name="years[]" id='years' multiple='multiple'>
                                     @for($i = now()->subYears(18)->year;$i <= now()->subYears(2)->year ; $i++ )
@@ -64,7 +63,6 @@
                                     @endfor
                                 </select>
                             </div>
-                            <div class="col-md-3"></div>
                         </div>
                     </div>
 
