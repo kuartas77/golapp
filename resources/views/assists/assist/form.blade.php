@@ -6,7 +6,6 @@
                 <label for="training_group_id">Grupo De Entrenamiento</label>
                 <span class="bar"></span>
                 {!! Form::select('training_group_id', $training_groups, null,['id'=>'training_group_id','class' => 'form-control form-control-sm','placeholder' => 'Seleccionar...', 'required']) !!}
-                <!-- <small class="form-text text-muted">El año de busqueda será el actual.</small> -->
             </div>
         </div>
 

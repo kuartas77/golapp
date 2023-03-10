@@ -19,7 +19,6 @@
             <tr>
                 <th class="text-center">Año</th>
                 <th class="text-center">Nombres</th>
-                <th class="text-center">Código</th>
                 <th class="text-center">Ene</th>
                 <th class="text-center">Feb</th>
                 <th class="text-center">Mar</th>

@@ -24,9 +24,6 @@ $(document).ready(() => {
             });
         }
     })
-
-
-
 });
 
 // Evento click en los select de la tabla
@@ -56,18 +53,17 @@ function initTable() {
             {'width': '3%'},
             {'width': '5%'},
             {'width': '5%'},
-            {'width': '7%'},
-            {'width': '7%'},
-            {'width': '7%'},
-            {'width': '7%'},
-            {'width': '7%'},
-            {'width': '7%'},
-            {'width': '7%'},
-            {'width': '7%'},
-            {'width': '7%'},
-            {'width': '7%'},
-            {'width': '7%'},
-            {'width': '7%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
         ]
     });
 }

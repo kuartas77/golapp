@@ -1,10 +1,6 @@
 <form action="#" class="form-horizontal form-material" id="form_payments">
-
     <div class="row form-body">
-
-        <div class="col-md-1"></div>
-
-        <div class="col-md-5">
+        <div class="col-md-4">
             <div class="form-group">
                 <label for="training_group_id">Grupo De Entrenamiento</label>
                 <span class="bar"></span>
@@ -12,7 +8,7 @@
             </div>
         </div>
 
-        <div class="col-md-5">
+        <div class="col-md-4">
             <div class="form-group">
                 <label for="unique_code">Código Único</label>
                 <span class="bar"></span>
@@ -20,12 +16,8 @@
             </div>
         </div>
 
-        <div class="col-md-1"></div>
-
-    </div>
-
-    <div class="form-actions text-center">
-        <button class="btn waves-effect waves-light btn-rounded btn-info" id="busqueda">Buscar
-        </button>
+        <div class="col-md-4">
+            <button class="btn waves-effect waves-light btn-rounded btn-info mt-4" id="busqueda">Buscar</button>
+        </div>
     </div>
 </form>
