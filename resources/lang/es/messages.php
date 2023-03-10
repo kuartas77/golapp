@@ -1,7 +1,7 @@
 <?php
 
 return [
-
+    'Profile' => 'Perfil',
     'denied' => 'No Puedes Acceder.',
 
     'error_general' => 'Se Ha Presentado Un Error',
