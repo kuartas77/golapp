@@ -281,6 +281,10 @@ jQuery.validator.setDefaults({
         if(element.prop('nodeName') === 'SELECT'){
             error.appendTo(element.closest("div.form-group"));
         }
+        if(element.hasClass('with-icon')){
+            error.appendTo(element.closest("div.form-group"));
+        }
+        
     }
     /*     ,errorElement: 'span',
         highlight: function(element, errorClass, validClass) {

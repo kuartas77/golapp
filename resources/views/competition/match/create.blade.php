@@ -8,7 +8,7 @@
 
                 @include('competition.match.table_members')
             </div>
-            <div class="form-actions m-t-0 text-center">
+            <div class="form-actions m-t-0 text-center" id="button_save">
                 <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info">
                     Guardar
                 </button>
