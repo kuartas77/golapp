@@ -90,66 +90,6 @@ class PlayerRepository
         return $player;
     }
 
-    public function loadPDFInscription($player_id, $inscription_id, bool $stream = true)
-    {
-        $player = $this->model->find($player_id);
-
-        $player->load(['schoolData', 'inscriptions' => fn ($q) => $q->where('id', $inscription_id)->with('payments') ]);
-        $player->inscriptions->setAppends(['format_average']);
-        $data['player'] = $player;
-        $data['school'] = $player->schoolData;
-        $filename = "Deportista {$player->unique_code}.pdf";
-        $this->setConfigurationMpdf(['format' => 'A4-L']);        
-        $this->createPDF($data, 'inscription_detail.blade.php');
-        return $stream ? $this->stream($filename) : $this->output($filename);
-    }
-
-
-    /**
-     * @throws MpdfException
-     */
-    public function makePdf(Player $player, bool $stream = true): mixed
-    {
-        $player->load(['schoolData', 'people','inscription' => fn($query) => $query->with(['trainingGroup','competitionGroup'])]);
-        $player->setAppends(['photo_url']);
-        $player->photo_url = $player->photo_url;
-        $data['player'] = $player;
-        $data['school'] = $player->schoolData;
-        $filename = "Deportista {$player->unique_code}.pdf";
-        
-        $this->setConfigurationMpdf(['format' => [213, 140]]);        
-        $this->createPDF($data, 'inscription.blade.php');
-
-        return $stream ? $this->stream($filename) : $this->output($filename);
-    }
-
-
-    public function getExcel(): Collection
-    {
-        $collection = new Collection(['enabled' => collect(), 'disabled' => collect()]);
-
-        $playersEnabled = $this->model->query()->schoolId()
-        ->whereHas('inscription')
-        ->with([
-            'inscription.trainingGroup', 
-            'people' => fn($query)=> $query->where('tutor', true),
-            'payments' => fn ($q) => $q->withTrashed() 
-        ])->get();
-
-        $playersDisabled = $this->model->query()->schoolId()
-        ->whereDoesntHave('inscription')
-        ->with([
-            'inscription.trainingGroup', 
-            'people' => fn($query)=> $query->where('tutor', true),
-            'payments' => fn ($q) => $q->withTrashed() 
-        ])->get();
-
-        $collection['enabled'] = $playersEnabled;
-        $collection['disabled'] = $playersDisabled;
-
-        return $collection;
-    }
-
     /**
      * @param $request
      * @return bool

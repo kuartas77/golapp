@@ -8,7 +8,6 @@ use App\Models\School;
 use App\Models\SchoolUser;
 use App\Traits\ErrorTrait;
 use App\Traits\UploadFile;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use App\Notifications\RegisterNotification;
 use Illuminate\Foundation\Http\FormRequest;
@@ -29,10 +28,12 @@ class RegisterService
         try {
             DB::beginTransaction();
 
+            $password = randomPassword();
+
             $user = User::query()->create([
                 'name' => $request->agent,
                 'email' => $request->email,
-                'password' => $request->password
+                'password' => $password
             ]);
 
             $user->syncRoles([User::SCHOOL]);
@@ -52,9 +53,7 @@ class RegisterService
             $relationSchool->school_id = $school->id;
             $relationSchool->save();
 
-            $school->trainingGroups()->update(['user_id' => $user->id]);
-
-            $user->notify(new RegisterNotification($user, Str::of($request->password)->mask("*", 4)));
+            $user->notify(new RegisterNotification($user, $password));
 
             DB::commit();
 

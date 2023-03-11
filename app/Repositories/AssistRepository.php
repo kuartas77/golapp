@@ -3,18 +3,14 @@
 
 namespace App\Repositories;
 
-
 use Exception;
 use App\Models\Assist;
-use App\Models\School;
-use Mpdf\MpdfException;
 use App\Traits\PDFTrait;
 use App\Traits\ErrorTrait;
 use App\Models\Inscription;
 use App\Models\TrainingGroup;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Cache;
 
 class AssistRepository
 {
@@ -32,69 +28,28 @@ class AssistRepository
     }
 
     /**
-     * @param $params
+     * @param $request
      * @param false $deleted
      * @return array
      */
-    public function dataExport($params, bool $deleted = false): array
+    public function search($request, $deleted = false): array
     {
-        $months = config('variables.KEY_MONTHS_INDEX');
-        if ($deleted) {
-            $group = TrainingGroup::query()->onlyTrashedRelations()->schoolId()->find($params['training_group_id']);
-
-            $assists = $this->model->onlyTrashedRelations()->schoolId()->where([
-                'training_group_id' => $params['training_group_id'],
-                'month' => $params['month'], 
-                'year' => $params['year']
-            ])->get();
-        } else {
-            $group = TrainingGroup::query()->schoolId()->with('instructors')
-                ->find($params['training_group_id']);
-
-            $assists = $this->model->query()->schoolId()->with(['inscription.player'])->where([
-                'training_group_id' => $params['training_group_id'],
-                'month' => $params['month'], 'year' => $params['year']
-            ])->get();
+        if (!$deleted) {
+            $request->merge(['year' => now()->year]);
         }
 
-        
-        $classDays = classDays(
-            $params['year'],
-            array_search($params['month'], $months, true),
-            array_map('dayToNumber', $group->explode_name['days'])
-        );
+        $trainingGroup = TrainingGroup::query()->schoolId()
+            ->when($deleted, fn ($q) => $q->onlyTrashedRelations())->findOrFail($request->input('training_group_id'));
 
-        $school = getSchool(auth()->user());
-        
-        return [$assists, $classDays, $group->full_schedule_group, $group, $school];
-    }
+        $assists = $this->model->schoolId()->with('inscription.player')
+            ->when($deleted, fn ($q) => $q->withTrashed())
+            ->where([
+                ['training_group_id', $request->training_group_id],
+                ['month', $request->month],
+                ['year', $request->year]
+            ]);
 
-    /**
-     * @param $params
-     * @param $deleted
-     * @return mixed
-     * @throws MpdfException
-     */
-    public function generatePDF($params, $deleted)
-    {
-        list($assists, $classDays, $group_name, $group, $school) = $this->dataExport($params, $deleted);
-
-        $data['school'] = $school;
-        $data['assists'] = $assists;
-        $data['count'] = $assists->count() + 1;
-        $data['result'] = (40 - $data['count']);
-        $data['classDays'] = $classDays;
-        $group->instructors_names = $group->instructors_names;
-        $data['group'] = $group;
-        $data['group_name'] = $group_name;
-        $data['month'] = $params['month'];
-        $data['year'] = $params['year'];
-        $data['optionAssist'] = config('variables.KEY_ASSIST_LETTER');
-
-        $this->setConfigurationMpdf(['format' => 'A4-L']);
-        $this->createPDF($data, 'assists.blade.php');
-
-        return $this->stream("{$group_name}.pdf");
+        return $this->generateTable($assists, $trainingGroup, $request, $deleted);
     }
 
     /**
@@ -119,9 +74,9 @@ class AssistRepository
                 ->where($request->only(['training_group_id', 'year', 'month']));
 
             if ($inscriptionIds->isNotEmpty()) {
-                
+
                 $assistsIds = $assists->pluck('inscription_id');
-    
+
                 $idsDiff = $inscriptionIds->diff($assistsIds);
 
                 DB::beginTransaction();
@@ -147,7 +102,6 @@ class AssistRepository
             }
 
             $table = $this->generateTable($assists, $trainingGroup, $request);
-
         } catch (Exception $th) {
             DB::rollBack();
             $this->logError("AssistRepository create", $th);
@@ -168,37 +122,11 @@ class AssistRepository
             $updated = $assist->update($request->validated());
             DB::commit();
             return $updated;
-
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("AssistRepository update", $exception);
             return false;
         }
-    }
-
-    /**
-     * @param $request
-     * @param false $deleted
-     * @return array
-     */
-    public function search($request, $deleted = false): array
-    {
-        if (!$deleted) {
-            $request->merge(['year' => now()->year]);
-        }
-
-        $trainingGroup = TrainingGroup::query()->schoolId()
-        ->when($deleted, fn($q) => $q->onlyTrashedRelations())->findOrFail($request->input('training_group_id'));
-
-        $assists = $this->model->schoolId()->with('inscription.player')
-        ->when($deleted, fn($q) => $q->withTrashed())
-        ->where([
-            ['training_group_id', $request->training_group_id],
-            ['month', $request->month],
-            ['year',$request->year]
-        ]);
-
-        return $this->generateTable($assists, $trainingGroup, $request, $deleted);
     }
 
     /**
@@ -251,5 +179,4 @@ class AssistRepository
             'url_print_excel' => $urlPrintExcel
         ];
     }
-
 }

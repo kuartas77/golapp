@@ -68,10 +68,8 @@ class CompetitionGroupRepository
      */
     public function getListGroupFullName(): Collection
     {
-        return $this->model->query()->schoolId()
-            ->with('tournament', 'professor')
-            ->orderBy('name','ASC')
-            ->get()->pluck('full_name_group', 'id');
+        return $this->model->query()->schoolId()->with('tournament', 'professor')
+            ->orderBy('name','ASC')->get()->pluck('full_name_group', 'id');
     }
 
     /**
@@ -80,8 +78,7 @@ class CompetitionGroupRepository
      */
     public function getGroupsYear($year = null): Collection
     {
-        $groups =  $this->model->query()->schoolId()->with('professor','tournament')
-            ->orderBy('name','ASC');
+        $groups =  $this->model->query()->schoolId()->with('professor','tournament')->orderBy('name','ASC');
         if($year){
             $groups->where('year', $year);
         }
