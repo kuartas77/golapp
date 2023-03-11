@@ -171,19 +171,16 @@ class School extends Model
 
     public function configDefault()
     {
-        $day = Day::query()->firstOrCreate(['days' => 'Lunes,Miércoles']);
-
-        $schedule = $this->schedules()->create([
+        $this->schedules()->create([
             'schedule' => "10:00AM - 11:00AM",
-            'day_id' => $day->id,
         ]);
 
         $this->trainingGroups()->create([
             'name' => 'Provisional',
             'year' => now()->year,
             'category' => 'Todas Las Categorías',
-            'day_id' => $schedule->day_id,
-            'schedule_id' => $schedule->id
+            'schedules' => '10:00AM - 11:00AM',
+            'days' => 'Lunes,Miércoles'
         ]);
 
         $this->settingsValues()->createMany(SettingValue::settingsDefault($this->id));

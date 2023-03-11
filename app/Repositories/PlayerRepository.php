@@ -131,7 +131,7 @@ class PlayerRepository
         $playersEnabled = $this->model->query()->schoolId()
         ->whereHas('inscription')
         ->with([
-            'inscription.trainingGroup.schedule.day', 
+            'inscription.trainingGroup', 
             'people' => fn($query)=> $query->where('tutor', true),
             'payments' => fn ($q) => $q->withTrashed() 
         ])->get();
@@ -139,7 +139,7 @@ class PlayerRepository
         $playersDisabled = $this->model->query()->schoolId()
         ->whereDoesntHave('inscription')
         ->with([
-            'inscription.trainingGroup.schedule.day', 
+            'inscription.trainingGroup', 
             'people' => fn($query)=> $query->where('tutor', true),
             'payments' => fn ($q) => $q->withTrashed() 
         ])->get();

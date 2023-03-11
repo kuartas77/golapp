@@ -25,30 +25,34 @@
                         <div class="row">
 
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="day_id">Días</label><span class="text-danger">*</span>
-                                    <span class="bar"></span>
-                                    {!! Form::select('day_id', $days , null, ['id'=>'day_id','class' => 'form-control form-control-sm select2','placeholder' =>'Seleccione uno...','required']) !!}
-                                </div>
+                                <label for="days">Días</label><span class="text-danger">*</span>
+                                <span class="bar"></span>
+                                <select name="days[]" id='days' multiple='multiple'>
+                                    @foreach($days as $key => $value)
+                                        <option value='{{$key}}'>{{$value}}</option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="schedule_id">Horario</label><span class="text-danger">*</span>
-                                    <span class="bar"></span>
-                                    <select name="schedule_id" id="schedule_id" class="form-control">
-                                        <option value="" selected>Seleccione...</option>
-                                    </select>
-                                </div>
+                                <label for="schedules">Horarios</label><span class="text-danger">*</span>
+                                <span class="bar"></span>
+                                <select name="schedules[]" id='schedules' multiple='multiple'>
+                                    @foreach($schedules as $key => $value)
+                                        <option value='{{$key}}'>{{$value}}</option>
+                                    @endforeach
+                                </select>
                             </div>
 
                         </div>
+
+                        <br>
 
                         <div class="row">
                             <div class="col-md-6">
                                 <label for="user_id">Formador(es)</label><span class="text-danger">*</span>
                                 <span class="bar"></span>
-                                <select name="user_id[]" id='users_id' multiple='multiple'>
+                                <select name="user_id[]" id='user_id' multiple='multiple'>
                                     @foreach($users as $key => $value)
                                         <option value='{{$key}}'>{{$value}}</option>
                                     @endforeach

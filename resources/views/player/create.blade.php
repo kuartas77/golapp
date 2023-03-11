@@ -58,7 +58,7 @@
                     phones : {required: true},
                     mobile : {required: true},
                     school : {required: true},
-                    degree : {required: true},
+                    degree : {required: false},
                     position_field : {},
                     dominant_profile : {},
                     "people[0][relationship]": {required: true},

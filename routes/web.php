@@ -5,11 +5,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Schedule\DayController;
 use App\Http\Controllers\Assists\AssistController;
 use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\Competition\GameController;
 use App\Http\Controllers\Payments\PaymentController;
+use App\Http\Controllers\Schedule\SchedulesController;
 use App\Http\Controllers\Groups\TrainingGroupController;
 use App\Http\Controllers\Tournaments\TournamentController;
 use App\Http\Controllers\Groups\CompetitionGroupController;
@@ -44,8 +44,6 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
     $route->prefix('import')->group(function($route){
         $route->post('matches/{competition_group}', [ImportController::class, 'importMatchDetail'])->name('import.match');
         $route->post('players', [ImportController::class, 'importPlayers'])->name('import.players');
-
-
     });
 
     $route->resource("profiles", ProfileController::class)->except(['index','create','store','destroy']);
@@ -54,7 +52,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 
         $route->resources([
             'users' => UserController::class,
-            'days' => DayController::class,
+            'schedules' => SchedulesController::class,
             'incidents' => IncidentController::class,
             'tournaments' => TournamentController::class,
             'training_groups' => TrainingGroupController::class,
@@ -84,7 +82,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
         $route->get('training_groups_retired', [DataTableController::class, 'disabledTrainingGroups'])->name('training_groups.retired');
         $route->get('competition_groups_enabled', [DataTableController::class, 'enabledCompetitionGroups'])->name('competition_groups.enabled');
         $route->get('competition_groups_retired', [DataTableController::class, 'disabledCompetitionGroups'])->name('competition_groups.retired');
-        $route->get('days_enabled', [DataTableController::class, 'enabledDays'])->name('days.enabled');
+        $route->get('schedules_enabled', [DataTableController::class, 'enabledSchedules'])->name('schedules.enabled');
         $route->get('players_enabled', [DataTableController::class, 'enabledPlayers'])->name('players.enabled');
 
     });
@@ -118,9 +116,4 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
         $route->get('list_code_unique', [MasterController::class, 'listUniqueCode'])->name('autocomplete.list_code_unique');
         $route->get('search_unique_code', [MasterController::class, 'searchUniqueCode'])->name('autocomplete.search_unique_code');
     });
-
-    
-
 });
-
-

@@ -6,7 +6,18 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use App\Http\ViewComposers\AdminComposer;
 use Illuminate\Database\Eloquent\Collection;
+use App\Http\ViewComposers\TemplatesComposer;
+use App\Http\ViewComposers\Profile\ProfileComposer;
+use App\Http\ViewComposers\Assists\AssistViewComposer;
+use App\Http\ViewComposers\Incidents\IncidentComposer;
+use App\Http\ViewComposers\Payments\PaymentsViewComposer;
+use App\Http\ViewComposers\Competition\MatchesViewComposer;
+use App\Http\ViewComposers\Assists\AssistHistoricViewComposer;
+use App\Http\ViewComposers\TrainingGroup\TrainingGroupComposer;
+use App\Http\ViewComposers\Inscription\InscriptionCreateComposer;
+use App\Http\ViewComposers\Payments\PaymentsHistoricViewComposer;
 
 class GolAppProvider extends ServiceProvider
 {
@@ -51,36 +62,36 @@ class GolAppProvider extends ServiceProvider
             'player.index',
             'player.create',
             'player.edit'
-        ], 'App\Http\ViewComposers\Inscription\InscriptionCreateComposer');
+        ], InscriptionCreateComposer::class);
 
         View::composer([
             'competition.match.*',
             'templates.competitions.row',
             'templates.competitions.row_edit'
-        ], 'App\Http\ViewComposers\Competition\MatchesViewComposer');
+        ], MatchesViewComposer::class);
 
         View::composer([
             'groups.competition.index', 'groups.training.index'
-        ], 'App\Http\ViewComposers\TrainingGroup\TrainingGroupComposer');
+        ], TrainingGroupComposer::class);
 
-        View::composer(['day.index'], 'App\Http\ViewComposers\DayComposer');
+        View::composer(['payments.payment.index'], PaymentsViewComposer::class);
 
-        View::composer(['payments.payment.index'], 'App\Http\ViewComposers\Payments\PaymentsViewComposer');
+        View::composer(['profile.*'], ProfileComposer::class);
 
-        View::composer(['profile.*'], 'App\Http\ViewComposers\Profile\ProfileComposer');
-
-        View::composer(['assists.assist.index'], 'App\Http\ViewComposers\Assists\AssistViewComposer');
+        View::composer(['assists.assist.index'], AssistViewComposer::class);
 
         View::composer([
             'assists.historic.index', 'assists.historic.show'
-        ], 'App\Http\ViewComposers\Assists\HistoricViewComposer');
+        ], AssistHistoricViewComposer::class);
 
         View::composer([
             'payments.historic.index', 'payments.historic.show'
-        ], 'App\Http\ViewComposers\Payments\HistoricViewComposer');
+        ], PaymentsHistoricViewComposer::class);
 
-        View::composer(['incidents.index'], 'App\Http\ViewComposers\Incidents\IncidentComposer');
+        View::composer(['incidents.index'], IncidentComposer::class);
+        
+        View::composer(['templates.*'], TemplatesComposer::class);
 
-        View::composer(['templates.*'], 'App\Http\ViewComposers\TemplatesComposer');
+        View::composer(['*.*'], AdminComposer::class);
     }
 }

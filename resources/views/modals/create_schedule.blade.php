@@ -1,10 +1,10 @@
 <div class="modal" id="create">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="{{route('tournaments.store')}}" id="form_create" class="form-material m-t-0" method="POST">
+            <form action="{{route('schedules.store')}}" id="form_create" class="form-material" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h4 class="modal-title" id="modal_title">Torneos</h4>
+                    <h4 class="modal-title text-center" id="modal_title">Agregar Horario de Entrenamiento</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 </div>
                 <div class="modal-body">
@@ -13,11 +13,12 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="name">Nombre</label><span class="text-danger">*</span>
+                                    <label for="schedule">Horario</label><span class="text-danger">*</span>
                                     <span class="bar"></span>
-                                    <input type="hidden" name="id" id="tournament_id">
-                                    <input type="text" name="name" id="name" class="form-control" required
-                                           autocomplete="off">
+                                    <input type="hidden" name="id" id="schedule_id">
+                                    <input type="text" name="schedule" id="schedule" class="form-control" required
+                                           autocomplete="off" onkeypress="forceKeyPressUppercase()">
+                                    <span class="text-muted">Ej: 04:30PM - 05:30PM</span>
                                 </div>
                             </div>
                         </div>

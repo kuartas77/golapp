@@ -24,13 +24,13 @@
 <table class="table-full detail detail-lines">
     <tbody>
     <tr class="tr-tit">
-        <td class="center texto" colspan="4">Grupo: {{$group_name}}</td>
+        <td class="center texto" colspan="4">Grupo: {{$group->name}}</td>
     </tr>
     <tr class="tr-tit">
         <td class="texto">Formador(es): {{$group->instructors_names}}</td>
         <td class="texto">Categoria: {{implode(',',$group->category)}}</td>
-        <td class="texto">Días: {{$group->schedule->day->days}}</td>
-        <td class="texto">Horario: {{$group->schedule->schedule}}</td>
+        <td class="texto">Días de entrenamiento: {{$group->days}}</td>
+        <td class="texto">Horarios: {{$group->schedules}}</td>
     </tr>
     </tbody>
 </table>

@@ -10,7 +10,7 @@
                 <a class="float-right btn waves-effect waves-light btn-rounded btn-info" id="btn-add"
                    href="javascript:void(0)" data-toggle="modal" data-target="#create" data-backdrop="static" data-keyboard="false">
                     <i class="fa fa-plus" aria-hidden="true"></i>
-                    @lang('messages.day_add')
+                    @lang('messages.schedule_add')
                 </a>
             @endhasanyrole
         </li>
@@ -22,8 +22,7 @@
         <table class="display compact" id="active_table" cellspacing="0" width="100%">
             <thead>
             <tr>
-                <th>Dias</th>
-                <th>Horarios Asignados</th>
+                <th>Horario</th>
                 <th>Opciones</th>
             </tr>
             </thead>

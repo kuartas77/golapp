@@ -41,7 +41,7 @@ class PlayerUpdateRequest extends FormRequest
             'phones' => ['required'],
             'mobile' => ['required'],
             'school' => ['required'],
-            'degree' => ['required'],
+            'degree' => [],
             'player' => ['nullable', 'image', 'mimes:jpeg,png,jpg'],
             'position_field' => ['nullable'],
             'dominant_profile' => ['nullable'],

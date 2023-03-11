@@ -57,7 +57,7 @@ class TrainingGroupController extends Controller
      */
     public function store(TrainingGroupRequest $request): Redirector|RedirectResponse|Application
     {
-        $training_group = $this->repository->setTrainingGroup($request, true);
+        $training_group = $this->repository->createTrainingGroup($request);
         if ($training_group->wasRecentlyCreated) {
             alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));            
         } else{
@@ -101,7 +101,7 @@ class TrainingGroupController extends Controller
     {
         abort_if($trainingGroup->id === 1, 401 , 'El Grupo Provicional No Se Puede Eliminar o Modificar');
         
-        $trainingGroup = $this->repository->setTrainingGroup($request, false, $trainingGroup);
+        $trainingGroup = $this->repository->updateTrainingGroup($request, $trainingGroup);
         if ($trainingGroup->exists){
             alert()->success(env('APP_NAME'), __('messages.training_group_edit_success'));
         } else{

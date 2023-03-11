@@ -27,8 +27,8 @@ class Schedule extends Model
         "deleted_at"
     ];
 
-    public function day(): BelongsTo
+    public function school(): BelongsTo
     {
-        return $this->belongsTo(Day::class);
+        return $this->belongsTo(School::class);
     }
 }

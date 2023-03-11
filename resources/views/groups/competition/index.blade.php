@@ -12,7 +12,6 @@
 @section('scripts')
     <script defer>
         let url_current = '{{URL::current()}}/';
-        let url_days = "{{route('days.index')}}/";
         let url_enabled = "{{route('competition_groups.enabled')}}";
         let url_disabled = "{{route('competition_groups.retired')}}";
 

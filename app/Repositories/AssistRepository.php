@@ -48,7 +48,7 @@ class AssistRepository
                 'year' => $params['year']
             ])->get();
         } else {
-            $group = TrainingGroup::query()->schoolId()->with('schedule.day', 'instructors')
+            $group = TrainingGroup::query()->schoolId()->with('instructors')
                 ->find($params['training_group_id']);
 
             $assists = $this->model->query()->schoolId()->with(['inscription.player'])->where([
@@ -106,8 +106,7 @@ class AssistRepository
         $table = [];
         try {
 
-            $trainingGroup = TrainingGroup::query()->schoolId()
-                ->with(['schedule.day'])->find($request->input('training_group_id'));
+            $trainingGroup = TrainingGroup::query()->schoolId()->find($request->input('training_group_id'));
             $inscriptionIds = Inscription::query()->schoolId()
                 ->where('training_group_id', $request->input('training_group_id'))
                 ->where('year', now()->year)->pluck('id');
@@ -188,7 +187,7 @@ class AssistRepository
             $request->merge(['year' => now()->year]);
         }
 
-        $trainingGroup = TrainingGroup::query()->schoolId()->with('schedule.day')
+        $trainingGroup = TrainingGroup::query()->schoolId()
         ->when($deleted, fn($q) => $q->onlyTrashedRelations())->findOrFail($request->input('training_group_id'));
 
         $assists = $this->model->schoolId()->with('inscription.player')

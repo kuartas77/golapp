@@ -40,8 +40,8 @@ class TrainingGroupRequest extends FormRequest
             'year_eleven' => ['nullable'],
             'year_twelve' => ['nullable'],
             'category' => ['nullable'],
-            'day_id' => ['required'],
-            'schedule_id' => ['required'],
+            'days' => ['required', 'array'],
+            'schedules' => ['required', 'array'],
             'school_id' => ['required'],
         ];
     }

@@ -162,7 +162,7 @@
 
             <div class="col-md-3 col-sm-12 col-xs-12">
                 <div class="form-group">
-                    {!! Form::label('degree', 'Grado') !!}<span class="text-danger">*</span>
+                    {!! Form::label('degree', 'Grado') !!}
                     {!! Form::text('degree', null, ['class' => 'form-control form-control-sm']) !!}
 
                 </div>

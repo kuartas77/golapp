@@ -4,13 +4,12 @@
 namespace App\Http\ViewComposers\Assists;
 
 use App\Models\Assist;
-use App\Models\School;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use App\Repositories\TrainingGroupRepository;
 
-class HistoricViewComposer
+class AssistHistoricViewComposer
 {
     /**
      * @var TrainingGroupRepository

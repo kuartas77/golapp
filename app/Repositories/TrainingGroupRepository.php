@@ -33,7 +33,7 @@ class TrainingGroupRepository
 
     public function listGroupEnabled()
     {
-        return $this->model->query()->schoolId()->with(['schedule.day', 'instructors'])
+        return $this->model->query()->schoolId()->with(['instructors'])
             ->get();
     }
 
@@ -48,20 +48,44 @@ class TrainingGroupRepository
      * @param null $trainingGroup
      * @return mixed
      */
-    public function setTrainingGroup(FormRequest $request, bool $create, TrainingGroup $trainingGroup = null)
+    public function createTrainingGroup(FormRequest $request)
     {
         $group = $this->setTrainingGroupParams($request);
-
-        DB::beginTransaction();
+        
         try {
-            if ($create && !$trainingGroup) {
-                $trainingGroup = $this->model->create($group);
-            } else {
-                $userInstructors = $group['user_id'];
-                unset($group['user_id']);
-                $trainingGroup->update($group);
-                $trainingGroup->instructors()->syncWithPivotValues($userInstructors, ['assigned_year' => now()->year]);
-            }
+
+            DB::beginTransaction();
+            
+            $userInstructors = $group['user_id'];
+            unset($group['user_id']);
+            $trainingGroup = new TrainingGroup($group);
+            $trainingGroup->save();
+            $trainingGroup->instructors()->syncWithPivotValues($userInstructors, ['assigned_year' => now()->year]);
+            
+            DB::commit();
+
+            Cache::forget("KEY_TRAINING_GROUPS_{$request->input('school_id')}");
+            
+            return $trainingGroup;
+            
+        } catch (Exception $exception) {
+            DB::rollBack();
+            $this->logError("TrainingGroupRepository setTrainingGroup", $exception);
+            return null;
+        }
+    }
+
+    public function updateTrainingGroup(FormRequest $request, TrainingGroup $trainingGroup)
+    {
+        $group = $this->setTrainingGroupParams($request);
+        
+        try {
+            DB::beginTransaction();
+            
+            $userInstructors = $group['user_id'];
+            unset($group['user_id']);
+            $trainingGroup->update($group);
+            $trainingGroup->instructors()->syncWithPivotValues($userInstructors, ['assigned_year' => now()->year]);
             
             DB::commit();
 
@@ -98,8 +122,8 @@ class TrainingGroupRepository
             'year_ten' => $request->input('years.9', null),
             'year_eleven' => $request->input('years.10', null),
             'year_twelve' => $request->input('years.11', null),
-            'schedule_id' => $request->input('schedule_id'),
-            'day_id' => $request->input('day_id'),
+            'schedules' => $request->input('schedules', []),
+            'days' => $request->input('days', []),
             'school_id' => $request->input('school_id')
         ];
     }
@@ -110,7 +134,7 @@ class TrainingGroupRepository
      */
     public function getTrainingGroup(TrainingGroup $trainingGroup): Model
     {
-        $trainingGroup->load('schedule.day', 'instructors');
+        $trainingGroup->load(['instructors']);
 
         $years = collect();
         $trainingGroup->year == null ?: $years->push($trainingGroup->year);
@@ -186,7 +210,7 @@ class TrainingGroupRepository
         if ($deleted) {
             $query = $this->model->query()->schoolId()->onlyTrashedRelations();
         } else {
-            $query = $this->model->query()->schoolId()->with('schedule.day');
+            $query = $this->model->query()->schoolId();
         }
 
         if ($user_id) {
@@ -228,7 +252,7 @@ class TrainingGroupRepository
      */
     public function getGroupsYear($year): Collection
     {
-        return $this->model->query()->schoolId()->with('schedule.day')
+        return $this->model->query()->schoolId()
             ->where('year', $year)
             ->orWhere('year_two', $year)
             ->orWhere('year_three', $year)

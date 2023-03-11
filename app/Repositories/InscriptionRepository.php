@@ -97,7 +97,7 @@ class InscriptionRepository
      */
     public function getInscriptionsEnabled()
     {
-        $inscriptions = $this->model->with(['player.people', 'trainingGroup.schedule.day'])
+        $inscriptions = $this->model->with(['player.people', 'trainingGroup'])
             ->where('year', now()->year)->schoolId()->get();
         if ($inscriptions->isNotEmpty()) {
             $inscriptions->setAppends(['url_edit', 'url_update', 'url_show', 'url_impression'/*, 'url_destroy'*/]);
