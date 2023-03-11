@@ -15,10 +15,6 @@ class CreateTrainingGroupsTable extends Migration
     {
         Schema::create('training_groups', function (Blueprint $table) {
             $table->id();
-
-            $table->unsignedBigInteger('user_id')->nullable();
-            $table->foreign('user_id')->references('id')->on('users');
-
             $table->string('name', 100);
             $table->string('stage', 100)->nullable();
             $table->string('year', 100);
@@ -34,8 +30,8 @@ class CreateTrainingGroupsTable extends Migration
             $table->string('year_eleven', 100)->nullable();
             $table->string('year_twelve', 100)->nullable();
             $table->text('category')->nullable();
-            $table->unsignedBigInteger('day_id');
-            $table->unsignedBigInteger('schedule_id');
+            $table->string('days', 100);
+            $table->string('schedules', 100);
             $table->timestamps();
             $table->softDeletes();
         });

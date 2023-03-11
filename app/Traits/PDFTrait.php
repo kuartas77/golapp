@@ -49,14 +49,9 @@ trait PDFTrait
     {
         $this->mpdf = new Mpdf($this->configDefault);
         if($data['school']){
-            // $data['school']->logo = $data['school']->logo ? storage_path("app/public/{$data['school']->logo}"): storage_path('standard/ballon.png');
-            // if ($this->existsTemplate($path)){
-                $this->mpdf->SetWatermarkImage($data['school']->logo_local, -1, array(50, 50));
-                $this->mpdf->showWatermarkImage = true;
-            // }
+            $this->mpdf->SetWatermarkImage($data['school']->logo_local, -1, array(80, 80));
+            $this->mpdf->showWatermarkImage = true;
         }
-        // return view()->file($this->getTemplate($template), $data)->render();
-        //$this->mpdf->SetHTMLHeader();
         $this->mpdf->WriteHTML(view()->file($this->getTemplate($template), $data));
         $this->mpdf->SetHTMLFooter(view()->file($this->getTemplate('footer.blade.php'), $data));
     }

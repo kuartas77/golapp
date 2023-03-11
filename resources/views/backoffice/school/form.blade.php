@@ -4,7 +4,7 @@
     
     <div class="col-md-4">
         <div class="form-group">
-            <label for="name">Nombre </label><span class="text-danger">*</span>
+            <label for="name">Nombre </label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
             <input type="text" name="name" id="name" class="form-control" required autocomplete="off">
         </div>
@@ -12,7 +12,7 @@
 
     <div class="col-md-4">
         <div class="form-group">
-            <label for="address">Dirección </label><span class="text-danger">*</span>
+            <label for="address">Dirección </label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
             <input type="text" name="address" id="address" class="form-control" required autocomplete="off">
         </div>
@@ -20,7 +20,7 @@
 
     <div class="col-md-4">
         <div class="form-group">
-            <label for="phone">Teléfono </label><span class="text-danger">*</span>
+            <label for="phone">Teléfono </label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
             <input type="text" name="phone" id="phone" class="form-control" required autocomplete="off">
         </div>
@@ -32,7 +32,7 @@
 
     <div class="col-md-4">
         <div class="form-group">
-            <label for="is_enable">Estado </label><span class="text-danger">*</span>
+            <label for="is_enable">Estado </label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
             <select name="is_enable" id="is_enable" class="form-control">
                 <option value="1">Activo</option>
@@ -48,7 +48,7 @@
 
     <div class="col-md-6">
         <div class="form-group">
-            <label for="agent">Representante </label><span class="text-danger">*</span>
+            <label for="agent">Representante </label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
             <input type="text" name="agent" id="agent" class="form-control" required autocomplete="off">
         </div>
@@ -56,7 +56,7 @@
 
     <div class="col-md-6">
         <div class="form-group">
-            <label for="email">Correo </label><span class="text-danger">*</span>
+            <label for="email">Correo </label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
             <input type="text" name="email" id="email" class="form-control" required autocomplete="off">
         </div>
@@ -64,7 +64,7 @@
 
     <div class="col-md-6" id="password_div">
         <div class="form-group">
-            <label for="agent">Contraseña </label><span class="text-danger">*</span>
+            <label for="agent">Contraseña </label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
             <input type="password" name="password" id="password" class="form-control" required autocomplete="off">
         </div>
@@ -72,7 +72,7 @@
 
     <div class="col-md-6" id="password_confirmation_div">
         <div class="form-group">
-            <label for="agent">Confirmación Contraseña </label><span class="text-danger">*</span>
+            <label for="agent">Confirmación Contraseña </label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
             <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" required autocomplete="off">
         </div>

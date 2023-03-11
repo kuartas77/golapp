@@ -51,7 +51,7 @@
                             btnEdit = selectYear !== actualYear ? '' : '<a href="' + row.url_edit + '" class="btn btn-info btn-xs"><i class="fas fa-pencil-alt" aria-hidden="true"></i></a>';
                             btnDelete = selectYear !== actualYear ? '' : '<button type="submit" class="btn btn-danger btn-xs" onclick="confirmDelete(this, event)"><i class="fas fa-trash-alt" aria-hidden="true"></i></button>';
 
-                            return '<form method="POST" action="' + row.url_destroy + '" accept-charset="UTF-8"><input name="_method" type="hidden" value="DELETE"><input name="_token" type="hidden" value="' + row.token + '"><div class="btn-group">' +
+                            return '<form method="POST" action="' + row.url_destroy + '" accept-charset="UTF-8"><input name="_method" type="hidden" value="DELETE"><input name="_token" type="hidden" value="' + window.token.csrfToken + '"><div class="btn-group">' +
                                 '<a href="' + row.url_show + '" class="btn btn-success btn-xs" target="_blank"><i class="fas fa-print" aria-hidden="true"></i></a>' +
                                 btnEdit +
                                 btnDelete +

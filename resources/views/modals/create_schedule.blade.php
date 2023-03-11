@@ -13,7 +13,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="schedule">Horario</label><span class="text-danger">*</span>
+                                    <label for="schedule">Horario</label>(<span class="text-danger">*</span>)
                                     <span class="bar"></span>
                                     <input type="hidden" name="id" id="schedule_id">
                                     <input type="text" name="schedule" id="schedule" class="form-control" required

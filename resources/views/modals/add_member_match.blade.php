@@ -12,7 +12,7 @@
                     <div class="row">
                         <div class="col-md-8">
                             <div class="form-group">
-                                <label for="unique_code">Código Unico</label><span class="text-danger">*</span>
+                                <label for="unique_code">Código Unico</label>(<span class="text-danger">*</span>)
                                 <span class="bar"></span>
                                 <input id="unique_code" name="unique_code" type="text" placeholder="Ingresa el código"
                                        class="form-control form-control-sm" autocomplete="off">

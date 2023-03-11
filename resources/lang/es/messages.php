@@ -116,7 +116,7 @@ return [
     'schools_button_add' => 'Agregar Escuela',
     'schools_dissabled' => 'Escuela Deshabilitada, Comuniquese Con El Administrador.',
     'becado_text' => 'Al ser becado, todos los pagos del año se estableceran cómo: "<span class="text-warning">Becado</span>"',
-    'provicional_group_info' => 'Si no se selecciona, se agregara al grupo "Provisional"',
+    'provicional_group_info' => 'Si no se selecciona, se agregará al grupo "Provisional"',
     'inscription_date_info' => 'Se agregará al año seleccionado',
     'search_player_by_code_info' => 'Buscará deportistas sin inscripción',
 

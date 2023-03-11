@@ -1,9 +1,9 @@
-<h4 class="text-center w-auto text-uppercase"><strong>Información Del Deportista</strong></h4>
+<h4 class="text-center w-auto text-uppercase"><strong>Información del deportista</strong></h4>
 <div class="row col-12 ">
 
     <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
         <div class="form-group">
-            <label for="unique_code">Código Unico</label><span class="text-danger">*</span>
+            <label for="unique_code">Código unico:</label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
             <input id="unique_code" name="unique_code" type="text"
                    placeholder="Ingresa El Código Para Buscar"
@@ -14,7 +14,7 @@
 
     <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
         <div class="form-group">
-            <label for="member_name">Nombre</label><span class="text-danger">*</span>
+            <label for="member_name">Nombre:</label>(<span class="text-danger">*</span>)
             <input id="member_name" name="member_name" type="text"
                    class="form-control form-control-sm" autocomplete="off" disabled="true" readonly>
             <input type="hidden" name="player_id" id="player_id">
@@ -23,7 +23,7 @@
 
     <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
         <div class="form-group">
-            <label for="start_date">Fecha De Inicio</label><span class="text-danger">*</span>
+            <label for="start_date">Fecha de inicio:</label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
             <input id="start_date" name="start_date" type="text"
                    class="form-control form-control-sm date" autocomplete="off" required>
@@ -33,7 +33,7 @@
 
     <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
         <div class="form-group">
-            <label for="training_group_id">Grupo De Entrenamiento</label>
+            <label for="training_group_id">Grupo de entrenamiento:</label>
             {!! Form::select('training_group_id', $training_groups , null, ['class' => 'form-control form-control-sm select2','placeholder' =>
             'Seleccione uno...', 'id'=>'training_group_id']) !!}
             <small
@@ -43,14 +43,14 @@
 
     <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
         <div class="form-group">
-            <label for="competition_group_id">Grupo De Competencia</label>
+            <label for="competition_group_id">Grupo de competencia:</label>
             {!! Form::select('competition_group_id', $competition_groups, null, ['class' => 'form-control form-control-sm select2',
             'placeholder'=>'Seleccionar...','id'=>'competition_group_id']) !!}
         </div>
     </div>
 
     <div class="check col-md-4 col-sm-4 col-lg-4 col-xs-12">
-        <small class="form-text text-muted">{!! __('messages.becado_text') !!}</small>
+        <small class="form-text text-muted mt-4">{!! __('messages.becado_text') !!}</small>
         <div class="form-group">
             <div class="checkbox">
                 <input type="checkbox" name="scholarship" id="scholarship" value="1">

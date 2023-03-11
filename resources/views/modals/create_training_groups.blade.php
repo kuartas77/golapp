@@ -14,7 +14,7 @@
 
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label for="name">Nombre del grupo</label><span class="text-danger">*</span>
+                                    <label for="name">Nombre del grupo</label>(<span class="text-danger">*</span>)
                                     <span class="bar"></span>
                                     <input type="text" name="name" id="name" class="form-control" required
                                            autocomplete="off">
@@ -25,7 +25,7 @@
                         <div class="row">
 
                             <div class="col-md-6">
-                                <label for="days">Días</label><span class="text-danger">*</span>
+                                <label for="days">Días</label>(<span class="text-danger">*</span>)
                                 <span class="bar"></span>
                                 <select name="days[]" id='days' multiple='multiple'>
                                     @foreach($days as $key => $value)
@@ -35,7 +35,7 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label for="schedules">Horarios</label><span class="text-danger">*</span>
+                                <label for="schedules">Horarios</label>(<span class="text-danger">*</span>)
                                 <span class="bar"></span>
                                 <select name="schedules[]" id='schedules' multiple='multiple'>
                                     @foreach($schedules as $key => $value)
@@ -50,7 +50,7 @@
 
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="user_id">Formador(es)</label><span class="text-danger">*</span>
+                                <label for="user_id">Formador(es)</label>(<span class="text-danger">*</span>)
                                 <span class="bar"></span>
                                 <select name="user_id[]" id='user_id' multiple='multiple'>
                                     @foreach($users as $key => $value)
@@ -59,7 +59,7 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label for="years">Categoria(s)</label><span class="text-danger">*</span>
+                                <label for="years">Categoria(s)</label>(<span class="text-danger">*</span>)
                                 <span class="bar"></span>
                                 <select name="years[]" id='years' multiple='multiple'>
                                     @for($i = now()->subYears(18)->year;$i <= now()->subYears(2)->year ; $i++ )

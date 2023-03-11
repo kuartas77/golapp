@@ -17,14 +17,14 @@
 
                 <div class="col-md-3">
                     <div class="form-group ">
-                        {!! Form::label("people[{$loop->index}][relationship]", 'Relación Familiar') !!}<span class="text-danger">*</span>
+                        {!! Form::label("people[{$loop->index}][relationship]", 'Relación Familiar') !!}(<span class="text-danger">*</span>)
                         {!! Form::select("people[{$loop->index}][relationship]", $relationships, $people->relationship ?? null,
                         ['class' => 'form-control form-control-sm','placeholder' => 'Seleccione uno...']) !!}
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        {!! Form::label("people[{$loop->index}][names]", 'Nombres Y Apellidos') !!}<span class="text-danger">*</span>
+                        {!! Form::label("people[{$loop->index}][names]", 'Nombres Y Apellidos') !!}(<span class="text-danger">*</span>)
                         {!! Form::text("people[{$loop->index}][names]", $people->names ?? '', ['class' => 'form-control form-control-sm']) !!}
                     </div>
                 </div>
@@ -38,14 +38,14 @@
 
                 <div class="col-md-3">
                     <div class="form-group">
-                        {!! Form::label("people[{$loop->index}][phone]", 'Teléfonos') !!}<span class="text-danger">*</span>
+                        {!! Form::label("people[{$loop->index}][phone]", 'Teléfonos') !!}(<span class="text-danger">*</span>)
                         {!! Form::text("people[{$loop->index}][phone]", $people->phone ?? '', ['class' => 'form-control form-control-sm']) !!}
                     </div>
                 </div>
 
                 <div class="col-md-3">
                     <div class="form-group">
-                        {!! Form::label("people[{$loop->index}][mobile]", 'Número Celular') !!}<span class="text-danger">*</span>
+                        {!! Form::label("people[{$loop->index}][mobile]", 'Número Celular') !!}(<span class="text-danger">*</span>)
                         {!! Form::text("people[{$loop->index}][mobile]", $people->mobile ?? '', ['class' => 'form-control form-control-sm']) !!}
                     </div>
                 </div>

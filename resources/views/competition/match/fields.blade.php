@@ -3,7 +3,7 @@
     <div class="row">
         <div class="col-md-4">
             <div class="form-group">
-                <label for="competition_group_id">Grupo Competencia:</label><span class="text-danger">*</span>
+                <label for="competition_group_id">Grupo Competencia:</label>(<span class="text-danger">*</span>)
                 {!! Form::text('name', $information->name, ['class' => 'form-control form-control-sm','readonly']) !!}
                 {!! Form::hidden('competition_group_id', $information->id, ['id' => 'competition_group_id']) !!}
 
@@ -12,14 +12,14 @@
 
         <div class="col-md-4">
             <div class="form-group">
-                <label for="tournament_id">Torneo:</label><span class="text-danger">*</span>
+                <label for="tournament_id">Torneo:</label>(<span class="text-danger">*</span>)
                 {!! Form::select('tournament_id', $tournaments , $information->tournament->id, ['id'=>'tournament_id','class' => 'form-control form-control-sm','placeholder' =>'Seleccione uno...','required']) !!}
             </div>
         </div>
 
         <div class="col-md-4">
             <div class="form-group">
-                <label for="user_id">Director Tec:</label><span class="text-danger">*</span>
+                <label for="user_id">Director Tec:</label>(<span class="text-danger">*</span>)
                 {!! Form::text('user_id', $information->professor->name, ['id'=>'user_id', 'class' => 'form-control form-control-sm', 'readonly']) !!}
             </div>
         </div>
@@ -28,21 +28,21 @@
     <div class="row">
         <div class="col-md-2">
             <div class="form-group">
-                <label for="num_match">Partido #:</label><span class="text-danger">*</span>
+                <label for="num_match">Partido #:</label>(<span class="text-danger">*</span>)
                 {!! Form::text('num_match', null, ['class' => 'form-control form-control-sm','required', 'placeholder'=>'Partido #']) !!}
             </div>
         </div>
 
         <div class="col-md-2">
             <div class="form-group">
-                <label for="place">Lugar:</label><span class="text-danger">*</span>
+                <label for="place">Lugar:</label>(<span class="text-danger">*</span>)
                 {!! Form::text('place', null, ['class' => 'form-control form-control-sm','required']) !!}
             </div>
         </div>
 
         <div class="col-md-2">
             <div class="form-group">
-                <label for="date">Fecha:</label><span class="text-danger">*</span>
+                <label for="date">Fecha:</label>(<span class="text-danger">*</span>)
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <span class="input-group-text" id="basic-addon1">
@@ -56,7 +56,7 @@
 
         <div class="col-md-2">
             <div class="form-group">
-                <label for="hour">Hora:</label><span class="text-danger">*</span>
+                <label for="hour">Hora:</label>(<span class="text-danger">*</span>)
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <span class="input-group-text" id="basic-addon2">
@@ -70,7 +70,7 @@
 
         <div class="col-md-4">
             <div class="form-group">
-                <label for="rival_name">Nombre Rival:</label><span class="text-danger">*</span>
+                <label for="rival_name">Nombre Rival:</label>(<span class="text-danger">*</span>)
                 {!! Form::text('rival_name', null, ['class' => 'form-control form-control-sm','required']) !!}
             </div>
         </div>
