@@ -36,8 +36,8 @@ class PlayerExportService
     public function makePDFPlayer(Player $player, bool $stream = true): mixed
     {
         $player->load(['schoolData', 'people','inscription' => fn($query) => $query->with(['trainingGroup','competitionGroup'])]);
-        $player->setAppends(['photo_url']);
-        $player->photo_url = $player->photo_url;
+        $player->setAppends(['photo_local']);
+        $player->photo_local = $player->photo_local;
         $data['player'] = $player;
         $data['school'] = $player->schoolData;
         $filename = "Deportista {$player->unique_code}.pdf";

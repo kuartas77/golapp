@@ -14,7 +14,7 @@
             <td class="text-center school-title" width="60%">{{ $school->name }}<br>FICHA DEL DEPORTISTA
             </td>
             <td class="text-right" width="20%">
-                <img src="{{ $player->photo_url }}" width="70" height="70">
+                <img src="{{ $player->photo_local }}" width="70" height="70">
             </td>
         </tr>
         <tr class="tr-tit">

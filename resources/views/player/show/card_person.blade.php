@@ -1,7 +1,7 @@
 <div class="col-lg-3 col-xl-3 col-md-12 col-sm-12">
     <div class="card">
         <div class="card-body">
-            <div class="text-center"><img src="{{$player->photo_url}}" class="img-circle" width="150"/>
+            <div class="text-center"><img src="{{$player->photo_url}}" class="media-object img-rounded" width="300"/>
                 <h4 class="card-title m-t-10">{{$player->full_names}}</h4>
                 <h6 class="card-subtitle">@lang('messages.unique_code', ['unique_code'=> $player->unique_code])</h6>
                 @if($player->dominant_profile)

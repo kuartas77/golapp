@@ -63,7 +63,7 @@ class Player extends Model
         'created_at' => "datetime:Y-m-d",
     ];
 
-    protected $appends = ['full_names', 'url_edit', 'url_show', 'url_impression','photo_url'];
+    protected $appends = ['full_names', 'url_edit', 'url_show', 'url_impression','photo_url','photo_local'];
 
     public function getRouteKeyName(): string
     {
@@ -119,6 +119,14 @@ class Player extends Model
         return url('img/user.png');
     }
 
+    public function getPhotoLocalAttribute(): string
+    {
+        if (Storage::disk('public')->exists($this->attributes['photo'])) {
+            return storage_path("app/public/{$this->attributes['photo']}");
+        }
+        return public_path('img/user.png');
+    }
+    
     public function routeNotificationForMail($notification)
     {
         // Return email address and name...

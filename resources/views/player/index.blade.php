@@ -34,7 +34,7 @@
                     },
                     {
                         data: 'id', "render": function (data, type, row) {
-                            return "<img class='media-object img-rounded' src='" + row.photo_url + "' width='60' height='60' alt='" + row.full_names + "'>";
+                            return "<img class='media-object img-rounded' src='" + row.photo_url + "' width='90' height='60' alt='" + row.full_names + "'>";
                         }
                     },
                     {data: 'unique_code', name: 'unique_code'},
