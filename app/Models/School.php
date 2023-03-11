@@ -178,9 +178,9 @@ class School extends Model
         $this->trainingGroups()->create([
             'name' => 'Provisional',
             'year' => now()->year,
-            'category' => 'Todas Las Categorías',
-            'schedules' => '10:00AM - 11:00AM',
-            'days' => 'Lunes,Miércoles'
+            'category' => 'Todas las categorías',
+            'days' => 'Grupo predeterminado',
+            'schedules' => '',
         ]);
 
         $this->settingsValues()->createMany(SettingValue::settingsDefault($this->id));
