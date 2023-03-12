@@ -80,13 +80,9 @@ class GolAppProvider extends ServiceProvider
 
         View::composer(['assists.assist.index'], AssistViewComposer::class);
 
-        View::composer([
-            'assists.historic.index', 'assists.historic.show'
-        ], AssistHistoricViewComposer::class);
+        View::composer(['assists.historic.index', 'assists.historic.show'], AssistHistoricViewComposer::class);
 
-        View::composer([
-            'payments.historic.index', 'payments.historic.show'
-        ], PaymentsHistoricViewComposer::class);
+        View::composer(['payments.historic.index', 'payments.historic.show'], PaymentsHistoricViewComposer::class);
 
         View::composer(['incidents.index'], IncidentComposer::class);
         

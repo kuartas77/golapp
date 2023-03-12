@@ -10,6 +10,7 @@ use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\Competition\GameController;
 use App\Http\Controllers\Payments\PaymentController;
 use App\Http\Controllers\Schedule\SchedulesController;
+use App\Http\Controllers\SchoolPages\SchoolsController;
 use App\Http\Controllers\Players\PlayerExportController;
 use App\Http\Controllers\Tournaments\TournamentController;
 use App\Http\Controllers\Inscription\InscriptionController;
@@ -23,6 +24,9 @@ Route::get('/', function () {
     return redirect(\route('login'));
 });
 
+Route::resource('escuelas', SchoolsController::class)->only([
+    'index', 'show',
+]);
 
 Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 

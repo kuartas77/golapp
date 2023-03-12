@@ -23,6 +23,7 @@ class CreateSchoolsTable extends Migration
             $table->string('email')->nullable();
             $table->boolean('is_enable')->default(false);
             $table->string('logo')->nullable();
+            $table->json('config')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

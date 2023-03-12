@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use App\Repositories\TrainingGroupRepository;
 
+
 class AssistHistoricViewComposer
 {
     /**
