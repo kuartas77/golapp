@@ -5,10 +5,7 @@ namespace App\Repositories;
 
 
 use Exception;
-use App\Models\Assist;
-use App\Models\Payment;
 use App\Traits\ErrorTrait;
-use App\Models\Inscription;
 use App\Models\TrainingGroup;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -145,59 +142,6 @@ class TrainingGroupRepository
 
         $trainingGroup->years = $years;
         return $trainingGroup;
-    }
-
-    /**
-     * @param $inscription_id
-     * @param $request
-     * @return bool
-     */
-    public function assignTrainingGroup($inscription_id, $request): bool
-    {
-        $origin_group = $request->input('origin_group', null);
-        $target_group = $request->input('target_group', null);
-        $inscription = Inscription::query()->find($inscription_id);
-        if (is_null($target_group) || empty($inscription)) {
-            return false;
-        }
-
-        $date = now();
-        $year = $date->year;
-        $month = getMonth($date->month);
-
-        DB::beginTransaction();
-        try {
-            Payment::query()->schoolId()->updateOrCreate(
-                [
-                    'inscription_id' => $inscription->id,
-                    'year' => $year,
-                ],
-                [
-                    'training_group_id' => $target_group,
-                    'unique_code' => $inscription->unique_code
-                ]
-            );
-
-            Assist::query()->schoolId()->updateOrCreate(
-                [
-                    'inscription_id' => $inscription->id,
-                    'year' => $year,
-                    'month' => $month,
-                ],
-                [
-                    'inscription_id' => $inscription->id,
-                    'year' => $year,
-                    'month' => $month,
-                    'training_group_id' => $target_group,
-                ]
-            );
-            $state = $inscription->update(['training_group_id' => $target_group]);
-            DB::commit();
-            return $state;
-        } catch (Exception $exception) {
-            DB::rollBack();
-            return false;
-        }
     }
 
     /**

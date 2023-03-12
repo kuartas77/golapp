@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Groups;
 
-use App\Http\Controllers\Controller;
-use App\Models\TrainingGroup;
-use App\Repositories\TrainingGroupRepository;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Models\TrainingGroup;
+use App\Service\SharedService;
+use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\View;
+use App\Repositories\TrainingGroupRepository;
 
 class InscriptionTGroupController extends Controller
 {
@@ -41,10 +42,10 @@ class InscriptionTGroupController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function assignGroup($inscription_id, Request $request): JsonResponse
+    public function assignGroup($inscription_id, Request $request, SharedService $sharedService): JsonResponse
     {
         if ($request->ajax()) {
-            if ($this->repository->assignTrainingGroup($inscription_id, $request))
+            if ($sharedService->assignTrainingGroup($inscription_id, $request))
                 return $this->responseJson(true, 200);
             else
                 return $this->responseJson(false, 404);
