@@ -115,32 +115,18 @@ class GameRepository
      * @param $request
      * @return Game
      */
-    public function createMatchSkill($request): Game
+    public function createMatchSkill(array $matchData, array $skillsData): Game
     {
-        $school_id = getSchool(auth()->user())->id;
-        $match_data = $request->only([
-            'tournament_id',
-            'competition_group_id',
-            'date',
-            'hour',
-            'num_match',
-            'place',
-            'rival_name',
-            'final_score',
-            'general_concept'
-        ]);
-        $match_data['school_id'] = $school_id;
-
         $match = $this->model;
         try {
             DB::beginTransaction();
-            Master::saveAutoComplete($request);
-            $match = $this->model->create($match_data);
-            $inscriptions = $request->input('inscriptions_id');
+            Master::saveAutoComplete($matchData);
+            $match = $this->model->create($matchData);
+            $inscriptions = $skillsData['inscriptions_id'];
             $skillControls = collect();
             for ($i = 0; $i < count($inscriptions); ++$i) {
                 if (!empty($inscriptions[$i])) {
-                    $skillControls->push(new SkillsControl($this->dataSkills($request, $i, $school_id)));
+                    $skillControls->push(new SkillsControl($this->dataSkills($skillsData, $i, $matchData['school_id'])));
                 }
             }
             $match->skillsControls()->saveMany($skillControls);
@@ -158,19 +144,19 @@ class GameRepository
      * @param $i
      * @return array
      */
-    private function dataSkills($request, $i, $school_id): array
+    private function dataSkills(array $skillsData, $i, $school_id): array
     {
         return [
-            'inscription_id' => $request->input("inscriptions_id.{$i}"),
-            'assistance' => $request->input("assistance.{$i}"),
-            'titular' => $request->input("titular.{$i}"),
-            'played_approx' => $request->input("played_approx.{$i}"),
-            'position' => $request->input("position.{$i}"),
-            'goals' => $request->input("goals.{$i}"),
-            'red_cards' => $request->input("red_cards.{$i}"),
-            'yellow_cards' => $request->input("yellow_cards.{$i}"),
-            'qualification' => $request->input("qualification.{$i}"),
-            'observation' => $request->input("observation.{$i}"),
+            'inscription_id' => $skillsData["inscriptions_id"][$i],
+            'assistance' => $skillsData["assistance"][$i],
+            'titular' => $skillsData["titular"][$i],
+            'played_approx' => $skillsData["played_approx"][$i],
+            'position' => $skillsData["position"][$i],
+            'goals' => $skillsData["goals"][$i],
+            'red_cards' => $skillsData["red_cards"][$i],
+            'yellow_cards' => $skillsData["yellow_cards"][$i],
+            'qualification' => $skillsData["qualification"][$i],
+            'observation' => $skillsData["observation"][$i],
             'school_id' => $school_id
         ];
     }
@@ -180,29 +166,15 @@ class GameRepository
      * @param Game $match
      * @return bool
      */
-    public function updateMatchSkill($request, Game $match): bool
+    public function updateMatchSkill(array $matchData, array $skillsData, Game $match): bool
     {
-        $school_id = getSchool(auth()->user())->id;
-        $match_data = $request->only([
-            'tournament_id',
-            'competition_group_id',
-            'date',
-            'hour',
-            'num_match',
-            'place',
-            'rival_name',
-            'final_score',
-            'general_concept'
-        ]);
-        $match_data['school_id'] = $school_id;
-
         try {
             DB::beginTransaction();
-            Master::saveAutoComplete($request);
-            $match->update($match_data);
-            $ids = $request->input('ids');
+            Master::saveAutoComplete($matchData);
+            $match->update($matchData);
+            $ids = $skillsData['ids'];
             for ($i = 0; $i < count($ids); ++$i) {
-                $data = $this->dataSkills($request, $i, $school_id);
+                $data = $this->dataSkills($skillsData, $i, $matchData['school_id']);
                 if (!empty($ids[$i])) {
                     SkillsControl::find($ids[$i])->update($data);
                 } else {

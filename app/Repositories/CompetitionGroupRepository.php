@@ -39,21 +39,21 @@ class CompetitionGroupRepository
         return $this->model->query()->schoolId()->onlyTrashedRelations()->get();
     }
 
-    public function createOrUpdateTeam(FormRequest $request, bool $create = true , $competitionGroup = null): Model
+    public function createOrUpdateTeam(array $dataGroup, bool $create = true , ?CompetitionGroup $competitionGroup = null): Model
     {
         try {
             DB::beginTransaction();
         
             if ($create) { 
-                $competitionGroup = $this->model->create($request->validated()); 
+                $competitionGroup = $this->model->create($dataGroup); 
             } 
             else { 
-                $competitionGroup->update($request->validated()); 
+                $competitionGroup->update($dataGroup); 
             }
 
             DB::commit();
 
-            Cache::forget("KEY_COMPETITION_GROUPS_{$request->input('school_id')}");
+            Cache::forget("KEY_COMPETITION_GROUPS_{$dataGroup['school_id']}");
 
             return $competitionGroup;
         } catch (\Throwable $th) {

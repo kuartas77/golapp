@@ -7,6 +7,7 @@ use App\Traits\Fields;
 use App\Traits\GeneralScopes;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
+use App\Observers\TrainingGroupObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -75,6 +76,11 @@ class TrainingGroup extends Model
         'instructors_names',
         'instructors_ids'
     ];
+
+    protected static function booted()
+    {
+        self::observe(TrainingGroupObserver::class);
+    }
 
     public function scopeOnlyTrashedRelations($query)
     {

@@ -30,8 +30,7 @@ class TrainingGroupRepository
 
     public function listGroupEnabled()
     {
-        return $this->model->query()->schoolId()->with(['instructors'])
-            ->get();
+        return $this->model->query()->schoolId()->with(['instructors'])->get();
     }
 
     public function listGroupDisabled()

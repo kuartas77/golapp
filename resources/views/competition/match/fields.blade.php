@@ -49,7 +49,7 @@
                             <i class="far fa-calendar-alt"></i>
                         </span>
                     </div>
-                    {!! Form::text('date', null, ['class' => 'form-control form-control-sm with-icon','required']) !!}
+                    {!! Form::text('date', null, ['class' => 'form-control form-control-sm with-icon','required', 'id' => 'date']) !!}
                 </div>
             </div>
         </div>

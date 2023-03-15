@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\User;
+use App\Observers\SchoolObserver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -46,6 +47,11 @@ class School extends Model
     protected $appends = [
         'logo_file'
     ];
+
+    protected static function booted()
+    {
+        self::observe(SchoolObserver::class);
+    }
 
     public function getRouteKeyName(): string
     {

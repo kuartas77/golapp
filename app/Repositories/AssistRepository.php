@@ -28,50 +28,45 @@ class AssistRepository
     }
 
     /**
-     * @param $request
+     * @param array $data
      * @param false $deleted
      * @return array
      */
-    public function search($request, $deleted = false): array
+    public function search(array $data, bool $deleted = false): array
     {
         if (!$deleted) {
-            $request->merge(['year' => now()->year]);
+            $data['year'] = now()->year;
         }
 
         $trainingGroup = TrainingGroup::query()->schoolId()
-            ->when($deleted, fn ($q) => $q->onlyTrashedRelations())->findOrFail($request->input('training_group_id'));
+            ->when($deleted, fn ($q) => $q->onlyTrashedRelations())->findOrFail($data['training_group_id']);
 
         $assists = $this->model->schoolId()->with('inscription.player')
             ->when($deleted, fn ($q) => $q->withTrashed())
-            ->where([
-                ['training_group_id', $request->training_group_id],
-                ['month', $request->month],
-                ['year', $request->year]
-            ]);
+            ->where($data);
 
-        return $this->generateTable($assists, $trainingGroup, $request, $deleted);
+        return $this->generateTable($assists, $trainingGroup, $data, $deleted);
     }
 
     /**
-     * @param $request
+     * @param array $dataAssist
      * @return array
      */
-    public function create($request): array
+    public function create(array $dataAssist): array
     {
         $table = [];
         try {
 
-            $trainingGroup = TrainingGroup::query()->schoolId()->find($request->input('training_group_id'));
+            $dataAssist['year'] = now()->year;
+
+            $trainingGroup = TrainingGroup::query()->schoolId()->find($dataAssist['training_group_id']);
             $inscriptionIds = Inscription::query()->schoolId()
-                ->where('training_group_id', $request->input('training_group_id'))
-                ->where('year', now()->year)->pluck('id');
+                ->where('training_group_id', $dataAssist['training_group_id'])
+                ->where('year', $dataAssist['year'])->pluck('id');
 
             $school_id = getSchool(auth()->user())->id;
 
-            $request->merge(['year' => now()->year]);
-
-            $assists = $this->model->schoolId()->with('inscription.player')
-                ->where($request->only(['training_group_id', 'year', 'month']));
+            $assists = $this->model->schoolId()->with('inscription.player')->where($dataAssist);
 
             if ($inscriptionIds->isNotEmpty()) {
 
@@ -84,16 +79,16 @@ class AssistRepository
                     $this->model->updateOrCreate(
                         [
                             'inscription_id' => $id,
-                            'year' => $request->input('year'),
-                            'month' => $request->input('month'),
-                            'training_group_id' => $request->input('training_group_id'),
+                            'year' => $dataAssist['year'],
+                            'month' => $dataAssist['month'],
+                            'training_group_id' => $dataAssist['training_group_id'],
                             'school_id' => $school_id
                         ],
                         [
                             'inscription_id' => $id,
-                            'year' => $request->input('year'),
-                            'month' => $request->input('month'),
-                            'training_group_id' => $request->input('training_group_id'),
+                            'year' => $dataAssist['year'],
+                            'month' => $dataAssist['month'],
+                            'training_group_id' => $dataAssist['training_group_id'],
                             'school_id' => $school_id
                         ]
                     );
@@ -101,7 +96,7 @@ class AssistRepository
                 DB::commit();
             }
 
-            $table = $this->generateTable($assists, $trainingGroup, $request);
+            $table = $this->generateTable($assists, $trainingGroup, $dataAssist);
         } catch (Exception $th) {
             DB::rollBack();
             $this->logError("AssistRepository create", $th);
@@ -111,15 +106,15 @@ class AssistRepository
     }
 
     /**
-     * @param $assist
-     * @param $request
+     * @param Assist $assist
+     * @param array $validated
      * @return bool
      */
-    public function update($assist, $request): bool
+    public function update(Assist $assist, array $validated): bool
     {
         try {
             DB::beginTransaction();
-            $updated = $assist->update($request->validated());
+            $updated = $assist->update($validated);
             DB::commit();
             return $updated;
         } catch (Exception $exception) {
@@ -132,19 +127,19 @@ class AssistRepository
     /**
      * @param $assists
      * @param $trainingGroup
-     * @param $request
+     * @param array $data
      * @param bool $deleted
      * @return array
      */
-    private function generateTable($assists, $trainingGroup, $request, bool $deleted = false): array
+    private function generateTable($assists, $trainingGroup, array $data, bool $deleted = false): array
     {
         $months = config('variables.KEY_MONTHS_INDEX');
         $group_name = $trainingGroup->full_schedule_group;
         $assists = $assists->get();
 
         $classDays = classDays(
-            $request->input('year'),
-            array_search($request->input('month'), $months, true),
+            $data['year'],
+            array_search($data['month'], $months, true),
             array_map('dayToNumber', $trainingGroup->explode_name['days'])
         );
 
@@ -161,9 +156,9 @@ class AssistRepository
         $table = View::make('templates.assists.table', ['thead' => $thead, 'rows' => $rows])->render();
 
         $params = [
-            'training_group_id' => $request->input('training_group_id'),
-            'year' => $request->input('year'),
-            'month' => $request->input('month'),
+            'training_group_id' => $data['training_group_id'],
+            'year' => $data['year'],
+            'month' => $data['month'],
             'deleted' => $deleted
         ];
 

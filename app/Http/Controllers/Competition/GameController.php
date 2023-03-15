@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers\Competition;
 
-use App\Http\Controllers\Controller;
 use App\Models\Game;
-use App\Repositories\GameRepository;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Routing\Redirector;
 use Illuminate\View\View;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Routing\Redirector;
+use App\Http\Controllers\Controller;
+use App\Repositories\GameRepository;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Contracts\View\Factory;
+use App\Http\Requests\CompetitionRequest;
+use Illuminate\Contracts\Foundation\Application;
 
 class GameController extends Controller
 {
@@ -49,9 +50,19 @@ class GameController extends Controller
      * @param Request $request
      * @return RedirectResponse
      */
-    public function store(Request $request): RedirectResponse
+    public function store(CompetitionRequest $request): RedirectResponse
     {
-        $match = $this->repository->createMatchSkill($request);
+        $match = $this->repository->createMatchSkill(
+            $request->only([
+                'tournament_id', 'competition_group_id', 'date', 'hour', 'num_match', 
+                'place', 'rival_name', 'final_score', 'general_concept','school_id'
+            ]), 
+            $request->only([
+                'inscriptions_id', 'assistance', 'titular', 'played_approx',
+                'position', 'goals', 'yellow_cards', 'red_cards',
+                'qualification', 'observation'
+            ])
+        );
         if ($match->wasRecentlyCreated) {
             alert()->success(env('APP_NAME'), __("messages.match_stored"));
             return redirect()->to(route('matches.index'));
@@ -76,9 +87,19 @@ class GameController extends Controller
      * @param Game $match
      * @return Application|RedirectResponse|Redirector
      */
-    public function update(Request $request, Game $match)
+    public function update(CompetitionRequest $request, Game $match)
     {
-        if ($this->repository->updateMatchSkill($request, $match)) {
+        $matchData = $request->only([
+            'tournament_id', 'competition_group_id', 'date', 'hour', 'num_match', 
+            'place', 'rival_name', 'final_score', 'general_concept','school_id'
+        ]); 
+        $skillsData = $request->only([
+            'inscriptions_id', 'assistance', 'titular', 'played_approx',
+            'position', 'goals', 'yellow_cards', 'red_cards',
+            'qualification', 'observation', 'ids'
+        ]);
+
+        if ($this->repository->updateMatchSkill($matchData, $skillsData, $match)) {
             alert()->success(env('APP_NAME'), __("messages.match_updated"));
             return redirect(route('matches.index'));
         }

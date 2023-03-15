@@ -70,9 +70,7 @@ class GolAppProvider extends ServiceProvider
             'templates.competitions.row_edit'
         ], MatchesViewComposer::class);
 
-        View::composer([
-            'groups.competition.index', 'groups.training.index'
-        ], TrainingGroupComposer::class);
+        View::composer(['groups.competition.index', 'groups.training.index'], TrainingGroupComposer::class);
 
         View::composer(['payments.payment.index'], PaymentsViewComposer::class);
 

@@ -583,3 +583,9 @@ select.swal2-select{
     -ms-transform-origin: 100% 100%;
     transform-origin: 100% 100%;
 }
+
+@media (max-width: 767px){
+    .login-register {
+        position: absolute;
+    }
+}

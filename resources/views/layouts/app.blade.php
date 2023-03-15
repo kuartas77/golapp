@@ -31,7 +31,7 @@
 {{--    <div class="loading ocultar">Loading</div>--}}
 
     @if(stripos(Request::url(),'/login') || stripos(Request::url(),'/contrasenia/vencida')
-    || stripos(Request::url(),'password/reset') || stripos(Request::url(),'/register'))
+    || stripos(Request::url(),'password/reset') || stripos(Request::url(),'/register') )
     <section id="wrapper">
         @yield('content')
     </section>

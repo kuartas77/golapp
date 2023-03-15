@@ -20,40 +20,13 @@ class SharedService
     public function paymentAssist(Inscription $inscription)
     {
         try {
-            DB::beginTransaction();
-
+            
             $start_date = Date::parse($inscription->start_date);
             $year = $start_date->year;
             $month = getMonth($start_date->month);
-
-            $this->searchPayment = [
-                'inscription_id' => $inscription->id,
-                'year' => $year,
-                'school_id' => $inscription->school_id
-            ];
             
-            $this->searchAssist = [
-                'inscription_id' => $inscription->id,
-                'year' => $year,
-                'month' => $month,
-            ];
-
-            $this->dataPayment = [
-                'inscription_id' => $inscription->id, 
-                'year' => $year,
-                'training_group_id' => $inscription->training_group_id,
-                'unique_code' => $inscription->unique_code,
-                'deleted_at' => null,
-                'school_id' => $inscription->school_id
-            ];
-
-            $this->dataAssist = [
-                'training_group_id' => $inscription->training_group_id,
-                'year' => $year,
-                'month' => $month,
-                'deleted_at' => null
-            ];
-
+            $this->setData($inscription, $year, $month);
+            
             if($inscription->wasRecentlyCreated){
                 $value = $inscription->scholarship ? '8': '0';
                 $this->dataPayment['january'] = $value;
@@ -70,6 +43,8 @@ class SharedService
                 $this->dataPayment['december'] = $value;
             }
 
+            DB::beginTransaction();
+
             $this->createOrUpdatePaymentAssist($inscription);
 
             if(!$inscription->training_group_id){
@@ -79,6 +54,7 @@ class SharedService
             }
 
             DB::commit();
+            
         } catch (\Throwable $th) {
             DB::rollBack(2);
             $this->logError(__METHOD__, $th);
@@ -93,55 +69,31 @@ class SharedService
      */
     public function assignTrainingGroup($inscription_id, $request): bool
     {
-        $origin_group = $request->input('origin_group', null);
-        $target_group = $request->input('target_group', null);
-        $inscription = Inscription::query()->find($inscription_id);
-        if (is_null($target_group) || empty($inscription)) {
-            return false;
-        }
-
-        $date = now();
-        $year = $date->year;
-        $month = getMonth($date->month);
-
         try {
-            DB::beginTransaction();
+            $origin_group = $request->input('origin_group', null);
+            $target_group = $request->input('target_group', null);
+            $inscription = Inscription::query()->findOrFail($inscription_id);
 
-            $this->searchPayment = [
-                'inscription_id' => $inscription->id,
-                'year' => $year,
-                'school_id' => $inscription->school_id
-            ];
-            
-            $this->searchAssist = [
-                'inscription_id' => $inscription->id,
-                'year' => $year,
-                'month' => $month,
-            ];
+            if (!is_null($target_group)) {
+                $date = now();
+                $year = $date->year;
+                $month = getMonth($date->month);
+                
+                $this->setData($inscription, $year, $month);
 
-            $this->dataPayment = [
-                'inscription_id' => $inscription->id, 
-                'year' => $year,
-                'training_group_id' => $inscription->training_group_id,
-                'unique_code' => $inscription->unique_code,
-                'deleted_at' => null,
-                'school_id' => $inscription->school_id
-            ];
+                DB::beginTransaction();
+                                
+                $this->createOrUpdatePaymentAssist($inscription);
+                
+                $state = $inscription->update(['training_group_id' => $target_group]);
+                
+                DB::commit();
+                
+                return $state;
+            }
 
-            $this->dataAssist = [
-                'training_group_id' => $inscription->training_group_id,
-                'year' => $year,
-                'month' => $month,
-                'deleted_at' => null
-            ];
-            
-            $this->createOrUpdatePaymentAssist($inscription);
-            
-            $state = $inscription->update(['training_group_id' => $target_group]);
+            return false;
 
-            DB::commit();
-
-            return $state;
         } catch (\Throwable $th) {
             DB::rollBack();
             $this->logError(__METHOD__, $th);
@@ -160,5 +112,36 @@ class SharedService
             $this->searchAssist,
             $this->dataAssist
         );
+    }
+
+    private function setData($inscription, $year, $month)
+    {
+        $this->searchPayment = [
+            'inscription_id' => $inscription->id,
+            'year' => $year,
+            'school_id' => $inscription->school_id
+        ];
+        
+        $this->searchAssist = [
+            'inscription_id' => $inscription->id,
+            'year' => $year,
+            'month' => $month,
+        ];
+
+        $this->dataPayment = [
+            'inscription_id' => $inscription->id, 
+            'year' => $year,
+            'training_group_id' => $inscription->training_group_id,
+            'unique_code' => $inscription->unique_code,
+            'deleted_at' => null,
+            'school_id' => $inscription->school_id
+        ];
+
+        $this->dataAssist = [
+            'training_group_id' => $inscription->training_group_id,
+            'year' => $year,
+            'month' => $month,
+            'deleted_at' => null
+        ];
     }
 }

@@ -37,7 +37,7 @@ class Master extends Model
         return $response;
     }
 
-    public static function saveAutoComplete($request)
+    public static function saveAutoComplete(array $data)
     {
         $keys = ['school', 'place_birth', 'neighborhood', 'eps', 'place', 'rival_name', 'zone', 'commune', 'degree'];
         
@@ -45,9 +45,9 @@ class Master extends Model
             DB::beginTransaction();
             for ($i = 0; $i < count($keys); ++$i) {
                 $key = $keys[$i];
-                if (array_key_exists($key, $request->all())) {
+                if (array_key_exists($key, $data)) {
 
-                    $fieldRequest = Str::upper(trim($request[$key]));
+                    $fieldRequest = Str::upper(trim($data[$key]));
 
                     $master = static::firstOrCreate(
                         ['field' => $key],
@@ -68,6 +68,38 @@ class Master extends Model
             (new Master())->logError(__METHOD__, $th);
         }   
     }
+
+    // public static function saveAutoComplete($request)
+    // {
+    //     $keys = ['school', 'place_birth', 'neighborhood', 'eps', 'place', 'rival_name', 'zone', 'commune', 'degree'];
+        
+    //     try {
+    //         DB::beginTransaction();
+    //         for ($i = 0; $i < count($keys); ++$i) {
+    //             $key = $keys[$i];
+    //             if (array_key_exists($key, $request->all())) {
+
+    //                 $fieldRequest = Str::upper(trim($request[$key]));
+
+    //                 $master = static::firstOrCreate(
+    //                     ['field' => $key],
+    //                 );
+
+    //                 $autocomplete = array_unique(
+    //                     array_merge(
+    //                         explode(',', $master->autocomplete),
+    //                         explode(',', $fieldRequest)
+    //                     )
+    //                 , SORT_STRING);
+    //                 $master->update(['autocomplete' => $autocomplete]);
+    //             }
+    //         }
+    //         DB::commit();
+    //     } catch (\Throwable $th) {
+    //         DB::rollBack();
+    //         (new Master())->logError(__METHOD__, $th);
+    //     }   
+    // }
 
     public function getAutoCompleteExplodeAttribute()
     {

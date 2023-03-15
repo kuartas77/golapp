@@ -13,15 +13,15 @@
                 <!-- Logo text -->
                 <span style="display: none;">
                     <!-- dark Logo text -->
-                    <img src="{{asset('img/logo-ext.jpg')}}" alt="homepage" class="dark-logo">
+                    <img src="{{asset('img/logo-ext.jpg')}}" alt="homepage" class="dark-logo" width="148" height="33">
                     <!-- Light Logo text -->
-                    <img src="{{asset('img/logo-ext.jpg')}}" class="light-logo" alt="homepage">
+                    <img src="{{asset('img/logo-ext.jpg')}}" class="light-logo" alt="homepage" width="148" height="33">
                 </span>
             </a>
 
         </div>
         {{-- End Logo --}}
-        <div class="navbar-collapse">
+        <div class="navbar-collapse collapse">
             {{-- toggle and nav items --}}
             <ul class="navbar-nav mr-auto mt-md-0">
                 <!-- This is  -->

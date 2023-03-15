@@ -45,7 +45,7 @@ class PlayerRepository
     {
         try {
             DB::beginTransaction();
-            Master::saveAutoComplete($request);
+            Master::saveAutoComplete($request->all());
             $dataPlayer = $this->setAttributes($request);
             $player = $this->model->create($dataPlayer);
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
