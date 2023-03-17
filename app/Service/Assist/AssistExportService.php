@@ -3,6 +3,7 @@
 namespace App\Service\Assist;
 
 use App\Models\Assist;
+use App\Models\School;
 use App\Traits\PDFTrait;
 use App\Traits\ErrorTrait;
 use App\Models\TrainingGroup;
@@ -21,7 +22,7 @@ class AssistExportService
     public function generatePDF($params, $deleted)
     {
         list($assists, $classDays, $group_name, $group, $school) = $this->dataExport($params, $deleted);
-
+        $school->logo_local = $school->logo_local;
         $data['school'] = $school;
         $data['assists'] = $assists;
         $data['count'] = $assists->count() + 1;
@@ -45,7 +46,7 @@ class AssistExportService
      * @param false $deleted
      * @return array
      */
-    private function dataExport($params, bool $deleted = false): array
+    public function dataExport($params, bool $deleted = false): array
     {
         $months = config('variables.KEY_MONTHS_INDEX');
         if ($deleted) {
@@ -72,7 +73,7 @@ class AssistExportService
             array_map('dayToNumber', $group->explode_name['days'])
         );
 
-        $school = getSchool(auth()->user());
+        $school = School::find($group->school_id);
         
         return [$assists, $classDays, $group->full_schedule_group, $group, $school];
     }

@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use Exception;
 use App\Models\User;
+use App\Models\School;
 use App\Models\SchoolUser;
 use App\Traits\ErrorTrait;
 use Illuminate\Support\Str;
@@ -47,8 +48,8 @@ class UserRepository
     {
         try {
             DB::beginTransaction();
-            $school = auth()->user()->school;
-            $user = $this->model->query()->create($request->validated());
+            $school = getSchool(auth()->user());
+            $user = $this->model->query()->create($request->validated() + ['school_id' => $school->id]);
             $user->syncRoles([$request->input('rol_id')]);
             $user->profile()->create();
 

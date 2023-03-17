@@ -32,7 +32,7 @@ class MasterController extends Controller
     public function existDocument(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 401);
-        return $this->responseJson($this->playerRepository->checkDocumentExists($request));
+        return $this->responseJson($this->playerRepository->checkDocumentExists($request->input('doc')));
     }
 
     /**
@@ -42,7 +42,7 @@ class MasterController extends Controller
     public function codeUniqueVerify(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 401);
-        return $this->responseJson($this->playerRepository->checkUniqueCode($request));
+        return $this->responseJson($this->playerRepository->checkUniqueCode($request->input('unique_code')));
     }
 
 

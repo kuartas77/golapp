@@ -36,17 +36,15 @@ class ScheduleRepository
     /**
      * @param Request $request
      */
-    public function store(FormRequest $request)
+    public function store(array $data)
     {
         try {
             DB::beginTransaction();
-            $data = $request->all();
             $this->model->query()->create($data);
             DB::commit();
 
             Cache::forget("SCHEDULES_{$data['school_id']}");
             alert()->success(env('APP_NAME'), __('messages.schedule_create_success'));
-            
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("ScheduleRepository store", $exception);
@@ -59,10 +57,9 @@ class ScheduleRepository
      * @param Day $day
      * @return bool|RedirectResponse
      */
-    public function update(FormRequest $request, Schedule $schedule)
+    public function update(array $data, Schedule $schedule)
     {
         try {
-            $data = $request->validated();
             DB::beginTransaction();
             $schedule->update($data);
             DB::commit();

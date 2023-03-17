@@ -5,7 +5,6 @@ namespace App\Imports;
 use App\Models\Inscription;
 use App\Models\SkillsControl;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
@@ -31,25 +30,27 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
         $inscriptions = $inscriptions->keyBy('unique_code');
 
         foreach ($rows as $row) {
-            
-            $inscription =  $inscriptions[$row['codigo']];
 
-            $skillControll = new SkillsControl([
-                'inscription_id' => $inscription->id,
-                'assistance' => cleanString(strtolower($row['asistio'])) == 'si' ?  1 : 0,
-                'titular' => cleanString(strtolower($row['titular'])) == 'si' ?  1 : 0,
-                'played_approx' => intval($row['jugo_aprox']),
-                'position' => $row['posicion'],
-                'goals' => intval($row['goles']),
-                'red_cards' => intval($row['rojas']),
-                'yellow_cards' => intval($row['amarillas']),
-                'qualification' => intval($row['calificacion']),
-                'observation' => $row['observacion'],
-            ]);
-
-            $skillControll->inscription = $inscription;
-
-            $this->data->push($skillControll);
+            if($row['codigo']){
+                $inscription =  $inscriptions[$row['codigo']];
+    
+                $skillControll = new SkillsControl([
+                    'inscription_id' => $inscription->id,
+                    'assistance' => cleanString(strtolower($row['asistio'])) == 'si' ?  1 : 0,
+                    'titular' => cleanString(strtolower($row['titular'])) == 'si' ?  1 : 0,
+                    'played_approx' => intval($row['jugo_aprox']),
+                    'position' => $row['posicion'],
+                    'goals' => intval($row['goles']),
+                    'red_cards' => intval($row['rojas']),
+                    'yellow_cards' => intval($row['amarillas']),
+                    'qualification' => intval($row['calificacion']),
+                    'observation' => $row['observacion'],
+                ]);
+    
+                $skillControll->inscription = $inscription;
+    
+                $this->data->push($skillControll);
+            }
         }
     }
 

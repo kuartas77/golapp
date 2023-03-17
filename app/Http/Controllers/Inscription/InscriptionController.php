@@ -40,7 +40,8 @@ class InscriptionController extends Controller
     public function store(InscriptionRequest $request): JsonResponse
     {
         abort_unless(isAdmin() || isSchool(), 401);
-        $inscription = $this->repository->setInscription($request);
+        $inscriptionModel = new Inscription();
+        $inscription = $this->repository->setInscription($request->only($inscriptionModel->getFillable()));
         if (is_null($inscription) || $inscription->getDirty() > 0) {
             return response()->json([__('messages.ins_create_success')]);
         } else {
@@ -68,8 +69,8 @@ class InscriptionController extends Controller
     public function update(InscriptionUpdateRequest $request, Inscription $inscription): JsonResponse
     {
         abort_unless(isAdmin() || isSchool(), 401);
-
-        $inscription = $this->repository->setInscription($request, false, $inscription);
+        $inscriptionModel = new Inscription();
+        $inscription = $this->repository->setInscription($request->only($inscriptionModel->getFillable()), false, $inscription);
 
         if (is_null($inscription) || $inscription->getDirty() > 0) {
             return response()->json([__('messages.ins_update_success')]);

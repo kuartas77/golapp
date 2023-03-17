@@ -53,7 +53,7 @@ class SchedulesController extends Controller
      */
     public function store(ScheduleRequest $request): RedirectResponse
     {
-        $this->repository->store($request);
+        $this->repository->store($request->validated());
         return back();
     }
 
@@ -89,7 +89,7 @@ class SchedulesController extends Controller
      */
     public function update(ScheduleRequest $request, Schedule $schedule): RedirectResponse
     {
-        $this->repository->update($request, $schedule);
+        $this->repository->update($request->validated(), $schedule);
         return back();
     }
 

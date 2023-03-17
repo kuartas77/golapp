@@ -12,17 +12,15 @@ class InscriptionNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    private Inscription $inscription;
     /**
      * Create a new notification instance.
      *
      * @param User $user
      * @param $pass
      */
-    public function __construct(Inscription $inscription)
+    public function __construct(private Inscription $inscription)
     {
         $this->afterCommit();
-        $this->inscription = $inscription;
     }
 
     /**

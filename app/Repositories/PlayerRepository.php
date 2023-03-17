@@ -9,7 +9,6 @@ use App\Models\Master;
 use App\Models\Player;
 use Mpdf\MpdfException;
 use App\Traits\PDFTrait;
-use Jenssegers\Date\Date;
 use App\Traits\ErrorTrait;
 use App\Traits\UploadFile;
 use Illuminate\Support\Facades\DB;
@@ -43,14 +42,20 @@ class PlayerRepository
 
     public function createPlayer(PlayerCreateRequest $request): Player
     {
+        
         try {
+            $dataPlayer = $request->only($this->getAttributes());
+            if($file_name = $this->saveFile($request, 'player')){
+                $dataPlayer['photo'] = $file_name;
+            }
+            $dataPlayer = $this->setAttributes($dataPlayer);
+            
             DB::beginTransaction();
+
             Master::saveAutoComplete($request->all());
-            $dataPlayer = $this->setAttributes($request);
             $player = $this->model->create($dataPlayer);
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
             $player->people()->sync($peopleIds);
-
             $player->notify(new RegisterPlayerNotification($player));
             
             DB::commit();
@@ -66,9 +71,15 @@ class PlayerRepository
     public function updatePlayer(Player $player, PlayerUpdateRequest $request): bool
     {
         try {
+            $dataPlayer = $request->only($this->getAttributes());
+            if($file_name = $this->saveFile($request, 'player')){
+                $dataPlayer['photo'] = $file_name;
+            }
+            $dataPlayer = $this->setAttributes($dataPlayer, $player);
+
             DB::beginTransaction();
-            Master::saveAutoComplete($request);
-            $dataPlayer = $this->setAttributes($request, $player);
+
+            Master::saveAutoComplete($dataPlayer);
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
             $player->people()->sync($peopleIds);
             $save = $player->update($dataPlayer);
@@ -94,18 +105,18 @@ class PlayerRepository
      * @param $request
      * @return bool
      */
-    public function checkDocumentExists($request): bool
+    public function checkDocumentExists(string $doc): bool
     {
-        return $this->model->query()->schoolId()->where('identification_document', $request->input('doc'))->exists();
+        return $this->model->query()->schoolId()->where('identification_document', $doc)->exists();
     }
 
     /**
      * @param $request
      * @return bool
      */
-    public function checkUniqueCode($request): bool
+    public function checkUniqueCode(string $unique_code): bool
     {
-        return $this->model->query()->schoolId()->withTrashed()->where('unique_code', $request->input('unique_code'))->exists();
+        return $this->model->query()->schoolId()->withTrashed()->where('unique_code', $unique_code)->exists();
     }
 
     public function searchUniqueCode(array $fields)
@@ -132,15 +143,11 @@ class PlayerRepository
      * @param Player|null $player
      * @return mixed
      */
-    private function setAttributes(FormRequest $request, Player $player = null)
+    private function setAttributes(array $dataPlayer, Player $player = null)
     {
-        $dataPlayer = $request->only($this->getAttributes());
-        if($file_name = $this->saveFile($request, 'player')){
-            $dataPlayer['photo'] = $file_name;
-        }
-        $dataPlayer['date_birth'] = Date::parse(request('date_birth'));
+        $dataPlayer['date_birth'] = Carbon::parse($dataPlayer['date_birth']);
         $dataPlayer['category'] = categoriesName($dataPlayer['date_birth']->year);
-        $dataPlayer['unique_code'] = request('unique_code', optional($player)->unique_code);
+        $dataPlayer['unique_code'] = ($dataPlayer['unique_code'] ?? optional($player)->unique_code);
         return $dataPlayer;
     }
 

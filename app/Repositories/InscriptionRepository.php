@@ -51,19 +51,23 @@ class InscriptionRepository
     }
 
     /**
-     * @param FormRequest $request
+     * @param array $inscriptionData
      * @param bool $created
      * @param Inscription|null $inscription
      * @return Inscription|null
      */
-    public function setInscription(FormRequest $request, bool $created = true, Inscription $inscription = null): Inscription
+    public function setInscription(array $inscriptionData, bool $created = true, Inscription $inscription = null): Inscription
     {
         try {
-            DB::beginTransaction();
-
-            $inscriptionData = $request->only($this->model->getFillable());
-            $inscriptionData['training_group_id'] = request('training_group_id', TrainingGroup::orderBy('id', 'asc')->firstWhere('school_id', getSchool(auth()->user())->id)->id);
+            
+            if(!$inscriptionData['training_group_id']){
+                $inscriptionData['training_group_id'] = TrainingGroup::query()->orderBy('id', 'asc')
+                ->firstWhere('school_id', $inscriptionData['school_id'])->id;
+            }
+            
             $inscriptionData['deleted_at'] = null;
+            
+            DB::beginTransaction();
 
             if ($created) {
                 $inscription = $this->model->withTrashed()->updateOrCreate([

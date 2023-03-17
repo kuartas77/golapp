@@ -5,12 +5,11 @@ namespace App\Repositories;
 
 
 use App\Models\Payment;
-use App\Models\School;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\Eloquent\Builder;
 
 class PaymentRepository
 {
@@ -67,12 +66,9 @@ class PaymentRepository
 
         $query->where('year', $request->input('year', now()->year));
 
-        $query->when($request->filled('unique_code'), function ($q) use ($request) {
-            return $q->where($request->only(['unique_code']));
-        });
-        $query->when($request->filled('training_group_id'), function ($q) use ($request) {
-            return $q->where($request->only(['training_group_id']));
-        });
+        $query->when($request->filled('unique_code'), fn ($q) => $q->where($request->unique_code));
+        $query->when($request->filled('training_group_id'), fn ($q) => $q->where($request->training_group_id));
+
         return $query;
     }
 
@@ -93,9 +89,7 @@ class PaymentRepository
         $year = $year == 0 ? now()->year : $year;
         $school_id = (isSchool() || isInstructor()) ? getSchool(auth()->user())->id : null;
 
-        return Cache::remember("graphics.year.{$year}.{$school_id}", now()->addMinutes(10), function () use ($year, $school_id) {
-            return $this->queryGraphics($year, $school_id);
-        });
+        return Cache::remember("graphics.year.{$year}.{$school_id}", now()->addMinute(), fn() => $this->queryGraphics($year, $school_id));
     }
 
     private function queryGraphics($year, $school_id)
