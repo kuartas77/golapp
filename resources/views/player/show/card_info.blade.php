@@ -118,7 +118,7 @@
                             Entrenamientos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-info" href="{{route('export.inscription', [$inscription->player_id, $inscription->id])}}" target="_blank" role="tab">Descargar PDF</a>
+                        <a class="btn btn-info" href="{{route('export.inscription', [$inscription->player_id, $inscription->id])}}" target="_blank" role="tab">Resumen {{$inscription->year}} PDF</a>
                     </li>
 
                     <li class="nav-item ml-auto card-actions">
@@ -134,6 +134,32 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-12">
+
+                                    <div class="row">
+                                        <ul>
+                                            <li>Primer trimestre: 1 de enero hasta el 31 de marzo.</li>
+                                            <li>Segundo trimestre: 1 de abril hasta el 30 de junio.</li>
+                                            <li>Tercer trimestre: 1 de julio al 30 de septiembre.</li>
+                                            <li>Cuarto trimestre: 1 de octubre al 31 de diciembre.</li>
+                                        </ul>
+                                    </div>
+                                    <div class="row">
+                                                                               
+                                        <div class="col-md-3">
+                                            <a class="btn btn-info" href="{{route('export.inscription', [$inscription->player_id, $inscription->id, $inscription->year, 'quarter_one'])}}" target="_blank">PDF Primer trimestre</a>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a class="btn btn-info" href="{{route('export.inscription', [$inscription->player_id, $inscription->id, $inscription->year, 'quarter_two'])}}" target="_blank">PDF Segundo trimestre</a>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a class="btn btn-info" href="{{route('export.inscription', [$inscription->player_id, $inscription->id, $inscription->year, 'quarter_three'])}}" target="_blank">PDF Tercer trimestre</a>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a class="btn btn-info" href="{{route('export.inscription', [$inscription->player_id, $inscription->id, $inscription->year, 'quarter_four'])}}" target="_blank">PDF Cuarto trimestre</a>
+                                        </div>
+                                    </div>
+
+                                    <hr>
 
                                     <div class="row">
                                         <div class="col-md-3 col-xs-6 b-r"> Total Partidos
