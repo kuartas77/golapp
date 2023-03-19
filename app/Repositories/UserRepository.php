@@ -27,7 +27,7 @@ class UserRepository
     public function getAll()
     {
         if(isSchool()){
-            $school = auth()->user()->school;
+            $school = getSchool(auth()->user());
             return $school->users()->with(['roles','profile','school'])->get();
         }
         
@@ -37,7 +37,7 @@ class UserRepository
     public function getAllTrash()
     {
         if(isSchool()){
-            $school = auth()->user()->school;
+            $school = getSchool(auth()->user());
             return $school->users()->with(['roles','profile','school'])->onlyTrashed()->get();
         }
 

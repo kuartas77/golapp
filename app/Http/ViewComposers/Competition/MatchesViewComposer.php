@@ -19,7 +19,7 @@ class MatchesViewComposer
         if (Auth::check()) {
 
 
-            $school_id = isAdmin() ? 0 : getSchool(auth()->user())->id;
+            $school_id = getSchool(auth()->user())->id;
 
             $minYear = Cache::remember("KEY_MIN_YEAR_{$school_id}", now()->addDay(), function () use($school_id) {
                 return Carbon::parse(Game::getMinYear($school_id))->year;

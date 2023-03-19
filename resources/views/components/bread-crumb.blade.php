@@ -23,7 +23,42 @@
 
                     @default
                 @endswitch
+                @hasanyrole('super-admin')
+                <a href="#" class="btn waves-effect waves-light btn-rounded btn-info" onclick="selectSchool()">Seleccionar Escuela</a>
+                @endhasanyrole
             </div>
         </div>
     </div>
 </div>
+@push('scripts')
+@hasanyrole('super-admin')
+<script>
+    const urlchooseSchool = "{{route('config.school.choose')}}";
+    const schools = @json($admin_schools);
+    function selectSchool(){
+        swal({
+            title: 'Para seguir seleciona una escuela',
+            type: "info",
+            input: 'select',
+            inputOptions: schools,
+            inputPlaceholder: 'Selecciona...',
+            allowOutsideClick: false,
+            allowEscapeKey:false,
+            inputValidator: function (value) {
+                return new Promise(function (resolve) {
+                    if (value !== '') {
+                        resolve();
+                    } else {
+                        resolve('Necesitas seleccionar una escuela');
+                    }
+                });
+            }
+        }).then(function (result) {
+            $.post(urlchooseSchool, {'school_id': result.value}, function(data){
+                setTimeout(location.reload(), 2000)
+            });
+        });
+    }
+</script>
+@endhasanyrole
+@endpush

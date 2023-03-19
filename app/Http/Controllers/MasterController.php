@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Master;
-use App\Models\Player;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Repositories\PlayerRepository;

@@ -23,7 +23,7 @@ class TrainingGroupComposer
     {
         if (Auth::check()) {
 
-            $school_id = isAdmin() ? 0 : getSchool(auth()->user())->id;
+            $school_id = getSchool(auth()->user())->id;
             
             $days = Cache::rememberForever('KEY_WEEKS', fn () => config('variables.KEY_WEEKS'));
 

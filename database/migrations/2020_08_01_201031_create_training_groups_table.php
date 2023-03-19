@@ -30,8 +30,8 @@ class CreateTrainingGroupsTable extends Migration
             $table->string('year_eleven', 100)->nullable();
             $table->string('year_twelve', 100)->nullable();
             $table->text('category')->nullable();
-            $table->string('days', 100);
-            $table->string('schedules', 100);
+            $table->string('days', 100)->nullable();
+            $table->string('schedules', 100)->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

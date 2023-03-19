@@ -37,7 +37,7 @@ class PlayerRepository
 
     public function getPlayersPeople()
     {
-        return $this->model->query()->with('people')->schoolId()->get();
+        return $this->model->query()->with(['people'])->schoolId()->get();
     }
 
     public function createPlayer(PlayerCreateRequest $request): Player
@@ -121,20 +121,13 @@ class PlayerRepository
 
     public function searchUniqueCode(array $fields)
     {
-        return $this->model->query()->schoolId()->whereDoesntHave('inscription', fn ($q) => $q->where('year', now()->year))
+        return $this->model->query()->schoolId()->whereDoesntHave('inscription')
         ->firstWhere('unique_code', $fields['unique_code']);
     }
 
     public function getListPlayersNotInscription(bool $isTrashed = true)
     {
-        $enabled = $this->model->query()->schoolId()->select(['id','unique_code'])->whereHas('inscription')->get();
-
-        if ($isTrashed) {
-            $players = $this->model->query()->schoolId()->whereNotIn('id', $enabled->pluck('id'))->pluck('unique_code');
-        } else {
-            $players = $enabled->pluck('unique_code');
-        }
-        return $players;
+        return $this->model->query()->schoolId()->whereDoesntHave('inscription')->pluck('unique_code');
     }
 
     /**
@@ -153,7 +146,7 @@ class PlayerRepository
 
     public function birthdayToday(): Collection
     {
-        $school_id = isAdmin() ? 0 : getSchool(auth()->user())->id;
+        $school_id = getSchool(auth()->user())->id;
         return Cache::remember("BIRTHDAYS_{$school_id}", Carbon::now()->addDay(), function(){
             return $this->model->query()->schoolId()->whereHas('inscription')
             ->whereDay('date_birth', Carbon::now()->day)->whereMonth('date_birth', Carbon::now()->month)

@@ -73,7 +73,7 @@ class AssistExportService
             array_map('dayToNumber', $group->explode_name['days'])
         );
 
-        $school = School::find($group->school_id);
+        $school = getSchool(auth()->user());
         
         return [$assists, $classDays, $group->full_schedule_group, $group, $school];
     }

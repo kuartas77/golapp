@@ -178,7 +178,7 @@ class School extends Model
     public function configDefault()
     {
         $this->schedules()->create([
-            'schedule' => "10:00AM - 11:00AM",
+            'schedule' => '10:00AM - 11:00AM',
         ]);
 
         $this->trainingGroups()->create([
@@ -186,10 +186,10 @@ class School extends Model
             'year' => now()->year,
             'category' => 'Todas las categorías',
             'days' => 'Grupo predeterminado',
-            'schedules' => '',
+            'schedules' => '10:00AM - 11:00AM',
         ]);
 
-        $this->settingsValues()->createMany(SettingValue::settingsDefault($this->id));
+        // $this->settingsValues()->createMany(SettingValue::settingsDefault($this->id));
     }
 
 }

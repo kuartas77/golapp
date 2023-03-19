@@ -20,7 +20,9 @@ Route::middleware(['auth', 'role:super-admin'])->group(function ($route) {
         $route->resource("schools_info", SchoolInfoController::class);
         $route->resource("settings", SettingValueController::class);
         $route->resource("users", UserController::class);
-
+        
+        $route->post('school/choose', [SchoolController::class, 'choose'])->name('school.choose');
+        
         $route->prefix('datatables')->name('datatables.')->group(function ($route) {
             // $route->get('enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');
             // $route->get('training_groups_enabled', [DataTableController::class, 'enabledTrainingGroups'])->name('training_groups.enabled');

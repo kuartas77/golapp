@@ -45,7 +45,7 @@
         @endphp
         <tr class="tr-info">
             <td class="center texto" style="width:1%">{{$loop->iteration}}</td>
-            <td class="texto" style="width:8%">&nbsp;<small>{{ $assist->inscription->player->unique_code }}</small> - {{ $assist->inscription->player->full_names }}</td>
+            <td class="texto" style="width:15%">&nbsp;<small>{{ $assist->inscription->player->unique_code }}</small> - {{ $assist->inscription->player->full_names }}</td>
             <td class="center texto" style="width:3%">{{ $assist->inscription->category }}</td>
             <td class="center texto" style="width:7%">
                 <small>{{ ($assist->inscription->player->mobile ?? ($assist->inscription->player->phones ?? '')) }}</small>
@@ -65,7 +65,7 @@
     @for ($i = 0; $i <= $result; $i++)
         <tr class="tr-info">
             <td class="center texto" style="width:1%">{{ $count++ }}</td>
-            <td class="texto" style="width:10%">&nbsp;</td>
+            <td class="texto" style="width:15%">&nbsp;</td>
             <td class="texto" style="width:3%">&nbsp;</td>
             <td class="texto" style="width:7%">&nbsp;</td>
             @for ($j = 1; $j <= count($classDays); $j++)

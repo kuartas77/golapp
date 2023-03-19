@@ -6,6 +6,7 @@ use Carbon\CarbonPeriod;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Session;
 
 if (!function_exists('getPay')) {
     /**
@@ -173,6 +174,10 @@ if (!function_exists('isInstructor')) {
 
 if (!function_exists('getSchool')){
     function getSchool($user): School{
+        if(isAdmin() && Session::has('admin.school')){
+            return Session::get('admin.school');
+        }
+        
         return Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn()=> $user->school);
     }
 }
