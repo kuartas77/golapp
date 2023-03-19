@@ -15,6 +15,6 @@ class SchoolsController extends Controller
 
     public function show(School $school)
     {
-        dd($school);
+        return view('schoolPages.school', compact('school'));
     }
 }

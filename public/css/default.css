@@ -292,6 +292,15 @@ textarea[name=ticr_observacion] {
     background-image:url(../img/1970-max.jpg)
 }
 
+.public{
+    background-image:url(../img/1970-max.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+}
 
 .zoom {
     position: fixed;
@@ -588,4 +597,13 @@ select.swal2-select{
     .login-register {
         position: absolute;
     }
+    .public{
+        position: absolute;
+    }
+}
+
+.fluid_container {
+    margin: 0 auto;
+    max-width: 1000px;
+    width: 95%;
 }

@@ -2,27 +2,22 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\FileController;
-use App\Http\Controllers\ImportController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Assists\AssistController;
-use App\Http\Controllers\Players\PlayerController;
-use App\Http\Controllers\Competition\GameController;
-use App\Http\Controllers\Payments\PaymentController;
-use App\Http\Controllers\Schedule\SchedulesController;
-use App\Http\Controllers\SchoolPages\SchoolsController;
-use App\Http\Controllers\Players\PlayerExportController;
-use App\Http\Controllers\Tournaments\TournamentController;
-use App\Http\Controllers\Inscription\InscriptionController;
+use App\Http\Controllers\PublicController;
+use App\Http\Controllers\{FileController, ImportController};
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
+use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
+use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
+use App\Http\Controllers\{Competition\GameController, Payments\PaymentController, Schedule\SchedulesController, SchoolPages\SchoolsController};
 use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
 
 Auth::routes(['register' => false, 'verify' => false]);
 
-Route::get('/', function () {
-    return redirect(\route('login'));
-});
+Route::get('/', PublicController::class);
+
+// Route::get('/', function () {
+//     return redirect(\route('login'));
+// });
 
 Route::resource('escuelas', SchoolsController::class)->only([
     'index', 'show',
@@ -91,7 +86,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 
     $route->prefix('export')->name('export.')->group(function ($route) {
         $route->get('player/{player}/pdf', [PlayerExportController::class, 'exportPlayerPDF'])->name('player');
-        $route->get('inscription/{player_id}/{inscription_id}', [PlayerExportController::class, 'exportInscription'])->name('inscription');
+        $route->get('inscription/{player_id}/{inscription_id}/{year?}/{quarter?}', [PlayerExportController::class, 'exportInscription'])->name('inscription');
         $route->get('inscriptions/excel', [PlayerExportController::class, 'exportInscriptionsExcel'])->name('inscriptions');
 
         $route->get('assists/pdf/{training_group_id}/{year}/{month}/{deleted?}', [ExportController::class, 'exportAssistsPDF'])->name('pdf.assists');

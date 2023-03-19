@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Service\API\RegisterService;
 use App\Repositories\SchoolRepository;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\BackOffice\SchoolCreateRequest;
 use App\Http\Requests\BackOffice\SchoolUpdateRequest;
@@ -80,5 +81,12 @@ class SchoolController extends Controller
     public function destroy(School $school)
     {
         //
+    }
+
+    public function choose(Request $request)
+    {
+        $school = School::find($request->school_id);
+        Session::put('admin.school', $school);
+        return response()->json(true, 200);
     }
 }

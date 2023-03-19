@@ -18,6 +18,7 @@ use App\Http\ViewComposers\Assists\AssistHistoricViewComposer;
 use App\Http\ViewComposers\TrainingGroup\TrainingGroupComposer;
 use App\Http\ViewComposers\Inscription\InscriptionCreateComposer;
 use App\Http\ViewComposers\Payments\PaymentsHistoricViewComposer;
+use App\Http\ViewComposers\Public\PublicComposer;
 
 class GolAppProvider extends ServiceProvider
 {
@@ -87,5 +88,7 @@ class GolAppProvider extends ServiceProvider
         View::composer(['templates.*'], TemplatesComposer::class);
 
         View::composer(['*.*'], AdminComposer::class);
+
+        View::composer(['layouts.public.*', 'welcome'], PublicComposer::class);
     }
 }
