@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\User;
+use App\Observers\SchoolObserver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -26,7 +27,7 @@ class School extends Model
     use SoftDeletes;
 
     public const KEY_SCHOOL_CACHE = 'school_';
-    
+
     protected $table = "schools";
     protected $fillable = [
         'name',
@@ -39,11 +40,18 @@ class School extends Model
         'slug'
     ];
 
-    // Estamos Probando
-
     protected $casts = [
         'is_enable' => 'boolean'
     ];
+
+    protected $appends = [
+        'logo_file'
+    ];
+
+    protected static function booted()
+    {
+        self::observe(SchoolObserver::class);
+    }
 
     public function getRouteKeyName(): string
     {
@@ -60,12 +68,41 @@ class School extends Model
             $this->attributes['logo'] = $value;
         }
     }
+
     public function getLogoFileAttribute(): string
     {
         if (Storage::disk('public')->exists($this->attributes['logo'])) {
             return route('images', $this->attributes['logo']);
         }
         return asset('img/ballon.png');
+    }
+
+    public function getUrlEditAttribute(): string
+    {
+        return route('config.schools.edit', [$this->attributes['slug']]);
+    }
+
+    public function getUrlUpdateAttribute(): string
+    {
+        return route('config.schools.update', [$this->attributes['slug']]);
+    }
+
+    public function getUrlShowAttribute(): string
+    {
+        return route('config.schools.show', [$this->attributes['slug']]);
+    }
+
+    public function getUrlDestroyAttribute(): string
+    {
+        return route('config.schools.destroy', [$this->attributes['slug']]);
+    }
+
+    public function getLogoLocalAttribute(): string
+    {
+        if (Storage::disk('public')->exists($this->attributes['logo'])) {
+            return storage_path("app/public/{$this->attributes['logo']}");
+        }
+        return storage_path('standard/ballon.png');
     }
 
     public function users(): HasManyThrough
@@ -133,44 +170,26 @@ class School extends Model
         return $this->hasMany(Schedule::class);
     }
 
-    public function getUrlEditAttribute(): string
+    public function incidents(): HasMany
     {
-        return route('config.schools.edit', [$this->attributes['slug']]);
-    }
-
-    public function getUrlUpdateAttribute(): string
-    {
-        return route('config.schools.update', [$this->attributes['slug']]);
-    }
-
-    public function getUrlShowAttribute(): string
-    {
-        return route('config.schools.show', [$this->attributes['slug']]);
-    }
-
-    public function getUrlDestroyAttribute(): string
-    {
-        return route('config.schools.destroy', [$this->attributes['slug']]);
+        return $this->hasMany(Incident::class);
     }
 
     public function configDefault()
     {
-        $day = Day::query()->firstOrCreate(['days' => 'Lunes,Miércoles']);
-
-        $schedule = $this->schedules()->create([
-            'schedule' => "10:00AM - 11:00AM",
-            'day_id' => $day->id,
+        $this->schedules()->create([
+            'schedule' => '10:00AM - 11:00AM',
         ]);
 
         $this->trainingGroups()->create([
             'name' => 'Provisional',
             'year' => now()->year,
-            'category' => 'Todas Las Categorías',
-            'day_id' => $schedule->day_id,
-            'schedule_id' => $schedule->id
+            'category' => 'Todas las categorías',
+            'days' => 'Grupo predeterminado',
+            'schedules' => '10:00AM - 11:00AM',
         ]);
 
-        $this->settingsValues()->createMany(SettingValue::settingsDefault($this->id));
+        // $this->settingsValues()->createMany(SettingValue::settingsDefault($this->id));
     }
 
 }

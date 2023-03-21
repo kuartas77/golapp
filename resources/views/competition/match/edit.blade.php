@@ -8,7 +8,7 @@
 
                 @include('competition.match.table_members')
             </div>
-            <div class="form-actions m-t-0 text-center">
+            <div class="form-actions m-t-0 text-center" id="button_save">
                 <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info">
                     Guardar Cambios
                 </button>
@@ -37,12 +37,12 @@
                     '<td style="display: flex;">' +
                     '<input name="ids[' + count + ']" type="hidden" value="">' +
                     '<input name="inscriptions_id[' + count + ']" type="hidden" value="' + member_add.id + '" class="inscriptions">' +
-                    '<img class="media-object img-rounded" src="' + member_add.photo + '" width="60" height="60">' +
+                    '<img class="media-object img-rounded" src="' + member_add.player.photo_url + '" width="60" height="60">' +
                     '<p>' +
-                    member_add.full_names + '<br>' +
-                    'Teléfono: <small>' + member_add.phones + '</small><br>' +
-                    'Celular: <small>' + member_add.mobile + '</small><br>' +
-                    'Código: <strong>' + member_add.unique_code + '</strong><br>' +
+                    member_add.player.full_names + '<br>' +
+                    'Teléfono: <small>' + member_add.player.phones + '</small><br>' +
+                    'Celular: <small>' + member_add.player.mobile + '</small><br>' +
+                    'Código: <strong>' + member_add.player.unique_code + '</strong><br>' +
                     '</p>' +
                     '</td>' +
                     '<td><select class="form-control form-control-sm select" name="assistance[' + count + ']">' + selectOptions() + '</select></td>' +

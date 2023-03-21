@@ -27,8 +27,8 @@ class ChangeFieldsInscriptions extends Migration
                 'email', 'mobile', 'eps'
             ]);
             $table->dropUnique('inscriptions_unique_code_unique');
-            $table->unsignedBigInteger('player_id')->after('unique_code');
-            $table->year('year')->after('player_id');
+            $table->unsignedBigInteger('player_id')->nullable()->after('unique_code');
+            $table->year('year')->nullable()->after('player_id');
 
             $table->unique(['unique_code','year']);
 

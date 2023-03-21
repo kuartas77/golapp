@@ -2,13 +2,11 @@
 
 namespace App\Exports;
 
-use App\Repositories\AssistRepository;
-use App\Repositories\PaymentRepository;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\Request;
-use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\Exportable;
+use App\Service\Assist\AssistExportService;
 
 class AssistExport implements FromView, WithTitle
 {
@@ -31,9 +29,10 @@ class AssistExport implements FromView, WithTitle
 
     public function view(): View
     {
-        list($assists, $classDays, $group_name, $group) = app(AssistRepository::class)->dataExport($this->params, $this->deleted);
+        list($assists, $classDays, $group_name, $group) = app(AssistExportService::class)->dataExport($this->params, $this->deleted);
  
         $this->group_name = $group_name;
+        $group->instructors_names = $group->instructors_names;
         return view('exports.assists_excel', [
             'group' => $group,
             'assists' => $assists,

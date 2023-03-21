@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Observers\InscriptionObserver;
 use App\Traits\Fields;
 use App\Traits\GeneralScopes;
 use Illuminate\Support\Collection;
@@ -75,14 +76,17 @@ class Inscription extends Model
         'deleted_at',
     ];
 
-    protected $withCount = [
-        // 'skillsControls'
-    ];
     protected $casts = [
         'start_date' => "datetime:Y-m-d",
         'created_at' => "datetime:Y-m-d",
     ];
+
     //protected $appends = ['url_edit','url_update','url_show', 'url_impression'];
+
+    protected static function booted()
+    {
+        self::observe(InscriptionObserver::class);
+    }
 
     public function scopeWhereCategory($query, $category)
     {
@@ -103,10 +107,9 @@ class Inscription extends Model
         ]);
     }
 
-
     public function getUrlImpressionAttribute(): string
     {
-        return route('export.player', [$this->attributes['unique_code']]);
+        return route('export.inscription', [$this->attributes['player_id'], $this->attributes['id']]);
     }
 
     public function getUrlEditAttribute(): string
@@ -162,6 +165,11 @@ class Inscription extends Model
     public function assistance(): HasMany
     {
         return $this->hasMany(Assist::class);
+    }
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
     }
 
     public function getFormatAverageAttribute(): array

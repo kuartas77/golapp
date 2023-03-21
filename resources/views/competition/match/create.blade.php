@@ -8,7 +8,7 @@
 
                 @include('competition.match.table_members')
             </div>
-            <div class="form-actions m-t-0 text-center">
+            <div class="form-actions m-t-0 text-center" id="button_save">
                 <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info">
                     Guardar
                 </button>
@@ -26,6 +26,7 @@
         const urlList = "{{route('autocomplete.list_code_unique')}}";
         const urlSearch = "{{route('autocomplete.search_unique_code')}}";
         const urlAutoComplete = "{{route('autocomplete.fields')}}";
+        const urlUploadFile = "{{route('import.match', [$information->id])}}";
         const positions = @json($positions);
     </script>
     <script src="{{mix('js/matches_functions.js')}}"></script>
@@ -36,12 +37,12 @@
                 let member = '<tr>' +
                     '<td style="display: flex;">' +
                     '<input name="inscriptions_id[' + count + ']" type="hidden" value="' + member_add.id + '" class="inscriptions">' +
-                    '<img class="media-object img-rounded" src="' + member_add.photo + '" width="60" height="60">' +
+                    '<img class="media-object img-rounded" src="' + member_add.player.photo_url + '" width="60" height="60">' +
                     '<p>' +
-                    member_add.full_names + '<br>' +
-                    'Teléfono: <small>' + member_add.phones + '</small><br>' +
-                    'Celular: <small>' + member_add.mobile + '</small><br>' +
-                    'Código: <strong>' + member_add.unique_code + '</strong><br>' +
+                    member_add.player.full_names + '<br>' +
+                    'Teléfono: <small>' + member_add.player.phones + '</small><br>' +
+                    'Celular: <small>' + member_add.player.mobile + '</small><br>' +
+                    'Código: <strong>' + member_add.player.unique_code + '</strong><br>' +
                     '</p>' +
                     '</td>' +
                     '<td><select class="form-control form-control-sm select" name="assistance[' + count + ']">' + selectOptions() + '</select></td>' +
@@ -62,6 +63,27 @@
 
             $("#cancel_add").on('click', () => {
                 cancelAddMember();
+            });
+
+            $('#file-upload').on('change', function(){
+                if($('#file-upload')[0].files[0] !== undefined){
+                    let formData = new FormData()
+                    formData.append('file', $('#file-upload')[0].files[0]);
+    
+                    $.ajax({
+                        url : urlUploadFile,
+                        type : 'POST',
+                        data : formData,
+                        processData: false,  // tell jQuery not to process the data
+                        contentType: false,  // tell jQuery not to set contentType
+                        success : function(data) {
+                            $('#body_members').empty().prepend(data.rows);
+                            count = data.count
+                            $('#file-upload').val(null)
+                        }
+                    });
+                }
+                
             });
         });
     </script>

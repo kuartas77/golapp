@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use App\Service\API\RegisterService;
 use App\Repositories\SchoolRepository;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\BackOffice\SchoolCreateRequest;
@@ -38,11 +39,10 @@ class SchoolController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function store(SchoolCreateRequest $request): JsonResponse
+    public function store(SchoolCreateRequest $request, RegisterService $registerService): JsonResponse
     {
         abort_unless($request->ajax(), 404);
-        $school = $this->repository->create($request);
-        return response()->json($school->wasRecentlyCreated);
+        return response()->json($registerService->createUserSchoolUsesCase($request));
     }
 
     /**

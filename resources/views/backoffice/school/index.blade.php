@@ -28,41 +28,22 @@
                 pages: 5 // number of pages to cache
             }),
             "order": [
-                [6, 'desc'],
+                [6, 'ASC'],
             ],
-            "columns": [{
-                    data: 'logo',
+            "columns": [
+                {
+                    data: 'logo', name: 'logo',
                     "render": function(data, type, row) {
                         return "<img class='media-object img-rounded' src='" + row.logo_file + "' width='60' height='60' alt='" + row.name + "'>";
                     }
                 },
-                {
-                    data: 'name'
-                },
-                {
-                    data: 'agent'
-                },
-                {
-                    data: 'address'
-                },
-                {
-                    data: 'phone'
-                },
-                {
-                    data: 'email'
-                },
-                {
-                    data: 'is_enable',
-                    "render": function(data, type, row) {
-                        return validateCheck(data);
-                    }
-                },
-                {
-                    data: 'created_at',
-                    "render": function(data, type, row) {
-                        return moment(data).format('DD-MM-YYYY');
-                    }
-                },
+                { data: 'name', name: 'name' },
+                { data: 'agent', name: 'agent'},
+                { data: 'address', name: 'address' },
+                { data: 'phone', name: 'phone' },
+                { data: 'email', name: 'email' },
+                { data: 'is_enable', name: 'is_enable' },
+                { data: 'created_at', name: 'created_at' },
                 {
                     data: 'id',
                     "render": function(data, type, row, meta) {
@@ -108,7 +89,6 @@
                     data.append('logo', $('input[name="logo"]')[0].files[0]);
                 }
 
-                console.log(data);
                 $.ajax({
                     url: url,
                     method: "post",
@@ -140,14 +120,18 @@
         $(document).on('click', 'a.edit', function() {
             let id = $(this).data('slug');
 
-            $.get(`${url_current}/${id}`, function({name, agent, email, address, phone, is_enable}){
+            $.get(`${url_current}/${id}`, function(data){
                 resetModalForm(false, id);
-                $("#name").val(name).attr('readonly', true);
-                $("#agent").val(agent);
-                $("#email").val(email);
-                $("#address").val(address);
-                $("#phone").val(phone);
-                $("#is_enable").val(is_enable ? 1 : 0);
+                $("#name").val(data.name).attr('readonly', true);
+                $("#agent").val(data.agent);
+                $("#email").val(data.email).attr('readonly', true);
+                $("#address").val(data.address);
+                $("#phone").val(data.phone);
+                $("#is_enable").val(data.is_enable ? 1 : 0);
+                $('#player-img').attr('src', data.logo_file);   
+                
+                $("#password_div").hide();
+                $("#password_confirmation_div").hide();
                 $("#create").modal('show');
             });
         });
@@ -156,10 +140,15 @@
             $("#method").val('')
             $("#name").val('').attr('readonly', false);
             $("#agent").val('');
-            $("#email").val('');
+            $("#email").val('').attr('readonly', false);
             $("#address").val('');
             $("#phone").val('');
-            $("#is_enable").val(is_enable);
+            $("#is_enable").val(1);
+            $("#password").val('');
+            $("#password_confirmation").val('');
+            $('#player-img').attr('src', 'https://golapp.softdreamc.com/img/ballon.png');   
+            $("#password_div").show();
+            $("#password_confirmation_div").show();   
             resetModalForm(true, 0);
         });
 

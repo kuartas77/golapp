@@ -4,10 +4,8 @@ namespace App\Providers;
 
 
 use Illuminate\Auth\Events\Registered;
-use App\Models\{Game, School, Inscription, TrainingGroup};
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use App\Observers\{MatchObserver, SchoolObserver, InscriptionObserver, TrainingGroupObserver};
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -29,9 +27,6 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        Game::observe(MatchObserver::class);
-        School::observe(SchoolObserver::class);
-        Inscription::observe(InscriptionObserver::class);
-        TrainingGroup::observe(TrainingGroupObserver::class);
+        // 
     }
 }

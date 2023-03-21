@@ -33,7 +33,7 @@
             <thead>
             <tr>
                 <th>Grupo</th>
-                <th>Formador</th>
+                <th>Formador(es)</th>
                 <th>Opciones</th>
             </tr>
             </thead>

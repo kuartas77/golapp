@@ -5,11 +5,13 @@ namespace App\Http\ViewComposers\TrainingGroup;
 
 
 use App\Models\Day;
+use App\Models\Schedule;
 use App\Models\User;
 use App\Models\School;
 use App\Traits\Commons;
 use Illuminate\View\View;
 use App\Models\Tournament;
+use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
@@ -21,15 +23,16 @@ class TrainingGroupComposer
     {
         if (Auth::check()) {
 
-            $school_id = isAdmin() ? 0 : auth()->user()->school_id;
+            $school_id = getSchool(auth()->user())->id;
+            
+            $days = Cache::rememberForever('KEY_WEEKS', fn () => config('variables.KEY_WEEKS'));
 
-            $users = Cache::remember("KEY_USERS_{$school_id}", now()->addDay(), function () {
-                $school = auth()->user()->school->load('users');
-                return $school->users->pluck('name','id');
-            });
+            $users = Cache::remember("KEY_USERS_{$school_id}", now()->addMinute(), fn () =>
+                 (new UserRepository(new User()))->getAll()->pluck('name', 'id')
+            );
 
-            $days = Cache::remember("KEY_DAYS_{$school_id}", now()->addDay(), fn () =>
-                Day::orderBy('days')->whereRelation('schedules', 'school_id', $school_id)->pluck('days', 'id')
+            $schedules = Cache::remember("SCHEDULES_{$school_id}", now()->addMinute(), fn () => 
+                Schedule::query()->schoolId()->pluck('schedule', 'schedule')
             );
 
             $tournaments = Cache::remember("KEY_TOURNAMENT_{$school_id}", now()->addDay(), fn () =>
@@ -38,6 +41,7 @@ class TrainingGroupComposer
 
             $view->with('users', $users);
             $view->with('days', $days);
+            $view->with('schedules', $schedules);
             $view->with('tournaments', $tournaments);
         }
     }

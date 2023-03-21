@@ -4,7 +4,7 @@
             <form action="{{route('inscriptions.store')}}" id="form_create" class="form-material m-t-0" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h4 class="modal-title" id="modal_title">Nueva Inscripción</h4>
+                    <h4 class="modal-title" id="modal_title text-uppercase"><strong>Nueva Inscripción</strong></h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 </div>
                 <div class="modal-body m-l-20 m-r-20">

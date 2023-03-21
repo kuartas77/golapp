@@ -37,14 +37,14 @@
                                 </div>
                             </div>
 
-                            {{--<div class="col">
+                            <div class="col">
                                 <div class="form-group">
                                     <input type="radio" name="class" class="with-gap radio-col-cyan" value="4" required id="class_four" >
                                     <label for="class_four">4</label>
                                 </div>
                             </div>
 
-                            <div class="col">
+                            {{--<div class="col">
                                 <div class="form-group">
                                     <input type="radio" name="class" class="with-gap radio-col-cyan" value="5" required id="class_five" >
                                     <label for="class_five">5</label>
@@ -80,7 +80,7 @@
                                 </div>
                             </div>
 
-                            {{--<div class="col">
+                            <div class="col">
                                 <div class="form-group">
                                     <label for="day_four">Clase 4</label>
                                     <span class="bar"></span>
@@ -88,7 +88,7 @@
                                 </div>
                             </div>
 
-                            <div class="col">
+                            {{--<div class="col">
                                 <div class="form-group">
                                     <label for="day_five">Clase 5</label>
                                     <span class="bar"></span>

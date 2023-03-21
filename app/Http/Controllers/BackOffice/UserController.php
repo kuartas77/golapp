@@ -15,7 +15,19 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
+        //  Auth::loginUsingId(6);
+        //  dd(auth()->user());
+
+        // $user = User::find(6);
+        // dd($user->school);
+        //Auth::loginUsingId(1);
+        //auth()->user()->assignRole('administrador');
+
+        // $users = User::whereDoesntHave('profile')->chunk(5, function($users){
+        //     foreach ($users as $user) {
+        //         $user->profile()->create();
+        //     }
+        // });
     }
 
     /**

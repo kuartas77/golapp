@@ -13,15 +13,15 @@
                 <!-- Logo text -->
                 <span style="display: none;">
                     <!-- dark Logo text -->
-                    <img src="{{asset('img/logo-ext.jpg')}}" alt="homepage" class="dark-logo">
+                    <img src="{{asset('img/logo-ext.jpg')}}" alt="homepage" class="dark-logo" width="148" height="33">
                     <!-- Light Logo text -->
-                    <img src="{{asset('img/logo-ext.jpg')}}" class="light-logo" alt="homepage">
+                    <img src="{{asset('img/logo-ext.jpg')}}" class="light-logo" alt="homepage" width="148" height="33">
                 </span>
             </a>
 
         </div>
         {{-- End Logo --}}
-        <div class="navbar-collapse">
+        <div class="navbar-collapse collapse">
             {{-- toggle and nav items --}}
             <ul class="navbar-nav mr-auto mt-md-0">
                 <!-- This is  -->
@@ -56,10 +56,10 @@
                                 </div>
                             </li>
                             <li role="separator" class="divider"></li>
-                            {{-- @can('sistemas_crear_ticket')
-                            <li><a href="{{route('sistemas.tickets.create')}}"><i class="ti-ticket"></i> Tickets Sistemas</a></li>
+                            @if(auth()->user()->profile)
+                            <li><a href="{{route('profiles.show', [auth()->user()->profile->id])}}"><i class="fas fa-user"></i> {{ __('messages.Profile') }}</a></li>
                             <li role="separator" class="divider"></li>
-                            @endcan --}}
+                            @endif
                             <li><a href="{{ route('logout') }}"
                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i
                                         class="fa fa-power-off"></i> {{ __('Logout') }}</a>

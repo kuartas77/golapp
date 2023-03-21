@@ -1,7 +1,12 @@
 <tr>
     <td>{{$payment->year}}</td>
-    <td bgcolor="{{$payment->inscription->scholarship ? 'green': ''}}{{$payment->check_payments >= 1 ?'red': ''}}"><small>{{$payment->inscription->player->full_names}}</small></td>
-    <td><input type="hidden" name="id" value="{{$payment->id}}">{{$payment->unique_code}}</td>
+    <td bgcolor="{{$payment->inscription->scholarship ? 'green': ''}}{{$payment->check_payments >= 1 ?'red': ''}}">
+        <a href="{{$payment->inscription->player->url_show}}" target="_blank">
+            <small>{{ $payment->unique_code }}</small>
+            <br>
+            <small>{{ $payment->inscription->player->full_names }}</small>
+        </a>
+    </td>
     <td>@include('templates.payments.select', ['mes' => 'january', 'value' => $payment->january, 'deleted' => $deleted])</td>
     <td>@include('templates.payments.select', ['mes' => 'february', 'value' => $payment->february, 'deleted' => $deleted])</td>
     <td>@include('templates.payments.select', ['mes' => 'march', 'value' => $payment->march, 'deleted' => $deleted])</td>

@@ -18,35 +18,35 @@
 
                 <div class="col-md-3">
                     <div class="form-group ">
-                        {!! Form::label("people[{$loop->index}][relationship]", 'Relación Familiar') !!}<span class="text-danger">*</span>
+                        {!! Form::label("people[{$loop->index}][relationship]", 'Relación Familiar') !!}(<span class="text-danger">*</span>)
                         {!! Form::select("people[{$loop->index}][relationship]", $relationships, null,
                         ['class' => 'form-control form-control-sm','placeholder' => 'Seleccione uno...']) !!}
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        {!! Form::label("people[{$loop->index}][names]", 'Nombres Y Apellidos') !!}<span class="text-danger">*</span>
+                        {!! Form::label("people[{$loop->index}][names]", 'Nombres Y Apellidos') !!}(<span class="text-danger">*</span>)
                         {!! Form::text("people[{$loop->index}][names]", null, ['class' => 'form-control form-control-sm']) !!}
                     </div>
                 </div>
 
                 <div class="col-md-3">
                     <div class="form-group">
-                        {!! Form::label("people[{$loop->index}][identification_card]", 'Número De Cédula') !!}<span class="text-danger">*</span>
+                        {!! Form::label("people[{$loop->index}][identification_card]", 'Número De Cédula') !!}(<span class="text-danger">*</span>)
                         {!! Form::text("people[{$loop->index}][identification_card]", null, ['class' => 'form-control form-control-sm']) !!}
                     </div>
                 </div>
 
                 <div class="col-md-3">
                     <div class="form-group">
-                        {!! Form::label("people[{$loop->index}][phone]", 'Teléfonos') !!}<span class="text-danger">*</span>
+                        {!! Form::label("people[{$loop->index}][phone]", 'Teléfonos') !!}(<span class="text-danger">*</span>)
                         {!! Form::text("people[{$loop->index}][phone]", null, ['class' => 'form-control form-control-sm']) !!}
                     </div>
                 </div>
 
                 <div class="col-md-3">
                     <div class="form-group">
-                        {!! Form::label("people[{$loop->index}][mobile]", 'Número Celular') !!}<span class="text-danger">*</span>
+                        {!! Form::label("people[{$loop->index}][mobile]", 'Número Celular') !!}(<span class="text-danger">*</span>)
                         {!! Form::text("people[{$loop->index}][mobile]", null, ['class' => 'form-control form-control-sm']) !!}
                     </div>
                 </div>

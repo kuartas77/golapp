@@ -1,7 +1,7 @@
 <?php
 
 return [
-
+    'Profile' => 'Perfil',
     'denied' => 'No Puedes Acceder.',
 
     'error_general' => 'Se Ha Presentado Un Error',
@@ -25,6 +25,16 @@ return [
     'status' => 'Estado:',
     'print' => 'Imprimir',
     'update_text' => 'Actualizar Información',
+    'gender' => 'Genero:',
+    'identification_document' => 'Doc. Identidad:',
+    'rh' => 'Tipo De Sangre:',
+    'status' => 'Estado:',
+    'print' => 'Imprimir',
+    'update_text' => 'Actualizar Información',
+    'address' => 'Direción:',
+    'phone' => 'Teléfonos:',
+    'mobile' => 'Celular:',
+    'position' => 'Cargo:',
 
     'title_enabled' => 'Activos',
     'title_disabled' => 'Inactivos',
@@ -32,18 +42,18 @@ return [
     'training_group_create_success' => 'Grupo De Entrenamiento Agregado Correctamente.',
     'training_group_edit_success' => 'Grupo De Entrenamiento Actualizado Correctamente.',
 
-    'day_add' => 'Agregar Nuevo Día y Horario',
-
+    
     'asistencia_not_found' => 'Asistencia no encontrada.',
     'asistencia_correct' => 'Asistencias eliminada exitosamente.',
     'cc_create_success' => 'Control de competencia guardada exitosamente.',
     'cc_not_found' => 'Control de competencia no encontrado.',
     'cc_update_success' => 'Control de competencia actualizado exitosamente.',
     'cc_delete_success' => 'Control de competencia eliminado exitosamente.',
-    'day_create_success' => 'Día guardado exitosamente.',
-    'day_not_found' => 'Día no encontrado.',
-    'day_update_success' => 'Día actualizado exitosamente.',
-    'day_delete_success' => 'Día eliminado exitosamente.',
+    'schedule_add' => 'Agregar Nuevo Horario',
+    'schedule_create_success' => 'Día guardado exitosamente.',
+    'schedule_not_found' => 'Día no encontrado.',
+    'schedule_update_success' => 'Día actualizado exitosamente.',
+    'schedule_delete_success' => 'Día eliminado exitosamente.',
     'gc_create_success' => 'Grupo de competencia guardado exitosamente.',
     'gc_not_found' => 'Grupo de competencia no encontrado.',
     'gc_update_success' => 'Grupo de competencia actualizado exitosamente.',
@@ -105,6 +115,10 @@ return [
 
     'schools_button_add' => 'Agregar Escuela',
     'schools_dissabled' => 'Escuela Deshabilitada, Comuniquese Con El Administrador.',
+    'becado_text' => 'Al ser becado, todos los pagos del año se estableceran cómo: "<span class="text-warning">Becado</span>"',
+    'provicional_group_info' => 'Si no se selecciona, se agregará al grupo "Provisional"',
+    'inscription_date_info' => 'Se agregará al año seleccionado',
+    'search_player_by_code_info' => 'Buscará deportistas sin inscripción',
 
 
 

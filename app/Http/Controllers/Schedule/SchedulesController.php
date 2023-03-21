@@ -3,24 +3,25 @@
 namespace App\Http\Controllers\Schedule;
 
 use Exception;
-use App\Models\Day;
+use App\Models\Schedule;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use App\Repositories\DayRepository;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\ScheduleRequest;
 use Illuminate\Contracts\View\Factory;
+use App\Repositories\ScheduleRepository;
 use Illuminate\Contracts\Foundation\Application;
 
-class DayController extends Controller
+class SchedulesController extends Controller
 {
     /**
-     * @var DayRepository
+     * @var ScheduleRepository
      */
     private $repository;
 
-    public function __construct(DayRepository $repository)
+    public function __construct(ScheduleRepository $repository)
     {
         $this->repository = $repository;
     }
@@ -32,7 +33,7 @@ class DayController extends Controller
      */
     public function index()
     {
-        return view('day.index');
+        return view('schedules.index');
     }
 
     /**
@@ -50,73 +51,61 @@ class DayController extends Controller
      * @param Request $request
      * @return RedirectResponse
      */
-    public function store(Request $request): RedirectResponse
+    public function store(ScheduleRequest $request): RedirectResponse
     {
-        $this->repository->store($request);
+        $this->repository->store($request->validated());
         return back();
     }
 
     /**
      * Display the specified resource.
      *
-     * @param Day $day
+     * @param Schedule $schedule
      * @param Request $request
      * @return JsonResponse
      */
-    public function show(Day $day, Request $request): JsonResponse
+    public function show(Schedule $schedule, Request $request): JsonResponse
     {
-        abort_if(!$request->ajax(), 404);
-
-        $day->load('schedules');
-        $response = collect();
-        $day->schedules->sortBy('id')->map(function ($schedule) use (&$response) {
-            $response->push([
-                'id' => $schedule->id,
-                'name' => $schedule->schedule
-            ]);
-        });
-
-        return response()->json(['data' => $response]);
+        abort(404);
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param Day $day
+     * @param Schedule $schedule
      * @return JsonResponse
      */
-    public function edit(Day $day): JsonResponse
+    public function edit(Schedule $schedule): JsonResponse
     {
-        $day->load('schedules')->loadCount('schedules');
-        return $this->responseJson($day);
+        return $this->responseJson($schedule);
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param Request $request
-     * @param Day $day
+     * @param Schedule $schedule
      * @return RedirectResponse
      */
-    public function update(Request $request, Day $day): RedirectResponse
+    public function update(ScheduleRequest $request, Schedule $schedule): RedirectResponse
     {
-        $this->repository->updateDay($request, $day);
+        $this->repository->update($request->validated(), $schedule);
         return back();
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param Day $day
+     * @param Schedule $schedule
      * @return void
      * @throws Exception
      */
-    public function destroy(Day $day)
+    public function destroy(Schedule $schedule)
     {
-        if ($day->delete()) {
-            alert()->success(env('APP_NAME'), __('messages.day_delete_success'));
+        if ($schedule->delete()) {
+            alert()->success(env('APP_NAME'), __('messages.schedule_delete_success'));
         } else {
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+            alert()->error(env('APP_NAME'), __('messages.error_general'));
         }
         abort(404);
     }

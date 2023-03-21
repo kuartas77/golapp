@@ -21,14 +21,14 @@
     <table class="table-encabezado" style="margin:10px auto 0;" border="0">
         <tr>
             <td align="center" style="display:block;margin:auto;width: 60px;height: 60px;">
-                <img src="{{ asset('ms-icon-310x310.png') }}">
+                <img src="{{ $school->logo_local }}">
             </td>
             <td></td>
             <td align="center" valign="middle">{{env('APP_NAME', 'Laravel')}}<br>INCIDENCIAS
             </td>
             <td></td>
             <td align="center" style="display:block;margin:auto;width: 60px;height: 60px;">
-                <img src="{{ asset('ms-icon-310x310.png') }}">
+                <img src="{{ $school->logo_local }}">
             </td>
         </tr>
     </table>

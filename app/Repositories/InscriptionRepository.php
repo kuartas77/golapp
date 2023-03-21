@@ -5,6 +5,7 @@ namespace App\Repositories;
 use Exception;
 use App\Traits\ErrorTrait;
 use App\Models\Inscription;
+use App\Models\TrainingGroup;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Http\FormRequest;
@@ -50,25 +51,31 @@ class InscriptionRepository
     }
 
     /**
-     * @param FormRequest $request
+     * @param array $inscriptionData
      * @param bool $created
      * @param Inscription|null $inscription
      * @return Inscription|null
      */
-    public function setInscription(FormRequest $request, bool $created = true, Inscription $inscription = null): Inscription
+    public function setInscription(array $inscriptionData, bool $created = true, Inscription $inscription = null): Inscription
     {
         try {
-            DB::beginTransaction();
-
-            $inscriptionData = $request->only($this->model->getFillable());
-            $inscriptionData['training_group_id'] = request('training_group_id', 1);
+            
+            if(!$inscriptionData['training_group_id']){
+                $inscriptionData['training_group_id'] = TrainingGroup::query()->orderBy('id', 'asc')
+                ->firstWhere('school_id', $inscriptionData['school_id'])->id;
+            }
+            
             $inscriptionData['deleted_at'] = null;
+            
+            DB::beginTransaction();
 
             if ($created) {
                 $inscription = $this->model->withTrashed()->updateOrCreate([
                     'unique_code' => $inscriptionData['unique_code'],
                     'year' => $inscriptionData['year']
                 ], $inscriptionData);
+
+                $inscription->load(['player', 'school']);
 
                 $inscription->player->notify(new InscriptionNotification($inscription));
             } else {
@@ -94,7 +101,7 @@ class InscriptionRepository
      */
     public function getInscriptionsEnabled()
     {
-        $inscriptions = $this->model->with(['player.people', 'trainingGroup.schedule.day'])
+        $inscriptions = $this->model->with(['player.people', 'trainingGroup'])
             ->where('year', now()->year)->schoolId()->get();
         if ($inscriptions->isNotEmpty()) {
             $inscriptions->setAppends(['url_edit', 'url_update', 'url_show', 'url_impression'/*, 'url_destroy'*/]);

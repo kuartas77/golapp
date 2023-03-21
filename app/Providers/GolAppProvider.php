@@ -6,7 +6,18 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use App\Http\ViewComposers\AdminComposer;
 use Illuminate\Database\Eloquent\Collection;
+use App\Http\ViewComposers\TemplatesComposer;
+use App\Http\ViewComposers\Profile\ProfileComposer;
+use App\Http\ViewComposers\Assists\AssistViewComposer;
+use App\Http\ViewComposers\Incidents\IncidentComposer;
+use App\Http\ViewComposers\Payments\PaymentsViewComposer;
+use App\Http\ViewComposers\Competition\MatchesViewComposer;
+use App\Http\ViewComposers\Assists\AssistHistoricViewComposer;
+use App\Http\ViewComposers\TrainingGroup\TrainingGroupComposer;
+use App\Http\ViewComposers\Inscription\InscriptionCreateComposer;
+use App\Http\ViewComposers\Payments\PaymentsHistoricViewComposer;
 
 class GolAppProvider extends ServiceProvider
 {
@@ -28,7 +39,14 @@ class GolAppProvider extends ServiceProvider
     public function boot()
     {
         if(env('APP_ENV', null) == 'local'){
-            DB::listen(fn($query)=> logger(Str::replaceArray('?', $query->bindings, $query->sql)));
+            DB::listen(function($query){
+                foreach($query->bindings as $key => $binding){
+                    if(is_bool($query->bindings[$key])){
+                        $query->bindings[$key] = $query->bindings[$key] ? 'true': 'false';
+                    }
+                }
+                logger(Str::replaceArray('?', $query->bindings, $query->sql));
+            });
         }
         
         Collection::macro('setAppends', function ($attributes) {
@@ -44,36 +62,30 @@ class GolAppProvider extends ServiceProvider
             'player.index',
             'player.create',
             'player.edit'
-        ], 'App\Http\ViewComposers\Inscription\InscriptionCreateComposer');
+        ], InscriptionCreateComposer::class);
 
         View::composer([
             'competition.match.*',
             'templates.competitions.row',
             'templates.competitions.row_edit'
-        ], 'App\Http\ViewComposers\Competition\MatchesViewComposer');
+        ], MatchesViewComposer::class);
 
-        View::composer([
-            'groups.competition.index', 'groups.training.index'
-        ], 'App\Http\ViewComposers\TrainingGroup\TrainingGroupComposer');
+        View::composer(['groups.competition.index', 'groups.training.index'], TrainingGroupComposer::class);
 
-        View::composer(['day.index'], 'App\Http\ViewComposers\DayComposer');
+        View::composer(['payments.payment.index'], PaymentsViewComposer::class);
 
-        View::composer(['payments.payment.index'], 'App\Http\ViewComposers\Payments\PaymentsViewComposer');
+        View::composer(['profile.*'], ProfileComposer::class);
 
-        View::composer(['profile.*'], 'App\Http\ViewComposers\Profile\ProfileComposer');
+        View::composer(['assists.assist.index'], AssistViewComposer::class);
 
-        View::composer(['assists.assist.index'], 'App\Http\ViewComposers\Assists\AssistViewComposer');
+        View::composer(['assists.historic.index', 'assists.historic.show'], AssistHistoricViewComposer::class);
 
-        View::composer([
-            'assists.historic.index', 'assists.historic.show'
-        ], 'App\Http\ViewComposers\Assists\HistoricViewComposer');
+        View::composer(['payments.historic.index', 'payments.historic.show'], PaymentsHistoricViewComposer::class);
 
-        View::composer([
-            'payments.historic.index', 'payments.historic.show'
-        ], 'App\Http\ViewComposers\Payments\HistoricViewComposer');
+        View::composer(['incidents.index'], IncidentComposer::class);
+        
+        View::composer(['templates.*'], TemplatesComposer::class);
 
-        View::composer(['incidents.index'], 'App\Http\ViewComposers\Incidents\IncidentComposer');
-
-        View::composer(['templates.*'], 'App\Http\ViewComposers\TemplatesComposer');
+        View::composer(['*.*'], AdminComposer::class);
     }
 }

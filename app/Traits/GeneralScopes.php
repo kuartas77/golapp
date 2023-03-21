@@ -6,7 +6,8 @@ trait GeneralScopes
 {
     public function scopeSchoolId($query)
     {
-        return $query->when(isSchool() || isInstructor(), fn($query) => $query->where('school_id', auth()->user()->school_id));
+        // return $query->when(isSchool() || isInstructor(), fn($query) => $query->where('school_id', getSchool(auth()->user())->id));
+        return $query->where('school_id', getSchool(auth()->user())->id);
     }
 
     public function scopeTrainingTeam($query, $training_team_id = null)

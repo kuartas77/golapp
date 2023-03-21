@@ -2,14 +2,26 @@
     <a class="waves-effect waves-dark" href="{{route('home')}}" aria-expanded="false"><i class="fas fa-home"></i><span class="hide-menu">Inicio</span></a>
 </li>
 
+@hasanyrole('super-admin')
+<li class="{{ Request::is('backoffice*') ? 'active' : '' }}">
+    <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><i class="fas fa-cogs"></i><span class="hide-menu"> BackOffice</span></a>
+    <ul aria-expanded="false" class="collapse">
+        <li><a href="{{route('config.schools.index')}}">Escuelas</a></li>
+        <li><a href="{{route('config.schools_info.index')}}">Información Escuelas</a></li>
+        <!-- <li><a href="{{route('config.users.index')}}">Usuarios</a></li>
+        <li><a href="{{route('config.settings.index')}}">Escuelas</a></li> -->
+    </ul>
+</li>
+@endhasanyrole
+
 @hasanyrole('super-admin|school')
 <li class="{{ Request::is('admin*') ? 'active' : '' }}">
-    <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><i class="far fa-sun"></i><span class="hide-menu">Administración</span></a>
+    <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><i class="fas fa-cogs"></i><span class="hide-menu"> Administración</span></a>
     <ul aria-expanded="false" class="collapse">
         <li><a href="{{route('users.index')}}">Usuarios</a></li>
         <li><a href="{{route('training_groups.index')}}">G. De Entrenamiento</a></li>
         <li><a href="{{route('competition_groups.index')}}">G. De Competencia</a></li>
-        <li><a href="{{route('days.index')}}">Días, Horarios</a></li>
+        <li><a href="{{route('schedules.index')}}">Horarios</a></li>
         <li><a href="{{route('tournaments.index')}}">Torneos</a></li>
         <li><a href="{{route('incidents.index')}}">Incidencias</a></li>
     </ul>
@@ -41,7 +53,6 @@
     <ul aria-expanded="false" class="collapse">
         <li><a href="{{route('historic.assists')}}">Asistencias</a></li>
         <li><a href="{{route('historic.payments')}}">Pagos</a></li>
-        {{--<li><a href="{{route('days.index')}}">Días, Horarios</a></li>--}}
     </ul>
 </li>
 

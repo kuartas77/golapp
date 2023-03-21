@@ -6,6 +6,7 @@ use Carbon\CarbonPeriod;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Session;
 
 if (!function_exists('getPay')) {
     /**
@@ -130,7 +131,8 @@ if (!function_exists('numbersToLetters')) {
 if (!function_exists('percent')) {
     function percent($number, $count): float
     {
-        return round(($number * 100) / $count, 2);
+        $divisor = $count ?: 1;
+        return round(($number * 100) / $divisor, 2);
     }
 }
 
@@ -171,15 +173,59 @@ if (!function_exists('isInstructor')) {
 }
 
 if (!function_exists('getSchool')){
-    function getSchool($user){
+    function getSchool($user): School{
+        if(isAdmin() && Session::has('admin.school')){
+            return Session::get('admin.school');
+        }
+        
         return Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn()=> $user->school);
     }
 }
 
+if (!function_exists('cleanString')){
+    function cleanString($text) {
+        $utf8 = array(
+            '/[áàâãªä]/u'   =>   'a',
+            '/[ÁÀÂÃÄ]/u'    =>   'A',
+            '/[ÍÌÎÏ]/u'     =>   'I',
+            '/[íìîï]/u'     =>   'i',
+            '/[éèêë]/u'     =>   'e',
+            '/[ÉÈÊË]/u'     =>   'E',
+            '/[óòôõºö]/u'   =>   'o',
+            '/[ÓÒÔÕÖ]/u'    =>   'O',
+            '/[úùûü]/u'     =>   'u',
+            '/[ÚÙÛÜ]/u'     =>   'U',
+            '/ç/'           =>   'c',
+            '/Ç/'           =>   'C',
+            '/ñ/'           =>   'n',
+            '/Ñ/'           =>   'N',
+            '/–/'           =>   '-', // UTF-8 hyphen to "normal" hyphen
+            '/[’‘‹›‚]/u'    =>   ' ', // Literally a single quote
+            '/[“”«»„]/u'    =>   ' ', // Double quote
+            '/ /'           =>   ' ', // nonbreaking space (equiv. to 0x160)
+        );
+        return strtolower(preg_replace(array_keys($utf8), array_values($utf8), $text));
+    }
+}
 
+if (!function_exists('randomPassword')){
+    function randomPassword(int $length = 10) {
+        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890*.';
+        $pass = array(); //remember to declare $pass as an array
+        $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
+        for ($i = 0; $i < $length; $i++) {
+            $n = rand(0, $alphaLength);
+            $pass[] = $alphabet[$n];
+        }
+        return implode($pass); //turn the array into a string
+    }
+}
 
-//
 //if (!function_exists('')){}
-//
 //if (!function_exists('')){}
-
+//if (!function_exists('')){}
+//if (!function_exists('')){}
+//if (!function_exists('')){}
+//if (!function_exists('')){}
+//if (!function_exists('')){}
+//if (!function_exists('')){}

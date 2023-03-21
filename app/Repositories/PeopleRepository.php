@@ -29,11 +29,11 @@ class PeopleRepository
             [
                 'tutor' => $person['tutor'],
                 'relationship' => $person['relationship'],
-                'phone' => $person['phone'],
-                'mobile' => $person['mobile'],
-                'profession' => $person['profession'],
-                'business' => $person['business'],
-                'position' => $person['position'],
+                'phone' => $person['phone'] ?? null,
+                'mobile' => $person['mobile'] ?? null,
+                'profession' => $person['profession'] ?? null,
+                'business' => $person['business'] ?? null,
+                'position' => $person['position'] ?? null,
             ]
         );
     }

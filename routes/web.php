@@ -3,20 +3,20 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Schedule\DayController;
 use App\Http\Controllers\Assists\AssistController;
 use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\Competition\GameController;
 use App\Http\Controllers\Payments\PaymentController;
-use App\Http\Controllers\Groups\TrainingGroupController;
+use App\Http\Controllers\Schedule\SchedulesController;
+use App\Http\Controllers\SchoolPages\SchoolsController;
+use App\Http\Controllers\Players\PlayerExportController;
 use App\Http\Controllers\Tournaments\TournamentController;
-use App\Http\Controllers\Groups\CompetitionGroupController;
 use App\Http\Controllers\Inscription\InscriptionController;
-use App\Http\Controllers\Groups\InscriptionCGroupController;
-use App\Http\Controllers\Groups\InscriptionTGroupController;
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
+use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
 
 Auth::routes(['register' => false, 'verify' => false]);
 
@@ -24,6 +24,9 @@ Route::get('/', function () {
     return redirect(\route('login'));
 });
 
+Route::resource('escuelas', SchoolsController::class)->only([
+    'index', 'show',
+]);
 
 Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 
@@ -40,13 +43,18 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
     $route->resource("matches", GameController::class)->except(['show']);
     $route->resource("players", PlayerController::class);
 
+    $route->prefix('import')->group(function($route){
+        $route->post('matches/{competition_group}', [ImportController::class, 'importMatchDetail'])->name('import.match');
+        $route->post('players', [ImportController::class, 'importPlayers'])->name('import.players');
+    });
+
     $route->resource("profiles", ProfileController::class)->except(['index','create','store','destroy']);
 
     $route->prefix('admin')->middleware(['role:super-admin|school'])->group(function ($route){
 
         $route->resources([
             'users' => UserController::class,
-            'days' => DayController::class,
+            'schedules' => SchedulesController::class,
             'incidents' => IncidentController::class,
             'tournaments' => TournamentController::class,
             'training_groups' => TrainingGroupController::class,
@@ -76,21 +84,23 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
         $route->get('training_groups_retired', [DataTableController::class, 'disabledTrainingGroups'])->name('training_groups.retired');
         $route->get('competition_groups_enabled', [DataTableController::class, 'enabledCompetitionGroups'])->name('competition_groups.enabled');
         $route->get('competition_groups_retired', [DataTableController::class, 'disabledCompetitionGroups'])->name('competition_groups.retired');
-        $route->get('days_enabled', [DataTableController::class, 'enabledDays'])->name('days.enabled');
+        $route->get('schedules_enabled', [DataTableController::class, 'enabledSchedules'])->name('schedules.enabled');
         $route->get('players_enabled', [DataTableController::class, 'enabledPlayers'])->name('players.enabled');
 
     });
 
     $route->prefix('export')->name('export.')->group(function ($route) {
-        $route->get('player/{player}/pdf', [ExportController::class, 'exportPlayerPDF'])->name('player');
+        $route->get('player/{player}/pdf', [PlayerExportController::class, 'exportPlayerPDF'])->name('player');
+        $route->get('inscription/{player_id}/{inscription_id}', [PlayerExportController::class, 'exportInscription'])->name('inscription');
+        $route->get('inscriptions/excel', [PlayerExportController::class, 'exportInscriptionsExcel'])->name('inscriptions');
 
         $route->get('assists/pdf/{training_group_id}/{year}/{month}/{deleted?}', [ExportController::class, 'exportAssistsPDF'])->name('pdf.assists');
         $route->get('matches/pdf/{match}', [ExportController::class, 'exportMatchPDF'])->name('pdf.match');
         $route->get('incidents/pdf/{slug_name}', [ExportController::class, 'exportIncidentsPDF'])->name('pdf.incidents');
 
-        $route->get('inscriptions/excel', [ExportController::class, 'exportInscriptionsExcel'])->name('inscriptions');
         $route->get('payments', [ExportController::class, 'exportPaymentsExcel'])->name('payments');
         $route->get('assists/excel/{training_group_id}/{year}/{month}/{deleted?}', [ExportController::class, 'exportAssistsExcel'])->name('assists');
+        $route->get('matches/create/{competition_group}/format', [ExportController::class, 'exportMatchDetail'])->name('match_detail');
 
     });
 
@@ -108,9 +118,4 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
         $route->get('list_code_unique', [MasterController::class, 'listUniqueCode'])->name('autocomplete.list_code_unique');
         $route->get('search_unique_code', [MasterController::class, 'searchUniqueCode'])->name('autocomplete.search_unique_code');
     });
-
-    
-
 });
-
-

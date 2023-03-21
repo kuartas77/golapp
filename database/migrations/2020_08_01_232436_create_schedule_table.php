@@ -15,12 +15,9 @@ class CreateScheduleTable extends Migration
     {
         Schema::create('schedules', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('day_id');
-            $table->string('schedule');
+            $table->string('schedule', 100);
             $table->timestamps();
             $table->softDeletes();
-
-            $table->foreign('day_id')->references('id')->on('days');
         });
     }
 

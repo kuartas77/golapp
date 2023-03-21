@@ -1,12 +1,13 @@
 <tr>
     <input type='hidden' name='id' value="{{$assist->id}}">
     <td class="text-center">
-        <a href="{{$assist->inscription->player->url_show}}">
+        <a href="{{$assist->inscription->player->url_show}}" target="_blank">
             <small>{{ $assist->inscription->category }}</small>
             <br>
-            <img class='media-object img-rounded' src='{{$assist->inscription->player->photo_url}}' width='60' height='60'>
+            <img class='media-object img-rounded' src='{{$assist->inscription->player->photo_url}}' width='90' height='60'>
             <br>
-        {{$assist->inscription->player->full_names}}</a>
+            <small>{{$assist->inscription->player->full_names}}</small>
+        </a>
     </td>
     <td>{{$assist->month}}</td>
     @for ($index = 1; $index <= $classDays; $index++)

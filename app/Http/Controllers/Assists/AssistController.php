@@ -29,7 +29,7 @@ class AssistController extends Controller
     public function index(Request $request): Application|Factory|\Illuminate\Contracts\View\View|JsonResponse
     {
         if ($request->ajax()) {
-            return response()->json($this->repository->search($request));
+            return response()->json($this->repository->search($request->only(['training_group_id', 'year', 'month'])));
         }
         return view('assists.assist.index');
     }
@@ -42,7 +42,7 @@ class AssistController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        return response()->json($this->repository->create($request));
+        return response()->json($this->repository->create($request->only(['training_group_id', 'year', 'month'])));
     }
 
     /**
@@ -63,6 +63,6 @@ class AssistController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        return response()->json($this->repository->update($assist, $request));
+        return response()->json($this->repository->update($assist, $request->validated()));
     }
 }

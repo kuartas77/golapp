@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -32,6 +33,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'school_id'
     ];
 
     /**
@@ -56,10 +58,6 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $appends = [
         'url_activate'
     ];
-
-    // protected $with = [
-    //     'school'
-    // ];
 
     public function setPasswordAttribute($value)
     {
@@ -91,6 +89,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function school(): HasOneThrough
     {
         return $this->hasOneThrough(School::class, SchoolUser::class, 'user_id','id','id','school_id');
+    }
+
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(TrainingGroup::class)->withPivot('assigned_year');
     }
 
 

@@ -10,6 +10,7 @@ use App\Traits\UploadFile;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use App\Notifications\RegisterNotification;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SchoolRepository
@@ -31,42 +32,6 @@ class SchoolRepository
         return $schools;
     }
 
-    public function create(FormRequest $request): School
-    {
-        try {
-            DB::beginTransaction();
-
-            $data = $request->validated();
-            $data['logo'] = $this->saveFile($request, 'logo');
-
-            $school = $this->model->create($data);
-            
-            $password = Str::slug($data['name'], '');
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => $password
-            ]);
-            $user->assignRole(['school']);
-
-            $relationSchool = new SchoolUser();
-            $relationSchool->user_id = $user->id;
-            $relationSchool->school_id = $school->id;
-            $relationSchool->save();
-
-            // TODO: crear grupo de entrenamiento por defecto
-
-            $user->notify(new RegisterNotification($user, Str::of($password)->mask("*", 4)));
-            DB::commit();
-
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            $this->logError("SchoolRepository create", $exception);
-        }
-
-        return $this->model;
-    }
-
     public function update(FormRequest $request, School $school): School
     {
         try {
@@ -85,5 +50,18 @@ class SchoolRepository
         }
 
         return $school;
+    }
+
+    public function schoolsInfo(int $school_id = null)
+    {
+        $query = School::withCount(['users','inscriptions','players','payments','assists','skillControls','matches','tournaments','trainingGroups','competitionGroups','incidents']);
+        $response = new Collection();
+        if($school_id){
+            $response = $query->where('id', $school_id)->first();
+        }else{
+            $response = $query->get();
+        }
+
+        return $response;
     }
 }

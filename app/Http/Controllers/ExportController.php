@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Exports\AssistExport;
-use App\Exports\InscriptionSheetsExport;
 use App\Exports\PaymentsExport;
-use App\Models\Player;
+use App\Exports\MatchDetailExport;
+use App\Repositories\GameRepository;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Repositories\AssistRepository;
 use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
-use App\Repositories\GameRepository;
-use App\Repositories\PlayerRepository;
-use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Service\Assist\AssistExportService;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ExportController extends Controller
@@ -22,28 +21,9 @@ class ExportController extends Controller
         private InscriptionRepository $inscriptionRepository,
         private AssistRepository $assistRepository,
         private IncidentRepository $incidentRepository,
-        private GameRepository $gameRepository,
-        private PlayerRepository $playerRepository
+        private GameRepository $gameRepository
     ){}
 
-    /**
-     * @param Player $player
-     * @return mixed
-     * @throws MpdfException
-     */
-    public function exportPlayerPDF(Player $player): mixed
-    {
-        return $this->playerRepository->makePdf($player);
-    }
-
-    /**
-     * @return BinaryFileResponse
-     */
-    public function exportInscriptionsExcel(): BinaryFileResponse
-    {
-        $date = now()->timestamp;
-        return Excel::download(new InscriptionSheetsExport($this->playerRepository->getExcel()), "Inscripciones {$date}.xlsx");
-    }
 
     /**
      * @param $trainingGroupId
@@ -71,14 +51,14 @@ class ExportController extends Controller
      * @return mixed
      * @throws \Mpdf\MpdfException
      */
-    public function exportAssistsPDF($trainingGroupId, $year, $month, $deleted = false)
+    public function exportAssistsPDF($trainingGroupId, $year, $month, $deleted = false, AssistExportService $assistExportService)
     {
         $params = [
             'training_group_id' => $trainingGroupId,
             'year' => $year,
             'month' => $month
         ];
-        return $this->assistRepository->generatePDF($params, $deleted);
+        return $assistExportService->generatePDF($params, $deleted);
     }
 
     /**
@@ -107,5 +87,11 @@ class ExportController extends Controller
         //return view('exports.incidents_pdf');
         //$pdf = PDF::loadView('exports.incidents_pdf');
         //return $pdf->stream("Incidencias");
+    }
+
+    public function exportMatchDetail($competition_group)
+    {
+        $date = now()->timestamp;
+        return Excel::download(new MatchDetailExport($competition_group), "{$date}.xlsx");
     }
 }

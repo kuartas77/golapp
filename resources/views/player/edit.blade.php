@@ -1,4 +1,14 @@
 @extends('layouts.app')
+@section('css')
+<style>
+    .typeahead.dropdown-menu {
+	z-index: 1051;
+	position:relative;
+	top:0!important;
+	left:0!important;	
+}
+</style>
+@endsection
 @section('content')
     <x-bread-crumb title="{{__('messages.player_title_edit', ['unique_code' => $player->unique_code])}}" :option="0"/>
     <x-row-card-eight>
@@ -48,7 +58,7 @@
                     phones : {required: true},
                     mobile : {required: true},
                     school : {required: true},
-                    degree : {required: true},
+                    degree : {required: false},
                     position_field : {},
                     dominant_profile : {},
                     "people[0][relationship]": {required: true},
@@ -156,25 +166,27 @@
 
         function events() {
             // campos los cuales se van a buscar en la tabla maestra para autocompletado
-            let campos = ['colegio_escuela', 'lugar_nacimiento', 'barrio', 'eps', 'zona', 'comuna', 'grado'];
-            $.get(url_autocomplete, {fields: campos}, function (result) {
+            // campos los cuales se van a buscar en la tabla maestra para autocompletado
+            let fields = ['school', 'place_birth', 'neighborhood', 'eps', 'zone', 'commune', 'degree'];
+            $.get(url_autocomplete, {fields: fields}, function (result) {
                 $('#place_birth').typeahead({
-                    source: result.lugar_nacimiento,
+                    source: result.place_birth,
                     scrollBar: true
                 });
 
                 $('#school').typeahead({
-                    source: result.colegio_escuela,
+                    source: result.school,
                     scrollBar: true
                 });
 
+
                 $('#municipality').typeahead({
-                    source: result.lugar_nacimiento,
+                    source: result.place_birth,
                     scrollBar: true
                 });
 
                 $('#neighborhood').typeahead({
-                    source: result.barrio,
+                    source: result.neighborhood,
                     scrollBar: true
                 });
 
@@ -184,17 +196,17 @@
                 });
 
                 $('#zone').typeahead({
-                    source: result.zona,
+                    source: result.zone,
                     scrollBar: true
                 });
 
                 $('#commune').typeahead({
-                    source: result.comuna,
+                    source: result.commune,
                     scrollBar: true
                 });
 
                 $('#degree').typeahead({
-                    source: result.grado,
+                    source: result.degree,
                     scrollBar: true
                 });
             });

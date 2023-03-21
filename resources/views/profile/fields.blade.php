@@ -1,3 +1,18 @@
+<div class="row justify-content-center">
+
+    <img src="{{ $profile->url_photo ?? asset('img/user.png') }}" class="rounded" alt="player" id="player-img" width="200" height="200">
+
+    <div class="col-md-3 col-sm-12 col-xs-12">
+        <div class="form-group">
+            <label>Foto</label>
+            <div class="custom-file">
+                <input type="file" class="custom-file-input" id="file-upload" accept="image/png, image/jpeg" name="profile">
+                <label class="custom-file-label" for="file-upload">Seleccionar...</label>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row">
 
     <div class="col-md-3">
@@ -10,16 +25,14 @@
     <div class="col-md-3">
         <div class="form-group">
             <label for="date_birth">Fecha De Nacimiento</label>
-            <input id="date_birth" name="date_birth" type="text" placeholder="Fecha De Nacimiento"
-                   class="form-control form-control-sm date" autocomplete="off">
+            {!! Form::text('date_birth', null, ['class' => 'form-control form-control-sm date', 'autocomplete'=>'off', 'id'=>'date_birth']) !!}
         </div>
     </div>
 
     <div class="col-md-3">
         <div class="form-group">
             <label for="identification_document">Cédula</label>
-            <input id="identification_document" name="identification_document" type="text" placeholder="Cédula"
-                   class="form-control form-control-sm" autocomplete="off">
+            {!! Form::text('identification_document', null, ['class' => 'form-control form-control-sm', 'autocomplete'=>'off','id'=>'identification_document']) !!}
         </div>
     </div>
 
@@ -35,24 +48,21 @@
     <div class="col-md-3">
         <div class="form-group">
             <label for="address">Dirección</label>
-            <input id="address" name="address" type="text" placeholder="Dirección"
-                   class="form-control form-control-sm" autocomplete="off">
+            {!! Form::text('address', null, ['class' => 'form-control form-control-sm', 'autocomplete'=>'off','id'=>'address']) !!}
         </div>
     </div>
 
     <div class="col-md-3">
         <div class="form-group">
             <label for="phone">Teléfono</label>
-            <input id="phone" name="phone" type="text" placeholder="Teléfono"
-                   class="form-control form-control-sm" autocomplete="off">
+            {!! Form::text('phone', null, ['class' => 'form-control form-control-sm', 'autocomplete'=>'off','id'=>'phone']) !!}
         </div>
     </div>
 
     <div class="col-md-3">
         <div class="form-group">
             <label for="mobile">Celular</label>
-            <input id="mobile" name="mobile" type="text" placeholder="Celular"
-                   class="form-control form-control-sm" autocomplete="off">
+            {!! Form::text('mobile', null, ['class' => 'form-control form-control-sm', 'autocomplete'=>'off','id'=>'mobile']) !!}
         </div>
     </div>
 </div>
@@ -61,14 +71,16 @@
     <div class="col-md-6">
         <div class="form-group">
             <label for="studies">Estudios</label>
-            <textarea name="studies" id="studies" cols="30" rows="6" class="form-control form-control-sm"></textarea>
+{{--            <textarea name="studies" id="studies" cols="30" rows="6" class="form-control form-control-sm"></textarea>--}}
+            {!! Form::textarea('studies', null, ['class' => 'form-control form-control-sm','size'=>'3x5','id' => 'studies']) !!}
         </div>
     </div>
 
     <div class="col-md-6">
         <div class="form-group">
             <label for="references">Referencias</label>
-            <textarea name="references" id="references" cols="30" rows="6" class="form-control form-control-sm"></textarea>
+{{--            <textarea name="references" id="references" cols="30" rows="6" class="form-control form-control-sm"></textarea>--}}
+            {!! Form::textarea('references', null, ['class' => 'form-control form-control-sm','size'=>'3x5', 'id' => 'references']) !!}
         </div>
     </div>
 </div>
@@ -77,14 +89,14 @@
     <div class="col-md-6">
         <div class="form-group">
             <label for="contacts">Contactos</label>
-            <textarea name="contacts" id="contacts" cols="30" rows="6" class="form-control form-control-sm"></textarea>
+            {!! Form::textarea('contacts', null, ['class' => 'form-control form-control-sm','size'=>'3x5', 'id' => 'contacts']) !!}
         </div>
     </div>
 
     <div class="col-md-6">
         <div class="form-group">
             <label for="experience">Experiencias</label>
-            <textarea name="experience" id="experience" cols="30" rows="6" class="form-control form-control-sm"></textarea>
+            {!! Form::textarea('experience', null, ['class' => 'form-control form-control-sm','size'=>'3x5', 'id' => 'experience']) !!}
         </div>
     </div>
 </div>
@@ -93,7 +105,10 @@
     <div class="col-md-6">
         <div class="form-group">
             <label for="aptitude">Aptitudes</label>
-            <textarea name="aptitude" id="aptitude" cols="30" rows="6" class="form-control form-control-sm"></textarea>
+            {!! Form::textarea('aptitude', null, ['class' => 'form-control form-control-sm','size'=>'3x5', 'id' => 'aptitude']) !!}
         </div>
     </div>
+
+
+
 </div>

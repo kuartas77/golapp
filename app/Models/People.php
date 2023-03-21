@@ -23,7 +23,7 @@ class People extends Model
     protected $table = 'peoples';
 
     protected $fillable = [
-        'is_tutor',
+        'tutor',
         'relationship',
         'names',
         'phone',
@@ -33,15 +33,24 @@ class People extends Model
         'email',
         'profession',
         'business',
-        'position',
-        'relationship_name',
-        'school_id',
+        'position'
     ];
+
+    protected $casts = [
+        'tutor' => 'integer'
+    ];
+
+    protected $appends = ['relationship_name'];
 
     public function setNamesAttribute($value)
     {
         $this->attributes['names'] = strtoupper($value);
     }
 
+    public function getRelationshipNameattribute()
+    {
+        $relationship = config('variables.KEY_RELATIONSHIPS_SELECT');
+        return array_key_exists((integer)$this->relationship, $relationship) ? $relationship[(integer)$this->relationship] : '';
+    }
 
 }

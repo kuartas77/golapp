@@ -43,7 +43,7 @@ class HistoricController extends Controller
     public function assistsGroup(Request $request, $trainingGroup, $year): View|Factory|array|Application
     {
         if ($request->ajax()) {
-            return $this->assistRepository->search($request, true);
+            return $this->assistRepository->search($request->only(['training_group_id', 'year', 'month']), true);
         }
         $trainingGroup = TrainingGroup::query()->onlyTrashedRelations()->findOrFail($trainingGroup);
 
@@ -74,7 +74,7 @@ class HistoricController extends Controller
         if ($request->ajax()) {
             return $this->paymentRepository->filter($request, true);
         }
-        $trainingGroup = TrainingGroup::withTrashed()->find($trainingGroup);
+        $trainingGroup = TrainingGroup::query()->schoolId()->withTrashed()->find($trainingGroup);
         view()->share('year', $year);
         view()->share('trainingGroup', $trainingGroup);
         return view('payments.historic.show');

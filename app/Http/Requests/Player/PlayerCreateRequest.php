@@ -42,7 +42,7 @@ class PlayerCreateRequest extends FormRequest
             'phones' => ['required'],
             'mobile' => ['required'],
             'school' => ['required'],
-            'degree' => ['required'],
+            'degree' => [],
             'player' => ['nullable', 'image', 'mimes:jpeg,png,jpg'],
             'position_field' => ['nullable'],
             'dominant_profile' => ['nullable'],
@@ -65,7 +65,7 @@ class PlayerCreateRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => auth()->user()->school_id
+            'school_id' => getSchool(auth()->user())->id
         ]);
     }
 }

@@ -24,21 +24,21 @@ class InscriptionCGroupController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $group = CompetitionGroup::select('id', 'year')
+            $group = CompetitionGroup::query()->schoolId()->select('id', 'year')
                 ->find($request->input('competition_group_id'));
 
             $groupsCompetition = $this->groupRepository->getGroupsYear($group->year);
 
-            $inscriptions = Inscription::with('player')->whereCategory($group->year)
+            $inscriptions = Inscription::query()->schoolId()->with('player')->whereCategory($group->year)
                 ->whereCompetition()->where('year', now()->year)->get();
 
             return response()->json([
-                'rows' => CompetitionGroup::rows($inscriptions),
+                'rows' => CompetitionGroup::query()->schoolId()->rows($inscriptions),
                 'groups' => $groupsCompetition
             ]);
         }
 
-        $insWithOutGroup = Inscription::with('player')->whereCompetition()->where('year', now()->year)->get();
+        $insWithOutGroup = Inscription::query()->schoolId()->with('player')->whereCompetition()->where('year', now()->year)->get();
 
         view()->share('groupsCompetition', $this->groupRepository->getGroupsYear());
         view()->share('insWithGroup', collect([]));

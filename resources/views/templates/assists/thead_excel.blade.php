@@ -1,14 +1,12 @@
-<thead>
 <tr>
-    <th colspan="3"></th>
+    <th colspan="4" rowspan="2"></th>
     <th>Fecha:</th>
     @foreach ($classDays as $class)
         <th>{{$class['day']}}</th>
     @endforeach
-    <th></th>
+    <th rowspan="2"></th>
 </tr>
 <tr>
-    <th colspan="3"></th>
     <th>Clases:</th>
     @for ($i = 1; $i <= $classDays->count(); $i++)
         <th>{{$i}}</th>
@@ -17,6 +15,7 @@
 <tr>
     <td>#</td>
     <td>Nombres y Apellidos</td>
+    <td>Codigo</td>
     <td>Categoría</td>
     <td>Teléfonos</td>
     @for ($i = 1; $i <= $classDays->count(); $i++)
@@ -24,4 +23,3 @@
     @endfor
     <td>% Asis</td>
 </tr>
-</thead>

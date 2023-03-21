@@ -46,7 +46,7 @@
             </tr>
             <tr>
                 <th>Deportista</th>
-                <th>Mes</th>
+                <th>Clases</th>
                 <th>1</th>
                 <th>2</th>
                 <th>3</th>

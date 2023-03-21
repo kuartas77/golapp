@@ -57,11 +57,12 @@ class TrainingGroupController extends Controller
      */
     public function store(TrainingGroupRequest $request): Redirector|RedirectResponse|Application
     {
-        $training_group = $this->repository->setTrainingGroup($request, true);
-        if (is_null($training_group))
+        $training_group = $this->repository->createTrainingGroup($request);
+        if ($training_group->wasRecentlyCreated) {
+            alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));            
+        } else{
             alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
-        else
-            alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));
+        }
 
         return redirect(route('training_groups.index'));
     }
@@ -99,12 +100,13 @@ class TrainingGroupController extends Controller
     public function update(TrainingGroupRequest $request, TrainingGroup $trainingGroup)
     {
         abort_if($trainingGroup->id === 1, 401 , 'El Grupo Provicional No Se Puede Eliminar o Modificar');
-
-        $trainingGroup = $this->repository->setTrainingGroup($request, false, $trainingGroup);
-        if (is_null($trainingGroup))
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
-        else
+        
+        $trainingGroup = $this->repository->updateTrainingGroup($request, $trainingGroup);
+        if ($trainingGroup->exists){
             alert()->success(env('APP_NAME'), __('messages.training_group_edit_success'));
+        } else{
+            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+        }
 
         return redirect(route('training_groups.index'));
     }

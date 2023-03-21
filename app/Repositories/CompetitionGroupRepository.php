@@ -10,6 +10,7 @@ use App\Models\CompetitionGroup;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -38,19 +39,22 @@ class CompetitionGroupRepository
         return $this->model->query()->schoolId()->onlyTrashedRelations()->get();
     }
 
-    public function createOrUpdateTeam(FormRequest $request, bool $create = true , $competitionGroup = null): Model
+    public function createOrUpdateTeam(array $dataGroup, bool $create = true , ?CompetitionGroup $competitionGroup = null): Model
     {
         try {
             DB::beginTransaction();
         
             if ($create) { 
-                $competitionGroup = $this->model->create($request->validated()); 
+                $competitionGroup = $this->model->create($dataGroup); 
             } 
             else { 
-                $competitionGroup->update($request->validated()); 
+                $competitionGroup->update($dataGroup); 
             }
 
             DB::commit();
+
+            Cache::forget("KEY_COMPETITION_GROUPS_{$dataGroup['school_id']}");
+
             return $competitionGroup;
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -64,9 +68,8 @@ class CompetitionGroupRepository
      */
     public function getListGroupFullName(): Collection
     {
-        return $this->model->query()->with('tournament', 'professor')
-            ->orderBy('name','ASC')
-            ->get()->pluck('full_name_group', 'id');
+        return $this->model->query()->schoolId()->with('tournament', 'professor')
+            ->orderBy('name','ASC')->get()->pluck('full_name_group', 'id');
     }
 
     /**
@@ -75,8 +78,7 @@ class CompetitionGroupRepository
      */
     public function getGroupsYear($year = null): Collection
     {
-        $groups =  $this->model->query()->with('professor','tournament')
-            ->orderBy('name','ASC');
+        $groups =  $this->model->query()->schoolId()->with('professor','tournament')->orderBy('name','ASC');
         if($year){
             $groups->where('year', $year);
         }

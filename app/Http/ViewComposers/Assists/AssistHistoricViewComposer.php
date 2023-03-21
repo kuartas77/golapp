@@ -4,13 +4,13 @@
 namespace App\Http\ViewComposers\Assists;
 
 use App\Models\Assist;
-use App\Models\School;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use App\Repositories\TrainingGroupRepository;
 
-class HistoricViewComposer
+
+class AssistHistoricViewComposer
 {
     /**
      * @var TrainingGroupRepository
@@ -26,9 +26,7 @@ class HistoricViewComposer
     {
         if (Auth::check()) {
 
-            $school_id = auth()->user()->school_id;
-
-            $months = Cache::remember("KEY_MONTHS", now()->addYear(), function () {
+            $months = Cache::rememberForever("KEY_MONTHS", function () {
                 return config('variables.KEY_MONTHS');
             });
 

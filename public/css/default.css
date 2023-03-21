@@ -544,6 +544,7 @@ select.swal2-select{
     height: 25px;
     line-height: 25px;
     font-size: small;
+    user-select: none;
     -webkit-user-select: none;
     /* webkit (safari, chrome) browsers */
     -moz-user-select: none;
@@ -556,4 +557,35 @@ select.swal2-select{
 
 .custom-file-input:lang(es)~.custom-file-label::after {
     content: "Buscar";
+}
+
+.btn-info.disabled, .btn-info:disabled {
+    color: #fff;
+    background-color: #1e88e5;
+    border-color: #1e88e5;
+}
+
+[type=checkbox]:checked+label:before {
+    top: -4px;
+    left: -5px;
+    width: 12px;
+    height: 22px;
+    border-top: 2px solid transparent;
+    border-left: 2px solid transparent;
+    border-right: 2px solid #003380;
+    border-bottom: 2px solid #003380;
+    -webkit-transform: rotate(40deg);
+    -ms-transform: rotate(40deg);
+    transform: rotate(40deg);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform-origin: 100% 100%;
+    -ms-transform-origin: 100% 100%;
+    transform-origin: 100% 100%;
+}
+
+@media (max-width: 767px){
+    .login-register {
+        position: absolute;
+    }
 }

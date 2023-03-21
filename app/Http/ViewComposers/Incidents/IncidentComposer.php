@@ -6,6 +6,7 @@ namespace App\Http\ViewComposers\Incidents;
 
 use App\Models\User;
 use Illuminate\Contracts\View\View;
+use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
@@ -15,8 +16,9 @@ class IncidentComposer
     public function compose(View $view)
     {
         if (Auth::check()) {
-            $users = Cache::remember('KEY_USERS', now()->addDay(), function () {
-                return User::where('id', '!=', 1)->orderBy('name')->pluck('name', 'id');
+            $school_id = getSchool(auth()->user())->id;
+            $users = Cache::remember("KEY_USERS_{$school_id}", now()->addMinute(), function () {
+                return (new UserRepository(new User()))->getAll()->pluck('name', 'id');
             });
             $view->with('users', $users);
         }

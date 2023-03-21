@@ -1,7 +1,9 @@
 <tr>
 
     <td style="display: flex;">
+        @if($skillControl->id)
         <input name="ids[{{$index}}]" type="hidden" value="{{$skillControl->id}}">
+        @endif
         <input name="inscriptions_id[{{$index}}]" type="hidden" value="{{$inscription->id}}">
         <img class="media-object img-rounded" src="{{$inscription->player->photo_url}}" width="60" height="60">
         <p>
@@ -14,11 +16,11 @@
 
     <td>
         @include('templates.competitions.select', [
-        'name'=> "assistance[{$index}]", 'values' => [1=>'Sí',0 => 'No'], 'value' => $skillControl->assistance])
+        'name'=> "assistance[{$index}]", 'values' => [1=>'Si',0 => 'No'], 'value' => $skillControl->assistance])
     </td>
     <td>
         @include('templates.competitions.select', [
-        'name'=> "titular[{$index}]", 'values' => [1=>'Sí',0 => 'No'], 'value' => $skillControl->titular])
+        'name'=> "titular[{$index}]", 'values' => [1=>'Si',0 => 'No'], 'value' => $skillControl->titular])
     </td>
     <td>
         @include('templates.competitions.select', [

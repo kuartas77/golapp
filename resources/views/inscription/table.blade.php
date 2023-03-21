@@ -38,11 +38,11 @@
                 <th>Nombres</th>
                 <th>F.Nacimiento</th>
                 <th>Genero</th>
-                <th>F.Inicio</th>
-                <th>Categoría</th>
                 <th>Grupo</th>
                 <th>Cert. Médico</th>
                 <th>Teléfonos</th>
+                <th>F.Inicio</th>
+                <th>Categoría</th>
                 <th>Opciones</th>
             </tr>
             </thead>

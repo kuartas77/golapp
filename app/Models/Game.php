@@ -5,8 +5,7 @@ namespace App\Models;
 use App\Traits\Fields;
 use Illuminate\Support\Str;
 use App\Traits\GeneralScopes;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+use App\Observers\MatchObserver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -43,6 +42,11 @@ class Game extends Model
     protected $casts = [
         'final_score' => 'object'
     ];
+
+    protected static function booted()
+    {
+        self::observe(MatchObserver::class);
+    }
 
     public function getGeneralConceptShortAttribute()
     {

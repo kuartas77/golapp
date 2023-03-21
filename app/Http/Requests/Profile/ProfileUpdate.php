@@ -35,8 +35,7 @@ class ProfileUpdate extends FormRequest
             'contacts' => ['nullable'],
             'experience' => ['nullable'],
             'position' => ['nullable'],
-            'aptitude' => ['nullable'],
-            'school_id' => ['required']
+            'aptitude' => ['nullable']
         ];
     }
 
@@ -47,8 +46,6 @@ class ProfileUpdate extends FormRequest
      */
     protected function prepareForValidation()
     {
-        $this->merge([
-            'school_id' => auth()->user()->school_id
-        ]);
+        // 
     }
 }

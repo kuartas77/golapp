@@ -41,7 +41,7 @@ class AddFieldsSchoolIdAllTables extends Migration
             $table->unsignedBigInteger('school_id')->nullable();
             $table->foreign('school_id')->references('id')->on('schools');
         });
-        Schema::table('matches', function (Blueprint $table) {
+        Schema::table('games', function (Blueprint $table) {
             $table->unsignedBigInteger('school_id')->nullable();
             $table->foreign('school_id')->references('id')->on('schools');
         });
@@ -50,6 +50,14 @@ class AddFieldsSchoolIdAllTables extends Migration
             $table->foreign('school_id')->references('id')->on('schools');
         });
         Schema::table('assists', function (Blueprint $table) {
+            $table->unsignedBigInteger('school_id')->nullable();
+            $table->foreign('school_id')->references('id')->on('schools');
+        });
+        Schema::table('incidents', function (Blueprint $table) {
+            $table->unsignedBigInteger('school_id')->nullable();
+            $table->foreign('school_id')->references('id')->on('schools');
+        });
+        Schema::table('users', function (Blueprint $table) {
             $table->unsignedBigInteger('school_id')->nullable();
             $table->foreign('school_id')->references('id')->on('schools');
         });
@@ -62,6 +70,9 @@ class AddFieldsSchoolIdAllTables extends Migration
      */
     public function down()
     {
+        Schema::table('incidents', function (Blueprint $table) {
+            $table->dropForeign('school_id');
+        });
         Schema::table('assists', function (Blueprint $table) {
             $table->dropForeign('school_id');
         });

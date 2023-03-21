@@ -13,7 +13,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="name">Nombre</label>
+                                    <label for="name">Nombre</label>(<span class="text-danger">*</span>)
                                     <span class="bar"></span>
                                     <input type="hidden" name="id" id="tournament_id">
                                     <input type="text" name="name" id="name" class="form-control" required

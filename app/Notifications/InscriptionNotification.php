@@ -12,17 +12,15 @@ class InscriptionNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    private Inscription $inscription;
     /**
      * Create a new notification instance.
      *
      * @param User $user
      * @param $pass
      */
-    public function __construct(Inscription $inscription)
+    public function __construct(private Inscription $inscription)
     {
         $this->afterCommit();
-        $this->inscription = $inscription;
     }
 
     /**
@@ -45,7 +43,7 @@ class InscriptionNotification extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject("Notificación de Registro.")
+            ->subject("Notificación de inscripción {$this->inscription->school->name}.")
             ->markdown('emails.inscriptions.added', ['inscription' => $this->inscription]);
     }
 

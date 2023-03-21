@@ -24,7 +24,7 @@ class TrainingGroupRequest extends FormRequest
     public function rules()
     {
         return [
-            'user_id' => ['required'],
+            'user_id' => ['required','array'],
             'name' => ['required'],
             'stage' => ['nullable'],
             'years' => ['required', 'array'],
@@ -40,8 +40,8 @@ class TrainingGroupRequest extends FormRequest
             'year_eleven' => ['nullable'],
             'year_twelve' => ['nullable'],
             'category' => ['nullable'],
-            'day_id' => ['required'],
-            'schedule_id' => ['required'],
+            'days' => ['required', 'array'],
+            'schedules' => ['required', 'array'],
             'school_id' => ['required'],
         ];
     }
@@ -54,7 +54,7 @@ class TrainingGroupRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => auth()->user()->school_id
+            'school_id' => getSchool(auth()->user())->id
         ]);
     }
 }

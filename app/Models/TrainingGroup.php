@@ -7,11 +7,12 @@ use App\Traits\Fields;
 use App\Traits\GeneralScopes;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
+use App\Observers\TrainingGroupObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @method static onlyTrashedRelations()
@@ -58,8 +59,8 @@ class TrainingGroup extends Model
         'year_eleven',
         'year_twelve',
         'category',
-        'schedule_id',
-        'day_id',
+        'schedules',
+        'days',
         'school_id'
     ];
 
@@ -67,24 +68,33 @@ class TrainingGroup extends Model
         'full_schedule_group',
         'full_group',
         'explode_name',
+        'explode_days',
+        'explode_schedules',
         'url_edit',
         'url_show',
-        'url_destroy'
+        'url_destroy',
+        'instructors_names',
+        'instructors_ids'
     ];
+
+    protected static function booted()
+    {
+        self::observe(TrainingGroupObserver::class);
+    }
 
     public function scopeOnlyTrashedRelations($query)
     {
         return $query->with([
-            'schedule.day' => fn ($query) => $query->onlyTrashed(),
-            'professor' => fn ($query) => $query->onlyTrashed()
+            // 'schedule.day' => fn ($query) => $query->withTrashed(),
+            'instructors' => fn ($query) => $query->withTrashed()
         ])->withTrashed();
     }
 
     public function scopeOnlyTrashedRelationsFilter($query)
     {
         return $query->with([
-            'schedule.day' => fn ($query) => $query->withTrashed(),
-            'professor' => fn ($query) => $query->withTrashed(),
+            // 'schedule.day' => fn ($query) => $query->withTrashed(),
+            'instructors' => fn ($query) => $query->withTrashed(),
             'assists' => fn ($query) => $query->select('training_group_id','year')
                 ->distinct()
                 ->where('year','<', now()->year)
@@ -96,7 +106,7 @@ class TrainingGroup extends Model
     public function scopeOnlyTrashedRelationsPayments($query)
     {
         return $query->with([
-            'schedule.day' => fn ($query) => $query->withTrashed(),
+            // 'schedule.day' => fn ($query) => $query->withTrashed(),
             'payments' => fn ($query) => $query->select('training_group_id','year')
                 ->distinct()
                 ->where('year','<', now()->year)
@@ -107,7 +117,7 @@ class TrainingGroup extends Model
 
     public function getExplodeNameAttribute(): Collection
     {
-        $explode = explode(",", $this->schedule->day->days);
+        $explode = explode(",", $this->days);
         return collect([
             'days' => $explode,
             'count_days' => count($explode)
@@ -123,8 +133,8 @@ class TrainingGroup extends Model
     {
         $var = trim("{$this->name} {$this->stage}");
         $var .= ' (' . trim("{$this->year} {$this->year_two} {$this->year_three} {$this->year_four} {$this->year_five} {$this->year_six} {$this->year_seven} {$this->year_eight} {$this->year_nine} {$this->year_ten} {$this->year_eleven} {$this->year_twelve}") . ') ';
-        if ($this->relationLoaded('schedule.day')  && $full) {
-            $var .= trim("{$this->schedule->day->days} {$this->schedule->schedule}");
+        if ($full) {
+            $var .= trim("{$this->days} {$this->schedules}");
         }
         return $var;
     }
@@ -156,9 +166,51 @@ class TrainingGroup extends Model
         }
     }
 
+    public function setSchedulesAttribute($value)
+    {
+        if (is_array($value)) {
+            $this->attributes['schedules'] = implode(',', $value);
+        }
+    }
+
+    public function setDaysAttribute($value)
+    {
+        if (is_array($value)) {
+            $this->attributes['days'] = implode(',', $value);
+        }
+    }
+
     public function getCategoryAttribute()
     {
         return explode(',', $this->attributes['category']);
+    }
+
+    public function getExplodeDaysAttribute()
+    {
+        return explode(',', $this->attributes['days']);
+    }
+
+    public function getExplodeSchedulesAttribute()
+    {
+        return explode(',', $this->attributes['schedules']);
+    }
+
+    public function getInstructorsNamesAttribute()
+    {
+        $names = '';
+        if($this->relationLoaded('instructors')){
+            $names = $this->instructors->implode('name',', ');
+        }
+        return $names;
+    }
+
+    public function getInstructorsIdsAttribute()
+    {
+        $ids = [];
+        if($this->relationLoaded('instructors')){
+            $ids = $this->instructors->pluck('id');
+        }
+        return $ids;
     }
 
     public function professor(): BelongsTo
@@ -184,6 +236,11 @@ class TrainingGroup extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'training_group_id');
+    }
+
+    public function instructors(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)->withPivot('assigned_year');
     }
 
 }

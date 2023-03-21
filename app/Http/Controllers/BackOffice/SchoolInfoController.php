@@ -1,32 +1,16 @@
 <?php
 
-namespace App\Http\Controllers\Panel;
+namespace App\Http\Controllers\BackOffice;
 
-use App\Http\Controllers\Controller;
 use App\Models\School;
-use App\Repositories\SchoolRepository;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 
-class SchoolController extends Controller
+class SchoolInfoController
 {
-
-    private SchoolRepository $repository;
-
-    public function __construct(SchoolRepository $repository)
+    public function index(Request $request)
     {
-        $this->repository = $repository;
-    }
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @return Response
-     */
-    public function index()
-    {
-        $this->repository->getAll();
+        return view('backoffice.schools-info.index');
     }
 
     /**
@@ -35,11 +19,10 @@ class SchoolController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         abort_unless($request->ajax(), 404);
-        $school = $this->repository->create($request);
-        return response()->json($school->wasRecentlyCreated);
+        return response()->noContent();
     }
 
     /**
@@ -48,10 +31,10 @@ class SchoolController extends Controller
      * @param School $school
      * @return JsonResponse
      */
-    public function show(Request $request, School $school): JsonResponse
+    public function show(School $school, Request $request)
     {
         abort_unless($request->ajax(), 404);
-        return response()->json($school);
+        return response()->noContent();
     }
 
     /**
@@ -63,7 +46,8 @@ class SchoolController extends Controller
      */
     public function update(Request $request, School $school)
     {
-        //
+        abort_unless($request->ajax(), 404);
+        return response()->noContent();
     }
 
     /**

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use App\Repositories\DayRepository;
+use App\Repositories\ScheduleRepository;
 use Illuminate\Http\RedirectResponse;
 use App\Repositories\PlayerRepository;
 use App\Repositories\SchoolRepository;
@@ -18,7 +18,7 @@ class DataTableController extends Controller
                                 private TrainingGroupRepository $trainingGroupRepository,
                                 private CompetitionGroupRepository $competitionGroupRepository,
                                 private PlayerRepository $playerRepository, 
-                                private DayRepository $dayRepository,
+                                private ScheduleRepository $scheduleRepository,
                                 private SchoolRepository $schoolRepository)
     {}
 
@@ -81,11 +81,11 @@ class DataTableController extends Controller
      * @param Request $request
      * @return JsonResponse|void
      */
-    public function enabledDays(Request $request): JsonResponse
+    public function enabledSchedules(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->collection($this->dayRepository->all())->toJson();
+        return datatables()->collection($this->scheduleRepository->all())->toJson();
     }
 
     /**
@@ -103,6 +103,23 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax() && isAdmin(), 403);
 
-        return datatables()->collection($this->schoolRepository->getAll())->toJson();
+        return datatables()->collection($this->schoolRepository->getAll())
+            ->addColumn('logo', '{{$logo}}!')
+            ->addColumn('name', '{{$name}}!')
+            ->addColumn('agent', '{{$agent}}!')
+            ->addColumn('address', '{{$address}}')
+            ->addColumn('phone', '{{$phone}}')
+            ->addColumn('email', '{{$email}}')
+            ->addColumn('is_enable', fn($model) => $model->is_enable ? '<span class="label label-success">SI</span>' : '<span class="label label-warning">NO</span>')
+            ->addColumn('created_at', fn($model) => $model->created_at->format('Y-m-d'))
+            ->escapeColumns([])
+            ->toJson();
+    }
+
+    public function schoolsInfo(Request $request)
+    {
+        abort_unless($request->ajax() && isAdmin(), 403);
+
+        return datatables()->collection($this->schoolRepository->schoolsInfo())->toJson();
     }
 }

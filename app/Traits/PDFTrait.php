@@ -48,17 +48,12 @@ trait PDFTrait
     protected function createPDF(array $data, string $template)
     {
         $this->mpdf = new Mpdf($this->configDefault);
-
         if($data['school']){
-            if ($this->existsTemplate($data['school']->logo)){
-                $this->mpdf->SetWatermarkImage(storage_path("app/public/{$data['school']->logo}"));
-                $this->mpdf->showWatermarkImage = true;
-            }
+            $this->mpdf->SetWatermarkImage($data['school']->logo_local, -1, array(80, 80));
+            $this->mpdf->showWatermarkImage = true;
         }
-        // return view()->file($this->getTemplate($template), $data)->render();
-        //$this->mpdf->SetHTMLHeader();
         $this->mpdf->WriteHTML(view()->file($this->getTemplate($template), $data));
-        $this->mpdf->SetHTMLFooter(view()->file($this->getTemplate('footer.blade.php')));
+        $this->mpdf->SetHTMLFooter(view()->file($this->getTemplate('footer.blade.php'), $data));
     }
 
     /**
