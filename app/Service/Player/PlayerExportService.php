@@ -12,45 +12,24 @@ class PlayerExportService
 {
     use PDFTrait;
     use ErrorTrait;
-    
+
     /**
      * @throws MpdfException
      */
-    public function makePDFInscriptionDetail($player_id, $inscription_id, $year = null, $quarter = null, bool $stream = true)
+    public function makePDFInscriptionDetail(int $player_id, int $inscription_id, string $year = null, string $quarter = '', bool $stream = true)
     {
         $from = null;
         $to = null;
+        $year = $year ? (int)$year : now()->year;
         $quarter_text = 'Actuales';
-        switch ($quarter) {
-            case 'quarter_one':
-                $quarter_text = 'Trimestre 1';
-                $from = Carbon::parse('01-01-2023')->year((int)$year);
-                $to = Carbon::parse('31-03-2023')->year((int)$year);
-                break;
-            case 'quarter_two':
-                $quarter_text = 'Trimestre 2';
-                $from = Carbon::parse('01-04-2023')->year((int)$year);
-                $to = Carbon::parse('30-06-2023')->year((int)$year);
-                break;
-            case 'quarter_three':
-                $quarter_text = 'Trimestre 3';
-                $from = Carbon::parse('01-07-2023')->year((int)$year);
-                $to = Carbon::parse('30-09-2023')->year((int)$year);
-                break;
-            case 'quarter_four':
-                $quarter_text = 'Trimestre 4';
-                $from = Carbon::parse('01-10-2023')->year((int)$year);
-                $to = Carbon::parse('31-12-2023')->year((int)$year);
-                break;
-            default:
-                $from = null;
-                $to = null;
-                break;
-        }
+        $months = [];
+
+        $this->quarter($quarter, $from, $to, $quarter_text, $year, $months);
 
         $player = Player::query()->with([
-            'schoolData', 
+            'schoolData',
             'inscriptions' => fn ($q) => $q->where('id', $inscription_id)->with([
+                'assistance' => fn($q) => $q->when($months, fn($q) => $q->whereIn('month', $months)),
                 'payments',
                 'skillsControls' => fn($q) => $q->when(($from && $to), fn($q) => $q->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to))
             ])
@@ -61,8 +40,9 @@ class PlayerExportService
         $data['school'] = $player->schoolData;
         $data['show_payments_assists'] = !($from && $to);
         $data['quarter_text'] = $quarter_text;
+        $data['quarter'] = $quarter;
         $filename = "Deportista {$player->unique_code}.pdf";
-        $this->setConfigurationMpdf(['format' => ($from && $to) ? [213, 140] : 'A4-L']);        
+        $this->setConfigurationMpdf(['format' => ($from && $to) ? [215, 140] : [215, 167]]);
         $this->createPDF($data, 'inscription_detail.blade.php');
         return $stream ? $this->stream($filename) : $this->output($filename);
     }
@@ -78,8 +58,8 @@ class PlayerExportService
         $data['player'] = $player;
         $data['school'] = $player->schoolData;
         $filename = "Deportista {$player->unique_code}.pdf";
-        
-        $this->setConfigurationMpdf(['format' => [213, 140]]);        
+
+        $this->setConfigurationMpdf(['format' => [213, 140]]);
         $this->createPDF($data, 'inscription.blade.php');
 
         return $stream ? $this->stream($filename) : $this->output($filename);
@@ -92,22 +72,57 @@ class PlayerExportService
         $playersEnabled = Player::query()->schoolId()
         ->whereHas('inscription')
         ->with([
-            'inscription.trainingGroup', 
+            'inscription.trainingGroup',
             'people' => fn($query)=> $query->where('tutor', true),
-            'payments' => fn ($q) => $q->withTrashed() 
+            'payments' => fn ($q) => $q->withTrashed()
         ])->get();
 
         $playersDisabled = Player::query()->schoolId()
         ->whereDoesntHave('inscription')
         ->with([
-            'inscription.trainingGroup', 
+            'inscription.trainingGroup',
             'people' => fn($query)=> $query->where('tutor', true),
-            'payments' => fn ($q) => $q->withTrashed() 
+            'payments' => fn ($q) => $q->withTrashed()
         ])->get();
 
         $collection['enabled'] = $playersEnabled;
         $collection['disabled'] = $playersDisabled;
 
         return $collection;
+    }
+
+    private function quarter(string $quarter, &$from, &$to, string &$quarter_text, int $year, array &$months)
+    {
+        switch ($quarter) {
+            case 'quarter_one':
+                $quarter_text = 'Primer trimestre';
+                $from = Carbon::parse('01-01-2023')->year($year);
+                $to = Carbon::parse('31-03-2023')->year($year);
+                $months = ['Enero', 'Febrero', 'Marzo'];
+                break;
+            case 'quarter_two':
+                $quarter_text = 'Segundo trimestre';
+                $from = Carbon::parse('01-04-2023')->year($year);
+                $to = Carbon::parse('30-06-2023')->year($year);
+                $months = ['Abril', 'Mayo', 'Junio'];
+                break;
+            case 'quarter_three':
+                $quarter_text = 'Tercer trimestre';
+                $from = Carbon::parse('01-07-2023')->year($year);
+                $to = Carbon::parse('30-09-2023')->year($year);
+                $months = ['Julio', 'Agosto', 'Septiembre'];
+                break;
+            case 'quarter_four':
+                $quarter_text = 'Cuarto trimestre';
+                $from = Carbon::parse('01-10-2023')->year($year);
+                $to = Carbon::parse('31-12-2023')->year($year);
+                $months = ['Octubre', 'Noviembre', 'Diciembre'];
+                break;
+            default:
+                $from = null;
+                $to = null;
+                $months = [];
+                break;
+        }
     }
 }

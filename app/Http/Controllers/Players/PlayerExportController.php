@@ -21,7 +21,7 @@ class PlayerExportController extends Controller
         return $playerExportService->makePDFPlayer($player);
     }
 
-    public function exportInscription($player_id, $inscription_id, $year = null, $quarter = null, PlayerExportService $playerExportService)
+    public function exportInscription($player_id, $inscription_id, $year = null, $quarter = '', PlayerExportService $playerExportService)
     {
         $playerExportService->makePDFInscriptionDetail($player_id, $inscription_id, $year, $quarter);
     }

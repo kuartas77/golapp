@@ -91,7 +91,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 
     $route->prefix('export')->name('export.')->group(function ($route) {
         $route->get('player/{player}/pdf', [PlayerExportController::class, 'exportPlayerPDF'])->name('player');
-        $route->get('inscription/{player_id}/{inscription_id}', [PlayerExportController::class, 'exportInscription'])->name('inscription');
+        $route->get('inscription/{player_id}/{inscription_id}/{year?}/{quarter?}', [PlayerExportController::class, 'exportInscription'])->name('inscription');
         $route->get('inscriptions/excel', [PlayerExportController::class, 'exportInscriptionsExcel'])->name('inscriptions');
 
         $route->get('assists/pdf/{training_group_id}/{year}/{month}/{deleted?}', [ExportController::class, 'exportAssistsPDF'])->name('pdf.assists');

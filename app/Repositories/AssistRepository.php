@@ -9,22 +9,19 @@ use App\Traits\PDFTrait;
 use App\Traits\ErrorTrait;
 use App\Models\Inscription;
 use App\Models\TrainingGroup;
+use App\Service\Assist\AssistService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\View;
 
 class AssistRepository
 {
     use PDFTrait;
     use ErrorTrait;
 
-    /**
-     * @var Assist
-     */
-    private Assist $model;
+    protected AssistService $service;
 
-    public function __construct(Assist $model)
+    public function __construct(protected Assist $model)
     {
-        $this->model = $model;
+        $this->service = new AssistService();
     }
 
     /**
@@ -45,7 +42,7 @@ class AssistRepository
             ->when($deleted, fn ($q) => $q->withTrashed())
             ->where($data);
 
-        return $this->generateTable($assists, $trainingGroup, $data, $deleted);
+        return $this->service->generateTable($assists, $trainingGroup, $data, $deleted);
     }
 
     /**
@@ -96,7 +93,8 @@ class AssistRepository
                 DB::commit();
             }
 
-            $table = $this->generateTable($assists, $trainingGroup, $dataAssist);
+            $table = $this->service->generateTable($assists, $trainingGroup, $dataAssist);
+
         } catch (Exception $th) {
             DB::rollBack();
             $this->logError("AssistRepository create", $th);
@@ -122,56 +120,5 @@ class AssistRepository
             $this->logError("AssistRepository update", $exception);
             return false;
         }
-    }
-
-    /**
-     * @param $assists
-     * @param $trainingGroup
-     * @param array $data
-     * @param bool $deleted
-     * @return array
-     */
-    private function generateTable($assists, $trainingGroup, array $data, bool $deleted = false): array
-    {
-        $months = config('variables.KEY_MONTHS_INDEX');
-        $group_name = $trainingGroup->full_schedule_group;
-        $assists = $assists->get();
-
-        $classDays = classDays(
-            $data['year'],
-            array_search($data['month'], $months, true),
-            array_map('dayToNumber', $trainingGroup->explode_name['days'])
-        );
-
-        $rows = '';
-        foreach ($assists as $assist) {
-            $rows .= View::make('templates.assists.row', [
-                'assist' => $assist,
-                'classDays' => $classDays->count(),
-                'deleted' => $deleted
-            ])->render();
-        }
-
-        $thead = View::make('templates.assists.thead', ['classDays' => $classDays])->render();
-        $table = View::make('templates.assists.table', ['thead' => $thead, 'rows' => $rows])->render();
-
-        $params = [
-            'training_group_id' => $data['training_group_id'],
-            'year' => $data['year'],
-            'month' => $data['month'],
-            'deleted' => $deleted
-        ];
-
-        $urlPrint = route('export.pdf.assists', $params);
-
-        $urlPrintExcel = route('export.assists', $params);
-
-        return [
-            'table' => $table,
-            'group_name' => $group_name,
-            'count' => $assists->count(),
-            'url_print' => $urlPrint,
-            'url_print_excel' => $urlPrintExcel
-        ];
     }
 }
