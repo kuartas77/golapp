@@ -99,6 +99,7 @@ return [
         '5' => "Retiro Temporal",
         '6' => "Retiro Definitivo",
         '7' => "Otro",
+        '8' => "Becado"
     ],
 
     'KEY_RELATIONSHIPS_SELECT' => [

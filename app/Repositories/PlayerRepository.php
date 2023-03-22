@@ -7,18 +7,15 @@ namespace App\Repositories;
 use Carbon\Carbon;
 use App\Models\Master;
 use App\Models\Player;
-use Mpdf\MpdfException;
 use App\Traits\PDFTrait;
 use App\Traits\ErrorTrait;
 use App\Traits\UploadFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Foundation\Http\FormRequest;
+use Maatwebsite\Excel\HeadingRowImport;
 use Illuminate\Database\Eloquent\Collection;
 use App\Http\Requests\Player\PlayerCreateRequest;
 use App\Http\Requests\Player\PlayerUpdateRequest;
-use App\Models\Inscription;
 use App\Notifications\RegisterPlayerNotification;
 
 class PlayerRepository
@@ -152,5 +149,19 @@ class PlayerRepository
             ->whereDay('date_birth', Carbon::now()->day)->whereMonth('date_birth', Carbon::now()->month)
             ->get();
         });
+    }
+
+    public function validateImport($file)
+    {
+        $headings = (new HeadingRowImport())->toCollection($file);
+        $headers = $headings->first()->first();
+
+        $headers_validation = collect([
+            'fecha_de_nacimiento','numero_de_documento','nombres','apellidos','genero','lugar_de_nacimiento',
+            'numero_de_documento','rh','escuela_o_colegio_donde_estudia','direccion_de_residencia','municipio',
+            'barrio','numero_de_telefono','correo_electronico','numero_de_celular','eps','nombres_y_apellidos',
+            'numero_de_celularr','numero_de_telefono','numero_de_celularr','profesion','empresa','cargo',
+        ]);
+        return $headers->diff($headers_validation)->implode(',');
     }
 }

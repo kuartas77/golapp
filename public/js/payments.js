@@ -2,7 +2,29 @@ $('#training_group_id').select2({placeholder:'Seleccione...',allowClear: true});
 let table = $('#active_table');
 $(document).ready(() => {
     $("#export").attr('disabled',true);
-    table = $('#active_table').DataTable();
+    table = $('#active_table').DataTable({
+        "paging": false,
+        "ordering": false,
+        "info": false,
+        "scrollX": true,
+        "scrollY": true,
+        "columns": [
+            {'width': '3%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+            {'width': '5%'},
+        ]
+    });
 
     $("#form_payments").validate({
         submitHandler: function (form) {
@@ -35,7 +57,20 @@ $('body').on('change', 'select.payments', function () {
 
     $.post(url_current + '/' + id, data, (response) =>{
         if (response.data) {
-            //
+            switch (element.val()) {
+                case '1':
+                    element.removeClass('form-error')
+                    element.addClass('form-success')
+                    break;
+                case '2':
+                    element.removeClass('form-success')
+                    element.addClass('form-error')
+                    break;
+                default:
+                    element.removeClass('form-error')
+                    element.removeClass('form-success')
+                    break
+            }
         }
     });
 

@@ -42,6 +42,14 @@ class ImportController extends Controller
     public function importPlayers(Request $request)
     {
         try {
+
+            $diff = $this->playerRepository->validateImport($request->file('file'));
+            if ($diff !== "") {
+                alert()->error("Error en las columnas a importar",
+                    "Error en las columnas: {$diff}");
+                return back();
+            }
+
             $importPlayers = new ImportPlayers($request->school_id);
             Excel::import($importPlayers, $request->file('file'));
 

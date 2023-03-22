@@ -6,7 +6,13 @@ let btnPrintExcel = $("#print_excel");
 let tableActive = $('#active_table');
 let form_assist = $("#form_assist");
 jQuery(function() {
-    tableActive = $('#active_table').DataTable();
+    tableActive = $('#active_table').DataTable({
+            "paging": false,
+            "ordering": false,
+            "info": false,
+            "scrollX": true,
+            "scrollY": true,
+        });
 
     form_assist.validate({
         submitHandler: (form) => {

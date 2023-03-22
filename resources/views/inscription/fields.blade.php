@@ -107,14 +107,6 @@
                     <label for="overalls" class="checkboxsizeletter">Peto</label>
                 </div>
                 <div class="checkbox">
-                    <input type="checkbox" name="ball" id="ball" value="1">
-                    <label for="ball" class="checkboxsizeletter">Balón</label>
-                </div>
-                <div class="checkbox">
-                    <input type="checkbox" name="bag" id="bag" value="1">
-                    <label for="bag" class="checkboxsizeletter">Morral</label>
-                </div>
-                <div class="checkbox">
                     <input type="checkbox" name="presentation_uniform" id="presentation_uniform"
                         value="1">
                     <label for="presentation_uniform" class="checkboxsizeletter">Uniforme De Presentación</label>
@@ -126,7 +118,15 @@
                 </div>
                 <div class="checkbox">
                     <input type="checkbox" name="tournament_pay" id="tournament_pay" value="1">
-                    <label for="tournament_pay" class="checkboxsizeletter">Pagó Inscripción A Torneo</label>
+                    <label for="tournament_pay" class="checkboxsizeletter">Pagó Inscripción Torneo 1</label>
+                </div>
+                <div class="checkbox">
+                    <input type="checkbox" name="ball" id="ball" value="1">
+                    <label for="ball" class="checkboxsizeletter">Pagó Inscripción Torneo 2</label>
+                </div>
+                <div class="checkbox">
+                    <input type="checkbox" name="bag" id="bag" value="1">
+                    <label for="bag" class="checkboxsizeletter">Pagó Inscripción Torneo 3</label>
                 </div>
             </div>
         </div>

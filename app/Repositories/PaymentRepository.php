@@ -64,10 +64,9 @@ class PaymentRepository
             ])->withTrashed();
         }
 
-        $query->where('year', $request->input('year', now()->year));
-
-        $query->when($request->filled('unique_code'), fn ($q) => $q->where($request->unique_code));
-        $query->when($request->filled('training_group_id'), fn ($q) => $q->where($request->training_group_id));
+        $query->where('year', $request->input('year', now()->year))
+        ->when($request->filled('unique_code'), fn ($q) => $q->where('unique_code', $request->unique_code))
+        ->when($request->filled('training_group_id'), fn ($q) => $q->where('training_group_id', $request->training_group_id));
 
         return $query;
     }

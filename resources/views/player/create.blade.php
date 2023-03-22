@@ -11,14 +11,14 @@
 @endsection
 @section('content')
     <x-bread-crumb title="Agregar Deportista" :option="0"/>
-    <x-row-card-eight>
+    <x-row-card col-inside="12">
         <div class="wizard-content">
             {!! Form::open(['route' => 'players.store', 'id'=>'form_player', 'files'=>true, 'class'=>'validation-wizard wizard-circle']) !!}
                 @include('player.fields.basic_information')
                 @include('player.fields.family_information', ['people'=> [1,2,3]])
             {!! Form::close() !!}
         </div>
-    </x-row-card-eight>
+    </x-row-card>
 @endsection
 @section('scripts')
     <script>

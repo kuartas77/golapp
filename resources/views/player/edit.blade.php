@@ -11,14 +11,14 @@
 @endsection
 @section('content')
     <x-bread-crumb title="{{__('messages.player_title_edit', ['unique_code' => $player->unique_code])}}" :option="0"/>
-    <x-row-card-eight>
+    <x-row-card col-inside="12">
         <div class="wizard-content">
             {!! Form::model($player, ['route' => ['players.update', $player->unique_code], 'method' => 'patch', 'files'=>true, 'id'=>'form_player', 'class'=>'validation-wizard wizard-circle'])!!}
                 @include('player.fields.basic_information')
                 @include('player.fields.family_information', ['people'=> $player->people ?? [1,2,3]])
             {!! Form::close() !!}
         </div>
-    </x-row-card-eight>
+    </x-row-card>
 @endsection
 @section('scripts')
     <script>

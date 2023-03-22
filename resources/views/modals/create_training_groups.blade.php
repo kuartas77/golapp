@@ -24,6 +24,18 @@
 
                         <div class="row">
 
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="stage">Lugar de entrenamiento</label>
+                                    <span class="bar"></span>
+                                    <input type="text" name="stage" id="stage" class="form-control" required
+                                           autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+
                             <div class="col-md-6">
                                 <label for="days">Días</label>(<span class="text-danger">*</span>)
                                 <span class="bar"></span>

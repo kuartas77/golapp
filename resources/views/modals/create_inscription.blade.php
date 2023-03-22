@@ -27,7 +27,7 @@
     <script>
         const urlSearchPlayers = "{{route('autocomplete.search_unique_code')}}?unique=true";
         const urlList = "{{route('autocomplete.list_code_unique')}}?trashed=true";
-        
+
         // optionsDateTimePicker.timePicker24Hour = false;
         // optionsDateTimePicker.locale.format = 'YYYY-MM-DD';
         // optionsDateTimePicker.timePicker = false;
@@ -96,7 +96,7 @@
 
             $('#unique_code').on('change', function (e) {
                 let code = $(this).val();
-                if (code.length <= 7) return;
+                if (code.length < 7) return;
                 $.get(urlSearchPlayers, {'unique_code': code}, ({data}) => {
                     if (data != null) {
                         $("#player_id").val(data.id);

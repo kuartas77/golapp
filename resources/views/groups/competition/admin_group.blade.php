@@ -43,7 +43,7 @@
                         <strong id="inscriptions_count"></strong>
                     </h6>
                     <hr>
-                    <div class="row row-cols-3 space col-sm-12" id="inscriptions">
+                    <div class="row row-cols-3 space col-lg-12 col-md-12 col-sm-12" id="inscriptions">
                         @each('templates.groups.div_row', $insWithOutGroup, 'inscription')
                     </div>
                 </div>
@@ -58,7 +58,7 @@
                         <strong id="destination_count"></strong>
                     </h6>
                     <hr>
-                    <div class="row row-cols-3 space col-sm-12" id="destination">
+                    <div class="row row-cols-3 space col-lg-12 col-md-12 col-sm-12" id="destination">
                         @each('templates.groups.div_row', $insWithGroup, 'inscription')
                     </div>
                 </div>

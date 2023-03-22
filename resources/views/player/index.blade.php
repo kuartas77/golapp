@@ -20,7 +20,9 @@
             active_table = $('#table_players').DataTable({
                 "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
                 "order": [[2, "desc"]],
+                "ordering": false,
                 "scrollX": true,
+                "scrollY": true,
                 "processing": true,
                 "serverSide": true,
                 "deferRender": true,
@@ -34,7 +36,7 @@
                     },
                     {
                         data: 'id', "render": function (data, type, row) {
-                            return "<img class='media-object img-rounded' src='" + row.photo_url + "' width='90' height='60' alt='" + row.full_names + "'>";
+                            return "<img class='img-fluid rounded img-thumbnail' width='70' height='50' src='" + row.photo_url + "' alt='" + row.full_names + "'>";
                         }
                     },
                     {data: 'unique_code', name: 'unique_code'},
@@ -88,7 +90,7 @@
                             .draw();
                     }
                 });
-            
+
             let start_date = this.api().columns(8);
             $("<input type='search' class='' placeholder='Buscar F.Registro' />")
                 .appendTo($(start_date.header()).empty())
