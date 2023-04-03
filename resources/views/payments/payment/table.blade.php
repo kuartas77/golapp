@@ -5,8 +5,11 @@
                aria-controls="enabled" aria-expanded="false">Resultado</a>
         </li>
         <li class=" nav-item ml-auto">
-            <a class="float-right btn waves-effect waves-light btn-rounded btn-info" href="javascript:void(0)" id="export">
+            <a class="float-right btn waves-effect waves-light btn-rounded btn-info" href="javascript:void(0)" id="export-excel">
                 <i class="fa fa-print" aria-hidden="true"></i> Exportar Pagos En Excel
+            </a>
+            <a class="float-right btn waves-effect waves-light btn-rounded btn-info" href="javascript:void(0)" id="export-pdf">
+                <i class="fa fa-print" aria-hidden="true"></i> Exportar Pagos En PDF
             </a>
         </li>
     </ul>

@@ -175,52 +175,44 @@
             <!-- End Payments -->
             <!-- Asists -->
             <table class="table-full detail detail-lines">
+                @php
+                    $colspan = 20;
+                @endphp
                 <thead>
-                <tr class="tr-tit">
-                    <th colspan="16" class="text-center bold">Asistencias Entrenamientos</th>
-                </tr>
-                <tr class="tr-tit">
-                    <td class="bold">&nbsp;Mes</td>
-                    <td class="text-center bold">1</td>
-                    <td class="text-center bold">2</td>
-                    <td class="text-center bold">3</td>
-                    <td class="text-center bold">4</td>
-                    <td class="text-center bold">5</td>
-                    <td class="text-center bold">6</td>
-                    <td class="text-center bold">7</td>
-                    <td class="text-center bold">8</td>
-                    <td class="text-center bold">9</td>
-                    <td class="text-center bold">10</td>
-                    <td class="text-center bold">11</td>
-                    <td class="text-center bold">12</td>
-                    <td class="text-center bold">13</td>
-                    <td class="text-center bold">14</td>
-                    <td class="text-center bold">15</td>
-                </tr>
+                    <tr class="tr-tit">
+                        <th colspan="{{$colspan}}" class="text-center bold">Asistencias Entrenamientos: <strong style="text-transform: uppercase;">{{$inscription->trainingGroup->name}}</strong></th>
+                    </tr>
                 </thead>
                 <tbody>
                 @forelse ($inscription->assistance as $assistance)
+                    @php
+                        $countAS = 0;
+                    @endphp
+                    <tr class="tr-tit">
+                        <td class="bold" >&nbsp;Días</td>
+                        @for ($index = 1; $index <= $assistance->classDays->count(); $index++)
+                            <th class="text-center bold">{{$index}}</th>
+                        @endfor
+                        <td colspan="{{(($colspan - 2) - $assistance->classDays->count())}}"></td>
+                        <td class="text-center bold"></td>
+                    </tr>
                     <tr>
-                        <td class="bold">&nbsp;{{ $assistance->month }}</td>
-                        <td class="text-center bold">{{ checkAssists($assistance->assistance_one) }}</td>
-                        <td class="text-center bold">{{ checkAssists($assistance->assistance_two) }}</td>
-                        <td class="text-center bold">{{ checkAssists($assistance->assistance_three) }}</td>
-                        <td class="text-center bold">{{ checkAssists($assistance->assistance_four) }}</td>
-                        <td class="text-center bold">{{ checkAssists($assistance->assistance_five) }}</td>
-                        <td class="text-center bold">{{ checkAssists($assistance->assistance_six) }}</td>
-                        <td class="text-center bold">{{ checkAssists($assistance->assistance_seven) }}</td>
-                        <td class="text-center bold">{{ checkAssists($assistance->assistance_eight) }}</td>
-                        <td class="text-center bold">{{ checkAssists($assistance->assistance_nine) }}</td>
-                        <td class="text-center bold">{{ checkAssists($assistance->assistance_ten) }}</td>
-                        <td class="text-center bold">{{ checkAssists($assistance->assistance_eleven) }}</td>
-                        <td class="text-center bold">{{ checkAssists($assistance->assistance_twelve) }}</td>
-                        <td class="text-center bold">{{ checkAssists($assistance->assistance_thirteen) }}</td>
-                        <td class="text-center bold">{{ checkAssists($assistance->assistance_fourteen) }}</td>
-                        <td class="text-center bold">{{ checkAssists($assistance->assistance_fifteen) }}</td>
+                        <td class="bold" >&nbsp;Mes: {{ $assistance->month }}</td>
+                        @for ($index = 1; $index <= $assistance->classDays->count(); $index++)
+                            @php
+                                $column = numbersToLetters($index);
+                                $countAS += $assistance->$column == 'as' ? 1 : 0;
+                            @endphp
+                            <td class="text-center bold {{$assistance->$column == 'fa' ? 'error':''}}" >
+                            {{ $assistance->$column == null ? '': $optionAssist[$assistance->$column] }}
+                            </td>
+                        @endfor
+                        <td colspan="{{(($colspan - 2) - $assistance->classDays->count())}}"></td>
+                        <td class="text-center bold">&nbsp;{{percent($countAS, $assistance->classDays->count())}}%</td>
                     </tr>
                 @empty
                     <tr>
-                        <th colspan="16" align="center">Sin Registros De Asistencia</th>
+                        <th colspan="20" align="center">Sin Registros De Asistencia</th>
                     </tr>
                 @endforelse
                 </tbody>
@@ -228,7 +220,7 @@
             <table class="table-full detail detail-lines">
                 <tr class="tr-tit">
                     <td class="text-center"><strong>ASISTENCIA:X</strong></td>
-                    <td class="text-center"><strong>FALTA:F</strong></td>
+                    <td class="text-center error"><strong>FALTA:F</strong></td>
                     <td class="text-center"><strong>EXCUSA:E</strong></td>
                     <td class="text-center"><strong>RETIRO:R</strong></td>
                     <td class="text-center"><strong>INCAPACIDAD:I</strong></td>

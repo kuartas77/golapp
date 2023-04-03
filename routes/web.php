@@ -98,7 +98,8 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
         $route->get('matches/pdf/{match}', [ExportController::class, 'exportMatchPDF'])->name('pdf.match');
         $route->get('incidents/pdf/{slug_name}', [ExportController::class, 'exportIncidentsPDF'])->name('pdf.incidents');
 
-        $route->get('payments', [ExportController::class, 'exportPaymentsExcel'])->name('payments');
+        $route->get('payments/excel', [ExportController::class, 'exportPaymentsExcel'])->name('payments.excel');
+        $route->get('payments/pdf', [ExportController::class, 'exportPaymentsPDF'])->name('payments.pdf');
         $route->get('assists/excel/{training_group_id}/{year}/{month}/{deleted?}', [ExportController::class, 'exportAssistsExcel'])->name('assists');
         $route->get('matches/create/{competition_group}/format', [ExportController::class, 'exportMatchDetail'])->name('match_detail');
 

@@ -36,7 +36,8 @@ class PaymentRepository
         foreach ($payments as $pay) {
             $rows .= View::make('templates.payments.row', [
                 'payment' => $pay,
-                'deleted' => $deleted
+                'deleted' => $deleted,
+                'front' => true
             ])->render();
         }
 
@@ -45,8 +46,9 @@ class PaymentRepository
             $query_params['deleted'] = true;
         }
         ksort($query_params);
-        $url_export = route('export.payments', $query_params);
-        return ['rows' => $rows, 'count' => $payments->count(), 'url_export' => $url_export];
+        $urlExportExcel = route('export.payments.excel', $query_params);
+        $urlExportPDF = route('export.payments.pdf', $query_params);
+        return ['rows' => $rows, 'count' => $payments->count(), 'url_export_excel' => $urlExportExcel, 'url_export_pdf' => $urlExportPDF];
     }
 
     /**

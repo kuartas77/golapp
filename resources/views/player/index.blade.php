@@ -42,7 +42,10 @@
                     {data: 'unique_code', name: 'unique_code'},
                     {data: 'identification_document', name: 'identification_document'},
                     {data: 'full_names', name: 'full_names'},
-                    {data: 'mobile'},
+                    {data: 'phones', "render": function (data, type, row) {
+                        
+                        return (row.mobile == null) ? data : `${data} ${row.mobile}`
+                    }},
                     {data: 'gender'},
                     {data: 'date_birth', name: 'date_birth'},
                     {data: 'created_at', name: 'created_at'},
@@ -118,14 +121,15 @@
         const format = (d) => {
             let rows = "";
             d.people.forEach(function ({tutor, relationship_name, names, phone, mobile}) {
-                let is_tutor = tutor === 1 ? "ACUDIENTE" : "";
+                let is_tutor = (tutor === 1) ? "ACUDIENTE" : "";
+                let phones = (mobile == null) ?  phone : `${phone} ${mobile}`
                 rows += '<tr>' +
                     '<th><strong>' + is_tutor + '</strong></th>'+
                     '<th><span>' + relationship_name + '</span></th><th>' + names + '</th>' +
-                    '<th><span>Teléfonos:</span></th><th>' + phone + ' - ' + mobile + '</th>' +
+                    '<th><span>Teléfonos:</span></th><th>' + phones + '</th>' +
                     '</tr>';
             });
-
+            
             return '<table class="w-100">' + rows + '</table>';
         }
 

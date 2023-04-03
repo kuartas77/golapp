@@ -23,17 +23,29 @@ class PlayerExportService
         $year = $year ? (int)$year : now()->year;
         $quarter_text = 'Actuales';
         $months = [];
+        $months_ = config('variables.KEY_MONTHS_INDEX');
 
         $this->quarter($quarter, $from, $to, $quarter_text, $year, $months);
 
         $player = Player::query()->with([
             'schoolData',
             'inscriptions' => fn ($q) => $q->where('id', $inscription_id)->with([
+                'trainingGroup',
                 'assistance' => fn($q) => $q->when($months, fn($q) => $q->whereIn('month', $months)),
                 'payments',
                 'skillsControls' => fn($q) => $q->when(($from && $to), fn($q) => $q->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to))
             ])
         ])->find($player_id);
+
+        $player->inscriptions->each(function($inscription) use($months_){
+            foreach ($inscription->assistance as $assistance) {
+                $assistance->classDays = classDays(
+                    $assistance->year,
+                    array_search($assistance->month, $months_, true),
+                    array_map('dayToNumber', $inscription->trainingGroup->explode_name['days'])
+                );
+            }
+        });
 
         $player->inscriptions->setAppends(['format_average']);
         $data['player'] = $player;
@@ -41,8 +53,9 @@ class PlayerExportService
         $data['show_payments_assists'] = !($from && $to);
         $data['quarter_text'] = $quarter_text;
         $data['quarter'] = $quarter;
+        $data['optionAssist'] = config('variables.KEY_ASSIST_LETTER');
         $filename = "Deportista {$player->unique_code}.pdf";
-        $this->setConfigurationMpdf(['format' => ($from && $to) ? [215, 140] : [215, 167]]);
+        $this->setConfigurationMpdf(['format' => ($from && $to) ? [215, 145] : 'A4-L']);
         $this->createPDF($data, 'inscription_detail.blade.php');
         return $stream ? $this->stream($filename) : $this->output($filename);
     }

@@ -35,10 +35,13 @@ $(document).ready(() => {
                     $('#table_body').empty();
                     $('#table_body').append(response.rows);
                     initTable();
-                    $("#export").attr("href", response.url_export);
+                    $("#export-excel").attr("href", response.url_export_excel);
+                    $("#export-pdf").attr("href", response.url_export_pdf);
                 } else {
-                    $("#export").attr('disabled',true);
-                    $("#export").attr("href","javascript:void(0)");
+                    $("#export-excel").attr('disabled',true);
+                    $("#export-pdf").attr('disabled',true);
+                    $("#export-excel").attr("href","javascript:void(0)");
+                    $("#export-pdf").attr("href","javascript:void(0)");
                     table.destroy();
                     $('#table_body').empty();
                     initTable();

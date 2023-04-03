@@ -14,10 +14,11 @@ const format = (d) => {
     let data_people = "";
     d.player.people.forEach(function ({tutor, relationship_name, names, phone, mobile}) {
         let is_tutor = tutor === 1 ? "ACUDIENTE" : "";
+        let phones = (mobile == null) ?  phone : `${phone} ${mobile}`
         data_people += '<tr>' +
             '<th><strong>' + is_tutor +'</strong></th><td></td>' +
             '<th>'+ relationship_name +'</th><th>' + names + '</th>' +
-            '<th><strong>Teléfonos:</strong></th><th>' + phone + ' - ' + mobile + '</th>' +
+            '<th><strong>Teléfonos:</strong></th><th>' + phones + '</th>' +
             '<th></th><td></td>'+
             '</tr>';
     });

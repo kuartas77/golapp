@@ -11,7 +11,9 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Repositories\AssistRepository;
 use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
+use App\Repositories\PaymentRepository;
 use App\Service\Assist\AssistExportService;
+use App\Service\Payment\PaymentExportService;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ExportController extends Controller
@@ -21,7 +23,8 @@ class ExportController extends Controller
         private InscriptionRepository $inscriptionRepository,
         private AssistRepository $assistRepository,
         private IncidentRepository $incidentRepository,
-        private GameRepository $gameRepository
+        private GameRepository $gameRepository,
+        private PaymentRepository $paymentRepository,
     ){}
 
 
@@ -69,6 +72,12 @@ class ExportController extends Controller
     {
         $date = now()->timestamp;
         return Excel::download(new PaymentsExport($request, $request->input('deleted', false)), "Pagos {$date}.xlsx");
+    }
+
+    public function exportPaymentsPDF(Request $request, PaymentExportService $paymentExportService)
+    {
+        $payments = $this->paymentRepository->filterSelect($request, false)->get();
+        return $paymentExportService->paymentsPdfByGroup($payments, $request, true);
     }
 
 

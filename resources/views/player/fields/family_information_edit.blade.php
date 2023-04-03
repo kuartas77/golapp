@@ -38,39 +38,10 @@
 
                 <div class="col-md-3">
                     <div class="form-group">
-                        {!! Form::label("people[{$loop->index}][phone]", 'Teléfonos') !!}(<span class="text-danger">*</span>)
+                        {!! Form::label("people[{$loop->index}][phone]", 'Teléfonos/Celular') !!}(<span class="text-danger">*</span>)
                         {!! Form::text("people[{$loop->index}][phone]", $people->phone ?? '', ['class' => 'form-control form-control-sm']) !!}
                     </div>
                 </div>
-
-                <div class="col-md-3">
-                    <div class="form-group">
-                        {!! Form::label("people[{$loop->index}][mobile]", 'Número Celular') !!}(<span class="text-danger">*</span>)
-                        {!! Form::text("people[{$loop->index}][mobile]", $people->mobile ?? '', ['class' => 'form-control form-control-sm']) !!}
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="form-group">
-                        {!! Form::label("people[{$loop->index}][profession]", 'Profesión') !!}
-                        {!! Form::text("people[{$loop->index}][profession]", $people->profession  ?? '', ['class' => 'form-control form-control-sm']) !!}
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="form-group">
-                        {!! Form::label("people[{$loop->index}][business]", 'Empresa') !!}
-                        {!! Form::text("people[{$loop->index}][business]", $people->business  ?? '', ['class' => 'form-control form-control-sm']) !!}
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="form-group">
-                        {!! Form::label("people[{$loop->index}][position]", 'Cargo En La Empresa') !!}
-                        {!! Form::text("people[{$loop->index}][position]", $people->position  ?? '', ['class' => 'form-control form-control-sm']) !!}
-                    </div>
-                </div>
-
             </div>
 
         </fieldset>

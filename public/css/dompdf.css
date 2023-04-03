@@ -313,3 +313,6 @@ th {
     text-align: justify !important;
     word-break: break-all;
 }
+.error {
+  color: red;
+}
