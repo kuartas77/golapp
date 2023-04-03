@@ -38,7 +38,7 @@
                     place_birth : {required: true},
                     rh : {},
                     eps : {required: true},
-                    email : {required: true},
+                    email : {required: false},
                     address : {required: true},
                     municipality : {required: true},
                     neighborhood : {required: true},

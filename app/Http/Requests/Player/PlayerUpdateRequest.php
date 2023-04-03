@@ -32,7 +32,7 @@ class PlayerUpdateRequest extends FormRequest
             'identification_document' => ['required'],
             'rh' => ['nullable'],
             'eps' => ['required'],
-            'email' => ['required'],
+            'email' => ['nullable'],
             'address' => ['required'],
             'municipality' => ['required'],
             'neighborhood' => ['required'],

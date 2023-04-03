@@ -86,11 +86,11 @@
             <td><strong class="bold">&nbsp;Cédula:</strong> {{ $people->identification_card }}</td>
             <td><strong class="bold">&nbsp;Teléfonos:</strong> {{ "{$people->phone} {$people->mobile}" }}</td>
         </tr>
-        <tr>
+        <!-- <tr>
             <td><strong class="bold">&nbsp;Profesión:</strong> {{ $people->profession }}</td>
             <td><strong class="bold">&nbsp;Empresa:</strong> {{ $people->business }}</td>
             <td><strong class="bold">&nbsp;Cargo:</strong> {{ $people->position }}</td>
-        </tr>
+        </tr> -->
         @endforeach
     </table>
 

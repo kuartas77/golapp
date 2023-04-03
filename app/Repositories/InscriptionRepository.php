@@ -76,8 +76,9 @@ class InscriptionRepository
                 ], $inscriptionData);
 
                 $inscription->load(['player', 'school']);
-
-                $inscription->player->notify(new InscriptionNotification($inscription));
+                if($inscription->player->email){
+                    $inscription->player->notify(new InscriptionNotification($inscription));
+                }
             } else {
                 $inscriptionData['unique_code'] = $inscription->unique_code;
                 $inscriptionData['start_date'] = $inscription->start_date;

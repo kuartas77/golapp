@@ -53,7 +53,9 @@ class PlayerRepository
             $player = $this->model->create($dataPlayer);
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
             $player->people()->sync($peopleIds);
-            $player->notify(new RegisterPlayerNotification($player));
+            if($player->email){
+                $player->notify(new RegisterPlayerNotification($player));
+            }
             
             DB::commit();
 

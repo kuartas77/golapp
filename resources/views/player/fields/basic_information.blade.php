@@ -95,7 +95,7 @@
 
             <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
                 <div class="form-group">
-                    {!! Form::label('email', 'Correo Electrónico') !!}(<span class="text-danger">*</span>)
+                    {!! Form::label('email', 'Correo Electrónico') !!}
                     {!! Form::email('email', null, ['class' => 'form-control form-control-sm',
                     'autocomplete'=>'off']) !!}
                     <small class="form-text text-muted">Correo Electrónico de notificación</small>
