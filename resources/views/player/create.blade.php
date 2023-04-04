@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
     <x-bread-crumb title="Agregar Deportista" :option="0"/>
-    <x-row-card col-inside="10 col-sm-12 col-md-10" col-outside="1">
+    <x-row-card col-inside="12 col-sm-12 col-md-12 col-lg-10 col-xl-10" col-outside="1 col-lg-1 col-xl-1">
         {!! Form::open(['route' => 'players.store', 'id'=>'form_player', 'files'=>true, 'class'=>'form-material m-t-0']) !!}
         <div class="form-body">
             @include('player.fields.basic_information')
@@ -18,6 +18,7 @@
         let url_document_exists = "{{ route('autocomplete.document_exists') }}";
         let url_verify_unique_code = "{{ route('autocomplete.verify_code') }}";
         let url_autocomplete = "{{ route('autocomplete.fields') }}";
+        let doc_length = 6
 
         jQuery.validator.addClassRules('chk-col-blue', {
             checkone: true
@@ -38,7 +39,7 @@
                     place_birth : {required: true},
                     rh : {},
                     eps : {required: true},
-                    email : {required: false},
+                    email : {required: false, email:true},
                     address : {required: true},
                     municipality : {required: true},
                     neighborhood : {required: true},
@@ -116,11 +117,16 @@
             });
 
             $('#date_birth').inputmask("yyyy-mm-dd");
+            $('#email').inputmask('email');
+            // $('#phones').inputmask("9999999999");
+            $('#unique_code').inputmask("999999[9999]");
+            $('#identification_document').inputmask("999999[9999]");
+
             $(".form-control").attr('autocomplete', 'off');
 
             $("#unique_code").on('keyup', function () {
                 let element = $(this);
-                if (element.val().length >= 7) {
+                if (element.val().length >= doc_length) {
                     $.get(url_verify_unique_code, {'unique_code': element.val()}, function (response) {
                         if (response.data === true) {
                             element.val('').focus();
@@ -136,7 +142,7 @@
 
             $("#identification_document").on('keyup', function () {
                 let element = $(this);
-                if (element.val().length >= 8) {
+                if (element.val().length >= doc_length) {
                     $.get(url_document_exists, {'doc': element.val()}, function (response) {
                         if (response.data === true) {
                             element.val('').focus();

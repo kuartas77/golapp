@@ -76,7 +76,7 @@ class InscriptionRepository
                 ], $inscriptionData);
 
                 $inscription->load(['player', 'school']);
-                if($inscription->player->email){
+                if($inscription->player->email && filter_var($inscription->player->email, FILTER_VALIDATE_EMAIL)){
                     $inscription->player->notify(new InscriptionNotification($inscription));
                 }
             } else {

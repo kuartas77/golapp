@@ -32,53 +32,50 @@
         </div>
 
         <div class="row">
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! Form::label('names', 'Nombres') !!}(<span class="text-danger">*</span>)
                     {!! Form::text('names', null, ['class' => 'form-control form-control-sm']) !!}
                 </div>
             </div>
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! Form::label('last_names', 'Apellidos') !!}(<span class="text-danger">*</span>)
                     {!! Form::text('last_names', null, ['class' => 'form-control form-control-sm']) !!}
                 </div>
             </div>
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! Form::label('identification_document', 'Doc de identidad') !!}(<span class="text-danger">*</span>)
                     {!! Form::text('identification_document', null, ['class' => 'form-control form-control-sm']) !!}
                 </div>
             </div>
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! Form::label('gender', 'Genero') !!}(<span class="text-danger">*</span>)
                     {!! Form::select('gender', $genders , null, ['class' => 'form-control form-control-sm select2','placeholder' =>
                     'Seleccione uno...']) !!}
                 </div>
             </div>
-        </div>
 
-        <div class="row">
-
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
-                    {!! Form::label('date_birth', 'Fecha De Nacimiento') !!}(<span class="text-danger">*</span>)
+                    {!! Form::label('date_birth', 'F. Nacimiento') !!}(<span class="text-danger">*</span>)
                     {!! Form::text('date_birth', null, ['class' => 'form-control form-control-sm date']) !!}
                 </div>
             </div>
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
-                    {!! Form::label('place_birth', 'Lugar De Nacimiento') !!}(<span class="text-danger">*</span>)
+                    {!! Form::label('place_birth', 'L. Nacimiento') !!}(<span class="text-danger">*</span>)
                     {!! Form::text('place_birth', null, ['class' => 'form-control ']) !!}
                 </div>
             </div>
             
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! Form::label('rh', 'RH') !!}(<span class="text-danger">*</span>)
                     {!! Form::select('rh', $blood_types, null, ['class' => 'form-control form-control-sm select2',
@@ -86,61 +83,59 @@
                 </div>
             </div>
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! Form::label('eps', 'Eps') !!}(<span class="text-danger">*</span>)
                     {!! Form::text('eps', null, ['class' => 'form-control form-control-sm']) !!}
                 </div>
             </div>
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
-                <div class="form-group">
-                    {!! Form::label('email', 'Correo Electrónico') !!}
-                    {!! Form::email('email', null, ['class' => 'form-control form-control-sm',
-                    'autocomplete'=>'off']) !!}
-                    <small class="form-text text-muted">Correo Electrónico de notificación</small>
-                </div>
-            </div>
-
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! Form::label('address', 'Direccion') !!}(<span class="text-danger">*</span>)
                     {!! Form::text('address', null, ['class' => 'form-control form-control-sm']) !!}
                 </div>
             </div>
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! Form::label('municipality', 'Municipio') !!}(<span class="text-danger">*</span>)
                     {!! Form::text('municipality', null, ['class' => 'form-control form-control-sm']) !!}
                 </div>
             </div>
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! Form::label('neighborhood', 'Barrio') !!}(<span class="text-danger">*</span>)
                     {!! Form::text('neighborhood', null, ['class' => 'form-control form-control-sm']) !!}
                 </div>
             </div>
-        </div>
 
-        <div class="row">
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! Form::label('phones', 'Teléfonos/Celular') !!}(<span class="text-danger">*</span>)
                     {!! Form::text('phones', null, ['class' => 'form-control form-control-sm']) !!}
                 </div>
             </div>
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
-                    {!! Form::label('school', 'Instituto/Colegio/Escuela') !!}(<span class="text-danger">*</span>)
+                    {!! Form::label('email', 'Correo Electrónico') !!}
+                    {!! Form::text('email', null, ['class' => 'form-control form-control-sm',
+                    'autocomplete'=>'off']) !!}
+                    <small class="form-text text-muted">Correo Electrónico de notificación</small>
+                </div>
+            </div>
+
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
+                <div class="form-group">
+                    {!! Form::label('school', 'Colegio/Escuela') !!}
                     {!! Form::text('school', null, ['class' => 'form-control form-control-sm', 'data-provide'=>'typeahead']) !!}
                 </div>
             </div>
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! Form::label('degree', 'Grado') !!}
                     {!! Form::select('degree', [1,2,3,4,5,6,7,8,9,10,11] , null, ['class' => 'form-control form-control-sm select2','placeholder' =>
@@ -149,7 +144,7 @@
                 </div>
             </div>
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! Form::label('position_field', 'Posición en el campo:') !!}
                     {!! Form::select('position_field', $positions , null, ['class' => 'form-control form-control-sm select2','placeholder' =>
@@ -157,7 +152,7 @@
                 </div>
             </div>
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! Form::label('dominant_profile', 'Perfil dominante:') !!}
                     {!! Form::select('dominant_profile', $dominant_profile , null, ['class' => 'form-control form-control-sm select2','placeholder' =>

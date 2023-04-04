@@ -33,7 +33,7 @@ class PlayerCreateRequest extends FormRequest
             'identification_document' => ['required'],
             'rh' => ['nullable'],
             'eps' => ['required'],
-            'email' => ['nullable'],
+            'email' => ['nullable', 'email'],
             'address' => ['required'],
             'municipality' => ['required'],
             'neighborhood' => ['required'],

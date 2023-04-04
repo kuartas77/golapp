@@ -116,6 +116,10 @@
             });
 
             $('#date_birth').inputmask("yyyy-mm-dd");
+            $('#email').inputmask('email');
+            // $('#phones').inputmask("9999999999");
+            $('#unique_code').inputmask("999999[9999]");
+            $('#identification_document').inputmask("999999[9999]");
             $(".form-control").attr('autocomplete', 'off');
 
             $("#unique_code").on('keyup', function () {

@@ -53,7 +53,7 @@ class PlayerRepository
             $player = $this->model->create($dataPlayer);
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
             $player->people()->sync($peopleIds);
-            if($player->email){
+            if($player->email && filter_var($player->email, FILTER_VALIDATE_EMAIL)){
                 $player->notify(new RegisterPlayerNotification($player));
             }
             
