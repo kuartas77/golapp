@@ -15,7 +15,8 @@ RUN docker-php-ext-install zip gd xml pdo pdo_mysql \
     && docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/ \
     && docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-configure intl \
-    && docker-php-ext-install intl
+    && docker-php-ext-install intl \
+    && docker-php-ext-install exif
 RUN apt-get purge -y --auto-remove
 
 # instala composer en el contenedor
