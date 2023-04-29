@@ -23,6 +23,7 @@ $(document).ready(() => {
             {'width': '5%'},
             {'width': '5%'},
             {'width': '5%'},
+            {'width': '5%'},
         ]
     });
 
@@ -62,12 +63,20 @@ $('body').on('change', 'select.payments', function () {
         if (response.data) {
             switch (element.val()) {
                 case '1':
-                    element.removeClass('form-error')
+                    element.removeClass('form-error').removeClass('form-warning').removeClass('form-info')
                     element.addClass('form-success')
                     break;
                 case '2':
-                    element.removeClass('form-success')
+                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
                     element.addClass('form-error')
+                    break;
+                case '9':
+                    element.removeClass('form-success').removeClass('form-error').removeClass('form-info')
+                    element.addClass('form-warning')
+                    break;
+                case '10':
+                    element.removeClass('form-successss').removeClass('form-warning').removeClass('form-error')
+                    element.addClass('form-info')
                     break;
                 default:
                     element.removeClass('form-error')
@@ -89,6 +98,7 @@ function initTable() {
         "scrollY": true,
         "columns": [
             {'width': '3%'},
+            {'width': '5%'},
             {'width': '5%'},
             {'width': '5%'},
             {'width': '5%'},

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>{{$group->name}}</title>
+    <title>Pagos</title>
     <link rel="stylesheet" href="{{ asset('css/dompdf.css') }}">
 </head>
 <body>
@@ -17,11 +17,11 @@
             <img src="{{ $school->logo_local }}" width="70" height="70">
         </td>
     </tr>
-    <tr>
-        <td></td>
-        <td class="text-center bold">{{$group->name}}</td>
-        <td></td>
-    </tr>
+    <!--<tr>-->
+    <!--    <td></td>-->
+    <!--    <td class="text-center bold">{{$group->name}}</td>-->
+    <!--    <td></td>-->
+    <!--</tr>-->
 </table>
 
 <table class="table-full detail detail-lines">
@@ -29,18 +29,19 @@
     <tr class="tr-tit">
             <th class="text-center">Año</th>
             <th class="text-center">Nombres</th>
-            <th class="text-center">Enero</th>
-            <th class="text-center">Febrero</th>
-            <th class="text-center">Marzo</th>
-            <th class="text-center">Abril</th>
-            <th class="text-center">Mayo</th>
-            <th class="text-center">Junio</th>
-            <th class="text-center">Julio</th>
-            <th class="text-center">Agosto</th>
-            <th class="text-center">Septiembre</th>
-            <th class="text-center">Octubre</th>
-            <th class="text-center">Noviembre</th>
-            <th class="text-center">Diciembre</th>
+            <th class="text-center">Matrícula</th>
+            <th class="text-center">Ene</th>
+            <th class="text-center">Feb</th>
+            <th class="text-center">Mar</th>
+            <th class="text-center">Abr</th>
+            <th class="text-center">May</th>
+            <th class="text-center">Jun</th>
+            <th class="text-center">Jul</th>
+            <th class="text-center">Ago</th>
+            <th class="text-center">Sep</th>
+            <th class="text-center">Oct</th>
+            <th class="text-center">Nov</th>
+            <th class="text-center">Dic</th>
         </tr>
     </thead>
     <tbody>
@@ -50,6 +51,7 @@
             <td>
                 &nbsp;<small>{{ $payment->unique_code }}</small>&nbsp;<small>{{ $payment->inscription->player->full_names }}</small>
             </td>
+            @include('templates.payments.color',['value' => $payment->enrollment])
             @include('templates.payments.color',['value' => $payment->january])
             @include('templates.payments.color',['value' => $payment->february])
             @include('templates.payments.color',['value' => $payment->march])

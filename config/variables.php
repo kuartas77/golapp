@@ -93,13 +93,15 @@ return [
     'KEY_PAYMENTS_SELECT' => [
         '0' => "Pendiente",
         '1' => "Pagó",
+        '9' => "Pagó - Efectivo",
+        '10' => "Pagó - Consignación",
         '2' => "Debe",
         '3' => "Abonó",
         '4' => "Incapacidad",
         '5' => "Retiro Temporal",
         '6' => "Retiro Definitivo",
         '7' => "Otro",
-        '8' => "Becado"
+        '8' => "Becado",
     ],
 
     'KEY_RELATIONSHIPS_SELECT' => [

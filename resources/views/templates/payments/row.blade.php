@@ -8,6 +8,7 @@
             <input type="hidden" name="id" value="{{$payment->id}}">
         </a>
     </td>
+    <td>@include('templates.payments.select', ['mes' => 'enrollment', 'value' => $payment->enrollment, 'deleted' => $deleted])</td>
     <td>@include('templates.payments.select', ['mes' => 'january', 'value' => $payment->january, 'deleted' => $deleted])</td>
     <td>@include('templates.payments.select', ['mes' => 'february', 'value' => $payment->february, 'deleted' => $deleted])</td>
     <td>@include('templates.payments.select', ['mes' => 'march', 'value' => $payment->march, 'deleted' => $deleted])</td>

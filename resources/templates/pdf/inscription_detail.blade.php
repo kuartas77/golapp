@@ -120,44 +120,44 @@
                     </tr>
                     <tr>
                         @if($quarter == 'quarter_one' || $quarter == '')
-                        <td class="bold">&nbsp;Enero: {{getPay($pay->january)}}</td>
+                        <td class="bold {{$pay->january == '2' ? 'error': ''}}">&nbsp;Enero: {{getPay($pay->january)}}</td>
                         @endif
                         @if($quarter == 'quarter_two' || $quarter == '')
-                        <td class="bold">&nbsp;Abril: {{getPay($pay->april)}}</td>
+                        <td class="bold {{$pay->april == '2' ? 'error': ''}}">&nbsp;Abril: {{getPay($pay->april)}}</td>
                         @endif
                         @if($quarter == 'quarter_three' || $quarter == '')
-                        <td class="bold">&nbsp;Julio: {{getPay($pay->july)}}</td>
+                        <td class="bold {{$pay->july == '2' ? 'error': ''}}">&nbsp;Julio: {{getPay($pay->july)}}</td>
                         @endif
                         @if($quarter == 'quarter_four' || $quarter == '')
-                        <td class="bold">&nbsp;Octubre: {{getPay($pay->october)}}</td>
+                        <td class="bold {{$pay->october == '2' ? 'error': ''}}">&nbsp;Octubre: {{getPay($pay->october)}}</td>
                         @endif
                     </tr>
                     <tr>
                         @if($quarter == 'quarter_one' || $quarter == '')
-                        <td class="bold">&nbsp;Febrero: {{getPay($pay->february)}}</td>
+                        <td class="bold {{$pay->february == '2' ? 'error': ''}}">&nbsp;Febrero: {{getPay($pay->february)}}</td>
                         @endif
                         @if($quarter == 'quarter_two' || $quarter == '')
-                        <td class="bold">&nbsp;Mayo: {{getPay($pay->may)}}</td>
+                        <td class="bold {{$pay->may == '2' ? 'error': ''}}">&nbsp;Mayo: {{getPay($pay->may)}}</td>
                         @endif
                         @if($quarter == 'quarter_three' || $quarter == '')
-                        <td class="bold">&nbsp;Agosto: {{getPay($pay->august)}}</td>
+                        <td class="bold {{$pay->august == '2' ? 'error': ''}}">&nbsp;Agosto: {{getPay($pay->august)}}</td>
                         @endif
                         @if($quarter == 'quarter_four' || $quarter == '')
-                        <td class="bold">&nbsp;Noviembre: {{getPay($pay->november)}}</td>
+                        <td class="bold {{$pay->november == '2' ? 'error': ''}}">&nbsp;Noviembre: {{getPay($pay->november)}}</td>
                         @endif
                     </tr>
                     <tr>
                         @if($quarter == 'quarter_one' || $quarter == '')    
-                        <td class="bold">&nbsp;Marzo: {{getPay($pay->march)}}</td>
+                        <td class="bold {{$pay->march == '2' ? 'error': ''}}">&nbsp;Marzo: {{getPay($pay->march)}}</td>
                         @endif
                         @if($quarter == 'quarter_two' || $quarter == '')
-                        <td class="bold">&nbsp;Junio: {{getPay($pay->june)}}</td>
+                        <td class="bold {{$pay->june == '2' ? 'error': ''}}">&nbsp;Junio: {{getPay($pay->june)}}</td>
                         @endif
                         @if($quarter == 'quarter_three' || $quarter == '')
-                        <td class="bold">&nbsp;Septiembre: {{getPay($pay->september)}}</td>
+                        <td class="bold {{$pay->september == '2' ? 'error': ''}}">&nbsp;Septiembre: {{getPay($pay->september)}}</td>
                         @endif
                         @if($quarter == 'quarter_four' || $quarter == '')
-                        <td class="bold">&nbsp;Diciembre: {{getPay($pay->december)}}</td>
+                        <td class="bold {{$pay->december == '2' ? 'error': ''}}">&nbsp;Diciembre: {{getPay($pay->december)}}</td>
                         @endif
                     </tr>
                     

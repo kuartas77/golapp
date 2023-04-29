@@ -591,10 +591,20 @@ select.swal2-select{
 }
 
 .form-error {
-    background-color: #ff0000;
+    background-color: red;
+    color: white;
 }
 
 .form-success {
-    background-color: #167600;
+    background-color: green;
+    color: white;
+}
+
+.form-warning {
+    background-color: yellow;
+}
+
+.form-info {
+    background-color: blue;
     color: white;
 }

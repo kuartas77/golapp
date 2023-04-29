@@ -25,6 +25,7 @@ class Payment extends Model
         'training_group_id',
         'inscription_id',
         'unique_code',
+        'enrollment',
         'january',
         'february',
         'march',

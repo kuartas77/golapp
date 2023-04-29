@@ -13,14 +13,10 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PaymentRepository
 {
-    /**
-     * @var Payment
-     */
-    private Payment $model;
 
-    public function __construct(Payment $model)
+    public function __construct(private Payment $model)
     {
-        $this->model = $model;
+        //
     }
 
     /**
@@ -45,6 +41,9 @@ class PaymentRepository
         if ($deleted) {
             $query_params['deleted'] = true;
         }
+        if($payments && !$request->filled('training_group_id')){
+            $query_params['training_group_id'] = 0;
+        }
         ksort($query_params);
         $urlExportExcel = route('export.payments.excel', $query_params);
         $urlExportPDF = route('export.payments.pdf', $query_params);
@@ -68,7 +67,8 @@ class PaymentRepository
 
         $query->where('year', $request->input('year', now()->year))
         ->when($request->filled('unique_code'), fn ($q) => $q->where('unique_code', $request->unique_code))
-        ->when($request->filled('training_group_id'), fn ($q) => $q->where('training_group_id', $request->training_group_id));
+        ->when($request->training_group_id != 0, fn ($q) => $q->where('training_group_id', $request->training_group_id))
+        ->orderBy('inscription_id','asc');
 
         return $query;
     }
@@ -80,7 +80,8 @@ class PaymentRepository
                 'january', 'february', 'march',
                 'april', 'may', 'june',
                 'july', 'august', 'september',
-                'october', 'november', 'december'
+                'october', 'november', 'december',
+                'enrollment'
             ])
         )->save();
     }
