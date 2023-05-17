@@ -59,14 +59,14 @@ class InscriptionRepository
     public function setInscription(array $inscriptionData, bool $created = true, Inscription $inscription = null): Inscription
     {
         try {
-            
+
             if(!$inscriptionData['training_group_id']){
                 $inscriptionData['training_group_id'] = TrainingGroup::query()->orderBy('id', 'asc')
                 ->firstWhere('school_id', $inscriptionData['school_id'])->id;
             }
-            
+
             $inscriptionData['deleted_at'] = null;
-            
+
             DB::beginTransaction();
 
             if ($created) {
@@ -105,7 +105,7 @@ class InscriptionRepository
         $inscriptions = $this->model->with(['player.people', 'trainingGroup'])
             ->where('year', now()->year)->schoolId()->get();
         if ($inscriptions->isNotEmpty()) {
-            $inscriptions->setAppends(['url_edit', 'url_update', 'url_show', 'url_impression'/*, 'url_destroy'*/]);
+            $inscriptions->setAppends(['url_edit', 'url_update', 'url_show', 'url_impression', 'url_destroy']);
         }
         return $inscriptions;
     }

@@ -79,7 +79,7 @@ class InscriptionController extends Controller
         }
     }
 
-    public function destroy(Inscription $inscription)
+    public function destroy(Inscription $inscription): \Illuminate\Http\RedirectResponse
     {
         $this->repository->disable($inscription);
         return back();

@@ -37,7 +37,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 
     $route->post('inscriptions/activate/{id}', [InscriptionController::class, 'activate'])->name('inscriptions.activate');
 
-    $route->resource("inscriptions", InscriptionController::class)->except(['create','show','destroy']);
+    $route->resource("inscriptions", InscriptionController::class)->except(['create','show']);
     $route->resource("payments", PaymentController::class)->only(['index','update']);
     $route->resource("assists", AssistController::class)->except(['create','edit', 'destroy']);
     $route->resource("matches", GameController::class)->except(['show']);
