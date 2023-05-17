@@ -28,7 +28,7 @@ class InscriptionUpdateRequest extends FormRequest
         return [
             'school_id' => ['required'],
             'player_id' => ['required'],
-            'unique_code' => ['required'],
+            'unique_code' => ['required', 'exists:players,unique_code'],
             'training_group_id' => ['nullable'],
             'competition_group_id' => ['nullable'],
             'photos' => ['nullable'],

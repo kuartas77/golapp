@@ -28,7 +28,7 @@ class InscriptionRequest extends FormRequest
         return [
             'school_id' => ['required'],
             'player_id' => ['required'],
-            'unique_code' => ['required'],
+            'unique_code' => ['required', 'exists:players,unique_code'],
             'year' => ['required'],
             'start_date' => ['required'],
             'category' => ['required'],
