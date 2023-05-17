@@ -160,6 +160,6 @@ class Player extends Model
 
     public function scopeSchool($query)
     {
-        return $query->when(isSchool() || isInstructor(), fn($query) => $query->where('school_id', getSchool(auth()->user())->id));
+        return $query->where('school_id', getSchool(auth()->user())->id);
     }
 }

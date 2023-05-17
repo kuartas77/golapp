@@ -26,22 +26,12 @@ class UserRepository
 
     public function getAll()
     {
-        if(isSchool()){
-            $school = getSchool(auth()->user());
-            return $school->users()->with(['roles','profile','school'])->get();
-        }
-        
-        return $this->model->query()->with(['roles','profile','school'])->where('id', '!=', 1)->get();
+        return getSchool(auth()->user())->users()->with(['roles','profile','school'])->get();
     }
 
     public function getAllTrash()
     {
-        if(isSchool()){
-            $school = getSchool(auth()->user());
-            return $school->users()->with(['roles','profile','school'])->onlyTrashed()->get();
-        }
-
-        return $this->model->query()->with(['roles','profile','school'])->onlyTrashed()->get();
+        return getSchool(auth()->user())->users()->with(['roles','profile','school'])->onlyTrashed()->get();
     }
 
     public function create(FormRequest $request)

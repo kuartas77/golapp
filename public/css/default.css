@@ -589,3 +589,22 @@ select.swal2-select{
         position: absolute;
     }
 }
+
+.form-error {
+    background-color: red;
+    color: white;
+}
+
+.form-success {
+    background-color: green;
+    color: white;
+}
+
+.form-warning {
+    background-color: yellow;
+}
+
+.form-info {
+    background-color: blue;
+    color: white;
+}

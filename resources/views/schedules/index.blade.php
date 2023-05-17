@@ -12,6 +12,7 @@
 @section('scripts')
     <script>
         let url_current = "{{URL::current()}}/";
+        let url_store = "{{route('schedules.store')}}";
         let url_enabled = "{{route('schedules.enabled')}}";
 
         function forceKeyPressUppercase(e)
@@ -34,9 +35,9 @@
             let title = $("#modal_title");
             if (create) {
                 title.html("Agregar Horario");
-                form.prop("action", url_current)
+                form.prop("action", url_store)
                 form.prop("method", 'POST');
-                form.append("<input name='_method' value='' type='hidden'>");
+                form.append("<input name='_method' value='POST' type='hidden'>");
                 $('#schedule_id').val('')
                 $('#schedule').val('')
             } else {

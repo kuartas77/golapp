@@ -22,12 +22,12 @@
 @section('scripts')
     <script>
         let count = {{$information->count}};
+        const positions = @json($positions);
         let member_add = null;
         const urlList = "{{route('autocomplete.list_code_unique')}}";
         const urlSearch = "{{route('autocomplete.search_unique_code')}}";
         const urlAutoComplete = "{{route('autocomplete.fields')}}";
         const urlUploadFile = "{{route('import.match', [$information->id])}}";
-        const positions = @json($positions);
     </script>
     <script src="{{mix('js/matches_functions.js')}}"></script>
     <script src="{{mix('js/matches_form.js')}}"></script>

@@ -176,6 +176,9 @@ if (!function_exists('getSchool')){
     function getSchool($user): School{
         if(isAdmin() && Session::has('admin.school')){
             return Session::get('admin.school');
+        }elseif(isAdmin() && !Session::has('admin.school')){
+            Session::put('admin.school', School::find(1));
+            return Session::get('admin.school');
         }
         
         return Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn()=> $user->school);

@@ -21,16 +21,15 @@
 </table>
 <table class="table-full detail detail-lines">
     <tr>
-        <td class="bold">Grupo: {{ $match->competitionGroup->full_name_group }}</td>
-        <td class="bold">Torneo: {{ $match->tournament->name }}</td>
-        <td class="bold">Partido #: {{ $match->num_match }}</td>
-        <td class="bold">Fecha: {{ $match->date }}</td>
-        <td class="bold text-center">Resultado Final</td>
+        <td class="bold">&nbsp;Grupo: {{ $match->competitionGroup->full_name_group }}</td>
+        <td class="bold">&nbsp;Torneo: {{ $match->tournament->name }}</td>
+        <td class="bold">&nbsp;Partido #: {{ $match->num_match }}</td>
+        <td class="bold">&nbsp;Fecha: {{ $match->date }} {{ $match->hour }}</td>
+
     </tr>
     <tr>
-        <td class="bold">Hora: {{ $match->hour }}</td>
-        <td class="bold">Lugar: {{ $match->place }}</td>
-        <td class="bold">Director Tecnico: {{ $match->competitionGroup->professor->name }}</td>
+        <td class="bold">&nbsp;Lugar: {{ $match->place }} </td>
+        <td class="bold">&nbsp;Director Tecnico: {{ $match->competitionGroup->professor->name }}</td>
         <td colspan="2" class="bold text-center">{{ $school->name }}: {{ $match->final_score->soccer }} - {{ $match->final_score->rival }} :{{ $match->rival_name }}</td>
     </tr>
 </table>
@@ -40,7 +39,6 @@
         <td width="2%" class="bold text-center">#</td>
         <td width="20%" class="bold text-center">Deportista</td>
         <td width="4%" class="bold text-center">Cat</td>
-        <!-- <td width="6%" class="bold text-center">Tel</td> -->
         <td width="3%" class="bold text-center">Ast</td>
         <td width="4%" class="bold text-center">Titular</td>
         <td width="5%" class="bold text-center">Jugó Apx.</td>
@@ -54,9 +52,8 @@
     @foreach($match->skillsControls as $control)
         <tr class="tr-info">
             <td class="bold text-center">{{$loop->iteration}}</td>
-            <td class="">{{$control->inscription->player->unique_code}} - {{ $control->inscription->player->full_names }}</td>
+            <td class=""><small>{{$control->inscription->player->unique_code}} - {{ $control->inscription->player->full_names }}</small></td>
             <td class="text-center">{{ $control->inscription->category }}</td>
-            <!-- <td class="text-center"><small>{{ $control->inscription->player->mobile }}</small></td> -->
             <td class="text-center">{!! $control->assistance == 1 ? '&#10004;':'&#10008;' !!}</td>
             <td class="text-center">{!! $control->titular == 1 ? '&#10004;':'&#10008;' !!}</td>
             <td class="text-center">{{ $control->played_approx }}</td>

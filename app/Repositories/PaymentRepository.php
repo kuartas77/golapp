@@ -13,14 +13,10 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PaymentRepository
 {
-    /**
-     * @var Payment
-     */
-    private Payment $model;
 
-    public function __construct(Payment $model)
+    public function __construct(private Payment $model)
     {
-        $this->model = $model;
+        //
     }
 
     /**
@@ -36,7 +32,8 @@ class PaymentRepository
         foreach ($payments as $pay) {
             $rows .= View::make('templates.payments.row', [
                 'payment' => $pay,
-                'deleted' => $deleted
+                'deleted' => $deleted,
+                'front' => true
             ])->render();
         }
 
@@ -44,9 +41,13 @@ class PaymentRepository
         if ($deleted) {
             $query_params['deleted'] = true;
         }
+        if($payments && !$request->filled('training_group_id')){
+            $query_params['training_group_id'] = 0;
+        }
         ksort($query_params);
-        $url_export = route('export.payments', $query_params);
-        return ['rows' => $rows, 'count' => $payments->count(), 'url_export' => $url_export];
+        $urlExportExcel = route('export.payments.excel', $query_params);
+        $urlExportPDF = route('export.payments.pdf', $query_params);
+        return ['rows' => $rows, 'count' => $payments->count(), 'url_export_excel' => $urlExportExcel, 'url_export_pdf' => $urlExportPDF];
     }
 
     /**
@@ -64,10 +65,10 @@ class PaymentRepository
             ])->withTrashed();
         }
 
-        $query->where('year', $request->input('year', now()->year));
-
-        $query->when($request->filled('unique_code'), fn ($q) => $q->where($request->unique_code));
-        $query->when($request->filled('training_group_id'), fn ($q) => $q->where($request->training_group_id));
+        $query->where('year', $request->input('year', now()->year))
+        ->when($request->filled('unique_code'), fn ($q) => $q->where('unique_code', $request->unique_code))
+        ->when($request->training_group_id != 0, fn ($q) => $q->where('training_group_id', $request->training_group_id))
+        ->orderBy('inscription_id','asc');
 
         return $query;
     }
@@ -79,7 +80,8 @@ class PaymentRepository
                 'january', 'february', 'march',
                 'april', 'may', 'june',
                 'july', 'august', 'september',
-                'october', 'november', 'december'
+                'october', 'november', 'december',
+                'enrollment'
             ])
         )->save();
     }

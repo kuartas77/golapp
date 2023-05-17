@@ -86,7 +86,7 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
             'unique_code' => trim($row['numero_de_documento']),
             'names' => Str::upper(trim($row['nombres'])),
             'last_names' => Str::upper(trim($row['apellidos'])),
-            'gender' => Str::upper(trim($row['genero'])),
+            'gender' => $this->checkGender($row['genero']),
             'date_birth' => $dateBirth->format('Y-m-d'),
             'place_birth' => trim($row['lugar_de_nacimiento']),
             'identification_document' => trim($row['numero_de_documento']),
@@ -109,6 +109,17 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
             'school_id' => $this->school_id,
         ];
         
+    }
+
+    private function checkGender(string $gender): string
+    {
+        $gender = strtolower(trim($gender));
+        if($gender == 'masculino' || $gender == 'm'){
+            $gender = 'M';
+        }else{
+            $gender = 'F';
+        }
+        return $gender;
     }
 
     private function setAttributesPeople($row): array

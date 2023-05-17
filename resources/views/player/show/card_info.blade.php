@@ -137,6 +137,7 @@
 
                                     <div class="row">
                                         <ul>
+                                            <li>Estarán habilitados el último mes del trimestre.</li>
                                             <li>Primer trimestre: 1 de enero hasta el 31 de marzo.</li>
                                             <li>Segundo trimestre: 1 de abril hasta el 30 de junio.</li>
                                             <li>Tercer trimestre: 1 de julio al 30 de septiembre.</li>
@@ -144,19 +145,26 @@
                                         </ul>
                                     </div>
                                     <div class="row">
-                                                                               
+                                        @if(Carbon\Carbon::now()->month >= 3)                                   
                                         <div class="col-md-3">
                                             <a class="btn btn-info" href="{{route('export.inscription', [$inscription->player_id, $inscription->id, $inscription->year, 'quarter_one'])}}" target="_blank">PDF Primer trimestre</a>
                                         </div>
+                                        @endif
+                                        @if(Carbon\Carbon::now()->month >= 6)
                                         <div class="col-md-3">
                                             <a class="btn btn-info" href="{{route('export.inscription', [$inscription->player_id, $inscription->id, $inscription->year, 'quarter_two'])}}" target="_blank">PDF Segundo trimestre</a>
                                         </div>
+                                        @endif
+                                        @if(Carbon\Carbon::now()->month >= 9)
                                         <div class="col-md-3">
                                             <a class="btn btn-info" href="{{route('export.inscription', [$inscription->player_id, $inscription->id, $inscription->year, 'quarter_three'])}}" target="_blank">PDF Tercer trimestre</a>
                                         </div>
+                                        @endif
+                                        @if(Carbon\Carbon::now()->month >= 11)
                                         <div class="col-md-3">
                                             <a class="btn btn-info" href="{{route('export.inscription', [$inscription->player_id, $inscription->id, $inscription->year, 'quarter_four'])}}" target="_blank">PDF Cuarto trimestre</a>
                                         </div>
+                                        @endif
                                     </div>
 
                                     <hr>

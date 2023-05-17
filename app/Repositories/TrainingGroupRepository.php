@@ -104,6 +104,7 @@ class TrainingGroupRepository
     {
         return [
             'name' => $request->input('name'),
+            'stage' => $request->input('stage'),
             'user_id' => $request->input('user_id'),
             'category' => array_map('categoriesName', $request->input('years')),
             'year' => $request->input('years.0', null),

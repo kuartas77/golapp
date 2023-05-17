@@ -1,13 +1,14 @@
 const formMatches = $('#form_matches');
-$("#date").bootstrapMaterialDatePicker({
-    time: false,
-    clearButton: false,
-    lang: 'es',
-    cancelText: 'Cancelar',
-    okText: 'Aceptar',
-    minDate: moment().subtract(1, 'month'),
-    maxDate: moment()
-});
+$('#date').inputmask("yyyy-mm-dd");
+// $("#date").bootstrapMaterialDatePicker({
+//     time: false,
+//     clearButton: false,
+//     lang: 'es',
+//     cancelText: 'Cancelar',
+//     okText: 'Aceptar',
+//     minDate: moment().subtract(1, 'month'),
+//     maxDate: moment()
+// });
 
 $(".timepicker").bootstrapMaterialDatePicker({
     format: 'hh:mm A',

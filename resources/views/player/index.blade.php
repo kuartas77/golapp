@@ -20,7 +20,9 @@
             active_table = $('#table_players').DataTable({
                 "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
                 "order": [[2, "desc"]],
+                "ordering": false,
                 "scrollX": true,
+                "scrollY": true,
                 "processing": true,
                 "serverSide": true,
                 "deferRender": true,
@@ -34,13 +36,16 @@
                     },
                     {
                         data: 'id', "render": function (data, type, row) {
-                            return "<img class='media-object img-rounded' src='" + row.photo_url + "' width='90' height='60' alt='" + row.full_names + "'>";
+                            return "<img class='img-fluid rounded img-thumbnail' width='70' height='50' src='" + row.photo_url + "' alt='" + row.full_names + "'>";
                         }
                     },
                     {data: 'unique_code', name: 'unique_code'},
                     {data: 'identification_document', name: 'identification_document'},
                     {data: 'full_names', name: 'full_names'},
-                    {data: 'mobile'},
+                    {data: 'phones', "render": function (data, type, row) {
+                        
+                        return (row.mobile == null) ? data : `${data} ${row.mobile}`
+                    }},
                     {data: 'gender'},
                     {data: 'date_birth', name: 'date_birth'},
                     {data: 'created_at', name: 'created_at'},
@@ -88,7 +93,7 @@
                             .draw();
                     }
                 });
-            
+
             let start_date = this.api().columns(8);
             $("<input type='search' class='' placeholder='Buscar F.Registro' />")
                 .appendTo($(start_date.header()).empty())
@@ -116,14 +121,15 @@
         const format = (d) => {
             let rows = "";
             d.people.forEach(function ({tutor, relationship_name, names, phone, mobile}) {
-                let is_tutor = tutor === 1 ? "ACUDIENTE" : "";
+                let is_tutor = (tutor === 1) ? "ACUDIENTE" : "";
+                let phones = (mobile == null) ?  phone : `${phone} ${mobile}`
                 rows += '<tr>' +
                     '<th><strong>' + is_tutor + '</strong></th>'+
                     '<th><span>' + relationship_name + '</span></th><th>' + names + '</th>' +
-                    '<th><span>Teléfonos:</span></th><th>' + phone + ' - ' + mobile + '</th>' +
+                    '<th><span>Teléfonos:</span></th><th>' + phones + '</th>' +
                     '</tr>';
             });
-
+            
             return '<table class="w-100">' + rows + '</table>';
         }
 
