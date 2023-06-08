@@ -618,3 +618,13 @@ select.swal2-select{
     background-color: #6F4E37;
     color: white;
 }
+
+.form-orange {
+    background-color: orange;
+    color: white;
+}
+
+.form-grey {
+    background-color: grey;
+    color: white;
+}

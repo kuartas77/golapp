@@ -5,6 +5,12 @@
     @case(2)
         <td style="background:red; color: white;" class="text-center"><small>{{getPay($value)}}</small></td>
     @break
+    @case(5)
+        <td style="background:orange; color: white;" class="text-center"><small>{{getPay($value)}}</small></td>
+    @break
+    @case(6)
+        <td style="background:grey; color: white;" class="text-center"><small>{{getPay($value)}}</small></td>
+    @break
     @case(9)
         <td style="background:yellow;" class="text-center"><small>{{getPay($value)}}</small></td>
     @break

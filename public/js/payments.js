@@ -65,39 +65,62 @@ $('body').on('change', 'select.payments', function () {
                 case '1':
                     element.removeClass('form-error').removeClass('form-warning').removeClass('form-info')
                     .removeClass('form-brown').removeClass('form-purple')
+                    .removeClass('form-orange').removeClass('form-grey')
                     element.addClass('form-success')
                     break;
                 case '2':
                     element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
                     .removeClass('form-brown').removeClass('form-purple')
+                    .removeClass('form-orange').removeClass('form-grey')
                     element.addClass('form-error')
+                    break;
+                case '5':
+                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
+                    .removeClass('form-brown').removeClass('form-purple')
+                    .removeClass('form-grey')
+                    element.addClass('form-orange')
+                    break;
+                case '6':
+                    element.removeClass('form-success').removeClass('form-error').removeClass('form-info')
+                    .removeClass('form-brown').removeClass('form-purple')
+                    .removeClass('form-orange')
+                    element.addClass('form-grey')
                     break;
                 case '9':
                     element.removeClass('form-success').removeClass('form-error').removeClass('form-info')
                     .removeClass('form-brown').removeClass('form-purple')
+                    .removeClass('form-orange').removeClass('form-grey')
                     element.addClass('form-warning')
                     break;
                 case '10':
                     element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
                     .removeClass('form-brown').removeClass('form-purple')
+                    .removeClass('form-orange').removeClass('form-grey')
                     element.addClass('form-info')
                     break;
                 case '11':
                     element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
                         .removeClass('form-info').removeClass('form-brown')
+                        .removeClass('form-orange').removeClass('form-grey')
                     element.addClass('form-purple')
                     break;
                 case '12':
                     element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
                         .removeClass('form-info').removeClass('form-purple')
+                        .removeClass('form-orange').removeClass('form-grey')
                     element.addClass('form-brown')
                     break;
 
                 default:
                     element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
                     .removeClass('form-info').removeClass('form-purple').removeClass('form-brown')
+                    .removeClass('form-orange').removeClass('form-grey')
                     break
             }
+
+            
+                
+                
         }
     });
 
