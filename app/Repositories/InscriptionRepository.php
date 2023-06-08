@@ -131,6 +131,10 @@ class InscriptionRepository
     {
         try {
             DB::beginTransaction();
+            // $inscription->load(['payments', 'skillsControls', 'assistance']);
+            $inscription->payments()->delete();
+            $inscription->skillsControls()->delete();
+            $inscription->assistance()->delete();
             $inscription->delete();
             DB::commit();
             alert()->success(env('APP_NAME'), __('messages.ins_delete_success'));

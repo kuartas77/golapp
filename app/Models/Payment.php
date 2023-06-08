@@ -39,6 +39,7 @@ class Payment extends Model
         'november',
         'december',
         'school_id',
+        'deleted_at'
     ];
 
     public function inscription(): BelongsTo

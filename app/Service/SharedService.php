@@ -103,12 +103,12 @@ class SharedService
 
     private function createOrUpdatePaymentAssist($inscription)
     {
-        $inscription->payments()->updateOrCreate(
+        $inscription->payments()->withTrashed()->updateOrCreate(
             $this->searchPayment,
             $this->dataPayment
         );
 
-        $inscription->assistance()->updateOrCreate(
+        $inscription->assistance()->withTrashed()->updateOrCreate(
             $this->searchAssist,
             $this->dataAssist
         );
