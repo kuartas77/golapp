@@ -95,6 +95,8 @@ return [
         '1' => "Pagó",
         '9' => "Pagó - Efectivo",
         '10' => "Pagó - Consignación",
+        '11' => "Pago Anualidad Consignación",
+        '12' => "Pago Anualidad Efectivo",
         '2' => "Debe",
         '3' => "Abonó",
         '4' => "Incapacidad",

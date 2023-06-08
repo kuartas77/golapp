@@ -608,3 +608,13 @@ select.swal2-select{
     background-color: blue;
     color: white;
 }
+
+.form-purple {
+    background-color: #572364;
+    color: white;
+}
+
+.form-brown {
+    background-color: #6F4E37;
+    color: white;
+}

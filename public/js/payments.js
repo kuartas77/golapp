@@ -64,23 +64,38 @@ $('body').on('change', 'select.payments', function () {
             switch (element.val()) {
                 case '1':
                     element.removeClass('form-error').removeClass('form-warning').removeClass('form-info')
+                    .removeClass('form-brown').removeClass('form-purple')
                     element.addClass('form-success')
                     break;
                 case '2':
                     element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
+                    .removeClass('form-brown').removeClass('form-purple')
                     element.addClass('form-error')
                     break;
                 case '9':
                     element.removeClass('form-success').removeClass('form-error').removeClass('form-info')
+                    .removeClass('form-brown').removeClass('form-purple')
                     element.addClass('form-warning')
                     break;
                 case '10':
-                    element.removeClass('form-successss').removeClass('form-warning').removeClass('form-error')
+                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
+                    .removeClass('form-brown').removeClass('form-purple')
                     element.addClass('form-info')
                     break;
+                case '11':
+                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
+                        .removeClass('form-info').removeClass('form-brown')
+                    element.addClass('form-purple')
+                    break;
+                case '12':
+                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
+                        .removeClass('form-info').removeClass('form-purple')
+                    element.addClass('form-brown')
+                    break;
+
                 default:
-                    element.removeClass('form-error')
-                    element.removeClass('form-success')
+                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
+                    .removeClass('form-info').removeClass('form-purple').removeClass('form-brown')
                     break
             }
         }
