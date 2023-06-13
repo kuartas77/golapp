@@ -47,6 +47,8 @@ class SharedService
 
             $this->createOrUpdatePaymentAssist($inscription);
 
+            $this->enableSkillControl($inscription);
+
             if(!$inscription->training_group_id){
                 $trainingGroup = TrainingGroup::orderBy('id','asc')->firstWhere('school_id', $inscription->school_id);
                 $inscription->training_group_id = $trainingGroup->id;
@@ -112,6 +114,11 @@ class SharedService
             $this->searchAssist,
             $this->dataAssist
         );
+    }
+
+    private function enableSkillControl($inscription)
+    {
+        $inscription->skillsControls()->withTrashed()->restore();
     }
 
     private function setData($inscription, $year, $month)
