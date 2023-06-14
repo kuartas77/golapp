@@ -85,7 +85,7 @@ class SchoolController extends Controller
 
     public function choose(Request $request)
     {
-        $school = School::find($request->school_id);
+        $school = School::with(['settingsValues'])->find($request->school_id);
         Session::put('admin.school', $school);
         return response()->json(true, 200);
     }

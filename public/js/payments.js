@@ -60,67 +60,114 @@ $('body').on('change', 'select.payments', function () {
 
     $.post(url_current + '/' + id, data, (response) =>{
         if (response.data) {
-            switch (element.val()) {
-                case '1':
-                    element.removeClass('form-error').removeClass('form-warning').removeClass('form-info')
-                    .removeClass('form-brown').removeClass('form-purple')
-                    .removeClass('form-orange').removeClass('form-grey')
-                    element.addClass('form-success')
-                    break;
-                case '2':
-                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
-                    .removeClass('form-brown').removeClass('form-purple')
-                    .removeClass('form-orange').removeClass('form-grey')
-                    element.addClass('form-error')
-                    break;
-                case '5':
-                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
-                    .removeClass('form-brown').removeClass('form-purple')
-                    .removeClass('form-grey')
-                    element.addClass('form-orange')
-                    break;
-                case '6':
-                    element.removeClass('form-success').removeClass('form-error').removeClass('form-info')
-                    .removeClass('form-brown').removeClass('form-purple')
-                    .removeClass('form-orange')
-                    element.addClass('form-grey')
-                    break;
-                case '9':
-                    element.removeClass('form-success').removeClass('form-error').removeClass('form-info')
-                    .removeClass('form-brown').removeClass('form-purple')
-                    .removeClass('form-orange').removeClass('form-grey')
-                    element.addClass('form-warning')
-                    break;
-                case '10':
-                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
-                    .removeClass('form-brown').removeClass('form-purple')
-                    .removeClass('form-orange').removeClass('form-grey')
-                    element.addClass('form-info')
-                    break;
-                case '11':
-                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
-                        .removeClass('form-info').removeClass('form-brown')
-                        .removeClass('form-orange').removeClass('form-grey')
-                    element.addClass('form-purple')
-                    break;
-                case '12':
-                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
-                        .removeClass('form-info').removeClass('form-purple')
-                        .removeClass('form-orange').removeClass('form-grey')
-                    element.addClass('form-brown')
-                    break;
-                default:
-                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
-                    .removeClass('form-info').removeClass('form-purple').removeClass('form-brown')
-                    .removeClass('form-orange').removeClass('form-grey')
-                    break
-            }
-            table.draw()          
+            changeColors(element)
+            checkValue(element)
+            table.draw()
         }
     });
-
 });
 
+function checkValue(element){
+    let name = element.attr('name')
+    let input = element.parent().find('input');
+    let input_val = input.val().replace(/[\$,]/g, '') * 1
+
+    if(input_val == 0 && ['1','9','10'].includes(element.val())){
+        console.log(['1','9','10'])
+        if(name.includes('enrollment')){
+            input.val(inscription_amount)
+        }else{
+            input.val(monthly_payment)
+        }
+    }else if(input_val != annuity && ['11','12'].includes(element.val())){
+        verifyInputs(element, annuity)
+    }else if(input_val != 0 && ['0'].includes(element.val())){
+        input.val(0)
+        changeColors(element)
+    }else if(['13'].includes(element.val())){
+        input.val(annuity)
+        changeColors(element)
+    }
+}
+
+function verifyInputs(element, value = 0){
+    let inputs = element.parent().parent().find('input.payments_amount, select.payments')
+    let lastElement = inputs[inputs.length -1]
+    $.each(inputs, function(_, domElement){
+        let domInput = $(domElement)
+        if(!domInput.attr('name').includes('enrollment')){
+            if(domInput.is('select')){
+                domInput.val(element.val())
+                changeColors(domInput)
+            }else{
+                domInput.val(value);
+            }
+        }
+    })
+    $(lastElement).trigger("change")
+}
+
+function changeColors(domelement){
+    let element = $(domelement)
+    let val = element.val().replace(/[\$,]/g, '')
+    console.log(element.attr('name'), val);
+    switch (val) {
+        case '1':
+            element.removeClass('form-error').removeClass('form-warning').removeClass('form-info')
+                .removeClass('form-brown').removeClass('form-purple')
+                .removeClass('form-orange').removeClass('form-grey')
+            element.addClass('form-success')
+            break;
+        case '2':
+            element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
+                .removeClass('form-brown').removeClass('form-purple')
+                .removeClass('form-orange').removeClass('form-grey')
+            element.addClass('form-error')
+            break;
+        case '5':
+            element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
+                .removeClass('form-brown').removeClass('form-purple')
+                .removeClass('form-grey')
+            element.addClass('form-orange')
+            break;
+        case '6':
+            element.removeClass('form-success').removeClass('form-error').removeClass('form-info')
+                .removeClass('form-brown').removeClass('form-purple')
+                .removeClass('form-orange')
+            element.addClass('form-grey')
+            break;
+        case '9':
+            element.removeClass('form-success').removeClass('form-error').removeClass('form-info')
+                .removeClass('form-brown').removeClass('form-purple')
+                .removeClass('form-orange').removeClass('form-grey')
+            element.addClass('form-warning')
+            break;
+        case '10':
+            element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
+                .removeClass('form-brown').removeClass('form-purple')
+                .removeClass('form-orange').removeClass('form-grey')
+            element.addClass('form-info')
+            break;
+        case '11':
+            element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
+                .removeClass('form-info').removeClass('form-brown')
+                .removeClass('form-orange').removeClass('form-grey')
+            element.addClass('form-purple')
+            break;
+        case '12':
+            element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
+                .removeClass('form-info').removeClass('form-purple')
+                .removeClass('form-orange').removeClass('form-grey')
+            element.addClass('form-brown')
+            break;
+        case '0':
+        default:
+            element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
+            .removeClass('form-info').removeClass('form-purple').removeClass('form-brown')
+            .removeClass('form-orange').removeClass('form-grey')
+            break
+    }
+}
 //inicia la tabla con datatables
 function initTable() {
     table = $('#active_table').DataTable({
@@ -164,7 +211,7 @@ function initTable() {
                         page: 'current'
                     })
                     .nodes();
-    
+
                 let columnas_total = api
                     .column(value)
                     .nodes();
@@ -173,7 +220,7 @@ function initTable() {
                     let a = $(value).find('input[type=text]').val();
                     pageTotal = pageTotal + intVal(a);
                 });
-    
+
                 $.each(columnas, function(index, value) {
                     let a = $(value).find('input[type=text]').val();
                     total = total + intVal(a);

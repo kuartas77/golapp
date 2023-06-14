@@ -190,7 +190,7 @@ class School extends Model
             'schedules' => '10:00AM - 11:00AM',
         ]);
 
-        // $this->settingsValues()->createMany(SettingValue::settingsDefault($this->id));
+        $this->settingsValues()->createMany(SettingValue::settingsDefault($this->id));
     }
 
     public function getSettingsAttribute()

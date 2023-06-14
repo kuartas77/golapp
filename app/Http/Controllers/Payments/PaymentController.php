@@ -35,6 +35,11 @@ class PaymentController extends Controller
             return $this->repository->filter($request);
         }
 
+        $school = getSchool(auth()->user());
+        view()->share('inscription_amount', $school->settings['INSCRIPTION_AMOUNT'] ?? 70000);
+        view()->share('monthly_payment', $school->settings['MONTHLY_PAYMENT'] ?? 50000);
+        view()->share('annuity', $school->settings['ANNUITY'] ?? 48333);
+
         return view('payments.payment.index');
     }
 

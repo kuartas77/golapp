@@ -31,11 +31,19 @@ class PaymentRepository
         $payments = $this->filterSelect($request, $deleted)->get();
         $rows = "";
         $payments->setAppends(['check_payments']);
+        $school = getSchool(auth()->user());
+        $inscription_amount = $school->settings['INSCRIPTION_AMOUNT'] ?? 70000;
+        $monthly_payment = $school->settings['MONTHLY_PAYMENT'] ?? 50000;
+        $annuity = $school->settings['ANNUITY'] ?? 48333;
+
         foreach ($payments as $pay) {
             $rows .= View::make('templates.payments.row', [
                 'payment' => $pay,
                 'deleted' => $deleted,
-                'front' => true
+                'front' => true,
+                'inscription_amount' => $inscription_amount,
+                'monthly_payment' => $monthly_payment,
+                'annuity' => $annuity
             ])->render();
         }
 
@@ -59,11 +67,11 @@ class PaymentRepository
      */
     public function filterSelect($request, bool $deleted = false): Builder
     {
-        $query = $this->model->query()->schoolId()->with('inscription.player');
+        $query = $this->model->query()->schoolId()->with(['inscription.player']);
 
         if ($deleted) {
             $query = $this->model->schoolId()->with([
-                'inscription' => fn ($query) => $query->with('player')->withTrashed()
+                'inscription' => fn ($query) => $query->with(['player'])->withTrashed()
             ])->withTrashed();
         }
 
