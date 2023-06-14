@@ -5,6 +5,7 @@ namespace App\Repositories;
 
 
 use App\Models\Payment;
+use App\Traits\ErrorTrait;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PaymentRepository
 {
+    use ErrorTrait;
 
     public function __construct(private Payment $model)
     {
@@ -73,17 +75,19 @@ class PaymentRepository
         return $query;
     }
 
-    public function setPay($request, $payment)
+    public function setPay(array $values, $payment)
     {
-        return $payment->fill(
-            $request->only([
-                'january', 'february', 'march',
-                'april', 'may', 'june',
-                'july', 'august', 'september',
-                'october', 'november', 'december',
-                'enrollment'
-            ])
-        )->save();
+        $isPay = false;
+        try {
+            DB::beginTransaction();
+            $isPay = $payment->fill($values)->save();
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            $this->logError('PaymentRepository@setPay', $th);
+            $isPay = false;
+        }
+        return $isPay;
     }
 
     public function dataGraphicsYear(int $year = 0): Collection

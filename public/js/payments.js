@@ -5,11 +5,10 @@ $(document).ready(() => {
     table = $('#active_table').DataTable({
         "paging": false,
         "ordering": false,
-        "info": false,
+        "info": true,
         "scrollX": true,
         "scrollY": true,
         "columns": [
-            {'width': '3%'},
             {'width': '5%'},
             {'width': '5%'},
             {'width': '5%'},
@@ -110,17 +109,13 @@ $('body').on('change', 'select.payments', function () {
                         .removeClass('form-orange').removeClass('form-grey')
                     element.addClass('form-brown')
                     break;
-
                 default:
                     element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
                     .removeClass('form-info').removeClass('form-purple').removeClass('form-brown')
                     .removeClass('form-orange').removeClass('form-grey')
                     break
             }
-
-            
-                
-                
+            table.draw()          
         }
     });
 
@@ -131,11 +126,10 @@ function initTable() {
     table = $('#active_table').DataTable({
         "paging": false,
         "ordering": false,
-        "info": false,
+        "info": true,
         "scrollX": true,
         "scrollY": true,
         "columns": [
-            {'width': '3%'},
             {'width': '5%'},
             {'width': '5%'},
             {'width': '5%'},
@@ -150,6 +144,47 @@ function initTable() {
             {'width': '5%'},
             {'width': '5%'},
             {'width': '5%'},
-        ]
+        ],
+        "footerCallback": function (row, data, start, end, display) {
+            let api = this.api();
+            // Remove the formatting to get integer data for summation
+            let intVal = function (i) {
+                return typeof i === 'string' ?
+                    i.replace(/[\$,]/g, '') * 1 :
+                    typeof i === 'number' ?
+                        i : 0;
+            };
+
+            // Total over all pages filtered indicate col index
+            let pageTotal = 0;
+            let total = 0;
+            $.each([1,2,3,4,5,6,7,8,9,10,11,12,13], function(index, value) {
+                let columnas = api
+                    .column(value, {
+                        page: 'current'
+                    })
+                    .nodes();
+    
+                let columnas_total = api
+                    .column(value)
+                    .nodes();
+
+                $.each(columnas_total, function(index, value) {
+                    let a = $(value).find('input[type=text]').val();
+                    pageTotal = pageTotal + intVal(a);
+                });
+    
+                $.each(columnas, function(index, value) {
+                    let a = $(value).find('input[type=text]').val();
+                    total = total + intVal(a);
+                });
+            });
+            // Update footer
+            let totalFormat = `$${formatMoney(pageTotal)}`
+            // `$${formatMoney(pageTotal)} ($${formatMoney(total)} total)`
+            $(api.column(10).footer()).html(totalFormat);
+            $('#total-tab').html(`Total: ${totalFormat}`)
+        }
     });
+    $('.payments_amount').inputmask("pesos");
 }

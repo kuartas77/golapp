@@ -45,7 +45,8 @@ class School extends Model
     ];
 
     protected $appends = [
-        'logo_file'
+        'logo_file',
+        'settings'
     ];
 
     protected static function booted()
@@ -190,6 +191,15 @@ class School extends Model
         ]);
 
         // $this->settingsValues()->createMany(SettingValue::settingsDefault($this->id));
+    }
+
+    public function getSettingsAttribute()
+    {
+        if($this->relationLoaded('settingsValues')){
+            return $this->settingsValues->mapWithKeys(function ($setting) {
+                return [ $setting->setting_key => $setting->value ];
+            });
+        }
     }
 
 }

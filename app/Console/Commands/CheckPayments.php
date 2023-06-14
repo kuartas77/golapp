@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\School;
 use App\Models\Payment;
-use App\Models\SettingValue;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Builder;
@@ -45,11 +44,14 @@ class CheckPayments extends Command
     {
         $months = $this->getAndCheckMonths(collect(config('variables.KEY_INDEX_MONTHS')));
 
-        $schools = School::where('is_enable', true)->get();
+        $schools = School::with(['settingsValues'])->where('is_enable', true)->get();
 
         foreach ($schools as $school) {
 
-            $day = SettingValue::where('setting_key', 'NOTIFY_PAYMENT_DAY')->where('school_id', $school->id)->first() ?? 15;
+            $day = $school->settings['NOTIFY_PAYMENT_DAY'] ?? 15;
+            if(now()->month == 2){
+                $day = now()->lastOfMonth()->lastOfMonth()->day;
+            }
 
             if(now()->day == $day){
                 $this->makePaymentsQuery($months, $school->id)->with(['inscription.player'])

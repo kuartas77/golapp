@@ -4,6 +4,10 @@
             <a class="nav-link active show" id="enabled-tab" data-toggle="tab" href="#enabled" role="tab"
                aria-controls="enabled" aria-expanded="false">Resultado</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link disabled" id="total-tab" data-toggle="tab" role="tab"
+               aria-controls="disabled" aria-expanded="false">Total $ 0</a>
+        </li>
         <li class=" nav-item ml-auto">
             <a class="float-right btn waves-effect waves-light btn-rounded btn-info" href="javascript:void(0)" id="export-excel" target="_blank">
                 <i class="fa fa-print" aria-hidden="true"></i> Exportar Pagos En Excel
@@ -20,7 +24,6 @@
         <table class="display compact" id="active_table" cellspacing="0" width="100%">
             <thead>
             <tr>
-                <th class="text-center">Año</th>
                 <th class="text-center">Nombres</th>
                 <th class="text-center">Matrícula</th>
                 <th class="text-center">Ene</th>
@@ -38,6 +41,14 @@
             </tr>
             </thead>
             <tbody id="table_body"></tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="10" style="text-align:right">Total:</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
         </table>
 
     </div>

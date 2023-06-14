@@ -628,3 +628,5 @@ select.swal2-select{
     background-color: grey;
     color: white;
 }
+
+.form-control-sm{min-height:10px}

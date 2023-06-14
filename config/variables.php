@@ -53,6 +53,40 @@ return [
         11 => 'Noviembre',
         12 => 'Diciembre'
     ],
+    'KEY_LABEL_MONTHS' => [
+        'Enero', 'Febrero', 'Marzo',
+        'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre',
+        'Octubre', 'Noviembre', 'Diciembre',
+    ],
+    'KEY_INDEX_MONTHS' => [
+        1 => 'january',
+        2 => 'february',
+        3 => 'march',
+        4 => 'april',
+        5 => 'may',
+        6 => 'june',
+        7 => 'july',
+        8 => 'august',
+        9 => 'september',
+        10 => 'october',
+        11 => 'november',
+        12 => 'december'
+    ],
+    'KEY_INDEX_MONTHS_LABEL' => [
+        'january' => 'Enero',
+        'february' => 'Febrero',
+        'march' => 'Marzo',
+        'april' => 'Abril',
+        'may' => 'Mayo',
+        'june' => 'Junio',
+        'july' => 'Julio',
+        'august' => 'Agosto',
+        'september' => 'Septiembre',
+        'october' => 'Octubre',
+        'november' => 'Noviembre',
+        'december' => 'Diciembre',
+    ],
     'KEY_GENDERS' => [
         'M' => 'Masculino',
         'F' => 'Femenino'
@@ -83,12 +117,6 @@ return [
         'DIESTRO' => 'DIESTRO',
         'ZURDO' => 'ZURDO',
         'AMBIDIESTRO' => 'AMBIDIESTRO',
-    ],
-    'KEY_LABEL_MONTHS' => [
-        'Enero', 'Febrero', 'Marzo',
-        'Abril', 'Mayo', 'Junio',
-        'Julio', 'Agosto', 'Septiembre',
-        'Octubre', 'Noviembre', 'Diciembre',
     ],
     'KEY_PAYMENTS_SELECT' => [
         '0' => "Pendiente",

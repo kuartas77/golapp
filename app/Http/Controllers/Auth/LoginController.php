@@ -52,7 +52,9 @@ class LoginController extends Controller
     protected function authenticated(Request $request, $user)
     {
         if($user->hasAnyRole(['school','instructor'])){
-            Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn()=> $user->school);
+            Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", 
+            now()->addMinutes(env('SESSION_LIFETIME', 120)), 
+            fn()=> $user->school->load(['settingsValues']));
         }
     }
 
