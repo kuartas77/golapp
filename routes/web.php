@@ -24,9 +24,6 @@ Route::get('/', function () {
     return redirect(\route('login'));
 });
 
-Route::resource('escuelas', SchoolsController::class)->only([
-    'index', 'show',
-]);
 
 Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 
@@ -60,6 +57,9 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
             'training_groups' => TrainingGroupController::class,
             'competition_groups' => CompetitionGroupController::class,
         ]);
+
+        $route->get('school/{school}', [SchoolsController::class, 'index'])->name('school.index');
+        $route->put('school/{school}', [SchoolsController::class, 'update'])->name('school.update');
 
         $route->get('filter_training_groups', [TrainingGroupController::class, 'filterGroupYear'])->name('training_groups.filter');
         $route->get('availability_training_groups/{training_group?}', [TrainingGroupController::class, 'availabilityGroup'])->name('training_groups.availability');

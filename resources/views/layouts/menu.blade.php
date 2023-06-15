@@ -18,6 +18,7 @@
 <li class="{{ Request::is('admin*') ? 'active' : '' }}">
     <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><i class="fas fa-cogs"></i><span class="hide-menu"> Administración</span></a>
     <ul aria-expanded="false" class="collapse">
+        <li><a href="{{route('school.index', ['school' => getSchool(auth()->user())])}}">Escuela</a></li>
         <li><a href="{{route('users.index')}}">Usuarios</a></li>
         <li><a href="{{route('training_groups.index')}}">G. De Entrenamiento</a></li>
         <li><a href="{{route('competition_groups.index')}}">G. De Competencia</a></li>
