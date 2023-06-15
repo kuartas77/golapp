@@ -4,9 +4,7 @@ namespace App\Http\Controllers\SchoolPages;
 
 use App\Models\School;
 use App\Traits\ErrorTrait;
-use App\Models\SettingValue;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Service\API\RegisterService;
 use App\Http\Requests\SchoolUpdateRequest;

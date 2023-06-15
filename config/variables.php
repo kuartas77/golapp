@@ -126,6 +126,7 @@ return [
         '11' => "Pago Anualidad Consignación",
         '12' => "Pago Anualidad Efectivo",
         '13' => "Acuerdo de Pago",
+        '14' => "No Aplica",
         '2' => "Debe",
         '3' => "Abonó",
         '4' => "Incapacidad",

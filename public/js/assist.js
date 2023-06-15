@@ -34,13 +34,15 @@ jQuery(function() {
 });
 
 $('body').on('change', 'select.assist', function()  {
-    let data = $(this).parent().parent().find('input, select').serializeArray();
-    let id = $(this).parent().parent().find('input').val();
+    let element = $(this)
+    let data = element.parent().parent().find('input, select').serializeArray();
+    let id = element.parent().parent().find('input').val();
     if (this.value === '') {
         return;
     }
     data.push({name: '_method', value: 'PUT'});
     $.post(url_current + `/${id}`, data);
+    changeColors(element)
 });
 
 
@@ -116,4 +118,34 @@ const initTable = () => {
         "scrollX": true,
         "scrollY": true,
     });
+}
+
+function changeColors(domelement){
+    let element = $(domelement)
+    let val = element.val().replace(/[\$,]/g, '')
+    switch (val) {
+        case 'as':
+            element.removeClass('form-error').removeClass('form-orange').removeClass('form-grey').removeClass('form-warning')
+            element.addClass('form-success')
+            break;
+        case 'fa':
+            element.removeClass('form-success').removeClass('form-warning').removeClass('form-orange').removeClass('form-grey')
+            element.addClass('form-error')
+            break;
+        case 'ex':
+            element.removeClass('form-success').removeClass('form-warning').removeClass('form-grey').removeClass('form-error')
+            element.addClass('form-orange')
+            break;
+        case 're':
+            element.removeClass('form-success').removeClass('form-warning').removeClass('form-orange').removeClass('form-error')
+            element.addClass('form-grey')
+            break;
+        case 'in':
+            element.removeClass('form-success').removeClass('form-grey').removeClass('form-orange').removeClass('form-error')
+            element.addClass('form-warning')
+            break;
+        default:
+            element.removeClass('form-success').removeClass('form-grey').removeClass('form-orange').removeClass('form-error').removeClass('form-warning')
+            break
+    }
 }

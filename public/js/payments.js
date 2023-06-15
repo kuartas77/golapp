@@ -110,7 +110,6 @@ function verifyInputs(element, value = 0){
 function changeColors(domelement){
     let element = $(domelement)
     let val = element.val().replace(/[\$,]/g, '')
-    console.log(element.attr('name'), val);
     switch (val) {
         case '1':
             element.removeClass('form-error').removeClass('form-warning').removeClass('form-info')

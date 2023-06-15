@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Notifications\RegisterNotification;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 
 class RegisterService
@@ -98,6 +99,15 @@ class RegisterService
             $annuity->update(['value' => $request->ANNUITY]);
             
             DB::commit();
+            
+            $school->refresh()->load(['settingsValues']);
+            
+            $key = School::KEY_SCHOOL_CACHE. "_{$school->id}";
+            $adminKey = School::KEY_SCHOOL_CACHE. "_admin_{$school->id}";
+            Cache::forget($key);
+            Cache::forget($adminKey);
+            Cache::remember($key, now()->addMinutes(env('SESSION_LIFETIME', 120)), fn() => $school);
+            Cache::remember($adminKey, now()->addMinutes(env('SESSION_LIFETIME', 120)), fn() => $school);
 
         } catch (\Throwable $th) {
             DB::rollBack();

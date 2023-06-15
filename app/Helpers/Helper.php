@@ -182,14 +182,20 @@ if (!function_exists('isInstructor')) {
 
 if (!function_exists('getSchool')){
     function getSchool($user): School{
+        $data = null;
         $school_id = Session::get('selected_school', 1);
-        if(isAdmin() && Cache::has(School::KEY_SCHOOL_CACHE. "_admin_{$school_id}")){
-            return Cache::get(School::KEY_SCHOOL_CACHE. "_admin_{$school_id}");
-        }elseif(isAdmin() && !Cache::has(School::KEY_SCHOOL_CACHE. "_admin_{$school_id}")){
-            return Cache::remember(School::KEY_SCHOOL_CACHE. "_admin", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn() => School::with(['settingsValues'])->find(1));
-        }
+        $key = School::KEY_SCHOOL_CACHE. "_admin_{$school_id}";
+        $ttl = now()->addMinutes(env('SESSION_LIFETIME', 120));
+        $query = School::with(['settingsValues']);
 
-        return Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn()=> School::with(['settingsValues'])->firstWhere('id', $user->school_id));
+        if(isAdmin() && Cache::has($key)){
+            $data = Cache::get($key);
+        }elseif(isAdmin() && !Cache::has($key)){
+            $data = Cache::remember(School::KEY_SCHOOL_CACHE. "_admin_1", $ttl, fn() => $query->first());
+        }else{
+            $data = Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", $ttl, fn()=> $query->firstWhere('id', $user->school_id));
+        }
+        return $data;
     }
 }
 
