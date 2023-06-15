@@ -182,11 +182,11 @@ if (!function_exists('isInstructor')) {
 
 if (!function_exists('getSchool')){
     function getSchool($user): School{
-        if(isAdmin() && Session::has('admin.school')){
-            return Session::get('admin.school', School::with(['settingsValues'])->find(1));
-        }elseif(isAdmin() && !Session::has('admin.school')){
-            Session::put('admin.school', School::with(['settingsValues'])->find(1));
-            return Session::get('admin.school', School::with(['settingsValues'])->find(1));
+        $school_id = Session::get('selected_school', 1);
+        if(isAdmin() && Cache::has(School::KEY_SCHOOL_CACHE. "_admin_{$school_id}")){
+            return Cache::get(School::KEY_SCHOOL_CACHE. "_admin_{$school_id}");
+        }elseif(isAdmin() && !Cache::has(School::KEY_SCHOOL_CACHE. "_admin_{$school_id}")){
+            return Cache::remember(School::KEY_SCHOOL_CACHE. "_admin", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn() => School::with(['settingsValues'])->find(1));
         }
 
         return Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn()=> School::with(['settingsValues'])->firstWhere('id', $user->school_id));
