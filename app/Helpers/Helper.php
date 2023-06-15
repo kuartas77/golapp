@@ -112,8 +112,8 @@ if (!function_exists('arrayDay')) {
     function arrayDay(Carbon $date, $count) : array
     {
         return [
-            'day' => $date->day, 
-            'date' => $date->format('Y-m-d'), 
+            'day' => $date->day,
+            'date' => $date->format('Y-m-d'),
             'name' => $date->getTranslatedDayName(),
             'column' => numbersToLetters($count, true)
         ];
@@ -183,12 +183,12 @@ if (!function_exists('isInstructor')) {
 if (!function_exists('getSchool')){
     function getSchool($user): School{
         if(isAdmin() && Session::has('admin.school')){
-            return Session::get('admin.school');
+            return Session::get('admin.school', School::with(['settingsValues'])->find(1));
         }elseif(isAdmin() && !Session::has('admin.school')){
             Session::put('admin.school', School::with(['settingsValues'])->find(1));
-            return Session::get('admin.school');
+            return Session::get('admin.school', School::with(['settingsValues'])->find(1));
         }
-        
+
         return Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn()=> School::with(['settingsValues'])->firstWhere('id', $user->school_id));
     }
 }
@@ -236,10 +236,10 @@ if (!function_exists('checkValuePayment')){
     function checkValuePayment(Payment $payment, string $column, int $defaultValue, int $alternative = 0){
         $attribute = "{$column}_amount";
         $value = 0;
-        if(in_array($payment->$column, ['9','10'])){
+        if(in_array($payment->$column, ['1','9','10'])){
             $value = $payment->$attribute == 0 ? $defaultValue : $payment->$attribute;
-        }elseif(in_array($payment->$column, ['13'])){
-            $value = $payment->$attribute == 0 ? $alternative : $payment->$attribute; 
+        }elseif(in_array($payment->$column, ['11','12','13'])){
+            $value = $payment->$attribute == 0 ? $alternative : $payment->$attribute;
         }
         return $value;
     }
