@@ -148,4 +148,5 @@ function changeColors(domelement){
             element.removeClass('form-success').removeClass('form-grey').removeClass('form-orange').removeClass('form-error').removeClass('form-warning')
             break
     }
+    element.blur()
 }

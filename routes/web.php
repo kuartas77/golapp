@@ -14,6 +14,7 @@ use App\Http\Controllers\SchoolPages\SchoolsController;
 use App\Http\Controllers\Players\PlayerExportController;
 use App\Http\Controllers\Tournaments\TournamentController;
 use App\Http\Controllers\Inscription\InscriptionController;
+use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
@@ -39,6 +40,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
     $route->resource("assists", AssistController::class)->except(['create','edit', 'destroy']);
     $route->resource("matches", GameController::class)->except(['show']);
     $route->resource("players", PlayerController::class);
+    $route->resource("tournamentpayout", TournamentPayoutsController::class)->only(['index', 'store', 'update']);
 
     $route->prefix('import')->group(function($route){
         $route->post('matches/{competition_group}', [ImportController::class, 'importMatchDetail'])->name('import.match');
@@ -118,5 +120,6 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
         $route->get('code_unique_verify', [MasterController::class, 'codeUniqueVerify'])->name('autocomplete.verify_code');
         $route->get('list_code_unique', [MasterController::class, 'listUniqueCode'])->name('autocomplete.list_code_unique');
         $route->get('search_unique_code', [MasterController::class, 'searchUniqueCode'])->name('autocomplete.search_unique_code');
+        $route->get('competition_groups', [MasterController::class, 'competitionGroupsByTournament'])->name('autocomplete.competition_groups');
     });
 });

@@ -14,35 +14,47 @@ const format = (d) => {
     let data_people = "";
     d.player.people.forEach(function ({tutor, relationship_name, names, phone, mobile}) {
         let is_tutor = tutor === 1 ? "ACUDIENTE" : "";
+        let phones = (mobile == null) ?  phone : `${phone} ${mobile}`
         data_people += '<tr>' +
-            '<th><strong>' + is_tutor +'</strong></th>' +
+            '<th><strong>' + is_tutor +'</strong></th><td></td>' +
             '<th>'+ relationship_name +'</th><th>' + names + '</th>' +
-            '<th><strong>Teléfonos:</strong></th><th>' + phone + ' - ' + mobile + '</th>' +
-            '<th></th>'
+            '<th><strong>Teléfonos:</strong></th><th>' + phones + '</th>' +
+            '<th></th><td></td>'+
             '</tr>';
     });
 
     return '<table class="w-100">' +
         data_people +
         '<tr>' +
-        '<th>EPS:</th><td><strong>' + d.player.eps + '</strong></td>' +
-        '<th>Fotos:</th><td>' + validateCheck(d.photos) + '</td>' +
-        '<th>Fotocopia Doc Identificación:</th><td>' + validateCheck(d.copy_identification_document) + '</td>' +
+        '<th><strong>EPS:</strong></th><td><strong>' + d.player.eps + '</strong></td>' +
+        '<th><strong>Certificado EPS,SISBEN:</strong></th><td>' + validateCheck(d.eps_certificate) + '</td>' +
+        '<th><strong>Fotocopia Doc Acudiente:</strong></th><td>' + validateCheck(d.study_certificate) + '</td>' +
+        '<th></th><td></td>'+
         '</tr>' +
         '<tr>' +
-        '<th>Certificado EPS,SISBEN:</th><td>' + validateCheck(d.eps_certificate) + '</label></td>' +
-        '<th>Certificado médico:</th><td>' + validateCheck(d.medic_certificate) + '</label></td>' +
-        '<th>Fotocopia Doc Acudiente:</th><td>' + validateCheck(d.study_certificate) + '</label></td>' +
+        '<th><strong>Certificado médico:</strong></th><td>' + validateCheck(d.medic_certificate) + '</td>' +
+        '<th><strong>Fotos:</strong></th><td>' + validateCheck(d.photos) + '</td>' +
+        '<th><strong>Fotocopia Doc Identificación:</strong></th><td>' + validateCheck(d.copy_identification_document) + '</td>' +        
+        '<th></th><td></td>'+
+        '</tr>' +
+
+        '<tr>' +
+        '<th><strong>Pagó Inscripción Torneo 1:</strong></th><td>' + validateCheck(d.tournament_pay) + '</td>' +
+        '<th><strong>Uniforme presentación:</strong></th><td>' + validateCheck(d.presentation_uniform) + '</td>' +
+        '<th></th><td></td>'+
+        '<th></th><td></td>'+
         '</tr>' +
         '<tr>' +
-        '<th>Peto:</th><td>' + validateCheck(d.overalls) + '</label></td>' +
-        '<th>Balón:</th><td>' + validateCheck(d.ball) + '</label></td>' +
-        '<th>Morral:</th><td>' + validateCheck(d.presentation_uniform) + '</label></td>' +
+        '<th><strong>Pagó Inscripción Torneo 2:</strong></th><td>' + validateCheck(d.bag) + '</td>' +        
+        '<th><strong>Uniforme competencia:</strong></th><td>' + validateCheck(d.competition_uniform) + '</td>' +
+        '<th></th><td></td>'+
+        '<th></th><td></td>'+
         '</tr>' +
         '<tr>' +
-        '<th>Uniforme presentación:</th><td>' + validateCheck(d.presentation_uniform) + '</label></td>' +
-        '<th>Uniforme competencia:</th><td>' + validateCheck(d.competition_uniform) + '</label></td>' +
-        '<th>Pagó inscripción en torneo:</th><td>' + validateCheck(d.tournament_pay) + '</label></td>' +
+        '<th><strong>Pagó Inscripción Torneo 3:</strong></th><td>' + validateCheck(d.ball) + '</td>' +
+        '<th><strong>Peto:</strong></th><td>' + validateCheck(d.overalls) + '</td>' +
+        '<th></th><td></td>'+
+        '<th></th><td></td>'+
         '</tr>' +
         '</table>';
 }
@@ -53,12 +65,22 @@ const validateCheck = (value) => {
 
 function filterTable() {
     // Apply the search
-    let column = this.api().columns(8);
+    let column = this.api().columns(11);
     $("<input type='search' class='' placeholder='Buscar Categoría' />")
         .appendTo($(column.header()).empty())
         .on('keyup change search', function () {
             if (column.search() !== this.value) {
                 column.search(this.value)
+                    .draw();
+            }
+        });
+
+    let start_date = this.api().columns(10);
+    $("<input type='search' class='' placeholder='Buscar F.Inicio' />")
+        .appendTo($(start_date.header()).empty())
+        .on('keyup change search', function () {
+            if (start_date.search() !== this.value) {
+                start_date.search(this.value)
                     .draw();
             }
         });
@@ -74,7 +96,7 @@ const columns = [
     },
     {
         data: 'id', "render": function (data, type, row) {
-            return "<img class='media-object img-rounded' src='" + row.player.photo_url + "' width='60' height='60' alt='" + row.player.full_names + "'>";
+            return "<img class='img-fluid rounded img-thumbnail' width='70' height='50' src='" + row.player.photo_url + "' alt='" + row.player.full_names + "'>";
         }
     },
     {data: 'unique_code'},//2
@@ -82,15 +104,15 @@ const columns = [
     {data: 'player.full_names'},//4
     {data: 'player.date_birth'},//5
     {data: 'player.gender'},//6
-    {data: 'start_date'},//7
-    {data: 'category', name: 'category', "className": 'text-center'},//8
-    {data: 'training_group.name'},//9
+    {data: 'training_group.name'},//7
     {
         data: 'medic_certificate', "render": function (data) {
             return data === 1 ? '<span class="label label-success">SI</span>' : '<span class="label label-warning">NO</span>';
         }
-    },//10
-    {data: 'player.mobile'},//11
+    },//8
+    {data: 'player.mobile'},//9
+    {data: 'start_date'},//10
+    {data: 'category', name: 'category', "className": 'text-center'},//11
     {
         data: 'id',
         "render": function (data, type, row) {
@@ -101,8 +123,8 @@ const columns = [
             }
 
             return '<form method="POST" action="' + row.url_destroy + '" accept-charset="UTF-8"><input name="_method" type="hidden" value="DELETE"><input name="_token" type="hidden" value="' + window.token.csrfToken + '"><div class="btn-group">'
-            +'<a href="' + row.url_show + '" class="btn btn-info btn-xs"><i class="fas fa-eye"></i></a>'
             + edit
+            +'<a href="' + row.url_show + '" class="btn btn-info btn-xs"><i class="fas fa-eye"></i></a>'
             + '<a href="' + row.url_impression + '" target="_blank" class="btn btn-info btn-xs"><i class="fas fa-print" aria-hidden="true"></i></a>'
             + '<button class="btn btn-danger btn-xs disable-inscription"><i class="fas fa-trash-alt"></i></button>'
             + '</div></form>';
@@ -111,18 +133,20 @@ const columns = [
 ];
 
 const columnDefs = [
-    {"targets": [0, 1, 6, 10, 11, 12], "searchable": false},
-    {"targets": [0, 1, 6, 8, 10, 11, 12], "orderable": false},
+    {"searchable": false, "targets": [0, 1, 6, 8, 9, 12]},
+    {"orderable": false, "targets": [0, 1, 6, 10, 11, 12]},
+    {"width": "1%" , "targets": [10, 11] }
+
 ];
 
 $(document).ready(function () {
 
     const active_table = $('#active_table').DataTable({
+        "ordering": false,
+        "scrollX": true,
+        "scrollY": true,
         "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
         "order": [[2, "desc"]],
-        "scrollX": true,
-        "processing": true,
-        "serverSide": true,
         "deferRender": true,
         "fixedColumns": true,
         "columns": columns,

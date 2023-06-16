@@ -88,6 +88,7 @@ function checkValue(element){
         input.val(annuity)
         changeColors(element)
     }
+    element.blur()
 }
 
 function verifyInputs(element, value = 0){
