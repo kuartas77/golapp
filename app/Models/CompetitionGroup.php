@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property mixed category
@@ -92,8 +93,8 @@ class CompetitionGroup extends Model
     /**
      * @return HasMany
      */
-    public function inscriptions(): HasMany
+    public function inscriptions(): BelongsToMany
     {
-        return $this->hasMany(Inscription::class, 'competition_group_id');
+        return $this->belongsToMany(Inscription::class)->using(CompetitionGroupInscription::class);
     }
 }

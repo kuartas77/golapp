@@ -8,6 +8,7 @@ use App\Models\Inscription;
 use App\Models\CompetitionGroup;
 use App\Models\TournamentPayout;
 use Illuminate\Support\Facades\DB;
+use App\Models\CompetitionGroupInscription;
 use App\Service\Payment\TournamentPayoutService;
 
 class TournamentPayoutsRepository
@@ -40,25 +41,30 @@ class TournamentPayoutsRepository
         $response = [];
         try {
 
+            $data['year'] = now()->year;
+
             $tournamentPayouts = $this->model->schoolId()->with(['inscription.player', 'tournament'])
             ->when(!empty($data['tournament_id']), fn ($q) => $q->where('tournament_id', $data['tournament_id']))
             ->when(!empty($data['competition_group_id']), fn ($q) => $q->where('competition_group_id', $data['competition_group_id']));
-
-            $data['year'] = now()->year;
-
+                        
             $competitionGroup = CompetitionGroup::query()->schoolId()->findOrFail($data['competition_group_id']);
-            $inscriptions = Inscription::query()->select(['id', 'unique_code'])
+            
+            $inscriptionIds = CompetitionGroupInscription::select(['inscription_id'])->where('competition_group_id', $data['competition_group_id'])->get();
+       
+            $inscriptionIds = $inscriptionIds->pluck('inscription_id');
+               
+            $inscriptions = Inscription::query()->select(['id','unique_code'])
                 ->schoolId()
-                ->where('competition_group_id', $data['competition_group_id'])
+                ->whereIn('id', $inscriptionIds)
                 ->where('year', $data['year'])->get();
 
             $school_id = getSchool(auth()->user())->id;
 
-            if ($inscriptions->isNotEmpty()) {
+            if ($inscriptionIds->isNotEmpty()) {
 
                 $ids = $tournamentPayouts->pluck('inscription_id');
 
-                $idsDiff = $inscriptions->pluck('id')->diff($ids);
+                $idsDiff = $inscriptionIds->diff($ids);
 
                 DB::beginTransaction();
                 foreach ($idsDiff as $id) {

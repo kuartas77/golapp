@@ -39,6 +39,10 @@
     <a class="waves-effect waves-dark" href="{{route('payments.index')}}" aria-expanded="false"><i class="fas fa-dollar-sign"></i><span class="hide-menu">Pagos</span></a>
 </li>
 
+<li class="{{ Request::is('tournamentpayout*') ? 'active' : '' }}">
+    <a class="waves-effect waves-dark" href="{{route('tournamentpayout.index')}}" aria-expanded="false"><i class="fas fa-dollar-sign"></i><span class="hide-menu">Pagos Torneos</span></a>
+</li>
+
 <li class="{{ Request::is('historic*') ? 'active' : '' }}">
     <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><i class="fas fa-history"></i><span class="hide-menu">Historicos</span></a>
     <ul aria-expanded="false" class="collapse">

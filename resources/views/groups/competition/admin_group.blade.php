@@ -39,9 +39,10 @@
         <div class="col-lg-6 col-md-6 col-sm-6">
             <div class="card m-b-0">
                 <div class="card-body m-b-0">
-                    <h6 class="card-subtitle text-themecolor m-t-5">Deportistas Sin Grupo De Competencia 
-                        <strong id="inscriptions_count"></strong>
+                    <h6 class="card-subtitle text-themecolor m-t-5">Deportistas 
+                        <strong id="inscriptions_count">Cantidad: {{$insWithOutGroupCount}}</strong>
                     </h6>
+                    <input type="text" name="search" id="search_origin" class="form-control form-control-sm" placeholder="Buscar..." autocomplete="off" onkeyup="search(this, 'inscriptions')">
                     <hr>
                     <div class="row row-cols-3 space col-lg-12 col-md-12 col-sm-12" id="inscriptions">
                         @each('templates.groups.div_row', $insWithOutGroup, 'inscription')
@@ -54,9 +55,10 @@
             <div class="card m-b-0">
                 <div class="card-body m-b-0">
                     <h6 class="card-subtitle text-themecolor m-t-5">Grupo Seleccionado: 
-                        <strong id="group_selected">Selecciona...</strong> 
+                        <strong id="group_selected">Ninguno...</strong> 
                         <strong id="destination_count"></strong>
                     </h6>
+                    <input type="text" name="search" id="search_destiny" class="form-control form-control-sm" placeholder="Buscar..." autocomplete="off" onkeyup="search(this, 'destination')">
                     <hr>
                     <div class="row row-cols-3 space col-lg-12 col-md-12 col-sm-12" id="destination">
                         @each('templates.groups.div_row', $insWithGroup, 'inscription')

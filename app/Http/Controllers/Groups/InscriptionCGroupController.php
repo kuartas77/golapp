@@ -29,20 +29,22 @@ class InscriptionCGroupController extends Controller
 
             $groupsCompetition = $this->groupRepository->getGroupsYear($group->year);
 
-            $inscriptions = Inscription::query()->schoolId()->with('player')->whereCategory($group->year)
-                ->whereCompetition()->where('year', now()->year)->get();
+            $inscriptions = Inscription::query()->schoolId()->with(['player'])->where('year', now()->year)->get();
 
+            list($rows, $count) = $this->groupRepository->makeInscriptionRows($inscriptions);
             return response()->json([
-                'rows' => CompetitionGroup::query()->schoolId()->rows($inscriptions),
+                'rows' => $rows,
+                'count' => $count,
                 'groups' => $groupsCompetition
             ]);
         }
 
-        $insWithOutGroup = Inscription::query()->schoolId()->with('player')->whereCompetition()->where('year', now()->year)->get();
+        $insWithOutGroup = Inscription::query()->schoolId()->with(['player'])->where('year', now()->year)->get();
 
         view()->share('groupsCompetition', $this->groupRepository->getGroupsYear());
         view()->share('insWithGroup', collect([]));
         view()->share('insWithOutGroup', $insWithOutGroup);
+        view()->share('insWithOutGroupCount', $insWithOutGroup->count());
 
         return view('groups.competition.admin_group');
     }
@@ -53,8 +55,12 @@ class InscriptionCGroupController extends Controller
      */
     public function makeRows(CompetitionGroup $competitionGroup): JsonResponse
     {
+        $inscriptions = Inscription::query()->schoolId()->with(['player'])->where('year', now()->year)->get();
+
         list($rows, $count) = $this->groupRepository->makeRows($competitionGroup);
-        return response()->json(['rows' => $rows, 'count' => $count]);
+        list($inscriptionRows, $inscriptioncount) = $this->groupRepository->makeInscriptionRows($inscriptions);
+
+        return response()->json(['rows' => $rows, 'count' => $count, 'inscriptionRows' => $inscriptionRows, 'inscriptioncount' => $inscriptioncount]);
     }
 
     /**
@@ -64,20 +70,8 @@ class InscriptionCGroupController extends Controller
      */
     public function assignGroup($inscription, Request $request): JsonResponse
     {
-        if ($request->ajax()) {
-            $destination = $request->input('destination_group');
-            $inscription = Inscription::findOrFail($inscription);
-            $updated = $inscription->update(['competition_group_id' => $destination]);
-
-            if ($updated === true && isset($destination)) {
-                $response = 1;
-            } else if ($updated === true && !isset($destination)) {
-                $response = 2;
-            } else {
-                $response = 3;
-            }
-            return response()->json(['response' => $response]);
-        }
-        return response()->json([], 404);
+        abort_unless($request->ajax(), 401);
+        $response = $this->groupRepository->assignInscriptionGroup($inscription, $request->destination_group, filter_var($request->assign, FILTER_VALIDATE_BOOL));
+        return response()->json(['response' => $response]);
     }
 }

@@ -13,8 +13,7 @@ class CreateCompetitionGroupsInscriptionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('competition_groups_inscriptions', function (Blueprint $table) {
-            $table->id();
+        Schema::create('competition_group_inscription', function (Blueprint $table) {
             $table->unsignedBigInteger('competition_group_id');
             $table->unsignedBigInteger('inscription_id');
             $table->foreign('competition_group_id')->references('id')->on('competition_groups');
@@ -30,6 +29,6 @@ class CreateCompetitionGroupsInscriptionsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('competition_groups_inscriptions');
+        Schema::dropIfExists('competition_group_inscription');
     }
 }

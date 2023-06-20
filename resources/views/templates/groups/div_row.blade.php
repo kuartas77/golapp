@@ -1,4 +1,4 @@
-<div class="row" data-id="{{$inscription->id}}">
+<div class="row" data-id="{{$inscription->id}}" data-info="{{$inscription->player->full_names}} {{ $inscription->category }}">
     <div class="col-sm-12 col-md-12 col-lg-12 element">
         <div class="card text-center">
             <div class="card-body" style="min-height: 202px;">

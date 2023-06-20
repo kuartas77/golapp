@@ -75,7 +75,7 @@
             table = $('#active_table').DataTable({
                 "paging": false,
                 "ordering": false,
-                "info": false,
+                "info": true,
                 "scrollX": true,
                 "scrollY": true,
             });
