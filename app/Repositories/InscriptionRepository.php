@@ -59,7 +59,6 @@ class InscriptionRepository
     public function setInscription(array $inscriptionData, bool $created = true, Inscription $inscription = null): Inscription
     {
         try {
-
             if(!$inscriptionData['training_group_id']){
                 $inscriptionData['training_group_id'] = TrainingGroup::query()->orderBy('id', 'asc')
                 ->firstWhere('school_id', $inscriptionData['school_id'])->id;
@@ -69,7 +68,11 @@ class InscriptionRepository
 
             DB::beginTransaction();
 
+            $competition_groups = $inscriptionData['competition_groups'];
+            unset($inscriptionData['competition_groups']);
+
             if ($created) {
+                
                 $inscription = $this->model->withTrashed()->updateOrCreate([
                     'unique_code' => $inscriptionData['unique_code'],
                     'year' => $inscriptionData['year']
@@ -83,6 +86,10 @@ class InscriptionRepository
                 $inscriptionData['unique_code'] = $inscription->unique_code;
                 $inscriptionData['start_date'] = $inscription->start_date;
                 $inscription->update($inscriptionData);
+            }
+
+            if($competition_groups){
+                $inscription->competitionGroup()->sync($competition_groups);
             }
 
             DB::commit();

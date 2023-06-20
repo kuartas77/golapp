@@ -33,7 +33,7 @@ class InscriptionRequest extends FormRequest
             'start_date' => ['required'],
             'category' => ['required'],
             'training_group_id' => ['nullable'],
-            'competition_group_id' => ['nullable'],
+            'competition_groups' => ['nullable', 'array'],
             'photos' => ['nullable', 'boolean'],
             'copy_identification_document' => ['nullable', 'boolean'],
             'eps_certificate' => ['nullable', 'boolean'],

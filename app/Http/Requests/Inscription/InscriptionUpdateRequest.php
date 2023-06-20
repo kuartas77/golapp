@@ -30,7 +30,7 @@ class InscriptionUpdateRequest extends FormRequest
             'player_id' => ['required'],
             'unique_code' => ['required', 'exists:players,unique_code'],
             'training_group_id' => ['nullable'],
-            'competition_group_id' => ['nullable'],
+            'competition_groups' => ['nullable', 'array'],
             'photos' => ['nullable'],
             'copy_identification_document' => ['nullable'],
             'eps_certificate' => ['nullable'],
