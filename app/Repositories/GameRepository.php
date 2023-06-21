@@ -32,7 +32,7 @@ class GameRepository
 
     public function getDatatable($year)
     {
-        return Game::with([
+        return Game::query()->schoolId()->with([
             'tournament' => fn ($q) => $q->withTrashed(),
             'competitionGroup' => fn ($q) => $q->with('professor')->withTrashed(),
         ])->whereYear('created_at', $year)->orderBy('date', 'desc')->get();
