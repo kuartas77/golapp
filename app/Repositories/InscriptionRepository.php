@@ -68,8 +68,12 @@ class InscriptionRepository
 
             DB::beginTransaction();
 
-            $competition_groups = $inscriptionData['competition_groups'];
-            unset($inscriptionData['competition_groups']);
+            $competition_groups = [];
+            if(isset($inscriptionData['competition_groups']))
+            {
+                $competition_groups = $inscriptionData['competition_groups'];
+                unset($inscriptionData['competition_groups']);
+            }
 
             if ($created) {
                 
@@ -88,7 +92,7 @@ class InscriptionRepository
                 $inscription->update($inscriptionData);
             }
 
-            if($competition_groups){
+            if(!empty($competition_groups)){
                 $inscription->competitionGroup()->sync($competition_groups);
             }
 

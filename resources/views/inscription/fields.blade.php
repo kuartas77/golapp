@@ -43,9 +43,9 @@
 
     <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
         <div class="form-group">
-            <label for="competition_group_id">Grupo de competencia:</label>
-            {!! Form::select('competition_group_id', $competition_groups, null, ['class' => 'form-control form-control-sm select2',
-            'placeholder'=>'Seleccionar...','id'=>'competition_group_id']) !!}
+            <label for="competition_groups">Grupo de competencia:</label>
+            {!! Form::select('competition_groups[]', $competition_groups, null, ['class' => 'form-control form-control-sm select2','multiple',
+            'data-placeholder'=>'Seleccionar...','id'=>'competition_groups']) !!}
         </div>
     </div>
 
