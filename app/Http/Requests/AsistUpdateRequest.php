@@ -24,6 +24,7 @@ class AsistUpdateRequest extends FormRequest
     public function rules()
     {
         return [
+            'id' => ['required'],
             'assistance_one' => ['nullable', 'string'],
             'assistance_two' => ['nullable', 'string'],
             'assistance_three' => ['nullable', 'string'],
