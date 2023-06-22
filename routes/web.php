@@ -117,6 +117,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
         $route->get('code_unique_verify', [MasterController::class, 'codeUniqueVerify'])->name('autocomplete.verify_code');
         $route->get('list_code_unique', [MasterController::class, 'listUniqueCode'])->name('autocomplete.list_code_unique');
         $route->get('search_unique_code', [MasterController::class, 'searchUniqueCode'])->name('autocomplete.search_unique_code');
+        $route->get('tournaments', [MasterController::class, 'tournamentsBySchool'])->name('autocomplete.tournaments');
         $route->get('competition_groups', [MasterController::class, 'competitionGroupsByTournament'])->name('autocomplete.competition_groups');
     });
 });
