@@ -8,6 +8,7 @@ use App\Traits\GeneralScopes;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use App\Observers\TrainingGroupObserver;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -241,6 +242,11 @@ class TrainingGroup extends Model
     public function instructors(): BelongsToMany
     {
         return $this->belongsToMany(User::class)->withPivot('assigned_year');
+    }
+
+    public function ScopeByInstructor(Builder $query): void
+    {
+        $query->whereRelation('instructors', 'training_group_user.user_id', auth()->id());
     }
 
 }

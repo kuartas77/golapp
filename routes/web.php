@@ -21,10 +21,7 @@ use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupCo
 
 Auth::routes(['register' => false, 'verify' => false]);
 
-Route::get('/', function () {
-    return redirect(\route('login'));
-});
-
+Route::redirect('/', 'login');
 
 Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 
