@@ -14,10 +14,14 @@ class TournamentPayoutService
 
         $rows = $this->makeRows($tournamentPayouts, $groupName, $deleted);
 
+        $links = $this->makeLinks($data, $deleted);
+
         return [
             'group_name' => $groupName,
             'rows' => $rows,
-            'count' => $tournamentPayouts->count()
+            'count' => $tournamentPayouts->count(),
+            'url_print' => $links[0],
+            'url_print_excel' => $links[1]
         ];
     }
 
@@ -34,8 +38,18 @@ class TournamentPayoutService
         return $rows;
     }
 
-    private function makeLinks()
+    private function makeLinks(array $data, bool $deleted): array
     {
+        $params = [
+            'tournament_id' => $data['tournament_id'],
+            'competition_group_id' => $data['competition_group_id'],
+            'unique_code' => $data['unique_code'] ?? null,
+            'deleted' => $deleted
+        ];
 
+        return [
+            route('export.tournaments.payouts.pdf', $params),
+            route('export.tournaments.payouts.excel', $params),
+        ];
     }
 }

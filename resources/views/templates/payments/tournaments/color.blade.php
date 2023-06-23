@@ -6,7 +6,7 @@
         <td style="background:red; color: white;" class="text-center"><small>{{getPay($value)}}</small></td>
     @break
     @case(3)
-        <td style="background:aqua; color: white;" class="text-center"><small>{{getPay($value)}}</small></td>
+        <td style="background:aqua; color: black;" class="text-center"><small>{{getPay($value)}}</small></td>
     @break
     @case(5)
         <td style="background:orange; color: white;" class="text-center"><small>{{getPay($value)}}</small></td>

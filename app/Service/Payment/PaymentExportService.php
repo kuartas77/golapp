@@ -2,6 +2,8 @@
 
 namespace App\Service\Payment;
 
+use App\Models\CompetitionGroup;
+use App\Models\Tournament;
 use App\Models\TrainingGroup;
 use App\Traits\PDFTrait;
 use App\Traits\ErrorTrait;
@@ -29,6 +31,24 @@ class PaymentExportService
         $filename = "Pagos.pdf";
         $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'payments/payments.blade.php');
+        return $stream ? $this->stream($filename) : $this->output($filename);
+    }
+
+    public function tournamentPayoutsPdfByGroup($payments, $data, bool $stream)
+    {
+        $tournament = Tournament::query()->find($data['tournament_id']);
+        $group = CompetitionGroup::query()->without(['inscriptions'])->find($data['competition_group_id']);
+
+        $data = [];
+        $data['school'] = getSchool(auth()->user());
+        $data['payments'] = $payments;
+        $data['tournament'] = $tournament;
+        $data['group'] = $group;
+        
+        $date = now()->timestamp;
+        $filename = "Pagos torneos {$tournament->name} {$date}.pdf";
+        $this->setConfigurationMpdf(['format' => 'A4-L']);
+        $this->createPDF($data, 'payments/tournaments.blade.php');
         return $stream ? $this->stream($filename) : $this->output($filename);
     }
 }

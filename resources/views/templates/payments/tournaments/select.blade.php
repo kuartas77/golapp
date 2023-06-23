@@ -7,6 +7,10 @@
         {!! Form::select($name, config('variables.KEY_PAYMENTS_SELECT'), $value,
         ['class' => 'form-control form-control-sm payments form-error', 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '']) !!}
     @break
+    @case(3)
+        {!! Form::select($name, config('variables.KEY_PAYMENTS_SELECT'), $value,
+        ['class' => 'form-control form-control-sm payments form-agua', 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '']) !!}
+    @break
     @case(5)
         {!! Form::select($name, config('variables.KEY_PAYMENTS_SELECT'), $value,
         ['class' => 'form-control form-control-sm payments form-orange', 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '']) !!}

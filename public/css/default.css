@@ -629,4 +629,9 @@ select.swal2-select{
     color: white;
 }
 
+.form-agua {
+    background-color: aqua;
+    color: black;
+}
+
 .form-control-sm{min-height:10px}
