@@ -8,6 +8,7 @@ use App\Models\Inscription;
 use App\Models\CompetitionGroup;
 use App\Models\TournamentPayout;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
 use App\Models\CompetitionGroupInscription;
 use App\Service\Payment\TournamentPayoutService;
 
@@ -34,6 +35,25 @@ class TournamentPayoutsRepository
             ->when(!empty($data['unique_code']), fn ($q) => $q->where('unique_code', $data['unique_code']));
 
         return $this->service->generateTable($tournamentPayouts, $competitionGroup, $data, $deleted);
+    }
+
+    public function filterSelect(array $data, bool $deleted = false): Builder
+    {
+        $query = $this->model->query()->schoolId()->with(['inscription.player', 'tournament']);
+
+        if ($deleted) {
+            $query = $this->model->schoolId()->with([
+                'inscription' => fn ($query) => $query->with(['player'])->withTrashed()
+            ])->withTrashed();
+        }
+
+        $query->where('tournament_id', $data['tournament_id'])
+        ->where('competition_group_id', $data['competition_group_id'])
+        ->when(!empty($data['year']), fn($q) => $q->where('year', $data['year']))
+        ->when(!empty($data['unique_code']), fn ($q) => $q->where('unique_code', $data['unique_code']))
+        ->orderBy('inscription_id','asc');
+
+        return $query;
     }
 
     public function create(array $data)

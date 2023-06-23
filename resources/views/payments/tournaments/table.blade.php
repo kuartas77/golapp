@@ -5,14 +5,14 @@
                aria-controls="enabled" aria-expanded="false">Resultado</a>
         </li>
         
-        <!-- <li class=" nav-item ml-auto">
-            <a class="float-right btn waves-effect waves-light btn-rounded btn-info" href="javascript:void(0)" id="export-excel" target="_blank">
+        <li class=" nav-item ml-auto">
+            <a class="float-right btn waves-effect waves-light btn-rounded btn-info disabled" href="" id="export-excel" target="_blank">
                 <i class="fa fa-print" aria-hidden="true"></i> Exportar Pagos En Excel
             </a>
-            <a class="float-right btn waves-effect waves-light btn-rounded btn-info" href="javascript:void(0)" id="export-pdf" target="_blank">
+            <a class="float-right btn waves-effect waves-light btn-rounded btn-info disabled" href="" id="export-pdf" target="_blank">
                 <i class="fa fa-print" aria-hidden="true"></i> Exportar Pagos En PDF
             </a>
-        </li> -->
+        </li>
     </ul>
 </nav>
 <div class="tab-content clearfix" id="tab_content">
@@ -23,8 +23,6 @@
             <tr>
                 <th class="text-center">Nombres</th>
                 <th class="text-center">Torneo</th>
-                <th class="text-center">Grupo</th>
-                <th class="text-center">Código Único</th>
                 <th class="text-center">Estado</th>
             </tr>
             </thead>

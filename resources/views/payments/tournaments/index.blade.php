@@ -81,13 +81,14 @@
             });
         }
 
-        const validateData = ({rows, group_name, count}, search) => {
+        const validateData = ({rows, group_name, count, url_print, url_print_excel}, search) => {
             if (count > 0) {
                 let message = search ? `Se Han Encontrado ${count} Registro(s).` : `Se Han Creado ${count} Registro(s).`;
                 table.destroy();
-                // $('#group_name').empty().append(group_name);
                 $('#table_body').empty();
                 $('#table_body').append(rows);
+                $("#export-excel").attr("href", url_print_excel).removeClass('disabled');
+                $("#export-pdf").attr("href", url_print).removeClass('disabled');
                 initTable();
                 swal.fire({
                     title: 'Atención!!',
@@ -100,7 +101,8 @@
                 let message = search ? "Se Deben Crear Los Registros." : "El Grupo No Cuenta Con Integrantes."
                 table.destroy();
                 $('#table_body').empty();
-                // $('#group_name').empty().append(group_name);
+                $("#export-excel").attr("href", '').addClass('disabled');
+                $("#export-pdf").attr("href", '').addClass('disabled');
                 initTable();
                 swal.fire({
                     title: 'Atención!!',
@@ -119,56 +121,61 @@
                 case '1':
                     element.removeClass('form-error').removeClass('form-warning').removeClass('form-info')
                         .removeClass('form-brown').removeClass('form-purple')
-                        .removeClass('form-orange').removeClass('form-grey')
+                        .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
                     element.addClass('form-success')
                     break;
                 case '2':
                     element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
                         .removeClass('form-brown').removeClass('form-purple')
-                        .removeClass('form-orange').removeClass('form-grey')
+                        .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
                     element.addClass('form-error')
+                case '3':
+                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
+                        .removeClass('form-brown').removeClass('form-purple')
+                        .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
+                    element.addClass('form-agua')
                     break;
                 case '5':
                     element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
                         .removeClass('form-brown').removeClass('form-purple')
-                        .removeClass('form-grey')
+                        .removeClass('form-grey').removeClass('form-agua')
                     element.addClass('form-orange')
                     break;
                 case '6':
                     element.removeClass('form-success').removeClass('form-error').removeClass('form-info')
                         .removeClass('form-brown').removeClass('form-purple')
-                        .removeClass('form-orange')
+                        .removeClass('form-orange').removeClass('form-agua')
                     element.addClass('form-grey')
                     break;
                 case '9':
                     element.removeClass('form-success').removeClass('form-error').removeClass('form-info')
                         .removeClass('form-brown').removeClass('form-purple')
-                        .removeClass('form-orange').removeClass('form-grey')
+                        .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
                     element.addClass('form-warning')
                     break;
                 case '10':
                     element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
                         .removeClass('form-brown').removeClass('form-purple')
-                        .removeClass('form-orange').removeClass('form-grey')
+                        .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
                     element.addClass('form-info')
                     break;
                 case '11':
                     element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
                         .removeClass('form-info').removeClass('form-brown')
-                        .removeClass('form-orange').removeClass('form-grey')
+                        .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
                     element.addClass('form-purple')
                     break;
                 case '12':
                     element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
                         .removeClass('form-info').removeClass('form-purple')
-                        .removeClass('form-orange').removeClass('form-grey')
+                        .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
                     element.addClass('form-brown')
                     break;
                 case '0':
                 default:
                     element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
                     .removeClass('form-info').removeClass('form-purple').removeClass('form-brown')
-                    .removeClass('form-orange').removeClass('form-grey')
+                    .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
                     break
             }
         }

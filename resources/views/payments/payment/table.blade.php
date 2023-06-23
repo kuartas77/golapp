@@ -9,10 +9,10 @@
                aria-controls="disabled" aria-expanded="false">Total $ 0</a>
         </li>
         <li class=" nav-item ml-auto">
-            <a class="float-right btn waves-effect waves-light btn-rounded btn-info" href="javascript:void(0)" id="export-excel" target="_blank">
+            <a class="float-right btn waves-effect waves-light btn-rounded btn-info disabled" href="" id="export-excel" target="_blank">
                 <i class="fa fa-print" aria-hidden="true"></i> Exportar Pagos En Excel
             </a>
-            <a class="float-right btn waves-effect waves-light btn-rounded btn-info" href="javascript:void(0)" id="export-pdf" target="_blank">
+            <a class="float-right btn waves-effect waves-light btn-rounded btn-info disabled" href="" id="export-pdf" target="_blank">
                 <i class="fa fa-print" aria-hidden="true"></i> Exportar Pagos En PDF
             </a>
         </li>
