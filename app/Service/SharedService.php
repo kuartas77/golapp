@@ -41,6 +41,10 @@ class SharedService
                 $this->dataPayment['october'] = $value;
                 $this->dataPayment['november'] = $value;
                 $this->dataPayment['december'] = $value;
+
+                if($start_date->month > 1){
+                    $this->checkMonthValue($start_date->month, $value);
+                }
             }
 
             DB::beginTransaction();
@@ -150,5 +154,13 @@ class SharedService
             'month' => $month,
             'deleted_at' => null
         ];
+    }
+
+    private function checkMonthValue(int $actualMonth, $value)
+    {
+        $configMonths = config('variables.KEY_INDEX_MONTHS');
+        foreach (range(1, $actualMonth) as $numMonth) {
+            $this->dataPayment[$configMonths[$numMonth]] = ($actualMonth == $numMonth) ? $value : '14'; //No aplica
+        }
     }
 }
