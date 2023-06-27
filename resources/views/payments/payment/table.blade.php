@@ -43,10 +43,20 @@
             <tbody id="table_body"></tbody>
             <tfoot>
                 <tr>
-                    <th colspan="10" style="text-align:right">Total:</th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
+                    <th style="text-align:center"></th>
+                    <th style="text-align:center"></th>
+                    <th style="text-align:center"></th>
+                    <th style="text-align:center"></th>
+                    <th style="text-align:center"></th>
+                    <th style="text-align:center"></th>
+                    <th style="text-align:center"></th>
+                    <th style="text-align:center"></th>
+                    <th style="text-align:center"></th>
+                    <th style="text-align:center"></th>
+                    <th style="text-align:center"></th>
+                    <th style="text-align:center"></th>
+                    <th style="text-align:center"></th>
+                    <th style="text-align:center"></th>
                 </tr>
             </tfoot>
         </table>
