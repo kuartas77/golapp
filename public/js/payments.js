@@ -179,7 +179,8 @@ function initTable() {
         "ordering": false,
         "info": true,
         "scrollX": true,
-        "scrollY": true,
+        "scrollY":"450px",
+        "scrollCollapse":true,
         "columns": [
             {'width': '5%'},
             {'width': '5%'},
@@ -232,10 +233,36 @@ function initTable() {
             });
             // Update footer
             let totalFormat = `$${formatMoney(pageTotal)}`
-            // `$${formatMoney(pageTotal)} ($${formatMoney(total)} total)`
-            $(api.column(10).footer()).html(totalFormat);
+            // $(api.column(10).footer()).html(totalFormat);
             $('#total-tab').html(`Total: ${totalFormat}`)
+            $( api.column( 1 ).footer() ).html(sumTotal(api, 1, intVal));
+            $( api.column( 2 ).footer() ).html(sumTotal(api, 2, intVal));
+            $( api.column( 3 ).footer() ).html(sumTotal(api, 3, intVal));
+            $( api.column( 4 ).footer() ).html(sumTotal(api, 4, intVal));
+            $( api.column( 5 ).footer() ).html(sumTotal(api, 5, intVal));
+            $( api.column( 6 ).footer() ).html(sumTotal(api, 6, intVal));
+            $( api.column( 7 ).footer() ).html(sumTotal(api, 7, intVal));
+            $( api.column( 8 ).footer() ).html(sumTotal(api, 8, intVal));
+            $( api.column( 9 ).footer() ).html(sumTotal(api, 9, intVal));
+            $( api.column( 10 ).footer() ).html(sumTotal(api, 10, intVal));
+            $( api.column( 11 ).footer() ).html(sumTotal(api, 11, intVal));
+            $( api.column( 12 ).footer() ).html(sumTotal(api, 12, intVal));
+            $( api.column( 13 ).footer() ).html(sumTotal(api, 13, intVal));
         }
     });
     $('.payments_amount').inputmask("pesos");
+}
+
+function sumTotal(api, column, intVal){
+    let total = 0
+    let columnas_total = api
+        .column(column)
+        .nodes();
+
+    $.each(columnas_total, function(index, value) {
+        let a = $(value).find('input[type=text]').val();
+        total = total + intVal(a);
+    });
+    
+    return `$${formatMoney(total)}`
 }
