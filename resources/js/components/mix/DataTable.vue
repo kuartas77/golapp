@@ -9,14 +9,20 @@
         <tbody>
            
             <tr v-for="data in rows" :key="data.id">
-                
                 <td v-for="column in columns" :key="`cell-${data.id}-${column.attribute}`">
-                    <slot name="cell" v-bind="{ column, data }">
+                    
+                    <slot v-if="column.type && column.type == 'select-payments'" name="cell" v-bind="{ column, data }">
+                        {{ data[column.attribute] }} select
+                    </slot>
+                    <slot v-else name="cell" v-bind="{ column, data }">
                         {{ data[column.attribute] }}
                     </slot>
                 </td>
-
             </tr>
+            <tr v-if="rows.length == 0">
+                <td :colspan="columns.length" class="text-center">Ningún dato disponible en esta tabla</td>
+            </tr>
+
         </tbody>
     </table>
     

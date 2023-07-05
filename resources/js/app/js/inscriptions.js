@@ -144,7 +144,8 @@ $(document).ready(function () {
     const active_table = $('#active_table').DataTable({
         "ordering": false,
         "scrollX": true,
-        "scrollY": true,
+        "scrollY":"550px",
+        "scrollCollapse":true,
         "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
         "order": [[2, "desc"]],
         "deferRender": true,

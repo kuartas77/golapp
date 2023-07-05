@@ -24,6 +24,8 @@ class PlayerExportService
         $quarter_text = 'Actuales';
         $months = [];
         $months_ = config('variables.KEY_MONTHS_INDEX');
+        $observations_assists = [];
+        $observations_skills = [];
 
         $this->quarter($quarter, $from, $to, $quarter_text, $year, $months);
 
@@ -37,7 +39,9 @@ class PlayerExportService
             ])
         ])->find($player_id);
 
-        $player->inscriptions->each(function($inscription) use($months_){
+        $player->inscriptions->each(function($inscription) use($months_, &$observations_assists, &$observations_skills){
+            $observations_assists = $inscription->assistance->where('observations', '<>', null);
+            $observations_skills = $inscription->skillsControls->where('observation', '<>', null);
             foreach ($inscription->assistance as $assistance) {
                 $assistance->classDays = classDays(
                     $assistance->year,
@@ -53,9 +57,11 @@ class PlayerExportService
         $data['show_payments_assists'] = !($from && $to);
         $data['quarter_text'] = $quarter_text;
         $data['quarter'] = $quarter;
+        $data['observations_assists'] = $observations_assists;
+        $data['observations_skills'] = $observations_skills;
         $data['optionAssist'] = config('variables.KEY_ASSIST_LETTER');
         $filename = "Deportista {$player->unique_code}.pdf";
-        $this->setConfigurationMpdf(['format' => ($from && $to) ? [215, 145] : 'A4-L']);
+        $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'inscription_detail.blade.php');
         return $stream ? $this->stream($filename) : $this->output($filename);
     }

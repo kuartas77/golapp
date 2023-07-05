@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import Form from './Form';
+import Form from './Form.vue'
 export default {
     name: 'tournament-payouts',
     components:{
@@ -25,16 +25,16 @@ export default {
                 {name: 'Torneo', attribute: 'tournament'},
                 {name: 'Grupo', attribute: 'group'},
                 {name: 'Código Único', attribute: 'unique_code'},
-                {name: 'Estado', attribute: 'status', select: true},
+                {name: 'Estado', attribute: 'status', type: 'select'},
             ]
         }
     },
     methods: {
-        searchGroup(){
-            console.log("search")
+        searchGroup(payload){
+            console.log("search", payload)
         },
-        createPayments(){
-            console.log("createTournamentPay")
+        createPayments(payload){
+            console.log("createTournamentPay", payload)
         },
         paginationMeta(){
 

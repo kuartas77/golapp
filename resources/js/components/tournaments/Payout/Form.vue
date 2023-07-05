@@ -46,7 +46,7 @@
             <div class="col-md-3">
                 <button
                     class="btn waves-effect waves-light btn-rounded btn-info mt-4"
-                    @click="search" :disabled="valid"
+                    @click="searchPays" :disabled="valid"
                 >
                     Buscar
                 </button>
@@ -63,8 +63,8 @@
 </template>
 
 <script>
-import { onMounted } from '@vue/runtime-core'
-import usePayouts from '../../../composables/tournament_payouts'
+import { onMounted, computed } from '@vue/runtime-core'
+import usePayouts from '@/composables/tournament_payouts'
 export default {
     name: "form-payout",
     emits: ['search', 'create'],
@@ -89,6 +89,14 @@ export default {
             },
         };
     },
+    methods:{
+        searchPays(){
+            this.$emit('search', this.form)
+        },
+        createTournamentPay(){
+            this.$emit('create', this.form)
+        },
+    },
     watch:{
         'form.tournament_id'(newVal){
             if(newVal == ''){
@@ -103,9 +111,6 @@ export default {
         valid(){
             return !(this.form.tournament_id !== '' && this.form.competition_group_id !== '')
         }
-    },
-    mounted(){
-        this.loadTournaments()
     }
 };
 </script>

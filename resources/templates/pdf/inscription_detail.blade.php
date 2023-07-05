@@ -189,7 +189,7 @@
                         $countAS = 0;
                     @endphp
                     <tr class="tr-tit">
-                        <td class="bold" >&nbsp;Días</td>
+                        <td class="bold" >&nbsp;Clases</td>
                         @for ($index = 1; $index <= $assistance->classDays->count(); $index++)
                             <th class="text-center bold">{{$index}}</th>
                         @endfor
@@ -227,7 +227,38 @@
                 </tr>
             </table>
             <!-- End Asists -->
-            
+            @if(!empty($observations_assists))
+            <table class="table-full detail detail-lines">
+                <thead>
+                    <tr class="tr-tit">
+                        <th class="text-center">Observaciones de Entrenamientos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($observations_assists as $assist)
+                    <tr>
+                        <td>&nbsp;<strong class="bold">Fecha: {{$assist->created_at->format('Y-m-d H:i')}}</strong> <small>{{ $assist->observations }}</small></td>
+                    </tr>
+                    @endforeach
+                </tbody>        
+            </table>
+            @endif    
+            @if(!empty($observations_skills))
+            <table class="table-full detail detail-lines">
+                <thead>
+                    <tr class="tr-tit">
+                        <th class="text-center">Observaciones de Competencias</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($observations_skills as $skill)
+                    <tr>
+                        <td>&nbsp;<strong class="bold">Fecha: {{$skill->created_at->format('Y-m-d H:i')}}</strong> <small>{{ $skill->observation }}</small></td>
+                    </tr>
+                    @endforeach
+                </tbody>        
+            </table>     
+            @endif       
         @endforeach
 </body>
 </html>
