@@ -231,10 +231,35 @@ function initTable() {
                     total = total + intVal(a);
                 });
             });
+            let cash = 0;
+            let consignment = 0;
+
+            $.each([1,2,3,4,5,6,7,8,9,10,11,12,13], function(index, value) {
+
+                let columnas_total = api
+                    .column(value)
+                    .nodes();
+
+                $.each(columnas_total, function(index, value) {
+                    let select = $(value).find('select').val();
+                    let inputVal = $(value).find('input[type=text]').val();
+                    if(['9', '12'].includes(select)){
+                        cash = cash + intVal(inputVal);
+                    }
+                    else if(['10', '11'].includes(select)){
+                        consignment = consignment + intVal(inputVal);
+                    }
+                    
+                });
+            });
             // Update footer
             let totalFormat = `$${formatMoney(pageTotal)}`
+            let totalCash = `$${formatMoney(cash)}`
+            let totalConsignment = `$${formatMoney(consignment)}`
             // $(api.column(10).footer()).html(totalFormat);
             $('#total-tab').html(`Total: ${totalFormat}`)
+            $('#cash-tab').html(`Efectivo: ${totalCash}`)
+            $('#consignment-tab').html(`Consignación: ${totalConsignment}`)
             $( api.column( 1 ).footer() ).html(sumTotal(api, 1, intVal));
             $( api.column( 2 ).footer() ).html(sumTotal(api, 2, intVal));
             $( api.column( 3 ).footer() ).html(sumTotal(api, 3, intVal));
