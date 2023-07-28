@@ -146,6 +146,7 @@ class InscriptionRepository
             $inscription->payments()->delete();
             $inscription->skillsControls()->delete();
             $inscription->assistance()->delete();
+            $inscription->tournament_payouts()->delete();
             $inscription->delete();
             DB::commit();
             alert()->success(env('APP_NAME'), __('messages.ins_delete_success'));
