@@ -173,6 +173,11 @@ class Inscription extends Model
         return $this->belongsTo(School::class);
     }
 
+    public function tournament_payouts()
+    {
+        return $this->hasMany(TournamentPayout::class);
+    }
+
     public function getFormatAverageAttribute(): array
     {
         return [

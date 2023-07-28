@@ -80,6 +80,8 @@ class TournamentPayoutsRepository
 
             $school_id = getSchool(auth()->user())->id;
 
+            dd($inscriptionIds, $inscriptions);
+
             if ($inscriptionIds->isNotEmpty()) {
 
                 $ids = $tournamentPayouts->pluck('inscription_id');
@@ -88,7 +90,11 @@ class TournamentPayoutsRepository
 
                 DB::beginTransaction();
                 foreach ($idsDiff as $id) {
-                    $unique_code = $inscriptions->firstWhere('id', $id)->unique_code;
+                    $unique_code = $inscriptions->firstWhere('id', $id)->unique_code ?? null;
+                    if(!$unique_code){
+                        logger("inscription deshabilitada {$id}");
+                        continue;
+                    }
                     $this->model->updateOrCreate(
                         [
                             'inscription_id' => $id,
