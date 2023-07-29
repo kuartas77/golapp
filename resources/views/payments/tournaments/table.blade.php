@@ -4,6 +4,19 @@
             <a class="nav-link active show" id="enabled-tab" data-toggle="tab" href="#enabled" role="tab"
                aria-controls="enabled" aria-expanded="false">Resultado</a>
         </li>
+
+        <li class="nav-item">
+            <a class="nav-link disabled" id="total-tab" data-toggle="tab" role="tab"
+               aria-controls="disabled" aria-expanded="false">Total: $ 0</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link disabled" id="cash-tab" data-toggle="tab" role="tab"
+               aria-controls="disabled" aria-expanded="false">Efectivo: $ 0</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link disabled" id="consignment-tab" data-toggle="tab" role="tab"
+               aria-controls="disabled" aria-expanded="false">Consignación: $ 0</a>
+        </li>
         
         <li class=" nav-item ml-auto">
             <a class="float-right btn waves-effect waves-light btn-rounded btn-info disabled" href="" id="export-excel" target="_blank">
@@ -23,10 +36,17 @@
             <tr>
                 <th class="text-center">Nombres</th>
                 <th class="text-center">Torneo</th>
-                <th class="text-center">Estado</th>
+                <th class="text-center">Pago / Estado</th>
             </tr>
             </thead>
             <tbody id="table_body"></tbody>
+            <tfoot>
+                <tr>
+                    <th style="text-align:center"></th>
+                    <th style="text-align:center"></th>
+                    <th style="text-align:center"></th>
+                </tr>
+            </tfoot>
         </table>
 
     </div>

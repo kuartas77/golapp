@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Payments;
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use App\Models\TournamentPayout;
+use App\Http\Controllers\Controller;
 use App\Repositories\TournamentPayoutsRepository;
+use App\Http\Requests\SetTournamentPaymentRequest;
 
 class TournamentPayoutsController extends Controller
 {
@@ -32,10 +33,10 @@ class TournamentPayoutsController extends Controller
         return response()->json($this->repository->create($request->only(['tournament_id', 'competition_group_id'])));
     }
 
-    public function update(Request $request, TournamentPayout $tournamentpayout)
+    public function update(SetTournamentPaymentRequest $request, TournamentPayout $tournamentpayout)
     {
         abort_unless($request->ajax(), 401);
-        $isPay = $this->repository->update($tournamentpayout, $request->only(['status']));
+        $isPay = $this->repository->update($tournamentpayout, $request->validated());
         return $this->responseJson($isPay);
     }
 }

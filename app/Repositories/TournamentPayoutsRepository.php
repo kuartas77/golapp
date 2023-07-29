@@ -80,8 +80,6 @@ class TournamentPayoutsRepository
 
             $school_id = getSchool(auth()->user())->id;
 
-            dd($inscriptionIds, $inscriptions);
-
             if ($inscriptionIds->isNotEmpty()) {
 
                 $ids = $tournamentPayouts->pluck('inscription_id');
