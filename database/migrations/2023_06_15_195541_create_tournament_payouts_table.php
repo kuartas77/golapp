@@ -22,6 +22,7 @@ class CreateTournamentPayoutsTable extends Migration
             $table->year('year');
             $table->char('unique_code', 100)->index();
             $table->char('status', 5)->default('0');
+            $table->double('value', 8, 2)->default(0)->nullable();
             $table->timestamps();
             $table->softDeletes();
             

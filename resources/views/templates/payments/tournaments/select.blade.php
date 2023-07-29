@@ -1,42 +1,39 @@
-@switch($value)
-    @case(1)
-        {!! Form::select($name, config('variables.KEY_PAYMENTS_SELECT'), $value,
-        ['class' => 'form-control form-control-sm payments form-success', 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '']) !!}
-    @break
-    @case(2)
-        {!! Form::select($name, config('variables.KEY_PAYMENTS_SELECT'), $value,
-        ['class' => 'form-control form-control-sm payments form-error', 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '']) !!}
-    @break
-    @case(3)
-        {!! Form::select($name, config('variables.KEY_PAYMENTS_SELECT'), $value,
-        ['class' => 'form-control form-control-sm payments form-agua', 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '']) !!}
-    @break
-    @case(5)
-        {!! Form::select($name, config('variables.KEY_PAYMENTS_SELECT'), $value,
-        ['class' => 'form-control form-control-sm payments form-orange', 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '']) !!}
-    @break
-    @case(6)
-        {!! Form::select($name, config('variables.KEY_PAYMENTS_SELECT'), $value,
-        ['class' => 'form-control form-control-sm payments form-grey', 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '']) !!}
-    @break
-    @case(9)
-        {!! Form::select($name, config('variables.KEY_PAYMENTS_SELECT'), $value,
-        ['class' => 'form-control form-control-sm payments form-warning', 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '']) !!}
-    @break
-    @case(10)
-        {!! Form::select($name, config('variables.KEY_PAYMENTS_SELECT'), $value,
-        ['class' => 'form-control form-control-sm payments form-info', 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '']) !!}
-    @break
-    @case(11)
-        {!! Form::select($name, config('variables.KEY_PAYMENTS_SELECT'), $value,
-        ['class' => 'form-control form-control-sm payments form-purple', 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '']) !!}
-    @break
-    @case(12)
-        {!! Form::select($name, config('variables.KEY_PAYMENTS_SELECT'), $value,
-        ['class' => 'form-control form-control-sm payments form-brown', 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '']) !!}
-    @break
-    @default
-        {!! Form::select($name, config('variables.KEY_PAYMENTS_SELECT'), $value,
-        ['class' => 'form-control form-control-sm payments', 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '']) !!}
-    @break
-@endswitch
+@php
+$class = '';
+switch($value){
+    case 1:
+        $class = 'form-success';
+    break;
+    case 2:
+        $class = 'form-error';
+    break;
+    case 3:
+        $class = 'form-agua';
+    break;
+    case 5:
+        $class = 'form-orange';
+    break;
+    case 6:
+        $class = 'form-grey';
+    break;
+    case 9:
+        $class = 'form-warning';
+    break;
+    case 10:
+        $class = 'form-info';
+    break;
+    case 11:
+        $class = 'form-purple';
+    break;
+    case 12:
+        $class = 'form-brown';
+    break;
+    default:
+        $class = '';
+    break;
+}
+@endphp
+{!! Form::select($name, 
+    config('variables.KEY_PAYMENTS_SELECT'), 
+    $value,
+    ['class' => "form-control form-control-sm payments {$class}", 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '', 'style'=>"width: 25%;"]) !!}

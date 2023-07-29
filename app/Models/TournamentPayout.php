@@ -22,6 +22,7 @@ class TournamentPayout extends Model
         'year',
         'unique_code',
         'status',
+        'value',
     ];
 
     public function tournament(): BelongsTo

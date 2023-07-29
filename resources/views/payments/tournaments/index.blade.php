@@ -21,13 +21,7 @@
         let form_payments = $("#form_payments");
         $(document).ready(() => {
             // $("#export").attr('disabled',true);
-            table = $('#active_table').DataTable({
-                "paging": false,
-                "ordering": false,
-                "info": true,
-                "scrollX": true,
-                "scrollY": true
-            });
+            initTable()
 
             $('body').on('change', '#tournament_id', function () {
                 let element = $(this);
@@ -60,7 +54,7 @@
             $('body').on('change', 'select.payments', function()  {
                 let element = $(this)
                 let data = element.parent().parent().find('input, select').serializeArray();
-                let id = element.parent().parent().find('input').val();
+                let id = element.parent().parent().find('input[name="id"]').val();
                 if (this.value === '') {
                     return;
                 }
@@ -78,7 +72,76 @@
                 "info": true,
                 "scrollX": true,
                 "scrollY": true,
+                "columns": [
+                    {'width': '5%'},
+                    {'width': '5%'},
+                    {'width': '20%'},
+                ],
+                "footerCallback": function (row, data, start, end, display) {
+                    let api = this.api();
+                    // Remove the formatting to get integer data for summation
+                    let intVal = function (i) {
+                        return typeof i === 'string' ?
+                            i.replace(/[\$,]/g, '') * 1 :
+                            typeof i === 'number' ?
+                                i : 0;
+                    };
+
+                    // Total over all pages filtered indicate col index
+                    let pageTotal = 0;
+                    let total = 0;
+                    $.each([2], function(index, value) {
+                        let columnas = api
+                            .column(value, {
+                                page: 'current'
+                            })
+                            .nodes();
+
+                        let columnas_total = api
+                            .column(value)
+                            .nodes();
+
+                        $.each(columnas_total, function(index, value) {
+                            let a = $(value).find('.payments_amount').val();
+                            pageTotal = pageTotal + intVal(a);
+                        });
+
+                        $.each(columnas, function(index, value) {
+                            let a = $(value).find('.payments_amount').val();
+                            total = total + intVal(a);
+                        });
+                    });
+                    let cash = 0;
+                    let consignment = 0;
+
+                    $.each([2], function(index, value) {
+
+                        let columnas_total = api
+                            .column(value)
+                            .nodes();
+
+                        $.each(columnas_total, function(index, value) {
+                            let select = $(value).find('select').val();
+                            let inputVal = $(value).find('.payments_amount').val();
+                            if(['9', '12'].includes(select)){
+                                cash = cash + intVal(inputVal);
+                            }
+                            else if(['10', '11'].includes(select)){
+                                consignment = consignment + intVal(inputVal);
+                            }
+                            
+                        });
+                    });
+                    // Update footer
+                    let totalFormat = `$${formatMoney(pageTotal)}`
+                    let totalCash = `$${formatMoney(cash)}`
+                    let totalConsignment = `$${formatMoney(consignment)}`
+                    $('#total-tab').html(`Total: ${totalFormat}`)
+                    $('#cash-tab').html(`Efectivo: ${totalCash}`)
+                    $('#consignment-tab').html(`Consignación: ${totalConsignment}`)
+                }
             });
+            $('.payments_amount').inputmask("pesos");
         }
 
         const validateData = ({rows, group_name, count, url_print, url_print_excel}, search) => {
