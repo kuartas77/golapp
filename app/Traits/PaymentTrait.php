@@ -20,6 +20,8 @@ trait PaymentTrait
                 case '2':
                 case '9':
                 case '10':
+                case '11':
+                case '12':
                     $value++;
                     break;
                 default:

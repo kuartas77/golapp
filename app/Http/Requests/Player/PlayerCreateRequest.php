@@ -24,7 +24,7 @@ class PlayerCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'unique_code' => ['required'],
+            'unique_code' => ['required','unique:players'],
             'names' => ['required'],
             'last_names' => ['required'],
             'gender' => ['required'],
@@ -59,6 +59,13 @@ class PlayerCreateRequest extends FormRequest
             'people.*.business',
             'people.*.position',
             'school_id' => ['required'],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'unique_code' => 'El código ya fue registrado anteriormente.'
         ];
     }
 

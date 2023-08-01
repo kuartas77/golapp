@@ -9,11 +9,13 @@ use App\Exports\MatchDetailExport;
 use App\Repositories\GameRepository;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Repositories\AssistRepository;
+use App\Repositories\PaymentRepository;
+use App\Exports\TournamentPayoutsExport;
 use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
-use App\Repositories\PaymentRepository;
 use App\Service\Assist\AssistExportService;
 use App\Service\Payment\PaymentExportService;
+use App\Repositories\TournamentPayoutsRepository;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ExportController extends Controller
@@ -25,6 +27,7 @@ class ExportController extends Controller
         private IncidentRepository $incidentRepository,
         private GameRepository $gameRepository,
         private PaymentRepository $paymentRepository,
+        private TournamentPayoutsRepository $tournamentPayoutsRepository
     ){}
 
 
@@ -78,6 +81,20 @@ class ExportController extends Controller
     {
         $payments = $this->paymentRepository->filterSelect($request, false)->get();
         return $paymentExportService->paymentsPdfByGroup($payments, $request, true);
+    }
+
+    public function exportTournamentPayoutsExcel(Request $request): BinaryFileResponse
+    {
+        $date = now()->timestamp;
+        $requestArray = $request->only(['tournament_id', 'competition_group_id', 'year', 'unique_code']);
+        return Excel::download(new TournamentPayoutsExport($requestArray, $request->input('deleted', false)), "Pagos {$date}.xlsx");
+    }
+
+    public function exportTournamentPayoutsPDF(Request $request, PaymentExportService $paymentExportService)
+    {
+        $requestArray = $request->only(['tournament_id', 'competition_group_id', 'year', 'unique_code']);
+        $payments = $this->tournamentPayoutsRepository->filterSelect($requestArray, false);
+        return $paymentExportService->tournamentPayoutsPdfByGroup($payments->get(), $requestArray, true);
     }
 
 

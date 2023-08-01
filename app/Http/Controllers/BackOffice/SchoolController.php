@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\BackOffice\SchoolCreateRequest;
 use App\Http\Requests\BackOffice\SchoolUpdateRequest;
+use Illuminate\Support\Facades\Cache;
 
 class SchoolController extends Controller
 {
@@ -85,8 +86,10 @@ class SchoolController extends Controller
 
     public function choose(Request $request)
     {
-        $school = School::find($request->school_id);
-        Session::put('admin.school', $school);
+        Session::put('selected_school', $request->school_id);
+        Cache::remember(School::KEY_SCHOOL_CACHE. "_admin_{$request->school_id}",
+         now()->addMinutes(env('SESSION_LIFETIME', 120)),
+         fn()=> School::with(['settingsValues'])->find($request->school_id));
         return response()->json(true, 200);
     }
 }

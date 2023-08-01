@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
-use App\Observers\InscriptionObserver;
 use App\Traits\Fields;
 use App\Traits\GeneralScopes;
 use Illuminate\Support\Collection;
+use App\Observers\InscriptionObserver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property mixed player_id
@@ -127,10 +128,10 @@ class Inscription extends Model
         return route('players.show', [$this->attributes['unique_code']]);
     }
 
-    // public function getUrlDestroyAttribute(): string
-    // {
-    //     return route('inscriptions.destroy', [$this->attributes['id']]);
-    // }
+     public function getUrlDestroyAttribute(): string
+     {
+         return route('inscriptions.destroy', [$this->attributes['id']]);
+     }
 
     public function player(): BelongsTo
     {
@@ -152,9 +153,9 @@ class Inscription extends Model
         return $this->hasMany(Payment::class);
     }
 
-    public function competitionGroup(): BelongsTo
+    public function competitionGroup(): BelongsToMany
     {
-        return $this->belongsTo(CompetitionGroup::class, 'competition_group_id');
+        return $this->belongsToMany(CompetitionGroup::class)->using(CompetitionGroupInscription::class);
     }
 
     public function skillsControls(): HasMany
@@ -170,6 +171,11 @@ class Inscription extends Model
     public function school()
     {
         return $this->belongsTo(School::class);
+    }
+
+    public function tournament_payouts()
+    {
+        return $this->hasMany(TournamentPayout::class);
     }
 
     public function getFormatAverageAttribute(): array

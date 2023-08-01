@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Payment;
 use Carbon\Carbon;
 use App\Models\School;
 use Carbon\CarbonPeriod;
@@ -90,16 +91,17 @@ if (!function_exists('getMonths')) {
 }
 
 if (!function_exists('classDaysMonth')) {
-    function classDaysMonth($year, int $month, array $classDays): Collection
+    function classDaysMonth(int $year, int $month, array $classDays): Collection
     {
         $date = Carbon::createFromDate($year, $month);
 
         $periods = CarbonPeriod::create($date->copy()->startOfMonth(), $date->copy()->endOfMonth());
         $dayList = collect();
-
+        $count = 1;
         foreach ($periods as $date) {
             if(in_array($date->isoWeekday(), $classDays)){
-                $dayList->push(arrayDay($date));
+                $dayList->push(arrayDay($date, $count));
+                $count++;
             }
         }
         return $dayList;
@@ -107,8 +109,14 @@ if (!function_exists('classDaysMonth')) {
 }
 
 if (!function_exists('arrayDay')) {
-    function arrayDay(Carbon $date) : array{
-        return ['day' => $date->day, 'date' => $date->format('Y-m-d'), 'name' => $date->getTranslatedDayName()];
+    function arrayDay(Carbon $date, $count) : array
+    {
+        return [
+            'day' => $date->day,
+            'date' => $date->format('Y-m-d'),
+            'name' => $date->getTranslatedDayName(),
+            'column' => numbersToLetters($count, true)
+        ];
     }
 }
 
@@ -174,14 +182,20 @@ if (!function_exists('isInstructor')) {
 
 if (!function_exists('getSchool')){
     function getSchool($user): School{
-        if(isAdmin() && Session::has('admin.school')){
-            return Session::get('admin.school');
-        }elseif(isAdmin() && !Session::has('admin.school')){
-            Session::put('admin.school', School::find(1));
-            return Session::get('admin.school');
+        $data = null;
+        $school_id = Session::get('selected_school', 1);
+        $key = School::KEY_SCHOOL_CACHE. "_admin_{$school_id}";
+        $ttl = now()->addMinutes(env('SESSION_LIFETIME', 120));
+        $query = School::with(['settingsValues']);
+
+        if(isAdmin() && Cache::has($key)){
+            $data = Cache::get($key);
+        }elseif(isAdmin() && !Cache::has($key)){
+            $data = Cache::remember(School::KEY_SCHOOL_CACHE. "_admin_1", $ttl, fn() => $query->first());
+        }else{
+            $data = Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", $ttl, fn()=> $query->firstWhere('id', $user->school_id));
         }
-        
-        return Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", now()->addMinutes(env('SESSION_LIFETIME', 120)), fn()=> $user->school);
+        return $data;
     }
 }
 
@@ -224,7 +238,25 @@ if (!function_exists('randomPassword')){
     }
 }
 
-//if (!function_exists('')){}
+if (!function_exists('checkValuePayment')){
+    function checkValuePayment(Payment $payment, string $column, int $defaultValue, int $alternative = 0){
+        $attribute = "{$column}_amount";
+        $value = 0;
+        if(in_array($payment->$column, ['1','9','10'])){
+            $value = $payment->$attribute == 0 ? $defaultValue : $payment->$attribute;
+        }elseif(in_array($payment->$column, ['11','12','13'])){
+            $value = $payment->$attribute == 0 ? $alternative : $payment->$attribute;
+        }
+        return $value;
+    }
+}
+
+if (!function_exists('checkValueEnrollment')){
+    function checkValueEnrollment(Payment $payment, string $column, int $defaultValue){
+        $attribute = "{$column}_amount";
+        return $payment->$attribute == 0 && in_array($payment->$column, ['1','9','10']) ? $defaultValue : $payment->$attribute;
+    }
+}
 //if (!function_exists('')){}
 //if (!function_exists('')){}
 //if (!function_exists('')){}

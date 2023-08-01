@@ -5,6 +5,7 @@ namespace App\Repositories;
 
 
 use App\Models\Payment;
+use App\Traits\ErrorTrait;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PaymentRepository
 {
+    use ErrorTrait;
 
     public function __construct(private Payment $model)
     {
@@ -29,11 +31,19 @@ class PaymentRepository
         $payments = $this->filterSelect($request, $deleted)->get();
         $rows = "";
         $payments->setAppends(['check_payments']);
+        $school = getSchool(auth()->user());
+        $inscription_amount = $school->settings['INSCRIPTION_AMOUNT'] ?? 70000;
+        $monthly_payment = $school->settings['MONTHLY_PAYMENT'] ?? 50000;
+        $annuity = $school->settings['ANNUITY'] ?? 48333;
+
         foreach ($payments as $pay) {
             $rows .= View::make('templates.payments.row', [
                 'payment' => $pay,
                 'deleted' => $deleted,
-                'front' => true
+                'front' => true,
+                'inscription_amount' => $inscription_amount,
+                'monthly_payment' => $monthly_payment,
+                'annuity' => $annuity
             ])->render();
         }
 
@@ -57,11 +67,11 @@ class PaymentRepository
      */
     public function filterSelect($request, bool $deleted = false): Builder
     {
-        $query = $this->model->query()->schoolId()->with('inscription.player');
+        $query = $this->model->query()->schoolId()->with(['inscription.player']);
 
         if ($deleted) {
             $query = $this->model->schoolId()->with([
-                'inscription' => fn ($query) => $query->with('player')->withTrashed()
+                'inscription' => fn ($query) => $query->with(['player'])->withTrashed()
             ])->withTrashed();
         }
 
@@ -73,17 +83,19 @@ class PaymentRepository
         return $query;
     }
 
-    public function setPay($request, $payment)
+    public function setPay(array $values, $payment)
     {
-        return $payment->fill(
-            $request->only([
-                'january', 'february', 'march',
-                'april', 'may', 'june',
-                'july', 'august', 'september',
-                'october', 'november', 'december',
-                'enrollment'
-            ])
-        )->save();
+        $isPay = false;
+        try {
+            DB::beginTransaction();
+            $isPay = $payment->fill($values)->save();
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            $this->logError('PaymentRepository@setPay', $th);
+            $isPay = false;
+        }
+        return $isPay;
     }
 
     public function dataGraphicsYear(int $year = 0): Collection
@@ -97,40 +109,40 @@ class PaymentRepository
     private function queryGraphics($year, $school_id)
     {
         $consult = DB::table('payments')->selectRaw("
-            COALESCE(SUM(case when january = 1 then 1 else 0 end),0) january_payment,
+            COALESCE(SUM(case when january IN (1,9,10,11,12) then 1 else 0 end),0) january_payment,
             COALESCE(SUM(case when january IN (0,2) then 1 else 0 end),0) january_due,
             COALESCE(SUM(case when january = 8 then 1 else 0 end),0) january_scholarship,
-            COALESCE(SUM(case when february = 1 then 1 else 0 end),0) february_payment,
+            COALESCE(SUM(case when february IN (1,9,10,11,12) then 1 else 0 end),0) february_payment,
             COALESCE(SUM(case when february IN (0,2) then 1 else 0 end),0) february_due,
             COALESCE(SUM(case when february = 8 then 1 else 0 end),0) february_scholarship,
-            COALESCE(SUM(case when march = 1 then 1 else 0 end),0) march_payment,
+            COALESCE(SUM(case when march IN (1,9,10,11,12) then 1 else 0 end),0) march_payment,
             COALESCE(SUM(case when march IN (0,2) then 1 else 0 end),0) march_due,
             COALESCE(SUM(case when march = 8 then 1 else 0 end),0) march_scholarship,
-            COALESCE(SUM(case when april = 1 then 1 else 0 end),0) april_payment,
+            COALESCE(SUM(case when april IN (1,9,10,11,12) then 1 else 0 end),0) april_payment,
             COALESCE(SUM(case when april IN (0,2) then 1 else 0 end),0) april_due,
             COALESCE(SUM(case when april = 8 then 1 else 0 end),0) april_scholarship,
-            COALESCE(SUM(case when may = 1 then 1 else 0 end),0) may_payment,
+            COALESCE(SUM(case when may IN (1,9,10,11,12) then 1 else 0 end),0) may_payment,
             COALESCE(SUM(case when may IN (0,2) then 1 else 0 end),0) may_due,
             COALESCE(SUM(case when may = 8 then 1 else 0 end),0) may_scholarship,
-            COALESCE(SUM(case when june = 1 then 1 else 0 end),0) june_payment,
+            COALESCE(SUM(case when june IN (1,9,10,11,12) then 1 else 0 end),0) june_payment,
             COALESCE(SUM(case when june IN (0,2) then 1 else 0 end),0) june_due,
             COALESCE(SUM(case when june = 8 then 1 else 0 end),0) june_scholarship,
-            COALESCE(SUM(case when july = 1 then 1 else 0 end),0) july_payment,
+            COALESCE(SUM(case when july IN (1,9,10,11,12) then 1 else 0 end),0) july_payment,
             COALESCE(SUM(case when july IN (0,2) then 1 else 0 end),0) july_due,
             COALESCE(SUM(case when july = 8 then 1 else 0 end),0) july_scholarship,
-            COALESCE(SUM(case when august = 1 then 1 else 0 end),0) august_payment,
+            COALESCE(SUM(case when august IN (1,9,10,11,12) then 1 else 0 end),0) august_payment,
             COALESCE(SUM(case when august IN (0,2) then 1 else 0 end),0) august_due,
             COALESCE(SUM(case when august = 8 then 1 else 0 end),0) august_scholarship,
-            COALESCE(SUM(case when september = 1 then 1 else 0 end),0) september_payment,
+            COALESCE(SUM(case when september IN (1,9,10,11,12) then 1 else 0 end),0) september_payment,
             COALESCE(SUM(case when september IN (0,2) then 1 else 0 end),0) september_due,
             COALESCE(SUM(case when september = 8 then 1 else 0 end),0) september_scholarship,
-            COALESCE(SUM(case when october = 1 then 1 else 0 end),0) october_payment,
+            COALESCE(SUM(case when october IN (1,9,10,11,12) then 1 else 0 end),0) october_payment,
             COALESCE(SUM(case when october IN (0,2) then 1 else 0 end),0) october_due,
             COALESCE(SUM(case when october = 8 then 1 else 0 end),0) october_scholarship,
-            COALESCE(SUM(case when november = 1 then 1 else 0 end),0) november_payment,
+            COALESCE(SUM(case when november IN (1,9,10,11,12) then 1 else 0 end),0) november_payment,
             COALESCE(SUM(case when november IN (0,2) then 1 else 0 end),0) november_due,
             COALESCE(SUM(case when november = 8 then 1 else 0 end),0) november_scholarship,
-            COALESCE(SUM(case when december = 1 then 1 else 0 end),0) december_payment,
+            COALESCE(SUM(case when december IN (1,9,10,11,12) then 1 else 0 end),0) december_payment,
             COALESCE(SUM(case when december IN (0,2) then 1 else 0 end),0) december_due,
             COALESCE(SUM(case when december = 8 then 1 else 0 end),0) december_scholarship")
             ->where('year', $year)

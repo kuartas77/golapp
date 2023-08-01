@@ -59,17 +59,24 @@ class InscriptionRepository
     public function setInscription(array $inscriptionData, bool $created = true, Inscription $inscription = null): Inscription
     {
         try {
-            
             if(!$inscriptionData['training_group_id']){
                 $inscriptionData['training_group_id'] = TrainingGroup::query()->orderBy('id', 'asc')
                 ->firstWhere('school_id', $inscriptionData['school_id'])->id;
             }
-            
+
             $inscriptionData['deleted_at'] = null;
-            
+
             DB::beginTransaction();
 
+            $competition_groups = [];
+            if(isset($inscriptionData['competition_groups']))
+            {
+                $competition_groups = $inscriptionData['competition_groups'];
+                unset($inscriptionData['competition_groups']);
+            }
+
             if ($created) {
+                
                 $inscription = $this->model->withTrashed()->updateOrCreate([
                     'unique_code' => $inscriptionData['unique_code'],
                     'year' => $inscriptionData['year']
@@ -83,6 +90,10 @@ class InscriptionRepository
                 $inscriptionData['unique_code'] = $inscription->unique_code;
                 $inscriptionData['start_date'] = $inscription->start_date;
                 $inscription->update($inscriptionData);
+            }
+
+            if(!empty($competition_groups)){
+                $inscription->competitionGroup()->sync($competition_groups);
             }
 
             DB::commit();
@@ -105,7 +116,7 @@ class InscriptionRepository
         $inscriptions = $this->model->with(['player.people', 'trainingGroup'])
             ->where('year', now()->year)->schoolId()->get();
         if ($inscriptions->isNotEmpty()) {
-            $inscriptions->setAppends(['url_edit', 'url_update', 'url_show', 'url_impression'/*, 'url_destroy'*/]);
+            $inscriptions->setAppends(['url_edit', 'url_update', 'url_show', 'url_impression', 'url_destroy']);
         }
         return $inscriptions;
     }
@@ -131,6 +142,11 @@ class InscriptionRepository
     {
         try {
             DB::beginTransaction();
+            // $inscription->load(['payments', 'skillsControls', 'assistance']);
+            $inscription->payments()->delete();
+            $inscription->skillsControls()->delete();
+            $inscription->assistance()->delete();
+            $inscription->tournament_payouts()->delete();
             $inscription->delete();
             DB::commit();
             alert()->success(env('APP_NAME'), __('messages.ins_delete_success'));

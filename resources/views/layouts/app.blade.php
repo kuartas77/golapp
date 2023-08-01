@@ -28,8 +28,6 @@
             <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10" /> </svg>
     </div>
 
-{{--    <div class="loading ocultar">Loading</div>--}}
-
     @if(stripos(Request::url(),'/login') || stripos(Request::url(),'/contrasenia/vencida')
     || stripos(Request::url(),'password/reset') || stripos(Request::url(),'/register') )
     <section id="wrapper">
@@ -37,7 +35,7 @@
     </section>
     @else
 
-    <div id="main">
+    <div id="app">
 
         @include('layouts.topbar')
         @include('layouts.sidebar')
@@ -51,9 +49,9 @@
             </div>
             {{-- End Container fluid  --}}
         </div>
+        @yield('modals')
     </div>
     @endif
-    @yield('modals')
     <script>
         window.token = {!! json_encode(['csrfToken' => csrf_token(), ]) !!};
         window.app_name = "{{config('app.name', 'Laravel') }}";
@@ -61,8 +59,8 @@
         window.img_logout = "{{asset('img/logout.png')}}";
     </script>
     @include('sweetalert::alert')
+    <!-- <script src="{{mix('js/app.js')}}" ></script> -->
     <script src="{{mix('js/all.js')}}" ></script>
-    {{--<script src="{{mix('js/config-mix.js')}}" ></script>--}}
     <script src="{{asset('js/config.js')}}" ></script>
     @yield('scripts')
     @stack('scripts')

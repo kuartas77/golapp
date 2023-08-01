@@ -14,6 +14,7 @@ use App\Http\Controllers\SchoolPages\SchoolsController;
 use App\Http\Controllers\Players\PlayerExportController;
 use App\Http\Controllers\Tournaments\TournamentController;
 use App\Http\Controllers\Inscription\InscriptionController;
+use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
@@ -24,9 +25,6 @@ Route::get('/', function () {
     return redirect(\route('login'));
 });
 
-Route::resource('escuelas', SchoolsController::class)->only([
-    'index', 'show',
-]);
 
 Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 
@@ -37,11 +35,12 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 
     $route->post('inscriptions/activate/{id}', [InscriptionController::class, 'activate'])->name('inscriptions.activate');
 
-    $route->resource("inscriptions", InscriptionController::class)->except(['create','show','destroy']);
+    $route->resource("inscriptions", InscriptionController::class)->except(['create','show']);
     $route->resource("payments", PaymentController::class)->only(['index','update']);
     $route->resource("assists", AssistController::class)->except(['create','edit', 'destroy']);
     $route->resource("matches", GameController::class)->except(['show']);
     $route->resource("players", PlayerController::class);
+    $route->resource("tournamentpayout", TournamentPayoutsController::class)->only(['index', 'store', 'update']);
 
     $route->prefix('import')->group(function($route){
         $route->post('matches/{competition_group}', [ImportController::class, 'importMatchDetail'])->name('import.match');
@@ -60,6 +59,9 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
             'training_groups' => TrainingGroupController::class,
             'competition_groups' => CompetitionGroupController::class,
         ]);
+
+        $route->get('school/{school}', [SchoolsController::class, 'index'])->name('school.index');
+        $route->put('school/{school}', [SchoolsController::class, 'update'])->name('school.update');
 
         $route->get('filter_training_groups', [TrainingGroupController::class, 'filterGroupYear'])->name('training_groups.filter');
         $route->get('availability_training_groups/{training_group?}', [TrainingGroupController::class, 'availabilityGroup'])->name('training_groups.availability');
@@ -102,6 +104,10 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
         $route->get('payments/pdf', [ExportController::class, 'exportPaymentsPDF'])->name('payments.pdf');
         $route->get('assists/excel/{training_group_id}/{year}/{month}/{deleted?}', [ExportController::class, 'exportAssistsExcel'])->name('assists');
         $route->get('matches/create/{competition_group}/format', [ExportController::class, 'exportMatchDetail'])->name('match_detail');
+        $route->get('tournament/payouts/excel', [ExportController::class, 'exportTournamentPayoutsExcel'])->name('tournaments.payouts.excel');
+        $route->get('tournament/payouts/pdf', [ExportController::class, 'exportTournamentPayoutsPDF'])->name('tournaments.payouts.pdf');
+        
+
 
     });
 
@@ -118,5 +124,6 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
         $route->get('code_unique_verify', [MasterController::class, 'codeUniqueVerify'])->name('autocomplete.verify_code');
         $route->get('list_code_unique', [MasterController::class, 'listUniqueCode'])->name('autocomplete.list_code_unique');
         $route->get('search_unique_code', [MasterController::class, 'searchUniqueCode'])->name('autocomplete.search_unique_code');
+        $route->get('competition_groups', [MasterController::class, 'competitionGroupsByTournament'])->name('autocomplete.competition_groups');
     });
 });

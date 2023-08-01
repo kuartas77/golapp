@@ -41,11 +41,17 @@ class SharedService
                 $this->dataPayment['october'] = $value;
                 $this->dataPayment['november'] = $value;
                 $this->dataPayment['december'] = $value;
+
+                if($start_date->month > 1){
+                    $this->checkMonthValue($start_date->month, $value);
+                }
             }
 
             DB::beginTransaction();
 
             $this->createOrUpdatePaymentAssist($inscription);
+
+            $this->enableSkillControl($inscription);
 
             if(!$inscription->training_group_id){
                 $trainingGroup = TrainingGroup::orderBy('id','asc')->firstWhere('school_id', $inscription->school_id);
@@ -103,15 +109,20 @@ class SharedService
 
     private function createOrUpdatePaymentAssist($inscription)
     {
-        $inscription->payments()->updateOrCreate(
+        $inscription->payments()->withTrashed()->updateOrCreate(
             $this->searchPayment,
             $this->dataPayment
         );
 
-        $inscription->assistance()->updateOrCreate(
+        $inscription->assistance()->withTrashed()->updateOrCreate(
             $this->searchAssist,
             $this->dataAssist
         );
+    }
+
+    private function enableSkillControl($inscription)
+    {
+        $inscription->skillsControls()->withTrashed()->restore();
     }
 
     private function setData($inscription, $year, $month)
@@ -143,5 +154,13 @@ class SharedService
             'month' => $month,
             'deleted_at' => null
         ];
+    }
+
+    private function checkMonthValue(int $actualMonth, $value)
+    {
+        $configMonths = config('variables.KEY_INDEX_MONTHS');
+        foreach (range(1, $actualMonth) as $numMonth) {
+            $this->dataPayment[$configMonths[$numMonth]] = ($actualMonth == $numMonth) ? $value : '14'; //No aplica
+        }
     }
 }

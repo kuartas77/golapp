@@ -51,6 +51,26 @@ class SettingValue extends Model
                 'school_id' => $school_id, 
                 'value' => 20
             ],
+            [
+                'setting_key' => Setting::INSCRIPTION_AMOUNT, 
+                'school_id' => $school_id, 
+                'value' => 70000
+            ],
+            [
+                'setting_key' => Setting::MONTHLY_PAYMENT, 
+                'school_id' => $school_id, 
+                'value' => 50000
+            ],
+            [
+                'setting_key' => Setting::NOTIFY_PAYMENT_DAY, 
+                'school_id' => $school_id, 
+                'value' => 16
+            ],
+            [
+                'setting_key' => Setting::ANNUITY, 
+                'school_id' => $school_id, 
+                'value' => 48333
+            ],
         ];
     }
 }

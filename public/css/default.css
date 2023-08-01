@@ -608,3 +608,30 @@ select.swal2-select{
     background-color: blue;
     color: white;
 }
+
+.form-purple {
+    background-color: #572364;
+    color: white;
+}
+
+.form-brown {
+    background-color: #6F4E37;
+    color: white;
+}
+
+.form-orange {
+    background-color: orange;
+    color: white;
+}
+
+.form-grey {
+    background-color: grey;
+    color: white;
+}
+
+.form-agua {
+    background-color: aqua;
+    color: black;
+}
+
+.form-control-sm{min-height:10px}

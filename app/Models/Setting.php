@@ -16,6 +16,10 @@ class Setting extends Model
     public const MAX_INSCRIPTIONS = 'MAX_INSCRIPTIONS';
     public const MAX_REGISTRATION_DATE = 'MAX_REGISTRATION_DATE';
     public const MIN_REGISTRATION_DATE = 'MIN_REGISTRATION_DATE';
+    public const INSCRIPTION_AMOUNT = 'INSCRIPTION_AMOUNT';
+    public const MONTHLY_PAYMENT = 'MONTHLY_PAYMENT';
+    public const NOTIFY_PAYMENT_DAY = 'NOTIFY_PAYMENT_DAY';
+    public const ANNUITY = 'ANNUITY';
 
     protected $table = "settings";
     protected $fillable = [
