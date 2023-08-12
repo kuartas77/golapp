@@ -10,6 +10,7 @@ use App\Models\Player;
 use App\Traits\PDFTrait;
 use App\Traits\ErrorTrait;
 use App\Traits\UploadFile;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Maatwebsite\Excel\HeadingRowImport;
@@ -39,14 +40,14 @@ class PlayerRepository
 
     public function createPlayer(PlayerCreateRequest $request): Player
     {
-        
+
         try {
             $dataPlayer = $request->only($this->getAttributes());
             if($file_name = $this->saveFile($request, 'player')){
                 $dataPlayer['photo'] = $file_name;
             }
             $dataPlayer = $this->setAttributes($dataPlayer);
-            
+
             DB::beginTransaction();
 
             Master::saveAutoComplete($request->all());
@@ -56,11 +57,11 @@ class PlayerRepository
             if($player->email && filter_var($player->email, FILTER_VALIDATE_EMAIL)){
                 $player->notify(new RegisterPlayerNotification($player));
             }
-            
+
             DB::commit();
 
             return $player;
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("PlayerRepository@createPlayer", $exception);
             return $this->model;
@@ -86,7 +87,7 @@ class PlayerRepository
             DB::commit();
 
             return $save;
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("PlayerRepository@updatePlayer", $exception);
             return false;

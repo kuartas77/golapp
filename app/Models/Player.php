@@ -126,7 +126,7 @@ class Player extends Model
         }
         return public_path('img/user.png');
     }
-    
+
     public function routeNotificationForMail($notification)
     {
         // Return email address and name...

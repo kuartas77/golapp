@@ -7,6 +7,7 @@ use App\Models\School;
 use App\Models\SchoolUser;
 use App\Traits\ErrorTrait;
 use App\Traits\UploadFile;
+use Exception;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use App\Notifications\RegisterNotification;
@@ -44,7 +45,7 @@ class SchoolRepository
 
             DB::commit();
 
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("SchoolRepository create", $exception);
         }
@@ -54,7 +55,20 @@ class SchoolRepository
 
     public function schoolsInfo(int $school_id = null)
     {
-        $query = School::withCount(['users','inscriptions','players','payments','assists','skillControls','matches','tournaments','trainingGroups','competitionGroups','incidents']);
+        $query = School::withCount([
+            'inscriptions' => fn($q) => $q->where('year', now()->year),
+            'players' => fn($q) => $q->whereHas('inscription', fn($q) => $q->where('year', now()->year)),
+            'payments' => fn($q) => $q->where('year', now()->year),
+            'assists' => fn($q) => $q->where('year', now()->year),
+            'skillControls' => fn($q) => $q->whereHas('inscription', fn($q) => $q->where('year', now()->year)),
+            'matches' => fn($q) => $q->whereHas('skillsControls', fn($q) => $q->whereHas('inscription', fn($q) => $q->where('year', now()->year))),
+            'tournament_payouts' => fn($q) => $q->where('year', now()->year),
+            'users',
+            'tournaments',
+            'trainingGroups',
+            'competitionGroups',
+            'incidents'
+        ]);
         $response = new Collection();
         if($school_id){
             $response = $query->where('id', $school_id)->first();

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Database\Eloquent\Collection;
 use App\Notifications\InscriptionNotification;
+use Throwable;
 
 class InscriptionRepository
 {
@@ -76,7 +77,7 @@ class InscriptionRepository
             }
 
             if ($created) {
-                
+
                 $inscription = $this->model->withTrashed()->updateOrCreate([
                     'unique_code' => $inscriptionData['unique_code'],
                     'year' => $inscriptionData['year']
@@ -163,7 +164,7 @@ class InscriptionRepository
             $inscription->delete();
             DB::commit();
             alert()->success(env('APP_NAME'), __('messages.ins_delete_success'));
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             DB::rollBack();
             $this->logError("InscriptionRepository disable", $th);
             alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));

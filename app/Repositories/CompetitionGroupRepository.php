@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\CompetitionGroupInscription;
 use Illuminate\Foundation\Http\FormRequest;
+use Throwable;
 
 class CompetitionGroupRepository
 {
@@ -45,12 +46,12 @@ class CompetitionGroupRepository
     {
         try {
             DB::beginTransaction();
-        
-            if ($create) { 
-                $competitionGroup = $this->model->create($dataGroup); 
-            } 
-            else { 
-                $competitionGroup->update($dataGroup); 
+
+            if ($create) {
+                $competitionGroup = $this->model->create($dataGroup);
+            }
+            else {
+                $competitionGroup->update($dataGroup);
             }
 
             DB::commit();
@@ -58,7 +59,7 @@ class CompetitionGroupRepository
             Cache::forget("KEY_COMPETITION_GROUPS_{$dataGroup['school_id']}");
 
             return $competitionGroup;
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             DB::rollBack();
             $this->logError("CompetitionGroupRepository@createOrUpdateTeam", $th);
             return $this->model;
@@ -125,7 +126,7 @@ class CompetitionGroupRepository
         try {
             $group = CompetitionGroup::without(['inscriptions'])->findOrfail($destination_group_id);
             $inscription = Inscription::select(['id'])->findOrFail($inscription_id);
-            
+
 
             DB::beginTransaction();
 
@@ -135,17 +136,17 @@ class CompetitionGroupRepository
                 ->where('inscription_id', $inscription_id)->exists();
 
                 throw_if($exists, Exception::class, "The member already exists in the group", 4);
-                
+
                 $group->inscriptions()->attach($inscription->id);
                 $response = 1;
             } else {
                 $group->inscriptions()->detach($inscription->id);
                 $response = 2;
-            } 
+            }
 
             DB::commit();
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             DB::rollBack();
             $this->logError("CompetitionGroupRepository@assignInscriptionGroup", $th);
             $response = $th->getCode();

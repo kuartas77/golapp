@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Cache;
 use App\Http\Requests\User\UserUpdate;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\Foundation\Application;
+use Throwable;
 
 class UserController extends Controller
 {
@@ -134,12 +135,13 @@ class UserController extends Controller
         try {
 
             $user->delete();
-            
+
             if($school_id = getSchool(auth()->user())->id){
+                /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
                 Cache::forget("KEY_USERS_{$school_id}");
             }
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             $this->logError("MatchRepository updateMatchSkill", $th);
         }
 
@@ -160,12 +162,13 @@ class UserController extends Controller
 
             if($this->repository->restore($id)){
                 if($school_id = getSchool(auth()->user())->id){
+                    /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
                     Cache::forget("KEY_USERS_{$school_id}");
                 }
                 alert()->success(config('app.name'), __('messages.user_enabled'));
             }
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             $this->logError("MatchRepository updateMatchSkill", $th);
         }
 

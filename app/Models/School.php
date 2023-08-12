@@ -131,6 +131,11 @@ class School extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function tournament_payouts(): HasMany
+    {
+        return $this->hasMany(TournamentPayout::class);
+    }
+
     public function assists(): HasMany
     {
         return $this->hasMany(Assist::class);

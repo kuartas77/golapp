@@ -16,6 +16,7 @@ use App\Repositories\InscriptionRepository;
 use App\Service\Assist\AssistExportService;
 use App\Service\Payment\PaymentExportService;
 use App\Repositories\TournamentPayoutsRepository;
+use Mpdf\MpdfException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ExportController extends Controller
@@ -55,7 +56,7 @@ class ExportController extends Controller
      * @param $month
      * @param bool $deleted
      * @return mixed
-     * @throws \Mpdf\MpdfException
+     * @throws MpdfException
      */
     public function exportAssistsPDF($trainingGroupId, $year, $month, $deleted = false, AssistExportService $assistExportService)
     {

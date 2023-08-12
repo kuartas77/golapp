@@ -32,6 +32,7 @@ if (!function_exists('getEloquentSqlWithBindings')) {
     {
         return vsprintf(str_replace('?', '%s', $query->toSql()), collect($query->getBindings())->map(function ($binding) {
             $binding = addslashes($binding);
+            /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
             return is_numeric($binding) ? $binding : "'{$binding}'";
         })->toArray());
     }
@@ -132,6 +133,8 @@ if (!function_exists('numbersToLetters')) {
     {
         $formatter = NumberFormatter::create("en_CA", NumberFormatter::SPELLOUT);
         $numberFormat = str_replace('-', '_', $formatter->format(intval($number)));
+        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
         return $assist ? "assistance_{$numberFormat}" : "year_{$numberFormat}";
     }
 }
@@ -184,6 +187,7 @@ if (!function_exists('getSchool')){
     function getSchool($user): School{
         $data = null;
         $school_id = Session::get('selected_school', 1);
+        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
         $key = School::KEY_SCHOOL_CACHE. "_admin_{$school_id}";
         $ttl = now()->addMinutes(env('SESSION_LIFETIME', 120));
         $query = School::with(['settingsValues']);
@@ -193,6 +197,7 @@ if (!function_exists('getSchool')){
         }elseif(isAdmin() && !Cache::has($key)){
             $data = Cache::remember(School::KEY_SCHOOL_CACHE. "_admin_1", $ttl, fn() => $query->first());
         }else{
+            /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
             $data = Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", $ttl, fn()=> $query->firstWhere('id', $user->school_id));
         }
         return $data;
