@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\People;
 use App\Models\Player;
 use App\Traits\ErrorTrait;
+use Exception;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -22,9 +23,9 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
 
     public function __construct(private int $school_id)
     {
-        // 
+        //
     }
-    
+
     public function collection(Collection $rows)
     {
         try {
@@ -42,7 +43,7 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
                 if(!$people){
                     $people = People::query()->create($dataPeople);
                 }
-                
+
                 $dataPlayer = $this->setAttributesPlayer($row);
                 $player = Player::query()->updateOrCreate(
                     [
@@ -51,11 +52,11 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
                     ],
                     $dataPlayer
                 );
-                
+
                 $player->people()->sync([$people->id]);
             }
             DB::commit();
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("PlayerRepository@createPlayer", $exception);
         }
@@ -108,7 +109,7 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
             'eps' => trim($row['eps']),
             'school_id' => $this->school_id,
         ];
-        
+
     }
 
     private function checkGender(string $gender): string

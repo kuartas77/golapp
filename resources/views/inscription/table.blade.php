@@ -1,9 +1,14 @@
 <nav>
     <ul class="nav nav-tabs customtab" id="tab_inscriptions">
         <li class="nav-item">
-            <a class="nav-link active show" id="activos-tab" data-toggle="tab" href="#activos" role="tab"
-               aria-controls="activos" aria-expanded="false">@lang('messages.inscription_actived')</a>
+            <a class="nav-link active show" id="active-tab" data-toggle="tab" href="#active" role="tab"
+               aria-controls="active" aria-expanded="false">@lang('messages.inscription_actived')</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" id="inactive-tab" data-toggle="tab" href="#inactive" role="tab"
+               aria-controls="inactive" aria-expanded="false">@lang('messages.inscription_inactived')</a>
+        </li>
+        
 
         @hasanyrole('super-admin|school')
         <li class=" nav-item ml-auto">
@@ -26,7 +31,7 @@
 </nav>
 <div class="tab-content clearfix" id="tab_content">
 
-    <div class="tab-pane show active" id="activos" role="tabpanel" aria-labelledby="activos-tab">
+    <div class="tab-pane show active" id="active" role="tabpanel" aria-labelledby="active-tab">
 
         <table class="display compact" id="active_table" cellspacing="0" width="100%">
             <thead>
@@ -44,6 +49,24 @@
                 <th>F.Inicio</th>
                 <th>Categoría</th>
                 <th>Opciones</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+
+    <div class="tab-pane" id="inactive" role="tabpanel" aria-labelledby="inactive-tab">
+        <table class="display compact" id="inactive_table" cellspacing="0" width="100%">
+            <thead>
+            <tr>
+                <th>Foto</th>
+                <th>Código</th>
+                <th>Doc.Identidad</th>
+                <th>Nombres</th>
+                <th>F.Nacimiento</th>
+                <th>Genero</th>
+                <th>Cert. Médico</th>
+                <th>Teléfonos</th>
+                <th>Categoría</th>
             </tr>
             </thead>
         </table>

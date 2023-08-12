@@ -1,4 +1,13 @@
-<?php
+<?php /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
 
 
 namespace App\Custom;
@@ -9,6 +18,7 @@ use App\Models\Assist;
 use App\Models\People;
 use App\Models\Player;
 use App\Models\Payment;
+use Exception;
 use Jenssegers\Date\Date;
 use App\Models\Inscription;
 use App\Models\SkillsControl;
@@ -68,7 +78,7 @@ class Migration
                 $player->zone = $inscripcion->zona;
                 $player->commune = $inscripcion->comuna;
                 $player->category = categoriesName($date_birth->year);
-    
+
                 $player->phones = $inscripcion->telefonos;
                 $player->email = $inscripcion->correo;
                 $player->mobile = $inscripcion->movil;
@@ -76,45 +86,54 @@ class Migration
                 $player->created_at = $inscripcion->created_at;
                 $player->updated_at = $inscripcion->updated_at;
                 $player->save();
-    
+
                 $peoplesIds = self::createPeoples($inscripcion);
-    
+
                 $player->people()->sync($peoplesIds);
-    
+
                 $pagos = DB::connection('mysql_old')->table('pagos')->where('inscripcion_id', '=', $inscripcion->id)->get();
-    
+
                 if ($pagos->count() == 0) {
+                    /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+                    /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
                     logger("{$inscripcion->id} {$inscripcion->recibo} => pagos", [$pagos->count()]);
                 }
                 foreach ($pagos as $pago) {
-    
+
                     $inscription = self::createInscription($player, $inscripcion, $pago);
-    
+
                     self::createPayment($pago, $inscription);
-    
+
+                    /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
                     $controls = DB::connection('mysql_old')->table('control_competencias')
                         ->where('inscripciones_id', '=', $inscripcion->id)
                         ->whereYear('created_at', "=", "{$pago->anio}-01-01")
                         ->get();
                     if (($countControls = $controls->count()) == 0) {
+                        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+                        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+                        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
                         logger("{$pago->anio} {$inscripcion->id} {$inscripcion->recibo} => control_competencias", [$countControls]);
                     }
-    
+
                     $asistencias = DB::connection('mysql_old')->table('asistencias')
                         ->where('inscripcion_id', '=', $player->id)
                         ->where('anio', $pago->anio)
                         ->get();
                     if (($countAssists = $asistencias->count()) == 0) {
+                        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+                        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+                        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
                         logger("{$pago->anio} {$player->id} {$player->unique_code} => asistencias", [$countAssists]);
                     }
-    
+
                     self::createAssists($asistencias, $inscription);
-    
+
                     self::createSkillsControls($controls, $inscription);
                 }
             }
             DB::commit();
-        } catch (\Exception $ex) {
+        } catch (Exception $ex) {
             DB::rollBack();
             logger()->error('InscriptionMigration', [
                 "error" => $ex->getMessage(),
@@ -300,7 +319,7 @@ class Migration
     public static function createAssists($asistencias, Inscription $inscription): void
     {
         foreach ($asistencias as $asistencia) {
-            $assist = new Assist();            
+            $assist = new Assist();
             $assist->training_group_id = $asistencia->grupo_id;
             $assist->inscription_id = $inscription->id;
             $assist->year = intval($asistencia->anio);

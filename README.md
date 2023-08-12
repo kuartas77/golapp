@@ -1,6 +1,6 @@
-<p align="center">
+<p>
     <a href="https://golapp.softdreamc.com/login" target="_blank">
-        <img src="https://golapp.softdreamc.com/img/log3.jpg" width="400">
+        <img src="https://golapp.softdreamc.com/img/log3.jpg" alt="logo">
     </a>
 </p>
 

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Builder;
+use Throwable;
 
 class PaymentRepository
 {
@@ -90,7 +91,7 @@ class PaymentRepository
             DB::beginTransaction();
             $isPay = $payment->fill($values)->save();
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             DB::rollBack();
             $this->logError('PaymentRepository@setPay', $th);
             $isPay = false;

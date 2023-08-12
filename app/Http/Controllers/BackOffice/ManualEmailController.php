@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Notifications\RegisterNotification;
+use Throwable;
 
 class ManualEmailController extends Controller
 {
@@ -20,7 +21,7 @@ class ManualEmailController extends Controller
 
             foreach ($school->users as $user) {
                 DB::beginTransaction();
-                
+
                 $user->password = $password = randomPassword();
                 $user->save();
                 $user->notify(new RegisterNotification($user, $password));
@@ -28,9 +29,9 @@ class ManualEmailController extends Controller
                 DB::commit();
             }
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             DB::rollBack();
             $this->logError(__CLASS__, $th);
-        }   
+        }
     }
 }

@@ -32,7 +32,8 @@ class PlayerExportController extends Controller
     public function exportInscriptionsExcel(PlayerExportService $playerExportService): BinaryFileResponse
     {
         $date = now()->timestamp;
+        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
         return Excel::download(new InscriptionSheetsExport($playerExportService->getExcel()), "Inscripciones {$date}.xlsx");
-    }   
-    
+    }
+
 }

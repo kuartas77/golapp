@@ -66,13 +66,13 @@ class TournamentPayoutsRepository
             $tournamentPayouts = $this->model->schoolId()->with(['inscription.player', 'tournament'])
             ->when(!empty($data['tournament_id']), fn ($q) => $q->where('tournament_id', $data['tournament_id']))
             ->when(!empty($data['competition_group_id']), fn ($q) => $q->where('competition_group_id', $data['competition_group_id']));
-                        
+
             $competitionGroup = CompetitionGroup::query()->schoolId()->findOrFail($data['competition_group_id']);
-            
+
             $inscriptionIds = CompetitionGroupInscription::select(['inscription_id'])->where('competition_group_id', $data['competition_group_id'])->get();
-       
+
             $inscriptionIds = $inscriptionIds->pluck('inscription_id');
-               
+
             $inscriptions = Inscription::query()->select(['id','unique_code'])
                 ->schoolId()
                 ->whereIn('id', $inscriptionIds)
@@ -90,6 +90,7 @@ class TournamentPayoutsRepository
                 foreach ($idsDiff as $id) {
                     $unique_code = $inscriptions->firstWhere('id', $id)->unique_code ?? null;
                     if(!$unique_code){
+                        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
                         logger("inscription deshabilitada {$id}");
                         continue;
                     }

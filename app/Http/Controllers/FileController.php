@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -26,7 +27,7 @@ class FileController extends Controller
                 'Cache-Control' => 'public, no-transform, max-age=31536000'
             ]);
         }
-        catch(\Exception $e)
+        catch(Exception $e)
         {
             return response(null, 404);
         }

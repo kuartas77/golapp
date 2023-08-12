@@ -52,8 +52,9 @@ class LoginController extends Controller
     protected function authenticated(Request $request, $user)
     {
         if($user->hasAnyRole(['school','instructor'])){
-            Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}", 
-            now()->addMinutes(env('SESSION_LIFETIME', 120)), 
+            /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+            Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}",
+            now()->addMinutes(env('SESSION_LIFETIME', 120)),
             fn()=> $user->school->load(['settingsValues']));
         }
     }
@@ -61,13 +62,21 @@ class LoginController extends Controller
     public function logout(Request $request)
     {
         $school_id = isAdmin() ? 0 : getSchool(auth()->user())->id;
+        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
         Cache::forget("BIRTHDAYS_{$school_id}");
+        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
         Cache::forget("KEY_USERS_{$school_id}");
+        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
         Cache::forget("KEY_DAYS_{$school_id}");
+        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
         Cache::forget("KEY_TOURNAMENT_{$school_id}");
+        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
         Cache::forget("KEY_TRAINING_GROUPS_{$school_id}");
+        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
         Cache::forget("KEY_COMPETITION_GROUPS_{$school_id}");
+        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
         Cache::forget("KEY_MIN_YEAR_{$school_id}");
+        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
         Cache::forget("KEY_ASSIST_{$school_id}");
 
         $this->guard()->logout();

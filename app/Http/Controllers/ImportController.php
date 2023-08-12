@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
 
 namespace App\Http\Controllers;
 
@@ -12,6 +12,7 @@ use App\Repositories\AssistRepository;
 use App\Repositories\PlayerRepository;
 use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
+use Throwable;
 
 class ImportController extends Controller
 {
@@ -30,7 +31,7 @@ class ImportController extends Controller
         $file = $request->file('file');
 
         $importMatchDetail = new ImportMatchDetail();
-        
+
         Excel::import($importMatchDetail, $file);
 
         $response = $this->gameRepository->loadDataFromFile($importMatchDetail->getData());
@@ -45,6 +46,7 @@ class ImportController extends Controller
 
             $diff = $this->playerRepository->validateImport($request->file('file'));
             if ($diff !== "") {
+                /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
                 alert()->error("Error en las columnas a importar",
                     "Error en las columnas: {$diff}");
                 return back();
@@ -54,8 +56,8 @@ class ImportController extends Controller
             Excel::import($importPlayers, $request->file('file'));
 
             alert()->success(env('APP_NAME'), __('messages.player_created'));
-        
-        } catch (\Throwable $th) {
+
+        } catch (Throwable $th) {
             $this->logError('importPlayers', $th);
             alert()->error(env('APP_NAME'), __('messages.error_general'));
         }

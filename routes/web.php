@@ -79,6 +79,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 
     $route->prefix('datatables')->group(function ($route) {
         $route->get('enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');
+        $route->get('disabled', [DataTableController::class, 'disabledInscriptions'])->name('inscriptions.disabled');
         $route->get('training_groups_enabled', [DataTableController::class, 'enabledTrainingGroups'])->name('training_groups.enabled');
         $route->get('training_groups_retired', [DataTableController::class, 'disabledTrainingGroups'])->name('training_groups.retired');
         $route->get('competition_groups_enabled', [DataTableController::class, 'enabledCompetitionGroups'])->name('competition_groups.enabled');
