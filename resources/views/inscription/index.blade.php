@@ -13,6 +13,7 @@
     <script>
         const isAdmin = {{auth()->user()->hasAnyRole(['super-admin','school']) ? 1 : 0}};
         const url_inscriptions_enabled = "{{ route('inscriptions.enabled') }}";
+        const url_inscriptions_disabled = "{{ route('inscriptions.disabled') }}";
     </script>
     <script src="{{ mix('js/inscriptions.js') }}" ></script>
 @endsection

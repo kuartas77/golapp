@@ -121,6 +121,19 @@ class InscriptionRepository
         return $inscriptions;
     }
 
+    /**
+     * @return Builder[]|Collection
+     */
+    public function getInscriptionsDisabled()
+    {
+        $inscriptions = $this->model->with(['player.people', 'trainingGroup'])
+            ->where('year', now()->year)->schoolId()->onlyTrashed()->get();
+        // if ($inscriptions->isNotEmpty()) {
+        //     $inscriptions->setAppends(['url_edit', 'url_update', 'url_show', 'url_impression', 'url_destroy']);
+        // }
+        return $inscriptions;
+    }
+
     public function searchInscriptionCompetition(array $fields)
     {
         return $this->model->query()->with('player')

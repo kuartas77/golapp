@@ -35,6 +35,17 @@ class DataTableController extends Controller
 
     /**
      * @param Request $request
+     * @return JsonResponse
+     */
+    public function disabledInscriptions(Request $request): JsonResponse
+    {
+        abort_unless($request->ajax(), 403);
+
+        return datatables()->collection($this->inscriptionRepository->getInscriptionsDisabled())->toJson();
+    }
+
+    /**
+     * @param Request $request
      * @return JsonResponse|void
      */
     public function enabledTrainingGroups(Request $request): JsonResponse
