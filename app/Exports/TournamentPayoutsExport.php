@@ -9,9 +9,12 @@ use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\Exportable;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use App\Repositories\TournamentPayoutsRepository;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 
-class TournamentPayoutsExport implements FromView, WithTitle
+class TournamentPayoutsExport implements FromView, WithTitle, WithColumnFormatting, ShouldAutoSize
 {
     use Exportable;
 
@@ -44,6 +47,13 @@ class TournamentPayoutsExport implements FromView, WithTitle
 
     public function title(): string
     {
-        return "Pagos";
+        return "Pagos torneos";
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'D' => NumberFormat::FORMAT_CURRENCY_USD_INTEGER,
+        ];
     }
 }
