@@ -51,15 +51,20 @@ $(document).ready(() => {
 
 // Evento click en los select de la tabla
 $('body').on('change', 'select.payments', function () {
-    let element = $(this);
+    let element = $(this)
+
+    if(element.val() == "") {return}
+    checkValue(element)
+
     let data = element.parent().parent().find('input, select').serializeArray();
     let id = element.parent().parent().find('input').val();
     data.push({name: '_method', value: 'PUT'});
 
+    element.blur()
     $.post(url_current + '/' + id, data, (response) =>{
         if (response.data) {
             changeColors(element)
-            checkValue(element)
+            // checkValue(element)
             table.draw()
         }
     });
@@ -71,7 +76,6 @@ function checkValue(element){
     let input_val = input.val().replace(/[\$,]/g, '') * 1
 
     if(input_val == 0 && ['1','9','10'].includes(element.val())){
-        console.log(['1','9','10'])
         if(name.includes('enrollment')){
             input.val(inscription_amount)
         }else{
@@ -86,7 +90,6 @@ function checkValue(element){
         input.val(annuity)
         changeColors(element)
     }
-    element.blur()
 }
 
 function verifyInputs(element, value = 0){
@@ -103,7 +106,6 @@ function verifyInputs(element, value = 0){
             }
         }
     })
-    $(lastElement).trigger("change")
 }
 
 function changeColors(domelement){
@@ -249,7 +251,7 @@ function initTable() {
                     else if(['10', '11'].includes(select)){
                         consignment = consignment + intVal(inputVal);
                     }
-                    
+
                 });
             });
             // Update footer
@@ -288,6 +290,6 @@ function sumTotal(api, column, intVal){
         let a = $(value).find('input[type=text]').val();
         total = total + intVal(a);
     });
-    
+
     return `$${formatMoney(total)}`
 }

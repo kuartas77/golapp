@@ -51,15 +51,19 @@ $(document).ready(() => {
 
 // Evento click en los select de la tabla
 $('body').on('change', 'select.payments', function () {
-    let element = $(this);
+    let element = $(this)
+
+    checkValue(element)
+
     let data = element.parent().parent().find('input, select').serializeArray();
     let id = element.parent().parent().find('input').val();
     data.push({name: '_method', value: 'PUT'});
 
+    element.blur()
     $.post(url_current + '/' + id, data, (response) =>{
         if (response.data) {
             changeColors(element)
-            checkValue(element)
+            // checkValue(element)
             table.draw()
         }
     });
@@ -71,7 +75,6 @@ function checkValue(element){
     let input_val = input.val().replace(/[\$,]/g, '') * 1
 
     if(input_val == 0 && ['1','9','10'].includes(element.val())){
-        console.log(['1','9','10'])
         if(name.includes('enrollment')){
             input.val(inscription_amount)
         }else{
@@ -86,7 +89,6 @@ function checkValue(element){
         input.val(annuity)
         changeColors(element)
     }
-    element.blur()
 }
 
 function verifyInputs(element, value = 0){
@@ -103,7 +105,6 @@ function verifyInputs(element, value = 0){
             }
         }
     })
-    $(lastElement).trigger("change")
 }
 
 function changeColors(domelement){
@@ -179,7 +180,8 @@ function initTable() {
         "ordering": false,
         "info": true,
         "scrollX": true,
-        "scrollY": true,
+        "scrollY":"450px",
+        "scrollCollapse":true,
         "columns": [
             {'width': '5%'},
             {'width': '5%'},
@@ -230,12 +232,63 @@ function initTable() {
                     total = total + intVal(a);
                 });
             });
+            let cash = 0;
+            let consignment = 0;
+
+            $.each([1,2,3,4,5,6,7,8,9,10,11,12,13], function(index, value) {
+
+                let columnas_total = api
+                    .column(value)
+                    .nodes();
+
+                $.each(columnas_total, function(index, value) {
+                    let select = $(value).find('select').val();
+                    let inputVal = $(value).find('input[type=text]').val();
+                    if(['9', '12'].includes(select)){
+                        cash = cash + intVal(inputVal);
+                    }
+                    else if(['10', '11'].includes(select)){
+                        consignment = consignment + intVal(inputVal);
+                    }
+
+                });
+            });
             // Update footer
             let totalFormat = `$${formatMoney(pageTotal)}`
-            // `$${formatMoney(pageTotal)} ($${formatMoney(total)} total)`
-            $(api.column(10).footer()).html(totalFormat);
+            let totalCash = `$${formatMoney(cash)}`
+            let totalConsignment = `$${formatMoney(consignment)}`
+            // $(api.column(10).footer()).html(totalFormat);
             $('#total-tab').html(`Total: ${totalFormat}`)
+            $('#cash-tab').html(`Efectivo: ${totalCash}`)
+            $('#consignment-tab').html(`Consignación: ${totalConsignment}`)
+            $( api.column( 1 ).footer() ).html(sumTotal(api, 1, intVal));
+            $( api.column( 2 ).footer() ).html(sumTotal(api, 2, intVal));
+            $( api.column( 3 ).footer() ).html(sumTotal(api, 3, intVal));
+            $( api.column( 4 ).footer() ).html(sumTotal(api, 4, intVal));
+            $( api.column( 5 ).footer() ).html(sumTotal(api, 5, intVal));
+            $( api.column( 6 ).footer() ).html(sumTotal(api, 6, intVal));
+            $( api.column( 7 ).footer() ).html(sumTotal(api, 7, intVal));
+            $( api.column( 8 ).footer() ).html(sumTotal(api, 8, intVal));
+            $( api.column( 9 ).footer() ).html(sumTotal(api, 9, intVal));
+            $( api.column( 10 ).footer() ).html(sumTotal(api, 10, intVal));
+            $( api.column( 11 ).footer() ).html(sumTotal(api, 11, intVal));
+            $( api.column( 12 ).footer() ).html(sumTotal(api, 12, intVal));
+            $( api.column( 13 ).footer() ).html(sumTotal(api, 13, intVal));
         }
     });
     $('.payments_amount').inputmask("pesos");
+}
+
+function sumTotal(api, column, intVal){
+    let total = 0
+    let columnas_total = api
+        .column(column)
+        .nodes();
+
+    $.each(columnas_total, function(index, value) {
+        let a = $(value).find('input[type=text]').val();
+        total = total + intVal(a);
+    });
+
+    return `$${formatMoney(total)}`
 }

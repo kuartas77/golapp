@@ -37,11 +37,16 @@ class PaymentRepository
         $monthly_payment = $school->settings['MONTHLY_PAYMENT'] ?? 50000;
         $annuity = $school->settings['ANNUITY'] ?? 48333;
 
+        $nameFields = config('variables.KEY_INDEX_MONTHS');
+        $nameFields[0] = 'enrollment';
+        ksort($nameFields);
+
         foreach ($payments as $pay) {
             $rows .= View::make('templates.payments.row', [
                 'payment' => $pay,
                 'deleted' => $deleted,
                 'front' => true,
+                'nameFields' => $nameFields,
                 'inscription_amount' => $inscription_amount,
                 'monthly_payment' => $monthly_payment,
                 'annuity' => $annuity

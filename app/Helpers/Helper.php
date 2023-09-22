@@ -17,7 +17,18 @@ if (!function_exists('getPay')) {
     function getPay($value): string
     {
         $payments = config('variables.KEY_PAYMENTS_SELECT');
-        return array_key_exists($value, $payments)? $payments[$value] : number_format($value, 0,'','');
+        return array_key_exists($value, $payments)? $payments[$value] : number_format((float)$value, 0);
+    }
+}
+
+if (!function_exists('getAmount')) {
+    /**
+     * @param $value
+     * @return string
+     */
+    function getAmount($value): string
+    {
+        return $value; //number_format((float)$value, 0, ',', '.');
     }
 }
 

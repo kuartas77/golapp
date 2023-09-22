@@ -13,7 +13,7 @@ class PaymentExportService
 {
     use PDFTrait;
     use ErrorTrait;
-    
+
     public function paymentsPdfByGroup($payments, $request, bool $stream)
     {
         if($request->training_group_id != 0){
@@ -27,7 +27,9 @@ class PaymentExportService
         $data['school'] = getSchool(auth()->user());
         $data['payments'] = $payments;
         $data['group'] = $group;
-        
+
+        // return view()->file(resource_path("templates/pdf/payments/payments.blade.php"), $data)->render();
+
         $filename = "Pagos.pdf";
         $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'payments/payments.blade.php');
@@ -44,7 +46,7 @@ class PaymentExportService
         $data['payments'] = $payments;
         $data['tournament'] = $tournament;
         $data['group'] = $group;
-        
+
         $date = now()->timestamp;
         $filename = "Pagos torneos {$tournament->name} {$date}.pdf";
         $this->setConfigurationMpdf(['format' => 'A4-L']);
