@@ -108,72 +108,6 @@ function verifyInputs(element, value = 0){
     })
 }
 
-function changeColors(domelement){
-    let element = $(domelement)
-    let val = element.val().replace(/[\$,]/g, '')
-    switch (val) {
-        case '1':
-            element.removeClass('form-error').removeClass('form-warning').removeClass('form-info')
-                .removeClass('form-brown').removeClass('form-purple')
-                .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
-            element.addClass('form-success')
-            break;
-        case '2':
-            element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
-                .removeClass('form-brown').removeClass('form-purple')
-                .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
-            element.addClass('form-error')
-            break;
-        case '3':
-            element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
-                .removeClass('form-brown').removeClass('form-purple')
-                .removeClass('form-orange').removeClass('form-grey').removeClass('form-error').removeClass('form-agua')
-            element.addClass('form-agua')
-            break;
-        case '5':
-            element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
-                .removeClass('form-brown').removeClass('form-purple')
-                .removeClass('form-grey').removeClass('form-agua')
-            element.addClass('form-orange')
-            break;
-        case '6':
-            element.removeClass('form-success').removeClass('form-error').removeClass('form-info')
-                .removeClass('form-brown').removeClass('form-purple')
-                .removeClass('form-orange').removeClass('form-agua')
-            element.addClass('form-grey')
-            break;
-        case '9':
-            element.removeClass('form-success').removeClass('form-error').removeClass('form-info')
-                .removeClass('form-brown').removeClass('form-purple')
-                .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
-            element.addClass('form-warning')
-            break;
-        case '10':
-            element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
-                .removeClass('form-brown').removeClass('form-purple')
-                .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
-            element.addClass('form-info')
-            break;
-        case '11':
-            element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
-                .removeClass('form-info').removeClass('form-brown')
-                .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
-            element.addClass('form-purple')
-            break;
-        case '12':
-            element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
-                .removeClass('form-info').removeClass('form-purple')
-                .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
-            element.addClass('form-brown')
-            break;
-        case '0':
-        default:
-            element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
-            .removeClass('form-info').removeClass('form-purple').removeClass('form-brown')
-            .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
-            break
-    }
-}
 //inicia la tabla con datatables
 function initTable() {
     table = $('#active_table').DataTable({
@@ -235,6 +169,7 @@ function initTable() {
             });
             let cash = 0;
             let consignment = 0;
+            let others = 0;
 
             $.each([1,2,3,4,5,6,7,8,9,10,11,12,13], function(index, value) {
 
@@ -245,11 +180,13 @@ function initTable() {
                 $.each(columnas_total, function(index, value) {
                     let select = $(value).find('select').val();
                     let inputVal = $(value).find('input[type=text]').val();
-                    if(['9', '12'].includes(select)){
+                    if(['1','9', '12'].includes(select)){
                         cash = cash + intVal(inputVal);
                     }
                     else if(['10', '11'].includes(select)){
                         consignment = consignment + intVal(inputVal);
+                    }else{
+                        others = others + intVal(inputVal);
                     }
 
                 });
@@ -258,10 +195,11 @@ function initTable() {
             let totalFormat = `$${formatMoney(pageTotal)}`
             let totalCash = `$${formatMoney(cash)}`
             let totalConsignment = `$${formatMoney(consignment)}`
-            // $(api.column(10).footer()).html(totalFormat);
+            let totalOthers = `$${formatMoney(others)}`
             $('#total-tab').html(`Total: ${totalFormat}`)
             $('#cash-tab').html(`Efectivo: ${totalCash}`)
             $('#consignment-tab').html(`Consignación: ${totalConsignment}`)
+            $('#other-tab').html(`Otros: ${totalOthers}`)
             $( api.column( 1 ).footer() ).html(sumTotal(api, 1, intVal));
             $( api.column( 2 ).footer() ).html(sumTotal(api, 2, intVal));
             $( api.column( 3 ).footer() ).html(sumTotal(api, 3, intVal));

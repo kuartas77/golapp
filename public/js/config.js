@@ -284,7 +284,7 @@ jQuery.validator.setDefaults({
         if(element.hasClass('with-icon')){
             error.appendTo(element.closest("div.form-group"));
         }
-        
+
     }
     /*     ,errorElement: 'span',
         highlight: function(element, errorClass, validClass) {
@@ -378,3 +378,61 @@ window.onload = function () {
     $(".preloader").fadeOut()
 }
 
+function removeAllClass(index, className) {
+    return (className.match (/(^|\s)color-\S+/g) || []).join(' ');
+}
+
+function changeColors(domelement){
+    let element = $(domelement)
+    let val = element.val().replace(/[\$,]/g, '')
+    switch (val) {
+        case '1':
+            element.removeClass(removeAllClass)
+            element.addClass('color-success')
+            break;
+        case '2':
+            element.removeClass(removeAllClass)
+            element.addClass('color-error')
+            break;
+        case '3':
+            element.removeClass(removeAllClass)
+            element.addClass('color-agua')
+            break;
+        case '4':
+            element.removeClass(removeAllClass)
+            element.addClass('color-incapacidad')
+            break;
+        case '5':
+            element.removeClass(removeAllClass)
+            element.addClass('color-orange')
+            break;
+        case '6':
+            element.removeClass(removeAllClass)
+            element.addClass('color-grey')
+            break;
+        case '8':
+            element.removeClass(removeAllClass)
+            element.addClass('color-becado')
+            break;
+        case '9':
+            element.removeClass(removeAllClass)
+            element.addClass('color-warning')
+            break;
+        case '10':
+            element.removeClass(removeAllClass)
+            element.addClass('color-info')
+            break;
+        case '11':
+            element.removeClass(removeAllClass)
+            element.addClass('color-purple')
+            break;
+        case '12':
+            element.removeClass(removeAllClass)
+            element.addClass('color-brown')
+            break;
+        case '0':
+        default:
+            element.removeClass(removeAllClass)
+            break
+    }
+}

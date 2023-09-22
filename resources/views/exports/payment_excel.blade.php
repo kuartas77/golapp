@@ -44,10 +44,12 @@
         <td></td>
         <td></td>
         <td></td>
-        <td style="background:green; color: white;">Pagó</td>
+        <td style="background:green; color: black;">Pagó</td>
         <td style="background:red; color: white;">Debe</td>
-        <td style="background:aqua; color: white;">Abonó</td>
-        <td style="background:orange; color: white;">Retiro Temporal</td>
+        <td style="background:aqua; color: black;">Abonó</td>
+        <td style="background:orange; color: black;">Retiro Temporal</td>
+        <td style="background:#fac282; color: black;">Incapacidad</td>
+        <td style="background:#009688; color: white;">Becado</td>
         <td style="background:yellow;">Pagó - Efectivo</td>
         <td style="background:blue; color: white;">Pagó - Consignación</td>
         <td style="background:#572364; color: white;">Pago Anualidad Consignación</td>

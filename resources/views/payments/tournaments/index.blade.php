@@ -129,7 +129,7 @@
                             else if(['10', '11'].includes(select)){
                                 consignment = consignment + intVal(inputVal);
                             }
-                            
+
                         });
                     });
                     // Update footer
@@ -177,70 +177,6 @@
             }
         }
 
-        const changeColors = (domelement) => {
-            let element = $(domelement)
-            let val = element.val().replace(/[\$,]/g, '')
-            switch (val) {
-                case '1':
-                    element.removeClass('form-error').removeClass('form-warning').removeClass('form-info')
-                        .removeClass('form-brown').removeClass('form-purple')
-                        .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
-                    element.addClass('form-success')
-                    break;
-                case '2':
-                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
-                        .removeClass('form-brown').removeClass('form-purple')
-                        .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
-                    element.addClass('form-error')
-                case '3':
-                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
-                        .removeClass('form-brown').removeClass('form-purple')
-                        .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
-                    element.addClass('form-agua')
-                    break;
-                case '5':
-                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-info')
-                        .removeClass('form-brown').removeClass('form-purple')
-                        .removeClass('form-grey').removeClass('form-agua')
-                    element.addClass('form-orange')
-                    break;
-                case '6':
-                    element.removeClass('form-success').removeClass('form-error').removeClass('form-info')
-                        .removeClass('form-brown').removeClass('form-purple')
-                        .removeClass('form-orange').removeClass('form-agua')
-                    element.addClass('form-grey')
-                    break;
-                case '9':
-                    element.removeClass('form-success').removeClass('form-error').removeClass('form-info')
-                        .removeClass('form-brown').removeClass('form-purple')
-                        .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
-                    element.addClass('form-warning')
-                    break;
-                case '10':
-                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
-                        .removeClass('form-brown').removeClass('form-purple')
-                        .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
-                    element.addClass('form-info')
-                    break;
-                case '11':
-                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
-                        .removeClass('form-info').removeClass('form-brown')
-                        .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
-                    element.addClass('form-purple')
-                    break;
-                case '12':
-                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
-                        .removeClass('form-info').removeClass('form-purple')
-                        .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
-                    element.addClass('form-brown')
-                    break;
-                case '0':
-                default:
-                    element.removeClass('form-success').removeClass('form-warning').removeClass('form-error')
-                    .removeClass('form-info').removeClass('form-purple').removeClass('form-brown')
-                    .removeClass('form-orange').removeClass('form-grey').removeClass('form-agua')
-                    break
-            }
-        }
+
     </script>
 @endsection
