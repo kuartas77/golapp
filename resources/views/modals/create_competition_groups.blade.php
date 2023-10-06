@@ -25,7 +25,7 @@
                                 <div class="form-group">
                                     <label for="user_id">Formador</label>(<span class="text-danger">*</span>)
                                     <span class="bar"></span>
-                                    {!! Form::select('user_id', $users , null, ['id'=>'user_id','class' => 'form-control form-control-sm select2','placeholder' =>'Seleccione uno...','required']) !!}
+                                    {{ html()->select('user_id', $users, null)->attributes(['id'=>'user_id','class' => 'form-control form-control-sm select2','placeholder' =>'Seleccione uno...','required']) }}
                                 </div>
                             </div>
 
@@ -37,7 +37,7 @@
                                 <div class="form-group">
                                     <label for="day_id">Torneo</label>(<span class="text-danger">*</span>)
                                     <span class="bar"></span>
-                                    {!! Form::select('tournament_id', $tournaments , null, ['id'=>'tournament_id','class' => 'form-control form-control-sm select2','placeholder' =>'Seleccione uno...','required']) !!}
+                                    {{ html()->select('tournament_id', $tournaments, null)->attributes(['id'=>'tournament_id','class' => 'form-control form-control-sm select2','placeholder' =>'Seleccione uno...','required']) }}
                                 </div>
                             </div>
 

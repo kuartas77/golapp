@@ -21,8 +21,13 @@ class MatchesViewComposer
 
             $school_id = getSchool(auth()->user())->id;
 
-            $minYear = Cache::remember("KEY_MIN_YEAR_{$school_id}", now()->addDay(), function () use($school_id) {
-                return Carbon::parse(Game::getMinYear($school_id))->year;
+            $years = Cache::remember("KEY_MIN_YEAR_{$school_id}", now()->addDay(), function () use($school_id) {
+                $years = [];
+                foreach (Game::getYears($school_id) as $year) {
+                    $years[] = $year;
+                }
+
+                return $years;
             });
 
             $tournaments = Cache::remember("KEY_TOURNAMENT_{$school_id}", now()->addDay(), function () {
@@ -65,7 +70,7 @@ class MatchesViewComposer
 
             $view->with('played', $played);
             $view->with('scores', $scores);
-            $view->with('minYear', $minYear);
+            $view->with('years', $years);
             $view->with('positions', $positions);
             $view->with('tournaments', $tournaments);
             $view->with('qualifications', $qualifications);

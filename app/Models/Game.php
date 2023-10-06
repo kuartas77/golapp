@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
-use App\Traits\Fields;
 use Illuminate\Support\Str;
 use App\Traits\GeneralScopes;
 use App\Observers\MatchObserver;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,7 +16,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Game extends Model
 {
     use SoftDeletes;
-    use Fields;
     use GeneralScopes;
     use HasFactory;
 
@@ -91,6 +91,12 @@ class Game extends Model
     public static function getMinYear(int $school_id = 0): ?string
     {
         return self::query()->when($school_id, fn($query)=> $query->where('school_id', $school_id))->min('created_at');
+    }
 
+    public static function getYears(int $school_id = 0): Collection
+    {
+        return self::query()->when($school_id, fn($query)=> $query->where('school_id', $school_id))
+            ->select([DB::raw('EXTRACT(YEAR FROM created_at) as year')])
+            ->groupBy('year')->pluck('year');
     }
 }

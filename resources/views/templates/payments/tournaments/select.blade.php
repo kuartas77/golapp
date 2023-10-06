@@ -39,7 +39,7 @@ switch($value){
     break;
 }
 @endphp
-{!! Form::select($name,
+{!! html()->select($name,
     config('variables.KEY_PAYMENTS_SELECT'),
-    $value,
-    ['class' => "form-control form-control-sm payments {$class}", 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '', 'style'=>"width: 25%;"]) !!}
+    $value)
+    ->attributes(['class' => "form-control form-control-sm payments {$class}", 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '', 'style'=>"width: 25%;"]) !!}

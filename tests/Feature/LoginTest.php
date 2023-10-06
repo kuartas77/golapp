@@ -21,14 +21,14 @@ class LoginTest extends TestCase
         list($_, $user) = $this->createSchoolAndUser();
 
         $this->post('/login', [
-            'email' => $user['email'],
+            'email' => $user->email,
             'password' => 'password'
         ])
         ->assertStatus(302)
         ->assertRedirect('/home');
     }
 
-    public function test_login_email_password_wrong()
+    public function test_login_email_wrong()
     {
         list($_, $user) = $this->createSchoolAndUser();
 
@@ -38,9 +38,14 @@ class LoginTest extends TestCase
         ])
         ->assertStatus(302)
         ->assertRedirect('/');
+    }
+
+    public function test_login_password_wrong()
+    {
+        list($_, $user) = $this->createSchoolAndUser();
 
         $this->post('/login', [
-            'email' => $user['email'],
+            'email' => $user->email,
             'password' => 'passwords'
         ])
         ->assertStatus(302)

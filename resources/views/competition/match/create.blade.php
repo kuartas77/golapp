@@ -2,7 +2,7 @@
 @section('content')
     <x-bread-crumb title="Control De Competencia" :option="0"/>
     <x-row-card col-inside="12" >
-        {!! Form::open(['route' => 'matches.store', 'id'=>'form_matches','class'=>'form-horizontal']) !!}
+        {{html()->form('post', route('matches.store'))->attributes(['id'=>'form_matches','class'=>'form-horizontal'])->open()}}
             <div class="form-body">
                 @include('competition.match.fields')
 
@@ -13,7 +13,7 @@
                     Guardar
                 </button>
             </div>
-        {!! Form::close() !!}
+        {{ html()->form()->close() }}
     </x-row-card >
 @endsection
 @section('modals')
@@ -69,7 +69,7 @@
                 if($('#file-upload')[0].files[0] !== undefined){
                     let formData = new FormData()
                     formData.append('file', $('#file-upload')[0].files[0]);
-    
+
                     $.ajax({
                         url : urlUploadFile,
                         type : 'POST',
@@ -83,7 +83,7 @@
                         }
                     });
                 }
-                
+
             });
         });
     </script>

@@ -11,7 +11,7 @@ class RowCard extends Component
      *
      * @return void
      */
-    public function __construct(public ?string $colOutside = null, public string $colInside)
+    public function __construct(public string $colInside, public ?string $colOutside = null)
     {
         //
     }

@@ -7,7 +7,7 @@ ARG uid
 
 # algunas configuraciones para que funcione el contenedor
 RUN apt-get update
-RUN apt-get install -y libfreetype6-dev libjpeg62-turbo-dev libmcrypt-dev libpng-dev libpq-dev zlib1g-dev libxml2-dev libzip-dev graphviz libicu-dev
+RUN apt-get install -y libfreetype6-dev libjpeg62-turbo-dev libmcrypt-dev libpng-dev libpq-dev zlib1g-dev libxml2-dev libzip-dev unzip graphviz libicu-dev
 RUN docker-php-ext-install zip gd xml pdo pdo_mysql \
     && pecl install -o -f redis \
     && docker-php-ext-enable redis \

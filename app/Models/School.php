@@ -72,7 +72,7 @@ class School extends Model
 
     public function getLogoFileAttribute(): string
     {
-        if (Storage::disk('public')->exists($this->attributes['logo'])) {
+        if (!empty($this->attributes['logo']) && Storage::disk('public')->exists($this->attributes['logo'])) {
             return route('images', $this->attributes['logo']);
         }
         return asset('img/ballon.png');
@@ -100,7 +100,7 @@ class School extends Model
 
     public function getLogoLocalAttribute(): string
     {
-        if (Storage::disk('public')->exists($this->attributes['logo'])) {
+        if (!empty($this->attributes['logo']) && Storage::disk('public')->exists($this->attributes['logo'])) {
             return storage_path("app/public/{$this->attributes['logo']}");
         }
         return storage_path('standard/ballon.png');

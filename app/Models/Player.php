@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Traits\Fields;
 use Jenssegers\Date\Date;
 use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +21,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Player extends Model
 {
     use SoftDeletes;
-    use Fields;
     use GeneralScopes;
     use HasFactory;
     use Notifiable;
@@ -113,7 +111,7 @@ class Player extends Model
 
     public function getPhotoUrlAttribute(): string
     {
-        if (Storage::disk('public')->exists($this->attributes['photo'])) {
+        if(!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])){
             return route('images', $this->attributes['photo']);
         }
         return url('img/user.png');
@@ -121,10 +119,10 @@ class Player extends Model
 
     public function getPhotoLocalAttribute(): string
     {
-        if (Storage::disk('public')->exists($this->attributes['photo'])) {
+        if(!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])){
             return storage_path("app/public/{$this->attributes['photo']}");
         }
-        return public_path('img/user.png');
+        return url('img/user.png');
     }
 
     public function routeNotificationForMail($notification)

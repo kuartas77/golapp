@@ -65,7 +65,7 @@ class PlayerCreateRequest extends FormRequest
     public function messages()
     {
         return [
-            'unique_code' => 'El código ya fue registrado anteriormente.'
+            // 'unique_code' => 'El código ya fue registrado anteriormente.'
         ];
     }
 

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Models\User;
-use App\Traits\Fields;
 use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -22,7 +21,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class CompetitionGroup extends Model
 {
     use SoftDeletes;
-    use Fields;
     use GeneralScopes;
     use HasFactory;
 
@@ -51,7 +49,7 @@ class CompetitionGroup extends Model
     public function scopeOnlyTrashedRelations($query)
     {
         return $query->with([
-            'tournament', 
+            'tournament',
             'professor' => fn ($query) => $query->withTrashed()->get()
         ])->onlyTrashed();
     }

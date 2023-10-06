@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Traits\Fields;
 use App\Traits\PaymentTrait;
 use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +13,6 @@ use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 class Payment extends Model
 {
     use SoftDeletes;
-    use Fields;
     use GeneralScopes;
     use HasFactory;
     use PaymentTrait;

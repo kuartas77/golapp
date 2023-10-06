@@ -4,10 +4,8 @@
 namespace App\Http\ViewComposers\TrainingGroup;
 
 
-use App\Models\Day;
 use App\Models\Schedule;
 use App\Models\User;
-use App\Models\School;
 use App\Traits\Commons;
 use Illuminate\View\View;
 use App\Models\Tournament;
@@ -24,14 +22,14 @@ class TrainingGroupComposer
         if (Auth::check()) {
 
             $school_id = getSchool(auth()->user())->id;
-            
+
             $days = Cache::rememberForever('KEY_WEEKS', fn () => config('variables.KEY_WEEKS'));
 
             $users = Cache::remember("KEY_USERS_{$school_id}", now()->addMinute(), fn () =>
                  (new UserRepository(new User()))->getAll()->pluck('name', 'id')
             );
 
-            $schedules = Cache::remember("SCHEDULES_{$school_id}", now()->addMinute(), fn () => 
+            $schedules = Cache::remember("SCHEDULES_{$school_id}", now()->addMinute(), fn () =>
                 Schedule::query()->schoolId()->pluck('schedule', 'schedule')
             );
 

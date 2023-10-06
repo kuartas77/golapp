@@ -4,7 +4,7 @@
             <div class="form-group">
                 <label for="training_group_id">Grupo De Entrenamiento</label>
                 <span class="bar"></span>
-                {!! Form::select('training_group_id', $training_groups, null,['id'=>'training_group_id','class' => 'form-control form-control-sm','placeholder' => 'Seleccionar...']) !!}
+                {{ html()->select('training_group_id', $training_groups, null)->attributes(['id'=>'training_group_id','class' => 'form-control form-control-sm','placeholder' => 'Seleccionar...']) }}
             </div>
         </div>
 
@@ -12,7 +12,7 @@
             <div class="form-group">
                 <label for="unique_code">Código Único</label>
                 <span class="bar"></span>
-                {!! Form::text('unique_code', null,['class' => 'form-control form-control-sm','placeholder' => 'Ej: 20190000']) !!}
+                {!! html()->text('unique_code', null)->attributes(['class' => 'form-control form-control-sm','placeholder' => 'Ej: 20190000']) !!}
             </div>
         </div>
 

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Traits\Fields;
 use App\Traits\GeneralScopes;
 use Illuminate\Support\Collection;
 use App\Observers\InscriptionObserver;
@@ -42,7 +41,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Inscription extends Model
 {
     use SoftDeletes;
-    use Fields;
     use GeneralScopes;
     use HasFactory;
 

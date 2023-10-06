@@ -28,7 +28,7 @@ class SchoolsController extends Controller
     public function update(SchoolUpdateRequest $request, School $school, RegisterService $registerService)
     {
         $registerService->updateSchoolUsesCase($request, $school);
-        
+
         return redirect(route('school.index', ['school' => $school]));
     }
 }

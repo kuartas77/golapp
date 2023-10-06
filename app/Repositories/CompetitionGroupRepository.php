@@ -4,7 +4,6 @@
 namespace App\Repositories;
 
 
-use App\Traits\Fields;
 use App\Traits\ErrorTrait;
 use App\Models\Inscription;
 use App\Models\CompetitionGroup;
@@ -19,7 +18,6 @@ use Throwable;
 
 class CompetitionGroupRepository
 {
-    use Fields;
     use ErrorTrait;
 
     /**

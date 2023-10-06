@@ -60,7 +60,7 @@
                                 <div class="form-group">
                                     <label for="day_one">Clase 1</label>
                                     <span class="bar"></span>
-                                    {!! Form::select('day_one', $week , null, ['id'=>'day_one','class' => 'form-control form-control-sm select classes','placeholder' =>'Seleccione uno...','required']) !!}
+                                    {{ html()->select('day_one', $week, null)->attributes([['id'=>'day_one','class' => 'form-control form-control-sm select classes','placeholder' =>'Seleccione uno...','required']) }}
                                 </div>
                             </div>
 
@@ -68,7 +68,7 @@
                                 <div class="form-group">
                                     <label for="day_two">Clase 2</label>
                                     <span class="bar"></span>
-                                    {!! Form::select('day_two', $week , null, ['id'=>'day_two','class' => 'form-control form-control-sm select classes','placeholder' =>'Seleccione uno...','required']) !!}
+                                    {{ html()->select('day_two', $week, null)->attributes(['id'=>'day_two','class' => 'form-control form-control-sm select classes','placeholder' =>'Seleccione uno...','required']) }}
                                 </div>
                             </div>
 
@@ -76,7 +76,7 @@
                                 <div class="form-group">
                                     <label for="day_three">Clase 3</label>
                                     <span class="bar"></span>
-                                    {!! Form::select('day_three', $week , null, ['id'=>'day_three','class' => 'form-control form-control-sm select classes','placeholder' =>'Seleccione uno...','required']) !!}
+                                    {{ html()->select('day_three', $week, null)->attributes(['id'=>'day_three','class' => 'form-control form-control-sm select classes','placeholder' =>'Seleccione uno...','required']) }}
                                 </div>
                             </div>
 
@@ -84,7 +84,7 @@
                                 <div class="form-group">
                                     <label for="day_four">Clase 4</label>
                                     <span class="bar"></span>
-                                    {!! Form::select('day_four', $week , null, ['id'=>'day_four','class' => 'form-control form-control-sm select classes','placeholder' =>'Seleccione uno...','required']) !!}
+                                    {{ html()->select('day_four', $week, null)->attributes(['id'=>'day_four','class' => 'form-control form-control-sm select classes','placeholder' =>'Seleccione uno...','required']) }}
                                 </div>
                             </div>
 
@@ -92,7 +92,7 @@
                                 <div class="form-group">
                                     <label for="day_five">Clase 5</label>
                                     <span class="bar"></span>
-                                    {!! Form::select('day_five', $week , null, ['id'=>'day_five','class' => 'form-control form-control-sm select classes','placeholder' =>'Seleccione uno...','required']) !!}
+                                    {{ html()->select('day_five', $week, null)->attributes(['id'=>'day_five','class' => 'form-control form-control-sm select classes','placeholder' =>'Seleccione uno...','required']) }}
                                 </div>
                             </div>--}}
 

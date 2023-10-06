@@ -18,7 +18,7 @@
                                 <div class="form-group">
                                     <label for="training_group_destination">Grupo De Competencia</label>
                                     <span class="bar"></span>
-                                    {!! Form::select('training_group_destination', $groupsCompetition, null, ['class' => 'form-control form-control-sm', 'placeholder'=>'seleccionar...', 'id' =>'training_group_destination']) !!}
+                                    {{ html()->select('training_group_destination', $groupsCompetition, null)->attributes(['class' => 'form-control form-control-sm', 'placeholder'=>'seleccionar...', 'id' =>'training_group_destination']) }}
                                 </div>
                             </div>
                         </div>
@@ -39,7 +39,7 @@
         <div class="col-lg-6 col-md-6 col-sm-6">
             <div class="card m-b-0">
                 <div class="card-body m-b-0">
-                    <h6 class="card-subtitle text-themecolor m-t-5">Deportistas 
+                    <h6 class="card-subtitle text-themecolor m-t-5">Deportistas
                         <strong id="inscriptions_count">Cantidad: {{$insWithOutGroupCount}}</strong>
                     </h6>
                     <input type="text" name="search" id="search_origin" class="form-control form-control-sm" placeholder="Buscar..." autocomplete="off" onkeyup="search(this, 'inscriptions')">
@@ -54,8 +54,8 @@
         <div class="col-lg-6 col-md-6 col-sm-6 ">
             <div class="card m-b-0">
                 <div class="card-body m-b-0">
-                    <h6 class="card-subtitle text-themecolor m-t-5">Grupo Seleccionado: 
-                        <strong id="group_selected">Ninguno...</strong> 
+                    <h6 class="card-subtitle text-themecolor m-t-5">Grupo Seleccionado:
+                        <strong id="group_selected">Ninguno...</strong>
                         <strong id="destination_count"></strong>
                     </h6>
                     <input type="text" name="search" id="search_destiny" class="form-control form-control-sm" placeholder="Buscar..." autocomplete="off" onkeyup="search(this, 'destination')">

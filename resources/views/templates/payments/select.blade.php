@@ -39,7 +39,7 @@ switch($value){
     break;
 }
 @endphp
-{!! Form::select($mes,
+{!! html()->select($mes,
     config('variables.KEY_PAYMENTS_SELECT'),
-    $value,
-    ['class' => "form-control form-control-sm payments {$class}", 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '']) !!}
+    $value)
+    ->attributes(['class' => "form-control form-control-sm payments {$class}", 'placeholder'=>'Selecciona...', ($deleted || isInstructor()) ? 'disabled' : '']) !!}

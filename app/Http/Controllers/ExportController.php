@@ -58,7 +58,7 @@ class ExportController extends Controller
      * @return mixed
      * @throws MpdfException
      */
-    public function exportAssistsPDF($trainingGroupId, $year, $month, $deleted = false, AssistExportService $assistExportService)
+    public function exportAssistsPDF(AssistExportService $assistExportService, $trainingGroupId, $year, $month, $deleted = false)
     {
         $params = [
             'training_group_id' => $trainingGroupId,

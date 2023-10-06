@@ -91,6 +91,7 @@ class PlayerController extends Controller
      */
     public function update(PlayerUpdateRequest $request, Player $player): RedirectResponse
     {
+        dd($request->all());
         abort_unless(isAdmin() || isSchool(), 404);
         $player = $this->repository->updatePlayer($player, $request);
         if (is_null($player)) {

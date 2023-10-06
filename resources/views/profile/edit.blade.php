@@ -3,9 +3,7 @@
 @section('content')
 <x-bread-crumb title="Perfil {{$profile->user->name}}" :option="0"/>
 <x-row-card col-inside="8" col-outside="2" >
-    {!! Form::model($profile, ['url' => $profile->url_update, 'method' => 'patch', 'files'=>true, 'id'=>'form_create', 'class'=>''])!!}
-        @method('PUT')
-        @csrf
+        {{html()->modelForm($profile, 'put', $profile->url_update)->attributes(['id'=>'form_create', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class'=>''])->open()}}
         <div class="form-body">
             @include('profile.fields')
         </div>
@@ -15,7 +13,7 @@
             </button>
         </div>
 
-    {!! Form::close() !!}
+    {{ html()->closeModelForm() }}
 </x-row-card>
 @endsection
 @section('modals')

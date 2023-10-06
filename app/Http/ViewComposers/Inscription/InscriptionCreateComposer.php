@@ -4,14 +4,13 @@
 namespace App\Http\ViewComposers\Inscription;
 
 
-use App\Models\CompetitionGroup;
 use App\Models\School;
-use App\Repositories\CompetitionGroupRepository;
-use App\Repositories\TrainingGroupRepository;
 use App\Traits\Commons;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use App\Repositories\TrainingGroupRepository;
+use App\Repositories\CompetitionGroupRepository;
 
 class InscriptionCreateComposer
 {

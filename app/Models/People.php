@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Traits\Fields;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -12,9 +11,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  */
 class People extends Model
 {
-    use Fields;
     use HasFactory;
-    
+
     const TUTOR = 1;
     const FATHER = 2;
     const MOTHER = 3;

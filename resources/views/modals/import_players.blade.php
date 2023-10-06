@@ -1,7 +1,7 @@
 <div class="modal" id="import_players">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-                {!! Form::open(['route' => ['import.players'], 'method' => 'post','class' => 'form-material m-t-0', 'id'=>'form_file', 'files'=> true]) !!}
+                {{html()->form('post', route('import.players'))->attributes(['id' => 'form_file', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class' => 'form-material m-t-0'])->open()}}
                 <div class="modal-header">
                     <h4 class="modal-title" id="myLargeModalLabel">Agregar Deportistas En Excel</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -16,7 +16,7 @@
                                 <div class="form-group">
                                     <label for="school_id">Escuela</label>
                                     <span class="bar"></span>
-                                    {!! Form::select('school_id', $schools , null, ['id'=>'school_id','class' => 'form-control form-control-sm','placeholder' =>'Seleccione uno...','required']) !!}
+                                    {{ html()->select('school_id', $schools, null)->attributes(['id'=>'school_id','class' => 'form-control form-control-sm','placeholder' =>'Seleccione uno...','required']) }}
                                 </div>
                             </div>
 
@@ -35,8 +35,7 @@
                     <button type="button" class="btn btn-danger waves-effect text-left" data-dismiss="modal">Cerrar</button>
                     <button type="submit" class="btn btn-info waves-effect text-left">Guardar</button>
                 </div>
-            {!! Form::close() !!}
+            {{ html()->form()->close() }}
         </div>
     </div>
 </div>
-schools

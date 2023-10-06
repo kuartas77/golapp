@@ -5,7 +5,6 @@ namespace App\Repositories;
 use Exception;
 use App\Models\Game;
 use App\Models\Master;
-use App\Traits\Fields;
 use Mpdf\MpdfException;
 use App\Traits\PDFTrait;
 use App\Traits\ErrorTrait;
@@ -16,7 +15,6 @@ use Illuminate\Support\Facades\View;
 
 class GameRepository
 {
-    use Fields;
     use PDFTrait;
     use ErrorTrait;
 
@@ -58,7 +56,7 @@ class GameRepository
     public function makeMatch($competitionGroup): object
     {
         $competitionGroup->load([
-            'inscriptions' => fn ($q) => $q->with('player'), 
+            'inscriptions' => fn ($q) => $q->with('player'),
             'tournament:id,name', 'professor:id,name'
         ]);
         $rows = "";
@@ -198,14 +196,14 @@ class GameRepository
     {
         $match = $this->model->query()->with([
             'tournament' => fn ($query) => $query->withTrashed(),
-            'competitionGroup' => fn ($query) => 
+            'competitionGroup' => fn ($query) =>
                 $query->with([
                     'professor' => fn ($query) => $query->withTrashed()
                 ])->withTrashed(),
             'skillsControls' => fn ($query) => $query->with([
                 'inscription' => fn ($query) => $query->with('player')->withTrashed()
             ])->withTrashed()
-            
+
         ])->findOrFail($matchId);
 
 

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Traits\Fields;
 use App\Traits\GeneralScopes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +17,6 @@ use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 class Assist extends Model
 {
     use SoftDeletes;
-    use Fields;
     use GeneralScopes;
     use HasFactory;
 

@@ -14,29 +14,28 @@
 
             <div class="col-md-3">
                 <div class="form-group ">
-                    {!! Form::label("people[0][relationship]", 'Relación Familiar') !!}(<span class="text-danger">*</span>)
-                    {!! Form::select("people[0][relationship]", $relationships, null,
-                    ['class' => 'form-control form-control-sm','placeholder' => 'Seleccione uno...']) !!}
+                    {!! html()->label('Relación Familiar', "people[0][relationship]") !!}(<span class="text-danger">*</span>)
+                    {{ html()->select("people[0][relationship]", $relationships, null)->attributes(['class' => 'form-control form-control-sm','placeholder' => 'Seleccione uno...']) }}
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="form-group">
-                    {!! Form::label("people[0][names]", 'Nombres Y Apellidos') !!}(<span class="text-danger">*</span>)
-                    {!! Form::text("people[0][names]", null, ['class' => 'form-control form-control-sm']) !!}
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="form-group">
-                    {!! Form::label("people[0][identification_card]", 'Número De Cédula') !!}(<span class="text-danger">*</span>)
-                    {!! Form::text("people[0][identification_card]", null, ['class' => 'form-control form-control-sm']) !!}
+                    {!! html()->label('Nombres Y Apellidos', "people[0][names]") !!}(<span class="text-danger">*</span>)
+                    {!! html()->text("people[0][names]", null)->attributes(['class' => 'form-control form-control-sm']) !!}
                 </div>
             </div>
 
             <div class="col-md-3">
                 <div class="form-group">
-                    {!! Form::label("people[0][phone]", 'Teléfonos/Celular') !!}
-                    {!! Form::text("people[0][phone]", null, ['class' => 'form-control form-control-sm']) !!}
+                    {!! html()->label('Número De Cédula', "people[0][identification_card]") !!}(<span class="text-danger">*</span>)
+                    {!! html()->text("people[0][identification_card]", null)->attributes(['class' => 'form-control form-control-sm']) !!}
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="form-group">
+                    {!! html()->label('Teléfonos/Celular', "people[0][phone]") !!}
+                    {!! html()->text("people[0][phone]", null)->attributes(['class' => 'form-control form-control-sm']) !!}
                 </div>
             </div>
         </div>
