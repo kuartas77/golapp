@@ -12,7 +12,7 @@ trait GeneralScopes
 
     public function scopeTrainingTeam($query, $training_team_id = null)
     {
-        return $query->when($training_team_id, function($q) use($training_team_id){
+        return $query->when($training_team_id, function ($q) use ($training_team_id) {
             $q->where('training_team_id', $training_team_id);
         });
     }

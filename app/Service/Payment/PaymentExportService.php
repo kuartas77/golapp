@@ -5,8 +5,8 @@ namespace App\Service\Payment;
 use App\Models\CompetitionGroup;
 use App\Models\Tournament;
 use App\Models\TrainingGroup;
-use App\Traits\PDFTrait;
 use App\Traits\ErrorTrait;
+use App\Traits\PDFTrait;
 use stdClass;
 
 class PaymentExportService
@@ -16,9 +16,9 @@ class PaymentExportService
 
     public function paymentsPdfByGroup($payments, $request, bool $stream)
     {
-        if($request->training_group_id != 0){
+        if ($request->training_group_id != 0) {
             $group = TrainingGroup::query()->find($request->training_group_id);
-        }else{
+        } else {
             $group = new stdClass();
             $group->name = 'Todos los grupos';
         }

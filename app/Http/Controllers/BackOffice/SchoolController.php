@@ -2,18 +2,17 @@
 
 namespace App\Http\Controllers\BackOffice;
 
-use App\Models\School;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use App\Service\API\RegisterService;
-use App\Repositories\SchoolRepository;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\BackOffice\SchoolCreateRequest;
 use App\Http\Requests\BackOffice\SchoolUpdateRequest;
+use App\Models\School;
+use App\Repositories\SchoolRepository;
+use App\Service\API\RegisterService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Session;
 
 class SchoolController extends Controller
 {
@@ -88,9 +87,9 @@ class SchoolController extends Controller
     {
         Session::put('selected_school', $request->school_id);
         /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
-        Cache::remember(School::KEY_SCHOOL_CACHE. "_admin_{$request->school_id}",
-         now()->addMinutes(env('SESSION_LIFETIME', 120)),
-         fn()=> School::with(['settingsValues'])->find($request->school_id));
+        Cache::remember(School::KEY_SCHOOL_CACHE . "_admin_{$request->school_id}",
+            now()->addMinutes(env('SESSION_LIFETIME', 120)),
+            fn() => School::with(['settingsValues'])->find($request->school_id));
         return response()->json(true, 200);
     }
 }

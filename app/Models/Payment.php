@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\Traits\PaymentTrait;
 use App\Traits\GeneralScopes;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\PaymentTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Payment extends Model
 {
@@ -60,7 +60,7 @@ class Payment extends Model
 
     public function player(): HasOneThrough
     {
-        return $this->hasOneThrough(Player::class, Inscription::class, 'id','id','inscription_id', 'player_id');
+        return $this->hasOneThrough(Player::class, Inscription::class, 'id', 'id', 'inscription_id', 'player_id');
     }
 
     public function training_group(): BelongsTo
@@ -73,7 +73,7 @@ class Payment extends Model
         return $this->belongsTo(School::class, 'school_id');
     }
 
-    public function getUrlHistoricAttribute()
+    public function getUrlHistoricAttribute(): string
     {
         return route('historic.payments.group', [
             'training_group_id' => $this->attributes['training_group_id'],

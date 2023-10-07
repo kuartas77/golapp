@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Players;
 
-use App\Models\Player;
-use App\Http\Controllers\Controller;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\InscriptionSheetsExport;
+use App\Http\Controllers\Controller;
+use App\Models\Player;
 use App\Service\Player\PlayerExportService;
+use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PlayerExportController extends Controller

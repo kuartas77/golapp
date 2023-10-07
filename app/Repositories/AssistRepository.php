@@ -3,13 +3,13 @@
 
 namespace App\Repositories;
 
-use Exception;
 use App\Models\Assist;
-use App\Traits\PDFTrait;
-use App\Traits\ErrorTrait;
 use App\Models\Inscription;
 use App\Models\TrainingGroup;
 use App\Service\Assist\AssistService;
+use App\Traits\ErrorTrait;
+use App\Traits\PDFTrait;
+use Exception;
 use Illuminate\Support\Facades\DB;
 
 class AssistRepository
@@ -36,10 +36,10 @@ class AssistRepository
         }
 
         $trainingGroup = TrainingGroup::query()->schoolId()
-            ->when($deleted, fn ($q) => $q->onlyTrashedRelations())->findOrFail($data['training_group_id']);
+            ->when($deleted, fn($q) => $q->onlyTrashedRelations())->findOrFail($data['training_group_id']);
 
         $assists = $this->model->schoolId()->with('inscription.player')
-            ->when($deleted, fn ($q) => $q->withTrashed())
+            ->when($deleted, fn($q) => $q->withTrashed())
             ->where($data);
 
         return $this->service->generateTable($assists, $trainingGroup, $data, $deleted);

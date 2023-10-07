@@ -2,15 +2,15 @@
 
 namespace App\Exports;
 
-use Illuminate\Http\Request;
-use Illuminate\Contracts\View\View;
 use App\Repositories\PaymentRepository;
-use Maatwebsite\Excel\Concerns\FromView;
-use Maatwebsite\Excel\Concerns\WithTitle;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
 use Maatwebsite\Excel\Concerns\Exportable;
+use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithTitle;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 class PaymentsExport implements FromView, WithTitle, WithColumnFormatting, ShouldAutoSize
 {

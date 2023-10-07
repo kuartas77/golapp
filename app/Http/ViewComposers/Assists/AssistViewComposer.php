@@ -3,12 +3,12 @@
 
 namespace App\Http\ViewComposers\Assists;
 
-use Jenssegers\Date\Date;
-use Illuminate\Support\Str;
+use App\Repositories\TrainingGroupRepository;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use App\Repositories\TrainingGroupRepository;
+use Illuminate\Support\Str;
+use Jenssegers\Date\Date;
 
 class AssistViewComposer
 {
@@ -28,7 +28,7 @@ class AssistViewComposer
 
             if (isAdmin() || isSchool()) {
                 $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(false);
-            } elseif(isInstructor()){
+            } elseif (isInstructor()) {
                 $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(false, auth()->id());
             }
 

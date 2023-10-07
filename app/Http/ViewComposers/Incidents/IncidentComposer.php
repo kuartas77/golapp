@@ -5,8 +5,8 @@ namespace App\Http\ViewComposers\Incidents;
 
 
 use App\Models\User;
-use Illuminate\Contracts\View\View;
 use App\Repositories\UserRepository;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 

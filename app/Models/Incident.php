@@ -2,12 +2,11 @@
 
 namespace App\Models;
 
-use App\Models\User;
-use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 /**
  * @property mixed incidence
@@ -30,7 +29,7 @@ class Incident extends Model
     ];
 
     protected $appends = [
-        'url_show', 'url_print','incidence_upper', 'description_upper'
+        'url_show', 'url_print', 'incidence_upper', 'description_upper'
     ];
 
     public function getIncidenceUpperAttribute($value): string

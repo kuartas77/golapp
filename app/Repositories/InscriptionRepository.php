@@ -2,15 +2,14 @@
 
 namespace App\Repositories;
 
-use Exception;
-use App\Traits\ErrorTrait;
 use App\Models\Inscription;
 use App\Models\TrainingGroup;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Database\Eloquent\Collection;
 use App\Notifications\InscriptionNotification;
+use App\Traits\ErrorTrait;
+use Exception;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class InscriptionRepository
@@ -60,9 +59,9 @@ class InscriptionRepository
     public function setInscription(array $inscriptionData, bool $created = true, Inscription $inscription = null): Inscription
     {
         try {
-            if(!$inscriptionData['training_group_id']){
+            if (!$inscriptionData['training_group_id']) {
                 $inscriptionData['training_group_id'] = TrainingGroup::query()->orderBy('id', 'asc')
-                ->firstWhere('school_id', $inscriptionData['school_id'])->id;
+                    ->firstWhere('school_id', $inscriptionData['school_id'])->id;
             }
 
             $inscriptionData['deleted_at'] = null;
@@ -70,8 +69,7 @@ class InscriptionRepository
             DB::beginTransaction();
 
             $competition_groups = [];
-            if(isset($inscriptionData['competition_groups']))
-            {
+            if (isset($inscriptionData['competition_groups'])) {
                 $competition_groups = $inscriptionData['competition_groups'];
                 unset($inscriptionData['competition_groups']);
             }
@@ -84,7 +82,7 @@ class InscriptionRepository
                 ], $inscriptionData);
 
                 $inscription->load(['player', 'school']);
-                if($inscription->player->email && filter_var($inscription->player->email, FILTER_VALIDATE_EMAIL)){
+                if ($inscription->player->email && filter_var($inscription->player->email, FILTER_VALIDATE_EMAIL)) {
                     $inscription->player->notify(new InscriptionNotification($inscription));
                 }
             } else {
@@ -93,7 +91,7 @@ class InscriptionRepository
                 $inscription->update($inscriptionData);
             }
 
-            if(!empty($competition_groups)){
+            if (!empty($competition_groups)) {
                 $inscription->competitionGroup()->sync($competition_groups);
             }
 

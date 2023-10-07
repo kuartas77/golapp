@@ -67,7 +67,7 @@
             </tr>
         </tbody>
     </table>
-    
+
         @foreach($player->inscriptions as $inscription)
             <!-- End Statistics -->
             <table class="table-full detail detail-lines">
@@ -104,7 +104,7 @@
                     <tr>
                         <td colspan="2"><strong class="bold">&nbsp;Posiciones En el Campo:</strong> {{ $inscription->format_average['positions'] }}</td>
                     </tr>
-                </tbody>        
+                </tbody>
             </table>
             <!-- End Statistics -->
             <!-- Payments -->
@@ -147,7 +147,7 @@
                         @endif
                     </tr>
                     <tr>
-                        @if($quarter == 'quarter_one' || $quarter == '')    
+                        @if($quarter == 'quarter_one' || $quarter == '')
                         <td class="bold {{$pay->march == '2' ? 'error': ''}}">&nbsp;Marzo: {{getPay($pay->march)}}</td>
                         @endif
                         @if($quarter == 'quarter_two' || $quarter == '')
@@ -160,7 +160,7 @@
                         <td class="bold {{$pay->december == '2' ? 'error': ''}}">&nbsp;Diciembre: {{getPay($pay->december)}}</td>
                         @endif
                     </tr>
-                    
+
                 @empty
                     <tr>
                         @if($quarter != '')
@@ -216,7 +216,7 @@
                     </tr>
                 @endforelse
                 </tbody>
-            </table>            
+            </table>
             <table class="table-full detail detail-lines">
                 <tr class="tr-tit">
                     <td class="text-center"><strong>ASISTENCIA:X</strong></td>
@@ -227,7 +227,38 @@
                 </tr>
             </table>
             <!-- End Asists -->
-            
+            @if($observations_assists->isNotEmpty())
+            <table class="table-full detail detail-lines">
+                <thead>
+                    <tr class="tr-tit">
+                        <th class="text-center">Observaciones de Entrenamientos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($observations_assists as $assist)
+                    <tr>
+                        <td>&nbsp;<strong class="bold"><small>{{ $assist->observations }}</small></td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            @endif
+            @if($observations_skills->isNotEmpty())
+            <table class="table-full detail detail-lines">
+                <thead>
+                    <tr class="tr-tit">
+                        <th class="text-center">Observaciones de Competencias</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($observations_skills as $skill)
+                    <tr>
+                        <td>&nbsp;<strong class="bold">Fecha: {{$skill->created_at->format('Y-m-d')}}</strong> <small>{{ $skill->observation }}</small></td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            @endif
         @endforeach
 </body>
 </html>

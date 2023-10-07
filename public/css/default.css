@@ -645,3 +645,9 @@ select.swal2-select{
 }
 
 .form-control-sm{min-height:10px}
+
+td>img{
+    width: 70px; /* You can set the dimensions to whatever you want */
+    height: 70px;
+    object-fit: cover;
+}

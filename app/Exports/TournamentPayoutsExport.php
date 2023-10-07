@@ -2,17 +2,17 @@
 
 namespace App\Exports;
 
-use App\Models\Tournament;
-use Illuminate\Http\Request;
 use App\Models\CompetitionGroup;
-use Illuminate\Contracts\View\View;
-use Maatwebsite\Excel\Concerns\FromView;
-use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\Exportable;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use App\Models\Tournament;
 use App\Repositories\TournamentPayoutsRepository;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Concerns\Exportable;
+use Maatwebsite\Excel\Concerns\FromView;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithTitle;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 class TournamentPayoutsExport implements FromView, WithTitle, WithColumnFormatting, ShouldAutoSize
 {

@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use App\Traits\GeneralScopes;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @method static select(string $string)
@@ -60,7 +60,7 @@ class Assist extends Model
     public function scopeOnlyTrashedRelations($query)
     {
         return $query->with([
-            'inscription' => fn ($query) => $query->withTrashed()
+            'inscription' => fn($query) => $query->withTrashed()
         ])->withTrashed();
     }
 
@@ -84,7 +84,7 @@ class Assist extends Model
 
     public function player(): HasOneThrough
     {
-        return $this->hasOneThrough(Player::class, Inscription::class, 'id','id','inscription_id', 'player_id');
+        return $this->hasOneThrough(Player::class, Inscription::class, 'id', 'id', 'inscription_id', 'player_id');
     }
 
     public function school(): BelongsTo

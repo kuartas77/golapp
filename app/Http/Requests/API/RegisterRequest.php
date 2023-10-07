@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\API;
 
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\Foundation\Http\FormRequest;
 
 class RegisterRequest extends FormRequest
 {
@@ -27,7 +27,7 @@ class RegisterRequest extends FormRequest
     public function rules()
     {
         return [
-            'email' => ['required','email', Rule::unique('schools','email'), Rule::unique('users','email')],
+            'email' => ['required', 'email', Rule::unique('schools', 'email'), Rule::unique('users', 'email')],
             'password' => ['required', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()->symbols()->uncompromised()],
             'name' => ['required', 'string'],
             'agent' => ['required', 'string'],

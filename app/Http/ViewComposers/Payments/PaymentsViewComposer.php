@@ -25,7 +25,7 @@ class PaymentsViewComposer
         if (Auth::check()) {
             if (isSchool() || isAdmin()) {
                 $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(false);
-            } elseif(isInstructor()){
+            } elseif (isInstructor()) {
                 $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(false, auth()->id());
             }
 

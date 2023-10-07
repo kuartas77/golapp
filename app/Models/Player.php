@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
-use Jenssegers\Date\Date;
 use App\Traits\GeneralScopes;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
+use Jenssegers\Date\Date;
 
 /**
  * @property mixed inscriptions
@@ -61,7 +61,7 @@ class Player extends Model
         'created_at' => "datetime:Y-m-d",
     ];
 
-    protected $appends = ['full_names', 'url_edit', 'url_show', 'url_impression','photo_url','photo_local'];
+    protected $appends = ['full_names', 'url_edit', 'url_show', 'url_impression', 'photo_url', 'photo_local'];
 
     public function getRouteKeyName(): string
     {
@@ -71,7 +71,7 @@ class Player extends Model
     public function setPhotoAttribute($value)
     {
         if (!empty($value)) {
-            if(!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])){
+            if (!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
                 Storage::disk('public')->delete($this->attributes['photo']);
             }
 
@@ -111,7 +111,7 @@ class Player extends Model
 
     public function getPhotoUrlAttribute(): string
     {
-        if(!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])){
+        if (!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
             return route('images', $this->attributes['photo']);
         }
         return url('img/user.png');
@@ -119,7 +119,7 @@ class Player extends Model
 
     public function getPhotoLocalAttribute(): string
     {
-        if(!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])){
+        if (!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
             return storage_path("app/public/{$this->attributes['photo']}");
         }
         return url('img/user.png');
@@ -148,7 +148,7 @@ class Player extends Model
 
     public function payments(): HasMany
     {
-        return $this->hasMany(Payment::class, 'unique_code','unique_code');
+        return $this->hasMany(Payment::class, 'unique_code', 'unique_code');
     }
 
     public function schoolData(): BelongsTo

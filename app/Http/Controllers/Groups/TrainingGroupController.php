@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\Groups;
 
-use Exception;
-use Illuminate\View\View;
-use Illuminate\Http\Request;
-use App\Models\TrainingGroup;
-use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Routing\Redirector;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Contracts\View\Factory;
-use App\Repositories\TrainingGroupRepository;
-use Illuminate\Contracts\Foundation\Application;
 use App\Http\Requests\Groups\TrainingGroupRequest;
+use App\Models\TrainingGroup;
+use App\Repositories\TrainingGroupRepository;
+use Exception;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Routing\Redirector;
+use Illuminate\View\View;
 
 class TrainingGroupController extends Controller
 {
@@ -59,8 +59,8 @@ class TrainingGroupController extends Controller
     {
         $training_group = $this->repository->createTrainingGroup($request);
         if ($training_group->wasRecentlyCreated) {
-            alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));            
-        } else{
+            alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));
+        } else {
             alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
         }
 
@@ -99,12 +99,12 @@ class TrainingGroupController extends Controller
      */
     public function update(TrainingGroupRequest $request, TrainingGroup $trainingGroup)
     {
-        abort_if($trainingGroup->id === 1, 401 , 'El Grupo Provicional No Se Puede Eliminar o Modificar');
-        
+        abort_if($trainingGroup->id === 1, 401, 'El Grupo Provicional No Se Puede Eliminar o Modificar');
+
         $trainingGroup = $this->repository->updateTrainingGroup($request, $trainingGroup);
-        if ($trainingGroup->exists){
+        if ($trainingGroup->exists) {
             alert()->success(env('APP_NAME'), __('messages.training_group_edit_success'));
-        } else{
+        } else {
             alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
         }
 
@@ -120,7 +120,7 @@ class TrainingGroupController extends Controller
      */
     public function destroy(TrainingGroup $trainingGroup)
     {
-        abort_if($trainingGroup->id === 1, 401 , 'El Grupo Provicional No Se Puede Eliminar o Modificar');
+        abort_if($trainingGroup->id === 1, 401, 'El Grupo Provicional No Se Puede Eliminar o Modificar');
 
         if ($trainingGroup->delete()) {
             alert()->success(env('APP_NAME'), __('messages.ins_delete_success'));

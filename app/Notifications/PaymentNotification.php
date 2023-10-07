@@ -5,9 +5,9 @@ namespace App\Notifications;
 use App\Models\Payment;
 use App\Models\School;
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
 
 class PaymentNotification extends Notification implements ShouldQueue
 {
@@ -20,7 +20,7 @@ class PaymentNotification extends Notification implements ShouldQueue
      */
     public function __construct(private Payment $payment, private School $school)
     {
-        // 
+        //
     }
 
     /**
@@ -40,13 +40,13 @@ class PaymentNotification extends Notification implements ShouldQueue
      * @param mixed $notifiable
      * @return MailMessage
      */
-    public function toMail($notifiable)
+    public function toMail($notifiable): MailMessage
     {
-        $notifyIndex = [2,3];
+        $notifyIndex = [2, 3];
         return (new MailMessage)
             ->subject("Notificación pagos de mensualidades {$this->school->name}.")
             ->markdown('emails.payments.debts', [
-                'payment' => $this->payment, 
+                'payment' => $this->payment,
                 'school' => $this->school,
                 'index' => $notifyIndex
             ]);
@@ -58,7 +58,7 @@ class PaymentNotification extends Notification implements ShouldQueue
      * @param mixed $notifiable
      * @return array
      */
-    public function toArray($notifiable)
+    public function toArray($notifiable): array
     {
         return [
             //

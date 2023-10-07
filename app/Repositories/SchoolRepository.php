@@ -2,17 +2,13 @@
 
 namespace App\Repositories;
 
-use App\Models\User;
 use App\Models\School;
-use App\Models\SchoolUser;
 use App\Traits\ErrorTrait;
 use App\Traits\UploadFile;
 use Exception;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
-use App\Notifications\RegisterNotification;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\DB;
 
 class SchoolRepository
 {
@@ -29,7 +25,7 @@ class SchoolRepository
     public function getAll()
     {
         $schools = $this->model->query()->get();
-        $schools->setAppends(['url_edit','url_update', 'url_show', 'url_destroy','logo_file']);
+        $schools->setAppends(['url_edit', 'url_update', 'url_show', 'url_destroy', 'logo_file']);
         return $schools;
     }
 
@@ -70,9 +66,9 @@ class SchoolRepository
             'incidents'
         ]);
         $response = new Collection();
-        if($school_id){
+        if ($school_id) {
             $response = $query->where('id', $school_id)->first();
-        }else{
+        } else {
             $response = $query->get();
         }
 

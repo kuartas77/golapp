@@ -2,16 +2,16 @@
 
 namespace App\Models;
 
-use App\Traits\GeneralScopes;
-use Illuminate\Support\Collection;
 use App\Observers\InscriptionObserver;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 
 /**
  * @property mixed player_id
@@ -100,9 +100,9 @@ class Inscription extends Model
     public function scopeWithTrashedRelations($query)
     {
         return $query->withTrashed()->with([
-            'payments' => fn ($query) => $query->withTrashed(),
-            'assistance' => fn ($query) => $query->withTrashed(),
-            'skillsControls' => fn ($query) => $query->withTrashed()
+            'payments' => fn($query) => $query->withTrashed(),
+            'assistance' => fn($query) => $query->withTrashed(),
+            'skillsControls' => fn($query) => $query->withTrashed()
         ]);
     }
 
@@ -126,10 +126,10 @@ class Inscription extends Model
         return route('players.show', [$this->attributes['unique_code']]);
     }
 
-     public function getUrlDestroyAttribute(): string
-     {
-         return route('inscriptions.destroy', [$this->attributes['id']]);
-     }
+    public function getUrlDestroyAttribute(): string
+    {
+        return route('inscriptions.destroy', [$this->attributes['id']]);
+    }
 
     public function player(): BelongsTo
     {

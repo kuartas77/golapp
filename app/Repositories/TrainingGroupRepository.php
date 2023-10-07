@@ -4,15 +4,15 @@
 namespace App\Repositories;
 
 
-use Exception;
-use App\Traits\ErrorTrait;
 use App\Models\TrainingGroup;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\View;
+use App\Traits\ErrorTrait;
+use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\View;
 
 /**
  * @method static create(array $group)
@@ -47,48 +47,23 @@ class TrainingGroupRepository
     public function createTrainingGroup(FormRequest $request)
     {
         $group = $this->setTrainingGroupParams($request);
-        
+
         try {
 
             DB::beginTransaction();
-            
+
             $userInstructors = $group['user_id'];
             unset($group['user_id']);
             $trainingGroup = new TrainingGroup($group);
             $trainingGroup->save();
             $trainingGroup->instructors()->syncWithPivotValues($userInstructors, ['assigned_year' => now()->year]);
-            
+
             DB::commit();
 
             Cache::forget("KEY_TRAINING_GROUPS_{$request->input('school_id')}");
-            
-            return $trainingGroup;
-            
-        } catch (Exception $exception) {
-            DB::rollBack();
-            $this->logError("TrainingGroupRepository setTrainingGroup", $exception);
-            return null;
-        }
-    }
 
-    public function updateTrainingGroup(FormRequest $request, TrainingGroup $trainingGroup)
-    {
-        $group = $this->setTrainingGroupParams($request);
-        
-        try {
-            DB::beginTransaction();
-            
-            $userInstructors = $group['user_id'];
-            unset($group['user_id']);
-            $trainingGroup->update($group);
-            $trainingGroup->instructors()->syncWithPivotValues($userInstructors, ['assigned_year' => now()->year]);
-            
-            DB::commit();
-
-            Cache::forget("KEY_TRAINING_GROUPS_{$request->input('school_id')}");
-            
             return $trainingGroup;
-            
+
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("TrainingGroupRepository setTrainingGroup", $exception);
@@ -123,6 +98,31 @@ class TrainingGroupRepository
             'days' => $request->input('days', []),
             'school_id' => $request->input('school_id')
         ];
+    }
+
+    public function updateTrainingGroup(FormRequest $request, TrainingGroup $trainingGroup)
+    {
+        $group = $this->setTrainingGroupParams($request);
+
+        try {
+            DB::beginTransaction();
+
+            $userInstructors = $group['user_id'];
+            unset($group['user_id']);
+            $trainingGroup->update($group);
+            $trainingGroup->instructors()->syncWithPivotValues($userInstructors, ['assigned_year' => now()->year]);
+
+            DB::commit();
+
+            Cache::forget("KEY_TRAINING_GROUPS_{$request->input('school_id')}");
+
+            return $trainingGroup;
+
+        } catch (Exception $exception) {
+            DB::rollBack();
+            $this->logError("TrainingGroupRepository setTrainingGroup", $exception);
+            return null;
+        }
     }
 
     /**
@@ -170,11 +170,11 @@ class TrainingGroupRepository
     public function historicAssistData()
     {
         return $this->model->query()->schoolId()
-        ->whereHas('assists', fn ($query) => $query->withTrashed()->where('year', '<', now()->year))
-        ->onlyTrashedRelationsFilter()
-        ->orderBy('created_at', 'desc')
-        ->get()
-        ->each(fn ($group) => $group->assists->setAppends(['url_historic','months']) );
+            ->whereHas('assists', fn($query) => $query->withTrashed()->where('year', '<', now()->year))
+            ->onlyTrashedRelationsFilter()
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->each(fn($group) => $group->assists->setAppends(['url_historic', 'months']));
     }
 
     /**
@@ -183,11 +183,11 @@ class TrainingGroupRepository
     public function historicPaymentData()
     {
         return $this->model->query()->schoolId()
-        ->whereHas('payments', fn ($query) => $query->withTrashed()->where('year', '<', now()->year))
-        ->onlyTrashedRelationsPayments()
-        ->orderBy('created_at', 'desc')
-        ->get()
-        ->each(fn ($group) => $group->payments->setAppends(['url_historic']));
+            ->whereHas('payments', fn($query) => $query->withTrashed()->where('year', '<', now()->year))
+            ->onlyTrashedRelationsPayments()
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->each(fn($group) => $group->payments->setAppends(['url_historic']));
     }
 
     /**

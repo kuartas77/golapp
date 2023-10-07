@@ -12,7 +12,7 @@ class UserCollection extends ResourceCollection
     /**
      * Transform the resource collection into an array.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return array
      */
     public function toArray($request)
@@ -41,6 +41,6 @@ class UserCollection extends ResourceCollection
 
     private function formatRoles(Collection $roles)
     {
-        return $roles->map(fn ($role) => ['id' => $role->id, 'name' => $role->name]);
+        return $roles->map(fn($role) => ['id' => $role->id, 'name' => $role->name]);
     }
 }

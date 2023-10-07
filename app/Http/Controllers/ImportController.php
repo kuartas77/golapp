@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Traits\ErrorTrait;
-use Illuminate\Http\Request;
-use App\Imports\ImportPlayers;
 use App\Imports\ImportMatchDetail;
-use App\Repositories\GameRepository;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\ImportPlayers;
 use App\Repositories\AssistRepository;
-use App\Repositories\PlayerRepository;
+use App\Repositories\GameRepository;
 use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
+use App\Repositories\PlayerRepository;
+use App\Traits\ErrorTrait;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
 
 class ImportController extends Controller
@@ -20,11 +20,13 @@ class ImportController extends Controller
 
     public function __construct(
         private InscriptionRepository $inscriptionRepository,
-        private AssistRepository $assistRepository,
-        private IncidentRepository $incidentRepository,
-        private GameRepository $gameRepository,
-        private PlayerRepository $playerRepository
-    ){}
+        private AssistRepository      $assistRepository,
+        private IncidentRepository    $incidentRepository,
+        private GameRepository        $gameRepository,
+        private PlayerRepository      $playerRepository
+    )
+    {
+    }
 
     public function importMatchDetail(Request $request)
     {

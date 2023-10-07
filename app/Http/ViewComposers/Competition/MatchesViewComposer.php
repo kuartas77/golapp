@@ -4,10 +4,9 @@
 namespace App\Http\ViewComposers\Competition;
 
 
-use Carbon\Carbon;
+use App\Models\CompetitionGroup;
 use App\Models\Game;
 use App\Models\Tournament;
-use App\Models\CompetitionGroup;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -21,7 +20,7 @@ class MatchesViewComposer
 
             $school_id = getSchool(auth()->user())->id;
 
-            $years = Cache::remember("KEY_MIN_YEAR_{$school_id}", now()->addDay(), function () use($school_id) {
+            $years = Cache::remember("KEY_MIN_YEAR_{$school_id}", now()->addDay(), function () use ($school_id) {
                 $years = [];
                 foreach (Game::getYears($school_id) as $year) {
                     $years[] = $year;
@@ -62,9 +61,9 @@ class MatchesViewComposer
                 return $qualifications;
             });
 
-            if (isAdmin() || isSchool()){
+            if (isAdmin() || isSchool()) {
                 $competitionGroups = CompetitionGroup::query()->schoolId()->get()->pluck('full_name_group', 'id');
-            }else if(isInstructor()){
+            } else if (isInstructor()) {
                 $competitionGroups = CompetitionGroup::query()->schoolId()->where('user_id', auth()->id())->get()->pluck('full_name_group', 'id');
             }
 

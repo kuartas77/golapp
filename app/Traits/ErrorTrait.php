@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Mail;
 
 trait ErrorTrait
 {
-    public function logError($message, $th)
+    public function logError($message, $th): void
     {
         $context = [
             "error" => $th->getMessage(),

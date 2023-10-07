@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use App\Traits\ErrorTrait;
-use Illuminate\Support\Str;
-use Illuminate\Support\Collection;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Throwable;
 
 class Master extends Model
@@ -57,7 +57,7 @@ class Master extends Model
                             explode(',', $master->autocomplete),
                             explode(',', $fieldRequest)
                         )
-                    , SORT_STRING);
+                        , SORT_STRING);
                     $master->update(['autocomplete' => $autocomplete]);
                 }
             }
