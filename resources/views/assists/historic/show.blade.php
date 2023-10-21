@@ -10,7 +10,7 @@
                         <div class="form-group">
                             <label for="month">Mes</label>
                             <span class="bar"></span>
-                            {!! Form::select('month', $monthsG, null,['id'=>'month','class' => 'form-control form-control-sm', 'id'=>'month', 'placeholder'=>'Selecciona...']) !!}
+                            {{ html()->select('month', $monthsG, null)->attributes(['id'=>'month','class' => 'form-control form-control-sm', 'id'=>'month'])->placeholder('Selecciona...') }}
                             <input type="hidden" name="training_group_id" id="training_group_id"
                                    value="{{$trainingGroup->id}}">
                             <input type="hidden" name="year" id="year" value="{{$year}}">
@@ -98,5 +98,3 @@
         })
     </script>
 @endsection
-
-

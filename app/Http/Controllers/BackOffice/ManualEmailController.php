@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\BackOffice;
 
+use App\Http\Controllers\Controller;
 use App\Models\School;
+use App\Notifications\RegisterNotification;
 use App\Traits\ErrorTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
-use App\Notifications\RegisterNotification;
 use Throwable;
 
 class ManualEmailController extends Controller

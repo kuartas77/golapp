@@ -2,8 +2,12 @@
 
 namespace Tests\Feature;
 
+use Closure;
 use Tests\TestCase;
+use App\Models\User;
 use Tests\WithLogin;
+use App\Models\School;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class LoginTest extends TestCase
@@ -11,39 +15,68 @@ class LoginTest extends TestCase
     use RefreshDatabase;
     use WithLogin;
 
-    protected function setUp(): void
+    public function testLoginWrongEmail()
     {
-        parent::setUp();
-    }
-
-    public function test_login_success()
-    {
-        list($_, $user) = $this->createSchoolAndUser();
-
-        $this->post('/login', [
-            'email' => $user['email'],
-            'password' => 'password'
-        ])
-        ->assertStatus(302)
-        ->assertRedirect('/home');
-    }
-
-    public function test_login_email_password_wrong()
-    {
-        list($_, $user) = $this->createSchoolAndUser();
-
-        $this->post('/login', [
+        $response = $this->post('/login', [
             'email' => 'test@test.com',
             'password' => 'password'
-        ])
-        ->assertStatus(302)
-        ->assertRedirect('/');
+        ]);
 
-        $this->post('/login', [
-            'email' => $user['email'],
+        $response->assertStatus(302);
+        $response->assertRedirect('/');
+    }
+
+    public function testLoginWrongPassword()
+    {
+        $response = $this->post('/login', [
+            'email' => $this->user->email,
             'password' => 'passwords'
-        ])
-        ->assertStatus(302)
-        ->assertRedirect('/');
+        ]);
+
+        $response->assertStatus(302);
+        $response->assertRedirect('/');
+    }
+
+    public function testLoginSchoolSuccess()
+    {
+        Cache::shouldReceive('remember')->once();
+
+        $response = $this->post('/login', [
+            'email' => $this->user->email,
+            'password' => 'password'
+        ]);
+
+        $response->assertStatus(302);
+        $response->assertRedirect('/home');
+    }
+
+    public function testLoginInstructorSuccess()
+    {
+        list( , $this->user) = $this->createSchoolAndUser(roles: [User::INSTRUCTOR]);
+
+        Cache::shouldReceive('remember')->once();
+
+        $response = $this->post('/login', [
+            'email' => $this->user->email,
+            'password' => 'password'
+        ]);
+
+        $response->assertStatus(302);
+        $response->assertRedirect('/home');
+    }
+
+    public function testLoginSuperAdminSuccess()
+    {
+        list( , $this->user) = $this->createSchoolAndUser(roles: [User::SUPER_ADMIN]);
+
+        Cache::shouldReceive('remember')->never();
+
+        $response = $this->post('/login', [
+            'email' => $this->user->email,
+            'password' => 'password'
+        ]);
+
+        $response->assertStatus(302);
+        $response->assertRedirect('/home');
     }
 }

@@ -4,14 +4,14 @@
             <div class="form-group">
                 <label for="tournament_id">Torneos</label>
                 <span class="bar"></span>
-                {!! Form::select('tournament_id', $tournaments, null,['id'=>'tournament_id','class' => 'form-control form-control-sm','placeholder' => 'Seleccionar...', 'required']) !!}
+                {{ html()->select('tournament_id', $tournaments, null)->attributes(['id'=>'tournament_id','class' => 'form-control form-control-sm', 'required'])->placeholder('Selecciona...') }}
             </div>
         </div>
         <div class="col-md-3">
             <div class="form-group">
                 <label for="competition_group_id">Grupos De Competencia</label>
                 <span class="bar"></span>
-                {!! Form::select('competition_group_id', [], null,['id'=>'competition_group_id','class' => 'form-control form-control-sm','placeholder' => 'Seleccionar...', 'required']) !!}
+                {{ html()->select('competition_group_id', [], null)->attributes(['id'=>'competition_group_id','class' => 'form-control form-control-sm', 'required'])->placeholder('Selecciona...') }}
             </div>
         </div>
 
@@ -19,7 +19,7 @@
             <div class="form-group">
                 <label for="unique_code">Código Único</label>
                 <span class="bar"></span>
-                {!! Form::text('unique_code', null,['class' => 'form-control form-control-sm','placeholder' => 'Ej: 20190000']) !!}
+                {!! html()->text('unique_code', null)->attributes(['class' => 'form-control form-control-sm','placeholder' => 'Ej: 20190000']) !!}
             </div>
         </div>
 

@@ -21,7 +21,7 @@ class BaseRepository
     {
         $query = $this->model;
 
-        if(!empty($this->relations)) {
+        if (!empty($this->relations)) {
             $query = $query->with($this->relations);
         }
 

@@ -46,7 +46,7 @@ class PlayerUpdateRequest extends FormRequest
             'position_field' => ['nullable'],
             'dominant_profile' => ['nullable'],
 
-            'people'=> 'array',
+            'people' => 'array',
             'people.*.tutor',
             'people.*.relationship',
             'people.*.names',

@@ -16,7 +16,7 @@ class TournamentPaymentsViewComposer
             $school_id = getSchool(auth()->user())->id;
 
             $tournaments = Cache::remember("KEY_TOURNAMENT_{$school_id}", now()->addDay(), function () {
-                return Tournament::query()->schoolId()->orderBy('name')->pluck('name', 'id');
+                return Tournament::query()->schoolId()->orderBy('name')->pluck('name', 'id')->prepend('Seleccionar...', "");
             });
 
             $view->with('tournaments', $tournaments);

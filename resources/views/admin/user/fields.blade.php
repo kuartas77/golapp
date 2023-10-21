@@ -3,7 +3,7 @@
         <div class="form-group">
             <label for="name">Nombre</label>
             <span class="bar"></span>
-            {!! Form::text('name', null, ['class' => 'form-control', 'autocomplete' => 'off']) !!}
+            {{ html()->text('name')->attributes(['class' => 'form-control', 'autocomplete' => 'off']) }}
         </div>
     </div>
 
@@ -11,7 +11,7 @@
         <div class="form-group">
             <label for="email">Correo</label>
             <span class="bar"></span>
-            {!! Form::email('email', null, ['class' => 'form-control', 'autocomplete' => 'off']) !!}
+            {{ html()->email('email')->attributes(['class' => 'form-control', 'autocomplete' => 'off']) }}
         </div>
     </div>
 </div>
@@ -22,7 +22,7 @@
     <div class="form-group">
         <label for="email">Contraseña</label>
         <span class="bar"></span>
-        {!! Form::password('password', ['class' => 'form-control', 'autocomplete' => 'off']) !!}
+        {{ html()->password('password')->attributes(['class' => 'form-control', 'autocomplete' => 'off']) }}
     </div>
 </div>
 @endif
@@ -30,7 +30,7 @@
     <div class="form-group">
         <label for="rol_id">Rol</label>
         <span class="bar"></span>
-        {!! Form::select('rol_id', $roles, null, ['class' => 'form-control select', 'id' => 'rol_id', 'required','placeholder' => 'Seleccionar...' ]) !!}
+        {{ html()->select('rol_id', $roles, null)->attributes(['class' => 'form-control select', 'id' => 'rol_id', 'required'])->placeholder('Selecciona...') }}
     </div>
 </div>
 </div>

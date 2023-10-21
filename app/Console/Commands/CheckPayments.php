@@ -2,12 +2,12 @@
 
 namespace App\Console\Commands;
 
-use App\Models\School;
 use App\Models\Payment;
-use Illuminate\Console\Command;
-use Illuminate\Support\Collection;
-use Illuminate\Database\Eloquent\Builder;
+use App\Models\School;
 use App\Notifications\PaymentNotification;
+use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class CheckPayments extends Command
 {
@@ -49,16 +49,16 @@ class CheckPayments extends Command
         foreach ($schools as $school) {
 
             $day = $school->settings['NOTIFY_PAYMENT_DAY'] ?? 15;
-            if(now()->month == 2){
+            if (now()->month == 2) {
                 $day = now()->lastOfMonth()->lastOfMonth()->day;
             }
 
-            if(now()->day == $day){
+            if (now()->day == $day) {
                 $this->makePaymentsQuery($months, $school->id)->with(['inscription.player'])
-                    ->whereHas('inscription', fn ($query) => $query->where('year', now()->year))
-                    ->chunkById(50, function ($payments) use($school){
+                    ->whereHas('inscription', fn($query) => $query->where('year', now()->year))
+                    ->chunkById(50, function ($payments) use ($school) {
                         foreach ($payments as $payment) {
-                            if($payment->inscription->player->email && filter_var($payment->inscription->player->email, FILTER_VALIDATE_EMAIL)){
+                            if ($payment->inscription->player->email && filter_var($payment->inscription->player->email, FILTER_VALIDATE_EMAIL)) {
                                 $payment->inscription->player->notify(new PaymentNotification($payment, $school));
                             }
                         }

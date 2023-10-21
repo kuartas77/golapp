@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Payments;
 
-use App\Models\Payment;
-use Illuminate\View\View;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use Illuminate\Contracts\View\Factory;
-use App\Repositories\PaymentRepository;
 use App\Http\Requests\SetPaymentRequest;
+use App\Models\Payment;
+use App\Repositories\PaymentRepository;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class PaymentController extends Controller
 {

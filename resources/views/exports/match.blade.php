@@ -73,8 +73,8 @@
             <td class="texto">{{ $control->inscription->player->full_names }}</td>
             <td class="texto" align="center">{{ $control->inscription->category }}</td>
             <td class="texto" align="center">{{ $control->inscription->player->mobile }}</td>
-            <td class="texto" align="center">{{ Form::checkbox('1', '',$control->assistance ==1,['disabled']) }}</td>
-            <td class="texto" align="center">{{ Form::checkbox('1', '',$control->titular == 1,['disabled']) }}</td>
+            <td class="texto" align="center">{{ html()->checkbox('assistance', $control->assistance ==1)->attributes(['disabled']) }}</td>
+            <td class="texto" align="center">{{ html()->checkbox('titular', $control->titular == 1)->attributes(['disabled']) }}</td>
             <td class="texto" align="center">{{ $control->played_approx }}</td>
             <td class="texto" align="center">{{ $control->position }}</td>
             <td class="texto" align="center">{{ $control->goals == 0 ? 0 : $control->goles }}</td>

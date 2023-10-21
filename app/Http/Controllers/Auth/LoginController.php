@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Models\School;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cache;
+use App\Models\School;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class LoginController extends Controller
 {
@@ -40,23 +40,6 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
-    }
-
-    /**
-     * The user has been authenticated.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  mixed  $user
-     * @return mixed
-     */
-    protected function authenticated(Request $request, $user)
-    {
-        if($user->hasAnyRole(['school','instructor'])){
-            /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
-            Cache::remember(School::KEY_SCHOOL_CACHE. "_{$user->school_id}",
-            now()->addMinutes(env('SESSION_LIFETIME', 120)),
-            fn()=> $user->school->load(['settingsValues']));
-        }
     }
 
     public function logout(Request $request)
@@ -92,5 +75,22 @@ class LoginController extends Controller
         return $request->wantsJson()
             ? new JsonResponse([], 204)
             : redirect('/');
+    }
+
+    /**
+     * The user has been authenticated.
+     *
+     * @param Request $request
+     * @param mixed $user
+     * @return mixed
+     */
+    protected function authenticated(Request $request, $user)
+    {
+        if ($user->hasAnyRole(['school', 'instructor'])) {
+            /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+            Cache::remember(School::KEY_SCHOOL_CACHE . "_{$user->school_id}",
+                now()->addMinutes(env('SESSION_LIFETIME', 120)),
+                fn() => $user->school->load(['settingsValues']));
+        }
     }
 }

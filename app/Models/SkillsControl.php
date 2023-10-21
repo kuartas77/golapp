@@ -2,18 +2,16 @@
 
 namespace App\Models;
 
-use App\Traits\Fields;
 use App\Traits\GeneralScopes;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SkillsControl extends Model
 {
     use SoftDeletes;
-    use Fields;
     use GeneralScopes;
     use HasFactory;
 
@@ -41,7 +39,7 @@ class SkillsControl extends Model
 
     public function player(): HasOneThrough
     {
-        return $this->hasOneThrough(Player::class, Inscription::class, 'id','id','inscription_id', 'player_id');
+        return $this->hasOneThrough(Player::class, Inscription::class, 'id', 'id', 'inscription_id', 'player_id');
     }
 
     public function match(): BelongsTo

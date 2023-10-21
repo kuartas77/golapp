@@ -31,7 +31,7 @@ $(document).ready(() => {
             place: {required: true},
             user_id: {required: true},
             rival_name: {required: true},
-            date: {required: true},
+            date: {required: true, formatDate: true},
             hour: {required: true},
             "final_score[soccer]": {required: true, numbers: true},
             "final_score[rival]": {required: true, numbers: true},

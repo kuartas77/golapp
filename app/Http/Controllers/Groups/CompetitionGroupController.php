@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Groups;
 
-use Illuminate\View\View;
-use Illuminate\Http\Request;
-use App\Models\CompetitionGroup;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use Illuminate\Contracts\View\Factory;
+use App\Http\Requests\Groups\CompetitionGroupRequest;
+use App\Models\CompetitionGroup;
 use App\Repositories\CompetitionGroupRepository;
 use Illuminate\Contracts\Foundation\Application;
-use App\Http\Requests\Groups\CompetitionGroupRequest;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class CompetitionGroupController extends Controller
 {
@@ -51,14 +51,14 @@ class CompetitionGroupController extends Controller
     {
         $competitionGroup = $this->repository->createOrUpdateTeam(
             $request->only([
-                'name', 'year', 'tournament_id', 
+                'name', 'year', 'tournament_id',
                 'user_id', 'category', 'school_id'
             ])
         );
         if ($competitionGroup->wasRecentlyCreated) {
             alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));
         } else {
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure') );
+            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
         }
         return back();
     }
@@ -93,16 +93,16 @@ class CompetitionGroupController extends Controller
     {
         $competitionGroup = $this->repository->createOrUpdateTeam(
             $request->only([
-                'name', 'year', 'tournament_id', 
+                'name', 'year', 'tournament_id',
                 'user_id', 'category', 'school_id'
             ]),
-            false, 
+            false,
             $competitionGroup
         );
 
         if (!$competitionGroup->exists)
             alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
-        else{
+        else {
             alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));
         }
         return back();

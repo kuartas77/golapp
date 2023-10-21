@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\BackOffice;
 
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Illuminate\Foundation\Http\FormRequest;
 
 class SchoolUpdateRequest extends FormRequest
 {

@@ -2,7 +2,7 @@
 @section('content')
     <x-bread-crumb title="Agregar Deportista" :option="0"/>
     <x-row-card col-inside="12 col-sm-12 col-md-12 col-lg-10 col-xl-10" col-outside="1 col-lg-1 col-xl-1">
-        {!! Form::open(['route' => 'players.store', 'id'=>'form_player', 'files'=>true, 'class'=>'form-material m-t-0']) !!}
+        {{html()->form('post', route('players.store'))->attributes(['id' => 'form_player', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class' => 'form-material m-t-0'])->open()}}
         <div class="form-body">
             @include('player.fields.basic_information')
             @include('player.fields.family_information')
@@ -10,7 +10,7 @@
         <div class="form-actions m-t-0 text-center">
             <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info">Guardar</button>
         </div>
-        {!! Form::close() !!}
+        {{ html()->form()->close() }}
     </x-row-card>
 @endsection
 @section('scripts')
@@ -80,7 +80,7 @@
                     })
                 }
             });
-            
+
             events();
         });
 
@@ -164,16 +164,16 @@
         function readFile(input) {
             let label = $(input).next('label.custom-file-label')
             if (input.files && input.files[0]) {
-                let reader = new FileReader();                
+                let reader = new FileReader();
                 reader.onload = function (e) {
                     $('#player-img').attr('src', e.target.result);
-                }                
+                }
                 reader.readAsDataURL(input.files[0]);
                 // label.empty().html(input.files[0].name)
                 label.empty().html('Seleccionada.')
             }else{
                 label.empty().html("Seleccionar...")
-                $('#player-img').attr('src', 'http://golapp.local/img/user.png');                
+                $('#player-img').attr('src', 'http://golapp.local/img/user.png');
             }
         }
     </script>

@@ -2,10 +2,10 @@
 
 namespace App\Service\Player;
 
-use Carbon\Carbon;
 use App\Models\Player;
-use App\Traits\PDFTrait;
 use App\Traits\ErrorTrait;
+use App\Traits\PDFTrait;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 
 class PlayerExportService
@@ -31,15 +31,15 @@ class PlayerExportService
 
         $player = Player::query()->with([
             'schoolData',
-            'inscriptions' => fn ($q) => $q->where('id', $inscription_id)->with([
+            'inscriptions' => fn($q) => $q->where('id', $inscription_id)->with([
                 'trainingGroup',
-                'assistance', //=> fn($q) => $q->when($months, fn($q) => $q->whereIn('month', $months)),
+                'assistance' => fn($q) => $q->when($months, fn($q) => $q->whereIn('month', $months)),
                 'payments',
                 'skillsControls' => fn($q) => $q->when(($from && $to), fn($q) => $q->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to))
             ])
         ])->find($player_id);
 
-        $player->inscriptions->each(function($inscription) use($months_, &$observations_assists, &$observations_skills){
+        $player->inscriptions->each(function ($inscription) use ($months_, &$observations_assists, &$observations_skills) {
             $observations_assists = $inscription->assistance->where('observations', '<>', null);
             $observations_skills = $inscription->skillsControls->where('observation', '<>', null);
             foreach ($inscription->assistance as $assistance) {
@@ -64,50 +64,6 @@ class PlayerExportService
         $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'inscription_detail.blade.php');
         return $stream ? $this->stream($filename) : $this->output($filename);
-    }
-
-    /**
-     * @throws MpdfException
-     */
-    public function makePDFPlayer(Player $player, bool $stream = true): mixed
-    {
-        $player->load(['schoolData', 'people','inscription' => fn($query) => $query->with(['trainingGroup','competitionGroup'])]);
-        $player->setAppends(['photo_local']);
-        $player->photo_local = $player->photo_local;
-        $data['player'] = $player;
-        $data['school'] = $player->schoolData;
-        $filename = "Deportista {$player->unique_code}.pdf";
-
-        $this->setConfigurationMpdf(['format' => [213, 140]]);
-        $this->createPDF($data, 'inscription.blade.php');
-
-        return $stream ? $this->stream($filename) : $this->output($filename);
-    }
-
-    public function getExcel(): Collection
-    {
-        $collection = new Collection(['enabled' => collect(), 'disabled' => collect()]);
-
-        $playersEnabled = Player::query()->schoolId()
-        ->whereHas('inscription')
-        ->with([
-            'inscription.trainingGroup',
-            'people' => fn($query)=> $query->where('tutor', true),
-            'payments' => fn ($q) => $q->withTrashed()
-        ])->get();
-
-        $playersDisabled = Player::query()->schoolId()
-        ->whereDoesntHave('inscription')
-        ->with([
-            'inscription.trainingGroup',
-            'people' => fn($query)=> $query->where('tutor', true),
-            'payments' => fn ($q) => $q->withTrashed()
-        ])->get();
-
-        $collection['enabled'] = $playersEnabled;
-        $collection['disabled'] = $playersDisabled;
-
-        return $collection;
     }
 
     private function quarter(string $quarter, &$from, &$to, string &$quarter_text, int $year, array &$months)
@@ -143,5 +99,49 @@ class PlayerExportService
                 $months = [];
                 break;
         }
+    }
+
+    /**
+     * @throws MpdfException
+     */
+    public function makePDFPlayer(Player $player, bool $stream = true): mixed
+    {
+        $player->load(['schoolData', 'people', 'inscription' => fn($query) => $query->with(['trainingGroup', 'competitionGroup'])]);
+        $player->setAppends(['photo_local']);
+        $player->photo_local = $player->photo_local;
+        $data['player'] = $player;
+        $data['school'] = $player->schoolData;
+        $filename = "Deportista {$player->unique_code}.pdf";
+
+        $this->setConfigurationMpdf(['format' => [213, 140]]);
+        $this->createPDF($data, 'inscription.blade.php');
+
+        return $stream ? $this->stream($filename) : $this->output($filename);
+    }
+
+    public function getExcel(): Collection
+    {
+        $collection = new Collection(['enabled' => collect(), 'disabled' => collect()]);
+
+        $playersEnabled = Player::query()->schoolId()
+            ->whereHas('inscription')
+            ->with([
+                'inscription.trainingGroup',
+                'people' => fn($query) => $query->where('tutor', true),
+                'payments' => fn($q) => $q->withTrashed()
+            ])->get();
+
+        $playersDisabled = Player::query()->schoolId()
+            ->whereDoesntHave('inscription')
+            ->with([
+                'inscription.trainingGroup',
+                'people' => fn($query) => $query->where('tutor', true),
+                'payments' => fn($q) => $q->withTrashed()
+            ])->get();
+
+        $collection['enabled'] = $playersEnabled;
+        $collection['disabled'] = $playersDisabled;
+
+        return $collection;
     }
 }

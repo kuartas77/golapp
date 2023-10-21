@@ -1,10 +1,12 @@
 <?php
 
+use App\Models\Player;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Admin\UserController;
+use App\Notifications\RegisterPlayerNotification;
 use App\Http\Controllers\Assists\AssistController;
 use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\Competition\GameController;
@@ -104,7 +106,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
         $route->get('matches/create/{competition_group}/format', [ExportController::class, 'exportMatchDetail'])->name('match_detail');
         $route->get('tournament/payouts/excel', [ExportController::class, 'exportTournamentPayoutsExcel'])->name('tournaments.payouts.excel');
         $route->get('tournament/payouts/pdf', [ExportController::class, 'exportTournamentPayoutsPDF'])->name('tournaments.payouts.pdf');
-        
+
 
 
     });

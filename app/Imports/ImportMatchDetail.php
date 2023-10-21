@@ -19,7 +19,7 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
     {
         $this->data = collect();
     }
-    
+
     public function collection(Collection $rows)
     {
         $inscriptions = Inscription::with(['player'])
@@ -31,13 +31,13 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
 
         foreach ($rows as $row) {
 
-            if($row['codigo']){
-                $inscription =  $inscriptions[$row['codigo']];
-    
+            if ($row['codigo']) {
+                $inscription = $inscriptions[$row['codigo']];
+
                 $skillControll = new SkillsControl([
                     'inscription_id' => $inscription->id,
-                    'assistance' => cleanString(strtolower($row['asistio'])) == 'si' ?  1 : 0,
-                    'titular' => cleanString(strtolower($row['titular'])) == 'si' ?  1 : 0,
+                    'assistance' => cleanString(strtolower($row['asistio'])) == 'si' ? 1 : 0,
+                    'titular' => cleanString(strtolower($row['titular'])) == 'si' ? 1 : 0,
                     'played_approx' => intval($row['jugo_aprox']),
                     'position' => $row['posicion'],
                     'goals' => intval($row['goles']),
@@ -46,9 +46,9 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
                     'qualification' => intval($row['calificacion']),
                     'observation' => $row['observacion'],
                 ]);
-    
+
                 $skillControll->inscription = $inscription;
-    
+
                 $this->data->push($skillControll);
             }
         }

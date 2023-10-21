@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Auth;
 
-use Illuminate\Contracts\Auth\CanResetPassword;
-use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Foundation\Auth\ResetsPasswords;
+use Illuminate\Support\Str;
 
 class ResetPasswordController extends Controller
 {
@@ -31,11 +31,11 @@ class ResetPasswordController extends Controller
      */
     protected $redirectTo = RouteServiceProvider::HOME;
 
-        /**
+    /**
      * Reset the given user's password.
      *
-     * @param  CanResetPassword  $user
-     * @param  string  $password
+     * @param CanResetPassword $user
+     * @param string $password
      * @return void
      */
     protected function resetPassword($user, $password)

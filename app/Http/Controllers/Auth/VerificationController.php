@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\VerifiesEmails;
 use Illuminate\Http\Request;
+
 class VerificationController extends Controller
 {
     /*
@@ -43,7 +44,7 @@ class VerificationController extends Controller
     /**
      * The user has been verified.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param Request $request
      * @return mixed
      */
     protected function verified(Request $request)

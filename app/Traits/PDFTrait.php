@@ -3,12 +3,13 @@
 
 namespace App\Traits;
 
-use Mpdf\Mpdf;
-use Illuminate\Http\File;
-use Mpdf\Output\Destination;
-use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Illuminate\Http\File;
+use Illuminate\Support\Facades\Storage;
+use Mpdf\Mpdf;
+use Mpdf\MpdfException;
+use Mpdf\Output\Destination;
+use Symfony\Component\HttpFoundation\Response;
 
 trait PDFTrait
 {
@@ -40,63 +41,12 @@ trait PDFTrait
     }
 
     /**
-     * Create pdf.
-     *
-     * @param array $data
-     * @throws \Mpdf\MpdfException
-     */
-    protected function createPDF(array $data, string $template)
-    {
-        $this->mpdf = new Mpdf($this->configDefault);
-        if($data['school']){
-            $this->mpdf->SetWatermarkImage($data['school']->logo_local, -1, array(80, 80));
-            $this->mpdf->showWatermarkImage = true;
-        }
-        $this->mpdf->WriteHTML(view()->file($this->getTemplate($template), $data));
-        $this->mpdf->SetHTMLFooter(view()->file($this->getTemplate('footer.blade.php'), $data));
-    }
-
-    /**
-     * Get template.
-     *
-     * @param string $template
-     * @return string
-     */
-    private function getTemplate(string $template): string
-    {
-        return resource_path("templates/pdf/{$template}");
-    }
-
-    /**
-     * Exists template.
-     *
-     * @param string $path
-     *
-     * @return bool
-     */
-    private function existsTemplate(string $path): bool
-    {
-        return Storage::disk('public')->exists($path);
-    }
-
-    /**
      * Get instance mpdf
      * @return static
      */
     public function getMpdf(): PDFTrait
     {
         return $this->mpdf;
-    }
-
-
-    /**
-     * Output the PDF as a string.
-     *
-     * @return string The rendered PDF as string
-     */
-    public function output($filename): string
-    {
-        return Storage::disk('public')->put("{$filename}.pdf", $this->mpdf->Output(null, Destination::STRING_RETURN));
     }
 
     /**
@@ -108,6 +58,16 @@ trait PDFTrait
     public function save($filename): PDFTrait
     {
         return $this->mpdf->Output($filename, Destination::FILE);
+    }
+
+    /**
+     * Output the PDF as a string.
+     *
+     * @return string The rendered PDF as string
+     */
+    public function output($filename): string
+    {
+        return Storage::disk('public')->put("{$filename}.pdf", $this->mpdf->Output(null, Destination::STRING_RETURN));
     }
 
     /**
@@ -144,5 +104,45 @@ trait PDFTrait
             abort(404);
         }
         return $response;
+    }
+
+    /**
+     * Create pdf.
+     *
+     * @param array $data
+     * @throws MpdfException
+     */
+    protected function createPDF(array $data, string $template)
+    {
+        $this->mpdf = new Mpdf($this->configDefault);
+        if ($data['school']) {
+            $this->mpdf->SetWatermarkImage($data['school']->logo_local, -1, array(80, 80));
+            $this->mpdf->showWatermarkImage = true;
+        }
+        $this->mpdf->WriteHTML(view()->file($this->getTemplate($template), $data));
+        $this->mpdf->SetHTMLFooter(view()->file($this->getTemplate('footer.blade.php'), $data));
+    }
+
+    /**
+     * Get template.
+     *
+     * @param string $template
+     * @return string
+     */
+    private function getTemplate(string $template): string
+    {
+        return resource_path("templates/pdf/{$template}");
+    }
+
+    /**
+     * Exists template.
+     *
+     * @param string $path
+     *
+     * @return bool
+     */
+    private function existsTemplate(string $path): bool
+    {
+        return Storage::disk('public')->exists($path);
     }
 }

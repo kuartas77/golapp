@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Exception;
-use App\Models\User;
-use Illuminate\View\View;
-use App\Traits\ErrorTrait;
-use Illuminate\Routing\Redirector;
-use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
-use App\Repositories\UserRepository;
 use App\Http\Requests\User\UserStore;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Cache;
 use App\Http\Requests\User\UserUpdate;
-use Illuminate\Contracts\View\Factory;
+use App\Models\User;
+use App\Repositories\UserRepository;
+use App\Traits\ErrorTrait;
+use Exception;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Redirector;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
+use Spatie\Permission\Models\Role;
 use Throwable;
 
 class UserController extends Controller
@@ -43,18 +43,6 @@ class UserController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return Application|Factory|View
-     */
-    public function create()
-    {
-        view()->share('roles', Role::query()->whereNotIn('id', [1,2])->pluck('name', 'id'));
-
-        return view('admin.user.create');
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param UserStore $request
@@ -66,6 +54,18 @@ class UserController extends Controller
         $this->repository->create($request);
 
         return redirect()->to(route('users.index'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return Application|Factory|View
+     */
+    public function create()
+    {
+        view()->share('roles', Role::query()->whereNotIn('id', [1, 2])->pluck('name', 'id'));
+
+        return view('admin.user.create');
     }
 
     /**
@@ -90,7 +90,7 @@ class UserController extends Controller
     public function edit(User $user)
     {
         if (isAdmin() || isSchool()) {
-            view()->share('roles', Role::query()->whereNotIn('id', [1,2])->pluck('name', 'id'));
+            view()->share('roles', Role::query()->whereNotIn('id', [1, 2])->pluck('name', 'id'));
             view()->share('user', $user->load('roles'));
             return view('admin.user.edit');
         } else {
@@ -136,7 +136,7 @@ class UserController extends Controller
 
             $user->delete();
 
-            if($school_id = getSchool(auth()->user())->id){
+            if ($school_id = getSchool(auth()->user())->id) {
                 /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
                 Cache::forget("KEY_USERS_{$school_id}");
             }
@@ -160,8 +160,8 @@ class UserController extends Controller
 
         try {
 
-            if($this->repository->restore($id)){
-                if($school_id = getSchool(auth()->user())->id){
+            if ($this->repository->restore($id)) {
+                if ($school_id = getSchool(auth()->user())->id) {
                     /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
                     Cache::forget("KEY_USERS_{$school_id}");
                 }

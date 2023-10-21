@@ -14,7 +14,8 @@ class MasterController extends Controller
 {
 
     public function __construct(private PlayerRepository $playerRepository, private InscriptionRepository $inscriptionRepository)
-    {}
+    {
+    }
 
     /**
      * @param Request $request
@@ -66,10 +67,10 @@ class MasterController extends Controller
     {
         abort_unless($request->ajax(), 401);
 
-        if ($request->filled('unique')){
+        if ($request->filled('unique')) {
             $response = $this->playerRepository->searchUniqueCode($request->only(['unique_code']));
-        }else{
-            $response = $this->inscriptionRepository->searchInscriptionCompetition($request->only(['unique_code','competition_group_id']));
+        } else {
+            $response = $this->inscriptionRepository->searchInscriptionCompetition($request->only(['unique_code', 'competition_group_id']));
         }
         return $this->responseJson($response);
     }
@@ -86,7 +87,7 @@ class MasterController extends Controller
     public function competitionGroupsByTournament(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 401);
-        $response = CompetitionGroup::query()->schoolId()->where('tournament_id', $request->tournament_id)->orderBy('name')->get()->map(function($group){
+        $response = CompetitionGroup::query()->schoolId()->where('tournament_id', $request->tournament_id)->orderBy('name')->get()->map(function ($group) {
             return ['id' => $group->id, 'text' => $group->full_name_group];
         });
         return $this->responseJson($response);

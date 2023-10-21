@@ -34,8 +34,7 @@
     <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
         <div class="form-group">
             <label for="training_group_id">Grupo de entrenamiento:</label>
-            {!! Form::select('training_group_id', $training_groups , null, ['class' => 'form-control form-control-sm select2','placeholder' =>
-            'Seleccione uno...', 'id'=>'training_group_id']) !!}
+            {{ html()->select('training_group_id', $training_groups, null)->attributes(['class' => 'form-control form-control-sm select2', 'id'=>'training_group_id'])->placeholder('Selecciona...') }}
             <small
                 class="form-text text-muted">{{__('messages.provicional_group_info')}}</small>
         </div>
@@ -44,8 +43,7 @@
     <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
         <div class="form-group">
             <label for="competition_groups">Grupo de competencia:</label>
-            {!! Form::select('competition_groups[]', $competition_groups, null, ['class' => 'form-control form-control-sm select2','multiple',
-            'data-placeholder'=>'Seleccionar...','id'=>'competition_groups']) !!}
+            {{ html()->multiselect('competition_groups[]', $competition_groups, null)->attributes(['class' => 'form-control form-control-sm select2', 'id'=>'competition_groups'])->placeholder('Selecciona...') }}
         </div>
     </div>
 
