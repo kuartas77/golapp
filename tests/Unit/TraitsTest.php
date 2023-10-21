@@ -1,10 +1,10 @@
 <?php
 
-test('fields', function () {
+// test('fields', function () {
 
 
-    $result = 1+2;
+//     $result = 1+2;
 
-    // expect($result)->toBeString();
-    $this->assertSame(3, $result);
-});
+//     // expect($result)->toBeString();
+//     $this->assertSame(3, $result);
+// });

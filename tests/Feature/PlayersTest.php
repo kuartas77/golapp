@@ -2,77 +2,149 @@
 
 namespace Tests\Feature;
 
-use App\Models\Player;
 use Tests\TestCase;
-use Tests\WithLogin;
+use App\Mail\ErrorLog;
+use App\Models\Player;
+use Illuminate\Support\Facades\Mail;
+use App\Repositories\PlayerRepository;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\RegisterPlayerNotification;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class PlayersTest extends TestCase
 {
-    use RefreshDatabase;
-    use WithLogin;
 
-    protected function setUp(): void
+    public function testPlayerValidateForm()
     {
-        parent::setUp();
-        $this->app->make(\Spatie\Permission\PermissionRegistrar::class)->registerPermissions();
-    }
-
-    public function test_validate_form()
-    {
-        list($_, $user) = $this->createSchoolAndUser();
-
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $response = $this->post('/players');
         $response->assertStatus(302);
     }
 
-    public function test_create_player()
+    public function testPlayerCreate()
     {
         Notification::fake();
+        Mail::fake();
 
-        list($_, $user) = $this->createSchoolAndUser();
+        $dataPlayer = $this->dataPlayer();
 
-        $this->actingAs($user);
+        $uniqueCode = $dataPlayer['unique_code'];
 
-        $response = $this->post('/players', [
-            'unique_code' => '1111111111',
-            'names' => 'juan esteban',
-            'last_names' => 'cuartas londoño',
-            'gender' => 'M',
-            'date_birth' => '1989-02-13',
-            'place_birth' => 'Medellin',
-            'identification_document' => '1017170333',
-            'rh' => 'O+',
-            'eps' => 'Sura',
-            'email' => 'teste@gmail.com',
-            'address' => 'calle falsa 123',
-            'municipality' => 'Medellin',
-            'neighborhood' => 'Robledo, Pilarica',
-            'zone' => '',
-            'commune' => '7',
-            'phones' => '111222222',
-            'mobile' => '113333333',
-            'school' => 'Pascual',
-            'degree' => '11',
-            'people' => [
-                [
-                    "tutor" => "true",
-                "relationship" => "30",
-                "names" => "CRISTINA VANEGAS",
-                "identification_card" => "3015614556",
-                "phone" => "5961994"
-                ]
-            ]
-        ]);
+        $this->actingAs($this->user);
 
-        $player = Player::firstWhere('unique_code', '1111111111');
+        $response = $this->post('/players', $dataPlayer);
 
-        $response->assertStatus(302);
+        $player = Player::firstWhere('unique_code', $uniqueCode);
 
+        $spy = $this->spy(PlayerRepository::class);
+        $spy->shouldReceive('createPlayer')->andReturn($player);
         Notification::assertSentTo([$player], RegisterPlayerNotification::class);
+        Mail::assertNotSent(ErrorLog::class);
+        $response->assertStatus(302);
+        return $dataPlayer;
+    }
+
+    public function testPlayerUpdate()
+    {
+        Mail::fake();
+
+        $dataPlayer = $this->dataPlayer();
+
+        $uniqueCode = $dataPlayer['unique_code'];
+
+        $this->createPlayer();
+
+        $this->actingAs($this->user);
+
+        $response = $this->post("/players/$uniqueCode", $dataPlayer + ['_method' => 'PATCH']);
+
+        $player = Player::firstWhere('unique_code', $uniqueCode);
+
+        $spy = $this->spy(PlayerRepository::class);
+        $spy->shouldReceive('updatePlayer')->andReturn($player);
+        Mail::assertNotSent(ErrorLog::class);
+        $response->assertStatus(302);
+    }
+
+    public function testPlayerUpdateError()
+    {
+        Mail::fake();
+
+        $dataPlayer = $this->dataPlayer();
+        unset($dataPlayer['people']);
+
+        $uniqueCode = $dataPlayer['unique_code'];
+
+        $this->createPlayer();
+
+        $this->actingAs($this->user);
+
+        $response = $this->post("/players/$uniqueCode", $dataPlayer + ['_method' => 'PATCH']);
+
+        Mail::assertSent(ErrorLog::class);
+        $response->assertStatus(302);
+    }
+
+    public function testPlayerIndex()
+    {
+        $this->actingAs($this->user);
+
+        $response = $this->get("/players");
+
+        $response->assertSeeText('Deportistas');
+    }
+
+    public function testPlayerShow()
+    {
+        $dataPlayer = $this->dataPlayer();
+
+        $uniqueCode = $dataPlayer['unique_code'];
+
+        $this->createPlayer();
+
+        $this->actingAs($this->user);
+
+        $response = $this->get("/players/$uniqueCode");
+
+        $response->assertSee('Deportista');
+    }
+
+    public function testPlayerCreateForm()
+    {
+        $this->actingAs($this->user);
+
+        $response = $this->get("/players/create");
+
+        $response->assertSee('Agregar Deportista');
+    }
+
+    public function testPlayerEditForm()
+    {
+        $dataPlayer = $this->dataPlayer();
+
+        $uniqueCode = $dataPlayer['unique_code'];
+
+        $this->createPlayer();
+
+        $this->actingAs($this->user);
+
+        $response = $this->get("/players/$uniqueCode/edit");
+
+        $response->assertSee("Código Deportista: $uniqueCode");
+    }
+
+    public function testPlayerDestroy()
+    {
+        $dataPlayer = $this->dataPlayer();
+
+        $uniqueCode = $dataPlayer['unique_code'];
+
+        $this->createPlayer();
+
+        $this->actingAs($this->user);
+
+        $response = $this->post("/players/$uniqueCode", ['_method' => 'DELETE']);
+
+        $response->assertStatus(401);
     }
 }

@@ -35,10 +35,10 @@ trait WithLogin
         Role::create(['name' => 'instructor']);
     }
 
-    protected function createUser(array $attributes = null)
+    protected function createUser(array $attributes = null, array $roles = [User::SCHOOL])
     {
         $user = User::factory()->create($attributes + ['password' => 'password']);
-        $user->syncRoles([User::SCHOOL]);
+        $user->syncRoles($roles);
         $user->profile()->create();
         return $user;
     }
@@ -49,15 +49,14 @@ trait WithLogin
         return $school->toArray();
     }
 
-    protected function createSchoolAndUser(array $attributes = null): array
+    protected function createSchoolAndUser(array $attributes = null, array $roles = [User::SCHOOL]): array
     {
-        $this->createRoles();
-        $this->createSettings();
         $school = $this->createSchool($attributes);
+
         $user = $this->createUser([
             'email' => $school['email'],
             'school_id' => $school['id']
-        ]);
+        ], roles: $roles);
 
         $relationSchool = new SchoolUser();
         $relationSchool->user_id = $user->id;
