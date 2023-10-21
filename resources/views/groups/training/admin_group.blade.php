@@ -9,7 +9,7 @@
                 <div class="card-body">
                     <div class="form-group">
                         {{ html()->label('Grupo De Origen:','training_group_origin') }}
-                        {{ html()->select('training_group_origin', $groups, null)->attributes(['class' => 'form-control form-control-sm', 'placeholder'=>'seleccionar...']) }}
+                        {{ html()->select('training_group_origin', $groups, null)->attributes(['class' => 'form-control form-control-sm'])->placeholder('Selecciona...') }}
                     </div>
                     <div class="row row-cols-3 space col-sm-12" id="origin"></div>
                 </div>
@@ -21,7 +21,7 @@
                 <div class="card-body">
                     <div class="form-group">
                         {{ html()->label('Grupo De Destino:', 'training_group_destiny') }}
-                        {{ html()->select('training_group_destiny', $groups, null)->attributes(['class' => 'form-control form-control-sm', 'placeholder'=>'seleccionar...']) }}
+                        {{ html()->select('training_group_destiny', $groups, null)->attributes(['class' => 'form-control form-control-sm'])->placeholder('Selecciona...') }}
                     </div>
                     <div class="row row-cols-3 space col-sm-12" id="destiny"></div>
                 </div>

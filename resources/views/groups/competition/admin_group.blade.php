@@ -18,7 +18,7 @@
                                 <div class="form-group">
                                     <label for="training_group_destination">Grupo De Competencia</label>
                                     <span class="bar"></span>
-                                    {{ html()->select('training_group_destination', $groupsCompetition, null)->attributes(['class' => 'form-control form-control-sm', 'placeholder'=>'seleccionar...', 'id' =>'training_group_destination']) }}
+                                    {{ html()->select('training_group_destination', $groupsCompetition, null)->attributes(['class' => 'form-control form-control-sm', 'id' =>'training_group_destination'])->placeholder('Selecciona...') }}
                                 </div>
                             </div>
                         </div>

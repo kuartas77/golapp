@@ -56,7 +56,7 @@
             <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! html()->label('Genero', 'gender') !!}(<span class="text-danger">*</span>)
-                    {{ html()->select('gender', $genders, null)->attributes(['class' => 'form-control form-control-sm select2','placeholder' =>'Seleccione uno...']) }}
+                    {{ html()->select('gender', $genders, null)->attributes(['class' => 'form-control form-control-sm select2'])->placeholder('Selecciona...') }}
                 </div>
             </div>
 
@@ -77,7 +77,7 @@
             <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! html()->label('RH', 'rh') !!}(<span class="text-danger">*</span>)
-                    {{ html()->select('rh', $blood_types, null)->attributes(['class' => 'form-control form-control-sm select2','placeholder'=>'Selecciona...']) }}
+                    {{ html()->select('rh', $blood_types, null)->attributes(['class' => 'form-control form-control-sm select2'])->placeholder('Selecciona...') }}
                 </div>
             </div>
 
@@ -135,21 +135,21 @@
             <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! html()->label('Grado', 'degree') !!}
-                    {{ html()->select('degree', [1,2,3,4,5,6,7,8,9,10,11], null)->attributes(['class' => 'form-control form-control-sm select2','placeholder' =>'Seleccione uno...']) }}
+                    {{ html()->select('degree', [1,2,3,4,5,6,7,8,9,10,11], null)->attributes(['class' => 'form-control form-control-sm select2'])->placeholder('Selecciona...') }}
                 </div>
             </div>
 
             <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! html()->label('Posición en el campo:', 'position_field') !!}
-                    {{ html()->select('position_field', $positions, null)->attributes(['class' => 'form-control form-control-sm select2','placeholder' =>'Seleccione uno...']) }}
+                    {{ html()->select('position_field', $positions, null)->attributes(['class' => 'form-control form-control-sm select2'])->placeholder('Selecciona...') }}
                 </div>
             </div>
 
             <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
                 <div class="form-group">
                     {!! html()->label('Perfil dominante:', 'dominant_profile') !!}
-                    {{ html()->select('dominant_profile', $dominant_profile, null)->attributes(['class' => 'form-control form-control-sm select2','placeholder' =>'Seleccione uno...']) }}
+                    {{ html()->select('dominant_profile', $dominant_profile, null)->attributes(['class' => 'form-control form-control-sm select2'])->placeholder('Selecciona...') }}
                 </div>
             </div>
 

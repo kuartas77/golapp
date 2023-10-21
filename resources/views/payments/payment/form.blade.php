@@ -4,7 +4,7 @@
             <div class="form-group">
                 <label for="training_group_id">Grupo De Entrenamiento</label>
                 <span class="bar"></span>
-                {{ html()->select('training_group_id', $training_groups, null)->attributes(['id'=>'training_group_id','class' => 'form-control form-control-sm','placeholder' => 'Seleccionar...']) }}
+                {{ html()->select('training_group_id', $training_groups, null)->attributes(['id'=>'training_group_id','class' => 'form-control form-control-sm'])->placeholder('Selecciona...') }}
             </div>
         </div>
 

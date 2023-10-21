@@ -18,7 +18,7 @@
                 <div class="col-md-3">
                     <div class="form-group ">
                         {!! html()->label('Relación Familiar', "people[{$loop->index}][relationship]") !!}(<span class="text-danger">*</span>)
-                        {{ html()->select("people[{$loop->index}][relationship]", $relationships, $people->relationship ?? null)->attributes(['class' => 'form-control form-control-sm','placeholder' => 'Seleccione uno...']) }}
+                        {{ html()->select("people[{$loop->index}][relationship]", $relationships, $people->relationship ?? null)->attributes(['class' => 'form-control form-control-sm'])->placeholder('Selecciona...') }}
                     </div>
                 </div>
                 <div class="col-md-3">

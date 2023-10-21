@@ -16,7 +16,7 @@
                                 <div class="form-group">
                                     <label for="school_id">Escuela</label>
                                     <span class="bar"></span>
-                                    {{ html()->select('school_id', $schools, null)->attributes(['id'=>'school_id','class' => 'form-control form-control-sm','placeholder' =>'Seleccione uno...','required']) }}
+                                    {{ html()->select('school_id', $schools, null)->attributes(['id'=>'school_id','class' => 'form-control form-control-sm','required'])->placeholder('Selecciona...') }}
                                 </div>
                             </div>
 

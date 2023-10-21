@@ -18,7 +18,7 @@
     <div class="col-md-3">
         <div class="form-group">
             <label for="position">Cargo</label>
-            {{ html()->select('position', $positions, null)->attributes(['class' => 'form-control form-control-sm select2','placeholder' => 'Seleccione uno...']) }}
+            {{ html()->select('position', $positions, null)->attributes(['class' => 'form-control form-control-sm select2'])->placeholder('Selecciona...') }}
         </div>
     </div>
 
@@ -39,7 +39,7 @@
     <div class="col-md-3">
         <div class="form-group">
             <label for="gender">Genero</label>
-            {{ html()->select('gender', $genders, null)->attributes(['class' => 'form-control form-control-sm select2','placeholder' => 'Seleccione uno...']) }}
+            {{ html()->select('gender', $genders, null)->attributes(['class' => 'form-control form-control-sm select2'])->placeholder('Selecciona...') }}
         </div>
     </div>
 </div>

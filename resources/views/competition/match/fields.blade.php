@@ -13,7 +13,7 @@
         <div class="col-md-4">
             <div class="form-group">
                 <label for="tournament_id">Torneo:</label>(<span class="text-danger">*</span>)
-                {{ html()->select('tournament_id', $tournaments, $information->tournament->id)->attributes(['id'=>'tournament_id','class' => 'form-control form-control-sm','placeholder' =>'Seleccione uno...','required']) }}
+                {{ html()->select('tournament_id', $tournaments, $information->tournament->id)->attributes(['id'=>'tournament_id','class' => 'form-control form-control-sm','required'])->placeholder('Selecciona...') }}
             </div>
         </div>
 

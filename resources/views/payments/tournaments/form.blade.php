@@ -4,14 +4,14 @@
             <div class="form-group">
                 <label for="tournament_id">Torneos</label>
                 <span class="bar"></span>
-                {{ html()->select('tournament_id', $tournaments, null)->attributes(['id'=>'tournament_id','class' => 'form-control form-control-sm', 'required']) }}
+                {{ html()->select('tournament_id', $tournaments, null)->attributes(['id'=>'tournament_id','class' => 'form-control form-control-sm', 'required'])->placeholder('Selecciona...') }}
             </div>
         </div>
         <div class="col-md-3">
             <div class="form-group">
                 <label for="competition_group_id">Grupos De Competencia</label>
                 <span class="bar"></span>
-                {{ html()->select('competition_group_id', [], null)->attributes(['id'=>'competition_group_id','class' => 'form-control form-control-sm', 'required']) }}
+                {{ html()->select('competition_group_id', [], null)->attributes(['id'=>'competition_group_id','class' => 'form-control form-control-sm', 'required'])->placeholder('Selecciona...') }}
             </div>
         </div>
 

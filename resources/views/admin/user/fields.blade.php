@@ -30,7 +30,7 @@
     <div class="form-group">
         <label for="rol_id">Rol</label>
         <span class="bar"></span>
-        {{ html()->select('rol_id', $roles, null)->attributes(['class' => 'form-control select', 'id' => 'rol_id', 'required','placeholder' => 'Seleccionar...']) }}
+        {{ html()->select('rol_id', $roles, null)->attributes(['class' => 'form-control select', 'id' => 'rol_id', 'required'])->placeholder('Selecciona...') }}
     </div>
 </div>
 </div>
