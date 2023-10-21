@@ -6,7 +6,7 @@ import { createApp } from 'vue';
 // import router from './router';
 import DataTable from '@/components/mix/DataTable'
 import Pagination from '@/components/mix/Pagination'
-import Payouts from '@/components/tournaments/Payout/Payouts'
+import Payouts from '@/components/Payouts/Tournament/Payouts'
 
 const app = createApp({})
 .component('data-table', DataTable)

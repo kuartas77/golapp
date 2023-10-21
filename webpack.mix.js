@@ -9,7 +9,7 @@ mix.js('resources/js/app.js', 'public/js').vue()
 //  ]);
 
 mix.disableNotifications();
- 
+
 //  mix.styles('public/css/default.css', 'public/css/default-mix.css').version();
 //  mix.scripts('public/js/config.js','public/js/config-mix.js').version();
 mix.copy('resources/js/app/css/all.css', 'public/css/all.css').version();
