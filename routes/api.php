@@ -9,10 +9,11 @@ use App\Http\Controllers\API\Admin\RegisterController;
 use App\Http\Controllers\API\Admin\InscriptionController;
 use App\Http\Controllers\API\Instructor\GroupsController;
 use App\Http\Controllers\API\Instructor\AssistsController;
+use App\Http\Controllers\API\Instructor\Payouts\TournamentsController;
 
-Route::post('login', [LoginController::class, 'login']);
+// Route::post('login', [LoginController::class, 'login']);
 
-Route::middleware(['auth:sanctum'])->group(function($route){
+Route::middleware(['auth:api'])->group(function($route){
 
     $route->get('/user', function (Request $request) {
         return $request->user();
@@ -31,5 +32,7 @@ Route::middleware(['auth:sanctum'])->group(function($route){
         $route->get('training_groups', [GroupsController::class, 'getTrainingGroups']);
         $route->get('training_group/{id}', [GroupsController::class, 'getTrainingGroup']);
         $route->apiResource('assists', AssistsController::class);
+
+        $route->get('payouts/tournament', [TournamentsController::class, 'index']);
     });
 });

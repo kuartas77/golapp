@@ -21369,7 +21369,7 @@ function usePayouts() {
             current_page = paginationMeta.value.current_page;
             pageNum = current_page ? current_page : 1;
             _context2.next = 4;
-            return axios__WEBPACK_IMPORTED_MODULE_0___default().get("/api/schools?page=".concat(pageNum));
+            return axios__WEBPACK_IMPORTED_MODULE_0___default().get("/api/user?page=".concat(pageNum));
           case 4:
             response = _context2.sent;
             rows.value = response.data.data;

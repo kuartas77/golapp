@@ -17,7 +17,7 @@ export default function usePayouts() {
         let current_page = paginationMeta.value.current_page
         let pageNum = current_page ? current_page : 1
 
-        let response = await axios.get(`/api/schools?page=${pageNum}`)
+        let response = await axios.get(`/api/user?page=${pageNum}`)
         rows.value = response.data.data
         paginationMeta.value = response.data.meta
     }
