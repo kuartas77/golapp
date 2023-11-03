@@ -51,6 +51,6 @@ class HomeController extends Controller
     {
         $birthdays = $this->playerRepository->birthdayToday();
 
-        return view('players.birthdays', compact('birthdays'));
+        return view('player.birthdays', compact('birthdays'));
     }
 }
