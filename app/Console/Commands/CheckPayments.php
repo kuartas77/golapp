@@ -40,56 +40,77 @@ class CheckPayments extends Command
      *
      * @return int
      */
-    public function handle()
+    public function handle(): Int
     {
         $months = $this->getAndCheckMonths(collect(config('variables.KEY_INDEX_MONTHS')));
 
         $schools = School::with(['settingsValues'])->where('is_enable', true)->get();
 
+        $now = now();
+
         foreach ($schools as $school) {
+            $day = data_get($school, 'settings.NOTIFY_PAYMENT_DAY', 15);
 
-            $day = $school->settings['NOTIFY_PAYMENT_DAY'] ?? 15;
-            if (now()->month == 2) {
-                $day = now()->lastOfMonth()->lastOfMonth()->day;
+            if ($now->month == 2) {
+                $day = $now->lastOfMonth()->lastOfMonth()->day;
             }
 
-            if (now()->day == $day) {
-                $this->makePaymentsQuery($months, $school->id)->with(['inscription.player'])
-                    ->whereHas('inscription', fn($query) => $query->where('year', now()->year))
-                    ->chunkById(50, function ($payments) use ($school) {
-                        foreach ($payments as $payment) {
-                            if ($payment->inscription->player->email && filter_var($payment->inscription->player->email, FILTER_VALIDATE_EMAIL)) {
-                                $payment->inscription->player->notify(new PaymentNotification($payment, $school));
-                            }
-                        }
-                    }, 'inscription_id');
+            if ($now->day != $day) {
+                continue;
             }
 
+            $query = $this->makePaymentsQuery($months, $school->id);
+
+            $count = $query->count();
+
+            if ($count == 0) {
+                continue;
+            }
+
+            $chunkCount = $count >= 100 ? 5 : 10;
+
+            $query->chunkById($chunkCount, function ($payments) use ($school, $now) {
+                $iteration = 1;
+                foreach ($payments as $payment) {
+                    $delaySeconds = $iteration * 10;
+                    $player = $payment->inscription->player;
+                    if ($player->email && filter_var($player->email, FILTER_VALIDATE_EMAIL)) {
+                        $player->notify(
+                            (new PaymentNotification($payment, $school))->delay($now->addMinute()->addSeconds($delaySeconds))->onQueue('emails')
+                        );
+                    }
+                    $iteration++;
+                }
+            }, 'id');
         }
 
-        return 0;
+        return 1;
     }
 
     private function getAndCheckMonths(Collection $months): Collection
     {
-        return $months->filter(function ($_, $key) {
-            return $key <= now()->month;
-        });
+        return $months->filter(fn($_, $key) => $key <= now()->month);
     }
 
-    private function makePaymentsQuery(Collection $months, int $school_id): Builder
+    private function getDebts(): array
     {
-        $debts = [
+        return [
             // 0, //=> "Pendiente"
             2, //=> "Debe"
             3 //=> "Abonó"
         ];
+    }
 
-        $paymentsQuery = Payment::query()->where('year', now()->year)->where('school_id', $school_id);
+    private function makePaymentsQuery(Collection $months, int $school_id): Builder
+    {
+        $paymentsQuery = Payment::query()->with(['inscription.player'])
+            ->whereHas('inscription', fn($query) => $query->where('year', now()->year))
+            ->where('year', now()->year)
+            ->where('school_id', $school_id);
 
-        $paymentsQuery->where(function ($q) use ($months, $debts) {
+        $paymentsQuery->where(function ($q) use ($months) {
             foreach ($months as $month) {
-                $q->orWhereIn($month, $debts);
+                $q->orWhereIn($month, $this->getDebts());
             }
         });
 
