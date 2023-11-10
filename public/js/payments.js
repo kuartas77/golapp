@@ -72,6 +72,7 @@ $('body').on('change', 'select.payments', function () {
 
 function checkValue(element){
     let name = element.attr('name')
+    let dataId = element.data('id')
     let input = element.parent().find('input');
     let input_val = input.val().replace(/[\$,]/g, '') * 1
 
@@ -113,22 +114,26 @@ function checkValue(element){
 }
 
 function verifyInputs(element, value = 0){
+    let dataId = element.data('id')
     let inputs = element.parent().parent().find('input.payments_amount, select.payments')
-    let lastElement = inputs[inputs.length -1]
+
     $.each(inputs, function(_, domElement){
         let domInput = $(domElement)
+        let domInputId = $(domElement).data('id')
         let input_val = domInput.val().replace(/[\$,]/g, '') * 1
 
         if(!domInput.attr('name').includes('enrollment')){
-            if(domInput.is('select')){
+            if(domInput.is('select') && domInputId >= dataId){
                 domInput.val(element.val())
                 changeColors(domInput)
             }
-            else if(input_val != 0 ){
-                changeColors(domInput)
-            }
-            else{
-                domInput.val(value);
+            else {
+                if(input_val != 0 ){
+                    changeColors(domInput)
+                }
+                else{
+                    domInput.val(value);
+                }
             }
         }
     })

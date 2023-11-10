@@ -72,8 +72,25 @@ $('body').on('change', 'select.payments', function () {
 
 function checkValue(element){
     let name = element.attr('name')
+    let dataId = element.data('id')
     let input = element.parent().find('input');
     let input_val = input.val().replace(/[\$,]/g, '') * 1
+
+    // '0' => "Pendiente",
+    // '1' => "Pagó",
+    // '9' => "Pagó - Efectivo",
+    // '10' => "Pagó - Consignación",
+    // '11' => "Pago Anualidad Consignación",
+    // '12' => "Pago Anualidad Efectivo",
+    // '13' => "Acuerdo de Pago",
+    // '14' => "No Aplica",
+    // '2' => "Debe",
+    // '3' => "Abonó",
+    // '4' => "Incapacidad",
+    // '5' => "Retiro Temporal",
+    // '6' => "Retiro Definitivo",
+    // '7' => "Otro",
+    // '8' => "Becado",
 
     if(input_val == 0 && ['1','9','10'].includes(element.val())){
         if(name.includes('enrollment')){
@@ -83,26 +100,40 @@ function checkValue(element){
         }
     }else if(input_val != annuity && ['11','12'].includes(element.val())){
         verifyInputs(element, annuity)
+    }else if(input_val == annuity && ['11','12'].includes(element.val())){
+        verifyInputs(element, annuity)
     }else if(input_val != 0 && ['0'].includes(element.val())){
         input.val(0)
         changeColors(element)
     }else if(['13'].includes(element.val())){
         input.val(annuity)
         changeColors(element)
+    }else if(['6'].includes(element.val())){
+        verifyInputs(element)
     }
 }
 
 function verifyInputs(element, value = 0){
+    let dataId = element.data('id')
     let inputs = element.parent().parent().find('input.payments_amount, select.payments')
-    let lastElement = inputs[inputs.length -1]
+
     $.each(inputs, function(_, domElement){
         let domInput = $(domElement)
+        let domInputId = $(domElement).data('id')
+        let input_val = domInput.val().replace(/[\$,]/g, '') * 1
+
         if(!domInput.attr('name').includes('enrollment')){
-            if(domInput.is('select')){
+            if(domInput.is('select') && domInputId >= dataId){
                 domInput.val(element.val())
                 changeColors(domInput)
-            }else{
-                domInput.val(value);
+            }
+            else {
+                if(input_val != 0 ){
+                    changeColors(domInput)
+                }
+                else{
+                    domInput.val(value);
+                }
             }
         }
     })
@@ -114,8 +145,8 @@ function initTable() {
         "paging": false,
         "ordering": false,
         "info": true,
-        "scrollX": true,
-        "scrollY":"450px",
+        // "scrollX": true,
+        // "scrollY":"450px",
         "scrollCollapse":true,
         "columns": [
             {'width': '5%'},
