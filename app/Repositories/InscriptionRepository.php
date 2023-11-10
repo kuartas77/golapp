@@ -150,12 +150,12 @@ class InscriptionRepository
         return $this->model->query()->with('player')->schoolId()->findOrFail($id);
     }
 
-    public function disable(Inscription $inscription)
+    public function disable(Inscription $inscription): void
     {
         try {
             DB::beginTransaction();
             // $inscription->load(['payments', 'skillsControls', 'assistance']);
-            $inscription->payments()->delete();
+            // $inscription->payments()->delete();
             $inscription->skillsControls()->delete();
             $inscription->assistance()->delete();
             $inscription->tournament_payouts()->delete();

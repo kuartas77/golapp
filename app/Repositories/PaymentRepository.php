@@ -73,13 +73,9 @@ class PaymentRepository
      */
     public function filterSelect($request, bool $deleted = false): Builder
     {
-        $query = $this->model->query()->schoolId()->with(['inscription.player']);
-
-        if ($deleted) {
-            $query = $this->model->schoolId()->with([
-                'inscription' => fn($query) => $query->with(['player'])->withTrashed()
-            ])->withTrashed();
-        }
+        $query = $this->model->schoolId()->with([
+            'inscription' => fn($query) => $query->with(['player'])->withTrashed()
+        ])->withTrashed();
 
         $query->where('year', $request->input('year', now()->year))
             ->when($request->filled('unique_code'), fn($q) => $q->where('unique_code', $request->unique_code))

@@ -75,6 +75,22 @@ function checkValue(element){
     let input = element.parent().find('input');
     let input_val = input.val().replace(/[\$,]/g, '') * 1
 
+    // '0' => "Pendiente",
+    // '1' => "Pagó",
+    // '9' => "Pagó - Efectivo",
+    // '10' => "Pagó - Consignación",
+    // '11' => "Pago Anualidad Consignación",
+    // '12' => "Pago Anualidad Efectivo",
+    // '13' => "Acuerdo de Pago",
+    // '14' => "No Aplica",
+    // '2' => "Debe",
+    // '3' => "Abonó",
+    // '4' => "Incapacidad",
+    // '5' => "Retiro Temporal",
+    // '6' => "Retiro Definitivo",
+    // '7' => "Otro",
+    // '8' => "Becado",
+
     if(input_val == 0 && ['1','9','10'].includes(element.val())){
         if(name.includes('enrollment')){
             input.val(inscription_amount)
@@ -83,12 +99,16 @@ function checkValue(element){
         }
     }else if(input_val != annuity && ['11','12'].includes(element.val())){
         verifyInputs(element, annuity)
+    }else if(input_val == annuity && ['11','12'].includes(element.val())){
+        verifyInputs(element, annuity)
     }else if(input_val != 0 && ['0'].includes(element.val())){
         input.val(0)
         changeColors(element)
     }else if(['13'].includes(element.val())){
         input.val(annuity)
         changeColors(element)
+    }else if(['6'].includes(element.val())){
+        verifyInputs(element)
     }
 }
 
@@ -97,11 +117,17 @@ function verifyInputs(element, value = 0){
     let lastElement = inputs[inputs.length -1]
     $.each(inputs, function(_, domElement){
         let domInput = $(domElement)
+        let input_val = domInput.val().replace(/[\$,]/g, '') * 1
+
         if(!domInput.attr('name').includes('enrollment')){
             if(domInput.is('select')){
                 domInput.val(element.val())
                 changeColors(domInput)
-            }else{
+            }
+            else if(input_val != 0 ){
+                changeColors(domInput)
+            }
+            else{
                 domInput.val(value);
             }
         }
@@ -114,8 +140,8 @@ function initTable() {
         "paging": false,
         "ordering": false,
         "info": true,
-        "scrollX": true,
-        "scrollY":"450px",
+        // "scrollX": true,
+        // "scrollY":"450px",
         "scrollCollapse":true,
         "columns": [
             {'width': '5%'},

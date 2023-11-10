@@ -12,7 +12,7 @@
     @foreach($nameFields as $field)
     <td>
         @include('templates.payments.input', ['mes' => $field, 'value' => checkValueEnrollment($payment, $field, $inscription_amount), 'deleted' => $deleted])
-        @include('templates.payments.select', ['mes' => $field, 'value' => $payment->$field, 'deleted' => $deleted])
+        @include('templates.payments.select', ['mes' => $field, 'value' => $payment->$field, 'deleted' => $deleted, 'id' => $payment->id])
     </td>
     @endforeach
 </tr>

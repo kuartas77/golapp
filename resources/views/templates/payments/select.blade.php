@@ -43,4 +43,4 @@ $option = $deleted ? '': $class;
 {!! html()->select($mes,
     config('variables.KEY_PAYMENTS_SELECT'),
     $value)
-    ->attributes(['class' => "form-control form-control-sm payments $option", ($deleted || isInstructor()) ? 'disabled' : ''])->placeholder('Selecciona...') !!}
+    ->attributes(['class' => "form-control form-control-sm payments $option", 'id' => "$mes$id", ($deleted || isInstructor()) ? 'disabled' : ''])->placeholder('Selecciona...') !!}
