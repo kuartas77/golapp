@@ -42,4 +42,8 @@ switch($value){
 {!! html()->select($name,
     config('variables.KEY_PAYMENTS_SELECT'),
     $value)
-    ->attributes(['class' => "form-control form-control-sm payments {$class}", ($deleted || isInstructor()) ? 'disabled' : '', 'style'=>"width: 25%;"])->placeholder('Selecciona...') !!}
+    ->attributes([
+        'class' => "form-control form-control-sm payments {$class}",
+        ($deleted || isInstructor()) ? 'disabled' : '',
+        'style'=>"width: 20%;"
+    ])->placeholder('Selecciona...') !!}

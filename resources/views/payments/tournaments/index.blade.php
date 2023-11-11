@@ -113,6 +113,7 @@
                     });
                     let cash = 0;
                     let consignment = 0;
+                    let others = 0;
 
                     $.each([2], function(index, value) {
 
@@ -128,6 +129,8 @@
                             }
                             else if(['10', '11'].includes(select)){
                                 consignment = consignment + intVal(inputVal);
+                            }else{
+                                others = others + intVal(inputVal);
                             }
 
                         });
@@ -136,9 +139,11 @@
                     let totalFormat = `$${formatMoney(pageTotal)}`
                     let totalCash = `$${formatMoney(cash)}`
                     let totalConsignment = `$${formatMoney(consignment)}`
+                    let totalOthers = `$${formatMoney(others)}`
                     $('#total-tab').html(`Total: ${totalFormat}`)
                     $('#cash-tab').html(`Efectivo: ${totalCash}`)
                     $('#consignment-tab').html(`Consignación: ${totalConsignment}`)
+                    $('#other-tab').html(`Otros: ${totalOthers}`)
                 }
             });
             $('.payments_amount').inputmask("pesos");
