@@ -51,7 +51,7 @@ class CheckPayments extends Command
         foreach ($schools as $school) {
             $day = data_get($school, 'settings.NOTIFY_PAYMENT_DAY', 15);
 
-            if ($now->month == 2) {
+            if ($now->month == 2 && $day > 28) {
                 $day = $now->lastOfMonth()->lastOfMonth()->day;
             }
 
