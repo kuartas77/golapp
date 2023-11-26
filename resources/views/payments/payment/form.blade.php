@@ -8,11 +8,19 @@
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-2">
             <div class="form-group">
                 <label for="unique_code">Código Único</label>
                 <span class="bar"></span>
                 {!! html()->text('unique_code', null)->attributes(['class' => 'form-control form-control-sm','placeholder' => 'Ej: 20190000']) !!}
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="form-group">
+                <label for="unique_code">Categoría</label>
+                <span class="bar"></span>
+                {{ html()->select('category', $categories, null)->attributes(['id'=>'categories','class' => 'form-control form-control-sm'])->placeholder('Selecciona...') }}
             </div>
         </div>
 

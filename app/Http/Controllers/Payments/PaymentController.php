@@ -47,9 +47,10 @@ class PaymentController extends Controller
      * @param Payment $payment
      * @return JsonResponse
      */
-    public function update(SetPaymentRequest $request, Payment $payment): JsonResponse
+    public function update(SetPaymentRequest $request, $id): JsonResponse
     {
         abort_unless($request->ajax(), 401);
+        $payment = Payment::withTrashed()->find($id);
         $isPay = $this->repository->setPay($request->validated(), $payment);
         return $this->responseJson($isPay);
     }

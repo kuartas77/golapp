@@ -80,6 +80,7 @@ class PaymentRepository
         $query->where('year', $request->input('year', now()->year))
             ->when($request->filled('unique_code'), fn($q) => $q->where('unique_code', $request->unique_code))
             ->when($request->training_group_id != 0, fn($q) => $q->where('training_group_id', $request->training_group_id))
+            ->when($request->category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', now()->year)->where('category', $request->category)))
             ->orderBy('inscription_id', 'asc');
 
         return $query;
