@@ -14,7 +14,7 @@ use App\Http\ViewComposers\Payments\TournamentPaymentsViewComposer;
 use App\Http\ViewComposers\Profile\ProfileComposer;
 use App\Http\ViewComposers\TemplatesComposer;
 use App\Http\ViewComposers\TrainingGroup\TrainingGroupComposer;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -46,13 +46,25 @@ class GolAppProvider extends ServiceProvider
                         $query->bindings[$key] = $query->bindings[$key] ? 'true' : 'false';
                     }
                 }
-                logger(Str::replaceArray('?', $query->bindings, $query->sql));
+                logger()->info(Str::replaceArray('?', $query->bindings, $query->sql));
             });
         }
 
         Collection::macro('setAppends', function ($attributes) {
             return $this->map(function ($item) use ($attributes) {
                 return $item->setAppends($attributes);
+            });
+        });
+
+        Collection::macro('obfuscate', function(array $attributes) {
+            return $this->map(function($item, $key) use ($attributes){
+                if(is_array($item) || is_object($item)){
+                    return collect($item)->obfuscate($attributes);
+                }
+                if(in_array($key, $attributes, true)){
+                    return Str::mask($item, '*', 3, 5);
+                }
+                return $item;
             });
         });
 
