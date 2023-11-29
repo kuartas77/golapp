@@ -2,23 +2,23 @@
 
 namespace App\Providers;
 
-use App\Http\ViewComposers\AdminComposer;
-use App\Http\ViewComposers\Assists\AssistHistoricViewComposer;
-use App\Http\ViewComposers\Assists\AssistViewComposer;
-use App\Http\ViewComposers\Competition\MatchesViewComposer;
-use App\Http\ViewComposers\Incidents\IncidentComposer;
-use App\Http\ViewComposers\Inscription\InscriptionCreateComposer;
-use App\Http\ViewComposers\Payments\PaymentsHistoricViewComposer;
-use App\Http\ViewComposers\Payments\PaymentsViewComposer;
-use App\Http\ViewComposers\Payments\TournamentPaymentsViewComposer;
-use App\Http\ViewComposers\Profile\ProfileComposer;
-use App\Http\ViewComposers\TemplatesComposer;
-use App\Http\ViewComposers\TrainingGroup\TrainingGroupComposer;
+use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Str;
+use App\Http\ViewComposers\AdminComposer;
+use App\Http\ViewComposers\TemplatesComposer;
+use App\Http\ViewComposers\Profile\ProfileComposer;
+use App\Http\ViewComposers\Assists\AssistViewComposer;
+use App\Http\ViewComposers\Incidents\IncidentComposer;
+use App\Http\ViewComposers\Payments\PaymentsViewComposer;
+use App\Http\ViewComposers\Competition\MatchesViewComposer;
+use App\Http\ViewComposers\Assists\AssistHistoricViewComposer;
+use App\Http\ViewComposers\TrainingGroup\TrainingGroupComposer;
+use App\Http\ViewComposers\Inscription\InscriptionCreateComposer;
+use App\Http\ViewComposers\Payments\PaymentsHistoricViewComposer;
+use App\Http\ViewComposers\Payments\TournamentPaymentsViewComposer;
 
 class GolAppProvider extends ServiceProvider
 {
@@ -56,12 +56,12 @@ class GolAppProvider extends ServiceProvider
             });
         });
 
-        Collection::macro('obfuscate', function(array $attributes) {
-            return $this->map(function($item, $key) use ($attributes){
-                if(is_array($item) || is_object($item)){
+        Collection::macro('obfuscate', function (array $attributes) {
+            return $this->map(function ($item, $key) use ($attributes) {
+                if (is_array($item) || is_object($item)) {
                     return collect($item)->obfuscate($attributes);
                 }
-                if(in_array($key, $attributes, true)){
+                if (in_array($key, $attributes, true)) {
                     return Str::mask($item, '*', 3, 5);
                 }
                 return $item;
