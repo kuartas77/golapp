@@ -9,7 +9,8 @@ class PublicComposer
 {
     public function compose(View $view)
     {
-        $view->with('public_schools', School::query()->where('id','<>', 1)->pluck('name','slug'));
+        $schools = School::query()->where('id','<>', 1)->where('is_enable', true)->pluck('name','slug');
+        $view->with('public_schools', $schools);
     }
-    
+
 }

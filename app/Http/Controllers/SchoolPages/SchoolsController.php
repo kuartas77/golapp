@@ -31,9 +31,4 @@ class SchoolsController extends Controller
 
         return redirect(route('school.index', ['school' => $school]));
     }
-
-    public function show(School $school)
-    {
-        return view('schoolPages.school', compact('school'));
-    }
 }

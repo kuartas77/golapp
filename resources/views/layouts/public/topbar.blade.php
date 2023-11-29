@@ -17,7 +17,7 @@
                     </a>
                     <ul class="dropdown-menu">
                         @foreach($public_schools as $slug => $school)
-                            <li><a class="dropdown-item" href="{{route('escuelas.show', [$slug])}}">{{$school}}</a></li>
+                            <li><a class="dropdown-item" href="{{route('public.school.show', [$slug])}}">{{$school}}</a></li>
                             @if (!$loop->last)
                             <li>
                                 <hr class="dropdown-divider">
@@ -27,7 +27,7 @@
                     </ul>
                 </li>
             </ul>
-            
+
         </div>
     </nav>
 </header>
