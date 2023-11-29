@@ -2,21 +2,19 @@
 
 namespace App\Repositories;
 
-use Exception;
+use App\Models\CompetitionGroup;
 use App\Models\Game;
 use App\Models\Master;
-use App\Traits\Fields;
-use Mpdf\MpdfException;
-use App\Traits\PDFTrait;
-use App\Traits\ErrorTrait;
 use App\Models\SkillsControl;
-use App\Models\CompetitionGroup;
+use App\Traits\ErrorTrait;
+use App\Traits\PDFTrait;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
+use Mpdf\MpdfException;
 
 class GameRepository
 {
-    use Fields;
     use PDFTrait;
     use ErrorTrait;
 
@@ -32,9 +30,9 @@ class GameRepository
 
     public function getDatatable($year)
     {
-        return Game::with([
-            'tournament' => fn ($q) => $q->withTrashed(),
-            'competitionGroup' => fn ($q) => $q->with('professor')->withTrashed(),
+        return Game::query()->schoolId()->with([
+            'tournament' => fn($q) => $q->withTrashed(),
+            'competitionGroup' => fn($q) => $q->with('professor')->withTrashed(),
         ])->whereYear('created_at', $year)->orderBy('date', 'desc')->get();
     }
 
@@ -58,7 +56,7 @@ class GameRepository
     public function makeMatch($competitionGroup): object
     {
         $competitionGroup->load([
-            'inscriptions' => fn ($q) => $q->with('player'), 
+            'inscriptions' => fn($q) => $q->with('player'),
             'tournament:id,name', 'professor:id,name'
         ]);
         $rows = "";
@@ -197,15 +195,14 @@ class GameRepository
     public function makePDF($matchId)
     {
         $match = $this->model->query()->with([
-            'tournament' => fn ($query) => $query->withTrashed(),
-            'competitionGroup' => fn ($query) => 
-                $query->with([
-                    'professor' => fn ($query) => $query->withTrashed()
-                ])->withTrashed(),
-            'skillsControls' => fn ($query) => $query->with([
-                'inscription' => fn ($query) => $query->with('player')->withTrashed()
+            'tournament' => fn($query) => $query->withTrashed(),
+            'competitionGroup' => fn($query) => $query->with([
+                'professor' => fn($query) => $query->withTrashed()
+            ])->withTrashed(),
+            'skillsControls' => fn($query) => $query->with([
+                'inscription' => fn($query) => $query->with('player')->withTrashed()
             ])->withTrashed()
-            
+
         ])->findOrFail($matchId);
 
 
@@ -223,7 +220,7 @@ class GameRepository
     public function exportMatchDetail($competitionGroupId)
     {
         $competitionGroup = CompetitionGroup::find($competitionGroupId)->load([
-            'inscriptions' => fn ($q) => $q->with('player')
+            'inscriptions' => fn($q) => $q->with('player')
         ]);
 
         return $competitionGroup->inscriptions;

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\API;
 
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class SchoolCollection extends ResourceCollection
@@ -9,7 +10,7 @@ class SchoolCollection extends ResourceCollection
     /**
      * Transform the resource collection into an array.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param Request $request
      * @return array
      */
     public function toArray($request)

@@ -20,6 +20,7 @@ class CreatePaymentsTable extends Migration
             $table->unsignedBigInteger('inscription_id');
             $table->string('unique_code');
 
+            $table->string('enrollment', 20)->nullable()->default(0);
             $table->string('january', 20)->nullable()->default(0);
             $table->string('february', 20)->nullable()->default(0);
             $table->string('march', 20)->nullable()->default(0);

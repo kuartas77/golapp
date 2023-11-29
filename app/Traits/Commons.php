@@ -6,11 +6,6 @@ use Illuminate\Support\Facades\Cache;
 
 trait Commons
 {
-    public function getTokenAttribute()
-    {
-        return csrf_token();
-    }
-
     /**
      * @param $name
      * @param null $data

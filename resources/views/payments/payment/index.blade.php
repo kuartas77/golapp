@@ -13,6 +13,9 @@
 @section('scripts')
     <script>
         let url_current = '{{URL::current()}}';
+        let inscription_amount = '{{$inscription_amount}}'
+        let monthly_payment = '{{$monthly_payment}}'
+        let annuity = '{{$annuity}}'
         $(function () {
             $(".preloader").fadeOut()
         })

@@ -24,7 +24,7 @@ class PlayerCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'unique_code' => ['required'],
+            'unique_code' => ['required', 'unique:players'],
             'names' => ['required'],
             'last_names' => ['required'],
             'gender' => ['required'],
@@ -33,21 +33,21 @@ class PlayerCreateRequest extends FormRequest
             'identification_document' => ['required'],
             'rh' => ['nullable'],
             'eps' => ['required'],
-            'email' => ['required'],
+            'email' => ['nullable', 'email'],
             'address' => ['required'],
             'municipality' => ['required'],
             'neighborhood' => ['required'],
             'zone' => ['nullable'],
             'commune' => ['nullable'],
             'phones' => ['required'],
-            'mobile' => ['required'],
+            'mobile' => ['nullable'],
             'school' => ['required'],
-            'degree' => [],
+            'degree' => ['nullable'],
             'player' => ['nullable', 'image', 'mimes:jpeg,png,jpg'],
             'position_field' => ['nullable'],
             'dominant_profile' => ['nullable'],
 
-            'people'=> 'array',
+            'people' => 'array',
             'people.*.relationship',
             'people.*.names',
             'people.*.phone',
@@ -59,6 +59,13 @@ class PlayerCreateRequest extends FormRequest
             'people.*.business',
             'people.*.position',
             'school_id' => ['required'],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            // 'unique_code' => 'El código ya fue registrado anteriormente.'
         ];
     }
 

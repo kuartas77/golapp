@@ -14,6 +14,6 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
  * @property string logo
  */
 class SchoolUser extends Pivot
-{   
+{
     protected $table = 'schools_user';
 }

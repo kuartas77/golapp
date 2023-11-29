@@ -96,6 +96,7 @@ $(document).ready(() => {
                 ids = data.instructors_ids.map((element) => element.toString())
                 resetModalForm(false, id);
                 $("#name").val(data.name);
+                $("#stage").val(data.stage);
                 daysInput.multiSelect('deselect_all');
                 daysInput.multiSelect('select', data.explode_days);
                 schedulesInput.multiSelect('deselect_all');

@@ -2,19 +2,20 @@
 
 namespace App\Imports;
 
-use Carbon\Carbon;
 use App\Models\People;
 use App\Models\Player;
 use App\Traits\ErrorTrait;
-use Illuminate\Support\Str;
+use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithValidation;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, WithChunkReading, WithBatchInserts
 {
@@ -22,9 +23,9 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
 
     public function __construct(private int $school_id)
     {
-        // 
+        //
     }
-    
+
     public function collection(Collection $rows)
     {
         try {
@@ -34,15 +35,15 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
                 $dataPeople = $this->setAttributesPeople($row);
 
                 $people = People::query()->select('id')
-                    ->where(function($query) use($dataPeople){
+                    ->where(function ($query) use ($dataPeople) {
                         $query->where('names', $dataPeople['names'])
-                        ->Orwhere('identification_card', $dataPeople['identification_card']);
+                            ->Orwhere('identification_card', $dataPeople['identification_card']);
                     })->first();
 
-                if(!$people){
+                if (!$people) {
                     $people = People::query()->create($dataPeople);
                 }
-                
+
                 $dataPlayer = $this->setAttributesPlayer($row);
                 $player = Player::query()->updateOrCreate(
                     [
@@ -51,30 +52,28 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
                     ],
                     $dataPlayer
                 );
-                
+
                 $player->people()->sync([$people->id]);
             }
             DB::commit();
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("PlayerRepository@createPlayer", $exception);
         }
     }
 
-    public function batchSize(): int
-    {
-        return 50;
-    }
-
-    public function chunkSize(): int
-    {
-        return 50;
-    }
-
-    public function rules(): array
+    private function setAttributesPeople($row): array
     {
         return [
-            // 'administrador' => 'required|string',
+            'names' => Str::upper(trim($row['nombres_y_apellidos'])),
+            'identification_card' => trim($row['numero_de_celularr']),
+            'tutor' => true,
+            'relationship' => 30,
+            'phone' => trim($row['numero_de_telefono']) ?? null,
+            'mobile' => trim($row['numero_de_celularr']) ?? null,
+            'profession' => trim($row['profesion']) ?? null,
+            'business' => trim($row['empresa']) ?? null,
+            'position' => trim($row['cargo']) ?? null,
         ];
     }
 
@@ -86,7 +85,7 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
             'unique_code' => trim($row['numero_de_documento']),
             'names' => Str::upper(trim($row['nombres'])),
             'last_names' => Str::upper(trim($row['apellidos'])),
-            'gender' => Str::upper(trim($row['genero'])),
+            'gender' => $this->checkGender($row['genero']),
             'date_birth' => $dateBirth->format('Y-m-d'),
             'place_birth' => trim($row['lugar_de_nacimiento']),
             'identification_document' => trim($row['numero_de_documento']),
@@ -108,21 +107,34 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
             'eps' => trim($row['eps']),
             'school_id' => $this->school_id,
         ];
-        
+
     }
 
-    private function setAttributesPeople($row): array
+    private function checkGender(string $gender): string
+    {
+        $gender = strtolower(trim($gender));
+        if ($gender == 'masculino' || $gender == 'm') {
+            $gender = 'M';
+        } else {
+            $gender = 'F';
+        }
+        return $gender;
+    }
+
+    public function batchSize(): int
+    {
+        return 50;
+    }
+
+    public function chunkSize(): int
+    {
+        return 50;
+    }
+
+    public function rules(): array
     {
         return [
-            'names' => Str::upper(trim($row['nombres_y_apellidos'])),
-            'identification_card' => trim($row['numero_de_celularr']),
-            'tutor' => true,
-            'relationship' => 30,
-            'phone' => trim($row['numero_de_telefono']) ?? null,
-            'mobile' => trim($row['numero_de_celularr']) ?? null,
-            'profession' => trim($row['profesion']) ?? null,
-            'business' => trim($row['empresa']) ?? null,
-            'position' => trim($row['cargo']) ?? null,
+            // 'administrador' => 'required|string',
         ];
     }
 }

@@ -1,35 +1,25 @@
 @extends('layouts.app')
-@section('css')
-<style>
-    .typeahead.dropdown-menu {
-	z-index: 1051;
-	position:relative;
-	top:0!important;
-	left:0!important;	
-}
-</style>
-@endsection
 @section('content')
     <x-bread-crumb title="Agregar Deportista" :option="0"/>
-    <x-row-card-eight>
-        <div class="wizard-content">
-            {!! Form::open(['route' => 'players.store', 'id'=>'form_player', 'files'=>true, 'class'=>'validation-wizard wizard-circle']) !!}
-                @include('player.fields.basic_information')
-                @include('player.fields.family_information', ['people'=> [1,2,3]])
-            {!! Form::close() !!}
+    <x-row-card col-inside="12 col-sm-12 col-md-12 col-lg-10 col-xl-10" col-outside="1 col-lg-1 col-xl-1">
+        {{html()->form('post', route('players.store'))->attributes(['id' => 'form_player', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class' => 'form-material m-t-0'])->open()}}
+        <div class="form-body">
+            @include('player.fields.basic_information')
+            @include('player.fields.family_information')
         </div>
-    </x-row-card-eight>
+        <div class="form-actions m-t-0 text-center">
+            <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info">Guardar</button>
+        </div>
+        {{ html()->form()->close() }}
+    </x-row-card>
 @endsection
 @section('scripts')
     <script>
         let url_document_exists = "{{ route('autocomplete.document_exists') }}";
         let url_verify_unique_code = "{{ route('autocomplete.verify_code') }}";
         let url_autocomplete = "{{ route('autocomplete.fields') }}";
+        let doc_length = 6
 
-        optionsDateTimePicker.timePicker24Hour = false;
-        optionsDateTimePicker.locale.format = 'YYYY-MM-DD';
-        optionsDateTimePicker.timePicker = false;
-        optionsDateTimePicker.autoUpdateInput = false;
         jQuery.validator.addClassRules('chk-col-blue', {
             checkone: true
         });
@@ -49,14 +39,11 @@
                     place_birth : {required: true},
                     rh : {},
                     eps : {required: true},
-                    email : {required: true},
+                    email : {required: false, email:true},
                     address : {required: true},
                     municipality : {required: true},
                     neighborhood : {required: true},
-                    zone : {},
-                    commune : {},
                     phones : {required: true},
-                    mobile : {required: true},
                     school : {required: true},
                     degree : {required: false},
                     position_field : {},
@@ -68,78 +55,13 @@
                             return $('input[name="people[0][mobile]"]').val() === "";
                         }
                     },
-                    "people[0][mobile]": {
-                        required: function () {
-                            return $('input[name="people[0][phone]"]').val() === "";
-                        }
-                    },
                     "people[0][identification_card]": {
                         required: function () {
                             return $('input[name="people[0][tutor]"]').is(":checked");
                         }, numbers:true
                     },
-            
-                    "people[1][relationship]": {required: true},
-                    "people[1][names]": {required: true},
-                    "people[1][phone]": {
-                        required: function () {
-                            return $('input[name="people[1][mobile]"]').val() === "";
-                        }
-                    },
-                    "people[1][mobile]": {
-                        required: function () {
-                            return $('input[name="people[1][phone]"]').val() === "";
-                        }
-                    },
-                    "people[1][identification_card]": {
-                        required: function () {
-                            return $('input[name="people[1][tutor]"]').is(":checked");
-                        }, numbers:true
-                    },
-                    "people[2][relationship]": {required: true},
-                    "people[2][names]": {required: true},
-                    "people[2][phone]": {
-                        required: function () {
-                            return $('input[name="people[2][mobile]"]').val() === "";
-                        }
-                    },
-                    "people[2][mobile]": {
-                        required: function () {
-                            return $('input[name="people[2][phone]"]').val() === "";
-                        }
-                    },
-                    "people[2][identification_card]": {
-                        required: function () {
-                            return $('input[name="people[2][tutor]"]').is(":checked");
-                        }, numbers:true
-                    },
-                }
-            });
-
-            form_player.steps({
-                headerTag: "h6",
-                bodyTag: "section",
-                transitionEffect: "fade",
-                stepsOrientation: "horizontal",
-                titleTemplate: '<span class="step">#index#</span> #title#',
-                autoFocus: true,
-                enableAllSteps: true,
-                labels: {
-                    finish: "Guardar",
-                    next: "Siguiente",
-                    previous: "Anterior"
-                }
-                , onStepChanging: function (event, currentIndex, newIndex) {
-                    return currentIndex > newIndex || (currentIndex < newIndex &&
-                    (form_player.find(".body:eq(" + newIndex + ") label.error").remove(),
-                        form_player.find(".body:eq(" + newIndex + ") .error").removeClass("error")),
-                        form_player.validate().settings.ignore = ":disabled,:hidden", form_player.valid())
-                }
-                , onFinishing: function (event, currentIndex) {
-                    return form_player.validate().settings.ignore = ":disabled", form_player.valid()
-                }
-                , onFinished: function (event, currentIndex) {
-
+                },
+                submitHandler: function (form) {
                     Swal.fire({
                         title: 'Atención',
                         text: "¿Guardar Deportista?",
@@ -153,81 +75,58 @@
                         cancelButtonText: 'No'
                     }).then((result) => {
                         if (result?.value !== undefined) {
-                            form_player.trigger('submit')
+                            form.submit()
                         }
                     })
                 }
-            }); 
-            
+            });
+
             events();
         });
 
         function events() {
             // campos los cuales se van a buscar en la tabla maestra para autocompletado
-            let fields = ['school', 'place_birth', 'neighborhood', 'eps', 'zone', 'commune', 'degree'];
+            let fields = ['school', 'place_birth', 'neighborhood', 'eps'];
             $.get(url_autocomplete, {fields: fields}, function (result) {
                 $('#place_birth').typeahead({
                     source: result.place_birth,
-                    scrollBar: true
+                    theme: 'bootstrap4',
+                    scrollHeight: 10
                 });
 
                 $('#school').typeahead({
                     source: result.school,
-                    scrollBar: true
+                    theme: 'bootstrap4',
                 });
-
 
                 $('#municipality').typeahead({
                     source: result.place_birth,
-                    scrollBar: true
+                    theme: 'bootstrap4',
                 });
 
                 $('#neighborhood').typeahead({
                     source: result.neighborhood,
-                    scrollBar: true
+                    theme: 'bootstrap4',
                 });
 
                 $('#eps').typeahead({
                     source: result.eps,
-                    scrollBar: true
+                    theme: 'bootstrap4',
                 });
 
-                $('#zone').typeahead({
-                    source: result.zone,
-                    scrollBar: true
-                });
-
-                $('#commune').typeahead({
-                    source: result.commune,
-                    scrollBar: true
-                });
-
-                $('#degree').typeahead({
-                    source: result.degree,
-                    scrollBar: true
-                });
             });
 
-            $(".select2").select2({allowClear: true});
-            $('.date').inputmask("yyyy-mm-dd");
+            $('#date_birth').inputmask("yyyy-mm-dd");
+            $('#email').inputmask('email');
+            // $('#phones').inputmask("9999999999");
+            $('#unique_code').inputmask("999999[9999]");
+            $('#identification_document').inputmask("999999[9999]");
+
             $(".form-control").attr('autocomplete', 'off');
-
-            $("#date_birth").bootstrapMaterialDatePicker({
-                time: false,
-                clearButton: false,
-                lang: 'es',
-                cancelText: 'Cancelar',
-                okText: 'Aceptar',
-                minDate: moment().subtract(18, 'year'),//TODO: settings
-                maxDate: moment().subtract(2, 'year')// TODO: settings
-            });
-            // $('#date_birth').daterangepicker(optionsDateTimePicker).on('apply.daterangepicker', function (ev, picker) {
-            //     $(this).val(picker.startDate.format('YYYY-MM-DD'));
-            // });
 
             $("#unique_code").on('keyup', function () {
                 let element = $(this);
-                if (element.val().length >= 7) {
+                if (element.val().length >= doc_length) {
                     $.get(url_verify_unique_code, {'unique_code': element.val()}, function (response) {
                         if (response.data === true) {
                             element.val('').focus();
@@ -240,9 +139,10 @@
                     });
                 }
             });
+
             $("#identification_document").on('keyup', function () {
                 let element = $(this);
-                if (element.val().length >= 8) {
+                if (element.val().length >= doc_length) {
                     $.get(url_document_exists, {'doc': element.val()}, function (response) {
                         if (response.data === true) {
                             element.val('').focus();
@@ -264,16 +164,16 @@
         function readFile(input) {
             let label = $(input).next('label.custom-file-label')
             if (input.files && input.files[0]) {
-                let reader = new FileReader();                
+                let reader = new FileReader();
                 reader.onload = function (e) {
                     $('#player-img').attr('src', e.target.result);
-                }                
+                }
                 reader.readAsDataURL(input.files[0]);
                 // label.empty().html(input.files[0].name)
                 label.empty().html('Seleccionada.')
             }else{
                 label.empty().html("Seleccionar...")
-                $('#player-img').attr('src', 'http://golapp.local/img/user.png');                
+                $('#player-img').attr('src', 'http://golapp.local/img/user.png');
             }
         }
     </script>

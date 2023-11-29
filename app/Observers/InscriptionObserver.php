@@ -2,9 +2,9 @@
 
 namespace App\Observers;
 
-use App\Traits\ErrorTrait;
 use App\Models\Inscription;
 use App\Service\SharedService;
+use App\Traits\ErrorTrait;
 
 class InscriptionObserver
 {
@@ -12,7 +12,7 @@ class InscriptionObserver
 
     public function __construct(private SharedService $sharedService)
     {
-        
+
     }
 
     /**
@@ -21,7 +21,7 @@ class InscriptionObserver
      * @param Inscription $inscription
      * @return void
      */
-    public function created(Inscription $inscription)
+    public function created(Inscription $inscription): void
     {
         $this->sharedService->paymentAssist($inscription);
     }
@@ -32,7 +32,7 @@ class InscriptionObserver
      * @param Inscription $inscription
      * @return void
      */
-    public function updated(Inscription $inscription)
+    public function updated(Inscription $inscription): void
     {
         $this->sharedService->paymentAssist($inscription);
     }
@@ -43,7 +43,7 @@ class InscriptionObserver
      * @param Inscription $inscription
      * @return void
      */
-    public function deleted(Inscription $inscription)
+    public function deleted(Inscription $inscription): void
     {
         $inscription->payments()->delete();
         $inscription->assistance()->delete();

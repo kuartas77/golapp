@@ -11,6 +11,7 @@ use Illuminate\Notifications\Notification;
 class RegisterPlayerNotification extends Notification implements ShouldQueue
 {
     use Queueable;
+
     public Player $player;
 
     public function __construct(Player $player)
@@ -36,7 +37,7 @@ class RegisterPlayerNotification extends Notification implements ShouldQueue
      * @param mixed $notifiable
      * @return MailMessage
      */
-    public function toMail($notifiable)
+    public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
             ->subject("Notificación Deportista Registrado")
@@ -49,7 +50,7 @@ class RegisterPlayerNotification extends Notification implements ShouldQueue
      * @param mixed $notifiable
      * @return array
      */
-    public function toArray($notifiable)
+    public function toArray($notifiable): array
     {
         return [
             //

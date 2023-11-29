@@ -4,6 +4,7 @@ namespace App\Http\Resources\API;
 
 use App\Models\School;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class UserCollection extends ResourceCollection
@@ -11,7 +12,7 @@ class UserCollection extends ResourceCollection
     /**
      * Transform the resource collection into an array.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param Request $request
      * @return array
      */
     public function toArray($request)
@@ -40,6 +41,6 @@ class UserCollection extends ResourceCollection
 
     private function formatRoles(Collection $roles)
     {
-        return $roles->map(fn ($role) => ['id' => $role->id, 'name' => $role->name]);
+        return $roles->map(fn($role) => ['id' => $role->id, 'name' => $role->name]);
     }
 }

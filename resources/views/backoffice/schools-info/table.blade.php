@@ -16,6 +16,7 @@
                 <th># Inscripciones</th>
                 <th># Jugadores</th>
                 <th># Pagos</th>
+                <th># Pagos Torneos</th>
                 <th># Asistencias</th>
                 <th># Control Competencias</th>
                 <th># Partidos</th>

@@ -1,18 +1,28 @@
-<?php
+<?php /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
+/** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
 
 
 namespace App\Custom;
 
 
-use App\Models\Game;
 use App\Models\Assist;
+use App\Models\Game;
+use App\Models\Inscription;
+use App\Models\Payment;
 use App\Models\People;
 use App\Models\Player;
-use App\Models\Payment;
-use Jenssegers\Date\Date;
-use App\Models\Inscription;
 use App\Models\SkillsControl;
+use Exception;
 use Illuminate\Support\Facades\DB;
+use Jenssegers\Date\Date;
 
 class Migration
 {
@@ -68,7 +78,7 @@ class Migration
                 $player->zone = $inscripcion->zona;
                 $player->commune = $inscripcion->comuna;
                 $player->category = categoriesName($date_birth->year);
-    
+
                 $player->phones = $inscripcion->telefonos;
                 $player->email = $inscripcion->correo;
                 $player->mobile = $inscripcion->movil;
@@ -76,45 +86,54 @@ class Migration
                 $player->created_at = $inscripcion->created_at;
                 $player->updated_at = $inscripcion->updated_at;
                 $player->save();
-    
+
                 $peoplesIds = self::createPeoples($inscripcion);
-    
+
                 $player->people()->sync($peoplesIds);
-    
+
                 $pagos = DB::connection('mysql_old')->table('pagos')->where('inscripcion_id', '=', $inscripcion->id)->get();
-    
+
                 if ($pagos->count() == 0) {
+                    /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+                    /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
                     logger("{$inscripcion->id} {$inscripcion->recibo} => pagos", [$pagos->count()]);
                 }
                 foreach ($pagos as $pago) {
-    
+
                     $inscription = self::createInscription($player, $inscripcion, $pago);
-    
+
                     self::createPayment($pago, $inscription);
-    
+
+                    /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
                     $controls = DB::connection('mysql_old')->table('control_competencias')
                         ->where('inscripciones_id', '=', $inscripcion->id)
                         ->whereYear('created_at', "=", "{$pago->anio}-01-01")
                         ->get();
                     if (($countControls = $controls->count()) == 0) {
+                        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+                        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+                        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
                         logger("{$pago->anio} {$inscripcion->id} {$inscripcion->recibo} => control_competencias", [$countControls]);
                     }
-    
+
                     $asistencias = DB::connection('mysql_old')->table('asistencias')
                         ->where('inscripcion_id', '=', $player->id)
                         ->where('anio', $pago->anio)
                         ->get();
                     if (($countAssists = $asistencias->count()) == 0) {
+                        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+                        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+                        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
                         logger("{$pago->anio} {$player->id} {$player->unique_code} => asistencias", [$countAssists]);
                     }
-    
+
                     self::createAssists($asistencias, $inscription);
-    
+
                     self::createSkillsControls($controls, $inscription);
                 }
             }
             DB::commit();
-        } catch (\Exception $ex) {
+        } catch (Exception $ex) {
             DB::rollBack();
             logger()->error('InscriptionMigration', [
                 "error" => $ex->getMessage(),
@@ -235,6 +254,118 @@ class Migration
     }
 
     /**
+     * @param Player $player
+     * @param $inscripcion
+     * @param $pago
+     * @return Inscription
+     */
+    public static function createInscription(Player $player, $inscripcion, $pago): Inscription
+    {
+        $fecha_inicio = Date::createFromFormat('d-m-Y', $inscripcion->fecha_inicio)->format('Y-m-d');
+        $inscription = new Inscription();
+        $inscription->player_id = $player->id;
+        $inscription->training_group_id = $inscripcion->grupo_id;
+        $inscription->competition_group_id = $inscripcion->grupo_competencias_id;
+        $inscription->unique_code = $inscripcion->recibo;
+        $inscription->category = $inscripcion->categoria;
+        $inscription->start_date = $fecha_inicio;
+        $inscription->photos = $inscripcion->fotos;
+        $inscription->copy_identification_document = $inscripcion->fotocopia_doc_ident;
+        $inscription->eps_certificate = $inscripcion->certificado_sisben_eps;
+        $inscription->medic_certificate = $inscripcion->certificado_medico;
+        $inscription->study_certificate = $inscripcion->certificado_estudio;
+        $inscription->overalls = $inscripcion->peto;
+        $inscription->ball = $inscripcion->balon;
+        $inscription->bag = $inscripcion->morral;
+        $inscription->presentation_uniform = $inscripcion->uniforme_presentacion;
+        $inscription->competition_uniform = $inscripcion->uniforme_competencia;
+        $inscription->tournament_pay = $inscripcion->pago_torneo;
+
+        $inscription->period_one = $inscripcion->{'1p'};
+        $inscription->period_two = $inscripcion->{'2p'};
+        $inscription->period_three = $inscripcion->{'3p'};
+        $inscription->period_four = $inscripcion->{'4p'};
+        $inscription->year = $pago->anio;
+        $inscription->created_at = $pago->created_at;
+        $inscription->updated_at = $pago->updated_at;
+        $inscription->deleted_at = $pago->deleted_at;
+
+        Inscription::withoutEvents(function () use ($inscription) {
+            $inscription->save();
+        });
+        return $inscription;
+    }
+
+    /**
+     * @param $pago
+     * @param Inscription $inscription
+     */
+    public static function createPayment($pago, Inscription $inscription): void
+    {
+        $payment = new Payment();
+        $payment->year = $pago->anio;
+        $payment->training_group_id = $pago->grupo_id;
+        $payment->inscription_id = $inscription->id;
+        $payment->unique_code = $pago->doc_identidad;
+        $payment->january = $pago->enero;
+        $payment->february = $pago->febrero;
+        $payment->march = $pago->marzo;
+        $payment->april = $pago->abril;
+        $payment->may = $pago->mayo;
+        $payment->june = $pago->junio;
+        $payment->july = $pago->julio;
+        $payment->august = $pago->agosto;
+        $payment->september = $pago->septiembre;
+        $payment->october = $pago->octubre;
+        $payment->november = $pago->noviembre;
+        $payment->december = $pago->diciembre;
+        $payment->created_at = $pago->created_at;
+        $payment->updated_at = $pago->updated_at;
+        $payment->deleted_at = $pago->deleted_at;
+
+        Payment::withoutEvents(function () use ($payment) {
+            $payment->save();
+        });
+    }
+
+    /**
+     * @param $asistencias
+     * @param Inscription $inscription
+     */
+    public static function createAssists($asistencias, Inscription $inscription): void
+    {
+        foreach ($asistencias as $asistencia) {
+            $assist = new Assist();
+            $assist->training_group_id = $asistencia->grupo_id;
+            $assist->inscription_id = $inscription->id;
+            $assist->year = intval($asistencia->anio);
+            $assist->month = $asistencia->mes;
+            $assist->assistance_one = $asistencia->asistencia_1;
+            $assist->assistance_two = $asistencia->asistencia_2;
+            $assist->assistance_three = $asistencia->asistencia_3;
+            $assist->assistance_four = $asistencia->asistencia_4;
+            $assist->assistance_five = $asistencia->asistencia_5;
+            $assist->assistance_six = $asistencia->asistencia_6;
+            $assist->assistance_seven = $asistencia->asistencia_7;
+            $assist->assistance_eight = $asistencia->asistencia_8;
+            $assist->assistance_nine = $asistencia->asistencia_9;
+            $assist->assistance_ten = $asistencia->asistencia_10;
+            $assist->assistance_eleven = $asistencia->asistencia_11;
+            $assist->assistance_twelve = $asistencia->asistencia_12;
+            $assist->assistance_thirteen = $asistencia->asistencia_13;
+            $assist->assistance_fourteen = $asistencia->asistencia_14;
+            $assist->assistance_fifteen = $asistencia->asistencia_15;
+            $assist->observations = $asistencia->observaciones;
+            $assist->created_at = $asistencia->created_at;
+            $assist->updated_at = $asistencia->updated_at;
+            $assist->deleted_at = $asistencia->deleted_at;
+            Assist::withoutEvents(function () use ($assist) {
+                $assist->save();
+            });
+        }
+    }
+
+    /**
      * @param $controls
      * @param Inscription $inscription
      */
@@ -291,117 +422,5 @@ class Migration
                 $skill_control->save();
             });
         }
-    }
-
-    /**
-     * @param $asistencias
-     * @param Inscription $inscription
-     */
-    public static function createAssists($asistencias, Inscription $inscription): void
-    {
-        foreach ($asistencias as $asistencia) {
-            $assist = new Assist();            
-            $assist->training_group_id = $asistencia->grupo_id;
-            $assist->inscription_id = $inscription->id;
-            $assist->year = intval($asistencia->anio);
-            $assist->month = $asistencia->mes;
-            $assist->assistance_one = $asistencia->asistencia_1;
-            $assist->assistance_two = $asistencia->asistencia_2;
-            $assist->assistance_three = $asistencia->asistencia_3;
-            $assist->assistance_four = $asistencia->asistencia_4;
-            $assist->assistance_five = $asistencia->asistencia_5;
-            $assist->assistance_six = $asistencia->asistencia_6;
-            $assist->assistance_seven = $asistencia->asistencia_7;
-            $assist->assistance_eight = $asistencia->asistencia_8;
-            $assist->assistance_nine = $asistencia->asistencia_9;
-            $assist->assistance_ten = $asistencia->asistencia_10;
-            $assist->assistance_eleven = $asistencia->asistencia_11;
-            $assist->assistance_twelve = $asistencia->asistencia_12;
-            $assist->assistance_thirteen = $asistencia->asistencia_13;
-            $assist->assistance_fourteen = $asistencia->asistencia_14;
-            $assist->assistance_fifteen = $asistencia->asistencia_15;
-            $assist->observations = $asistencia->observaciones;
-            $assist->created_at = $asistencia->created_at;
-            $assist->updated_at = $asistencia->updated_at;
-            $assist->deleted_at = $asistencia->deleted_at;
-            Assist::withoutEvents(function () use ($assist) {
-                $assist->save();
-            });
-        }
-    }
-
-    /**
-     * @param $pago
-     * @param Inscription $inscription
-     */
-    public static function createPayment($pago, Inscription $inscription): void
-    {
-        $payment = new Payment();
-        $payment->year = $pago->anio;
-        $payment->training_group_id = $pago->grupo_id;
-        $payment->inscription_id = $inscription->id;
-        $payment->unique_code = $pago->doc_identidad;
-        $payment->january = $pago->enero;
-        $payment->february = $pago->febrero;
-        $payment->march = $pago->marzo;
-        $payment->april = $pago->abril;
-        $payment->may = $pago->mayo;
-        $payment->june = $pago->junio;
-        $payment->july = $pago->julio;
-        $payment->august = $pago->agosto;
-        $payment->september = $pago->septiembre;
-        $payment->october = $pago->octubre;
-        $payment->november = $pago->noviembre;
-        $payment->december = $pago->diciembre;
-        $payment->created_at = $pago->created_at;
-        $payment->updated_at = $pago->updated_at;
-        $payment->deleted_at = $pago->deleted_at;
-
-        Payment::withoutEvents(function () use ($payment) {
-            $payment->save();
-        });
-    }
-
-    /**
-     * @param Player $player
-     * @param $inscripcion
-     * @param $pago
-     * @return Inscription
-     */
-    public static function createInscription(Player $player, $inscripcion, $pago): Inscription
-    {
-        $fecha_inicio = Date::createFromFormat('d-m-Y', $inscripcion->fecha_inicio)->format('Y-m-d');
-        $inscription = new Inscription();
-        $inscription->player_id = $player->id;
-        $inscription->training_group_id = $inscripcion->grupo_id;
-        $inscription->competition_group_id = $inscripcion->grupo_competencias_id;
-        $inscription->unique_code = $inscripcion->recibo;
-        $inscription->category = $inscripcion->categoria;
-        $inscription->start_date = $fecha_inicio;
-        $inscription->photos = $inscripcion->fotos;
-        $inscription->copy_identification_document = $inscripcion->fotocopia_doc_ident;
-        $inscription->eps_certificate = $inscripcion->certificado_sisben_eps;
-        $inscription->medic_certificate = $inscripcion->certificado_medico;
-        $inscription->study_certificate = $inscripcion->certificado_estudio;
-        $inscription->overalls = $inscripcion->peto;
-        $inscription->ball = $inscripcion->balon;
-        $inscription->bag = $inscripcion->morral;
-        $inscription->presentation_uniform = $inscripcion->uniforme_presentacion;
-        $inscription->competition_uniform = $inscripcion->uniforme_competencia;
-        $inscription->tournament_pay = $inscripcion->pago_torneo;
-
-        $inscription->period_one = $inscripcion->{'1p'};
-        $inscription->period_two = $inscripcion->{'2p'};
-        $inscription->period_three = $inscripcion->{'3p'};
-        $inscription->period_four = $inscripcion->{'4p'};
-        $inscription->year = $pago->anio;
-        $inscription->created_at = $pago->created_at;
-        $inscription->updated_at = $pago->updated_at;
-        $inscription->deleted_at = $pago->deleted_at;
-
-        Inscription::withoutEvents(function () use ($inscription) {
-            $inscription->save();
-        });
-        return $inscription;
     }
 }

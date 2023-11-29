@@ -19,7 +19,23 @@ class PeopleRepository
         $this->model = $model;
     }
 
-    public function createOrUpdatePeople($person):People
+    /**
+     * @param $people
+     * @return Collection
+     */
+    public function getPeopleIds($people): Collection
+    {
+        $relationship = config('variables.KEY_RELATIONSHIPS_SELECT');
+        $peopleIds = collect();
+        foreach ($people as $person) {
+            $person['tutor'] = isset($person['tutor']);
+            $person['relationship_name'] = $relationship[$person['relationship']];
+            $peopleIds->push(optional($this->createOrUpdatePeople($person))->id);
+        }
+        return $peopleIds;
+    }
+
+    public function createOrUpdatePeople($person): People
     {
         return $this->model->updateOrCreate(
             [
@@ -36,21 +52,5 @@ class PeopleRepository
                 'position' => $person['position'] ?? null,
             ]
         );
-    }
-
-    /**
-     * @param $people
-     * @return Collection
-     */
-    public function getPeopleIds($people): Collection
-    {
-        $relationship = config('variables.KEY_RELATIONSHIPS_SELECT');
-        $peopleIds = collect();
-        foreach ($people as $person) {
-            $person['tutor'] = isset($person['tutor']);
-            $person['relationship_name'] = $relationship[$person['relationship']];
-            $peopleIds->push(optional($this->createOrUpdatePeople($person))->id);
-        }
-        return $peopleIds;
     }
 }

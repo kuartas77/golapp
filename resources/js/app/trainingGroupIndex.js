@@ -1,4 +1,7 @@
 let yearsInput = $('#years');
+let usersInput = $('#user_id');
+let daysInput = $('#days');
+let schedulesInput = $('#schedules');
 let scheduleSelect = 0;
 
 const resetModalForm = (create = true, id) => {
@@ -15,19 +18,6 @@ const resetModalForm = (create = true, id) => {
     }
 }
 
-const getSchedule = (value, schedule_id = 0) => {
-    $.get(url_days + value, ({data}) => {
-        $('#schedule_id').empty();
-        $('#schedule_id').append(new Option("Seleccione...", ""));
-        $.each(data, (index, object) => {
-            $('#schedule_id').append(new Option(object.name, object.id));
-        });
-        if (schedule_id !== 0) {
-            $("#schedule_id").val(schedule_id)
-        }
-    });
-}
-
 $(document).ready(() => {
 
     $('#active_table').DataTable({
@@ -39,14 +29,21 @@ $(document).ready(() => {
             pages: 5 // number of pages to cache
         }),
         "columns": [
-            {data: 'full_schedule_group'},
-            {data: 'professor.name'},
+            {data: 'full_schedule_group', name: 'full_schedule_group'},
+            {data: 'instructors_names', name: 'instructors_names'},
             {
                 data: 'id',
                 "render": (data, type, row, meta) => {
+                    if(row.name.includes('Provisional')){
+                        button_edit = ''
+                        button_disable = ''
+                    }else{
+                        button_edit = '<a href="javascript:void(0)" class="edit btn btn-info btn-xs" data-id="' + row.id + '"><i class="fas fa-pencil-alt"></i></a>'
+                        button_disable = '<button class="btn btn-danger btn-xs" type="submit"><i class="fas fa-trash-alt"></i></button>'
+                    }
                     return '<form method="POST" action="' + row.url_destroy + '" accept-charset="UTF-8"><input name="_method" type="hidden" value="DELETE"><input name="_token" type="hidden" value="' + window.token.csrfToken + '"><div class="btn-group">'
-                        + '<a href="javascript:void(0)" class="edit btn btn-info btn-xs" data-id="' + row.id + '"><i class="fas fa-pencil-alt"></i></a>'
-                        + '<button class="btn btn-danger btn-xs" type="submit"><i class="fas fa-trash-alt"></i></button>'
+                        + button_edit
+                        + button_disable
                         + '</div></form>'
                 }
             },
@@ -64,23 +61,29 @@ $(document).ready(() => {
         }),
         "columns": [
             {data: 'full_schedule_group'},
-            {data: 'professor.name'},
+            {data: 'instructors_names', name: 'instructors_names'},
         ],
         "order": [[0, "desc"]]
     });
 
     yearsInput.multiSelect();
+    usersInput.multiSelect();
+    daysInput.multiSelect()
+    schedulesInput.multiSelect()
 
     $("#form_create").validate({
         rules: {
             name: {required: true},
-            user_id: {required: true},
-            day_id: {required: true},
-            schedule_id: {required: true},
+            'user_id[]': {required: true, minlength: 1, maxlength: 2},
+            'days[]': {required: true, minlength: 1, maxlength: 3},
+            'schedules[]': {required: true, minlength: 1, maxlength: 2},
             'years[]': {required: true, minlength: 1, maxlength: 12}
         },
         messages: {
-            'years[]': {maxlength: "No Seleccione Más De 12 Opciones."}
+            'years[]': {maxlength: "No seleccione más de 12 opciones."},
+            'user_id[]':{maxlength: "No seleccione más de 2 opciones."},
+            'days[]':{maxlength: "No seleccione más de 3 opciones."},
+            'schedules[]':{maxlength: "No seleccione más de 2 opciones."}
         }, submitHandler(form) {
             form.submit();
         }
@@ -90,12 +93,16 @@ $(document).ready(() => {
         let id = $(this).data('id');
         $.get(url_current + id + '/edit', ({data}) => {
             if (data != null) {
-                scheduleSelect = data.schedule_id;
+                ids = data.instructors_ids.map((element) => element.toString())
                 resetModalForm(false, id);
-                getSchedule(data.schedule.day_id, scheduleSelect);
                 $("#name").val(data.name);
-                $("#user_id").val(data.user_id);
-                $("#day_id").val(data.schedule.day_id).trigger('change');
+                $("#stage").val(data.stage);
+                daysInput.multiSelect('deselect_all');
+                daysInput.multiSelect('select', data.explode_days);
+                schedulesInput.multiSelect('deselect_all');
+                schedulesInput.multiSelect('select', data.explode_schedules);
+                usersInput.multiSelect('deselect_all');
+                usersInput.multiSelect('select', ids);
                 yearsInput.multiSelect('deselect_all');
                 yearsInput.multiSelect('select', data.years);
                 $("#create").modal('show');
@@ -105,14 +112,10 @@ $(document).ready(() => {
 
     $(".btn-create").on('click', function() {
         $("#name").val('')
-        $("#user_id").val('')
-        $("#day_id").val('');
+        usersInput.multiSelect('deselect_all');
+        daysInput.multiSelect('deselect_all');
         yearsInput.multiSelect('deselect_all');
+        schedulesInput.multiSelect('deselect_all');
         $("#method").val('')
-        $('#schedule_id').empty();
-    });
-
-    $("#day_id").on('change', function() {
-        getSchedule($(this).val(), scheduleSelect);
     });
 });

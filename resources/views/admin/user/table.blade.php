@@ -40,7 +40,7 @@
                     <td>{!! $user->roles->implode('name',', ') !!}</td>
                     <td>{!! $user->email !!}</td>
                     <td>
-                        {!! Form::open(['route' => ['users.destroy', $user->id], 'method' => 'delete']) !!}
+                        {{html()->modelForm($user, 'delete', route('users.destroy', [$user->id]))->open()}}
                         <div class='btn-group'>
                             <a
                                 class="btn btn-warning btn-xs"
@@ -56,9 +56,12 @@
                                     class="fas fa-edit"
                                     aria-hidden="true"></i>
                             </a>
-                            {!! Form::button('<i class="fas fa-user-times" aria-hidden="true"></i>', ['type' => 'submit', 'class' => 'btn btn-danger btn-xs', 'onclick' => "return confirm('Estas seguro?')"]) !!}
+                            <button class="btn btn-danger btn-xs" type="submit" onclick="return confirm('Estas seguro?')">
+                                <i class="fas fa-user-times" aria-hidden="true"></i>
+                            </button>
+
                         </div>
-                        {!! Form::close() !!}
+                        {{ html()->closeModelForm() }}
                     </td>
                 </tr>
             @endforeach
@@ -88,11 +91,13 @@
                     <td>{!! $user->roles->implode('name',', ') !!}</td>
                     <td>{!! $user->email !!}</td>
                     <td>
-                        {!! Form::open(['url' => $user->url_activate, 'method' => 'post']) !!}
+                        {{html()->form('post', $user->url_activate)->open()}}
                         <div class='btn-group'>
-                            {!! Form::button('<i class="fa fa-user-plus" aria-hidden="true"></i>', ['type' => 'submit', 'class' => 'btn btn-primary btn-xs', 'onclick' => "return confirm('Estas seguro?')"]) !!}
+                        <button class="btn btn-primary btn-xs" type="submit" onclick="return confirm('Estas seguro?')">
+                                <i class="fa fa-user-plus" aria-hidden="true"></i>
+                            </button>
                         </div>
-                        {!! Form::close() !!}
+                        {{ html()->form()->close() }}
                     </td>
                 </tr>
             @endforeach

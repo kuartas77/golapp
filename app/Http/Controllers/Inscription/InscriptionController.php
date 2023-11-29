@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Inscription;
 
-use Illuminate\View\View;
-use App\Models\Inscription;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use Illuminate\Contracts\View\Factory;
-use App\Repositories\InscriptionRepository;
-use Illuminate\Contracts\Foundation\Application;
 use App\Http\Requests\Inscription\InscriptionRequest;
 use App\Http\Requests\Inscription\InscriptionUpdateRequest;
+use App\Models\Inscription;
+use App\Repositories\InscriptionRepository;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class InscriptionController extends Controller
 {
@@ -40,8 +41,7 @@ class InscriptionController extends Controller
     public function store(InscriptionRequest $request): JsonResponse
     {
         abort_unless(isAdmin() || isSchool(), 401);
-        $inscriptionModel = new Inscription();
-        $inscription = $this->repository->setInscription($request->only($inscriptionModel->getFillable()));
+        $inscription = $this->repository->setInscription($request->validated());
         if (is_null($inscription) || $inscription->getDirty() > 0) {
             return response()->json([__('messages.ins_create_success')]);
         } else {
@@ -69,8 +69,7 @@ class InscriptionController extends Controller
     public function update(InscriptionUpdateRequest $request, Inscription $inscription): JsonResponse
     {
         abort_unless(isAdmin() || isSchool(), 401);
-        $inscriptionModel = new Inscription();
-        $inscription = $this->repository->setInscription($request->only($inscriptionModel->getFillable()), false, $inscription);
+        $inscription = $this->repository->setInscription($request->validated(), false, $inscription);
 
         if (is_null($inscription) || $inscription->getDirty() > 0) {
             return response()->json([__('messages.ins_update_success')]);
@@ -79,7 +78,7 @@ class InscriptionController extends Controller
         }
     }
 
-    public function destroy(Inscription $inscription)
+    public function destroy(Inscription $inscription): RedirectResponse
     {
         $this->repository->disable($inscription);
         return back();

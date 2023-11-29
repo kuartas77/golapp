@@ -12,37 +12,51 @@ const onClickDetails = (tr, row) => {
 
 const format = (d) => {
     let data_people = "";
-    d.player.people.forEach(function ({tutor, relationship_name, names, phone, mobile}) {
-        let is_tutor = tutor === 1 ? "ACUDIENTE" : "";
-        data_people += '<tr>' +
-            '<th><strong>' + is_tutor +'</strong></th>' +
-            '<th>'+ relationship_name +'</th><th>' + names + '</th>' +
-            '<th><strong>Teléfonos:</strong></th><th>' + phone + ' - ' + mobile + '</th>' +
-            '<th></th>'
-            '</tr>';
-    });
+    if(d.player){
+        d.player.people.forEach(function ({tutor, relationship_name, names, phone, mobile}) {
+            let is_tutor = tutor === 1 ? "ACUDIENTE" : "";
+            let phones = (mobile == null) ?  phone : `${phone} ${mobile}`
+            data_people += '<tr>' +
+                '<th><strong>' + is_tutor +'</strong></th><td></td>' +
+                '<th>'+ relationship_name +'</th><th>' + names + '</th>' +
+                '<th><strong>Teléfonos:</strong></th><th>' + phones + '</th>' +
+                '<th></th><td></td>'+
+                '</tr>';
+        });
+    }
 
     return '<table class="w-100">' +
         data_people +
         '<tr>' +
-        '<th>EPS:</th><td><strong>' + d.player.eps + '</strong></td>' +
-        '<th>Fotos:</th><td>' + validateCheck(d.photos) + '</td>' +
-        '<th>Fotocopia Doc Identificación:</th><td>' + validateCheck(d.copy_identification_document) + '</td>' +
+        '<th><strong>EPS:</strong></th><td><strong>' + d.player.eps + '</strong></td>' +
+        '<th><strong>Certificado EPS,SISBEN:</strong></th><td>' + validateCheck(d.eps_certificate) + '</td>' +
+        '<th><strong>Fotocopia Doc Acudiente:</strong></th><td>' + validateCheck(d.study_certificate) + '</td>' +
+        '<th></th><td></td>'+
         '</tr>' +
         '<tr>' +
-        '<th>Certificado EPS,SISBEN:</th><td>' + validateCheck(d.eps_certificate) + '</label></td>' +
-        '<th>Certificado médico:</th><td>' + validateCheck(d.medic_certificate) + '</label></td>' +
-        '<th>Fotocopia Doc Acudiente:</th><td>' + validateCheck(d.study_certificate) + '</label></td>' +
+        '<th><strong>Certificado médico:</strong></th><td>' + validateCheck(d.medic_certificate) + '</td>' +
+        '<th><strong>Fotos:</strong></th><td>' + validateCheck(d.photos) + '</td>' +
+        '<th><strong>Fotocopia Doc Identificación:</strong></th><td>' + validateCheck(d.copy_identification_document) + '</td>' +        
+        '<th></th><td></td>'+
+        '</tr>' +
+
+        '<tr>' +
+        '<th><strong>Pagó Inscripción Torneo 1:</strong></th><td>' + validateCheck(d.tournament_pay) + '</td>' +
+        '<th><strong>Uniforme presentación:</strong></th><td>' + validateCheck(d.presentation_uniform) + '</td>' +
+        '<th></th><td></td>'+
+        '<th></th><td></td>'+
         '</tr>' +
         '<tr>' +
-        '<th>Peto:</th><td>' + validateCheck(d.overalls) + '</label></td>' +
-        '<th>Balón:</th><td>' + validateCheck(d.ball) + '</label></td>' +
-        '<th>Morral:</th><td>' + validateCheck(d.presentation_uniform) + '</label></td>' +
+        '<th><strong>Pagó Inscripción Torneo 2:</strong></th><td>' + validateCheck(d.bag) + '</td>' +        
+        '<th><strong>Uniforme competencia:</strong></th><td>' + validateCheck(d.competition_uniform) + '</td>' +
+        '<th></th><td></td>'+
+        '<th></th><td></td>'+
         '</tr>' +
         '<tr>' +
-        '<th>Uniforme presentación:</th><td>' + validateCheck(d.presentation_uniform) + '</label></td>' +
-        '<th>Uniforme competencia:</th><td>' + validateCheck(d.competition_uniform) + '</label></td>' +
-        '<th>Pagó inscripción en torneo:</th><td>' + validateCheck(d.tournament_pay) + '</label></td>' +
+        '<th><strong>Pagó Inscripción Torneo 3:</strong></th><td>' + validateCheck(d.ball) + '</td>' +
+        '<th><strong>Peto:</strong></th><td>' + validateCheck(d.overalls) + '</td>' +
+        '<th></th><td></td>'+
+        '<th></th><td></td>'+
         '</tr>' +
         '</table>';
 }
@@ -62,7 +76,7 @@ function filterTable() {
                     .draw();
             }
         });
-    
+
     let start_date = this.api().columns(10);
     $("<input type='search' class='' placeholder='Buscar F.Inicio' />")
         .appendTo($(start_date.header()).empty())
@@ -84,7 +98,7 @@ const columns = [
     },
     {
         data: 'id', "render": function (data, type, row) {
-            return "<img class='media-object img-rounded' src='" + row.player.photo_url + "' width='90' height='60' alt='" + row.player.full_names + "'>";
+            return "<img class='img-fluid rounded img-thumbnail' width='70' height='50' src='" + row.player.photo_url + "' alt='" + row.player.full_names + "'>";
         }
     },
     {data: 'unique_code'},//2
@@ -105,6 +119,7 @@ const columns = [
         data: 'id',
         "render": function (data, type, row) {
             let edit = "";
+            if(row.deleted_at !== null) return ''
             if(isAdmin){
                 edit = '<a href="javascript:void(0)" data-toggle="modal" data-target-custom="#create_inscription" data-backdrop="static"\n' +
                     'data-keyboard="false" data-href="' + row.url_edit + '" data-update="'+row.url_update+'" class="btn btn-warning btn-xs edit_inscription"><i class="fas fa-pencil-alt"></i></a>';
@@ -120,21 +135,41 @@ const columns = [
     },//12
 ];
 
+const columnsDelete = [
+    {
+        data: 'id', "render": function (data, type, row) {
+            return "<img class='img-fluid rounded img-thumbnail' width='70' height='50' src='" + row.player.photo_url + "' alt='" + row.player.full_names + "'>";
+        }
+    },
+    {data: 'unique_code'},//2
+    {data: 'player.identification_document'},//3
+    {data: 'player.full_names'},//4
+    {data: 'player.date_birth'},//5
+    {data: 'player.gender'},//6
+    {
+        data: 'medic_certificate', "render": function (data) {
+            return data === 1 ? '<span class="label label-success">SI</span>' : '<span class="label label-warning">NO</span>';
+        }
+    },//7
+    {data: 'player.mobile'},//8
+    {data: 'category', name: 'category', "className": 'text-center'},//9
+];
 const columnDefs = [
     {"searchable": false, "targets": [0, 1, 6, 8, 9, 12]},
     {"orderable": false, "targets": [0, 1, 6, 10, 11, 12]},
     {"width": "1%" , "targets": [10, 11] }
-       
+
 ];
 
 $(document).ready(function () {
 
     const active_table = $('#active_table').DataTable({
+        "ordering": false,
+        "scrollX": true,
+        "scrollY":"550px",
+        "scrollCollapse":true,
         "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
         "order": [[2, "desc"]],
-        "scrollX": true,
-        "processing": true,
-        "serverSide": true,
         "deferRender": true,
         "fixedColumns": true,
         "columns": columns,
@@ -142,6 +177,24 @@ $(document).ready(function () {
         initComplete: filterTable,
         "ajax": $.fn.dataTable.pipeline({
             url: url_inscriptions_enabled,
+            pages: 5 // number of pages to cache
+        })
+    });
+
+    const inactive_table = $('#inactive_table').DataTable({
+        "ordering": false,
+        "scrollX": true,
+        "scrollY":"550px",
+        "scrollCollapse":true,
+        "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
+        "order": [[2, "desc"]],
+        "deferRender": true,
+        "fixedColumns": true,
+        "columns": columnsDelete,
+        // "columnDefs": columnDefs,
+        // initComplete: filterTable,
+        "ajax": $.fn.dataTable.pipeline({
+            url: url_inscriptions_disabled,
             pages: 5 // number of pages to cache
         })
     });

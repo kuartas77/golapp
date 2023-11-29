@@ -6,7 +6,13 @@ let btnPrintExcel = $("#print_excel");
 let tableActive = $('#active_table');
 let form_assist = $("#form_assist");
 jQuery(function() {
-    tableActive = $('#active_table').DataTable();
+    tableActive = $('#active_table').DataTable({
+            "paging": false,
+            "ordering": false,
+            "info": false,
+            "scrollX": true,
+            "scrollY": true,
+        });
 
     form_assist.validate({
         submitHandler: (form) => {
@@ -28,13 +34,14 @@ jQuery(function() {
 });
 
 $('body').on('change', 'select.assist', function()  {
-    let data = $(this).parent().parent().find('input, select').serializeArray();
-    let id = $(this).parent().parent().find('input').val();
-    if (this.value === '') {
-        return;
-    }
+    let element = $(this)
+    let data = element.parent().parent().find('input, select').serializeArray();
+    let id = element.parent().parent().find('input').val();
+    if (this.value === '') {return;}
+    changeColorAssist(element)
     data.push({name: '_method', value: 'PUT'});
     $.post(url_current + `/${id}`, data);
+
 });
 
 
@@ -110,4 +117,35 @@ const initTable = () => {
         "scrollX": true,
         "scrollY": true,
     });
+}
+
+function changeColorAssist(domelement){
+    let element = $(domelement)
+    let val = element.val().replace(/[\$,]/g, '')
+    switch (val) {
+        case 'as':
+            element.removeClass(removeAllClass)
+            element.addClass('color-success')
+            break;
+        case 'fa':
+            element.removeClass(removeAllClass)
+            element.addClass('color-error')
+            break;
+        case 'ex':
+            element.removeClass(removeAllClass)
+            element.addClass('color-orange')
+            break;
+        case 're':
+            element.removeClass(removeAllClass)
+            element.addClass('color-grey')
+            break;
+        case 'in':
+            element.removeClass(removeAllClass)
+            element.addClass('color-warning')
+            break;
+        default:
+            element.removeClass(removeAllClass)
+            break
+    }
+    element.blur()
 }

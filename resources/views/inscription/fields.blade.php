@@ -34,8 +34,7 @@
     <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
         <div class="form-group">
             <label for="training_group_id">Grupo de entrenamiento:</label>
-            {!! Form::select('training_group_id', $training_groups , null, ['class' => 'form-control form-control-sm select2','placeholder' =>
-            'Seleccione uno...', 'id'=>'training_group_id']) !!}
+            {{ html()->select('training_group_id', $training_groups, null)->attributes(['class' => 'form-control form-control-sm select2', 'id'=>'training_group_id'])->placeholder('Selecciona...') }}
             <small
                 class="form-text text-muted">{{__('messages.provicional_group_info')}}</small>
         </div>
@@ -43,9 +42,8 @@
 
     <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
         <div class="form-group">
-            <label for="competition_group_id">Grupo de competencia:</label>
-            {!! Form::select('competition_group_id', $competition_groups, null, ['class' => 'form-control form-control-sm select2',
-            'placeholder'=>'Seleccionar...','id'=>'competition_group_id']) !!}
+            <label for="competition_groups">Grupo de competencia:</label>
+            {{ html()->multiselect('competition_groups[]', $competition_groups, null)->attributes(['class' => 'form-control form-control-sm select2', 'id'=>'competition_groups'])->placeholder('Selecciona...') }}
         </div>
     </div>
 
@@ -107,14 +105,6 @@
                     <label for="overalls" class="checkboxsizeletter">Peto</label>
                 </div>
                 <div class="checkbox">
-                    <input type="checkbox" name="ball" id="ball" value="1">
-                    <label for="ball" class="checkboxsizeletter">Balón</label>
-                </div>
-                <div class="checkbox">
-                    <input type="checkbox" name="bag" id="bag" value="1">
-                    <label for="bag" class="checkboxsizeletter">Morral</label>
-                </div>
-                <div class="checkbox">
                     <input type="checkbox" name="presentation_uniform" id="presentation_uniform"
                         value="1">
                     <label for="presentation_uniform" class="checkboxsizeletter">Uniforme De Presentación</label>
@@ -126,7 +116,15 @@
                 </div>
                 <div class="checkbox">
                     <input type="checkbox" name="tournament_pay" id="tournament_pay" value="1">
-                    <label for="tournament_pay" class="checkboxsizeletter">Pagó Inscripción A Torneo</label>
+                    <label for="tournament_pay" class="checkboxsizeletter">Pagó Inscripción Torneo 1</label>
+                </div>
+                <div class="checkbox">
+                    <input type="checkbox" name="ball" id="ball" value="1">
+                    <label for="ball" class="checkboxsizeletter">Pagó Inscripción Torneo 2</label>
+                </div>
+                <div class="checkbox">
+                    <input type="checkbox" name="bag" id="bag" value="1">
+                    <label for="bag" class="checkboxsizeletter">Pagó Inscripción Torneo 3</label>
                 </div>
             </div>
         </div>

@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers\Tournaments;
 
-use Illuminate\View\View;
-use App\Models\Tournament;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Contracts\View\Factory;
 use App\Http\Requests\TournamentCreateRequest;
 use App\Http\Requests\TournamentUpdateRequest;
+use App\Models\Tournament;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
 
 class TournamentController extends Controller
 {
@@ -30,15 +28,6 @@ class TournamentController extends Controller
             return datatables()->collection(Tournament::schoolId()->get())->toJson();
         }
         return view('tournaments.index');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     */
-    public function create()
-    {
-        abort(404);
     }
 
     /**
@@ -66,6 +55,15 @@ class TournamentController extends Controller
         }
         return back();
 
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     */
+    public function create()
+    {
+        abort(404);
     }
 
     /**

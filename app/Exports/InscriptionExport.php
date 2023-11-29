@@ -4,17 +4,17 @@ namespace App\Exports;
 
 
 use Illuminate\Contracts\View\View;
-
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromView;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class InscriptionExport implements FromView, WithTitle
+class InscriptionExport implements FromView, WithTitle, ShouldAutoSize
 {
-    public $players;
-    public $trash;
+    public Collection $players;
+    public bool $trash;
 
-    public function __construct(Collection $players, $trash = false)
+    public function __construct(Collection $players, bool $trash = false)
     {
         $this->players = $players;
         $this->trash = $trash;

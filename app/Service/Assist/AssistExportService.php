@@ -3,10 +3,9 @@
 namespace App\Service\Assist;
 
 use App\Models\Assist;
-use App\Models\School;
-use App\Traits\PDFTrait;
-use App\Traits\ErrorTrait;
 use App\Models\TrainingGroup;
+use App\Traits\ErrorTrait;
+use App\Traits\PDFTrait;
 
 class AssistExportService
 {
@@ -54,7 +53,7 @@ class AssistExportService
 
             $assists = Assist::query()->onlyTrashedRelations()->schoolId()->where([
                 'training_group_id' => $params['training_group_id'],
-                'month' => $params['month'], 
+                'month' => $params['month'],
                 'year' => $params['year']
             ])->get();
         } else {
@@ -66,7 +65,7 @@ class AssistExportService
                 'month' => $params['month'], 'year' => $params['year']
             ])->get();
         }
-        
+
         $classDays = classDays(
             $params['year'],
             array_search($params['month'], $months, true),
@@ -74,7 +73,7 @@ class AssistExportService
         );
 
         $school = getSchool(auth()->user());
-        
+
         return [$assists, $classDays, $group->full_schedule_group, $group, $school];
     }
 }

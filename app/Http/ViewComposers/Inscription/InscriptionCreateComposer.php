@@ -4,7 +4,6 @@
 namespace App\Http\ViewComposers\Inscription;
 
 
-use App\Models\CompetitionGroup;
 use App\Models\School;
 use App\Repositories\CompetitionGroupRepository;
 use App\Repositories\TrainingGroupRepository;
@@ -71,8 +70,8 @@ class InscriptionCreateComposer
             });
 
             $schools = [];
-            if(isAdmin()){
-                $schools = School::query()->pluck('name','id');
+            if (isAdmin()) {
+                $schools = School::query()->pluck('name', 'id');
             }
 
             $view->with('schools', $schools);

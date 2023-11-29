@@ -92,6 +92,11 @@ tr.tr-tit{
   border: 1px solid #343434;
 }
 
+tr.tr-tit th{
+  color:#080808;
+  border: 1px solid #343434;
+}
+
 .img-thumbnail {
     display: inline-block;
     padding: 4px;
@@ -180,6 +185,10 @@ h5 { width: 100%; text-align: center;}
 
 .left{
   text-align: left;
+}
+
+.right{
+  text-align: right;
 }
 
 .justify{text-align: justify;
@@ -303,4 +312,7 @@ th {
 .text-justify {
     text-align: justify !important;
     word-break: break-all;
+}
+.error {
+  color: red;
 }

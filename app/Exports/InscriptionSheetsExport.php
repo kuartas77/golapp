@@ -2,7 +2,6 @@
 
 namespace App\Exports;
 
-use App\Repositories\PlayerRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
@@ -11,7 +10,7 @@ class InscriptionSheetsExport implements WithMultipleSheets
 {
     use Exportable;
 
-    private $players;
+    private Collection $players;
 
     public function __construct(Collection $data)
     {
@@ -25,7 +24,7 @@ class InscriptionSheetsExport implements WithMultipleSheets
     {
         $sheets = [];
         $sheets[] = new InscriptionExport($this->players['enabled']);
-        $sheets[] = new InscriptionExport($this->players['disabled'], true);
+        $sheets[] = new InscriptionExport($this->players['disabled'], trash: true);
         return $sheets;
 
     }

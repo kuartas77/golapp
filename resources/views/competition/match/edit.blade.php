@@ -2,7 +2,7 @@
 @section('content')
     <x-bread-crumb title="Control De Competencia" :option="0"/>
     <x-row-card col-inside="12" >
-        {!! Form::model($information->match,['url' => $information->match->url_update, 'id'=>'form_matches','class'=>'form-horizontal','method'=>'PUT']) !!}
+        {{html()->modelForm($information->match, 'put', $information->match->url_update)->attributes(['id'=>'form_matches','class'=>'form-horizontal'])->open()}}
             <div class="form-body">
                 @include('competition.match.fields')
 
@@ -13,7 +13,7 @@
                     Guardar Cambios
                 </button>
             </div>
-        {!! Form::close() !!}
+        {{ html()->closeModelForm() }}
     </x-row-card >
 @endsection
 @section('modals')

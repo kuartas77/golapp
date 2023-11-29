@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers\Schedule;
 
-use Exception;
-use App\Models\Schedule;
-use Illuminate\View\View;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\ScheduleRequest;
-use Illuminate\Contracts\View\Factory;
+use App\Models\Schedule;
 use App\Repositories\ScheduleRepository;
+use Exception;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class SchedulesController extends Controller
 {

@@ -32,6 +32,7 @@
                 { data: 'inscriptions_count', name: 'inscriptions_count' },
                 { data: 'players_count', name: 'players_count' },
                 { data: 'payments_count', name: 'payments_count' },
+                { data: 'tournament_payouts_count', name: 'tournament_payouts_count' },
                 { data: 'assists_count', name: 'assists_count' },
                 { data: 'skill_controls_count', name: 'skill_controls_count' },
                 { data: 'matches_count', name: 'matches_count' },

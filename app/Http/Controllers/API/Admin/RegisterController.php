@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Service\API\RegisterService;
 use App\Http\Requests\API\RegisterRequest;
+use App\Service\API\RegisterService;
 
 class RegisterController extends Controller
 {

@@ -19,6 +19,6 @@ class UserRepository
 
     public function getUsersPaginate(Request $request)
     {
-        
+
     }
 }

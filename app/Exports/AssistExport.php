@@ -2,11 +2,11 @@
 
 namespace App\Exports;
 
+use App\Service\Assist\AssistExportService;
 use Illuminate\Contracts\View\View;
+use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\Exportable;
-use App\Service\Assist\AssistExportService;
 
 class AssistExport implements FromView, WithTitle
 {
@@ -30,7 +30,7 @@ class AssistExport implements FromView, WithTitle
     public function view(): View
     {
         list($assists, $classDays, $group_name, $group) = app(AssistExportService::class)->dataExport($this->params, $this->deleted);
- 
+
         $this->group_name = $group_name;
         $group->instructors_names = $group->instructors_names;
         return view('exports.assists_excel', [
@@ -45,6 +45,7 @@ class AssistExport implements FromView, WithTitle
 
     public function title(): string
     {
+        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
         return "Asistencias {$this->group_name}";
     }
 }

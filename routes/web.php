@@ -1,9 +1,12 @@
 <?php
 
+use App\Models\Player;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FileController;
+use App\Http\Controllers\ImportController;
 use App\Http\Controllers\PublicController;
-use App\Http\Controllers\{FileController, ImportController};
+use App\Http\Controllers\SchoolPages\SchoolsController as PublicSchool;
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
@@ -19,7 +22,7 @@ Route::get('/', PublicController::class);
 //     return redirect(\route('login'));
 // });
 
-Route::resource('escuelas', SchoolsController::class)->only([
+Route::resource('escuelas', PublicSchool::class)->only([
     'index', 'show',
 ]);
 
@@ -28,15 +31,16 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
     $route->get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
 
     $route->get('/home', [HomeController::class, 'index'])->name('home');
-    $route->get('/birthDays', [HomeController::class, 'birthDays'])->name('birthDays');
+    $route->get('/birthdays', [HomeController::class, 'birthDays'])->name('birthDays');
 
     $route->post('inscriptions/activate/{id}', [InscriptionController::class, 'activate'])->name('inscriptions.activate');
 
-    $route->resource("inscriptions", InscriptionController::class)->except(['create','show','destroy']);
+    $route->resource("inscriptions", InscriptionController::class)->except(['create','show']);
     $route->resource("payments", PaymentController::class)->only(['index','update']);
     $route->resource("assists", AssistController::class)->except(['create','edit', 'destroy']);
     $route->resource("matches", GameController::class)->except(['show']);
     $route->resource("players", PlayerController::class);
+    $route->resource("tournamentpayout", TournamentPayoutsController::class)->only(['index', 'store', 'update']);
 
     $route->prefix('import')->group(function($route){
         $route->post('matches/{competition_group}', [ImportController::class, 'importMatchDetail'])->name('import.match');
@@ -55,6 +59,9 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
             'training_groups' => TrainingGroupController::class,
             'competition_groups' => CompetitionGroupController::class,
         ]);
+
+        $route->get('school/{school}', [SchoolsController::class, 'index'])->name('school.index');
+        $route->put('school/{school}', [SchoolsController::class, 'update'])->name('school.update');
 
         $route->get('filter_training_groups', [TrainingGroupController::class, 'filterGroupYear'])->name('training_groups.filter');
         $route->get('availability_training_groups/{training_group?}', [TrainingGroupController::class, 'availabilityGroup'])->name('training_groups.availability');
@@ -75,6 +82,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 
     $route->prefix('datatables')->group(function ($route) {
         $route->get('enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');
+        $route->get('disabled', [DataTableController::class, 'disabledInscriptions'])->name('inscriptions.disabled');
         $route->get('training_groups_enabled', [DataTableController::class, 'enabledTrainingGroups'])->name('training_groups.enabled');
         $route->get('training_groups_retired', [DataTableController::class, 'disabledTrainingGroups'])->name('training_groups.retired');
         $route->get('competition_groups_enabled', [DataTableController::class, 'enabledCompetitionGroups'])->name('competition_groups.enabled');
@@ -93,9 +101,14 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
         $route->get('matches/pdf/{match}', [ExportController::class, 'exportMatchPDF'])->name('pdf.match');
         $route->get('incidents/pdf/{slug_name}', [ExportController::class, 'exportIncidentsPDF'])->name('pdf.incidents');
 
-        $route->get('payments', [ExportController::class, 'exportPaymentsExcel'])->name('payments');
+        $route->get('payments/excel', [ExportController::class, 'exportPaymentsExcel'])->name('payments.excel');
+        $route->get('payments/pdf', [ExportController::class, 'exportPaymentsPDF'])->name('payments.pdf');
         $route->get('assists/excel/{training_group_id}/{year}/{month}/{deleted?}', [ExportController::class, 'exportAssistsExcel'])->name('assists');
         $route->get('matches/create/{competition_group}/format', [ExportController::class, 'exportMatchDetail'])->name('match_detail');
+        $route->get('tournament/payouts/excel', [ExportController::class, 'exportTournamentPayoutsExcel'])->name('tournaments.payouts.excel');
+        $route->get('tournament/payouts/pdf', [ExportController::class, 'exportTournamentPayoutsPDF'])->name('tournaments.payouts.pdf');
+
+
 
     });
 
@@ -112,5 +125,6 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
         $route->get('code_unique_verify', [MasterController::class, 'codeUniqueVerify'])->name('autocomplete.verify_code');
         $route->get('list_code_unique', [MasterController::class, 'listUniqueCode'])->name('autocomplete.list_code_unique');
         $route->get('search_unique_code', [MasterController::class, 'searchUniqueCode'])->name('autocomplete.search_unique_code');
+        $route->get('competition_groups', [MasterController::class, 'competitionGroupsByTournament'])->name('autocomplete.competition_groups');
     });
 });

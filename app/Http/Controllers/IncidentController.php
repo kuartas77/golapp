@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Incident;
-use Illuminate\View\View;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
 use App\Http\Requests\IncidentStore;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Contracts\View\Factory;
+use App\Models\Incident;
 use App\Repositories\IncidentRepository;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class IncidentController extends Controller
 {

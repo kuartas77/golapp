@@ -11,14 +11,14 @@ class AdminComposer
     public function compose(View $view)
     {
         if (Auth::check()) {
-            
+
             $schools = [];
-            if(isAdmin()){
-                $schools = School::query()->pluck('name','id');
+            if (isAdmin()) {
+                $schools = School::query()->pluck('name', 'id');
             }
 
             $view->with('admin_schools', $schools);
         }
     }
-    
+
 }

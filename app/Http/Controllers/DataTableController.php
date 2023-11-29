@@ -2,25 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use App\Repositories\ScheduleRepository;
-use Illuminate\Http\RedirectResponse;
-use App\Repositories\PlayerRepository;
-use App\Repositories\SchoolRepository;
-use App\Repositories\InscriptionRepository;
-use App\Repositories\TrainingGroupRepository;
 use App\Repositories\CompetitionGroupRepository;
+use App\Repositories\InscriptionRepository;
+use App\Repositories\PlayerRepository;
+use App\Repositories\ScheduleRepository;
+use App\Repositories\SchoolRepository;
+use App\Repositories\TrainingGroupRepository;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class DataTableController extends Controller
 {
-    public function __construct(private InscriptionRepository $inscriptionRepository,
-                                private TrainingGroupRepository $trainingGroupRepository,
+    public function __construct(private InscriptionRepository      $inscriptionRepository,
+                                private TrainingGroupRepository    $trainingGroupRepository,
                                 private CompetitionGroupRepository $competitionGroupRepository,
-                                private PlayerRepository $playerRepository, 
-                                private ScheduleRepository $scheduleRepository,
-                                private SchoolRepository $schoolRepository)
-    {}
+                                private PlayerRepository           $playerRepository,
+                                private ScheduleRepository         $scheduleRepository,
+                                private SchoolRepository           $schoolRepository)
+    {
+    }
 
     /**
      * @param Request $request
@@ -31,6 +31,17 @@ class DataTableController extends Controller
         abort_unless($request->ajax(), 403);
 
         return datatables()->collection($this->inscriptionRepository->getInscriptionsEnabled())->toJson();
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function disabledInscriptions(Request $request): JsonResponse
+    {
+        abort_unless($request->ajax(), 403);
+
+        return datatables()->collection($this->inscriptionRepository->getInscriptionsDisabled())->toJson();
     }
 
     /**

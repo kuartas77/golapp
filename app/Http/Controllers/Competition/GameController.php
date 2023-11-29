@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers\Competition;
 
-use App\Models\Game;
-use Illuminate\View\View;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Routing\Redirector;
 use App\Http\Controllers\Controller;
-use App\Repositories\GameRepository;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Contracts\View\Factory;
 use App\Http\Requests\CompetitionRequest;
+use App\Models\Game;
+use App\Repositories\GameRepository;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
+use Illuminate\View\View;
 
 class GameController extends Controller
 {
@@ -54,9 +54,9 @@ class GameController extends Controller
     {
         $match = $this->repository->createMatchSkill(
             $request->only([
-                'tournament_id', 'competition_group_id', 'date', 'hour', 'num_match', 
-                'place', 'rival_name', 'final_score', 'general_concept','school_id'
-            ]), 
+                'tournament_id', 'competition_group_id', 'date', 'hour', 'num_match',
+                'place', 'rival_name', 'final_score', 'general_concept', 'school_id'
+            ]),
             $request->only([
                 'inscriptions_id', 'assistance', 'titular', 'played_approx',
                 'position', 'goals', 'yellow_cards', 'red_cards',
@@ -90,9 +90,9 @@ class GameController extends Controller
     public function update(CompetitionRequest $request, Game $match)
     {
         $matchData = $request->only([
-            'tournament_id', 'competition_group_id', 'date', 'hour', 'num_match', 
-            'place', 'rival_name', 'final_score', 'general_concept','school_id'
-        ]); 
+            'tournament_id', 'competition_group_id', 'date', 'hour', 'num_match',
+            'place', 'rival_name', 'final_score', 'general_concept', 'school_id'
+        ]);
         $skillsData = $request->only([
             'inscriptions_id', 'assistance', 'titular', 'played_approx',
             'position', 'goals', 'yellow_cards', 'red_cards',

@@ -8,7 +8,7 @@
                 @switch($option)
                     @case(1)
                     @if($birthdays >= 1)
-                    <a href="{{route('birthdays')}}" class="btn waves-effect waves-light btn-rounded btn-info" id="export"><strong>Cumpleaños</strong></a>
+                    <a href="{{route('birthDays')}}" class="btn waves-effect waves-light btn-rounded btn-info" id="export"><strong>Cumpleaños</strong></a>
                     @endif
                     @break
                     @case(2)

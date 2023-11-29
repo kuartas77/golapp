@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Inicio')
 @section('content')
-@include('templates.bread_crumb', ['title' => 'Inicio', 'option' => 0])
+<x-bread-crumb title="Inicio" :option="1" :birthdays="$birthdays"/>
 <div class="row no-gutters">
 
     <div class="col-lg-12 col-md-12 col-sm-12">
