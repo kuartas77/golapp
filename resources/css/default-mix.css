@@ -20,6 +20,7 @@ div.g-recaptcha {
     width: 304px;
 }
 
+
 /* textarea{resize: none;} */
 textarea[name=ticr_observacion] {
     resize: vertical; /* user can resize vertically, but width is fixed */
