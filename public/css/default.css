@@ -292,16 +292,6 @@ textarea[name=ticr_observacion] {
     background-image:url(../img/1970-max.jpg)
 }
 
-.public{
-    background-image:url(../img/1970-max.jpg);
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
-    height: 100%;
-    width: 100%;
-    position: absolute;
-}
-
 .zoom {
     position: fixed;
     bottom: 35px;

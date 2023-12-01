@@ -17,6 +17,7 @@ Auth::routes(['register' => false, 'verify' => false]);
 Route::middleware([])->group(function () {
     Route::get('/', [PublicController::class, 'index'])->name('public');
     Route::get('escuela/{school}', [PublicController::class, 'show'])->name('public.school.show');
+    Route::get('img/public/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('public.images');
 });
 
 Route::middleware(['auth', 'verified_school'])->group(function () {
