@@ -1,5 +1,5 @@
 <header class="top-public">
-    <div class="container-fluid">
+    <div class="">
         <nav class="navbar navbar-expand-lg navbar-light">
             <a class="navbar-brand" href="#">
                 <img src="{{asset('img/logo-white.png')}}" alt="homepage" class="logo d-inline-block align-text-top">

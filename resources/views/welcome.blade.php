@@ -1,6 +1,5 @@
 @extends('layouts.public.public')
 @push('css')
-<link rel="stylesheet" href="{{asset('css/public.css')}}">
 @endpush
 @section('content')
 
@@ -23,12 +22,12 @@
     </div>
 </section>
 
-<section class="container-fluid">
+<section class="container-fluid ">
     <div class="modules-title">
         <h1 id="our-modules">Nuestros módulos</h1>
         <div class="divider"></div>
     </div>
-    <div class="row m-4">
+    <div class="row">
         <div class="col-sm-12 col-md-6 col-xl-6 col-lg-6">
             <div class="card">
                 <div class="card-body">
@@ -73,7 +72,7 @@
 </section>
 
 
-<footer>
+<footer class="">
     <div class="col-12">
         <div class="title">Contacto
             <div class="divider"></div>
