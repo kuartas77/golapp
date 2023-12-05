@@ -131,7 +131,9 @@ class TrainingGroupRepository
      */
     public function getTrainingGroup(TrainingGroup $trainingGroup): Model
     {
-        $trainingGroup->load(['instructors']);
+        $trainingGroup->load(['instructors' => function($instructors){
+            $instructors->where('assigned_year', now()->year);
+        }]);
 
         $years = collect();
         $trainingGroup->year == null ?: $years->push($trainingGroup->year);
@@ -158,7 +160,10 @@ class TrainingGroupRepository
         }
 
         if ($user_id) {
-            $query->whereRelation('instructors', 'training_group_user.user_id', $user_id);
+            $query->whereRelation('instructors', function($query) use($user_id){
+                $query->where('training_group_user.user_id', $user_id)
+                ->where('assigned_year', now()->year);
+            });
         }
         return $query->orderBy('name', 'ASC')
             ->get()->pluck('full_schedule_group', 'id');
