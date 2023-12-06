@@ -43,6 +43,7 @@ class TrainingGroupRequest extends FormRequest
             'days' => ['required', 'array'],
             'schedules' => ['required', 'array'],
             'school_id' => ['required'],
+            'year_active' => ['required'],
         ];
     }
 

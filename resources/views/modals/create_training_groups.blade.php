@@ -12,19 +12,16 @@
                     <div class="col-lg-12">
                         <div class="row">
 
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="name">Nombre del grupo</label>(<span class="text-danger">*</span>)
+                                    <label for="name">Nombre del grupo</label><span class="text-danger">*</span>
                                     <span class="bar"></span>
                                     <input type="text" name="name" id="name" class="form-control" required
                                            autocomplete="off">
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="row">
-
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="stage">Lugar de entrenamiento</label>
                                     <span class="bar"></span>
@@ -32,12 +29,25 @@
                                            autocomplete="off">
                                 </div>
                             </div>
+
+
+                        </div>
+
+                        <div class="row">
+                        <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="year_active">Año de actividad</label><span class="text-danger">*</span>
+                                    <span class="bar"></span>
+                                    {{ html()->select('year_active', $years, now()->year)->attributes(['class' => 'form-control input-sm','id' => 'year_active', 'required'])->placeholder('Selecciona...') }}
+                                    <small class="form-text text-muted">Este año hace referencia al año en que el GRUPO va estar activo, ejemplo: sí el grupo se require para el año 2024, se debe seleccionar ese año.</small>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="row">
 
                             <div class="col-md-6">
-                                <label for="days">Días</label>(<span class="text-danger">*</span>)
+                                <label for="days">Días</label><span class="text-danger">*</span>
                                 <span class="bar"></span>
                                 <select name="days[]" id='days' multiple='multiple'>
                                     @foreach($days as $key => $value)
@@ -47,7 +57,7 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label for="schedules">Horarios</label>(<span class="text-danger">*</span>)
+                                <label for="schedules">Horarios</label><span class="text-danger">*</span>
                                 <span class="bar"></span>
                                 <select name="schedules[]" id='schedules' multiple='multiple'>
                                     @foreach($schedules as $key => $value)
@@ -62,7 +72,7 @@
 
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="user_id">Formador(es)</label>(<span class="text-danger">*</span>)
+                                <label for="user_id">Formador(es)</label><span class="text-danger">*</span>
                                 <span class="bar"></span>
                                 <select name="user_id[]" id='user_id' multiple='multiple'>
                                     @foreach($users as $key => $value)
@@ -71,7 +81,7 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label for="years">Categoria(s)</label>(<span class="text-danger">*</span>)
+                                <label for="years">Categoria(s)</label><span class="text-danger">*</span>
                                 <span class="bar"></span>
                                 <select name="years[]" id='years' multiple='multiple'>
                                     @for($i = now()->subYears(18)->year;$i <= now()->subYears(2)->year ; $i++ )

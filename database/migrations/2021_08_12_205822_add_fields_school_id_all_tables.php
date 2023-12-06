@@ -19,6 +19,7 @@ class AddFieldsSchoolIdAllTables extends Migration
         });
         Schema::table('training_groups', function (Blueprint $table) {
             $table->unsignedBigInteger('school_id')->nullable();
+            $table->year('year_active')->nullable();
             $table->foreign('school_id')->references('id')->on('schools');
         });
         Schema::table('skills_control', function (Blueprint $table) {
@@ -99,6 +100,7 @@ class AddFieldsSchoolIdAllTables extends Migration
         });
         Schema::table('training_groups', function (Blueprint $table) {
             $table->dropForeign('school_id');
+            $table->dropColumn('year_active');
         });
         Schema::table('schedules', function (Blueprint $table) {
             $table->dropForeign('school_id');
