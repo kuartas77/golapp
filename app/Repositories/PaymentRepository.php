@@ -6,11 +6,12 @@ namespace App\Repositories;
 
 use App\Models\Payment;
 use App\Traits\ErrorTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Database\Eloquent\Builder;
+use Throwable;
 
 class PaymentRepository
 {
@@ -36,11 +37,16 @@ class PaymentRepository
         $monthly_payment = $school->settings['MONTHLY_PAYMENT'] ?? 50000;
         $annuity = $school->settings['ANNUITY'] ?? 48333;
 
+        $nameFields = config('variables.KEY_INDEX_MONTHS');
+        $nameFields[0] = 'enrollment';
+        ksort($nameFields);
+
         foreach ($payments as $pay) {
             $rows .= View::make('templates.payments.row', [
                 'payment' => $pay,
                 'deleted' => $deleted,
                 'front' => true,
+                'nameFields' => $nameFields,
                 'inscription_amount' => $inscription_amount,
                 'monthly_payment' => $monthly_payment,
                 'annuity' => $annuity
@@ -51,7 +57,7 @@ class PaymentRepository
         if ($deleted) {
             $query_params['deleted'] = true;
         }
-        if($payments && !$request->filled('training_group_id')){
+        if ($payments && !$request->filled('training_group_id')) {
             $query_params['training_group_id'] = 0;
         }
         ksort($query_params);
@@ -67,18 +73,15 @@ class PaymentRepository
      */
     public function filterSelect($request, bool $deleted = false): Builder
     {
-        $query = $this->model->query()->schoolId()->with(['inscription.player']);
-
-        if ($deleted) {
-            $query = $this->model->schoolId()->with([
-                'inscription' => fn ($query) => $query->with(['player'])->withTrashed()
-            ])->withTrashed();
-        }
+        $query = $this->model->schoolId()->with([
+            'inscription' => fn($query) => $query->with(['player'])->withTrashed()
+        ])->withTrashed();
 
         $query->where('year', $request->input('year', now()->year))
-        ->when($request->filled('unique_code'), fn ($q) => $q->where('unique_code', $request->unique_code))
-        ->when($request->training_group_id != 0, fn ($q) => $q->where('training_group_id', $request->training_group_id))
-        ->orderBy('inscription_id','asc');
+            ->when($request->filled('unique_code'), fn($q) => $q->where('unique_code', $request->unique_code))
+            ->when($request->training_group_id != 0, fn($q) => $q->where('training_group_id', $request->training_group_id))
+            ->when($request->category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', now()->year)->where('category', $request->category)))
+            ->orderBy('inscription_id', 'asc');
 
         return $query;
     }
@@ -90,7 +93,7 @@ class PaymentRepository
             DB::beginTransaction();
             $isPay = $payment->fill($values)->save();
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             DB::rollBack();
             $this->logError('PaymentRepository@setPay', $th);
             $isPay = false;
@@ -149,41 +152,41 @@ class PaymentRepository
             ->when(!is_null($school_id), fn($query) => $query->where('school_id', $school_id))
             ->first();
 
-            $labels = config('variables.KEY_LABEL_MONTHS');
+        $labels = config('variables.KEY_LABEL_MONTHS');
 
-            $series = collect();
-            $payments = collect();
-            $due = collect();
+        $series = collect();
+        $payments = collect();
+        $due = collect();
 
-            $payments->push((integer)$consult->january_payment);
-            $payments->push((integer)$consult->february_payment);
-            $payments->push((integer)$consult->march_payment);
-            $payments->push((integer)$consult->april_payment);
-            $payments->push((integer)$consult->may_payment);
-            $payments->push((integer)$consult->june_payment);
-            $payments->push((integer)$consult->july_payment);
-            $payments->push((integer)$consult->august_payment);
-            $payments->push((integer)$consult->september_payment);
-            $payments->push((integer)$consult->october_payment);
-            $payments->push((integer)$consult->november_payment);
-            $payments->push((integer)$consult->december_payment);
+        $payments->push((integer)$consult->january_payment);
+        $payments->push((integer)$consult->february_payment);
+        $payments->push((integer)$consult->march_payment);
+        $payments->push((integer)$consult->april_payment);
+        $payments->push((integer)$consult->may_payment);
+        $payments->push((integer)$consult->june_payment);
+        $payments->push((integer)$consult->july_payment);
+        $payments->push((integer)$consult->august_payment);
+        $payments->push((integer)$consult->september_payment);
+        $payments->push((integer)$consult->october_payment);
+        $payments->push((integer)$consult->november_payment);
+        $payments->push((integer)$consult->december_payment);
 
-            $due->push((integer)$consult->january_due);
-            $due->push((integer)$consult->february_due);
-            $due->push((integer)$consult->march_due);
-            $due->push((integer)$consult->april_due);
-            $due->push((integer)$consult->may_due);
-            $due->push((integer)$consult->june_due);
-            $due->push((integer)$consult->july_due);
-            $due->push((integer)$consult->august_due);
-            $due->push((integer)$consult->september_due);
-            $due->push((integer)$consult->october_due);
-            $due->push((integer)$consult->november_due);
-            $due->push((integer)$consult->december_due);
+        $due->push((integer)$consult->january_due);
+        $due->push((integer)$consult->february_due);
+        $due->push((integer)$consult->march_due);
+        $due->push((integer)$consult->april_due);
+        $due->push((integer)$consult->may_due);
+        $due->push((integer)$consult->june_due);
+        $due->push((integer)$consult->july_due);
+        $due->push((integer)$consult->august_due);
+        $due->push((integer)$consult->september_due);
+        $due->push((integer)$consult->october_due);
+        $due->push((integer)$consult->november_due);
+        $due->push((integer)$consult->december_due);
 
-            $series->push($payments);
-            $series->push($due);
-            return collect(['labels' => $labels, 'series' => $series]);
+        $series->push($payments);
+        $series->push($due);
+        return collect(['labels' => $labels, 'series' => $series]);
     }
 
 }

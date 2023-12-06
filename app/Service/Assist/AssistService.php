@@ -3,8 +3,8 @@
 namespace App\Service\Assist;
 
 use App\Models\TrainingGroup;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\View;
 
 class AssistService
 {
@@ -20,10 +20,10 @@ class AssistService
             array_map('dayToNumber', $trainingGroup->explode_name['days'])
         );
 
-        $table = $this->makeTable($assists, $classDays,  $deleted);
+        $table = $this->makeTable($assists, $classDays, $deleted);
 
         $links = $this->makeLinks($data, $deleted);
-        
+
         return [
             'table' => $table,
             'group_name' => $group_name,
@@ -45,7 +45,7 @@ class AssistService
         }
 
         return View::make('templates.assists.table', [
-            'thead' => View::make('templates.assists.thead', ['classDays' => $classDays])->render(), 
+            'thead' => View::make('templates.assists.thead', ['classDays' => $classDays])->render(),
             'rows' => $rows
         ])->render();
     }

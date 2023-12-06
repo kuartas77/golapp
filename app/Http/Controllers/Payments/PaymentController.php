@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Payments;
 
-use App\Models\Payment;
-use Illuminate\View\View;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use Illuminate\Contracts\View\Factory;
-use App\Repositories\PaymentRepository;
 use App\Http\Requests\SetPaymentRequest;
+use App\Models\Payment;
+use App\Repositories\PaymentRepository;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class PaymentController extends Controller
 {
@@ -48,9 +47,10 @@ class PaymentController extends Controller
      * @param Payment $payment
      * @return JsonResponse
      */
-    public function update(SetPaymentRequest $request, Payment $payment): JsonResponse
+    public function update(SetPaymentRequest $request, $id): JsonResponse
     {
         abort_unless($request->ajax(), 401);
+        $payment = Payment::withTrashed()->find($id);
         $isPay = $this->repository->setPay($request->validated(), $payment);
         return $this->responseJson($isPay);
     }

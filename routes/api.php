@@ -16,7 +16,7 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum'])->group(function ($route){
+Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum'])->name('v1.')->group(function ($route){
 
     $route->post('register', [RegisterController::class, 'register']);
     $route->apiResource('users', UserController::class);

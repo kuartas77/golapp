@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Players;
 
-use App\Models\Player;
-use Illuminate\View\View;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
-use App\Repositories\PlayerRepository;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Contracts\Foundation\Application;
 use App\Http\Requests\Player\PlayerCreateRequest;
 use App\Http\Requests\Player\PlayerUpdateRequest;
+use App\Models\Player;
+use App\Repositories\PlayerRepository;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class PlayerController extends Controller
 {
@@ -27,7 +27,7 @@ class PlayerController extends Controller
     /**
      * @return Application|Factory|View
      */
-    public function index()
+    public function index(): Factory|View|Application
     {
         $admin = isAdmin() || isSchool() ? 1 : 0;
         return view('player.index', compact('admin'));
@@ -36,7 +36,7 @@ class PlayerController extends Controller
     /**
      * @return Application|Factory|View
      */
-    public function create()
+    public function create(): Factory|View|Application
     {
         abort_unless(isAdmin() || isSchool(), 404);
         view()->share('edit', false);
@@ -64,7 +64,7 @@ class PlayerController extends Controller
      * @param Player $player
      * @return Application|Factory|View
      */
-    public function show(Player $player)
+    public function show(Player $player): Factory|View|Application
     {
         $player = $this->repository->loadShow($player);
         view()->share('player', $player);
@@ -75,7 +75,7 @@ class PlayerController extends Controller
      * @param Player $player
      * @return Application|Factory|View
      */
-    public function edit(Player $player)
+    public function edit(Player $player): Factory|View|Application
     {
         abort_unless(isAdmin() || isSchool(), 404);
         $player->load('people');
@@ -92,8 +92,8 @@ class PlayerController extends Controller
     public function update(PlayerUpdateRequest $request, Player $player): RedirectResponse
     {
         abort_unless(isAdmin() || isSchool(), 404);
-        $player = $this->repository->updatePlayer($player, $request);
-        if (is_null($player)) {
+        $isUpdated = $this->repository->updatePlayer($player, $request);
+        if (!$isUpdated) {
             alert()->error(env('APP_NAME'), __('messages.error_general'));
             return back()->withInput($request->input());
         }
@@ -105,7 +105,7 @@ class PlayerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy()
+    public function destroy(): void
     {
         abort(401);
     }

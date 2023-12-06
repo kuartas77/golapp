@@ -590,48 +590,64 @@ select.swal2-select{
     }
 }
 
-.form-error {
+.color-error {
     background-color: red;
     color: white;
 }
 
-.form-success {
+.color-success {
     background-color: green;
     color: white;
 }
 
-.form-warning {
+.color-warning {
     background-color: yellow;
 }
 
-.form-info {
+.color-info {
     background-color: blue;
     color: white;
 }
 
-.form-purple {
+.color-purple {
     background-color: #572364;
     color: white;
 }
 
-.form-brown {
+.color-brown {
     background-color: #6F4E37;
     color: white;
 }
 
-.form-orange {
+.color-orange {
     background-color: orange;
     color: white;
 }
 
-.form-grey {
+.color-grey {
     background-color: grey;
     color: white;
 }
 
-.form-agua {
+.color-agua {
     background-color: aqua;
     color: black;
 }
 
+.color-incapacidad {
+    background-color: #fac282;
+    color: black;
+}
+
+.color-becado {
+    background-color: #009688;
+    color: white;
+}
+
 .form-control-sm{min-height:10px}
+
+td>img{
+    width: 70px; /* You can set the dimensions to whatever you want */
+    height: 70px;
+    object-fit: cover;
+}

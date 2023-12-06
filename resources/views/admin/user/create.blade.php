@@ -2,7 +2,7 @@
 @section('content')
 <x-bread-crumb title="Usuario" :option="0"/>
 <x-row-card col-inside="6" col-outside="3" >
-    {!! Form::open(['route' => 'users.store', 'id'=>'form_user', 'class' => 'form-material m-t-0']) !!}
+    {{html()->form('post', 'users.store')->attributes(['id' => 'form_user', 'class' => 'form-material m-t-0'])->open()}}
         <div class="form-body">
             @include('admin.user.fields')
         </div>
@@ -10,7 +10,7 @@
             <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info">Guardar</button>
             <a href="{{ route('users.index') }}" class="btn waves-effect waves-light btn-rounded btn-outline-warning">Cancelar</a>
         </div>
-    {!! Form::close() !!}
+    {{ html()->form()->close() }}
 </x-row-card >
 @endsection
 @section('modals')

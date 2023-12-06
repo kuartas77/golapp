@@ -2,16 +2,14 @@
 
 namespace App\Repositories;
 
-use Exception;
-use App\Models\User;
-use App\Models\School;
 use App\Models\SchoolUser;
-use App\Traits\ErrorTrait;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
+use App\Models\User;
 use App\Notifications\RegisterNotification;
+use App\Traits\ErrorTrait;
+use Exception;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class UserRepository
 {
@@ -26,12 +24,12 @@ class UserRepository
 
     public function getAll()
     {
-        return getSchool(auth()->user())->users()->with(['roles','profile','school'])->get();
+        return getSchool(auth()->user())->users()->with(['roles', 'profile', 'school'])->get();
     }
 
     public function getAllTrash()
     {
-        return getSchool(auth()->user())->users()->with(['roles','profile','school'])->onlyTrashed()->get();
+        return getSchool(auth()->user())->users()->with(['roles', 'profile', 'school'])->onlyTrashed()->get();
     }
 
     public function create(FormRequest $request)
@@ -51,7 +49,7 @@ class UserRepository
             $user->notify(new RegisterNotification($user, ($request->password ?? randomPassword())));
             DB::commit();
             Cache::forget("KEY_USERS_{$school->id}");
-            
+
             alert()->success(__('messages.user_stored_success'));
 
             return $user;

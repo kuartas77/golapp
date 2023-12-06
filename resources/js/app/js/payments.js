@@ -263,6 +263,6 @@ function sumTotal(api, column, intVal){
         let a = $(value).find('input[type=text]').val();
         total = total + intVal(a);
     });
-    
+
     return `$${formatMoney(total)}`
 }

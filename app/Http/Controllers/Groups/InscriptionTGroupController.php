@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers\Groups;
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Models\TrainingGroup;
+use App\Repositories\TrainingGroupRepository;
 use App\Service\SharedService;
 use Illuminate\Http\JsonResponse;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\View;
-use App\Repositories\TrainingGroupRepository;
+use Illuminate\Http\Request;
 
 class InscriptionTGroupController extends Controller
 {

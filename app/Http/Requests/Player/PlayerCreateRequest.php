@@ -24,7 +24,7 @@ class PlayerCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'unique_code' => ['required','unique:players'],
+            'unique_code' => ['required', 'unique:players'],
             'names' => ['required'],
             'last_names' => ['required'],
             'gender' => ['required'],
@@ -47,7 +47,7 @@ class PlayerCreateRequest extends FormRequest
             'position_field' => ['nullable'],
             'dominant_profile' => ['nullable'],
 
-            'people'=> 'array',
+            'people' => 'array',
             'people.*.relationship',
             'people.*.names',
             'people.*.phone',
@@ -65,7 +65,7 @@ class PlayerCreateRequest extends FormRequest
     public function messages()
     {
         return [
-            'unique_code' => 'El código ya fue registrado anteriormente.'
+            // 'unique_code' => 'El código ya fue registrado anteriormente.'
         ];
     }
 

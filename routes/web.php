@@ -1,10 +1,12 @@
 <?php
 
+use App\Models\Player;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Admin\UserController;
+use App\Notifications\RegisterPlayerNotification;
 use App\Http\Controllers\Assists\AssistController;
 use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\Competition\GameController;
@@ -28,7 +30,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
     $route->get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
 
     $route->get('/home', [HomeController::class, 'index'])->name('home');
-    $route->get('/birthDays', [HomeController::class, 'birthDays'])->name('birthDays');
+    $route->get('/birthdays', [HomeController::class, 'birthDays'])->name('birthDays');
 
     $route->post('inscriptions/activate/{id}', [InscriptionController::class, 'activate'])->name('inscriptions.activate');
 
@@ -79,6 +81,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
 
     $route->prefix('datatables')->group(function ($route) {
         $route->get('enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');
+        $route->get('disabled', [DataTableController::class, 'disabledInscriptions'])->name('inscriptions.disabled');
         $route->get('training_groups_enabled', [DataTableController::class, 'enabledTrainingGroups'])->name('training_groups.enabled');
         $route->get('training_groups_retired', [DataTableController::class, 'disabledTrainingGroups'])->name('training_groups.retired');
         $route->get('competition_groups_enabled', [DataTableController::class, 'enabledCompetitionGroups'])->name('competition_groups.enabled');
@@ -103,7 +106,7 @@ Route::middleware(['auth', 'verified_school'])->group(function ($route) {
         $route->get('matches/create/{competition_group}/format', [ExportController::class, 'exportMatchDetail'])->name('match_detail');
         $route->get('tournament/payouts/excel', [ExportController::class, 'exportTournamentPayoutsExcel'])->name('tournaments.payouts.excel');
         $route->get('tournament/payouts/pdf', [ExportController::class, 'exportTournamentPayoutsPDF'])->name('tournaments.payouts.pdf');
-        
+
 
 
     });

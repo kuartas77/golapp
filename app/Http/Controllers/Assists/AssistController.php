@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Assists;
 
 
-use App\Models\Assist;
-use Illuminate\View\View;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use App\Repositories\AssistRepository;
-use Illuminate\Contracts\View\Factory;
 use App\Http\Requests\AsistUpdateRequest;
+use App\Models\Assist;
+use App\Repositories\AssistRepository;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class AssistController extends Controller
 {
@@ -24,9 +24,9 @@ class AssistController extends Controller
 
     /**
      * @param Request $request
-     * @return Application|Factory|\Illuminate\Contracts\View\View|JsonResponse
+     * @return Application|Factory|View|JsonResponse
      */
-    public function index(Request $request): Application|Factory|\Illuminate\Contracts\View\View|JsonResponse
+    public function index(Request $request): Application|Factory|View|JsonResponse
     {
         if ($request->ajax()) {
             return response()->json($this->repository->search($request->only(['training_group_id', 'year', 'month'])));

@@ -2,23 +2,21 @@
 
 namespace App\Models;
 
-use App\Traits\Fields;
 use App\Traits\GeneralScopes;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Schedule extends Model
 {
     use SoftDeletes;
-    use Fields;
     use HasFactory;
     use GeneralScopes;
-    
+
     protected $table = "schedules";
     protected $fillable = [
-        'schedule', 'day_id','school_id',
+        'schedule', 'day_id', 'school_id',
     ];
 
     protected $hidden = [

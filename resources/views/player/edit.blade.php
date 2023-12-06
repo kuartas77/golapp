@@ -2,7 +2,8 @@
 @section('content')
     <x-bread-crumb title="{{__('messages.player_title_edit', ['unique_code' => $player->unique_code])}}" :option="0"/>
     <x-row-card col-inside="10 col-sm-12 col-md-10" col-outside="1">
-        {!! Form::model($player, ['route' => ['players.update', $player->unique_code], 'method' => 'patch', 'files'=>true, 'id'=>'form_player', 'class'=>'validation-wizard wizard-circle'])!!}
+        {{html()->modelForm($player, 'patch', route('players.update',[$player->unique_code]))->attributes(['id'=>'form_player', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class'=>'validation-wizard wizard-circle'])->open()}}
+
             <div class="form-body">
                 @include('player.fields.basic_information')
                 @include('player.fields.family_information', ['people'=> $player->people ?? [1]])
@@ -11,7 +12,7 @@
                 <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info">Modificar</button>
                 <a href="{{ route('players.index') }}" class="btn waves-effect waves-light btn-rounded btn-outline-warning">Cancelar</a>
             </div>
-        {!! Form::close() !!}
+        {{ html()->closeModelForm() }}
     </x-row-card>
 @endsection
 @section('scripts')
@@ -162,16 +163,16 @@
         function readFile(input) {
             let label = $(input).next('label.custom-file-label')
             if (input.files && input.files[0]) {
-                let reader = new FileReader();                
+                let reader = new FileReader();
                 reader.onload = function (e) {
                     $('#player-img').attr('src', e.target.result);
-                }                
+                }
                 reader.readAsDataURL(input.files[0]);
                 // label.empty().html(input.files[0].name)
                 label.empty().html('Seleccionada.')
             }else{
                 label.empty().html("Seleccionar...")
-                $('#player-img').attr('src', 'http://golapp.local/img/user.png');                
+                $('#player-img').attr('src', 'http://golapp.local/img/user.png');
             }
         }
     </script>

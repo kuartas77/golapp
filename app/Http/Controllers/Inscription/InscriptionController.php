@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Inscription;
 
-use Illuminate\View\View;
-use App\Models\Inscription;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use Illuminate\Contracts\View\Factory;
-use App\Repositories\InscriptionRepository;
-use Illuminate\Contracts\Foundation\Application;
 use App\Http\Requests\Inscription\InscriptionRequest;
 use App\Http\Requests\Inscription\InscriptionUpdateRequest;
+use App\Models\Inscription;
+use App\Repositories\InscriptionRepository;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class InscriptionController extends Controller
 {
@@ -77,7 +78,7 @@ class InscriptionController extends Controller
         }
     }
 
-    public function destroy(Inscription $inscription): \Illuminate\Http\RedirectResponse
+    public function destroy(Inscription $inscription): RedirectResponse
     {
         $this->repository->disable($inscription);
         return back();

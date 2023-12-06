@@ -24,7 +24,7 @@ class TrainingGroupRequest extends FormRequest
     public function rules()
     {
         return [
-            'user_id' => ['required','array'],
+            'user_id' => ['required', 'array'],
             'name' => ['required'],
             'stage' => ['nullable'],
             'years' => ['required', 'array'],
@@ -43,6 +43,7 @@ class TrainingGroupRequest extends FormRequest
             'days' => ['required', 'array'],
             'schedules' => ['required', 'array'],
             'school_id' => ['required'],
+            'year_active' => ['required'],
         ];
     }
 

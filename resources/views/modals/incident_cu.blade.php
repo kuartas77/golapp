@@ -16,7 +16,7 @@
                                 <div class="form-group">
                                     <label for="user_incident_id">Formador</label>
                                     <span class="bar"></span>
-                                    {!! Form::select('user_incident_id', $users , null, ['id'=>'user_incident_id','class' => 'form-control form-control-sm select2','placeholder' =>'Seleccione uno...','required']) !!}
+                                    {{ html()->select('user_incident_id', $users, null)->attributes(['id'=>'user_incident_id','class' => 'form-control form-control-sm select2','required'])->placeholder('Selecciona...') }}
                                 </div>
                             </div>
 

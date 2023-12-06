@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Payments;
 
-use Illuminate\Http\Request;
-use App\Models\TournamentPayout;
 use App\Http\Controllers\Controller;
-use App\Repositories\TournamentPayoutsRepository;
 use App\Http\Requests\SetTournamentPaymentRequest;
+use App\Models\TournamentPayout;
+use App\Repositories\TournamentPayoutsRepository;
+use Illuminate\Http\Request;
 
 class TournamentPayoutsController extends Controller
 {

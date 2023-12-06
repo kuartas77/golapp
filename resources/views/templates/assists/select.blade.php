@@ -1,20 +1,20 @@
 @switch($value)
     @case('as')
-        {!! Form::select($column, $optionAssist, $value,  ['class' => 'form-control form-control-sm assist form-success', 'placeholder'=>'Selecciona...', $deleted ? 'disabled' : '' ]) !!}
+        {!! html()->select($column, $optionAssist, $value)->attributes(['class' => 'form-control form-control-sm assist color-success',  $deleted ? 'disabled' : '' ])->placeholder('Selecciona...') !!}
     @break
     @case('fa')
-        {!! Form::select($column, $optionAssist, $value,  ['class' => 'form-control form-control-sm assist form-error', 'placeholder'=>'Selecciona...', $deleted ? 'disabled' : '' ]) !!}
+        {!! html()->select($column, $optionAssist, $value)->attributes(['class' => 'form-control form-control-sm assist color-error',  $deleted ? 'disabled' : '' ])->placeholder('Selecciona...') !!}
     @break
     @case('ex')
-        {!! Form::select($column, $optionAssist, $value,  ['class' => 'form-control form-control-sm assist form-orange', 'placeholder'=>'Selecciona...', $deleted ? 'disabled' : '' ]) !!}
+        {!! html()->select($column, $optionAssist, $value)->attributes(['class' => 'form-control form-control-sm assist color-orange',  $deleted ? 'disabled' : '' ])->placeholder('Selecciona...') !!}
     @break
     @case('re')
-        {!! Form::select($column, $optionAssist, $value,  ['class' => 'form-control form-control-sm assist form-grey', 'placeholder'=>'Selecciona...', $deleted ? 'disabled' : '' ]) !!}
+        {!! html()->select($column, $optionAssist, $value)->attributes(['class' => 'form-control form-control-sm assist color-grey', $deleted ? 'disabled' : '' ])->placeholder('Selecciona...') !!}
     @break
     @case('in')
-        {!! Form::select($column, $optionAssist, $value,  ['class' => 'form-control form-control-sm assist form-warning', 'placeholder'=>'Selecciona...', $deleted ? 'disabled' : '' ]) !!}
+        {!! html()->select($column, $optionAssist, $value)->attributes(['class' => 'form-control form-control-sm assist color-warning',  $deleted ? 'disabled' : '' ])->placeholder('Selecciona...') !!}
     @break
     @default
-        {!! Form::select($column, $optionAssist, $value,  ['class' => 'form-control form-control-sm assist', 'placeholder'=>'Selecciona...', $deleted ? 'disabled' : '' ]) !!}
+        {!! html()->select($column, $optionAssist, $value)->attributes(['class' => 'form-control form-control-sm assist',  $deleted ? 'disabled' : '' ])->placeholder('Selecciona...') !!}
     @break
 @endswitch

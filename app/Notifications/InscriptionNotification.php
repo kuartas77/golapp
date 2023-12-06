@@ -4,9 +4,9 @@ namespace App\Notifications;
 
 use App\Models\Inscription;
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
 
 class InscriptionNotification extends Notification implements ShouldQueue
 {
@@ -40,7 +40,7 @@ class InscriptionNotification extends Notification implements ShouldQueue
      * @param mixed $notifiable
      * @return MailMessage
      */
-    public function toMail($notifiable)
+    public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
             ->subject("Notificación de inscripción {$this->inscription->school->name}.")
@@ -53,7 +53,7 @@ class InscriptionNotification extends Notification implements ShouldQueue
      * @param mixed $notifiable
      * @return array
      */
-    public function toArray($notifiable)
+    public function toArray($notifiable): array
     {
         return [
             //

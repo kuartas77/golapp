@@ -2,33 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Exports\AssistExport;
-use App\Exports\PaymentsExport;
 use App\Exports\MatchDetailExport;
-use App\Repositories\GameRepository;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Repositories\AssistRepository;
-use App\Repositories\PaymentRepository;
+use App\Exports\PaymentsExport;
 use App\Exports\TournamentPayoutsExport;
+use App\Repositories\AssistRepository;
+use App\Repositories\GameRepository;
 use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
+use App\Repositories\PaymentRepository;
+use App\Repositories\TournamentPayoutsRepository;
 use App\Service\Assist\AssistExportService;
 use App\Service\Payment\PaymentExportService;
-use App\Repositories\TournamentPayoutsRepository;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Mpdf\MpdfException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ExportController extends Controller
 {
 
     public function __construct(
-        private InscriptionRepository $inscriptionRepository,
-        private AssistRepository $assistRepository,
-        private IncidentRepository $incidentRepository,
-        private GameRepository $gameRepository,
-        private PaymentRepository $paymentRepository,
+        private InscriptionRepository       $inscriptionRepository,
+        private AssistRepository            $assistRepository,
+        private IncidentRepository          $incidentRepository,
+        private GameRepository              $gameRepository,
+        private PaymentRepository           $paymentRepository,
         private TournamentPayoutsRepository $tournamentPayoutsRepository
-    ){}
+    )
+    {
+    }
 
 
     /**
@@ -55,9 +58,9 @@ class ExportController extends Controller
      * @param $month
      * @param bool $deleted
      * @return mixed
-     * @throws \Mpdf\MpdfException
+     * @throws MpdfException
      */
-    public function exportAssistsPDF($trainingGroupId, $year, $month, $deleted = false, AssistExportService $assistExportService)
+    public function exportAssistsPDF(AssistExportService $assistExportService, $trainingGroupId, $year, $month, $deleted = false)
     {
         $params = [
             'training_group_id' => $trainingGroupId,

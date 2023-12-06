@@ -30,6 +30,7 @@ $(document).ready(() => {
         }),
         "columns": [
             {data: 'full_schedule_group', name: 'full_schedule_group'},
+            {data: 'year_active', name: 'year_active'},
             {data: 'instructors_names', name: 'instructors_names'},
             {
                 data: 'id',
@@ -61,6 +62,7 @@ $(document).ready(() => {
         }),
         "columns": [
             {data: 'full_schedule_group'},
+            {data: 'year_active', name: 'year_active'},
             {data: 'instructors_names', name: 'instructors_names'},
         ],
         "order": [[0, "desc"]]
@@ -97,6 +99,7 @@ $(document).ready(() => {
                 resetModalForm(false, id);
                 $("#name").val(data.name);
                 $("#stage").val(data.stage);
+                $("#year_active").val(data.year_active);
                 daysInput.multiSelect('deselect_all');
                 daysInput.multiSelect('select', data.explode_days);
                 schedulesInput.multiSelect('deselect_all');

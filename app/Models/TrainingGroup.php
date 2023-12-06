@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\User;
-use App\Traits\Fields;
 use App\Traits\GeneralScopes;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -38,7 +36,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class TrainingGroup extends Model
 {
     use SoftDeletes;
-    use Fields;
     use GeneralScopes;
     use HasFactory;
 
@@ -62,7 +59,8 @@ class TrainingGroup extends Model
         'category',
         'schedules',
         'days',
-        'school_id'
+        'school_id',
+        'year_active'
     ];
 
     protected $appends = [
@@ -86,20 +84,18 @@ class TrainingGroup extends Model
     public function scopeOnlyTrashedRelations($query)
     {
         return $query->with([
-            // 'schedule.day' => fn ($query) => $query->withTrashed(),
-            'instructors' => fn ($query) => $query->withTrashed()
+            'instructors' => fn($query) => $query->withTrashed()
         ])->withTrashed();
     }
 
     public function scopeOnlyTrashedRelationsFilter($query)
     {
         return $query->with([
-            // 'schedule.day' => fn ($query) => $query->withTrashed(),
-            'instructors' => fn ($query) => $query->withTrashed(),
-            'assists' => fn ($query) => $query->select('training_group_id','year')
+            'instructors' => fn($query) => $query->withTrashed(),
+            'assists' => fn($query) => $query->select('training_group_id', 'year')
                 ->distinct()
-                ->where('year','<', now()->year)
-                ->orderBy('year','desc')
+                ->where('year', '<', now()->year)
+                ->orderBy('year', 'desc')
                 ->withTrashed()
         ])->withTrashed();
     }
@@ -107,11 +103,10 @@ class TrainingGroup extends Model
     public function scopeOnlyTrashedRelationsPayments($query)
     {
         return $query->with([
-            // 'schedule.day' => fn ($query) => $query->withTrashed(),
-            'payments' => fn ($query) => $query->select('training_group_id','year')
+            'payments' => fn($query) => $query->select('training_group_id', 'year')
                 ->distinct()
-                ->where('year','<', now()->year)
-                ->orderBy('year','desc')
+                ->where('year', '<', now()->year)
+                ->orderBy('year', 'desc')
                 ->withTrashed()
         ])->withTrashed();
     }
@@ -132,7 +127,8 @@ class TrainingGroup extends Model
 
     private function nameGroup($full = false): string
     {
-        $var = trim("{$this->name} {$this->stage}");
+        $optional = ($this->year_active ?? $this->days). " =>";
+        $var = trim("{$optional} {$this->name} {$this->stage}");
         $var .= ' (' . trim("{$this->year} {$this->year_two} {$this->year_three} {$this->year_four} {$this->year_five} {$this->year_six} {$this->year_seven} {$this->year_eight} {$this->year_nine} {$this->year_ten} {$this->year_eleven} {$this->year_twelve}") . ') ';
         if ($full) {
             $var .= trim("{$this->days} {$this->schedules}");
@@ -199,8 +195,8 @@ class TrainingGroup extends Model
     public function getInstructorsNamesAttribute()
     {
         $names = '';
-        if($this->relationLoaded('instructors')){
-            $names = $this->instructors->implode('name',', ');
+        if ($this->relationLoaded('instructors')) {
+            $names = $this->instructors->implode('name', ', ');
         }
         return $names;
     }
@@ -208,7 +204,7 @@ class TrainingGroup extends Model
     public function getInstructorsIdsAttribute()
     {
         $ids = [];
-        if($this->relationLoaded('instructors')){
+        if ($this->relationLoaded('instructors')) {
             $ids = $this->instructors->pluck('id');
         }
         return $ids;

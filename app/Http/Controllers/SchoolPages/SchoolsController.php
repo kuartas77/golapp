@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\SchoolPages;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\SchoolUpdateRequest;
 use App\Models\School;
+use App\Service\API\RegisterService;
 use App\Traits\ErrorTrait;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Service\API\RegisterService;
-use App\Http\Requests\SchoolUpdateRequest;
 
 class SchoolsController extends Controller
 {
@@ -28,7 +28,7 @@ class SchoolsController extends Controller
     public function update(SchoolUpdateRequest $request, School $school, RegisterService $registerService)
     {
         $registerService->updateSchoolUsesCase($request, $school);
-        
+
         return redirect(route('school.index', ['school' => $school]));
     }
 }

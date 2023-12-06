@@ -9,7 +9,7 @@ class SkillsControlObserver
     /**
      * Handle the skills control "created" event.
      *
-     * @param  \App\Models\SkillsControl  $skillsControl
+     * @param SkillsControl $skillsControl
      * @return void
      */
     public function created(SkillsControl $skillsControl)
@@ -20,7 +20,7 @@ class SkillsControlObserver
     /**
      * Handle the skills control "updated" event.
      *
-     * @param  \App\Models\SkillsControl  $skillsControl
+     * @param SkillsControl $skillsControl
      * @return void
      */
     public function updated(SkillsControl $skillsControl)
@@ -31,7 +31,7 @@ class SkillsControlObserver
     /**
      * Handle the skills control "deleted" event.
      *
-     * @param  \App\Models\SkillsControl  $skillsControl
+     * @param SkillsControl $skillsControl
      * @return void
      */
     public function deleted(SkillsControl $skillsControl)
@@ -42,7 +42,7 @@ class SkillsControlObserver
     /**
      * Handle the skills control "restored" event.
      *
-     * @param  \App\Models\SkillsControl  $skillsControl
+     * @param SkillsControl $skillsControl
      * @return void
      */
     public function restored(SkillsControl $skillsControl)
@@ -53,7 +53,7 @@ class SkillsControlObserver
     /**
      * Handle the skills control "force deleted" event.
      *
-     * @param  \App\Models\SkillsControl  $skillsControl
+     * @param SkillsControl $skillsControl
      * @return void
      */
     public function forceDeleted(SkillsControl $skillsControl)

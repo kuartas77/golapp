@@ -44,7 +44,7 @@
                     {data: 'identification_document', name: 'identification_document'},
                     {data: 'full_names', name: 'full_names'},
                     {data: 'phones', "render": function (data, type, row) {
-                        
+
                         return (row.mobile == null) ? data : `${data} ${row.mobile}`
                     }},
                     {data: 'gender'},
@@ -130,7 +130,7 @@
                     '<th><span>Teléfonos:</span></th><th>' + phones + '</th>' +
                     '</tr>';
             });
-            
+
             return '<table class="w-100">' + rows + '</table>';
         }
 

@@ -9,7 +9,7 @@
         </a>
         <div class="row">
             <div class="form-group col-sm-3 ">
-                {!! Form::selectYear('year', $minYear, now()->year, now()->year,['class' => 'form-control input-sm sl', 'placeholder' => 'Seleccione...', 'id' => 'year']) !!}
+                {{ html()->select('year', $years, now()->year)->attributes(['class' => 'form-control input-sm sl','id' => 'year'])->placeholder('Selecciona...') }}
             </div>
         </div>
 

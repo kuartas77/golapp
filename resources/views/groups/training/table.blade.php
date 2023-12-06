@@ -33,6 +33,7 @@
             <thead>
             <tr>
                 <th>Grupo</th>
+                <th>Año de actividad</th>
                 <th>Formador(es)</th>
                 <th>Opciones</th>
             </tr>
@@ -46,13 +47,11 @@
             <thead>
             <tr>
                 <th>Grupo</th>
-                <th>Formador</th>
+                <th>Año de actividad</th>
+                <th>Formador(es)</th>
             </tr>
             </thead>
         </table>
     </div>
 
 </div>
-
-
-

@@ -4,18 +4,18 @@
 namespace App\Repositories;
 
 
-use Exception;
 use App\Models\Schedule;
 use App\Traits\ErrorTrait;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Exception;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\DB;
 
 class ScheduleRepository
 {
     use ErrorTrait;
+
     /**
      * @var Schedule
      */

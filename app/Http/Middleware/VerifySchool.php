@@ -3,22 +3,20 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use App\Models\School;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class VerifySchool
 {
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
+     * @param Request $request
+     * @param Closure $next
      * @return mixed
      */
     public function handle(Request $request, Closure $next)
     {
-        if(auth()->check()){
+        if (auth()->check()) {
 
             $school = getSchool(auth()->user());
 
@@ -26,16 +24,16 @@ class VerifySchool
                 return $this->logout();
             }
         }
-        
+
         return $next($request);
     }
 
     private function logout()
     {
         auth()->logout();
-        
-        alert()->error(config('app.name'),__('messages.schools_dissabled'));
-        
+
+        alert()->error(config('app.name'), __('messages.schools_dissabled'));
+
         return redirect('login');
     }
 }

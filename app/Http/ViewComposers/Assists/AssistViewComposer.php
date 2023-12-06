@@ -9,6 +9,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use App\Repositories\TrainingGroupRepository;
+use App\Http\ViewComposers\Payments\PaymentsViewComposer;
 
 class AssistViewComposer
 {
@@ -25,11 +26,11 @@ class AssistViewComposer
     public function compose(View $view)
     {
         if (Auth::check()) {
-
+            $filter = \Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);
             if (isAdmin() || isSchool()) {
-                $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(false);
-            } elseif(isInstructor()){
-                $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(false, auth()->id());
+                $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, filter: $filter);
+            } elseif (isInstructor()) {
+                $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(false, auth()->id(), $filter);
             }
 
             $months = Cache::rememberForever("KEY_MONTHS", fn() => config('variables.KEY_MONTHS'));
@@ -44,5 +45,3 @@ class AssistViewComposer
         }
     }
 }
-
-

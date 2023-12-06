@@ -13,6 +13,7 @@ return [
     'inscriptions_title' => 'Inscripciones',
     'inscription_title' => 'Inscripción :unique_code',
     'inscription_actived' => 'Activas',
+    'inscription_inactived' => 'Inactivas',
     'inscription_retired' => 'Retirados',
     'inscription_add' => 'Agregar Inscripción',
     'export_excel_inscriptions' => 'Exportar Inscripciones Excel',
