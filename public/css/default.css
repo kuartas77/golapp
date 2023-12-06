@@ -292,7 +292,6 @@ textarea[name=ticr_observacion] {
     background-image:url(../img/1970-max.jpg)
 }
 
-
 .zoom {
     position: fixed;
     bottom: 35px;
@@ -588,6 +587,77 @@ select.swal2-select{
     .login-register {
         position: absolute;
     }
+    .public{
+        position: absolute;
+    }
+}
+
+.fluid_container {
+    margin: 0 auto;
+    max-width: 1000px;
+    width: 95%;
+}
+
+.color-error {
+    background-color: red;
+    color: white;
+}
+
+.color-success {
+    background-color: green;
+    color: white;
+}
+
+.color-warning {
+    background-color: yellow;
+}
+
+.color-info {
+    background-color: blue;
+    color: white;
+}
+
+.color-purple {
+    background-color: #572364;
+    color: white;
+}
+
+.color-brown {
+    background-color: #6F4E37;
+    color: white;
+}
+
+.color-orange {
+    background-color: orange;
+    color: white;
+}
+
+.color-grey {
+    background-color: grey;
+    color: white;
+}
+
+.color-agua {
+    background-color: aqua;
+    color: black;
+}
+
+.color-incapacidad {
+    background-color: #fac282;
+    color: black;
+}
+
+.color-becado {
+    background-color: #009688;
+    color: white;
+}
+
+.form-control-sm{min-height:10px}
+
+td>img{
+    width: 70px; /* You can set the dimensions to whatever you want */
+    height: 70px;
+    object-fit: cover;
 }
 
 .color-error {

@@ -89,7 +89,7 @@ class School extends Model
 
     public function getUrlShowAttribute(): string
     {
-        return route('config.schools.show', [$this->attributes['slug']]);
+        return route('public.school.show', [$this->attributes['slug']]);
     }
 
     public function getUrlDestroyAttribute(): string
