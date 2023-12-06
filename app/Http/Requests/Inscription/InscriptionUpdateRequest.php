@@ -70,6 +70,7 @@ class InscriptionUpdateRequest extends FormRequest
             'competition_uniform' => $this->competition_uniform ?? false,
             'tournament_pay' => $this->tournament_pay ?? false,
             'scholarship' => $this->scholarship ?? false,
+            'competition_groups' => $this->competition_groups ?? []
         ]);
     }
 }

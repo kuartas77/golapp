@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
-use App\Observers\TrainingGroupObserver;
 use App\Traits\GeneralScopes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
+use App\Observers\TrainingGroupObserver;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @method static onlyTrashedRelations()
@@ -237,6 +238,11 @@ class TrainingGroup extends Model
     public function instructors(): BelongsToMany
     {
         return $this->belongsToMany(User::class)->withPivot('assigned_year');
+    }
+
+    public function ScopeByInstructor(Builder $query): void
+    {
+        $query->whereRelation('instructors', 'training_group_user.user_id', auth()->id());
     }
 
 }
