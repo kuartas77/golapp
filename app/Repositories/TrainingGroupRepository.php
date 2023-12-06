@@ -33,10 +33,11 @@ class TrainingGroupRepository
         return $this->model->query()
             ->schoolId()
             ->with(['instructors'])
-            ->where(function ($query) {
+            ->where(fn ($query) =>
                 $query->whereRelation('instructors', 'assigned_year', '>=', now()->year)
-                    ->orWhereNull('year_active');
-            })
+                ->orWhere('name', 'Provisional')
+                ->orWhere('year_active', '>=', now()->year)
+            )
             ->get();
     }
 
@@ -46,6 +47,7 @@ class TrainingGroupRepository
             ->onlyTrashedRelations()
             ->schoolId()
             ->whereRelation('instructors', fn ($query) => $query->where('assigned_year', '<', now()->year))
+            ->where('year_active', '<', now()->year)
             ->get();
     }
 
