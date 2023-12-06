@@ -30,12 +30,13 @@ class TrainingGroupRepository
 
     public function listGroupEnabled()
     {
+        $firstTeam = $this->model->query()->select(['id'])->schoolId()->orderBy('id', 'ASC')->first();
         return $this->model->query()
             ->schoolId()
             ->with(['instructors'])
             ->where(fn ($query) =>
                 $query->whereRelation('instructors', 'assigned_year', '>=', now()->year)
-                ->orWhere('name', 'Provisional')
+                ->orWhere('id', $firstTeam->id)
                 ->orWhere('year_active', '>=', now()->year)
             )
             ->get();
@@ -161,7 +162,7 @@ class TrainingGroupRepository
      * @param null $whereUser
      * @return Collection
      */
-    public function getListGroupsSchedule($deleted = false, $user_id = null): Collection
+    public function getListGroupsSchedule(bool $deleted = false, ?int $user_id = null, callable $filter = null): Collection
     {
         $query = $this->model->query()->schoolId();
         if ($deleted) {
@@ -180,8 +181,13 @@ class TrainingGroupRepository
             });
         }
 
-        return $query->orderBy('name', 'ASC')
-            ->get()->pluck('full_schedule_group', 'id');
+        $result = $query->orderBy('name', 'ASC')->get();
+
+        if (!is_null($filter)) {
+            $result = $filter($result);
+        }
+
+        return $result->pluck('full_schedule_group', 'id');
     }
 
     /**

@@ -5,12 +5,13 @@ namespace App\Http\ViewComposers\Inscription;
 
 
 use App\Models\School;
-use App\Repositories\CompetitionGroupRepository;
-use App\Repositories\TrainingGroupRepository;
 use App\Traits\Commons;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use App\Repositories\TrainingGroupRepository;
+use App\Repositories\CompetitionGroupRepository;
+use App\Http\ViewComposers\Payments\PaymentsViewComposer;
 
 class InscriptionCreateComposer
 {
@@ -62,7 +63,8 @@ class InscriptionCreateComposer
             });
 
             $training_groups = Cache::remember("KEY_TRAINING_GROUPS_{$school_id}", now()->addDay(), function () {
-                return $this->trainingGroupRepository->getListGroupsSchedule(false);
+                $filter = \Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);
+                return $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, filter: $filter);
             });
 
             $competition_groups = Cache::remember("KEY_COMPETITION_GROUPS_{$school_id}", now()->addDay(), function () {
