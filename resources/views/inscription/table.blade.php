@@ -8,7 +8,11 @@
             <a class="nav-link" id="inactive-tab" data-toggle="tab" href="#inactive" role="tab"
                aria-controls="inactive" aria-expanded="false">@lang('messages.inscription_inactived')</a>
         </li>
-        
+        <li class="nav-item">
+            <a class="nav-link">
+                {{ html()->select('inscription_year', $inscription_years, now()->year)->attributes(['id'=>'inscription_year','class' => 'form-control form-control-sm'])->placeholder('Selecciona...') }}
+            </a>
+        </li>
 
         @hasanyrole('super-admin|school')
         <li class=" nav-item ml-auto">
@@ -72,5 +76,3 @@
         </table>
     </div>
 </div>
-
-

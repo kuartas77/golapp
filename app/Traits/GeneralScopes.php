@@ -2,18 +2,34 @@
 
 namespace App\Traits;
 
+use Illuminate\Database\Eloquent\Builder;
+
 trait GeneralScopes
 {
-    public function scopeSchoolId($query)
+    public function scopeSchoolId(Builder $query): void
     {
-        // return $query->when(isSchool() || isInstructor(), fn($query) => $query->where('school_id', getSchool(auth()->user())->id));
-        return $query->where('school_id', getSchool(auth()->user())->id);
+        $query->where('school_id', getSchool(auth()->user())->id);
     }
 
-    public function scopeTrainingTeam($query, $training_team_id = null)
+    public function scopeTrainingTeam(Builder $query, $training_team_id = null): void
     {
-        return $query->when($training_team_id, function ($q) use ($training_team_id) {
+        $query->when($training_team_id, function ($q) use ($training_team_id) {
             $q->where('training_team_id', $training_team_id);
         });
+    }
+
+    public function scopeWhenLastMonthYear(Builder $query): void
+    {
+        $now = now();
+        $query->when(
+            ($now->month <> 12),
+            fn ($query) => $query->where('year', $now->year),
+            fn ($query) => $query->where(fn ($q) => $q->where('year', $now->year)->orWhere('year', $now->addYear()->year))
+        );
+    }
+
+    public function scopeInscriptionYear(Builder $query, int|null $year): void
+    {
+        $query->where('year', $year ? $year : now()->year);
     }
 }

@@ -53,15 +53,20 @@ class AssistRepository
     {
         $table = [];
         try {
+            $school_id = getSchool(auth()->user())->id;
 
             $dataAssist['year'] = now()->year;
+            $training_group_id = TrainingGroup::query()->orderBy('id')
+                ->firstWhere('school_id', $school_id)->id;
+
+            if($training_group_id == $dataAssist['training_group_id']){
+                return $table;
+            }
 
             $trainingGroup = TrainingGroup::query()->schoolId()->find($dataAssist['training_group_id']);
             $inscriptionIds = Inscription::query()->schoolId()
                 ->where('training_group_id', $dataAssist['training_group_id'])
                 ->where('year', $dataAssist['year'])->pluck('id');
-
-            $school_id = getSchool(auth()->user())->id;
 
             $assists = $this->model->schoolId()->with('inscription.player')->where($dataAssist);
 

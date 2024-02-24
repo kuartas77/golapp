@@ -2,7 +2,7 @@
 @section('content')
 <x-bread-crumb title="Usuario" :option="0"/>
 <x-row-card col-inside="6" col-outside="3" >
-    {{html()->form('post', 'users.store')->attributes(['id' => 'form_user', 'class' => 'form-material m-t-0'])->open()}}
+    {{html()->form('post', route('users.store'))->attributes(['id' => 'form_user', 'class' => 'form-material m-t-0'])->open()}}
         <div class="form-body">
             @include('admin.user.fields')
         </div>
