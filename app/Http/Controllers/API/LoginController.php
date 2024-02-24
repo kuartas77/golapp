@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
 
 class LoginController extends Controller
 {
@@ -28,6 +29,8 @@ class LoginController extends Controller
             ]);
         }
 
-        return $user->createToken($request->input('email'))->plainTextToken;
+        return response()->json([
+            'token' => $user->createToken($request->input('email'))->plainTextToken
+        ], Response::HTTP_OK);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CompetitionGroup;
 use App\Models\Master;
+use App\Models\Tournament;
 use App\Repositories\InscriptionRepository;
 use App\Repositories\PlayerRepository;
 use Illuminate\Http\JsonResponse;
@@ -71,6 +72,15 @@ class MasterController extends Controller
         } else {
             $response = $this->inscriptionRepository->searchInscriptionCompetition($request->only(['unique_code', 'competition_group_id']));
         }
+        return $this->responseJson($response);
+    }
+
+    public function tournamentsBySchool(Request $request): JsonResponse
+    {
+        abort_unless($request->ajax(), 401);
+        $response = Tournament::query()->schoolId()->orderBy('id')->get()->map(function($tournament){
+            return ['id' => $tournament->id, 'text' => $tournament->name];
+        });
         return $this->responseJson($response);
     }
 

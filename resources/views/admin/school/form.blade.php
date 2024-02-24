@@ -83,7 +83,7 @@
 <div class="row">
 <div class="col-md-3">
         <div class="form-group">
-            <label>Logo</label> 
+            <label>Logo</label>
             <div class="custom-file">
                 <input type="file" class="custom-file-input" id="file-upload" accept="image/png, image/jpeg" name="logo">
                 <label class="custom-file-label" for="file-upload">Seleccionar...</label>

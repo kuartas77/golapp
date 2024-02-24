@@ -189,7 +189,7 @@
                         $countAS = 0;
                     @endphp
                     <tr class="tr-tit">
-                        <td class="bold" >&nbsp;Días</td>
+                        <td class="bold" >&nbsp;Clases</td>
                         @for ($index = 1; $index <= $assistance->classDays->count(); $index++)
                             <th class="text-center bold">{{$index}}</th>
                         @endfor

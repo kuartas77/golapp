@@ -128,15 +128,21 @@
 
     <table class="table-full title">
         <tr>
-            <td class="text-left" width="49%">
+            <td class="text-left">
                 @isset($player->inscription->trainingGroup)
                     <strong class="bold">&nbsp;Grupo De Entrenamiento: {{$player->inscription->trainingGroup->name}}</strong>
                 @endisset
             </td>
-            <td class="text-center school-title" width="2%"></td>
-            <td class="text-right" width="49%">
+        </tr>
+    </table>
+    <table class="table-full title">
+        <tr>
+            <td class="text-left">
                 @isset($player->inscription->competitionGroup)
-                    <strong class="bold">&nbsp;Grupo De Competencia: {{$player->inscription->competitionGroup->name}}</strong>
+                    @foreach($player->inscription->competitionGroup as $competitionGroup)
+                    <strong class="bold">&nbsp;Grupo De Competencia: {{$competitionGroup->name}}</strong>
+                    <br>
+                    @endforeach
                 @endisset
             </td>
         </tr>
