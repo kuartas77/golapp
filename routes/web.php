@@ -1,12 +1,10 @@
 <?php
 
-use App\Models\Player;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Admin\UserController;
-use App\Notifications\RegisterPlayerNotification;
 use App\Http\Controllers\Assists\AssistController;
 use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\Competition\GameController;

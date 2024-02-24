@@ -32,7 +32,7 @@ trait UploadFile
             $img = Image::make($file)->resize(420, 420, function ($constraint) {
                 $constraint->aspectRatio();
             })->orientate();
-            Storage::disk('public')->put($path, (string)$img->encode(), 'public');
+            Storage::disk('public')->put($path, (string)$img->encode('jpg', 75), 'public');
         }
         return $path;
     }

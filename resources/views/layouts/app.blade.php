@@ -8,10 +8,10 @@
     <meta name="X-UA-Compatible" content="IE=edge, chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" href="/img/ballon.png" />
-    <link href="{{mix('css/all.css')}}" rel="stylesheet">
+    <link href="{{asset(mix('css/all.css'))}}" rel="stylesheet">
     @yield('css')
     {{--<link href="{{mix('css/default-mix.css')}}" rel="stylesheet">--}}
-    <link href="{{asset('css/default.css')}}" rel="stylesheet">
+    <link href="{{asset('css/default.css')}}" rel="stylesheet" >
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -59,9 +59,9 @@
         window.img_logout = "{{asset('img/logout.png')}}";
     </script>
     @include('sweetalert::alert')
-    <!-- <script src="{{mix('js/app.js')}}" ></script> -->
-    <script src="{{mix('js/all.js')}}" ></script>
-    <script src="{{asset('js/config.js')}}" ></script>
+
+    <script src="{{asset(mix('js/all.js'))}}" ></script>
+    <script src="{{asset('js/config.js')}}"></script>
     @yield('scripts')
     @stack('scripts')
     <script>

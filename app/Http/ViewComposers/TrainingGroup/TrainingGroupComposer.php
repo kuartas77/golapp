@@ -19,35 +19,24 @@ class TrainingGroupComposer
 {
     use Commons;
 
-    public function compose(View $view)
+    public function compose(View $view): void
     {
         if (Auth::check()) {
 
             $school_id = getSchool(auth()->user())->id;
 
-            $days = Cache::rememberForever('KEY_WEEKS', fn() => config('variables.KEY_WEEKS'));
+            $days = Cache::rememberForever('KEY_WEEKS', fn () => config('variables.KEY_WEEKS'));
 
-            $users = Cache::remember("KEY_USERS_{$school_id}", now()->addMinute(), fn() => (new UserRepository(new User()))->getAll()->pluck('name', 'id'));
+            $users = Cache::remember("KEY_USERS_{$school_id}", now()->addMinute(), fn () => (new UserRepository(new User()))->getAll()->pluck('name', 'id'));
 
-            $schedules = Cache::remember("SCHEDULES_{$school_id}", now()->addMinute(), fn() => Schedule::query()->schoolId()->pluck('schedule', 'schedule'));
+            $schedules = Cache::remember("SCHEDULES_{$school_id}", now()->addMinute(), fn () => Schedule::query()->schoolId()->pluck('schedule', 'schedule'));
 
-            $tournaments = Cache::remember("KEY_TOURNAMENT_{$school_id}", now()->addDay(), fn() => Tournament::orderBy('name')->schoolId()->pluck('name', 'id'));
+            $tournaments = Cache::remember("KEY_TOURNAMENT_{$school_id}", now()->addDay(), fn () => Tournament::orderBy('name')->schoolId()->pluck('name', 'id'));
 
-            $years = Cache::remember("KEY_YEARS_{$school_id}", now()->addDay(), function () use ($school_id) {
+            $years = Cache::remember("KEY_YEARS_{$school_id}", now()->addDay(), function () {
                 $now = Carbon::now();
-                if(in_array($now->month, [10, 11, 12])){
-                    $year = $now->addYear()->format('Y');
-                    $years = [
-                        $year => $year
-                    ];
-                }else{
-                    $year = $now->addYear()->format('Y');
-                    $years = [
-                        $year => $year
-                    ];
-                }
-
-                return $years;
+                $year = in_array($now->month, [10, 11, 12]) ? $now->addYear()->format('Y') : $now->format('Y');
+                return [$year => $year];
             });
 
             $view->with('users', $users);

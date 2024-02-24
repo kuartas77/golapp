@@ -6,6 +6,7 @@ namespace App\Http\ViewComposers\Inscription;
 
 use App\Models\School;
 use App\Traits\Commons;
+use App\Models\Inscription;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -71,6 +72,10 @@ class InscriptionCreateComposer
                 return $this->competitionGroupRepository->getListGroupFullName();
             });
 
+            $inscription_years = Cache::remember("KEY_INSCRIPTION_YEARS_{$school_id}", now()->addDay(), function () {
+                return Inscription::query()->distinct('year')->orderBy('year')->pluck('year', 'year');
+            });
+
             $schools = [];
             if (isAdmin()) {
                 $schools = School::query()->pluck('name', 'id');
@@ -84,6 +89,7 @@ class InscriptionCreateComposer
             $view->with('relationships', $relationships);
             $view->with('training_groups', $training_groups);
             $view->with('dominant_profile', $dominant_profile);
+            $view->with('inscription_years', $inscription_years);
             $view->with('competition_groups', $competition_groups);
         }
     }
