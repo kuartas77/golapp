@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
@@ -14,10 +15,11 @@ use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupCo
 
 Auth::routes(['register' => false, 'verify' => false]);
 
+Route::get('/', fn() => redirect('login'));
 Route::middleware([])->group(function () {
-    Route::get('/', [PublicController::class, 'index'])->name('public');
-    Route::get('escuela/{school}', [PublicController::class, 'show'])->name('public.school.show');
-    Route::get('img/public/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('public.images');
+    // Route::get('/', [PublicController::class, 'index'])->name('public');
+    // Route::get('escuela/{school}', [PublicController::class, 'show'])->name('public.school.show');
+    // Route::get('img/public/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('public.images');
 });
 
 Route::middleware(['auth', 'verified_school'])->group(function () {

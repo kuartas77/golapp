@@ -28,7 +28,7 @@ class InscriptionUpdateRequest extends FormRequest
         return [
             'school_id' => ['required'],
             'player_id' => ['required'],
-            'unique_code' => ['required', 'exists:players,unique_code'],
+            'unique_code' => ['required'],
             'training_group_id' => ['nullable'],
             'competition_groups' => ['nullable', 'array'],
             'photos' => ['nullable'],
@@ -70,7 +70,8 @@ class InscriptionUpdateRequest extends FormRequest
             'competition_uniform' => $this->competition_uniform ?? false,
             'tournament_pay' => $this->tournament_pay ?? false,
             'scholarship' => $this->scholarship ?? false,
-            'competition_groups' => $this->competition_groups ?? []
+            'competition_groups' => $this->competition_groups ?? [],
+            'training_group_id' => $this->training_group_id ?? null,
         ]);
     }
 }
