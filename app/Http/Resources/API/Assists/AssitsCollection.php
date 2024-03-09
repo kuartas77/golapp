@@ -2,8 +2,7 @@
 
 namespace App\Http\Resources\API\Assists;
 
-use App\Models\Assist;
-use App\Http\Resources\API\Assists\AssistResource;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class AssitsCollection extends ResourceCollection
@@ -11,7 +10,7 @@ class AssitsCollection extends ResourceCollection
     /**
      * Transform the resource collection into an array.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param Request $request
      * @return array
      */
     public function toArray($request)

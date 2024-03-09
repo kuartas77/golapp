@@ -16,17 +16,17 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum'])->name('v1.')->group(function ($route){
+Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum'])->name('v1.')->group(function (){
 
-    $route->post('register', [RegisterController::class, 'register']);
-    $route->apiResource('users', UserController::class);
-    $route->apiResource('inscriptions', InscriptionController::class);
-    $route->apiResource('schools', SchoolController::class);
+    Route::post('register', [RegisterController::class, 'register']);
+    Route::apiResource('users', UserController::class);
+    Route::apiResource('inscriptions', InscriptionController::class);
+    Route::apiResource('schools', SchoolController::class);
 });
 
-Route::prefix('instructor')->name('instructor.')->middleware(['auth:sanctum'])->group(function ($route){
+Route::prefix('instructor')->name('instructor.')->middleware(['auth:sanctum'])->group(function (){
 
-    $route->get('training_groups', [GroupsController::class, 'getTrainingGroups']);
-    $route->get('training_group/{id}', [GroupsController::class, 'getTrainingGroup']);
-    $route->apiResource('assists', AssistsController::class);
+    Route::get('training_groups', [GroupsController::class, 'getTrainingGroups']);
+    Route::get('training_group/{id}', [GroupsController::class, 'getTrainingGroup']);
+    Route::apiResource('assists', AssistsController::class, ['only' => ['index', 'update']]);
 });

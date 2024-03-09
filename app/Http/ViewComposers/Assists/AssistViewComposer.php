@@ -3,6 +3,7 @@
 
 namespace App\Http\ViewComposers\Assists;
 
+use Closure;
 use Jenssegers\Date\Date;
 use Illuminate\Support\Str;
 use Illuminate\Contracts\View\View;
@@ -26,11 +27,11 @@ class AssistViewComposer
     public function compose(View $view)
     {
         if (Auth::check()) {
-            $filter = \Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);
+            $filter = Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);
             if (isAdmin() || isSchool()) {
                 $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, filter: $filter);
             } elseif (isInstructor()) {
-                $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(false, auth()->id(), $filter);
+                $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, user_id: auth()->id(), filter: $filter);
             }
 
             $months = Cache::rememberForever("KEY_MONTHS", fn() => config('variables.KEY_MONTHS'));

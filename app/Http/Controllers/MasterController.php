@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CompetitionGroup;
 use App\Models\Master;
 use App\Models\Tournament;
-use App\Repositories\InscriptionRepository;
-use App\Repositories\PlayerRepository;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Models\CompetitionGroup;
+use Illuminate\Http\JsonResponse;
+use App\Repositories\PlayerRepository;
+use App\Repositories\InscriptionRepository;
 
 class MasterController extends Controller
 {
@@ -78,7 +78,7 @@ class MasterController extends Controller
     public function tournamentsBySchool(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 401);
-        $response = Tournament::query()->schoolId()->orderBy('id')->get()->map(function($tournament){
+        $response = Tournament::query()->schoolId()->orderBy('id')->get()->map(function ($tournament) {
             return ['id' => $tournament->id, 'text' => $tournament->name];
         });
         return $this->responseJson($response);

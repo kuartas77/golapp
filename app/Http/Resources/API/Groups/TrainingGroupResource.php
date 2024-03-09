@@ -3,6 +3,7 @@
 namespace App\Http\Resources\API\Groups;
 
 use Carbon\Carbon;
+use JsonSerializable;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\TrainingGroup;
@@ -21,10 +22,10 @@ class TrainingGroupResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @param  Request  $request
-     * @return array|Arrayable|\JsonSerializable
+     * @param Request $request
+     * @return array|Arrayable|JsonSerializable
      */
-    public function toArray($request): array|\JsonSerializable|Arrayable
+    public function toArray($request): array|JsonSerializable|Arrayable
     {
         return [
             'id' => $this->id,
@@ -44,9 +45,9 @@ class TrainingGroupResource extends JsonResource
             $date->year,
             $date->month,
             array_map('dayToNumber', $this->explode_name['days'])
-        );        
+        );
 
-        return $classDays->map(function($class){
+        return $classDays->map(function ($class) {
             $name = Str::ucfirst($class['name']);
             return [
                 'id' => $class['day'],

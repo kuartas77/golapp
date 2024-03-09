@@ -4,6 +4,7 @@
 namespace App\Http\ViewComposers\Inscription;
 
 
+use Closure;
 use App\Models\School;
 use App\Traits\Commons;
 use App\Models\Inscription;
@@ -64,7 +65,7 @@ class InscriptionCreateComposer
             });
 
             $training_groups = Cache::remember("KEY_TRAINING_GROUPS_{$school_id}", now()->addDay(), function () {
-                $filter = \Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);
+                $filter = Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);
                 return $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, filter: $filter);
             });
 
