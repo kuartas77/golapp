@@ -46,6 +46,17 @@ trait WithLogin
     protected function createSchool(array $attributes = null): array
     {
         $school = School::factory()->create($attributes);
+        $school->schedules()->create([
+            'schedule' => '10:00AM - 11:00AM',
+        ]);
+
+        $school->trainingGroups()->create([
+            'name' => 'Provisional',
+            'year' => now()->year,
+            'category' => 'Todas las categorías',
+            'days' => 'Grupo predeterminado',
+            'schedules' => '10:00AM - 11:00AM',
+        ]);
         return $school->toArray();
     }
 

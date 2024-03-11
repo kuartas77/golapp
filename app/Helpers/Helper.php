@@ -278,7 +278,12 @@ if (!function_exists('checkValueEnrollment')) {
         return $payment->$attribute == 0 && in_array($payment->$column, ['1', '9', '10']) ? $defaultValue : $payment->$attribute;
     }
 }
-//if (!function_exists('')){}
+if (!function_exists('checkEmail')){
+    function checkEmail($email): bool
+    {
+        return isset($email) && filter_var($email, FILTER_VALIDATE_EMAIL);
+    }
+}
 //if (!function_exists('')){}
 //if (!function_exists('')){}
 //if (!function_exists('')){}

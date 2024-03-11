@@ -33,6 +33,19 @@ class CreatePaymentsTable extends Migration
             $table->string('october', 20)->nullable()->default(0);
             $table->string('november', 20)->nullable()->default(0);
             $table->string('december', 20)->nullable()->default(0);
+            $table->float('enrollment_amount', 8, 2)->nullable()->default(0);
+            $table->float('january_amount', 8, 2)->nullable()->default(0);
+            $table->float('february_amount', 8, 2)->nullable()->default(0);
+            $table->float('march_amount', 8, 2)->nullable()->default(0);
+            $table->float('april_amount', 8, 2)->nullable()->default(0);
+            $table->float('may_amount', 8, 2)->nullable()->default(0);
+            $table->float('june_amount', 8, 2)->nullable()->default(0);
+            $table->float('july_amount', 8, 2)->nullable()->default(0);
+            $table->float('august_amount', 8, 2)->nullable()->default(0);
+            $table->float('september_amount', 8, 2)->nullable()->default(0);
+            $table->float('october_amount', 8, 2)->nullable()->default(0);
+            $table->float('november_amount', 8, 2)->nullable()->default(0);
+            $table->float('december_amount', 8, 2)->nullable()->default(0);
 
             $table->timestamps();
             $table->softDeletes();

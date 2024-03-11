@@ -2,7 +2,7 @@
 
 @section('content')
 <x-bread-crumb title="{{__('Verify Your Email Address')}}" :option="0"/>
-<x-row-card-eight>
+<x-row-card>
     <div class="card-header">{{ __('Verify Your Email Address') }}</div>
 
     <div class="card-body">
@@ -13,7 +13,7 @@
         @endif
 
         {{ __('Before proceeding, please check your email for a verification link.') }}
-        {{ __('If you did not receive the email') }}, 
+        {{ __('If you did not receive the email') }},
         <a href="{{ route('verification.resend') }}" onclick="event.preventDefault(); document.getElementById('verification-resend').submit();">
         {{ __('click here to request another') }}</a>.
         <form id="verification-resend" action="{{ route('verification.resend') }}" method="POST"
@@ -21,5 +21,5 @@
             @csrf
         </form>
     </div>
-</x-row-card-eight>
+</x-row-card>
 @endsection

@@ -16,12 +16,7 @@ use Illuminate\View\View;
 class InscriptionController extends Controller
 {
 
-    /**
-     * @var InscriptionRepository
-     */
-    private $repository;
-
-    public function __construct(InscriptionRepository $repository)
+    public function __construct(private InscriptionRepository $repository)
     {
         $this->repository = $repository;
     }
@@ -41,8 +36,10 @@ class InscriptionController extends Controller
     public function store(InscriptionRequest $request): JsonResponse
     {
         abort_unless(isAdmin() || isSchool(), 401);
-        $inscription = $this->repository->setInscription($request->validated());
-        if (is_null($inscription) || $inscription->getDirty() > 0) {
+
+        $inscription = $this->repository->createInscription(requestData: $request->validated());
+
+        if ($inscription) {
             return response()->json([__('messages.ins_create_success')]);
         } else {
             return response()->json([__('messages.ins_create_failure')], 422);
@@ -69,9 +66,10 @@ class InscriptionController extends Controller
     public function update(InscriptionUpdateRequest $request, Inscription $inscription): JsonResponse
     {
         abort_unless(isAdmin() || isSchool(), 401);
-        $inscription = $this->repository->setInscription($request->validated(), false, $inscription);
 
-        if (is_null($inscription) || $inscription->getDirty() > 0) {
+        $inscription = $this->repository->updateInscription(requestData: $request->validated(), inscription: $inscription);
+
+        if ($inscription) {
             return response()->json([__('messages.ins_update_success')]);
         } else {
             return response()->json([__('messages.ins_create_failure')], 422);

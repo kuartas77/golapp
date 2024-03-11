@@ -26,13 +26,13 @@ class InscriptionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'school_id' => ['required'],
-            'player_id' => ['required'],
-            'unique_code' => ['required', 'exists:players,unique_code'],
-            'year' => ['required'],
-            'start_date' => ['required'],
-            'category' => ['required'],
-            'training_group_id' => ['nullable'],
+            'player_id' => ['required', 'numeric', 'bail'],
+            'school_id' => ['required', 'numeric', 'bail'],
+            'unique_code' => ['required', 'exists:players,unique_code', 'bail'],
+            'year' => ['required', 'bail'],
+            'start_date' => ['required', 'bail'],
+            'category' => ['required', 'bail'],
+            'training_group_id' => ['nullable', 'numeric'],
             'competition_groups' => ['nullable', 'array'],
             'photos' => ['nullable', 'boolean'],
             'copy_identification_document' => ['nullable', 'boolean'],
@@ -58,7 +58,7 @@ class InscriptionRequest extends FormRequest
      */
     protected function prepareForValidation()
     {
-        $dateBirth = Player::find($this->player_id)->date_birth;
+        $dateBirth = optional(Player::find($this->player_id))->date_birth;
         $startDate = Date::parse($this->start_date);
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
@@ -77,7 +77,8 @@ class InscriptionRequest extends FormRequest
             'competition_uniform' => $this->competition_uniform ?? false,
             'tournament_pay' => $this->tournament_pay ?? false,
             'scholarship' => $this->scholarship ?? false,
-            'competition_groups' => $this->competition_groups ?? []
+            'competition_groups' => $this->competition_groups ?? [],
+            'training_group_id' => $this->training_group_id ?? null,
         ]);
     }
 

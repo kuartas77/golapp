@@ -34,11 +34,12 @@ class PlayerRepository
         return $this->model->query()->with(['people'])->schoolId()->get();
     }
 
-    public function createPlayer(PlayerCreateRequest $request): Player
+    public function createPlayer(PlayerCreateRequest $request): bool
     {
-
+        $result = false;
         try {
             $dataPlayer = $request->only($this->getAttributes());
+
             if ($file_name = $this->saveFile($request, 'player')) {
                 $dataPlayer['photo'] = $file_name;
             }
@@ -48,20 +49,24 @@ class PlayerRepository
 
             Master::saveAutoComplete($request->all());
             $player = $this->model->create($dataPlayer);
+
+            $dataPeople = $request->input('people', []);
+            throw_unless($dataPeople, Exception::class, 'not provide people data.');
+
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
             $player->people()->sync($peopleIds);
-            if ($player->email && filter_var($player->email, FILTER_VALIDATE_EMAIL)) {
-                $player->notify(new RegisterPlayerNotification($player));
-            }
+
+            !checkEmail($player->email) ?: $player->notify(new RegisterPlayerNotification($player));
 
             DB::commit();
 
-            return $player;
+            $result = true;
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("PlayerRepository@createPlayer", $exception);
-            return $this->model;
+            $result = false;
         }
+        return $result;
     }
 
     public function getAttributes(): array
@@ -95,8 +100,13 @@ class PlayerRepository
             DB::beginTransaction();
 
             Master::saveAutoComplete($dataPlayer);
-            $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
+            $dataPeople = $request->input('people', []);
+
+            throw_unless($dataPeople, Exception::class, 'not provide people data.');
+
+            $peopleIds = $this->peopleRepository->getPeopleIds($dataPeople);
             $player->people()->sync($peopleIds);
+
             $save = $player->update($dataPlayer);
 
             DB::commit();
