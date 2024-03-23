@@ -44,16 +44,66 @@
         <td></td>
         <td></td>
         <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td></td>
+        <td></td>
         <td style="background:green; color: black;">Pagó</td>
-        <td style="background:red; color: white;">Debe</td>
         <td style="background:aqua; color: black;">Abonó</td>
-        <td style="background:orange; color: black;">Retiro Temporal</td>
-        <td style="background:#fac282; color: black;">Incapacidad</td>
-        <td style="background:#009688; color: white;">Becado</td>
         <td style="background:yellow;">Pagó - Efectivo</td>
         <td style="background:blue; color: white;">Pagó - Consignación</td>
         <td style="background:#572364; color: white;">Pago Anualidad Consignación</td>
         <td style="background:#6F4E37; color: white;">Pago Anualidad Efectivo</td>
+        <td style="background:red; color: white;">Debe</td>
+        <td style="background:orange; color: black;">Retiro Temporal</td>
+        <td style="background:black; color: white;">Retiro Definitivo</td>
+        <td style="background:#fac282; color: black;">Incapacidad</td>
+        <td style="background:#009688; color: white;">Becado</td>
+        <td>Acuerdo de pago</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>{{$accumulate['pago']}}</td>
+        <td>{{$accumulate['abono']}}</td>
+        <td>{{$accumulate['pago_efectivo']}}</td>
+        <td>{{$accumulate['pago_consignacion']}}</td>
+        <td>{{$accumulate['pago_anual_consignacion']}}</td>
+        <td>{{$accumulate['pago_anual_efectivo']}}</td>
+        <td>{{$accumulate['debe']}}</td>
+        <td>{{$accumulate['temporal']}}</td>
+        <td>{{$accumulate['definitivo']}}</td>
+        <td>{{$accumulate['incapacidad']}}</td>
+        <td>{{$accumulate['becado']}}</td>
+        <td>{{$accumulate['acuerdo']}}</td>
+
     </tr>
     </tbody>
 </table>

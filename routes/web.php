@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\Reports\ReportAssistsController;
+use App\Http\Controllers\Reports\ReportPaymentController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
@@ -109,6 +111,13 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('assists/{training_group_id}/{year}/{month?}', [HistoricController::class, 'assistsGroup'])->name('assists.group');
         Route::get('payments', [HistoricController::class, 'payments'])->name('payments');
         Route::get('payments/{training_group_id}/{year}/{month?}', [HistoricController::class, 'paymentsGroup'])->name('payments.group');
+    });
+
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('assists', [ReportAssistsController::class, 'index'])->name('assists');
+        Route::post('assists', [ReportAssistsController::class, 'report'])->name('assists.report');
+        Route::get('payments', [ReportPaymentController::class, 'index'])->name('payments');
+        Route::post('payments', [ReportPaymentController::class, 'report'])->name('payments.report');
     });
 
     Route::prefix('autocomplete')->group(function () {

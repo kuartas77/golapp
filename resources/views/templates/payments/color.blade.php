@@ -15,7 +15,7 @@
         <td style="background:orange; color: white;" class="text-center"><small>{{($amount ?? getPay($value))}}</small></td>
     @break
     @case("6")
-        <td style="background:grey; color: white;" class="text-center"><small>{{($amount ?? getPay($value))}}</small></td>
+        <td style="background:black; color: white;" class="text-center"><small>{{($amount ?? getPay($value))}}</small></td>
     @break
     @case("8")
         <td style="background:#009688; color: white;" class="text-center"><small>{{($amount ?? getPay($value))}}</small></td>

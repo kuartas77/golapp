@@ -77,12 +77,14 @@ class ExportController extends Controller
     public function exportPaymentsExcel(Request $request): BinaryFileResponse
     {
         $date = now()->timestamp;
-        return Excel::download(new PaymentsExport($request, $request->input('deleted', false)), "Pagos {$date}.xlsx");
+        $request->merge(['school_id' => getSchool(auth()->user())->id]);
+        return Excel::download(new PaymentsExport($request->all(), $request->input('deleted', false)), "Pagos {$date}.xlsx");
     }
 
     public function exportPaymentsPDF(Request $request, PaymentExportService $paymentExportService)
     {
-        $payments = $this->paymentRepository->filterSelect($request, false)->get();
+        $request->merge(['school_id' => getSchool(auth()->user())->id]);
+        $payments = $this->paymentRepository->filterSelect($request->all(), false)->get();
         return $paymentExportService->paymentsPdfByGroup($payments, $request, true);
     }
 

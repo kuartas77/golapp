@@ -31,6 +31,7 @@ class PaymentController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
+            $request->merge(['school_id' => getSchool(auth()->user())->id]);
             return $this->repository->filter($request);
         }
 

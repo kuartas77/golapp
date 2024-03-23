@@ -72,6 +72,7 @@ class HistoricController extends Controller
     public function paymentsGroup(Request $request, $trainingGroup, $year)
     {
         if ($request->ajax()) {
+            $request->merge(['school_id' => getSchool(auth()->user())->id]);
             return $this->paymentRepository->filter($request, true);
         }
         $trainingGroup = TrainingGroup::query()->schoolId()->withTrashed()->find($trainingGroup);
