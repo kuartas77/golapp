@@ -86,11 +86,12 @@
         <td style="background:#fac282; color: black;">Incapacidad</td>
         <td style="background:#009688; color: white;">Becado</td>
         <td>Acuerdo de pago</td>
+        <td>Otros</td>
     </tr>
     <tr>
         <td></td>
         <td></td>
-        <td></td>
+        <td>Totales Por Tipo De Pago:</td>
         <td>{{$accumulate['pago']}}</td>
         <td>{{$accumulate['abono']}}</td>
         <td>{{$accumulate['pago_efectivo']}}</td>
@@ -103,7 +104,7 @@
         <td>{{$accumulate['incapacidad']}}</td>
         <td>{{$accumulate['becado']}}</td>
         <td>{{$accumulate['acuerdo']}}</td>
-
+        <td>{{$accumulate['otros']}}</td>
     </tr>
     </tbody>
 </table>

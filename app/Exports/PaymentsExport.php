@@ -58,6 +58,7 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
             'N' => NumberFormat::FORMAT_CURRENCY_USD_INTEGER,
             'O' => NumberFormat::FORMAT_CURRENCY_USD_INTEGER,
             'P' => NumberFormat::FORMAT_CURRENCY_USD_INTEGER,
+            'Q' => NumberFormat::FORMAT_CURRENCY_USD_INTEGER,
         ];
     }
 
@@ -65,8 +66,9 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
     {
         return [
             AfterSheet::class => function(AfterSheet $event) {
-                $lastCell = ($event->sheet->getHighestRow()-3);
-                $lastCellSum = ($event->sheet->getHighestRow()-4);
+                $lastRow = $event->sheet->getHighestRow();
+                $lastCell = ($lastRow-3);
+                $lastCellSum = ($lastRow-4);
 
                 $event->sheet->setCellValue('C'. ($lastCell), 'Totales:');
                 $event->sheet->setCellValue('D'. ($lastCell), '=SUM(D2:D'.($lastCellSum).')');
@@ -82,6 +84,9 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
                 $event->sheet->setCellValue('N'. ($lastCell), '=SUM(N2:N'.($lastCellSum).')');
                 $event->sheet->setCellValue('O'. ($lastCell), '=SUM(O2:O'.($lastCellSum).')');
                 $event->sheet->setCellValue('P'. ($lastCell), '=SUM(P2:P'.($lastCellSum).')');
+
+                $event->sheet->setCellValue('Q'. ($lastCell), '=SUM(D'.($lastCell).':P'.($lastCell).')');
+                $event->sheet->setCellValue('Q'. ($lastCell+3), '=SUM(D'.($lastRow).':P'.($lastRow).')');
             }
         ];
     }
@@ -103,24 +108,26 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
             'incapacidad' => 0,
             'becado' => 0,
             'definitivo' => 0,
+            'otros' => 0
         ];
 
         $queryWhereAccumulates = app(PaymentRepository::class)->filterSelectRaw($this->params, $this->deleted);
 
         foreach ($months as $key) {
             $result = $queryWhereAccumulates->select([
-                DB::raw("SUM(case when {$key} = 1 then {$key}_amount else 0 end) as pago"),
-                DB::raw("SUM(case when {$key} = 3 then {$key}_amount else 0 end) as abono"),
-                DB::raw("SUM(case when {$key} = 9 then {$key}_amount else 0 end) as pago_efectivo"),
-                DB::raw("SUM(case when {$key} = 10 then {$key}_amount else 0 end) as pago_consignacion"),
-                DB::raw("SUM(case when {$key} = 11 then {$key}_amount else 0 end) as pago_anual_consignacion"),
-                DB::raw("SUM(case when {$key} = 12 then {$key}_amount else 0 end) as pago_anual_efectivo"),
-                DB::raw("SUM(case when {$key} = 13 then {$key}_amount else 0 end) as acuerdo"),
-                DB::raw("SUM(case when {$key} = 2 then {$key}_amount else 0 end) as debe"),
-                DB::raw("SUM(case when {$key} = 5 then {$key}_amount else 0 end) as temporal"),
-                DB::raw("SUM(case when {$key} = 4 then {$key}_amount else 0 end) as incapacidad"),
-                DB::raw("SUM(case when {$key} = 8 then {$key}_amount else 0 end) as becado"),
-                DB::raw("SUM(case when {$key} = 6 then {$key}_amount else 0 end) as definitivo"),
+                DB::raw("COALESCE(SUM(case when {$key} = 1 then {$key}_amount else 0 end), 0) as pago"),
+                DB::raw("COALESCE(SUM(case when {$key} = 3 then {$key}_amount else 0 end), 0) as abono"),
+                DB::raw("COALESCE(SUM(case when {$key} = 9 then {$key}_amount else 0 end), 0) as pago_efectivo"),
+                DB::raw("COALESCE(SUM(case when {$key} = 10 then {$key}_amount else 0 end), 0) as pago_consignacion"),
+                DB::raw("COALESCE(SUM(case when {$key} = 11 then {$key}_amount else 0 end), 0) as pago_anual_consignacion"),
+                DB::raw("COALESCE(SUM(case when {$key} = 12 then {$key}_amount else 0 end), 0) as pago_anual_efectivo"),
+                DB::raw("COALESCE(SUM(case when {$key} = 13 then {$key}_amount else 0 end), 0) as acuerdo"),
+                DB::raw("COALESCE(SUM(case when {$key} = 2 then {$key}_amount else 0 end), 0) as debe"),
+                DB::raw("COALESCE(SUM(case when {$key} = 5 then {$key}_amount else 0 end), 0) as temporal"),
+                DB::raw("COALESCE(SUM(case when {$key} = 4 then {$key}_amount else 0 end), 0) as incapacidad"),
+                DB::raw("COALESCE(SUM(case when {$key} = 8 then {$key}_amount else 0 end), 0) as becado"),
+                DB::raw("COALESCE(SUM(case when {$key} = 6 then {$key}_amount else 0 end), 0) as definitivo"),
+                DB::raw("COALESCE(SUM(case when {$key} NOT IN (1,3,9,10,11,12,13,2,5,4,8,6) then {$key}_amount else 0 end), 0) as otros"),
             ])->first();
 
             $sums['pago'] += $result->pago;
@@ -135,6 +142,7 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
             $sums['incapacidad'] += $result->incapacidad;
             $sums['becado'] += $result->becado;
             $sums['definitivo'] += $result->definitivo;
+            $sums['otros'] += $result->otros;
         }
         return $sums;
     }
