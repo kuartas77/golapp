@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Payments;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\SetTournamentPaymentRequest;
-use App\Models\TournamentPayout;
-use App\Repositories\TournamentPayoutsRepository;
 use Illuminate\Http\Request;
+use App\Models\TournamentPayout;
+use App\Http\Controllers\Controller;
+use App\Repositories\TournamentPayoutsRepository;
+use App\Http\Requests\SetTournamentPaymentRequest;
+use App\Http\Resources\API\TournamentPays\TournamentPaymentCollection;
 
 class TournamentPayoutsController extends Controller
 {
@@ -19,8 +20,11 @@ class TournamentPayoutsController extends Controller
 
     public function index(Request $request)
     {
-        if ($request->ajax()) {
+        if(($request->ajax())){
             return $this->repository->search($request->only(['tournament_id', 'competition_group_id', 'unique_code']));
+        }elseif($request->wantsJson()){
+            $data = $this->repository->search($request->only(['tournament_id', 'competition_group_id', 'unique_code']), true);
+            return new TournamentPaymentCollection($data);
         }
 
         return view('payments.tournaments.index');

@@ -23,7 +23,7 @@ class MasterController extends Controller
      */
     public function autoComplete(Request $request): JsonResponse
     {
-        abort_unless($request->ajax(), 401);
+        abort_unless(($request->wantsJson() || $request->ajax()), 401);
         return response()->json(Master::getAutocomplete($request));
     }
 
@@ -33,7 +33,7 @@ class MasterController extends Controller
      */
     public function existDocument(Request $request): JsonResponse
     {
-        abort_unless($request->ajax(), 401);
+        abort_unless(($request->wantsJson() || $request->ajax()), 401);
         return $this->responseJson($this->playerRepository->checkDocumentExists($request->input('doc')));
     }
 
@@ -43,7 +43,7 @@ class MasterController extends Controller
      */
     public function codeUniqueVerify(Request $request): JsonResponse
     {
-        abort_unless($request->ajax(), 401);
+        abort_unless(($request->wantsJson() || $request->ajax()), 401);
         return $this->responseJson($this->playerRepository->checkUniqueCode($request->input('unique_code')));
     }
 
@@ -54,8 +54,15 @@ class MasterController extends Controller
      */
     public function listUniqueCode(Request $request): JsonResponse
     {
-        abort_unless($request->ajax(), 401);
+        abort_unless(($request->wantsJson() || $request->ajax()), 401);
         $players = $this->playerRepository->getListPlayersNotInscription($request->filled('trashed'));
+        return $this->responseJson($players);
+    }
+
+    public function listUniqueCodeWithInscription(Request $request): JsonResponse
+    {
+        abort_unless(($request->wantsJson() || $request->ajax()), 401);
+        $players = $this->playerRepository->getListPlayersWithInscription($request->filled('trashed'));
         return $this->responseJson($players);
     }
 
@@ -65,7 +72,7 @@ class MasterController extends Controller
      */
     public function searchUniqueCode(Request $request): JsonResponse
     {
-        abort_unless($request->ajax(), 401);
+        abort_unless(($request->wantsJson() || $request->ajax()), 401);
 
         if ($request->filled('unique')) {
             $response = $this->playerRepository->searchUniqueCode($request->only(['unique_code']));
@@ -77,7 +84,7 @@ class MasterController extends Controller
 
     public function tournamentsBySchool(Request $request): JsonResponse
     {
-        abort_unless($request->ajax(), 401);
+        abort_unless(($request->wantsJson() || $request->ajax()), 401);
         $response = Tournament::query()->schoolId()->orderBy('id')->get()->map(function ($tournament) {
             return ['id' => $tournament->id, 'text' => $tournament->name];
         });
@@ -86,7 +93,7 @@ class MasterController extends Controller
 
     public function competitionGroupsByTournament(Request $request): JsonResponse
     {
-        abort_unless($request->ajax(), 401);
+        abort_unless(($request->wantsJson() || $request->ajax()), 401);
         $response = CompetitionGroup::query()->schoolId()->where('tournament_id', $request->tournament_id)->orderBy('name')->get()->map(function ($group) {
             return ['id' => $group->id, 'text' => $group->full_name_group];
         });

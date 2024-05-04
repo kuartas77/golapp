@@ -29,9 +29,9 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
     public function collection(Collection $rows)
     {
         try {
-            DB::beginTransaction();
-            foreach ($rows as $row) {
 
+            foreach ($rows as $row) {
+                DB::beginTransaction();
                 $dataPeople = $this->setAttributesPeople($row);
 
                 $people = People::query()->select('id')
@@ -54,8 +54,9 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
                 );
 
                 $player->people()->sync([$people->id]);
+                DB::commit();
             }
-            DB::commit();
+
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("PlayerRepository@createPlayer", $exception);
@@ -66,11 +67,11 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
     {
         return [
             'names' => Str::upper(trim($row['nombres_y_apellidos'])),
-            'identification_card' => trim($row['numero_de_celularr']),
+            'identification_card' => trim($row['telefonos']),
             'tutor' => true,
             'relationship' => 30,
-            'phone' => trim($row['numero_de_telefono']) ?? null,
-            'mobile' => trim($row['numero_de_celularr']) ?? null,
+            'phone' => trim($row['telefonos']) ?? null,
+            'mobile' => null,
             'profession' => trim($row['profesion']) ?? null,
             'business' => trim($row['empresa']) ?? null,
             'position' => trim($row['cargo']) ?? null,
@@ -101,9 +102,9 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
             'neighborhood' => trim($row['barrio']),
             'zone' => null,
             'commune' => null,
-            'phones' => trim(($row['numero_de_telefono'] ?? $row['numero_de_celular'])),
+            'phones' => trim($row['telefonos']),
             'email' => trim($row['correo_electronico']),
-            'mobile' => trim($row['numero_de_celular']),
+            'mobile' => null,
             'eps' => trim($row['eps']),
             'school_id' => $this->school_id,
         ];

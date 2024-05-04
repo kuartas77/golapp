@@ -21,7 +21,8 @@
         "realrashid/sweet-alert": "^7.0",
         "spatie/laravel-html": "^3.2",
         "spatie/laravel-permission": "^5.3",
-        "yajra/laravel-datatables-oracle": "^9.18"
+        "yajra/laravel-datatables-oracle": "^9.18",
+        "ext-intl": "*"
     },
     "require-dev": {
         "beyondcode/laravel-query-detector": "^1.5",
