@@ -36,7 +36,7 @@ const format = (d) => {
         '<tr>' +
         '<th><strong>Certificado médico:</strong></th><td>' + validateCheck(d.medic_certificate) + '</td>' +
         '<th><strong>Fotos:</strong></th><td>' + validateCheck(d.photos) + '</td>' +
-        '<th><strong>Fotocopia Doc Identificación:</strong></th><td>' + validateCheck(d.copy_identification_document) + '</td>' +        
+        '<th><strong>Fotocopia Doc Identificación:</strong></th><td>' + validateCheck(d.copy_identification_document) + '</td>' +
         '<th></th><td></td>'+
         '</tr>' +
 
@@ -47,7 +47,7 @@ const format = (d) => {
         '<th></th><td></td>'+
         '</tr>' +
         '<tr>' +
-        '<th><strong>Pagó Inscripción Torneo 2:</strong></th><td>' + validateCheck(d.bag) + '</td>' +        
+        '<th><strong>Pagó Inscripción Torneo 2:</strong></th><td>' + validateCheck(d.bag) + '</td>' +
         '<th><strong>Uniforme competencia:</strong></th><td>' + validateCheck(d.competition_uniform) + '</td>' +
         '<th></th><td></td>'+
         '<th></th><td></td>'+
@@ -118,18 +118,22 @@ const columns = [
     {
         data: 'id',
         "render": function (data, type, row) {
-            let edit = "";
+            let edit = ""
+            let deleteButton = ''
+
             if(row.deleted_at !== null) return ''
-            if(isAdmin){
+
+            if(isAdmin && (yearSelected >= currentYear)){
                 edit = '<a href="javascript:void(0)" data-toggle="modal" data-target-custom="#create_inscription" data-backdrop="static"\n' +
-                    'data-keyboard="false" data-href="' + row.url_edit + '" data-update="'+row.url_update+'" class="btn btn-warning btn-xs edit_inscription"><i class="fas fa-pencil-alt"></i></a>';
+                    'data-keyboard="false" data-href="' + row.url_edit + '" data-update="'+row.url_update+'" class="btn btn-warning btn-xs edit_inscription"><i class="fas fa-pencil-alt"></i></a>'
+                deleteButton = '<button class="btn btn-danger btn-xs disable-inscription"><i class="fas fa-trash-alt"></i></button>'
             }
 
             return '<form method="POST" action="' + row.url_destroy + '" accept-charset="UTF-8"><input name="_method" type="hidden" value="DELETE"><input name="_token" type="hidden" value="' + window.token.csrfToken + '"><div class="btn-group">'
             + edit
             +'<a href="' + row.url_show + '" class="btn btn-info btn-xs"><i class="fas fa-eye"></i></a>'
             + '<a href="' + row.url_impression + '" target="_blank" class="btn btn-info btn-xs"><i class="fas fa-print" aria-hidden="true"></i></a>'
-            + '<button class="btn btn-danger btn-xs disable-inscription"><i class="fas fa-trash-alt"></i></button>'
+            + deleteButton
             + '</div></form>';
         }
     },//12
@@ -165,6 +169,7 @@ $(document).ready(function () {
 
     const active_table = $('#active_table').DataTable({
         "ordering": false,
+        "pageLength": 10,
         "scrollX": true,
         "scrollY":"550px",
         "scrollCollapse":true,
@@ -183,6 +188,7 @@ $(document).ready(function () {
 
     const inactive_table = $('#inactive_table').DataTable({
         "ordering": false,
+        "pageLength": 10,
         "scrollX": true,
         "scrollY":"550px",
         "scrollCollapse":true,
@@ -285,4 +291,14 @@ $(document).ready(function () {
             }
         })
     });
+
+    $('#inscription_year').on('change', function(){
+        let element = $(this)
+        yearSelected = element.val()
+        let parameter = "?" + element.attr('id') + "=" + element.val()
+        let url_enabled = url_inscriptions_enabled + parameter
+        // let url_disabled = url_inscriptions_disabled + parameter
+        active_table.ajax.url($.fn.dataTable.pipeline({url: url_enabled})).load();
+        // inactive_table.ajax.url($.fn.dataTable.pipeline({url: url_disabled})).load();
+    })
 });
