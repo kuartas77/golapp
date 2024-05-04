@@ -145,22 +145,22 @@
                                         </ul>
                                     </div>
                                     <div class="row">
-                                        @if(Carbon\Carbon::now()->month >= 3)                                   
+                                        @if(now()->month >= 3 || $inscription->year < now()->year)
                                         <div class="col-md-3">
                                             <a class="btn btn-info" href="{{route('export.inscription', [$inscription->player_id, $inscription->id, $inscription->year, 'quarter_one'])}}" target="_blank">PDF Primer trimestre</a>
                                         </div>
                                         @endif
-                                        @if(Carbon\Carbon::now()->month >= 6)
+                                        @if(now()->month >= 6 || $inscription->year < now()->year)
                                         <div class="col-md-3">
                                             <a class="btn btn-info" href="{{route('export.inscription', [$inscription->player_id, $inscription->id, $inscription->year, 'quarter_two'])}}" target="_blank">PDF Segundo trimestre</a>
                                         </div>
                                         @endif
-                                        @if(Carbon\Carbon::now()->month >= 9)
+                                        @if(now()->month >= 9 || $inscription->year < now()->year)
                                         <div class="col-md-3">
                                             <a class="btn btn-info" href="{{route('export.inscription', [$inscription->player_id, $inscription->id, $inscription->year, 'quarter_three'])}}" target="_blank">PDF Tercer trimestre</a>
                                         </div>
                                         @endif
-                                        @if(Carbon\Carbon::now()->month >= 11)
+                                        @if(now()->month >= 11 || $inscription->year < now()->year)
                                         <div class="col-md-3">
                                             <a class="btn btn-info" href="{{route('export.inscription', [$inscription->player_id, $inscription->id, $inscription->year, 'quarter_four'])}}" target="_blank">PDF Cuarto trimestre</a>
                                         </div>

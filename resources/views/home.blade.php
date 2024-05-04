@@ -22,6 +22,11 @@
                                     <i class="fa fa-circle font-10 m-r-10"></i>Deben
                                 </h6>
                             </li>
+                            <li>
+                                <h6 class="text-muted text-warning">
+                                    <i class="fa fa-circle font-10 m-r-10"></i>Becados
+                                </h6>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -47,6 +52,11 @@
                                     <i class="fa fa-circle font-10 m-r-10"></i>Deben
                                 </h6>
                             </li>
+                            <li>
+                                <h6 class="text-muted text-warning">
+                                    <i class="fa fa-circle font-10 m-r-10"></i>Becados
+                                </h6>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -67,13 +77,11 @@
         axisX: {
             // On the x-axis start means top and end means bottom
             position: 'end',
-            showGrid: false
         },
         axisY: {
             // On the y-axis start means left and end means right
             position: 'start'
         },
-        high: '500',
         low: '0',
         plugins: [
             Chartist.plugins.tooltip()

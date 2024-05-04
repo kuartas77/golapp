@@ -47,7 +47,7 @@
 
     <div class="col-md-3">
         <div class="form-group">
-            <label for="NOTIFY_PAYMENT_DAY">Día del mes de notificación.</label>(<span class="text-danger">*</span>)
+            <label for="NOTIFY_PAYMENT_DAY">Día de notificación.</label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
             <input type="text" name="NOTIFY_PAYMENT_DAY" id="NOTIFY_PAYMENT_DAY" class="form-control notify_day" required autocomplete="off" value="{{$notify_payment_day}}">
             <small class="form-text text-muted">El día ingresado se enviarán las notificaciones de pagos en estado <span class="text-danger">Deben</span> por correo</small>
