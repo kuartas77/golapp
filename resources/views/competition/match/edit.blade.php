@@ -23,7 +23,7 @@
     <script>
         let count = {{$information->count}};
         let member_add = null;
-        const urlList = "{{route('autocomplete.list_code_unique')}}";
+        const urlList = "{{route('autocomplete.list_code_unique_inscription')}}";
         const urlSearch = "{{route('autocomplete.search_unique_code')}}";
         const urlAutoComplete = "{{route('autocomplete.fields')}}";
         const positions = @json($positions);
