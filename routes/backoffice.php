@@ -8,35 +8,36 @@ use App\Http\Controllers\BackOffice\SchoolInfoController;
 use App\Http\Controllers\BackOffice\ManualEmailController;
 use App\Http\Controllers\BackOffice\SettingValueController;
 
+Route::middleware(['auth', 'role:super-admin|school'])->group(function () {
 
+    Route::post('school/choose', [SchoolController::class, 'choose'])->name('school.choose');
+});
 
-Route::middleware(['auth', 'role:super-admin'])->group(function ($route) {
+Route::middleware(['auth', 'role:super-admin'])->group(function () {
 
-    $route->get('emails_registration_school', ManualEmailController::class);
+    Route::get('emails_registration_school', ManualEmailController::class);
 
-    $route->prefix('config')->name('config.')->group(function ($route){
-        
-        $route->resource("schools", SchoolController::class);
-        $route->resource("schools_info", SchoolInfoController::class);
-        $route->resource("settings", SettingValueController::class);
-        $route->resource("users", UserController::class);
-        
-        $route->post('school/choose', [SchoolController::class, 'choose'])->name('school.choose');
-        
-        $route->prefix('datatables')->name('datatables.')->group(function ($route) {
-            // $route->get('enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');
-            // $route->get('training_groups_enabled', [DataTableController::class, 'enabledTrainingGroups'])->name('training_groups.enabled');
-            // $route->get('training_groups_retired', [DataTableController::class, 'disabledTrainingGroups'])->name('training_groups.retired');
-            // $route->get('competition_groups_enabled', [DataTableController::class, 'enabledCompetitionGroups'])->name('competition_groups.enabled');
-            // $route->get('competition_groups_retired', [DataTableController::class, 'disabledCompetitionGroups'])->name('competition_groups.retired');
-            // $route->get('days_enabled', [DataTableController::class, 'enabledDays'])->name('days.enabled');
-            // $route->get('players_enabled', [DataTableController::class, 'enabledPlayers'])->name('players.enabled');
-            $route->get('schools', [DataTableController::class, 'schools'])->name('schools');
-            $route->get('schools_info', [DataTableController::class, 'schoolsInfo'])->name('schools_info');
-    
+    Route::prefix('config')->name('config.')->group(function (){
+
+        Route::resource("schools", SchoolController::class);
+        Route::resource("schools_info", SchoolInfoController::class);
+        Route::resource("settings", SettingValueController::class);
+        Route::resource("users", UserController::class);
+
+        Route::prefix('datatables')->name('datatables.')->group(function () {
+            // Route::get('enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');
+            // Route::get('training_groups_enabled', [DataTableController::class, 'enabledTrainingGroups'])->name('training_groups.enabled');
+            // Route::get('training_groups_retired', [DataTableController::class, 'disabledTrainingGroups'])->name('training_groups.retired');
+            // Route::get('competition_groups_enabled', [DataTableController::class, 'enabledCompetitionGroups'])->name('competition_groups.enabled');
+            // Route::get('competition_groups_retired', [DataTableController::class, 'disabledCompetitionGroups'])->name('competition_groups.retired');
+            // Route::get('days_enabled', [DataTableController::class, 'enabledDays'])->name('days.enabled');
+            // Route::get('players_enabled', [DataTableController::class, 'enabledPlayers'])->name('players.enabled');
+            Route::get('schools', [DataTableController::class, 'schools'])->name('schools');
+            Route::get('schools_info', [DataTableController::class, 'schoolsInfo'])->name('schools_info');
+
         });
     });
 
-    
+
 
 });

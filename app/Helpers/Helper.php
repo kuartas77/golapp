@@ -1,14 +1,14 @@
 <?php
 
-use App\Models\Payment;
-use App\Models\School;
 use Carbon\Carbon;
+use App\Models\School;
+use App\Models\Payment;
 use Carbon\CarbonPeriod;
 use App\Service\StopWatch;
+use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Str;
 
 if (!function_exists('getPay')) {
     /**
@@ -18,7 +18,7 @@ if (!function_exists('getPay')) {
     function getPay($value): string
     {
         $payments = config('variables.KEY_PAYMENTS_SELECT');
-        return array_key_exists($value, $payments) ? $payments[$value] : number_format((float)$value, 0);
+        return array_key_exists($value, $payments) ? $payments[$value] : number_format((float)$value);
     }
 }
 
@@ -35,7 +35,7 @@ if (!function_exists('getAmount')) {
 
 if (!function_exists('getEloquentSqlWithBindings')) {
     /**
-     * recibe un query sin ejecutar la consulta y forma el sql con los parametros
+     * get query with binding
      *
      * @param [type] $query
      * @return String
@@ -128,7 +128,7 @@ if (!function_exists('arrayDay')) {
             'day' => $date->day,
             'date' => $date->format('Y-m-d'),
             'name' => $date->getTranslatedDayName(),
-            'column' => numbersToLetters($count, true)
+            'column' => numbersToLetters($count)
         ];
     }
 }
@@ -198,27 +198,31 @@ if (!function_exists('isInstructor')) {
 if (!function_exists('getSchool')) {
     function getSchool($user): School
     {
-        $data = null;
-        $school_id = Session::get('selected_school', 1);
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
-        $key = School::KEY_SCHOOL_CACHE . "_admin_{$school_id}";
+        $prefixKey = isAdmin() ? 'admin.' : (isSchool() ? 'school.': '');
+
+        $school_id = Session::get("{$prefixKey}selected_school", 1);
+
+        $key = School::KEY_SCHOOL_CACHE . "_{$prefixKey}_{$school_id}";
         $ttl = now()->addMinutes(env('SESSION_LIFETIME', 120));
         $query = School::with(['settingsValues']);
 
-        if (isAdmin() && Cache::has($key)) {
+        if ((isAdmin() || isSchool()) && Cache::has($key)) {
             $data = Cache::get($key);
         } elseif (isAdmin() && !Cache::has($key)) {
             $data = Cache::remember(School::KEY_SCHOOL_CACHE . "_admin_1", $ttl, fn() => $query->first());
+        } elseif (isSchool() && !Cache::has($key)) {
+            $school_id = $user->school_id;
+            $data = Cache::remember(School::KEY_SCHOOL_CACHE . "_{$school_id}", $ttl, fn() => $query->firstWhere('id', $school_id));
         } else {
-            /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
-            $data = Cache::remember(School::KEY_SCHOOL_CACHE . "_{$user->school_id}", $ttl, fn() => $query->firstWhere('id', $user->school_id));
+            $school_id = $user->school_id;
+            $data = Cache::remember(School::KEY_SCHOOL_CACHE . "_{$school_id}", $ttl, fn() => $query->firstWhere('id', $school_id));
         }
         return $data;
     }
 }
 
 if (!function_exists('cleanString')) {
-    function cleanString($text)
+    function cleanString($text): string
     {
         $utf8 = array(
             '/[áàâãªä]/u' => 'a',
@@ -238,16 +242,16 @@ if (!function_exists('cleanString')) {
             '/–/' => '-', // UTF-8 hyphen to "normal" hyphen
             '/[’‘‹›‚]/u' => ' ', // Literally a single quote
             '/[“”«»„]/u' => ' ', // Double quote
-            '/ /' => ' ', // nonbreaking space (equiv. to 0x160)
+            '/ /' => ' ', // non breaking space (equiv. to 0x160)
         );
         return strtolower(preg_replace(array_keys($utf8), array_values($utf8), $text));
     }
 }
 
 if (!function_exists('randomPassword')) {
-    function randomPassword(int $length = 10)
+    function randomPassword(int $length = 10): string
     {
-        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890*.';
+        $alphabet = '#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890*.';
         $pass = array(); //remember to declare $pass as an array
         $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
         for ($i = 0; $i < $length; $i++) {

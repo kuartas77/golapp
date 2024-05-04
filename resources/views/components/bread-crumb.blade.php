@@ -19,46 +19,60 @@
                         </button>
                     @endhasanyrole
                     @break
-
-
                     @default
                 @endswitch
-                @hasanyrole('super-admin')
-                <a href="#" class="btn waves-effect waves-light btn-rounded btn-info" onclick="selectSchool()">Seleccionar Escuela</a>
+
+                @hasanyrole(['super-admin'])
+                    @if(!empty($admin_schools))
+                    <a href="#" class="btn waves-effect waves-light btn-rounded btn-info" onclick="selectSchool()">Seleccionar Escuela</a>
+                    @endif
                 @endhasanyrole
+                @hasanyrole(['school'])
+                    @if(!empty($admin_schools))
+                    <a href="#" class="btn waves-effect waves-light btn-rounded btn-info" onclick="selectSchool()">Seleccionar Sede</a>
+                    @endif
+                @endhasanyrole
+
             </div>
         </div>
     </div>
 </div>
 @push('scripts')
-@hasanyrole('super-admin')
+@hasanyrole(['super-admin','school'])
+@if(!empty($admin_schools))
 <script>
-    const urlchooseSchool = "{{route('config.school.choose')}}";
+    const isSchool = {{$isSchool}};
+    const text = isSchool ? 'sede': 'escuela';
+    const urlchooseSchool = "{{route('school.choose')}}";
     const schools = @json($admin_schools);
     function selectSchool(){
         swal({
-            title: 'Para seguir seleciona una escuela',
+            title: `Para seguir seleciona una ${text}`,
             type: "info",
             input: 'select',
             inputOptions: schools,
             inputPlaceholder: 'Selecciona...',
             allowOutsideClick: false,
             allowEscapeKey:false,
+            showCancelButton: true,
             inputValidator: function (value) {
                 return new Promise(function (resolve) {
                     if (value !== '') {
                         resolve();
                     } else {
-                        resolve('Necesitas seleccionar una escuela');
+                        resolve(`Necesitas seleccionar una ${text}`);
                     }
                 });
             }
         }).then(function (result) {
-            $.post(urlchooseSchool, {'school_id': result.value}, function(data){
-                setTimeout(location.reload(), 2000)
-            });
+            if(result.value){
+                $.post(urlchooseSchool, {'school_id': result.value}, function(data){
+                    setTimeout(location.reload(), 2000)
+                });
+            }
         });
     }
 </script>
+@endif
 @endhasanyrole
 @endpush
