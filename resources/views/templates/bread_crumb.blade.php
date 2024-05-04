@@ -8,7 +8,7 @@
             <div class="d-flex m-r-20 m-l-10 hidden-md-down">
                 @switch($option)
                     @case(1)
-                    <button type="button" class="btn waves-effect waves-light btn-rounded btn-info" data-toggle="modal" data-target="#create" data-backdrop="static" data-keyboard="false">Agregar Tarea</button>
+
                     @break
                     @case(2)
                     <a href="{{route('export.clients')}}" class="btn waves-effect waves-light btn-rounded btn-info" id="export"><strong class="text-warning">Exportar</strong> Clientes en Excel</a>

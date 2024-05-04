@@ -94,7 +94,7 @@ class TournamentPayoutsRepository
                 foreach ($idsDiff as $id) {
                     $unique_code = $inscriptions->firstWhere('id', $id)->unique_code ?? null;
                     if (!$unique_code) {
-                        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
                         logger("inscription deshabilitada {$id}");
                         continue;
                     }

@@ -45,7 +45,7 @@ class AssistExport implements FromView, WithTitle
 
     public function title(): string
     {
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
         return "Asistencias {$this->group_name}";
     }
 }

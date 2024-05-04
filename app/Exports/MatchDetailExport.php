@@ -40,7 +40,7 @@ class MatchDetailExport implements FromView, WithTitle, WithStyles
     public function styles(Worksheet $sheet)
     {
         $positions = implode(',', config('variables.KEY_POSITIONS'));
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
         $sheet->setCellValue('M22', "Los campos Asistio, Titular se deben llenar con Si, No.
         El compo de Jugó Aprox se debe llenar sólo con números.
         El compo de Posicion se debe llenar con la información siguiente:

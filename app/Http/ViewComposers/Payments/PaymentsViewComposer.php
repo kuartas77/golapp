@@ -15,19 +15,19 @@ class PaymentsViewComposer
     /**
      * @var TrainingGroupRepository
      */
-    private $trainingGroupRepository;
+    private TrainingGroupRepository $trainingGroupRepository;
 
     public function __construct(TrainingGroupRepository $trainingGroupRepository)
     {
         $this->trainingGroupRepository = $trainingGroupRepository;
     }
 
-    public static function filterGroupsYearActive(Collection $groups)
+    public static function filterGroupsYearActive(Collection $groups): Collection|\Illuminate\Support\Collection
     {
         return $groups->filter(fn($group) => $group->year_active <= now()->year);
     }
 
-    public function compose(View $view)
+    public function compose(View $view): void
     {
         if (Auth::check()) {
             $filter = Closure::fromCallable([$this, 'filterGroupsYearActive']);

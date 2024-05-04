@@ -7,7 +7,7 @@ use Illuminate\Contracts\View\View;
 
 class PublicComposer
 {
-    public function compose(View $view)
+    public function compose(View $view): void
     {
         $schools = School::query()->where('id', '<>', 1)->where('is_enable', true)->pluck('name', 'slug');
         $view->with('public_schools', $schools);

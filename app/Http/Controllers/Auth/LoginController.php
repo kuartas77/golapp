@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\School;
 use App\Providers\RouteServiceProvider;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Cache;
 
 class LoginController extends Controller
@@ -42,24 +45,24 @@ class LoginController extends Controller
         $this->middleware('guest')->except('logout');
     }
 
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse|Redirector|RedirectResponse|Application
     {
         $school_id = isAdmin() ? 0 : getSchool(auth()->user())->id;
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
         Cache::forget("BIRTHDAYS_{$school_id}");
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
         Cache::forget("KEY_USERS_{$school_id}");
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
         Cache::forget("KEY_DAYS_{$school_id}");
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
         Cache::forget("KEY_TOURNAMENT_{$school_id}");
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
         Cache::forget("KEY_TRAINING_GROUPS_{$school_id}");
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
         Cache::forget("KEY_COMPETITION_GROUPS_{$school_id}");
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
         Cache::forget("KEY_MIN_YEAR_{$school_id}");
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
         Cache::forget("KEY_ASSIST_{$school_id}");
 
         $this->guard()->logout();
@@ -78,12 +81,12 @@ class LoginController extends Controller
      *
      * @param Request $request
      * @param mixed $user
-     * @return mixed
+     * @return void
      */
-    protected function authenticated(Request $request, $user)
+    protected function authenticated(Request $request, $user): void
     {
         if ($user->hasAnyRole(['school', 'instructor'])) {
-            /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
             Cache::remember(School::KEY_SCHOOL_CACHE . "_{$user->school_id}",
                 now()->addMinutes(env('SESSION_LIFETIME', 120)),
                 fn() => $user->school->load(['settingsValues']));

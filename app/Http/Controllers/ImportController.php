@@ -1,4 +1,4 @@
-<?php /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+<?php
 
 namespace App\Http\Controllers;
 
@@ -48,7 +48,7 @@ class ImportController extends Controller
 
             $diff = $this->playerRepository->validateImport($request->file('file'));
             if ($diff !== "") {
-                /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
                 alert()->error("Error en las columnas a importar",
                     "Error en las columnas: {$diff}");
                 return back();

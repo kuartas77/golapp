@@ -3,6 +3,7 @@
 namespace App\Http\Resources\API\Groups;
 
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use JsonSerializable;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -38,7 +39,7 @@ class TrainingGroupResource extends JsonResource
         ];
     }
 
-    private function getClassDays()
+    private function getClassDays(): Collection
     {
         $date = Carbon::now();
         $classDays = classDays(

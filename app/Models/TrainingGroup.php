@@ -76,7 +76,7 @@ class TrainingGroup extends Model
         'instructors_ids'
     ];
 
-    protected static function booted()
+    protected static function booted(): void
     {
         self::observe(TrainingGroupObserver::class);
     }

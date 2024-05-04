@@ -25,7 +25,6 @@ class MatchesViewComposer
                 foreach (Game::getYears($school_id) as $year) {
                     $years[] = $year;
                 }
-
                 return $years;
             });
 

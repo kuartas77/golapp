@@ -42,7 +42,7 @@
 @if(!empty($admin_schools))
 <script>
     const isSchool = {{$isSchool}};
-    const text = isSchool ? 'sede': 'escuela';
+    const text = isSchool === 1 ? 'sede': 'escuela';
     const urlchooseSchool = "{{route('school.choose')}}";
     const schools = @json($admin_schools);
     function selectSchool(){
@@ -55,6 +55,8 @@
             allowOutsideClick: false,
             allowEscapeKey:false,
             showCancelButton: true,
+            confirmButtonText: 'Aceptar',
+            cancelButtonText: "Cancelar",
             inputValidator: function (value) {
                 return new Promise(function (resolve) {
                     if (value !== '') {

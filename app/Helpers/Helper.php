@@ -44,7 +44,7 @@ if (!function_exists('getEloquentSqlWithBindings')) {
     {
         return vsprintf(str_replace('?', '%s', $query->toSql()), collect($query->getBindings())->map(function ($binding) {
             $binding = addslashes($binding);
-            /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
             return is_numeric($binding) ? $binding : "'{$binding}'";
         })->toArray());
     }
@@ -145,8 +145,8 @@ if (!function_exists('numbersToLetters')) {
     {
         $formatter = NumberFormatter::create("en_CA", NumberFormatter::SPELLOUT);
         $numberFormat = str_replace('-', '_', $formatter->format(intval($number)));
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
+
         return $assist ? "assistance_{$numberFormat}" : "year_{$numberFormat}";
     }
 }

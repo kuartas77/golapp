@@ -56,7 +56,7 @@ class InscriptionRequest extends FormRequest
     /**
      *
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
         $dateBirth = optional(Player::find($this->player_id))->date_birth;
         $startDate = Date::parse($this->start_date);

@@ -17,14 +17,14 @@ class AssistViewComposer
     /**
      * @var TrainingGroupRepository
      */
-    private $trainingGroupRepository;
+    private TrainingGroupRepository $trainingGroupRepository;
 
     public function __construct(TrainingGroupRepository $trainingGroupRepository)
     {
         $this->trainingGroupRepository = $trainingGroupRepository;
     }
 
-    public function compose(View $view)
+    public function compose(View $view): void
     {
         if (Auth::check()) {
             $filter = Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);

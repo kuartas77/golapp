@@ -13,7 +13,7 @@ class GroupCollection extends ResourceCollection
      * @param Request $request
      * @return array
      */
-    public function toArray($request)
+    public function toArray($request): array
     {
         return $this->collection->map(function ($group) {
             return new TrainingGroupResource($group);

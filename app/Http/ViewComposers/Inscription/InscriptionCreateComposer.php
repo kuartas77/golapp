@@ -19,14 +19,8 @@ class InscriptionCreateComposer
 {
     use Commons;
 
-    /**
-     * @var TrainingGroupRepository
-     */
-    private $trainingGroupRepository;
-    /**
-     * @var CompetitionGroupRepository
-     */
-    private $competitionGroupRepository;
+    private TrainingGroupRepository $trainingGroupRepository;
+    private CompetitionGroupRepository $competitionGroupRepository;
 
     public function __construct(TrainingGroupRepository $trainingGroupRepository, CompetitionGroupRepository $competitionGroupRepository)
     {
@@ -34,7 +28,7 @@ class InscriptionCreateComposer
         $this->competitionGroupRepository = $competitionGroupRepository;
     }
 
-    public function compose(View $view)
+    public function compose(View $view): void
     {
         if (Auth::check()) {
 
