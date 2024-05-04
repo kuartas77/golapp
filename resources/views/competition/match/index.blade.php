@@ -9,7 +9,13 @@
         </a>
         <div class="row">
             <div class="form-group col-sm-3 ">
-                {{ html()->select('year', $years, now()->year)->attributes(['class' => 'form-control input-sm sl','id' => 'year'])->placeholder('Selecciona...') }}
+                <select class="form-control input-sm sl" name="year" id="year" placeholder="Seleccione...">
+                    @foreach($years as $year)
+                        <option value="{{$year}}">{{$year}}</option>
+                    @endforeach
+
+                </select>
+{{--                {{ html()->select('year', $years, now()->year)->attributes(['class' => 'form-control input-sm sl','id' => 'year'])->placeholder('Selecciona...') }}--}}
             </div>
         </div>
 
