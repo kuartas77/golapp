@@ -128,8 +128,7 @@ class PaymentRepository
     public function dataGraphicsYear(int $year = 0): Collection
     {
         $year = $year == 0 ? now()->year : $year;
-        $school_id = (isSchool() || isInstructor()) ? getSchool(auth()->user())->id : null;
-
+        $school_id = getSchool(auth()->user())->id;
         return Cache::remember("graphics.year.{$year}.{$school_id}", now()->addMinute(), fn() => $this->queryGraphics($year, $school_id));
     }
 
@@ -181,6 +180,7 @@ class PaymentRepository
         $series = collect();
         $payments = collect();
         $due = collect();
+        $scholarship = collect();
 
         $payments->push((integer)$consult->january_payment);
         $payments->push((integer)$consult->february_payment);
@@ -208,8 +208,22 @@ class PaymentRepository
         $due->push((integer)$consult->november_due);
         $due->push((integer)$consult->december_due);
 
+        $scholarship->push((integer)$consult->january_scholarship);
+        $scholarship->push((integer)$consult->february_scholarship);
+        $scholarship->push((integer)$consult->march_scholarship);
+        $scholarship->push((integer)$consult->april_scholarship);
+        $scholarship->push((integer)$consult->may_scholarship);
+        $scholarship->push((integer)$consult->june_scholarship);
+        $scholarship->push((integer)$consult->july_scholarship);
+        $scholarship->push((integer)$consult->august_scholarship);
+        $scholarship->push((integer)$consult->september_scholarship);
+        $scholarship->push((integer)$consult->october_scholarship);
+        $scholarship->push((integer)$consult->november_scholarship);
+        $scholarship->push((integer)$consult->december_scholarship);
+
         $series->push($payments);
         $series->push($due);
+        $series->push($scholarship);
         return collect(['labels' => $labels, 'series' => $series]);
     }
 

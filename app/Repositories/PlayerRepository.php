@@ -155,6 +155,11 @@ class PlayerRepository
         return $this->model->query()->schoolId()->whereDoesntHave('inscription')->pluck('unique_code');
     }
 
+    public function getListPlayersWithInscription(bool $isTrashed = true)
+    {
+        return $this->model->query()->schoolId()->whereHas('inscription', fn($q) => $q->where('year', now()->year))->pluck('unique_code');
+    }
+
     public function birthdayToday(): Collection
     {
         $school_id = getSchool(auth()->user())->id;
@@ -173,8 +178,8 @@ class PlayerRepository
         $headers_validation = collect([
             'fecha_de_nacimiento', 'numero_de_documento', 'nombres', 'apellidos', 'genero', 'lugar_de_nacimiento',
             'numero_de_documento', 'rh', 'escuela_o_colegio_donde_estudia', 'direccion_de_residencia', 'municipio',
-            'barrio', 'numero_de_telefono', 'correo_electronico', 'numero_de_celular', 'eps', 'nombres_y_apellidos',
-            'numero_de_celularr', 'numero_de_telefono', 'numero_de_celularr', 'profesion', 'empresa', 'cargo',
+            'barrio', 'correo_electronico', 'numero_de_celular', 'eps', 'nombres_y_apellidos',
+            'numero_de_telefono', 'profesion', 'empresa', 'cargo',
         ]);
         return $headers->diff($headers_validation)->implode(',');
     }

@@ -142,7 +142,7 @@ class InscriptionRepository
             ->inscriptionYear(request('inscription_year'))->schoolId()->onlyTrashed()->get();
     }
 
-    public function searchInscriptionCompetition(array $fields): Builder|null
+    public function searchInscriptionCompetition(array $fields)
     {
         return $this->model->query()->with('player')
             ->where('unique_code', $fields['unique_code'])
