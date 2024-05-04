@@ -4,6 +4,7 @@ use App\Models\Payment;
 use App\Models\School;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use App\Service\StopWatch;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
@@ -284,8 +285,38 @@ if (!function_exists('checkEmail')){
         return isset($email) && filter_var($email, FILTER_VALIDATE_EMAIL);
     }
 }
-//if (!function_exists('')){}
-//if (!function_exists('')){}
+if (!function_exists('getIpToLog')){
+    function getIpToLog(): ?string
+    {
+        foreach (array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR') as $key){
+            if (array_key_exists($key, $_SERVER) === true){
+                foreach (explode(',', $_SERVER[$key]) as $ip){
+                    $ip = trim($ip); // just to be safe
+                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false){
+                        return $ip;
+                    }
+                }
+            }
+        }
+        return request()->ip(); // it will return the server IP if the client IP is not found using this method.
+    }
+}
+if (!function_exists('loggerTimeRequest')){
+    function loggerTimeRequest(StopWatch $stopWatch): void
+    {
+        if (env('APP_ENV') == 'local') {
+            logger()->info(
+                "req",
+                [
+                    'elapsed'=> $stopWatch->getTimeElapsed(),
+                    'url' => request()->fullUrl(),
+                    'ip_address' => getIpToLog(),
+                    'user_id' => (auth()->user() ? auth()->id() : 0),
+                ]
+            );
+        }
+    }
+}
 //if (!function_exists('')){}
 //if (!function_exists('')){}
 //if (!function_exists('')){}
