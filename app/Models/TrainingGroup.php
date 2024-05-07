@@ -133,7 +133,7 @@ class TrainingGroup extends Model
         if ($full) {
             $var .= trim("{$this->days} {$this->schedules}");
         }
-        return $var;
+        return trim($var);
     }
 
     public function getFullScheduleGroupAttribute(): string

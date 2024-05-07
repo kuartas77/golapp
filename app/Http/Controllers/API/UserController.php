@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Models\User;
+use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
+use App\Repositories\UserRepository;
 use App\Http\Requests\API\UserRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
-use App\Http\Resources\API\UserCollection;
 use App\Http\Resources\API\UserResource;
-use App\Models\User;
-use App\Repositories\UserRepository;
+use App\Http\Resources\API\UserCollection;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Response;
 
 class UserController extends Controller
 {
@@ -31,8 +31,8 @@ class UserController extends Controller
         // event(new Registered(auth()->user()));
 
         $users = User::query()
-            ->when(isSchool(), fn($query) => $query->where('school_id', getSchool(auth()->user())->id))
-            ->when($request->orderBy, fn($query) => $query->orderBy($request->orderBy, $request->order))
+            ->when(isSchool(), fn ($query) => $query->where('school_id', getSchool(auth()->user())->id))
+            ->when($request->orderBy, fn ($query) => $query->orderBy($request->orderBy, $request->order))
             ->orderByRaw('-school_id ASC');
 
         return new UserCollection($users->paginate($request->per_page));
@@ -85,6 +85,4 @@ class UserController extends Controller
         $user->delete();
         return response()->noContent();
     }
-
-
 }

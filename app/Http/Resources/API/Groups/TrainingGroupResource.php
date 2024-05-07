@@ -51,7 +51,7 @@ class TrainingGroupResource extends JsonResource
         return $classDays->map(function ($class) {
             $name = Str::ucfirst($class['name']);
             return [
-                'id' => $class['day'],
+                'day' => $class['day'],
                 'name' => "{$class['day']} - {$name}",
                 'index' => $class['column']
             ];

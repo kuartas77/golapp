@@ -8,12 +8,12 @@ use App\Http\Resources\API\Groups\TrainingGroupResource;
 
 class GroupsController
 {
-    public function getTrainingGroups(TrainingGroupsService $trainingGroupsService): GroupCollection
+    public function index(TrainingGroupsService $trainingGroupsService): GroupCollection
     {
         return new GroupCollection($trainingGroupsService->getGroups());
     }
 
-    public function getTrainingGroup($id, TrainingGroupsService $trainingGroupsService): TrainingGroupResource
+    public function show($id, TrainingGroupsService $trainingGroupsService): TrainingGroupResource
     {
         $group = $trainingGroupsService->getGroup((int)$id);
         return new TrainingGroupResource($group);
