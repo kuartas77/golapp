@@ -76,20 +76,21 @@ class InscriptionRepository
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError(__METHOD__, $exception);
-            $result = false;
         }
         return $result;
     }
 
-    private function setTrainingGroupId(&$requestData)
+    private function setTrainingGroupId(&$requestData): void
     {
         $requestData['training_group_id'] = isset($requestData['training_group_id']) ? $requestData['training_group_id']: TrainingGroup::orderBy('id')->firstWhere('school_id', $requestData['school_id'])->id;
     }
 
-    private function setCompetitionGroupIds($inscription, $requestData)
+    private function setCompetitionGroupIds($inscription, $requestData): void
     {
         $competitionGroupIds = data_get($requestData, 'competition_groups', []);
-        empty($competitionGroupIds) ?: $inscription->competitionGroup()->sync($competitionGroupIds);
+        if(!empty($competitionGroupIds)){
+            $inscription->competitionGroup()->sync($competitionGroupIds);
+        }
     }
 
     public function updateInscription(array $requestData, Inscription $inscription): bool
