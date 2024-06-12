@@ -82,7 +82,7 @@ class InscriptionRepository
 
     private function setTrainingGroupId(&$requestData): void
     {
-        $requestData['training_group_id'] = isset($requestData['training_group_id']) ? $requestData['training_group_id']: TrainingGroup::orderBy('id')->firstWhere('school_id', $requestData['school_id'])->id;
+        $requestData['training_group_id'] = ($requestData['training_group_id'] ?? TrainingGroup::orderBy('id')->firstWhere('school_id', $requestData['school_id'])->id);
     }
 
     private function setCompetitionGroupIds($inscription, $requestData): void

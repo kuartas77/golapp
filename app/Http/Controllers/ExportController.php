@@ -2,22 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use Mpdf\MpdfException;
+use Illuminate\Http\Request;
 use App\Exports\AssistExport;
-use App\Exports\MatchDetailExport;
 use App\Exports\PaymentsExport;
-use App\Exports\TournamentPayoutsExport;
-use App\Repositories\AssistRepository;
+use App\Exports\MatchDetailExport;
 use App\Repositories\GameRepository;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Repositories\AssistRepository;
+use App\Repositories\PaymentRepository;
+use App\Exports\TournamentPayoutsExport;
 use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
-use App\Repositories\PaymentRepository;
-use App\Repositories\TournamentPayoutsRepository;
 use App\Service\Assist\AssistExportService;
 use App\Service\Payment\PaymentExportService;
-use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
-use Mpdf\MpdfException;
+use App\Repositories\TournamentPayoutsRepository;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use App\Service\TrainigSession\TrainingSessionExportService;
 
 class ExportController extends Controller
 {
@@ -124,5 +125,10 @@ class ExportController extends Controller
     {
         $date = now()->timestamp;
         return Excel::download(new MatchDetailExport($competition_group), "{$date}.xlsx");
+    }
+
+    public function exportTrainingSession(Request $request, int $id, TrainingSessionExportService $trainingSessionExportService,)
+    {
+        return $trainingSessionExportService->exportSessionPDF($id);
     }
 }

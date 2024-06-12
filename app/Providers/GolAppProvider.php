@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use App\Http\ViewComposers\AdminComposer;
 use App\Http\ViewComposers\TemplatesComposer;
+use App\Http\ViewComposers\Public\PublicComposer;
 use App\Http\ViewComposers\Profile\ProfileComposer;
 use App\Http\ViewComposers\Assists\AssistViewComposer;
 use App\Http\ViewComposers\Incidents\IncidentComposer;
@@ -19,7 +20,7 @@ use App\Http\ViewComposers\TrainingGroup\TrainingGroupComposer;
 use App\Http\ViewComposers\Inscription\InscriptionCreateComposer;
 use App\Http\ViewComposers\Payments\PaymentsHistoricViewComposer;
 use App\Http\ViewComposers\Payments\TournamentPaymentsViewComposer;
-use App\Http\ViewComposers\Public\PublicComposer;
+use App\Http\ViewComposers\TrainingSession\TrainingSessionComposer;
 
 class GolAppProvider extends ServiceProvider
 {
@@ -85,6 +86,8 @@ class GolAppProvider extends ServiceProvider
         ], MatchesViewComposer::class);
 
         View::composer(['groups.competition.index', 'groups.training.index'], TrainingGroupComposer::class);
+
+        View::composer(['training_sessions.*'], TrainingSessionComposer::class);
 
         View::composer(['payments.payment.index'], PaymentsViewComposer::class);
 

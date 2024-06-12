@@ -8,6 +8,7 @@ use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Reports\ReportAssistsController;
 use App\Http\Controllers\Reports\ReportPaymentController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
+use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
@@ -39,6 +40,8 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::resource("matches", GameController::class)->except(['show']);
     Route::resource("players", PlayerController::class);
     Route::resource("tournamentpayout", TournamentPayoutsController::class)->only(['index', 'store', 'update']);
+
+    Route::resource("training-sessions", TrainingSessionsController::class)->only(['index', 'create', 'store']);
 
     Route::prefix('import')->group(function(){
         Route::post('matches/{competition_group}', [ImportController::class, 'importMatchDetail'])->name('import.match');
@@ -87,6 +90,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('competition_groups_retired', [DataTableController::class, 'disabledCompetitionGroups'])->name('competition_groups.retired');
         Route::get('schedules_enabled', [DataTableController::class, 'enabledSchedules'])->name('schedules.enabled');
         Route::get('players_enabled', [DataTableController::class, 'enabledPlayers'])->name('players.enabled');
+        Route::get('training_sessions_enabled', [DataTableController::class, 'trainingSessions'])->name('training_sessions.enabled');
     });
 
     Route::prefix('export')->name('export.')->group(function () {
@@ -104,6 +108,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('matches/create/{competition_group}/format', [ExportController::class, 'exportMatchDetail'])->name('match_detail');
         Route::get('tournament/payouts/excel', [ExportController::class, 'exportTournamentPayoutsExcel'])->name('tournaments.payouts.excel');
         Route::get('tournament/payouts/pdf', [ExportController::class, 'exportTournamentPayoutsPDF'])->name('tournaments.payouts.pdf');
+        Route::get('training_sessions/pdf/{id}', [ExportController::class, 'exportTrainingSession'])->name('training_sessions.pdf');
     });
 
     Route::prefix('historic')->name('historic.')->group(function () {
