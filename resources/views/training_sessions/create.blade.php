@@ -31,12 +31,12 @@ let form_session = $("#form_session");
 $(document).ready(function () {
     form_session.validate({
         rules:{
-            // training_group_id: {required: true},
-            // period: {required: true, number: true},
-            // session: {required: true, number: true},
-            // date: {required: true},
-            // hour: {required: true},
-            // training_ground: {required: true},
+            training_group_id: {required: true},
+            period: {required: true, number: true},
+            session: {required: true, number: true},
+            date: {required: true},
+            hour: {required: true},
+            training_ground: {required: true},
             back_to_calm: {number: true},
             players: {number: true},
             'ts[]': {number: true},

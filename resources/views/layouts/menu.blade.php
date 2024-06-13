@@ -44,10 +44,13 @@
 </li>
 @endhasanyrole
 
+<li class="{{ Request::is('training-sessions*') ? 'active' : '' }}">
+    <a class="waves-effect waves-dark" href="{{route('training-sessions.index')}}" aria-expanded="false"><i class="fas fa-clipboard-list"></i><span class="hide-menu">S. Entrenamiento</span></a>
+</li>
+
 <li class="{{ Request::is('assists*') ? 'active' : '' }}">
     <a class="waves-effect waves-dark" href="{{route('assists.index')}}" aria-expanded="false"><i class="fas fa-clipboard-list"></i><span class="hide-menu">Asistencias</span></a>
 </li>
-
 
 <li class="{{ Request::is('matches*') ? 'active' : '' }}">
     <a class="waves-effect waves-dark" href="{{route('matches.index')}}" aria-expanded="false"><i class="fas fa-futbol"></i><span class="hide-menu">C. Competencias</span></a>
