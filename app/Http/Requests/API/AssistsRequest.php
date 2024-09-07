@@ -13,7 +13,7 @@ class AssistsRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return isInstructor();
     }
@@ -23,7 +23,7 @@ class AssistsRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         $months = config('variables.KEY_MONTHS_INDEX');
         return [
@@ -33,7 +33,7 @@ class AssistsRequest extends FormRequest
         ];
     }
 
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
         $this->merge([
             'month' => Str::title($this->month),

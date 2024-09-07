@@ -44,6 +44,23 @@ class PlayersTest extends TestCase
         return $dataPlayer;
     }
 
+    public function testPlayerCreateError()
+    {
+        Notification::fake();
+        Mail::fake();
+
+        $dataPlayer = $this->dataPlayer();
+        unset($dataPlayer['people']);
+
+        $this->actingAs($this->user);
+
+        $response = $this->post('/players', $dataPlayer);
+
+        Notification::assertNothingSent();
+        Mail::assertSent(ErrorLog::class);
+        $response->assertStatus(302);
+    }
+
     public function testPlayerUpdate()
     {
         Mail::fake();

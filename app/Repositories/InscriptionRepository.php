@@ -17,20 +17,11 @@ class InscriptionRepository
     use ErrorTrait;
 
     /**
-     * @var Inscription
-     */
-    private Inscription $model;
-    /**
-     * @var PeopleRepository
-     */
-    private PeopleRepository $peopleRepository;
-
-    /**
      *
      * @param Inscription $model
      * @param PeopleRepository $peopleRepository
      */
-    public function __construct(Inscription $model, PeopleRepository $peopleRepository)
+    public function __construct(private Inscription $model, private PeopleRepository $peopleRepository)
     {
         $this->model = $model;
         $this->peopleRepository = $peopleRepository;
@@ -51,88 +42,101 @@ class InscriptionRepository
     }
 
     /**
-     * @param array $inscriptionData
+     * @param array $requestData
      * @param bool $created
-     * @param Inscription|null $inscription
-     * @return Inscription
+     * @return bool
      */
-    public function setInscription(array $inscriptionData, bool $created = true, Inscription $inscription = null): Inscription
+    public function createInscription(array $requestData): bool
     {
+        $result = false;
         try {
-            if (!$inscriptionData['training_group_id']) {
-                $inscriptionData['training_group_id'] = TrainingGroup::query()->orderBy('id')
-                    ->firstWhere('school_id', $inscriptionData['school_id'])->id;
-            }
 
-            $inscriptionData['deleted_at'] = null;
+            $this->setTrainingGroupId($requestData);
+            $requestData['deleted_at'] = null;
 
             DB::beginTransaction();
 
-            $competition_groups = [];
-            if (isset($inscriptionData['competition_groups'])) {
-                $competition_groups = $inscriptionData['competition_groups'];
-                unset($inscriptionData['competition_groups']);
-            }
+            $inscription = $this->model->withTrashed()->updateOrCreate([
+                'unique_code' => $requestData['unique_code'],
+                'year' => $requestData['year']
+            ], $requestData);
 
-            if ($created) {
+            $this->setCompetitionGroupIds($inscription, $requestData);
 
-                $inscription = $this->model->withTrashed()->updateOrCreate([
-                    'unique_code' => $inscriptionData['unique_code'],
-                    'year' => $inscriptionData['year']
-                ], $inscriptionData);
+            $inscription->load(['player', 'school']);
 
-                $inscription->load(['player', 'school']);
-                if ($inscription->player->email && filter_var($inscription->player->email, FILTER_VALIDATE_EMAIL)) {
-                    $inscription->player->notify(new InscriptionNotification($inscription));
-                }
-            } else {
-                $inscriptionData['unique_code'] = $inscription->unique_code;
-                $inscriptionData['start_date'] = $inscription->start_date;
-                $inscription->update($inscriptionData);
-            }
-
-            if (!empty($competition_groups)) {
-                $inscription->competitionGroup()->sync($competition_groups);
+            if (checkEmail(data_get($inscription, 'player.email'))) {
+                $inscription->player->notifyNow(new InscriptionNotification($inscription));
             }
 
             DB::commit();
-            return $inscription;
+
+            $result = true;
 
         } catch (Exception $exception) {
             DB::rollBack();
-            $method = $created ? "created" : "update";
-            $this->logError("InscriptionRepository $method", $exception);
-            return $this->model;
+            $this->logError(__METHOD__, $exception);
+        }
+        return $result;
+    }
+
+    private function setTrainingGroupId(&$requestData): void
+    {
+        $requestData['training_group_id'] = ($requestData['training_group_id'] ?? TrainingGroup::orderBy('id')->firstWhere('school_id', $requestData['school_id'])->id);
+    }
+
+    private function setCompetitionGroupIds($inscription, $requestData): void
+    {
+        $competitionGroupIds = data_get($requestData, 'competition_groups', []);
+        if(!empty($competitionGroupIds)){
+            $inscription->competitionGroup()->sync($competitionGroupIds);
         }
     }
 
+    public function updateInscription(array $requestData, Inscription $inscription): bool
+    {
+        $result = false;
+        try {
+            $this->setTrainingGroupId($requestData);
+            $requestData['deleted_at'] = null;
+            $requestData['unique_code'] = $inscription->unique_code;
+            $requestData['start_date'] = $inscription->start_date;
+
+            DB::beginTransaction();
+
+            $this->setCompetitionGroupIds($inscription, $requestData);
+
+            $result = $inscription->update($requestData);
+
+            DB::commit();
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            $this->logError(__METHOD__, $th);
+            $result = false;
+        }
+        return $result;
+    }
 
     /**
      * @return Builder[]|Collection
      */
-    public function getInscriptionsEnabled(): Collection|array
+    public function getInscriptionsEnabled()
     {
-        $inscriptions = $this->model->with(['player.people', 'trainingGroup'])
-            ->inscriptionYear(request('inscription_year'))->schoolId()->get();
-        if ($inscriptions->isNotEmpty()) {
-            $inscriptions->setAppends(['url_edit', 'url_update', 'url_show', 'url_impression', 'url_destroy']);
-        }
-        return $inscriptions;
+        return $this->model->with(['player.people', 'trainingGroup' => fn($q) => $q->withTrashed()])
+            ->inscriptionYear(request('inscription_year'))->schoolId();
     }
 
     /**
      * @return Builder[]|Collection
      */
-    public function getInscriptionsDisabled(): Collection|array
+    public function getInscriptionsDisabled()
     {
-        // if ($inscriptions->isNotEmpty()) {
-        //     $inscriptions->setAppends(['url_edit', 'url_update', 'url_show', 'url_impression', 'url_destroy']);
-        // }
         return $this->model->with(['player.people', 'trainingGroup'])
-            ->inscriptionYear(request('inscription_year'))->schoolId()->onlyTrashed()->get();
+            ->inscriptionYear(request('inscription_year'))->schoolId()->onlyTrashed();
     }
 
-    public function searchInscriptionCompetition(array $fields): Builder|null
+    public function searchInscriptionCompetition(array $fields)
     {
         return $this->model->query()->with('player')
             ->where('unique_code', $fields['unique_code'])
@@ -204,8 +208,6 @@ class InscriptionRepository
                     'scholarship' => $inscription->scholarship,
                     'training_group_id' => $training_group_id
                 ];
-
-                $this->setInscription($inscriptionData, true);
         }
     }
 

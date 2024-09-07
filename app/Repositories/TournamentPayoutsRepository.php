@@ -23,7 +23,7 @@ class TournamentPayoutsRepository
         $this->service = new TournamentPayoutService();
     }
 
-    public function search(array $data, bool $deleted = false)
+    public function search(array $data, bool $wantsJson = false, bool $deleted = false)
     {
         $competitionGroup = CompetitionGroup::query()->schoolId()
             ->when($deleted, fn($q) => $q->onlyTrashedRelations())->findOrFail($data['competition_group_id']);
@@ -33,6 +33,10 @@ class TournamentPayoutsRepository
             ->when(!empty($data['tournament_id']), fn($q) => $q->where('tournament_id', $data['tournament_id']))
             ->when(!empty($data['competition_group_id']), fn($q) => $q->where('competition_group_id', $data['competition_group_id']))
             ->when(!empty($data['unique_code']), fn($q) => $q->where('unique_code', $data['unique_code']));
+
+        if($wantsJson){
+            return $this->service->generateData($tournamentPayouts, $competitionGroup, $data, $deleted);
+        }
 
         return $this->service->generateTable($tournamentPayouts, $competitionGroup, $data, $deleted);
     }
@@ -90,7 +94,7 @@ class TournamentPayoutsRepository
                 foreach ($idsDiff as $id) {
                     $unique_code = $inscriptions->firstWhere('id', $id)->unique_code ?? null;
                     if (!$unique_code) {
-                        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
                         logger("inscription deshabilitada {$id}");
                         continue;
                     }

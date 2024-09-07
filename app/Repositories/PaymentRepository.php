@@ -29,7 +29,7 @@ class PaymentRepository
      */
     public function filter($request, bool $deleted = false): array
     {
-        $payments = $this->filterSelect($request, $deleted)->get();
+        $payments = $this->filterSelect($request->all(), $deleted)->get();
         $rows = "";
         $payments->setAppends(['check_payments']);
         $school = getSchool(auth()->user());
@@ -67,23 +67,47 @@ class PaymentRepository
     }
 
     /**
-     * @param $request
+     * @param $params
      * @param false $deleted
      * @return Builder
      */
-    public function filterSelect($request, bool $deleted = false): Builder
+    public function filterSelect(array $params, bool $deleted = false): Builder
     {
-        $query = $this->model->schoolId()->with([
+        $school_id = data_get($params, 'school_id');
+        $category = data_get($params, 'category');
+        $year = data_get($params, 'year', now()->year);
+        $unique_code = data_get($params, 'unique_code');
+        $training_group_id = data_get($params, 'training_group_id', 0);
+
+        $query = $this->model->where('school_id', $school_id)->with([
             'inscription' => fn($query) => $query->with(['player'])->withTrashed()
         ])->withTrashed();
 
-        $query->where('year', $request->input('year', now()->year))
-            ->when($request->filled('unique_code'), fn($q) => $q->where('unique_code', $request->unique_code))
-            ->when($request->training_group_id != 0, fn($q) => $q->where('training_group_id', $request->training_group_id))
-            ->when($request->category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', now()->year)->where('category', $request->category)))
+        $query->where('year', $year)
+            ->when($unique_code, fn($q) => $q->where('unique_code', $unique_code))
+            ->when($training_group_id != 0, fn($q) => $q->where('training_group_id', $training_group_id))
+            ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', now()->year)->where('category', $category)->withTrashed()))
             ->orderBy('inscription_id', 'asc');
 
         return $query;
+    }
+
+    public function filterSelectRaw(array $params, bool $deleted = false)
+    {
+        $school_id = data_get($params, 'school_id');
+        $category = data_get($params, 'category');
+        $year = data_get($params, 'year', now()->year);
+        $unique_code = data_get($params, 'unique_code');
+        $training_group_id = data_get($params, 'training_group_id', 0);
+
+        return $this->model
+        ->where('school_id', $school_id)
+        ->where('year', $year)
+        ->when($unique_code, fn($q) => $q->where('unique_code', $unique_code))
+        ->when($training_group_id != 0, fn($q) => $q->where('training_group_id', $training_group_id))
+        ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', now()->year)->where('category', $category)->withTrashed()))
+        ->withTrashed()
+        ->orderBy('inscription_id', 'asc');
     }
 
     public function setPay(array $values, $payment)
@@ -104,8 +128,7 @@ class PaymentRepository
     public function dataGraphicsYear(int $year = 0): Collection
     {
         $year = $year == 0 ? now()->year : $year;
-        $school_id = (isSchool() || isInstructor()) ? getSchool(auth()->user())->id : null;
-
+        $school_id = getSchool(auth()->user())->id;
         return Cache::remember("graphics.year.{$year}.{$school_id}", now()->addMinute(), fn() => $this->queryGraphics($year, $school_id));
     }
 
@@ -157,6 +180,7 @@ class PaymentRepository
         $series = collect();
         $payments = collect();
         $due = collect();
+        $scholarship = collect();
 
         $payments->push((integer)$consult->january_payment);
         $payments->push((integer)$consult->february_payment);
@@ -184,8 +208,22 @@ class PaymentRepository
         $due->push((integer)$consult->november_due);
         $due->push((integer)$consult->december_due);
 
+        $scholarship->push((integer)$consult->january_scholarship);
+        $scholarship->push((integer)$consult->february_scholarship);
+        $scholarship->push((integer)$consult->march_scholarship);
+        $scholarship->push((integer)$consult->april_scholarship);
+        $scholarship->push((integer)$consult->may_scholarship);
+        $scholarship->push((integer)$consult->june_scholarship);
+        $scholarship->push((integer)$consult->july_scholarship);
+        $scholarship->push((integer)$consult->august_scholarship);
+        $scholarship->push((integer)$consult->september_scholarship);
+        $scholarship->push((integer)$consult->october_scholarship);
+        $scholarship->push((integer)$consult->november_scholarship);
+        $scholarship->push((integer)$consult->december_scholarship);
+
         $series->push($payments);
         $series->push($due);
+        $series->push($scholarship);
         return collect(['labels' => $labels, 'series' => $series]);
     }
 

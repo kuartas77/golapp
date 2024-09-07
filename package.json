@@ -16,13 +16,14 @@
         "axios": "^1.6.0",
         "laravel-mix": "^6.0.6",
         "lodash": "^4.17.19",
-        "resolve-url-loader": "^4.0.0",
+        "resolve-url-loader": "^5.0.0",
         "sass": "^1.32.11",
         "sass-loader": "^11.0.1",
         "vue": "^3.0.5",
         "vue-loader": "^16.8.3"
     },
     "dependencies": {
+        "inputmask": "^5.0.8",
         "volar-service-vetur": "latest",
         "vue": "^3.2.20",
         "vue-router": "^4.0.12"

@@ -6,6 +6,7 @@ export default function usePayouts() {
     const groups = ref([])
     const tournaments = ref([])
     const paginationMeta = ref([])
+    const pays = ref([])
 
     const fetchRows = async () => {
         let response = await axios.get('/api/schools')
@@ -32,14 +33,23 @@ export default function usePayouts() {
         groups.value = response.data.data
     }
 
+
+    const getPays = async ({competition_group_id, tournament_id, unique_code}) => {
+        let response = await axios.get(`/tournamentpayout?tournament_id=${tournament_id}&competition_group_id=${competition_group_id}&unique_code=${unique_code}`)
+        pays.value = response.data.data
+        return pays
+    }
+
     return {
+        pays,
         rows,
         groups,
         tournaments,
         paginationMeta,
         fetchRows,
-        fetchRowsPaginate,
+        // fetchRowsPaginate,
         loadTournaments,
-        loadGroups
+        loadGroups,
+        getPays
     }
 }

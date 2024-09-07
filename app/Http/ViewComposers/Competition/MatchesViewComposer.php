@@ -21,11 +21,10 @@ class MatchesViewComposer
             $school_id = getSchool(auth()->user())->id;
 
             $years = Cache::remember("KEY_MIN_YEAR_{$school_id}", now()->addDay(), function () use ($school_id) {
-                $years = [];
+                $years = [now()->year];
                 foreach (Game::getYears($school_id) as $year) {
                     $years[] = $year;
                 }
-
                 return $years;
             });
 

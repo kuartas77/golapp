@@ -82,24 +82,24 @@
                         <td>&nbsp;<strong class="bold"># Asistencias A Partidos:</strong> {{ $inscription->format_average['assistance'] }}</td>
                     </tr>
                     <tr>
-                        <td>&nbsp;<strong class="bold">Total Titular:</strong> {{ $inscription->format_average['titular'] }}</td>
-                        <td>&nbsp;<strong class="bold">Promedio De Calificación:</strong> {{ $inscription->format_average['qualification'] }}</td>
+                        <td>&nbsp;<strong class="bold"># Veces Titular:</strong> {{ $inscription->format_average['titular'] }}</td>
+                        <td>&nbsp;<strong class="bold">Promedio De Calificación x Partido:</strong> {{ $inscription->format_average['qualification'] }}</td>
                     </tr>
                     <tr>
                         <td>&nbsp;<strong class="bold">Total De Goles:</strong> {{ $inscription->format_average['goals'] }}</td>
-                        <td>&nbsp;<strong class="bold">Promedio De Goles:</strong> {{ $inscription->format_average['goals_avg'] }}</td>
+                        <td>&nbsp;<strong class="bold">Promedio De Goles x Partido:</strong> {{ $inscription->format_average['goals_avg'] }}</td>
                     </tr>
                     <tr>
                         <td>&nbsp;<strong class="bold">Total Amarillas:</strong> {{ $inscription->format_average['yellow_cards'] }}</td>
-                        <td>&nbsp;<strong class="bold">Promedio Amarillas:</strong> {{ $inscription->format_average['yellow_cards_avg'] }}</td>
+                        <td>&nbsp;<strong class="bold">Promedio Amarillas x Partido:</strong> {{ $inscription->format_average['yellow_cards_avg'] }}</td>
                     </tr>
                     <tr>
                         <td>&nbsp;<strong class="bold">Total Rojas:</strong> {{ $inscription->format_average['red_cards'] }}</td>
-                        <td>&nbsp;<strong class="bold">Promedio Rojas:</strong> {{ $inscription->format_average['red_cards_avg'] }}</td>
+                        <td>&nbsp;<strong class="bold">Promedio Rojas x Partido:</strong> {{ $inscription->format_average['red_cards_avg'] }}</td>
                     </tr>
                     <tr>
                         <td>&nbsp;<strong class="bold">Minutos Jugados:</strong> {{ $inscription->format_average['played_approx'] }}</td>
-                        <td>&nbsp;<strong class="bold">Promedio de Minutos Jugados:</strong> {{ $inscription->format_average['played_approx_avg'] }}</td>
+                        <td>&nbsp;<strong class="bold">Promedio de Minutos Jugados x Partido:</strong> {{ $inscription->format_average['played_approx_avg'] }}</td>
                     </tr>
                     <tr>
                         <td colspan="2"><strong class="bold">&nbsp;Posiciones En el Campo:</strong> {{ $inscription->format_average['positions'] }}</td>
@@ -160,7 +160,6 @@
                         <td class="bold {{$pay->december == '2' ? 'error': ''}}">&nbsp;Diciembre: {{getPay($pay->december)}}</td>
                         @endif
                     </tr>
-
                 @empty
                     <tr>
                         @if($quarter != '')
@@ -176,29 +175,31 @@
             <!-- Asists -->
             <table class="table-full detail detail-lines">
                 @php
-                    $colspan = 20;
+                    $totalSpan = 25;
                 @endphp
                 <thead>
                     <tr class="tr-tit">
-                        <th colspan="{{$colspan}}" class="text-center bold">Asistencias Entrenamientos: <strong style="text-transform: uppercase;">{{$inscription->trainingGroup->name}}</strong></th>
+                        <th colspan="{{$totalSpan + 2}}" class="text-center bold">Asistencias Entrenamientos: <strong style="text-transform: uppercase;">{{$inscription->trainingGroup->name}}</strong></th>
                     </tr>
                 </thead>
                 <tbody>
                 @forelse ($inscription->assistance as $assistance)
                     @php
                         $countAS = 0;
+                        $classCount = $assistance->classDays->count();
+                        $colspan = ($totalSpan - $classCount);
                     @endphp
                     <tr class="tr-tit">
                         <td class="bold" >&nbsp;Clases</td>
-                        @for ($index = 1; $index <= $assistance->classDays->count(); $index++)
+                        @for ($index = 1; $index <= $classCount; $index++)
                             <th class="text-center bold">{{$index}}</th>
                         @endfor
-                        <td colspan="{{(($colspan - 2) - $assistance->classDays->count())}}"></td>
-                        <td class="text-center bold"></td>
+                        <td colspan="{{ $colspan }}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                        <td class="text-center bold">&nbsp;</td>
                     </tr>
                     <tr>
                         <td class="bold" >&nbsp;Mes: {{ $assistance->month }}</td>
-                        @for ($index = 1; $index <= $assistance->classDays->count(); $index++)
+                        @for ($index = 1; $index <= $classCount; $index++)
                             @php
                                 $column = numbersToLetters($index);
                                 $countAS += $assistance->$column == 'as' ? 1 : 0;
@@ -207,20 +208,20 @@
                             {{ $assistance->$column == null ? '': $optionAssist[$assistance->$column] }}
                             </td>
                         @endfor
-                        <td colspan="{{(($colspan - 2) - $assistance->classDays->count())}}"></td>
-                        <td class="text-center bold">&nbsp;{{percent($countAS, $assistance->classDays->count())}}%</td>
+                        <td colspan="{{ $colspan }}">&nbsp;</td>
+                        <td class="text-center bold">&nbsp;{{percent($countAS, $classCount)}}%</td>
                     </tr>
                 @empty
                     <tr>
-                        <th colspan="20" align="center">Sin Registros De Asistencia</th>
+                        <th colspan="{{$totalSpan + 2}}" align="center">Sin Registros De Asistencia</th>
                     </tr>
                 @endforelse
                 </tbody>
             </table>
             <table class="table-full detail detail-lines">
                 <tr class="tr-tit">
-                    <td class="text-center"><strong>ASISTENCIA:X</strong></td>
-                    <td class="text-center error"><strong>FALTA:F</strong></td>
+                    <td class="text-center success"><strong>ASISTENCIA:&#10003;</strong></td>
+                    <td class="text-center error"><strong>FALTA:&#10008;</strong></td>
                     <td class="text-center"><strong>EXCUSA:E</strong></td>
                     <td class="text-center"><strong>RETIRO:R</strong></td>
                     <td class="text-center"><strong>INCAPACIDAD:I</strong></td>

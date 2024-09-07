@@ -1,5 +1,6 @@
 <?php
 
+use App\Service\StopWatch;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 
@@ -48,8 +49,16 @@ $app = require_once __DIR__.'/../bootstrap/app.php';
 
 $kernel = $app->make(Kernel::class);
 
+$stopWatch = new StopWatch();
+
+$stopWatch->start();
+
 $response = tap($kernel->handle(
     $request = Request::capture()
 ))->send();
+
+$stopWatch->stop();
+
+loggerTimeRequest($stopWatch);
 
 $kernel->terminate($request, $response);

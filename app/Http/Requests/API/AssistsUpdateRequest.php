@@ -11,7 +11,7 @@ class AssistsUpdateRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return isSchool() || isInstructor();
     }
@@ -21,7 +21,7 @@ class AssistsUpdateRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'id' => ['required'],
@@ -55,7 +55,7 @@ class AssistsUpdateRequest extends FormRequest
         ];
     }
 
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
         $this->merge([
             'school_id' => getSchool(auth()->user())->id

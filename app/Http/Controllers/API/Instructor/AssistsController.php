@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\API\Instructor;
 
 use App\Models\Assist;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Repositories\AssistRepository;
 use App\Http\Requests\API\AssistsRequest;
@@ -13,58 +15,13 @@ use App\Http\Resources\API\Assists\AssitsCollection;
 
 class AssistsController extends Controller
 {
-/**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(AssistsRequest $request, AssistsService $assistsService)
+    public function index(AssistsRequest $request, AssistsService $assistsService): AssitsCollection
     {
         return new AssitsCollection($assistsService->getAssists($request->validated()));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        abort(404);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  Assist $assist
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Assist $assist)
-    {
-        abort(404);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  Assist $assist
-     * @return \Illuminate\Http\Response
-     */
-    public function update(AssistsUpdateRequest $request, Assist $assist, AssistRepository $repository)
+    public function update(AssistsUpdateRequest $request, Assist $assist, AssistRepository $repository): JsonResponse
     {
         return response()->json(['data' => $repository->update($assist, $request->validated())]);
-    }
-
-    /**s
-     * Remove the specified resource from storage.
-     *
-     * @param  Assist $assist
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Assist $assist)
-    {
-        abort(404);
     }
 }

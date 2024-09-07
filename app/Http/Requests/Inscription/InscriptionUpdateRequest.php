@@ -26,22 +26,29 @@ class InscriptionUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'school_id' => ['required'],
-            'player_id' => ['required'],
-            'unique_code' => ['required', 'exists:players,unique_code'],
-            'training_group_id' => ['nullable'],
+            'player_id' => ['required', 'numeric', 'bail'],
+            'school_id' => ['required', 'numeric', 'bail'],
+            'unique_code' => ['required', 'exists:players,unique_code', 'bail'],
+            'year' => ['required', 'bail'],
+            'start_date' => ['required', 'bail'],
+            'category' => ['required', 'bail'],
+            'training_group_id' => ['nullable', 'numeric'],
             'competition_groups' => ['nullable', 'array'],
-            'photos' => ['nullable'],
-            'copy_identification_document' => ['nullable'],
-            'eps_certificate' => ['nullable'],
-            'medic_certificate' => ['nullable'],
-            'study_certificate' => ['nullable'],
-            'overalls' => ['nullable'],
-            'ball' => ['nullable'],
-            'bag' => ['nullable'],
-            'presentation_uniform' => ['nullable'],
-            'competition_uniform' => ['nullable'],
-            'tournament_pay' => ['nullable'],
+            'photos' => ['nullable', 'boolean'],
+            'copy_identification_document' => ['nullable', 'boolean'],
+            'eps_certificate' => ['nullable', 'boolean'],
+            'medic_certificate' => ['nullable', 'boolean'],
+            'study_certificate' => ['nullable', 'boolean'],
+            'overalls' => ['nullable', 'boolean'],
+            'ball' => ['nullable', 'boolean'],
+            'bag' => ['nullable', 'boolean'],
+            'presentation_uniform' => ['nullable', 'boolean'],
+            'competition_uniform' => ['nullable', 'boolean'],
+            'tournament_pay' => ['nullable', 'boolean'],
+            'period_one' => ['nullable'],
+            'period_two' => ['nullable'],
+            'period_three' => ['nullable'],
+            'period_four' => ['nullable'],
             'scholarship' => ['nullable', 'boolean'],
         ];
     }
@@ -49,7 +56,7 @@ class InscriptionUpdateRequest extends FormRequest
     /**
      *
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
         $dateBirth = Player::find($this->player_id)->date_birth;
         $startDate = Date::parse($this->start_date);
@@ -70,7 +77,8 @@ class InscriptionUpdateRequest extends FormRequest
             'competition_uniform' => $this->competition_uniform ?? false,
             'tournament_pay' => $this->tournament_pay ?? false,
             'scholarship' => $this->scholarship ?? false,
-            'competition_groups' => $this->competition_groups ?? []
+            'competition_groups' => $this->competition_groups ?? [],
+            'training_group_id' => $this->training_group_id ?? null,
         ]);
     }
 }

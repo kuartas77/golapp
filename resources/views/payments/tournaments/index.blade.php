@@ -4,7 +4,6 @@
     <x-row-card col-inside="12" >
         @include('payments.tournaments.form')
         @include('payments.tournaments.table')
-        <tournament-payouts></tournament-payouts>
     </x-row-card >
 @endsection
 @section('modals')

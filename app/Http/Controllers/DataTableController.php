@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Repositories\CompetitionGroupRepository;
-use App\Repositories\InscriptionRepository;
-use App\Repositories\PlayerRepository;
-use App\Repositories\ScheduleRepository;
-use App\Repositories\SchoolRepository;
-use App\Repositories\TrainingGroupRepository;
-use Illuminate\Http\JsonResponse;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use App\Repositories\PlayerRepository;
+use App\Repositories\SchoolRepository;
+use App\Repositories\ScheduleRepository;
+use App\Repositories\InscriptionRepository;
+use App\Repositories\TrainingGroupRepository;
+use App\Repositories\TrainingSessionRepository;
+use App\Repositories\CompetitionGroupRepository;
 
 class DataTableController extends Controller
 {
@@ -18,7 +20,9 @@ class DataTableController extends Controller
                                 private CompetitionGroupRepository $competitionGroupRepository,
                                 private PlayerRepository           $playerRepository,
                                 private ScheduleRepository         $scheduleRepository,
-                                private SchoolRepository           $schoolRepository)
+                                private SchoolRepository           $schoolRepository,
+                                private TrainingSessionRepository  $trainingSessionRepository
+                                )
     {
     }
 
@@ -30,7 +34,7 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->collection($this->inscriptionRepository->getInscriptionsEnabled())->toJson();
+        return datatables()->of($this->inscriptionRepository->getInscriptionsEnabled())->toJson();
     }
 
     /**
@@ -41,7 +45,7 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->collection($this->inscriptionRepository->getInscriptionsDisabled())->toJson();
+        return datatables()->of($this->inscriptionRepository->getInscriptionsDisabled())->toJson();
     }
 
     /**
@@ -117,7 +121,7 @@ class DataTableController extends Controller
         return datatables()->collection($this->schoolRepository->getAll())
             ->addColumn('logo', '{{$logo}}!')
             ->addColumn('name', '{{$name}}!')
-            ->addColumn('agent', '{{$agent}}!')
+            ->addColumn('agent', '{{$agent}}')
             ->addColumn('address', '{{$address}}')
             ->addColumn('phone', '{{$phone}}')
             ->addColumn('email', '{{$email}}')
@@ -132,5 +136,31 @@ class DataTableController extends Controller
         abort_unless($request->ajax() && isAdmin(), 403);
 
         return datatables()->collection($this->schoolRepository->schoolsInfo())->toJson();
+    }
+
+    public function trainingSessions(Request $request)
+    {
+        // abort_unless($request->ajax(), 403);
+
+
+
+        return datatables()->collection($this->trainingSessionRepository->list())
+        ->addColumn('creator', fn($model) => $model->user->name)
+        ->addColumn('group', fn($model) => $model->training_group->full_group)
+        ->addColumn('training_ground', '{{$training_ground}}')
+        ->addColumn('period', '{{$period}}')
+        ->addColumn('session', '{{$session}}')
+        ->addColumn('tasks', fn($model) => $model->tasks_count)
+        ->addColumn('date', fn($model) => Carbon::parse($model->date)->format('Y-m-d'))
+        ->addColumn('hour', '{{$hour}}')
+        ->addColumn('created_at', fn($model) => $model->created_at->format('Y-m-d'))
+        ->addColumn('buttons', function($model){
+            $exportPdfURL = route('export.training_sessions.pdf', [$model->id]);
+            return '<div class="btn-group">'
+            .'<a href="'.$exportPdfURL.'" target="_blank" class="btn btn-info btn-xs"><i class="fas fa-print" aria-hidden="true"></i></a>'
+            .'</div>';
+        })
+        ->escapeColumns([])
+        ->toJson();
     }
 }

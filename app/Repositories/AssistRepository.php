@@ -40,7 +40,11 @@ class AssistRepository
 
         $assists = $this->model->schoolId()->with('inscription.player')
             ->when($deleted, fn($q) => $q->withTrashed())
-            ->where($data);
+            ->where([
+                ['training_group_id', $data['training_group_id']],
+                ['month',  getMonthNumber($data['month'])],
+                ['year',$data['year']]
+            ]);
 
         return $this->service->generateTable($assists, $trainingGroup, $data, $deleted);
     }
@@ -56,6 +60,7 @@ class AssistRepository
             $school_id = getSchool(auth()->user())->id;
 
             $dataAssist['year'] = now()->year;
+            $dataAssist['month'] = getMonthNumber($dataAssist['month']);
             $training_group_id = TrainingGroup::query()->orderBy('id')
                 ->firstWhere('school_id', $school_id)->id;
 
@@ -94,6 +99,12 @@ class AssistRepository
                             'school_id' => $school_id
                         ]
                     );
+
+                    $this->model->where('inscription_id', $id)
+                    ->where('year', $dataAssist['year'])
+                    ->where('month', $dataAssist['month'])
+                    ->where('training_group_id', '<>', $dataAssist['training_group_id'])
+                    ->forceDelete();
                 }
                 DB::commit();
             }

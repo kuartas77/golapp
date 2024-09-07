@@ -75,7 +75,7 @@ $(document).ready(() => {
         let container = $(target).attr('id');
         let destination = $("#training_group_destination").val();
         let assignment = {};
-        
+
         if (container === 'inscriptions'){
             assignment.assign = false;
             assignment.destination_group = destination;
@@ -83,7 +83,7 @@ $(document).ready(() => {
             assignment.assign = true;
             assignment.destination_group = destination;
         }
-        
+
         if (destination === '') {
             alertSwal('Se debe seleccionar un grupo!');
             source.appendChild(el);

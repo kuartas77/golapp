@@ -37,7 +37,7 @@ class PeopleRepository
 
     public function createOrUpdatePeople($person): People
     {
-        return $this->model->updateOrCreate(
+        return $this->model->query()->updateOrCreate(
             [
                 'names' => $person['names'],
                 'identification_card' => $person['identification_card']
@@ -45,11 +45,12 @@ class PeopleRepository
             [
                 'tutor' => $person['tutor'],
                 'relationship' => $person['relationship'],
-                'phone' => $person['phone'] ?? null,
-                'mobile' => $person['mobile'] ?? null,
-                'profession' => $person['profession'] ?? null,
-                'business' => $person['business'] ?? null,
-                'position' => $person['position'] ?? null,
+                'phone' => ($person['phone'] ?? null),
+                'email' => ($person['email'] ?? null),
+                'mobile' => ($person['mobile'] ?? null),
+                'profession' => ($person['profession'] ?? null),
+                'business' => ($person['business'] ?? null),
+                'position' => ($person['position'] ?? null),
             ]
         );
     }

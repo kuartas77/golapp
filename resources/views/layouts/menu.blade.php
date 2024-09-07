@@ -42,6 +42,28 @@
 <li class="{{ Request::is('tournamentpayout*') ? 'active' : '' }}">
     <a class="waves-effect waves-dark" href="{{route('tournamentpayout.index')}}" aria-expanded="false"><i class="fas fa-dollar-sign"></i><span class="hide-menu">Pagos Torneos</span></a>
 </li>
+@endhasanyrole
+
+<li class="{{ Request::is('training-sessions*') ? 'active' : '' }}">
+    <a class="waves-effect waves-dark" href="{{route('training-sessions.index')}}" aria-expanded="false"><i class="fas fa-clipboard-list"></i><span class="hide-menu">S. Entrenamiento</span></a>
+</li>
+
+<li class="{{ Request::is('assists*') ? 'active' : '' }}">
+    <a class="waves-effect waves-dark" href="{{route('assists.index')}}" aria-expanded="false"><i class="fas fa-clipboard-list"></i><span class="hide-menu">Asistencias</span></a>
+</li>
+
+<li class="{{ Request::is('matches*') ? 'active' : '' }}">
+    <a class="waves-effect waves-dark" href="{{route('matches.index')}}" aria-expanded="false"><i class="fas fa-futbol"></i><span class="hide-menu">C. Competencias</span></a>
+</li>
+
+@hasanyrole('super-admin|school')
+<li class="{{ Request::is('reports*') ? 'active' : '' }}">
+    <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><i class="fa fa-flag"></i><span class="hide-menu">Informes</span></a>
+    <ul aria-expanded="false" class="collapse">
+        <!-- <li><a href="{{route('reports.assists')}}">Asistencias</a></li> -->
+        <li><a href="{{route('reports.payments')}}">Pagos</a></li>
+    </ul>
+</li>
 
 <li class="{{ Request::is('historic*') ? 'active' : '' }}">
     <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><i class="fas fa-history"></i><span class="hide-menu">Historicos</span></a>
@@ -51,17 +73,3 @@
     </ul>
 </li>
 @endhasanyrole
-
-<li class="{{ Request::is('assists*') ? 'active' : '' }}">
-    <a class="waves-effect waves-dark" href="{{route('assists.index')}}" aria-expanded="false"><i class="fas fa-clipboard-list"></i><span class="hide-menu">Asistencias</span></a>
-</li>
-
-
-<li class="{{ Request::is('matches*') ? 'active' : '' }}">
-    <a class="waves-effect waves-dark" href="{{route('matches.index')}}" aria-expanded="false"><i class="fas fa-futbol"></i><span class="hide-menu">C. Competencias</span></a>
-</li>
-
-
-
-
-

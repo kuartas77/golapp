@@ -1,4 +1,4 @@
-<div class="col-lg-3 col-xl-3 col-md-12 col-sm-12">
+<div class="col-md-2">
     <div class="card">
         <div class="card-body">
             <div class="text-center"><img src="{{$player->photo_url}}" class="img-fluid rounded img-thumbnail" alt="{{$player->full_names}}" />
@@ -20,10 +20,7 @@
 
             <hr>
             <div class="text-center">
-                <a href="{{$player->url_impression}}" class="btn waves-effect waves-light btn-rounded btn-info btn-block"><i class="far fa-file-pdf"></i> @lang('messages.print')</a>
-                @hasanyrole('super-admin|school')
                 <a href="{{$player->url_edit}}" class="btn waves-effect waves-light btn-rounded btn-outline-info btn-block"><i class="fas fa-pencil-alt"></i> @lang('messages.update_text')</a>
-                @endhasanyrole
             </div>
         </div>
     </div>

@@ -1,13 +1,14 @@
 <?php
 
-use App\Models\Payment;
-use App\Models\School;
 use Carbon\Carbon;
+use App\Models\School;
+use App\Models\Payment;
 use Carbon\CarbonPeriod;
+use App\Service\StopWatch;
+use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Str;
 
 if (!function_exists('getPay')) {
     /**
@@ -17,7 +18,7 @@ if (!function_exists('getPay')) {
     function getPay($value): string
     {
         $payments = config('variables.KEY_PAYMENTS_SELECT');
-        return array_key_exists($value, $payments) ? $payments[$value] : number_format((float)$value, 0);
+        return array_key_exists($value, $payments) ? $payments[$value] : number_format((float)$value);
     }
 }
 
@@ -34,7 +35,7 @@ if (!function_exists('getAmount')) {
 
 if (!function_exists('getEloquentSqlWithBindings')) {
     /**
-     * recibe un query sin ejecutar la consulta y forma el sql con los parametros
+     * get query with binding
      *
      * @param [type] $query
      * @return String
@@ -43,7 +44,7 @@ if (!function_exists('getEloquentSqlWithBindings')) {
     {
         return vsprintf(str_replace('?', '%s', $query->toSql()), collect($query->getBindings())->map(function ($binding) {
             $binding = addslashes($binding);
-            /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
             return is_numeric($binding) ? $binding : "'{$binding}'";
         })->toArray());
     }
@@ -53,7 +54,24 @@ if (!function_exists('checkAssists')) {
     function checkAssists($value): string
     {
         $assist = config('variables.KEY_ASSIST_LETTER');
-        return array_key_exists($value, $assist) ? $assist[$value] : '-';
+        $key = array_search($value, array_keys($assist));
+        return is_numeric($key) ? $assist[$value] : '-';
+    }
+}
+
+if (!function_exists('getMonthNumber')) {
+    function getMonthNumber($value)
+    {
+        if(!is_numeric($value)){
+            $months = config('variables.KEY_MONTHS_INDEX');
+            foreach ($months as $key => $month) {
+                if($month === $value){
+                    $value = $key;
+                    break;
+                }
+            }
+        }
+        return $value;
     }
 }
 
@@ -127,7 +145,7 @@ if (!function_exists('arrayDay')) {
             'day' => $date->day,
             'date' => $date->format('Y-m-d'),
             'name' => $date->getTranslatedDayName(),
-            'column' => numbersToLetters($count, true)
+            'column' => numbersToLetters($count)
         ];
     }
 }
@@ -144,8 +162,8 @@ if (!function_exists('numbersToLetters')) {
     {
         $formatter = NumberFormatter::create("en_CA", NumberFormatter::SPELLOUT);
         $numberFormat = str_replace('-', '_', $formatter->format(intval($number)));
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
+
+
         return $assist ? "assistance_{$numberFormat}" : "year_{$numberFormat}";
     }
 }
@@ -197,27 +215,31 @@ if (!function_exists('isInstructor')) {
 if (!function_exists('getSchool')) {
     function getSchool($user): School
     {
-        $data = null;
-        $school_id = Session::get('selected_school', 1);
-        /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
-        $key = School::KEY_SCHOOL_CACHE . "_admin_{$school_id}";
+        $prefixKey = isAdmin() ? 'admin.' : (isSchool() ? 'school.': '');
+
+        $school_id = Session::get("{$prefixKey}selected_school", 1);
+
+        $key = School::KEY_SCHOOL_CACHE . "_{$prefixKey}_{$school_id}";
         $ttl = now()->addMinutes(env('SESSION_LIFETIME', 120));
         $query = School::with(['settingsValues']);
 
-        if (isAdmin() && Cache::has($key)) {
+        if ((isAdmin() || isSchool()) && Cache::has($key)) {
             $data = Cache::get($key);
         } elseif (isAdmin() && !Cache::has($key)) {
             $data = Cache::remember(School::KEY_SCHOOL_CACHE . "_admin_1", $ttl, fn() => $query->first());
+        } elseif (isSchool() && !Cache::has($key)) {
+            $school_id = $user->school_id;
+            $data = Cache::remember(School::KEY_SCHOOL_CACHE . "_{$school_id}", $ttl, fn() => $query->firstWhere('id', $school_id));
         } else {
-            /** @noinspection PhpUnnecessaryCurlyVarSyntaxInspection */
-            $data = Cache::remember(School::KEY_SCHOOL_CACHE . "_{$user->school_id}", $ttl, fn() => $query->firstWhere('id', $user->school_id));
+            $school_id = $user->school_id;
+            $data = Cache::remember(School::KEY_SCHOOL_CACHE . "_{$school_id}", $ttl, fn() => $query->firstWhere('id', $school_id));
         }
         return $data;
     }
 }
 
 if (!function_exists('cleanString')) {
-    function cleanString($text)
+    function cleanString($text): string
     {
         $utf8 = array(
             '/[áàâãªä]/u' => 'a',
@@ -237,16 +259,16 @@ if (!function_exists('cleanString')) {
             '/–/' => '-', // UTF-8 hyphen to "normal" hyphen
             '/[’‘‹›‚]/u' => ' ', // Literally a single quote
             '/[“”«»„]/u' => ' ', // Double quote
-            '/ /' => ' ', // nonbreaking space (equiv. to 0x160)
+            '/ /' => ' ', // non breaking space (equiv. to 0x160)
         );
         return strtolower(preg_replace(array_keys($utf8), array_values($utf8), $text));
     }
 }
 
 if (!function_exists('randomPassword')) {
-    function randomPassword(int $length = 10)
+    function randomPassword(int $length = 10): string
     {
-        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890*.';
+        $alphabet = '#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890*.';
         $pass = array(); //remember to declare $pass as an array
         $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
         for ($i = 0; $i < $length; $i++) {
@@ -278,9 +300,45 @@ if (!function_exists('checkValueEnrollment')) {
         return $payment->$attribute == 0 && in_array($payment->$column, ['1', '9', '10']) ? $defaultValue : $payment->$attribute;
     }
 }
-//if (!function_exists('')){}
-//if (!function_exists('')){}
-//if (!function_exists('')){}
+if (!function_exists('checkEmail')){
+    function checkEmail($email): bool
+    {
+        return isset($email) && filter_var($email, FILTER_VALIDATE_EMAIL);
+    }
+}
+if (!function_exists('getIpToLog')){
+    function getIpToLog(): ?string
+    {
+        foreach (array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR') as $key){
+            if (array_key_exists($key, $_SERVER) === true){
+                foreach (explode(',', $_SERVER[$key]) as $ip){
+                    $ip = trim($ip); // just to be safe
+                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false){
+                        return $ip;
+                    }
+                }
+            }
+        }
+        return request()->ip(); // it will return the server IP if the client IP is not found using this method.
+    }
+}
+if (!function_exists('loggerTimeRequest')){
+    function loggerTimeRequest(StopWatch $stopWatch): void
+    {
+        if (env('APP_ENV') == 'local') {
+            logger()->info(
+                "req",
+                [
+                    'elapsed'=> $stopWatch->getTimeElapsed(),
+                    'url' => request()->fullUrl(),
+                    'ip_address' => getIpToLog(),
+                    'user_id' => (auth()->user() ? auth()->id() : 0),
+                ]
+            );
+        }
+    }
+}
+
 //if (!function_exists('')){}
 //if (!function_exists('')){}
 //if (!function_exists('')){}

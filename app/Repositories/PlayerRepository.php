@@ -4,20 +4,21 @@
 namespace App\Repositories;
 
 
-use App\Http\Requests\Player\PlayerCreateRequest;
-use App\Http\Requests\Player\PlayerUpdateRequest;
+use Exception;
+use Carbon\Carbon;
 use App\Models\Master;
 use App\Models\Player;
-use App\Notifications\RegisterPlayerNotification;
-use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
+use App\Traits\ErrorTrait;
 use App\Traits\UploadFile;
-use Carbon\Carbon;
-use Exception;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Maatwebsite\Excel\HeadingRowImport;
+use App\Service\Player\PlayerExportService;
+use Illuminate\Database\Eloquent\Collection;
+use App\Http\Requests\Player\PlayerCreateRequest;
+use App\Http\Requests\Player\PlayerUpdateRequest;
+use App\Notifications\RegisterPlayerNotification;
 
 class PlayerRepository
 {
@@ -34,11 +35,12 @@ class PlayerRepository
         return $this->model->query()->with(['people'])->schoolId()->get();
     }
 
-    public function createPlayer(PlayerCreateRequest $request): Player
+    public function createPlayer(PlayerCreateRequest $request): bool
     {
-
+        $result = false;
         try {
             $dataPlayer = $request->only($this->getAttributes());
+
             if ($file_name = $this->saveFile($request, 'player')) {
                 $dataPlayer['photo'] = $file_name;
             }
@@ -48,20 +50,24 @@ class PlayerRepository
 
             Master::saveAutoComplete($request->all());
             $player = $this->model->create($dataPlayer);
+
+            $dataPeople = $request->input('people', []);
+            throw_unless($dataPeople, Exception::class, 'not provide people data.');
+
             $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
             $player->people()->sync($peopleIds);
-            if ($player->email && filter_var($player->email, FILTER_VALIDATE_EMAIL)) {
-                $player->notify(new RegisterPlayerNotification($player));
-            }
+
+            !checkEmail($player->email) ?: $player->notify(new RegisterPlayerNotification($player));
 
             DB::commit();
 
-            return $player;
+            $result = true;
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("PlayerRepository@createPlayer", $exception);
-            return $this->model;
+            $result = false;
         }
+        return $result;
     }
 
     public function getAttributes(): array
@@ -95,8 +101,13 @@ class PlayerRepository
             DB::beginTransaction();
 
             Master::saveAutoComplete($dataPlayer);
-            $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
+            $dataPeople = $request->input('people', []);
+
+            throw_unless($dataPeople, Exception::class, 'not provide people data.');
+
+            $peopleIds = $this->peopleRepository->getPeopleIds($dataPeople);
             $player->people()->sync($peopleIds);
+
             $save = $player->update($dataPlayer);
 
             DB::commit();
@@ -113,6 +124,7 @@ class PlayerRepository
     {
         $player->load(['people', 'inscriptions' => fn($q) => $q->withTrashedRelations()]);
         $player->inscriptions->setAppends(['format_average']);
+        PlayerExportService::loadClassDays($player);
         return $player;
     }
 
@@ -145,10 +157,15 @@ class PlayerRepository
         return $this->model->query()->schoolId()->whereDoesntHave('inscription')->pluck('unique_code');
     }
 
+    public function getListPlayersWithInscription(bool $isTrashed = true)
+    {
+        return $this->model->query()->schoolId()->whereHas('inscription', fn($q) => $q->where('year', now()->year))->pluck('unique_code');
+    }
+
     public function birthdayToday(): Collection
     {
         $school_id = getSchool(auth()->user())->id;
-        return Cache::remember("BIRTHDAYS_{$school_id}", Carbon::now()->addDay(), function () {
+        return Cache::remember("BIRTHDAYS_{$school_id}", Carbon::now()->addDay()->startOfDay(), function () {
             return $this->model->query()->schoolId()->whereHas('inscription')
                 ->whereDay('date_birth', Carbon::now()->day)->whereMonth('date_birth', Carbon::now()->month)
                 ->get();
@@ -163,8 +180,8 @@ class PlayerRepository
         $headers_validation = collect([
             'fecha_de_nacimiento', 'numero_de_documento', 'nombres', 'apellidos', 'genero', 'lugar_de_nacimiento',
             'numero_de_documento', 'rh', 'escuela_o_colegio_donde_estudia', 'direccion_de_residencia', 'municipio',
-            'barrio', 'numero_de_telefono', 'correo_electronico', 'numero_de_celular', 'eps', 'nombres_y_apellidos',
-            'numero_de_celularr', 'numero_de_telefono', 'numero_de_celularr', 'profesion', 'empresa', 'cargo',
+            'barrio', 'correo_electronico', 'numero_de_celular', 'eps', 'nombres_y_apellidos',
+            'numero_de_telefono', 'profesion', 'empresa', 'cargo',
         ]);
         return $headers->diff($headers_validation)->implode(',');
     }

@@ -138,7 +138,7 @@ class Player extends Model
 
     public function inscriptions(): HasMany
     {
-        return $this->hasMany(Inscription::class);
+        return $this->hasMany(Inscription::class)->orderBy('year', 'desc');
     }
 
     public function people(): BelongsToMany

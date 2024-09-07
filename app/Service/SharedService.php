@@ -21,43 +21,65 @@ class SharedService
     public function paymentAssist(Inscription $inscription)
     {
         try {
-
-            $start_date = Date::parse($inscription->start_date);
-            $year = $start_date->year;
-            $month = getMonth($start_date->month);
-
-            $this->setData($inscription, $year, $month);
-
-            if ($inscription->wasRecentlyCreated) {
-                $value = $inscription->scholarship ? '8' : '0';
-                $this->dataPayment['january'] = $value;
-                $this->dataPayment['february'] = $value;
-                $this->dataPayment['march'] = $value;
-                $this->dataPayment['april'] = $value;
-                $this->dataPayment['may'] = $value;
-                $this->dataPayment['june'] = $value;
-                $this->dataPayment['july'] = $value;
-                $this->dataPayment['august'] = $value;
-                $this->dataPayment['september'] = $value;
-                $this->dataPayment['october'] = $value;
-                $this->dataPayment['november'] = $value;
-                $this->dataPayment['december'] = $value;
-
-                if ($start_date->month > 1) {
-                    $this->checkMonthValue($start_date->month, $value);
-                }
-            }
-
             DB::beginTransaction();
 
-            $this->createOrUpdatePaymentAssist($inscription);
+            $start_date = Date::parse($inscription->start_date);
+            if($inscription->wasRecentlyCreated){
 
-            $this->enableSkillControl($inscription);
+                if (!$inscription->training_group_id) {
+                    $trainingGroup = TrainingGroup::orderBy('id', 'asc')->firstWhere('school_id', $inscription->school_id);
+                    $inscription->training_group_id = $trainingGroup->id;
+                    $inscription->save();
+                }
 
-            if (!$inscription->training_group_id) {
-                $trainingGroup = TrainingGroup::orderBy('id', 'asc')->firstWhere('school_id', $inscription->school_id);
-                $inscription->training_group_id = $trainingGroup->id;
-                $inscription->save();
+                $paymentValue = $inscription->scholarship ? '8': '0';
+
+                $dataPayment = [
+                    'inscription_id' => $inscription->id,
+                    'year' => $start_date->year,
+                    'training_group_id' => $inscription->training_group_id,
+                    'school_id' => $inscription->school_id,
+                    'unique_code' => $inscription->unique_code,
+                    'january' => $paymentValue,
+                    'february' => $paymentValue,
+                    'march' => $paymentValue,
+                    'april' => $paymentValue,
+                    'may' => $paymentValue,
+                    'june' => $paymentValue,
+                    'july' => $paymentValue,
+                    'august' => $paymentValue,
+                    'september' => $paymentValue,
+                    'october' => $paymentValue,
+                    'november' => $paymentValue,
+                    'december' => $paymentValue,
+                ];
+
+                if ($start_date->month > 1) {
+                    $this->checkMonthValue($start_date->month, $paymentValue, $dataPayment);
+                }
+
+                $assistance = [
+                    'training_group_id' => $inscription->training_group_id,
+                    'year' => $start_date->year,
+                    'month' => $start_date->month,
+                    'school_id' => $inscription->school_id
+                ];
+
+                $inscription->payments()->create($dataPayment);
+
+                $inscription->assistance()->create($assistance);
+
+            }else{
+                if($inscription->isDirty('training_group_id')){
+
+                    $dataToUpdate = ['training_group_id' => $inscription->training_group_id, 'deleted_at' => null];
+
+                    $inscription->payments()->withTrashed()->where('year', $start_date->year)->update($dataToUpdate);
+
+                    $inscription->assistance()->withTrashed()->where('year', $start_date->year)->update($dataToUpdate);
+
+                    $this->enableSkillControl($inscription);
+                }
             }
 
             DB::commit();
@@ -69,56 +91,13 @@ class SharedService
 
     }
 
-    private function setData($inscription, $year, $month)
-    {
-        $this->searchPayment = [
-            'inscription_id' => $inscription->id,
-            'year' => $year,
-            'school_id' => $inscription->school_id
-        ];
 
-        $this->searchAssist = [
-            'inscription_id' => $inscription->id,
-            'year' => $year,
-            'month' => $month,
-        ];
-
-        $this->dataPayment = [
-            'inscription_id' => $inscription->id,
-            'year' => $year,
-            'training_group_id' => $inscription->training_group_id,
-            'unique_code' => $inscription->unique_code,
-            'deleted_at' => null,
-            'school_id' => $inscription->school_id
-        ];
-
-        $this->dataAssist = [
-            'training_group_id' => $inscription->training_group_id,
-            'year' => $year,
-            'month' => $month,
-            'deleted_at' => null
-        ];
-    }
-
-    private function checkMonthValue(int $actualMonth, $value)
+    private function checkMonthValue(int $actualMonth, $value, &$dataPayment)
     {
         $configMonths = config('variables.KEY_INDEX_MONTHS');
         foreach (range(1, $actualMonth) as $numMonth) {
-            $this->dataPayment[$configMonths[$numMonth]] = ($actualMonth == $numMonth) ? $value : '14'; //No aplica
+            $dataPayment[$configMonths[$numMonth]] = ($actualMonth == $numMonth) ? $value : '14'; //No aplica
         }
-    }
-
-    private function createOrUpdatePaymentAssist($inscription)
-    {
-        $inscription->payments()->withTrashed()->updateOrCreate(
-            $this->searchPayment,
-            $this->dataPayment
-        );
-
-        $inscription->assistance()->withTrashed()->updateOrCreate(
-            $this->searchAssist,
-            $this->dataAssist
-        );
     }
 
     private function enableSkillControl($inscription)
@@ -139,15 +118,8 @@ class SharedService
             $inscription = Inscription::query()->findOrFail($inscription_id);
 
             if (!is_null($target_group)) {
-                $date = now();
-                $year = $date->year;
-                $month = getMonth($date->month);
-
-                $this->setData($inscription, $year, $month);
 
                 DB::beginTransaction();
-
-                $this->createOrUpdatePaymentAssist($inscription);
 
                 $state = $inscription->update(['training_group_id' => $target_group]);
 

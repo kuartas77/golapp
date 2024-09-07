@@ -11,10 +11,10 @@
         <testsuite name="Feature">
             <directory suffix="Test.php">./tests/Feature</directory>
         </testsuite>
-            <testsuite name="sys">
+        <!-- <testsuite name="sys">
             <file>./tests/Feature/PlayersTest.php</file>
             <file>./tests/Feature/InscriptionsTest.php</file>
-        </testsuite>
+        </testsuite> -->
     </testsuites>
     <coverage processUncoveredFiles="true">
         <include>

@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
-use App\Observers\InscriptionObserver;
 use App\Traits\GeneralScopes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\CustomModelLogic;
 use Illuminate\Support\Collection;
+use App\Observers\InscriptionObserver;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property mixed player_id
@@ -43,6 +44,7 @@ class Inscription extends Model
     use SoftDeletes;
     use GeneralScopes;
     use HasFactory;
+    use CustomModelLogic;
 
     protected $table = "inscriptions";
 
@@ -80,7 +82,7 @@ class Inscription extends Model
         'created_at' => "datetime:Y-m-d",
     ];
 
-    //protected $appends = ['url_edit','url_update','url_show', 'url_impression'];
+    protected $appends = ['url_edit','url_update','url_show', 'url_impression', 'url_destroy'];
 
     protected static function booted()
     {
@@ -101,7 +103,7 @@ class Inscription extends Model
     {
         return $query->withTrashed()->with([
             'payments' => fn($query) => $query->withTrashed(),
-            'assistance' => fn($query) => $query->withTrashed(),
+            'assistance' => fn($query) => $query->orderByRaw("MONTH(CONCAT('2000-', assists.month, '-01')) asc")->withTrashed(),
             'skillsControls' => fn($query) => $query->withTrashed()
         ]);
     }

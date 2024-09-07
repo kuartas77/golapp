@@ -18,7 +18,7 @@ trait WithPlayer
             'identification_document' => '1017170333',
             'rh' => 'O+',
             'eps' => 'Sura',
-            'email' => 'teste@gmail.com',
+            'email' => 'kuartas77@gmail.com',
             'address' => 'calle falsa 123',
             'municipality' => 'Medellin',
             'neighborhood' => 'Robledo, Pilarica',

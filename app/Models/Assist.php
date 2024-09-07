@@ -107,4 +107,13 @@ class Assist extends Model
             ->where('training_group_id', $this->attributes['training_group_id'])
             ->get()->implode('month', ', ');
     }
+
+    public function getMonthAttribute():string
+    {
+        $value = $this->attributes['month'];
+        $months = config('variables.KEY_MONTHS_INDEX');
+        $keyMonths = config('variables.KEY_MONTHS');
+        $key = array_search($value, array_keys($months));
+        return is_numeric($key) ? $months[$value] : $keyMonths[$value];
+    }
 }

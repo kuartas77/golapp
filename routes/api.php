@@ -13,20 +13,19 @@ use App\Http\Controllers\API\Instructor\AssistsController;
 Route::post('login', [LoginController::class, 'login']);
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
-    return $request->user();
+    return $request->user()->load(['profile', 'school']);
 });
 
-Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum'])->name('v1.')->group(function ($route){
+Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum'])->name('v1.')->group(function (){
 
-    $route->post('register', [RegisterController::class, 'register']);
-    $route->apiResource('users', UserController::class);
-    $route->apiResource('inscriptions', InscriptionController::class);
-    $route->apiResource('schools', SchoolController::class);
+    Route::post('register', [RegisterController::class, 'register']);
+    Route::apiResource('users', UserController::class);
+    Route::apiResource('inscriptions', InscriptionController::class);
+    Route::apiResource('schools', SchoolController::class);
 });
 
-Route::prefix('instructor')->name('instructor.')->middleware(['auth:sanctum'])->group(function ($route){
+Route::prefix('instructor')->name('instructor.')->middleware(['auth:sanctum'])->group(function (){
 
-    $route->get('training_groups', [GroupsController::class, 'getTrainingGroups']);
-    $route->get('training_group/{id}', [GroupsController::class, 'getTrainingGroup']);
-    $route->apiResource('assists', AssistsController::class);
+    Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']])->middleware('ability:group-index');
+    Route::apiResource('assists', AssistsController::class, ['only' => ['index', 'update']])->middleware('abilities:assists-index,assists-update');
 });

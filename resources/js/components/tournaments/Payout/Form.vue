@@ -74,8 +74,8 @@ export default {
         onMounted(loadTournaments)
 
         return {
-            tournaments,
             groups,
+            tournaments,
             loadGroups,
             loadTournaments
         }
@@ -103,7 +103,7 @@ export default {
                 this.groups = []
                 this.form.competition_group_id = ""
                 return
-            } 
+            }
             this.loadGroups(newVal)
         }
     },

@@ -14,14 +14,8 @@ use Illuminate\View\View;
 
 class PlayerController extends Controller
 {
-    /**
-     * @var PlayerRepository
-     */
-    private PlayerRepository $repository;
-
-    public function __construct(PlayerRepository $repository)
+    public function __construct(private PlayerRepository $repository)
     {
-        $this->repository = $repository;
     }
 
     /**
@@ -51,13 +45,14 @@ class PlayerController extends Controller
     {
         abort_unless(isAdmin() || isSchool(), 404);
         $player = $this->repository->createPlayer($request);
-        if (!$player->wasRecentlyCreated) {
-            alert()->error(env('APP_NAME'), __('messages.error_general'));
-            return back()->withInput($request->input());
+
+        if($player){
+            alert()->success(env('APP_NAME'), __('messages.player_created'));
+            return redirect()->to(route('players.index'));
         }
 
-        alert()->success(env('APP_NAME'), __('messages.player_created'));
-        return redirect()->to(route('players.index'));
+        alert()->error(env('APP_NAME'), __('messages.error_general'));
+        return back()->withInput($request->input());
     }
 
     /**

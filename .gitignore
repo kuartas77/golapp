@@ -14,7 +14,7 @@ npm-debug.log
 yarn-error.log
 package-lock.json
 /.idea
-
+/.vscode
 /public/materialpro
 *.zip
 /nginx/logs/*

@@ -76,7 +76,7 @@ class TrainingGroup extends Model
         'instructors_ids'
     ];
 
-    protected static function booted()
+    protected static function booted(): void
     {
         self::observe(TrainingGroupObserver::class);
     }
@@ -133,7 +133,7 @@ class TrainingGroup extends Model
         if ($full) {
             $var .= trim("{$this->days} {$this->schedules}");
         }
-        return $var;
+        return trim($var);
     }
 
     public function getFullScheduleGroupAttribute(): string
@@ -179,17 +179,17 @@ class TrainingGroup extends Model
 
     public function getCategoryAttribute()
     {
-        return explode(',', $this->attributes['category']);
+        return explode(',', ($this->attributes['category'] ?? ''));
     }
 
     public function getExplodeDaysAttribute()
     {
-        return explode(',', $this->attributes['days']);
+        return explode(',', ($this->attributes['days'] ?? ''));
     }
 
     public function getExplodeSchedulesAttribute()
     {
-        return explode(',', $this->attributes['schedules']);
+        return explode(',', ($this->attributes['schedules'] ?? ''));
     }
 
     public function getInstructorsNamesAttribute()

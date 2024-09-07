@@ -18,11 +18,11 @@ const addSchedule = () => {
 }
 
 function removeSchedule(item) {
-    
+
     if(schedule_current >= 2){
         schedule_current--;
     }
-    
+
     if($(`input[name="schedule[${item}][id]"]`).val() !== ''){
         $(`#schedule-${item}`).addClass('hide')
         $(`#schedule-button-${item}`).addClass('hide')
@@ -31,7 +31,7 @@ function removeSchedule(item) {
         $(`#schedule-${item}`).remove()
         $(`#schedule-button-${item}`).remove()
     }
-    
+
 }
 
 const template = (item, id = "", schedule = "") => {
@@ -54,7 +54,7 @@ const template = (item, id = "", schedule = "") => {
         button +
         '     </div>' +
         '</div>';
-    
+
 
 }
 

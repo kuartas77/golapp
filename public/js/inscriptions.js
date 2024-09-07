@@ -65,17 +65,61 @@ const validateCheck = (value) => {
     return value !== 1 ? '<span class="label label-warning">NO</span>' : '<span class="label label-success">SI</span>';
 }
 
-function filterTable() {
-    // Apply the search
-    let column = this.api().columns(11);
-    $("<input type='search' class='' placeholder='Buscar Categoría' />")
+function addSelectTraining(column){
+    let select = $('<select><option value="">Seleccione Grupo de entrenamiento...</option></select>')
         .appendTo($(column.header()).empty())
-        .on('keyup change search', function () {
-            if (column.search() !== this.value) {
-                column.search(this.value)
-                    .draw();
+        .on('change', function () {
+            let val = $.fn.dataTable.util.escapeRegex(
+                $(this).val()
+            );
+
+            column
+                .search(val ? '^' + val + '$' : '', true, false)
+                .draw();
+        });
+
+        groups.forEach(function (d, j) {
+            if (column.search() === '^' + d + '$') {
+                select.append('<option value="' + d + '" selected="selected">' + d + '</option>')
+            } else {
+                select.append('<option value="' + d.id + '">' + d.name + '</option>')
             }
         });
+}
+function addSelectCategory(column){
+    let select = $('<select><option value="">Seleccione una categoria...</option></select>')
+        .appendTo($(column.header()).empty())
+        .on('change', function () {
+            let val = $.fn.dataTable.util.escapeRegex(
+                $(this).val()
+            );
+
+            column
+                .search(val ? '^' + val + '$' : '', true, false)
+                .draw();
+        });
+
+        categories.forEach(function (d, j) {
+            if (column.search() === '^' + d + '$') {
+                select.append('<option value="' + d + '" selected="selected">' + d + '</option>')
+            } else {
+                select.append('<option value="' + d.category + '">' + d.category + '</option>')
+            }
+        });
+}
+
+function filterTable() {
+
+    // Apply the search
+    this.api().columns([11]).every(function () {
+        let column = this;
+        addSelectCategory(column)
+    });
+
+    this.api().columns([7]).every(function () {
+        let column = this;
+        addSelectTraining(column)
+    });
 
     let start_date = this.api().columns(10);
     $("<input type='search' class='' placeholder='Buscar F.Inicio' />")
@@ -103,10 +147,10 @@ const columns = [
     },
     {data: 'unique_code'},//2
     {data: 'player.identification_document'},//3
-    {data: 'player.full_names'},//4
+    {data: 'player.full_names', name :'player.last_names'},//4
     {data: 'player.date_birth'},//5
     {data: 'player.gender'},//6
-    {data: 'training_group.name'},//7
+    {data: 'training_group.name', name: 'training_group_id'},//7
     {
         data: 'medic_certificate', "render": function (data) {
             return data === 1 ? '<span class="label label-success">SI</span>' : '<span class="label label-warning">NO</span>';
@@ -159,22 +203,22 @@ const columnsDelete = [
     {data: 'category', name: 'category', "className": 'text-center'},//9
 ];
 const columnDefs = [
-    {"searchable": false, "targets": [0, 1, 6, 8, 9, 12]},
-    {"orderable": false, "targets": [0, 1, 6, 10, 11, 12]},
-    {"width": "1%" , "targets": [10, 11] }
+    {"targets": [2,3,4,7,11], "searchable": true},
+    {"targets": [0, 1, 6, 7, 8, 10, 11, 12], "orderable": false},
+    {"targets": [7, 10, 11], "width": "1%" }
 
 ];
 
 $(document).ready(function () {
 
     const active_table = $('#active_table').DataTable({
-        "ordering": false,
-        "pageLength": 10,
+        "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
+        "order": [[2, "desc"]],
         "scrollX": true,
         "scrollY":"550px",
         "scrollCollapse":true,
-        "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
-        "order": [[2, "desc"]],
+        "processing": true,
+        "serverSide": true,
         "deferRender": true,
         "fixedColumns": true,
         "columns": columns,
@@ -187,13 +231,13 @@ $(document).ready(function () {
     });
 
     const inactive_table = $('#inactive_table').DataTable({
-        "ordering": false,
-        "pageLength": 10,
+        "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
+        "order": [[2, "desc"]],
         "scrollX": true,
         "scrollY":"550px",
         "scrollCollapse":true,
-        "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
-        "order": [[2, "desc"]],
+        "processing": true,
+        "serverSide": true,
         "deferRender": true,
         "fixedColumns": true,
         "columns": columnsDelete,

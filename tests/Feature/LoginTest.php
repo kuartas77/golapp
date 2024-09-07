@@ -79,4 +79,27 @@ class LoginTest extends TestCase
         $response->assertStatus(302);
         $response->assertRedirect('/home');
     }
+
+    public function testLogout()
+    {
+        list( , $this->user) = $this->createSchoolAndUser(roles: [User::SUPER_ADMIN]);
+
+        $this->actingAs($this->user);
+
+        $response = $this->post(route('logout') );
+
+        $response->assertStatus(302);
+        $response->assertRedirect('/');
+    }
+
+    public function testLogoutJson()
+    {
+        list( , $this->user) = $this->createSchoolAndUser(roles: [User::SUPER_ADMIN]);
+
+        $this->actingAs($this->user);
+
+        $response = $this->post(route('logout'), [], ['Content-Type'=>'application/json', 'Accept' => 'application/json'] );
+
+        $response->assertStatus(204);
+    }
 }

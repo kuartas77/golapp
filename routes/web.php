@@ -5,6 +5,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\Reports\ReportAssistsController;
+use App\Http\Controllers\Reports\ReportPaymentController;
+use App\Http\Controllers\Payments\TournamentPayoutsController;
+use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
@@ -14,10 +18,11 @@ use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupCo
 
 Auth::routes(['register' => false, 'verify' => false]);
 
+Route::get('/', fn() => redirect('login'));
 Route::middleware([])->group(function () {
-    Route::get('/', [PublicController::class, 'index'])->name('public');
-    Route::get('escuela/{school}', [PublicController::class, 'show'])->name('public.school.show');
-    Route::get('img/public/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('public.images');
+    // Route::get('/', [PublicController::class, 'index'])->name('public');
+    // Route::get('escuela/{school}', [PublicController::class, 'show'])->name('public.school.show');
+    // Route::get('img/public/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('public.images');
 });
 
 Route::middleware(['auth', 'verified_school'])->group(function () {
@@ -35,6 +40,8 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::resource("matches", GameController::class)->except(['show']);
     Route::resource("players", PlayerController::class);
     Route::resource("tournamentpayout", TournamentPayoutsController::class)->only(['index', 'store', 'update']);
+
+    Route::resource("training-sessions", TrainingSessionsController::class)->only(['index', 'create', 'store']);
 
     Route::prefix('import')->group(function(){
         Route::post('matches/{competition_group}', [ImportController::class, 'importMatchDetail'])->name('import.match');
@@ -83,6 +90,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('competition_groups_retired', [DataTableController::class, 'disabledCompetitionGroups'])->name('competition_groups.retired');
         Route::get('schedules_enabled', [DataTableController::class, 'enabledSchedules'])->name('schedules.enabled');
         Route::get('players_enabled', [DataTableController::class, 'enabledPlayers'])->name('players.enabled');
+        Route::get('training_sessions_enabled', [DataTableController::class, 'trainingSessions'])->name('training_sessions.enabled');
     });
 
     Route::prefix('export')->name('export.')->group(function () {
@@ -100,6 +108,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('matches/create/{competition_group}/format', [ExportController::class, 'exportMatchDetail'])->name('match_detail');
         Route::get('tournament/payouts/excel', [ExportController::class, 'exportTournamentPayoutsExcel'])->name('tournaments.payouts.excel');
         Route::get('tournament/payouts/pdf', [ExportController::class, 'exportTournamentPayoutsPDF'])->name('tournaments.payouts.pdf');
+        Route::get('training_sessions/pdf/{id}', [ExportController::class, 'exportTrainingSession'])->name('training_sessions.pdf');
     });
 
     Route::prefix('historic')->name('historic.')->group(function () {
@@ -109,12 +118,22 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('payments/{training_group_id}/{year}/{month?}', [HistoricController::class, 'paymentsGroup'])->name('payments.group');
     });
 
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('assists', [ReportAssistsController::class, 'index'])->name('assists');
+        Route::post('assists', [ReportAssistsController::class, 'report'])->name('assists.report');
+        Route::get('payments', [ReportPaymentController::class, 'index'])->name('payments');
+        Route::post('payments', [ReportPaymentController::class, 'report'])->name('payments.report');
+    });
+
     Route::prefix('autocomplete')->group(function () {
         Route::get('autocomplete', [MasterController::class, 'autoComplete'])->name('autocomplete.fields');
         Route::get('identification_document_exists', [MasterController::class, 'existDocument'])->name('autocomplete.document_exists');
         Route::get('code_unique_verify', [MasterController::class, 'codeUniqueVerify'])->name('autocomplete.verify_code');
         Route::get('list_code_unique', [MasterController::class, 'listUniqueCode'])->name('autocomplete.list_code_unique');
+        Route::get('list_code_unique_inscription', [MasterController::class, 'listUniqueCodeWithInscription'])->name('autocomplete.list_code_unique_inscription');
         Route::get('search_unique_code', [MasterController::class, 'searchUniqueCode'])->name('autocomplete.search_unique_code');
         Route::get('competition_groups', [MasterController::class, 'competitionGroupsByTournament'])->name('autocomplete.competition_groups');
+
+        Route::get('tournaments', [MasterController::class, 'tournamentsBySchool'])->name('autocomplete.tournaments');
     });
 });
