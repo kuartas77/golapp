@@ -33,7 +33,7 @@ class PlayerExportService
             'schoolData',
             'inscriptions' => fn($q) => $q->where('id', $inscription_id)->with([
                 'trainingGroup',
-                'assistance' => fn($q) => $q->when($months, fn($q) => $q->whereIn('month', $months)),
+                'assistance' => fn($q) => $q->when($months, fn($q) => $q->whereIn('month', $months))->orderByRaw("MONTH(CONCAT('2000-', assists.month, '-01')) asc"),
                 'payments',
                 'skillsControls' => fn($q) => $q->when(($from && $to), fn($q) => $q->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to))
             ])
@@ -143,5 +143,19 @@ class PlayerExportService
         $collection['disabled'] = $playersDisabled;
 
         return $collection;
+    }
+
+    public static function loadClassDays(&$player)
+    {
+        $months_ = config('variables.KEY_MONTHS_INDEX');
+        $player->inscriptions->each(function ($inscription) use ($months_) {
+            foreach ($inscription->assistance as $assistance) {
+                $assistance->classDays = classDays(
+                    $assistance->year,
+                    array_search($assistance->month, $months_, true),
+                    array_map('dayToNumber', $inscription->trainingGroup->explode_name['days'])
+                );
+            }
+        });
     }
 }

@@ -121,26 +121,19 @@ class InscriptionRepository
     /**
      * @return Builder[]|Collection
      */
-    public function getInscriptionsEnabled(): Collection|array
+    public function getInscriptionsEnabled()
     {
-        $inscriptions = $this->model->with(['player.people', 'trainingGroup'])
-            ->inscriptionYear(request('inscription_year'))->schoolId()->get();
-        if ($inscriptions->isNotEmpty()) {
-            $inscriptions->setAppends(['url_edit', 'url_update', 'url_show', 'url_impression', 'url_destroy']);
-        }
-        return $inscriptions;
+        return $this->model->with(['player.people', 'trainingGroup' => fn($q) => $q->withTrashed()])
+            ->inscriptionYear(request('inscription_year'))->schoolId();
     }
 
     /**
      * @return Builder[]|Collection
      */
-    public function getInscriptionsDisabled(): Collection|array
+    public function getInscriptionsDisabled()
     {
-        // if ($inscriptions->isNotEmpty()) {
-        //     $inscriptions->setAppends(['url_edit', 'url_update', 'url_show', 'url_impression', 'url_destroy']);
-        // }
         return $this->model->with(['player.people', 'trainingGroup'])
-            ->inscriptionYear(request('inscription_year'))->schoolId()->onlyTrashed()->get();
+            ->inscriptionYear(request('inscription_year'))->schoolId()->onlyTrashed();
     }
 
     public function searchInscriptionCompetition(array $fields)
@@ -215,8 +208,6 @@ class InscriptionRepository
                     'scholarship' => $inscription->scholarship,
                     'training_group_id' => $training_group_id
                 ];
-
-                $this->setInscription($inscriptionData, true);
         }
     }
 

@@ -179,17 +179,17 @@ class TrainingGroup extends Model
 
     public function getCategoryAttribute()
     {
-        return explode(',', $this->attributes['category']);
+        return explode(',', ($this->attributes['category'] ?? ''));
     }
 
     public function getExplodeDaysAttribute()
     {
-        return explode(',', $this->attributes['days']);
+        return explode(',', ($this->attributes['days'] ?? ''));
     }
 
     public function getExplodeSchedulesAttribute()
     {
-        return explode(',', $this->attributes['schedules']);
+        return explode(',', ($this->attributes['schedules'] ?? ''));
     }
 
     public function getInstructorsNamesAttribute()

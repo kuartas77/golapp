@@ -8,6 +8,8 @@ use Closure;
 use App\Models\School;
 use App\Traits\Commons;
 use App\Models\Inscription;
+use App\Models\TrainingGroup;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -58,17 +60,25 @@ class InscriptionCreateComposer
                 return config('variables.KEY_RELATIONSHIPS_SELECT');
             });
 
-            $training_groups = Cache::remember("KEY_TRAINING_GROUPS_{$school_id}", now()->addDay(), function () {
+            $training_groups = Cache::remember("KEY_TRAINING_GROUPS_{$school_id}", now()->addMinutes(5), function () {
                 $filter = Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);
                 return $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, filter: $filter);
             });
 
-            $competition_groups = Cache::remember("KEY_COMPETITION_GROUPS_{$school_id}", now()->addDay(), function () {
+            $competition_groups = Cache::remember("KEY_COMPETITION_GROUPS_{$school_id}", now()->addMinutes(5), function () {
                 return $this->competitionGroupRepository->getListGroupFullName();
             });
 
-            $inscription_years = Cache::remember("KEY_INSCRIPTION_YEARS_{$school_id}", now()->addDay(), function () {
+            $inscription_years = Cache::remember("KEY_INSCRIPTION_YEARS_{$school_id}", now()->addMinutes(5), function () {
                 return Inscription::query()->distinct('year')->orderBy('year')->pluck('year', 'year');
+            });
+
+            $categories = Cache::remember("KEY_CATEGORIES_SELECT_{$school_id}", now()->addMinutes(5), function() use($school_id){
+                return DB::table('inscriptions')->where('school_id', $school_id)->orderBy('category')->groupBy('category')->select(['category'])->get();
+            });
+
+            $training_groups_arr = Cache::remember("KEY_TRAINING_GROUPS_ARR_{$school_id}", now()->addMinutes(5), function () {
+                return TrainingGroup::schoolId()->select(['id', 'name'])->get();
             });
 
             $schools = [];
@@ -80,12 +90,14 @@ class InscriptionCreateComposer
             $view->with('genders', $genders);
             $view->with('averages', $averages);
             $view->with('positions', $positions);
+            $view->with('categories', $categories);
             $view->with('blood_types', $blood_types);
             $view->with('relationships', $relationships);
             $view->with('training_groups', $training_groups);
             $view->with('dominant_profile', $dominant_profile);
             $view->with('inscription_years', $inscription_years);
             $view->with('competition_groups', $competition_groups);
+            $view->with('training_groups_arr', $training_groups_arr);
         }
     }
 

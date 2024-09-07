@@ -39,6 +39,8 @@ class CreatePlayersTable extends Migration
             $table->string('email');
             $table->string('mobile');
             $table->string('eps')->nullable();
+            $table->string('password');
+            $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();
         });

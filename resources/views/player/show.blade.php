@@ -6,6 +6,7 @@
 
         @include('player.show.card_person')
         @include('player.show.card_info')
+        @include('player.show.card_inscriptions')
 
     </div>
 

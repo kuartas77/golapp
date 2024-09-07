@@ -1,4 +1,4 @@
-<div class="col-xl-9 col-lg-9 col-md-12 col-sm-12">
+<div class="col-md-6">
 
     <div class="card">
         <div class="card-header">
@@ -9,9 +9,9 @@
                 <li class="nav-item">
                     <a class="nav-link" data-toggle="tab" href="#family" role="tab">Información Familiar</a>
                 </li>
-                <li class="nav-item ml-auto card-actions">
+                <!-- <li class="nav-item ml-auto card-actions">
                     <a class="nav-link" data-action="collapse" data-toggle="tooltip" data-placement="left" title="Click acá"><i class="ti-plus"></i></a>
-                </li>
+                </li> -->
             </ul>
 
         </div>
@@ -23,20 +23,20 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="row">
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <strong><i class="fas fa-hospital-alt margin-r-5"></i> EPS</strong>
                                         <ul class="small-list">
                                             <li>{{ $player->eps }}</li>
                                         </ul>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <strong><i class="fa fa-phone margin-r-5"></i> Teléfonos</strong>
                                         <ul class="small-list">
                                             <li>Fijo: {{ $player->phones }}</li>
                                             <li>Movil: {{ $player->mobile }}</li>
                                         </ul>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <strong><i class="fa fa-envelope margin-r-5"></i> Correo</strong>
                                         <ul class="small-list">
                                             <li>{{ $player->email }}</li>
@@ -45,14 +45,14 @@
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <strong><i class="fa fa-book margin-r-5"></i> Instituto/Colegio/Escuela</strong>
                                         <ul class="small-list">
                                             <li>{{ $player->school }}</li>
                                             <li>Grado: {{ $player->degree }}</li>
                                         </ul>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <strong><i class="fa fa-map-marker margin-r-5"></i> Dirección</strong>
                                         <ul class="small-list">
                                             <li>{{ $player->address }}</li>
@@ -97,6 +97,17 @@
         </div>
     </div>
 
-    @include('player.show.actual_inscription',[$player->inscriptions])
+    @if($player->inscriptions->isNotEmpty())
+    <div class="card m-b-1">
+        <div class="card-body">
+            <div class="row no-gutters">
+                @foreach($player->inscriptions as $inscription)
 
+                <a class="btn btn-info m-1" href="{{route('export.inscription', [$inscription->player_id, $inscription->id])}}" target="_blank" role="tab">Informe {{$inscription->year}}</a>
+
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

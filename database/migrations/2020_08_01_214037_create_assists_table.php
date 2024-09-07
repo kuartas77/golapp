@@ -18,7 +18,7 @@ class CreateAssistsTable extends Migration
             $table->unsignedBigInteger('training_group_id');
             $table->unsignedBigInteger('inscription_id');
             $table->year('year');
-            $table->char('month',20);
+            $table->char('month',2);
             $table->char('assistance_one', 5)->nullable();
             $table->char('assistance_two', 5)->nullable();
             $table->char('assistance_three', 5)->nullable();

@@ -34,7 +34,7 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->collection($this->inscriptionRepository->getInscriptionsEnabled())->toJson();
+        return datatables()->of($this->inscriptionRepository->getInscriptionsEnabled())->toJson();
     }
 
     /**
@@ -45,7 +45,7 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->collection($this->inscriptionRepository->getInscriptionsDisabled())->toJson();
+        return datatables()->of($this->inscriptionRepository->getInscriptionsDisabled())->toJson();
     }
 
     /**

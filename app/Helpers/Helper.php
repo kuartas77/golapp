@@ -54,7 +54,24 @@ if (!function_exists('checkAssists')) {
     function checkAssists($value): string
     {
         $assist = config('variables.KEY_ASSIST_LETTER');
-        return array_key_exists($value, $assist) ? $assist[$value] : '-';
+        $key = array_search($value, array_keys($assist));
+        return is_numeric($key) ? $assist[$value] : '-';
+    }
+}
+
+if (!function_exists('getMonthNumber')) {
+    function getMonthNumber($value)
+    {
+        if(!is_numeric($value)){
+            $months = config('variables.KEY_MONTHS_INDEX');
+            foreach ($months as $key => $month) {
+                if($month === $value){
+                    $value = $key;
+                    break;
+                }
+            }
+        }
+        return $value;
     }
 }
 
@@ -321,6 +338,7 @@ if (!function_exists('loggerTimeRequest')){
         }
     }
 }
+
 //if (!function_exists('')){}
 //if (!function_exists('')){}
 //if (!function_exists('')){}

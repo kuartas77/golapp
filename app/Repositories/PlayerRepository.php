@@ -4,20 +4,21 @@
 namespace App\Repositories;
 
 
-use App\Http\Requests\Player\PlayerCreateRequest;
-use App\Http\Requests\Player\PlayerUpdateRequest;
+use Exception;
+use Carbon\Carbon;
 use App\Models\Master;
 use App\Models\Player;
-use App\Notifications\RegisterPlayerNotification;
-use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
+use App\Traits\ErrorTrait;
 use App\Traits\UploadFile;
-use Carbon\Carbon;
-use Exception;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Maatwebsite\Excel\HeadingRowImport;
+use App\Service\Player\PlayerExportService;
+use Illuminate\Database\Eloquent\Collection;
+use App\Http\Requests\Player\PlayerCreateRequest;
+use App\Http\Requests\Player\PlayerUpdateRequest;
+use App\Notifications\RegisterPlayerNotification;
 
 class PlayerRepository
 {
@@ -123,6 +124,7 @@ class PlayerRepository
     {
         $player->load(['people', 'inscriptions' => fn($q) => $q->withTrashedRelations()]);
         $player->inscriptions->setAppends(['format_average']);
+        PlayerExportService::loadClassDays($player);
         return $player;
     }
 
@@ -163,7 +165,7 @@ class PlayerRepository
     public function birthdayToday(): Collection
     {
         $school_id = getSchool(auth()->user())->id;
-        return Cache::remember("BIRTHDAYS_{$school_id}", Carbon::now()->addDay(), function () {
+        return Cache::remember("BIRTHDAYS_{$school_id}", Carbon::now()->addDay()->startOfDay(), function () {
             return $this->model->query()->schoolId()->whereHas('inscription')
                 ->whereDay('date_birth', Carbon::now()->day)->whereMonth('date_birth', Carbon::now()->month)
                 ->get();
