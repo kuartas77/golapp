@@ -35,6 +35,13 @@ trait WithPlayer
                     "names" => "CRISTINA VANEGAS",
                     "identification_card" => "3015614556",
                     "phone" => "5961994"
+                ],
+                [
+                    "tutor" => "false",
+                    "relationship" => "",
+                    "names" => "",
+                    "identification_card" => "",
+                    "phone" => ""
                 ]
             ]
         ];
