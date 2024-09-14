@@ -41,6 +41,15 @@ class GolAppProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->loggerQueries();
+
+        $this->macros();
+
+        $this->viewComposers();
+    }
+
+    private function loggerQueries()
+    {
         if (env('APP_ENV', null) == 'local') {
             DB::listen(function ($query) {
                 foreach ($query->bindings as $key => $binding) {
@@ -51,7 +60,10 @@ class GolAppProvider extends ServiceProvider
                 logger()->info(Str::replaceArray('?', $query->bindings, $query->sql));
             });
         }
+    }
 
+    private function macros()
+    {
         Collection::macro('setAppends', function ($attributes) {
             return $this->map(function ($item) use ($attributes) {
                 return $item->setAppends($attributes);
@@ -69,7 +81,10 @@ class GolAppProvider extends ServiceProvider
                 return $item;
             });
         });
+    }
 
+    private function viewComposers()
+    {
         View::composer([
             'inscription.index',
             'inscription.create',
@@ -103,7 +118,7 @@ class GolAppProvider extends ServiceProvider
 
         View::composer(['templates.*'], TemplatesComposer::class);
 
-        View::composer(['*.*'], AdminComposer::class);
+        View::composer(['components.*', 'layouts.topbar'], AdminComposer::class);
 
         View::composer(['layouts.public.*', 'welcome'], PublicComposer::class);
 

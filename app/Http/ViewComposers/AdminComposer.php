@@ -5,6 +5,7 @@ namespace App\Http\ViewComposers;
 use App\Models\School;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class AdminComposer
 {
@@ -16,8 +17,7 @@ class AdminComposer
             $isSchool = 0;
 
             if (isAdmin()) {
-                $schools = School::query()->get();
-
+                $schools = Cache::remember('admin.schools', now()->addMinutes(5), fn() => School::query()->get());
                 $school_selected = $this->setSchoolName($schools);
                 $schools = $schools->pluck('name', 'id');
 

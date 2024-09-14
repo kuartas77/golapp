@@ -18,10 +18,10 @@ class SchoolsController extends Controller
         $school->load(['settingsValues']);
 
         view()->share('school', $school);
-        view()->share('notify_payment_day', $school->settings['NOTIFY_PAYMENT_DAY'] ?? 16);
-        view()->share('inscription_amount', $school->settings['INSCRIPTION_AMOUNT'] ?? 70000);
-        view()->share('monthly_payment', $school->settings['MONTHLY_PAYMENT'] ?? 50000);
-        view()->share('annuity', $school->settings['ANNUITY'] ?? 48333);
+        view()->share('notify_payment_day', data_get($school, 'settings.NOTIFY_PAYMENT_DAY', 16));
+        view()->share('inscription_amount', data_get($school, 'settings.INSCRIPTION_AMOUNT', 70000));
+        view()->share('monthly_payment', data_get($school, 'settings.MONTHLY_PAYMENT', 50000));
+        view()->share('annuity', data_get($school, 'settings.ANNUITY', 48333));
         return view('admin.school.index');
     }
 
