@@ -28,9 +28,11 @@ class PeopleRepository
         $relationship = config('variables.KEY_RELATIONSHIPS_SELECT');
         $peopleIds = collect();
         foreach ($people as $person) {
-            $person['tutor'] = isset($person['tutor']);
-            $person['relationship_name'] = $relationship[$person['relationship']];
-            $peopleIds->push(optional($this->createOrUpdatePeople($person))->id);
+            if ($person['relationship'] != '' && $person['names'] != '' && $person['identification_card'] != '' && $person['mobile'] != '') {
+                $person['tutor'] = isset($person['tutor']);
+                $person['relationship_name'] = $relationship[$person['relationship']];
+                $peopleIds->push(optional($this->createOrUpdatePeople($person))->id);
+            }
         }
         return $peopleIds;
     }

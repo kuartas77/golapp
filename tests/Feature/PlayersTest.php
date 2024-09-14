@@ -36,11 +36,11 @@ class PlayersTest extends TestCase
 
         $player = Player::firstWhere('unique_code', $uniqueCode);
 
+        $response->assertStatus(302);
         $spy = $this->spy(PlayerRepository::class);
         $spy->shouldReceive('createPlayer')->andReturn($player);
         Notification::assertSentTo([$player], RegisterPlayerNotification::class);
         Mail::assertNotSent(ErrorLog::class);
-        $response->assertStatus(302);
         return $dataPlayer;
     }
 

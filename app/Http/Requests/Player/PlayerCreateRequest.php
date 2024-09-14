@@ -47,6 +47,11 @@ class PlayerCreateRequest extends FormRequest
             'position_field' => ['nullable'],
             'dominant_profile' => ['nullable'],
 
+            'document_type' => ['nullable'],
+            'medical_history' => ['nullable'],
+            'jornada' => ['nullable'],
+            'student_insurance' => ['nullable'],
+
             'people' => 'array',
             'people.*.relationship',
             'people.*.names',
@@ -71,8 +76,16 @@ class PlayerCreateRequest extends FormRequest
 
     protected function prepareForValidation()
     {
+        $people = $this->input('people', []);
+        foreach ($people as $key => $person) {
+            if ($person['relationship'] == '' && $person['names'] == '' && $person['identification_card'] == '' && $person['mobile'] == '') {
+                unset($people[$key]);
+            }
+        }
+
         $this->merge([
-            'school_id' => getSchool(auth()->user())->id
+            'school_id' => getSchool(auth()->user())->id,
+            'people' => array_values($people)
         ]);
     }
 }
