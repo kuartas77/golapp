@@ -2,7 +2,7 @@
 @section('title', "Perfil {$profile->user->name}")
 @section('content')
 <x-bread-crumb title="Perfil {{$profile->user->name}}" :option="0"/>
-<x-row-card col-inside="8" col-outside="2" >
+<x-row-card col-inside="12">
         {{html()->modelForm($profile, 'put', $profile->url_update)->attributes(['id'=>'form_create', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class'=>''])->open()}}
         <div class="form-body">
             @include('profile.fields')

@@ -34,6 +34,7 @@ class PlayerController extends Controller
     {
         abort_unless(isAdmin() || isSchool(), 404);
         view()->share('edit', false);
+        view()->share('peoples', collect([1]));
         return view('player.create');
     }
 
