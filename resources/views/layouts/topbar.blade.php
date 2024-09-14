@@ -33,6 +33,10 @@
                     <a class="nav-link sidebartoggler hidden-sm-down text-muted waves-effect waves-dark"
                        href="javascript:void(0)"><i class="ti-menu"></i></a>
                 </li>
+                <li class="nav-item">
+                    <span class="nav-link">{{$school_selected}}</span>
+                </li>
+
             </ul>
             <ul class="navbar-nav my-lg-0">
 

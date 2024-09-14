@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
 use App\Models\School;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Routing\Redirector;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Cache;
 use App\Providers\RouteServiceProvider;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Routing\Redirector;
-use Illuminate\Support\Facades\Cache;
 
 class LoginController extends Controller
 {
@@ -86,10 +87,12 @@ class LoginController extends Controller
     protected function authenticated(Request $request, $user): void
     {
         if ($user->hasAnyRole(['school', 'instructor'])) {
-
+            Session::put("school.selected_school", $user->school_id);
             Cache::remember(School::KEY_SCHOOL_CACHE . "_{$user->school_id}",
                 now()->addMinutes(env('SESSION_LIFETIME', 120)),
                 fn() => $user->school->load(['settingsValues']));
+        }else{
+            Session::put("admin.selected_school", 1);
         }
     }
 }

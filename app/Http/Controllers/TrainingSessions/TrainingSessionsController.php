@@ -23,7 +23,6 @@ class TrainingSessionsController extends Controller
 
     public function create(): Factory|View|Application
     {
-        $numberTasks = range(1, 3);//TODO: setting by school
         return view('training_sessions.create', compact('numberTasks'));
     }
 

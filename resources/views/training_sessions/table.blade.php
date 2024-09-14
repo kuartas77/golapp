@@ -7,7 +7,7 @@
 
         <li class=" nav-item ml-auto">
             <a class="float-right btn waves-effect waves-light btn-rounded btn-info"
-                href="{!! route('training-sessions.create') !!}">
+                href="javascript:void(0)" data-toggle="modal" data-target="#modal_training_sessions" data-backdrop="static" data-keyboard="false">
                 <i class="fa fa-plus" aria-hidden="true"></i>
 
             </a>

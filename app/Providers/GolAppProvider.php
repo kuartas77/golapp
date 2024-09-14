@@ -103,7 +103,7 @@ class GolAppProvider extends ServiceProvider
 
         View::composer(['templates.*'], TemplatesComposer::class);
 
-        View::composer(['components.*'], AdminComposer::class);
+        View::composer(['*.*'], AdminComposer::class);
 
         View::composer(['layouts.public.*', 'welcome'], PublicComposer::class);
 
