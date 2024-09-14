@@ -8,7 +8,7 @@ trait GeneralScopes
 {
     public function scopeSchoolId(Builder $query): void
     {
-        $query->where('school_id', getSchool(auth()->user())->id);
+        $query->where($this->table.'.school_id', getSchool(auth()->user())->id);
     }
 
     public function scopeTrainingTeam(Builder $query, $training_team_id = null): void

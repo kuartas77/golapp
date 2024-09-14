@@ -591,6 +591,22 @@ select.swal2-select{
         position: absolute;
     }
 }
+@media (max-width: 1025px) {
+    .login-register {
+        position: absolute;
+    }
+    .public{
+        position: absolute;
+    }
+}
+@media (max-width: 1201px) {
+    .login-register {
+        position: absolute;
+    }
+    .public{
+        position: absolute;
+    }
+}
 
 .fluid_container {
     margin: 0 auto;
@@ -720,4 +736,23 @@ td>img{
     width: 70px; /* You can set the dimensions to whatever you want */
     height: 70px;
     object-fit: cover;
+}
+
+.grecaptcha-badge {
+    visibility: hidden !important;
+}
+
+fieldset {
+    background-color: rgba(239, 239, 240, 0.3);
+    border-radius: 4px;
+}
+
+legend {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 17px;
+    font-weight: bold;
+    padding: 3px 5px 3px 7px;
+    width: auto;
 }

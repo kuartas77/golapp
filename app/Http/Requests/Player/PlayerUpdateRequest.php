@@ -71,7 +71,7 @@ class PlayerUpdateRequest extends FormRequest
     {
         $people = $this->input('people', []);
         foreach($people as $key => $person){
-            if ($person['relationship'] == '' && $person['names'] == '' && $person['identification_card'] == '' && $person['mobile'] == '') {
+            if ($person['relationship'] == '' && $person['names'] == '' && $person['identification_card'] == '' && $person['phone'] == '') {
                 unset($people[$key]);
             }
 

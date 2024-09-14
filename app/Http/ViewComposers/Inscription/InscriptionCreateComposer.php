@@ -81,11 +81,16 @@ class InscriptionCreateComposer
                 return TrainingGroup::schoolId()->select(['id', 'name'])->get();
             });
 
+            $document_types = Cache::remember('KEY_DOCUMENT_TYPES', now()->addYear(), fn() => config('variables.KEY_DOCUMENT_TYPES'));
+
+            $jornada = Cache::remember('KEY_JORNADA_TYPES', now()->addYear(), fn() => config('variables.KEY_JORNADA'));
+
             $schools = [];
             if (isAdmin()) {
                 $schools = School::query()->pluck('name', 'id');
             }
 
+            $view->with('jornada', $jornada);
             $view->with('schools', $schools);
             $view->with('genders', $genders);
             $view->with('averages', $averages);
@@ -93,6 +98,7 @@ class InscriptionCreateComposer
             $view->with('categories', $categories);
             $view->with('blood_types', $blood_types);
             $view->with('relationships', $relationships);
+            $view->with('document_types', $document_types);
             $view->with('training_groups', $training_groups);
             $view->with('dominant_profile', $dominant_profile);
             $view->with('inscription_years', $inscription_years);

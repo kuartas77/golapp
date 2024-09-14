@@ -243,6 +243,16 @@ return [
         'PARTIDO CONDICIONADO' => 'PARTIDO CONDICIONADO',
         'PARTIDO ESPACIO REDUCIDO' => 'PARTIDO ESPACIO REDUCIDO',
         'TÉCNICA ANALÍTICA' => 'TÉCNICA ANALÍTICA',
-    ]
+    ],
+    'KEY_DOCUMENT_TYPES' => [
+        'Registro Civil'  => 'Registro Civil' ,
+        'Tarjeta de Indentidad' => 'Tarjeta de Indentidad',
+        'Otro Documento' => 'Otro Documento',
+    ],
+
+    'KEY_JORNADA' => [
+        'Mañana' => 'Mañana',
+        'Tarde' => 'Tarde',
+    ],
 
 ];

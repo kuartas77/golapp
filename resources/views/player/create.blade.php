@@ -1,16 +1,13 @@
 @extends('layouts.app')
 @section('content')
     <x-bread-crumb title="Agregar Deportista" :option="0"/>
-    <x-row-card col-inside="12 col-sm-12 col-md-12 col-lg-10 col-xl-10" col-outside="1 col-lg-1 col-xl-1">
-        {{html()->form('post', route('players.store'))->attributes(['id' => 'form_player', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class' => 'form-material m-t-0'])->open()}}
-        <div class="form-body">
+    <x-row-card col-outside="2" col-inside="8">
+        <div class="wizard-content">
+        {{html()->form('post', route('players.store'))->attributes(['id' => 'form_player', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class' => 'validation-wizard wizard-circle'])->open()}}
             @include('player.fields.basic_information')
             @include('player.fields.family_information')
-        </div>
-        <div class="form-actions m-t-0 text-center">
-            <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info">Guardar</button>
-        </div>
         {{ html()->form()->close() }}
+        </div>
     </x-row-card>
 @endsection
 @section('scripts')
@@ -31,23 +28,27 @@
             form_player.validate({
                 rules: {
                     unique_code : {required: true},
-                    names : {required: true},
-                    last_names : {required: true},
+                    names : {required: true, maxlength:50},
+                    last_names : {required: true, maxlength:50},
                     identification_document : {required: true},
+                    document_type : {required: true, maxlength:50},
                     gender : {required: true},
                     date_birth : {required: true},
-                    place_birth : {required: true},
+                    place_birth : {required: true, maxlength:50},
                     rh : {},
-                    eps : {required: true},
-                    email : {required: false, email:true},
-                    address : {required: true},
-                    municipality : {required: true},
-                    neighborhood : {required: true},
-                    phones : {required: true},
-                    school : {required: true},
-                    degree : {required: false},
+                    eps : {required: true, maxlength:50},
+                    email : {required: false, email: true, maxlength:50},
+                    address : {required: true, maxlength:50},
+                    municipality : {required: true, maxlength:50},
+                    neighborhood : {required: true, maxlength:50},
+                    mobile : {required: true, maxlength:50},
+                    school : {maxlength:50},
+                    degree : {},
                     position_field : {},
                     dominant_profile : {},
+                    medical_history : {},
+                    jornada : {},
+                    student_insurance : {},
                     "people[0][relationship]": {required: true},
                     "people[0][names]": {required: true},
                     "people[0][phone]": {
@@ -61,7 +62,32 @@
                         }, numbers:true
                     },
                 },
-                submitHandler: function (form) {
+            });
+
+            form_player.steps({
+                headerTag: "h6",
+                bodyTag: "section",
+                transitionEffect: "fade",
+                stepsOrientation: "horizontal",
+                titleTemplate: '<span class="step">#index#</span> #title#',
+                autoFocus: true,
+                enableAllSteps: true,
+                labels: {
+                    finish: "Guardar",
+                    next: "Siguiente",
+                    previous: "Anterior"
+                }
+                , onStepChanging: function (event, currentIndex, newIndex) {
+                    return currentIndex > newIndex || (currentIndex < newIndex &&
+                    (form_player.find(".body:eq(" + newIndex + ") label.error").remove(),
+                        form_player.find(".body:eq(" + newIndex + ") .error").removeClass("error")),
+                        form_player.validate().settings.ignore = ":disabled,:hidden", form_player.valid())
+                }
+                , onFinishing: function (event, currentIndex) {
+                    return form_player.validate().settings.ignore = ":disabled", form_player.valid()
+                }
+                , onFinished: function (event, currentIndex) {
+
                     Swal.fire({
                         title: 'Atención',
                         text: "¿Guardar Deportista?",
@@ -75,7 +101,7 @@
                         cancelButtonText: 'No'
                     }).then((result) => {
                         if (result?.value !== undefined) {
-                            form.submit()
+                            form_player.trigger('submit')
                         }
                     })
                 }

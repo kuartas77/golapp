@@ -1,18 +1,13 @@
 @extends('layouts.app')
 @section('content')
     <x-bread-crumb title="{{__('messages.player_title_edit', ['unique_code' => $player->unique_code])}}" :option="0"/>
-    <x-row-card col-inside="10 col-sm-12 col-md-10" col-outside="1">
+    <x-row-card col-outside="2" col-inside="8">
+    <div class="wizard-content">
         {{html()->modelForm($player, 'patch', route('players.update',[$player->unique_code]))->attributes(['id'=>'form_player', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class'=>'validation-wizard wizard-circle'])->open()}}
-
-            <div class="form-body">
-                @include('player.fields.basic_information')
-                @include('player.fields.family_information', ['people'=> $player->people ?? [1]])
-            </div>
-            <div class="form-actions m-t-0 text-center">
-                <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info">Modificar</button>
-                <a href="{{ route('players.index') }}" class="btn waves-effect waves-light btn-rounded btn-outline-warning">Cancelar</a>
-            </div>
+            @include('player.fields.basic_information')
+            @include('player.fields.family_information', ['peoples'=> $player->people ?? [1]])
         {{ html()->closeModelForm() }}
+    </div>
     </x-row-card>
 @endsection
 @section('scripts')
@@ -32,40 +27,66 @@
             form_player.validate({
                 rules: {
                     unique_code : {},
-                    names : {required: true},
-                    last_names : {required: true},
+                    names : {required: true, maxlength:50},
+                    last_names : {required: true, maxlength:50},
                     identification_document : {required: true},
+                    document_type : {required: false, maxlength:50},
                     gender : {required: true},
                     date_birth : {required: true},
-                    place_birth : {required: true},
+                    place_birth : {required: true, maxlength:50},
                     rh : {},
-                    eps : {required: true},
-                    email : {required: false},
-                    address : {required: true},
-                    municipality : {required: true},
-                    neighborhood : {required: true},
-                    phones : {required: true},
-                    school : {required: true},
-                    degree : {required: false},
+                    eps : {required: true, maxlength:50},
+                    email : {required: true, maxlength:50},
+                    address : {required: true, maxlength:50},
+                    municipality : {required: true, maxlength:50},
+                    neighborhood : {required: true, maxlength:50},
+                    mobile : {required: true, maxlength:50},
+                    school : {maxlength:50},
+                    degree : {},
                     position_field : {},
                     dominant_profile : {},
-                    "people[0][relationship]": {required: true},
-                    "people[0][names]": {required: true},
-                    "people[0][phone]": {
-                        required: function () {
-                            return $('input[name="people[0][mobile]"]').val() === "";
-                        }
-                    },
-                    "people[0][identification_card]": {
-                        required: function () {
-                            return $('input[name="people[0][tutor]"]').is(":checked");
-                        }, numbers:true
-                    }
+                    medical_history : {},
+                    jornada : {},
+                    student_insurance : {},
+                    "people[0][relationship]": {required: true, maxlength:50},
+                    "people[0][names]": {required: true, maxlength:50},
+                    "people[0][identification_card]":{required: true, numbers:true},
+                    "people[0][mobile]": {required: true, maxlength:50},
+                    "people[0][business]": {required: true, maxlength:50},
+                    "people[0][profession]": {required: true, maxlength:50},
+                    "people[0][email]": {required: true, emails:true, maxlength:50},
                 },
-                submitHandler: function (form) {
+            });
+
+            form_player.steps({
+                headerTag: "h6",
+                bodyTag: "section",
+                transitionEffect: "fade",
+                stepsOrientation: "horizontal",
+                titleTemplate: '<span class="step">#index#</span> #title#',
+                transitionEffectSpeed: 300,
+                autoFocus: true,
+                enableAllSteps: true,
+                saveState: true,
+                labels: {
+                    finish: "Guardar",
+                    next: "Siguiente",
+                    previous: "Anterior"
+                }
+                , onStepChanging: function (event, currentIndex, newIndex) {
+                    return currentIndex > newIndex || (currentIndex < newIndex &&
+                    (form_player.find(".body:eq(" + newIndex + ") label.error").remove(),
+                        form_player.find(".body:eq(" + newIndex + ") .error").removeClass("error")),
+                        form_player.validate().settings.ignore = ":disabled,:hidden", form_player.valid())
+                }
+                , onFinishing: function (event, currentIndex) {
+                    return form_player.validate().settings.ignore = ":disabled", form_player.valid()
+                }
+                , onFinished: function (event, currentIndex) {
+
                     Swal.fire({
                         title: 'Atención',
-                        text: "Modificar Deportista?",
+                        text: "¿Guardar Deportista?",
                         type: 'warning',
                         allowOutsideClick: false,
                         allowEscapeKey: false,
@@ -76,7 +97,7 @@
                         cancelButtonText: 'No'
                     }).then((result) => {
                         if (result?.value !== undefined) {
-                            form.submit()
+                            form_player.submit()
                         }
                     })
                 }
