@@ -41,6 +41,10 @@ class CreatePlayersTable extends Migration
             $table->string('eps')->nullable();
             $table->string('password')->nullable();
             $table->rememberToken();
+            $table->string('document_type')->nullable();
+            $table->string('medical_history')->nullable();
+            $table->string('jornada')->nullable();
+            $table->text('student_insurance')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

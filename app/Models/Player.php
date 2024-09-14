@@ -53,7 +53,11 @@ class Player extends Model
         'email',
         'mobile',
         'eps',
-        'school_id'
+        'school_id',
+        'document_type',
+        'medical_history',
+        'jornada',
+        'student_insurance',
     ];
 
     protected $casts = [

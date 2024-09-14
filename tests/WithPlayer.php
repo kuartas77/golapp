@@ -34,7 +34,7 @@ trait WithPlayer
                     "relationship" => "30",
                     "names" => "CRISTINA VANEGAS",
                     "identification_card" => "3015614556",
-                    "phone" => "5961994"
+                    "mobile" => "5961994"
                 ]
             ]
         ];

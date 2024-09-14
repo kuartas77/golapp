@@ -77,7 +77,7 @@ class InscriptionRequest extends FormRequest
             'competition_uniform' => $this->competition_uniform ?? false,
             'tournament_pay' => $this->tournament_pay ?? false,
             'scholarship' => $this->scholarship ?? false,
-            'competition_groups' => array_filter($this->competition_groups) ?? [],
+            'competition_groups' => array_filter($this->input('competition_groups', [])),
             'training_group_id' => $this->training_group_id ?? null,
         ]);
     }
