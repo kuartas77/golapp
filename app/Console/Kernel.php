@@ -32,6 +32,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('queue:work --queue=emails --stop-when-empty')
             ->everyMinute()
             ->withoutOverlapping();
+
+        $schedule->command('check:payments')->dailyAt('05:00')->withoutOverlapping();
+
+        $schedule->command('assists:month')->lastDayOfMonth('23:00')->withoutOverlapping();
     }
 
     /**

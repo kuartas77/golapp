@@ -103,8 +103,8 @@ class CheckPayments extends Command
 
     private function makePaymentsQuery(Collection $months, int $school_id): Builder
     {
-        $paymentsQuery = Payment::query()->with(['inscription.player'])
-            ->whereHas('inscription', fn($query) => $query->where('year', now()->year))
+        $paymentsQuery = Payment::query()
+            ->withWhereHas('inscription', fn($query) => $query->with(['player'])->where('year', now()->year)->where('school_id', $school_id))
             ->where('year', now()->year)
             ->where('school_id', $school_id);
 

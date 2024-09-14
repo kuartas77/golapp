@@ -11,6 +11,8 @@ use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection as SupportCollection;
 
 class AssistRepository
 {
@@ -73,43 +75,16 @@ class AssistRepository
                 ->where('training_group_id', $dataAssist['training_group_id'])
                 ->where('year', $dataAssist['year'])->pluck('id');
 
-            $assists = $this->model->schoolId()->with('inscription.player')->where($dataAssist);
 
-            if ($inscriptionIds->isNotEmpty()) {
+            $assistsQuery = $this->model->schoolId()->with('inscription.player')->where($dataAssist);
 
-                $assistsIds = $assists->pluck('inscription_id');
+            DB::beginTransaction();
 
-                $idsDiff = $inscriptionIds->diff($assistsIds);
+            self::createAssistBulk($inscriptionIds, $assistsQuery, $dataAssist, $school_id);
 
-                DB::beginTransaction();
-                foreach ($idsDiff as $id) {
-                    $this->model->updateOrCreate(
-                        [
-                            'inscription_id' => $id,
-                            'year' => $dataAssist['year'],
-                            'month' => $dataAssist['month'],
-                            'training_group_id' => $dataAssist['training_group_id'],
-                            'school_id' => $school_id
-                        ],
-                        [
-                            'inscription_id' => $id,
-                            'year' => $dataAssist['year'],
-                            'month' => $dataAssist['month'],
-                            'training_group_id' => $dataAssist['training_group_id'],
-                            'school_id' => $school_id
-                        ]
-                    );
+            DB::commit();
 
-                    $this->model->where('inscription_id', $id)
-                    ->where('year', $dataAssist['year'])
-                    ->where('month', $dataAssist['month'])
-                    ->where('training_group_id', '<>', $dataAssist['training_group_id'])
-                    ->forceDelete();
-                }
-                DB::commit();
-            }
-
-            $table = $this->service->generateTable($assists, $trainingGroup, $dataAssist);
+            $table = $this->service->generateTable($assistsQuery, $trainingGroup, $dataAssist);
 
         } catch (Exception $th) {
             DB::rollBack();
@@ -135,6 +110,42 @@ class AssistRepository
             DB::rollBack();
             $this->logError("AssistRepository update", $exception);
             return false;
+        }
+    }
+
+    public static function createAssistBulk(SupportCollection $inscriptionIds, Builder $assists, array $dataAssist, int $school_id)
+    {
+        if ($inscriptionIds->isNotEmpty()) {
+
+            $assistInscriptionIds = $assists->pluck('inscription_id');
+
+            $idsDiff = $inscriptionIds->diff($assistInscriptionIds);
+
+            foreach ($idsDiff as $id) {
+                Assist::query()->updateOrCreate(
+                    [
+                        'inscription_id' => $id,
+                        'year' => $dataAssist['year'],
+                        'month' => $dataAssist['month'],
+                        'training_group_id' => $dataAssist['training_group_id'],
+                        'school_id' => $school_id
+                    ],
+                    [
+                        'inscription_id' => $id,
+                        'year' => $dataAssist['year'],
+                        'month' => $dataAssist['month'],
+                        'training_group_id' => $dataAssist['training_group_id'],
+                        'school_id' => $school_id
+                    ]
+                );
+
+                Assist::query()->where('inscription_id', $id)
+                ->where('year', $dataAssist['year'])
+                ->where('month', $dataAssist['month'])
+                ->where('training_group_id', '<>', $dataAssist['training_group_id'])
+                ->where('school_id', $school_id)
+                ->forceDelete();
+            }
         }
     }
 }
