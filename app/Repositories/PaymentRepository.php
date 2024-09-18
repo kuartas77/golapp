@@ -3,7 +3,7 @@
 
 namespace App\Repositories;
 
-
+use App\Models\Inscription;
 use App\Models\Payment;
 use App\Traits\ErrorTrait;
 use Illuminate\Database\Eloquent\Builder;
@@ -83,10 +83,14 @@ class PaymentRepository
             'inscription' => fn($query) => $query->with(['player'])->withTrashed()
         ])->withTrashed();
 
-        $query->where('year', $year)
+        $query
+            ->addSelect([
+                'category' => Inscription::query()->select('category')->whereColumn('inscriptions.id', 'inscription_id')->where('year', $year)->take(1)
+            ])
+            ->where('year', $year)
             ->when($unique_code, fn($q) => $q->where('unique_code', $unique_code))
             ->when($training_group_id != 0, fn($q) => $q->where('training_group_id', $training_group_id))
-            ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', now()->year)->where('category', $category)->withTrashed()))
+            ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', $year)->where('category', $category)->withTrashed()))
             ->orderBy('inscription_id', 'asc');
 
         return $query;
@@ -101,11 +105,14 @@ class PaymentRepository
         $training_group_id = data_get($params, 'training_group_id', 0);
 
         return $this->model
+        ->addSelect([
+            'category' => Inscription::query()->select('category')->whereColumn('inscriptions.id', 'inscription_id')->where('year', $year)->take(1)
+        ])
         ->where('school_id', $school_id)
         ->where('year', $year)
         ->when($unique_code, fn($q) => $q->where('unique_code', $unique_code))
         ->when($training_group_id != 0, fn($q) => $q->where('training_group_id', $training_group_id))
-        ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', now()->year)->where('category', $category)->withTrashed()))
+        ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', $year)->where('category', $category)->withTrashed()))
         ->withTrashed()
         ->orderBy('inscription_id', 'asc');
     }

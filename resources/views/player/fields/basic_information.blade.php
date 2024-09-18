@@ -68,7 +68,11 @@
 
         </div>
     </fieldset>
+</section>
 
+<h6>Información General</h6>
+    <section>
+        <h6 class="row block-helper justify-content-center">Los Campos Con (<span class="text-danger">*</span>) Son Requeridos.</h6>
     <fieldset class="col-md-12">
         <legend>General:</legend>
         <div class="row">

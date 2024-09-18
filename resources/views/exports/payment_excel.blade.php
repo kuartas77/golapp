@@ -4,6 +4,7 @@
         <th>Año</th>
         <th>Código Unico</th>
         <th>Nombres</th>
+        <th>Categoría</th>
         <th>Matrícula</th>
         <th>Enero</th>
         <th>Febrero</th>
@@ -25,6 +26,7 @@
             <td>{{$payment->year}}</td>
             <td>{{$payment->unique_code}}</td>
             <td>{{$payment->inscription->player->full_names}}</td>
+            <td>{{$payment->category}}</td>
             @include('templates.payments.color',['amount' => getAmount($payment->enrollment_amount), 'value' => $payment->enrollment])
             @include('templates.payments.color',['amount' => getAmount($payment->january_amount), 'value' => $payment->january])
             @include('templates.payments.color',['amount' => getAmount($payment->february_amount), 'value' => $payment->february])
@@ -54,23 +56,26 @@
         <td></td>
         <td></td>
         <td></td>
-    </tr>
-    <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
         <td></td>
     </tr>
     <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td></td>
         <td></td>
         <td></td>
         <td></td>
@@ -89,6 +94,7 @@
         <td>Otros</td>
     </tr>
     <tr>
+        <td></td>
         <td></td>
         <td></td>
         <td>Totales Por Tipo De Pago:</td>

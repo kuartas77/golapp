@@ -45,7 +45,6 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
     public function columnFormats(): array
     {
         return [
-            'D' => NumberFormat::FORMAT_CURRENCY_USD_INTEGER,
             'E' => NumberFormat::FORMAT_CURRENCY_USD_INTEGER,
             'F' => NumberFormat::FORMAT_CURRENCY_USD_INTEGER,
             'G' => NumberFormat::FORMAT_CURRENCY_USD_INTEGER,
@@ -59,6 +58,7 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
             'O' => NumberFormat::FORMAT_CURRENCY_USD_INTEGER,
             'P' => NumberFormat::FORMAT_CURRENCY_USD_INTEGER,
             'Q' => NumberFormat::FORMAT_CURRENCY_USD_INTEGER,
+            'R' => NumberFormat::FORMAT_CURRENCY_USD_INTEGER,
         ];
     }
 
@@ -70,8 +70,8 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
                 $lastCell = ($lastRow-3);
                 $lastCellSum = ($lastRow-4);
 
-                $event->sheet->setCellValue('C'. ($lastCell), 'Totales:');
-                $event->sheet->setCellValue('D'. ($lastCell), '=SUM(D2:D'.($lastCellSum).')');
+                // $event->sheet->setCellValue('C'. ($lastCell), 'Totales:');
+                $event->sheet->setCellValue('D'. ($lastCell), 'Totales:');
                 $event->sheet->setCellValue('E'. ($lastCell), '=SUM(E2:E'.($lastCellSum).')');
                 $event->sheet->setCellValue('F'. ($lastCell), '=SUM(F2:F'.($lastCellSum).')');
                 $event->sheet->setCellValue('G'. ($lastCell), '=SUM(G2:G'.($lastCellSum).')');
@@ -84,9 +84,10 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
                 $event->sheet->setCellValue('N'. ($lastCell), '=SUM(N2:N'.($lastCellSum).')');
                 $event->sheet->setCellValue('O'. ($lastCell), '=SUM(O2:O'.($lastCellSum).')');
                 $event->sheet->setCellValue('P'. ($lastCell), '=SUM(P2:P'.($lastCellSum).')');
+                $event->sheet->setCellValue('Q'. ($lastCell), '=SUM(Q2:Q'.($lastCellSum).')');
 
-                $event->sheet->setCellValue('Q'. ($lastCell), '=SUM(D'.($lastCell).':P'.($lastCell).')');
-                $event->sheet->setCellValue('Q'. ($lastCell+3), '=SUM(D'.($lastRow).':P'.($lastRow).')');
+                $event->sheet->setCellValue('R'. ($lastCell), '=SUM(E'.($lastCell).':R'.($lastCell).')');
+                $event->sheet->setCellValue('R'. ($lastCell+3), '=SUM(E'.($lastRow).':R'.($lastRow).')');
             }
         ];
     }

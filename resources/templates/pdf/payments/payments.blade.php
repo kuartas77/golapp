@@ -29,6 +29,7 @@
     <tr class="tr-tit">
             <th class="text-center">Año</th>
             <th class="text-center">Nombres</th>
+            <th class="text-center">Categoria</th>
             <th class="text-center">Matrícula</th>
             <th class="text-center">Ene</th>
             <th class="text-center">Feb</th>
@@ -51,6 +52,7 @@
             <td>
                 &nbsp;<small>{{ $payment->unique_code }}</small>&nbsp;<small>{{ $payment->inscription->player->full_names }}</small>
             </td>
+            <td class="text-center">&nbsp;<small>{{ $payment->category }}</small>&nbsp;</td>
             @include('templates.payments.color',['value' => $payment->enrollment])
             @include('templates.payments.color',['value' => $payment->january])
             @include('templates.payments.color',['value' => $payment->february])
