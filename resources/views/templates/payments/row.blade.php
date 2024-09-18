@@ -1,5 +1,5 @@
 <tr>
-    <td>
+    <td class="text-center">
         <small>{{$payment->year}}</small>
         <br>
         <a href="{{$payment->inscription->player->url_show}}" target="_blank">
@@ -9,6 +9,7 @@
             <input type="hidden" name="id" value="{{$payment->id}}">
         </a>
     </td>
+    <td class="text-center"><small>{{$payment->category}}</small></td>
     @foreach($nameFields as $field)
     <td>
         @include('templates.payments.input', ['mes' => $field, 'value' => checkValueEnrollment($payment, $field, $inscription_amount), 'deleted' => $deleted])

@@ -23,6 +23,7 @@ $(document).ready(() => {
             {'width': '5%'},
             {'width': '5%'},
             {'width': '5%'},
+            {'width': '5%'},
         ]
     });
 
@@ -163,6 +164,7 @@ function initTable() {
             {'width': '5%'},
             {'width': '5%'},
             {'width': '5%'},
+            {'width': '5%'},
         ],
         "footerCallback": function (row, data, start, end, display) {
             let api = this.api();
@@ -177,7 +179,7 @@ function initTable() {
             // Total over all pages filtered indicate col index
             let pageTotal = 0;
             let total = 0;
-            $.each([1,2,3,4,5,6,7,8,9,10,11,12,13], function(index, value) {
+            $.each([2,3,4,5,6,7,8,9,10,11,12,13,14], function(index, value) {
                 let columnas = api
                     .column(value, {
                         page: 'current'
@@ -202,7 +204,7 @@ function initTable() {
             let consignment = 0;
             let others = 0;
 
-            $.each([1,2,3,4,5,6,7,8,9,10,11,12,13], function(index, value) {
+            $.each([2,3,4,5,6,7,8,9,10,11,12,13,14], function(index, value) {
 
                 let columnas_total = api
                     .column(value)
@@ -211,10 +213,10 @@ function initTable() {
                 $.each(columnas_total, function(index, value) {
                     let select = $(value).find('select').val();
                     let inputVal = $(value).find('input[type=text]').val();
-                    if(['1','9', '12'].includes(select)){
+                    if(['2','10', '13'].includes(select)){
                         cash = cash + intVal(inputVal);
                     }
-                    else if(['10', '11'].includes(select)){
+                    else if(['11', '12'].includes(select)){
                         consignment = consignment + intVal(inputVal);
                     }else{
                         others = others + intVal(inputVal);
@@ -231,7 +233,6 @@ function initTable() {
             $('#cash-tab').html(`Efectivo: ${totalCash}`)
             $('#consignment-tab').html(`Consignación: ${totalConsignment}`)
             $('#other-tab').html(`Otros: ${totalOthers}`)
-            $( api.column( 1 ).footer() ).html(sumTotal(api, 1, intVal));
             $( api.column( 2 ).footer() ).html(sumTotal(api, 2, intVal));
             $( api.column( 3 ).footer() ).html(sumTotal(api, 3, intVal));
             $( api.column( 4 ).footer() ).html(sumTotal(api, 4, intVal));
@@ -244,6 +245,7 @@ function initTable() {
             $( api.column( 11 ).footer() ).html(sumTotal(api, 11, intVal));
             $( api.column( 12 ).footer() ).html(sumTotal(api, 12, intVal));
             $( api.column( 13 ).footer() ).html(sumTotal(api, 13, intVal));
+            $( api.column( 14 ).footer() ).html(sumTotal(api, 14, intVal));
         }
     });
     $('.payments_amount').inputmask("pesos");

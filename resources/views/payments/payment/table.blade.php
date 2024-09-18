@@ -37,6 +37,7 @@
             <thead>
             <tr>
                 <th class="text-center">Nombres</th>
+                <th class="text-center">Categoria</th>
                 <th class="text-center">Matrícula</th>
                 <th class="text-center">Ene</th>
                 <th class="text-center">Feb</th>
@@ -55,6 +56,7 @@
             <tbody id="table_body"></tbody>
             <tfoot>
                 <tr>
+                    <th style="text-align:center"></th>
                     <th style="text-align:center"></th>
                     <th style="text-align:center"></th>
                     <th style="text-align:center"></th>

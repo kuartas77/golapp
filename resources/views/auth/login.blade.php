@@ -12,7 +12,7 @@
                       id="form-ingreso">
                     @csrf
                     <img src="{{asset('img/log3.jpg')}}" alt="{{config('app.name', 'Laravel')}}"
-                         class="img-center img-responsive">
+                         class="img-center img-responsive" width="300px" height="300px">
                     <div class="form-group ">
                         <div class="col-xs-12">
                             <input type="text" class="form-control{{ $errors->has('email') ? ' is-invalid' : '' }}"
