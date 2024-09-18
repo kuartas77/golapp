@@ -86,8 +86,8 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
                 $event->sheet->setCellValue('P'. ($lastCell), '=SUM(P2:P'.($lastCellSum).')');
                 $event->sheet->setCellValue('Q'. ($lastCell), '=SUM(Q2:Q'.($lastCellSum).')');
 
-                $event->sheet->setCellValue('R'. ($lastCell), '=SUM(E'.($lastCell).':R'.($lastCell).')');
-                $event->sheet->setCellValue('R'. ($lastCell+3), '=SUM(E'.($lastRow).':R'.($lastRow).')');
+                $event->sheet->setCellValue('R'. ($lastCell), '=SUM(E'.($lastCell).':Q'.($lastCell).')');
+                $event->sheet->setCellValue('R'. ($lastCell+3), '=SUM(E'.($lastRow).':Q'.($lastRow).')');
             }
         ];
     }
