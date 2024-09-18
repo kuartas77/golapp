@@ -62,6 +62,8 @@ class RegisterService
 
             DB::commit();
 
+            Cache::forget('admin.schools');
+
             $response->success = true;
 
         } catch (Throwable $th) {
@@ -107,6 +109,7 @@ class RegisterService
             $adminKey = School::KEY_SCHOOL_CACHE . "_admin_{$school->id}";
             Cache::forget($key);
             Cache::forget($adminKey);
+            Cache::forget('admin.schools');
             Cache::remember($key, now()->addMinutes(env('SESSION_LIFETIME', 120)), fn() => $school);
             Cache::remember($adminKey, now()->addMinutes(env('SESSION_LIFETIME', 120)), fn() => $school);
 
