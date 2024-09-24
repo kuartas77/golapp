@@ -2,26 +2,27 @@
 
 namespace App\Imports;
 
+use Exception;
+use Carbon\Carbon;
 use App\Models\People;
 use App\Models\Player;
 use App\Traits\ErrorTrait;
-use Carbon\Carbon;
-use Exception;
+use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use App\Repositories\PlayerRepository;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithBatchInserts;
-use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
+use Maatwebsite\Excel\Concerns\WithBatchInserts;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 
 class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, WithChunkReading, WithBatchInserts
 {
     use ErrorTrait;
 
-    public function __construct(private int $school_id)
+    public function __construct(private int $school_id, private PlayerRepository $playerRepository)
     {
         //
     }
@@ -83,7 +84,7 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
         $dateBirth = Carbon::parse(Date::excelToDateTimeObject($row['fecha_de_nacimiento']));
 
         return [
-            'unique_code' => trim($row['numero_de_documento']),
+            'unique_code' => $this->playerRepository->createUniqueCode($this->school_id),
             'names' => Str::upper(trim($row['nombres'])),
             'last_names' => Str::upper(trim($row['apellidos'])),
             'gender' => $this->checkGender($row['genero']),

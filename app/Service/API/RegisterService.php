@@ -83,7 +83,9 @@ class RegisterService
             if ($request->hasFile('logo')) {
                 $request->merge(['school_id' => $school->id]);
                 $validated['logo'] = $this->saveFile($request, 'logo');
-                Storage::disk('public')->delete($school->logo);
+                if(!is_null($school->logo)){
+                    Storage::disk('public')->delete($school->logo);
+                }
             }
 
             DB::beginTransaction();

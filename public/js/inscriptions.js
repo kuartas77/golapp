@@ -66,7 +66,7 @@ const validateCheck = (value) => {
 }
 
 function addSelectTraining(column){
-    let select = $('<select><option value="">Seleccione Grupo de entrenamiento...</option></select>')
+    let select = $('<select><option value="">G. Entrenamiento...</option></select>')
         .appendTo($(column.header()).empty())
         .on('change', function () {
             let val = $.fn.dataTable.util.escapeRegex(
@@ -87,7 +87,7 @@ function addSelectTraining(column){
         });
 }
 function addSelectCategory(column){
-    let select = $('<select><option value="">Seleccione una categoria...</option></select>')
+    let select = $('<select><option value="">Categoria...</option></select>')
         .appendTo($(column.header()).empty())
         .on('change', function () {
             let val = $.fn.dataTable.util.escapeRegex(

@@ -27,7 +27,7 @@
 
             form_player.validate({
                 rules: {
-                    unique_code : {required: true},
+                    unique_code : {required: false},
                     names : {required: true, maxlength:50},
                     last_names : {required: true, maxlength:50},
                     identification_document : {required: true},
