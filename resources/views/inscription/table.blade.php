@@ -37,7 +37,7 @@
 
     <div class="tab-pane show active" id="active" role="tabpanel" aria-labelledby="active-tab">
         <div class="table-responsive-md">
-            <table class="display compact" id="active_table" cellspacing="0" width="100%">
+            <table class="display compact" id="active_table">
                 <thead>
                     <tr>
                         <th></th>
@@ -61,7 +61,7 @@
 
     <div class="tab-pane" id="inactive" role="tabpanel" aria-labelledby="inactive-tab">
         <div class="table-responsive-md">
-            <table class="display compact" id="inactive_table" cellspacing="0" width="100%">
+            <table class="display compact" id="inactive_table">
                 <thead>
                     <tr>
                         <th>Foto</th>

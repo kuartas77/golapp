@@ -40,6 +40,11 @@ class PlayerRepository
         $result = false;
         try {
             $dataPlayer = $request->only($this->getAttributes());
+            $school_id = $dataPlayer['school_id'];
+
+            if(!isset($dataPlayer['unique_code'])){
+                $dataPlayer['unique_code'] = $this->createUniqueCode($dataPlayer['school_id']);
+            }
 
             if ($file_name = $this->saveFile($request, 'player')) {
                 $dataPlayer['photo'] = $file_name;
@@ -65,6 +70,7 @@ class PlayerRepository
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("PlayerRepository@createPlayer", $exception);
+            Cache::forget("KEY_LAST_UNIQUE_CODE.{$school_id}");
             $result = false;
         }
         return $result;
@@ -184,5 +190,46 @@ class PlayerRepository
             'numero_de_telefono', 'profesion', 'empresa', 'cargo',
         ]);
         return $headers->diff($headers_validation)->implode(',');
+    }
+
+    public function createUniqueCode($school_id): mixed
+    {
+        $newUniqueCode = '';
+        $year = now()->year;
+
+        $lastUniqueCode = Cache::remember("KEY_LAST_UNIQUE_CODE.{$school_id}", now()->addMinute(), function() use($year, $school_id){
+            $result = DB::table('players')->select(['unique_code'])->where('unique_code', 'like', "$year%")->where('school_id', $school_id)->orderBy('unique_code', 'desc')->limit(1)->first();
+            return isset($result) ? $result->unique_code : null;
+        });
+
+        if(isset($lastUniqueCode)){
+            $newUniqueCode = intval($lastUniqueCode) + 1;
+        }else{
+            $count = 1;
+            $newUniqueCode = $year . str_pad((string)$count, 4, '0', STR_PAD_LEFT);
+        }
+
+        $newUniqueCode = $this->generateCode($school_id, $newUniqueCode);
+
+        Cache::put("KEY_LAST_UNIQUE_CODE.{$school_id}", $newUniqueCode, now()->addMinute());
+
+        return $newUniqueCode;
+    }
+
+    private function generateCode($school_id, $lastUniqueCode)
+    {
+        $next = true;
+        while ($next){
+            $exits = DB::table('players')->select(['unique_code'])
+                    ->where('unique_code', $lastUniqueCode)
+                    ->where('school_id', $school_id)
+                    ->exists();
+            if(!$exits){
+                $next = false;
+            }else{
+                $lastUniqueCode = intval($lastUniqueCode) + 1;
+            }
+        }
+        return $lastUniqueCode;
     }
 }

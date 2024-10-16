@@ -1,4 +1,4 @@
-<table class="display compact" id="active_table" cellspacing="0" width="100%" >
+<table class="display compact" id="active_table">
     {!!$thead!!}
     <tbody>
         {!!$rows!!}

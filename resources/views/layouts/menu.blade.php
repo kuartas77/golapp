@@ -65,11 +65,11 @@
     </ul>
 </li>
 
-<li class="{{ Request::is('historic*') ? 'active' : '' }}">
+<!-- <li class="{{ Request::is('historic*') ? 'active' : '' }}">
     <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><i class="fas fa-history"></i><span class="hide-menu">Historicos</span></a>
     <ul aria-expanded="false" class="collapse">
         <li><a href="{{route('historic.assists')}}">Asistencias</a></li>
         <li><a href="{{route('historic.payments')}}">Pagos</a></li>
     </ul>
-</li>
+</li> -->
 @endhasanyrole

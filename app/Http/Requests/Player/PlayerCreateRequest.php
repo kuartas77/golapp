@@ -24,7 +24,7 @@ class PlayerCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'unique_code' => ['required', 'unique:players'],
+            'unique_code' => ['nullable'],
             'names' => ['required'],
             'last_names' => ['required'],
             'gender' => ['required'],

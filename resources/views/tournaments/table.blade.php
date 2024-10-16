@@ -18,7 +18,7 @@
 <div class="tab-content clearfix" id="tab_content">
     <div class="tab-pane show active" id="enabled" role="tabpanel" aria-labelledby="enabled-tab">
         <div class="table-responsive-md">
-            <table class="display compact" id="active_table" cellspacing="0" width="100%">
+            <table class="display compact" id="active_table">
                 <thead>
                     <tr>
                         <th>Nombre</th>

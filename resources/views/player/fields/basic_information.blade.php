@@ -22,8 +22,9 @@
                     <label for="unique_code" class="">Código Único</label>
                     {{ html()->text('unique_code', null)->attributes(['class' => 'form-control form-control-sm','disabled','id'=>'unique_code']) }}
                     @else
-                    <label for="unique_code" class=""> Código Único <span class="text-danger">*</span></label>
+                    <label for="unique_code" class=""> Código Único</label>
                     {{ html()->text('unique_code', null)->attributes(['class' => 'form-control form-control-sm','id'=>'unique_code']) }}
+                    <small class="form-text text-muted">Se puede generar automaticamente. ejemplo: 20240001</small>
                     @endif
                 </div>
                 <div class="form-group">
