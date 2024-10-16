@@ -1,5 +1,5 @@
 <div class="table-responsive-md">
-    <table class="display compact" id="partidos-table" cellspacing="0" width="100%">
+    <table class="display compact" id="partidos-table">
         <thead>
             <th>Torneo</th>
             <th>G. Competencia</th>

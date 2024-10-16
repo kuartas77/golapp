@@ -9,9 +9,7 @@ jQuery(function() {
     tableActive = $('#active_table').DataTable({
             "paging": false,
             "ordering": false,
-            "info": false,
-            "scrollX": true,
-            "scrollY": true,
+            "info": false
         });
 
     form_assist.validate({
@@ -115,7 +113,11 @@ const initTable = () => {
         "ordering": false,
         "info": false,
         "scrollX": true,
-        "scrollY": true,
+        "scrollCollapse":true,
+        columnDefs: [
+            { targets: [0, 1], width: '5%'},
+            { targets: '_all', width: '100px'}
+        ],
     });
 }
 

@@ -5,26 +5,7 @@ $(document).ready(() => {
     table = $('#active_table').DataTable({
         "paging": false,
         "ordering": false,
-        "info": true,
-        "scrollX": true,
-        "scrollY": true,
-        "columns": [
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-        ]
+        "info": true
     });
 
     $("#form_payments").validate({
@@ -146,25 +127,11 @@ function initTable() {
         "paging": false,
         "ordering": false,
         "info": true,
-        // "scrollX": true,
-        // "scrollY":"450px",
+        "scrollX": true,
         "scrollCollapse":true,
-        "columns": [
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
-            {'width': '5%'},
+        columnDefs: [
+            { targets: [0, 1], width: '5%'},
+            { targets: '_all', width: 80}
         ],
         "footerCallback": function (row, data, start, end, display) {
             let api = this.api();

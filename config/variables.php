@@ -20,8 +20,8 @@ return [
         7 => 'Domingo'
     ],
     'KEY_ASSIST_LETTER' => [
-        'as' => 'X',
-        'fa' => 'F',
+        'as' => '&#10003;',
+        'fa' => '&#10008;',
         'ex' => 'E',
         're' => 'R',
         'in' => 'I',

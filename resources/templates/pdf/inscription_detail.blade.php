@@ -179,7 +179,8 @@
                 @endphp
                 <thead>
                     <tr class="tr-tit">
-                        <th colspan="{{$totalSpan + 2}}" class="text-center bold">Asistencias Entrenamientos: <strong style="text-transform: uppercase;">{{$inscription->trainingGroup->name}}</strong></th>
+                        <th colspan="26" class="text-center bold">Asistencias Entrenamientos: <strong style="text-transform: uppercase;">{{$inscription->trainingGroup->name}}</strong></th>
+                        <th class="text-center bold">%</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -190,9 +191,9 @@
                         $colspan = ($totalSpan - $classCount);
                     @endphp
                     <tr class="tr-tit">
-                        <td class="bold" >&nbsp;Clases</td>
+                        <td class="bold" >&nbsp;Clase #</td>
                         @for ($index = 1; $index <= $classCount; $index++)
-                            <th class="text-center bold">{{$index}}</th>
+                            <td class="text-center bold">{{$index}}</td>
                         @endfor
                         <td colspan="{{ $colspan }}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
                         <td class="text-center bold">&nbsp;</td>
@@ -204,16 +205,16 @@
                                 $column = numbersToLetters($index);
                                 $countAS += $assistance->$column == 'as' ? 1 : 0;
                             @endphp
-                            <td class="text-center bold {{$assistance->$column == 'fa' ? 'error':''}}" >
-                            {{ $assistance->$column == null ? '': $optionAssist[$assistance->$column] }}
+                            <td class="text-center bold {{$assistance->$column == 'fa' ? 'error':''}} {{$assistance->$column == 'as' ? 'success':''}}" >
+                            {!! $assistance->$column == null ? '': $optionAssist[$assistance->$column] !!}
                             </td>
                         @endfor
-                        <td colspan="{{ $colspan }}">&nbsp;</td>
-                        <td class="text-center bold">&nbsp;{{percent($countAS, $classCount)}}%</td>
+                        <td colspan="{{ $colspan }}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                        <td class="text-center bold {{ $countAS == 0 ? 'error' : '' }}">&nbsp;{{percent($countAS, $classCount)}}%</td>
                     </tr>
                 @empty
                     <tr>
-                        <th colspan="{{$totalSpan + 2}}" align="center">Sin Registros De Asistencia</th>
+                        <th colspan="27" align="center">Sin Registros De Asistencia</th>
                     </tr>
                 @endforelse
                 </tbody>
