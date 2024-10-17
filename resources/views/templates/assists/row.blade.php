@@ -10,23 +10,25 @@
         </a>
     </td>
     <td>{{$assist->month}}</td>
-    @for ($index = 1; $index <= $classDays; $index++)
-        <td>
+    @for ($index = 1; $index <= $classDays->count(); $index++)
+        <td class="text-center">
             @php
                 $column = numbersToLetters($index);
             @endphp
             @include('templates.assists.select', [
-                'index' => $index ,
+                'id' => $assist->id,
+                'index' => $index,
                 'value' => $assist->$column,
                 'column' => $column,
-                'deleted' => $deleted
+                'deleted' => $deleted,
+                'classDay' => $classDays->firstWhere('column', $column)
             ])
         </td>
     @endfor
     <td>
         @if(!$deleted)
             <button type='button' class='btn btn-primary observation' data-toggle='modal' data-target='#modal_observation'
-                    data-id="{{$assist->id}}">Observación
+                    data-id="{{$assist->id}}">Ver observaciónes
             </button>
         @endif
     </td>

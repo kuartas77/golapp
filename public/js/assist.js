@@ -31,17 +31,52 @@ jQuery(function() {
     });
 });
 
-$('body').on('change', 'select.assist', function()  {
-    let element = $(this)
-    let data = element.parent().parent().find('input, select').serializeArray();
-    let id = element.parent().parent().find('input').val();
-    if (this.value === '') {return;}
-    changeColorAssist(element)
-    data.push({name: '_method', value: 'PUT'});
-    $.post(url_current + `/${id}`, data);
+// $('body').on('change', 'select.assist', function()  {
+//     let element = $(this)
+//     let data = element.parent().parent().find('input, select').serializeArray();
+//     let id = element.parent().parent().find('input').val();
+//     if (this.value === '') {return;}
+//     changeColorAssist(element)
+//     data.push({name: '_method', value: 'PUT'});
+//     $.post(url_current + `/${id}`, data);
 
-});
+// });
 
+$('body').on('click', 'a.assist', function()  {
+    let button = $(this);
+    let id = button.data('id');
+    let day = button.data('day')
+    let date = button.data('date')
+    let name = button.data('name')
+    let column = button.data('column')
+    let number = button.data('number')
+    let value = button.data('value')
+
+    $('#select_attendance').attr('name', column)
+    $('#select_attendance').val(value)
+    $('#attendance_number').val(number)
+    $('#attendance_name').val(name.toUpperCase())
+    $('#attendance_date').val(date)
+    $('#attendance_id').val(id)
+    $('#attendance_day').val(day)
+})
+
+$("#form_attendance").validate({
+    submitHandler: (form) => {
+        let id = $('#attendance_id').val()
+        let day = $('#attendance_day').val()
+        let value = $("#select_attendance").val()
+        let data = $(form).serializeArray()
+        let element = `#${id}${day}`
+        changeColorAssist(element, value)
+        data.push({name: 'id', value: id})
+        data.push({name: '_method', value: 'PUT'})
+        $.post(url_current + `/${id}`, data)
+
+        $('#modal_attendance').modal('hide')
+        $('#form_attendance')[0].reset()
+    }
+})
 
 $('body').on('click', 'button.observation', function() {
     let button = $(this);
@@ -111,19 +146,24 @@ const initTable = () => {
     tableActive = $('#active_table').DataTable({
         "paging": false,
         "ordering": false,
-        "info": false,
+        dom: 'it',//lftip
         "scrollX": true,
-        "scrollCollapse":true,
         columnDefs: [
             { targets: [0, 1], width: '5%'},
-            { targets: '_all', width: '100px'}
+            { targets: '_all', width: '59px'}
         ],
     });
 }
 
-function changeColorAssist(domelement){
+function changeColorAssist(domelement, value = null){
     let element = $(domelement)
-    let val = element.val().replace(/[\$,]/g, '')
+    let val = ''
+    if(value){
+        element.html(options[value])
+        val = value.replace(/[\$,]/g, '')
+    }else{
+        val = element.val().replace(/[\$,]/g, '')
+    }
     switch (val) {
         case 'as':
             element.removeClass(removeAllClass)

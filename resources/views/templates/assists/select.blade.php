@@ -22,4 +22,18 @@ switch($value){
 $colorClass = $deleted ? '': $colorClass;
 @endphp
 
-{!! html()->select($column, $optionAssist, $value)->attributes(['class' => "form-control form-control-sm assist $colorClass",  $deleted ? 'disabled' : '' ])->placeholder('Selecciona...') !!}
+<h6><a
+    href="javascript:void(0)"
+    data-toggle='modal' data-target='#modal_attendance'
+    class="badge {{$colorClass}} assist"
+    data-id="{{$id}}"
+    data-day="{{$classDay['day']}}"
+    data-date="{{$classDay['date']}}"
+    data-name="{{$classDay['name']}}"
+    data-column="{{$classDay['column']}}"
+    data-number="{{$classDay['number_class']}}"
+    data-value="{{$value}}"
+    id="{{$id}}{{$classDay['day']}}"
+    >{{$value == '' ? 'Seleccionar...': $optionAssist[$value]}}
+    </a>
+</h6>

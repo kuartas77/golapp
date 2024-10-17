@@ -39,7 +39,7 @@ class AssistService
         foreach ($assists as $assist) {
             $rows .= View::make('templates.assists.row', [
                 'assist' => $assist,
-                'classDays' => $classDays->count(),
+                'classDays' => $classDays,
                 'deleted' => $deleted
             ])->render();
         }

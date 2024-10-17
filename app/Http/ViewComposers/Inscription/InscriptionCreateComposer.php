@@ -78,7 +78,7 @@ class InscriptionCreateComposer
             });
 
             $training_groups_arr = Cache::remember("KEY_TRAINING_GROUPS_ARR_{$school_id}", now()->addMinutes(5), function () {
-                return TrainingGroup::schoolId()->select(['id', 'name'])->get();
+                return TrainingGroup::schoolId()->select(['id', 'name'])->where('year_active', now()->year)->get();
             });
 
             $document_types = Cache::remember('KEY_DOCUMENT_TYPES', now()->addYear(), fn() => config('variables.KEY_DOCUMENT_TYPES'));

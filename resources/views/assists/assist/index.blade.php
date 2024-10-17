@@ -10,10 +10,12 @@
 @endsection
 @section('modals')
     @include('modals.assist_observation')
+    @include('modals.modal_attendance')
 @endsection
 @section('scripts')
     <script>
         let url_current = '{{URL::current()}}';
+        const options = @json($optionAssist);
         $(function () {
             $(".preloader").fadeOut()
         })
