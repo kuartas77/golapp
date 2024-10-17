@@ -145,7 +145,8 @@ if (!function_exists('arrayDay')) {
             'day' => $date->day,
             'date' => $date->format('Y-m-d'),
             'name' => $date->getTranslatedDayName(),
-            'column' => numbersToLetters($count)
+            'column' => numbersToLetters($count),
+            'number_class' => $count
         ];
     }
 }

@@ -58,7 +58,8 @@ class AsistUpdateRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => getSchool(auth()->user())->id
+            'school_id' => getSchool(auth()->user())->id,
+            'observations' => $this->observations !== '' ? "{$this->attendance_date}: {$this->observations}".PHP_EOL : null
         ]);
     }
 }
