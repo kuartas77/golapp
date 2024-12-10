@@ -59,7 +59,7 @@ class AsistUpdateRequest extends FormRequest
     {
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
-            'observations' => $this->observations !== '' ? "{$this->attendance_date}: {$this->observations}".PHP_EOL : null
+            'observations' => isset($this->observations) ? "{$this->attendance_date}: {$this->observations}".PHP_EOL : null
         ]);
     }
 }

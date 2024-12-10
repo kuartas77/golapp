@@ -201,4 +201,9 @@ class Inscription extends Model
     {
         return $query->where('unique_code', $code)->where('year', $year);
     }
+
+    public function scopeYear($query, ?int $year = null)
+    {
+        $query->where('year', ($year ?: now()->year) );
+    }
 }
