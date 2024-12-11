@@ -1,9 +1,7 @@
 name: Deploy Private GitHub repository to cPanel
 on:
-  workflow_run:
-    workflows: ["Laravel"]
-    types:
-      - completed
+  push:
+    branches: [ main ]
 jobs:
   FTP-Deploy-Action:
     name: FTP-Deploy-Action
