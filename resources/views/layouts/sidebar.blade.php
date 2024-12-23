@@ -1,18 +1,6 @@
 <aside class="left-sidebar">
     {{-- Sidebar scroll--}}
     <div class="scroll-sidebar">
-        <!-- User profile -->
-
-        {{-- <div class="user-profile" style="background: url({{asset('imagenes/user-info.jpg')}}) no-repeat;">
-            <!-- User profile image -->
-            <div class="profile-img" id="turno_contenedor_img"> 
-                    <img src="{{asset('imagenes/login.png')}}" alt="user" height="90" title="Abrir Turno">
-            </div>
-            <!-- User profile text-->
-            <div class="profile-text"> <a href="javascript:void(0)" id="turno_text">Abrir Turno</a> </div>
-        </div> --}}
-
-        <!-- End User profile text-->
         {{-- Sidebar navigation--}}
         <nav class="sidebar-nav">
             <ul id="sidebarnav">

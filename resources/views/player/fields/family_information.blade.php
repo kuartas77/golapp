@@ -1,7 +1,6 @@
 <h6>Información Familiar</h6>
 <section>
     <h6 class="row block-helper justify-content-center">Los Campos con (<span class="text-danger">*</span>) son requeridos.</h6>
-    <h6 class="row block-helper justify-content-center "><strong>Sí el acudiente es el padre o la madre no es necesario ingresar la información.</strong></h6>
     @foreach($peoples as $people)
     @if((is_numeric($people) && $people === 1) || data_get($people, 'tutor', false))
 
