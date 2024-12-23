@@ -11,13 +11,13 @@ use App\Repositories\AssistRepository;
 use App\Http\Requests\API\AssistsRequest;
 use App\Service\API\Instructor\AssistsService;
 use App\Http\Requests\API\AssistsUpdateRequest;
-use App\Http\Resources\API\Assists\AssitsCollection;
+use App\Http\Resources\API\Assists\AssistsCollection;
 
 class AssistsController extends Controller
 {
-    public function index(AssistsRequest $request, AssistsService $assistsService): AssitsCollection
+    public function index(AssistsRequest $request, AssistsService $assistsService): AssistsCollection
     {
-        return new AssitsCollection($assistsService->getAssists($request->validated()));
+        return new AssistsCollection($assistsService->getAssists($request->validated()));
     }
 
     public function update(AssistsUpdateRequest $request, Assist $assist, AssistRepository $repository): JsonResponse

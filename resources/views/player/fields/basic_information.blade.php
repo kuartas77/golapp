@@ -1,6 +1,7 @@
-<h6>Información Básica</h6>
+<h6>Información Personal</h6>
 <section>
     <h6 class="row block-helper justify-content-center">Los Campos Con (<span class="text-danger">*</span>) Son Requeridos.</h6>
+    <h6 class="row block-helper ">Si el código unico se deja vacío se generará automaticamente uno. ejemplo: 20240001 "año de inscripción y cantidad de registros en ese año", para generar un consecutivo.</h6>
     <fieldset class="col-md-12">
         <legend>Personal:</legend>
         <div class="row col-md-12">
@@ -24,11 +25,10 @@
                     @else
                     <label for="unique_code" class=""> Código Único</label>
                     {{ html()->text('unique_code', null)->attributes(['class' => 'form-control form-control-sm','id'=>'unique_code']) }}
-                    <small class="form-text text-muted">Se puede generar automaticamente. ejemplo: 20240001</small>
                     @endif
                 </div>
                 <div class="form-group">
-                    {{ html()->label('# Documento de identidad', 'identification_document') }}(<span class="text-danger">*</span>)
+                    {{ html()->label('# Doc de identidad', 'identification_document') }}(<span class="text-danger">*</span>)
                     {{ html()->text('identification_document', null)->attributes(['class' => 'form-control form-control-sm']) }}
                 </div>
                 <div class="form-group">
@@ -116,7 +116,7 @@
 
             <div class="col-md-3">
                 <div class="form-group">
-                    {{ html()->label('Números Teléfonicos / Celular', 'phones') }}(<span class="text-danger">*</span>)
+                    {{ html()->label('# Teléfonicos / Celular', 'phones') }}(<span class="text-danger">*</span>)
                     {{ html()->text('phones', null)->attributes(['class' => 'form-control form-control-sm']) }}
                 </div>
             </div>
@@ -144,7 +144,7 @@
 
             <div class="col-md-3">
                 <div class="form-group">
-                    {{ html()->label('Nombre del Seguro Estudiantil', 'student_insurance') }}
+                    {{ html()->label('Seguro Estudiantil', 'student_insurance') }}
                     {{ html()->text('student_insurance', null)->attributes(['class' => 'form-control form-control-sm', 'data-provide'=>'typeahead']) }}
                 </div>
             </div>

@@ -53,8 +53,13 @@ class LoginController extends Controller
 
         $user->tokens()->delete();
 
+        $accessToken = $user->createToken('access_token', $abilities, now()->addMinutes(config('sanctum.ac_expiration')));
+        $refreshToken = $user->createToken('refresh_token', $abilities, now()->addMinutes(config('sanctum.rt_expiration')));
+
         return response()->json([
-            'token' => $user->createToken($request->input('email'), $abilities, now()->addWeeks(2))->plainTextToken
+            'token_type' => 'Bearer',
+            'access_token' => $user->createToken($request->input('email'), $abilities, now()->addWeeks(2))->plainTextToken,
+            'expiration' => now()->addWeeks(2)->getTimestampMs()
         ], Response::HTTP_OK);
     }
 }

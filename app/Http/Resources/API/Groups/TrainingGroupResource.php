@@ -3,13 +3,14 @@
 namespace App\Http\Resources\API\Groups;
 
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use JsonSerializable;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\TrainingGroup;
+use Illuminate\Support\Collection;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\API\Players\PlayersCollection;
 
 class TrainingGroupResource extends JsonResource
 {
@@ -28,6 +29,7 @@ class TrainingGroupResource extends JsonResource
      */
     public function toArray($request): array|JsonSerializable|Arrayable
     {
+        $request->merge(['group_id' => $this->id]);
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -35,7 +37,9 @@ class TrainingGroupResource extends JsonResource
             'explode_schedules' => $this->explode_schedules[0],
             'full_schedule_group' => $this->full_schedule_group,
             'full_group' => $this->full_group,
-            'class_days' => $this->getClassDays()
+            'player_count' => $this->inscriptions_count,
+            'class_days' => $this->getClassDays(),
+            'players' => $this->whenLoaded('members', new PlayersCollection($this->members))
         ];
     }
 
@@ -48,12 +52,17 @@ class TrainingGroupResource extends JsonResource
             array_map('dayToNumber', $this->explode_name['days'])
         );
 
-        return $classDays->map(function ($class) {
+        return $classDays->map(function ($class)use($date) {
             $name = Str::ucfirst($class['name']);
             return [
-                'day' => $class['day'],
-                'name' => "{$class['day']} - {$name}",
-                'index' => $class['column']
+                'id' => "{$this->id}{$date->month}{$class['day']}",
+                'date' => $class['day'],
+                'day' => $name,
+                'month' => $date->month,
+                'month_name' => getMonth($date->month),
+                'column' => $class['column'],
+                'group_id' => $this->id,
+                'school_id' => getSchool(auth()->user())->id
             ];
         });
     }

@@ -8,14 +8,10 @@ class AssistsService
 {
     public function getAssists(array $params)
     {
-        $training_group_id = $params['group_id'];
-        $month = $params['month'];
-        $year = $params['year'];
-
         return Assist::query()->schoolId()->with(['player'])
-            ->where('training_group_id', $training_group_id)
-            ->where('year', $year)
-            ->where('month', $month)
+            ->where('training_group_id', $params['training_group_id'])
+            ->where('month', $params['month'])
+            ->where('year', $params['year'])
             ->get();
     }
 }

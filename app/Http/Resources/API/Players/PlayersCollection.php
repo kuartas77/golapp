@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Resources\API\Assists;
+namespace App\Http\Resources\API\Players;
 
+use App\Http\Resources\API\Players\PlayerResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
-class AssitsCollection extends ResourceCollection
+class PlayersCollection extends ResourceCollection
 {
     /**
      * Transform the resource collection into an array.
@@ -15,8 +16,8 @@ class AssitsCollection extends ResourceCollection
      */
     public function toArray($request): array
     {
-        return $this->collection->map(function ($assist) {
-            return new AssistResource($assist);
+        return $this->collection->map(function ($player) {
+            return new PlayerResource($player);
         })->toArray();
     }
 }

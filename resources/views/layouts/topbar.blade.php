@@ -7,15 +7,15 @@
                     <!-- Dark Logo icon -->
                     <img src="{{asset('img/ballon.png')}}" alt="homepage" class="dark-logo" width="34" height="33">
                     <!-- Light Logo icon -->
-                    <img src="{{asset('img/ballon.png')}}" alt="homepage" class="light-logo" width="34" height="33">
+                    <img src="{{asset('img/ballon_dark.png')}}" alt="homepage" class="light-logo" width="34" height="33">
                 </b>
                 <!--End Logo icon -->
                 <!-- Logo text -->
                 <span style="display: none;">
                     <!-- dark Logo text -->
-                    <img src="{{asset('img/logo-ext.jpg')}}" alt="homepage" class="dark-logo" width="148" height="33">
+                    <img src="{{asset('img/light.png')}}" alt="homepage" class="dark-logo" width="148" height="33">
                     <!-- Light Logo text -->
-                    <img src="{{asset('img/logo-ext.jpg')}}" class="light-logo" alt="homepage" width="148" height="33">
+                    <img src="{{asset('img/dark.png')}}" class="light-logo" alt="homepage" width="148" height="33">
                 </span>
             </a>
 
@@ -45,14 +45,14 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href=""
                        data-toggle="dropdown" aria-haspopup="true"
-                       aria-expanded="false"><img src="{{asset('img/user_login.png')}}" alt="user"
+                       aria-expanded="false"><img src="{{asset(getSchool(auth()->user())->logo_file)}}" alt="user"
                                                   class="profile-pic"></a>
                     <div class="dropdown-menu dropdown-menu-right scale-up">
                         <ul class="dropdown-user">
                             <li>
                                 <div class="dw-user-box">
                                     <div class="u-img">
-                                        <img src="{{asset('img/user_login.png')}}" alt="user">
+                                        <img src="{{asset(getSchool(auth()->user())->logo_file)}}" alt="user">
                                     </div>
                                     <div class="u-text">
                                         <h4>{{auth()->user()->name}}</h4>

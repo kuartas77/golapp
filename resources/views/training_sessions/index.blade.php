@@ -1,7 +1,7 @@
 @extends('layouts.app')
-@section('title', 'Sessiones De Entrenamiento')
+@section('title', 'Sesiones De Entrenamiento')
 @section('content')
-<x-bread-crumb title="Sessiones De Entrenamiento" :option="0" />
+<x-bread-crumb title="Sesiones De Entrenamiento" :option="0" />
 <x-row-card col-inside="12">
     @include('training_sessions.table')
 </x-row-card>

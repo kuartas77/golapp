@@ -103,8 +103,10 @@ class AssistRepository
     {
         try {
             DB::beginTransaction();
-            if($assist->observations && $validated['observations']){
+            if($assist->observations || $validated['observations']){
                 $validated['observations'] = "{$assist->observations}{$validated['observations']}";
+            }else{
+                $assist->observations = $assist->observations;
             }
 
             $updated = $assist->update($validated);
