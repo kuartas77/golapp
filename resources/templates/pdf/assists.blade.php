@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>{{strtoupper($month)}} {{$group_name}}</title>
+    <title>{{$year}} {{strtoupper($month)}} {{$group->name}}</title>
     <link rel="stylesheet" href="{{ asset('css/dompdf.css') }}">
 </head>
 <body>
@@ -60,7 +60,7 @@
                         $column = numbersToLetters($index);
                         $countAS += $assist->$column == 'as' ? 1 : 0;
                     @endphp
-                    {{ $assist->$column == null ? '': $optionAssist[$assist->$column] }}
+                    {!! $assist->$column == null ? '': $optionAssist[$assist->$column] !!}
                 </td>
             @endfor
             <td class="center texto bold" style="width:3%"> {{percent($countAS, count($classDays))}}%</td>
@@ -82,8 +82,8 @@
 
 <table class="table-full detail">
     <tr class="tr-tit">
-        <td class="texto">ASISTENCIA:X</td>
-        <td class="texto">FALTA:F</td>
+        <td class="texto">ASISTENCIA:&#10003;</td>
+        <td class="texto">FALTA:&#10008;</td>
         <td class="texto">EXCUSA:E</td>
         <td class="texto">RETIRO:R</td>
         <td class="texto">INCAPACIDAD:I</td>
