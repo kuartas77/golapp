@@ -8,7 +8,7 @@
     <meta name="X-UA-Compatible" content="IE=edge, chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" href="/img/ballon.png" />
-    <link href="{{mix('css/all.css')}}" rel="stylesheet">
+    <link href="{{asset('css/all.css')}}" rel="stylesheet">
     @yield('css')
     <link href="{{asset('css/default.css')}}" rel="stylesheet">
     <link href="{{asset('css/camera.css')}}" rel="stylesheet">
@@ -42,7 +42,7 @@
         window.img_logout = "{{asset('img/logout.png')}}";
     </script>
     @include('sweetalert::alert')
-    <script src="{{mix('js/all.js')}}" ></script>
+    <script src="{{asset('js/all.js')}}" ></script>
     <script src="{{asset('js/config.js')}}" ></script>
     <script src="{{asset('js/jquery.easing.1.3.js')}}" ></script>
     <script src="{{asset('js/camera.min.js')}}" ></script>

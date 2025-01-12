@@ -51,6 +51,7 @@ $('body').on('click', 'a.assist', function()  {
     let column = button.data('column')
     let number = button.data('number')
     let value = button.data('value')
+    let observation = button.data('observation')
 
     $('#select_attendance').attr('name', column)
     $('#select_attendance').val(value)
@@ -59,6 +60,7 @@ $('body').on('click', 'a.assist', function()  {
     $('#attendance_date').val(date)
     $('#attendance_id').val(id)
     $('#attendance_day').val(day)
+    $('#single_observation').val(observation)
 })
 
 $("#form_attendance").validate({
@@ -150,7 +152,7 @@ const initTable = () => {
         "scrollX": true,
         columnDefs: [
             { targets: [0, 1], width: '5%'},
-            { targets: '_all', width: '59px'}
+            { targets: '_all', width: 'auto'}
         ],
     });
 }

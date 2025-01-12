@@ -76,5 +76,5 @@
             $(".preloader").fadeOut()
         })
     </script>
-    <script src="{{mix('js/adminInscriptionGCompetition.js')}}" defer></script>
+    <script src="{{asset('js/adminInscriptionGCompetition.js')}}" defer></script>
 @endsection

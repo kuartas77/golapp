@@ -21,6 +21,7 @@
                 'value' => $assist->$column,
                 'column' => $column,
                 'deleted' => $deleted,
+                'observations' => $assist->observations,
                 'classDay' => $classDays->firstWhere('column', $column)
             ])
         </td>

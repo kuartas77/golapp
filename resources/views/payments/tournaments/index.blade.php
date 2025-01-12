@@ -72,10 +72,9 @@
                 "info": true,
                 "scrollX": true,
                 "scrollY": true,
-                "columns": [
-                    {'width': '5%'},
-                    {'width': '5%'},
-                    {'width': '20%'},
+                columnDefs: [
+                    { targets: [0, 1], width: '5%'},
+                    { targets: [2], width: 'auto'}
                 ],
                 "footerCallback": function (row, data, start, end, display) {
                     let api = this.api();

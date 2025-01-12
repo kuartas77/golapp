@@ -33,9 +33,10 @@
     </ul>
 </nav>
 <div class="tab-content clearfix" id="tab_content">
+
     <div class="tab-pane show active" id="enabled" role="tabpanel" aria-labelledby="enabled-tab">
 
-        <table class="display compact" id="active_table">
+        <table class="display compact" id="active_table" width="100%">
             <thead>
             <tr>
                 <th class="text-center">Nombres</th>

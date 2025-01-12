@@ -57,6 +57,10 @@ class Assist extends Model
 
     protected $appends = [];
 
+    protected $casts = [
+        'observations' => 'object'
+    ];
+
     public function scopeOnlyTrashedRelations($query)
     {
         return $query->with([
