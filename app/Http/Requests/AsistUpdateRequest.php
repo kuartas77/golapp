@@ -51,6 +51,7 @@ class AsistUpdateRequest extends FormRequest
             'assistance_twenty_four' => ['nullable', 'string'],
             'assistance_twenty_five' => ['nullable', 'string'],
             'observations' => ['nullable', 'string'],
+            'attendance_date' => ['nullable', 'string'],
             'school_id' => ['required'],
         ];
     }
@@ -58,8 +59,7 @@ class AsistUpdateRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => getSchool(auth()->user())->id,
-            'observations' => isset($this->observations) ? "{$this->attendance_date}: {$this->observations}".PHP_EOL : null
+            'school_id' => getSchool(auth()->user())->id
         ]);
     }
 }

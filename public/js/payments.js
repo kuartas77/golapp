@@ -131,7 +131,7 @@ function initTable() {
         "scrollCollapse":true,
         columnDefs: [
             { targets: [0, 1], width: '5%'},
-            { targets: '_all', width: 80}
+            { targets: [2,3,4,5,6,7,8,9,10,11,12,13,14], width: 'auto'}
         ],
         "footerCallback": function (row, data, start, end, display) {
             let api = this.api();

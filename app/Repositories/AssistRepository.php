@@ -103,8 +103,15 @@ class AssistRepository
     {
         try {
             DB::beginTransaction();
-            if($assist->observations || $validated['observations']){
-                $validated['observations'] = "{$assist->observations}{$validated['observations']}";
+            if($assist->observations || ($validated['observations'] && $validated['attendance_date'])){
+                if (isset($assist->observations) && is_object($assist->observations)){
+                    $observations = $assist->observations;
+                }else{
+                    $observations = new \stdClass;
+                }
+
+                $observations->{$validated['attendance_date']} = $validated['observations'];
+                $validated['observations'] = $observations;
             }else{
                 $assist->observations = $assist->observations;
             }

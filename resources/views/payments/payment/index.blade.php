@@ -20,5 +20,5 @@
             $(".preloader").fadeOut()
         })
     </script>
-    <script src="{{mix('js/payments.js')}}"></script>
+    <script src="{{asset('js/payments.js')}}"></script>
 @endsection

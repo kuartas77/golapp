@@ -33,6 +33,7 @@ $colorClass = $deleted ? '': $colorClass;
     data-column="{{$classDay['column']}}"
     data-number="{{$classDay['number_class']}}"
     data-value="{{$value}}"
+    data-observation="{{data_get($observations, $classDay['date'], '')}}"
     id="{{$id}}{{$classDay['day']}}"
     >{{$value == '' ? 'Seleccionar...': $optionAssist[$value]}}
     </a>

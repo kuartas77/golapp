@@ -19,5 +19,5 @@
         const url_inscriptions_enabled = "{{ route('inscriptions.enabled') }}";
         const url_inscriptions_disabled = "{{ route('inscriptions.disabled') }}";
     </script>
-    <script src="{{ mix('js/inscriptions.js') }}" ></script>
+    <script src="{{ asset('js/inscriptions.js') }}" ></script>
 @endsection

@@ -48,7 +48,7 @@
                             <div class="form-group">
                                 <label for="observation">Observaciónes del deportista para la clase.</label>
                                 <span class="bar"></span>
-                                <textarea name="observations" id="observations" cols="30" rows="10" class="form-control form-control-sm"></textarea>
+                                <textarea name="observations" id="single_observation" cols="30" rows="10" class="form-control form-control-sm"></textarea>
                             </div>
                         </div>
 

@@ -10,9 +10,8 @@
     <meta name="description"
           content="Ayuda a tu escuela de futbol a mejorar deportivamente con nuestra herramienta, la cual te facilitará muchos procesos, asistencias, entrenamientos, pagos entre otros">
     <link rel="icon" type="image/png" href="/img/ballon.png"/>
-    <link href="{{asset(mix('css/all.css'))}}" rel="stylesheet">
+    <link href="{{asset('css/all.css')}}" rel="stylesheet">
     @yield('css')
-    {{--<link href="{{mix('css/default-mix.css')}}" rel="stylesheet">--}}
     <link href="{{asset('css/default.css')}}" rel="stylesheet">
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -62,7 +61,7 @@
     window.img_logout = "{{asset('img/logout.png')}}";
 </script>
 @include('sweetalert::alert')
-<script src="{{asset(mix('js/all.js'))}}"></script>
+<script src="{{asset('js/all.js')}}"></script>
 <script src="{{asset('js/config.js')}}"></script>
 @yield('scripts')
 @stack('scripts')

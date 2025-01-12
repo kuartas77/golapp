@@ -108,7 +108,7 @@
         });
 
         $("#btn-add").on('click', function () {
-            resetModalForm(true);    
+            resetModalForm(true);
         })
 
         $('#active_table tbody').on('click', 'a.edit', function () {
@@ -126,6 +126,5 @@
     });
 
     </script>
-    <!-- <script src="{{mix('js/day_schedules.js')}}"></script> -->
+    <!-- <script src="{{asset('js/day_schedules.js')}}"></script> -->
 @endsection
-

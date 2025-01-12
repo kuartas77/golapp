@@ -36,5 +36,5 @@
             $(".preloader").fadeOut()
         })
     </script>
-    <script src="{{mix('js/adminInscriptionGTraining.js')}}" defer></script>
+    <script src="{{asset('js/adminInscriptionGTraining.js')}}" defer></script>
 @endsection

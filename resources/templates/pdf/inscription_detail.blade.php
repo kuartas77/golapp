@@ -238,9 +238,11 @@
                 </thead>
                 <tbody>
                     @foreach($observations_assists as $assist)
-                    <tr>
-                        <td>&nbsp;<strong class="bold"><small>{{ $assist->observations }}</small></td>
-                    </tr>
+                        @foreach($assist->observations as $date => $observation)
+                        <tr>
+                            <td>&nbsp;<strong class="bold"><small>{{ $date }}: {{$observation}}</small></td>
+                        </tr>
+                        @endforeach
                     @endforeach
                 </tbody>
             </table>
