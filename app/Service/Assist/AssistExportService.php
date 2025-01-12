@@ -30,10 +30,9 @@ class AssistExportService
         $group->instructors_names = $group->instructors_names;
         $data['group'] = $group;
         $data['group_name'] = $group_name;
-        $data['month'] = $params['month'];
+        $data['month'] = config('variables.KEY_MONTHS_INDEX')[$params['month']];
         $data['year'] = $params['year'];
         $data['optionAssist'] = config('variables.KEY_ASSIST_LETTER');
-
         $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'assists.blade.php');
 

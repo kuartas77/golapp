@@ -55,7 +55,7 @@ class AssistService
         $params = [
             'training_group_id' => $data['training_group_id'],
             'year' => $data['year'],
-            'month' => $data['month'],
+            'month' => array_search($data['month'], config('variables.KEY_MONTHS_INDEX'), true),
             'deleted' => $deleted
         ];
 
