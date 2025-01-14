@@ -35,14 +35,19 @@ class RegisterService
 
             $password = randomPassword();
 
-            $user = User::query()->create([
-                'name' => $request->agent,
-                'email' => $request->email,
-                'password' => $password
-            ]);
+            if(!$request->is_campus){
+                $user = User::query()->create([
+                    'name' => $request->agent,
+                    'email' => $request->email,
+                    'password' => $password
+                ]);
 
-            $user->syncRoles([User::SCHOOL]);
-            $user->profile()->create();
+                $user->syncRoles([User::SCHOOL]);
+                $user->profile()->create();
+            }else{
+                $user = User::query()->firstWhere('email', $request->email);
+            }
+
 
             $validated = $request->validated();
             $validated['logo'] = $this->saveFile($request, 'logo');
@@ -58,7 +63,9 @@ class RegisterService
             $relationSchool->school_id = $school->id;
             $relationSchool->save();
 
-            $user->notify(new RegisterNotification($user, $password));
+            if(!$request->is_campus){
+                $user->notify(new RegisterNotification($user, $password));
+            }
 
             DB::commit();
 

@@ -1,7 +1,7 @@
 <h5 class="">Informacion de la Escuela</h5>
 <div class="row">
 
-    
+
     <div class="col-md-4">
         <div class="form-group">
             <label for="name">Nombre </label>(<span class="text-danger">*</span>)
@@ -40,6 +40,15 @@
             </select>
         </div>
     </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <div class="checkbox">
+                <input type="checkbox" name="is_campus" id="is_campus"
+                    value="1">
+                <label for="is_campus" class="checkboxsizeletter">Es Sede?</label>
+            </div>
+        </div>
+    </div>
 
 </div>
 
@@ -76,14 +85,14 @@
             <span class="bar"></span>
             <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" required autocomplete="off">
         </div>
-    </div>    
+    </div>
 
 </div>
 <div class="row">
 
     <div class="col-md-8">
         <div class="form-group">
-            <label>Logo</label> 
+            <label>Logo</label>
             <div class="custom-file">
                 <input type="file" class="custom-file-input" id="file-upload" accept="image/png, image/jpeg" name="logo">
                 <label class="custom-file-label" for="file-upload">Seleccionar...</label>

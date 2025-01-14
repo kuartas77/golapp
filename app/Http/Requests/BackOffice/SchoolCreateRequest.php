@@ -26,7 +26,7 @@ class SchoolCreateRequest extends FormRequest
     public function rules()
     {
         return [
-            'email' => ['required', 'email', Rule::unique('schools', 'email'), Rule::unique('users', 'email')],
+            'email' => ['required', 'email'],
             // 'password' => ['nullable', 'confirmed'], //Password::min(8)->letters()->mixedCase()->numbers()->symbols()->uncompromised()],
             'name' => ['required', 'string'],
             'agent' => ['required', 'string'],
@@ -34,6 +34,7 @@ class SchoolCreateRequest extends FormRequest
             'phone' => ['nullable', 'string'],
             'slug' => ['required', 'string'],
             'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg'],
+            'is_campus' => ['nullable', 'bool']
         ];
     }
 
