@@ -2,7 +2,7 @@
 @section('title', 'Horarios')
 @section('content')
     <x-bread-crumb title="Horarios" :option="0"/>
-    <x-row-card col-inside="12" >
+    <x-row-card col-inside="8" col-outside="2">
         @include('schedules.table')
     </x-row-card >
 @endsection
@@ -15,20 +15,30 @@
         let url_store = "{{route('schedules.store')}}";
         let url_enabled = "{{route('schedules.enabled')}}";
 
-        function forceKeyPressUppercase(e)
-        {
-            var charInput = e.keyCode;
-            if((charInput >= 97) && (charInput <= 122)) { // lowercase
-            if(!e.ctrlKey && !e.metaKey && !e.altKey) { // no modifier key
-                var newChar = charInput - 32;
-                var start = e.target.selectionStart;
-                var end = e.target.selectionEnd;
-                e.target.value = e.target.value.substring(0, start) + String.fromCharCode(newChar) + e.target.value.substring(end);
-                e.target.setSelectionRange(start+1, start+1);
-                e.preventDefault();
-            }
-            }
-        }
+        $("#schedule_start").bootstrapMaterialDatePicker({
+            format: 'hh:mm A',
+            shortTime: true,
+            time: true,
+            date: false,
+            lang: 'es',
+            clearButton: false,
+            cancelText: 'Cancelar',
+            okText: 'Aceptar',
+        });
+
+        $("#schedule_end").bootstrapMaterialDatePicker({
+            format: 'hh:mm A',
+            shortTime: true,
+            time: true,
+            date: false,
+            lang: 'es',
+            clearButton: false,
+            cancelText: 'Cancelar',
+            okText: 'Aceptar',
+        });
+
+
+
 
         const resetModalForm = (create = true, id = null) => {
             let form = $("#form_create");
@@ -72,7 +82,6 @@
 
             $('#active_table').DataTable({
                 "lengthMenu": [[15, 30, 50, 70, 100], [15, 30, 50, 70, 100]],
-                "scrollX": true,
                 "processing": true,
                 "serverSide": true,
                 "ajax": $.fn.dataTable.pipeline({
@@ -103,7 +112,8 @@
 
         $("#form_create").validate({
             rules: {
-                schedules: {required: true}
+                schedule_start: {required: true},
+                schedule_end: {required: true}
             }
         });
 
@@ -115,9 +125,11 @@
             let id = $(this).data('id');
             $.get(`${url_current}${id}/edit`, function (response) {
                 if (response.data != null) {
+                    let schedule = response.data.schedule.split(" - ")
                     resetModalForm(false, id);
                     $('#schedule_id').val(id)
-                    $('#schedule').val(response.data.schedule)
+                    $('#schedule_start').val(schedule[0])
+                    $('#schedule_end').val(schedule[1])
                     $("#create").modal('show');
                 }
             });

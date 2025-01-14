@@ -42,7 +42,7 @@ class ImportController extends Controller
 
     }
 
-    public function importPlayers(Request $request)
+    public function importPlayers(Request $request, PlayerRepository $playerRepository)
     {
         try {
 
@@ -54,7 +54,7 @@ class ImportController extends Controller
                 return back();
             }
 
-            $importPlayers = new ImportPlayers($request->school_id);
+            $importPlayers = new ImportPlayers($request->school_id, $playerRepository);
             Excel::import($importPlayers, $request->file('file'));
 
             alert()->success(env('APP_NAME'), __('messages.player_created'));
