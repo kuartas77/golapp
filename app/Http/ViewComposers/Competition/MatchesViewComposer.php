@@ -52,7 +52,7 @@ class MatchesViewComposer
                 return $scores;
             });
 
-            $qualifications = Cache::rememberForever('KEY_SCORE', function () {
+            $qualifications = Cache::rememberForever('KEY_SCORE_QUA', function () {
                 $qualifications = collect();
                 for ($i = 1; $i <= 5; ++$i) {
                     $qualifications->put($i, $i);
