@@ -32,7 +32,8 @@ class ScheduleRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => getSchool(auth()->user())->id
+            'school_id' => getSchool(auth()->user())->id,
+            'schedule' => sprintf("%s - %s", $this->schedule_start, $this->schedule_end)
         ]);
     }
 }

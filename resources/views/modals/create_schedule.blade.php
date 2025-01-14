@@ -13,12 +13,20 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="schedule">Horario</label>(<span class="text-danger">*</span>)
+                                    <label for="schedule">Inicio</label>(<span class="text-danger">*</span>)
                                     <span class="bar"></span>
                                     <input type="hidden" name="id" id="schedule_id">
-                                    <input type="text" name="schedule" id="schedule" class="form-control" required
-                                           autocomplete="off" onkeypress="forceKeyPressUppercase()">
-                                    <span class="text-muted">Ej: 04:30PM - 05:30PM</span>
+                                    <input type="text" name="schedule_start" id="schedule_start" class="form-control" required
+                                           autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="schedule">Fin</label>(<span class="text-danger">*</span>)
+                                    <span class="bar"></span>
+                                    <input type="hidden" name="id" id="schedule_id">
+                                    <input type="text" name="schedule_end" id="schedule_end" class="form-control" required
+                                           autocomplete="off">
                                 </div>
                             </div>
                         </div>
