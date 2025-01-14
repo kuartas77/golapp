@@ -2,14 +2,17 @@
 
 namespace App\Exports;
 
-use App\Repositories\GameRepository;
-use Illuminate\Contracts\View\View;
-use Maatwebsite\Excel\Concerns\Exportable;
-use Maatwebsite\Excel\Concerns\FromView;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithTitle;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\FromView;
+use Maatwebsite\Excel\Concerns\Exportable;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Contracts\View\View;
+use App\Repositories\GameRepository;
 
 class MatchDetailExport implements FromView, WithTitle, WithStyles
 {
@@ -39,21 +42,56 @@ class MatchDetailExport implements FromView, WithTitle, WithStyles
 
     public function styles(Worksheet $sheet)
     {
-        $positions = implode(',', config('variables.KEY_POSITIONS'));
+        $this->addDropdown($sheet, "C", [1=>'Sí',0 => 'No']);
+        $this->addDropdown($sheet, "D", [1=>'Sí',0 => 'No']);
+        $this->addDropdownMin($sheet, "E");
+        $this->addDropdown($sheet, "F", Cache::get('KEY_POSITIONS', []));
+        $this->addDropdown($sheet, "G", Cache::get('KEY_SCORE', collect())->toArray());
+        $this->addDropdown($sheet, "H", ['0'=>'0', '1'=>'1','2'=>'2']);
+        $this->addDropdown($sheet, "I", ['0'=>'0','1'=>'1']);
+        $this->addDropdown($sheet, "J", Cache::get('KEY_SCORE_QUA', collect())->toArray());
 
-        $sheet->setCellValue('M22', "Los campos Asistio, Titular se deben llenar con Si, No.
-        El compo de Jugó Aprox se debe llenar sólo con números.
-        El compo de Posicion se debe llenar con la información siguiente:
-        Posiciones: {$positions}")->mergeCells('M22:R33');
-        $sheet->getStyle('M22:R33')->getFont()->setBold(true);
-        $sheet->getStyle('M22:R33')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('M22:R33')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-        $sheet->getStyle('M22:R33')->getAlignment()->setWrapText(true);
-        $sheet->getColumnDimension('M')->setAutoSize(true);
-        $sheet->getColumnDimension('N')->setAutoSize(true);
-        $sheet->getColumnDimension('O')->setAutoSize(true);
-        $sheet->getColumnDimension('P')->setAutoSize(true);
-        $sheet->getColumnDimension('Q')->setAutoSize(true);
-        $sheet->getColumnDimension('R')->setAutoSize(true);
+        $sheet->getColumnDimension('A')->setAutoSize(true);
+        $sheet->getColumnDimension('B')->setAutoSize(true);
+        $sheet->getColumnDimension('C')->setAutoSize(true);
+        $sheet->getColumnDimension('D')->setAutoSize(true);
+        $sheet->getColumnDimension('E')->setAutoSize(true);
+        $sheet->getColumnDimension('F')->setAutoSize(true);
+        $sheet->getColumnDimension('G')->setAutoSize(true);
+        $sheet->getColumnDimension('H')->setAutoSize(true);
+        $sheet->getColumnDimension('I')->setAutoSize(true);
+        $sheet->getColumnDimension('J')->setAutoSize(true);
+        $sheet->getColumnDimension('K')->setAutoSize(true);
     }
+
+    private function addDropdown(Worksheet $sheet, string $cell, array $options)
+    {
+        for ($i=2; $i < 30; $i++) {
+            $objValidation = $sheet->getCell($cell.$i)->getDataValidation();
+            $objValidation->setType(DataValidation::TYPE_LIST);
+            $objValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
+            $objValidation->setAllowBlank(false);
+            $objValidation->setShowInputMessage(true);
+            $objValidation->setShowDropDown(true);
+            $objValidation->setPromptTitle('Seleccione una opción.');
+            $objValidation->setPrompt('Por favor seleccione un elemento de la lista.');
+            $objValidation->setErrorTitle('Error');
+            $objValidation->setError('El valor no está en la lista.');
+            $objValidation->setFormula1('"'.implode(',', $options).'"');
+        }
+    }
+
+    private function addDropdownMin(Worksheet $sheet, string $cell)
+    {
+        for ($i=2; $i < 30; $i++) {
+            $objValidation = $sheet->getCell($cell.$i)->getDataValidation();
+            $objValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
+            $objValidation->setAllowBlank(false);
+            $objValidation->setShowInputMessage(true);
+            $objValidation->setPromptTitle('Ingrese un número.');
+            $objValidation->setPrompt('Por favor ingrese números, el tiempo jugado en minutos.');
+            $objValidation->setErrorTitle('Error');
+        }
+    }
+
 }
