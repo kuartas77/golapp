@@ -1,5 +1,5 @@
 # imagen de dockerhub que descargara
-FROM php:8.0.13-fpm-buster
+FROM php:8.1-fpm-buster
 
 # Arguments defined in docker-compose.yml
 ARG user
