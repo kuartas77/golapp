@@ -1,12 +1,11 @@
-<div class="row" data-id="{{$inscription->id}}" data-info="{{$inscription->player->full_names}} {{ $inscription->category }}">
-    <div class="col-sm-12 col-md-12 col-lg-12 element">
-        <div class="card text-center">
-            <div class="card-body" style="min-height: 202px;">
-                <img class='media-object img-rounded' src='{{$inscription->player->photo_url}}' width='90' height='90'>
-                <ul class="list-unstyled">
-                    <small class="media-heading text-themecolor">{{$inscription->player->full_names}}</small>
-{{--                    <small>Código: {{$inscription->player->unique_code}}</small>--}}
-                    <small>Categoría: {{ $inscription->category }}</small>
+<div class="col-md-4" data-id="{{$inscription->id}}" data-info="{{$inscription->player->full_names}} {{ $inscription->category }}">
+    <div class="col element">
+        <div class="card text-center text-themecolor">
+            <div class="card-body">
+                <img class='media-object img-rounded card-img-top' src='{{$inscription->player->photo_url}}' width='90' height='90'>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><small class="card-text">{{$inscription->player->full_names}}</small></li>
+                    <li class="list-group-item"><small class="card-text">Categoría: {{ $inscription->category }}</small></li>
                 </ul>
             </div>
         </div>
