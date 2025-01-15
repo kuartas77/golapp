@@ -44,8 +44,10 @@
                     </h6>
                     <input type="text" name="search" id="search_origin" class="form-control form-control-sm" placeholder="Buscar..." autocomplete="off" onkeyup="search(this, 'inscriptions')">
                     <hr>
-                    <div class="row row-cols-3 space col-lg-12 col-md-12 col-sm-12" id="inscriptions">
-                        @each('templates.groups.div_row', $insWithOutGroup, 'inscription')
+                    <div class="container">
+                        <div class="row space row-cols-3 col" id="inscriptions">
+                            @each('templates.groups.div_row', $insWithOutGroup, 'inscription')
+                        </div>
                     </div>
                 </div>
             </div>
@@ -60,8 +62,10 @@
                     </h6>
                     <input type="text" name="search" id="search_destiny" class="form-control form-control-sm" placeholder="Buscar..." autocomplete="off" onkeyup="search(this, 'destination')">
                     <hr>
-                    <div class="row row-cols-3 space col-lg-12 col-md-12 col-sm-12" id="destination">
-                        @each('templates.groups.div_row', $insWithGroup, 'inscription')
+                    <div class="container">
+                        <div class="row space row-cols-3 col" id="destination">
+                            @each('templates.groups.div_row', $insWithGroup, 'inscription')
+                        </div>
                     </div>
                 </div>
             </div>
