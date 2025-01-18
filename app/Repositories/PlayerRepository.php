@@ -43,7 +43,7 @@ class PlayerRepository
             $school_id = $dataPlayer['school_id'];
 
             if(!isset($dataPlayer['unique_code'])){
-                $dataPlayer['unique_code'] = $this->createUniqueCode($dataPlayer['school_id']);
+                $dataPlayer['unique_code'] = createUniqueCode($dataPlayer['school_id']);
             }
 
             if ($file_name = $this->saveFile($request, 'player')) {
@@ -192,44 +192,31 @@ class PlayerRepository
         return $headers->diff($headers_validation)->implode(',');
     }
 
-    public function createUniqueCode($school_id): mixed
+    public function getPlayerInfo(string $doc)
     {
-        $newUniqueCode = '';
-        $year = now()->year;
+        $player = $this->model->query()->where('identification_document', $doc)
+        ->whereDoesntHave('inscription', fn($q) => $q->where('year', getYearInscription()))
+        ->first();
 
-        $lastUniqueCode = Cache::remember("KEY_LAST_UNIQUE_CODE.{$school_id}", now()->addMinute(), function() use($year, $school_id){
-            $result = DB::table('players')->select(['unique_code'])->where('unique_code', 'like', "$year%")->where('school_id', $school_id)->orderBy('unique_code', 'desc')->limit(1)->first();
-            return isset($result) ? $result->unique_code : null;
-        });
-
-        if(isset($lastUniqueCode)){
-            $newUniqueCode = intval($lastUniqueCode) + 1;
-        }else{
-            $count = 1;
-            $newUniqueCode = $year . str_pad((string)$count, 4, '0', STR_PAD_LEFT);
-        }
-
-        $newUniqueCode = $this->generateCode($school_id, $newUniqueCode);
-
-        Cache::put("KEY_LAST_UNIQUE_CODE.{$school_id}", $newUniqueCode, now()->addMinute());
-
-        return $newUniqueCode;
-    }
-
-    private function generateCode($school_id, $lastUniqueCode)
-    {
-        $next = true;
-        while ($next){
-            $exits = DB::table('players')->select(['unique_code'])
-                    ->where('unique_code', $lastUniqueCode)
-                    ->where('school_id', $school_id)
-                    ->exists();
-            if(!$exits){
-                $next = false;
-            }else{
-                $lastUniqueCode = intval($lastUniqueCode) + 1;
-            }
-        }
-        return $lastUniqueCode;
+        return !isset($player) ? [] : [
+            'names' => $player->names,
+            'last_names' => $player->last_names,
+            'date_birth' => $player->date_birth,
+            'place_birth' => $player->place_birth,
+            'document_type' => $player->document_type,
+            'gender' => $player->gender,
+            'email' => $player->email,
+            'mobile' => $player->mobile,
+            'medical_history' => $player->medical_history,
+            'address' => $player->address,
+            'municipality' => $player->municipality,
+            'neighborhood' => $player->neighborhood,
+            'rh' => $player->rh,
+            'eps' => $player->eps,
+            'student_insurance' => $player->student_insurance,
+            'school' => $player->school,
+            'degree' => $player->degree,
+            'jornada' => $player->jornada,
+        ];
     }
 }

@@ -99,4 +99,20 @@ class MasterController extends Controller
         });
         return $this->responseJson($response);
     }
+
+    public function searchDoc(Request $request): JsonResponse
+    {
+        $response = [];
+
+        abort_unless($request->ajax(), 401);
+
+        $validated = $request->validate([
+            'doc' => ['required', 'numeric']
+        ]);
+
+        if($validated){
+            $response = $this->playerRepository->getPlayerInfo($request->input('doc'));
+        }
+        return $this->responseJson($response);
+    }
 }

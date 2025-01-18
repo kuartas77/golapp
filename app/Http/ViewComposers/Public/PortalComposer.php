@@ -5,7 +5,7 @@ namespace App\Http\ViewComposers\Public;
 use App\Models\School;
 use Illuminate\Contracts\View\View;
 
-class PublicComposer
+class PortalComposer
 {
     public function compose(View $view): void
     {

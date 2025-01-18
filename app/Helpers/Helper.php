@@ -1,14 +1,15 @@
 <?php
 
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Collection;
+use Carbon\CarbonPeriod;
 use Carbon\Carbon;
+use App\Service\StopWatch;
 use App\Models\School;
 use App\Models\Payment;
-use Carbon\CarbonPeriod;
-use App\Service\StopWatch;
-use Illuminate\Support\Str;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Session;
 
 if (!function_exists('getPay')) {
     /**
@@ -337,6 +338,68 @@ if (!function_exists('loggerTimeRequest')){
                 ]
             );
         }
+    }
+}
+
+if (!function_exists('createUniqueCode')){
+    function createUniqueCode($school_id, string $year = null): mixed
+    {
+        $newUniqueCode = '';
+        $keyCache = "KEY_LAST_UNIQUE_CODE_".$school_id;
+        $year = isset($year) ? $year: now()->year;
+
+        $lastUniqueCode = Cache::remember($keyCache, now()->addMinute(), function() use($year, $school_id){
+            $result = DB::table('players')->select(['unique_code'])
+                ->where('unique_code', 'like', "$year%")
+                ->where('school_id', $school_id)
+                ->orderBy('unique_code', 'desc')
+                ->limit(1)
+                ->first();
+            return isset($result) ? $result->unique_code : null;
+        });
+
+        if(isset($lastUniqueCode)){
+            $newUniqueCode = intval($lastUniqueCode) + 1;
+        }else{
+            $count = 1;
+            $newUniqueCode = $year . str_pad((string)$count, 4, '0', STR_PAD_LEFT);
+        }
+
+        $newUniqueCode = generateCode($school_id, $newUniqueCode);
+
+        Cache::put($keyCache, $newUniqueCode, now()->addMinute());
+
+        return $newUniqueCode;
+    }
+}
+
+if(!function_exists('generateCode')) {
+    function generateCode($school_id, $lastUniqueCode)
+    {
+        $next = true;
+        while ($next){
+            $exits = DB::table('players')->select(['unique_code'])
+                    ->where('unique_code', $lastUniqueCode)
+                    ->where('school_id', $school_id)
+                    ->exists();
+            if(!$exits){
+                $next = false;
+            }else{
+                $lastUniqueCode = intval($lastUniqueCode) + 1;
+            }
+        }
+        return $lastUniqueCode;
+    }
+}
+
+if(!function_exists('getYearInscription')) {
+    function getYearInscription() {
+        if (in_array(now()->month, [11, 12])){
+            $year = now()->addYear()->year;
+        }else{
+            $year = now()->year;
+        }
+        return $year;
     }
 }
 
