@@ -20,9 +20,9 @@ Auth::routes(['register' => false, 'verify' => false]);
 
 Route::get('/', fn() => redirect('login'));
 
-Route::middleware(['auth', 'verified_school'])->group(function () {
+Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
 
-    Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
+Route::middleware(['auth', 'verified_school'])->group(function () {
 
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/birthdays', [HomeController::class, 'birthDays'])->name('birthDays');

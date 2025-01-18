@@ -3,7 +3,11 @@
 @push('css')
 @endpush
 @section('content')
-    {{$school->name}}
+<div class="container-fluid">
+    <div class="row">
+        @include('portal.schools.show.card_school')
+    </div>
+</div>
 @endsection
 @section('modals')
 @endsection

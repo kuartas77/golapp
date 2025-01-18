@@ -4,14 +4,11 @@
 			<a class="navbar-brand" href="{{route('home')}}">
 				<!-- Logo icon -->
 				<b>
-					<!-- Dark Logo icon -->
-					<img src="{{asset('img/ballon.png')}}" alt="homepage" class="dark-logo" width="34" height="33">
-					<!-- Light Logo icon -->
-					<img src="{{asset('img/ballon.png')}}" alt="homepage" class="light-logo" width="34" height="33">
+					<img src="{{asset('img/light.png')}}" alt="homepage" class="dark-logo" width="148" height="33">
 				</b>
 				<!--End Logo icon -->
-			</a>
 
+			</a>
 		</div>
 
 		<div class="navbar-collapse">
