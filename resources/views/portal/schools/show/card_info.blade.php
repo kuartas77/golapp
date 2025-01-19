@@ -55,8 +55,8 @@
                                             <li class="list-group-item">Ver y actualizar la información del deportista.</li>
                                             <li class="list-group-item">Ver el estado de los pagos realizados en los meses del año.</li>
                                             <li class="list-group-item">Ver el estado de las asistencias a entrenamientos del deportista.</li>
-                                            <li class="list-group-item">Ver las estadisticas generadas en las competencias.</li>
-                                            <li class="list-group-item">Historíal por año de inscripción.</li>
+                                            <li class="list-group-item">Ver las estadísticas generadas en las competencias.</li>
+                                            <li class="list-group-item">Historial por año de inscripción.</li>
                                         </ul>
                                         <p class="lead">Para el ingreso debes proporcionar el documento de identidad del deportista y su código único que fue enviado al correo del acudiente en el momento de la inscripción.</p>
                                         <a class="btn waves-effect waves-light btn-rounded btn-info" href="{{route('portal.login.form')}}">

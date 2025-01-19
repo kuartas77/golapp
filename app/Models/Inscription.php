@@ -75,6 +75,7 @@ class Inscription extends Model
         'period_four',
         'school_id',
         'deleted_at',
+        'pre_inscription'
     ];
 
     protected $casts = [

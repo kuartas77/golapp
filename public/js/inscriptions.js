@@ -223,6 +223,14 @@ $(document).ready(function () {
         "fixedColumns": true,
         "columns": columns,
         "columnDefs": columnDefs,
+        "createdRow": function (row, data, dataIndex) {
+            console.log(data.pre_inscription)
+            if (data.pre_inscription == 1 && data.training_group_id == firstGroup) {
+                $(row).addClass('bg-warning')
+            }else if (data.training_group_id == firstGroup) {
+                $(row).addClass('bg-info')
+            }
+        },
         initComplete: filterTable,
         "ajax": $.fn.dataTable.pipeline({
             url: url_inscriptions_enabled,
@@ -275,6 +283,7 @@ $(document).ready(function () {
             $("#form_create #start_date").val(response.start_date).attr('disabled',true);
             $("#form_create #training_group_id").val(response.training_group_id).trigger('change');
             $("#form_create #competition_group_id").val(response.competition_group_id).trigger('change');
+            $("#form_create #pre_inscription").val(response.pre_inscription);
 
             $("#form_create #photos").prop('checked', response.photos == 1 );
             $("#form_create #copy_identification_document").prop('checked', response.copy_identification_document == 1 );
@@ -287,6 +296,7 @@ $(document).ready(function () {
             $("#form_create #presentation_uniform").prop('checked', response.presentation_uniform == 1 );
             $("#form_create #competition_uniform").prop('checked', response.competition_uniform == 1 );
             $("#form_create #tournament_pay").prop('checked', response.tournament_pay == 1 );
+            $("#form_create #pre_inscription").prop('checked', response.pre_inscription == 1 );
 
             $("#create_inscription").modal('show');
             $("#btn_add_inscription").attr('disabled', false);

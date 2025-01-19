@@ -50,6 +50,7 @@ class InscriptionUpdateRequest extends FormRequest
             'period_three' => ['nullable'],
             'period_four' => ['nullable'],
             'scholarship' => ['nullable', 'boolean'],
+            'pre_inscription' => ['nullable', 'boolean'],
         ];
     }
 
@@ -65,20 +66,21 @@ class InscriptionUpdateRequest extends FormRequest
             'year' => $startDate->year,
             'start_date' => $startDate,
             'category' => Date::parse($dateBirth)->year,
-            'photos' => $this->photos ?? false,
-            'copy_identification_document' => $this->copy_identification_document ?? false,
-            'eps_certificate' => $this->eps_certificate ?? false,
-            'medic_certificate' => $this->medic_certificate ?? false,
-            'study_certificate' => $this->study_certificate ?? false,
-            'overalls' => $this->overalls ?? false,
-            'ball' => $this->ball ?? false,
-            'bag' => $this->bag ?? false,
-            'presentation_uniform' => $this->presentation_uniform ?? false,
-            'competition_uniform' => $this->competition_uniform ?? false,
-            'tournament_pay' => $this->tournament_pay ?? false,
-            'scholarship' => $this->scholarship ?? false,
-            'competition_groups' => $this->competition_groups ?? [],
-            'training_group_id' => $this->training_group_id ?? null,
+            'photos' => $this->input('photos', false),
+            'copy_identification_document' => $this->input('copy_identification_document', false),
+            'eps_certificate' => $this->input('eps_certificate', false),
+            'medic_certificate' => $this->input('medic_certificate', false),
+            'study_certificate' => $this->input('study_certificate', false),
+            'overalls' => $this->input('overalls', false),
+            'ball' => $this->input('ball', false),
+            'bag' => $this->input('bag', false),
+            'presentation_uniform' => $this->input('presentation_uniform', false),
+            'competition_uniform' => $this->input('competition_uniform', false),
+            'tournament_pay' => $this->input('tournament_pay', false),
+            'scholarship' => $this->input('scholarship', false),
+            'competition_groups' => array_filter($this->input('competition_groups', [])),
+            'training_group_id' => $this->filled('training_group_id') ? $this->training_group_id : null,
+            'pre_inscription' => $this->input('pre_inscription', false),
         ]);
     }
 }
