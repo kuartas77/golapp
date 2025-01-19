@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use App\Http\ViewComposers\AdminComposer;
 use App\Http\ViewComposers\TemplatesComposer;
-use App\Http\ViewComposers\Public\PublicComposer;
+use App\Http\ViewComposers\Public\PortalComposer;
 use App\Http\ViewComposers\Profile\ProfileComposer;
 use App\Http\ViewComposers\Assists\AssistViewComposer;
 use App\Http\ViewComposers\Incidents\IncidentComposer;
@@ -120,7 +120,7 @@ class GolAppProvider extends ServiceProvider
 
         View::composer(['components.*', 'layouts.topbar'], AdminComposer::class);
 
-        View::composer(['layouts.public.*', 'welcome'], PublicComposer::class);
+        View::composer(['layouts.portal.*', 'portal.*', 'welcome'], PortalComposer::class);
 
         View::composer(['payments.tournaments.index'], TournamentPaymentsViewComposer::class);
     }

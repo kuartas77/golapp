@@ -28,6 +28,9 @@ textarea[name=ticr_observacion] {
 .error {
     color: red;
 }
+.success {
+    color: green;
+}
 
 .page-wrapper {
     background: #edecef; /*#c8c8c8;*/
@@ -289,7 +292,7 @@ textarea[name=ticr_observacion] {
 }
 
 .login-register {
-    background-image:url(../img/1970-max.jpg)
+    background-image:url(../img/soccer-field.webp)
 }
 
 .zoom {
@@ -755,4 +758,8 @@ legend {
     font-weight: bold;
     padding: 3px 5px 3px 7px;
     width: auto;
+}
+
+a[href="#cancel"] {
+    background-color: #fc4b6c !important;
 }

@@ -4,6 +4,19 @@
 @component('mail::panel')
 * Nombres: {{ $inscription->player->full_names }}
 * Fecha De Inicio: {{ $inscription->start_date->format('Y-m-d') }}
+@if($sendContract)
+* Adjunto se encuentran los contratos en PDF firmados.
+* {{$inscription->year}}_{{$inscription->unique_code}}_CONTRATO DE INSCRIPCIÓN
+* {{$inscription->year}}_{{$inscription->unique_code}}_CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA
+@endif
+@endcomponent
+
+@component('mail::panel')
+* Podras ingresar a nuestra plataforma y verificar, actualizar la información del Deportista.
+* Puedes Ingresar con el documento de identidad del deportista.
+    @component('mail::button', ['url' => route("public.login.form")])
+        Plataforma
+    @endcomponent
 @endcomponent
 
 @component('mail::subcopy')
@@ -14,4 +27,3 @@
 ## Gracias,<br>
 # {{ $inscription->school->name }}.
 @endcomponent
-

@@ -39,11 +39,13 @@ class CreateInscriptionsTable extends Migration
             $table->string('period_two')->nullable();
             $table->string('period_three')->nullable();
             $table->string('period_four')->nullable();
+            $table->boolean('pre_inscription')->nullable()->default(false);
 
             $table->foreign('training_group_id')->references('id')->on('training_groups');
             $table->foreign('competition_group_id')->references('id')->on('competition_groups');
             $table->foreign('player_id')->references('id')->on('players');
             $table->unique(['unique_code','year']);
+            // $table->unique(['unique_code','year', 'school_id]);
 
             $table->timestamps();
             $table->softDeletes();

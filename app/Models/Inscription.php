@@ -82,6 +82,13 @@ class Inscription extends Model
         'created_at' => "datetime:Y-m-d",
     ];
 
+    public static $documentFields = [
+        'player_document',
+        'medical_certificate',
+        'tutor_document',
+        'payment_receipt'
+    ];
+
     protected $appends = ['url_edit','url_update','url_show', 'url_impression', 'url_destroy'];
 
     protected static function booted()
