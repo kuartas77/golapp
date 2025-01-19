@@ -317,6 +317,13 @@ $.validator.addMethod("checkone", function(value, elem, param) {
 jQuery.validator.addMethod("formatDate", function(value, element) {
     return value.match(/^(19\d\d|2\d\d\d)[\/|-](0[1-9]|1[012])[\/|-](0[1-9]|[12][0-9]|3[01])$/) && moment(value,"YYYY-MM-DD").isValid();
 }, "Formato YYYY-MM-DD");
+jQuery.validator.addMethod('filesize', function(value, element, param) {
+    // param = size (en bytes)
+    // element = element to validate (<input>)
+    // value = value of the element (file name)
+    let fileSizeMB = element.files[0].size / (1024 ** 2)
+    return this.optional(element) || (fileSizeMB <= param)
+}, jQuery.validator.format('El archivo cargado supera el tamaño permitido {0}MB'));
 
 function nl2br(str, is_xhtml) {
     if (typeof str === 'undefined' || str === null) {

@@ -84,7 +84,7 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
         $dateBirth = Carbon::parse(Date::excelToDateTimeObject($row['fecha_de_nacimiento']));
 
         return [
-            'unique_code' => $this->playerRepository->createUniqueCode($this->school_id),
+            'unique_code' => createUniqueCode($this->school_id),
             'names' => Str::upper(trim($row['nombres'])),
             'last_names' => Str::upper(trim($row['apellidos'])),
             'gender' => $this->checkGender($row['genero']),

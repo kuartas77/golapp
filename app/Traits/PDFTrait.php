@@ -29,6 +29,10 @@ trait PDFTrait
         'margin_footer' => 4,
     ];
 
+    protected $configWatermarkSize = [
+        80, 80
+    ];
+
     /**
      * @param array $configuration
      */
@@ -38,6 +42,11 @@ trait PDFTrait
             ['tempDir' => storage_path('app/tmp')],
             $configuration
         );
+    }
+
+    public function setWatermarkSize($size = array(80, 80))
+    {
+        $this->configWatermarkSize = $size;
     }
 
     /**
@@ -112,18 +121,20 @@ trait PDFTrait
      * @param array $data
      * @throws MpdfException
      */
-    protected function createPDF(array $data, string $template)
+    protected function createPDF(array $data, string $template, $showFooter = true)
     {
         $this->mpdf = new Mpdf($this->configDefault);
 
         if ($data['school']) {
             $this->mpdf->SetAuthor($data['school']->name);
-            $this->mpdf->SetWatermarkImage($data['school']->logo_local, -1, array(80, 80));
+            $this->mpdf->SetWatermarkImage($data['school']->logo_local, -1, $this->configWatermarkSize);
             $this->mpdf->showWatermarkImage = true;
         }
         $this->mpdf->SetCreator('GOLAPP');
         $this->mpdf->WriteHTML(view()->file($this->getTemplate($template), $data));
-        $this->mpdf->SetHTMLFooter(view()->file($this->getTemplate('footer.blade.php'), $data));
+        if($showFooter) {
+            $this->mpdf->SetHTMLFooter(view()->file($this->getTemplate('footer.blade.php'), $data));
+        }
     }
 
     /**

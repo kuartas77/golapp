@@ -1,33 +1,27 @@
 <?php
 
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\FileController;
-use App\Http\Controllers\ImportController;
-use App\Http\Controllers\PublicController;
-use App\Http\Controllers\Reports\ReportAssistsController;
-use App\Http\Controllers\Reports\ReportPaymentController;
-use App\Http\Controllers\Payments\TournamentPayoutsController;
-use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
-use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
-use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
-use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
+use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
+use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{Competition\GameController, Payments\PaymentController, Schedule\SchedulesController, SchoolPages\SchoolsController};
+use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
+use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
+use App\Http\Controllers\Reports\ReportPaymentController;
+use App\Http\Controllers\Reports\ReportAssistsController;
+use App\Http\Controllers\Payments\TournamentPayoutsController;
+use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
+use App\Http\Controllers\FileController;
 
 Auth::routes(['register' => false, 'verify' => false]);
 
 Route::get('/', fn() => redirect('login'));
-Route::middleware([])->group(function () {
-    // Route::get('/', [PublicController::class, 'index'])->name('public');
-    // Route::get('escuela/{school}', [PublicController::class, 'show'])->name('public.school.show');
-    // Route::get('img/public/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('public.images');
-});
+
+Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
 
 Route::middleware(['auth', 'verified_school'])->group(function () {
-
-    Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
 
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/birthdays', [HomeController::class, 'birthDays'])->name('birthDays');
@@ -136,4 +130,25 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
         Route::get('tournaments', [MasterController::class, 'tournamentsBySchool'])->name('autocomplete.tournaments');
     });
+
+
+
+    Route::get('generate', function(){
+        try {
+
+            \App\Models\Player::query()->whereNotNull('identification_document')->whereHas('inscription')->chunkById(400, function($players){
+                foreach ($players as $player) {
+                    \Illuminate\Support\Facades\DB::beginTransaction();
+                    $player->password = \Illuminate\Support\Facades\Hash::make($player->unique_code);
+                    $player->save();
+                    \Illuminate\Support\Facades\DB::commit();
+                }
+            });
+        } catch (\Throwable $th) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            dd($th);
+        }
+    });
+
+
 });

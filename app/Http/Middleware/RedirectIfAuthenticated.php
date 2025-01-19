@@ -23,6 +23,9 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
+                if($guard == 'players'){
+                    return redirect(RouteServiceProvider::PLAYER);
+                }
                 return redirect(RouteServiceProvider::HOME);
             }
         }

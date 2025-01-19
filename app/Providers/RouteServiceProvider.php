@@ -18,6 +18,7 @@ class RouteServiceProvider extends ServiceProvider
      * @var string
      */
     public const HOME = '/home';
+    public const PLAYER = 'portal/jugador';
 
     /**
      * The controller namespace for the application.
@@ -51,6 +52,11 @@ class RouteServiceProvider extends ServiceProvider
                 ->namespace($this->namespace)
                 ->prefix('backoffice')
                 ->group(base_path('routes/backoffice.php'));
+
+            Route::middleware('web')
+            ->namespace($this->namespace)
+            ->prefix('portal')
+            ->group(base_path('routes/portal.php'));
         });
     }
 
