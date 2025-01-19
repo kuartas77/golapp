@@ -90,6 +90,9 @@ class InscriptionCreateComposer
                 $schools = School::query()->pluck('name', 'id');
             }
 
+            $firstGroup = Cache::remember('PROVISIONAL_GROUP_'.$school_id, now()->addYear(), fn () => TrainingGroup::orderBy('id')->firstWhere('school_id', $school_id)->id);
+
+
             $view->with('jornada', $jornada);
             $view->with('schools', $schools);
             $view->with('genders', $genders);
@@ -100,6 +103,7 @@ class InscriptionCreateComposer
             $view->with('relationships', $relationships);
             $view->with('document_types', $document_types);
             $view->with('training_groups', $training_groups);
+            $view->with('provisional_group_id', $firstGroup);
             $view->with('dominant_profile', $dominant_profile);
             $view->with('inscription_years', $inscription_years);
             $view->with('competition_groups', $competition_groups);

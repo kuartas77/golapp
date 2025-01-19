@@ -55,7 +55,7 @@ final class CreateInscriptionAction implements IContractPassable
             'category' => $this->player->category,
             'training_group_id' => $this->setTrainingGroupId(),
             'competition_group_id' => null,
-            'photos' => false,
+            'photos' => true,
             'copy_identification_document' => true,
             'eps_certificate' => true,
             'medic_certificate' => true,

@@ -96,6 +96,26 @@
     </div>
 
     <div class="col-6">
+        <h4 class="text-center text-uppercase">
+            <strong>
+                Grupo provisional (principal), <span class="text-warning">ESTE SÓLO SE UTILIZARÁ PARA LAS INSCRIPCIONES NUEVAS Y/O PREINSCRIPCIONES, no tendrá asistencias ni pagos.</span>
+            </strong>
+        </h4>
+
+        <br>
+        <h4 class="text-center text-uppercase"><strong>Pre-Inscripción</strong></h4>
+        <small class="form-text text-muted">Al ser marcado cómo <span class="text-warning">"PREINSCRIPCIÓN"</span>, este <span class="text-danger">Deportista no aparecerá en el listado de asistencias ni pagos</span>, verifica la documentación y desmarcalo.</small>
+        <div class="check col">
+            <div class="form-group">
+                <div class="checkbox">
+                    <input type="checkbox" name="pre_inscription" id="pre_inscription" value="1">
+                    <label for="pre_inscription" class="checkboxsizeletter">Preinscrito?</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="col-6">
         <h4 class="text-center text-uppercase"><strong>Productos</strong></h4>
 
         <div class="check col">
@@ -128,5 +148,5 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 </div>

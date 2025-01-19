@@ -13,6 +13,7 @@
     <script>
         const currentYear = moment().format("YYYY")
         let yearSelected = currentYear
+        const firstGroup = {{$provisional_group_id}}
         const isAdmin = {{auth()->user()->hasAnyRole(['super-admin','school']) ? 1 : 0}};
         const groups = @json($training_groups_arr);
         const categories = @json($categories);

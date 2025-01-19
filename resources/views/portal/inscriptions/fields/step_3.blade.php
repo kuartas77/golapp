@@ -15,7 +15,7 @@
 
             <div class="col-md-3 mb-3">
                 <div class="form-group">
-                    <label for="tutor_doc"># Documento de identidad (<span class="text-danger">*</span>)</label>
+                    <label for="tutor_doc"># Doc de identidad (<span class="text-danger">*</span>)</label>
                     {{ html()->text('tutor_doc', null)->attributes(['class' => 'form-control']) }}
                 </div>
             </div>
