@@ -45,8 +45,8 @@ class SendNotificationAction implements IContractPassable
         if (!empty($destinations)) {
 
             $contracts = [
-                $this->paths['contract_one'],
-                $this->paths['contract_two']
+                // $this->paths['contract_one'],
+                // $this->paths['contract_two']
             ];
 
             Notification::route('mail', $destinations)->notify(

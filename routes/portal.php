@@ -7,11 +7,15 @@ use App\Http\Controllers\Portal\InscriptionsController;
 use App\Http\Controllers\MasterController;
 
 Route::name('portal.')->group(function(){
-    Route::middleware(['guest'])->group(function () {
 
+    Route::get('ingreso', [LoginController::class, 'showLoginForm'])->name('login.form');
+    Route::post('ingreso', [LoginController::class, 'login'])->name('player.login');
+    Route::post('logout', [LoginController::class, 'logout'])->name('logout');
+
+    Route::middleware(['guest'])->group(function () {
         Route::get('escuelas', [SchoolsController::class, 'index'])->name('school.index');
         Route::get('escuelas/{school}', [SchoolsController::class, 'show'])->name('school.show');
-        Route::get('{school}/inscripcion', [InscriptionsController::class, 'form'])->name('school.inscription.form');
+
         Route::post('{school}/inscripcion', [InscriptionsController::class, 'store'])->name('school.inscription.store');
 
         Route::prefix('autocomplete')->group(function () {
@@ -20,9 +24,7 @@ Route::name('portal.')->group(function(){
         });
     });
 
-    Route::get('ingreso', [LoginController::class, 'showLoginForm'])->name('login.form');
-    Route::post('ingreso', [LoginController::class, 'login'])->name('player.login');
-    Route::post('logout', [LoginController::class, 'logout'])->name('logout');
+
 });
 
 

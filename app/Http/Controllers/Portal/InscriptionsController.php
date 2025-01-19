@@ -17,17 +17,12 @@ class InscriptionsController extends Controller
 {
     use ErrorTrait;
 
-    public function form(School $school): Factory|View|Application
-    {
-        $school->load(['settingsValues']);
-        return view('portal.inscription_register', compact('school'));
-    }
-
     public function store(InscriptionRegisterRequest $request)
     {
         $response = [];
         $code = 200;
         try {
+
             DB::beginTransaction();
 
             InscriptionsPipeline::execute($request->validated());

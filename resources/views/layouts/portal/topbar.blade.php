@@ -1,7 +1,7 @@
 <header class="topbar">
 	<nav class="navbar top-navbar navbar-expand-md navbar-light">
 		<div class="navbar-header">
-			<a class="navbar-brand" href="{{route('home')}}">
+			<a class="navbar-brand" href="{{route('portal.school.index')}}">
 				<!-- Logo icon -->
 				<b>
 					<img src="{{asset('img/light.png')}}" alt="homepage" class="dark-logo" width="148" height="33">
@@ -34,7 +34,7 @@
 				<!-- <li class="nav-item {{ Request::is('*/ingreso') ? 'active' : '' }}">
 					<a class="nav-link waves-effect waves-ligth" href="{{route('portal.login.form')}}">Ingreso Acudiente</a>
 				</li> -->
-				<li class="nav-item dropdown {{ Request::is('*/escuelas/*') ? 'active' : '' }}">
+				<li class="nav-item dropdown" style="{{ Request::is('*/escuelas/*') ? 'display: none;' : '' }}">
 					<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
 						Escuelas
 					</a>

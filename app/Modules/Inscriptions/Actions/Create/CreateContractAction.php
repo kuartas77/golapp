@@ -35,7 +35,7 @@ final class CreateContractAction implements IContractPassable
 
         $this->uploadSigns($passable);
 
-        $this->signContract($passable);
+        // $this->signContract($passable);
 
         $passable->setPaths($this->paths);
 

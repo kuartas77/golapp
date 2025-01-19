@@ -192,9 +192,11 @@ class PlayerRepository
         return $headers->diff($headers_validation)->implode(',');
     }
 
-    public function getPlayerInfo(string $doc)
+    public function getPlayerInfo(string $doc, $school_id)
     {
-        $player = $this->model->query()->where('identification_document', $doc)
+        $player = $this->model->query()
+        ->where('identification_document', $doc)
+        ->where('school_id', $school_id)
         ->whereDoesntHave('inscription', fn($q) => $q->where('year', getYearInscription()))
         ->first();
 

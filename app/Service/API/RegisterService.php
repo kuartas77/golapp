@@ -70,6 +70,7 @@ class RegisterService
             DB::commit();
 
             Cache::forget('admin.schools');
+            Cache::forget('SCHOOLS_ENABLED');
 
             $response->success = true;
 

@@ -19,6 +19,8 @@ final class CreatePlayerAction implements IContractPassable
 
     public function handle(Passable $passable, Closure $next)
     {
+        $passable->setSchool();
+
         $this->school = $passable->getSchool();
 
         $this->player = $this->getPlayer($passable);

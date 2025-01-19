@@ -31,7 +31,7 @@
     <section id="wrapper" class="p-2">
         @yield('content')
     </section>
-
+    @yield('modals')
     <script>
         window.token = @json(['csrfToken' => csrf_token()]);
         window.app_name = "{{config('app.name', 'Laravel') }}";
@@ -41,12 +41,7 @@
     @include('sweetalert::alert')
     <script src="{{mix('js/all.js')}}" ></script>
     <script src="{{asset('js/config.js')}}" ></script>
-    <script>
-        $(document).ready(function () {
-
-            $("body").removeClass("mini-sidebar")
-        })
-    </script>
     @yield('scripts')
+    @stack('scripts')
 </body>
 </html>

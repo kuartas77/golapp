@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Portal;
 
+use App\Models\School;
 use Jenssegers\Date\Date;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -67,6 +68,7 @@ class InscriptionRegisterRequest extends FormRequest
 
             'signatureTutor'  => ['required', 'string'],
             'signatureAlumno' => ['required', 'string'],
+            'school' => ['required'],
         ];
     }
 
@@ -74,6 +76,7 @@ class InscriptionRegisterRequest extends FormRequest
     {
         $this->merge([
             'category' => Date::parse($this->date_birth)->year,
+            'school' => School::firstWhere('slug', request()->segments()[1])
         ]);
 
     }

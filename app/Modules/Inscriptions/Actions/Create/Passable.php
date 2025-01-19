@@ -63,9 +63,9 @@ final class Passable
         $this->inscription = $inscription;
     }
 
-    public function setSchool(School $school): void
+    public function setSchool(): void
     {
-        $this->school = $school;
+        $this->school = $this->getPropertyFromData('school');
     }
 
     public function setPaths(array $filePaths): void

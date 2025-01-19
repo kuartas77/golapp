@@ -5,10 +5,12 @@ namespace App\Modules\Inscriptions\Actions\Create;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Notification;
 use Closure;
+use App\Notifications\InscriptionNotification;
 use App\Modules\Inscriptions\Notifications\InscriptionToSchoolNotification;
+use App\Modules\Inscriptions\Jobs\DeleteDocuments;
+use App\Models\School;
 use App\Models\Player;
 use App\Models\Inscription;
-use App\Models\School;
 
 final class SendDocumentsAction implements IContractPassable
 {
@@ -32,9 +34,9 @@ final class SendDocumentsAction implements IContractPassable
 
         $this->storeDocumentsLocal($passable->getPropertyFromData('year'), $this->player->unique_code);
 
-        $this->sendDocumentsToSchool();
+        // $this->sendDocumentsToSchool();
 
-        $passable->setPaths($this->paths);
+        $this->sendNotification($passable);
 
         return $next($passable);
     }
@@ -94,6 +96,35 @@ final class SendDocumentsAction implements IContractPassable
             Notification::route('mail', $destinations)->notify(
                 (new InscriptionToSchoolNotification($this->inscription, $this->school))->onQueue('emails')
             );
+        }
+    }
+
+    private function sendNotification($passable)
+    {
+        $destinations = [];
+        $playerMail = data_get($this->player, 'email');
+        $tutorMail = $passable->getPropertyFromData('tutor_email');
+
+        if (checkEmail($playerMail)) {
+            $destinations[$playerMail] = $this->player->name . ' ' . $this->player->last_names;
+        }
+
+        if (checkEmail($tutorMail)) {
+            $destinations[$tutorMail] = $passable->getPropertyFromData('tutor_name');
+        }
+
+        if (!empty($destinations)) {
+
+            $contracts = [
+                // $this->paths['contract_one'],
+                // $this->paths['contract_two']
+            ];
+
+            Notification::route('mail', $destinations)->notify(
+                (new InscriptionNotification($this->inscription, $contracts))->onQueue('emails')
+            );
+
+            dispatch(new DeleteDocuments($this->player->unique_code))->delay(now()->addDay())->onQueue('emails');
         }
     }
 
