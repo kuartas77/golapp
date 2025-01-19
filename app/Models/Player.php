@@ -42,7 +42,7 @@ class Player extends Authenticatable
         'category',
         'position_field',
         'dominant_profile',
-        'school_name',
+        'school',
         'degree',
         'address',
         'municipality',
