@@ -87,6 +87,8 @@ final class CreatePlayerAction implements IContractPassable
 
     private function upsertPlayer(): void
     {
+        $this->attributes['unique_code'] = $this->player->unique_code;
+
         foreach ($this->attributes as $attribute => $value) {
             if($attribute == 'photo' && $value instanceof UploadedFile){
                 $this->player->{$attribute} = $this->uploadFile($value, $this->school->slug);

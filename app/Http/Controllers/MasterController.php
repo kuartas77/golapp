@@ -111,7 +111,7 @@ class MasterController extends Controller
         ]);
 
         if($validated){
-            $response = $this->playerRepository->getPlayerInfo($request->input('doc'));
+            $response = $this->playerRepository->getPlayerInfo($request->input('doc'), $request->input('school_id'));
         }
         return $this->responseJson($response);
     }

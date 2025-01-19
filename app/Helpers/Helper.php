@@ -344,14 +344,23 @@ if (!function_exists('loggerTimeRequest')){
 if (!function_exists('createUniqueCode')){
     function createUniqueCode($school_id, string $year = null): mixed
     {
+        $campusIds = [];
         $newUniqueCode = '';
         $keyCache = "KEY_LAST_UNIQUE_CODE_".$school_id;
         $year = isset($year) ? $year: now()->year;
 
-        $lastUniqueCode = Cache::remember($keyCache, now()->addMinute(), function() use($year, $school_id){
+        $school = School::with(['settingsValues'])->find($school_id);
+        if ($multiple = $school->settings->get('MULTIPLE_SCHOOLS')){
+            $campusIds = json_decode($multiple);
+        }
+
+        $lastUniqueCode = Cache::remember($keyCache, now()->addMinute(), function() use($year, $school_id, $campusIds){
             $result = DB::table('players')->select(['unique_code'])
                 ->where('unique_code', 'like', "$year%")
-                ->where('school_id', $school_id)
+                ->when(!empty($campusIds),
+                    fn($q) => $q->whereIn('school_id', $campusIds),
+                    fn($q) => $q->where('school_id', $school_id)
+                )
                 ->orderBy('unique_code', 'desc')
                 ->limit(1)
                 ->first();
@@ -365,7 +374,7 @@ if (!function_exists('createUniqueCode')){
             $newUniqueCode = $year . str_pad((string)$count, 4, '0', STR_PAD_LEFT);
         }
 
-        $newUniqueCode = generateCode($school_id, $newUniqueCode);
+        $newUniqueCode = generateCode($school_id, $newUniqueCode, $campusIds);
 
         Cache::put($keyCache, $newUniqueCode, now()->addMinute());
 
@@ -374,13 +383,16 @@ if (!function_exists('createUniqueCode')){
 }
 
 if(!function_exists('generateCode')) {
-    function generateCode($school_id, $lastUniqueCode)
+    function generateCode($school_id, $lastUniqueCode, $campusIds = [])
     {
         $next = true;
         while ($next){
             $exits = DB::table('players')->select(['unique_code'])
                     ->where('unique_code', $lastUniqueCode)
-                    ->where('school_id', $school_id)
+                    ->when(!empty($campusIds),
+                        fn($q) => $q->whereIn('school_id', $campusIds),
+                        fn($q) => $q->where('school_id', $school_id)
+                    )
                     ->exists();
             if(!$exits){
                 $next = false;

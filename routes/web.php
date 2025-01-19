@@ -139,7 +139,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
             \App\Models\Player::query()->whereNotNull('identification_document')->whereHas('inscription')->chunkById(400, function($players){
                 foreach ($players as $player) {
                     \Illuminate\Support\Facades\DB::beginTransaction();
-                    $player->password = \Illuminate\Support\Facades\Hash::make($player->identification_document);
+                    $player->password = \Illuminate\Support\Facades\Hash::make($player->unique_code);
                     $player->save();
                     \Illuminate\Support\Facades\DB::commit();
                 }
