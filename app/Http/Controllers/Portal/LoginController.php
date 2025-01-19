@@ -109,6 +109,6 @@ class LoginController extends Controller
 
         return $request->wantsJson()
             ? new JsonResponse([], 204)
-            : redirect(route('public.login.form'));
+            : redirect(route('portal.login.form'));
     }
 }

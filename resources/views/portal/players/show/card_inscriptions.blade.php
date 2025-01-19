@@ -8,16 +8,16 @@
 
             <ul class="nav nav-tabs card-header-tabs" role="tablist">
                 <li class="nav-item">
-                    <a class="nav-link disabled" href="javascript:void(0)">{{$inscription->year}}</a>
+                    <a class="nav-link text-themecolor disabled" href="javascript:void(0)">{{$inscription->year}}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" data-toggle="tab" href="#average" role="tab">Estadisticas</a>
+                    <a class="nav-link active text-themecolor" data-toggle="tab" href="#average" role="tab">Estadisticas</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" data-toggle="tab" href="#pays" role="tab">Pagos</a>
+                    <a class="nav-link text-themecolor" data-toggle="tab" href="#pays" role="tab">Pagos</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" data-toggle="tab" href="#asisstances" role="tab">Asistencias A
+                    <a class="nav-link text-themecolor" data-toggle="tab" href="#asisstances" role="tab">Asistencias A
                         Entrenamientos</a>
                 </li>
             </ul>
@@ -38,55 +38,55 @@
                                                 <th colspan="2" class="text-center">Estadisticas: {{$inscription->year}}</th>
                                             </tr>
                                             <tr>
-                                                <td>Total Partidos </td>
-                                                <td class="text-info">{{$inscription->format_average['total_matches']}}</td>
+                                                <td class="text-themecolor">Total Partidos </td>
+                                                <td class="text-themecolor">{{$inscription->format_average['total_matches']}}</td>
                                             </tr>
                                             <tr>
-                                                <td># Asistencias A Partidos</td>
-                                                <td class="text-info">{{$inscription->format_average['assistance']}}</td>
+                                                <td class="text-themecolor"># Asistencias A Partidos</td>
+                                                <td class="text-themecolor">{{$inscription->format_average['assistance']}}</td>
                                             </tr>
                                             <tr>
-                                                <td># Veces Titular</td>
-                                                <td class="text-info">{{$inscription->format_average['titular']}}</td>
+                                                <td class="text-themecolor"># Veces Titular</td>
+                                                <td class="text-themecolor">{{$inscription->format_average['titular']}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Promedio De Calificación x Partido</td>
-                                                <td class="text-info">{{$inscription->format_average['qualification']}}</td>
+                                                <td class="text-themecolor">Promedio De Calificación x Partido</td>
+                                                <td class="text-themecolor">{{$inscription->format_average['qualification']}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Minutos Jugados</td>
-                                                <td class="text-info">{{$inscription->format_average['played_approx']}}</td>
+                                                <td class="text-themecolor">Minutos Jugados</td>
+                                                <td class="text-themecolor">{{$inscription->format_average['played_approx']}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Promedio de Minutos Jugados x Partido</td>
-                                                <td class="text-info">{{$inscription->format_average['played_approx_avg']}}</td>
+                                                <td class="text-themecolor">Promedio de Minutos Jugados x Partido</td>
+                                                <td class="text-themecolor">{{$inscription->format_average['played_approx_avg']}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Total De Goles</td>
-                                                <td class="text-info">{{$inscription->format_average['goals']}}</td>
+                                                <td class="text-themecolor">Total De Goles</td>
+                                                <td class="text-themecolor">{{$inscription->format_average['goals']}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Promedio De Goles x Partido</td>
-                                                <td class="text-info">{{$inscription->format_average['goals_avg']}}</td>
+                                                <td class="text-themecolor">Promedio De Goles x Partido</td>
+                                                <td class="text-themecolor">{{$inscription->format_average['goals_avg']}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Total Amarillas</td>
-                                                <td class="text-info">{{$inscription->format_average['yellow_cards']}}</td>
+                                                <td class="text-themecolor">Total Amarillas</td>
+                                                <td class="text-themecolor">{{$inscription->format_average['yellow_cards']}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Promedio Amarillas x Partido</td>
-                                                <td class="text-info">{{$inscription->format_average['yellow_cards_avg']}}</td>
+                                                <td class="text-themecolor">Promedio Amarillas x Partido</td>
+                                                <td class="text-themecolor">{{$inscription->format_average['yellow_cards_avg']}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Total Rojas</td>
-                                                <td class="text-info">{{$inscription->format_average['red_cards']}}</td>
+                                                <td class="text-themecolor">Total Rojas</td>
+                                                <td class="text-themecolor">{{$inscription->format_average['red_cards']}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Promedio Rojas x Partido</td>
-                                                <td class="text-info">{{$inscription->format_average['red_cards_avg']}}</td>
+                                                <td class="text-themecolor">Promedio Rojas x Partido</td>
+                                                <td class="text-themecolor">{{$inscription->format_average['red_cards_avg']}}</td>
                                             </tr>
                                             <tr>
-                                                <td colspan="2">Posiciones En el Campo <small class="text-info">{{$inscription->format_average['positions']}}</small></td>
+                                                <td colspan="2" class="text-themecolor">Posiciones En el Campo <small class="text-themecolor">{{$inscription->format_average['positions']}}</small></td>
                                             </tr>
 
                                         </tbody>
@@ -109,56 +109,56 @@
                                                 <th colspan="2" class="text-center">Mensualidades: {{$pay->year}}</th>
                                             </tr>
                                             <tr>
-                                                <td>Enero</td>
-                                                <td>{{getPay($pay->january)}}</td>
+                                                <td class="text-themecolor">Enero</td>
+                                                <td class="text-themecolor">{{getPay($pay->january)}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Febrero</td>
-                                                <td>{{getPay($pay->february)}}</td>
+                                                <td class="text-themecolor">Febrero</td>
+                                                <td class="text-themecolor">{{getPay($pay->february)}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Marzo</td>
-                                                <td>{{getPay($pay->march)}}</td>
+                                                <td class="text-themecolor">Marzo</td>
+                                                <td class="text-themecolor">{{getPay($pay->march)}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Abril</td>
-                                                <td>{{getPay($pay->april)}}</td>
+                                                <td class="text-themecolor">Abril</td>
+                                                <td class="text-themecolor">{{getPay($pay->april)}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Mayo</td>
-                                                <td>{{getPay($pay->may)}}</td>
+                                                <td class="text-themecolor">Mayo</td>
+                                                <td class="text-themecolor">{{getPay($pay->may)}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Junio</td>
-                                                <td>{{getPay($pay->june)}}</td>
+                                                <td class="text-themecolor">Junio</td>
+                                                <td class="text-themecolor">{{getPay($pay->june)}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Julio</td>
-                                                <td>{{getPay($pay->july)}}</td>
+                                                <td class="text-themecolor">Julio</td>
+                                                <td class="text-themecolor">{{getPay($pay->july)}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Agosto</td>
-                                                <td>{{getPay($pay->august)}}</td>
+                                                <td class="text-themecolor">Agosto</td>
+                                                <td class="text-themecolor">{{getPay($pay->august)}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Septiembre</td>
-                                                <td>{{getPay($pay->september)}}</td>
+                                                <td class="text-themecolor">Septiembre</td>
+                                                <td class="text-themecolor">{{getPay($pay->september)}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Octubre</td>
-                                                <td>{{getPay($pay->october)}}</td>
+                                                <td class="text-themecolor">Octubre</td>
+                                                <td class="text-themecolor">{{getPay($pay->october)}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Noviembre</td>
-                                                <td>{{getPay($pay->november)}}</td>
+                                                <td class="text-themecolor">Noviembre</td>
+                                                <td class="text-themecolor">{{getPay($pay->november)}}</td>
                                             </tr>
                                             <tr>
-                                                <td>Diciembre</td>
-                                                <td>{{getPay($pay->december)}}</td>
+                                                <td class="text-themecolor">Diciembre</td>
+                                                <td class="text-themecolor">{{getPay($pay->december)}}</td>
                                             </tr>
                                             @empty
                                             <tr class="text-information">
-                                                <th colspan="2" class="text-center">Sin Registro de pagos.</th>
+                                                <th colspan="2" class="text-center text-themecolor">Sin Registro de pagos.</th>
                                             </tr>
                                             @endforelse
                                         </tbody>
@@ -192,15 +192,15 @@
                                             $colspan = ($totalSpan - $classCount);
                                             @endphp
                                             <tr>
-                                                <td class="text-center">Clase #</td>
+                                                <td class="text-center text-themecolor">Clase #</td>
                                                 @for ($index = 1; $index <= $classCount; $index++)
-                                                    <td class="text-center">{{$index}}</td>
+                                                    <td class="text-center text-themecolor">{{$index}}</td>
                                                     @endfor
                                                     <td colspan="{{ $colspan }}">&nbsp;</td>
                                                     <td></td>
                                             </tr>
                                             <tr>
-                                                <td class="text-center">{{ $assistance->month }}</td>
+                                                <td class="text-center text-themecolor">{{ $assistance->month }}</td>
                                                 @for ($index = 1; $index <= $classCount; $index++)
                                                     @php
                                                     $column=numbersToLetters($index);

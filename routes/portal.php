@@ -4,7 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Portal\SchoolsController;
 use App\Http\Controllers\Portal\LoginController;
 use App\Http\Controllers\Portal\InscriptionsController;
+use App\Http\Controllers\Portal\HomePlayerController;
+use App\Http\Controllers\Players\PlayerExportController;
 use App\Http\Controllers\MasterController;
+use App\Http\Controllers\FileController;
+use App\Http\Controllers\ExportController;
 
 Route::name('portal.')->group(function(){
 
@@ -24,17 +28,18 @@ Route::name('portal.')->group(function(){
         });
     });
 
+    Route::get('dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('player.images');
 
+    Route::middleware(['auth:players'])->group(function () {
+
+        Route::get('jugador', [HomePlayerController::class, 'index'])->name('player.home');
+        Route::get('jugador/{unique_code}', [HomePlayerController::class, 'show'])->name('player.show');
+        Route::put('player/{unique_code}', [HomePlayerController::class, 'update'])->name('player.update');
+
+
+        Route::prefix('export')->name('export.')->group(function () {
+            Route::get('player/{player}/pdf', [ExportController::class, 'exportPlayerPDF'])->name('player');
+            Route::get('inscription/{player_id}/{inscription_id}/{year?}/{quarter?}', [PlayerExportController::class, 'exportInscription'])->name('inscription');
+        });
+    });
 });
-
-
-Route::middleware([])->group(function () {
-    // Route::get('/', [PublicController::class, 'index'])->name('public');
-    // ;
-    // Route::get('img/public/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('public.images');
-});
-
-// portal.login.form
-// portal.school.show
-// portal.school.inscription.form
-// portal.school.player.home

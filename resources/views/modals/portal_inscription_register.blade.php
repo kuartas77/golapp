@@ -277,6 +277,26 @@
         $('#tutor_email').val(email)
     });
 
+    $('#file-upload').on('change', function(){
+        readFile(this);
+    });
+
+    function readFile(input) {
+        let label = $(input).next('label.custom-file-label')
+        if (input.files && input.files[0]) {
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                $('#player-img').attr('src', e.target.result);
+            }
+            reader.readAsDataURL(input.files[0]);
+            // label.empty().html(input.files[0].name)
+            label.empty().html('Seleccionada.')
+        }else{
+            label.empty().html("Seleccionar...")
+            $('#player-img').attr('src', 'http://golapp.local/img/user.png');
+        }
+    }
+
     function events() {
             // campos los cuales se van a buscar en la tabla maestra para autocompletado
         let campos = ['school', 'place_birth', 'neighborhood', 'eps', 'commune'];

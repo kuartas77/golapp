@@ -123,6 +123,7 @@ return [
     'provicional_group_info' => 'Si no se selecciona, se agregará al grupo "Provisional"',
     'inscription_date_info' => 'Se agregará al año seleccionado',
     'search_player_by_code_info' => 'Buscará deportistas sin inscripción',
+    'Logout' => 'Salir',
 
 
 

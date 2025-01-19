@@ -2,23 +2,23 @@
 
 namespace App\Models;
 
-use App\Traits\GeneralScopes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Storage;
 use Jenssegers\Date\Date;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\GeneralScopes;
 
 /**
  * @property mixed inscriptions
  * @property mixed photo
  */
-class Player extends Model
+class Player extends Authenticatable
 {
     use SoftDeletes;
     use GeneralScopes;
@@ -42,7 +42,7 @@ class Player extends Model
         'category',
         'position_field',
         'dominant_profile',
-        'school',
+        'school_name',
         'degree',
         'address',
         'municipality',
@@ -65,7 +65,7 @@ class Player extends Model
         'created_at' => "datetime:Y-m-d",
     ];
 
-    protected $appends = ['full_names', 'url_edit', 'url_show', 'url_impression', 'photo_url', 'photo_local'];
+    protected $appends = ['full_names', 'url_edit', 'url_show', 'url_impression', 'photo_url', 'photo_local', 'photo_url_public'];
 
     public function getRouteKeyName(): string
     {
@@ -117,6 +117,14 @@ class Player extends Model
     {
         if (!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
             return route('images', $this->attributes['photo']);
+        }
+        return url('img/user.png');
+    }
+
+    public function getPhotoUrlPublicAttribute(): string
+    {
+        if (!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
+            return route('portal.player.images', $this->attributes['photo']);
         }
         return url('img/user.png');
     }

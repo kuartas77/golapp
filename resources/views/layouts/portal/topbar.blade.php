@@ -5,9 +5,11 @@
 				<!-- Logo icon -->
 				<b>
 					<img src="{{asset('img/light.png')}}" alt="homepage" class="dark-logo" width="148" height="33">
+					@if(isset($school) && !Request::routeIs('portal.school.*'))
+					{{$school->name}}
+					@endif
 				</b>
 				<!--End Logo icon -->
-
 			</a>
 		</div>
 
@@ -26,36 +28,13 @@
 
 				@guest
 				<li class="nav-item">
-					<a class="nav-link waves-effect waves-ligth" href="{{route('login')}}">Ingreso Escuela</a>
+					<a class="nav-link waves-effect waves-ligth text-themecolor" href="{{route('login')}}">Ingreso Escuela</a>
 				</li>
-				<!-- <li class="nav-item">
-					<a class="nav-link waves-effect waves-ligth {{ Request::is('escuelas') ? 'active' : '' }}" href="{{route('portal.school.index')}}">Escuelas</a>
-				</li> -->
-				<!-- <li class="nav-item {{ Request::is('*/ingreso') ? 'active' : '' }}">
-					<a class="nav-link waves-effect waves-ligth" href="{{route('portal.login.form')}}">Ingreso Acudiente</a>
-				</li> -->
-				<li class="nav-item dropdown" style="{{ Request::is('*/escuelas/*') ? 'display: none;' : '' }}">
-					<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
-						Escuelas
-					</a>
-					<ul class="dropdown-menu">
-						@foreach($public_schools as $slug => $school)
-							<li><a class="dropdown-item" href="{{route('portal.school.show', [$slug])}}">{{$school}}</a></li>
-							@if (!$loop->last)
-							<li>
-								<hr class="dropdown-divider">
-							</li>
-							@endif
-						@endforeach
-					</ul>
+				<li class="nav-item">
+					<a class="nav-link waves-effect waves-ligth text-themecolor" href="{{route('portal.login.form')}}">Ingreso Acudiente/Deportista</a>
 				</li>
 				@endguest
-			@auth
-			<li class="nav-item {{ Request::is('*/jugador') ? 'active' : '' }}">
-				<a class="nav-link waves-effect waves-ligth" href="{{route('portal.player.home')}}">Inicio <span class="sr-only">(current)</span></a>
-			</li>
-			<!-- menu -->
-			@endauth
+
 			</ul>
 			@auth
 			<ul class="navbar-nav my-lg-0">
@@ -84,11 +63,11 @@
 							@endif
 
 							<li>
-								<a href="{{ route('public.logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+								<a href="{{ route('portal.logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
 									<i class="fa fa-power-off"></i>
 									{{ __('messages.Logout') }}
 								</a>
-								<form id="logout-form" action="{{ route('public.logout') }}" method="POST" style="display: none;">
+								<form id="logout-form" action="{{ route('portal.logout') }}" method="POST" style="display: none;">
 									@csrf
 								</form>
 							</li>

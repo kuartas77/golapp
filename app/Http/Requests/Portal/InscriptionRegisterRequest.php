@@ -68,7 +68,7 @@ class InscriptionRegisterRequest extends FormRequest
 
             'signatureTutor'  => ['required', 'string'],
             'signatureAlumno' => ['required', 'string'],
-            'school' => ['required'],
+            'school_data' => ['required'],
         ];
     }
 
@@ -76,7 +76,7 @@ class InscriptionRegisterRequest extends FormRequest
     {
         $this->merge([
             'category' => Date::parse($this->date_birth)->year,
-            'school' => School::firstWhere('slug', request()->segments()[1])
+            'school_data' => School::firstWhere('slug', request()->segments()[1])
         ]);
 
     }

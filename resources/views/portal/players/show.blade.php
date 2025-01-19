@@ -1,11 +1,11 @@
-@extends('layouts.public')
+@extends('layouts.portal.public')
 @section('title', __('messages.player_title', ['unique_code'=> $player->unique_code]))
 @section('content')
 <div class="container-fluid">
     <div class="row">
-        @include('public.players.show.card_person')
-        @include('public.players.show.card_info')
-        @include('public.players.show.card_inscriptions')
+        @include('portal.players.show.card_person')
+        @include('portal.players.show.card_info')
+        @include('portal.players.show.card_inscriptions')
     </div>
 </div>
 
@@ -14,10 +14,10 @@
         <div class="wizard-content">
             <div class="modal-content">
                 <div class="modal-body">
-                    {{html()->modelForm(auth()->user(), 'put', route('public.player.update', [auth()->user()->unique_code]))->attributes(['id' => 'form_update_player', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class' => 'validation-wizard wizard-circle'])->open()}}
+                    {{html()->modelForm(auth()->user(), 'put', route('portal.player.update', [auth()->user()->unique_code]))->attributes(['id' => 'form_update_player', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class' => 'validation-wizard wizard-circle'])->open()}}
 
-                    @include('public.fields.step_1')
-                    @include('public.fields.step_2')
+                    @include('portal.inscriptions.fields.step_1')
+                    @include('portal.inscriptions.fields.step_2')
 
                     {{ html()->closeModelForm() }}
                 </div>
@@ -28,7 +28,7 @@
 @endsection
 @section('scripts')
 <script>
-    let url_autocomplete = "{{ route('public.autocomplete.fields') }}";
+    let url_autocomplete = "{{ route('portal.autocomplete.fields') }}";
     const form_update_player = $("#form_update_player");
 
     $(function() {
@@ -90,6 +90,9 @@
                 okText: 'Aceptar',
                 minDate: moment().subtract(18, 'year'),//TODO: settings
                 maxDate: moment().subtract(2, 'year')// TODO: settings
+            });
+            $('#file-upload').on('change', function(){
+                readFile(this);
             });
         },
         onStepChanging: function(event, currentIndex, newIndex) {
@@ -161,6 +164,23 @@
         });
     }
 
+
+
+    function readFile(input) {
+        let label = $(input).next('label.custom-file-label')
+        if (input.files && input.files[0]) {
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                $('#player-img').attr('src', e.target.result);
+            }
+            reader.readAsDataURL(input.files[0]);
+            // label.empty().html(input.files[0].name)
+            label.empty().html('Seleccionada.')
+        }else{
+            label.empty().html("Seleccionar...")
+            $('#player-img').attr('src', 'http://golapp.local/img/user.png');
+        }
+    }
 
 </script>
 @endsection

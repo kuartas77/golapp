@@ -65,7 +65,7 @@ final class Passable
 
     public function setSchool(): void
     {
-        $this->school = $this->getPropertyFromData('school');
+        $this->school = $this->getPropertyFromData('school_data');
     }
 
     public function setPaths(array $filePaths): void

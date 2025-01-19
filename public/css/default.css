@@ -28,6 +28,9 @@ textarea[name=ticr_observacion] {
 .error {
     color: red;
 }
+.success {
+    color: green;
+}
 
 .page-wrapper {
     background: #edecef; /*#c8c8c8;*/

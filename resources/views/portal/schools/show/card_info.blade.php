@@ -59,7 +59,7 @@
                                             <li class="list-group-item">Historíal por año de inscripción.</li>
                                         </ul>
                                         <p class="lead">Para el ingreso debes proporcionar el documento de identidad del deportista y su código único que fue enviado al correo del acudiente en el momento de la inscripción.</p>
-                                        <a class="btn waves-effect waves-light btn-rounded btn-info" href="javascript:void(0)">
+                                        <a class="btn waves-effect waves-light btn-rounded btn-info" href="{{route('portal.login.form')}}">
                                             Ir a plataforma de acudientes
                                         </a>
                                     </div>

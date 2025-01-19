@@ -126,9 +126,31 @@ class PlayerRepository
         }
     }
 
+    public function updatePlayerPortal(Player $player, array $payload): bool
+    {
+        try {
+            DB::beginTransaction();
+            //            Master::saveAutoComplete($request);
+
+            $save = $player->update($payload);
+
+            DB::commit();
+
+            return $save;
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            $this->logError("PlayerRepository@updatePlayerPortal", $exception);
+            return false;
+        }
+    }
+
     public function loadShow(Player $player): Player
     {
-        $player->load(['people', 'inscriptions' => fn($q) => $q->withTrashedRelations()]);
+        $player->load([
+            'schoolData',
+            'people',
+            'inscriptions' => fn ($q) => $q->with(['trainingGroup' => fn($q) => $q->withTrashed()])->withTrashedRelations()
+        ]);
         $player->inscriptions->setAppends(['format_average']);
         PlayerExportService::loadClassDays($player);
         return $player;
