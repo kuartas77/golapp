@@ -45,7 +45,6 @@ class CreatePlayersTable extends Migration
             $table->string('medical_history')->nullable();
             $table->string('jornada')->nullable();
             $table->text('student_insurance')->nullable();
-            $table->string('password')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
