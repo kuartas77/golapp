@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repositories;
 
 use Exception;
@@ -16,35 +18,26 @@ class InscriptionRepository
 {
     use ErrorTrait;
 
-    /**
-     *
-     * @param Inscription $model
-     * @param PeopleRepository $peopleRepository
-     */
-    public function __construct(private Inscription $model, private PeopleRepository $peopleRepository)
+    public function __construct(private Inscription $inscription, private PeopleRepository $peopleRepository)
     {
-        $this->model = $model;
-        $this->peopleRepository = $peopleRepository;
     }
 
     /**
      * @param $id
      * @param false $trashed
-     * @return mixed
      */
     public function findById($id, bool $trashed = false): mixed
     {
         if ($trashed) {
             return Inscription::onlyTrashed()->schoolId()->findOrFail($id);
         }
+
         return Inscription::query()->schoolId()->findOrFail($id);
 
     }
 
     /**
-     * @param array $requestData
      * @param bool $created
-     * @return bool
      */
     public function createInscription(array $requestData): bool
     {
@@ -56,7 +49,7 @@ class InscriptionRepository
 
             DB::beginTransaction();
 
-            $inscription = $this->model->withTrashed()->updateOrCreate([
+            $inscription = $this->inscription->withTrashed()->updateOrCreate([
                 'unique_code' => $requestData['unique_code'],
                 'year' => $requestData['year']
             ], $requestData);
@@ -77,10 +70,11 @@ class InscriptionRepository
             DB::rollBack();
             $this->logError(__METHOD__, $exception);
         }
+
         return $result;
     }
 
-    private function setTrainingGroupId(&$requestData): void
+    private function setTrainingGroupId(array &$requestData): void
     {
         $requestData['training_group_id'] = ($requestData['training_group_id'] ?? TrainingGroup::orderBy('id')->firstWhere('school_id', $requestData['school_id'])->id);
     }
@@ -110,11 +104,12 @@ class InscriptionRepository
 
             DB::commit();
 
-        } catch (\Throwable $th) {
+        } catch (\Throwable $throwable) {
             DB::rollBack();
-            $this->logError(__METHOD__, $th);
+            $this->logError(__METHOD__, $throwable);
             $result = false;
         }
+
         return $result;
     }
 
@@ -123,7 +118,7 @@ class InscriptionRepository
      */
     public function getInscriptionsEnabled()
     {
-        return $this->model->with(['player.people', 'trainingGroup' => fn($q) => $q->withTrashed()])
+        return $this->inscription->with(['player.people', 'trainingGroup' => fn($q) => $q->withTrashed()])
             ->inscriptionYear(request('inscription_year'))->schoolId();
     }
 
@@ -132,15 +127,15 @@ class InscriptionRepository
      */
     public function getInscriptionsDisabled()
     {
-        return $this->model->with(['player.people', 'trainingGroup'])
+        return $this->inscription->with(['player.people', 'trainingGroup'])
             ->inscriptionYear(request('inscription_year'))->schoolId()->onlyTrashed();
     }
 
     public function searchInscriptionCompetition(array $fields)
     {
-        return $this->model->query()->with('player')
+        return $this->inscription->query()->with('player')
             ->where('unique_code', $fields['unique_code'])
-            ->where(function ($query) use ($fields) {
+            ->where(function ($query) use ($fields): void {
                 $query->where('competition_group_id', '<>', $fields['competition_group_id'])
                     ->orWhere('competition_group_id', null);
             })
@@ -150,7 +145,7 @@ class InscriptionRepository
 
     public function searchInsUniqueCode($id)
     {
-        return $this->model->query()->with('player')->schoolId()->findOrFail($id);
+        return $this->inscription->query()->with('player')->schoolId()->findOrFail($id);
     }
 
     public function disable(Inscription $inscription): void
@@ -165,21 +160,21 @@ class InscriptionRepository
             $inscription->delete();
             DB::commit();
             alert()->success(env('APP_NAME'), __('messages.ins_delete_success'));
-        } catch (Throwable $th) {
+        } catch (Throwable $throwable) {
             DB::rollBack();
-            $this->logError("InscriptionRepository disable", $th);
+            $this->logError("InscriptionRepository disable", $throwable);
             alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
         }
     }
 
-    public function createInscriptionByYear($actualYear = null, $futureYear = null)
+    public function createInscriptionByYear($actualYear = null, $futureYear = null): void
     {
         $actualYear = $actualYear ?: now()->year;
         $futureYear = $futureYear ?: now()->addYear()->year;
 
         $training_group_id = TrainingGroup::query()->orderBy('id')->schoolId()->first()->id;
 
-        $inscriptions = $this->model->where('year', $actualYear)->schoolId()->get();
+        $inscriptions = $this->inscription->where('year', $actualYear)->schoolId()->get();
 
         foreach ($inscriptions as $inscription) {
 

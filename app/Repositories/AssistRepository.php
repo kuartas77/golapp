@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Repositories;
 
@@ -21,15 +22,13 @@ class AssistRepository
 
     protected AssistService $service;
 
-    public function __construct(protected Assist $model)
+    public function __construct(protected Assist $assist)
     {
         $this->service = new AssistService();
     }
 
     /**
-     * @param array $data
      * @param false $deleted
-     * @return array
      */
     public function search(array $data, bool $deleted = false): array
     {
@@ -40,7 +39,7 @@ class AssistRepository
         $trainingGroup = TrainingGroup::query()->schoolId()
             ->when($deleted, fn($q) => $q->onlyTrashedRelations())->findOrFail($data['training_group_id']);
 
-        $assists = $this->model->schoolId()->with('inscription.player')
+        $assists = $this->assist->schoolId()->with('inscription.player')
             ->when($deleted, fn($q) => $q->withTrashed())
             ->where([
                 ['training_group_id', $data['training_group_id']],
@@ -51,10 +50,6 @@ class AssistRepository
         return $this->service->generateTable($assists, $trainingGroup, $data, $deleted);
     }
 
-    /**
-     * @param array $dataAssist
-     * @return array
-     */
     public function create(array $dataAssist): array
     {
         $table = [];
@@ -76,7 +71,7 @@ class AssistRepository
                 ->where('year', $dataAssist['year'])->pluck('id');
 
 
-            $assistsQuery = $this->model->schoolId()->with('inscription.player')->where($dataAssist);
+            $assistsQuery = $this->assist->schoolId()->with('inscription.player')->where($dataAssist);
 
             DB::beginTransaction();
 
@@ -86,25 +81,20 @@ class AssistRepository
 
             $table = $this->service->generateTable($assistsQuery, $trainingGroup, $dataAssist);
 
-        } catch (Exception $th) {
+        } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError("AssistRepository create", $th);
+            $this->logError("AssistRepository create", $exception);
         }
 
         return $table;
     }
 
-    /**
-     * @param Assist $assist
-     * @param array $validated
-     * @return bool
-     */
     public function update(Assist $assist, array $validated): bool
     {
         try {
             DB::beginTransaction();
             if($assist->observations || ($validated['observations'] && $validated['attendance_date'])){
-                if (isset($assist->observations) && is_object($assist->observations)){
+                if (property_exists($assist, 'observations') && $assist->observations !== null && is_object($assist->observations)){
                     $observations = $assist->observations;
                 }else{
                     $observations = new \stdClass;
@@ -112,8 +102,7 @@ class AssistRepository
 
                 $observations->{$validated['attendance_date']} = $validated['observations'];
                 $validated['observations'] = $observations;
-            }else{
-                $assist->observations = $assist->observations;
+            }else {
             }
 
             $updated = $assist->update($validated);
@@ -126,25 +115,25 @@ class AssistRepository
         }
     }
 
-    public static function createAssistBulk(SupportCollection $inscriptionIds, Builder $assists, array $dataAssist, int $school_id)
+    public static function createAssistBulk(SupportCollection $supportCollection, Builder $builder, array $dataAssist, int $school_id): void
     {
-        if ($inscriptionIds->isNotEmpty()) {
+        if ($supportCollection->isNotEmpty()) {
 
-            $assistInscriptionIds = $assists->pluck('inscription_id');
+            $assistInscriptionIds = $builder->pluck('inscription_id');
 
-            $idsDiff = $inscriptionIds->diff($assistInscriptionIds);
+            $idsDiff = $supportCollection->diff($assistInscriptionIds);
 
-            foreach ($idsDiff as $id) {
+            foreach ($idsDiff as $idDiff) {
                 Assist::query()->updateOrCreate(
                     [
-                        'inscription_id' => $id,
+                        'inscription_id' => $idDiff,
                         'year' => $dataAssist['year'],
                         'month' => $dataAssist['month'],
                         'training_group_id' => $dataAssist['training_group_id'],
                         'school_id' => $school_id
                     ],
                     [
-                        'inscription_id' => $id,
+                        'inscription_id' => $idDiff,
                         'year' => $dataAssist['year'],
                         'month' => $dataAssist['month'],
                         'training_group_id' => $dataAssist['training_group_id'],
@@ -152,7 +141,7 @@ class AssistRepository
                     ]
                 );
 
-                Assist::query()->where('inscription_id', $id)
+                Assist::query()->where('inscription_id', $idDiff)
                 ->where('year', $dataAssist['year'])
                 ->where('month', $dataAssist['month'])
                 ->where('training_group_id', '<>', $dataAssist['training_group_id'])

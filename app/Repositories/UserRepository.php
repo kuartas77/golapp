@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repositories;
 
 use App\Models\SchoolUser;
@@ -15,11 +17,11 @@ class UserRepository
 {
     use ErrorTrait;
 
-    private User $model;
+    private User $user;
 
-    public function __construct(User $model)
+    public function __construct(User $user)
     {
-        $this->model = $model;
+        $this->user = $user;
     }
 
     public function getAll()
@@ -32,23 +34,23 @@ class UserRepository
         return getSchool(auth()->user())->users()->with(['roles', 'profile', 'school'])->onlyTrashed()->get();
     }
 
-    public function create(FormRequest $request)
+    public function create(FormRequest $formRequest)
     {
         try {
             DB::beginTransaction();
             $school = getSchool(auth()->user());
-            $user = $this->model->query()->create($request->validated() + ['school_id' => $school->id]);
-            $user->syncRoles([$request->input('rol_id')]);
+            $user = $this->user->query()->create($formRequest->validated() + ['school_id' => $school->id]);
+            $user->syncRoles([$formRequest->input('rol_id')]);
             $user->profile()->create();
 
-            $relationSchool = new SchoolUser();
-            $relationSchool->user_id = $user->id;
-            $relationSchool->school_id = $school->id;
-            $relationSchool->save();
+            $schoolUser = new SchoolUser();
+            $schoolUser->user_id = $user->id;
+            $schoolUser->school_id = $school->id;
+            $schoolUser->save();
 
-            $user->notify(new RegisterNotification($user, ($request->password ?? randomPassword())));
+            $user->notify(new RegisterNotification($user, ($formRequest->password ?? randomPassword())));
             DB::commit();
-            Cache::forget("KEY_USERS_{$school->id}");
+            Cache::forget('KEY_USERS_' . $school->id);
 
             alert()->success(__('messages.user_stored_success'));
 
@@ -57,18 +59,18 @@ class UserRepository
             DB::rollBack();
             $this->logError("UserRepository create", $exception);
             alert()->error(__('messages.error'));
-            return $this->model;
+            return $this->user;
         }
     }
 
-    public function update(User $user, FormRequest $request)
+    public function update(User $user, FormRequest $formRequest): void
     {
         try {
 
             DB::beginTransaction();
-            $user->update($request->validated());
-            $user->syncRoles([$request->input('rol_id')]);
-            Cache::forget("KEY_USERS_{$user->school_id}");
+            $user->update($formRequest->validated());
+            $user->syncRoles([$formRequest->input('rol_id')]);
+            Cache::forget('KEY_USERS_' . $user->school_id);
             DB::commit();
 
             alert()->success(config('app.name'), __('messages.user_updated', ['user_name' => $user->name]));

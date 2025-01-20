@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Repositories;
 
@@ -9,19 +10,15 @@ use Illuminate\Support\Collection;
 class PeopleRepository
 {
 
-    /**
-     * @var People
-     */
-    private People $model;
+    private People $people;
 
-    public function __construct(People $model)
+    public function __construct(People $people)
     {
-        $this->model = $model;
+        $this->people = $people;
     }
 
     /**
      * @param $people
-     * @return Collection
      */
     public function getPeopleIds($people): Collection
     {
@@ -34,12 +31,13 @@ class PeopleRepository
                 $peopleIds->push(optional($this->createOrUpdatePeople($person))->id);
             }
         }
+
         return $peopleIds;
     }
 
     public function createOrUpdatePeople($person): People
     {
-        return $this->model->query()->updateOrCreate(
+        return $this->people->query()->updateOrCreate(
             [
                 'names' => $person['names'],
                 'identification_card' => $person['identification_card']

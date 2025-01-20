@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repositories;
 
 use App\Models\CompetitionGroup;
@@ -18,14 +20,11 @@ class GameRepository
     use PDFTrait;
     use ErrorTrait;
 
-    /**
-     * @var Game
-     */
-    private Game $model;
+    private Game $game;
 
-    public function __construct(Game $model)
+    public function __construct(Game $game)
     {
-        $this->model = $model;
+        $this->game = $game;
     }
 
     public function getDatatable($year)
@@ -37,26 +36,25 @@ class GameRepository
     }
 
     /**
-     * @param Game|null $match
-     * @return object
+     * @param Game|null $game
      */
-    public function getInformationToMatch(Game $match = null): object
+    public function getInformationToMatch(Game $game = null): object
     {
-        if (is_null($match)) {
+        if (is_null($game)) {
             $competitionGroup = CompetitionGroup::query()->findOrFail(request('competition_group'));
             return $this->makeMatch($competitionGroup);
         }
-        return $this->makeMatchEdit($match);
+
+        return $this->makeMatchEdit($game);
     }
 
     /**
      * @param $competitionGroup
-     * @return object
      */
     public function makeMatch($competitionGroup): object
     {
         $competitionGroup->load([
-            'inscriptions' => fn($q) => $q->with('player'),
+            'inscriptions' => fn($q) => $q->where('year', now()->year)->with('player'),
             'tournament:id,name', 'professor:id,name'
         ]);
         $rows = "";
@@ -66,7 +64,7 @@ class GameRepository
                 'index' => $count,
                 'inscription' => $inscription
             ])->render();
-            $count++;
+            ++$count;
         }
 
         return (object)[
@@ -82,7 +80,6 @@ class GameRepository
 
     /**
      * @param $match
-     * @return object
      */
     public function makeMatchEdit($match): object
     {
@@ -95,7 +92,7 @@ class GameRepository
                 'inscription' => $skillControl->inscription,
                 'skillControl' => $skillControl
             ])->render();
-            $count++;
+            ++$count;
         }
 
         return (object)[
@@ -111,22 +108,23 @@ class GameRepository
 
     /**
      * @param $request
-     * @return Game
      */
     public function createMatchSkill(array $matchData, array $skillsData): Game
     {
-        $match = $this->model;
+        $match = $this->game;
         try {
             DB::beginTransaction();
             Master::saveAutoComplete($matchData);
-            $match = $this->model->create($matchData);
+            $match = $this->game->create($matchData);
             $inscriptions = $skillsData['inscriptions_id'];
             $skillControls = collect();
-            for ($i = 0; $i < count($inscriptions); ++$i) {
+            $counter = count($inscriptions);
+            for ($i = 0; $i < $counter; ++$i) {
                 if (!empty($inscriptions[$i])) {
                     $skillControls->push(new SkillsControl($this->dataSkills($skillsData, $i, $matchData['school_id'])));
                 }
             }
+
             $match->skillsControls()->saveMany($skillControls);
             DB::commit();
             return $match;
@@ -140,9 +138,8 @@ class GameRepository
     /**
      * @param $request
      * @param $i
-     * @return array
      */
-    private function dataSkills(array $skillsData, $i, $school_id): array
+    private function dataSkills(array $skillsData, int $i, $school_id): array
     {
         return [
             'inscription_id' => $skillsData["inscriptions_id"][$i],
@@ -161,24 +158,24 @@ class GameRepository
 
     /**
      * @param $request
-     * @param Game $match
-     * @return bool
      */
-    public function updateMatchSkill(array $matchData, array $skillsData, Game $match): bool
+    public function updateMatchSkill(array $matchData, array $skillsData, Game $game): bool
     {
         try {
             DB::beginTransaction();
             Master::saveAutoComplete($matchData);
-            $match->update($matchData);
+            $game->update($matchData);
             $ids = $skillsData['ids'];
-            for ($i = 0; $i < count($ids); ++$i) {
+            $counter = count($ids);
+            for ($i = 0; $i < $counter; ++$i) {
                 $data = $this->dataSkills($skillsData, $i, $matchData['school_id']);
                 if (!empty($ids[$i])) {
                     SkillsControl::find($ids[$i])->update($data);
                 } else {
-                    $match->skillsControls()->save(new SkillsControl($data));
+                    $game->skillsControls()->save(new SkillsControl($data));
                 }
             }
+
             DB::commit();
             return true;
         } catch (Exception $exception) {
@@ -194,7 +191,7 @@ class GameRepository
      */
     public function makePDF($matchId)
     {
-        $match = $this->model->query()->with([
+        $match = $this->game->query()->with([
             'tournament' => fn($query) => $query->withTrashed(),
             'competitionGroup' => fn($query) => $query->with([
                 'professor' => fn($query) => $query->withTrashed()
@@ -236,7 +233,7 @@ class GameRepository
                 'inscription' => $skillControl->inscription,
                 'skillControl' => $skillControl
             ])->render();
-            $count++;
+            ++$count;
         }
 
         return (object)[

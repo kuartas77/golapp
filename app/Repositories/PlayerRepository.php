@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Repositories;
 
@@ -26,40 +27,41 @@ class PlayerRepository
     use ErrorTrait;
     use UploadFile;
 
-    public function __construct(private Player $model, private PeopleRepository $peopleRepository)
+    public function __construct(private Player $player, private PeopleRepository $peopleRepository)
     {
     }
 
     public function getPlayersPeople()
     {
-        return $this->model->query()->with(['people'])->schoolId()->get();
+        return $this->player->query()->with(['people'])->schoolId()->get();
     }
 
-    public function createPlayer(PlayerCreateRequest $request): bool
+    public function createPlayer(PlayerCreateRequest $playerCreateRequest): bool
     {
         $result = false;
         try {
-            $dataPlayer = $request->only($this->getAttributes());
+            $dataPlayer = $playerCreateRequest->only($this->getAttributes());
             $school_id = $dataPlayer['school_id'];
 
             if(!isset($dataPlayer['unique_code'])){
                 $dataPlayer['unique_code'] = createUniqueCode($dataPlayer['school_id']);
             }
 
-            if ($file_name = $this->saveFile($request, 'player')) {
+            if ($file_name = $this->saveFile($playerCreateRequest, 'player')) {
                 $dataPlayer['photo'] = $file_name;
             }
+
             $dataPlayer = $this->setAttributes($dataPlayer);
 
             DB::beginTransaction();
 
-            Master::saveAutoComplete($request->all());
-            $player = $this->model->create($dataPlayer);
+            Master::saveAutoComplete($playerCreateRequest->all());
+            $player = $this->player->create($dataPlayer);
 
-            $dataPeople = $request->input('people', []);
+            $dataPeople = $playerCreateRequest->input('people', []);
             throw_unless($dataPeople, Exception::class, 'not provide people data.');
 
-            $peopleIds = $this->peopleRepository->getPeopleIds($request->input('people'));
+            $peopleIds = $this->peopleRepository->getPeopleIds($playerCreateRequest->input('people'));
             $player->people()->sync($peopleIds);
 
             !checkEmail($player->email) ?: $player->notify(new RegisterPlayerNotification($player));
@@ -70,24 +72,24 @@ class PlayerRepository
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("PlayerRepository@createPlayer", $exception);
-            Cache::forget("KEY_LAST_UNIQUE_CODE.{$school_id}");
+            Cache::forget('KEY_LAST_UNIQUE_CODE.' . $school_id);
             $result = false;
         }
+
         return $result;
     }
 
     public function getAttributes(): array
     {
-        return $this->model->getFillable();
+        return $this->player->getFillable();
     }
 
     /**
      * @param string $method
      * @param $request
      * @param Player|null $player
-     * @return mixed
      */
-    private function setAttributes(array $dataPlayer, Player $player = null)
+    private function setAttributes(array $dataPlayer, Player $player = null): array
     {
         $dataPlayer['date_birth'] = Carbon::parse($dataPlayer['date_birth']);
         $dataPlayer['category'] = categoriesName($dataPlayer['date_birth']->year);
@@ -95,19 +97,20 @@ class PlayerRepository
         return $dataPlayer;
     }
 
-    public function updatePlayer(Player $player, PlayerUpdateRequest $request): bool
+    public function updatePlayer(Player $player, PlayerUpdateRequest $playerUpdateRequest): bool
     {
         try {
-            $dataPlayer = $request->only($this->getAttributes());
-            if ($file_name = $this->saveFile($request, 'player')) {
+            $dataPlayer = $playerUpdateRequest->only($this->getAttributes());
+            if ($file_name = $this->saveFile($playerUpdateRequest, 'player')) {
                 $dataPlayer['photo'] = $file_name;
             }
+
             $dataPlayer = $this->setAttributes($dataPlayer, $player);
 
             DB::beginTransaction();
 
             Master::saveAutoComplete($dataPlayer);
-            $dataPeople = $request->input('people', []);
+            $dataPeople = $playerUpdateRequest->input('people', []);
 
             throw_unless($dataPeople, Exception::class, 'not provide people data.');
 
@@ -158,43 +161,41 @@ class PlayerRepository
 
     /**
      * @param $request
-     * @return bool
      */
     public function checkDocumentExists(string $doc): bool
     {
-        return $this->model->query()->schoolId()->where('identification_document', $doc)->exists();
+        return $this->player->query()->schoolId()->where('identification_document', $doc)->exists();
     }
 
     /**
      * @param $request
-     * @return bool
      */
     public function checkUniqueCode(string $unique_code): bool
     {
-        return $this->model->query()->schoolId()->withTrashed()->where('unique_code', $unique_code)->exists();
+        return $this->player->query()->schoolId()->withTrashed()->where('unique_code', $unique_code)->exists();
     }
 
     public function searchUniqueCode(array $fields)
     {
-        return $this->model->query()->schoolId()->whereDoesntHave('inscription')
+        return $this->player->query()->schoolId()->whereDoesntHave('inscription')
             ->firstWhere('unique_code', $fields['unique_code']);
     }
 
     public function getListPlayersNotInscription(bool $isTrashed = true)
     {
-        return $this->model->query()->schoolId()->whereDoesntHave('inscription')->pluck('unique_code');
+        return $this->player->query()->schoolId()->whereDoesntHave('inscription')->pluck('unique_code');
     }
 
     public function getListPlayersWithInscription(bool $isTrashed = true)
     {
-        return $this->model->query()->schoolId()->whereHas('inscription', fn($q) => $q->where('year', now()->year))->pluck('unique_code');
+        return $this->player->query()->schoolId()->whereHas('inscription', fn($q) => $q->where('year', now()->year))->pluck('unique_code');
     }
 
     public function birthdayToday(): Collection
     {
         $school_id = getSchool(auth()->user())->id;
-        return Cache::remember("BIRTHDAYS_{$school_id}", Carbon::now()->addDay()->startOfDay(), function () {
-            return $this->model->query()->schoolId()->whereHas('inscription')
+        return Cache::remember('BIRTHDAYS_' . $school_id, Carbon::now()->addDay()->startOfDay(), function () {
+            return $this->player->query()->schoolId()->whereHas('inscription')
                 ->whereDay('date_birth', Carbon::now()->day)->whereMonth('date_birth', Carbon::now()->month)
                 ->get();
         });
@@ -214,15 +215,15 @@ class PlayerRepository
         return $headers->diff($headers_validation)->implode(',');
     }
 
-    public function getPlayerInfo(string $doc, $school_id)
+    public function getPlayerInfo(string $doc, $school_id): array
     {
-        $player = $this->model->query()
+        $player = $this->player->query()
         ->where('identification_document', $doc)
         ->where('school_id', $school_id)
         ->whereDoesntHave('inscription', fn($q) => $q->where('year', getYearInscription()))
         ->first();
 
-        return !isset($player) ? [] : [
+        return isset($player) ? [
             'names' => $player->names,
             'last_names' => $player->last_names,
             'date_birth' => $player->date_birth,
@@ -241,6 +242,6 @@ class PlayerRepository
             'school' => $player->school,
             'degree' => $player->degree,
             'jornada' => $player->jornada,
-        ];
+        ] : [];
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Repositories;
 
@@ -16,34 +17,31 @@ class ScheduleRepository
 {
     use ErrorTrait;
 
-    /**
-     * @var Schedule
-     */
-    private Schedule $model;
+    private Schedule $schedule;
 
-    public function __construct(Schedule $model)
+    public function __construct(Schedule $schedule)
     {
-        $this->model = $model;
+        $this->schedule = $schedule;
     }
 
 
     public function all()
     {
-        return $this->model->query()->schoolId()->get();
+        return $this->schedule->query()->schoolId()->get();
     }
 
 
     /**
      * @param Request $request
      */
-    public function store(array $data)
+    public function store(array $data): void
     {
         try {
             DB::beginTransaction();
-            $this->model->query()->create($data);
+            $this->schedule->query()->create($data);
             DB::commit();
 
-            Cache::forget("SCHEDULES_{$data['school_id']}");
+            Cache::forget('SCHEDULES_' . $data['school_id']);
             alert()->success(env('APP_NAME'), __('messages.schedule_create_success'));
         } catch (Exception $exception) {
             DB::rollBack();
@@ -55,16 +53,15 @@ class ScheduleRepository
     /**
      * @param Request $request
      * @param Day $day
-     * @return bool|RedirectResponse
      */
-    public function update(array $data, Schedule $schedule)
+    public function update(array $data, Schedule $schedule): void
     {
         try {
             DB::beginTransaction();
             $schedule->update($data);
             DB::commit();
 
-            Cache::forget("SCHEDULES_{$data['school_id']}");
+            Cache::forget('SCHEDULES_' . $data['school_id']);
             alert()->success(env('APP_NAME'), __('messages.schedule_create_success'));
         } catch (Exception $exception) {
             DB::rollBack();
