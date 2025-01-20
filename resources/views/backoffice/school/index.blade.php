@@ -12,24 +12,16 @@
 <script>
     const url_current = "{{ URL::current() }}";
     const url = "{{route('config.datatables.schools')}}";
-    const validateCheck = (value) => {
-        return value ? '<span class="label label-success">SI</span>' : '<span class="label label-warning">NO</span>';
-    }
     $(document).ready(function() {
         let table = $('#schools-table').DataTable({
-            "lengthMenu": [
-                [30, -1],
-                [30, "Todos"]
-            ],
+            "lengthMenu": [ [30, -1], [30, "Todos"] ],
             "processing": true,
             "serverSide": true,
             "ajax": $.fn.dataTable.pipeline({
                 url: url,
                 pages: 5 // number of pages to cache
             }),
-            "order": [
-                [6, 'ASC'],
-            ],
+            "order": [ [6, 'ASC']],
             "columns": [
                 {
                     data: 'logo', name: 'logo',
@@ -57,24 +49,12 @@
 
         $("#form_create").validate({
             rules: {
-                name: {
-                    required: true
-                },
-                agent: {
-                    required: true
-                },
-                email: {
-                    emails: true
-                },
-                address: {
-                    required: true
-                },
-                phone: {
-                    required: true
-                },
-                is_enable: {
-                    required: true
-                },
+                name: { required: true },
+                agent: { required: true },
+                email: { emails: true },
+                address: { required: true },
+                phone: { required: true },
+                is_enable: { required: true },
             }, submitHandler: function (form) {
                 var data = new FormData();
                 let form_data = $(form).serializeArray();
@@ -99,9 +79,9 @@
                         Swal.fire({
                             type: 'success',
                             title: window.app_name,
-                            text: 'Se ha creado la Empresa.',
+                            text: 'Se ha creado o modificado la Escuela.',
                         });
-                        $('#form_create')[0].reset();
+                        setTimeout(() => window.location.reload(), "2000")
                     },
                     error: function (e) {
                         Swal.fire({
@@ -111,9 +91,8 @@
                         })
                     }
                 });
-                // Redraw data table, causes data to be reloaded
-                table.clearPipeline().draw();
-                $('#create').modal('hide');
+
+
             }
         });
 
@@ -128,8 +107,8 @@
                 $("#address").val(data.address);
                 $("#phone").val(data.phone);
                 $("#is_enable").val(data.is_enable ? 1 : 0);
-                $('#player-img').attr('src', data.logo_file);   
-                
+                $('#player-img').attr('src', data.logo_file);
+
                 $("#password_div").hide();
                 $("#password_confirmation_div").hide();
                 $("#create").modal('show');
@@ -146,9 +125,9 @@
             $("#is_enable").val(1);
             $("#password").val('');
             $("#password_confirmation").val('');
-            $('#player-img').attr('src', 'https://golapp.softdreamc.com/img/ballon.png');   
+            $('#player-img').attr('src', 'https://golapp.softdreamc.com/img/ballon.png');
             $("#password_div").show();
-            $("#password_confirmation_div").show();   
+            $("#password_confirmation_div").show();
             resetModalForm(true, 0);
         });
 

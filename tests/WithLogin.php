@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests;
 
 use App\Models\User;
@@ -69,10 +71,10 @@ trait WithLogin
             'school_id' => $school['id']
         ], roles: $roles);
 
-        $relationSchool = new SchoolUser();
-        $relationSchool->user_id = $user->id;
-        $relationSchool->school_id = $school['id'];
-        $relationSchool->save();
+        $schoolUser = new SchoolUser();
+        $schoolUser->user_id = $user->id;
+        $schoolUser->school_id = $school['id'];
+        $schoolUser->save();
 
         return [$school, $user];
     }

@@ -16,8 +16,10 @@ class PlayerExportController extends Controller
      * @return mixed
      * @throws MpdfException
      */
-    public function exportPlayerPDF(Player $player, PlayerExportService $playerExportService): mixed
+    public function exportPlayerPDF(string $uniqueCode, PlayerExportService $playerExportService): mixed
     {
+        $school = getSchool(auth()->user());
+        $player = Player::where('school_id', $school->id)->firstWhere('unique_code', $uniqueCode);
         return $playerExportService->makePDFPlayer($player);
     }
 
