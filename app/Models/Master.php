@@ -42,14 +42,14 @@ class Master extends Model
 
     public static function saveAutoComplete(array $data): void
     {
-        $keys = ['school', 'place_birth', 'neighborhood', 'eps', 'place', 'rival_name', 'zone', 'commune', 'degree'];
+        $keys = ['school', 'place_birth', 'neighborhood', 'eps', 'place', 'rival_name', 'zone', 'commune'];
 
         try {
             DB::beginTransaction();
             $counter = count($keys);
             for ($i = 0; $i < $counter; ++$i) {
                 $key = $keys[$i];
-                if (array_key_exists($key, $data)) {
+                if (array_key_exists($key, $data) && !is_null($data[$key])) {
 
                     $fieldRequest = Str::upper(trim($data[$key]));
 
@@ -57,13 +57,15 @@ class Master extends Model
                         ['field' => $key],
                     );
 
-                    $autocomplete = array_unique(
-                        array_merge(
-                            explode(',', $master->autocomplete),
-                            explode(',', $fieldRequest)
-                        )
-                        , SORT_STRING);
-                    $master->update(['autocomplete' => $autocomplete]);
+                    if(isset($master->autocomplete)) {
+                        $autocomplete = array_unique(
+                            array_merge(
+                                explode(',', data_get($master, 'autocomplete', '')),
+                                explode(',', $fieldRequest)
+                            )
+                            , SORT_STRING);
+                        $master->update(['autocomplete' => $autocomplete]);
+                    }
                 }
             }
 

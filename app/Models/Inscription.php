@@ -214,6 +214,6 @@ class Inscription extends Model
 
     public function scopeYear($query, ?int $year = null): void
     {
-        $query->where('year', ($year ?: now()->year) );
+        $query->where('year', ($year !== null && $year !== 0 ? $year : now()->year) );
     }
 }
