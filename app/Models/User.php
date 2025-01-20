@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -17,10 +19,15 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasRoles;
-
+    use HasApiTokens;
+    use HasFactory;
+    use Notifiable;
+    use SoftDeletes;
+    use HasRoles;
     public const SUPER_ADMIN = 1;
+
     public const SCHOOL = 2;
+
     public const INSTRUCTOR = 3;
 
     /**
@@ -58,7 +65,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'url_activate'
     ];
 
-    public function setPasswordAttribute($value)
+    public function setPasswordAttribute($value): void
     {
         if ($value) {
             $this->attributes['password'] = Hash::make($value);

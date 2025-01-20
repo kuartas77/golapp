@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,6 +13,7 @@ class SettingValue extends Model
     use HasFactory;
 
     protected $table = "setting_values";
+
     protected $fillable = [
         'setting_key', 'school_id', 'value'
     ];

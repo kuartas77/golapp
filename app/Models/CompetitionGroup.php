@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Traits\GeneralScopes;
@@ -24,6 +26,7 @@ class CompetitionGroup extends Model
     use HasFactory;
 
     protected $table = 'competition_groups';
+
     protected $fillable = [
         'name',
         'year',
@@ -53,35 +56,26 @@ class CompetitionGroup extends Model
         ])->onlyTrashed();
     }
 
-    public function getFullNameGroupAttribute()
+    public function getFullNameGroupAttribute(): string
     {
-        return "{$this->name} ({$this->category})";
+        return sprintf('%s (%s)', $this->name, $this->category);
     }
 
-    public function getFullNameAttribute()
+    public function getFullNameAttribute(): string
     {
-        return "{$this->name} ({$this->category})";
+        return sprintf('%s (%s)', $this->name, $this->category);
     }
 
-    /**
-     * @return BelongsTo
-     */
     public function tournament(): BelongsTo
     {
         return $this->belongsTo(Tournament::class, 'tournament_id')->withTrashed();
     }
 
-    /**
-     * @return BelongsTo
-     **/
     public function professor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id')->withTrashed();
     }
 
-    /**
-     * @return HasMany
-     **/
     public function matches(): HasMany
     {
         return $this->hasMany(Game::class);

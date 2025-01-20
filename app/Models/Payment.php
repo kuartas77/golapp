@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Traits\GeneralScopes;
@@ -18,6 +20,7 @@ class Payment extends Model
     use PaymentTrait;
 
     protected $table = "payments";
+
     protected $fillable = [
         'year',
         'training_group_id',

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Jenssegers\Date\Date;
@@ -26,6 +28,7 @@ class Player extends Authenticatable
     use Notifiable;
 
     protected $table = "players";
+
     protected $dateFormat = "Y-m-d";
 
     protected $fillable = [
@@ -72,7 +75,7 @@ class Player extends Authenticatable
         return 'unique_code';
     }
 
-    public function setPhotoAttribute($value)
+    public function setPhotoAttribute($value): void
     {
         if (!empty($value)) {
             if (!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
@@ -105,7 +108,7 @@ class Player extends Authenticatable
 
     public function getFullNamesAttribute(): string
     {
-        return "{$this->names} {$this->last_names}";
+        return sprintf('%s %s', $this->names, $this->last_names);
     }
 
     public function getPayYearsAttribute()
@@ -118,6 +121,7 @@ class Player extends Authenticatable
         if (!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
             return route('images', $this->attributes['photo']);
         }
+
         return url('img/user.png');
     }
 
@@ -126,18 +130,20 @@ class Player extends Authenticatable
         if (!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
             return route('portal.player.images', $this->attributes['photo']);
         }
+
         return url('img/user.png');
     }
 
     public function getPhotoLocalAttribute(): string
     {
         if (!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
-            return storage_path("app/public/{$this->attributes['photo']}");
+            return storage_path('app/public/' . $this->attributes['photo']);
         }
+
         return url('img/user.png');
     }
 
-    public function routeNotificationForMail($notification)
+    public function routeNotificationForMail($notification): array
     {
         // Return email address and name...
         return [$this->email => $this->full_names];

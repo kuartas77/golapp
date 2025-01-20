@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,10 +16,15 @@ class People extends Model
     use HasFactory;
 
     const TUTOR = 1;
+
     const FATHER = 2;
+
     const MOTHER = 3;
+
     const FAMILY_ONE = 4;
+
     const FAMILY_TWO = 5;
+
     protected $table = 'peoples';
 
     protected $fillable = [
@@ -40,7 +47,7 @@ class People extends Model
 
     protected $appends = ['relationship_name'];
 
-    public function setNamesAttribute($value)
+    public function setNamesAttribute($value): void
     {
         $this->attributes['names'] = strtoupper($value);
     }

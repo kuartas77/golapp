@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Traits\GeneralScopes;
@@ -21,6 +23,7 @@ class Assist extends Model
     use HasFactory;
 
     protected $table = 'assists';
+
     protected $fillable = [
         'training_group_id',
         'inscription_id',
@@ -69,7 +72,6 @@ class Assist extends Model
     }
 
     /**
-     * @return BelongsTo
      * @noinspection PhpUndefinedMethodInspection
      */
     public function trainingGroup(): BelongsTo
@@ -78,7 +80,6 @@ class Assist extends Model
     }
 
     /**
-     * @return BelongsTo
      * @noinspection PhpUndefinedMethodInspection
      */
     public function inscription(): BelongsTo
@@ -116,8 +117,7 @@ class Assist extends Model
     {
         $value = $this->attributes['month'];
         $months = config('variables.KEY_MONTHS_INDEX');
-        $keyMonths = config('variables.KEY_MONTHS');
-        $key = array_search($value, array_keys($months));
-        return is_numeric($key) ? $months[$value] : $keyMonths[$value];
+        $months[] = config('variables.KEY_MONTHS');
+        return $months[$value];
     }
 }

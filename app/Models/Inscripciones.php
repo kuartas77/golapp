@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -15,8 +17,11 @@ class Inscripciones extends Model
     use SoftDeletes;
 
     const CREATED_AT = 'created_at';
+
     const UPDATED_AT = 'updated_at';
+
     public $table = 'inscripciones';
+
     public $fillable = [
         'sede_id',
         'grupo_id',
@@ -69,6 +74,7 @@ class Inscripciones extends Model
         'familiar_uno',
         'familiar_dos',
     ];
+
     protected $dates = ['deleted_at'];
 
 }
