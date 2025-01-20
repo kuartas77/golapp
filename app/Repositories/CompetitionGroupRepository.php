@@ -1,42 +1,41 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Repositories;
 
 
-use App\Models\CompetitionGroup;
-use App\Models\CompetitionGroupInscription;
-use App\Models\Inscription;
-use App\Traits\ErrorTrait;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\View;
 use Throwable;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Exception;
+use App\Traits\ErrorTrait;
+use App\Models\Inscription;
+use App\Models\CompetitionGroupInscription;
+use App\Models\CompetitionGroup;
 
 class CompetitionGroupRepository
 {
     use ErrorTrait;
 
-    /**
-     * @var CompetitionGroup
-     */
-    private CompetitionGroup $model;
+    private CompetitionGroup $competitionGroup;
 
-    public function __construct(CompetitionGroup $model)
+    public function __construct(CompetitionGroup $competitionGroup)
     {
-        $this->model = $model;
+        $this->competitionGroup = $competitionGroup;
     }
 
     public function listGroupEnabled()
     {
-        return $this->model->query()->schoolId()->with('tournament', 'professor')->get();
+        return $this->competitionGroup->query()->schoolId()->with('tournament', 'professor')->get();
     }
 
     public function listGroupDisabled()
     {
-        return $this->model->query()->schoolId()->onlyTrashedRelations()->get();
+        return $this->competitionGroup->query()->schoolId()->onlyTrashedRelations()->get();
     }
 
     public function createOrUpdateTeam(array $dataGroup, bool $create = true, ?CompetitionGroup $competitionGroup = null): Model
@@ -45,60 +44,47 @@ class CompetitionGroupRepository
             DB::beginTransaction();
 
             if ($create) {
-                $competitionGroup = $this->model->create($dataGroup);
+                $competitionGroup = $this->competitionGroup->create($dataGroup);
             } else {
                 $competitionGroup->update($dataGroup);
             }
 
             DB::commit();
 
-            Cache::forget("KEY_COMPETITION_GROUPS_{$dataGroup['school_id']}");
+            Cache::forget('KEY_COMPETITION_GROUPS_' . $dataGroup['school_id']);
 
             return $competitionGroup;
-        } catch (Throwable $th) {
+        } catch (Throwable $throwable) {
             DB::rollBack();
-            $this->logError("CompetitionGroupRepository@createOrUpdateTeam", $th);
-            return $this->model;
+            $this->logError("CompetitionGroupRepository@createOrUpdateTeam", $throwable);
+            return $this->competitionGroup;
         }
     }
 
-    /**
-     * @return Collection
-     */
     public function getListGroupFullName(): Collection
     {
-        return $this->model->query()->schoolId()->with('tournament', 'professor')
+        return $this->competitionGroup->query()->schoolId()->with('tournament', 'professor')
             ->orderBy('name', 'ASC')->get()->pluck('full_name_group', 'id');
     }
 
-    /**
-     * @param null $year
-     * @return Collection
-     */
     public function getGroupsYear($year = null): Collection
     {
-        $groups = $this->model->query()->schoolId()->with('professor', 'tournament')->orderBy('name', 'ASC');
+        $groups = $this->competitionGroup->query()->schoolId()->with('professor', 'tournament')->orderBy('name', 'ASC');
         if ($year) {
             $groups->where('year', $year);
         }
+
         return $groups->get()->pluck('full_name_group', 'id');
     }
 
-    /**
-     * @param CompetitionGroup $competitionGroup
-     * @return array
-     */
     public function makeRows(CompetitionGroup $competitionGroup): array
     {
-        $competitionGroup->load(['inscriptions' => function ($q) {
-            $q->with('player')->where('year', now()->year);
-        }]);
+        $competitionGroup->load(['inscriptions' => fn ($q) => $q->with('player')->where('year', now()->year)]);
         return [$this->rows($competitionGroup->inscriptions), $competitionGroup->inscriptions->count()];
     }
 
     /**
      * @param $inscriptions
-     * @return string
      */
     private function rows($inscriptions): string
     {
@@ -108,6 +94,7 @@ class CompetitionGroupRepository
                 'inscription' => $inscription
             ])->render();
         }
+
         return $rows;
     }
 
@@ -142,10 +129,10 @@ class CompetitionGroupRepository
 
             DB::commit();
 
-        } catch (Throwable $th) {
+        } catch (Throwable $throwable) {
             DB::rollBack();
-            $this->logError("CompetitionGroupRepository@assignInscriptionGroup", $th);
-            $response = $th->getCode();
+            $this->logError("CompetitionGroupRepository@assignInscriptionGroup", $throwable);
+            $response = $throwable->getCode();
         }
 
         return $response;

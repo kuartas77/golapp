@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Repositories;
 
@@ -17,7 +18,7 @@ class PaymentRepository
 {
     use ErrorTrait;
 
-    public function __construct(private Payment $model)
+    public function __construct(private Payment $payment)
     {
         //
     }
@@ -25,7 +26,6 @@ class PaymentRepository
     /**
      * @param $request
      * @param false $deleted
-     * @return array
      */
     public function filter($request, bool $deleted = false): array
     {
@@ -41,9 +41,9 @@ class PaymentRepository
         $nameFields[0] = 'enrollment';
         ksort($nameFields);
 
-        foreach ($payments as $pay) {
+        foreach ($payments as $payment) {
             $rows .= View::make('templates.payments.row', [
-                'payment' => $pay,
+                'payment' => $payment,
                 'deleted' => $deleted,
                 'front' => true,
                 'nameFields' => $nameFields,
@@ -57,9 +57,11 @@ class PaymentRepository
         if ($deleted) {
             $query_params['deleted'] = true;
         }
+
         if ($payments && !$request->filled('training_group_id')) {
             $query_params['training_group_id'] = 0;
         }
+
         ksort($query_params);
         $urlExportExcel = route('export.payments.excel', $query_params);
         $urlExportPDF = route('export.payments.pdf', $query_params);
@@ -69,7 +71,6 @@ class PaymentRepository
     /**
      * @param $params
      * @param false $deleted
-     * @return Builder
      */
     public function filterSelect(array $params, bool $deleted = false): Builder
     {
@@ -79,7 +80,7 @@ class PaymentRepository
         $unique_code = data_get($params, 'unique_code');
         $training_group_id = data_get($params, 'training_group_id', 0);
 
-        $query = $this->model->where('school_id', $school_id)->with([
+        $query = $this->payment->where('school_id', $school_id)->with([
             'inscription' => fn($query) => $query->with(['player'])->withTrashed()
         ])->withTrashed();
 
@@ -104,8 +105,7 @@ class PaymentRepository
         $unique_code = data_get($params, 'unique_code');
         $training_group_id = data_get($params, 'training_group_id', 0);
 
-        return $this->model
-        ->addSelect([
+        return $this->payment->addSelect([
             'category' => Inscription::query()->select('category')->whereColumn('inscriptions.id', 'inscription_id')->where('year', $year)->take(1)
         ])
         ->where('school_id', $school_id)
@@ -124,11 +124,12 @@ class PaymentRepository
             DB::beginTransaction();
             $isPay = $payment->fill($values)->save();
             DB::commit();
-        } catch (Throwable $th) {
+        } catch (Throwable $throwable) {
             DB::rollBack();
-            $this->logError('PaymentRepository@setPay', $th);
+            $this->logError('PaymentRepository@setPay', $throwable);
             $isPay = false;
         }
+
         return $isPay;
     }
 
@@ -136,7 +137,7 @@ class PaymentRepository
     {
         $year = $year == 0 ? now()->year : $year;
         $school_id = getSchool(auth()->user())->id;
-        return Cache::remember("graphics.year.{$year}.{$school_id}", now()->addMinute(), fn() => $this->queryGraphics($year, $school_id));
+        return Cache::remember(sprintf('graphics.year.%d.%s', $year, $school_id), now()->addMinute(), fn() => $this->queryGraphics($year, $school_id));
     }
 
     private function queryGraphics($year, $school_id)

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Observers\SchoolObserver;
@@ -28,6 +30,7 @@ class School extends Model
     public const KEY_SCHOOL_CACHE = 'school_';
 
     protected $table = "schools";
+
     protected $fillable = [
         'name',
         'agent',
@@ -58,7 +61,7 @@ class School extends Model
         return 'slug';
     }
 
-    public function setLogoAttribute($value)
+    public function setLogoAttribute($value): void
     {
         if (!empty($value)) {
             if (!empty($this->attributes['logo'])) {
@@ -74,6 +77,7 @@ class School extends Model
         if (!empty($this->attributes['logo']) && Storage::disk('public')->exists($this->attributes['logo'])) {
             return route('images', $this->attributes['logo']);
         }
+
         return asset('img/ballon.png');
     }
 
@@ -100,8 +104,9 @@ class School extends Model
     public function getLogoLocalAttribute(): string
     {
         if (!empty($this->attributes['logo']) && Storage::disk('public')->exists($this->attributes['logo'])) {
-            return storage_path("app/public/{$this->attributes['logo']}");
+            return storage_path('app/public/' . $this->attributes['logo']);
         }
+
         return storage_path('standard/ballon.png');
     }
 
@@ -165,7 +170,7 @@ class School extends Model
         return $this->hasMany(Incident::class);
     }
 
-    public function configDefault()
+    public function configDefault(): void
     {
         $this->schedules()->create([
             'schedule' => '10:00AM - 11:00AM',
@@ -204,6 +209,8 @@ class School extends Model
                 return [$setting->setting_key => $setting->value];
             });
         }
+
+        return null;
     }
 
 }

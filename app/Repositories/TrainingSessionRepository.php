@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repositories;
 
 use App\Traits\ErrorTrait;
@@ -10,13 +12,13 @@ class TrainingSessionRepository
 {
     use ErrorTrait;
 
-    public function __construct(protected TrainingSession $model)
+    public function __construct(protected TrainingSession $trainingSession)
     {
     }
 
     public function list()
     {
-        return $this->model->query()->with(['school', 'user', 'training_group'])->withCount(['tasks'])->schoolId()->get();
+        return $this->trainingSession->query()->with(['school', 'user', 'training_group'])->withCount(['tasks'])->schoolId()->get();
     }
 
     public function store(array $payload): ?TrainingSession
@@ -55,7 +57,7 @@ class TrainingSessionRepository
                     continue;
                 }
 
-                array_push($tasks, [
+                $tasks[] = [
                     'task_number' => $payload["task_number"][$key],
                     'task_name' => $payload["task_name"][$key],
                     'general_objective' => $payload["general_objective"][$key],
@@ -67,17 +69,17 @@ class TrainingSessionRepository
                     'sr' => $payload["sr"][$key],
                     'tt' => $payload["tt"][$key],
                     'observations' => $payload["observations"][$key],
-                ]);
+                ];
             }
 
-            if (!empty($tasks)) {
+            if ($tasks !== []) {
                 $trainingSession->tasks()->createMany($tasks);
             }
 
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (\Throwable $throwable) {
             DB::rollBack();
-            $this->logError('TrainingSessionRepository@store', $th);
+            $this->logError('TrainingSessionRepository@store', $throwable);
             $trainingSession = null;
         }
 

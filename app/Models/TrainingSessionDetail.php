@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Traits\GeneralScopes;
@@ -15,6 +17,7 @@ class TrainingSessionDetail extends Model
     use HasFactory;
 
     protected $table = 'training_session_details';
+
     protected $fillable = [
         'training_session_id',
         'task_number',

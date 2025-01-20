@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repositories\API;
 
 use App\Models\User;
@@ -10,11 +12,11 @@ class UserRepository
 {
     use ErrorTrait;
 
-    private User $model;
+    private User $user;
 
-    public function __construct(User $model)
+    public function __construct(User $user)
     {
-        $this->model = $model;
+        $this->user = $user;
     }
 
     public function getUsersPaginate(Request $request)

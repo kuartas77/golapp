@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repositories;
 
 use App\Models\CompetitionGroup;
@@ -18,17 +20,17 @@ class TournamentPayoutsRepository
 
     protected TournamentPayoutService $service;
 
-    public function __construct(private TournamentPayout $model)
+    public function __construct(private TournamentPayout $tournamentPayout)
     {
         $this->service = new TournamentPayoutService();
     }
 
-    public function search(array $data, bool $wantsJson = false, bool $deleted = false)
+    public function search(array $data, bool $wantsJson = false, bool $deleted = false): array
     {
         $competitionGroup = CompetitionGroup::query()->schoolId()
             ->when($deleted, fn($q) => $q->onlyTrashedRelations())->findOrFail($data['competition_group_id']);
 
-        $tournamentPayouts = $this->model->schoolId()->with(['inscription.player', 'tournament'])
+        $tournamentPayouts = $this->tournamentPayout->schoolId()->with(['inscription.player', 'tournament'])
             ->when($deleted, fn($q) => $q->withTrashed())
             ->when(!empty($data['tournament_id']), fn($q) => $q->where('tournament_id', $data['tournament_id']))
             ->when(!empty($data['competition_group_id']), fn($q) => $q->where('competition_group_id', $data['competition_group_id']))
@@ -43,10 +45,10 @@ class TournamentPayoutsRepository
 
     public function filterSelect(array $data, bool $deleted = false): Builder
     {
-        $query = $this->model->query()->schoolId()->with(['inscription.player', 'tournament']);
+        $query = $this->tournamentPayout->query()->schoolId()->with(['inscription.player', 'tournament']);
 
         if ($deleted) {
-            $query = $this->model->schoolId()->with([
+            $query = $this->tournamentPayout->schoolId()->with([
                 'inscription' => fn($query) => $query->with(['player'])->withTrashed()
             ])->withTrashed();
         }
@@ -60,14 +62,17 @@ class TournamentPayoutsRepository
         return $query;
     }
 
-    public function create(array $data)
+    /**
+     * @return mixed[]
+     */
+    public function create(array $data): array
     {
         $response = [];
         try {
 
             $data['year'] = now()->year;
 
-            $tournamentPayouts = $this->model->schoolId()->with(['inscription.player', 'tournament'])
+            $tournamentPayouts = $this->tournamentPayout->schoolId()->with(['inscription.player', 'tournament'])
                 ->when(!empty($data['tournament_id']), fn($q) => $q->where('tournament_id', $data['tournament_id']))
                 ->when(!empty($data['competition_group_id']), fn($q) => $q->where('competition_group_id', $data['competition_group_id']));
 
@@ -91,23 +96,24 @@ class TournamentPayoutsRepository
                 $idsDiff = $inscriptionIds->diff($ids);
 
                 DB::beginTransaction();
-                foreach ($idsDiff as $id) {
-                    $unique_code = $inscriptions->firstWhere('id', $id)->unique_code ?? null;
+                foreach ($idsDiff as $idDiff) {
+                    $unique_code = $inscriptions->firstWhere('id', $idDiff)->unique_code ?? null;
                     if (!$unique_code) {
 
-                        logger("inscription deshabilitada {$id}");
+                        logger('inscription deshabilitada ' . $idDiff);
                         continue;
                     }
-                    $this->model->updateOrCreate(
+
+                    $this->tournamentPayout->updateOrCreate(
                         [
-                            'inscription_id' => $id,
+                            'inscription_id' => $idDiff,
                             'year' => $data['year'],
                             'school_id' => $school_id,
                             'tournament_id' => $data['tournament_id'],
                             'competition_group_id' => $data['competition_group_id'],
                         ],
                         [
-                            'inscription_id' => $id,
+                            'inscription_id' => $idDiff,
                             'year' => $data['year'],
                             'school_id' => $school_id,
                             'tournament_id' => $data['tournament_id'],
@@ -116,13 +122,15 @@ class TournamentPayoutsRepository
                         ]
                     );
                 }
+
                 DB::commit();
             }
+
             $response = $this->service->generateTable($tournamentPayouts, $competitionGroup, $data);
 
-        } catch (Exception $th) {
+        } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError("TournamentPayoutsRepository@create", $th);
+            $this->logError("TournamentPayoutsRepository@create", $exception);
         }
 
         return $response;

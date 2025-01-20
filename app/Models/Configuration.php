@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +12,7 @@ class Configuration extends Model
     use HasFactory;
 
     protected $table = "configurations";
+
     protected $fillable = [
         'options',
     ];
@@ -18,7 +21,7 @@ class Configuration extends Model
         'options' => 'array'
     ];
 
-    public function setOptionsAttribute($value)
+    public function setOptionsAttribute($value): void
     {
         $options = [];
 

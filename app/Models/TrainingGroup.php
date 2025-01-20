@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Traits\GeneralScopes;
@@ -40,6 +42,7 @@ class TrainingGroup extends Model
     use HasFactory;
 
     protected $table = 'training_groups';
+
     protected $fillable = [
         'user_id',
         'name',
@@ -113,11 +116,15 @@ class TrainingGroup extends Model
 
     public function getExplodeNameAttribute(): Collection
     {
-        $explode = explode(",", $this->days);
-        return collect([
-            'days' => $explode,
-            'count_days' => count($explode)
-        ]);
+        if(isset($this->days)) {
+
+            $explode = explode(",", $this->days);
+            return collect([
+                'days' => $explode,
+                'count_days' => count($explode)
+            ]);
+        }
+        return collect();
     }
 
     public function getFullGroupAttribute(): string
@@ -125,14 +132,15 @@ class TrainingGroup extends Model
         return $this->nameGroup();
     }
 
-    private function nameGroup($full = false): string
+    private function nameGroup(bool $full = false): string
     {
         $optional = ($this->year_active ?? $this->days). " =>";
-        $var = trim("{$optional} {$this->name} {$this->stage}");
-        $var .= ' (' . trim("{$this->year} {$this->year_two} {$this->year_three} {$this->year_four} {$this->year_five} {$this->year_six} {$this->year_seven} {$this->year_eight} {$this->year_nine} {$this->year_ten} {$this->year_eleven} {$this->year_twelve}") . ') ';
+        $var = trim(sprintf('%s %s %s', $optional, $this->name, $this->stage));
+        $var .= ' (' . trim(sprintf('%s %s %s %s %s %s %s %s %s %s %s %s', $this->year, $this->year_two, $this->year_three, $this->year_four, $this->year_five, $this->year_six, $this->year_seven, $this->year_eight, $this->year_nine, $this->year_ten, $this->year_eleven, $this->year_twelve)) . ') ';
         if ($full) {
-            $var .= trim("{$this->days} {$this->schedules}");
+            $var .= trim(sprintf('%s %s', $this->days, $this->schedules));
         }
+
         return trim($var);
     }
 
@@ -156,21 +164,21 @@ class TrainingGroup extends Model
         return route('training_groups.destroy', [$this->attributes['id']]);
     }
 
-    public function setCategoryAttribute($value)
+    public function setCategoryAttribute($value): void
     {
         if (is_array($value)) {
             $this->attributes['category'] = implode(',', $value);
         }
     }
 
-    public function setSchedulesAttribute($value)
+    public function setSchedulesAttribute($value): void
     {
         if (is_array($value)) {
             $this->attributes['schedules'] = implode(',', $value);
         }
     }
 
-    public function setDaysAttribute($value)
+    public function setDaysAttribute($value): void
     {
         if (is_array($value)) {
             $this->attributes['days'] = implode(',', $value);
@@ -198,6 +206,7 @@ class TrainingGroup extends Model
         if ($this->relationLoaded('instructors')) {
             $names = $this->instructors->implode('name', ', ');
         }
+
         return $names;
     }
 
@@ -207,6 +216,7 @@ class TrainingGroup extends Model
         if ($this->relationLoaded('instructors')) {
             $ids = $this->instructors->pluck('id');
         }
+
         return $ids;
     }
 
@@ -240,9 +250,9 @@ class TrainingGroup extends Model
         return $this->belongsToMany(User::class)->withPivot('assigned_year');
     }
 
-    public function ScopeByInstructor(Builder $query, $year = null): void
+    public function ScopeByInstructor(Builder $builder, $year = null): void
     {
-        $query->whereRelation('instructors', 'training_group_user.user_id', auth()->id())
+        $builder->whereRelation('instructors', 'training_group_user.user_id', auth()->id())
             ->whereRelation('instructors', 'assigned_year', $year ?: now()->year);
     }
 

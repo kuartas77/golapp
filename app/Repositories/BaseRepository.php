@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Repositories;
 
@@ -8,8 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class BaseRepository
 {
-    protected $model;
-    protected $relations;
+    protected \Illuminate\Database\Eloquent\Model $model;
+
+    protected array $relations;
 
     public function __construct(Model $model, array $relations = [])
     {
@@ -21,7 +23,7 @@ class BaseRepository
     {
         $query = $this->model;
 
-        if (!empty($this->relations)) {
+        if ($this->relations !== []) {
             $query = $query->with($this->relations);
         }
 

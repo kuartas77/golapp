@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUndefinedFieldInspection */
+<?php
+
+declare(strict_types=1);
 
 namespace App\Models;
 
@@ -210,7 +212,7 @@ class Inscription extends Model
         return $query->where('unique_code', $code)->where('year', $year);
     }
 
-    public function scopeYear($query, ?int $year = null)
+    public function scopeYear($query, ?int $year = null): void
     {
         $query->where('year', ($year ?: now()->year) );
     }

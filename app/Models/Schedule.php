@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Traits\GeneralScopes;
@@ -15,6 +17,7 @@ class Schedule extends Model
     use GeneralScopes;
 
     protected $table = "schedules";
+
     protected $fillable = [
         'schedule', 'day_id', 'school_id',
     ];

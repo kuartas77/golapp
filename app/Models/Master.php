@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Traits\ErrorTrait;
@@ -16,6 +18,7 @@ class Master extends Model
     use ErrorTrait;
 
     protected $table = "master";
+
     protected $fillable = [
         'field',
         'autocomplete'
@@ -30,19 +33,21 @@ class Master extends Model
         $response = collect();
 
         $masters = Master::whereIn('field', $request->input('fields', []))->get();
-        foreach ($masters as $key => $master) {
+        foreach ($masters as $master) {
             $response->put($master->field, $master->autocomplete_explode);
         }
+
         return $response;
     }
 
-    public static function saveAutoComplete(array $data)
+    public static function saveAutoComplete(array $data): void
     {
         $keys = ['school', 'place_birth', 'neighborhood', 'eps', 'place', 'rival_name', 'zone', 'commune', 'degree'];
 
         try {
             DB::beginTransaction();
-            for ($i = 0; $i < count($keys); ++$i) {
+            $counter = count($keys);
+            for ($i = 0; $i < $counter; ++$i) {
                 $key = $keys[$i];
                 if (array_key_exists($key, $data)) {
 
@@ -61,10 +66,11 @@ class Master extends Model
                     $master->update(['autocomplete' => $autocomplete]);
                 }
             }
+
             DB::commit();
-        } catch (Throwable $th) {
+        } catch (Throwable $throwable) {
             DB::rollBack();
-            (new Master())->logError(__METHOD__, $th);
+            (new Master())->logError(__METHOD__, $throwable);
         }
     }
 
@@ -73,7 +79,7 @@ class Master extends Model
         return $this->attributes['autocomplete'] ? explode(',', $this->attributes['autocomplete']) : '';
     }
 
-    public function setAutoCompleteAttribute($value)
+    public function setAutoCompleteAttribute($value): void
     {
         $this->attributes['autocomplete'] = implode(',', array_values(array_diff($value, array(''))));
     }

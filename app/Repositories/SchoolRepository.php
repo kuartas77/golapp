@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repositories;
 
 use App\Models\School;
@@ -15,27 +17,27 @@ class SchoolRepository
     use ErrorTrait;
     use UploadFile;
 
-    private School $model;
+    private School $school;
 
-    public function __construct(School $model)
+    public function __construct(School $school)
     {
-        $this->model = $model;
+        $this->school = $school;
     }
 
     public function getAll()
     {
-        $schools = $this->model->query()->get();
+        $schools = $this->school->query()->get();
         $schools->setAppends(['url_edit', 'url_update', 'url_show', 'url_destroy', 'logo_file']);
         return $schools;
     }
 
-    public function update(FormRequest $request, School $school): School
+    public function update(FormRequest $formRequest, School $school): School
     {
         try {
             DB::beginTransaction();
 
-            $data = $request->validated();
-            $data['logo'] = $this->saveFile($request, 'logo');
+            $data = $formRequest->validated();
+            $data['logo'] = $this->saveFile($formRequest, 'logo');
 
             $school->update($data);
 
@@ -65,13 +67,7 @@ class SchoolRepository
             'competitionGroups',
             'incidents'
         ]);
-        $response = new Collection();
-        if ($school_id) {
-            $response = $query->where('id', $school_id)->first();
-        } else {
-            $response = $query->get();
-        }
 
-        return $response;
+        return $school_id ? $query->where('id', $school_id)->first() : $query->get();
     }
 }
