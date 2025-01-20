@@ -67,7 +67,7 @@
 
     <div class="tab-pane" id="inactive" role="tabpanel" aria-labelledby="inactive-tab">
         <div class="table-responsive-md">
-            <table class="display compact" id="inactive_table">
+            <table class="display compact" id="inactive_table" width="100%">
                 <thead>
                     <tr>
                         <th>Foto</th>

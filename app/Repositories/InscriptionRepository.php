@@ -51,7 +51,8 @@ class InscriptionRepository
 
             $inscription = $this->inscription->withTrashed()->updateOrCreate([
                 'unique_code' => $requestData['unique_code'],
-                'year' => $requestData['year']
+                'year' => $requestData['year'],
+                'school_id' => $requestData['school_id']
             ], $requestData);
 
             $this->setCompetitionGroupIds($inscription, $requestData);

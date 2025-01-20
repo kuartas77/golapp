@@ -43,7 +43,7 @@
             });
 
             $('#disabled_table').DataTable({
-                "lengthMenu": [[5, 10, 30, 50, 70, 100], [5, 10, 30, 50, 70, 100]],
+                "lengthMenu": [[15, 30, 50, 70, 100], [15, 30, 50, 70, 100]],
                 // "scrollX": true,
                 "processing": true,
                 "serverSide": true,
