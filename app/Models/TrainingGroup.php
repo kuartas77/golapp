@@ -116,11 +116,15 @@ class TrainingGroup extends Model
 
     public function getExplodeNameAttribute(): Collection
     {
-        $explode = explode(",", $this->days);
-        return collect([
-            'days' => $explode,
-            'count_days' => count($explode)
-        ]);
+        if(isset($this->days)) {
+
+            $explode = explode(",", $this->days);
+            return collect([
+                'days' => $explode,
+                'count_days' => count($explode)
+            ]);
+        }
+        return collect();
     }
 
     public function getFullGroupAttribute(): string
