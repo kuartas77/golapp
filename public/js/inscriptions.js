@@ -39,24 +39,6 @@ const format = (d) => {
         '<th><strong>Fotocopia Doc Identificación:</strong></th><td>' + validateCheck(d.copy_identification_document) + '</td>' +
         '<th></th><td></td>'+
         '</tr>' +
-
-        '<tr>' +
-        '<th><strong>Pagó Inscripción Torneo 1:</strong></th><td>' + validateCheck(d.tournament_pay) + '</td>' +
-        '<th><strong>Uniforme presentación:</strong></th><td>' + validateCheck(d.presentation_uniform) + '</td>' +
-        '<th></th><td></td>'+
-        '<th></th><td></td>'+
-        '</tr>' +
-        '<tr>' +
-        '<th><strong>Pagó Inscripción Torneo 2:</strong></th><td>' + validateCheck(d.bag) + '</td>' +
-        '<th><strong>Uniforme competencia:</strong></th><td>' + validateCheck(d.competition_uniform) + '</td>' +
-        '<th></th><td></td>'+
-        '<th></th><td></td>'+
-        '</tr>' +
-        '<tr>' +
-        '<th><strong>Pagó Inscripción Torneo 3:</strong></th><td>' + validateCheck(d.ball) + '</td>' +
-        '<th><strong>Peto:</strong></th><td>' + validateCheck(d.overalls) + '</td>' +
-        '<th></th><td></td>'+
-        '<th></th><td></td>'+
         '</tr>' +
         '</table>';
 }

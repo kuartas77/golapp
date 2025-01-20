@@ -13,6 +13,12 @@
                 {{ html()->select('inscription_year', $inscription_years, now()->year)->attributes(['id'=>'inscription_year','class' => 'form-control form-control-sm'])->placeholder('Selecciona...') }}
             </a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link">
+                <h6><strong>En el listado aparecerán las preinscripciones en color <span class="text-warning">AMARILLO</span></strong></h6>
+                <h6><strong>En el listado aparecerán las inscripciones en el grupo PROVISIONAL en color <span class="text-info">AZUL</span></strong></h6>
+            </a>
+        </li>
 
         @hasanyrole('super-admin|school')
         <li class=" nav-item ml-auto">
