@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Http\ViewComposers\Competition;
 
@@ -13,22 +14,23 @@ use Illuminate\Support\Facades\Cache;
 
 class MatchesViewComposer
 {
-    public function compose(View $view)
+    public function compose(View $view): void
     {
         if (Auth::check()) {
 
 
             $school_id = getSchool(auth()->user())->id;
 
-            $years = Cache::remember("KEY_MIN_YEAR_{$school_id}", now()->addDay(), function () use ($school_id) {
+            $years = Cache::remember('KEY_MIN_YEAR_' . $school_id, now()->addDay(), function () use ($school_id) {
                 $years = [now()->year];
                 foreach (Game::getYears($school_id) as $year) {
                     $years[] = $year;
                 }
+
                 return $years;
             });
 
-            $tournaments = Cache::remember("KEY_TOURNAMENT_{$school_id}", now()->addDay(), function () {
+            $tournaments = Cache::remember('KEY_TOURNAMENT_' . $school_id, now()->addDay(), function () {
                 return Tournament::query()->schoolId()->orderBy('name')->pluck('name', 'id');
             });
 
@@ -39,8 +41,9 @@ class MatchesViewComposer
             $played = Cache::rememberForever('KEY_TIME', function () {
                 $played = collect();
                 for ($i = 0; $i <= 90; ++$i) {
-                    $played->put($i, "{$i} MIN");
+                    $played->put($i, $i . ' MIN');
                 }
+
                 return $played;
             });
 
@@ -49,6 +52,7 @@ class MatchesViewComposer
                 for ($i = 0; $i <= 10; ++$i) {
                     $scores->put($i, $i);
                 }
+
                 return $scores;
             });
 
@@ -57,14 +61,17 @@ class MatchesViewComposer
                 for ($i = 1; $i <= 5; ++$i) {
                     $qualifications->put($i, $i);
                 }
+
                 return $qualifications;
             });
 
-            if (isAdmin() || isSchool()) {
-                $competitionGroups = CompetitionGroup::query()->schoolId()->get()->pluck('full_name_group', 'id');
-            } else if (isInstructor()) {
-                $competitionGroups = CompetitionGroup::query()->schoolId()->where('user_id', auth()->id())->get()->pluck('full_name_group', 'id');
-            }
+            $competitionGroups = Cache::remember("COMPETITION_GROUPS_USER" . auth()->id(), now()->addMinute(), function () {
+                $competitionGroupsQuery = CompetitionGroup::query()->schoolId()->whereRelation('inscriptions', 'year', now()->year);
+                if (isInstructor()) {
+                    $competitionGroupsQuery->where('user_id', auth()->id());
+                }
+                return $competitionGroupsQuery->get()->pluck('full_name_group', 'id');
+            });
 
             $view->with('played', $played);
             $view->with('scores', $scores);

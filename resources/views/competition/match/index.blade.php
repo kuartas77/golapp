@@ -15,7 +15,6 @@
                     @endforeach
 
                 </select>
-{{--                {{ html()->select('year', $years, now()->year)->attributes(['class' => 'form-control input-sm sl','id' => 'year'])->placeholder('Selecciona...') }}--}}
             </div>
         </div>
 
@@ -27,8 +26,8 @@
         const url_current = "{{URL::current()}}";
         const url_create = "{{route('matches.create')}}";
         const competitionGroups = @json($competitionGroups);
-        let actualYear = {{now()->year}};
-        let selectYear = {{now()->year}};
+        let actualYear = moment().format("YYYY")
+        let selectYear = moment().format("YYYY")
 
         $(document).ready(function () {
             $('#partidos-table').DataTable({
