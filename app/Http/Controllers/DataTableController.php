@@ -119,8 +119,8 @@ class DataTableController extends Controller
         abort_unless($request->ajax() && isAdmin(), 403);
 
         return datatables()->collection($this->schoolRepository->getAll())
-            ->addColumn('logo', '{{$logo}}!')
-            ->addColumn('name', '{{$name}}!')
+            ->addColumn('logo', '{{$logo}}')
+            ->addColumn('name', '{{$name}}')
             ->addColumn('agent', '{{$agent}}')
             ->addColumn('address', '{{$address}}')
             ->addColumn('phone', '{{$phone}}')
