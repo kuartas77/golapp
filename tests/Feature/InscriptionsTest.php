@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use Carbon\Carbon;
@@ -16,17 +18,17 @@ use Illuminate\Support\Facades\Notification;
 use App\Notifications\InscriptionNotification;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
-class InscriptionsTest extends TestCase
+final class InscriptionsTest extends TestCase
 {
 
-    public function testPlayerValidateForm()
+    public function testPlayerValidateForm(): void
     {
         $this->actingAs($this->user);
-        $response = $this->post(route('inscriptions.store'));
-        $response->assertStatus(302);
+        $testResponse = $this->post(route('inscriptions.store'));
+        $testResponse->assertStatus(302);
     }
 
-    public function testCreateInscription()
+    public function testCreateInscription(): void
     {
         Mail::fake();
         Notification::fake();
@@ -41,19 +43,19 @@ class InscriptionsTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $response = $this->post(route('inscriptions.store'), [
+        $testResponse = $this->post(route('inscriptions.store'), [
             'unique_code' => $player->unique_code,
             'player_id' => $player->id,
             'start_date' => $now->format('Y-m-d'),
         ]);
 
-        $response->assertStatus(200);
+        $testResponse->assertStatus(200);
         Mail::assertNotSent(ErrorLog::class);
         Notification::assertSentTo($player, InscriptionNotification::class);
         $this->assertDatabaseHas('inscriptions', ['player_id' => $player->id]);
     }
 
-    public function testCreateInscriptionError()
+    public function testCreateInscriptionError(): void
     {
         Mail::fake();
         Notification::fake();
@@ -68,20 +70,20 @@ class InscriptionsTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $response = $this->post(route('inscriptions.store'), [
+        $testResponse = $this->post(route('inscriptions.store'), [
             'unique_code' => $player->unique_code,
             'player_id' => $player->id,
             'start_date' => $now->format('Y-m-d'),
             'competition_groups' => [1, 2, 3, 4, 5]
         ]);
 
-        $response->assertStatus(422);
+        $testResponse->assertStatus(422);
         Mail::assertSent(ErrorLog::class);
         Notification::assertNotSentTo($player, InscriptionNotification::class);
         $this->assertDatabaseEmpty('inscriptions');
     }
 
-    public function testUptadeInscription()
+    public function testUptadeInscription(): void
     {
         Mail::fake();
         Notification::fake();
@@ -108,8 +110,8 @@ class InscriptionsTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $updateResponse = $this->post(route('inscriptions.update', [$inscription->id]), $dataInscription + ['_method' => 'PATCH']);
-        $updateResponse->assertStatus(200);
+        $testResponse = $this->post(route('inscriptions.update', [$inscription->id]), $dataInscription + ['_method' => 'PATCH']);
+        $testResponse->assertStatus(200);
 
         $this->assertDatabaseHas('inscriptions', ['player_id' => $player->id, 'photos' => true]);
 
@@ -117,7 +119,7 @@ class InscriptionsTest extends TestCase
         Mail::assertNotSent(ErrorLog::class);
     }
 
-    public function testUptadeInscriptionError()
+    public function testUptadeInscriptionError(): void
     {
         Mail::fake();
 
@@ -144,20 +146,20 @@ class InscriptionsTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $updateResponse = $this->post(route('inscriptions.update', [$inscription->id]), $dataInscription + ['_method' => 'PATCH']);
-        $updateResponse->assertStatus(422);
+        $testResponse = $this->post(route('inscriptions.update', [$inscription->id]), $dataInscription + ['_method' => 'PATCH']);
+        $testResponse->assertStatus(422);
         Mail::assertSent(ErrorLog::class);
     }
 
-    public function testGetIndex()
+    public function testGetIndex(): void
     {
         $this->actingAs($this->user);
-        $response = $this->get(route('inscriptions.index'));
-        $response->assertStatus(200);
-        $response->assertSee('Inscripciones');
+        $testResponse = $this->get(route('inscriptions.index'));
+        $testResponse->assertStatus(200);
+        $testResponse->assertSee('Inscripciones');
     }
 
-    public function testDeleteInscription()
+    public function testDeleteInscription(): void
     {
         Mail::fake();
 
@@ -177,13 +179,13 @@ class InscriptionsTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $deleteResponse = $this->post(route('inscriptions.destroy', [$inscription->id]), ['_method' => 'DELETE']);
-        $deleteResponse->assertStatus(302);
+        $testResponse = $this->post(route('inscriptions.destroy', [$inscription->id]), ['_method' => 'DELETE']);
+        $testResponse->assertStatus(302);
 
         $this->assertDatabaseHas('inscriptions', ['id' => $inscription->id, 'deleted_at' => $now]);
     }
 
-    public function testGetEdit()
+    public function testGetEdit(): void
     {
         $now = Carbon::now();
 
@@ -201,11 +203,11 @@ class InscriptionsTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $editResponse = $this->get(route('inscriptions.edit', [$inscription->id]));
+        $testResponse = $this->get(route('inscriptions.edit', [$inscription->id]));
 
-        $editResponse->assertStatus(200);
+        $testResponse->assertStatus(200);
 
-        $editResponse->assertJsonStructure([
+        $testResponse->assertJsonStructure([
             "id",
             "player_id"
         ]);

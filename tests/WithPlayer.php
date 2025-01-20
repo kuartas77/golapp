@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests;
 
 use App\Models\Player;
@@ -46,6 +48,7 @@ trait WithPlayer
             ]
         ];
     }
+    
     public function createPlayer():void
     {
         $data = $this->dataPlayer();

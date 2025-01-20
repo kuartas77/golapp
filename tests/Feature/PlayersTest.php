@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use Tests\TestCase;
@@ -10,18 +12,21 @@ use App\Repositories\PlayerRepository;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\RegisterPlayerNotification;
 
-class PlayersTest extends TestCase
+final class PlayersTest extends TestCase
 {
 
-    public function testPlayerValidateForm()
+    public function testPlayerValidateForm(): void
     {
         $this->actingAs($this->user);
 
-        $response = $this->post('/players');
-        $response->assertStatus(302);
+        $testResponse = $this->post('/players');
+        $testResponse->assertStatus(302);
     }
 
-    public function testPlayerCreate()
+    /**
+     * @return mixed[]
+     */
+    public function testPlayerCreate(): array
     {
         Notification::fake();
         Mail::fake();
@@ -32,11 +37,11 @@ class PlayersTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $response = $this->post('/players', $dataPlayer);
+        $testResponse = $this->post('/players', $dataPlayer);
 
         $player = Player::firstWhere('unique_code', $uniqueCode);
 
-        $response->assertStatus(302);
+        $testResponse->assertStatus(302);
         $spy = $this->spy(PlayerRepository::class);
         $spy->shouldReceive('createPlayer')->andReturn($player);
         Notification::assertSentTo([$player], RegisterPlayerNotification::class);
@@ -44,7 +49,7 @@ class PlayersTest extends TestCase
         return $dataPlayer;
     }
 
-    public function testPlayerCreateError()
+    public function testPlayerCreateError(): void
     {
         Notification::fake();
         Mail::fake();
@@ -54,14 +59,14 @@ class PlayersTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $response = $this->post('/players', $dataPlayer);
+        $testResponse = $this->post('/players', $dataPlayer);
 
         Notification::assertNothingSent();
         Mail::assertSent(ErrorLog::class);
-        $response->assertStatus(302);
+        $testResponse->assertStatus(302);
     }
 
-    public function testPlayerUpdate()
+    public function testPlayerUpdate(): void
     {
         Mail::fake();
 
@@ -73,17 +78,17 @@ class PlayersTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $response = $this->post("/players/$uniqueCode", $dataPlayer + ['_method' => 'PATCH']);
+        $testResponse = $this->post('/players/' . $uniqueCode, $dataPlayer + ['_method' => 'PATCH']);
 
         $player = Player::firstWhere('unique_code', $uniqueCode);
 
         $spy = $this->spy(PlayerRepository::class);
         $spy->shouldReceive('updatePlayer')->andReturn($player);
         Mail::assertNotSent(ErrorLog::class);
-        $response->assertStatus(302);
+        $testResponse->assertStatus(302);
     }
 
-    public function testPlayerUpdateError()
+    public function testPlayerUpdateError(): void
     {
         Mail::fake();
 
@@ -96,46 +101,22 @@ class PlayersTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $response = $this->post("/players/$uniqueCode", $dataPlayer + ['_method' => 'PATCH']);
+        $testResponse = $this->post('/players/' . $uniqueCode, $dataPlayer + ['_method' => 'PATCH']);
 
         Mail::assertSent(ErrorLog::class);
-        $response->assertStatus(302);
+        $testResponse->assertStatus(302);
     }
 
-    public function testPlayerIndex()
+    public function testPlayerIndex(): void
     {
         $this->actingAs($this->user);
 
-        $response = $this->get("/players");
+        $testResponse = $this->get("/players");
 
-        $response->assertSeeText('Deportistas');
+        $testResponse->assertSeeText('Deportistas');
     }
 
-    public function testPlayerShow()
-    {
-        $dataPlayer = $this->dataPlayer();
-
-        $uniqueCode = $dataPlayer['unique_code'];
-
-        $this->createPlayer();
-
-        $this->actingAs($this->user);
-
-        $response = $this->get("/players/$uniqueCode");
-
-        $response->assertSee('Deportista');
-    }
-
-    public function testPlayerCreateForm()
-    {
-        $this->actingAs($this->user);
-
-        $response = $this->get("/players/create");
-
-        $response->assertSee('Agregar Deportista');
-    }
-
-    public function testPlayerEditForm()
+    public function testPlayerShow(): void
     {
         $dataPlayer = $this->dataPlayer();
 
@@ -145,12 +126,21 @@ class PlayersTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $response = $this->get("/players/$uniqueCode/edit");
+        $testResponse = $this->get('/players/' . $uniqueCode);
 
-        $response->assertSee("Código Deportista: $uniqueCode");
+        $testResponse->assertSee('Deportista');
     }
 
-    public function testPlayerDestroy()
+    public function testPlayerCreateForm(): void
+    {
+        $this->actingAs($this->user);
+
+        $testResponse = $this->get("/players/create");
+
+        $testResponse->assertSee('Agregar Deportista');
+    }
+
+    public function testPlayerEditForm(): void
     {
         $dataPlayer = $this->dataPlayer();
 
@@ -160,8 +150,23 @@ class PlayersTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $response = $this->post("/players/$uniqueCode", ['_method' => 'DELETE']);
+        $testResponse = $this->get(sprintf('/players/%s/edit', $uniqueCode));
 
-        $response->assertStatus(401);
+        $testResponse->assertSee('Código Deportista: ' . $uniqueCode);
+    }
+
+    public function testPlayerDestroy(): void
+    {
+        $dataPlayer = $this->dataPlayer();
+
+        $uniqueCode = $dataPlayer['unique_code'];
+
+        $this->createPlayer();
+
+        $this->actingAs($this->user);
+
+        $testResponse = $this->post('/players/' . $uniqueCode, ['_method' => 'DELETE']);
+
+        $testResponse->assertStatus(401);
     }
 }

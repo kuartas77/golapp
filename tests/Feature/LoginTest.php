@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use Closure;
@@ -10,96 +12,96 @@ use App\Models\School;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class LoginTest extends TestCase
+final class LoginTest extends TestCase
 {
     use RefreshDatabase;
     use WithLogin;
 
-    public function testLoginWrongEmail()
+    public function testLoginWrongEmail(): void
     {
-        $response = $this->post('/login', [
+        $testResponse = $this->post('/login', [
             'email' => 'test@test.com',
             'password' => 'password'
         ]);
 
-        $response->assertStatus(302);
-        $response->assertRedirect('/');
+        $testResponse->assertStatus(302);
+        $testResponse->assertRedirect('/');
     }
 
-    public function testLoginWrongPassword()
+    public function testLoginWrongPassword(): void
     {
-        $response = $this->post('/login', [
+        $testResponse = $this->post('/login', [
             'email' => $this->user->email,
             'password' => 'passwords'
         ]);
 
-        $response->assertStatus(302);
-        $response->assertRedirect('/');
+        $testResponse->assertStatus(302);
+        $testResponse->assertRedirect('/');
     }
 
-    public function testLoginSchoolSuccess()
+    public function testLoginSchoolSuccess(): void
     {
         Cache::shouldReceive('remember')->once();
 
-        $response = $this->post('/login', [
+        $testResponse = $this->post('/login', [
             'email' => $this->user->email,
             'password' => 'password'
         ]);
 
-        $response->assertStatus(302);
-        $response->assertRedirect('/home');
+        $testResponse->assertStatus(302);
+        $testResponse->assertRedirect('/home');
     }
 
-    public function testLoginInstructorSuccess()
+    public function testLoginInstructorSuccess(): void
     {
         list( , $this->user) = $this->createSchoolAndUser(roles: [User::INSTRUCTOR]);
 
         Cache::shouldReceive('remember')->once();
 
-        $response = $this->post('/login', [
+        $testResponse = $this->post('/login', [
             'email' => $this->user->email,
             'password' => 'password'
         ]);
 
-        $response->assertStatus(302);
-        $response->assertRedirect('/home');
+        $testResponse->assertStatus(302);
+        $testResponse->assertRedirect('/home');
     }
 
-    public function testLoginSuperAdminSuccess()
+    public function testLoginSuperAdminSuccess(): void
     {
         list( , $this->user) = $this->createSchoolAndUser(roles: [User::SUPER_ADMIN]);
 
         Cache::shouldReceive('remember')->never();
 
-        $response = $this->post('/login', [
+        $testResponse = $this->post('/login', [
             'email' => $this->user->email,
             'password' => 'password'
         ]);
 
-        $response->assertStatus(302);
-        $response->assertRedirect('/home');
+        $testResponse->assertStatus(302);
+        $testResponse->assertRedirect('/home');
     }
 
-    public function testLogout()
+    public function testLogout(): void
     {
         list( , $this->user) = $this->createSchoolAndUser(roles: [User::SUPER_ADMIN]);
 
         $this->actingAs($this->user);
 
-        $response = $this->post(route('logout') );
+        $testResponse = $this->post(route('logout') );
 
-        $response->assertStatus(302);
-        $response->assertRedirect('/');
+        $testResponse->assertStatus(302);
+        $testResponse->assertRedirect('/');
     }
 
-    public function testLogoutJson()
+    public function testLogoutJson(): void
     {
         list( , $this->user) = $this->createSchoolAndUser(roles: [User::SUPER_ADMIN]);
 
         $this->actingAs($this->user);
 
-        $response = $this->post(route('logout'), [], ['Content-Type'=>'application/json', 'Accept' => 'application/json'] );
+        $testResponse = $this->post(route('logout'), [], ['Content-Type'=>'application/json', 'Accept' => 'application/json'] );
 
-        $response->assertStatus(204);
+        $testResponse->assertStatus(204);
     }
 }
