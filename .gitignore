@@ -6,7 +6,6 @@
 /docker/nginx/logs/*
 .env
 .env.backup
-.phpunit.result.cache
 docker-compose.override.yml
 Homestead.json
 Homestead.yaml
@@ -18,3 +17,5 @@ package-lock.json
 /public/materialpro
 *.zip
 /nginx/logs/*
+.phpunit.result.cache
+/.phpunit.cache

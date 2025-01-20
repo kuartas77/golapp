@@ -116,7 +116,7 @@ class TrainingGroup extends Model
 
     public function getExplodeNameAttribute(): Collection
     {
-        if(isset($this->days)) {
+        if(property_exists($this, 'days') && $this->days !== null) {
 
             $explode = explode(",", $this->days);
             return collect([
@@ -124,6 +124,7 @@ class TrainingGroup extends Model
                 'count_days' => count($explode)
             ]);
         }
+
         return collect();
     }
 
@@ -202,22 +203,18 @@ class TrainingGroup extends Model
 
     public function getInstructorsNamesAttribute()
     {
-        $names = '';
         if ($this->relationLoaded('instructors')) {
-            $names = $this->instructors->implode('name', ', ');
+            return $this->instructors->implode('name', ', ');
         }
-
-        return $names;
+        return '';
     }
 
     public function getInstructorsIdsAttribute()
     {
-        $ids = [];
         if ($this->relationLoaded('instructors')) {
-            $ids = $this->instructors->pluck('id');
+            return $this->instructors->pluck('id');
         }
-
-        return $ids;
+        return [];
     }
 
     public function professor(): BelongsTo
