@@ -9,7 +9,7 @@
             <div class="text-center">
                 <small class="card-title db">Dirección: <strong>{{$school->address}}</strong> </small>
                 <small class="card-title db">Teléfono: <strong>{{$school->phone}}</strong></small>
-                <small class="card-title db">Correo: <strong>{{$school->email}}</strong></small>
+                <small class="card-title db">Correo: <strong>{{$school->email_info}}</strong></small>
             </div>
             <hr>
             <div class="text-center">

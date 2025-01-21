@@ -43,8 +43,10 @@ class School extends Model
         'create_contract',
         'send_documents',
         'tutor_platform',
-        'sign_player'
-
+        'sign_player',
+        'inscriptions_enabled',
+        'short_name',
+        'email_info',
     ];
 
     protected $casts = [
@@ -53,6 +55,7 @@ class School extends Model
         'send_documents' => 'bool',
         'tutor_platform' => 'bool',
         'sign_player' => 'bool',
+        'inscriptions_enabled' => 'bool',
     ];
 
     protected $appends = [

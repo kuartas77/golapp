@@ -7,16 +7,21 @@
 </head>
 <body>
     @switch($school->id)
-
+        @case(2)
+            @include('templates.contracts.felria.header')
+            @include('templates.contracts.felria.footer')
+            @include('templates.contracts.felria.contract')
+            @break
         @case(5)
         @case(6)
+        @case(7)
             @include('templates.contracts.10pro.header')
             @include('templates.contracts.10pro.footer')
             @include('templates.contracts.10pro.contract')
             @break
 
         @default
-            Default case...
+
     @endswitch
 
 </body>
