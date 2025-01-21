@@ -53,7 +53,6 @@ class InscriptionNotification extends Notification implements ShouldQueue
                 if (is_array($contract)) {
                     $key = array_keys($contract)[0];
                     $contract = array_values($contract)[0];
-                    // $contract = str_replace(storage_path('app/public/'), '', $contract);
                 }
 
                 $mailMessage->attach($contract, [

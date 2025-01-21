@@ -21,7 +21,7 @@ return [
     'alpha_num'            => 'El campo :attribute sólo puede contener letras y números.',
     'array'                => 'El campo :attribute debe ser un array.',
     'before'               => 'El campo :attribute debe ser una fecha anterior a :date.',
-    
+
     'between'              => [
         'numeric' => 'El campo :attribute debe ser un valor entre :min y :max.',
         'file'    => 'El archivo :attribute debe pesar entre :min y :max kilobytes.',
@@ -97,6 +97,9 @@ return [
     'custom' => [
         'attribute-name' => [
             'rule-name' => 'custom-message',
+        ],
+        'g-recaptcha-response' => [
+            'recaptchav3' => 'Es necesario actualizar la página, no se borrará la información.',
         ],
     ],
 

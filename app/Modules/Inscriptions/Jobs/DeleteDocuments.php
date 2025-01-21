@@ -21,7 +21,7 @@ class DeleteDocuments implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(private string $uniqueCode)
+    public function __construct(private string $folder, private string $uniqueCode)
     {
         $this->afterCommit();
     }
@@ -35,8 +35,7 @@ class DeleteDocuments implements ShouldQueue
     {
         try {
 
-            $folderDocuments = config('variables.CONFIG_SCHOOL')['folder_documents'];
-            Storage::disk('public')->deleteDirectory($folderDocuments.DIRECTORY_SEPARATOR.$this->uniqueCode);
+            Storage::disk('public')->deleteDirectory($this->folder.DIRECTORY_SEPARATOR.$this->uniqueCode);
 
         } catch (\Throwable $th) {
             $this->logError(__FUNCTION__, $th);

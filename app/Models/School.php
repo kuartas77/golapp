@@ -39,11 +39,20 @@ class School extends Model
         'email',
         'is_enable',
         'logo',
-        'slug'
+        'slug',
+        'create_contract',
+        'send_documents',
+        'tutor_platform',
+        'sign_player'
+
     ];
 
     protected $casts = [
-        'is_enable' => 'boolean'
+        'is_enable' => 'bool',
+        'create_contract' => 'bool',
+        'send_documents' => 'bool',
+        'tutor_platform' => 'bool',
+        'sign_player' => 'bool',
     ];
 
     protected $appends = [

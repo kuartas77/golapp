@@ -32,9 +32,7 @@ trait UploadFile
                     break;
             }
 
-            $img = Image::make($file)->resize(420, 420, function ($constraint) {
-                $constraint->aspectRatio();
-            })->orientate();
+            $img = Image::make($file)->resize(200, 200)->orientate();
             Storage::disk('public')->put($path, (string)$img->encode('jpg', 75), 'public');
         }
         return $path;
@@ -48,9 +46,7 @@ trait UploadFile
 
         $path = $file->hashName("{$schoolFolder}/{$folder}");
 
-        $img = Image::make($file)->resize(420, 420, function ($constraint) {
-            $constraint->aspectRatio();
-        });
+        $img = Image::make($file)->resize(200, 200);
         Storage::disk('public')->put($path, (string)$img->encode(), 'public');
 
         return $path;
@@ -77,9 +73,7 @@ trait UploadFile
 
         $path = $file->hashName($folder);
 
-        $img = Image::make($file)->resize(420, 420, function ($constraint) {
-            $constraint->aspectRatio();
-        });
+        $img = Image::make($file)->resize(200, 200);
 
         Storage::disk('public')->put($path, (string)$img->encode(), 'public');
 

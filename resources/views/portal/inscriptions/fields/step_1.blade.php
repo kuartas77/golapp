@@ -4,6 +4,7 @@
     <fieldset class="col-md-12 p-2">
         <div class="row col-md-12">
 
+            <input type="hidden" name="year" value="{{$year}}" />
             <div class="col-md-3">
                 <img src="{{ isset($player) ? $player->photo_url : asset('img/user.png') }}" class="rounded img-center mx-auto mb-1" alt="player" id="player-img" width="200" height="200">
                 <div class="form-group">

@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Inscriptions\Actions\Create;
 
 use Illuminate\Pipeline\Pipeline as BasePipeline;
-use App\Modules\Inscriptions\Actions\Create\SendNotificationAction;
 use App\Modules\Inscriptions\Actions\Create\SendDocumentsAction;
 use App\Modules\Inscriptions\Actions\Create\Passable;
 use App\Modules\Inscriptions\Actions\Create\CreatePlayerAction;
@@ -17,6 +18,8 @@ final class Pipeline
     {
         $passable = app(abstract: Passable::class, parameters: ['data' => $data]);
 
+        $passable->setSchool();
+
         app(BasePipeline::class)
             ->send($passable)
             ->through([
@@ -24,8 +27,7 @@ final class Pipeline
                 CreatePeoplePlayerAction::class,
                 CreateInscriptionAction::class,
                 CreateContractAction::class,
-                SendDocumentsAction::class,
-                SendNotificationAction::class
+                SendDocumentsAction::class
             ])
             ->thenReturn();
     }

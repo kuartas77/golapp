@@ -41,6 +41,7 @@
     @include('sweetalert::alert')
     <script src="{{mix('js/all.js')}}" ></script>
     <script src="{{asset('js/config.js')}}" ></script>
+    <script src="{{asset('js/signature_pad.umd.min.js')}}"></script>
     @yield('scripts')
     @stack('scripts')
 </body>

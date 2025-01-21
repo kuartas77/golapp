@@ -128,22 +128,19 @@
 
 <table class="table-full title">
     <tr>
-        <td class="text-center" width="45%"></td>
-        <td class="text-center" width="10%"></td>
-        <td class="text-center" width="45%">
-        </td>
+        <td class="text-left" width="49%"><img src="{{ storage_path('app/public/'.$school->slug.'/firma10+pro.jpg')}}"></td>
+        <td class="text-center" width="2%"></td>
+        <td class="text-left" width="49%"><img src="{{ storage_path('app/public/'.$sign_tutor)}}" width="140" height="120"></td>
     </tr>
     <tr>
-        <td class="text-left" width="45%">
-            <img src="{{ storage_path('app/public/'.$school->slug.'/firma10+pro.jpg')}}" width="140" height="120">
+        <td class="text-left" width="49%">
             <p><strong>{{ $school->agent }}</strong></p>
             <p><strong>10+Pro</strong></p>
             <p><strong>&nbsp;&nbsp;&nbsp;</strong></p>
             <p><strong>&nbsp;&nbsp;&nbsp;</strong></p>
         </td>
-        <td class="text-center" width="10%"></td>
-        <td class="text-left" width="45%">
-            <img src="{{ storage_path('app/public/'.$sign_tutor)}}" width="140" height="120">
+        <td class="text-center" width="2%"></td>
+        <td class="text-left" width="49%">
             <p><strong>Nombre:&nbsp;&nbsp;&nbsp;{{$tutor['names']}}</strong></p>
             <p><strong>Documento:&nbsp;&nbsp;&nbsp;{{$tutor['identification_card']}}</strong></p>
             <p><strong>ACUDIENTE Y/O RESPONSABLE DEL MENOR</strong></p>

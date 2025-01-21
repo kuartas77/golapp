@@ -1,11 +1,10 @@
 <h6>Documentos</h6>
 <section>
     <h6 class="row block-helper justify-content-center">Los Campos Con (<span class="text-danger">*</span>) Son Requeridos.</h6>
-    <h6 class="row block-helper justify-content-center "><strong>Los Archivos que van a ser cargados deben ser JPG, JPEG, PNG, PDF, con un tamaño máximo de 2 Megas.</strong></h6>
+    <h6 class="row block-helper justify-content-center "><strong>Los Archivos que van a ser cargados deben ser JPG, JPEG, PNG, PDF, con un tamaño máximo de <span id="filesize">2 </span>Megas.</strong></h6>
     <fieldset class="col-md-12 p-2">
 
         <div class="row">
-            <input type="hidden" name="year" value="{{$year}}" />
             <div class="col-md-6 mb-3">
                 <div class="form-group">
                     <label for="player_document">Documento de identidad del deportista escaneado (<span class="text-danger">*</span>)</label>

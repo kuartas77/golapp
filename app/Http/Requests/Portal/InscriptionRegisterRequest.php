@@ -59,15 +59,15 @@ class InscriptionRegisterRequest extends FormRequest
             'relationship_mom' => ['nullable', 'numeric'],
             // Step 4
             'photo' => ['required', 'file', 'mimetypes:image/png,image/jpeg'],
-            'player_document' => ['required', 'file', 'mimetypes:image/png,image/jpeg,application/pdf'],
-            'medical_certificate' => ['required', 'file', 'mimetypes:image/png,image/jpeg,application/pdf'],
-            'tutor_document' => ['required', 'file', 'mimetypes:image/png,image/jpeg,application/pdf'],
-            'payment_receipt' => ['required', 'file', 'mimetypes:image/png,image/jpeg,application/pdf'],
+            'player_document' => ['nullable', 'file', 'mimetypes:image/png,image/jpeg,application/pdf'],
+            'medical_certificate' => ['nullable', 'file', 'mimetypes:image/png,image/jpeg,application/pdf'],
+            'tutor_document' => ['nullable', 'file', 'mimetypes:image/png,image/jpeg,application/pdf'],
+            'payment_receipt' => ['nullable', 'file', 'mimetypes:image/png,image/jpeg,application/pdf'],
 
             'year' => ['required', 'string'],
 
-            'signatureTutor'  => ['required', 'string'],
-            'signatureAlumno' => ['required', 'string'],
+            'signatureTutor'  => ['nullable', 'string'],
+            'signatureAlumno' => ['nullable', 'string'],
             'school_data' => ['required'],
         ];
     }

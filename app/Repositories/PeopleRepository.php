@@ -26,7 +26,6 @@ class PeopleRepository
         $peopleIds = collect();
         foreach ($people as $person) {
             if ($person['relationship'] != '' && $person['names'] != '' && $person['identification_card'] != '') {
-                $person['tutor'] = isset($person['tutor']);
                 $person['relationship_name'] = $relationship[$person['relationship']];
                 $peopleIds->push(optional($this->createOrUpdatePeople($person))->id);
             }
