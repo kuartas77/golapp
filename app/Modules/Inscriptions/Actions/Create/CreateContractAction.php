@@ -35,7 +35,16 @@ final class CreateContractAction implements IContractPassable
 
         $this->uploadSigns($passable);
 
-        // $this->signContract($passable);
+        switch ($this->school->id) {
+            case 5:
+            case 6:
+                $this->signContract($passable);
+                break;
+
+            default:
+                # code...
+                break;
+        }
 
         $passable->setPaths($this->paths);
 
@@ -65,10 +74,10 @@ final class CreateContractAction implements IContractPassable
         $this->makeContract(1, $fileContractPDFPath);
         $this->paths['contract_one'] = ['CONTRATO DE INSCRIPCIÓN' => $fileContractPDFPath];
 
-        $fileContractPDF = "{$this->folderDocuments}" . DIRECTORY_SEPARATOR . "CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA {$year}.pdf";
-        $fileContractPDFPath = storage_path("{$storagePath}{$fileContractPDF}");
-        $this->makeContract(2, $fileContractPDFPath);
-        $this->paths['contract_two'] = ['CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA' => $fileContractPDFPath];
+        // $fileContractPDF = "{$this->folderDocuments}" . DIRECTORY_SEPARATOR . "CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA {$year}.pdf";
+        // $fileContractPDFPath = storage_path("{$storagePath}{$fileContractPDF}");
+        // $this->makeContract(2, $fileContractPDFPath);
+        // $this->paths['contract_two'] = ['CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA' => $fileContractPDFPath];
     }
 
     private function makeContract($documentOption, $filename)
@@ -76,7 +85,7 @@ final class CreateContractAction implements IContractPassable
         $data = [];
         $data['school'] = $this->school;
         $data['tutor'] = $this->tutor;
-        $data['player'] = $this->player;
+        $data['player'] = $this->player->load(['people']);
         $data['sign_tutor'] = $this->paths['sign_tutor'];
         $data['sign_player'] = $this->paths['sign_player'];
 
@@ -94,10 +103,10 @@ final class CreateContractAction implements IContractPassable
 
         switch ($documentOption) {
             case '1':
-                $this->createPDF($data, 'contracts.contract_inscription.blade.php', false);
+                $this->createPDF($data, 'contracts/contract_inscription.blade.php', false);
                 break;
             case '2':
-                $this->createPDF($data, 'contracts.contract_affiliate.blade.php', false);
+                $this->createPDF($data, 'contracts/contract_affiliate.blade.php', false);
                 break;
         }
 
