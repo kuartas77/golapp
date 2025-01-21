@@ -17,7 +17,7 @@ final class CreatePeoplePlayerAction implements IContractPassable
     public function handle(Passable $passable, Closure $next)
     {
         $this->player = $passable->getPlayer();
-        Request::routeIs('portal.school.*');
+
         $this->attributes = $this->setAttributes($passable);
 
         $passable->setTutor($this->attributes[0]);

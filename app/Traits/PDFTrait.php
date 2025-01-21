@@ -62,11 +62,10 @@ trait PDFTrait
      * Save the PDF to a file
      *
      * @param $filename
-     * @return static
      */
-    public function save($filename): PDFTrait
+    public function save($filename)
     {
-        return $this->mpdf->Output($filename, Destination::FILE);
+        $this->mpdf->Output($filename, Destination::FILE);
     }
 
     /**

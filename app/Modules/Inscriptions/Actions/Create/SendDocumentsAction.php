@@ -34,7 +34,7 @@ final class SendDocumentsAction implements IContractPassable
 
         $this->storeDocumentsLocal($passable->getPropertyFromData('year'), $this->player->unique_code);
 
-        // $this->sendDocumentsToSchool();
+        $this->sendDocumentsToSchool();
 
         $this->sendNotification($passable);
 
