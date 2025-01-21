@@ -1,18 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Inscriptions\Actions\Create;
 
 use Closure;
+use App\Modules\Inscriptions\Actions\Create\Passable;
+use App\Models\TrainingGroup;
+use App\Models\School;
 use App\Models\Player;
 use App\Models\Inscription;
-use App\Models\School;
-use App\Models\TrainingGroup;
 
 final class CreateInscriptionAction implements IContractPassable
 {
     private Player $player;
+
     private School $school;
+
     private Inscription $inscription;
+
     private array $attributes;
 
     public function handle(Passable $passable, Closure $next)
@@ -21,7 +27,7 @@ final class CreateInscriptionAction implements IContractPassable
 
         $this->player = $passable->getPlayer();
 
-        $this->attributes = $this->setAttributes();
+        $this->attributes = $this->setAttributes($passable);
 
         $this->upsertInscription();
 
@@ -30,7 +36,7 @@ final class CreateInscriptionAction implements IContractPassable
         return $next($passable);
     }
 
-    private function upsertInscription()
+    private function upsertInscription(): void
     {
         $this->inscription = Inscription::query()->withTrashed()->updateOrCreate([
             'unique_code' => $this->attributes['unique_code'],
@@ -39,13 +45,9 @@ final class CreateInscriptionAction implements IContractPassable
         ], $this->attributes);
     }
 
-    private function setAttributes(): array
+    private function setAttributes(Passable $passable): array
     {
-        if (in_array(now()->month, [11, 12])) {
-            $startDate = now()->month(1)->day(15)->addYear();
-        } else {
-            $startDate = now();
-        }
+        $startDate = in_array(now()->month, [11, 12]) ? now()->month(1)->day(15)->addYear() : now();
 
         return [
             'player_id' => $this->player->id,
@@ -53,13 +55,13 @@ final class CreateInscriptionAction implements IContractPassable
             'year' => $startDate->year,
             'start_date' => $startDate->format('Y-m-d'),
             'category' => $this->player->category,
-            'training_group_id' => $this->setTrainingGroupId(),
+            'training_group_id' => TrainingGroup::orderBy('id')->firstWhere('school_id', $this->school->id)->id,
             'competition_group_id' => null,
             'photos' => true,
-            'copy_identification_document' => true,
-            'eps_certificate' => true,
-            'medic_certificate' => true,
-            'study_certificate' => true,
+            'copy_identification_document' => $passable->getPropertyFromData('player_document') !== null,
+            'eps_certificate' => $passable->getPropertyFromData('medical_certificate') !== null,
+            'medic_certificate' => $passable->getPropertyFromData('medical_certificate') !== null,
+            'study_certificate' => $passable->getPropertyFromData('tutor_document') !== null,
             'overalls' => false,
             'ball' => false,
             'bag' => false,
@@ -74,10 +76,5 @@ final class CreateInscriptionAction implements IContractPassable
             'pre_inscription' => true,
             'school_id' => $this->school->id
         ];
-    }
-
-    private function setTrainingGroupId(): mixed
-    {
-        return TrainingGroup::orderBy('id')->firstWhere('school_id', $this->school->id)->id;
     }
 }

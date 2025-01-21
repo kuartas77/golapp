@@ -324,6 +324,21 @@ jQuery.validator.addMethod('filesize', function(value, element, param) {
     let fileSizeMB = element.files[0].size / (1024 ** 2)
     return this.optional(element) || (fileSizeMB <= param)
 }, jQuery.validator.format('El archivo cargado supera el tamaño permitido {0}MB'));
+jQuery.validator.addMethod("dateLessThan", function(value, element, params) {
+    if (!/Invalid|NaN/.test(new Date(value))) {
+        return moment(value, "YYYY-MM-DD") <= moment(params, "YYYY-MM-DD");
+    }
+
+    return isNaN(value) && isNaN(params) || (Number(value) <= Number(params));
+},'Debe ser menor o igual a {0}.');
+
+jQuery.validator.addMethod("dateGreaterThan", function(value, element, params) {
+    if (!/Invalid|NaN/.test(new Date(value))) {
+        return moment(value, "YYYY-MM-DD") >= moment(params, "YYYY-MM-DD");
+    }
+
+    return isNaN(value) && isNaN(params) || (Number(value) >= Number(params));
+},'Debe ser mayor o igual a {0}.');
 
 function nl2br(str, is_xhtml) {
     if (typeof str === 'undefined' || str === null) {

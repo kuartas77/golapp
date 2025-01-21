@@ -69,7 +69,7 @@ class InscriptionToSchoolNotification extends Notification implements ShouldQueu
 
     private function attachment()
     {
-        $folderDocuments = config('variables.CONFIG_SCHOOL')['folder_documents'];
+        $folderDocuments = $this->school->slug;
         $storagePath = "app".DIRECTORY_SEPARATOR."public".DIRECTORY_SEPARATOR;
         $folder = $folderDocuments . DIRECTORY_SEPARATOR . $this->inscription->unique_code;
         $fileName = "{$this->inscription->unique_code}.zip";

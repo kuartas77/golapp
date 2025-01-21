@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Inscriptions\Actions\Create;
 
 use App\Models\Inscription;
@@ -73,7 +75,7 @@ final class Passable
         $this->filePaths = $filePaths;
     }
 
-    public function setTutor(array $tutor)
+    public function setTutor(array $tutor): void
     {
         $this->tutor = $tutor;
     }

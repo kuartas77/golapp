@@ -4,12 +4,8 @@ namespace App\Http\Controllers\Portal;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Contracts\View\View;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Contracts\Foundation\Application;
 use App\Traits\ErrorTrait;
 use App\Modules\Inscriptions\Actions\Create\Pipeline as InscriptionsPipeline;
-use App\Models\School;
 use App\Http\Requests\Portal\InscriptionRegisterRequest;
 use App\Http\Controllers\Controller;
 
@@ -34,7 +30,7 @@ class InscriptionsController extends Controller
             DB::rollBack();
             Cache::forget('KEY_LAST_UNIQUE_CODE');
             $this->logError(__METHOD__, $th);
-            $response = ['error' => $th];
+            $response = ['message' => $th->getMessage()];
             $code = 500;
         }
 

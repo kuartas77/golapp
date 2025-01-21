@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Inscriptions\Actions\Create;
 
 use Illuminate\Support\Facades\Hash;
@@ -14,13 +16,13 @@ final class CreatePlayerAction implements IContractPassable
     use UploadFile;
 
     private Player $player;
+
     private School $school;
+
     private array $attributes = [];
 
     public function handle(Passable $passable, Closure $next)
     {
-        $passable->setSchool();
-
         $this->school = $passable->getSchool();
 
         $this->player = $this->getPlayer($passable);
@@ -29,7 +31,7 @@ final class CreatePlayerAction implements IContractPassable
 
         $this->attributes = $this->setAttributes($passable);
 
-        $this->upsertPlayer($passable);
+        $this->upsertPlayer();
 
         $passable->setPlayer($this->player);
 
@@ -41,7 +43,7 @@ final class CreatePlayerAction implements IContractPassable
         return Player::query()
             ->where('identification_document', $passable->getPropertyFromData('identification_document'))
             ->where('school_id', $this->school->id)
-            ->firstOr(callback: fn() => new Player());
+            ->firstOr(callback: fn(): Player => new Player());
     }
 
     private function setAttributes(Passable $passable): array
@@ -82,7 +84,7 @@ final class CreatePlayerAction implements IContractPassable
     {
         $year = $passable->getPropertyFromData('year');
 
-        return createUniqueCode($this->school->id, $year);
+        return createUniqueCode((string)$this->school->id, $year);
     }
 
     private function upsertPlayer(): void

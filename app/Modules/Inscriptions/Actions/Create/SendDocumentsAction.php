@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Inscriptions\Actions\Create;
 
 use Illuminate\Support\Facades\Storage;
@@ -8,6 +10,7 @@ use Closure;
 use App\Notifications\InscriptionNotification;
 use App\Modules\Inscriptions\Notifications\InscriptionToSchoolNotification;
 use App\Modules\Inscriptions\Jobs\DeleteDocuments;
+use App\Modules\Inscriptions\Actions\Create\Passable;
 use App\Models\School;
 use App\Models\Player;
 use App\Models\Inscription;
@@ -15,9 +18,13 @@ use App\Models\Inscription;
 final class SendDocumentsAction implements IContractPassable
 {
     private Player $player;
+
     private School $school;
+
     private Inscription $inscription;
+
     private array $attributes = [];
+
     private array $paths = [];
 
     public function handle(Passable $passable, Closure $next)
@@ -30,11 +37,14 @@ final class SendDocumentsAction implements IContractPassable
 
         $this->paths = $passable->getPaths();
 
-        $this->setAttributes($passable);
+        if ($this->school->send_documents) {
 
-        $this->storeDocumentsLocal($passable->getPropertyFromData('year'), $this->player->unique_code);
+            $this->setAttributes($passable);
 
-        $this->sendDocumentsToSchool();
+            $this->storeDocumentsLocal($passable->getPropertyFromData('year'), (string)$this->player->unique_code);
+
+            $this->sendDocumentsToSchool();
+        }
 
         $this->sendNotification($passable);
 
@@ -55,7 +65,7 @@ final class SendDocumentsAction implements IContractPassable
 
         foreach (Inscription::$documentFields as $field) {
 
-            if(!isset($this->attributes[$field])){
+            if (!isset($this->attributes[$field])) {
                 continue;
             }
 
@@ -63,7 +73,7 @@ final class SendDocumentsAction implements IContractPassable
 
             $extension = $file->getClientOriginalExtension();
 
-            $filename = "{$year}_[NAME].$extension";
+            $filename = sprintf('%s_[NAME].%s', $year, $extension);
 
             switch ($field) {
                 case 'player_document':
@@ -83,13 +93,12 @@ final class SendDocumentsAction implements IContractPassable
             $destinationFile = str_replace(['[NAME]'], [$name], $filename);
 
             $this->paths[$field] = Storage::putFileAs($folderDocuments, $file, $destinationFile, 'public');
-
         }
     }
 
     private function sendDocumentsToSchool(): void
     {
-        if(!empty($this->paths)){
+        if ($this->paths !== []) {
             $school = $this->school;
             $destinations = [];
             $destinations[$school['email']] = $school['name'];
@@ -99,7 +108,7 @@ final class SendDocumentsAction implements IContractPassable
         }
     }
 
-    private function sendNotification($passable)
+    private function sendNotification(Passable $passable): void
     {
         $destinations = [];
         $playerMail = data_get($this->player, 'email');
@@ -109,23 +118,19 @@ final class SendDocumentsAction implements IContractPassable
             $destinations[$playerMail] = $this->player->name . ' ' . $this->player->last_names;
         }
 
-        if (checkEmail($tutorMail)) {
+        if (checkEmail($tutorMail) && $tutorMail !== $playerMail) {
             $destinations[$tutorMail] = $passable->getPropertyFromData('tutor_name');
         }
 
-        if (!empty($destinations)) {
+        if ($destinations !== []) {
 
-            $contracts = [
-                // $this->paths['contract_one'],
-                // $this->paths['contract_two']
-            ];
+            $contracts = $this->school->create_contract ? [$this->paths['contract_one']] : [];
 
             Notification::route('mail', $destinations)->notify(
                 (new InscriptionNotification($this->inscription, $contracts))->onQueue('emails')
             );
 
-            dispatch(new DeleteDocuments($this->player->unique_code))->delay(now()->addDay())->onQueue('emails');
+            dispatch(new DeleteDocuments($this->school->slug, (string)$this->player->unique_code))->delay(now()->addDay())->onQueue('emails');
         }
     }
-
 }

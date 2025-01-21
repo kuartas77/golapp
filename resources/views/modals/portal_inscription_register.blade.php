@@ -8,8 +8,10 @@
                     @include('portal.inscriptions.fields.step_1')
                     @include('portal.inscriptions.fields.step_2')
                     @include('portal.inscriptions.fields.step_3')
-                    @include('portal.inscriptions.fields.step_4')
+                    {{-- @include('portal.inscriptions.fields.step_4') --}}
+                    @if($school->send_documents)
                     @include('portal.inscriptions.fields.step_5')
+                    @endif
                     {{ html()->form()->close() }}
                 </div>
             </div>
@@ -17,19 +19,22 @@
     </div>
 </div>
 @push('scripts')
-<script src="{{asset('js/signature_pad.umd.min.js')}}"></script>
 <script>
     const school = @json($school);
     const url_autocomplete = "{{ route('portal.autocomplete.fields') }}";
     const url_search = "{{ route('portal.autocomplete.search_doc') }}";
     const form_inscripcion = $("#form_inscripcion");
+    const MinDateBirth = moment().subtract(18, 'year'); //TODO: settings
+    const MaxDateBirth = moment().subtract(4, 'year'); //TODO: settings
+    const fileSize = 3;
 
+    $("#filesize").html(`${fileSize} `)
 
     form_inscripcion.validate({
         rules: {
             names : {required: true, maxlength:50},
             last_names : {required: true, maxlength:50},
-            date_birth : {required: true},
+            date_birth : {required: true, dateLessThan: MaxDateBirth.format('YYYY-MM-DD'), dateGreaterThan: MinDateBirth.format('YYYY-MM-DD')},
             place_birth : {required: true, maxlength:50},
             identification_document : {required: true, maxlength:50, numbers: true},
             document_type : {required: true},
@@ -57,32 +62,20 @@
             tutor_email: {required: true, emails:true},
 
             dad_name: {required: false, maxlength:50},
-            dad_doc: {required: function(element){
-                return $("#dad_name").val().length > 0;
-            }, maxlength:50},
-            dad_phone: {required: function(element){
-                return $("#dad_name").val().length > 0;
-            }, maxlength:50},
-            dad_work: {required: function(element){
-                return $("#dad_name").val().length > 0;
-            }, maxlength:50},
+            dad_doc: {required: (element) => $("#dad_name").val().length > 0, maxlength:50},
+            dad_phone: {required: (element) => $("#dad_name").val().length > 0, maxlength:50},
+            dad_work: {required: (element) => $("#dad_name").val().length > 0, maxlength:50},
 
             mom_name: {required: false, maxlength:50},
-            mom_doc: {required: function(element){
-                return $("#mom_name").val().length > 0;
-            }, maxlength:50},
-            mom_phone: {required: function(element){
-                return $("#mom_name").val().length > 0;
-            }, maxlength:50},
-            mom_work: {required: function(element){
-                return $("#mom_name").val().length > 0;
-            }, maxlength:50},
+            mom_doc: {required: (element) => $("#mom_name").val().length > 0, maxlength:50},
+            mom_phone: {required: (element) => $("#mom_name").val().length > 0, maxlength:50},
+            mom_work: {required: (element) => $("#mom_name").val().length > 0, maxlength:50},
 
-            photo: {required: true, extension: "png|jpeg|jpg", filesize: 2},
-            player_document: {required: true, extension: "png|jpeg|jpg|pdf", filesize: 2},
-            medical_certificate: {required: true, extension: "png|jpeg|jpg|pdf", filesize: 2},
-            tutor_document: {required: true, extension: "png|jpeg|jpg|pdf", filesize: 2},
-            payment_receipt: {required: true, extension: "png|jpeg|jpg|pdf", filesize: 2},
+            photo: {required: true, extension: "png|jpeg|jpg", filesize: fileSize},
+            player_document: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
+            medical_certificate: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
+            tutor_document: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
+            payment_receipt: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
 
             contrato_aff: {required: true},
             contrato_insc: {required: true},
@@ -96,7 +89,7 @@
         stepsOrientation: "horizontal",
         titleTemplate: '<span class="step">#index#</span> #title#',
         autoFocus: true,
-        enableAllSteps: true,
+        enableAllSteps: false,
         enableCancelButton: true,
         labels: {
             finish: "Guardar",
@@ -114,20 +107,22 @@
                 lang: 'es',
                 cancelText: 'Cancelar',
                 okText: 'Aceptar',
-                minDate: moment().subtract(18, 'year'),//TODO: settings
-                maxDate: moment().subtract(2, 'year')// TODO: settings
+                minDate: MinDateBirth,//TODO: settings
+                maxDate: MaxDateBirth// TODO: settings
             });
         },
         onStepChanging: function(event, currentIndex, newIndex) {
-            if(currentIndex == 3 && (signaturePadTutor.isEmpty() || signaturePadAlumno.isEmpty())){
-                Swal.fire({
-                    title: window.app_name,
-                    text: 'Ingresa las firmas para poder continuar',
-                    type: 'warning',
-                    allowOutsideClick: true,
-                    allowEscapeKey: true,
-                })
-                return false
+            if(currentIndex == 2){
+                if (school.create_contract && signaturePadTutor.isEmpty()) {
+                    Swal.fire({
+                        title: window.app_name,
+                        text: 'Ingresa las firmas para poder continuar',
+                        type: 'warning',
+                        allowOutsideClick: true,
+                        allowEscapeKey: true,
+                    })
+                    return false
+                }
             }
 
             return currentIndex > newIndex || (currentIndex < newIndex &&
@@ -139,7 +134,18 @@
             return form_inscripcion.validate().settings.ignore = ":disabled", form_inscripcion.valid()
         },
         onFinished: function(event, currentIndex) {
-
+            if(currentIndex == 2){
+                if (school.create_contract && signaturePadTutor.isEmpty()) {
+                    Swal.fire({
+                        title: window.app_name,
+                        text: 'Ingresa la firma para poder continuar',
+                        type: 'warning',
+                        allowOutsideClick: true,
+                        allowEscapeKey: true,
+                    })
+                    return false
+                }
+            }
             Swal.fire({
                 title: window.app_name,
                 text: '¿Deseas envíar el formulario y crear una inscripción?',
@@ -182,11 +188,7 @@
         }
     });
 
-    const firma_tutor = document.getElementById("firma_tutor");
-    const firma_alumno = document.getElementById("firma_alumno");
-
-    const signaturePadTutor = new SignaturePad(firma_tutor);
-    const signaturePadAlumno = new SignaturePad(firma_alumno);
+    const signaturePadTutor = new SignaturePad(document.getElementById("firma_tutor"));
 
     function sendData(){
         let data = new FormData();
@@ -203,10 +205,9 @@
             })
         })
 
-        var signatureTutor = firma_tutor.toDataURL("image/png");
-        var signatureAlumno = firma_alumno.toDataURL("image/png");
-        data.append("signatureTutor", signatureTutor);
-        data.append("signatureAlumno", signatureAlumno);
+        if(school.create_contract) {
+            data.append("signatureTutor", document.getElementById("firma_tutor").toDataURL("image/png"));
+        }
 
         $.ajax({
             url: url,
@@ -229,11 +230,19 @@
                 })
 
             },
-            error: function (e) {
+            error: function(xhr, status, error) {
+                let message = 'Algo salío mal, no hemos podido procesar la información en este momento, por favor intenta de nuevo más tarde!'
+                if (xhr.status == 422) {
+                    message = xhr.responseJSON.message
+                }
                 Swal.fire({
                     type: 'error',
                     title: window.app_name,
-                    text: 'Algo salío mal, no hemos podido procesar la información en este momento, por favor intenta de nuevo más tarde!',
+                    text: message,
+                }).then(okay => {
+                    if (okay) {
+                        window.location.reload()
+                    }
                 })
             }
         });

@@ -6,9 +6,11 @@
                 <li class="nav-item">
                     <a class="nav-link active show" data-toggle="tab" href="#info" role="tab">Inscripciones</a>
                 </li>
+                @if($school->tutor_platform)
                 <li class="nav-item">
                     <a class="nav-link" data-toggle="tab" href="#platform-guardian" role="tab">Plataforma Acudientes</a>
                 </li>
+                @endif
             </ul>
         </div>
         <div class="card-body collapse show">
