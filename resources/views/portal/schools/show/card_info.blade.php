@@ -23,6 +23,7 @@
                                 <div class="row">
                                     <div class="text-center m-2">
                                         <h2><strong>{{$school->name}}</strong> Formulario de inscripción {{$year}}</h2>
+                                        @if($school->inscriptions_enabled)
                                         <p class="lead">Recuerda tener listo de forma digital la siguiente documentación:</p>
                                         <ul class="list-group list-group-flush">
                                             <li class="list-group-item">Se solicitará la firma del acudiente y del deportista</li>
@@ -38,6 +39,9 @@
                                             <i class="fa fa-plus" aria-hidden="true"></i>
                                             Realizar Inscripción
                                         </a>
+                                        @else
+                                        <h3 class="lead">Las inscripciones se encuentran deshabilitadas comunicate con {{$school->name}}</h3>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

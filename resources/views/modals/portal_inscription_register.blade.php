@@ -8,7 +8,6 @@
                     @include('portal.inscriptions.fields.step_1')
                     @include('portal.inscriptions.fields.step_2')
                     @include('portal.inscriptions.fields.step_3')
-                    {{-- @include('portal.inscriptions.fields.step_4') --}}
                     @if($school->send_documents)
                     @include('portal.inscriptions.fields.step_5')
                     @endif
@@ -232,7 +231,7 @@
             },
             error: function(xhr, status, error) {
                 let message = 'Algo salío mal, no hemos podido procesar la información en este momento, por favor intenta de nuevo más tarde!'
-                if (xhr.status == 422) {
+                if (xhr.status == 422 || xhr.status == 500) {
                     message = xhr.responseJSON.message
                 }
                 Swal.fire({
