@@ -30,11 +30,19 @@ final class SendDocumentsAction implements IContractPassable
 
         $this->paths = $passable->getPaths();
 
-        $this->setAttributes($passable);
+        switch ($this->school->id) {
+            case 5:
+            case 6:
+                break;
 
-        $this->storeDocumentsLocal($passable->getPropertyFromData('year'), $this->player->unique_code);
+            default:
+                $this->setAttributes($passable);
 
-        $this->sendDocumentsToSchool();
+                $this->storeDocumentsLocal($passable->getPropertyFromData('year'), $this->player->unique_code);
+
+                $this->sendDocumentsToSchool();
+                break;
+        }
 
         $this->sendNotification($passable);
 
@@ -109,15 +117,14 @@ final class SendDocumentsAction implements IContractPassable
             $destinations[$playerMail] = $this->player->name . ' ' . $this->player->last_names;
         }
 
-        if (checkEmail($tutorMail)) {
+        if (checkEmail($tutorMail) && $tutorMail !== $playerMail) {
             $destinations[$tutorMail] = $passable->getPropertyFromData('tutor_name');
         }
 
-        if (!empty($destinations)) {
+        if ($destinations !== []) {
 
             $contracts = [
-                // $this->paths['contract_one'],
-                // $this->paths['contract_two']
+                $this->paths['contract_one'],
             ];
 
             Notification::route('mail', $destinations)->notify(
