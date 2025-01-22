@@ -5,6 +5,7 @@ let btnPrint = $('#print');
 let btnPrintExcel = $("#print_excel");
 let tableActive = $('#active_table');
 let form_assist = $("#form_assist");
+let selectRow = null
 jQuery(function() {
     tableActive = $('#active_table').DataTable({
             "paging": false,
@@ -43,24 +44,25 @@ jQuery(function() {
 // });
 
 $('body').on('click', 'a.assist', function()  {
-    let button = $(this);
-    let id = button.data('id');
-    let day = button.data('day')
-    let date = button.data('date')
-    let name = button.data('name')
-    let column = button.data('column')
-    let number = button.data('number')
-    let value = button.data('value')
-    let observation = button.data('observation')
+    selectRow = $(this)
 
-    $('#select_attendance').attr('name', column)
-    $('#select_attendance').val(value)
-    $('#attendance_number').val(number)
-    $('#attendance_name').val(name.toUpperCase())
-    $('#attendance_date').val(date)
-    $('#attendance_id').val(id)
-    $('#attendance_day').val(day)
-    $('#single_observation').val(observation)
+    let id = $(this).data('id');
+    let column = $(this).data('column')
+    let date = $(this).data('date')
+    let name = $(this).data('name')
+    let day = $(this).data('day')
+    let number = $(this).data('number')
+
+    $.get(url_current + `/${id}`,{ column: column, date: date, action:'assist' }, ({id, observation, value}) => {
+        $('#attendance_id').val(id)
+        $('#attendance_day').val(day)
+        $('#attendance_date').val(date)
+        $('#attendance_number').val(number)
+        $('#attendance_name').val(name.toUpperCase())
+        $('#select_attendance').attr('name', column)
+        $('#select_attendance').val(value).trigger('change')
+        $('#single_observation').val(observation)
+    });
 })
 
 $("#form_attendance").validate({
@@ -75,6 +77,9 @@ $("#form_attendance").validate({
         data.push({name: '_method', value: 'PUT'})
         $.post(url_current + `/${id}`, data)
 
+        $(selectRow[0]).attr('data-value', value)
+        $(selectRow[0]).attr('data-observation', $('#single_observation').val())
+
         $('#modal_attendance').modal('hide')
         $('#form_attendance')[0].reset()
     }
@@ -88,7 +93,7 @@ $('body').on('click', 'button.observation', function() {
     $('#id_row').val(id);
     $('#observations').val('');
 
-    $.get(url_current + `/${id}`, ({id, observations, player}) => {
+    $.get(url_current + `/${id}`, {action: 'observation'}, ({id, observations, player}) => {
         title.html('Observación para: ' + player.full_names);
         $('#id_row').val(id);
         $('#observations').val(observations);

@@ -17,7 +17,7 @@ class AssistService
         $classDays = classDays(
             $data['year'],
             array_search($data['month'], $months, true),
-            array_map('dayToNumber', $trainingGroup->explode_name['days'])
+            array_map('dayToNumber', $trainingGroup->explode_days)
         );
 
         $table = $this->makeTable($assists, $classDays, $deleted);

@@ -51,17 +51,31 @@ class AssistController extends Controller
      */
     public function show(Assist $assist): JsonResponse
     {
-        $assist->load(['player']);
-        $observations = '';
-        if(is_object($assist->observations)) {
-            foreach($assist->observations as $date => $observation){
-                $observations .= $date .': '. $observation. PHP_EOL;
+        $action = request()->query('action');
+
+        if ($action === 'observation') {
+
+            $assist->load(['player']);
+            $observations = '';
+            if(is_object($assist->observations)) {
+                foreach($assist->observations as $date => $observation){
+                    $observations .= $date .': '. $observation. PHP_EOL;
+                }
             }
+
+            $assist->observations = $observations;
+
+            return response()->json($assist);
+        }else {
+            $column = request()->query('column');
+            $date = request()->query('date');
+
+            return response()->json([
+                'id' => $assist->id,
+                'value' => data_get($assist, $column),
+                'observation' => data_get($assist, "observations.{$date}", '')
+            ]);
         }
-
-        $assist->observations = $observations;
-
-        return response()->json($assist);
     }
 
     /**
