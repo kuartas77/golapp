@@ -49,7 +49,7 @@ class TrainingGroupResource extends JsonResource
         $classDays = classDays(
             $date->year,
             $date->month,
-            array_map('dayToNumber', $this->explode_name['days'])
+            array_map('dayToNumber', $this->explode_days)
         );
 
         return $classDays->map(function ($class)use($date) {

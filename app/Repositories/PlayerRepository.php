@@ -33,7 +33,7 @@ class PlayerRepository
 
     public function getPlayersPeople()
     {
-        return $this->player->query()->with(['people'])->schoolId()->get();
+        return $this->player->query()->with(['people'])->schoolId();
     }
 
     public function createPlayer(PlayerCreateRequest $playerCreateRequest): bool

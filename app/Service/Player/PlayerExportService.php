@@ -46,7 +46,7 @@ class PlayerExportService
                 $assistance->classDays = classDays(
                     $assistance->year,
                     array_search($assistance->month, $months_, true),
-                    array_map('dayToNumber', $inscription->trainingGroup->explode_name['days'])
+                    array_map('dayToNumber', $inscription->trainingGroup->explode_days)
                 );
             }
         });
@@ -153,7 +153,7 @@ class PlayerExportService
                 $assistance->classDays = classDays(
                     $assistance->year,
                     array_search($assistance->month, $months_, true),
-                    array_map('dayToNumber', $inscription->trainingGroup->explode_name['days'])
+                    array_map('dayToNumber', $inscription->trainingGroup->explode_days)
                 );
             }
         });

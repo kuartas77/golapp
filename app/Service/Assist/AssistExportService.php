@@ -68,7 +68,7 @@ class AssistExportService
         $classDays = classDays(
             $params['year'],
             array_search($params['month'], $months, true),
-            array_map('dayToNumber', $group->explode_name['days'])
+            array_map('dayToNumber', $group->explode_days)
         );
 
         $school = getSchool(auth()->user());

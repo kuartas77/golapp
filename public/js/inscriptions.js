@@ -125,21 +125,21 @@ const columns = [
     {
         data: 'id', "render": function (data, type, row) {
             return "<img class='img-fluid rounded img-thumbnail' width='70' height='50' src='" + row.player.photo_url + "' alt='" + row.player.full_names + "'>";
-        }
+        }, 'searchable': false
     },
     {data: 'unique_code'},//2
     {data: 'player.identification_document'},//3
     {data: 'player.full_names', name :'player.last_names'},//4
-    {data: 'player.date_birth'},//5
-    {data: 'player.gender'},//6
+    {data: 'player.date_birth', 'searchable': false},//5
+    {data: 'player.gender', 'searchable': false},//6
     {data: 'training_group.name', name: 'training_group_id'},//7
     {
         data: 'medic_certificate', "render": function (data) {
             return data === 1 ? '<span class="label label-success">SI</span>' : '<span class="label label-warning">NO</span>';
-        }
+        }, 'searchable': false
     },//8
-    {data: 'player.mobile'},//9
-    {data: 'start_date'},//10
+    {data: 'player.mobile', 'searchable': false},//9
+    {data: 'start_date', 'searchable': false},//10
     {data: 'category', name: 'category', "className": 'text-center'},//11
     {
         data: 'id',
@@ -161,7 +161,7 @@ const columns = [
             + '<a href="' + row.url_impression + '" target="_blank" class="btn btn-info btn-xs"><i class="fas fa-print" aria-hidden="true"></i></a>'
             + deleteButton
             + '</div></form>';
-        }
+        }, 'searchable': false
     },//12
 ];
 
@@ -169,19 +169,19 @@ const columnsDelete = [
     {
         data: 'id', "render": function (data, type, row) {
             return "<img class='img-fluid rounded img-thumbnail' width='70' height='50' src='" + row.player.photo_url + "' alt='" + row.player.full_names + "'>";
-        }
+        }, 'searchable': false
     },
     {data: 'unique_code'},//2
     {data: 'player.identification_document'},//3
-    {data: 'player.full_names'},//4
-    {data: 'player.date_birth'},//5
-    {data: 'player.gender'},//6
+    {data: 'player.full_names', name :'player.last_names'},//4
+    {data: 'player.date_birth', 'searchable': false},//5
+    {data: 'player.gender', 'searchable': false},//6
     {
         data: 'medic_certificate', "render": function (data) {
             return data === 1 ? '<span class="label label-success">SI</span>' : '<span class="label label-warning">NO</span>';
-        }
+        }, 'searchable': false
     },//7
-    {data: 'player.mobile'},//8
+    {data: 'player.mobile', 'searchable': false},//8
     {data: 'category', name: 'category', "className": 'text-center'},//9
 ];
 const columnDefs = [
