@@ -38,16 +38,16 @@
                     {
                         data: 'id', "render": function (data, type, row) {
                             return "<img class='img-fluid rounded img-thumbnail' width='70' height='50' src='" + row.photo_url + "' alt='" + row.full_names + "'>";
-                        }
+                        }, 'searchable': false
                     },
                     {data: 'unique_code', name: 'unique_code'},
                     {data: 'identification_document', name: 'identification_document'},
-                    {data: 'full_names', name: 'full_names'},
+                    {data: 'full_names', name: 'last_names'},
                     {data: 'phones', "render": function (data, type, row) {
 
                         return (row.mobile == null) ? data : `${data} ${row.mobile}`
-                    }},
-                    {data: 'gender'},
+                    }, 'searchable': false},
+                    {data: 'gender', 'searchable': false},
                     {data: 'date_birth', name: 'date_birth'},
                     {data: 'created_at', name: 'created_at'},
                     {
@@ -61,7 +61,7 @@
                                 '<a href="' + row.url_show + '" class="btn btn-info btn-xs"><i class="fas fa-eye"></i></a>' +
                                 edit +
                                 '<a href="' + row.url_impression + '" target="_blank" class="btn btn-info btn-xs"><i class="fas fa-print" aria-hidden="true"></i></a></div>';
-                        }
+                        }, 'searchable': false
                     }
                 ],
                 "columnDefs": [

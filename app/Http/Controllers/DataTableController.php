@@ -111,7 +111,7 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->collection($this->playerRepository->getPlayersPeople())->toJson();
+        return datatables()->of($this->playerRepository->getPlayersPeople())->toJson();
     }
 
     public function schools(Request $request)
