@@ -17,7 +17,7 @@ class CreateTrainingGroupsTable extends Migration
             $table->id();
             $table->string('name', 100);
             $table->string('stage', 100)->nullable();
-            $table->string('year', 100);
+            $table->string('year', 100)->nullable();
             $table->string('year_two', 100)->nullable();
             $table->string('year_three', 100)->nullable();
             $table->string('year_four', 100)->nullable();
