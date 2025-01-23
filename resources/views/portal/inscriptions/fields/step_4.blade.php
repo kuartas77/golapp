@@ -1,10 +1,15 @@
 <h6>T y C</h6>
 <section>
-    <h6 class="row block-helper justify-content-center">Los campos con (<span class="text-danger">*</span>) son requeridos.</h6>
-    @if($school->create_contract)
+
+    @if($school->create_contract || $school->sign_player)
     <h6 class="row block-helper justify-content-center "><strong>Desliza con el mouse de su ordenador o si esta en dispositivo movil con su tactil firme en el area indicada.</strong></h6>
+    @elseif(!$school->create_contract && !$school->sign_player)
+    <h6 class="row block-helper justify-content-center ">Por el momento no hay terminos y condiciones que aceptar.</h6>
+    @else
+    <h6 class="row block-helper justify-content-center">Los campos con (<span class="text-danger">*</span>) son requeridos.</h6>
     @endif
     <div class="row">
+
         <fieldset class="col-md-6 {{ !$school->create_contract ? 'hidden' : ''}} p-2" >
             <legend>Firma Del Acudiente (<span class="text-danger">*</span>):</legend>
             <h6 class="row block-helper justify-content-center ">Firma de la persona que va a figurar en el <strong>&nbsp;CONTRATO&nbsp;</strong></h6>
@@ -45,11 +50,12 @@
         </fieldset>
 
         <fieldset class="col-md-12 p-2 {{ (!$school->create_contract && !$school->sign_player) ? 'hidden' : ''}}">
-            <div class="row {{ !$school->sign_player ? 'hidden' : ''}}">
+            @if($school->sign_player)
+            <div class="row">
                 <div class="check col">
                     <div class="form-group">
                         <div class="checkbox">
-                            <input type="checkbox" name="contrato_aff" id="contrato_aff" value="1">
+                            <input type="checkbox" name="contrato_aff" id="contrato_aff" value="1" {{ !$school->sign_player ? 'disabled' : ''}}>
                             <label for="contrato_aff" class="checkboxsizeletter">(<span class="text-danger">*</span>) Acepta los terminos y condiciones del
                                 <a target="_blank" href="{{asset('contracts/'.$school->slug.'/CAFICODEPOR.pdf')}}">CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA</a>
                             </label>
@@ -57,11 +63,13 @@
                     </div>
                 </div>
             </div>
-            <div class="row {{ !$school->create_contract ? 'hidden' : ''}}">
+            @endif
+            @if(!$school->create_contract)
+            <div class="row">
                 <div class="check col">
                     <div class="form-group">
                         <div class="checkbox">
-                            <input type="checkbox" name="contrato_insc" id="contrato_insc" value="1">
+                            <input type="checkbox" name="contrato_insc" id="contrato_insc" value="1" {{ !$school->create_contract ? 'disabled' : ''}}>
                             <label for="contrato_insc" class="checkboxsizeletter">
                                 (<span class="text-danger">*</span>) Acepta los terminos y condiciones del
                                 <a target="_blank" href="{{asset('contracts/'.$school->slug.'/COINSCRIP.pdf')}}">CONTRATO DE INSCRIPCIÓN</a>
@@ -70,6 +78,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </fieldset>
     </div>
 </section>

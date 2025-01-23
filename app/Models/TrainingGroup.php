@@ -135,14 +135,21 @@ class TrainingGroup extends Model
 
     private function nameGroup(bool $full = false): string
     {
-        $optional = ($this->year_active ?? $this->days). " =>";
-        $var = trim(sprintf('%s %s %s', $optional, $this->name, $this->stage));
-        $var .= ' (' . trim(sprintf('%s %s %s %s %s %s %s %s %s %s %s %s', $this->year, $this->year_two, $this->year_three, $this->year_four, $this->year_five, $this->year_six, $this->year_seven, $this->year_eight, $this->year_nine, $this->year_ten, $this->year_eleven, $this->year_twelve)) . ') ';
-        if ($full) {
-            $var .= trim(sprintf('%s %s', $this->days, $this->schedules));
-        }
+        if ($this->name !== 'Provisional') {
+            $optional = ($this->year_active ?? $this->days);
+            $var = sprintf('%s => %s %s', $optional, $this->name, $this->stage);
+            $years = array_filter([$this->year, $this->year_two, $this->year_three, $this->year_four, $this->year_five, $this->year_six, $this->year_seven, $this->year_eight, $this->year_nine, $this->year_ten, $this->year_eleven, $this->year_twelve]);
+            $var .= sprintf(' (%s) ', implode(',', $years));
 
+            if ($full) {
+                $var .= sprintf('%s %s', $this->days, $this->schedules);
+            }
+        }else{
+            $var = sprintf('%s (%s)', $this->name, implode(',', $this->category));
+        }
         return trim($var);
+
+
     }
 
     public function getFullScheduleGroupAttribute(): string
