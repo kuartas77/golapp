@@ -190,7 +190,7 @@ class School extends Model
 
         $this->trainingGroups()->create([
             'name' => 'Provisional',
-            'year' => now()->year,
+            'year' => null,
             'category' => 'Todas las categorías',
             'days' => 'Grupo predeterminado',
             'schedules' => '10:00AM - 11:00AM',
