@@ -29,7 +29,7 @@ class Kernel extends ConsoleKernel
             ->everyMinute()
             ->withoutOverlapping();
 
-        $schedule->command('queue:work --queue=emails --stop-when-empty')
+        $schedule->command('queue:work --queue=emails,default --stop-when-empty')
             ->everyMinute()
             ->withoutOverlapping();
 
