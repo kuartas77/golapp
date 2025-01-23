@@ -8,6 +8,7 @@
                     @include('portal.inscriptions.fields.step_1')
                     @include('portal.inscriptions.fields.step_2')
                     @include('portal.inscriptions.fields.step_3')
+                    @include('portal.inscriptions.fields.step_4')
                     @if($school->send_documents)
                     @include('portal.inscriptions.fields.step_5')
                     @endif
@@ -111,11 +112,23 @@
             });
         },
         onStepChanging: function(event, currentIndex, newIndex) {
-            if(currentIndex == 2){
+            if(currentIndex == 3){
                 if (school.create_contract && signaturePadTutor.isEmpty()) {
                     Swal.fire({
                         title: window.app_name,
-                        text: 'Ingresa las firmas para poder continuar',
+                        text: 'Ingresa la firma del acudiente para poder continuar',
+                        type: 'warning',
+                        allowOutsideClick: true,
+                        allowEscapeKey: true,
+                    })
+                    return false
+                }
+            }
+            if(currentIndex == 3) {
+                if (school.sign_player && signaturePadPlayer.isEmpty()) {
+                    Swal.fire({
+                        title: window.app_name,
+                        text: 'Ingresa la firma del deportista para poder continuar',
                         type: 'warning',
                         allowOutsideClick: true,
                         allowEscapeKey: true,
@@ -133,11 +146,23 @@
             return form_inscripcion.validate().settings.ignore = ":disabled", form_inscripcion.valid()
         },
         onFinished: function(event, currentIndex) {
-            if(currentIndex == 2){
+            if(currentIndex == 3){
                 if (school.create_contract && signaturePadTutor.isEmpty()) {
                     Swal.fire({
                         title: window.app_name,
-                        text: 'Ingresa la firma para poder continuar',
+                        text: 'Ingresa la firma del acudiente para poder continuar',
+                        type: 'warning',
+                        allowOutsideClick: true,
+                        allowEscapeKey: true,
+                    })
+                    return false
+                }
+            }
+            if(currentIndex == 3) {
+                if (school.sign_player && signaturePadPlayer.isEmpty()) {
+                    Swal.fire({
+                        title: window.app_name,
+                        text: 'Ingresa la firma del deportista para poder continuar',
                         type: 'warning',
                         allowOutsideClick: true,
                         allowEscapeKey: true,
@@ -188,6 +213,7 @@
     });
 
     const signaturePadTutor = new SignaturePad(document.getElementById("firma_tutor"));
+    const signaturePadPlayer = new SignaturePad(document.getElementById("firma_alumno"));
 
     function sendData(){
         let data = new FormData();
@@ -206,6 +232,10 @@
 
         if(school.create_contract) {
             data.append("signatureTutor", document.getElementById("firma_tutor").toDataURL("image/png"));
+        }
+
+        if(school.sign_player) {
+            data.append("signatureAlumno", document.getElementById("firma_alumno").toDataURL("image/png"));
         }
 
         $.ajax({

@@ -57,8 +57,12 @@ final class CreateContractAction implements IContractPassable
 
     private function uploadSigns(Passable $passable): void
     {
-        $this->paths['sign_tutor'] = $this->uploadSignImage($passable->getPropertyFromData('signatureTutor'), $this->folderDocuments);
-        // $this->paths['sign_player'] = $this->uploadSignImage($passable->getPropertyFromData('signatureAlumno'), $this->folderDocuments);
+        if ($signatureTutor = $passable->getPropertyFromData('signatureTutor')) {
+            $this->paths['sign_tutor'] = $this->uploadSignImage($signatureTutor, $this->folderDocuments);
+        }
+        if ($signatureAlumno = $passable->getPropertyFromData('signatureAlumno')) {
+            $this->paths['sign_player'] = $this->uploadSignImage($signatureAlumno, $this->folderDocuments);
+        }
     }
 
     private function signContract(Passable $passable): void
@@ -68,23 +72,28 @@ final class CreateContractAction implements IContractPassable
 
         $fileContractPDF = $this->folderDocuments . DIRECTORY_SEPARATOR . sprintf('CONTRATO DE INSCRIPCIÓN %s.pdf', $year);
         $fileContractPDFPath = storage_path($storagePath . $fileContractPDF);
-        $this->makeContract($fileContractPDFPath);
+        $this->makeContract(1, $fileContractPDFPath);
         $this->paths['contract_one'] = ['CONTRATO DE INSCRIPCIÓN' => $fileContractPDFPath];
 
-        // $fileContractPDF = "{$this->folderDocuments}" . DIRECTORY_SEPARATOR . "CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA {$year}.pdf";
-        // $fileContractPDFPath = storage_path("{$storagePath}{$fileContractPDF}");
-        // $this->makeContract(2, $fileContractPDFPath);
-        // $this->paths['contract_two'] = ['CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA' => $fileContractPDFPath];
+        if($this->school->sign_player && isset($this->paths['sign_player'])) {
+            $fileContractPDF = "{$this->folderDocuments}" . DIRECTORY_SEPARATOR . "CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA {$year}.pdf";
+            $fileContractPDFPath = storage_path("{$storagePath}{$fileContractPDF}");
+            $this->makeContract(2, $fileContractPDFPath);
+            $this->paths['contract_two'] = ['CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA' => $fileContractPDFPath];
+        }
     }
 
-    private function makeContract($filename): void
+    private function makeContract(int $documentOption, $filename): void
     {
         $data = [];
         $data['school'] = $this->school;
         $data['tutor'] = $this->tutor;
         $data['player'] = $this->player->load(['people']);
         $data['sign_tutor'] = $this->paths['sign_tutor'];
-        // $data['sign_player'] = $this->paths['sign_player'];
+
+        if($this->school->sign_player && isset($this->paths['sign_player'])) {
+            $data['sign_player'] = $this->paths['sign_player'];
+        }
 
         $this->setWatermarkSize([180, 180]);
 
@@ -98,16 +107,14 @@ final class CreateContractAction implements IContractPassable
             'margin_footer' => 4,
         ]);
 
-        // switch ($documentOption) {
-        //     case 1:
-        //         $this->createPDF($data, 'contracts/contract_inscription.blade.php', false);
-        //         break;
-        //     case 2:
-        //         $this->createPDF($data, 'contracts/contract_affiliate.blade.php', false);
-        //         break;
-        // }
-
-        $this->createPDF($data, 'contracts/contract_inscription.blade.php', false);
+        switch ($documentOption) {
+            case 1:
+                $this->createPDF($data, 'contracts/contract_inscription.blade.php', false);
+                break;
+            case 2:
+                $this->createPDF($data, 'contracts/contract_affiliate.blade.php', false);
+                break;
+        }
 
         $this->save($filename);
     }

@@ -90,3 +90,7 @@ canvas {
 .mini-sidebar .page-wrapper {
     margin-left: 0px;
 }
+
+.hidden {
+    display: none;
+}
