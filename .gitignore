@@ -19,3 +19,4 @@ package-lock.json
 /nginx/logs/*
 .phpunit.result.cache
 /.phpunit.cache
+/public/contracts

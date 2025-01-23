@@ -2,16 +2,15 @@
     <table class="table-full title">
         <tr>
             <td class="text-center" width="20%">
-                <!-- <p><strong>Medellín-Colombia</strong></p> -->
-                <!-- <p><strong>Carrera 66 #95-36</strong></p> -->
+                <p><strong>Caldas Ant-Colombia</strong></p>
+                <p><strong>Carrera 46 #132 sur</strong></p>
             </td>
             <td class="text-center" width="50%">
-                <!-- <p><strong>Página Web:</strong> clubdeportivosoccercity.com.mex.tl</p> -->
-                <!-- <p><strong>Hotmail:</strong> clubdeportivosoccercity@hotmail.com</p> -->
+                <p><strong>Red social:</strong> escuela_felria (Instagram)</p>
+                <p><strong>Correo:</strong> felria2008@gmail.com</p>
             </td>
             <td class="text-center" width="30%">
-                <!-- <p><strong>Teléfono:</strong>(604) 438 10 23</p> -->
-                <!-- <p><strong>Celular:</strong> 300 640 16 58</p> -->
+                <p><strong>Celular:</strong> 311 320 74 60</p>
             </td>
         </tr>
     </table>

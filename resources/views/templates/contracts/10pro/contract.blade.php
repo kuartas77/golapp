@@ -152,28 +152,7 @@
     Acepto términos y condiciones, adicional dejo constancia que he firmado previamente el consentimiento informado de responsabilidad y cumplimiento de protocolos de bioseguridad para realización de práctica deportiva, establecido por <strong>el Club 10+Pro</strong>
 </p>
 
-<table class="table-full title">
-    <tr>
-        <td class="text-left" width="49%"><img src="{{ storage_path('app/public/'.$school->slug.'/firma10+pro.jpg')}}" width="220"></td>
-        <td class="text-center" width="2%"></td>
-        <td class="text-left" width="49%"><img src="{{ storage_path('app/public/'.$sign_tutor)}}" width="220" ></td>
-    </tr>
-    <tr>
-        <td class="text-left" width="49%">
-            <p><strong>{{ $school->agent }}</strong></p>
-            <p><strong>CC 1128265701</strong></p>
-            <p><strong>&nbsp;&nbsp;&nbsp;</strong></p>
-            <p><strong>&nbsp;&nbsp;&nbsp;</strong></p>
-        </td>
-        <td class="text-center" width="2%"></td>
-        <td class="text-left" width="49%">
-            <p><strong>Nombre:&nbsp;&nbsp;&nbsp;{{$tutor['names']}}</strong></p>
-            <p><strong>Documento:&nbsp;&nbsp;&nbsp;{{$tutor['identification_card']}}</strong></p>
-            <p><strong>ACUDIENTE Y/O RESPONSABLE DEL MENOR</strong></p>
-            <p><strong>FECHA: {{ now()->format('d-m-Y') }}</strong></p>
-        </td>
-    </tr>
-</table>
+
 @endif
 
 @if($school->id === 6)
@@ -237,28 +216,6 @@
     Acepto términos y condiciones, adicional dejo constancia que he firmado previamente el consentimiento informado de responsabilidad y cumplimiento de protocolos de bioseguridad para realización de práctica deportiva, establecido por <strong>el Club 10+Pro</strong>
 </p>
 
-<table class="table-full title">
-    <tr>
-        <td class="text-left" width="49%"><img src="{{ storage_path('app/public/'.$school->slug.'/firma10+pro.jpg')}}" width="220"></td>
-        <td class="text-center" width="2%"></td>
-        <td class="text-left" width="49%"><img src="{{ storage_path('app/public/'.$sign_tutor)}}" width="220" ></td>
-    </tr>
-    <tr>
-        <td class="text-left" width="49%">
-            <p><strong>{{ $school->agent }}</strong></p>
-            <p><strong>CC 1128265701</strong></p>
-            <p><strong>&nbsp;&nbsp;&nbsp;</strong></p>
-            <p><strong>&nbsp;&nbsp;&nbsp;</strong></p>
-        </td>
-        <td class="text-center" width="2%"></td>
-        <td class="text-left" width="49%">
-            <p><strong>Nombre:&nbsp;&nbsp;&nbsp;{{$tutor['names']}}</strong></p>
-            <p><strong>CC:&nbsp;&nbsp;&nbsp;{{$tutor['identification_card']}}</strong></p>
-            <p><strong>ACUDIENTE Y/O RESPONSABLE DEL MENOR</strong></p>
-            <p><strong>FECHA: {{ now()->format('d-m-Y') }}</strong></p>
-        </td>
-    </tr>
-</table>
 @endif
 
 @if($school->id === 7)
@@ -321,22 +278,48 @@
 <p>
     Acepto términos y condiciones, adicional dejo constancia que he firmado previamente el consentimiento informado de responsabilidad y cumplimiento de protocolos de bioseguridad para realización de práctica deportiva, establecido por <strong>el Club 10+Pro</strong>
 </p>
+@endif
 
-<table class="table-full title">
+
+<table class="table-full title">5
     <tr>
-    <td class="text-left" width="49%"><img src="{{ storage_path('app/public/'.$sign_tutor)}}" width="220"></td>
+        <td class="text-left" width="49%">
+
+        @switch($school->id)
+            @case(5)
+            @case(6)
+                <img src="{{ storage_path('app/public/'.$school->slug.'/firma10+pro.jpg')}}" width="220">
+                @break
+            @case(7)
+                @break
+            @default
+        @endswitch
+        </td>
         <td class="text-center" width="2%"></td>
-        <td class="text-left" width="49%"></td>
+        <td class="text-left" width="49%"><img src="{{ storage_path('app/public/'.$sign_tutor)}}" width="220" ></td>
     </tr>
     <tr>
         <td class="text-left" width="49%">
+        @switch($school->id)
+            @case(5)
+            @case(6)
+            <p><strong>{{ $school->agent }}</strong></p>
+            <p><strong>CC 1128265701</strong></p>
+            <p><strong>&nbsp;&nbsp;&nbsp;</strong></p>
+            <p><strong>&nbsp;&nbsp;&nbsp;</strong></p>
+                @break
+            @case(7)
+                @break
+            @default
+        @endswitch
+
+        </td>
+        <td class="text-center" width="2%"></td>
+        <td class="text-left" width="49%">
             <p><strong>Nombre:&nbsp;&nbsp;&nbsp;{{$tutor['names']}}</strong></p>
-            <p><strong>CC:&nbsp;&nbsp;&nbsp;{{$tutor['identification_card']}}</strong></p>
+            <p><strong>Documento:&nbsp;&nbsp;&nbsp;{{$tutor['identification_card']}}</strong></p>
             <p><strong>ACUDIENTE Y/O RESPONSABLE DEL MENOR</strong></p>
             <p><strong>FECHA: {{ now()->format('d-m-Y') }}</strong></p>
         </td>
-        <td class="text-center" width="2%"></td>
-        <td class="text-left" width="49%"></td>
     </tr>
 </table>
-@endif

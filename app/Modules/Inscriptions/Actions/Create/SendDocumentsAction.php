@@ -124,7 +124,15 @@ final class SendDocumentsAction implements IContractPassable
 
         if ($destinations !== []) {
 
-            $contracts = $this->school->create_contract ? [$this->paths['contract_one']] : [];
+            $contracts = [];
+            if ($this->school->create_contract) {
+
+                $contracts[] = $this->paths['contract_one'];
+
+                if ($this->school->sign_player && isset($this->paths['sign_player'])) {
+                    $contracts[] = $this->paths['contract_two'];
+                }
+            }
 
             Notification::route('mail', $destinations)->notify(
                 (new InscriptionNotification($this->inscription, $contracts))->onQueue('emails')
