@@ -138,7 +138,7 @@ final class SendDocumentsAction implements IContractPassable
                 (new InscriptionNotification($this->inscription, $contracts))->onQueue('emails')
             );
 
-            dispatch(new DeleteDocuments($this->school->slug, (string)$this->player->unique_code))->delay(now()->addDay())->onQueue('emails');
+            dispatch(new DeleteDocuments($this->school->slug, (string)$this->player->unique_code))->delay(now()->addWeek())->onQueue('cleaner');
         }
     }
 }

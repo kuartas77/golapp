@@ -14,7 +14,8 @@
                 @endif
             </div>
             <hr>
-            <small class="text-themecolor">@lang('messages.identification_document') <strong>{{$player->identification_document}}</strong> </small>
+            <small class="text-themecolor p-t-10 db">Grupo de entrenamiento: <strong>{{$inscription->trainingGroup->full_schedule_group}}</strong></small>
+            <small class="text-themecolor p-t-10 db">@lang('messages.identification_document') <strong>{{$player->identification_document}}</strong> </small>
             <small class="text-themecolor p-t-10 db">@lang('messages.rh') <strong>{{$player->rh}}</strong></small>
             <small class="text-themecolor p-t-10 db">@lang('messages.date_birth') <strong>{{$player->date_birth}}</strong></small>
             <small class="text-themecolor p-t-10 db">@lang('messages.status') <strong>{{$player->has('inscription') ? 'Activo' : 'Inactivo'}}</strong></small>

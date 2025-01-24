@@ -24,12 +24,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
         $schedule->command('queue:work --stop-when-empty')
             ->everyMinute()
             ->withoutOverlapping();
 
-        $schedule->command('queue:work --queue=emails --stop-when-empty')
+        $schedule->command('queue:work --queue=emails,default,cleaner --stop-when-empty')
             ->everyMinute()
             ->withoutOverlapping();
 

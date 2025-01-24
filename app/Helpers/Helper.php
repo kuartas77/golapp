@@ -186,7 +186,8 @@ if (!function_exists('categoriesName')) {
 if (!function_exists('dayToNumber')) {
     function dayToNumber(string $day): int
     {
-        return array_search(Str::title($day), config('variables.KEY_WEEKS_INDEX'), true);
+        $result = array_search(Str::title($day), config('variables.KEY_WEEKS_INDEX'), true);
+        return $result ?: 0;
     }
 }
 
