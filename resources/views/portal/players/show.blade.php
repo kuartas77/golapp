@@ -28,8 +28,11 @@
 @endsection
 @section('scripts')
 <script>
+    let imgUser = "{{asset('img/user.png')}}";
     let url_autocomplete = "{{ route('portal.autocomplete.fields') }}";
     const form_update_player = $("#form_update_player");
+    const MinDateBirth = moment().subtract(18, 'year'); //TODO: settings
+    const MaxDateBirth = moment().subtract(4, 'year'); //TODO: settings
 
     $(function() {
         $(".preloader").fadeOut()
@@ -42,7 +45,7 @@
         rules: {
             names : {required: true, maxlength:50},
             last_names : {required: true, maxlength:50},
-            date_birth : {required: true},
+            date_birth : {required: true, dateLessThan: MaxDateBirth.format('YYYY-MM-DD'), dateGreaterThan: MinDateBirth.format('YYYY-MM-DD')},
             place_birth : {required: true, maxlength:50},
             identification_document : {required: true, maxlength:50},
             document_type : {required: true},
@@ -88,8 +91,8 @@
                 lang: 'es',
                 cancelText: 'Cancelar',
                 okText: 'Aceptar',
-                minDate: moment().subtract(18, 'year'),//TODO: settings
-                maxDate: moment().subtract(2, 'year')// TODO: settings
+                minDate: MinDateBirth,//TODO: settings
+                maxDate: MaxDateBirth// TODO: settings
             });
             $('#file-upload').on('change', function(){
                 readFile(this);
@@ -163,8 +166,6 @@
             });
         });
     }
-
-
 
     function readFile(input) {
         let label = $(input).next('label.custom-file-label')

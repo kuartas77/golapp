@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Repositories\PlayerRepository;
-use App\Http\Requests\Player\PlayerUpdateRequest;
+use App\Http\Requests\Portal\PlayerPortalUpdateRequest;
 use App\Http\Controllers\Controller;
 
 class HomePlayerController extends Controller
@@ -17,15 +17,16 @@ class HomePlayerController extends Controller
     {
 
         $player = $playerRepository->loadShow(auth()->user());
-
+        $inscriptionActive = $player->inscriptions->firstWhere('year', now()->year);
         view()->share('player', $player);
         view()->share('school', $player->schoolData);
+        view()->share('inscription', $inscriptionActive);
         return view('portal.players.show');
     }
 
-    public function update(PlayerUpdateRequest $request, string $unique_code = null, PlayerRepository $playerRepository)
+    public function update(PlayerPortalUpdateRequest $request, string $unique_code = null, PlayerRepository $playerRepository)
     {
-        $saved = $playerRepository->updatePlayerPortal(auth()->user(), $request->validated());
+        $saved = $playerRepository->updatePlayerPortal(auth()->user(), $request);
         if (is_null($saved)) {
             alert()->error(env('APP_NAME'), __('messages.error_general'));
             return back()->withInput($request->input());

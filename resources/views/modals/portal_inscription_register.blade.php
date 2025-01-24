@@ -20,6 +20,7 @@
 </div>
 @push('scripts')
 <script>
+    let imgUser = "{{asset('img/user.png')}}";
     const school = @json($school);
     const url_autocomplete = "{{ route('portal.autocomplete.fields') }}";
     const url_search = "{{ route('portal.autocomplete.search_doc') }}";
@@ -331,7 +332,7 @@
             label.empty().html('Seleccionada.')
         }else{
             label.empty().html("Seleccionar...")
-            $('#player-img').attr('src', 'http://golapp.local/img/user.png');
+            $('#player-img').attr('src', imgUser);
         }
     }
 

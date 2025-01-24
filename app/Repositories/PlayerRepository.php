@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Collection;
 use App\Http\Requests\Player\PlayerCreateRequest;
 use App\Http\Requests\Player\PlayerUpdateRequest;
 use App\Notifications\RegisterPlayerNotification;
+use Illuminate\Foundation\Http\FormRequest;
 
 class PlayerRepository
 {
@@ -129,13 +130,18 @@ class PlayerRepository
         }
     }
 
-    public function updatePlayerPortal(Player $player, array $payload): bool
+    public function updatePlayerPortal(Player $player, FormRequest $formRequest): bool
     {
         try {
             DB::beginTransaction();
-            //            Master::saveAutoComplete($request);
 
-            $save = $player->update($payload);
+            $dataPlayer = $formRequest->only($this->getAttributes());
+
+            if ($file_name = $this->saveFile($formRequest, 'photo')) {
+                $dataPlayer['photo'] = $file_name;
+            }
+
+            $save = $player->update($dataPlayer);
 
             DB::commit();
 
@@ -220,7 +226,7 @@ class PlayerRepository
         $player = $this->player->query()
         ->where('identification_document', $doc)
         ->where('school_id', $school_id)
-        ->whereDoesntHave('inscription', fn($q) => $q->where('year', getYearInscription()))
+        //->whereDoesntHave('inscription', fn($q) => $q->where('year', getYearInscription()))
         ->first();
 
         return isset($player) ? [
