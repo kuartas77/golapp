@@ -131,24 +131,4 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('tournaments', [MasterController::class, 'tournamentsBySchool'])->name('autocomplete.tournaments');
     });
 
-
-
-    Route::get('generate', function(){
-        try {
-
-            \App\Models\Player::query()->whereNotNull('identification_document')->whereHas('inscription')->chunkById(400, function($players){
-                foreach ($players as $player) {
-                    \Illuminate\Support\Facades\DB::beginTransaction();
-                    $player->password = \Illuminate\Support\Facades\Hash::make($player->unique_code);
-                    $player->save();
-                    \Illuminate\Support\Facades\DB::commit();
-                }
-            });
-        } catch (\Throwable $th) {
-            \Illuminate\Support\Facades\DB::rollBack();
-            dd($th);
-        }
-    });
-
-
 });
