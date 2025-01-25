@@ -1,7 +1,20 @@
 <li class="{{ Request::is('home') ? 'active' : '' }}">
     <a class="waves-effect waves-dark" href="{{route('home')}}" aria-expanded="false"><i class="fas fa-home"></i><span class="hide-menu">Inicio</span></a>
 </li>
-
+@hasanyrole(['super-admin'])
+@if(!empty($admin_schools))
+    <li class="{{ Request::is('players*') ? 'active' : '' }}">
+        <a class="waves-effect waves-dark" href="#" onclick="selectSchool()" aria-expanded="false"><i class="fas fa-home"></i><span class="hide-menu">Seleccionar Escuela</span></a>
+    </li>
+    @endif
+@endhasanyrole
+@hasanyrole(['school'])
+    @if(!empty($admin_schools))
+    <li class="{{ Request::is('players*') ? 'active' : '' }}">
+        <a class="waves-effect waves-dark" href="#" onclick="selectSchool()" aria-expanded="false"><i class="fas fa-home"></i><span class="hide-menu">Seleccionar Sede</span></a>
+    </li>
+    @endif
+@endhasanyrole
 @hasanyrole('super-admin')
 <li class="{{ Request::is('backoffice*') ? 'active' : '' }}">
     <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><i class="fas fa-cogs"></i><span class="hide-menu"> BackOffice</span></a>
@@ -73,3 +86,45 @@
     </ul>
 </li> -->
 @endhasanyrole
+
+@push('scripts')
+@hasanyrole(['super-admin','school'])
+@if(!empty($admin_schools))
+<script>
+    const isSchool = {{$isSchool}};
+    const text = isSchool === 1 ? 'sede': 'escuela';
+    const urlchooseSchool = "{{route('school.choose')}}";
+    const schools = @json($admin_schools);
+    function selectSchool(){
+        swal({
+            title: `Para seguir seleciona una ${text}`,
+            type: "info",
+            input: 'select',
+            inputOptions: schools,
+            inputPlaceholder: 'Selecciona...',
+            allowOutsideClick: false,
+            allowEscapeKey:false,
+            showCancelButton: true,
+            confirmButtonText: 'Aceptar',
+            cancelButtonText: "Cancelar",
+            inputValidator: function (value) {
+                return new Promise(function (resolve) {
+                    if (value !== '') {
+                        resolve();
+                    } else {
+                        resolve(`Necesitas seleccionar una ${text}`);
+                    }
+                });
+            }
+        }).then(function (result) {
+            if(result.value){
+                $.post(urlchooseSchool, {'school_id': result.value}, function(data){
+                    setTimeout(location.reload(), 2000)
+                });
+            }
+        });
+    }
+</script>
+@endif
+@endhasanyrole
+@endpush
