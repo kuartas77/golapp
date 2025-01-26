@@ -1,12 +1,14 @@
 <?php
 
+use App\Http\Controllers\BackOffice\ContractsController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Http\Controllers\DataTableController;
 use App\Http\Controllers\BackOffice\UserController;
-use App\Http\Controllers\BackOffice\SchoolController;
-use App\Http\Controllers\BackOffice\SchoolInfoController;
-use App\Http\Controllers\BackOffice\ManualEmailController;
 use App\Http\Controllers\BackOffice\SettingValueController;
+use App\Http\Controllers\BackOffice\SchoolInfoController;
+use App\Http\Controllers\BackOffice\SchoolController;
+use App\Http\Controllers\BackOffice\ManualEmailController;
 
 Route::middleware(['auth', 'role:super-admin|school'])->group(function () {
 
@@ -24,6 +26,8 @@ Route::middleware(['auth', 'role:super-admin'])->group(function () {
         Route::resource("settings", SettingValueController::class);
         Route::resource("users", UserController::class);
 
+        Route::resource("contracts", ContractsController::class)->except(['destroy']);
+
         Route::prefix('datatables')->name('datatables.')->group(function () {
             // Route::get('enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');
             // Route::get('training_groups_enabled', [DataTableController::class, 'enabledTrainingGroups'])->name('training_groups.enabled');
@@ -37,6 +41,23 @@ Route::middleware(['auth', 'role:super-admin'])->group(function () {
 
         });
     });
+
+    Route::post('upload', function(Request $request){
+        try {
+
+            return response()->json([
+                        'uploaded' => true,
+                        'url' => asset('img/user.png')
+                    ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'uploaded' => false,
+                'error' => [
+                    'message' => $e->getMessage()
+                ]
+            ]);
+        }
+    })->name('upload');
 
 
 

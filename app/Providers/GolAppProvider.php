@@ -118,7 +118,7 @@ class GolAppProvider extends ServiceProvider
 
         View::composer(['templates.*', 'modals.modal_attendance', 'assists.assist.index'], TemplatesComposer::class);
 
-        View::composer(['layouts.menu', 'layouts.topbar'], AdminComposer::class);
+        View::composer(['layouts.menu', 'layouts.topbar', 'backoffice.contracts.*'], AdminComposer::class);
 
         View::composer(['layouts.portal.*', 'portal.*', 'welcome'], PortalComposer::class);
 

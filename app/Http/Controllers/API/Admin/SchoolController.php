@@ -31,9 +31,9 @@ class SchoolController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 
     /**
@@ -42,9 +42,9 @@ class SchoolController extends Controller
      * @param int $id
      * @return Response
      */
-    public function show($id)
+    public function show($id): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 
     /**
@@ -54,9 +54,9 @@ class SchoolController extends Controller
      * @param int $id
      * @return Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 
     /**
@@ -65,8 +65,8 @@ class SchoolController extends Controller
      * @param int $id
      * @return Response
      */
-    public function destroy($id)
+    public function destroy($id): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 }

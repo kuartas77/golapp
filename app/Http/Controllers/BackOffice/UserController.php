@@ -14,7 +14,7 @@ class UserController extends Controller
      *
      * @return Response
      */
-    public function index()
+    public function index(): \Illuminate\Http\RedirectResponse
     {
         //  Auth::loginUsingId(6);
         //  dd(auth()->user());
@@ -29,6 +29,7 @@ class UserController extends Controller
         //         $user->profile()->create();
         //     }
         // });
+        return back();
     }
 
     /**
@@ -36,9 +37,9 @@ class UserController extends Controller
      *
      * @return Response
      */
-    public function create()
+    public function create(): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 
     /**
@@ -47,9 +48,9 @@ class UserController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 
     /**
@@ -58,9 +59,9 @@ class UserController extends Controller
      * @param \App\User $user
      * @return Response
      */
-    public function show(User $user)
+    public function show(User $user): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 
     /**
@@ -69,9 +70,9 @@ class UserController extends Controller
      * @param \App\User $user
      * @return Response
      */
-    public function edit(User $user)
+    public function edit(User $user): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 
     /**
@@ -81,9 +82,9 @@ class UserController extends Controller
      * @param \App\User $user
      * @return Response
      */
-    public function update(Request $request, User $user)
+    public function update(Request $request, User $user): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 
     /**
@@ -92,8 +93,8 @@ class UserController extends Controller
      * @param \App\User $user
      * @return Response
      */
-    public function destroy(User $user)
+    public function destroy(User $user): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 }

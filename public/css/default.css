@@ -763,3 +763,18 @@ legend {
 a[href="#cancel"] {
     background-color: #fc4b6c !important;
 }
+
+.ql-container{
+    height: 500px !important;
+  }
+
+  .ql-snow.ql-toolbar button{
+
+    width: 40px !important;
+}
+.tox-promotion {
+    display: none;
+}
+.tox-statusbar__branding {
+    display: none;
+}

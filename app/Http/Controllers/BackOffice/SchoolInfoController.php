@@ -56,8 +56,8 @@ class SchoolInfoController
      * @param School $school
      * @return Response
      */
-    public function destroy(School $school)
+    public function destroy(School $school): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 }

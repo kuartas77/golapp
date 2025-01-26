@@ -44,45 +44,48 @@ class CheckPayments extends Command
     {
         $months = $this->getAndCheckMonths(collect(config('variables.KEY_INDEX_MONTHS')));
 
-        $schools = School::with(['settingsValues'])->where('is_enable', true)->get();
-
         $now = now();
 
-        foreach ($schools as $school) {
-            $day = data_get($school, 'settings.NOTIFY_PAYMENT_DAY', 15);
+        School::where('is_enable', true)->where('id','<>', 1)->chunkById(10, function($schools) use($now, $months){
 
-            if ($now->month == 2 && $day > 28) {
-                $day = $now->lastOfMonth()->lastOfMonth()->day;
-            }
+            foreach ($schools as $school) {
+                $school->load(['settingsValues']);
+                $day = data_get($school, 'settings.NOTIFY_PAYMENT_DAY', 15);
 
-            if ($now->day != $day) {
-                continue;
-            }
-
-            $query = $this->makePaymentsQuery($months, $school->id);
-
-            $count = $query->count();
-
-            if ($count == 0) {
-                continue;
-            }
-
-            $chunkCount = $count >= 100 ? 5 : 10;
-
-            $query->chunkById($chunkCount, function ($payments) use ($school, $now) {
-                $iteration = 1;
-                foreach ($payments as $payment) {
-                    $delaySeconds = $iteration * 10;
-                    $player = $payment->inscription->player;
-                    if ($player->email && filter_var($player->email, FILTER_VALIDATE_EMAIL)) {
-                        $player->notify(
-                            (new PaymentNotification($payment, $school))->delay($now->addMinute()->addSeconds($delaySeconds))->onQueue('emails')
-                        );
-                    }
-                    $iteration++;
+                if ($now->month == 2 && $day > 28) {
+                    $day = $now->lastOfMonth()->day;
                 }
-            }, 'id');
-        }
+
+                if ($now->day != $day || $now->month == 1) {
+                    continue;
+                }
+
+                $query = $this->makePaymentsQuery($months, $school->id);
+
+                $count = $query->count();
+
+                if ($count == 0) {
+                    continue;
+                }
+
+                $chunkCount = $count >= 100 ? 5 : 10;
+
+                $query->chunkById($chunkCount, function ($payments) use ($school, $now) {
+                    $iteration = 1;
+                    foreach ($payments as $payment) {
+                        $delaySeconds = $iteration * 10;
+                        $player = $payment->inscription->player;
+                        if ($player->email && filter_var($player->email, FILTER_VALIDATE_EMAIL)) {
+                            $player->notify(
+                                (new PaymentNotification($payment, $school))->delay($now->addMinute()->addSeconds($delaySeconds))->onQueue('emails')
+                            );
+                        }
+                        $iteration++;
+                    }
+                }, 'id');
+            }
+        });
+
 
         return 1;
     }
@@ -110,7 +113,7 @@ class CheckPayments extends Command
 
         $paymentsQuery->where(function ($q) use ($months) {
             foreach ($months as $month) {
-                $q->orWhereIn($month, $this->getDebts());
+                $q->orWhere($month, $this->getDebts());
             }
         });
 
