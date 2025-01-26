@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Modules\Inscriptions\Notifications\InscriptionToSchoolNotification;
 use App\Models\Inscription;
 use App\Custom\PDFContractTest;
+use App\Models\Player;
 
 Route::middleware(['auth'])->prefix('test')->group(function () {
 
@@ -31,18 +32,30 @@ Route::middleware(['auth'])->prefix('test')->group(function () {
     });
 
     Route::get('contract', function (Request $request) {
-        $validated = $request->validate([
-            'school_id' => ['required', 'numeric']
-        ]);
 
-        if (!$validated) {
-            return response()->json($validated, 422);
-        }
+        $player = Player::with('people')->find(560);
 
-        return PDFContractTest::makeContract(
-            documentOption: 1,
-            filename: 'CONTRATO.pdf',
-            params: $request->only(['school_id'])
-        );
+        $people = $player->people;
+
+        $tutor = $people->firstWhere('tutor', true);
+        $mother = $people->whereIn('relationship', ['15', '16'])->first();
+        $dad = $people->whereIn('relationship', ['20', '21'])->first();
+
+        dd($mother, $dad);
+
+        // $validated = $request->validate([
+        //     'school_id' => ['required', 'numeric'],
+        //     'document' => ['required', 'numeric'],
+        // ]);
+
+        // if (!$validated) {
+        //     return response()->json($validated, 422);
+        // }
+
+        // return PDFContractTest::makeContract(
+        //     documentOption: $request->input('document', 0),
+        //     filename: 'CONTRATO.pdf',
+        //     params: $request->only(['school_id'])
+        // );
     });
 });

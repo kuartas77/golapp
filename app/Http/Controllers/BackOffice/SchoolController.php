@@ -51,6 +51,7 @@ class SchoolController extends Controller
     public function update(SchoolUpdateRequest $request, School $school): JsonResponse
     {
         abort_unless($request->ajax(), 404);
+
         $school = $this->repository->update($request, $school);
         return response()->json($school->isDirty());
     }

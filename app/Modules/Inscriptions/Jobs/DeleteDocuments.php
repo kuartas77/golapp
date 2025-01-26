@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Inscriptions\Jobs;
 
 use App\Traits\ErrorTrait;
@@ -13,7 +15,10 @@ use Illuminate\Contracts\Queue\ShouldBeUnique;
 
 class DeleteDocuments implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
     use ErrorTrait;
 
     /**
@@ -28,17 +33,15 @@ class DeleteDocuments implements ShouldQueue
 
     /**
      * Execute the job.
-     *
-     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         try {
 
             Storage::disk('public')->deleteDirectory($this->folder.DIRECTORY_SEPARATOR.$this->uniqueCode);
 
-        } catch (\Throwable $th) {
-            $this->logError(__FUNCTION__, $th);
+        } catch (\Throwable $throwable) {
+            $this->logError(__FUNCTION__, $throwable);
         }
     }
 }

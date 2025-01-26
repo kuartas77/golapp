@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Inscriptions\Notifications;
 
 use Illuminate\Support\Facades\File;
@@ -28,9 +30,8 @@ class InscriptionToSchoolNotification extends Notification implements ShouldQueu
      * Get the notification's delivery channels.
      *
      * @param  mixed  $notifiable
-     * @return array
      */
-    public function via($notifiable)
+    public function via($notifiable): array
     {
         return ['mail'];
     }
@@ -58,34 +59,35 @@ class InscriptionToSchoolNotification extends Notification implements ShouldQueu
      * Get the array representation of the notification.
      *
      * @param  mixed  $notifiable
-     * @return array
      */
-    public function toArray($notifiable)
+    public function toArray($notifiable): array
     {
         return [
             //
         ];
     }
 
-    private function attachment()
+    private function attachment(): string
     {
         $folderDocuments = $this->school->slug;
         $storagePath = "app".DIRECTORY_SEPARATOR."public".DIRECTORY_SEPARATOR;
         $folder = $folderDocuments . DIRECTORY_SEPARATOR . $this->inscription->unique_code;
-        $fileName = "{$this->inscription->unique_code}.zip";
-        $zip = new \ZipArchive();
+        $fileName = $this->inscription->unique_code . '.zip';
+        logger($fileName);
+        $zipArchive = new \ZipArchive();
 
         $tmpFilePath = sys_get_temp_dir() . '/' . $fileName;
 
-        if ($zip->open($tmpFilePath, \ZipArchive::CREATE)== TRUE)
+        if ($zipArchive->open($tmpFilePath, \ZipArchive::CREATE)== TRUE)
         {
-            $files = File::files(storage_path("{$storagePath}{$folder}"));
+            $files = File::files(storage_path($storagePath . $folder));
 
-            foreach ($files as $key => $value){
-                $relativeName = basename($value);
-                $zip->addFile($value, $relativeName);
+            foreach ($files as $file){
+                $relativeName = basename($file->getRelativePathname());
+                $zipArchive->addFile($file->getPathname(), $relativeName);
             }
-            $zip->close();
+
+            $zipArchive->close();
         }
 
         return $tmpFilePath;
