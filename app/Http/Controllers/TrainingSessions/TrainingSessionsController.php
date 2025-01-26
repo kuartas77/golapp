@@ -23,6 +23,7 @@ class TrainingSessionsController extends Controller
 
     public function create(): Factory|View|Application
     {
+        $numberTasks = 0;
         return view('training_sessions.create', compact('numberTasks'));
     }
 

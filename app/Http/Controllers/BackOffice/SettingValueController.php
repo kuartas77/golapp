@@ -14,9 +14,9 @@ class SettingValueController extends Controller
      *
      * @return Response
      */
-    public function index()
+    public function index(): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 
     /**
@@ -24,9 +24,9 @@ class SettingValueController extends Controller
      *
      * @return Response
      */
-    public function create()
+    public function create(): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 
     /**
@@ -35,9 +35,9 @@ class SettingValueController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 
     /**
@@ -46,9 +46,9 @@ class SettingValueController extends Controller
      * @param SettingValue $settingValue
      * @return Response
      */
-    public function show(SettingValue $settingValue)
+    public function show(SettingValue $settingValue): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 
     /**
@@ -57,9 +57,9 @@ class SettingValueController extends Controller
      * @param SettingValue $settingValue
      * @return Response
      */
-    public function edit(SettingValue $settingValue)
+    public function edit(SettingValue $settingValue): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 
     /**
@@ -69,9 +69,9 @@ class SettingValueController extends Controller
      * @param SettingValue $settingValue
      * @return Response
      */
-    public function update(Request $request, SettingValue $settingValue)
+    public function update(Request $request, SettingValue $settingValue): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 
     /**
@@ -80,8 +80,8 @@ class SettingValueController extends Controller
      * @param SettingValue $settingValue
      * @return Response
      */
-    public function destroy(SettingValue $settingValue)
+    public function destroy(SettingValue $settingValue): \Illuminate\Http\RedirectResponse
     {
-        //
+        return back();
     }
 }

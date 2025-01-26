@@ -53,7 +53,7 @@ trait PDFTrait
      * Get instance mpdf
      * @return static
      */
-    public function getMpdf(): PDFTrait
+    public function getMpdf()
     {
         return $this->mpdf;
     }
@@ -96,22 +96,6 @@ trait PDFTrait
     public function stream(string $filename = 'document.pdf')
     {
         return $this->mpdf->Output($filename, Destination::INLINE);
-    }
-
-    public function returnFile($file)
-    {
-        //This method will look for the file and get it from drive
-        $path = storage_path('app/tmp/' . $file);
-        try {
-            $file = File::get($path);
-            $type = File::mimeType($path);
-            $response = Response::make($file, 200);
-            $response->header("Content-Type", $type);
-
-        } catch (FileNotFoundException $exception) {
-            abort(404);
-        }
-        return $response;
     }
 
     /**
