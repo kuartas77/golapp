@@ -73,7 +73,6 @@ class InscriptionToSchoolNotification extends Notification implements ShouldQueu
         $storagePath = "app".DIRECTORY_SEPARATOR."public".DIRECTORY_SEPARATOR;
         $folder = $folderDocuments . DIRECTORY_SEPARATOR . $this->inscription->unique_code;
         $fileName = $this->inscription->unique_code . '.zip';
-        logger($fileName);
         $zipArchive = new \ZipArchive();
 
         $tmpFilePath = sys_get_temp_dir() . '/' . $fileName;
