@@ -64,7 +64,7 @@
                 </div>
             </div>
             @endif
-            @if(!$school->create_contract)
+            @if($school->create_contract)
             <div class="row">
                 <div class="check col">
                     <div class="form-group">
