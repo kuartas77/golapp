@@ -4,7 +4,7 @@
             <div class="modal-content">
                 <div class="modal-body">
                     {{html()->form('post', route('portal.school.inscription.store', [$school->slug]))->attributes(['id' => 'form_inscripcion', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class' => 'validation-wizard wizard-circle'])->open()}}
-                    {!! RecaptchaV3::field('inscriptions') !!}
+                    {!! RecaptchaV3::field('inscriptions', 'g-recaptcha-response', true, 'form_inscripcion') !!}
                     @include('portal.inscriptions.fields.step_1')
                     @include('portal.inscriptions.fields.step_2')
                     @include('portal.inscriptions.fields.step_3')
@@ -144,6 +144,7 @@
                 form_inscripcion.validate().settings.ignore = ":disabled,:hidden", form_inscripcion.valid())
         },
         onFinishing: function(event, currentIndex) {
+            onClickRecaptcha(event)
             return form_inscripcion.validate().settings.ignore = ":disabled", form_inscripcion.valid()
         },
         onFinished: function(event, currentIndex) {

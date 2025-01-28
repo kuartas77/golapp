@@ -2,6 +2,11 @@
 @section('content')
     <x-bread-crumb title="Agregar Deportista" :option="0"/>
     <x-row-card col-outside="2" col-inside="8">
+        @if(getSchool(auth()->user())->create_contract)
+        <div class="text-center">
+            <h3 class="text-warning">Diligenciar este formulario no creará ningun contrato, ya que faltan las firmas.</h3>
+        </div>
+        @endif
         <div class="wizard-content">
         {{html()->form('post', route('players.store'))->attributes(['id' => 'form_player', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class' => 'validation-wizard wizard-circle'])->open()}}
             @include('player.fields.basic_information')
