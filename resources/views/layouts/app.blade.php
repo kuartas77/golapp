@@ -13,14 +13,7 @@
     <link href="{{asset('css/all.css')}}" rel="stylesheet">
     @yield('css')
     <link href="{{asset('css/default.css')}}" rel="stylesheet">
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js" defer></script>
-    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js" defer></script>
-    <![endif]-->
-
-</head>
+ </head>
 
 <body class="fix-header fix-sidebar card-no-border">
 
@@ -55,7 +48,7 @@
     </div>
 @endif
 <script>
-    window.token = {!! json_encode(['csrfToken' => csrf_token(), ]) !!};
+    window.token = @json(['csrfToken' => csrf_token()]);
     window.app_name = "{{config('app.name', 'Laravel') }}";
     window.img_login = "{{asset('img/login.png')}}";
     window.img_logout = "{{asset('img/logout.png')}}";

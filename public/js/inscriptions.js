@@ -124,7 +124,7 @@ const columns = [
     },
     {
         data: 'id', "render": function (data, type, row) {
-            return "<img class='img-fluid rounded img-thumbnail' width='70' height='50' src='" + row.player.photo_url + "' alt='" + row.player.full_names + "'>";
+            return "<img class='rounded-circle' width='70' height='50' src='" + row.player.photo_url + "' alt='" + row.player.full_names + "'>";
         }, 'searchable': false
     },
     {data: 'unique_code'},//2
@@ -168,7 +168,7 @@ const columns = [
 const columnsDelete = [
     {
         data: 'id', "render": function (data, type, row) {
-            return "<img class='img-fluid rounded img-thumbnail' width='70' height='50' src='" + row.player.photo_url + "' alt='" + row.player.full_names + "'>";
+            return "<img class='rounded-circle' width='70' height='50' src='" + row.player.photo_url + "' alt='" + row.player.full_names + "'>";
         }, 'searchable': false
     },
     {data: 'unique_code'},//2

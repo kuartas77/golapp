@@ -37,7 +37,7 @@
                     },
                     {
                         data: 'id', "render": function (data, type, row) {
-                            return "<img class='img-fluid rounded img-thumbnail' width='70' height='50' src='" + row.photo_url + "' alt='" + row.full_names + "'>";
+                            return "<img class='rounded-circle' width='70' height='50' src='" + row.photo_url + "' alt='" + row.full_names + "'>";
                         }, 'searchable': false
                     },
                     {data: 'unique_code', name: 'unique_code'},
