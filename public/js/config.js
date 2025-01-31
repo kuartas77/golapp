@@ -321,8 +321,13 @@ jQuery.validator.addMethod('filesize', function(value, element, param) {
     // param = size (en bytes)
     // element = element to validate (<input>)
     // value = value of the element (file name)
-    let fileSizeMB = element.files[0].size / (1024 ** 2)
-    return this.optional(element) || (fileSizeMB <= param)
+    let result = true
+    if (element.files.length){
+        let fileSizeMB = element.files[0].size / (1024 ** 2)
+        result = this.optional(element) || (fileSizeMB <= param)
+    }
+
+    return result
 }, jQuery.validator.format('El archivo cargado supera el tamaño permitido {0}MB'));
 jQuery.validator.addMethod("dateLessThan", function(value, element, params) {
     if (!/Invalid|NaN/.test(new Date(value))) {
