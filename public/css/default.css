@@ -1,4 +1,4 @@
-@font-face {
+/* @font-face {
     font-family: roboto_condensedregular;
     src: url(../fonts/RobotoCondensed-Regular-webfont.ttf) format('truetype');
     font-weight: 100;
@@ -7,7 +7,7 @@
 
 body {
     color: black;
-}
+} */
 
 .img-center {
     display: block;
@@ -154,14 +154,14 @@ textarea[name=ticr_observacion] {
     }
 }
 
-.dataTables_scrollBody thead tr[role="row"] {
+/* .dataTables_scrollBody thead tr[role="row"] {
     visibility: collapse !important;
 }
 
 .dataTable tfoot, .dataTable thead, thead {
     background-color: #0E1E4F;
     color: #ffffff;
-}
+} */
 
 .color-table.purple-table thead th {
     background-color: #0E1E4F;
@@ -415,13 +415,13 @@ textarea[name=ticr_observacion] {
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button.current, .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
-    color: #000000 !important;
+    /* color: #000000 !important; */
     border: 1px solid #003380 !important;
     background-color: #003380 !important;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-    color: white !important;
+    /* color: white !important; */
     border: 1px solid #003380 !important;
     background-color: #1E88E5 !important;
     background: -webkit-gradient(linear, left top, left bottom, color-stop(100%, #003380)) !important;
@@ -433,7 +433,7 @@ textarea[name=ticr_observacion] {
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button.current, .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
-    color: #fff !important;
+    /* color: #fff !important; */
     border: 1px solid #009efb !important;
     background-color: #009efb !important;
     background: -webkit-gradient(linear, left top, left bottom, color-stop(100%, #003380)) !important;
@@ -445,7 +445,7 @@ textarea[name=ticr_observacion] {
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button.current, .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
-    color: white !important;
+    /* color: white !important; */
     border: 1px solid #003380 !important;
     background-color: #1E88E5 !important;
     background: -webkit-gradient(linear, left top, left bottom, color-stop(100%, #003380)) !important;
@@ -778,3 +778,8 @@ a[href="#cancel"] {
 .tox-statusbar__branding {
     display: none;
 }
+
+* {
+    font-size: 16px;
+    line-height: 2;
+ }

@@ -27,7 +27,7 @@
 <div class="tab-content clearfix" id="tab_content">
     <div class="tab-pane show active" id="activos" role="tabpanel" aria-labelledby="activos-tab">
         <div class="table-responsive-md">
-            <table class="display compact" id="table_players" width="100%">
+            <table class="table table-striped dt-table-hover" id="table_players" width="100%">
                 <thead>
                     <tr>
                         <th></th>
@@ -35,11 +35,10 @@
                         <th>Código</th>
                         <th>Doc.Identidad</th>
                         <th>Nombres</th>
-                        <th>Teléfonos</th>
                         <th>Genero</th>
                         <th>F.Nacimiento</th>
                         <th>F.Registro</th>
-                        <th>Opciones</th>
+                        <th class="no-content">Opciones</th>
                     </tr>
                 </thead>
             </table>

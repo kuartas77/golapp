@@ -12,6 +12,7 @@
         "inputmask": "^5.0.8",
         "laravel-vite-plugin": "^1.0",
         "postcss": "^8.4.47",
+        "terser": "^5.37.0",
         "trix": "^2.1.12",
         "vite": "^6.0.11"
     },

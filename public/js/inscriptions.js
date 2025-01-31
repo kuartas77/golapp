@@ -2,11 +2,9 @@ const onClickDetails = (tr, row) => {
     if (row.child.isShown()) {
         // This row is already open - close it
         row.child.hide();
-        tr.removeClass('shown');
     } else {
         // Open this row
         row.child(format(row.data())).show();
-        tr.addClass('shown');
     }
 }
 
@@ -93,17 +91,12 @@ function addSelectCategory(column){
 function filterTable() {
 
     // Apply the search
-    this.api().columns([11]).every(function () {
-        let column = this;
-        addSelectCategory(column)
-    });
-
     this.api().columns([7]).every(function () {
         let column = this;
         addSelectTraining(column)
     });
 
-    let start_date = this.api().columns(10);
+    let start_date = this.api().columns(8);
     $("<input type='search' class='' placeholder='Buscar F.Inicio' />")
         .appendTo($(start_date.header()).empty())
         .on('keyup change search', function () {
@@ -112,19 +105,26 @@ function filterTable() {
                     .draw();
             }
         });
+
+    this.api().columns([9]).every(function () {
+        let column = this;
+        addSelectCategory(column)
+    });
     $.fn.dataTable.tables({visible: true, api: true}).columns.adjust();
 }
 
 const columns = [
     {
-        "className": 'details-control',
+        "className": 'dt-control',
         "orderable": false,
         "data": null,
         "defaultContent": ''
     },
     {
         data: 'id', "render": function (data, type, row) {
-            return "<img class='img-fluid rounded img-thumbnail' width='70' height='50' src='" + row.player.photo_url + "' alt='" + row.player.full_names + "'>";
+            return '<div class="usr-img-frame me-2 rounded-circle">'+
+                '<img alt="'+ row.player.full_names +'" class="img-fluid rounded-circle" src="'+row.player.photo_url+'">'+
+            '</div>'
         }, 'searchable': false
     },
     {data: 'unique_code'},//2
@@ -133,14 +133,8 @@ const columns = [
     {data: 'player.date_birth', 'searchable': false},//5
     {data: 'player.gender', 'searchable': false},//6
     {data: 'training_group.name', name: 'training_group_id'},//7
-    {
-        data: 'medic_certificate', "render": function (data) {
-            return data === 1 ? '<span class="label label-success">SI</span>' : '<span class="label label-warning">NO</span>';
-        }, 'searchable': false
-    },//8
-    {data: 'player.mobile', 'searchable': false},//9
-    {data: 'start_date', 'searchable': false},//10
-    {data: 'category', name: 'category', "className": 'text-center'},//11
+    {data: 'start_date', 'searchable': false},//8
+    {data: 'category', name: 'category', "className": 'text-center'},//9
     {
         data: 'id',
         "render": function (data, type, row) {
@@ -162,7 +156,7 @@ const columns = [
             + deleteButton
             + '</div></form>';
         }, 'searchable': false
-    },//12
+    },//10
 ];
 
 const columnsDelete = [
@@ -185,15 +179,16 @@ const columnsDelete = [
     {data: 'category', name: 'category', "className": 'text-center'},//9
 ];
 const columnDefs = [
-    {"targets": [2,3,4,7,11], "searchable": true},
-    {"targets": [0, 1, 6, 7, 8, 10, 11, 12], "orderable": false},
-    {"targets": [7, 10, 11], "width": "1%" }
+    {"targets": [2,3,4,8,9], "searchable": true},
+    {"targets": [0, 1, 6, 7, 8, 9, 10], "orderable": false},
+    // {"targets": [7, 10, 11], "width": "20%" }
 
 ];
 
 $(document).ready(function () {
 
     const active_table = $('#active_table').DataTable({
+
         "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
         "order": [[2, "desc"]],
         "scrollX": true,
@@ -206,11 +201,10 @@ $(document).ready(function () {
         "columns": columns,
         "columnDefs": columnDefs,
         "createdRow": function (row, data, dataIndex) {
-            console.log(data.pre_inscription)
             if (data.pre_inscription == 1 && data.training_group_id == firstGroup) {
-                $(row).addClass('bg-warning')
+                $(row).addClass('table-warning')
             }else if (data.training_group_id == firstGroup) {
-                $(row).addClass('bg-info')
+                $(row).addClass('table-info')
             }
         },
         initComplete: filterTable,
@@ -243,7 +237,7 @@ $(document).ready(function () {
         $.fn.dataTable.tables({visible: true, api: true}).columns.adjust();
     });
 
-    $('#active_table tbody').on('click', 'td.details-control', function () {
+    $('#active_table tbody').on('click', 'td.dt-control', function () {
         let tr = $(this).closest('tr');
         let row = active_table.row(tr);
         onClickDetails(tr, row);
@@ -252,7 +246,7 @@ $(document).ready(function () {
     $('#active_table tbody').on('click', 'a.edit_inscription', function () {
         let btn = $(this);
         let form = $("#form_create");
-        form.clearForm();
+        document.getElementById("form_create").reset();
         $.get(btn.data('href'), function(response){
             $("#modal_title").html(`Actualizar Inscripción: ${response.unique_code}`);
             form.attr('action', btn.data('update'));
@@ -297,7 +291,7 @@ $(document).ready(function () {
         form.attr('action', urlCreate);
         form.find('#method').remove();
         $("#form_create #start_date").attr('disabled',false);
-        form.clearForm();
+        document.getElementById("form_create").reset();
         $("#form_create #training_group_id").val('').trigger('change');
         $("#form_create #competition_group_id").val('').trigger('change');
         $("#btn_add_inscription").attr('disabled', true);
