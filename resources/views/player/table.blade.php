@@ -7,11 +7,11 @@
         @hasanyrole('super-admin|school')
         <li class=" nav-item ml-auto">
 
-            <a class="float-right btn waves-effect waves-light btn-rounded btn-info"
+            {{--<a class="float-right btn waves-effect waves-light btn-rounded btn-info"
                 href="{!! route('players.create') !!}">
                 <i class="fa fa-plus" aria-hidden="true"></i>
                 Agregar Deportista
-            </a>
+            </a>--}}
 
             <a class="float-left btn waves-effect waves-light btn-rounded btn-info create_inscription"
                 href="javascript:void(0)" data-toggle="modal" data-target="#create_inscription" data-backdrop="static"
