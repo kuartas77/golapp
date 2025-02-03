@@ -41,7 +41,8 @@ class Incident extends Model
 
     public function getDescriptionUpperAttribute($value): string
     {
-        return Str::upper(wordwrap($this->description, 120, '<br>'));
+        $description = is_null($this->description) ? '' : $this->description;
+        return Str::upper(wordwrap($description, 120, '<br>'));
     }
 
     public function getRouteKeyName(): string
