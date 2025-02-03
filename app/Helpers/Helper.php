@@ -30,7 +30,7 @@ if (!function_exists('getAmount')) {
      */
     function getAmount($value): string
     {
-        return $value; //number_format((float)$value, 0, ',', '.');
+        return (string) $value; //number_format((float)$value, 0, ',', '.');
     }
 }
 
