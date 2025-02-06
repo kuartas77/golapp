@@ -23,8 +23,10 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
     Route::prefix('instructor')->name('instructor.')->middleware(['auth:sanctum'])->group(function (){
 
-        Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']])->middleware('ability:group-index');
-        Route::apiResource('attendances', AssistsController::class, ['only' => ['index', 'update']])->middleware('abilities:assists-index,assists-update');
+        Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);
+
+        Route::get('attendances', [AssistsController::class, 'index']);
+        Route::post('attendances/upsert', [AssistsController::class, 'upsert']);
     });
 
     Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum'])->name('v1.')->group(function (){
