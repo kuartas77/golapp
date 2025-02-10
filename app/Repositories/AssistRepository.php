@@ -44,7 +44,7 @@ class AssistRepository
             ->where([
                 ['training_group_id', $data['training_group_id']],
                 ['month',  getMonthNumber($data['month'])],
-                ['year',$data['year']]
+                ['year', $data['year']]
             ]);
 
         return $this->service->generateTable($assists, $trainingGroup, $data, $deleted);
@@ -61,7 +61,7 @@ class AssistRepository
             $training_group_id = TrainingGroup::query()->orderBy('id')
                 ->firstWhere('school_id', $school_id)->id;
 
-            if($training_group_id == $dataAssist['training_group_id']){
+            if ($training_group_id == $dataAssist['training_group_id']) {
                 return $table;
             }
 
@@ -80,7 +80,6 @@ class AssistRepository
             DB::commit();
 
             $table = $this->service->generateTable($assistsQuery, $trainingGroup, $dataAssist);
-
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("AssistRepository create", $exception);
@@ -89,20 +88,50 @@ class AssistRepository
         return $table;
     }
 
+    public function upsert(array $validated): bool
+    {
+        try {
+            DB::beginTransaction();
+
+            if (isset($validated['observations']) && isset($validated['attendance_date'])) {
+                $observations = new \stdClass;
+                $observations->{$validated['attendance_date']} = $validated['observations'];
+                $validated['observations'] = $observations;
+            }
+
+            $search = [
+                'inscription_id' => $validated['inscription_id'],
+                'year' => $validated['year'],
+                'month' => $validated['month'],
+                'training_group_id' => $validated['training_group_id'],
+                'school_id' => $validated['school_id']
+            ];
+
+            Assist::query()->updateOrCreate($search, $validated);
+
+            DB::commit();
+
+            return true;
+        } catch (Exception $exception) {
+            DB::rollBack();
+            $this->logError("AssistRepository store", $exception);
+            return false;
+        }
+    }
+
     public function update(Assist $assist, array $validated): bool
     {
         try {
             DB::beginTransaction();
-            if($assist->observations || ($validated['observations'] && $validated['attendance_date'])){
-                if ($assist->observations !== null && is_object($assist->observations)){
+            if ($assist->observations || ($validated['observations'] && $validated['attendance_date'])) {
+                if ($assist->observations !== null && is_object($assist->observations)) {
                     $observations = $assist->observations;
-                }else{
+                } else {
                     $observations = new \stdClass;
                 }
 
                 $observations->{$validated['attendance_date']} = $validated['observations'];
                 $validated['observations'] = $observations;
-            }else {
             }
 
             $updated = $assist->update($validated);
@@ -142,11 +171,11 @@ class AssistRepository
                 );
 
                 Assist::query()->where('inscription_id', $idDiff)
-                ->where('year', $dataAssist['year'])
-                ->where('month', $dataAssist['month'])
-                ->where('training_group_id', '<>', $dataAssist['training_group_id'])
-                ->where('school_id', $school_id)
-                ->forceDelete();
+                    ->where('year', $dataAssist['year'])
+                    ->where('month', $dataAssist['month'])
+                    ->where('training_group_id', '<>', $dataAssist['training_group_id'])
+                    ->where('school_id', $school_id)
+                    ->forceDelete();
             }
         }
     }

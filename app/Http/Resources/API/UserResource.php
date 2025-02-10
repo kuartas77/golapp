@@ -18,15 +18,11 @@ class UserResource extends JsonResource
     public function toArray($request): array|JsonSerializable|Arrayable
     {
         return [
-            'user' => [
-                'id' => $this->id,
-                'name' => $this->name,
-                'email' => $this->email,
-                'school_id' => $this->school_id,
-                'school_name' => $this->school->name,
-                'school_slug' => $this->school->slug,
-                'school_logo' => $this->school->logo,
-            ]
+            'name' => $this->name,
+            'school_id' => $this->school_id,
+            'school_name' => $this->school->name,
+            'school_slug' => $this->school->slug,
+            'school_logo' => $this->school->logo,
         ];
     }
 }
