@@ -20,7 +20,7 @@ class AssistsController extends Controller
         $this->middleware('ability:assists-update')->only('upsert');
     }
 
-    public function index(AssistsRequest $request, ): AssistsCollection
+    public function index(AssistsRequest $request): AssistsCollection
     {
         return new AssistsCollection($this->assistsService->getAssists($request->validated()));
     }

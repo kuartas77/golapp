@@ -20,7 +20,7 @@ class LoginResource extends JsonResource
         $date = now()->addWeeks(2);
         $accessToken = $this->createToken('access_token', $this->abilities, $date);
         // $refreshToken = $this->createToken('refresh_token', $this->abilities, $date);
-
+        parent::wrap(null);
         return [
             'token_type' => 'Bearer',
             'access_token' => $accessToken->plainTextToken,
