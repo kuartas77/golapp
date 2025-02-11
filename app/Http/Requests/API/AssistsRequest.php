@@ -15,7 +15,7 @@ class AssistsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return isInstructor();
+        return isSchool() || isInstructor() || isAdmin();
     }
 
     /**
