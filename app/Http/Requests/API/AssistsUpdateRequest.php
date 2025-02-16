@@ -13,7 +13,7 @@ class AssistsUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return isSchool() || isInstructor();
+        return isSchool() || isInstructor() || isAdmin();
     }
 
     /**
@@ -24,7 +24,12 @@ class AssistsUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required'],
+            'id' => ['nullable'],
+            'school_id' => ['required', 'numeric'],
+            'training_group_id' => ['required', 'numeric'],
+            'inscription_id' => ['required', 'numeric'],
+            'month' => ['required', 'numeric'],
+            'year' => ['required', 'numeric'],
             'assistance_one' => ['nullable', 'string'],
             'assistance_two' => ['nullable', 'string'],
             'assistance_three' => ['nullable', 'string'],
@@ -51,14 +56,18 @@ class AssistsUpdateRequest extends FormRequest
             'assistance_twenty_four' => ['nullable', 'string'],
             'assistance_twenty_five' => ['nullable', 'string'],
             'observations' => ['nullable', 'string'],
-            'school_id' => ['required'],
+            'attendance_date' => ['nullable', 'string'],
+
         ];
     }
 
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'school_id' => getSchool(auth()->user())->id
+            'school_id' => getSchool(auth()->user())->id,
+            $this->column => $this->value,
+            'training_group_id' => $this->group_id,
+            'year' => $this->input('year', now()->year),
         ]);
     }
 }

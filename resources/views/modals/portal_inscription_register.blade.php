@@ -72,7 +72,7 @@
             mom_phone: {required: (element) => $("#mom_name").val().length > 0, maxlength:50},
             mom_work: {required: (element) => $("#mom_name").val().length > 0, maxlength:50},
 
-            photo: {required: true, extension: "png|jpeg|jpg", filesize: fileSize},
+            photo: {required: false, extension: "png|jpeg|jpg", filesize: fileSize},
             player_document: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
             medical_certificate: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
             tutor_document: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},

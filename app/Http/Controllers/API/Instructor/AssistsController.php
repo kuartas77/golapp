@@ -4,8 +4,6 @@ namespace App\Http\Controllers\API\Instructor;
 
 use App\Models\Assist;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Repositories\AssistRepository;
 use App\Http\Requests\API\AssistsRequest;
@@ -15,13 +13,20 @@ use App\Http\Resources\API\Assists\AssistsCollection;
 
 class AssistsController extends Controller
 {
-    public function index(AssistsRequest $request, AssistsService $assistsService): AssistsCollection
+
+    public function __construct(private AssistsService $assistsService, private AssistRepository $repository)
     {
-        return new AssistsCollection($assistsService->getAssists($request->validated()));
+        $this->middleware('ability:assists-index')->only('index');
+        $this->middleware('ability:assists-update')->only('upsert');
     }
 
-    public function update(AssistsUpdateRequest $request, Assist $assist, AssistRepository $repository): JsonResponse
+    public function index(AssistsRequest $request): AssistsCollection
     {
-        return response()->json(['data' => $repository->update($assist, $request->validated())]);
+        return new AssistsCollection($this->assistsService->getAssists($request->validated()));
+    }
+
+    public function upsert(AssistsUpdateRequest $request): JsonResponse
+    {
+        return response()->json(['data' => $this->repository->upsert($request->validated())]);
     }
 }

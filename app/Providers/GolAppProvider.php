@@ -44,9 +44,7 @@ class GolAppProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->app->bind(RecaptchaV3::class, function ($app) {
-            return new CustomRecaptchaV3(config(), new Client, request(), $app);
-        });
+        $this->custombinding();
 
         $this->loggerQueries();
 
@@ -130,5 +128,12 @@ class GolAppProvider extends ServiceProvider
         View::composer(['layouts.portal.*', 'portal.*', 'welcome'], PortalComposer::class);
 
         View::composer(['payments.tournaments.index'], TournamentPaymentsViewComposer::class);
+    }
+
+    private function custombinding()
+    {
+        $this->app->bind(RecaptchaV3::class, function ($app) {
+            return new CustomRecaptchaV3(config(), new Client, request(), $app);
+        });
     }
 }

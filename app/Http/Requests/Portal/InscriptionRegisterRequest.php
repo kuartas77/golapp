@@ -58,7 +58,7 @@ class InscriptionRegisterRequest extends FormRequest
             'mom_work' => ['nullable', 'string', 'max:50'],
             'relationship_mom' => ['nullable', 'numeric'],
             // Step 4
-            'photo' => ['required', 'file', 'mimetypes:image/png,image/jpeg'],
+            'photo' => ['nullable', 'file', 'mimetypes:image/png,image/jpeg'],
             'player_document' => ['nullable', 'file', 'mimetypes:image/png,image/jpeg,application/pdf'],
             'medical_certificate' => ['nullable', 'file', 'mimetypes:image/png,image/jpeg,application/pdf'],
             'tutor_document' => ['nullable', 'file', 'mimetypes:image/png,image/jpeg,application/pdf'],

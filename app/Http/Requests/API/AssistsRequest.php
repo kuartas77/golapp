@@ -15,7 +15,7 @@ class AssistsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return isInstructor();
+        return isSchool() || isInstructor() || isAdmin();
     }
 
     /**
@@ -37,7 +37,7 @@ class AssistsRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'year' => $this->year ?? now()->year,
+            'year' => $this->input('year', now()->year),
             'school_id' => auth()->user()->school_id
         ]);
     }
