@@ -28,9 +28,9 @@
     <link rel="stylesheet" type="text/css" href="{{asset('layouts/css/dark/elements/alert.css')}}">
     <!-- END PAGE LEVEL PLUGINS/CUSTOM STYLES -->
 
-    <!-- <link href="https://cdn.datatables.net/v/dt/moment-2.29.4/dt-2.2.1/fc-5.0.4/fh-4.0.1/datatables.min.css" rel="stylesheet"> -->
-    <link href="{{asset('layouts/plugins/src/table/datatable/datatables.css')}}" rel="stylesheet">
-    <link href="{{asset('layouts/plugins/css/dark/table/datatable/dt-global_style.css')}}" rel="stylesheet">
+    <link href="https://cdn.datatables.net/v/dt/moment-2.29.4/dt-2.2.1/fc-5.0.4/fh-4.0.1/datatables.min.css" rel="stylesheet">
+    <!-- <link href="{{asset('layouts/plugins/src/table/datatable/datatables.css')}}" rel="stylesheet"> -->
+    <!-- <link href="{{asset('layouts/plugins/css/dark/table/datatable/dt-global_style.css')}}" rel="stylesheet"> -->
     @yield('css')
     <!-- <link href="{{asset('css/all.css')}}" rel="stylesheet"> -->
     <!-- <link href="{{asset('css/default.css')}}" rel="stylesheet"> -->
@@ -98,10 +98,10 @@
     <!-- <script src="{{asset('layouts/js/custom.js')}}"></script> -->
     @include('sweetalert::alert')
     <!-- <script src="{{asset('js/all.js')}}"></script> -->
-    <!-- <script src="https://cdn.datatables.net/v/dt/moment-2.29.4/dt-2.2.1/fc-5.0.4/fh-4.0.1/datatables.min.js"></script> -->
-    <script src="{{asset('layouts/plugins/src/table/datatable/datatables.js')}}"></script>
+    <script src="https://cdn.datatables.net/v/dt/moment-2.29.4/dt-2.2.1/fc-5.0.4/fh-4.0.1/datatables.min.js"></script>
+    <!-- <script src="{{asset('layouts/plugins/src/table/datatable/datatables.js')}}"></script> -->
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/3.0.5/daterangepicker.min.js" integrity="sha512-mh+AjlD3nxImTUGisMpHXW03gE6F4WdQyvuFRkjecwuWLwD2yCijw4tKA3NsEFpA1C3neiKhGXPSIGSfCYPMlQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.9/jquery.inputmask.min.js" integrity="sha512-F5Ul1uuyFlGnIT1dk2c4kB4DBdi5wnBJjVhL7gQlGh46Xn0VhvD8kgxLtjdZ5YN83gybk/aASUAlpdoWUjRR3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.3/typeahead.bundle.min.js" integrity="sha512-E4rXB8fOORHVM/jZYNCX2rIY+FOvmTsWJ7OKZOG9x/0RmMAGyyzBqZG0OGKMpTyyuXVVoJsKKWYwbm7OU2klxA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

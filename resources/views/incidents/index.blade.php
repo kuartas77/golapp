@@ -17,7 +17,6 @@
             $("#form_create").validate();
             $("#active_table").DataTable({
                 "lengthMenu": [[10, 30, 50, 70, -1], [10, 30, 50, 70, "Todos"]],
-                "scrollX": true,
                 "processing": true,
                 "serverSide": true,
                 "ajax": $.fn.dataTable.pipeline({

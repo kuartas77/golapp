@@ -123,7 +123,7 @@ const columns = [
     {
         data: 'id', "render": function (data, type, row) {
             return '<div class="usr-img-frame me-2 rounded-circle">'+
-                '<img alt="'+ row.player.full_names +'" class="img-fluid rounded-circle" src="'+row.player.photo_url+'">'+
+                '<img alt="'+ row.player.full_names +'" class="img-fluid rounded-circle" src="'+row.player.photo_url+'" width="40px" height="60px">'+
             '</div>'
         }, 'searchable': false
     },
@@ -191,16 +191,17 @@ $(document).ready(function () {
 
         "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
         "order": [[2, "desc"]],
-        "scrollX": true,
-        "scrollY":"550px",
-        "scrollCollapse":true,
+        // "scrollX": true,
+        // "scrollY":"550px",
+        // "scrollCollapse":true,
         "processing": true,
         "serverSide": true,
         "deferRender": true,
-        "fixedColumns": true,
+        // "fixedColumns": true,
         "columns": columns,
         "columnDefs": columnDefs,
         "createdRow": function (row, data, dataIndex) {
+            $(row).find('td').addClass('text-center')
             if (data.pre_inscription == 1 && data.training_group_id == firstGroup) {
                 $(row).addClass('table-warning')
             }else if (data.training_group_id == firstGroup) {

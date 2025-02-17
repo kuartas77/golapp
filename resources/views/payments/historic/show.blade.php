@@ -22,7 +22,6 @@
                 "paging": false,
                 "ordering": false,
                 "info": false,
-                "scrollX": true,
                 "scrollY": true,
                 "columns": [
                     {'width': '5%'},

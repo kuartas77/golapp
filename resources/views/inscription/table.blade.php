@@ -43,7 +43,7 @@
 
     <div class="tab-pane show active" id="active" role="tabpanel" aria-labelledby="active-tab">
         <div class="table-responsive-md">
-            <table class="table table-hover" id="active_table">
+            <table class="stripe compact" id="active_table" width="100%">
                 <thead>
                     <tr>
                         <th></th>
@@ -65,7 +65,7 @@
 
     <div class="tab-pane" id="inactive" role="tabpanel" aria-labelledby="inactive-tab">
         <div class="table-responsive-md">
-            <table class="table table-hover" id="inactive_table" width="100%">
+            <table class="stripe compact" id="inactive_table" width="100%">
                 <thead>
                     <tr>
                         <th>Foto</th>

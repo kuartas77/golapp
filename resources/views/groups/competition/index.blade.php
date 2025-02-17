@@ -20,7 +20,6 @@
 
             $('#active_table').DataTable({
                 "lengthMenu": [[15, 30, 50, 70, 100], [15, 30, 50, 70, 100]],
-                // "scrollX": true,
                 "processing": true,
                 "serverSide": true,
                 "ajax": $.fn.dataTable.pipeline({
@@ -44,7 +43,6 @@
 
             $('#disabled_table').DataTable({
                 "lengthMenu": [[15, 30, 50, 70, 100], [15, 30, 50, 70, 100]],
-                // "scrollX": true,
                 "processing": true,
                 "serverSide": true,
                 "ajax": $.fn.dataTable.pipeline({

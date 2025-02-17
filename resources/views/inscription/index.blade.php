@@ -2,9 +2,18 @@
 @section('title', __('messages.inscriptions_title'))
 @section('content')
     <x-bread-crumb :title="__('messages.inscriptions_title')" :option="0"/>
-    <x-row-card col-inside="12" >
-        @include('inscription.table')
-    </x-row-card >
+
+    <div class="row layout-top-spacing">
+
+    <div class="widget-content widget-content-area br-8">
+    @include('inscription.table')
+        </div>
+
+        <div class="col-md-12">
+        </div>
+
+    </div>
+
 @endsection
 @section('modals')
     @include('modals.create_inscription')

@@ -70,7 +70,6 @@
                 "paging": false,
                 "ordering": false,
                 "info": true,
-                "scrollX": true,
                 "scrollY": true,
                 columnDefs: [
                     { targets: [0, 1], width: '5%'},

@@ -178,60 +178,60 @@ var App = function() {
         },
         themeToggle: function (layoutName) {
 
-            // var togglethemeEl = document.querySelector('.theme-toggle');
-            // var getBodyEl = document.body;
+            var togglethemeEl = document.querySelector('.theme-toggle');
+            var getBodyEl = document.body;
 
-            // togglethemeEl.addEventListener('click', function() {
+            togglethemeEl.addEventListener('click', function() {
 
-            //     var getLocalStorage = localStorage.getItem("theme");
-            //     var parseObj = JSON.parse(getLocalStorage);
+                var getLocalStorage = localStorage.getItem("theme");
+                var parseObj = JSON.parse(getLocalStorage);
 
-            //     if (parseObj.settings.layout.darkMode) {
+                if (parseObj.settings.layout.darkMode) {
 
-            //         var getObjectSettings = parseObj.settings.layout;
+                    var getObjectSettings = parseObj.settings.layout;
 
-            //         var newParseObject = {...getObjectSettings, darkMode: false};
+                    var newParseObject = {...getObjectSettings, darkMode: false};
 
-            //         var newObject = { ...parseObj, settings: { layout: newParseObject }}
+                    var newObject = { ...parseObj, settings: { layout: newParseObject }}
 
-            //         localStorage.setItem("theme", JSON.stringify(newObject))
+                    localStorage.setItem("theme", JSON.stringify(newObject))
 
-            //         var getUpdatedLocalObject = localStorage.getItem("theme");
-            //         var getUpdatedParseObject = JSON.parse(getUpdatedLocalObject);
+                    var getUpdatedLocalObject = localStorage.getItem("theme");
+                    var getUpdatedParseObject = JSON.parse(getUpdatedLocalObject);
 
-            //         if (!getUpdatedParseObject.settings.layout.darkMode) {
-            //             document.body.classList.remove('dark')
-            //             ifStarterKit = document.body.getAttribute('page') === 'starter-pack' ? true : false;
-            //             if (ifStarterKit) {
-            //                 document.querySelector('.navbar-logo').setAttribute('src', '../../src/assets/img/logo2.svg')
-            //             } else {
-            //                 document.querySelector('.navbar-logo').setAttribute('src', getUpdatedParseObject.settings.layout.logo.lightLogo)
-            //             }
-            //         }
+                    if (!getUpdatedParseObject.settings.layout.darkMode) {
+                        document.body.classList.remove('dark')
+                        ifStarterKit = document.body.getAttribute('page') === 'starter-pack' ? true : false;
+                        if (ifStarterKit) {
+                            document.querySelector('.navbar-logo').setAttribute('src', '../../src/assets/img/logo2.svg')
+                        } else {
+                            document.querySelector('.navbar-logo').setAttribute('src', getUpdatedParseObject.settings.layout.logo.lightLogo)
+                        }
+                    }
 
-            //     } else {
+                } else {
 
-            //         var getObjectSettings = parseObj.settings.layout;
+                    var getObjectSettings = parseObj.settings.layout;
 
-            //         var newParseObject = {...getObjectSettings, darkMode: true};
+                    var newParseObject = {...getObjectSettings, darkMode: true};
 
-            //         var newObject = { ...parseObj, settings: { layout: newParseObject }}
+                    var newObject = { ...parseObj, settings: { layout: newParseObject }}
 
-            //         localStorage.setItem("theme", JSON.stringify(newObject))
+                    localStorage.setItem("theme", JSON.stringify(newObject))
 
-            //         var getUpdatedLocalObject = localStorage.getItem("theme");
-            //         var getUpdatedParseObject = JSON.parse(getUpdatedLocalObject);
+                    var getUpdatedLocalObject = localStorage.getItem("theme");
+                    var getUpdatedParseObject = JSON.parse(getUpdatedLocalObject);
 
-            //         if (getUpdatedParseObject.settings.layout.darkMode) {
-            //             document.body.classList.add('dark')
-            //             document.querySelector('.navbar-logo').setAttribute('src', getUpdatedParseObject.settings.layout.logo.darkLogo)
-            //             document.querySelector('.logo-text').setAttribute('src', getUpdatedParseObject.settings.layout.logo.textDarklogo)
-            //         }
+                    if (getUpdatedParseObject.settings.layout.darkMode) {
+                        document.body.classList.add('dark')
+                        document.querySelector('.navbar-logo').setAttribute('src', getUpdatedParseObject.settings.layout.logo.darkLogo)
+                        document.querySelector('.logo-text').setAttribute('src', getUpdatedParseObject.settings.layout.logo.textDarklogo)
+                    }
 
-            //     }
+                }
 
-            //     // localStorage.clear()
-            // })
+                // localStorage.clear()
+            })
 
         }
     }

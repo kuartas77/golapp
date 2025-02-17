@@ -26,7 +26,7 @@
 
         <ul class="navbar-item flex-row ms-lg-auto ms-0 action-area">
 
-            <!-- <li class="nav-item theme-toggle-item">
+            <li class="nav-item theme-toggle-item">
                 <a href="javascript:void(0);" class="nav-link theme-toggle">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-moon dark-mode">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
@@ -43,7 +43,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </a>
-            </li> -->
+            </li>
 
             <li class="nav-item dropdown user-profile-dropdown order-lg-0 order-1">
 
