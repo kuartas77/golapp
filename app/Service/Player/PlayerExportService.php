@@ -127,7 +127,7 @@ class PlayerExportService
             ->whereHas('inscription')
             ->with([
                 'inscription.trainingGroup',
-                'people' => fn($query) => $query->where('tutor', true),
+                'people',
                 'payments' => fn($q) => $q->withTrashed()
             ])->get();
 
@@ -135,7 +135,7 @@ class PlayerExportService
             ->whereDoesntHave('inscription')
             ->with([
                 'inscription.trainingGroup',
-                'people' => fn($query) => $query->where('tutor', true),
+                'people',
                 'payments' => fn($q) => $q->withTrashed()
             ])->get();
 
