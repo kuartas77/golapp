@@ -57,9 +57,9 @@
                 @php
                     $tutor = $player->people->first();
                 @endphp
-                <td>{{$tutor->names}}</td>
-                <td>{{$tutor->identification_card}}</td>
-                <td>{{$tutor->phone ?? '' . " " . $tutor->mobile ?? '' }}</td>
+                <td>{{$tutor?->names}}</td>
+                <td>{{$tutor?->identification_card}}</td>
+                <td>{{$tutor?->phone ?? '' . " " . $tutor?->mobile ?? '' }}</td>
             @endif
         </tr>
     @endforeach
