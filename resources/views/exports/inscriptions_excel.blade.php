@@ -21,9 +21,12 @@
         <th>EPS</th>
         <th>Correo</th>
         <th>Grupo De Entrenamiento</th>
-        <th>Acudiente Nombres</th>
-        <th>Acudiente Cedula</th>
-        <th>Acudiente Teléfonos</th>
+        <th>Familiar Nombres</th>
+        <th>Familiar Cedula</th>
+        <th>Familiar Teléfonos</th>
+        <th>Familiar Nombres</th>
+        <th>Familiar Cedula</th>
+        <th>Familiar Teléfonos</th>
     </tr>
     </thead>
     <tbody>
@@ -49,18 +52,18 @@
             <td>{{$player->eps}}</td>
             <td>{{$player->email}}</td>
             <td>{{$player->inscription ? $player->inscription->trainingGroup->name : ''}}</td>
-            @if(is_null($player->people->isEmpty()))
+            @forelse($player->people as $people)
+                <td>{{$people?->names}}</td>
+                <td>{{$people?->identification_card}}</td>
+                <td>{{$people?->phone ?? '' . " " . $people?->mobile ?? '' }}</td>
+            @empty
                 <td>No Registra</td>
                 <td>No Registra</td>
                 <td>No Registra</td>
-            @else
-                @php
-                    $tutor = $player->people->first();
-                @endphp
-                <td>{{$tutor->names}}</td>
-                <td>{{$tutor->identification_card}}</td>
-                <td>{{$tutor->phone ?? '' . " " . $tutor->mobile ?? '' }}</td>
-            @endif
+                <td>No Registra</td>
+                <td>No Registra</td>
+                <td>No Registra</td>
+            @endforelse
         </tr>
     @endforeach
     </tbody>

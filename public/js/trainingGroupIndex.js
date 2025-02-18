@@ -76,14 +76,14 @@ $(document).ready(() => {
     $("#form_create").validate({
         rules: {
             name: {required: true},
-            'user_id[]': {required: true, minlength: 1, maxlength: 2},
+            'user_id[]': {required: true, minlength: 1, maxlength: 5},
             'days[]': {required: true, minlength: 1, maxlength: 3},
             'schedules[]': {required: true, minlength: 1, maxlength: 2},
             'years[]': {required: true, minlength: 1, maxlength: 12}
         },
         messages: {
             'years[]': {maxlength: "No seleccione más de 12 opciones."},
-            'user_id[]':{maxlength: "No seleccione más de 2 opciones."},
+            'user_id[]':{maxlength: "No seleccione más de 5 opciones."},
             'days[]':{maxlength: "No seleccione más de 3 opciones."},
             'schedules[]':{maxlength: "No seleccione más de 2 opciones."}
         }, submitHandler(form) {
