@@ -6,16 +6,12 @@
         "build": "vite build"
     },
     "devDependencies": {
-        "autoprefixer": "^10.4.20",
-        "axios": "^1.7.4",
-        "concurrently": "^9.0.1",
+        "@types/node": "^22.13.4",
+        "@vitejs/plugin-vue": "^5.2.1",
+        "axios": "^1.7.9",
         "inputmask": "^5.0.8",
-        "laravel-vite-plugin": "^1.0",
-        "postcss": "^8.4.47",
-        "trix": "^2.1.12",
-        "vite": "^6.0.11"
-    },
-    "dependencies": {
-        "@editorjs/editorjs": "^2.30.7"
+        "laravel-vite-plugin": "^1.2.0",
+        "path": "^0.12.7",
+        "vite": "^6.1.1"
     }
 }
