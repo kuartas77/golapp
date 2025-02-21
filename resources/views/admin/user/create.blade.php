@@ -25,7 +25,6 @@ $("#form_user").validate({
     rules:{
         name:{required:true},
         email:{required:true, emails:true},
-        password:{required:true},
         rol_id:{required:true},
     }
 });

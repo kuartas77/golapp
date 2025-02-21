@@ -25,8 +25,7 @@
                                 <div class="form-group">
                                     <label for="stage">Lugar de entrenamiento</label>
                                     <span class="bar"></span>
-                                    <input type="text" name="stage" id="stage" class="form-control" required
-                                           autocomplete="off">
+                                    <input type="text" name="stage" id="stage" class="form-control" autocomplete="off">
                                 </div>
                             </div>
 
