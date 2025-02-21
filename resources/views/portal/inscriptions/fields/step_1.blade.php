@@ -1,6 +1,7 @@
 <h6>Información Del Deportista</h6>
 <section>
     <h6 class="row block-helper justify-content-center">Los Campos Con (<span class="text-danger">*</span>) Son Requeridos.</h6>
+    <h6 class="row block-helper justify-content-center"><span class="text-warning">La Foto debe ser tipo documento de lo contrario abtenerse de agregar la</span>, <strong>{{$school->name}}</strong> .</h6>
     <fieldset class="col-md-12 p-2">
         <div class="row col-md-12">
 
@@ -8,7 +9,7 @@
             <div class="col-md-3">
                 <img src="{{ isset($player) ? $player->photo_url : asset('img/user.png') }}" class="rounded img-center mx-auto mb-1" alt="player" id="player-img" width="200" height="200">
                 <div class="form-group">
-                    <label>Foto</label>
+                    <label>Foto JPG, JPEG, PNG</label>
                     <div class="custom-file">
                         <input type="file" class="custom-file-input" id="file-upload" accept="image/png, image/jpeg" name="photo">
                         <label class="custom-file-label" for="file-upload">Seleccionar...</label>
