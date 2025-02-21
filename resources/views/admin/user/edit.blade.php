@@ -1,8 +1,7 @@
 @extends('layouts.app')
-@section('title', 'Usuarios')
 @section('content')
 <x-bread-crumb title="Usuario" :option="0"/>
-<x-row-card col-inside="12" >
+<x-row-card col-inside="12" col-outside="2" >
     {{html()->modelForm($user, 'patch', route('users.update', [$user->id]))->attributes(['id'=>'form_user','class' => 'form-material m-t-0'])->open()}}
         <div class="form-body">
             @include('admin.user.fields')
