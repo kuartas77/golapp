@@ -131,10 +131,10 @@ const validateData = ({table, group_name, count, url_print, url_print_excel}, se
         });
     } else {
         let message = search ? "Se Deben Crear Las Asistencias." : "El Grupo No Cuenta Con Integrantes."
-        tableActive.destroy();
-        $("#enabled").empty().append(table);
+        // tableActive.destroy();
+        // $("#enabled").empty().append(table);
         $('#group_name').empty().append(group_name);
-        initTable();
+        // initTable();
         btnPrint.prop("href", "");
         btnPrint.addClass('hide');
         btnPrintExcel.prop("href", "");
@@ -151,6 +151,7 @@ const validateData = ({table, group_name, count, url_print, url_print_excel}, se
 
 const initTable = () => {
     tableActive = $('#active_table').DataTable({
+        fixedColumns: {leftColumns: 1 },
         "paging": false,
         "ordering": false,
         dom: 'it',//lftip

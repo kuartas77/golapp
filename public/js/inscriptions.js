@@ -206,7 +206,6 @@ $(document).ready(function () {
         "columns": columns,
         "columnDefs": columnDefs,
         "createdRow": function (row, data, dataIndex) {
-            console.log(data.pre_inscription)
             if (data.pre_inscription == 1 && data.training_group_id == firstGroup) {
                 $(row).addClass('bg-warning')
             }else if (data.training_group_id == firstGroup) {
@@ -299,7 +298,7 @@ $(document).ready(function () {
         $("#form_create #start_date").attr('disabled',false);
         form.clearForm();
         $("#form_create #training_group_id").val('').trigger('change');
-        $("#form_create #competition_group_id").val('').trigger('change');
+        $("#form_create #competition_group_id").val([]).trigger('change');
         $("#btn_add_inscription").attr('disabled', true);
     });
 

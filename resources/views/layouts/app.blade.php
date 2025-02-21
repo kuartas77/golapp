@@ -10,6 +10,7 @@
     <meta name="description"
           content="Ayuda a tu escuela de futbol a mejorar deportivamente con nuestra herramienta, la cual te facilitará muchos procesos, asistencias, entrenamientos, pagos entre otros">
     <link rel="icon" type="image/png" href="/img/ballon.png"/>
+    <link href="{{asset('css/datatables.min.css')}}" rel="stylesheet">
     <link href="{{asset('css/all.css')}}" rel="stylesheet">
     @yield('css')
     <link href="{{asset('css/default.css')}}" rel="stylesheet">
@@ -54,6 +55,11 @@
     window.img_logout = "{{asset('img/logout.png')}}";
 </script>
 @include('sweetalert::alert')
+<script src="{{asset('js/libs/datatables.min.js')}}"></script>
+<script src="{{asset('js/libs/daterangepicker.min.js')}}"></script>
+<script src="{{asset('js/libs/select2.min.js')}}"></script>
+<script src="{{asset('js/libs/jquery.validate.min.js')}}"></script>
+
 <script src="{{asset('js/all.js')}}"></script>
 <script src="{{asset('js/config.js')}}"></script>
 @yield('scripts')
