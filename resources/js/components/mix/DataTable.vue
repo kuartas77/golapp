@@ -11,7 +11,7 @@
             <tr v-for="row in rows" :key="row.id">
                 <td v-for="column in columns" :key="`cell-${row.id}`">
 
-                    <slot v-if="getType(column, row) == 'payments-select'" name="cell" v-bind="{ column, row }">
+                    <slot v-if="getType(column, row) == 'payments-select'" name="payment" v-bind="{ column, row }">
                         <paymentSelect :row="row" @change=""/>
                     </slot>
                     <slot v-else name="cell" v-bind="{ column, row }">

@@ -54,6 +54,7 @@
     window.img_logout = "{{asset('img/logout.png')}}";
 </script>
 @include('sweetalert::alert')
+
 <script src="{{asset('js/all.js')}}"></script>
 <script src="{{asset('js/config.js')}}"></script>
 @yield('scripts')
@@ -63,5 +64,6 @@
         $(".scroll-sidebar").closest('div.slimScrollDiv').css('position', 'fixed');
     });
 </script>
+@vite(['resources/js/app.js'])
 </body>
 </html>

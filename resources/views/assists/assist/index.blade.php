@@ -6,6 +6,10 @@
         <hr>
         <h6 class="card-subtitle text-themecolor m-b-0 m-t-0" id="group_name"></h6>
         @include('assists.assist.table')
+
+
+
+        <attendances :groups="{{$training_groups}}" :months=@json($months)></attendances>
     </x-row-card >
 @endsection
 @section('modals')

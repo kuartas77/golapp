@@ -63,7 +63,7 @@
 </template>
 
 <script>
-import { onMounted, computed } from '@vue/runtime-core'
+import { onMounted, computed } from 'vue'
 import usePayouts from '@/composables/tournament_payouts'
 export default {
     name: "form-payout",
