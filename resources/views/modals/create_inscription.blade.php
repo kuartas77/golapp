@@ -32,7 +32,7 @@
         let options = {
             success: showResponse,  // post-submit callback
             error: showError,
-            //clearForm: true  ,      // clear all form fields after successful submit
+            clearForm: true  ,      // clear all form fields after successful submit
             resetForm: true        // reset the form after successful submit
         };
 

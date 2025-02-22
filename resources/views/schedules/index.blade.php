@@ -37,9 +37,6 @@
             okText: 'Aceptar',
         });
 
-
-
-
         const resetModalForm = (create = true, id = null) => {
             let form = $("#form_create");
             let title = $("#modal_title");
