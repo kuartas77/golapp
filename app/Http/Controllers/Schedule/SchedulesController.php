@@ -54,7 +54,7 @@ class SchedulesController extends Controller
     public function store(ScheduleRequest $request): RedirectResponse
     {
         $this->repository->store($request->validated());
-        return back();
+        return redirect(route('schedules.index'));
     }
 
     /**
@@ -90,7 +90,7 @@ class SchedulesController extends Controller
     public function update(ScheduleRequest $request, Schedule $schedule): RedirectResponse
     {
         $this->repository->update($request->validated(), $schedule);
-        return back();
+        return redirect(route('schedules.index'));
     }
 
     /**
