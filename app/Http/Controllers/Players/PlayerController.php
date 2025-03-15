@@ -60,8 +60,9 @@ class PlayerController extends Controller
      * @param Player $player
      * @return Application|Factory|View
      */
-    public function show(Player $player): Factory|View|Application
+    public function show($uniqueCode): Factory|View|Application
     {
+        $player = Player::where('unique_code', $uniqueCode)->where('school_id', getSchool(auth()->user())->id)->first();
         $player = $this->repository->loadShow($player);
         view()->share('player', $player);
         return view('player.show');
@@ -71,9 +72,10 @@ class PlayerController extends Controller
      * @param Player $player
      * @return Application|Factory|View
      */
-    public function edit(Player $player): Factory|View|Application
+    public function edit($uniqueCode): Factory|View|Application
     {
         abort_unless(isAdmin() || isSchool(), 404);
+        $player = Player::with('people')->where('unique_code', $uniqueCode)->where('school_id', getSchool(auth()->user())->id)->first();
         $player->load('people');
         view()->share('edit', true);
         view()->share('player', $player);
@@ -85,9 +87,10 @@ class PlayerController extends Controller
      * @param Player $player
      * @return RedirectResponse
      */
-    public function update(PlayerUpdateRequest $request, Player $player): RedirectResponse
+    public function update(PlayerUpdateRequest $request, $uniqueCode): RedirectResponse
     {
         abort_unless(isAdmin() || isSchool(), 404);
+        $player = Player::where('unique_code', $uniqueCode)->where('school_id', getSchool(auth()->user())->id)->first();
         $isUpdated = $this->repository->updatePlayer($player, $request);
         if (!$isUpdated) {
             alert()->error(env('APP_NAME'), __('messages.error_general'));
