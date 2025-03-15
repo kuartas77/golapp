@@ -22,7 +22,7 @@ class UserResource extends JsonResource
             'school_id' => $this->school_id,
             'school_name' => $this->school->name,
             'school_slug' => $this->school->slug,
-            'school_logo' => $this->school->logo,
+            'school_logo' => $this->school->logo_file,
         ];
     }
 }
