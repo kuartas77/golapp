@@ -37,7 +37,7 @@ trait WithLogin
         Role::create(['name' => 'instructor']);
     }
 
-    protected function createUser(array $attributes = null, array $roles = [User::SCHOOL])
+    protected function createUser(array $attributes = [], array $roles = [User::SCHOOL])
     {
         $user = User::factory()->create($attributes + ['password' => 'password']);
         $user->syncRoles($roles);
@@ -45,7 +45,7 @@ trait WithLogin
         return $user;
     }
 
-    protected function createSchool(array $attributes = null): array
+    protected function createSchool(array $attributes = []): array
     {
         $school = School::factory()->create($attributes);
         $school->schedules()->create([
@@ -62,7 +62,7 @@ trait WithLogin
         return $school->toArray();
     }
 
-    protected function createSchoolAndUser(array $attributes = null, array $roles = [User::SCHOOL]): array
+    protected function createSchoolAndUser( array $attributes = [], array $roles = [User::SCHOOL]): array
     {
         $school = $this->createSchool($attributes);
 
