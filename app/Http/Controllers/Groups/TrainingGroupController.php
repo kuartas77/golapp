@@ -120,14 +120,15 @@ class TrainingGroupController extends Controller
      */
     public function destroy(TrainingGroup $trainingGroup)
     {
-        abort_if($trainingGroup->id === 1, 401, 'El Grupo Provicional No Se Puede Eliminar o Modificar');
+        $firtsTrainigGroup = TrainingGroup::orderBy('id')->firstWhere('school_id', getSchool(auth()->user())->id)->id;
+        abort_if($firtsTrainigGroup == $trainingGroup->id, 401, 'El Grupo Provicional No Se Puede Eliminar o Modificar');
 
         if ($trainingGroup->delete()) {
             alert()->success(env('APP_NAME'), __('messages.ins_delete_success'));
         } else {
             alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
         }
-
+        return redirect(route('training_groups.index'));
     }
 
     /**
