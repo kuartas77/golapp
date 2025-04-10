@@ -5,6 +5,7 @@ namespace App\Listeners;
 use Illuminate\Mail\Events\MessageSent;
 use App\Notifications\InscriptionNotification;
 use App\Modules\Inscriptions\Notifications\InscriptionToSchoolNotification;
+use App\Modules\Inscriptions\Jobs\DeleteDocuments;
 
 class EmailSentListener
 {
@@ -28,18 +29,13 @@ class EmailSentListener
                 break;
 
             default:
-                # code...
+                //
                 break;
         }
-
-        logger("email send", [$notification]);
     }
 
     private function notificationInscription($inscription, $school)
     {
-        logger("message send", [
-            'unique_code' => $inscription->unique_code,
-            'school_id' => $school->id
-        ]);
+        dispatch(new DeleteDocuments($school->slug, (string)$inscription->unique_code))->delay(now()->addWeek())->onQueue('cleaner');
     }
 }
