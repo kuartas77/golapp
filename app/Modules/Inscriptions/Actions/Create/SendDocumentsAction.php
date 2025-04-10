@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Notification;
 use Closure;
 use App\Notifications\InscriptionNotification;
 use App\Modules\Inscriptions\Notifications\InscriptionToSchoolNotification;
-use App\Modules\Inscriptions\Jobs\DeleteDocuments;
 use App\Modules\Inscriptions\Actions\Create\Passable;
 use App\Models\School;
 use App\Models\Player;
@@ -137,8 +136,6 @@ final class SendDocumentsAction implements IContractPassable
             Notification::route('mail', $destinations)->notify(
                 (new InscriptionNotification($this->inscription, $contracts))->onQueue('emails')
             );
-
-            dispatch(new DeleteDocuments($this->school->slug, (string)$this->player->unique_code))->delay(now()->addWeek())->onQueue('cleaner');
         }
     }
 }

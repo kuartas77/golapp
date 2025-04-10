@@ -33,11 +33,11 @@
     <ul aria-expanded="false" class="collapse">
         <li><a href="{{route('school.index', ['school' => getSchool(auth()->user())])}}">Escuela</a></li>
         <li><a href="{{route('users.index')}}">Usuarios</a></li>
-        <li><a href="{{route('training_groups.index')}}">G. De Entrenamiento</a></li>
-        <li><a href="{{route('competition_groups.index')}}">G. De Competencia</a></li>
         <li><a href="{{route('schedules.index')}}">Horarios</a></li>
         <li><a href="{{route('tournaments.index')}}">Torneos</a></li>
-        <li><a href="{{route('incidents.index')}}">Incidencias</a></li>
+        <li><a href="{{route('training_groups.index')}}">G. De Entrenamiento</a></li>
+        <li><a href="{{route('competition_groups.index')}}">G. De Competencia</a></li>
+        {{-- <li><a href="{{route('incidents.index')}}">Incidencias</a></li> --}}
     </ul>
 </li>
 <li class="{{ Request::is('players*') ? 'active' : '' }}">
