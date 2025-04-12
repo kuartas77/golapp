@@ -36,6 +36,8 @@ class AssistRepository
             $params['year'] = now()->year;
         }
 
+        $params['month'] = getMonthNumber($params['month']);
+
         $trainingGroup = TrainingGroup::query()->schoolId()
             ->when($deleted, fn($q) => $q->onlyTrashedRelations())->findOrFail($params['training_group_id']);
 
@@ -43,7 +45,7 @@ class AssistRepository
             ->when($deleted, fn($q) => $q->withTrashed())
             ->where([
                 ['training_group_id', $params['training_group_id']],
-                ['month',  getMonthNumber($params['month'])],
+                ['month',  $params['month']],
                 ['year', $params['year']]
             ]);
 
