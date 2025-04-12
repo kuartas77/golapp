@@ -10,13 +10,12 @@ class AssistService
 {
     public function generateTable($assists, TrainingGroup $trainingGroup, array $data, bool $deleted = false): array
     {
-        $months = config('variables.KEY_MONTHS_INDEX');
         $group_name = $trainingGroup->full_schedule_group;
         $assists = $assists->get();
 
         $classDays = classDays(
             $data['year'],
-            array_search($data['month'], $months, true),
+            $data['month'],
             array_map('dayToNumber', $trainingGroup->explode_days)
         );
 
@@ -55,7 +54,7 @@ class AssistService
         $params = [
             'training_group_id' => $data['training_group_id'],
             'year' => $data['year'],
-            'month' => array_search($data['month'], config('variables.KEY_MONTHS_INDEX'), true),
+            'month' => $data['month'],
             'deleted' => $deleted
         ];
 
