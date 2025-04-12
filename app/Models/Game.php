@@ -45,9 +45,11 @@ class Game extends Model
         'final_score' => 'object'
     ];
 
-    public static function getMinYear(int $school_id = 0): ?string
+    public static function getMinYear(int $school_id = 0)
     {
-        return self::query()->when($school_id, fn($query) => $query->where('school_id', $school_id))->min('created_at');
+        return self::query()->when($school_id, fn($query) => $query->where('school_id', $school_id))
+            ->select([DB::raw('EXTRACT(YEAR FROM created_at) as year')])
+            ->groupBy('year')->orderBy('year', 'asc')->first()->year ?? now()->year;
     }
 
     public static function getYears(int $school_id = 0): Collection
