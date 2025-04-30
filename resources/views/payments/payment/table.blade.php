@@ -1,24 +1,16 @@
 <nav>
     <ul class="nav nav-tabs customtab" id="tab_inscriptions">
         <li class="nav-item">
-            <a class="nav-link active show" id="enabled-tab" data-toggle="tab" href="#enabled" role="tab"
-                aria-controls="enabled" aria-expanded="false">Resultado</a>
+            <a class="nav-link" id="total-tab">Total: $ 0</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link disabled" id="total-tab" data-toggle="tab" role="tab"
-                aria-controls="disabled" aria-expanded="false">Total: $ 0</a>
+            <a class="nav-link" id="cash-tab">Efectivo: $ 0</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link disabled" id="cash-tab" data-toggle="tab" role="tab"
-                aria-controls="disabled" aria-expanded="false">Efectivo: $ 0</a>
+            <a class="nav-link" id="consignment-tab">Consignación: $ 0</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link disabled" id="consignment-tab" data-toggle="tab" role="tab"
-                aria-controls="disabled" aria-expanded="false">Consignación: $ 0</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link disabled" id="other-tab" data-toggle="tab" role="tab"
-                aria-controls="disabled" aria-expanded="false">Otros: $ 0</a>
+            <a class="nav-link" id="other-tab">Otros: $ 0</a>
         </li>
         <li class=" nav-item ml-auto">
             <a class="float-right btn waves-effect waves-light btn-rounded btn-info disabled" href="" id="export-excel" target="_blank">
@@ -30,10 +22,10 @@
         </li>
     </ul>
 </nav>
-<div class="tab-content clearfix" id="tab_content">
-    <div class="tab-pane show active" id="enabled" role="tabpanel" aria-labelledby="enabled-tab">
+
+    <div class="statbox widget box box-shadow" >
         <div class="table-responsive-md">
-            <table class="table table-striped" id="active_table">
+            <table class="stripe cell-border compact" id="active_table">
                 <thead>
                     <tr>
                         <th class="text-center">Nombres</th>
@@ -76,5 +68,3 @@
             </table>
         </div>
     </div>
-
-</div>

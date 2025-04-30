@@ -4,7 +4,7 @@ window.addEventListener("load", function(){
     var load_screen = document.getElementById("load_screen");
     document.body.removeChild(load_screen);
 
-    var layoutName = 'Vertical Dark Menu';
+    var layoutName = 'Collapsible Menu';
 
     var settingsObject = {
         admin: 'Cork Admin Template',
@@ -12,13 +12,13 @@ window.addEventListener("load", function(){
             layout: {
                 name: layoutName,
                 toggle: true,
-                darkMode: false,
-                boxed: false,
+                darkMode: true,
+                boxed: true,
                 logo: {
-                    darkLogo: '../../img/ballon_dark.png',
-                    lightLogo: '../../img/ballon.png',
-                    textDarklogo: '../../img/dark.png',
-                    textLightlogo: '../../img/dark.png'
+                    darkLogo: `${window.location.origin}/img/ballon_dark.png`,
+                    lightLogo: `${window.location.origin}/img/ballon.png`,
+                    textDarklogo: `${window.location.origin}/img/dark.png`,
+                    textLightlogo: `${window.location.origin}/img/light.png`,
                 }
             }
         },
@@ -71,7 +71,15 @@ window.addEventListener("load", function(){
             document.body.classList.add('dark');
             if (document.querySelector('.navbar-logo')) {
                 document.querySelector('.navbar-logo').setAttribute('src', getParseObject.settings.layout.logo.darkLogo)
+            }
+            if(document.querySelector('.logo-text')){
                 document.querySelector('.logo-text').setAttribute('src', getParseObject.settings.layout.logo.textDarklogo)
+            }
+            if(document.querySelector('.topbar-logo')){
+                document.querySelector('.topbar-logo').setAttribute('src', getParseObject.settings.layout.logo.darkLogo)
+            }
+            if(document.querySelector('.topbar-text')){
+                document.querySelector('.topbar-text').setAttribute('src', getParseObject.settings.layout.logo.textDarklogo)
             }
         }
     } else {
@@ -83,9 +91,16 @@ window.addEventListener("load", function(){
             document.body.classList.remove('dark');
             if (document.querySelector('.navbar-logo')) {
                 document.querySelector('.navbar-logo').setAttribute('src', getParseObject.settings.layout.logo.lightLogo)
+            }
+            if(document.querySelector('.logo-text')){
                 document.querySelector('.logo-text').setAttribute('src', getParseObject.settings.layout.logo.textLightlogo)
             }
-
+            if(document.querySelector('.topbar-logo')){
+                document.querySelector('.topbar-logo').setAttribute('src', getParseObject.settings.layout.logo.lightLogo)
+            }
+            if(document.querySelector('.topbar-text')){
+                document.querySelector('.topbar-text').setAttribute('src', getParseObject.settings.layout.logo.textLightlogo)
+            }
 
         }
     }

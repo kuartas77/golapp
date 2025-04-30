@@ -6,13 +6,9 @@
 
     <div class="row layout-top-spacing">
 
-    <div class="widget-content widget-content-area br-8">
+        <div class="widget-content widget-content-area br-8">
             @include('player.table')
         </div>
-
-        <div class="col-md-12">
-        </div>
-
     </div>
 
 </div>

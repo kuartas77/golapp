@@ -12,32 +12,48 @@
     <link rel="icon" type="image/png" href="/img/ballon.png" />
 
     <!-- ENABLE LOADERS -->
-    <link href="{{asset('layouts/css/light/loader.css')}}" rel="stylesheet" type="text/css" />
-    <link href="{{asset('layouts/css/dark/loader.css')}}" rel="stylesheet" type="text/css" />
+    @vite(['resources/layouts/css/light/loader.css'])
+    @vite(['resources/layouts/css/dark/loader.css'])
     <script src="{{asset('layouts/js/loader.js')}}"></script>
     <!-- /ENABLE LOADERS -->
     <!-- BEGIN GLOBAL MANDATORY STYLES -->
     <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700" rel="stylesheet">
-    <link href="{{asset('layouts/css/bootstrap/css/bootstrap.min.css')}}" rel="stylesheet" type="text/css" />
-    <link href="{{asset('layouts/css/light/plugins.css')}}" rel="stylesheet" type="text/css" />
-    <link href="{{asset('layouts/css/dark/plugins.css')}}" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="{{asset('layouts/bootstrap/css/bootstrap.min.css')}}">
+    @vite(['resources/layouts/css/dark/main.css'])
+    @vite(['resources/layouts/css/light/main.css'])
+    <link rel="stylesheet" href="{{asset('layouts/plugins/css/light/perfect-scrollbar/perfect-scrollbar.css')}}">
+    <link rel="stylesheet" href="{{asset('layouts/plugins/css/dark/perfect-scrollbar/perfect-scrollbar.css')}}">
+    <link rel="stylesheet" href="{{asset('layouts/plugins/src/waves/waves.min.css')}}">
+
+    @vite(['resources/layouts/css/dark/structure.css'])
+    @vite(['resources/layouts/css/light/structure.css'])
+    <link rel="stylesheet" href="{{asset('layouts/plugins/src/highlight/styles/monokai-sublime.css')}}">
+
     <!-- END GLOBAL MANDATORY STYLES -->
 
     <!-- BEGIN PAGE LEVEL PLUGINS/CUSTOM STYLES -->
-    <link rel="stylesheet" type="text/css" href="{{asset('layouts/css/light/elements/alert.css')}}">
-    <link rel="stylesheet" type="text/css" href="{{asset('layouts/css/dark/elements/alert.css')}}">
+    @vite(['resources/layouts/css/light/elements/alert.css'])
+    @vite(['resources/layouts/css/dark/elements/alert.css'])
     <!-- END PAGE LEVEL PLUGINS/CUSTOM STYLES -->
 
-    <link href="https://cdn.datatables.net/v/dt/moment-2.29.4/dt-2.2.1/fc-5.0.4/fh-4.0.1/datatables.min.css" rel="stylesheet">
-    <!-- <link href="{{asset('layouts/plugins/src/table/datatable/datatables.css')}}" rel="stylesheet"> -->
-    <!-- <link href="{{asset('layouts/plugins/css/dark/table/datatable/dt-global_style.css')}}" rel="stylesheet"> -->
+    <link href="https://cdn.datatables.net/v/dt/moment-2.29.4/dt-2.3.0/fc-5.0.4/fh-4.0.1/datatables.min.css" rel="stylesheet">
+
+
+    <link href="{{asset('layouts/plugins/css/light/table/datatable/dt-global_style.css')}}" rel="stylesheet">
+    <link href="{{asset('layouts/plugins/css/dark/table/datatable/dt-global_style.css')}}" rel="stylesheet">
     @yield('css')
     <!-- <link href="{{asset('css/all.css')}}" rel="stylesheet"> -->
     <!-- <link href="{{asset('css/default.css')}}" rel="stylesheet"> -->
 
+    <style>
+        body.dark .layout-px-spacing, .layout-px-spacing {
+            min-height: calc(100vh - 155px) !important;
+        }
+
+    </style>
 </head>
 
-<body class="layout-boxed">
+<body class="layout-boxed alt-menu" layout="full-width">
 
     <!-- BEGIN LOADER -->
     <div id="load_screen">
@@ -89,7 +105,7 @@
         window.img_logout = "{{asset('img/logout.png')}}";
     </script>
     <script src="{{asset('layouts/plugins/src/global/vendors.min.js')}}"></script>
-    <script src="{{asset('layouts/css/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+    <script src="{{asset('layouts/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
     <script src="{{asset('layouts/plugins/src/perfect-scrollbar/perfect-scrollbar.min.js')}}"></script>
     <script src="{{asset('layouts/plugins/src/waves/waves.min.js')}}"></script>
     <script src="{{asset('layouts/js/app.js')}}"></script>
@@ -98,8 +114,8 @@
     <!-- <script src="{{asset('layouts/js/custom.js')}}"></script> -->
     @include('sweetalert::alert')
     <!-- <script src="{{asset('js/all.js')}}"></script> -->
-    <script src="https://cdn.datatables.net/v/dt/moment-2.29.4/dt-2.2.1/fc-5.0.4/fh-4.0.1/datatables.min.js"></script>
-    <!-- <script src="{{asset('layouts/plugins/src/table/datatable/datatables.js')}}"></script> -->
+    <script src="https://cdn.datatables.net/v/dt/moment-2.29.4/dt-2.3.0/fc-5.0.4/fh-4.0.1/datatables.min.js"></script>
+    {{-- <script src="{{asset('layouts/plugins/src/table/datatable/datatables.js')}}"></script> --}}
 
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/3.0.5/daterangepicker.min.js" integrity="sha512-mh+AjlD3nxImTUGisMpHXW03gE6F4WdQyvuFRkjecwuWLwD2yCijw4tKA3NsEFpA1C3neiKhGXPSIGSfCYPMlQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -111,11 +127,6 @@
 
     @yield('scripts')
     @stack('scripts')
-    <!-- <script>
-        $(document).ready(function() {
-            $(".scroll-sidebar").closest('div.slimScrollDiv').css('position', 'fixed');
-        });
-    </script> -->
 </body>
 
 </html>

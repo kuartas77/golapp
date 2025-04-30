@@ -93,7 +93,7 @@
                 </svg>
             </div>
         </a>
-        <ul class="collapse submenu list-unstyled" id="admin" data-bs-parent="#accordionExample">
+        <ul class="collapse submenu list-unstyled" id="admin" data-bs-parent="#accordionExample1">
             <li>
                 <a href="{{route('school.index', ['school' => getSchool(auth()->user())])}}"> Escuela </a>
             </li>
@@ -227,7 +227,7 @@
                 </svg>
             </div>
         </a>
-        <ul class="collapse submenu list-unstyled" id="reports" data-bs-parent="#accordionExample">
+        <ul class="collapse submenu list-unstyled" id="reports" data-bs-parent="#accordionExample2">
             <li>
                 <a href="{{route('reports.payments')}}"> Pagos </a>
             </li>

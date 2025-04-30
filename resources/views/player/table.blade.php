@@ -1,6 +1,6 @@
 <div class="statbox widget box box-shadow">
     <div class="table-responsive-md">
-        <table class="stripe compact" id="table_players" width="100%">
+        <table class="stripe compact cell-border" id="table_players" width="100%">
             <thead>
                 <tr>
                     <th></th>
