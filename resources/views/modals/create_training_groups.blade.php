@@ -25,8 +25,7 @@
                                 <div class="form-group">
                                     <label for="stage">Lugar de entrenamiento</label>
                                     <span class="bar"></span>
-                                    <input type="text" name="stage" id="stage" class="form-control" required
-                                           autocomplete="off">
+                                    <input type="text" name="stage" id="stage" class="form-control" autocomplete="off">
                                 </div>
                             </div>
 
@@ -72,7 +71,7 @@
 
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="user_id">Formador(es)</label><span class="text-danger">*</span>
+                                <label for="user_id">Instructor(es)</label><span class="text-danger">*</span>
                                 <span class="bar"></span>
                                 <select name="user_id[]" id='user_id' multiple='multiple'>
                                     @foreach($users as $key => $value)

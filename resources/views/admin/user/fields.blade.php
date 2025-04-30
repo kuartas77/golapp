@@ -17,15 +17,6 @@
 </div>
 
 <div class="form-body row m-l-20 m-r-20">
-@if(stripos(Request::url(),'/create'))
-<div class="col-md-6">
-    <div class="form-group">
-        <label for="email">Contraseña</label>
-        <span class="bar"></span>
-        {{ html()->password('password')->attributes(['class' => 'form-control', 'autocomplete' => 'off']) }}
-    </div>
-</div>
-@endif
 <div class="col-md-6">
     <div class="form-group">
         <label for="rol_id">Rol</label>

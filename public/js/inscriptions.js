@@ -259,7 +259,7 @@ $(document).ready(function () {
             $("#form_create #player_id").val(response.player_id);
             $("#form_create #start_date").val(response.start_date).attr('disabled',true);
             $("#form_create #training_group_id").val(response.training_group_id).trigger('change');
-            $("#form_create #competition_group_id").val(response.competition_group_id).trigger('change');
+            $("#form_create #competition_groups").val(response.competition_group ?? []).trigger('change');
             $("#form_create #pre_inscription").val(response.pre_inscription);
 
             $("#form_create #photos").prop('checked', response.photos == 1 );
@@ -294,7 +294,7 @@ $(document).ready(function () {
         $("#form_create #start_date").attr('disabled',false);
         document.getElementById("form_create").reset();
         $("#form_create #training_group_id").val('').trigger('change');
-        $("#form_create #competition_group_id").val('').trigger('change');
+        $("#form_create #competition_groups").val([]).trigger('change');
         $("#btn_add_inscription").attr('disabled', true);
     });
 

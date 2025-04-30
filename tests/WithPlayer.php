@@ -11,6 +11,7 @@ trait WithPlayer
     public function dataPlayer(): array
     {
         return [
+            'school_id' => $this->school['id'],
             'unique_code' => '1111111111',
             'names' => 'juan esteban',
             'last_names' => 'cuartas londoño',
@@ -48,7 +49,7 @@ trait WithPlayer
             ]
         ];
     }
-    
+
     public function createPlayer():void
     {
         $data = $this->dataPlayer();

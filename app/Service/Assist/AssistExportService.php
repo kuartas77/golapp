@@ -46,7 +46,6 @@ class AssistExportService
      */
     public function dataExport($params, bool $deleted = false): array
     {
-        $months = config('variables.KEY_MONTHS_INDEX');
         if ($deleted) {
             $group = TrainingGroup::query()->onlyTrashedRelations()->schoolId()->find($params['training_group_id']);
 
@@ -67,7 +66,7 @@ class AssistExportService
 
         $classDays = classDays(
             $params['year'],
-            array_search($params['month'], $months, true),
+            $params['month'],
             array_map('dayToNumber', $group->explode_days)
         );
 
