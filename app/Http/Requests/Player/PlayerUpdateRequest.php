@@ -79,7 +79,8 @@ class PlayerUpdateRequest extends FormRequest
 
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
-            'people' => array_values($people)
+            'people' => array_values($people),
+            'mobile' => $this->phones
         ]);
     }
 }

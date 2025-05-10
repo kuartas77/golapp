@@ -214,8 +214,9 @@ if (!function_exists('isInstructor')) {
 }
 
 if (!function_exists('getSchool')) {
-    function getSchool($user): School
+    function getSchool($user = null): School
     {
+        $user = isset($user) ? $user : auth()->user();
         $prefixKey = isAdmin() ? 'admin.' : (isSchool() ? 'school.': '');
 
         $school_id = Session::get($prefixKey . 'selected_school', 1);
