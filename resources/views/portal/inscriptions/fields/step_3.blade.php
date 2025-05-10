@@ -49,7 +49,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="tutor_email">Correo electrónico (<span class="text-danger">*</span>)</label>
-                        {{ html()->text('tutor_email', null)->attributes(['class' => 'form-control']) }}
+                        {{ html()->text('tutor_email', null)->attributes(['class' => 'form-control', "onblur" => "return forceLower(this);"]) }}
                         <small class="form-text text-muted">Correo Electrónico para enviar notificaciónes.</small>
                     </div>
                 </div>

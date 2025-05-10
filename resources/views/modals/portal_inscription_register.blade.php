@@ -475,6 +475,10 @@
         // populate form with stored data
         populateForm(form, getFormData())
     })
+
+    function forceLower(strInput) {
+        strInput.value=strInput.value.toLowerCase();
+    }
 </script>
 @endpush
 @push('css')
