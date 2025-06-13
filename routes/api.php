@@ -25,6 +25,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
         Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);
 
+        Route::get('statistics/groups', [GroupsController::class, 'statistics']);
         Route::get('attendances', [AssistsController::class, 'index']);
         Route::post('attendances/upsert', [AssistsController::class, 'upsert']);
     });

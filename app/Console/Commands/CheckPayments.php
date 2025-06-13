@@ -46,7 +46,7 @@ class CheckPayments extends Command
 
         $now = now();
 
-        School::where('is_enable', true)->where('id','<>', 1)->chunkById(10, function($schools) use($now, $months){
+        School::query()->where('is_enable', true)->where('id','<>', 1)->chunkById(10, function($schools) use($now, $months){
 
             foreach ($schools as $school) {
                 $school->load(['settingsValues']);

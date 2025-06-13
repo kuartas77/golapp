@@ -13,15 +13,16 @@ class TrainingGroupsService
     private function query(): Builder
     {
         return TrainingGroup::query()
-        ->when(isInstructor(), fn($q) => $q->byInstructor())
-        ->withCount(['inscriptions' => fn($q) => $q->year()])
-        ->where('year_active', now()->year)
-        ->withWhereHas(
-            'members', fn($q) => $q->addSelect([
-                'inscription_id' => Inscription::select('id')->whereColumn('players.id', 'inscriptions.player_id')->year()->limit(1)
-            ])
-        )
-        ->schoolId();
+            ->when(isInstructor(), fn($q) => $q->byInstructor())
+            ->withCount(['inscriptions' => fn($q) => $q->year()])
+            ->where('year_active', now()->year)
+            ->withWhereHas(
+                'members',
+                fn($q) => $q->addSelect([
+                    'inscription_id' => Inscription::select('id')->whereColumn('players.id', 'inscriptions.player_id')->year()->limit(1)
+                ])
+            )
+            ->schoolId();
     }
 
     public function getGroups()
