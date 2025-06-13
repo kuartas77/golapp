@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Carbon\CarbonPeriod;
 use Carbon\Carbon;
 use App\Service\StopWatch;
@@ -38,7 +39,7 @@ if (!function_exists('getEloquentSqlWithBindings')) {
     /**
      * get query with binding
      *
-     * @param [type] $query
+     * @param Builder $query
      */
     function getEloquentSqlWithBindings($query): string
     {
@@ -349,7 +350,7 @@ if (!function_exists('loggerTimeRequest')){
 }
 
 if (!function_exists('createUniqueCode')){
-    function createUniqueCode(string $school_id, string $year = null): mixed
+    function createUniqueCode(string $school_id, ?string $year): mixed
     {
         $campusIds = [];
         $newUniqueCode = '';

@@ -25,10 +25,11 @@ class AssistsRequest extends FormRequest
      */
     public function rules(): array
     {
+        $months = range(1,12);
         return [
             'school_id' => ['required', 'numeric'],
             'training_group_id' => ['required', 'numeric'],
-            'month' => ['required', Rule::in([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])],
+            'month' => ['required', Rule::in($months)],
             'column' => ['required', 'string', Rule::in($this->getColumns())],
             'year' => ['nullable', 'numeric'],
         ];
