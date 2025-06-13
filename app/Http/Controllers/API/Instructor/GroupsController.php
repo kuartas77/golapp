@@ -8,6 +8,7 @@ use App\Http\Resources\API\Groups\GroupCollection;
 use App\Http\Resources\API\Groups\GroupStatisticsCollection;
 use App\Service\API\Instructor\TrainingGroupsService;
 use App\Http\Resources\API\Groups\TrainingGroupResource;
+use Illuminate\Support\Facades\Cache;
 
 class GroupsController extends Controller
 {
@@ -28,8 +29,12 @@ class GroupsController extends Controller
         return new TrainingGroupResource($group);
     }
 
-    public function statistics(TrainingGroupsService $trainingGroupsService): GroupStatisticsCollection
+    public function statistics(StatisticsRequest $request, TrainingGroupsService $trainingGroupsService): GroupStatisticsCollection
     {
-        return new GroupStatisticsCollection($trainingGroupsService->getGroups());
+        return Cache::remember(
+            "statistics.groups.user.".auth()->user()->id,
+            now()->addMinutes(5),
+            fn() => new GroupStatisticsCollection($trainingGroupsService->getGroups())
+        );
     }
 }

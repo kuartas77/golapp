@@ -14,6 +14,7 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Facades\Cache;
 
 class AssistRepository
 {
@@ -109,9 +110,22 @@ class AssistRepository
                 'school_id' => $validated['school_id']
             ];
 
-            Assist::query()->updateOrCreate($search, $validated);
+            $query = Assist::query()
+            ->where('inscription_id', $validated['inscription_id'])
+            ->where('year', $validated['year'])
+            ->where('month', $validated['month'])
+            ->where('school_id', $validated['school_id']);
+
+            if($trainingGroupId = $query->value('training_group_id')){
+                $data = array_merge($search, $validated, ['training_group_id' => $trainingGroupId]);
+                $query->update($data);
+            }else{
+                Assist::query()->updateOrCreate($search, $validated);
+            }
 
             DB::commit();
+
+            Cache::delete("statistics.groups.user.".auth()->user()->id);
 
             return true;
         } catch (Exception $exception) {
