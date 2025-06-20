@@ -16,6 +16,8 @@ Route::post('login', [LoginController::class, 'login']);
 
 Route::middleware(['auth:sanctum'])->group(function(){
 
+    Route::post('refresh-token', [LoginController::class, 'refresh'])->name('api.refresh');
+
     Route::get('check', [UserController::class, 'check']);
     Route::get('user', [UserController::class, 'user']);
 

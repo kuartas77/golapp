@@ -23,6 +23,7 @@ use App\Http\ViewComposers\Competition\MatchesViewComposer;
 use App\Http\ViewComposers\Assists\AssistViewComposer;
 use App\Http\ViewComposers\Assists\AssistHistoricViewComposer;
 use App\Http\ViewComposers\AdminComposer;
+use App\Custom\CustomSanctumToken;
 use App\Custom\CustomRecaptchaV3;
 
 class GolAppProvider extends ServiceProvider
@@ -44,6 +45,8 @@ class GolAppProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        CustomSanctumToken::authenticateAccessTokensUsing();
+
         $this->custombinding();
 
         $this->loggerQueries();

@@ -53,7 +53,7 @@ class TrainingGroupStatisticsResource extends JsonResource
 
         $noTaken = (($columns->count() * $query->count()) - $assistTaken);
         $total = ($noTaken + $assistTaken);
-        $percentage = number_format((float)(($assistTaken * 100) / ($total ?: 1)), 2, '.', ''). " %";
+        $percentage = number_format((float)(($assistTaken * 100) / ($total ?: 1)), 2, '.', '');
 
         return [
             'group_id' => $this->id,
