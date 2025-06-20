@@ -18,12 +18,13 @@ class LoginResource extends JsonResource
     public function toArray($request): array|JsonSerializable|Arrayable
     {
         $date = now()->addWeeks(2);
-        $accessToken = $this->createToken('access_token', $this->abilities, $date);
-        // $refreshToken = $this->createToken('refresh_token', $this->abilities, $date);
+        $accessToken = $this->createToken('access_token', array_merge($this->abilities, ['auth']), now()->addWeeks(2));
+        $refreshToken = $this->createToken('refresh_token', ['refresh'], now()->addWeeks(3));
         parent::wrap(null);
         return [
             'token_type' => 'Bearer',
             'access_token' => $accessToken->plainTextToken,
+            'refresh_token' => $refreshToken->plainTextToken,
             'expiration' => $date->getTimestampMs(),
             'user' => new UserResource($this)
         ];
