@@ -29,7 +29,7 @@ class CustomSanctumToken
 
     private function isAuthTokenValid(PersonalAccessToken $token): bool
     {
-        return $token->can('auth') && $token->cant('refresh');
+        return $token->can('auth');
     }
 
     private function isRefreshTokenValid(PersonalAccessToken $token): bool
