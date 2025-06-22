@@ -44,24 +44,12 @@ class LoginController extends Controller
     {
         $user->with(['roles', 'school']);
 
-        $abilities = [];
-
-        if ($user->hasRole(['super-admin'])) {
-            $abilities = ['*'];
-        } elseif ($user->hasRole(['school']) || $user->hasRole(['instructor'])) {
-            $abilities = [
-                'assists-index',
-                'assists-update',
-                'group-index',
-                'group-show',
-            ];
-        }
-
-        if (empty($abilities)) {
-            throw ValidationException::withMessages(['user' => ['unknown user.']]);
-        }
-
-        $user->abilities = $abilities;
+        $user->abilities = [
+            'assists-index',
+            'assists-update',
+            'group-index',
+            'group-show',
+        ];
 
         return new LoginResource($user);
     }
