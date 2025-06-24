@@ -110,20 +110,20 @@ class AssistRepository
                 'school_id' => $validated['school_id']
             ];
 
-            $query = $queryTraining = Assist::query()
+            $query = Assist::query()
                 ->where('inscription_id', $validated['inscription_id'])
                 ->where('year', $validated['year'])
                 ->where('month', $validated['month'])
                 ->where('school_id', $validated['school_id']);
 
-            if ($trainingGroupId = $queryTraining->value('training_group_id')) {
+            if ($trainingGroupId = $query->clone()->value('training_group_id')) {
 
                 unset($validated['inscription_id'], $validated['year']);
                 unset($validated['month'], $validated['school_id']);
 
                 $data = array_merge($validated, ['training_group_id' => $trainingGroupId]);
 
-                $query->update($data);
+                $query->clone()->update($data);
             } else {
                 Assist::query()->updateOrCreate($search, $validated);
             }
