@@ -3,6 +3,8 @@
 namespace App\Http\Requests\API;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Dto\DtoContract;
+use App\Dto\AssistDto;
 
 class AssistsUpdateRequest extends FormRequest
 {
@@ -57,7 +59,8 @@ class AssistsUpdateRequest extends FormRequest
             'assistance_twenty_five' => ['nullable', 'string'],
             'observations' => ['nullable', 'string'],
             'attendance_date' => ['nullable', 'string'],
-
+            'column' => ['nullable', 'string'],
+            'value' => ['nullable', 'string'],
         ];
     }
 
@@ -69,5 +72,10 @@ class AssistsUpdateRequest extends FormRequest
             'training_group_id' => $this->group_id,
             'year' => $this->input('year', now()->year),
         ]);
+    }
+
+    public function toDto(): DtoContract
+    {
+        return AssistDto::fromArray($this->validated());
     }
 }
