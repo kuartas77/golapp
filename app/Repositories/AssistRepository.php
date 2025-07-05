@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Models\Assist;
-use App\Models\Inscription;
-use App\Models\TrainingGroup;
-use App\Service\Assist\AssistService;
-use App\Traits\ErrorTrait;
-use App\Traits\PDFTrait;
-use Exception;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Database\Eloquent\Builder;
+use Exception;
+use App\Traits\PDFTrait;
+use App\Traits\ErrorTrait;
+use App\Service\Assist\AssistService;
+use App\Models\TrainingGroup;
+use App\Models\Inscription;
+use App\Models\Assist;
+use App\Dto\AssistDto;
 
 class AssistRepository
 {
@@ -91,46 +92,37 @@ class AssistRepository
         return $table;
     }
 
-    public function upsert(array $validated): bool
+    public function upsert(AssistDto $assistDto): bool
     {
         try {
             DB::beginTransaction();
 
-            if (isset($validated['observations']) && isset($validated['attendance_date'])) {
-                $observations = new \stdClass;
-                $observations->{$validated['attendance_date']} = $validated['observations'];
-                $validated['observations'] = $observations;
+            $assist = Assist::query()
+                ->where('inscription_id', $assistDto->inscription_id)
+                ->where('year', $assistDto->year)
+                ->where('month', $assistDto->month)
+                ->where('school_id', $assistDto->school_id)
+                ->where('training_group_id', $assistDto->training_group_id)
+                ->first();
+
+            if($assist) {
+
+                $assist->{$assistDto->column} = $assistDto->value;
+
+                if (isset($assistDto->observations) && isset($assistDto->attendance_date)) {
+                    $observations = $assist->observations ?: new \stdClass;
+
+                    $observations->{$assistDto->attendance_date} = $assistDto->observations;
+
+                    $assist->observations = $observations;
+                }
+
+                $assist->save();
+
+                DB::commit();
+
+                Cache::delete("statistics.groups.user." . auth()->user()->id);
             }
-
-            $search = [
-                'inscription_id' => $validated['inscription_id'],
-                'year' => $validated['year'],
-                'month' => $validated['month'],
-                'training_group_id' => $validated['training_group_id'],
-                'school_id' => $validated['school_id']
-            ];
-
-            $query = $queryTraining = Assist::query()
-                ->where('inscription_id', $validated['inscription_id'])
-                ->where('year', $validated['year'])
-                ->where('month', $validated['month'])
-                ->where('school_id', $validated['school_id']);
-
-            if ($trainingGroupId = $queryTraining->value('training_group_id')) {
-
-                unset($validated['inscription_id'], $validated['year']);
-                unset($validated['month'], $validated['school_id']);
-
-                $data = array_merge($validated, ['training_group_id' => $trainingGroupId]);
-
-                $query->update($data);
-            } else {
-                Assist::query()->updateOrCreate($search, $validated);
-            }
-
-            DB::commit();
-
-            Cache::delete("statistics.groups.user." . auth()->user()->id);
 
             return true;
         } catch (Exception $exception) {
