@@ -63,6 +63,7 @@ class UserController extends Controller
      */
     public function create()
     {
+        view()->share('default', 3);
         view()->share('roles', Role::query()->whereNotIn('id', [1, 2])->pluck('name', 'id'));
 
         return view('admin.user.create');
@@ -90,6 +91,7 @@ class UserController extends Controller
     public function edit(User $user)
     {
         if (isAdmin() || isSchool()) {
+            view()->share('default', 3);
             view()->share('roles', Role::query()->whereNotIn('id', [1, 2])->pluck('name', 'id'));
             view()->share('user', $user->load('roles'));
             return view('admin.user.edit');

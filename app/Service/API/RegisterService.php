@@ -51,7 +51,7 @@ class RegisterService
 
             $validated = $request->validated();
             $validated['logo'] = $this->saveFile($request, 'logo');
-            $validated['is_enable'] = ($request->is_enable ?? true);
+            $validated['is_enable'] = false;
 
             $school = School::query()->create($validated);
 
@@ -106,10 +106,18 @@ class RegisterService
             $monthly_payment = $settings->firstWhere('setting_key', 'MONTHLY_PAYMENT');
             $annuity = $settings->firstWhere('setting_key', 'ANNUITY');
 
-            $notify_payment_day->update(['value' => $request->NOTIFY_PAYMENT_DAY]);
-            $inscription_amount->update(['value' => $request->INSCRIPTION_AMOUNT]);
-            $monthly_payment->update(['value' => $request->MONTHLY_PAYMENT]);
-            $annuity->update(['value' => $request->ANNUITY]);
+            if($notify_payment_day && $request->NOTIFY_PAYMENT_DAY) {
+                $notify_payment_day->update(['value' => $request->NOTIFY_PAYMENT_DAY]);
+            }
+            if($inscription_amount && $request->INSCRIPTION_AMOUNT) {
+                $inscription_amount->update(['value' => $request->INSCRIPTION_AMOUNT]);
+            }
+            if($monthly_payment && $request->MONTHLY_PAYMENT) {
+                $monthly_payment->update(['value' => $request->MONTHLY_PAYMENT]);
+            }
+            if($annuity && $request->ANNUITY) {
+                $annuity->update(['value' => $request->ANNUITY]);
+            }
 
             DB::commit();
 

@@ -125,7 +125,7 @@
             $("#is_enable").val(1);
             $("#password").val('');
             $("#password_confirmation").val('');
-            $('#player-img').attr('src', 'https://golapp.softdreamc.com/img/ballon.png');
+            $('#player-img').attr('src', 'https://app.golapp.com.co/img/ballon.png');
             $("#password_div").show();
             $("#password_confirmation_div").show();
             resetModalForm(true, 0);
