@@ -5,7 +5,7 @@
 
         <hr>
 
-        <data-table :columns="columns" :rows="pays"/>
+        <data-table-payments :columns="columns" :rows="pays" @change="onChangePayment"/>
 
         <!-- <pagination :pagination="paginationMeta" @paginate="fetchRows" :offset="offset"/> -->
 
@@ -39,6 +39,7 @@ export default {
     },
     methods: {
         searchGroup(payload){
+            this.pays = []
             this.getPays(payload)
         },
         createPayments(payload){
@@ -47,7 +48,10 @@ export default {
         paginationMeta(){
             return {}
         },
-        fetchRows(){}
+        fetchRows(){},
+        onChangePayment(payment) {
+            console.log(payment)
+        }
 
     },
     mounted(){

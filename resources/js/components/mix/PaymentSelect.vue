@@ -1,19 +1,20 @@
 <template>
-    <input type="hidden" v-model="payment.id" />
-
     <input
+        min="0"
         v-model="payment.value"
         type="text"
         v-mask="'pesos'"
         class="form-control form-control-sm"
         style="width: 20%; text-align: right;"
+        @blur="handleBlur"
     />
-
+    -
     <select
         v-model="payment.selected"
         class="form-control form-control-sm"
         :class="colorClass"
         style="width: 20%;"
+        @change="handleBlur"
     >
         <option value="">Selecciona...</option>
         <option
@@ -42,6 +43,7 @@ export default {
                 id: "",
                 value: 0,
                 selected: "",
+                column: "",
             },
             colorClass: "",
             options: [
@@ -69,22 +71,18 @@ export default {
             this.payment.value = this.row.value;
             this.payment.selected = this.row.status;
         },
-    },
-    watch: {
-        'payment.selected'(value) {
-            const optionSelected = this.options.find((option) => option.value == value)
+        handleBlur() {
+            const optionSelected = this.options.find((option) => option.value == this.payment.selected)
             this.colorClass = optionSelected.color
-            this.$emit('change', this.payment)
-        },
-        'payment.value'(value){
-            if(value.length >= 4){
+            if (this.payment.selected != '0' && this.payment.value != 0) {
                 this.$emit('change', this.payment)
             }
         }
-
     },
     mounted() {
         this.loadValues()
+        const optionSelected = this.options.find((option) => option.value == this.payment.selected)
+        this.colorClass = optionSelected.color
     },
 };
 </script>

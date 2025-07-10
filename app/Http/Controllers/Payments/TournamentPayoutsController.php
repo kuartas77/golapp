@@ -21,11 +21,12 @@ class TournamentPayoutsController extends Controller
 
     public function index(Request $request)
     {
-        if(($request->ajax())){
+        if($request->ajax()){
+            if($request->filled('dataRaw')){
+                $data = $this->repository->search($request->only(['tournament_id', 'competition_group_id', 'unique_code']), true);
+                return new TournamentPaymentCollection($data);
+            }
             return $this->repository->search($request->only(['tournament_id', 'competition_group_id', 'unique_code']));
-        }elseif($request->wantsJson()){
-            $data = $this->repository->search($request->only(['tournament_id', 'competition_group_id', 'unique_code']), true);
-            return new TournamentPaymentCollection($data);
         }
 
         return view('payments.tournaments.index');

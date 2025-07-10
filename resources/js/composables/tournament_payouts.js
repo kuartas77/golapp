@@ -35,7 +35,7 @@ export default function usePayouts() {
 
 
     const getPays = async ({competition_group_id, tournament_id, unique_code}) => {
-        let response = await axios.get(`/tournamentpayout?tournament_id=${tournament_id}&competition_group_id=${competition_group_id}&unique_code=${unique_code}`)
+        let response = await axios.get(`/tournamentpayout?tournament_id=${tournament_id}&competition_group_id=${competition_group_id}&unique_code=${unique_code}&dataRaw=true`)
         pays.value = response.data.data
         return pays
     }

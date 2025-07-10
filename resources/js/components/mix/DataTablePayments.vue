@@ -10,7 +10,11 @@
 
             <tr v-for="row in rows" :key="row.id">
                 <td v-for="column in columns" :key="`cell-${row.id}`">
-                    <slot name="cell" v-bind="{ column, row }">
+
+                    <slot v-if="getType(column, row) == 'payments-select'" name="cell" v-bind="{ column, row }">
+                        <paymentSelect :row="row" @change="change"/>
+                    </slot>
+                    <slot v-else name="cell" v-bind="{ column, row }">
                         {{column.value(row)}}
                     </slot>
                 </td>
@@ -31,8 +35,13 @@
 </div>
 </template>
 <script>
+import paymentSelect from '@/components/mix/PaymentSelect'
 export default {
-    name: 'data-table',
+    name: 'data-table-payments',
+    emits: ['change'],
+    components: {
+        paymentSelect
+    },
     props: {
         columns: {
             type: Array,
@@ -52,6 +61,9 @@ export default {
         },
         getName(dot, row){
             return typeof dot.name == 'function' ? dot.name(row) : dot.name
+        },
+        change(payment) {
+            this.$emit('change', payment)
         }
     }
 }
