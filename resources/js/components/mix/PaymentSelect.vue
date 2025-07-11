@@ -1,14 +1,13 @@
 <template>
-    <input
-        min="0"
-        v-model="payment.value"
-        type="text"
-        v-mask="'pesos'"
+
+    <CurrencyInput
+        v-model.lazy="payment.value"
+        :options="{ currency: 'COP', valueRange: { min:0 }, hideCurrencySymbolOnFocus: false }"
         class="form-control form-control-sm"
         style="width: 20%; text-align: right;"
         @blur="handleBlur"
-    />
-    -
+     />
+    /
     <select
         v-model="payment.selected"
         class="form-control form-control-sm"
@@ -28,9 +27,13 @@
 </template>
 
 <script>
+import CurrencyInput from '@components/mix/CurrencyInput'
 export default {
     name: "payment-select",
     emits: ['change'],
+    components: {
+        CurrencyInput
+    },
     props: {
         row: {
             type: Object,
@@ -40,10 +43,11 @@ export default {
     data() {
         return {
             payment: {
-                id: "",
+                id: null,
                 value: 0,
                 selected: "",
-                column: "",
+                column: null,
+                user_id: null
             },
             colorClass: "",
             options: [
@@ -70,19 +74,23 @@ export default {
             this.payment.id = this.row.id;
             this.payment.value = this.row.value;
             this.payment.selected = this.row.status;
+            this.payment.user_id = this.row.player.id;
+            this.payment.column = this.row.column ?? null;
+            this.changeColors(this.payment.selected)
         },
         handleBlur() {
-            const optionSelected = this.options.find((option) => option.value == this.payment.selected)
-            this.colorClass = optionSelected.color
+            this.changeColors(this.payment.selected)
             if (this.payment.selected != '0' && this.payment.value != 0) {
                 this.$emit('change', this.payment)
             }
+        },
+        changeColors(valueSelected) {
+            const optionSelected = this.options.find((option) => option.value == valueSelected)
+            this.colorClass = optionSelected.color
         }
     },
     mounted() {
         this.loadValues()
-        const optionSelected = this.options.find((option) => option.value == this.payment.selected)
-        this.colorClass = optionSelected.color
     },
 };
 </script>

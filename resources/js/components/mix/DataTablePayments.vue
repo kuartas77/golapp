@@ -3,7 +3,7 @@
     <table class="display compact dataTable">
         <thead>
             <tr>
-                <th v-for="column in columns" :key="column+'_head'" :id="column.name">{{ column.name }}</th>
+                <th v-for="column in columns" :key="column.name+'_head'" :id="column.name">{{ column.name }}</th>
             </tr>
         </thead>
         <tbody>
@@ -13,6 +13,11 @@
 
                     <slot v-if="getType(column, row) == 'payments-select'" name="cell" v-bind="{ column, row }">
                         <paymentSelect :row="row" @change="change"/>
+                    </slot>
+                    <slot v-else-if="getType(column, row) == 'link'" name="cell" v-bind="{ column, row }">
+                        <a :href="'/players/'+row.player.unique_code" target="_blank">
+                            <small>{{column.value(row)}}</small>
+                        </a>
                     </slot>
                     <slot v-else name="cell" v-bind="{ column, row }">
                         {{column.value(row)}}

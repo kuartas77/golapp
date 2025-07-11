@@ -19,13 +19,17 @@ class TournamentPayoutsController extends Controller
         $this->repository = $repository;
     }
 
+    public function searchRaw(Request $request)
+    {
+        if ($request->filled('dataRaw')) {
+            $data = $this->repository->search($request->only(['tournament_id', 'competition_group_id', 'unique_code']), true);
+            return new TournamentPaymentCollection($data);
+        }
+    }
+
     public function index(Request $request)
     {
-        if($request->ajax()){
-            if($request->filled('dataRaw')){
-                $data = $this->repository->search($request->only(['tournament_id', 'competition_group_id', 'unique_code']), true);
-                return new TournamentPaymentCollection($data);
-            }
+        if ($request->ajax()) {
             return $this->repository->search($request->only(['tournament_id', 'competition_group_id', 'unique_code']));
         }
 
