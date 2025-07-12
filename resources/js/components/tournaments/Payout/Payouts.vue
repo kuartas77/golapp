@@ -18,7 +18,7 @@ import usePayouts from '@/composables/tournament_payouts'
 export default {
     name: 'tournament-payouts',
     components:{
-        Form
+        Form,
     },
     setup(){
         const {pays, getPays, sendPay, createPayments} = usePayouts()
@@ -32,7 +32,6 @@ export default {
     },
     data() {
         return {
-            offset: 0,
             columns:[
                 {name: 'Nombres', value: (row) => `${row.unique_code} ${row.player.full_names}`, type: 'link'},
                 {name: 'Pago / Estado', type: 'payments-select'},

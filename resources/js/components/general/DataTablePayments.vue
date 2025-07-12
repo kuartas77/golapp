@@ -40,7 +40,7 @@
 </div>
 </template>
 <script>
-import paymentSelect from '@/components/mix/PaymentSelect'
+import paymentSelect from '@/components/general/PaymentSelect'
 export default {
     name: 'data-table-payments',
     emits: ['change'],

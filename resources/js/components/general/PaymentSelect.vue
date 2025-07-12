@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import CurrencyInput from '@components/mix/CurrencyInput'
+import CurrencyInput from '@components/general/CurrencyInput'
 export default {
     name: "payment-select",
     emits: ['change'],
