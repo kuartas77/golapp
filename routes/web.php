@@ -133,6 +133,6 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
 });
 
-Route::middleware(['auth', 'verified_school'])->group(function () {
-    Route::get('api/tournamentpayout', [TournamentPayoutsController::class, 'searchRaw']);
+Route::middleware(['auth', 'verified_school'])->prefix('vue')->group(function () {
+    Route::get('tournamentpayout', [TournamentPayoutsController::class, 'searchRaw']);
 });

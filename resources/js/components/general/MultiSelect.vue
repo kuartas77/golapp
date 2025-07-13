@@ -10,8 +10,8 @@
             <template v-if="buttons">
                 <br>
                 <div class="text-center">
-                    <button type="button" class="btn waves-effect waves-light btn-rounded btn-info"
-                        @click="addAll" :disabled="disabledAddAll">Agregar Todos</button>
+                    <button type="button" class="btn waves-effect waves-light btn-rounded btn-info" @click="addAll"
+                        :disabled="disabledAddAll">Agregar Todos</button>
                 </div>
             </template>
         </div>
@@ -26,8 +26,8 @@
             <template v-if="buttons">
                 <br>
                 <div class="text-center">
-                    <button type="button" class="btn waves-effect waves-light btn-rounded btn-info"
-                        @click="removeAll" :disabled="disabledRemoveall">Quitar Todos</button>
+                    <button type="button" class="btn waves-effect waves-light btn-rounded btn-info" @click="removeAll"
+                        :disabled="disabledRemoveall">Quitar Todos</button>
                 </div>
             </template>
         </div>
@@ -42,9 +42,7 @@
                 { id: 13, name: 'Option D' },
                 { id: 14, name: 'Option E' },
                 { id: 15, name: 'Option F' }
-                ]" :preselected="[
-                    { id: 14, name: 'Option E' }, { id: 15, name: 'Option F' }
-                    ]" v-model="multiSelect"/> -->
+                ]" v-model:preselected="preselected"/> -->
 
 
 <script>
@@ -62,9 +60,9 @@ export default {
         preselected: {
             type: Array,
             default: []
-        }
+        },
     },
-    emits: ['update:selected'],
+    emits: ['update:preselected'],
     data() {
         return {
             availableOptions: [],
@@ -72,34 +70,36 @@ export default {
         };
     },
     computed: {
-        disabledAddAll: ({availableOptions}) => availableOptions.length == 0,
-        disabledRemoveall: ({selectedOptions}) => selectedOptions.length == 0
+        disabledAddAll: ({ availableOptions }) => availableOptions.length == 0,
+        disabledRemoveall: ({ selectedOptions }) => selectedOptions.length == 0
     },
     watch: {
-        'availableOptions'() {this.selectedOptions.sort((a,b) => a.id - b.id)},
-        'selectedOptions'() {this.availableOptions.sort((a,b) => a.id - b.id)}
+        'availableOptions'() { this.selectedOptions.sort((a, b) => a.id - b.id) },
+        'selectedOptions'() { this.availableOptions.sort((a, b) => a.id - b.id) }
     },
     methods: {
+        handleSelect() {
+            this.$emit('update:preselected', this.selectedOptions)
+        },
         addSelection(item) {
             this.selectedOptions.push(item);
             this.availableOptions = this.availableOptions.filter(option => option.id !== item.id)
-            this.availableOptions.sort((a,b) => a.id - b.id)
-            this.$emit('update:selected', this.selectedOptions)
+            this.handleSelect()
         },
         removeSelection(item) {
             this.availableOptions.push(item);
             this.selectedOptions = this.selectedOptions.filter(option => option.id !== item.id)
-            this.$emit('update:selected', this.selectedOptions)
+            this.handleSelect()
         },
         addAll() {
             this.selectedOptions = this.options
             this.availableOptions = []
-            this.$emit('update:selected', this.selectedOptions)
+            this.handleSelect()
         },
         removeAll() {
             this.availableOptions = this.options
             this.selectedOptions = []
-            this.$emit('update:selected', this.selectedOptions)
+            this.handleSelect()
         },
         checkLoadPreselected() {
             if (this.preselected.length > 0) {
@@ -111,7 +111,6 @@ export default {
     mounted() {
         this.availableOptions = this.options
         this.checkLoadPreselected()
-        this.$emit('update:modelValue', this.selectedOptions)
     }
 };
 </script>
