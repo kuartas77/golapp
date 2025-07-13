@@ -23,7 +23,7 @@ class TrainingSessionComposer
 
             $training_groups = Cache::remember("KEY_TRAINING_GROUPS_{$school_id}", now()->addMinutes(5), function () {
                 $filter = Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);
-                return $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, filter: $filter);
+                return $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, filter: $filter)->pluck('full_schedule_group', 'id');
             });
 
             $general = Cache::remember("KEY_TRAINING_SESSION_GENERAL_OBJECTIVE", now()->addMinutes(5), fn () => config('variables.KEY_TRAINING_SESSION_GENERAL_OBJECTIVE'));

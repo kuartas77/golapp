@@ -154,7 +154,7 @@ class TrainingGroupRepository
     /**
      * @param null $whereUser
      */
-    public function getListGroupsSchedule(bool $deleted = false, ?int $user_id = null, callable $filter = null): Collection
+    public function getListGroupsSchedule(bool $deleted = false, ?int $user_id = null, ?callable $filter = null): Collection
     {
         $query = $this->trainingGroup->query()->schoolId()->where('year_active', '>=', now()->year);
         if ($deleted) {
@@ -179,7 +179,7 @@ class TrainingGroupRepository
             $result = $filter($result);
         }
 
-        return $result->pluck('full_schedule_group', 'id');
+        return $result;
     }
 
     /**

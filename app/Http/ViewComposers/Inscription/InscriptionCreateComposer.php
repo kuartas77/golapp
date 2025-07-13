@@ -62,7 +62,7 @@ class InscriptionCreateComposer
 
             $training_groups = Cache::remember("KEY_TRAINING_GROUPS_{$school_id}", now()->addMinutes(5), function () {
                 $filter = Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);
-                return $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, filter: $filter);
+                return $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, filter: $filter)->pluck('full_schedule_group', 'id');
             });
 
             $competition_groups = Cache::remember("KEY_COMPETITION_GROUPS_{$school_id}", now()->addMinutes(5), function () {
