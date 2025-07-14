@@ -5,7 +5,7 @@
 
         <hr>
 
-        <data-table-payments :columns="columns" :rows="pays" @change="sendPay"/>
+        <data-table-payments :columns="columns" :rows="pays" :select_type="'tournament'" @change="sendPay"/>
 
         <!-- <pagination :pagination="paginationMeta" @paginate="fetchRows" :offset="offset"/> -->
 
@@ -13,12 +13,12 @@
 </template>
 
 <script>
-import Form from './Form.vue'
+import Form from '@components/payments/tournaments/Payout/Form.vue'
 import usePayouts from '@/composables/tournament_payouts'
 export default {
     name: 'tournament-payouts',
     components:{
-        Form,
+        Form
     },
     setup(){
         const {pays, getPays, sendPay, createPayments} = usePayouts()
@@ -32,6 +32,7 @@ export default {
     },
     data() {
         return {
+            offset: 0,
             columns:[
                 {name: 'Nombres', value: (row) => `${row.unique_code} ${row.player.full_names}`, type: 'link'},
                 {name: 'Pago / Estado', type: 'payments-select'},

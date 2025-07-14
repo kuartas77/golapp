@@ -180,10 +180,10 @@ function initTable() {
                 $.each(columnas_total, function(index, value) {
                     let select = $(value).find('select').val();
                     let inputVal = $(value).find('input[type=text]').val();
-                    if(['2','10', '13'].includes(select)){
+                    if(['9','12'].includes(select)){
                         cash = cash + intVal(inputVal);
                     }
-                    else if(['11', '12'].includes(select)){
+                    else if(['10', '11'].includes(select)){
                         consignment = consignment + intVal(inputVal);
                     }else{
                         others = others + intVal(inputVal);

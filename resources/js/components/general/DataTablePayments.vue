@@ -1,22 +1,28 @@
 <template>
 <div>
+    <div style="position: relative; overflow: auto; width: 100%;">
     <table class="display compact dataTable">
         <thead>
             <tr>
-                <th v-for="column in columns" :key="column.name+'_head'" :id="column.name">{{ column.name }}</th>
+                <th v-for="column in columns" :key="column.name+'_head'" class="text-center">{{ column.name }}</th>
             </tr>
         </thead>
         <tbody>
 
-            <tr v-for="row in rows" :key="row.id">
-                <td v-for="column in columns" :key="`cell-${row.id}`">
+            <tr v-for="row in rows" :key="row.id" class="text-center">
+                <td v-for="column in columns" :key="`cell-${row.id}`" >
 
                     <slot v-if="getType(column, row) == 'payments-select'" name="cell" v-bind="{ column, row }">
-                        <paymentSelect :row="row" @change="change"/>
+                        <template v-if="select_type == 'tournament'">
+                            <paymentSelect :row="row" @change="change" :select_type="select_type"/>
+                        </template>
+                        <template v-else>
+                            <paymentSelect :row="column.value(row)" @change="change" :select_type="select_type"/>
+                        </template>
                     </slot>
                     <slot v-else-if="getType(column, row) == 'link'" name="cell" v-bind="{ column, row }">
                         <a :href="'/players/'+row.player.unique_code" target="_blank">
-                            <small>{{column.value(row)}}</small>
+                            <small v-html="column.value(row)"></small>
                         </a>
                     </slot>
                     <slot v-else name="cell" v-bind="{ column, row }">
@@ -30,13 +36,15 @@
             </tr>
 
         </tbody>
-        <tfoot>
+        <tfoot v-if="foot">
             <tr>
-                <th v-for="column in columns" :key="column+'_foot'" :id="column.name"></th>
+                <th></th>
+                <th></th>
+                <th v-for="(column, index) in foot" :key="index+'_foot'" class="text-center">${{ formatNumber(column) }}</th>
             </tr>
         </tfoot>
     </table>
-
+</div>
 </div>
 </template>
 <script>
@@ -55,6 +63,21 @@ export default {
         rows: {
             type: Object,
             required: true
+        },
+        select_type: {
+            type: String,
+            required: true
+        },
+        foot: {
+            type: Object
+        }
+    },
+    computed: {
+        'widthColumn'() {
+            if (this.select_type != 'tournament') {
+                return 'width: 90px;'
+            }
+            return ''
         }
     },
     methods: {
@@ -69,6 +92,9 @@ export default {
         },
         change(payment) {
             this.$emit('change', payment)
+        },
+        formatNumber(value) {
+            return new Intl.NumberFormat('es-CO').format(Number(value))
         }
     }
 }

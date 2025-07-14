@@ -1,29 +1,31 @@
 <template>
 
-    <CurrencyInput
-        v-model.lazy="payment.value"
-        :options="{ currency: 'COP', valueRange: { min:0 }, hideCurrencySymbolOnFocus: false }"
-        class="form-control form-control-sm"
-        style="width: 20%; text-align: right;"
-        @blur="handleBlur"
-     />
-    /
-    <select
-        v-model="payment.selected"
-        class="form-control form-control-sm"
-        :class="colorClass"
-        style="width: 20%;"
-        @change="handleBlur"
-    >
-        <option value="">Selecciona...</option>
-        <option
-            v-for="option in options"
-            :key="option.value"
-            :value="option.value"
-        >
-            {{ option.text }}
-        </option>
-    </select>
+    <template v-if="select_type == 'tournament'">
+        <CurrencyInput v-model.lazy="payment.value"
+            :options="{ currency: 'COP', valueRange: { min: 0 }, hideCurrencySymbolOnFocus: false }"
+            class="form-control form-control-sm" style="width: 20%; text-align: right;" @blur="handleBlur" />
+        /
+        <select v-model="payment.selected" class="form-control form-control-sm" :class="colorClass" style="width: 20%;"
+            @change="handleBlur">
+            <option value="">Selecciona...</option>
+            <option v-for="option in options" :key="option.value" :value="option.value">
+                {{ option.text }}
+            </option>
+        </select>
+
+    </template>
+    <template v-else>
+        <CurrencyInput v-model.lazy="payment.value"
+            :options="{ currency: 'COP', valueRange: { min: 0 }, hideCurrencySymbolOnFocus: false }"
+            class="form-control form-control-sm" style="text-align: right;" @blur="handleBlur" />
+
+        <select v-model="payment.selected" class="form-control form-control-sm" :class="colorClass" @change="handleBlur">
+            <option value="">Selecciona...</option>
+            <option v-for="option in options" :key="option.value" :value="option.value">
+                {{ option.text }}
+            </option>
+        </select>
+    </template>
 </template>
 
 <script>
@@ -39,6 +41,10 @@ export default {
             type: Object,
             required: true,
         },
+        select_type: {
+            type: String,
+            required: true
+        }
     },
     data() {
         return {

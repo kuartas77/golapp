@@ -32,7 +32,7 @@ class PaymentController extends Controller
     {
         if ($request->ajax()) {
             $request->merge(['school_id' => getSchool(auth()->user())->id]);
-            return $this->repository->filter($request);
+            return $this->repository->filter($request, false, $request->filled('dataRaw'));
         }
 
         $school = getSchool(auth()->user());
