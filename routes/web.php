@@ -132,3 +132,13 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     });
 
 });
+
+Route::middleware(['auth', 'verified_school'])->prefix('v1')->group(function () {
+    Route::get('tournamentpayout', [TournamentPayoutsController::class, 'searchRaw']);
+
+    Route::prefix('groups')->group(function () {
+        Route::get('training', [TrainingGroupController::class, 'groupList']);
+    });
+
+    Route::get('payments', [PaymentController::class, 'searchRaw']);
+});

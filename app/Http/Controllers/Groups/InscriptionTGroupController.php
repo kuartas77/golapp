@@ -24,7 +24,7 @@ class InscriptionTGroupController extends Controller
     public function index()
     {
         $firstGroup = TrainingGroup::orderBy('id')->firstWhere('school_id', getSchool(auth()->user())->id);
-        $groups = $this->repository->getListGroupsSchedule();
+        $groups = $this->repository->getListGroupsSchedule()->pluck('full_schedule_group', 'id');
         $groups->prepend($firstGroup->full_schedule_group, $firstGroup->id);
 
         view()->share('groups', $groups);

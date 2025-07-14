@@ -33,9 +33,7 @@ class AssistHistoricViewComposer
             $view->with('months', $months);
             $view->with('yearMax', Assist::query()->select('year')->schoolId()->max('year') - 1);
             $view->with('yearMin', Assist::query()->select('year')->schoolId()->min('year'));
-            $view->with('training_groups', $this->trainingGroupRepository->getListGroupsSchedule(true));
+            $view->with('training_groups', $this->trainingGroupRepository->getListGroupsSchedule(true)->pluck('full_schedule_group', 'id'));
         }
     }
 }
-
-

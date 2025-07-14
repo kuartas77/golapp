@@ -14,15 +14,6 @@ export default function usePayouts() {
         paginationMeta.value = response.data.meta
     }
 
-    const fetchRowsPaginate = async () => {
-        let current_page = paginationMeta.value.current_page
-        let pageNum = current_page ? current_page : 1
-
-        let response = await axios.get(`/api/schools?page=${pageNum}`)
-        rows.value = response.data.data
-        paginationMeta.value = response.data.meta
-    }
-
     const loadTournaments = async () => {
         let response = await axios.get('/autocomplete/tournaments')
         tournaments.value = response.data.data
@@ -35,9 +26,22 @@ export default function usePayouts() {
 
 
     const getPays = async ({competition_group_id, tournament_id, unique_code}) => {
-        let response = await axios.get(`/tournamentpayout?tournament_id=${tournament_id}&competition_group_id=${competition_group_id}&unique_code=${unique_code}`)
+        pays.value = []
+        let response = await axios.get(`/v1/tournamentpayout?tournament_id=${tournament_id}&competition_group_id=${competition_group_id}&unique_code=${unique_code}&dataRaw=true`)
         pays.value = response.data.data
         return pays
+    }
+
+    const sendPay = async (payment) => {
+        payment._method = "PUT"
+        payment.status = payment.selected
+        let response = await axios.post(`/tournamentpayout/${payment.id}`, payment)
+        return response.data.data ?? response.data.error
+    }
+
+    const createPayments = async (payload) => {
+        let response = await axios.post(`/tournamentpayout`, payload)
+        return response.data.data
     }
 
     return {
@@ -47,9 +51,10 @@ export default function usePayouts() {
         tournaments,
         paginationMeta,
         fetchRows,
-        // fetchRowsPaginate,
         loadTournaments,
         loadGroups,
-        getPays
+        getPays,
+        sendPay,
+        createPayments
     }
 }

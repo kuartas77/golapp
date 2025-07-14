@@ -175,7 +175,7 @@ return [
      */
 
     'permissions-policy' => [
-        'enable' => true,
+        'enable' => false,
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/accelerometer
         'accelerometer' => [

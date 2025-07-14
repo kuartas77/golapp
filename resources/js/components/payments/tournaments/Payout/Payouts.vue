@@ -1,11 +1,11 @@
 <template>
     <div>
 
-        <Form @search="searchGroup" @create="createPayments"></Form>
+        <Form @search="getPays" @create="createPaymentsControl"></Form>
 
         <hr>
 
-        <data-table :columns="columns" :rows="pays"/>
+        <data-table-payments :columns="columns" :rows="pays" :select_type="'tournament'" @change="sendPay"/>
 
         <!-- <pagination :pagination="paginationMeta" @paginate="fetchRows" :offset="offset"/> -->
 
@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import Form from './Form.vue'
+import Form from '@components/payments/tournaments/Payout/Form.vue'
 import usePayouts from '@/composables/tournament_payouts'
 export default {
     name: 'tournament-payouts',
@@ -21,37 +21,33 @@ export default {
         Form
     },
     setup(){
-        const {pays, getPays} = usePayouts()
+        const {pays, getPays, sendPay, createPayments} = usePayouts()
 
         return {
             pays,
             getPays,
+            sendPay,
+            createPayments
         }
     },
     data() {
         return {
             offset: 0,
             columns:[
-                {name: 'Nombres', value: (row) => `${row.unique_code} ${row.player.full_names}`},
+                {name: 'Nombres', value: (row) => `${row.unique_code} ${row.player.full_names}`, type: 'link'},
                 {name: 'Pago / Estado', type: 'payments-select'},
             ]
         }
     },
     methods: {
-        searchGroup(payload){
+        createPaymentsControl(payload){
+            this.createPayments(payload)
             this.getPays(payload)
-        },
-        createPayments(payload){
             console.log("createTournamentPay", payload)
         },
         paginationMeta(){
             return {}
-        },
-        fetchRows(){}
-
-    },
-    mounted(){
-
+        }
     }
 };
 </script>

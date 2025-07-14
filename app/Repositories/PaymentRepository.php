@@ -27,16 +27,56 @@ class PaymentRepository
      * @param $request
      * @param false $deleted
      */
-    public function filter($request, bool $deleted = false): array
+    public function filter($request, bool $deleted = false, $raw = false): array
     {
-        $payments = $this->filterSelect($request->all(), $deleted)->get();
-        $rows = "";
+        $payments = $this->filterSelect($request->all(), $deleted, $raw)->get();
+        $payments->setAppends(['check_payments']);
+
+        if(!$raw) {
+            return $this->generateTable($payments, $deleted);
+        }else {
+            return $this->generateData($payments, $deleted);
+        }
+    }
+
+    private function generateResponse($rows, $count, $urlExportExcel, $urlExportPDF, array $extra = [])
+    {
+        $response = [
+            'rows' => $rows,
+            'count' => $count,
+            'url_export_excel' => $urlExportExcel,
+            'url_export_pdf' => $urlExportPDF,
+        ];
+
+        return array_merge($response, $extra);
+    }
+
+    private function generateData($payments, $deleted)
+    {
+        $school = getSchool(auth()->user());
+        $inscription_amount = (float) $school->settings['INSCRIPTION_AMOUNT'] ?? 70000;
+        $monthly_payment = (float) $school->settings['MONTHLY_PAYMENT'] ?? 50000;
+        $annuity = (float) $school->settings['ANNUITY'] ?? 48333;
+
+        [$urlExportExcel, $urlExportPDF] = $this->generateLinks($payments, $deleted);
+
+        $extra = [
+            'inscription_amount' => $inscription_amount,
+            'monthly_payment' => $monthly_payment,
+            'annuity' => $annuity
+        ];
+
+        return $this->generateResponse($payments, $payments->count(), $urlExportExcel, $urlExportPDF, $extra);
+    }
+
+    private function generateTable($payments, $deleted)
+    {
+        $rows = '';
         $payments->setAppends(['check_payments']);
         $school = getSchool(auth()->user());
         $inscription_amount = $school->settings['INSCRIPTION_AMOUNT'] ?? 70000;
         $monthly_payment = $school->settings['MONTHLY_PAYMENT'] ?? 50000;
         $annuity = $school->settings['ANNUITY'] ?? 48333;
-
         $nameFields = config('variables.KEY_INDEX_MONTHS');
         $nameFields[0] = 'enrollment';
         ksort($nameFields);
@@ -53,26 +93,35 @@ class PaymentRepository
             ])->render();
         }
 
+        [$urlExportExcel, $urlExportPDF] = $this->generateLinks($payments, $deleted);
+
+        return $this->generateResponse($rows, $payments->count(), $urlExportExcel, $urlExportPDF);
+    }
+
+    private function generateLinks($payments, $deleted)
+    {
         $query_params = request()->query();
         if ($deleted) {
             $query_params['deleted'] = true;
         }
 
-        if ($payments && !$request->filled('training_group_id')) {
+        if ($payments && !request()->filled('training_group_id')) {
             $query_params['training_group_id'] = 0;
         }
 
         ksort($query_params);
-        $urlExportExcel = route('export.payments.excel', $query_params);
-        $urlExportPDF = route('export.payments.pdf', $query_params);
-        return ['rows' => $rows, 'count' => $payments->count(), 'url_export_excel' => $urlExportExcel, 'url_export_pdf' => $urlExportPDF];
+
+        return [
+            route('export.payments.excel', $query_params),
+            route('export.payments.pdf', $query_params)
+        ];
     }
 
     /**
      * @param $params
      * @param false $deleted
      */
-    public function filterSelect(array $params, bool $deleted = false): Builder
+    public function filterSelect(array $params, bool $deleted = false, bool $raw = false): Builder
     {
         $school_id = data_get($params, 'school_id');
         $category = data_get($params, 'category');
@@ -80,9 +129,11 @@ class PaymentRepository
         $unique_code = data_get($params, 'unique_code');
         $training_group_id = data_get($params, 'training_group_id', 0);
 
-        $query = $this->payment->where('school_id', $school_id)->with([
-            'inscription' => fn($query) => $query->with(['player'])->withTrashed()
-        ])->withTrashed();
+        $query = $this->payment->where('school_id', $school_id)
+        ->when($raw,
+            fn($q) => $q->with(['player']),
+            fn($q) => $q->with(['inscription' => fn($query) => $query->with(['player'])->withTrashed()])->withTrashed()
+        );
 
         $query
             ->addSelect([

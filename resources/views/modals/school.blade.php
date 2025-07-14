@@ -28,16 +28,16 @@
     function readFile(input) {
         let label = $(input).next('label.custom-file-label')
         if (input.files && input.files[0]) {
-            let reader = new FileReader();                
+            let reader = new FileReader();
             reader.onload = function (e) {
                 $('#player-img').attr('src', e.target.result);
-            }                
+            }
             reader.readAsDataURL(input.files[0]);
             // label.empty().html(input.files[0].name)
             label.empty().html('Seleccionada.')
         }else{
             label.empty().html("Seleccionar...")
-            $('#player-img').attr('src', 'https://golapp.softdreamc.com/img/ballon.png');                
+            $('#player-img').attr('src', 'https://app.golapp.com.co/img/ballon.png"');
         }
     }
     $('#file-upload').on('change', function(){

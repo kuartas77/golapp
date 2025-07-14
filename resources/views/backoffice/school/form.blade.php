@@ -92,7 +92,7 @@
 
     <div class="col-md-8">
         <div class="form-group">
-            <label>Logo</label>
+            <label for="file-upload">Logo</label>
             <div class="custom-file">
                 <input type="file" class="custom-file-input" id="file-upload" accept="image/png, image/jpeg" name="logo">
                 <label class="custom-file-label" for="file-upload">Seleccionar...</label>
@@ -101,8 +101,8 @@
     </div>
 
     <div class="col-md-4">
-        <label>Logo</label>
-        <img src="https://golapp.softdreamc.com/img/ballon.png" class="rounded" alt="player" id="player-img" width="200" height="200">
+        <label for="player-img">Logo</label>
+        <img src="https://app.golapp.com.co/img/ballon.png" class="rounded" alt="player" id="player-img" width="200" height="200">
     </div>
 
 </div>

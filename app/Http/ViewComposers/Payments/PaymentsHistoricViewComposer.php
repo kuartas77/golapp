@@ -25,7 +25,7 @@ class PaymentsHistoricViewComposer
         if (Auth::check()) {
             $view->with('yearMax', Payment::select('year')->max('year') - 1);
             $view->with('yearMin', Payment::select('year')->min('year'));
-            $view->with('training_groups', $this->trainingGroupRepository->getListGroupsSchedule(true));
+            $view->with('training_groups', $this->trainingGroupRepository->getListGroupsSchedule(true)->pluck('full_schedule_group', 'id'));
         }
     }
 }

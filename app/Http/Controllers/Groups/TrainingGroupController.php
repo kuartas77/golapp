@@ -2,19 +2,22 @@
 
 namespace App\Http\Controllers\Groups;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Groups\TrainingGroupRequest;
-use App\Models\TrainingGroup;
-use App\Repositories\TrainingGroupRepository;
-use Exception;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Routing\Redirector;
 use Illuminate\View\View;
+use Illuminate\Routing\Redirector;
+use Illuminate\Http\Response;
+use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\Foundation\Application;
+use Exception;
+use Closure;
+use App\Repositories\TrainingGroupRepository;
+use App\Models\TrainingGroup;
+use App\Models\Inscription;
+use App\Http\ViewComposers\Payments\PaymentsViewComposer;
+use App\Http\Requests\Groups\TrainingGroupRequest;
+use App\Http\Controllers\Controller;
 
 class TrainingGroupController extends Controller
 {
@@ -151,5 +154,24 @@ class TrainingGroupController extends Controller
         return response()->json($this->repository->getGroupsYear($request->input('year')));
     }
 
+    public function groupList(Request $request): JsonResponse
+    {
+        $filter = Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);
+        if (isSchool() || isAdmin()) {
+            $training_groups = $this->repository->getListGroupsSchedule(deleted: false, filter: $filter);
+        } elseif (isInstructor()) {
+            $training_groups = $this->repository->getListGroupsSchedule(deleted: false, user_id: auth()->id(), filter: $filter);
+        }
 
+        $groups = $training_groups->map(fn ($group) => ['id' => $group->id, 'text' => $group->full_schedule_group]);
+        $queryCategories = Inscription::where('year', now()->year)->distinct()->schoolId()->get();
+        $categories = $queryCategories->map(fn ($category) => ['id' => $category->category, 'text' => $category->category]);
+
+        return response()->json([
+            'data' => [
+                'groups' => $groups,
+                'categories' => $categories
+            ]
+        ]);
+    }
 }

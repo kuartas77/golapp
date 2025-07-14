@@ -32,9 +32,9 @@ class PaymentsViewComposer
         if (Auth::check()) {
             $filter = Closure::fromCallable([$this, 'filterGroupsYearActive']);
             if (isSchool() || isAdmin()) {
-                $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, filter: $filter);
+                $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, filter: $filter)->pluck('full_schedule_group', 'id');
             } elseif (isInstructor()) {
-                $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, user_id: auth()->id(), filter: $filter);
+                $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, user_id: auth()->id(), filter: $filter)->pluck('full_schedule_group', 'id');
             }
 
             $categories = Inscription::where('year', now()->year)->distinct()->schoolId()->pluck('category', 'category');
