@@ -14,6 +14,7 @@ import DataTablePayments from '@components/general/DataTablePayments.vue'
 import Pagination from '@components/general/Pagination.vue'
 import Payouts from '@components/payments/tournaments/Payout/Payouts.vue'
 import MonthlyPayments from '@components/payments/payment/MonthlyPayments.vue';
+import Attendances from './components/attendances/Attendances.vue';
 
 const app = createApp();
 
@@ -27,5 +28,6 @@ app.component('data-table-payments', DataTablePayments)
 app.component('pagination', Pagination)
 app.component('tournament-payouts', Payouts)
 app.component('monthly-payments', MonthlyPayments)
+app.component('attendances', Attendances)
 
 app.mount('#app')
