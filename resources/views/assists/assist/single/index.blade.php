@@ -11,7 +11,7 @@
         <hr>
         <h6 class="card-subtitle text-themecolor m-b-0 m-t-0" id="group_name"></h6>
         <h6 class="card-subtitle text-themecolor m-b-0 m-t-0" id="class_name"></h6>
-        @include('assists.assist.table')
+        @include('assists.assist.single.table')
     </x-row-card >
 @endsection
 @section('modals')
@@ -27,5 +27,5 @@
             $(".preloader").fadeOut()
         })
     </script>
-    <script type="text/javascript" src="{{asset('js/assist.js')}}"></script>
+    <script type="text/javascript" src="{{asset('js/single_assist.js')}}"></script>
 @endsection

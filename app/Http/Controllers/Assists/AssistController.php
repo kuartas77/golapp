@@ -32,6 +32,7 @@ class AssistController extends Controller
             return response()->json($this->repository->search($request->only(['training_group_id', 'year', 'month', 'column'])));
         }
         return view('assists.assist.index');
+        // return view('assists.assist.single.index');
     }
 
     /**

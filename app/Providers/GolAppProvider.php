@@ -116,7 +116,7 @@ class GolAppProvider extends ServiceProvider
 
         View::composer(['profile.*'], ProfileComposer::class);
 
-        View::composer(['assists.assist.index'], AssistViewComposer::class);
+        View::composer(['assists.assist.index', 'assists.assist.single.index'], AssistViewComposer::class);
 
         View::composer(['assists.historic.index', 'assists.historic.show'], AssistHistoricViewComposer::class);
 
@@ -124,7 +124,7 @@ class GolAppProvider extends ServiceProvider
 
         View::composer(['incidents.index'], IncidentComposer::class);
 
-        View::composer(['templates.*', 'modals.modal_attendance', 'assists.assist.index'], TemplatesComposer::class);
+        View::composer(['templates.*', 'modals.modal_attendance', 'assists.assist.index', 'assists.assist.single.index'], TemplatesComposer::class);
 
         View::composer(['layouts.menu', 'layouts.topbar', 'backoffice.contracts.*'], AdminComposer::class);
 
