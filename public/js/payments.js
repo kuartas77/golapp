@@ -5,7 +5,8 @@ $(document).ready(() => {
     table = $('#active_table').DataTable({
         "paging": false,
         "ordering": false,
-        "info": true
+        "info": true,
+        dom: 'it',//lftip
     });
 
     $("#form_payments").validate({
@@ -126,7 +127,7 @@ function initTable() {
     table = $('#active_table').DataTable({
         "paging": false,
         "ordering": false,
-        "info": true,
+        dom: 'it',//lftip
         "scrollX": true,
         "scrollCollapse":true,
         columnDefs: [
