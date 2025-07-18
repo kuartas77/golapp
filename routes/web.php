@@ -141,4 +141,6 @@ Route::middleware(['auth', 'verified_school'])->prefix('v1')->group(function () 
     });
 
     Route::get('payments', [PaymentController::class, 'searchRaw']);
+
+    Route::get("training_group/classdays", [TrainingGroupController::class, 'getClassDays'])->name('group_classdays');
 });
