@@ -3,7 +3,7 @@
         <div class="row form-body">
             <div class="col-md-3">
                 <div class="form-group">
-                    <label for="training_group_id">Grupo De Entrenamiento</label>
+                    <label for="groups">Grupo De Entrenamiento</label>
                     <span class="bar"></span>
                     <select
                         v-model="form.training_group_id"
@@ -26,13 +26,14 @@
                         v-model="form.unique_code"
                         class="form-control form-control-sm"
                         placeholder="Ej: 20190000"
+                        id="unique_code"
                     />
                 </div>
             </div>
 
             <div class="col-md-3">
                 <div class="form-group">
-                    <label for="category"
+                    <label for="categories"
                         >Categoría</label
                     >
                     <span class="bar"></span>

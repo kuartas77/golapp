@@ -29,9 +29,10 @@ class AssistController extends Controller
     public function index(Request $request): Application|Factory|View|JsonResponse
     {
         if ($request->ajax()) {
-            return response()->json($this->repository->search($request->only(['training_group_id', 'year', 'month'])));
+            return response()->json($this->repository->search($request->only(['training_group_id', 'year', 'month', 'column'])));
         }
         return view('assists.assist.index');
+        // return view('assists.assist.single.index');
     }
 
     /**

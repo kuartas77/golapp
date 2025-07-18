@@ -19,7 +19,7 @@ class AssistService
             array_map('dayToNumber', $trainingGroup->explode_days)
         );
 
-        $table = $this->makeTable($assists, $classDays, $deleted);
+        $table = $this->makeTable($assists, $classDays, $deleted, $data);
 
         $links = $this->makeLinks($data, $deleted);
 
@@ -32,19 +32,21 @@ class AssistService
         ];
     }
 
-    private function makeTable($assists, Collection $classDays, bool $deleted): string
+    private function makeTable($assists, Collection $classDays, bool $deleted, $data): string
     {
         $rows = '';
+        $column = isset($data['column']) ? $data['column'] : null;
         foreach ($assists as $assist) {
             $rows .= View::make('templates.assists.row', [
                 'assist' => $assist,
                 'classDays' => $classDays,
-                'deleted' => $deleted
+                'deleted' => $deleted,
+                'column' => $column
             ])->render();
         }
 
         return View::make('templates.assists.table', [
-            'thead' => View::make('templates.assists.thead', ['classDays' => $classDays])->render(),
+            'thead' => View::make('templates.assists.thead', ['classDays' => $classDays, 'column' => $column])->render(),
             'rows' => $rows
         ])->render();
     }

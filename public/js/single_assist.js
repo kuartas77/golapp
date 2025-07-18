@@ -5,6 +5,7 @@ let btnPrint = $('#print');
 let btnPrintExcel = $("#print_excel");
 let tableActive = $('#active_table');
 let form_assist = $("#form_assist");
+const containerClassdays = $("#classdays");
 let selectRow = null
 jQuery(function() {
     tableActive = $('#active_table').DataTable({
@@ -17,8 +18,8 @@ jQuery(function() {
     form_assist.validate({
         submitHandler: (form) => {
             let data = $(form).serializeArray();
-            $.get(url_current, data, (response) => {
-                validateData(response, true);
+            $.get(url_classDays, data, (response) => {
+                loadClassdays(response)
             });
         }
     });
@@ -27,7 +28,13 @@ jQuery(function() {
         if (form_assist.valid()) {
             let data = $("#form_assist").serializeArray();
             $.post(url_current, data, (response) => {
-                validateData(response, false);
+                swal.fire({
+                    title: 'Atención!!',
+                    text: `Se Han Creado ${response.count} Asistencia(s).`,
+                    type: 'info',
+                    showCancelButton: false,
+                    timer: 1500
+                });
             });
         }
     });
@@ -153,11 +160,6 @@ const initTable = () => {
         "paging": false,
         "ordering": false,
         dom: 'it',//lftip
-        "scrollX": true,
-        columnDefs: [
-            { targets: [0, 1], width: '5%'},
-            { targets: '_all', width: 'auto'}
-        ],
     });
 }
 
@@ -197,3 +199,32 @@ function changeColorAssist(domelement, value = null){
     }
     element.blur()
 }
+
+const loadClassdays = (classDays) => {
+    let Htmlbuttons = ''
+    $("#ClassCount").empty().append(`# ${classDays.length}`)
+    classDays.forEach((classDay, index) => {
+        Htmlbuttons += `<button class="btn btn-info m-1 class-day"
+            data-group="${classDay.group_id}"
+            data-month="${classDay.month}"
+            data-column="${classDay.column}"># ${index+1} | ${classDay.day}: ${classDay.date}</button>`
+    })
+    containerClassdays.empty().append(Htmlbuttons)
+}
+
+$('body').on('click', 'button.class-day', function(){
+    let button = $(this);
+    let group = button.data('group');
+    let month = button.data('month');
+    let column = button.data('column');
+
+    let data = {'training_group_id':group, 'month':month, 'column': column }
+
+    $.get(url_current, data, (response) => {
+        validateData(response, true);
+
+        let classText = button.html()
+
+        $('#class_name').empty().append(`Entrenamiento: ${classText}`)
+    });
+})

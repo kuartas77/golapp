@@ -174,4 +174,13 @@ class TrainingGroupController extends Controller
             ]
         ]);
     }
+
+    public function getClassDays(Request $request)
+    {
+        $group = TrainingGroup::findOrFail($request->training_group_id);
+
+        $classDays = TrainingGroupRepository::getClassDays($group, $request->month);
+
+        return response()->json($classDays);
+    }
 }

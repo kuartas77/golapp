@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 
-use App\Models\TrainingGroup;
-use App\Traits\ErrorTrait;
-use Exception;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Collection;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Database\Eloquent\Model;
+use Exception;
+use Carbon\Carbon;
+use App\Traits\ErrorTrait;
+use App\Models\TrainingGroup;
 
 /**
  * @method static create(array $group)
@@ -242,5 +244,36 @@ class TrainingGroupRepository
         }
 
         return $rows;
+    }
+
+    public static function getClassDays($group, $month = null): Collection
+    {
+        if($month) {
+            $month = getMonthNumber($month);
+            $date = Carbon::now()->setMonth($month);
+        }else{
+            $date = Carbon::now();
+        }
+
+        $classDays = classDays(
+            $date->year,
+            $date->month,
+            array_map('dayToNumber', $group->explode_days)
+        );
+
+        return $classDays->map(function ($classDay)use($group, $date) {
+            $name = Str::ucfirst($classDay['name']);
+            return [
+                'id' => "{$group->id}{$date->month}{$classDay['day']}",
+                'date' => $classDay['day'],
+                'day' => $name,
+                'month' => $date->month,
+                'month_name' => getMonth($date->month),
+                'column' => $classDay['column'],
+                'group_id' => $group->id,
+                'school_id' => getSchool(auth()->user())->id,
+                'year' => $date->year
+            ];
+        });
     }
 }
