@@ -7,7 +7,7 @@ return [
         'Miércoles' => 'Miércoles',
         'Jueves' => 'Jueves',
         'Viernes' => 'Viernes',
-        'Sábados' => 'Sábado',
+        'Sábado' => 'Sábado',
         'Domingos' => 'Domingo'
     ],
     'KEY_WEEKS_INDEX' => [

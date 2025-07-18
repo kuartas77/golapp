@@ -11,6 +11,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\API\Players\PlayersCollection;
+use App\Repositories\TrainingGroupRepository;
 
 class TrainingGroupResource extends JsonResource
 {
@@ -38,32 +39,8 @@ class TrainingGroupResource extends JsonResource
             'full_schedule_group' => $this->full_schedule_group,
             'full_group' => $this->full_group,
             'player_count' => $this->inscriptions_count,
-            'class_days' => $this->getClassDays(),
+            'class_days' => TrainingGroupRepository::getClassDays($this),
             'players' => $this->whenLoaded('members', new PlayersCollection($this->members))
         ];
-    }
-
-    private function getClassDays(): Collection
-    {
-        $date = Carbon::now();
-        $classDays = classDays(
-            $date->year,
-            $date->month,
-            array_map('dayToNumber', $this->explode_days)
-        );
-
-        return $classDays->map(function ($class)use($date) {
-            $name = Str::ucfirst($class['name']);
-            return [
-                'id' => "{$this->id}{$date->month}{$class['day']}",
-                'date' => $class['day'],
-                'day' => $name,
-                'month' => $date->month,
-                'month_name' => getMonth($date->month),
-                'column' => $class['column'],
-                'group_id' => $this->id,
-                'school_id' => getSchool(auth()->user())->id
-            ];
-        });
     }
 }
