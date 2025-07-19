@@ -20,5 +20,5 @@
             $(".preloader").fadeOut()
         })
     </script>
-    <script type="text/javascript" src="{{asset('js/single_assist.js')}}"></script>
+    <script type="text/javascript" src="{{asset('js/assist.js')}}"></script>
 @endsection
