@@ -195,95 +195,171 @@ class PaymentRepository
     {
         $consult = DB::table('payments')->selectRaw("
             COALESCE(SUM(case when january IN (1,9,10,11,12) then 1 else 0 end),0) january_payment,
-            COALESCE(SUM(case when january IN (0,2) then 1 else 0 end),0) january_due,
+            COALESCE(SUM(case when january = 2 then 1 else 0 end),0) january_due,
             COALESCE(SUM(case when january = 8 then 1 else 0 end),0) january_scholarship,
+            COALESCE(SUM(case when january = 0 then 1 else 0 end),0) january_pending,
             COALESCE(SUM(case when february IN (1,9,10,11,12) then 1 else 0 end),0) february_payment,
-            COALESCE(SUM(case when february IN (0,2) then 1 else 0 end),0) february_due,
+            COALESCE(SUM(case when february = 2 then 1 else 0 end),0) february_due,
             COALESCE(SUM(case when february = 8 then 1 else 0 end),0) february_scholarship,
+            COALESCE(SUM(case when february = 0 then 1 else 0 end),0) february_pending,
             COALESCE(SUM(case when march IN (1,9,10,11,12) then 1 else 0 end),0) march_payment,
-            COALESCE(SUM(case when march IN (0,2) then 1 else 0 end),0) march_due,
+            COALESCE(SUM(case when march = 2 then 1 else 0 end),0) march_due,
             COALESCE(SUM(case when march = 8 then 1 else 0 end),0) march_scholarship,
+            COALESCE(SUM(case when march = 0 then 1 else 0 end),0) march_pending,
             COALESCE(SUM(case when april IN (1,9,10,11,12) then 1 else 0 end),0) april_payment,
-            COALESCE(SUM(case when april IN (0,2) then 1 else 0 end),0) april_due,
+            COALESCE(SUM(case when april = 2 then 1 else 0 end),0) april_due,
             COALESCE(SUM(case when april = 8 then 1 else 0 end),0) april_scholarship,
+            COALESCE(SUM(case when april = 0 then 1 else 0 end),0) april_pending,
             COALESCE(SUM(case when may IN (1,9,10,11,12) then 1 else 0 end),0) may_payment,
-            COALESCE(SUM(case when may IN (0,2) then 1 else 0 end),0) may_due,
+            COALESCE(SUM(case when may = 2 then 1 else 0 end),0) may_due,
             COALESCE(SUM(case when may = 8 then 1 else 0 end),0) may_scholarship,
+            COALESCE(SUM(case when may = 0 then 1 else 0 end),0) may_pending,
             COALESCE(SUM(case when june IN (1,9,10,11,12) then 1 else 0 end),0) june_payment,
-            COALESCE(SUM(case when june IN (0,2) then 1 else 0 end),0) june_due,
+            COALESCE(SUM(case when june = 2 then 1 else 0 end),0) june_due,
             COALESCE(SUM(case when june = 8 then 1 else 0 end),0) june_scholarship,
+            COALESCE(SUM(case when june = 0 then 1 else 0 end),0) june_pending,
             COALESCE(SUM(case when july IN (1,9,10,11,12) then 1 else 0 end),0) july_payment,
-            COALESCE(SUM(case when july IN (0,2) then 1 else 0 end),0) july_due,
+            COALESCE(SUM(case when july = 2 then 1 else 0 end),0) july_due,
             COALESCE(SUM(case when july = 8 then 1 else 0 end),0) july_scholarship,
+            COALESCE(SUM(case when july = 0 then 1 else 0 end),0) july_pending,
             COALESCE(SUM(case when august IN (1,9,10,11,12) then 1 else 0 end),0) august_payment,
-            COALESCE(SUM(case when august IN (0,2) then 1 else 0 end),0) august_due,
+            COALESCE(SUM(case when august = 2 then 1 else 0 end),0) august_due,
             COALESCE(SUM(case when august = 8 then 1 else 0 end),0) august_scholarship,
+            COALESCE(SUM(case when august = 0 then 1 else 0 end),0) august_pending,
             COALESCE(SUM(case when september IN (1,9,10,11,12) then 1 else 0 end),0) september_payment,
-            COALESCE(SUM(case when september IN (0,2) then 1 else 0 end),0) september_due,
+            COALESCE(SUM(case when september = 2 then 1 else 0 end),0) september_due,
             COALESCE(SUM(case when september = 8 then 1 else 0 end),0) september_scholarship,
+            COALESCE(SUM(case when september = 0 then 1 else 0 end),0) september_pending,
             COALESCE(SUM(case when october IN (1,9,10,11,12) then 1 else 0 end),0) october_payment,
-            COALESCE(SUM(case when october IN (0,2) then 1 else 0 end),0) october_due,
+            COALESCE(SUM(case when october = 2 then 1 else 0 end),0) october_due,
             COALESCE(SUM(case when october = 8 then 1 else 0 end),0) october_scholarship,
+            COALESCE(SUM(case when october = 0 then 1 else 0 end),0) october_pending,
             COALESCE(SUM(case when november IN (1,9,10,11,12) then 1 else 0 end),0) november_payment,
-            COALESCE(SUM(case when november IN (0,2) then 1 else 0 end),0) november_due,
+            COALESCE(SUM(case when november = 2 then 1 else 0 end),0) november_due,
             COALESCE(SUM(case when november = 8 then 1 else 0 end),0) november_scholarship,
+            COALESCE(SUM(case when november = 0 then 1 else 0 end),0) november_pending,
             COALESCE(SUM(case when december IN (1,9,10,11,12) then 1 else 0 end),0) december_payment,
-            COALESCE(SUM(case when december IN (0,2) then 1 else 0 end),0) december_due,
-            COALESCE(SUM(case when december = 8 then 1 else 0 end),0) december_scholarship")
+            COALESCE(SUM(case when december = 2 then 1 else 0 end),0) december_due,
+            COALESCE(SUM(case when december = 8 then 1 else 0 end),0) december_scholarship,
+            COALESCE(SUM(case when december = 0 then 1 else 0 end),0) december_pending")
             ->where('year', $year)
             ->when(!is_null($school_id), fn($query) => $query->where('school_id', $school_id))
             ->first();
 
+        return $this->makeLabelAndSeries($consult);
+    }
+
+    private function makeLabelAndSeries($consult)
+    {
         $labels = config('variables.KEY_LABEL_MONTHS');
-
         $series = collect();
-        $payments = collect();
-        $due = collect();
-        $scholarship = collect();
+        $arPayments = [];
+        $arDue = [];
+        $arSholar = [];
+        $arPending = [];
 
-        $payments->push((integer)$consult->january_payment);
-        $payments->push((integer)$consult->february_payment);
-        $payments->push((integer)$consult->march_payment);
-        $payments->push((integer)$consult->april_payment);
-        $payments->push((integer)$consult->may_payment);
-        $payments->push((integer)$consult->june_payment);
-        $payments->push((integer)$consult->july_payment);
-        $payments->push((integer)$consult->august_payment);
-        $payments->push((integer)$consult->september_payment);
-        $payments->push((integer)$consult->october_payment);
-        $payments->push((integer)$consult->november_payment);
-        $payments->push((integer)$consult->december_payment);
+        array_push($arPayments, (integer)$consult->january_payment);
+        array_push($arPayments, (integer)$consult->february_payment);
+        array_push($arPayments, (integer)$consult->march_payment);
+        array_push($arPayments, (integer)$consult->april_payment);
+        array_push($arPayments, (integer)$consult->may_payment);
+        array_push($arPayments, (integer)$consult->june_payment);
+        array_push($arPayments, (integer)$consult->july_payment);
+        array_push($arPayments, (integer)$consult->august_payment);
+        array_push($arPayments, (integer)$consult->september_payment);
+        array_push($arPayments, (integer)$consult->october_payment);
+        array_push($arPayments, (integer)$consult->november_payment);
+        array_push($arPayments, (integer)$consult->december_payment);
+        $payments = collect(['name' => 'Pagaron', 'data' => $arPayments]);
 
-        $due->push((integer)$consult->january_due);
-        $due->push((integer)$consult->february_due);
-        $due->push((integer)$consult->march_due);
-        $due->push((integer)$consult->april_due);
-        $due->push((integer)$consult->may_due);
-        $due->push((integer)$consult->june_due);
-        $due->push((integer)$consult->july_due);
-        $due->push((integer)$consult->august_due);
-        $due->push((integer)$consult->september_due);
-        $due->push((integer)$consult->october_due);
-        $due->push((integer)$consult->november_due);
-        $due->push((integer)$consult->december_due);
+        array_push($arDue, (integer)$consult->january_due);
+        array_push($arDue, (integer)$consult->february_due);
+        array_push($arDue, (integer)$consult->march_due);
+        array_push($arDue, (integer)$consult->april_due);
+        array_push($arDue, (integer)$consult->may_due);
+        array_push($arDue, (integer)$consult->june_due);
+        array_push($arDue, (integer)$consult->july_due);
+        array_push($arDue, (integer)$consult->august_due);
+        array_push($arDue, (integer)$consult->september_due);
+        array_push($arDue, (integer)$consult->october_due);
+        array_push($arDue, (integer)$consult->november_due);
+        array_push($arDue, (integer)$consult->december_due);
+        $due = collect(['name' => 'Deben', 'data' => $arDue]);
 
-        $scholarship->push((integer)$consult->january_scholarship);
-        $scholarship->push((integer)$consult->february_scholarship);
-        $scholarship->push((integer)$consult->march_scholarship);
-        $scholarship->push((integer)$consult->april_scholarship);
-        $scholarship->push((integer)$consult->may_scholarship);
-        $scholarship->push((integer)$consult->june_scholarship);
-        $scholarship->push((integer)$consult->july_scholarship);
-        $scholarship->push((integer)$consult->august_scholarship);
-        $scholarship->push((integer)$consult->september_scholarship);
-        $scholarship->push((integer)$consult->october_scholarship);
-        $scholarship->push((integer)$consult->november_scholarship);
-        $scholarship->push((integer)$consult->december_scholarship);
+        array_push($arSholar, (integer)$consult->january_scholarship);
+        array_push($arSholar, (integer)$consult->february_scholarship);
+        array_push($arSholar, (integer)$consult->march_scholarship);
+        array_push($arSholar, (integer)$consult->april_scholarship);
+        array_push($arSholar, (integer)$consult->may_scholarship);
+        array_push($arSholar, (integer)$consult->june_scholarship);
+        array_push($arSholar, (integer)$consult->july_scholarship);
+        array_push($arSholar, (integer)$consult->august_scholarship);
+        array_push($arSholar, (integer)$consult->september_scholarship);
+        array_push($arSholar, (integer)$consult->october_scholarship);
+        array_push($arSholar, (integer)$consult->november_scholarship);
+        array_push($arSholar, (integer)$consult->december_scholarship);
+        $scholarship = collect(['name' => 'Becados', 'data' => $arSholar]);
+
+        array_push($arPending, (integer)$consult->january_pending);
+        array_push($arPending, (integer)$consult->february_pending);
+        array_push($arPending, (integer)$consult->march_pending);
+        array_push($arPending, (integer)$consult->april_pending);
+        array_push($arPending, (integer)$consult->may_pending);
+        array_push($arPending, (integer)$consult->june_pending);
+        array_push($arPending, (integer)$consult->july_pending);
+        array_push($arPending, (integer)$consult->august_pending);
+        array_push($arPending, (integer)$consult->september_pending);
+        array_push($arPending, (integer)$consult->october_pending);
+        array_push($arPending, (integer)$consult->november_pending);
+        array_push($arPending, (integer)$consult->december_pending);
+        $pending = collect(['name' => 'Pendientes', 'data' => $arPending]);
 
         $series->push($payments);
         $series->push($due);
         $series->push($scholarship);
+        $series->push($pending);
+
         return collect(['labels' => $labels, 'series' => $series]);
+    }
+
+    public function queryPaymentsDueByMonth($schoolId, ?int $year = null, ?int $month = null, bool $onlyDue = true)
+    {
+        // '1' Pay
+        // '2' Due
+        if (!is_null($month) && $month < 1 || $month > 12) {
+            $month = now()->month;
+        }
+
+        $months = config('variables.KEY_MONTHS_EN');
+        $selectYear = is_null($year) ? now()->year : $year;
+        $selectMonth = is_null($month) ? $months[now()->month] : $months[$month];
+
+        return Payment::query()
+            ->select([
+                'payments.id',
+                'payments.unique_code',
+                'payments.updated_at',
+                'players.email',
+                DB::raw("CONCAT(players.names, ' ', players.last_names) as names"),
+                DB::raw('training_groups.name as group_name'),
+                $selectMonth,
+            ])
+            ->when(
+                $onlyDue,
+                fn($query) => $query->addSelect(DB::raw("'Due' as payment_status")),
+                fn($query) => $query->addSelect(DB::raw("(CASE WHEN $selectMonth = '1' THEN 'Pay' WHEN $selectMonth = '2' THEN 'Due' END) as payment_status"))
+            )
+            ->join('inscriptions', 'inscriptions.id', '=', 'payments.inscription_id')
+            ->join('players', 'players.id', '=', 'inscriptions.player_id')
+            ->join('training_groups', 'training_groups.id', '=', 'payments.training_group_id')
+            ->where('payments.year', $selectYear)
+            ->whereRaw(DB::raw("payments.created_at <= (DATE_SUB(CURDATE(), INTERVAL 1 MONTH))"))
+            ->where('payments.school_id', $schoolId)
+            ->when(
+                $onlyDue,
+                fn($query) => $query->where($selectMonth, '2'),
+                fn($query) => $query->where(fn($query) => $query->where($selectMonth, '2')->orWhere($selectMonth, '1'))
+            );
     }
 
 }

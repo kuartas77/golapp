@@ -2,7 +2,7 @@
 @section('title', 'Torneos')
 @section('content')
 <x-bread-crumb title="Torneos" :option="0" />
-<x-row-card col-inside="12">
+<x-row-card col-inside="8" col-outside="2">
     @include('tournaments.table')
 </x-row-card>
 @endsection

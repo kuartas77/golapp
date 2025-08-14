@@ -2,7 +2,7 @@
 @section('title', 'Grupos Entrenamiento')
 @section('content')
     <x-bread-crumb title="Grupos Entrenamiento" :option="0"/>
-    <x-row-card col-inside="12" >
+    <x-row-card col-inside="8" col-outside="2" >
         @include('groups.training.table')
     </x-row-card >
 @endsection
@@ -17,4 +17,3 @@
     </script>
     <script src="{{asset('js/trainingGroupIndex.js')}}" defer></script>
 @endsection
-

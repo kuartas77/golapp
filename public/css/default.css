@@ -519,10 +519,6 @@ select.swal2-select{
     cursor: -webkit-grab;
 }
 
-.ct-series-b .ct-bar, .ct-series-b .ct-line, .ct-series-b .ct-point, .ct-series-b .ct-slice-donut {
-    stroke: goldenrod;
-}
-
 .small-list > li {
     font-size: 65%;
 }
@@ -777,4 +773,20 @@ a[href="#cancel"] {
 }
 .tox-statusbar__branding {
     display: none;
+}
+
+.ct-series-a .ct-bar {
+    stroke: #1e88e5 !important;
+}
+
+.ct-series-b .ct-bar {
+    stroke: red !important;
+}
+
+.ct-series-c .ct-bar {
+    stroke: #ffb22b !important;
+}
+
+.ct-series-d .ct-bar {
+    stroke: #26c6da !important;
 }

@@ -25,11 +25,9 @@ final class CreatePlayerAction implements IContractPassable
     {
         $this->school = $passable->getSchool();
 
-        $this->player = $this->getPlayer($passable);
+        $this->getPlayer($passable);
 
-        $this->player->unique_code = $this->player->exists ? $this->player->unique_code: $this->createUniqueCode($passable);
-
-        $this->attributes = $this->setAttributes($passable);
+        $this->setAttributes($passable);
 
         $this->upsertPlayer();
 
@@ -38,17 +36,19 @@ final class CreatePlayerAction implements IContractPassable
         return $next($passable);
     }
 
-    private function getPlayer(Passable $passable): Player
+    private function getPlayer(Passable $passable)
     {
-        return Player::query()
+        $this->player = Player::query()
             ->where('identification_document', $passable->getPropertyFromData('identification_document'))
             ->where('school_id', $this->school->id)
             ->firstOr(callback: fn(): Player => new Player());
     }
 
-    private function setAttributes(Passable $passable): array
+    private function setAttributes(Passable $passable)
     {
-        return [
+        $uniqueCode = $this->player->exists ? $this->player->unique_code: $this->createUniqueCode($passable);
+        $this->attributes = [
+            'unique_code' => $uniqueCode,
             'names' => $passable->getPropertyFromData('names'),
             'last_names' => $passable->getPropertyFromData('last_names'),
             'gender' => $passable->getPropertyFromData('gender'),
@@ -91,12 +91,14 @@ final class CreatePlayerAction implements IContractPassable
     {
         foreach ($this->attributes as $attribute => $value) {
             if($attribute == 'photo' && $value instanceof UploadedFile){
-                $this->player->{$attribute} = $this->uploadFile($value, $this->school->slug);
-            }else{
-                $this->player->{$attribute} = $value;
+                $this->attributes['photo'] = $this->uploadFile($value, $this->school->slug);
             }
         }
 
-        $this->player->save();
+        $this->player = Player::query()->withTrashed()->updateOrCreate([
+            'identification_document' => $this->attributes['identification_document'],
+            'unique_code' => $this->attributes['unique_code'],
+            'school_id' => $this->attributes['school_id']
+        ], $this->attributes);
     }
 }
