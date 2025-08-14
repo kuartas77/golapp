@@ -2,7 +2,7 @@
 @section('title', 'Usuarios')
 @section('content')
 <x-bread-crumb title="Usuarios" :option="0"/>
-<x-row-card col-inside="12" >
+<x-row-card col-inside="8" col-outside="2" >
     <h4 class="card-title">Usuarios</h4>
     @include('admin.user.table')
 </x-row-card >
