@@ -210,4 +210,18 @@ class InscriptionRepository
         }
     }
 
+    public function getPreinscriptionsOrProvicionalGroup($schoolId): Builder
+    {
+        return Inscription::query()
+            ->select([
+                'inscriptions.id',
+                'inscriptions.unique_code',
+                DB::raw("CONCAT(players.names, ' ', players.last_names) as names")
+            ])
+            ->join('players', 'players.id', '=', 'inscriptions.player_id')
+            ->where('inscriptions.year', now()->year)
+            ->where('inscriptions.school_id', $schoolId)
+            ->where(fn($query) => $query->where('inscriptions.training_group_id', 1)->orWhere('inscriptions.pre_inscription', 1));
+    }
+
 }

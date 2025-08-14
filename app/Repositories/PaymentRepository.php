@@ -322,4 +322,44 @@ class PaymentRepository
         return collect(['labels' => $labels, 'series' => $series]);
     }
 
+    public function queryPaymentsDueByMonth($schoolId, ?int $year = null, ?int $month = null, bool $onlyDue = true)
+    {
+        // '1' Pay
+        // '2' Due
+        if (!is_null($month) && $month < 1 || $month > 12) {
+            $month = now()->month;
+        }
+
+        $months = config('variables.KEY_MONTHS_EN');
+        $selectYear = is_null($year) ? now()->year : $year;
+        $selectMonth = is_null($month) ? $months[now()->month] : $months[$month];
+
+        return Payment::query()
+            ->select([
+                'payments.id',
+                'payments.unique_code',
+                'payments.updated_at',
+                'players.email',
+                DB::raw("CONCAT(players.names, ' ', players.last_names) as names"),
+                DB::raw('training_groups.name as group_name'),
+                $selectMonth,
+            ])
+            ->when(
+                $onlyDue,
+                fn($query) => $query->addSelect(DB::raw("'Due' as payment_status")),
+                fn($query) => $query->addSelect(DB::raw("(CASE WHEN $selectMonth = '1' THEN 'Pay' WHEN $selectMonth = '2' THEN 'Due' END) as payment_status"))
+            )
+            ->join('inscriptions', 'inscriptions.id', '=', 'payments.inscription_id')
+            ->join('players', 'players.id', '=', 'inscriptions.player_id')
+            ->join('training_groups', 'training_groups.id', '=', 'payments.training_group_id')
+            ->where('payments.year', $selectYear)
+            ->whereRaw(DB::raw("payments.created_at <= (DATE_SUB(CURDATE(), INTERVAL 1 MONTH))"))
+            ->where('payments.school_id', $schoolId)
+            ->when(
+                $onlyDue,
+                fn($query) => $query->where($selectMonth, '2'),
+                fn($query) => $query->where(fn($query) => $query->where($selectMonth, '2')->orWhere($selectMonth, '1'))
+            );
+    }
+
 }

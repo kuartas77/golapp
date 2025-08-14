@@ -32,7 +32,11 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('check:payments')->dailyAt('05:00')->withoutOverlapping();
 
+        $schedule->command('inscription:status')->dailyAt('05:05')->withoutOverlapping();
+
         $schedule->command('assists:month')->lastDayOfMonth('23:00')->withoutOverlapping();
+
+        $schedule->command('payments:monthly')->lastDayOfMonth('01:00')->withoutOverlapping();
     }
 
     /**
