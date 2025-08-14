@@ -45,7 +45,7 @@
 
     <div class="tab-pane" id="disabled" role="tabpanel" aria-labelledby="disabled-tab">
         <div class="table-responsive-md">
-            <table class="display compact" id="disabled_table">
+            <table class="display compact" id="disabled_table" width="100%">
                 <thead>
                     <tr>
                         <th>Grupo</th>
