@@ -61,7 +61,7 @@ $('body').on('click', 'a.assist', function()  {
     let day = $(this).data('day')
     let number = $(this).data('number')
 
-    $.get(url_current + `/${id}`,{ column: column, date: date, action:'assist' }, ({id, observation, value}) => {
+    $.get(url_current + `/${id}`,{ column: column, date: date, action:'assist' }, ({id, observation, value, player_name}) => {
         $('#attendance_id').val(id)
         $('#attendance_day').val(day)
         $('#attendance_date').val(date)
@@ -70,6 +70,7 @@ $('body').on('click', 'a.assist', function()  {
         $('#select_attendance').attr('name', column)
         $('#select_attendance').val(value).trigger('change')
         $('#single_observation').val(observation)
+        $('#player_name').empty().append(player_name)
     });
 })
 
@@ -83,6 +84,7 @@ $("#form_attendance").validate({
         changeColorAssist(element, value)
         data.push({name: 'id', value: id})
         data.push({name: '_method', value: 'PUT'})
+        $('#player_name').empty()
         $.post(url_current + `/${id}`, data)
 
         $(selectRow[0]).attr('data-value', value)

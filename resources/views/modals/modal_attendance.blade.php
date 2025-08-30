@@ -4,7 +4,7 @@
             <form id="form_attendance" class="form-material m-t-0">
                 @csrf
                 <div class="modal-header">
-                    <h4 class="modal-title" id="modal_title text-uppercase"><strong>Tomar Asistencia</strong></h4>
+                    <h4 class="modal-title" id="modal_title text-uppercase"><strong>Tomar Asistencia:</strong>&nbsp;<span id="player_name"></span></h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 </div>
                 <div class="modal-body">
@@ -46,7 +46,7 @@
 
                         <div class="col-md-12 col-sm-12 col-lg-12 col-xs-12">
                             <div class="form-group">
-                                <label for="observation">Observaciónes del deportista para la clase.</label>
+                                <label for="observation">Observaciónes para el deportista en el entrenamiento.</label>
                                 <span class="bar"></span>
                                 <textarea name="observations" id="single_observation" cols="30" rows="10" class="form-control form-control-sm"></textarea>
                             </div>

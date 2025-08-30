@@ -56,7 +56,7 @@ class CreateAssistsOnEndMonth extends Command
                 $dataAssist['year'] = $currentDate->year;
                 $dataAssist['month'] = $currentDate->addDay()->month;
 
-                $schools = School::with(['settingsValues'])->where('is_enable', true)->get();
+                $schools = School::query()->where('is_enable', true)->get();
 
                 foreach ($schools as $school) {
                     $groupsQuery = TrainingGroup::query()->whereHas('inscriptions', fn($q) => $q->where('school_id', $school->id)->where('year', $dataAssist['year']));

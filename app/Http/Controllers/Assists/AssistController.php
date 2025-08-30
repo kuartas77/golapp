@@ -31,8 +31,8 @@ class AssistController extends Controller
         if ($request->ajax()) {
             return response()->json($this->repository->search($request->only(['training_group_id', 'year', 'month', 'column'])));
         }
-        return view('assists.assist.index');
-        // return view('assists.assist.single.index');
+        // return view('assists.assist.index');
+        return view('assists.assist.single.index');
     }
 
     /**
@@ -52,11 +52,12 @@ class AssistController extends Controller
      */
     public function show(Assist $assist): JsonResponse
     {
+        $assist->load(['player']);
+
         $action = request()->query('action');
 
         if ($action === 'observation') {
 
-            $assist->load(['player']);
             $observations = '';
             if(is_object($assist->observations)) {
                 foreach($assist->observations as $date => $observation){
@@ -73,6 +74,7 @@ class AssistController extends Controller
 
             return response()->json([
                 'id' => $assist->id,
+                'player_name' => $assist->player->full_names,
                 'value' => data_get($assist, $column),
                 'observation' => data_get($assist, "observations.{$date}", '')
             ]);
