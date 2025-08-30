@@ -4,7 +4,7 @@ namespace App\Http\Requests\API;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Dto\DtoContract;
-use App\Dto\AssistDto;
+use App\Dto\AssistDTO;
 
 class AssistsUpdateRequest extends FormRequest
 {
@@ -74,8 +74,8 @@ class AssistsUpdateRequest extends FormRequest
         ]);
     }
 
-    public function toDto(): DtoContract
+    public function toDto(): AssistDTO
     {
-        return AssistDto::fromArray($this->validated());
+        return AssistDTO::fromArray($this->validated());
     }
 }

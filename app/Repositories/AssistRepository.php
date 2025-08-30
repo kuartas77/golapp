@@ -15,7 +15,7 @@ use App\Service\Assist\AssistService;
 use App\Models\TrainingGroup;
 use App\Models\Inscription;
 use App\Models\Assist;
-use App\Dto\AssistDto;
+use App\Dto\AssistDTO;
 
 class AssistRepository
 {
@@ -92,7 +92,7 @@ class AssistRepository
         return $table;
     }
 
-    public function upsert(AssistDto $assistDto): bool
+    public function upsert(AssistDTO $assistDto): bool
     {
         try {
             DB::beginTransaction();

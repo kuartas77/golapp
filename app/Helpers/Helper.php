@@ -6,6 +6,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Carbon\CarbonPeriod;
@@ -196,21 +197,27 @@ if (!function_exists('dayToNumber')) {
 if (!function_exists('isAdmin')) {
     function isAdmin(): bool
     {
-        return auth()->user()->hasAnyRole(['super-admin']);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user->hasAnyRole(['super-admin']);
     }
 }
 
 if (!function_exists('isSchool')) {
     function isSchool(): bool
     {
-        return auth()->user()->hasAnyRole(['school']);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user->hasAnyRole(['school']);
     }
 }
 
 if (!function_exists('isInstructor')) {
     function isInstructor(): bool
     {
-        return auth()->user()->hasAnyRole(['instructor']);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user->hasAnyRole(['instructor']);
     }
 }
 
