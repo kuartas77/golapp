@@ -128,7 +128,7 @@ trait PDFTrait
      */
     private function getTemplate(string $template): string
     {
-        return resource_path("templates/pdf/{$template}");
+        return resource_path("views/templates/pdf/{$template}");
     }
 
     /**
