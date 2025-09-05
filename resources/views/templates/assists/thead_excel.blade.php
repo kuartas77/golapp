@@ -1,5 +1,5 @@
 <tr>
-    <th colspan="4" rowspan="2"></th>
+    <th colspan="4" rowspan="2">{{$month}}</th>
     <th>Fecha:</th>
     @foreach ($classDays as $class)
         <th>{{$class['day']}}</th>

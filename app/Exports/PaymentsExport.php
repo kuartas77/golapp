@@ -88,6 +88,19 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
 
                 $event->sheet->setCellValue('R'. ($lastCell), '=SUM(E'.($lastCell).':Q'.($lastCell).')');
                 $event->sheet->setCellValue('R'. ($lastCell+3), '=SUM(E'.($lastRow).':Q'.($lastRow).')');
+
+                $lastColumn = $event->sheet->getHighestColumn();
+
+                $range = 'A1:' . $lastColumn . $lastRow;
+
+                $event->sheet->getStyle($range)->applyFromArray([
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'color' => ['argb' => '#000000'],
+                        ],
+                    ],
+                ]);
             }
         ];
     }

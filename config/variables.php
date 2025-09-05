@@ -33,6 +33,13 @@ return [
         're' => 'Retiro',
         'in' => 'Incapacidad',
     ],
+    'KEY_ASSIST_EXCEL' => [
+        'as' => 'X',
+        'fa' => 'F',
+        'ex' => 'E',
+        're' => 'R',
+        'in' => 'I',
+    ],
     'KEY_MONTHS' => [
         'Enero' => 'Enero', 'Febrero' => 'Febrero', 'Marzo' => 'Marzo',
         'Abril' => 'Abril', 'Mayo' => 'Mayo', 'Junio' => 'Junio',
