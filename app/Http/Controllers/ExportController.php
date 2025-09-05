@@ -124,7 +124,7 @@ class ExportController extends Controller
     public function exportMatchDetail($competition_group)
     {
         $date = now()->timestamp;
-        return Excel::download(new MatchDetailExport($competition_group), "{$date}.xlsx");
+        return Excel::download(new MatchDetailExport($competition_group), "Control de competencia {$date}.xlsx");
     }
 
     public function exportTrainingSession(Request $request, int $id, TrainingSessionExportService $trainingSessionExportService,)

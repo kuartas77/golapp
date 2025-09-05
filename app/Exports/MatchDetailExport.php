@@ -3,9 +3,7 @@
 namespace App\Exports;
 
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
-use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\FromView;
@@ -13,8 +11,13 @@ use Maatwebsite\Excel\Concerns\Exportable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Contracts\View\View;
 use App\Repositories\GameRepository;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
 
-class MatchDetailExport implements FromView, WithTitle, WithStyles
+
+class MatchDetailExport implements ShouldQueue, FromView, WithTitle, WithStyles , ShouldAutoSize, WithEvents
 {
     use Exportable;
 
@@ -38,6 +41,27 @@ class MatchDetailExport implements FromView, WithTitle, WithStyles
     public function title(): string
     {
         return "Detalle del partido";
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                $lastColumn = $event->sheet->getHighestColumn();
+                $lastRow = $event->sheet->getHighestRow();
+
+                $range = 'A1:' . $lastColumn . $lastRow;
+
+                $event->sheet->getStyle($range)->applyFromArray([
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'color' => ['argb' => '#000000'],
+                        ],
+                    ],
+                ]);
+            }
+        ];
     }
 
     public function styles(Worksheet $sheet)
