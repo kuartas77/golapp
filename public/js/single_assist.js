@@ -204,6 +204,8 @@ function changeColorAssist(domelement, value = null){
 
 const loadClassdays = (classDays) => {
     let Htmlbuttons = ''
+    tableActive.clear().draw()
+    $('#group_name').empty()
     $("#ClassCount").empty().append(`# ${classDays.length}`)
     classDays.forEach((classDay, index) => {
         Htmlbuttons += `<button class="btn btn-info m-1 class-day"
