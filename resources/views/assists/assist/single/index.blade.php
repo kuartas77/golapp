@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
     <x-bread-crumb title="Asistencias" :option="0"/>
-    <x-row-card col-inside="8" col-outside="2">
+    <x-row-card col-inside="12">
         @include('assists.assist.form')
         <hr>
         <div class="col row">
