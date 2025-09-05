@@ -362,4 +362,71 @@ class PaymentRepository
             );
     }
 
+    public function paymentsByStatus(array $params)
+    {
+        $schoolId = getSchool(auth()->user())->id;
+        switch ($params['status']) {
+            case '1':
+                $status = ['1','9','10','11','12'];
+                break;
+
+            default:
+               $status = [$params['status']];
+                break;
+        }
+
+
+        return Payment::query()
+            ->select([
+                'payments.id',
+                'payments.unique_code',
+                DB::raw("CONCAT(players.names, ' ', players.last_names) as names"),
+                DB::raw('training_groups.name as group_name'),
+                'january',
+                'february',
+                'march',
+                'april',
+                'may',
+                'june',
+                'july',
+                'august',
+                'september',
+                'october',
+                'november',
+                'december',
+                'january_amount',
+                'february_amount',
+                'march_amount',
+                'april_amount',
+                'may_amount',
+                'june_amount',
+                'july_amount',
+                'august_amount',
+                'september_amount',
+                'october_amount',
+                'november_amount',
+                'december_amount',
+            ])
+            ->join('inscriptions', 'inscriptions.id', '=', 'payments.inscription_id')
+            ->join('players', 'players.id', '=', 'inscriptions.player_id')
+            ->join('training_groups', 'training_groups.id', '=', 'payments.training_group_id')
+            ->where(
+                fn($q) =>
+                $q->orWhereIn('january', $status)
+                    ->orWhereIn('february', $status)
+                    ->orWhereIn('march', $status)
+                    ->orWhereIn('april', $status)
+                    ->orWhereIn('may', $status)
+                    ->orWhereIn('june', $status)
+                    ->orWhereIn('july', $status)
+                    ->orWhereIn('august', $status)
+                    ->orWhereIn('september', $status)
+                    ->orWhereIn('october', $status)
+                    ->orWhereIn('november', $status)
+                    ->orWhereIn('december', $status)
+            )
+            ->where('payments.year', now()->year)
+            ->where('payments.school_id', $schoolId)->get();
+    }
+
 }
