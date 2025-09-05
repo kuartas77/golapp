@@ -55,4 +55,10 @@ class PaymentController extends Controller
         $isPay = $this->repository->setPay($request->validated(), $payment);
         return $this->responseJson($isPay);
     }
+
+    public function paymentStatuses(Request $request)
+    {
+        $payments = $this->repository->paymentsByStatus($request->only(['status']));
+        return view('payments.status.index', compact('payments'));
+    }
 }

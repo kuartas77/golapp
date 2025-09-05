@@ -13,24 +13,24 @@
                     <div class="text-center">
                         <ul class="list-inline">
                             <li>
-                                <h6 class="" style="color: #1e88e5;">
+                                <a href="{{route('payments.status', ['status' => '1'])}}" class="" style="color: #1e88e5;">
                                     <i class="fa fa-circle font-10 m-r-10 "></i>Pagaron (<span id="now_year_payment"></span>)
-                                </h6>
+                                </a>
                             </li>
                             <li>
-                                <h6 class="" style="color: red;">
+                                <a href="{{route('payments.status', ['status' => '2'])}}" class="" style="color: red;">
                                     <i class="fa fa-circle font-10 m-r-10"></i>Deben (<span id="now_year_due"></span>)
-                                </h6>
+                                </a>
                             </li>
                             <li>
-                                <h6 class="" style="color: #ffb22b;">
+                                <a href="{{route('payments.status', ['status' => '8'])}}" class="" style="color: #ffb22b;">
                                     <i class="fa fa-circle font-10 m-r-10"></i>Becados (<span id="now_year_scholarship"></span>)
-                                </h6>
+                                </a>
                             </li>
                             <li>
-                                <h6 class="" style="color: #26c6da;">
+                                <a href="{{route('payments.status', ['status' => '0'])}}" class="" style="color: #26c6da;">
                                     <i class="fa fa-circle font-10 m-r-10"></i>Pendientes (<span id="now_year_pending"></span>)
-                                </h6>
+                                </a>
                             </li>
                         </ul>
                         <h4 class="text-themecolor card-subtitle">Totales, sumando todos los meses</h4>
