@@ -23,7 +23,6 @@
                 },
             ],
             paging: false,
-            ordering: false,
             dom: 'Bit', //lftip
             scrollX: true,
             scrollCollapse: true,
