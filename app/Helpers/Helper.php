@@ -6,7 +6,9 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Carbon\CarbonPeriod;
 use Carbon\Carbon;
 use App\Service\StopWatch;
@@ -38,7 +40,7 @@ if (!function_exists('getEloquentSqlWithBindings')) {
     /**
      * get query with binding
      *
-     * @param [type] $query
+     * @param Builder $query
      */
     function getEloquentSqlWithBindings($query): string
     {
@@ -195,27 +197,34 @@ if (!function_exists('dayToNumber')) {
 if (!function_exists('isAdmin')) {
     function isAdmin(): bool
     {
-        return auth()->user()->hasAnyRole(['super-admin']);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user->hasAnyRole(['super-admin']);
     }
 }
 
 if (!function_exists('isSchool')) {
     function isSchool(): bool
     {
-        return auth()->user()->hasAnyRole(['school']);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user->hasAnyRole(['school']);
     }
 }
 
 if (!function_exists('isInstructor')) {
     function isInstructor(): bool
     {
-        return auth()->user()->hasAnyRole(['instructor']);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user->hasAnyRole(['instructor']);
     }
 }
 
 if (!function_exists('getSchool')) {
-    function getSchool($user): School
+    function getSchool($user = null): School
     {
+        $user = isset($user) ? $user : auth()->user();
         $prefixKey = isAdmin() ? 'admin.' : (isSchool() ? 'school.': '');
 
         $school_id = Session::get($prefixKey . 'selected_school', 1);
@@ -348,7 +357,7 @@ if (!function_exists('loggerTimeRequest')){
 }
 
 if (!function_exists('createUniqueCode')){
-    function createUniqueCode(string $school_id, string $year = null): mixed
+    function createUniqueCode(string $school_id, ?string $year): mixed
     {
         $campusIds = [];
         $newUniqueCode = '';

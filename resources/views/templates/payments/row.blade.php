@@ -10,10 +10,18 @@
         </a>
     </td>
     <td class="text-center"><small>{{$payment->category}}</small></td>
-    @foreach($nameFields as $field)
-    <td>
-        @include('templates.payments.input', ['mes' => $field, 'value' => checkValueEnrollment($payment, $field, $inscription_amount), 'deleted' => $deleted])
-        @include('templates.payments.select', ['mes' => $field, 'value' => $payment->$field, 'deleted' => $deleted, 'id' => $payment->id , 'iteration' => $loop->iteration])
-    </td>
-    @endforeach
+    @if(isInstructor())
+        @foreach($nameFields as $field)
+         <td>
+            @include('templates.payments.badge')
+        </td>
+        @endforeach
+    @else
+        @foreach($nameFields as $field)
+        <td>
+            @include('templates.payments.input', ['mes' => $field, 'value' => checkValueEnrollment($payment, $field, $inscription_amount), 'deleted' => $deleted, 'isdeleted' => isset($payment->deleted_at)])
+            @include('templates.payments.select', ['mes' => $field, 'value' => $payment->$field, 'deleted' => $deleted, 'id' => $payment->id , 'iteration' => $loop->iteration, 'isdeleted' => isset($payment->deleted_at)])
+        </td>
+        @endforeach
+    @endif
 </tr>

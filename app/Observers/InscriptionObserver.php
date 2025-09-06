@@ -45,8 +45,7 @@ class InscriptionObserver
      */
     public function deleted(Inscription $inscription): void
     {
-        $inscription->payments()->delete();
-        $inscription->assistance()->delete();
+
     }
 
     /**

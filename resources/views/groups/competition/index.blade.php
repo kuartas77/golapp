@@ -2,7 +2,7 @@
 @section('title', 'Grupos Competencia')
 @section('content')
     <x-bread-crumb title="Grupos Competencia" :option="0"/>
-    <x-row-card col-inside="12" >
+    <x-row-card col-inside="8" col-outside="2" >
         @include('groups.competition.table')
     </x-row-card >
 @endsection

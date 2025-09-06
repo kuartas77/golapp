@@ -9,11 +9,12 @@
             <small>{{$assist->inscription->player->full_names}}</small>
         </a>
     </td>
+    @if(is_null($column))
     <td>{{$assist->month}}</td>
     @for ($index = 1; $index <= $classDays->count(); $index++)
         <td class="text-center">
             @php
-                $column = numbersToLetters($index);
+            $column = numbersToLetters($index);
             @endphp
             @include('templates.assists.select', [
                 'id' => $assist->id,
@@ -25,12 +26,25 @@
                 'classDay' => $classDays->firstWhere('column', $column)
             ])
         </td>
-    @endfor
-    <td>
-        @if(!$deleted)
-            <button type='button' class='btn btn-primary observation' data-toggle='modal' data-target='#modal_observation'
-                    data-id="{{$assist->id}}">Ver observaciónes
-            </button>
+        @endfor
+        @else
+        <td class="text-center">
+            @include('templates.assists.select', [
+                'id' => $assist->id,
+                'index' => 0,
+                'value' => $assist->$column,
+                'column' => $column,
+                'deleted' => $deleted,
+                'observations' => $assist->observations,
+                'classDay' => $classDays->firstWhere('column', $column)
+            ])
+        </td>
         @endif
-    </td>
+        <td class="text-center">
+            @if(!$deleted)
+            <button type='button' class='btn btn-primary observation' data-toggle='modal' data-target='#modal_observation'
+                data-id="{{$assist->id}}">Ver observaciónes
+            </button>
+            @endif
+        </td>
 </tr>

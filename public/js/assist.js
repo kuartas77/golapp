@@ -10,7 +10,8 @@ jQuery(function() {
     tableActive = $('#active_table').DataTable({
             "paging": false,
             "ordering": false,
-            "info": false
+            "info": false,
+            dom: 'it',//lftip
         });
 
     form_assist.validate({

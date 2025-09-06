@@ -32,7 +32,7 @@ class PaymentController extends Controller
     {
         if ($request->ajax()) {
             $request->merge(['school_id' => getSchool(auth()->user())->id]);
-            return $this->repository->filter($request);
+            return $this->repository->filter($request, false, $request->filled('dataRaw'));
         }
 
         $school = getSchool(auth()->user());
@@ -54,5 +54,11 @@ class PaymentController extends Controller
         $payment = Payment::withTrashed()->find($id);
         $isPay = $this->repository->setPay($request->validated(), $payment);
         return $this->responseJson($isPay);
+    }
+
+    public function paymentStatuses(Request $request)
+    {
+        $payments = $this->repository->paymentsByStatus($request->only(['status']));
+        return view('payments.status.index', compact('payments'));
     }
 }

@@ -16,6 +16,8 @@ Route::post('login', [LoginController::class, 'login']);
 
 Route::middleware(['auth:sanctum'])->group(function(){
 
+    Route::post('refresh-token', [LoginController::class, 'refresh'])->name('api.refresh');
+
     Route::get('check', [UserController::class, 'check']);
     Route::get('user', [UserController::class, 'user']);
 
@@ -25,6 +27,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
         Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);
 
+        Route::get('statistics/groups', [GroupsController::class, 'statistics']);
         Route::get('attendances', [AssistsController::class, 'index']);
         Route::post('attendances/upsert', [AssistsController::class, 'upsert']);
     });

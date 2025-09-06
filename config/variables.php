@@ -7,7 +7,7 @@ return [
         'Miércoles' => 'Miércoles',
         'Jueves' => 'Jueves',
         'Viernes' => 'Viernes',
-        'Sábados' => 'Sábado',
+        'Sábado' => 'Sábado',
         'Domingos' => 'Domingo'
     ],
     'KEY_WEEKS_INDEX' => [
@@ -32,6 +32,13 @@ return [
         'ex' => 'Excusa',
         're' => 'Retiro',
         'in' => 'Incapacidad',
+    ],
+    'KEY_ASSIST_EXCEL' => [
+        'as' => 'X',
+        'fa' => 'F',
+        'ex' => 'E',
+        're' => 'R',
+        'in' => 'I',
     ],
     'KEY_MONTHS' => [
         'Enero' => 'Enero', 'Febrero' => 'Febrero', 'Marzo' => 'Marzo',

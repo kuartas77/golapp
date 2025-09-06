@@ -53,7 +53,7 @@
                 </div>
                 <div class="form-group">
                     <label for="email" class="">Correo Electrónico (<span class="text-danger">*</span>)</label>
-                    {{ html()->text('email', null)->attributes(['class' => 'form-control','autocomplete'=>'off']) }}
+                    {{ html()->text('email', null)->attributes(['class' => 'form-control','autocomplete'=>'off', "onblur" => "return forceLower(this);"]) }}
                 </div>
                 <div class="form-group">
                     <label for="mobile" class="">Números Teléfonicos / Celular</label>

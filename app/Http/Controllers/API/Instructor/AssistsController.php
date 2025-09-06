@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\API\Instructor;
 
-use App\Models\Assist;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Repositories\AssistRepository;
@@ -27,6 +26,6 @@ class AssistsController extends Controller
 
     public function upsert(AssistsUpdateRequest $request): JsonResponse
     {
-        return response()->json(['data' => $this->repository->upsert($request->validated())]);
+        return response()->json(['data' => $this->repository->upsert($request->toDto())]);
     }
 }

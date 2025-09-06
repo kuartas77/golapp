@@ -16,13 +16,7 @@ class TournamentPayoutService
 
         list($pdf, $excel) = $this->makeLinks($data, $deleted);
 
-        return [
-            'group_name' => $groupName,
-            'rows' => $rows,
-            'count' => $tournamentPayouts->count(),
-            'url_print' => $pdf,
-            'url_print_excel' => $excel
-        ];
+        return $this->generateResponse($groupName, $rows, $tournamentPayouts->count(), $pdf, $excel);
     }
 
     public function generateData($tournamentPayouts, CompetitionGroup $competitionGroup, array $data, bool $deleted = false): array
@@ -32,13 +26,7 @@ class TournamentPayoutService
 
         list($pdf, $excel) = $this->makeLinks($data, $deleted);
 
-        return [
-            'group_name' => $groupName,
-            'rows' => $tournamentPayouts,
-            'count' => $tournamentPayouts->count(),
-            'url_print' => $pdf,
-            'url_print_excel' => $excel
-        ];
+        return $this->generateResponse($groupName, $tournamentPayouts, $tournamentPayouts->count(), $pdf, $excel);
     }
 
     private function makeRows($tournamentPayouts, $groupName, bool $deleted): string
@@ -66,6 +54,17 @@ class TournamentPayoutService
         return [
             route('export.tournaments.payouts.pdf', $params),
             route('export.tournaments.payouts.excel', $params),
+        ];
+    }
+
+    private function generateResponse($groupName, $rows, $rowsCount, $pdf, $excel): array
+    {
+        return [
+            'group_name' => $groupName,
+            'rows' => $rows,
+            'count' => $rowsCount,
+            'url_print' => $pdf,
+            'url_print_excel' => $excel
         ];
     }
 }

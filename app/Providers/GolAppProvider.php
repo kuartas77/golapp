@@ -23,6 +23,7 @@ use App\Http\ViewComposers\Competition\MatchesViewComposer;
 use App\Http\ViewComposers\Assists\AssistViewComposer;
 use App\Http\ViewComposers\Assists\AssistHistoricViewComposer;
 use App\Http\ViewComposers\AdminComposer;
+use App\Custom\CustomSanctumToken;
 use App\Custom\CustomRecaptchaV3;
 
 class GolAppProvider extends ServiceProvider
@@ -44,6 +45,8 @@ class GolAppProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        CustomSanctumToken::authenticateAccessTokensUsing();
+
         $this->custombinding();
 
         $this->loggerQueries();
@@ -70,18 +73,18 @@ class GolAppProvider extends ServiceProvider
     private function macros()
     {
         Collection::macro('setAppends', function ($attributes) {
-            return $this->map(function ($item) use ($attributes) {
+            return collect($this)->map(function ($item) use ($attributes) {
                 return $item->setAppends($attributes);
             });
         });
 
-        Collection::macro('obfuscate', function (array $attributes) {
-            return $this->map(function ($item, $key) use ($attributes) {
+        Collection::macro('obfuscate', function (array $attributes, string $character = '*', int $index = 3, int $length = 5) {
+            return collect($this)->map(function ($item, $key) use ($attributes, $index, $length, $character) {
                 if (is_array($item) || is_object($item)) {
-                    return collect($item)->obfuscate($attributes);
+                    return collect($item)->obfuscate($attributes, $character, $index, $length);
                 }
                 if (in_array($key, $attributes, true)) {
-                    return Str::mask($item, '*', 3, 5);
+                    return Str::mask($item, $character, $index, $length);
                 }
                 return $item;
             });
@@ -113,7 +116,7 @@ class GolAppProvider extends ServiceProvider
 
         View::composer(['profile.*'], ProfileComposer::class);
 
-        View::composer(['assists.assist.index'], AssistViewComposer::class);
+        View::composer(['assists.assist.index', 'assists.assist.single.index'], AssistViewComposer::class);
 
         View::composer(['assists.historic.index', 'assists.historic.show'], AssistHistoricViewComposer::class);
 
@@ -121,7 +124,7 @@ class GolAppProvider extends ServiceProvider
 
         View::composer(['incidents.index'], IncidentComposer::class);
 
-        View::composer(['templates.*', 'modals.modal_attendance', 'assists.assist.index'], TemplatesComposer::class);
+        View::composer(['templates.*', 'modals.modal_attendance', 'assists.assist.index', 'assists.assist.single.index'], TemplatesComposer::class);
 
         View::composer(['layouts.menu', 'layouts.topbar', 'backoffice.contracts.*'], AdminComposer::class);
 

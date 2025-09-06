@@ -156,8 +156,25 @@ class InscriptionRepository
     {
         try {
             DB::beginTransaction();
-            // $inscription->load(['payments', 'skillsControls', 'assistance']);
-            // $inscription->payments()->delete();
+            $inscription->load(['payments']);
+
+            foreach($inscription->payments as $payment) {
+                $payment->january = $payment->january == '0' ? '6':$payment->january;
+                $payment->february = $payment->february == '0' ? '6':$payment->february;
+                $payment->march = $payment->march == '0' ? '6':$payment->march;
+                $payment->april = $payment->april == '0' ? '6':$payment->april;
+                $payment->may = $payment->may == '0' ? '6':$payment->may;
+                $payment->june = $payment->june == '0' ? '6':$payment->june;
+                $payment->july = $payment->july == '0' ? '6':$payment->july;
+                $payment->august = $payment->august == '0' ? '6':$payment->august;
+                $payment->september = $payment->september == '0' ? '6':$payment->september;
+                $payment->october = $payment->october == '0' ? '6':$payment->october;
+                $payment->november = $payment->november == '0' ? '6':$payment->november;
+                $payment->december = $payment->december == '0' ? '6':$payment->december;
+                $payment->save();
+            }
+
+            $inscription->payments()->delete();
             $inscription->skillsControls()->delete();
             $inscription->assistance()->delete();
             $inscription->tournament_payouts()->delete();
@@ -208,6 +225,20 @@ class InscriptionRepository
                     'training_group_id' => $training_group_id
                 ];
         }
+    }
+
+    public function getPreinscriptionsOrProvicionalGroup($schoolId): Builder
+    {
+        return Inscription::query()
+            ->select([
+                'inscriptions.id',
+                'inscriptions.unique_code',
+                DB::raw("CONCAT(players.names, ' ', players.last_names) as names")
+            ])
+            ->join('players', 'players.id', '=', 'inscriptions.player_id')
+            ->where('inscriptions.year', now()->year)
+            ->where('inscriptions.school_id', $schoolId)
+            ->where(fn($query) => $query->where('inscriptions.training_group_id', 1)->orWhere('inscriptions.pre_inscription', 1));
     }
 
 }

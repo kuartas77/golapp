@@ -82,6 +82,7 @@
                         $("#player_id").val(data.id);
                         $("#member_name").val(data.full_names);
                         $('#btn_add_inscription').attr('disabled', false);
+                        $('#start_date').val(moment().format('YYYY-MM-DD'))
 
                     } else {
                         alertSwalMessage('El Deportista ya tiene una inscripción ó no se encontró.');

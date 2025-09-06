@@ -37,6 +37,8 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
     Route::resource("training-sessions", TrainingSessionsController::class)->only(['index', 'create', 'store']);
 
+    Route::get('payments/status', [PaymentController::class, 'paymentStatuses'])->name('payments.status');
+
     Route::prefix('import')->group(function(){
         Route::post('matches/{competition_group}', [ImportController::class, 'importMatchDetail'])->name('import.match');
         Route::post('players', [ImportController::class, 'importPlayers'])->name('import.players');
@@ -131,4 +133,16 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('tournaments', [MasterController::class, 'tournamentsBySchool'])->name('autocomplete.tournaments');
     });
 
+});
+
+Route::middleware(['auth', 'verified_school'])->prefix('v1')->group(function () {
+    Route::get('tournamentpayout', [TournamentPayoutsController::class, 'searchRaw']);
+
+    Route::prefix('groups')->group(function () {
+        Route::get('training', [TrainingGroupController::class, 'groupList']);
+    });
+
+    Route::get('payments', [PaymentController::class, 'searchRaw']);
+
+    Route::get("training_group/classdays", [TrainingGroupController::class, 'getClassDays'])->name('group_classdays');
 });

@@ -29,9 +29,9 @@ class AssistViewComposer
         if (Auth::check()) {
             $filter = Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);
             if (isAdmin() || isSchool()) {
-                $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, filter: $filter);
+                $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, filter: $filter)->pluck('full_schedule_group', 'id');
             } elseif (isInstructor()) {
-                $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, user_id: auth()->id(), filter: $filter);
+                $training_groups = $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, user_id: auth()->id(), filter: $filter)->pluck('full_schedule_group', 'id');
             }
 
             $months = Cache::rememberForever("KEY_MONTHS", fn() => config('variables.KEY_MONTHS'));

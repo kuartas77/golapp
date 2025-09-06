@@ -13,21 +13,27 @@
                     <div class="text-center">
                         <ul class="list-inline">
                             <li>
-                                <h6 class="text-muted text-info">
-                                    <i class="fa fa-circle font-10 m-r-10 "></i>Pagaron
-                                </h6>
+                                <a href="{{route('payments.status', ['status' => '1'])}}" class="" style="color: #1e88e5;">
+                                    <i class="fa fa-circle font-10 m-r-10 "></i>Pagaron (<span id="now_year_payment"></span>)
+                                </a>
                             </li>
                             <li>
-                                <h6 class="text-muted text-success">
-                                    <i class="fa fa-circle font-10 m-r-10"></i>Deben
-                                </h6>
+                                <a href="{{route('payments.status', ['status' => '2'])}}" class="" style="color: red;">
+                                    <i class="fa fa-circle font-10 m-r-10"></i>Deben (<span id="now_year_due"></span>)
+                                </a>
                             </li>
                             <li>
-                                <h6 class="text-muted text-warning">
-                                    <i class="fa fa-circle font-10 m-r-10"></i>Becados
-                                </h6>
+                                <a href="{{route('payments.status', ['status' => '8'])}}" class="" style="color: #ffb22b;">
+                                    <i class="fa fa-circle font-10 m-r-10"></i>Becados (<span id="now_year_scholarship"></span>)
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{route('payments.status', ['status' => '0'])}}" class="" style="color: #26c6da;">
+                                    <i class="fa fa-circle font-10 m-r-10"></i>Pendientes (<span id="now_year_pending"></span>)
+                                </a>
                             </li>
                         </ul>
+                        <h4 class="text-themecolor card-subtitle">Totales, sumando todos los meses</h4>
                     </div>
                 </div>
             </div>
@@ -43,21 +49,27 @@
                     <div class="text-center">
                         <ul class="list-inline">
                             <li>
-                                <h6 class="text-muted text-info">
-                                    <i class="fa fa-circle font-10 m-r-10 "></i>Pagaron
+                                <h6 class="" style="color: #1e88e5;">
+                                    <i class="fa fa-circle font-10 m-r-10 "></i>Pagaron (<span id="past_year_payment"></span>)
                                 </h6>
                             </li>
                             <li>
-                                <h6 class="text-muted text-success">
-                                    <i class="fa fa-circle font-10 m-r-10"></i>Deben
+                                <h6 class="" style="color: red;">
+                                    <i class="fa fa-circle font-10 m-r-10"></i>Deben (<span id="past_year_due"></span>)
                                 </h6>
                             </li>
                             <li>
-                                <h6 class="text-muted text-warning">
-                                    <i class="fa fa-circle font-10 m-r-10"></i>Becados
+                                <h6 class="" style="color: #ffb22b;">
+                                    <i class="fa fa-circle font-10 m-r-10"></i>Becados (<span id="past_year_scholarship"></span>)
+                                </h6>
+                            </li>
+                            <li>
+                                <h6 class="" style="color: #26c6da;">
+                                    <i class="fa fa-circle font-10 m-r-10"></i>Pendientes (<span id="past_year_pending"></span>)
                                 </h6>
                             </li>
                         </ul>
+                        <h4 class="text-themecolor card-subtitle">Totales, sumando todos los meses</h4>
                     </div>
                 </div>
             </div>
@@ -77,10 +89,12 @@
         axisX: {
             // On the x-axis start means top and end means bottom
             position: 'end',
+            showGrid: true
         },
         axisY: {
             // On the y-axis start means left and end means right
-            position: 'start'
+            position: 'start',
+            showGrid: true
         },
         low: '0',
         plugins: [
@@ -106,6 +120,16 @@
                 labels: labels_past,
                 series: series_past
             }, options);
+
+            $("#now_year_payment").html(series_current[0]['data'].reduce((a, b) => a + b, 0));
+            $("#now_year_due").html(series_current[1]['data'].reduce((a, b) => a + b, 0));
+            $("#now_year_scholarship").html(series_current[2]['data'].reduce((a, b) => a + b, 0));
+            $("#now_year_pending").html(series_current[3]['data'].reduce((a, b) => a + b, 0));
+
+            $("#past_year_payment").html(series_past[0]['data'].reduce((a, b) => a + b, 0));
+            $("#past_year_due").html(series_past[1]['data'].reduce((a, b) => a + b, 0));
+            $("#past_year_scholarship").html(series_past[2]['data'].reduce((a, b) => a + b, 0));
+            $("#past_year_pending").html(series_past[3]['data'].reduce((a, b) => a + b, 0));
 
             let chart = [chart1, chart2];
             animateChart(chart);
