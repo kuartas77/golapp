@@ -10,6 +10,7 @@ use App\Models\TrainingGroup;
 use App\Models\School;
 use App\Models\Player;
 use App\Models\Inscription;
+use Carbon\Carbon;
 
 final class CreateInscriptionAction implements IContractPassable
 {
@@ -54,7 +55,7 @@ final class CreateInscriptionAction implements IContractPassable
             'unique_code' => $this->player->unique_code,
             'year' => $startDate->year,
             'start_date' => $startDate->format('Y-m-d'),
-            'category' => $this->player->category,
+            'category' => categoriesName(Carbon::parse($this->player->date_birth)->year),
             'training_group_id' => TrainingGroup::orderBy('id')->firstWhere('school_id', $this->school->id)->id,
             'competition_group_id' => null,
             'photos' => true,
