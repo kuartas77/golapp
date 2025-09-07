@@ -90,7 +90,7 @@ class PlayerRepository
      * @param $request
      * @param Player|null $player
      */
-    private function setAttributes(array $dataPlayer, Player $player = null): array
+    private function setAttributes(array $dataPlayer, ?Player $player = null): array
     {
         $dataPlayer['date_birth'] = Carbon::parse($dataPlayer['date_birth']);
         $dataPlayer['category'] = categoriesName($dataPlayer['date_birth']->year);
