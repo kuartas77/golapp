@@ -10,6 +10,11 @@ const routes = [
         path: '/deportistas',
         name: 'Deportistas',
         component: () => import('@/pages/players/Index.vue'),
+    },
+    {
+        path: '/inscripciones',
+        name: 'Inscripciones',
+        component: () => import('@/pages/inscriptions/Index.vue'),
     }
 ];
 

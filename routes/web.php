@@ -7,6 +7,7 @@ use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\Reports\ReportAssistsController;
 use App\Http\Controllers\Reports\ReportPaymentController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
 use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
 use App\Http\Controllers\{Competition\GameController, Payments\PaymentController, Schedule\SchedulesController, SchoolPages\SchoolsController};
@@ -80,8 +81,8 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     });
 
     Route::prefix('datatables')->group(function () {
-        Route::get('enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');
-        Route::get('disabled', [DataTableController::class, 'disabledInscriptions'])->name('inscriptions.disabled');
+        Route::get('inscriptions_enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');
+        Route::get('inscriptions_disabled', [DataTableController::class, 'disabledInscriptions'])->name('inscriptions.disabled');
         Route::get('training_groups_enabled', [DataTableController::class, 'enabledTrainingGroups'])->name('training_groups.enabled');
         Route::get('training_groups_retired', [DataTableController::class, 'disabledTrainingGroups'])->name('training_groups.retired');
         Route::get('competition_groups_enabled', [DataTableController::class, 'enabledCompetitionGroups'])->name('competition_groups.enabled');
@@ -133,6 +134,10 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('competition_groups', [MasterController::class, 'competitionGroupsByTournament'])->name('autocomplete.competition_groups');
 
         Route::get('tournaments', [MasterController::class, 'tournamentsBySchool'])->name('autocomplete.tournaments');
+    });
+
+    Route::prefix('settings')->group(function(){
+        Route::get('general', [SettingsController::class, 'index'])->name('settings.general');
     });
 
 });
