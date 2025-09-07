@@ -37,6 +37,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('assists:month')->lastDayOfMonth('23:00')->withoutOverlapping();
 
         $schedule->command('payments:monthly')->lastDayOfMonth('01:00')->withoutOverlapping();
+
+        $schedule->command('check:categories')->lastDayOfMonth('01:05')->withoutOverlapping();
     }
 
     /**
