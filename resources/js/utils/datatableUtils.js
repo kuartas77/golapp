@@ -1,4 +1,4 @@
-import DataTablesCore from 'datatables.net-dt';
+import DataTablesCore from 'datatables.net-bs5';
 
 const configLanguaje = {
     info: true,
