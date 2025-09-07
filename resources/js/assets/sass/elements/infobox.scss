@@ -1,0 +1,21 @@
+//  =================
+//      Imports
+//  =================
+
+@use '../../base/base';    // Base Variables
+@use "../../base/color_variables";
+
+
+//  ===============================
+//       _infobox Imports
+//  ===============================
+
+@use '_infobox/_infobox-1';
+@use '_infobox/_infobox-2';
+@use '_infobox/_infobox-3';
+
+@media (max-width: 575px) {
+  .infobox-1, .infobox-2, .infobox-3 {
+    width: auto;
+  }
+}

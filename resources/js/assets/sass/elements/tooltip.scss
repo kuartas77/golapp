@@ -1,0 +1,99 @@
+//  =================
+//      Imports
+//  =================
+
+@use '../../base/base'; // Base Variables
+@use "../../base/color_variables";
+
+.tooltip-inner {
+    border-radius: 6px;
+}
+
+.tooltip .tooltip-item {
+    color: #fff;
+    padding: 0 9px;
+}
+
+.tooltip-section h6 {
+    color: color_variables.$dark;
+    font-size: 0.875rem;
+    margin-top: 25px;
+    margin-bottom: 20px;
+}
+
+/*
+	==================
+		Colors
+	=================
+*/
+
+/*
+	Tooltips
+*/
+
+/*		Tooltip Inner 	*/
+
+.tooltip-primary .tooltip-inner {
+    color: color_variables.$primary;
+    background-color: color_variables.$l-primary;
+}
+
+.tooltip-success .tooltip-inner {
+    color: color_variables.$success;
+    background-color: color_variables.$l-success;
+}
+
+.tooltip-info .tooltip-inner {
+    color: color_variables.$info;
+    background-color: color_variables.$l-info;
+}
+
+.tooltip-danger .tooltip-inner {
+    color: color_variables.$danger;
+    background-color: color_variables.$l-danger;
+}
+
+.tooltip-warning .tooltip-inner {
+    color: color_variables.$warning;
+    background-color: color_variables.$l-warning;
+}
+
+.tooltip-secondary .tooltip-inner {
+    color: color_variables.$secondary;
+    background-color: color_variables.$l-secondary;
+}
+
+.tooltip-dark .tooltip-inner {
+    color: color_variables.$dark;
+    background-color: color_variables.$l-dark;
+}
+
+/*		Tooltip arrow 		*/
+
+.tooltip-primary .tooltip-arrow:before {
+    border-top-color: color_variables.$l-primary;
+}
+
+.tooltip-success .tooltip-arrow:before {
+    border-top-color: color_variables.$l-success;
+}
+
+.tooltip-info .tooltip-arrow:before {
+    border-top-color: color_variables.$l-info;
+}
+
+.tooltip-danger .tooltip-arrow:before {
+    border-top-color: color_variables.$l-danger;
+}
+
+.tooltip-warning .tooltip-arrow:before {
+    border-top-color: color_variables.$l-warning;
+}
+
+.tooltip-secondary .tooltip-arrow:before {
+    border-top-color: color_variables.$l-secondary;
+}
+
+.tooltip-dark .tooltip-arrow:before {
+    border-top-color: color_variables.$l-dark;
+}

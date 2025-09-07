@@ -1,20 +1,22 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
-use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
-use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
-use App\Http\Controllers\{Competition\GameController, Payments\PaymentController, Schedule\SchedulesController, SchoolPages\SchoolsController};
-use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
-use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
-use App\Http\Controllers\Reports\ReportPaymentController;
-use App\Http\Controllers\Reports\ReportAssistsController;
-use App\Http\Controllers\Payments\TournamentPayoutsController;
-use App\Http\Controllers\ImportController;
-use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
+use App\Http\Controllers\AppController;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
+use App\Http\Controllers\ImportController;
+use App\Http\Controllers\Payments\TournamentPayoutsController;
+use App\Http\Controllers\Reports\ReportAssistsController;
+use App\Http\Controllers\Reports\ReportPaymentController;
+use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
+use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
+use App\Http\Controllers\{Competition\GameController, Payments\PaymentController, Schedule\SchedulesController, SchoolPages\SchoolsController};
+use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
+use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
+use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
+// Route::get('/{any}', [AppController::class, 'index'])->where('any', '.*');
 Auth::routes(['register' => false, 'verify' => false]);
 
 Route::get('/', fn() => redirect('login'));
@@ -23,7 +25,7 @@ Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->w
 
 Route::middleware(['auth', 'verified_school'])->group(function () {
 
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
+//     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/birthdays', [HomeController::class, 'birthDays'])->name('birthDays');
 
     Route::post('inscriptions/activate/{id}', [InscriptionController::class, 'activate'])->name('inscriptions.activate');
@@ -146,3 +148,6 @@ Route::middleware(['auth', 'verified_school'])->prefix('v1')->group(function () 
 
     Route::get("training_group/classdays", [TrainingGroupController::class, 'getClassDays'])->name('group_classdays');
 });
+
+
+Route::get('/{any}', [AppController::class, 'index'])->where('any', '.*');

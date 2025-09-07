@@ -1,0 +1,27 @@
+//  =================
+//      Imports
+//  =================
+
+@use '../../base/base';    // Base Variables
+@use "../../base/color_variables";
+
+
+textarea {
+  resize: none;
+}
+
+.clipboard {
+  background-color: color_variables.$m-color_1;
+  padding: 20px;
+  border-radius: 6px;
+
+  &.copy-txt {
+    background-color: color_variables.$m-color_1;
+
+    .otp-pass span {
+      font-size: 24px;
+      font-weight: 600;
+      color: color_variables.$dark;
+    }
+  }
+}

@@ -1,0 +1,57 @@
+import { createI18n } from "vue-i18n";
+
+export default createI18n({
+    legacy: false,
+    allowComposition: true,
+    locale: "es",
+    globalInjection: true,
+    fallbackLocale: "en",
+    messages: {
+        en: {
+            "dashboard": "Dashboard",
+            "sales": "Sales",
+            "analytics": "Analytics",
+            "apps": "Apps",
+            "components": "Components",
+            "elements": "Elements",
+            "font_icons": "Font Icons",
+            "widgets": "Widgets",
+            "tables": "Tables",
+            "datatables": "Data Tables",
+            "forms": "Forms",
+            "users": "Users",
+            "pages": "Pages",
+            "authentication": "Authentication",
+            "drag_and_drop": "Drag and Drop",
+            "maps": "Maps",
+            "charts": "Charts",
+            "starter_kit": "Starter Kit",
+            "documentation": "Documentation",
+            "ui_kit": "UI Kit",
+            "more": "More"
+        },
+        es: {
+            "dashboard": "Tablero",
+            "sales": "Ventas",
+            "analytics": "Analítica",
+            "apps": "Aplicaciones",
+            "components": "Componentes",
+            "elements": "Elementos",
+            "font_icons": "Iconos de fuentes",
+            "widgets": "Widgets",
+            "tables": "Mesas",
+            "datatables": "Tablas de datos",
+            "forms": "Formularios",
+            "users": "Usuarios",
+            "pages": "Paginas",
+            "authentication": "Autenticación",
+            "drag_and_drop": "Arrastrar y soltar",
+            "maps": "Mapas",
+            "charts": "Gráficos",
+            "starter_kit": "Kit de inicio",
+            "documentation": "Documentación",
+            "ui_kit": "Kit de interfaz de usuario",
+            "more": "Más"
+        }
+    },
+});
