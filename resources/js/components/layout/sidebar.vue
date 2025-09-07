@@ -183,7 +183,7 @@
 
     const toggleMobileMenu = () => {
         if (window.innerWidth < 991) {
-            store.commit('toggleSideBar', !store.state.is_show_sidebar);
+            store.commit('toggleSideBar', !store.state.appState.is_show_sidebar);
         }
     };
 </script>

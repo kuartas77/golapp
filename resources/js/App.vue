@@ -1,5 +1,5 @@
 <template>
-    <div :class="[$store.state.layout_style, $store.state.menu_style]">
+    <div :class="[$store.state.appState.layout_style, $store.state.appState.menu_style]">
         <component v-bind:is="layout"></component>
     </div>
 </template>

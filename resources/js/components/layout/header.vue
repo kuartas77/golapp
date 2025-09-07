@@ -14,7 +14,7 @@
                     </li>
                 </ul>
                 <div class="d-none horizontal-menu">
-                    <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom" @click="$store.commit('toggleSideBar', !$store.state.is_show_sidebar)">
+                    <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom" @click="$store.commit('toggleSideBar', !$store.state.appState.is_show_sidebar)">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -34,9 +34,9 @@
                     </a>
                 </div>
                 <!-- <ul class="navbar-item flex-row ms-md-0 ms-auto">
-                    <li class="nav-item align-self-center search-animated" :class="{ 'show-search': $store.state.is_show_search }">
+                    <li class="nav-item align-self-center search-animated" :class="{ 'show-search': $store.state.appState.is_show_search }">
                         <svg
-                            @click="$store.commit('toggleSearch', !$store.state.is_show_search)"
+                            @click="$store.commit('toggleSearch', !$store.state.appState.is_show_search)"
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
                             height="24"
@@ -51,7 +51,7 @@
                             <circle cx="11" cy="11" r="8"></circle>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
-                        <form class="form-inline search-full form-inline search" :class="{ 'input-focused': $store.state.is_show_search }">
+                        <form class="form-inline search-full form-inline search" :class="{ 'input-focused': $store.state.appState.is_show_search }">
                             <div class="search-bar">
                                 <input type="text" class="form-control search-form-control ms-lg-auto" placeholder="Search..." />
                             </div>
@@ -61,7 +61,7 @@
 
                 <div class="navbar-item flex-row ms-md-auto">
                     <div class="dark-mode d-flex align-items-center">
-                        <a v-if="$store.state.dark_mode == 'light'" href="javascript:;" class="d-flex align-items-center" @click="toggleMode('dark')">
+                        <a v-if="$store.state.appState.dark_mode == 'light'" href="javascript:;" class="d-flex align-items-center" @click="toggleMode('dark')">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="20"
@@ -86,7 +86,7 @@
                             </svg>
                             <span class="ms-2">Claro</span>
                         </a>
-                        <a v-if="$store.state.dark_mode == 'dark'" href="javascript:;" class="d-flex align-items-center" @click="toggleMode('system')">
+                        <a v-if="$store.state.appState.dark_mode == 'dark'" href="javascript:;" class="d-flex align-items-center" @click="toggleMode('system')">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="20"
@@ -103,7 +103,7 @@
                             </svg>
                             <span class="ms-2">Oscuro</span>
                         </a>
-                        <a v-if="$store.state.dark_mode == 'system'" href="javascript:;" class="d-flex align-items-center" @click="toggleMode('light')">
+                        <a v-if="$store.state.appState.dark_mode == 'system'" href="javascript:;" class="d-flex align-items-center" @click="toggleMode('light')">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="20"
@@ -447,7 +447,7 @@
         <!--  BEGIN NAVBAR  -->
         <div class="sub-header-container">
             <header class="header navbar navbar-expand-sm">
-                <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom" @click="$store.commit('toggleSideBar', !$store.state.is_show_sidebar)">
+                <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom" @click="$store.commit('toggleSideBar', !$store.state.appState.is_show_sidebar)">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
@@ -481,7 +481,7 @@
     const store = useStore();
 
     const selectedLang = ref(null);
-    const countryList = ref(store.state.countryList);
+    const countryList = ref(store.state.appState.countryList);
 
     const i18n = reactive(useI18n());
 

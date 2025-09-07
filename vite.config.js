@@ -34,5 +34,17 @@ export default defineConfig({
                 'http://golapp.local',
             ],
         },
+    },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes('node_modules')) {
+                        // Group all vendor dependencies into a single 'vendor' chunk
+                        return 'vendor';
+                    }
+                },
+            },
+        }
     }
 });

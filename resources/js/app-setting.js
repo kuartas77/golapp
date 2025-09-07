@@ -26,7 +26,7 @@ export default {
         if (!val) {
             val = $themeConfig.lang;
 
-            const list = store.state.countryList;
+            const list = store.state.appState.countryList;
             const item = list.find((item) => item.code === val);
             if (item) {
                 this.toggleLanguage(item);
@@ -39,19 +39,19 @@ export default {
         if (item) {
             lang = item;
         } else {
-            let code = store.state.locale;
+            let code = store.state.appState.locale;
             if (!code) {
                 code = localStorage.getItem("i18n_locale");
             }
 
-            item = store.state.countryList.find((d) => d.code === code);
+            item = store.state.appState.countryList.find((d) => d.code === code);
             if (item) {
                 lang = item;
             }
         }
 
         if (!lang) {
-            lang = store.state.countryList.find((d) => d.code === "en");
+            lang = store.state.appState.countryList.find((d) => d.code === "en");
         }
 
         store.commit("toggleLocale", lang.code);

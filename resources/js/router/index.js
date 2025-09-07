@@ -1,17 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import store from '@/store';
-import Home from '@/pages/home/Index.vue'
-import Login from '@/pages/auth/Login.vue'
 
 const routes = [
 
-    { path: '/', name: 'Main', component: Home },
-    { path: '/inicio', name: 'Tablero', component: Home },
-    { path: '/kpi', name: 'Tablero', component: Home },
+    { path: '/', name: 'Main', component: () => import( '@/pages/home/Index.vue' )},
+    { path: '/inicio', name: 'Tablero', component: () => import( '@/pages/home/Index.vue' )},
+    { path: '/kpi', name: 'Tablero', component: () => import( '@/pages/home/Index.vue' )},
     {
         path: '/deportistas',
         name: 'Deportistas',
-        component: () => import(/* webpackChunkName: "players" */ '@/pages/players/Index.vue'),
+        component: () => import('@/pages/players/Index.vue'),
     }
 ];
 
