@@ -42,14 +42,15 @@ $class = $deleted ? '': $class;
 $amount = checkValueEnrollment($payment, $field, $inscription_amount);
 $selected = config('variables.KEY_PAYMENTS_SELECT')[$payment->$field];
 @endphp
+<div class="text-center">
 
-<span class="badge {{$class}} text-center" style="padding: 10px 2px; font-size: 10px; width: 90px; align-items: center;">
+    <span class="badge {{$class}}" style="padding: 10px 2px; font-size: 10px; width: 90px; align-items: center;">
 
-    {{-- <span class="payments_amount" data-name="{{$field}}_amount" data-value="{{$amount}}">{{$amount}}</span> --}}
-    {{--<br/>--}}
-    <span class="text-wrap select" data-value="{{$payment->$field}}">{{$selected}}</span>
-    <input type="hidden" name="{{$field}}_amount"  value="{{$amount}}" class="payments_amount">
-    <select name="{{$field}}_amount" hidden class="payments">
-        <option selected value="{{$payment->$field}}"></option>
-    </select>
-</span>
+        <span class="payments_amount">{{$amount}}</span>
+        <br/>
+        <span class="text-wrap select">{{$selected}}</span>
+
+        <input type="hidden" name="{{$field}}_amount"  value="{{$amount}}" class="payments_amount">
+        <input type="hidden" name="{{$field}}"  value="{{$payment->$field}}" class="payments">
+    </span>
+</div>

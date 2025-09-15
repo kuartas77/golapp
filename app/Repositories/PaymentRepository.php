@@ -140,6 +140,7 @@ class PaymentRepository
                 'category' => Inscription::query()->select('category')->whereColumn('inscriptions.id', 'inscription_id')->where('year', $year)->take(1)
             ])
             ->where('year', $year)
+            ->whereHas('player')
             ->when($unique_code, fn($q) => $q->where('unique_code', $unique_code))
             ->when($training_group_id != 0, fn($q) => $q->where('training_group_id', $training_group_id))
             ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', $year)->where('category', $category)->withTrashed()))

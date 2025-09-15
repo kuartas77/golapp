@@ -43,6 +43,13 @@ class PaymentController extends Controller
         return view('payments.payment.index');
     }
 
+    public function show($id, Request $request)
+    {
+        abort_unless($request->ajax(), 401);
+        $payment = Payment::query()->with(['player'])->withTrashed()->whereHas('player')->find($id);
+        return $this->responseJson($payment);
+    }
+
     /**
      * @param Request $request
      * @param Payment $payment

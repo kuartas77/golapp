@@ -790,3 +790,114 @@ a[href="#cancel"] {
 .ct-series-d .ct-bar {
     stroke: #26c6da !important;
 }
+
+
+select.payments:has(option[value="1"]:checked) {
+    background-color: green;
+    color: white;
+}
+select.payments:has(option[value="2"]:checked) {
+    background-color: red;
+    color: white;
+}
+select.payments:has(option[value="3"]:checked) {
+    background-color: aqua;
+    color: black;
+}
+select.payments:has(option[value="4"]:checked) {
+    background-color: #fac282;
+    color: black;
+}
+select.payments:has(option[value="5"]:checked) {
+    background-color: orange;
+    color: white;
+}
+select.payments:has(option[value="6"]:checked) {
+    background-color: grey;
+    color: white;
+}
+select.payments:has(option[value="8"]:checked) {
+    background-color: #009688;
+    color: white;
+}
+select.payments:has(option[value="9"]:checked) {
+    background-color: yellow;
+    color: black;
+}
+select.payments:has(option[value="10"]:checked) {
+    background-color: blue;
+    color: white;
+}
+select.payments:has(option[value="11"]:checked) {
+    background-color: #572364;
+    color: white;
+}
+select.payments:has(option[value="12"]:checked) {
+    background-color: #6F4E37;
+    color: white;
+}
+
+select.payments option[value=""] {
+    background-color: white;
+    color: black;
+}
+select.payments option[value="0"] {
+    background-color: white;
+    color: black;
+}
+select.payments option[value="1"] {
+    background-color: green;
+    color: white;
+}
+select.payments option[value="2"] {
+    background-color: red;
+    color: white;
+}
+select.payments option[value="3"] {
+    background-color: aqua;
+    color: black;
+}
+select.payments option[value="4"] {
+    background-color: #fac282;
+    color: black;
+}
+select.payments option[value="5"] {
+    background-color: orange;
+    color: white;
+}
+select.payments option[value="6"] {
+    background-color: grey;
+    color: white;
+}
+select.payments option[value="7"] {
+    background-color: white;
+    color: black;
+}
+select.payments option[value="8"] {
+    background-color: #009688;
+    color: white;
+}
+select.payments option[value="9"] {
+    background-color: yellow;
+    color: black;
+}
+select.payments option[value="10"] {
+    background-color: blue;
+    color: white;
+}
+select.payments option[value="11"] {
+    background-color: #572364;
+    color: white;
+}
+select.payments option[value="12"] {
+    background-color: #6F4E37;
+    color: white;
+}
+select.payments option[value="13"] {
+    background-color: white;
+    color: black;
+}
+select.payments option[value="14"] {
+    background-color: white;
+    color: black;
+}
