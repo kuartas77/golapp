@@ -125,7 +125,7 @@ class Inscription extends Model
 
     public function getUrlEditAttribute(): string
     {
-        return route('inscriptions.edit', [$this->attributes['unique_code']]);
+        return route('inscriptions.edit', [$this->attributes['id']]);
     }
 
     public function getUrlUpdateAttribute(): string
