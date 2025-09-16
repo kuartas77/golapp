@@ -30,15 +30,16 @@ class PaymentController extends Controller
      */
     public function index(Request $request)
     {
+        view()->share('enabledPaymentOld', false);
         if ($request->ajax()) {
             $request->merge(['school_id' => getSchool(auth()->user())->id]);
             return $this->repository->filter($request, false, $request->filled('dataRaw'));
         }
 
         $school = getSchool(auth()->user());
-        view()->share('inscription_amount', $school->settings['INSCRIPTION_AMOUNT'] ?? 70000);
-        view()->share('monthly_payment', $school->settings['MONTHLY_PAYMENT'] ?? 50000);
-        view()->share('annuity', $school->settings['ANNUITY'] ?? 48333);
+        view()->share('inscription_amount', data_get($school, 'settings.INSCRIPTION_AMOUNT', 70000));
+        view()->share('monthly_payment', data_get($school, 'settings.MONTHLY_PAYMENT', 50000));
+        view()->share('annuity', data_get($school, 'settings.ANNUITY', 48500));
 
         return view('payments.payment.index');
     }
