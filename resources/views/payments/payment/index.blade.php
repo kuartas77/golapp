@@ -9,16 +9,21 @@
     </x-row-card >
 @endsection
 @section('modals')
+    @include('modals.modify_payments')
 @endsection
 @section('scripts')
     <script>
-        let url_current = '{{URL::current()}}';
-        let inscription_amount = '{{$inscription_amount}}'
-        let monthly_payment = '{{$monthly_payment}}'
-        let annuity = '{{$annuity}}'
+        const url_current = '{{URL::current()}}';
+        const inscription_amount = '{{$inscription_amount}}'
+        const monthly_payment = '{{$monthly_payment}}'
+        const annuity = '{{$annuity}}'
         $(function () {
             $(".preloader").fadeOut()
         })
     </script>
+    @if($enabledPaymentOld)
     <script src="{{asset('js/payments.js')}}"></script>
+    @else
+    <script src="{{asset('js/payments_modal.js')}}"></script>
+    @endif
 @endsection
