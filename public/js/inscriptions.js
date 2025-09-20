@@ -125,11 +125,11 @@ const columns = [
     {
         data: 'id', "render": function (data, type, row) {
             return "<img class='rounded-circle' width='70' height='50' src='" + row.player.photo_url + "' alt='" + row.player.full_names + "'>";
-        }, 'searchable': false
+        }, 'searchable': false, name:'inscriptions.id'
     },
     {data: 'unique_code'},//2
     {data: 'player.identification_document'},//3
-    {data: 'player.full_names', name :'player.last_names'},//4
+    {data: 'player.full_names', name :'players.last_names'},//4
     {data: 'player.date_birth', 'searchable': false},//5
     {data: 'player.gender', 'searchable': false},//6
     {data: 'training_group.name', name: 'training_group_id'},//7
@@ -140,7 +140,7 @@ const columns = [
     },//8
     {data: 'player.mobile', 'searchable': false},//9
     {data: 'start_date', 'searchable': false},//10
-    {data: 'category', name: 'category', "className": 'text-center'},//11
+    {data: 'category', name: 'inscriptions.category', "className": 'text-center'},//11
     {
         data: 'id',
         "render": function (data, type, row) {

@@ -357,7 +357,7 @@ if (!function_exists('loggerTimeRequest')){
 }
 
 if (!function_exists('createUniqueCode')){
-    function createUniqueCode(string $school_id, ?string $year): mixed
+    function createUniqueCode(string $school_id, ?string $year = null): mixed
     {
         $campusIds = [];
         $newUniqueCode = '';

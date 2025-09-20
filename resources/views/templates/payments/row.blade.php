@@ -10,7 +10,7 @@
         </a>
     </td>
     <td class="text-center"><small>{{$payment->category}}</small></td>
-    @if(isInstructor())
+    @if(isInstructor() || !$enabledPaymentOld)
         @foreach($nameFields as $field)
          <td>
             @include('templates.payments.badge')

@@ -146,7 +146,7 @@ class InscriptionRepository
 
     public function searchInsUniqueCode($id)
     {
-        $inscription = $this->inscription->query()->with(['player', 'competitionGroup'])->schoolId()->findOrFail($id);
+        $inscription = $this->inscription->query()->with(['player', 'competitionGroup'])->schoolId()->firstOrFail('id', $id);
         $inscription->setRelation('competitionGroup', $inscription->competitionGroup->pluck('id'));
 
         return $inscription;

@@ -32,7 +32,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::post('inscriptions/activate/{id}', [InscriptionController::class, 'activate'])->name('inscriptions.activate');
 
     Route::resource("inscriptions", InscriptionController::class)->except(['create','show']);
-    Route::resource("payments", PaymentController::class)->only(['index','update']);
+    Route::resource("payments", PaymentController::class)->only(['index','update', 'show']);
     Route::resource("assists", AssistController::class)->except(['create','edit', 'destroy']);
     Route::resource("matches", GameController::class)->except(['show']);
     Route::resource("players", PlayerController::class);
@@ -40,7 +40,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
     Route::resource("training-sessions", TrainingSessionsController::class)->only(['index', 'create', 'store']);
 
-    Route::get('payments/status', [PaymentController::class, 'paymentStatuses'])->name('payments.status');
+    Route::get('statuses/payments', [PaymentController::class, 'paymentStatuses'])->name('payments.status');
 
     Route::prefix('import')->group(function(){
         Route::post('matches/{competition_group}', [ImportController::class, 'importMatchDetail'])->name('import.match');
