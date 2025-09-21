@@ -30,8 +30,15 @@ import PerfectScrollbar from "vue3-perfect-scrollbar";
 import "vue3-perfect-scrollbar/dist/vue3-perfect-scrollbar.css";
 
 //Sweetalert
-import Swal from "sweetalert2";
-window.Swal = Swal;
+// import Swal from "sweetalert2";
+// window.Swal = Swal;
+import VueSweetalert2 from 'vue-sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
+const options = {
+    confirmButtonColor: '#4361ee',
+    cancelButtonColor: '#ff7674',
+    cancelButtonText: 'Cancelar',
+};
 
 // set default settings
 import appSetting from "@/app-setting";
@@ -46,6 +53,7 @@ app.use(i18n)
 app.use(store)
 app.use(router)
 app.use(PerfectScrollbar)
+app.use(VueSweetalert2, options)
 
 app.component('DataTable', DataTable)
 app.component('breadcrumb', breadcrumb)
@@ -55,3 +63,4 @@ app.component('inputFile', inputFile)
 app.component('checkbox', Checkbox)
 
 app.mount('#app')
+window.Swal =  app.config.globalProperties.$swal;

@@ -2,8 +2,10 @@ import { routeName } from '@/composables/routeName';
 import { ref, onMounted } from 'vue'
 import * as yup from 'yup'
 import axios from 'axios';
+import useAlerts from '@/composables/alerts'
 
 export default function useFormSchool() {
+    const { toastSuccess, toastError, } = useAlerts()
     const form = ref(null)
 
     const formData = ref({
@@ -32,7 +34,7 @@ export default function useFormSchool() {
         agent: yup.string().required(),
         address: yup.string().required(),
         phone: yup.string().required(),
-        NOTIFY_PAYMENT_DAY: yup.number().required(),
+        NOTIFY_PAYMENT_DAY: yup.number().min(1).max(31).required(),
         INSCRIPTION_AMOUNT: yup.string().required(),
         MONTHLY_PAYMENT: yup.string().required(),
         ANNUITY: yup.string().required(),
@@ -75,9 +77,32 @@ export default function useFormSchool() {
     })
 
     const submit = (values) => {
+
+        Swal.fire({
+            title: "¿Quieres guardar los cambios?",
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: "Sí",
+            denyButtonText: `No`,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                sendRequest(values)
+            } else if (result.isDenied) {
+                toastSuccess('Cancelado correctamente.')
+            }
+        });
+    }
+
+    const sendRequest = (values) => {
         let data = values
         data._method = 'PUT'
-        axios.post(`/v1/admin/school/${values.slug}`, data)
+        axios.post(`/v1/admin/school/${values.slug}`, data).then(resp => {
+            if(resp.data.success){
+                toastSuccess()
+            }else {
+                toastError()
+            }
+        })
     }
 
     const reset = () => {

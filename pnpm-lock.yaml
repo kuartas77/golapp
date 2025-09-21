@@ -83,6 +83,9 @@ importers:
       vue-router:
         specifier: ^4.0.3
         version: 4.5.1(vue@3.5.21)
+      vue-sweetalert2:
+        specifier: ^5.0.11
+        version: 5.0.11(vue@3.5.21)
       vue3-apexcharts:
         specifier: ^1.4.1
         version: 1.8.0(apexcharts@3.54.1)(vue@3.5.21)
@@ -1403,6 +1406,9 @@ packages:
   sweetalert2@11.23.0:
     resolution: {integrity: sha512-cKzzbC3C1sIs7o9XAMw4E8F9kBtGXsBDUsd2JZ8JM/dqa+nzWwSGM+9LLYILZWzWHzX9W+HJNHyBlbHPVS/krw==}
 
+  sweetalert2@11.4.4:
+    resolution: {integrity: sha512-9yYWQuRT1v9JNI/paPTSYV+68MHwe9C+HQ/I2jtfaFzoJgYRftWXOs4JqmDSjT7m2m4r8ebMMn8LcxD1Wq9B/w==}
+
   tiny-case@1.0.3:
     resolution: {integrity: sha512-Eet/eeMhkO6TX8mnUteS9zgPbUMQa4I6Kkp5ORiBD5476/m+PIRiumP5tmh5ioJpH7k51Kehawy2UDfsnxxY8Q==}
 
@@ -1535,6 +1541,11 @@ packages:
     resolution: {integrity: sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw==}
     peerDependencies:
       vue: ^3.2.0
+
+  vue-sweetalert2@5.0.11:
+    resolution: {integrity: sha512-agujdlcNeLb4Fj0/V3qgR7bEVBN8IzWFoDBP/vrSgbEGl9pjMmxnv32V3lxB0SZtQh6tL6R/UZ+C3q8tzsJbNg==}
+    peerDependencies:
+      vue: '*'
 
   vue3-apexcharts@1.8.0:
     resolution: {integrity: sha512-5tSD4mXTBbIJ9ir+58qHE6oNtIe0RNgqIRYMKpcsIaxkKtwUww4JhvPkpUFlmiW4OJbbdklgjleXq1lfcM4gdA==}
@@ -2800,6 +2811,8 @@ snapshots:
 
   sweetalert2@11.23.0: {}
 
+  sweetalert2@11.4.4: {}
+
   tiny-case@1.0.3: {}
 
   tinyglobby@0.2.14:
@@ -2889,6 +2902,11 @@ snapshots:
   vue-router@4.5.1(vue@3.5.21):
     dependencies:
       '@vue/devtools-api': 6.6.4
+      vue: 3.5.21
+
+  vue-sweetalert2@5.0.11(vue@3.5.21):
+    dependencies:
+      sweetalert2: 11.4.4
       vue: 3.5.21
 
   vue3-apexcharts@1.8.0(apexcharts@3.54.1)(vue@3.5.21):
