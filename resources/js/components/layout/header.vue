@@ -123,67 +123,6 @@
                         </a>
                     </div>
 
-                    <div class="dropdown nav-item message-dropdown btn-group">
-                        <a href="javascript:;" id="ddlmsg" data-bs-toggle="dropdown" aria-expanded="false" class="btn dropdown-toggle btn-icon-only nav-link">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                class="feather feather-mail"
-                            >
-                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                                <polyline points="22,6 12,13 2,6"></polyline>
-                            </svg>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-right m-0" aria-labelledby="ddlmsg">
-                            <li role="presentation">
-                                <a role="menuitem" href="#" target="_self" class="dropdown-item">
-                                    <div class="media media">
-                                        <div class="media-aside align-self-start">
-                                            <div class="avatar avatar-xl"><span class="avatar-title rounded-circle">KY</span></div>
-                                        </div>
-                                        <div class="media-body">
-                                            <h5 class="usr-name">Kara Young</h5>
-                                            <p class="msg-title">ACCOUNT UPDATE</p>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                            <li role="presentation">
-                                <a role="menuitem" href="#" target="_self" class="dropdown-item">
-                                    <div class="media media">
-                                        <div class="media-aside align-self-start">
-                                            <img src="/img/user_login.png" alt="avatar" />
-                                        </div>
-                                        <div class="media-body">
-                                            <h5 class="usr-name">Daisy Anderson</h5>
-                                            <p class="msg-title">ACCOUNT UPDATE</p>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                            <li role="presentation">
-                                <a role="menuitem" href="#" target="_self" class="dropdown-item">
-                                    <div class="media media">
-                                        <div class="media-aside align-self-start">
-                                            <div class="avatar avatar-xl"><span class="avatar-title rounded-circle">OG</span></div>
-                                        </div>
-                                        <div class="media-body">
-                                            <h5 class="usr-name">Oscar Garner</h5>
-                                            <p class="msg-title">ACCOUNT UPDATE</p>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-
                     <div class="dropdown nav-item notification-dropdown btn-group">
                         <a href="javascript:;" id="ddlnotify" data-bs-toggle="dropdown" aria-expanded="false" class="btn dropdown-toggle btn-icon-only nav-link">
                             <svg
@@ -378,47 +317,12 @@
                                 </router-link>
                             </li>
                             <li role="presentation">
-                                <router-link to="/apps/mailbox" class="dropdown-item">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="feather feather-inbox"
-                                    >
-                                        <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
-                                        <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
-                                    </svg>
-                                    Inbox
-                                </router-link>
-                            </li>
-                            <li role="presentation">
-                                <router-link to="/auth/lockscreen" class="dropdown-item">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="feather feather-lock"
-                                    >
-                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                    </svg>
-                                    Lock Screen
-                                </router-link>
-                            </li>
-                            <li role="presentation">
-                                <router-link to="/auth/login" class="dropdown-item">
+                                <a href="/logout"
+                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+                                    class="dropdown-item">
+                                    <form id="logout-form" action="/logout" method="POST" style="display: none;">
+                                        <input type="hidden" name="_token" :value="csrf">
+                                    </form>
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         width="24"
@@ -435,8 +339,8 @@
                                         <polyline points="16 17 21 12 16 7"></polyline>
                                         <line x1="21" y1="12" x2="9" y2="12"></line>
                                     </svg>
-                                    Sign Out
-                                </router-link>
+                                    Salir
+                                </a>
                             </li>
                         </ul>
                     </div>
@@ -475,15 +379,10 @@
 </template>
 
 <script setup>
-    import { onMounted, ref, reactive } from 'vue';
-    import { useI18n } from 'vue-i18n';
-    import { useStore } from 'vuex';
-    const store = useStore();
+    import { onMounted, ref } from 'vue';
 
     const selectedLang = ref(null);
-    const countryList = ref(store.state.appState.countryList);
-
-    const i18n = reactive(useI18n());
+    const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content')
 
     onMounted(() => {
         selectedLang.value = window.$appSetting.toggleLanguage();
@@ -492,11 +391,5 @@
 
     const toggleMode = (mode) => {
         window.$appSetting.toggleMode(mode);
-    };
-
-    const changeLanguage = (item) => {
-        selectedLang.value = item;
-        i18n.locale = item.code;
-        window.$appSetting.toggleLanguage(item);
     };
 </script>

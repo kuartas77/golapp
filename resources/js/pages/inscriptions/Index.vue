@@ -42,7 +42,7 @@
     </panel>
 
     <teleport defer to="#select_groups">
-        <select placeholder="Grupos">
+        <select placeholder="Grupos" id="groups" name="groups">
             <option value="">Grupos...</option>
             <option v-for="group in groups" :value="group.id" :key="group.id">{{ group.name }}
             </option>
@@ -50,7 +50,7 @@
     </teleport>
 
     <teleport defer to="#select_categories">
-        <select placeholder="Categorias">
+        <select placeholder="Categorias" id="categories" name="categories">
             <option value="">Categorias...</option>
             <option v-for="category in categories" :value="category.category" :key="category.category">{{
                 category.category
@@ -60,48 +60,10 @@
 
     <breadcrumb :active="'Listado'" />
 </template>
-<script setup>
+<script setup lang="ts">
 import dayjs from "@/utils/dayjs";
-import { useRouter } from 'vue-router';
 import { inscription_table, columns, options } from '@/composables/inscriptionList';
 import useSettings from "@/composables/settingsComposable";
-import { onMounted, computed } from 'vue';
-import { routeName } from '@/composables/routeName';
-const router = useRouter()
 
-const { getSettings, groups, categories } = useSettings();
-
-routeName()
-
-getSettings()
-
-onMounted(() => {
-
-    if (inscription_table.value) {
-        let dt = inscription_table.value.dt;
-        const selectGroups = document.querySelector('thead select[placeholder="Grupos"]');
-        if (selectGroups) {
-            selectGroups.addEventListener('change', function () {
-                return dt.column(3).search(this.value).draw()
-            });
-        }
-        const selectCategories = document.querySelector('thead select[placeholder="Categorias"]');
-        if (selectCategories) {
-            selectCategories.addEventListener('change', function () {
-                return dt.column(4).search(this.value).draw()
-            });
-        }
-    }
-});
-
-const resolveRouteFromClick = (e) => {
-    const itemId = e.target.dataset.itemId
-    if (!itemId) {
-        return
-    }
-    e.preventDefault()
-    router.push('/inscripciones/' + itemId);
-}
-
-
+const { resolveRouteFromClick, groups, categories } = useSettings();
 </script>
