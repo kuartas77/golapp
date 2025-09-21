@@ -88,7 +88,7 @@
                                 <line x1="1" y1="9" x2="4" y2="9"></line>
                                 <line x1="1" y1="14" x2="4" y2="14"></line>
                             </svg>
-                            <span>{{ $t('apps') }}</span>
+                            <span>Administración</span>
                         </div>
                         <div>
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -100,26 +100,18 @@
                     </a>
                     <ul id="apps" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
                         <li>
-                            <router-link to="/apps/chat" @click="toggleMobileMenu">Chat</router-link>
+                            <router-link to="/admin/escuela" @click="toggleMobileMenu">Escuela</router-link>
                         </li>
                         <li>
-                            <router-link to="/apps/mailbox" @click="toggleMobileMenu">Mailbox</router-link>
+                            <router-link to="/admin/usuarios" @click="toggleMobileMenu">Usuarios</router-link>
                         </li>
                         <li>
-                            <router-link to="/apps/todo-list" @click="toggleMobileMenu">Todo List</router-link>
+                            <router-link to="/admin/g-entrenamiento" @click="toggleMobileMenu">Grupos Entrenamiento</router-link>
                         </li>
                         <li>
-                            <router-link to="/apps/notes" @click="toggleMobileMenu">Notes</router-link>
+                            <router-link to="/admin/g-competencia" @click="toggleMobileMenu">Grupos Competencia</router-link>
                         </li>
-                        <li>
-                            <router-link to="/apps/scrumboard" @click="toggleMobileMenu">Scrumboard</router-link>
-                        </li>
-                        <li>
-                            <router-link to="/apps/contacts" @click="toggleMobileMenu">Contacts</router-link>
-                        </li>
-                        <li>
-                            <router-link to="/apps/calendar" @click="toggleMobileMenu">Calendar</router-link>
-                        </li>
+
                     </ul>
                 </li>
 

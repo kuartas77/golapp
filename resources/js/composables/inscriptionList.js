@@ -6,7 +6,7 @@ const inscription_table = ref();
 
 const columns = [
     { data: 'player.photo_url', width: '1%', render: '#photo', searchable: false},
-    { data: 'player.unique_code', render: '#link', searchable: true},
+    { data: 'unique_code', render: '#link', searchable: true},
     { data: 'player.identification_document', searchable: true},
     { data: 'training_group.name', name: 'training_group_id', orderable: false, searchable: true},
     { data: 'player.category', name: 'inscriptions.category', orderable: false, searchable: true},

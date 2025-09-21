@@ -83,8 +83,10 @@ class RegisterService
         return $response;
     }
 
-    public function updateSchoolUsesCase(Request $request, School $school)
+    public function updateSchoolUsesCase(Request $request, School $school): bool
     {
+        $success = true;
+
         try {
 
             $validated = $request->only(['name', 'email', 'agent', 'address', 'phone']);
@@ -134,6 +136,9 @@ class RegisterService
         } catch (Throwable $th) {
             DB::rollBack();
             $this->logError('SchoolsController@update', $th);
+            $success = false;
         }
+
+        return $success;
     }
 }

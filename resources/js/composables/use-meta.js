@@ -1,7 +1,7 @@
 import { useHead } from '@vueuse/head';
 import { unref, computed } from 'vue';
 
-let siteTitle = 'hello';
+let siteTitle = 'GOLAPP';
 let separator = '|';
 
 export const usePageTitle = (pageTitle) =>
@@ -12,5 +12,5 @@ export const usePageTitle = (pageTitle) =>
     );
 
 export const useMeta = (data) => {
-    return useHead({ ...data, title: `${data.title} | CORK - Multipurpose Bootstrap Dashboard Template` });
+    return useHead({ ...data, title: `${data.title}` });
 };

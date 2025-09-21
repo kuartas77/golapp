@@ -15,6 +15,17 @@ const routes = [
         path: '/inscripciones',
         name: 'Inscripciones',
         component: () => import('@/pages/inscriptions/Index.vue'),
+    },
+    {
+        path: '/admin',
+        name: 'Admin',
+        children: [
+
+            {path: 'escuela', name: 'Escuela', component: () => import('@/pages/admin/school/Index.vue')},
+            {path: 'usuarios', name: 'Usuarios', component: () => import('@/pages/admin/school/Index.vue')},
+            {path: 'g-entrenamiento', name: 'Grupos Entrenamiento', component: () => import('@/pages/admin/school/Index.vue')},
+            {path: 'g-competencia', name: 'Grupos Competencia', component: () => import('@/pages/admin/school/Index.vue')}
+        ]
     }
 ];
 

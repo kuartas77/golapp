@@ -4,5 +4,5 @@
     </div>
 </template>
 <script setup>
-import breadcrumb from "@/components/layout/breadcrumb.vue";
+
 </script>

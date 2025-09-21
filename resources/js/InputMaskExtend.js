@@ -2,13 +2,13 @@ import Inputmask from "inputmask";
 
 Inputmask.extendAliases({
     pesos: {
-        prefix: "$ ",
+        prefix: "$",
         groupSeparator: ".",
         alias: "numeric",
         placeholder: "0",
-        autoGroup: !0,
-        digits: 0,
+        autoGroup: true,
+        digits: false,
         digitsOptional: false,
-        clearMaskOnLostFocus: false,
+        clearMaskOnLostFocus: true,
     },
 })

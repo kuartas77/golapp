@@ -5,7 +5,7 @@ const players_table = ref();
 const columns = [
     { data: 'photo_url', title: '', width: '1%', render: '#photo'},
     { data: 'unique_code', title: 'Código', width: '5%', render: '#link'},
-    { data: 'identification_document', title: 'Documento', width: '5%' },
+    { data: 'identification_document', title: 'Doc', width: '5%' },
     { data: 'date_birth', title: 'Fecha Nac', width: '5%', render: '#date'},
     { data: 'full_names', title: 'Nombres', width: '15%' },
     { data: 'created_at', title: 'Registro', render: '#date'},
@@ -30,7 +30,6 @@ const options = {
     serverSide: true,
     processing: true,
     order: [[1, 'desc']],
-    pagingType: 'full_numbers'
 };
 
 function redrawUserGrid() {
