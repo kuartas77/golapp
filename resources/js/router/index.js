@@ -9,12 +9,12 @@ const routes = [
     {
         path: '/deportistas',
         name: 'Deportistas',
-        component: () => import('@/pages/players/Index.vue'),
+        component: () => import('@/pages/players/PlayersList.vue'),
     },
     {
         path: '/inscripciones',
         name: 'Inscripciones',
-        component: () => import('@/pages/inscriptions/Index.vue'),
+        component: () => import('@/pages/inscriptions/InscriptionsList.vue'),
     },
     {
         path: '/admin',
@@ -22,9 +22,9 @@ const routes = [
         children: [
 
             {path: 'escuela', name: 'Escuela', component: () => import('@/pages/admin/school/Index.vue')},
-            {path: 'usuarios', name: 'Usuarios', component: () => import('@/pages/admin/school/Index.vue')},
-            {path: 'g-entrenamiento', name: 'Grupos Entrenamiento', component: () => import('@/pages/admin/school/Index.vue')},
-            {path: 'g-competencia', name: 'Grupos Competencia', component: () => import('@/pages/admin/school/Index.vue')}
+            {path: 'usuarios', name: 'Usuarios', component: () => import('@/pages/admin/users/UsersList.vue')},
+            {path: 'g-entrenamiento', name: 'Grupos Entrenamiento', component: () => import('@/pages/admin/groups/trainingList.vue')},
+            {path: 'g-competencia', name: 'Grupos Competencia', component: () => import('@/pages/admin/groups/competitionGList.vue')}
         ]
     }
 ];

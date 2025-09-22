@@ -90,6 +90,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('schedules_enabled', [DataTableController::class, 'enabledSchedules'])->name('schedules.enabled');
         Route::get('players_enabled', [DataTableController::class, 'enabledPlayers'])->name('players.enabled');
         Route::get('training_sessions_enabled', [DataTableController::class, 'trainingSessions'])->name('training_sessions.enabled');
+        Route::get('users_enabled', [DataTableController::class, 'enabledUsers'])->name('users_enabled');
     });
 
     Route::prefix('export')->name('export.')->group(function () {

@@ -30,7 +30,7 @@ class CompetitionGroupRepository
 
     public function listGroupEnabled()
     {
-        return $this->competitionGroup->query()->schoolId()->with('tournament', 'professor')->get();
+        return $this->competitionGroup->query()->schoolId()->with('tournament', 'professor');
     }
 
     public function listGroupDisabled()

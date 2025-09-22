@@ -60,10 +60,11 @@
 
     <breadcrumb :active="'Listado'" />
 </template>
-<script setup lang="ts">
+<script setup>
 import dayjs from "@/utils/dayjs";
-import { inscription_table, columns, options } from '@/composables/inscriptionList';
 import useSettings from "@/composables/settingsComposable";
+import useInscriptionList from '@/composables/inscriptionList';
 
-const { resolveRouteFromClick, groups, categories } = useSettings();
+const { groups, categories } = useSettings();
+const { inscription_table, columns, options, resolveRouteFromClick } = useInscriptionList()
 </script>

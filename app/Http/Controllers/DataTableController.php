@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\UserRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -21,7 +22,8 @@ class DataTableController extends Controller
                                 private PlayerRepository           $playerRepository,
                                 private ScheduleRepository         $scheduleRepository,
                                 private SchoolRepository           $schoolRepository,
-                                private TrainingSessionRepository  $trainingSessionRepository
+                                private TrainingSessionRepository  $trainingSessionRepository,
+                                private UserRepository             $userRepository,
                                 )
     {
     }
@@ -56,7 +58,7 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->collection($this->trainingGroupRepository->listGroupEnabled())->toJson();
+        return datatables()->of($this->trainingGroupRepository->listGroupEnabled())->toJson();
     }
 
     /**
@@ -78,7 +80,7 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->collection($this->competitionGroupRepository->listGroupEnabled())->toJson();
+        return datatables()->of($this->competitionGroupRepository->listGroupEnabled())->toJson();
     }
 
     /**
@@ -112,6 +114,12 @@ class DataTableController extends Controller
         abort_unless($request->ajax(), 403);
 
         return datatables()->of($this->playerRepository->getPlayersPeople())->toJson();
+    }
+
+    public function enabledUsers(Request $request)
+    {
+        abort_unless($request->ajax(), 403);
+        return datatables()->of($this->userRepository->getAll())->toJson();
     }
 
     public function schools(Request $request)

@@ -37,12 +37,12 @@ class TrainingGroupRepository
         return $this->trainingGroup->query()
             ->schoolId()
             ->with(['instructors'])
+            ->withCount('members')
             ->where(fn ($query) =>
                 $query->whereRelation('instructors', 'assigned_year', '>=', now()->year)
                 ->orWhere('id', $firstTeam->id)
                 ->orWhere('year_active', '>=', now()->year)
-            )
-            ->get();
+            );
     }
 
     public function listGroupDisabled()
