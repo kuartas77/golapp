@@ -21,7 +21,7 @@ const routes = [
         name: 'Admin',
         children: [
 
-            {path: 'escuela', name: 'Escuela', component: () => import('@/pages/admin/school/Index.vue')},
+            {path: 'escuela', name: 'Escuela', component: () => import('@/pages/admin/school/UpdateSchool.vue')},
             {path: 'usuarios', name: 'Usuarios', component: () => import('@/pages/admin/users/UsersList.vue')},
             {path: 'g-entrenamiento', name: 'Grupos Entrenamiento', component: () => import('@/pages/admin/groups/trainingList.vue')},
             {path: 'g-competencia', name: 'Grupos Competencia', component: () => import('@/pages/admin/groups/competitionGList.vue')}
