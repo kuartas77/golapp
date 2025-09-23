@@ -5,10 +5,10 @@
         <!--  END NAVBAR  -->
 
         <!--  BEGIN MAIN CONTAINER  -->
-        <div class="main-container" id="container" :class="[!$store.state.appState.is_show_sidebar ? 'sidebar-closed sbar-open' : '', $store.state.appState.menu_style === 'collapsible-vertical' ? 'collapsible-vertical-mobile' : '']">
+        <div class="main-container" id="container" :class="[!appState.is_show_sidebar ? 'sidebar-closed sbar-open' : '', appState.menu_style === 'collapsible-vertical' ? 'collapsible-vertical-mobile' : '']">
             <!--  BEGIN OVERLAY  -->
-            <div class="overlay" :class="{ show: !$store.state.appState.is_show_sidebar }" @click="$store.commit('toggleSideBar', !$store.state.appState.is_show_sidebar)"></div>
-            <div class="search-overlay" :class="{ show: $store.state.appState.is_show_search }" @click="$store.commit('toggleSearch', !$store.state.appState.is_show_search)"></div>
+            <div class="overlay" :class="{ show: !appState.is_show_sidebar }" @click="appState.toggleSideBar(!appState.is_show_sidebar)"></div>
+            <div class="search-overlay" :class="{ show: appState.is_show_search }" @click="appState.toggleSearch(!appState.is_show_search)"></div>
             <!-- END OVERLAY -->
 
             <!--  BEGIN SIDEBAR  -->
@@ -37,4 +37,6 @@
     import Sidebar from "@/components/layout/sidebar.vue";
     import Footer from "@/components/layout/footer.vue";
     import appSettings from "@/components/app-settings.vue";
+    import { useAppState } from '@/store/app-state'
+    const appState = useAppState()
 </script>

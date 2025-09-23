@@ -1,11 +1,11 @@
 import configLanguaje from '@/utils/datatableUtils';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useStore } from "vuex";
+import { useAuthUser } from '@/store/auth-user'
 
 export default function useUsersList() {
 
-    const store = useStore()
+    const store = useAuthUser()
     // const router = useRouter()
     const table = ref();
 
@@ -33,7 +33,7 @@ export default function useUsersList() {
         order: [[0, 'desc']],
     };
 
-    const token = store.getters['auth/getToken'];
+    const token = store.getToken;
 
     const ajaxConfig = {
         url: '/api/datatables/users_enabled',

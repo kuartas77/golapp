@@ -8,8 +8,9 @@
                             <h1 class="">Ingreso</h1>
                             <p class="">Ingrese con su cuenta para continuar.</p>
 
-                            <Form ref="form" :validation-schema="schema" @submit="handleLogin" :initial-values="formData" class="text-start">
-<div class="form">
+                            <Form ref="form" :validation-schema="schema" @submit="handleLogin"
+                                :initial-values="formData" class="text-start">
+                                <div class="form">
                                     <div id="username-field" class="field-wrapper input">
                                         <label for="username">Usuario</label>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"

@@ -1,6 +1,9 @@
-const appState = {
+import { defineStore } from "pinia";
+
+export const useAppState = defineStore('app-state', {
+
     state: () => ({
-        layout: "app",
+        current_layout: "app",
         is_show_sidebar: true,
         is_show_search: false,
         is_dark_mode: false,
@@ -13,71 +16,66 @@ const appState = {
             { code: "es", name: "Spanish" },
         ],
     }),
-    mutations: {
-        setLayout(state, payload) {
-            state.layout = payload;
+    getters: {
+        layout: (state) => state.current_layout
+    },
+    actions: {
+        setLayout (payload) {
+            this.current_layout = payload
         },
-        toggleSideBar(state, value) {
-            state.is_show_sidebar = value;
+        toggleSideBar (value) {
+            this.is_show_sidebar = value
         },
-        toggleSearch(state, value) {
-            state.is_show_search = value;
+        toggleSearch (value) {
+            this.is_show_search = value
         },
-        toggleLocale(state, value) {
+        toggleLocale (value) {
             value = value || "es";
             localStorage.setItem("i18n_locale", value);
-            state.locale = value;
+            this.locale = value;
         },
-
-        toggleDarkMode(state, value) {
+        toggleDarkMode(value) {
             //light|dark|system
             value = value || "light";
             localStorage.setItem("dark_mode", value);
-            state.dark_mode = value;
+            this.dark_mode = value;
             if (value == "light") {
-                state.is_dark_mode = false;
+                this.is_dark_mode = false;
             } else if (value == "dark") {
-                state.is_dark_mode = true;
+                this.is_dark_mode = true;
             } else if (value == "system") {
                 if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                    state.is_dark_mode = true;
+                    this.is_dark_mode = true;
                 } else {
-                    state.is_dark_mode = false;
+                    this.is_dark_mode = false;
                 }
             }
 
-            if (state.is_dark_mode) {
+            if (this.is_dark_mode) {
                 document.querySelector("body").classList.add("dark");
             } else {
                 document.querySelector("body").classList.remove("dark");
             }
         },
-
-        toggleMenuStyle(state, value) {
+        toggleMenuStyle(value) {
             //horizontal|vertical|collapsible-vertical
             value = value || "";
             localStorage.setItem("menu_style", value);
-            state.menu_style = value;
+            this.menu_style = value;
             if (!value || value === "vertical") {
-                state.is_show_sidebar = true;
+                this.is_show_sidebar = true;
             } else if (value === "collapsible-vertical") {
-                state.is_show_sidebar = false;
+                this.is_show_sidebar = false;
             }
         },
-
-        toggleLayoutStyle(state, value) {
+        toggleLayoutStyle(value) {
             //boxed-layout|large-boxed-layout|full
             value = value || "";
             localStorage.setItem("layout_style", value);
-            state.layout_style = value;
+            this.layout_style = value;
         },
-    },
-    getters: {
-        layout(state) {
-            return state.layout;
-        },
-    },
-    actions: {},
-}
-
-export default appState
+        clearState () {
+            this.$reset()
+        }
+    }
+})

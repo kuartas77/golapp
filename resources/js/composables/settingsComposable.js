@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { ref, onMounted } from 'vue';
-import { useStore } from "vuex";
+import { useAuthUser } from '@/store/auth-user'
 
 export default function useSettings() {
     const groups = ref([])

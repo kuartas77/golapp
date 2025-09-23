@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import store from '@/store';
+import { useAuthUser } from '@/store/auth-user'
 
 const routes = [
     {
@@ -52,7 +52,8 @@ const router = new createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-    const isAuth = store.getters['auth/isAuthenticated']
+    const store = useAuthUser()
+    const isAuth = store.isAuthenticated
     if (to.matched.some(record => record.meta.requiresAuth) && !isAuth) {
         next({ name: 'login', query: { redirect: to.fullPath } })
     } else if (to.matched.some(record => record.meta.guest) && isAuth) {

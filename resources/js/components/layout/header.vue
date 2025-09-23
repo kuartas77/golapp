@@ -15,7 +15,7 @@
                 </ul>
                 <div class="d-none horizontal-menu">
                     <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom"
-                        @click="$store.commit('toggleSideBar', !$store.state.appState.is_show_sidebar)">
+                        @click="appState.toggleSideBar(!appState.is_show_sidebar)">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             class="feather feather-menu">
@@ -26,9 +26,9 @@
                     </a>
                 </div>
                 <!-- <ul class="navbar-item flex-row ms-md-0 ms-auto">
-                    <li class="nav-item align-self-center search-animated" :class="{ 'show-search': $store.state.appState.is_show_search }">
+                    <li class="nav-item align-self-center search-animated" :class="{ 'show-search': appState.is_show_search }">
                         <svg
-                            @click="$store.commit('toggleSearch', !$store.state.appState.is_show_search)"
+                            @click="appState.toggleSearch(!appState.is_show_search)"
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
                             height="24"
@@ -43,7 +43,7 @@
                             <circle cx="11" cy="11" r="8"></circle>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
-                        <form class="form-inline search-full form-inline search" :class="{ 'input-focused': $store.state.appState.is_show_search }">
+                        <form class="form-inline search-full form-inline search" :class="{ 'input-focused': appState.is_show_search }">
                             <div class="search-bar">
                                 <input type="text" class="form-control search-form-control ms-lg-auto" placeholder="Search..." />
                             </div>
@@ -53,7 +53,7 @@
 
                 <div class="navbar-item flex-row ms-md-auto">
                     <div class="dark-mode d-flex align-items-center">
-                        <a v-if="$store.state.appState.dark_mode == 'light'" href="javascript:;"
+                        <a v-if="appState.dark_mode == 'light'" href="javascript:;"
                             class="d-flex align-items-center" @click="toggleMode('dark')">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -70,7 +70,7 @@
                             </svg>
                             <span class="ms-2">Claro</span>
                         </a>
-                        <a v-if="$store.state.appState.dark_mode == 'dark'" href="javascript:;"
+                        <a v-if="appState.dark_mode == 'dark'" href="javascript:;"
                             class="d-flex align-items-center" @click="toggleMode('system')">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -79,7 +79,7 @@
                             </svg>
                             <span class="ms-2">Oscuro</span>
                         </a>
-                        <a v-if="$store.state.appState.dark_mode == 'system'" href="javascript:;"
+                        <a v-if="appState.dark_mode == 'system'" href="javascript:;"
                             class="d-flex align-items-center" @click="toggleMode('light')">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -249,7 +249,7 @@
         <div class="sub-header-container">
             <header class="header navbar navbar-expand-sm">
                 <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom"
-                    @click="$store.commit('toggleSideBar', !$store.state.appState.is_show_sidebar)">
+                    @click="toggleSideBar()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                         class="feather feather-menu">
@@ -268,12 +268,14 @@
 </template>
 
 <script setup>
+import { useAppState } from '@/store/app-state'
+import { useAuthUser } from '@/store/auth-user'
 import { onMounted, ref } from 'vue';
-import { useStore } from "vuex";
 import { useRouter } from 'vue-router'
 import api from "@/utils/axios.js";
 
-const store = useStore();
+const appState = useAppState()
+const userState = useAuthUser()
 const router = useRouter()
 const selectedLang = ref(null);
 
@@ -290,9 +292,14 @@ const logout = () => {
     requestLogout()
 }
 
+const toggleSideBar = () => {
+    console.log(appState.is_show_sidebar)
+    appState.toggleSideBar(!appState.is_show_sidebar)
+}
+
 const requestLogout = async() => {
     await api.post('api/logout')
-    store.dispatch('auth/logout')
+    userState.logout()
     router.push({ name: 'login' })
 }
 

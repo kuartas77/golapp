@@ -2,11 +2,11 @@ import { ref } from 'vue'
 import { useMeta } from "@/composables/use-meta";
 import api from "@/utils/axios";
 import { useRouter, useRoute } from 'vue-router'
-import { useStore } from "vuex";
+import { useAuthUser } from '@/store/auth-user'
 import * as yup from 'yup'
 
 export default function useFormLogin() {
-    const store = useStore();
+    const store = useAuthUser();
     const route = useRoute()
     const router = useRouter()
     const pwd_type = ref("password");
@@ -30,13 +30,13 @@ export default function useFormLogin() {
         axios.get("/sanctum/csrf-cookie").then(() => {
             api.post("/api/login", credentials).then(response => {
                 if (response.status === 200) {
-                    store.dispatch('auth/login', {
+                    store.login({
                         token: response.data.access_token,
                         user: response.data.user,
                         refresh: response.data.refresh_token
                     })
                     resetForm()
-                    const redirect = route.query.redirect || "/plataforma/inicio"
+                    const redirect = route.query.redirect || "/inicio"
                     router.push(redirect);
                 }
             })

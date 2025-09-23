@@ -2,7 +2,7 @@ import '@/bootstrap';
 import { createApp } from 'vue';
 import { createHead } from "@vueuse/head";
 import App from "@/App.vue";
-import store from "@/store";
+import { createPinia } from 'pinia'
 import i18n from "@/i18n";
 import router from "@/router";
 import DataTable from 'datatables.net-vue3';
@@ -26,8 +26,8 @@ window.bootstrap = bootstrap;
 import "./assets/sass/components/custom-modal.scss";
 
 // perfect scrollbar
-import PerfectScrollbar from "vue3-perfect-scrollbar";
-import "vue3-perfect-scrollbar/dist/vue3-perfect-scrollbar.css";
+import { PerfectScrollbarPlugin } from 'vue3-perfect-scrollbar';
+import 'vue3-perfect-scrollbar/style.css';
 
 //Sweetalert
 // import Swal from "sweetalert2";
@@ -42,17 +42,18 @@ const options = {
 
 // set default settings
 import appSetting from "@/app-setting";
-window.$appSetting = appSetting;
-window.$appSetting.init();
+
 import '@/utils/yup-locale'
 
+const pinia = createPinia()
 const head = createHead();
 const app = createApp(App);
 app.use(head)
 app.use(i18n)
-app.use(store)
+// app.use(store)
+app.use(pinia)
 app.use(router)
-app.use(PerfectScrollbar)
+app.use(PerfectScrollbarPlugin)
 app.use(VueSweetalert2, options)
 
 app.component('DataTable', DataTable)
@@ -63,4 +64,6 @@ app.component('inputFile', inputFile)
 app.component('checkbox', Checkbox)
 
 app.mount('#app')
+window.$appSetting = appSetting;
+window.$appSetting.init();
 window.Swal =  app.config.globalProperties.$swal;

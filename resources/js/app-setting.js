@@ -1,32 +1,33 @@
-import store from "@/store";
+import { useAppState } from '@/store/app-state'
 import { $themeConfig } from "@/theme.config";
 
 export default {
     init() {
+        const appState = useAppState()
         // set default styles
         let val = localStorage.getItem("dark_mode"); // light, dark, system
         if (!val) {
             val = $themeConfig.theme;
         }
-        store.commit("toggleDarkMode", val);
+        appState.toggleDarkMode(val);
 
         val = localStorage.getItem("menu_style"); // vertical, collapsible-vertical, horizontal
         if (!val) {
             val = $themeConfig.navigation;
         }
-        store.commit("toggleMenuStyle", val);
+        appState.toggleMenuStyle(val);
 
         val = localStorage.getItem("layout_style"); // full, boxed-layout, large-boxed-layout
         if (!val) {
             val = $themeConfig.layout;
         }
-        store.commit("toggleLayoutStyle", val);
+        appState.toggleLayoutStyle(val);
 
         val = 'es'// en, da, de, el, es, fr, hu, it, ja, pl, pt, ru, sv, tr, zh
         if (!val) {
             val = $themeConfig.lang;
 
-            const list = store.state.appState.countryList;
+            const list = appState.countryList;
             const item = list.find((item) => item.code === val);
             if (item) {
                 this.toggleLanguage(item);
@@ -35,30 +36,32 @@ export default {
     },
 
     toggleLanguage(item) {
+        const appState = useAppState()
         let lang = null;
         if (item) {
             lang = item;
         } else {
-            let code = store.state.appState.locale;
+            let code = appState.locale;
             if (!code) {
                 code = localStorage.getItem("i18n_locale");
             }
 
-            item = store.state.appState.countryList.find((d) => d.code === code);
+            item = appState.countryList.find((d) => d.code === code);
             if (item) {
                 lang = item;
             }
         }
 
         if (!lang) {
-            lang = store.state.appState.countryList.find((d) => d.code === "en");
+            lang = appState.countryList.find((d) => d.code === "en");
         }
 
-        store.commit("toggleLocale", lang.code);
+        appState.toggleLocale(lang.code);
         return lang;
     },
 
     toggleMode(mode) {
+        const appState = useAppState()
         if (!mode) {
             let val = localStorage.getItem("dark_mode"); //light|dark|system
             mode = val;
@@ -66,7 +69,7 @@ export default {
                 mode = "light";
             }
         }
-        store.commit("toggleDarkMode", mode || "light");
+        appState.toggleDarkMode( mode || "light");
         return mode;
     },
 };
