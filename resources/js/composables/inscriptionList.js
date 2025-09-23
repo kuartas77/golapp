@@ -1,11 +1,12 @@
 import configLanguaje from '@/utils/datatableUtils';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useStore } from "vuex";
 
 export default function useInscriptionList() {
-
+    const store = useStore()
     const router = useRouter()
-    const inscription_table = ref();
+    const inscription_table = ref()
 
     const columns = [
         { data: 'player.photo_url', width: '1%', render: '#photo', searchable: false },
@@ -66,5 +67,15 @@ export default function useInscriptionList() {
         }
     });
 
-    return { columns, options, inscription_table, resolveRouteFromClick };
+    const token = store.getters['auth/getToken'];
+
+    const ajaxConfig = {
+        url: '/api/datatables/inscriptions_enabled',
+        type: 'GET',
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", `Bearer ${token}`);
+        }
+    };
+
+    return { columns, options, inscription_table, ajaxConfig, resolveRouteFromClick };
 }

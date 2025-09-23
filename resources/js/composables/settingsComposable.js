@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { ref, onMounted } from 'vue';
-
-import { routeName } from '@/composables/routeName';
+import { useStore } from "vuex";
 
 export default function useSettings() {
     const groups = ref([])
@@ -14,7 +13,6 @@ export default function useSettings() {
     }
 
     onMounted(() => {
-        routeName()
         getSettings()
     });
 

@@ -2,31 +2,39 @@ import { createRouter, createWebHistory } from 'vue-router';
 import store from '@/store';
 
 const routes = [
-
-    { path: '/', name: 'Main', component: () => import( '@/pages/home/Index.vue' )},
-    { path: '/inicio', name: 'Tablero', component: () => import( '@/pages/home/Index.vue' )},
-    { path: '/kpi', name: 'Tablero', component: () => import( '@/pages/home/Index.vue' )},
     {
-        path: '/deportistas',
-        name: 'Deportistas',
-        component: () => import('@/pages/players/PlayersList.vue'),
-    },
-    {
-        path: '/inscripciones',
-        name: 'Inscripciones',
-        component: () => import('@/pages/inscriptions/InscriptionsList.vue'),
-    },
-    {
-        path: '/admin',
-        name: 'Admin',
+        path: '',
+        component: () => import(/* webpackChunkName: "auth-layout" */ '@/layouts/auth-layout.vue'),
+        meta: { guest: true },
         children: [
-
-            {path: 'escuela', name: 'Escuela', component: () => import('@/pages/admin/school/UpdateSchool.vue')},
-            {path: 'usuarios', name: 'Usuarios', component: () => import('@/pages/admin/users/UsersList.vue')},
-            {path: 'g-entrenamiento', name: 'Grupos Entrenamiento', component: () => import('@/pages/admin/groups/trainingList.vue')},
-            {path: 'g-competencia', name: 'Grupos Competencia', component: () => import('@/pages/admin/groups/competitionGList.vue')}
+            { path: '', name: 'login', component: () => import(/* webpackChunkName: "Login" */ '@/pages/auth/Login.vue') },
         ]
-    }
+    },
+
+    {
+        path: '/',
+        name: 'platform',
+        meta: { requiresAuth: true },
+        component: () => import(/* webpackChunkName: "app-layout" */ '@/layouts/app-layout.vue'),
+        children: [
+            { path: 'inicio', name: 'dashboard', component: () => import('@/pages/home/Index.vue'), },
+            { path: 'kpi', name: 'kpi', component: () => import('@/pages/home/Index.vue'), },
+            { path: 'perfil/usuario', name: 'user-profile', component: () => import('@/pages/home/Index.vue'), },
+            { path: 'deportistas', name: 'players', component: () => import('@/pages/players/PlayersList.vue') },
+            { path: 'inscripciones', name: 'inscriptions', component: () => import('@/pages/inscriptions/InscriptionsList.vue') },
+            {
+                path: '/administracion',
+                name: 'admin',
+                children: [
+                    { path: 'escuela', name: 'school', component: () => import('@/pages/admin/school/UpdateSchool.vue') },
+                    { path: 'usuarios', name: 'users', component: () => import('@/pages/admin/users/UsersList.vue') },
+                    { path: 'g-entrenamiento', name: 'training-groups', component: () => import('@/pages/admin/groups/trainingList.vue') },
+                    { path: 'g-competencia', name: 'competition-groups', component: () => import('@/pages/admin/groups/competitionGList.vue') }
+                ]
+            }
+        ]
+    },
+
 ];
 
 const router = new createRouter({
@@ -44,16 +52,14 @@ const router = new createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-    if (to.meta && to.meta.layout) {
-        if (to.meta.layout == 'main') {
-            store.commit('setLayout', 'main');
-        } else if (to.meta.layout == 'auth') {
-            store.commit('setLayout', 'auth');
-        } else {
-            store.commit('setLayout', 'app');
-        }
+    const isAuth = store.getters['auth/isAuthenticated']
+    if (to.matched.some(record => record.meta.requiresAuth) && !isAuth) {
+        next({ name: 'login', query: { redirect: to.fullPath } })
+    } else if (to.matched.some(record => record.meta.guest) && isAuth) {
+        next({ name: 'dashboard' })
+    } else {
+        next()
     }
-    next(true);
 });
 
 export default router;

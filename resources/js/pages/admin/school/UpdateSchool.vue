@@ -67,12 +67,13 @@
             </Form>
         </template>
     </panel>
-    <breadcrumb :active="'Escuela'" />
+    <breadcrumb :parent="'Adminstración'" :current="'Escuela'" />
 </template>
 <script setup>
 import { Form } from 'vee-validate'
 import useFormSchool from '@/composables/admin/school/formSchool';
-
+import { usePageTitle } from "@/composables/use-meta";
+usePageTitle('Escuela')
 const { form, formData, schema, submit, reset } = useFormSchool()
 
 // Swal.fire("SweetAlert2 is working!");

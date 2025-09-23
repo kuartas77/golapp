@@ -1,7 +1,6 @@
-import { routeName } from '@/composables/routeName';
 import { ref, onMounted } from 'vue'
 import * as yup from 'yup'
-import axios from 'axios';
+import api from "@/utils/axios";
 import useAlerts from '@/composables/alerts'
 
 export default function useFormSchool() {
@@ -47,7 +46,7 @@ export default function useFormSchool() {
     })
 
     onMounted(async () => {
-        const response = await axios.get('/v1/admin/school')
+        const response = await api.get('/api/admin/school')
         let data = {
             id: response.data.id,
             slug: response.data.slug,
@@ -72,10 +71,6 @@ export default function useFormSchool() {
         form.value.setValues(data)
     });
 
-    onMounted(()=> {
-        routeName()
-    })
-
     const submit = (values) => {
 
         Swal.fire({
@@ -94,9 +89,13 @@ export default function useFormSchool() {
     }
 
     const sendRequest = (values) => {
-        let data = values
-        data._method = 'PUT'
-        axios.post(`/v1/admin/school/${values.slug}`, data).then(resp => {
+        let data = new FormData();
+        data.append('_method', 'PUT')
+        for ( let key in values ) {
+            data.append(key, values[key]);
+        }
+
+        api.post(`/api/admin/school/${values.slug}`, data).then(resp => {
             if(resp.data.success){
                 toastSuccess()
             }else {
@@ -109,7 +108,5 @@ export default function useFormSchool() {
         form.value.resetForm()
     }
 
-    return {
-        form, formData, schema, submit, reset
-    }
+    return { form, formData, schema, submit, reset }
 }

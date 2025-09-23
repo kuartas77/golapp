@@ -2,7 +2,7 @@
     <panel>
         <template #lateral/>
         <template #body>
-             <DataTable :columns="columns" :options="options" ajax="/datatables/users_enabled"
+             <DataTable :columns="columns" :options="options" :ajax="ajaxConfig"
                 class="table table-bordered table-sm" id="users_table" ref="table">
                 <template #date="props">
                     <div class="text-center">
@@ -12,11 +12,12 @@
              </DataTable>
         </template>
     </panel>
-    <breadcrumb :active="'Cuentas de usuarios'" />
+    <breadcrumb :parent="'Adminstración'" :current="'Cuentas de usuarios'" />
 </template>
 <script setup>
 import dayjs from "@/utils/dayjs";
 import useUsersList from '@/composables/admin/users/usersList'
-
-const { table, columns, options } = useUsersList()
+import { usePageTitle } from "@/composables/use-meta";
+usePageTitle('Usuarios')
+const { table, columns, options, ajaxConfig } = useUsersList()
 </script>

@@ -1,33 +1,21 @@
 <template>
     <div :class="[$store.state.appState.layout_style, $store.state.appState.menu_style]">
-        <component v-bind:is="layout"></component>
+        <router-view></router-view>
     </div>
 </template>
 <script setup>
-    import { computed } from "vue";
+    // import { computed } from "vue";
 
-    import "./assets/sass/app.scss";
+    import "@/assets/sass/app.scss";
 
-    import { useMeta } from "./composables/use-meta";
-    import { useStore } from "vuex";
+    import { useMeta } from "@/composables/use-meta";
+    // import { useStore } from "vuex";
 
     useMeta({ title: "GOLAPP" });
 
-    const store = useStore();
+    // const store = useStore();
 
-    const layout = computed(() => {
-        return store.getters.layout;
-    });
-</script>
-<script>
-    // layouts
-    import appLayout from "./layouts/app-layout.vue";
-    import authLayout from "./layouts/auth-layout.vue";
-
-    export default {
-        components: {
-            app: appLayout,
-            auth: authLayout,
-        },
-    };
+    // const layout = computed(() => {
+    //     return store.getters.layout;
+    // });
 </script>

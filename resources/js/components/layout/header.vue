@@ -5,28 +5,20 @@
             <header class="header navbar navbar-expand-sm">
                 <ul class="navbar-item theme-brand flex-row text-center">
                     <li class="nav-item theme-logo">
-                        <router-link to="/">
+                        <router-link to="inicio">
                             <img src="/img/ballon_dark.png" class="navbar-logo" alt="logo" />
                         </router-link>
                     </li>
                     <li class="nav-item theme-text">
-                        <router-link to="/home" class="nav-link"> GOLAPP </router-link>
+                        <router-link to="inicio" class="nav-link"> GOLAPP </router-link>
                     </li>
                 </ul>
                 <div class="d-none horizontal-menu">
-                    <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom" @click="$store.commit('toggleSideBar', !$store.state.appState.is_show_sidebar)">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="feather feather-menu"
-                        >
+                    <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom"
+                        @click="$store.commit('toggleSideBar', !$store.state.appState.is_show_sidebar)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-menu">
                             <line x1="3" y1="12" x2="21" y2="12"></line>
                             <line x1="3" y1="6" x2="21" y2="6"></line>
                             <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -61,19 +53,11 @@
 
                 <div class="navbar-item flex-row ms-md-auto">
                     <div class="dark-mode d-flex align-items-center">
-                        <a v-if="$store.state.appState.dark_mode == 'light'" href="javascript:;" class="d-flex align-items-center" @click="toggleMode('dark')">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                class="feather feather-sun"
-                            >
+                        <a v-if="$store.state.appState.dark_mode == 'light'" href="javascript:;"
+                            class="d-flex align-items-center" @click="toggleMode('dark')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-sun">
                                 <circle cx="12" cy="12" r="5"></circle>
                                 <line x1="12" y1="1" x2="12" y2="3"></line>
                                 <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -86,37 +70,22 @@
                             </svg>
                             <span class="ms-2">Claro</span>
                         </a>
-                        <a v-if="$store.state.appState.dark_mode == 'dark'" href="javascript:;" class="d-flex align-items-center" @click="toggleMode('system')">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                class="feather feather-moon"
-                            >
+                        <a v-if="$store.state.appState.dark_mode == 'dark'" href="javascript:;"
+                            class="d-flex align-items-center" @click="toggleMode('system')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-moon">
                                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                             </svg>
                             <span class="ms-2">Oscuro</span>
                         </a>
-                        <a v-if="$store.state.appState.dark_mode == 'system'" href="javascript:;" class="d-flex align-items-center" @click="toggleMode('light')">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                class="feather feather-airplay"
-                            >
-                                <path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1"></path>
+                        <a v-if="$store.state.appState.dark_mode == 'system'" href="javascript:;"
+                            class="d-flex align-items-center" @click="toggleMode('light')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-airplay">
+                                <path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1">
+                                </path>
                                 <polygon points="12 15 17 21 7 21 12 15"></polygon>
                             </svg>
                             <span class="ms-2">Sistema</span>
@@ -124,19 +93,11 @@
                     </div>
 
                     <div class="dropdown nav-item notification-dropdown btn-group">
-                        <a href="javascript:;" id="ddlnotify" data-bs-toggle="dropdown" aria-expanded="false" class="btn dropdown-toggle btn-icon-only nav-link">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                class="feather feather-bell"
-                            >
+                        <a href="javascript:;" id="ddlnotify" data-bs-toggle="dropdown" aria-expanded="false"
+                            class="btn dropdown-toggle btn-icon-only nav-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-bell">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                             </svg>
@@ -147,18 +108,10 @@
                                 <a href="javascript:;" class="dropdown-item">
                                     <div class="media server-log">
                                         <div class="media-aside align-self-start">
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="24"
-                                                height="24"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                stroke-width="2"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                class="feather feather-server"
-                                            >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round"
+                                                class="feather feather-server">
                                                 <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
                                                 <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
                                                 <line x1="6" y1="6" x2="6" y2="6"></line>
@@ -172,18 +125,10 @@
                                             </div>
 
                                             <div class="icon-status">
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="24"
-                                                    height="24"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    stroke-width="2"
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    class="feather feather-x"
-                                                >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    class="feather feather-x">
                                                     <line x1="18" y1="6" x2="6" y2="18"></line>
                                                     <line x1="6" y1="6" x2="18" y2="18"></line>
                                                 </svg>
@@ -192,26 +137,20 @@
                                     </div>
                                 </a>
                             </li>
-                            <li role="presentation"><hr role="separator" aria-orientation="horizontal" size="0" class="dropdown-divider" /></li>
+                            <li role="presentation">
+                                <hr role="separator" aria-orientation="horizontal" size="0" class="dropdown-divider" />
+                            </li>
                             <li role="presentation">
                                 <a href="javascript:;" class="dropdown-item">
                                     <div class="media">
                                         <div class="media-aside align-self-start">
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="24"
-                                                height="24"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                stroke-width="2"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                class="feather feather-heart"
-                                            >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round"
+                                                class="feather feather-heart">
                                                 <path
-                                                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                                                ></path>
+                                                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                                </path>
                                             </svg>
                                         </div>
                                         <div class="media-body">
@@ -220,18 +159,10 @@
                                                 <p>8 hrs ago</p>
                                             </div>
                                             <div class="icon-status">
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="24"
-                                                    height="24"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    stroke-width="2"
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    class="feather feather-x"
-                                                >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    class="feather feather-x">
                                                     <line x1="18" y1="6" x2="6" y2="18"></line>
                                                     <line x1="6" y1="6" x2="18" y2="18"></line>
                                                 </svg>
@@ -240,24 +171,19 @@
                                     </div>
                                 </a>
                             </li>
-                            <li role="presentation"><hr role="separator" aria-orientation="horizontal" size="0" class="dropdown-divider" /></li>
+                            <li role="presentation">
+                                <hr role="separator" aria-orientation="horizontal" size="0" class="dropdown-divider" />
+                            </li>
                             <li role="presentation">
                                 <a href="javascript:;" class="dropdown-item">
                                     <div class="media file-upload">
                                         <div class="media-aside align-self-start">
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="24"
-                                                height="24"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                stroke-width="2"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                class="feather feather-file-text"
-                                            >
-                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round"
+                                                class="feather feather-file-text">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
+                                                </path>
                                                 <polyline points="14 2 14 8 20 8"></polyline>
                                                 <line x1="16" y1="13" x2="8" y2="13"></line>
                                                 <line x1="16" y1="17" x2="8" y2="17"></line>
@@ -270,46 +196,31 @@
                                                 <p>670 kb</p>
                                             </div>
                                             <div class="icon-status">
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="24"
-                                                    height="24"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    stroke-width="2"
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    class="feather feather-check"
-                                                >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    class="feather feather-check">
                                                     <polyline points="20 6 9 17 4 12"></polyline>
                                                 </svg>
                                             </div>
-                                        </div></div
-                                ></a>
+                                        </div>
+                                    </div>
+                                </a>
                             </li>
                         </ul>
                     </div>
 
                     <div class="dropdown nav-item user-profile-dropdown btn-group">
-                        <a href="javascript:;" id="ddluser" data-bs-toggle="dropdown" aria-expanded="false" class="btn dropdown-toggle btn-icon-only user nav-link">
+                        <a href="javascript:;" id="ddluser" data-bs-toggle="dropdown" aria-expanded="false"
+                            class="btn dropdown-toggle btn-icon-only user nav-link">
                             <img src="/img/user_login.png" alt="avatar" />
                         </a>
                         <ul class="dropdown-menu dropdown-menu-right m-0" aria-labelledby="ddluser">
                             <li role="presentation">
-                                <router-link to="/users/profile" class="dropdown-item">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="feather feather-user"
-                                    >
+                                <router-link :to="{name:'user-profile'}" class="dropdown-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="feather feather-user">
                                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                         <circle cx="12" cy="7" r="4"></circle>
                                     </svg>
@@ -317,24 +228,10 @@
                                 </router-link>
                             </li>
                             <li role="presentation">
-                                <a href="/logout"
-                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                                    class="dropdown-item">
-                                    <form id="logout-form" action="/logout" method="POST" style="display: none;">
-                                        <input type="hidden" name="_token" :value="csrf">
-                                    </form>
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="feather feather-log-out"
-                                    >
+                                <a href="javascript:void(0);" @click="logout" class="dropdown-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="feather feather-log-out">
                                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                                         <polyline points="16 17 21 12 16 7"></polyline>
                                         <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -351,19 +248,11 @@
         <!--  BEGIN NAVBAR  -->
         <div class="sub-header-container">
             <header class="header navbar navbar-expand-sm">
-                <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom" @click="$store.commit('toggleSideBar', !$store.state.appState.is_show_sidebar)">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="feather feather-menu"
-                    >
+                <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom"
+                    @click="$store.commit('toggleSideBar', !$store.state.appState.is_show_sidebar)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="feather feather-menu">
                         <line x1="3" y1="12" x2="21" y2="12"></line>
                         <line x1="3" y1="6" x2="21" y2="6"></line>
                         <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -379,17 +268,32 @@
 </template>
 
 <script setup>
-    import { onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
+import { useStore } from "vuex";
+import { useRouter } from 'vue-router'
+import api from "@/utils/axios.js";
 
-    const selectedLang = ref(null);
-    const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+const store = useStore();
+const router = useRouter()
+const selectedLang = ref(null);
 
-    onMounted(() => {
-        selectedLang.value = window.$appSetting.toggleLanguage();
-        toggleMode();
-    });
+onMounted(() => {
+    selectedLang.value = window.$appSetting.toggleLanguage();
+    toggleMode();
+});
 
-    const toggleMode = (mode) => {
-        window.$appSetting.toggleMode(mode);
-    };
+const toggleMode = (mode) => {
+    window.$appSetting.toggleMode(mode);
+};
+
+const logout = () => {
+    requestLogout()
+}
+
+const requestLogout = async() => {
+    await api.post('api/logout')
+    store.dispatch('auth/logout')
+    router.push({ name: 'login' })
+}
+
 </script>

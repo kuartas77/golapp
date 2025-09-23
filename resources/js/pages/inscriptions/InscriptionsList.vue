@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #body>
-            <DataTable :columns="columns" :options="options" ajax="datatables/inscriptions_enabled"
+            <DataTable :columns="columns" :options="options" :ajax="ajaxConfig"
                 class="table table-bordered table-sm" id="inscription_table" ref="inscription_table"
                 @click="resolveRouteFromClick($event)">
 
@@ -52,19 +52,20 @@
     <teleport defer to="#select_categories">
         <select placeholder="Categorias" id="categories" name="categories">
             <option value="">Categorias...</option>
-            <option v-for="category in categories" :value="category.category" :key="category.category">{{
-                category.category
-            }}</option>
+            <option v-for="category in categories" :value="category.category" :key="category.category">
+                {{ category.category }}
+            </option>
         </select>
     </teleport>
 
-    <breadcrumb :active="'Listado'" />
+    <breadcrumb :parent="'Plataforma'" :current="'Inscripciones'" />
 </template>
 <script setup>
 import dayjs from "@/utils/dayjs";
 import useSettings from "@/composables/settingsComposable";
 import useInscriptionList from '@/composables/inscriptionList';
-
+import { usePageTitle } from "@/composables/use-meta";
+usePageTitle('Inscripciones')
 const { groups, categories } = useSettings();
-const { inscription_table, columns, options, resolveRouteFromClick } = useInscriptionList()
+const { inscription_table, columns, options, ajaxConfig, resolveRouteFromClick } = useInscriptionList()
 </script>

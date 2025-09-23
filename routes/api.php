@@ -1,21 +1,25 @@
 <?php
 
+use App\Http\Controllers\API\Admin\InscriptionController;
+use App\Http\Controllers\API\Admin\RegisterController;
+use App\Http\Controllers\API\Admin\SchoolController;
+use App\Http\Controllers\API\Admin\UsersController;
+use App\Http\Controllers\API\Instructor\AssistsController;
+use App\Http\Controllers\API\Instructor\GroupsController;
+use App\Http\Controllers\API\LoginController;
+use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\DataTableController;
+use App\Http\Controllers\FileController;
+use App\Http\Controllers\SchoolPages\SchoolsController;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\FileController;
-use App\Http\Controllers\API\UserController;
-use App\Http\Controllers\API\LoginController;
-use App\Http\Controllers\API\Admin\UsersController;
-use App\Http\Controllers\API\Admin\SchoolController;
-use App\Http\Controllers\API\Admin\RegisterController;
-use App\Http\Controllers\API\Admin\InscriptionController;
-use App\Http\Controllers\API\Instructor\GroupsController;
-use App\Http\Controllers\API\Instructor\AssistsController;
 
 Route::post('login', [LoginController::class, 'login']);
 
 Route::middleware(['auth:sanctum'])->group(function(){
 
+    Route::post('logout', [LoginController::class, 'logout']);
     Route::post('refresh-token', [LoginController::class, 'refresh'])->name('api.refresh');
 
     Route::get('check', [UserController::class, 'check']);
@@ -32,12 +36,34 @@ Route::middleware(['auth:sanctum'])->group(function(){
         Route::post('attendances/upsert', [AssistsController::class, 'upsert']);
     });
 
-    Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum'])->name('v1.')->group(function (){
+    // Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum'])->name('v1.')->group(function (){
 
-        Route::post('register', [RegisterController::class, 'register']);
-        Route::apiResource('users', UsersController::class);
-        Route::apiResource('inscriptions', InscriptionController::class);
-        Route::apiResource('schools', SchoolController::class);
+    //     Route::post('register', [RegisterController::class, 'register']);
+    //     Route::apiResource('users', UsersController::class);
+    //     Route::apiResource('inscriptions', InscriptionController::class);
+    //     Route::apiResource('schools', SchoolController::class);
+    // });
+
+    Route::prefix('settings')->group(function(){
+        Route::get('general', [SettingsController::class, 'index']);
+    });
+
+    Route::prefix('admin')->middleware(['role:super-admin|school'])->group(function (){
+        Route::get('school', [SchoolsController::class, 'index']);
+        Route::put('school/{school}', [SchoolsController::class, 'update']);
+    });
+
+    Route::prefix('datatables')->group(function () {
+        Route::get('inscriptions_enabled', [DataTableController::class, 'enabledInscriptions']);
+        Route::get('inscriptions_disabled', [DataTableController::class, 'disabledInscriptions']);
+        Route::get('training_groups_enabled', [DataTableController::class, 'enabledTrainingGroups']);
+        Route::get('training_groups_retired', [DataTableController::class, 'disabledTrainingGroups']);
+        Route::get('competition_groups_enabled', [DataTableController::class, 'enabledCompetitionGroups']);
+        Route::get('competition_groups_retired', [DataTableController::class, 'disabledCompetitionGroups']);
+        Route::get('schedules_enabled', [DataTableController::class, 'enabledSchedules']);
+        Route::get('players_enabled', [DataTableController::class, 'enabledPlayers']);
+        Route::get('training_sessions_enabled', [DataTableController::class, 'trainingSessions']);
+        Route::get('users_enabled', [DataTableController::class, 'enabledUsers']);
     });
 
 });

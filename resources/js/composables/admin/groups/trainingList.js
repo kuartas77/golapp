@@ -1,9 +1,11 @@
 import configLanguaje from '@/utils/datatableUtils';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useStore } from "vuex";
 
 export default function useTrainingList() {
 
+    const store = useStore()
     // const router = useRouter()
     const table = ref();
 
@@ -12,6 +14,8 @@ export default function useTrainingList() {
         { data: 'name',  title: 'Nombre', searchable: true, orderable: true },
         { data: 'stage',  title: 'Escenario', name : 'roles.name', searchable: true, orderable: true },
         { data: 'category',  title: 'Categorias', searchable: true, orderable: false },
+        { data: 'members_count',  title: 'Integrantes', searchable: false, orderable: true },
+        { data: 'instructors_names',  title: 'Instructor(es)', searchable: false, orderable: true },
         { data: 'days',  title: 'Días', searchable: false, orderable: false},
     ];
 
@@ -31,7 +35,15 @@ export default function useTrainingList() {
         order: [[0, 'desc']],
     };
 
-    // onMounted(() => {})
+    const token = store.getters['auth/getToken'];
 
-    return { table, columns, options }
+    const ajaxConfig = {
+        url: '/api/datatables/training_groups_enabled',
+        type: 'GET',
+        beforeSend: function (request) {
+            request.setRequestHeader("Authorization", `Bearer ${token}`);
+        }
+    };
+
+    return { table, columns, options, ajaxConfig }
 }

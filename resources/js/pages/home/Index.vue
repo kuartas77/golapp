@@ -1,7 +1,10 @@
 <template>
-    <div class="layout-px-spacing ">
-        <breadcrumb :parent="'Tablero'" :active="'Inicio'"/>
-    </div>
+    <panel>
+        <template #body>
+
+        </template>
+    </panel>
+
 </template>
 <script setup>
 

@@ -5,8 +5,8 @@
                 <div class="page-header">
                     <nav class="breadcrumb-one" aria-label="breadcrumb">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="javascript:;">{{ routeName }}</a></li>
-                            <li class="breadcrumb-item active" aria-current="page"><span>{{ active }}</span></li>
+                            <li class="breadcrumb-item"><a href="javascript:;">{{ parent }}</a></li>
+                            <li class="breadcrumb-item active" aria-current="page"><span>{{ current }}</span></li>
                         </ol>
                     </nav>
                 </div>
@@ -38,23 +38,7 @@
     </teleport>
 </template>
 <script>
-import { useRoute } from 'vue-router';
 export default {
-    props: ['active'],
-    setup(props) {
-        const route = useRoute()
-        const matchedRoutes = route.matched;
-        let routeName = route.name
-        // The parent route record would typically be the second-to-last element
-        // if the current route is a direct child.
-        const parentRouteRecord = matchedRoutes[matchedRoutes.length - 2];
-        if (parentRouteRecord) {
-            routeName = parentRouteRecord.name
-        }
-
-        return {
-            routeName
-        }
-    },
+    props: ['parent', 'current'],
 }
 </script>

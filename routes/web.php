@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 // Route::get('/{any}', [AppController::class, 'index'])->where('any', '.*');
 Auth::routes(['register' => false, 'verify' => false]);
 
-Route::get('/', fn() => redirect('login'));
+// Route::get('/', fn() => redirect('login'));
 
 Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
 
@@ -135,10 +135,6 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('competition_groups', [MasterController::class, 'competitionGroupsByTournament'])->name('autocomplete.competition_groups');
 
         Route::get('tournaments', [MasterController::class, 'tournamentsBySchool'])->name('autocomplete.tournaments');
-    });
-
-    Route::prefix('settings')->group(function(){
-        Route::get('general', [SettingsController::class, 'index'])->name('settings.general');
     });
 
 });

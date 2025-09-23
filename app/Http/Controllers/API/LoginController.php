@@ -40,6 +40,14 @@ class LoginController extends Controller
         return $this->generateResponse($user);
     }
 
+    public function logout(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $user->tokens()->delete();
+        return response()->json(['success' => true]);
+    }
+
     private function generateResponse(User $user): LoginResource
     {
         $user->with(['roles', 'school']);
