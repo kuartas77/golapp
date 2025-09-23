@@ -1,13 +1,12 @@
-import axios from 'axios';
 import { ref, onMounted } from 'vue';
-import { useAuthUser } from '@/store/auth-user'
+import api from "@/utils/axios";
 
 export default function useSettings() {
     const groups = ref([])
     const categories = ref([])
 
     const getSettings = async () => {
-        let response = await axios.get('settings/general')
+        const response = await api.get('api/settings/general')
         groups.value = response.data.t_groups
         categories.value = response.data.categories
     }
