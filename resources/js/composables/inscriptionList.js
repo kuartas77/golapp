@@ -2,6 +2,7 @@ import configLanguaje from '@/utils/datatableUtils';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthUser } from '@/store/auth-user'
+import api from '@/utils/axios'
 
 export default function useInscriptionList() {
     const store = useAuthUser()
@@ -38,6 +39,19 @@ export default function useInscriptionList() {
         serverSide: true,
         processing: true,
         order: [[1, 'desc']],
+        ajax: async (data, callback, settings) => {
+            try {
+                const response = await api.get('/api/v2/datatables/inscriptions_enabled', data); // Adjust endpoint and method
+                callback({
+                    data: response.data.data, // Adjust based on your API response structure
+                    recordsTotal: response.data.recordsTotal,
+                    recordsFiltered: response.data.recordsFiltered,
+                });
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                callback({ data: [], recordsTotal: 0, recordsFiltered: 0 });
+            }
+        },
     };
 
     const resolveRouteFromClick = (e) => {
@@ -67,15 +81,5 @@ export default function useInscriptionList() {
         }
     });
 
-    const token = store.getToken;
-
-    const ajaxConfig = {
-        url: '/api/v2/datatables/inscriptions_enabled',
-        type: 'GET',
-        beforeSend: function (request) {
-            request.setRequestHeader("Authorization", `Bearer ${token}`);
-        }
-    };
-
-    return { columns, options, inscription_table, ajaxConfig, resolveRouteFromClick };
+    return { columns, options, inscription_table, resolveRouteFromClick };
 }

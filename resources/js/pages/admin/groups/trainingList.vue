@@ -2,7 +2,7 @@
     <panel>
         <template #lateral/>
         <template #body>
-             <DataTable :columns="columns" :options="options" :ajax="ajaxConfig"
+             <DataTable :columns="columns" :options="options"
                 class="table table-bordered table-sm" id="training_table" ref="table">
                 <template #date="props">
                     <div class="text-center">
@@ -19,5 +19,5 @@ import dayjs from "@/utils/dayjs";
 import useTrainingList from '@/composables/admin/groups/trainingList'
 import { usePageTitle } from "@/composables/use-meta";
 usePageTitle('G. Entrenamiento')
-const { table, columns, options, ajaxConfig } = useTrainingList()
+const { table, columns, options } = useTrainingList()
 </script>

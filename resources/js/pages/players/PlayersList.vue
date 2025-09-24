@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #body>
-            <DataTable :columns="columns" :options="options" :ajax="ajaxConfig"
+            <DataTable :columns="columns" :options="options"
                 class="table table-bordered table-sm" id="players_table" ref="table"
                 @click="resolveRouteFromClick($event)">
 
@@ -38,6 +38,6 @@ import { usePageTitle } from "@/composables/use-meta";
 
 usePageTitle('Deportistas')
 
-const { table, columns, options, ajaxConfig, resolveRouteFromClick } = usePlayerList()
+const { table, columns, options, resolveRouteFromClick } = usePlayerList()
 
 </script>

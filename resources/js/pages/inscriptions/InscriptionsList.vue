@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #body>
-            <DataTable :columns="columns" :options="options" :ajax="ajaxConfig"
+            <DataTable :columns="columns" :options="options"
                 class="table table-bordered table-sm" id="inscription_table" ref="inscription_table"
                 @click="resolveRouteFromClick($event)">
 
@@ -67,5 +67,5 @@ import useInscriptionList from '@/composables/inscriptionList';
 import { usePageTitle } from "@/composables/use-meta";
 usePageTitle('Inscripciones')
 const { groups, categories } = useSettings();
-const { inscription_table, columns, options, ajaxConfig, resolveRouteFromClick } = useInscriptionList()
+const { inscription_table, columns, options, resolveRouteFromClick } = useInscriptionList()
 </script>

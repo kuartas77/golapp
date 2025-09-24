@@ -2,6 +2,7 @@ import configLanguaje from '@/utils/datatableUtils';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthUser } from '@/store/auth-user'
+import api from '@/utils/axios'
 
 export default function useUsersList() {
 
@@ -31,17 +32,20 @@ export default function useUsersList() {
         serverSide: true,
         processing: true,
         order: [[0, 'desc']],
+        ajax: async (data, callback, settings) => {
+            try {
+                const response = await api.get('/api/v2/datatables/users_enabled', data); // Adjust endpoint and method
+                callback({
+                    data: response.data.data, // Adjust based on your API response structure
+                    recordsTotal: response.data.recordsTotal,
+                    recordsFiltered: response.data.recordsFiltered,
+                });
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                callback({ data: [], recordsTotal: 0, recordsFiltered: 0 });
+            }
+        },
     };
 
-    const token = store.getToken;
-
-    const ajaxConfig = {
-        url: '/api/v2/datatables/users_enabled',
-        type: 'GET',
-        beforeSend: function (request) {
-            request.setRequestHeader("Authorization", `Bearer ${token}`);
-        }
-    };
-
-    return { table, columns, options, ajaxConfig }
+    return { table, columns, options }
 }

@@ -32,6 +32,9 @@ api.interceptors.response.use(
         // Manejo centralizado de errores
         if (error.response && error.response.status === 401) {
             console.warn("No autorizado, redirigiendo al login...");
+            window.location.href = '/'
+            localStorage.removeItem('auth-user')
+
             // Redirigir o limpiar sesión
         }
         return Promise.reject(error);

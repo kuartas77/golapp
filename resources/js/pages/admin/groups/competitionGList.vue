@@ -2,7 +2,7 @@
     <panel>
         <template #lateral/>
         <template #body>
-             <DataTable :columns="columns" :options="options" :ajax="ajaxConfig"
+             <DataTable :columns="columns" :options="options"
                 class="table table-bordered table-sm" id="competition_table" ref="table">
                 <template #date="props">
                     <div class="text-center">
@@ -19,5 +19,5 @@ import dayjs from "@/utils/dayjs";
 import useCompetitionGList from '@/composables/admin/groups/competitionGList'
 import { usePageTitle } from "@/composables/use-meta";
 usePageTitle('G Competencia')
-const { table, columns, options, ajaxConfig } = useCompetitionGList()
+const { table, columns, options } = useCompetitionGList()
 </script>
