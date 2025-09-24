@@ -7,7 +7,6 @@ export const useAuthUser = defineStore('auth-user', {
     }),
     getters: {
         isAuthenticated: state => !!state.user,
-        // getUser: state => state.user
     },
     actions: {
         clearState() {
@@ -22,18 +21,14 @@ export const useAuthUser = defineStore('auth-user', {
             }
         },
         async login(credentials) {
-            try {
-                await api.post("/api/v2/login", credentials)
-                await this.getUser()
-            } catch (error) {
-                console.log(error)
-                throw error.response?.data?.message || "Error al iniciar sesión";
-            }
+            await api.post("/api/v2/login", credentials)
+            await this.getUser()
         },
         async logout() {
             try {
                 await api.post("/api/v2/logout");
             } finally {
+                this.clearState()
                 this.user = null;
             }
         }

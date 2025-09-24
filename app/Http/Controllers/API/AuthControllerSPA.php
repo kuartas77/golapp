@@ -3,15 +3,16 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\API\LoginSPARequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthControllerSPA extends Controller
 {
 
-    public function login(Request $request)
+    public function login(LoginSPARequest $request)
     {
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        if (!Auth::attempt($request->validated())) {
             return response()->json(['message' => 'Credenciales incorrectas'], 401);
         }
 

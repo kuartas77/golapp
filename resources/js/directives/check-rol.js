@@ -13,8 +13,7 @@ const vHasRol = {
     mounted(el, binding, vnode) {
         const { value: { roles } } = binding
         const userStore = useAuthUser()
-        const userRoleName = userStore.user.role?.name
-        console.log(userStore.user)
+        const userRoleName = userStore.user.role.name
         roles.includes(userRoleName) ? null: el.remove()
     },
     // called before the parent component is updated
@@ -24,8 +23,7 @@ const vHasRol = {
     updated(el, binding, vnode, prevVnode) {
         const { value: { roles } } = binding
         const userStore = useAuthUser()
-        const userRoleName = userStore.user.role?.name
-        console.log(userStore.user)
+        const userRoleName = userStore.user.role.name
         roles.includes(userRoleName) ? null: el.remove()
     },
     // called before the parent component is unmounted

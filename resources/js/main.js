@@ -4,6 +4,7 @@ import { createHead } from "@vueuse/head";
 import App from "@/App.vue";
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import errorHandler from "@/plugins/errorHandler";
 import i18n from "@/i18n";
 import router from "@/router";
 import DataTable from 'datatables.net-vue3';
@@ -57,6 +58,7 @@ app.use(pinia)
 app.use(router)
 app.use(PerfectScrollbarPlugin)
 app.use(VueSweetalert2, options)
+app.use(errorHandler)
 
 app.component('DataTable', DataTable)
 app.component('breadcrumb', breadcrumb)
