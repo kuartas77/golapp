@@ -229,10 +229,6 @@
                             </li>
                             <li role="presentation" v-if="userState.isAuthenticated">
                                 <a href="javascript:void(0);" @click="logout" class="dropdown-item">
-                                        <form id="logout-form" action="api/v2/logout" method="POST"
-                                            style="display: none;">
-                                            <input type="hidden" name="_token" :value="csrf" autocomplete="off">
-                                        </form>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                         stroke-linejoin="round" class="feather feather-log-out">
@@ -276,13 +272,11 @@ import { useAppState } from '@/store/app-state'
 import { useAuthUser } from '@/store/auth-user'
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router'
-import api from "@/utils/axios";
 
 const appState = useAppState()
 const userState = useAuthUser()
 const router = useRouter()
 const selectedLang = ref(null);
-const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content')
 
 onMounted(() => {
     selectedLang.value = window.$appSetting.toggleLanguage();
@@ -293,13 +287,9 @@ const toggleMode = (mode) => {
     window.$appSetting.toggleMode(mode);
 };
 
-const logout = async (event) => {
-    event.preventDefault();
-    // document.getElementById('logout-form').submit();
+const logout = async () => {
     await userState.logout()
     router.push({ name: 'login' })
-
-    // requestLogout()
 }
 
 const toggleSideBar = () => {

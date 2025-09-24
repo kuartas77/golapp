@@ -23,10 +23,8 @@ export const useAuthUser = defineStore('auth-user', {
         },
         async login(credentials) {
             try {
-                await api.get("/api/sanctum/csrf-cookie")
                 await api.post("/api/v2/login", credentials)
                 await this.getUser()
-
             } catch (error) {
                 console.log(error)
                 throw error.response?.data?.message || "Error al iniciar sesión";
@@ -34,7 +32,7 @@ export const useAuthUser = defineStore('auth-user', {
         },
         async logout() {
             try {
-                await axios.post("/api/v2/logout");
+                await api.post("/api/v2/logout");
             } finally {
                 this.user = null;
             }

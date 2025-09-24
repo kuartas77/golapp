@@ -6,20 +6,21 @@ const api = axios.create({
     timeout: 10000,
 });
 
+await api.get("/sanctum/csrf-cookie");
+
+api.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+api.defaults.withCredentials = true;
+
 // Interceptor de request (antes de enviar la petición)
-// api.interceptors.request.use(
-//     (config) => {
-//         // Ejemplo: añadir token a las cabeceras
-//         const token = localStorage.getItem("token");
-//         if (token) {
-//             config.headers.Authorization = `Bearer ${token}`;
-//         }
-//         return config;
-//     },
-//     (error) => {
-//         return Promise.reject(error);
-//     }
-// );
+api.interceptors.request.use(
+    async (config) => {
+
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
 
 // Interceptor de response (cuando llega la respuesta)
 api.interceptors.response.use(
@@ -32,9 +33,6 @@ api.interceptors.response.use(
         if (error.response && error.response.status === 401) {
             console.warn("No autorizado, redirigiendo al login...");
             // Redirigir o limpiar sesión
-            localStorage.removeItem('user')
-            localStorage.removeItem('token')
-            localStorage.removeItem('refresh')
         }
         return Promise.reject(error);
     }
