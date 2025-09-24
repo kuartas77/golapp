@@ -41,7 +41,7 @@ export default function usePlayerList() {
     const token = store.getToken;
 
     const ajaxConfig = {
-        url: '/api/datatables/players_enabled',
+        url: '/api/v2/datatables/players_enabled',
         type: 'GET',
         beforeSend: function (request) {
             request.setRequestHeader("Authorization", `Bearer ${token}`);

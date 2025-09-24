@@ -6,7 +6,7 @@ export default function useSettings() {
     const categories = ref([])
 
     const getSettings = async () => {
-        const response = await api.get('api/settings/general')
+        const response = await api.get('api/v2/settings/general')
         groups.value = response.data.t_groups
         categories.value = response.data.categories
     }

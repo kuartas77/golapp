@@ -70,7 +70,7 @@ export default function useInscriptionList() {
     const token = store.getToken;
 
     const ajaxConfig = {
-        url: '/api/datatables/inscriptions_enabled',
+        url: '/api/v2/datatables/inscriptions_enabled',
         type: 'GET',
         beforeSend: function (request) {
             request.setRequestHeader("Authorization", `Bearer ${token}`);

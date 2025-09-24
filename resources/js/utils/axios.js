@@ -7,19 +7,19 @@ const api = axios.create({
 });
 
 // Interceptor de request (antes de enviar la petición)
-api.interceptors.request.use(
-    (config) => {
-        // Ejemplo: añadir token a las cabeceras
-        const token = localStorage.getItem("token");
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
-);
+// api.interceptors.request.use(
+//     (config) => {
+//         // Ejemplo: añadir token a las cabeceras
+//         const token = localStorage.getItem("token");
+//         if (token) {
+//             config.headers.Authorization = `Bearer ${token}`;
+//         }
+//         return config;
+//     },
+//     (error) => {
+//         return Promise.reject(error);
+//     }
+// );
 
 // Interceptor de response (cuando llega la respuesta)
 api.interceptors.response.use(

@@ -23,6 +23,7 @@ class UserResource extends JsonResource
             'school_name' => $this->school->name,
             'school_slug' => $this->school->slug,
             'school_logo' => $this->school->logo_file,
+            'role' => $this->whenLoaded('roles')->first()
         ];
     }
 }

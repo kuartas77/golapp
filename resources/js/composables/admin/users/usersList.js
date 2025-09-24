@@ -36,7 +36,7 @@ export default function useUsersList() {
     const token = store.getToken;
 
     const ajaxConfig = {
-        url: '/api/datatables/users_enabled',
+        url: '/api/v2/datatables/users_enabled',
         type: 'GET',
         beforeSend: function (request) {
             request.setRequestHeader("Authorization", `Bearer ${token}`);

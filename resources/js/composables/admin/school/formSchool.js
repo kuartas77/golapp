@@ -46,7 +46,7 @@ export default function useFormSchool() {
     })
 
     onMounted(async () => {
-        const response = await api.get('/api/admin/school')
+        const response = await api.get('/api/v2/admin/school')
         let data = {
             id: response.data.id,
             slug: response.data.slug,
@@ -95,7 +95,7 @@ export default function useFormSchool() {
             data.append(key, values[key]);
         }
 
-        api.post(`/api/admin/school/${values.slug}`, data).then(resp => {
+        api.post(`/api/v2/admin/school/${values.slug}`, data).then(resp => {
             if(resp.data.success){
                 toastSuccess()
             }else {

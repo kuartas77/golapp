@@ -1,21 +1,29 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthUser } from '@/store/auth-user'
 
+const checkRequiresRoles = (to, from, next)  => {
+    const userStore = useAuthUser()
+    const userRoleName = userStore.user.role.name
+    if(!to.meta.requiresRole.includes(userRoleName)){
+        return next({ name: 'dashboard' })
+    }
+    return next()
+}
+
 const routes = [
     {
         path: '',
-        component: () => import(/* webpackChunkName: "auth-layout" */ '@/layouts/auth-layout.vue'),
+        component: () => import('@/layouts/auth-layout.vue'),
         meta: { guest: true },
         children: [
-            { path: '', name: 'login', component: () => import(/* webpackChunkName: "Login" */ '@/pages/auth/Login.vue') },
+            { path: '', name: 'login', component: () => import('@/pages/auth/Login.vue') },
         ]
     },
-
     {
         path: '/',
         name: 'platform',
         meta: { requiresAuth: true },
-        component: () => import(/* webpackChunkName: "app-layout" */ '@/layouts/app-layout.vue'),
+        component: () => import('@/layouts/app-layout.vue'),
         children: [
             { path: 'inicio', name: 'dashboard', component: () => import('@/pages/home/Index.vue'), },
             { path: 'kpi', name: 'kpi', component: () => import('@/pages/home/Index.vue'), },
@@ -25,11 +33,13 @@ const routes = [
             {
                 path: '/administracion',
                 name: 'admin',
+                meta: { requiresRole: ['super-admin', 'school'] },
+                beforeEnter:[ checkRequiresRoles ],
                 children: [
                     { path: 'escuela', name: 'school', component: () => import('@/pages/admin/school/UpdateSchool.vue') },
                     { path: 'usuarios', name: 'users', component: () => import('@/pages/admin/users/UsersList.vue') },
                     { path: 'g-entrenamiento', name: 'training-groups', component: () => import('@/pages/admin/groups/trainingList.vue') },
-                    { path: 'g-competencia', name: 'competition-groups', component: () => import('@/pages/admin/groups/competitionGList.vue') }
+                    { path: 'g-competencia', name: 'competition-groups', component: () => import('@/pages/admin/groups/competitionGList.vue') },
                 ]
             }
         ]
@@ -52,8 +62,9 @@ const router = new createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-    const store = useAuthUser()
-    const isAuth = store.isAuthenticated
+    const userStore = useAuthUser()
+    const isAuth = userStore.isAuthenticated
+
     if (to.matched.some(record => record.meta.requiresAuth) && !isAuth) {
         next({ name: 'login', query: { redirect: to.fullPath } })
     } else if (to.matched.some(record => record.meta.guest) && isAuth) {

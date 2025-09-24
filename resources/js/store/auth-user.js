@@ -1,48 +1,44 @@
 import { defineStore } from "pinia";
+import api from "@/utils/axios";
 
 export const useAuthUser = defineStore('auth-user', {
     state: () => ({
-        user: JSON.parse(localStorage.getItem('user')) || null,
-        token: localStorage.getItem('token') || null,
-        refresh_token: localStorage.getItem('refresh') || null,
+        user: null,
     }),
     getters: {
-        isAuthenticated: state => !!state.token,
-        getToken: state => state.token,
-        getUser: state => state.user
+        isAuthenticated: state => !!state.user,
+        // getUser: state => state.user
     },
     actions: {
-        setUser(user) {
-            this.user = user
-        },
-        setToken(token) {
-            this.token = token
-        },
-        setRefresh(token) {
-            this.token = token
-        },
-        clearState () {
+        clearState() {
             this.$reset()
         },
-        login({user, token, refresh}) {
-            this.setUser(user)
-            this.setToken(token)
-            this.setRefresh(refresh)
-
-            // Guardar en localStorage
-            localStorage.setItem('user', JSON.stringify(user))
-            localStorage.setItem('token', token)
-            localStorage.setItem('refresh', refresh)
+        async getUser() {
+            try {
+                const { data } = await api.get("/api/v2/user");
+                this.user = data.data;
+            } catch {
+                this.user = null;
+            }
         },
-        logout() {
-            this.setUser(null)
-            this.setToken(null)
-            this.setRefresh(null)
+        async login(credentials) {
+            try {
+                await api.get("/api/sanctum/csrf-cookie")
+                await api.post("/api/v2/login", credentials)
+                await this.getUser()
 
-            // Borrar de localStorage
-            localStorage.removeItem('user')
-            localStorage.removeItem('token')
-            localStorage.removeItem('refresh')
+            } catch (error) {
+                console.log(error)
+                throw error.response?.data?.message || "Error al iniciar sesión";
+            }
+        },
+        async logout() {
+            try {
+                await axios.post("/api/v2/logout");
+            } finally {
+                this.user = null;
+            }
         }
-    }
+    },
+    persist: true,
 })

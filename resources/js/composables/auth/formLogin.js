@@ -6,7 +6,7 @@ import { useAuthUser } from '@/store/auth-user'
 import * as yup from 'yup'
 
 export default function useFormLogin() {
-    const store = useAuthUser();
+    const storeAuth = useAuthUser();
     const route = useRoute()
     const router = useRouter()
     const pwd_type = ref("password");
@@ -24,23 +24,21 @@ export default function useFormLogin() {
         password: yup.string().required().min(6),
     })
 
-    const handleLogin = (values, { resetForm }) => {
-        let credentials = { email: values.email, password: values.password }
 
-        axios.get("/sanctum/csrf-cookie").then(() => {
-            api.post("/api/login", credentials).then(response => {
-                if (response.status === 200) {
-                    store.login({
-                        token: response.data.access_token,
-                        user: response.data.user,
-                        refresh: response.data.refresh_token
-                    })
-                    resetForm()
-                    const redirect = route.query.redirect || "/inicio"
-                    router.push(redirect);
-                }
-            })
-        })
+    const handleLogin = async (values, { resetForm }) => {
+        try {
+            const redirect = route.query.redirect || "/inicio"
+
+            let credentials = { email: values.email, password: values.password }
+            await storeAuth.login(credentials)
+
+            router.push(redirect);
+        } catch (err) {
+            throw err
+        }
+
+        resetForm()
+
     }
 
     return { form, formData, schema, handleLogin, pwd_type }

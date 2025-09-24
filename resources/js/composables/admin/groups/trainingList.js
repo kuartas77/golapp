@@ -38,7 +38,7 @@ export default function useTrainingList() {
     const token = store.getToken;
 
     const ajaxConfig = {
-        url: '/api/datatables/training_groups_enabled',
+        url: '/api/v2/datatables/training_groups_enabled',
         type: 'GET',
         beforeSend: function (request) {
             request.setRequestHeader("Authorization", `Bearer ${token}`);

@@ -3,6 +3,7 @@ import { createApp } from 'vue';
 import { createHead } from "@vueuse/head";
 import App from "@/App.vue";
 import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import i18n from "@/i18n";
 import router from "@/router";
 import DataTable from 'datatables.net-vue3';
@@ -42,15 +43,16 @@ const options = {
 
 // set default settings
 import appSetting from "@/app-setting";
-
 import '@/utils/yup-locale'
 
+import vHasRol from '@/directives/check-rol'
+
 const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
 const head = createHead();
 const app = createApp(App);
 app.use(head)
 app.use(i18n)
-// app.use(store)
 app.use(pinia)
 app.use(router)
 app.use(PerfectScrollbarPlugin)
@@ -62,6 +64,8 @@ app.component('panel', panel)
 app.component('inputField', input)
 app.component('inputFile', inputFile)
 app.component('checkbox', Checkbox)
+
+app.directive('has-role', vHasRol)
 
 app.mount('#app')
 window.$appSetting = appSetting;

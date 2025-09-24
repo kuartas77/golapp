@@ -37,7 +37,7 @@ export default function useCompetitionGList() {
     const token = store.getToken;
 
     const ajaxConfig = {
-        url: '/api/datatables/competition_groups_enabled',
+        url: '/api/v2/datatables/competition_groups_enabled',
         type: 'GET',
         beforeSend: function (request) {
             request.setRequestHeader("Authorization", `Bearer ${token}`);

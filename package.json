@@ -22,6 +22,7 @@
         "highlight.js": "^11.3.1",
         "path": "^0.12.7",
         "pinia": "^3.0.3",
+        "pinia-plugin-persistedstate": "^4.5.0",
         "sweetalert2": "^11.4.17",
         "vee-validate": "^4.15.1",
         "vue": "^3.2.13",

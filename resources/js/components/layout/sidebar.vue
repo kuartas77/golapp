@@ -29,12 +29,12 @@
 
                     <ul id="dashboard" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
                         <li>
-                            <router-link :to="{name: 'dashboard'}" @click="toggleMobileMenu">
+                            <router-link :to="{ name: 'dashboard' }" @click="toggleMobileMenu">
                                 Inicio
                             </router-link>
                         </li>
                         <li>
-                            <router-link :to="{name: 'kpi'}" @click="toggleMobileMenu">
+                            <router-link :to="{ name: 'kpi' }" @click="toggleMobileMenu">
                                 KPI
                             </router-link>
                         </li>
@@ -42,7 +42,7 @@
                 </li>
 
                 <li class="menu">
-                    <router-link :to="{name: 'players'}" class="dropdown-toggle" @click="toggleMobileMenu">
+                    <router-link :to="{ name: 'players' }" class="dropdown-toggle" @click="toggleMobileMenu">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -57,7 +57,7 @@
                 </li>
 
                 <li class="menu">
-                    <router-link :to="{name: 'inscriptions'}" class="dropdown-toggle" @click="toggleMobileMenu">
+                    <router-link :to="{ name: 'inscriptions' }" class="dropdown-toggle" @click="toggleMobileMenu">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -70,7 +70,7 @@
                     </router-link>
                 </li>
 
-                <li class="menu">
+                <li class="menu" v-has-role="{ roles: ['super-admin', 'school'] }">
                     <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#apps" aria-controls="apps"
                         aria-expanded="false">
                         <div class="">
@@ -100,16 +100,18 @@
                     </a>
                     <ul id="apps" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
                         <li>
-                            <router-link :to="{name:'school'}" @click="toggleMobileMenu">Escuela</router-link>
+                            <router-link :to="{ name: 'school' }" @click="toggleMobileMenu">Escuela</router-link>
                         </li>
                         <li>
-                            <router-link :to="{name: 'users'}" @click="toggleMobileMenu">Usuarios</router-link>
+                            <router-link :to="{ name: 'users' }" @click="toggleMobileMenu">Usuarios</router-link>
                         </li>
                         <li>
-                            <router-link :to="{name: 'training-groups'}" @click="toggleMobileMenu">G. Entrenamiento</router-link>
+                            <router-link :to="{ name: 'training-groups' }" @click="toggleMobileMenu">G.
+                                Entrenamiento</router-link>
                         </li>
                         <li>
-                            <router-link :to="{name: 'competition-groups'}" @click="toggleMobileMenu">G. Competencia</router-link>
+                            <router-link :to="{ name: 'competition-groups' }" @click="toggleMobileMenu">G.
+                                Competencia</router-link>
                         </li>
 
                     </ul>
@@ -122,11 +124,16 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted } from 'vue';
 import { useAppState } from '@/store/app-state'
+
 const appState = useAppState();
 
-const menu_collapse = ref('dashboard');
+const toggleMobileMenu = () => {
+    if (window.innerWidth < 991) {
+        appState.toggleSideBar(!appState.is_show_sidebar);
+    }
+};
 
 onMounted(() => {
     const selector = document.querySelector('#sidebar a[href="' + window.location.pathname + '"]');
@@ -145,10 +152,4 @@ onMounted(() => {
         }
     }
 });
-
-const toggleMobileMenu = () => {
-    if (window.innerWidth < 991) {
-        appState.toggleSideBar(!appState.is_show_sidebar);
-    }
-};
 </script>
