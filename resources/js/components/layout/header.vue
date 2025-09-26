@@ -213,7 +213,7 @@
                     <div class="dropdown nav-item user-profile-dropdown btn-group">
                         <a href="javascript:;" id="ddluser" data-bs-toggle="dropdown" aria-expanded="false"
                             class="btn dropdown-toggle btn-icon-only user nav-link">
-                            <img src="/img/user_login.png" alt="avatar" />
+                            <img :src="urlImgAvatar" alt="avatar" />
                         </a>
                         <ul class="dropdown-menu dropdown-menu-right m-0" aria-labelledby="ddluser">
                             <li role="presentation">
@@ -277,6 +277,8 @@ const appState = useAppState()
 const userState = useAuthUser()
 const router = useRouter()
 const selectedLang = ref(null);
+const userName = userState.user.name.replace(' ', '+')
+const urlImgAvatar = ref(`https://ui-avatars.com/api/?name=${userName}`)
 
 onMounted(() => {
     selectedLang.value = window.$appSetting.toggleLanguage();

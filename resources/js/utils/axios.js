@@ -1,15 +1,17 @@
 import axios from "axios";
+import { useAuthUser } from '@/store/auth-user'
+import router from "@/router";
 
 // Crear instancia
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL, // cambia por tu URL
     timeout: 10000,
+    withCredentials: true,
+    headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+    }
 });
-
-await api.get("/sanctum/csrf-cookie");
-
-api.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-api.defaults.withCredentials = true;
 
 // Interceptor de request (antes de enviar la petición)
 api.interceptors.request.use(
@@ -24,19 +26,25 @@ api.interceptors.request.use(
 
 // Interceptor de response (cuando llega la respuesta)
 api.interceptors.response.use(
-    (response) => {
-        // Puedes transformar la respuesta si lo necesitas
-        return response;
-    },
-    (error) => {
-        // Manejo centralizado de errores
-        if (error.response && error.response.status === 401) {
-            console.warn("No autorizado, redirigiendo al login...");
-            window.location.href = '/'
-            localStorage.removeItem('auth-user')
+    response => response,
+    async (error) => {
+        const auth = useAuthUser()
 
-            // Redirigir o limpiar sesión
+        const status = error.response?.status
+        // Manejo centralizado de errores
+        if (status === 401 || status === 419) {
+            auth.clearState()
+
+            if (router.currentRoute.value.name !== 'login') {
+                await router.push({ name: 'login' })
+            }
         }
+        // if (error.response && error.response.status === 401 || error.response.status === 419) {
+        //     console.warn("No autorizado, redirigiendo al login...");
+        //     // Redirigir o limpiar sesión
+        //     localStorage.removeItem('auth-user')
+        //     window.location.href = '/'
+        // }
         return Promise.reject(error);
     }
 );

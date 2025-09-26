@@ -99,6 +99,12 @@
                         </div>
                     </a>
                     <ul id="apps" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
+                        <li v-has-role="{ roles: ['super-admin'] }">
+                            <router-link :to="{ name: 'schools' }" @click="toggleMobileMenu">Listado Escuelas</router-link>
+                        </li>
+                        <li v-has-role="{ roles: ['super-admin'] }">
+                            <router-link :to="{ name: 'schools-info' }" @click="toggleMobileMenu">Información Escuelas</router-link>
+                        </li>
                         <li>
                             <router-link :to="{ name: 'school' }" @click="toggleMobileMenu">Escuela</router-link>
                         </li>

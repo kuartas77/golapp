@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/{any}', [AppController::class, 'index'])->where('any', '.*');
-Auth::routes(['register' => false, 'verify' => false]);
+// Auth::routes(['register' => false, 'verify' => false]);
 
 // Route::get('/', fn() => redirect('login'));
 

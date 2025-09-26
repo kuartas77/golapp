@@ -12,7 +12,7 @@ const checkRequiresRoles = (to, from, next)  => {
 
 const routes = [
     {
-        path: '',
+        path: '/login',
         component: () => import('@/layouts/auth-layout.vue'),
         meta: { guest: true },
         children: [
@@ -40,6 +40,9 @@ const routes = [
                     { path: 'usuarios', name: 'users', component: () => import('@/pages/admin/users/UsersList.vue') },
                     { path: 'g-entrenamiento', name: 'training-groups', component: () => import('@/pages/admin/groups/trainingList.vue') },
                     { path: 'g-competencia', name: 'competition-groups', component: () => import('@/pages/admin/groups/competitionGList.vue') },
+
+                    { path: 'schools', name: 'schools', component: () => import('@/pages/admin/school/list-schools.vue'), meta: { requiresRole: ['super-admin'] } },
+                    { path: 'schools-info', name: 'schools-info', component: () => import('@/pages/admin/school/list-info.vue'), meta: { requiresRole: ['super-admin'] } },
                 ]
             }
         ]

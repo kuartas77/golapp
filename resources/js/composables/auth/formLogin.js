@@ -1,8 +1,9 @@
-import { getCurrentInstance, ref } from 'vue'
+import { getCurrentInstance, ref, onMounted } from 'vue'
 import { useMeta } from "@/composables/use-meta"
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthUser } from '@/store/auth-user'
 import * as yup from 'yup'
+import api from '@/utils/axios'
 
 
 export default function useFormLogin() {
@@ -37,6 +38,10 @@ export default function useFormLogin() {
             // handleBackendErrors(error, actions.setErrors)
         }
     }
+
+    onMounted(async() => {
+        await api.get("/sanctum/csrf-cookie")
+    })
 
     return { form, formData, schema, handleLogin, pwd_type }
 }
