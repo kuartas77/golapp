@@ -76,8 +76,11 @@ Route::prefix('v2')->group(function(){
             Route::get('players_enabled', [DataTableController::class, 'enabledPlayers']);
             Route::get('training_sessions_enabled', [DataTableController::class, 'trainingSessions']);
             Route::get('users_enabled', [DataTableController::class, 'enabledUsers']);
-            Route::get('schools', [DataTableController::class, 'schools']);
-            Route::get('schools_info', [DataTableController::class, 'schoolsInfo']);
+
+            Route::middleware(['role:super-admin'])->group(function (){
+                Route::get('schools', [DataTableController::class, 'schools']);
+                Route::get('schools_info', [DataTableController::class, 'schoolsInfo']);
+            });
         });
     });
 
