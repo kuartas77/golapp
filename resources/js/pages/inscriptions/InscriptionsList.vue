@@ -23,7 +23,7 @@
     <teleport defer to="#select_groups">
         <select placeholder="Grupos" id="groups" name="groups">
             <option value="">Grupos...</option>
-            <option v-for="group in groups" :value="group.id" :key="group.id">{{ group.name }}
+            <option v-for="group in settings.groups" :value="group.id" :key="group.id">{{ group.name }}
             </option>
         </select>
     </teleport>
@@ -31,7 +31,7 @@
     <teleport defer to="#select_categories">
         <select placeholder="Categorias" id="categories" name="categories">
             <option value="">Categorias...</option>
-            <option v-for="category in categories" :value="category.category" :key="category.category">
+            <option v-for="category in settings.categories" :value="category.category" :key="category.category">
                 {{ category.category }}
             </option>
         </select>
@@ -44,6 +44,6 @@ import useSettings from "@/composables/settingsComposable";
 import useInscriptionList from '@/composables/inscription/inscriptionList';
 import { usePageTitle } from "@/composables/use-meta";
 usePageTitle('Inscripciones')
-const { groups, categories } = useSettings();
+const { settings } = useSettings();
 const { inscription_table, options, resolveRouteFromClick } = useInscriptionList()
 </script>

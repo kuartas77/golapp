@@ -64,7 +64,7 @@ class CompetitionGroupRepository
     public function getListGroupFullName(): Collection
     {
         return $this->competitionGroup->query()->schoolId()->with('tournament', 'professor')
-            ->orderBy('name', 'ASC')->get()->pluck('full_name_group', 'id');
+            ->orderBy('name', 'ASC')->get();
     }
 
     public function getGroupsYear($year = null): Collection

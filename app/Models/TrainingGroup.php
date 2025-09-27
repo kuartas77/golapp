@@ -72,9 +72,9 @@ class TrainingGroup extends Model
         'explode_name',
         'explode_days',
         'explode_schedules',
-        'url_edit',
-        'url_show',
-        'url_destroy',
+        // 'url_edit',
+        // 'url_show',
+        // 'url_destroy',
         'instructors_names',
         'instructors_ids'
     ];
