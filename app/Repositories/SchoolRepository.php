@@ -26,8 +26,8 @@ class SchoolRepository
 
     public function getAll()
     {
-        $schools = $this->school->query()->get();
-        $schools->setAppends(['url_edit', 'url_update', 'url_show', 'url_destroy', 'logo_file']);
+        $schools = $this->school->query();//->get();
+        // $schools->setAppends(['url_edit', 'url_update', 'url_show', 'url_destroy', 'logo_file']);
         return $schools;
     }
 
@@ -51,9 +51,9 @@ class SchoolRepository
         return $school;
     }
 
-    public function schoolsInfo(int $school_id = null)
+    public function schoolsInfo()
     {
-        $query = School::withCount([
+        return School::withCount([
             'inscriptions' => fn($q) => $q->where('year', now()->year),
             'players' => fn($q) => $q->whereHas('inscription', fn($q) => $q->where('year', now()->year)),
             'payments' => fn($q) => $q->where('year', now()->year),
@@ -67,7 +67,5 @@ class SchoolRepository
             'competitionGroups',
             'incidents'
         ]);
-
-        return $school_id ? $query->where('id', $school_id)->first() : $query->get();
     }
 }

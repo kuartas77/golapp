@@ -1,21 +1,19 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { ref, onMounted } from 'vue';
+import { useTemplateRef, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAuthUser } from '@/store/auth-user'
 import api from '@/utils/axios'
 
 export default function useUsersList() {
 
-    const store = useAuthUser()
     // const router = useRouter()
-    const table = ref();
+    const table = useTemplateRef('table');
 
     const columns = [
         { data: 'id', width: '1%', title: 'ID', searchable: false, orderable: true },
-        { data: 'name',  title: 'Nombres', searchable: true, orderable: true },
-        { data: 'role_name',  title: 'Perfil', name : 'roles.name', searchable: true, orderable: true },
-        { data: 'email',  title: 'Correo', searchable: true, orderable: false },
-        { data: 'created_at',  title: 'Registro', name:'users.created_at', render: '#date', searchable: false, orderable: false},
+        { data: 'name', title: 'Nombres', searchable: true, orderable: true },
+        { data: 'role_name', title: 'Perfil', name: 'roles.name', searchable: true, orderable: true },
+        { data: 'email', title: 'Correo', searchable: true, orderable: false },
+        { data: 'created_at', title: 'Registro', name: 'users.created_at', render: '#date', searchable: false, orderable: false },
     ];
 
     const options = {
@@ -34,7 +32,7 @@ export default function useUsersList() {
         order: [[0, 'desc']],
         ajax: async (data, callback, settings) => {
             try {
-                const response = await api.get('/api/v2/datatables/users_enabled', data); // Adjust endpoint and method
+                const response = await api.get('/api/v2/datatables/users_enabled', { params: data }); // Adjust endpoint and method
                 callback({
                     data: response.data.data, // Adjust based on your API response structure
                     recordsTotal: response.data.recordsTotal,
@@ -45,7 +43,8 @@ export default function useUsersList() {
                 callback({ data: [], recordsTotal: 0, recordsFiltered: 0 });
             }
         },
+        columns: columns
     };
 
-    return { table, columns, options }
+    return { table, options }
 }

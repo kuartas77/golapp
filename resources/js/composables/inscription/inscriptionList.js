@@ -1,5 +1,5 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { ref, onMounted } from 'vue';
+import { useTemplateRef, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthUser } from '@/store/auth-user'
 import api from '@/utils/axios'
@@ -7,7 +7,7 @@ import api from '@/utils/axios'
 export default function useInscriptionList() {
     const store = useAuthUser()
     const router = useRouter()
-    const inscription_table = ref()
+    const inscription_table = useTemplateRef('inscription_table')
 
     const columns = [
         { data: 'player.photo_url', width: '1%', render: '#photo', searchable: false },
@@ -41,7 +41,7 @@ export default function useInscriptionList() {
         order: [[1, 'desc']],
         ajax: async (data, callback, settings) => {
             try {
-                const response = await api.get('/api/v2/datatables/inscriptions_enabled', data); // Adjust endpoint and method
+                const response = await api.get('/api/v2/datatables/inscriptions_enabled', { params: data }); // Adjust endpoint and method
                 callback({
                     data: response.data.data, // Adjust based on your API response structure
                     recordsTotal: response.data.recordsTotal,
@@ -52,6 +52,7 @@ export default function useInscriptionList() {
                 callback({ data: [], recordsTotal: 0, recordsFiltered: 0 });
             }
         },
+        columns: columns
     };
 
     const resolveRouteFromClick = (e) => {
@@ -65,7 +66,7 @@ export default function useInscriptionList() {
 
     onMounted(() => {
         if (inscription_table.value) {
-            let dt = inscription_table.value.dt;
+            let dt = inscription_table.value.table.dt;
             const selectGroups = document.querySelector('thead select[placeholder="Grupos"]');
             if (selectGroups) {
                 selectGroups.addEventListener('change', function () {
@@ -81,5 +82,5 @@ export default function useInscriptionList() {
         }
     });
 
-    return { columns, options, inscription_table, resolveRouteFromClick };
+    return { options, inscription_table, resolveRouteFromClick };
 }

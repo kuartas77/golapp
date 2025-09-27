@@ -1,43 +1,22 @@
 <template>
     <panel>
         <template #body>
-            <DataTable :columns="columns" :options="options"
-                class="table table-bordered table-sm" id="inscription_table" ref="inscription_table"
+            <DatatableTemplate :id="'inscription_table'" :options="options" ref="inscription_table"
                 @click="resolveRouteFromClick($event)">
-
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Código</th>
-                        <th>Doc</th>
-                        <th id="select_groups"></th>
-                        <th id="select_categories"></th>
-                        <th>Nombres</th>
-                        <th>Registro</th>
-                    </tr>
-                </thead>
-
-
-                <template #photo="props">
-                    <div class="avatar avatar-sm me-1">
-                        <img :src="props.cellData" alt="avatar" class="rounded-circle">
-                    </div>
+                <template #thead>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Código</th>
+                            <th>Doc</th>
+                            <th id="select_groups"></th>
+                            <th id="select_categories"></th>
+                            <th>Nombres</th>
+                            <th>Registro</th>
+                        </tr>
+                    </thead>
                 </template>
-
-                <template #link="props">
-                    <div class="text-center">
-                        <a href="#" :data-item-id="props.cellData" class="link-primary">{{
-                            props.rowData.unique_code }}</a>
-                    </div>
-                </template>
-
-                <template #date="props">
-                    <div class="text-center">
-                        {{ dayjs(props.cellData).format('l') }}
-                    </div>
-                </template>
-
-            </DataTable>
+            </DatatableTemplate>
         </template>
     </panel>
 
@@ -61,11 +40,10 @@
     <breadcrumb :parent="'Plataforma'" :current="'Inscripciones'" />
 </template>
 <script setup>
-import dayjs from "@/utils/dayjs";
 import useSettings from "@/composables/settingsComposable";
-import useInscriptionList from '@/composables/inscriptionList';
+import useInscriptionList from '@/composables/inscription/inscriptionList';
 import { usePageTitle } from "@/composables/use-meta";
 usePageTitle('Inscripciones')
 const { groups, categories } = useSettings();
-const { inscription_table, columns, options, resolveRouteFromClick } = useInscriptionList()
+const { inscription_table, options, resolveRouteFromClick } = useInscriptionList()
 </script>

@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue'
+import { getCurrentInstance, ref, onMounted } from 'vue'
 import * as yup from 'yup'
 import api from "@/utils/axios";
 import useAlerts from '@/composables/alerts'
@@ -6,6 +6,7 @@ import useAlerts from '@/composables/alerts'
 export default function useFormSchool() {
     const { toastSuccess, toastError, } = useAlerts()
     const form = ref(null)
+    const { proxy } = getCurrentInstance()
 
     const formData = ref({
         id: '',
@@ -89,19 +90,23 @@ export default function useFormSchool() {
     }
 
     const sendRequest = (values) => {
-        let data = new FormData();
-        data.append('_method', 'PUT')
-        for ( let key in values ) {
-            data.append(key, values[key]);
-        }
-
-        api.post(`/api/v2/admin/school/${values.slug}`, data).then(resp => {
-            if(resp.data.success){
-                toastSuccess()
-            }else {
-                toastError()
+        try {
+            let data = new FormData();
+            data.append('_method', 'PUT')
+            for (let key in values) {
+                data.append(key, values[key]);
             }
-        })
+
+            api.post(`/api/v2/admin/school/${values.slug}`, data).then(resp => {
+                if (resp.data.success) {
+                    toastSuccess()
+                } else {
+                    toastError()
+                }
+            })
+        } catch (error) {
+            proxy.$handleBackendErrors(error, actions.setErrors, (msg) => (globalError.value = msg))
+        }
     }
 
     const reset = () => {

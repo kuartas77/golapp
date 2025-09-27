@@ -126,24 +126,14 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax() && isAdmin(), 403);
 
-        return datatables()->collection($this->schoolRepository->getAll())
-            ->addColumn('logo', '{{$logo}}')
-            ->addColumn('name', '{{$name}}')
-            ->addColumn('agent', '{{$agent}}')
-            ->addColumn('address', '{{$address}}')
-            ->addColumn('phone', '{{$phone}}')
-            ->addColumn('email', '{{$email}}')
-            ->addColumn('is_enable', fn($model) => $model->is_enable ? '<span class="label label-success">SI</span>' : '<span class="label label-warning">NO</span>')
-            ->addColumn('created_at', fn($model) => $model->created_at->format('Y-m-d'))
-            ->escapeColumns([])
-            ->toJson();
+        return datatables()->of($this->schoolRepository->getAll())->toJson();
     }
 
     public function schoolsInfo(Request $request)
     {
         abort_unless($request->ajax() && isAdmin(), 403);
 
-        return datatables()->collection($this->schoolRepository->schoolsInfo())->toJson();
+        return datatables()->of($this->schoolRepository->schoolsInfo())->toJson();
     }
 
     public function trainingSessions(Request $request)

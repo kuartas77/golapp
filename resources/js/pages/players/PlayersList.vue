@@ -1,15 +1,9 @@
 <template>
     <panel>
         <template #body>
-            <DataTable :columns="columns" :options="options"
-                class="table table-bordered table-sm" id="players_table" ref="table"
-                @click="resolveRouteFromClick($event)">
+            <DatatableTemplate :options="options" :id="'players_table'" ref="table" @click="resolveRouteFromClick($event)">
 
-                <template #photo="props">
-                    <div class="avatar avatar-sm me-1">
-                        <img :src="props.cellData" alt="avatar" class="rounded-circle">
-                    </div>
-                </template>
+
 
                 <template #link="props">
                     <div class="text-center">
@@ -25,7 +19,7 @@
                     </div>
                 </template>
 
-            </DataTable>
+            </DatatableTemplate>
         </template>
     </panel>
 
@@ -33,11 +27,11 @@
 </template>
 <script setup>
 import dayjs from "@/utils/dayjs";
-import usePlayerList from '@/composables/playersList'
+import usePlayerList from '@/composables/player/playersList'
 import { usePageTitle } from "@/composables/use-meta";
 
 usePageTitle('Deportistas')
 
-const { table, columns, options, resolveRouteFromClick } = usePlayerList()
+const { table, options, resolveRouteFromClick } = usePlayerList()
 
 </script>

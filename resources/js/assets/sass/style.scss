@@ -2183,3 +2183,20 @@
     font-size: .875em;
     color: #dc3545;
 }
+
+.dark {
+    .page-item.disabled .page-link {
+        color: #6c757d;
+        pointer-events: none;
+        background-color: color_variables.$m-color_10;
+        border-color: #dee2e6;
+    }
+}
+
+table.dataTable > tbody > tr.child ul.dtr-details {
+    display: inline-block;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}

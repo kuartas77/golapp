@@ -18,7 +18,7 @@ import panel from '@/components/layout/panel.vue';
 import input from '@/components/form/Input.vue';
 import inputFile from '@/components/form/InputFile.vue';
 import Checkbox from '@/components/form/Checkbox.vue';
-
+import DatatableTemplate from "@/components/general/DatatableTemplate.vue";
 
 // bootstrap
 import * as bootstrap from "bootstrap";
@@ -61,6 +61,7 @@ app.use(VueSweetalert2, options)
 app.use(errorHandler)
 
 app.component('DataTable', DataTable)
+app.component('DatatableTemplate', DatatableTemplate)
 app.component('breadcrumb', breadcrumb)
 app.component('panel', panel)
 app.component('inputField', input)

@@ -35,7 +35,6 @@ export default function useFormLogin() {
             router.push(redirect)
         } catch (error) {
             proxy.$handleBackendErrors(error, actions.setErrors, (msg) => (globalError.value = msg))
-            // handleBackendErrors(error, actions.setErrors)
         }
     }
 
