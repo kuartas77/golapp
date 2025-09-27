@@ -41,35 +41,6 @@
                     </ul>
                 </li>
 
-                <li class="menu">
-                    <router-link :to="{ name: 'players' }" class="dropdown-toggle" @click="toggleMobileMenu">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-airplay">
-                                <path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1">
-                                </path>
-                                <polygon points="12 15 17 21 7 21 12 15"></polygon>
-                            </svg>
-                            <span>Deportistas</span>
-                        </div>
-                    </router-link>
-                </li>
-
-                <li class="menu">
-                    <router-link :to="{ name: 'inscriptions' }" class="dropdown-toggle" @click="toggleMobileMenu">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-check-square" data-v-5522efca="">
-                                <polyline points="9 11 12 14 22 4"></polyline>
-                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                            </svg>
-                            <span>Inscripciones</span>
-                        </div>
-                    </router-link>
-                </li>
-
                 <li class="menu" v-has-role="{ roles: ['super-admin', 'school'] }">
                     <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#apps" aria-controls="apps"
                         aria-expanded="false">
@@ -100,10 +71,12 @@
                     </a>
                     <ul id="apps" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
                         <li v-has-role="{ roles: ['super-admin'] }">
-                            <router-link :to="{ name: 'schools' }" @click="toggleMobileMenu">Listado Escuelas</router-link>
+                            <router-link :to="{ name: 'schools' }" @click="toggleMobileMenu">Listado
+                                Escuelas</router-link>
                         </li>
                         <li v-has-role="{ roles: ['super-admin'] }">
-                            <router-link :to="{ name: 'schools-info' }" @click="toggleMobileMenu">Información Escuelas</router-link>
+                            <router-link :to="{ name: 'schools-info' }" @click="toggleMobileMenu">Información
+                                Escuelas</router-link>
                         </li>
                         <li>
                             <router-link :to="{ name: 'school' }" @click="toggleMobileMenu">Escuela</router-link>
@@ -121,6 +94,66 @@
                         </li>
 
                     </ul>
+                </li>
+
+                <li class="menu">
+                    <router-link :to="{ name: 'players' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-airplay">
+                                <path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1">
+                                </path>
+                                <polygon points="12 15 17 21 7 21 12 15"></polygon>
+                            </svg>
+                            <span>Deportistas</span>
+                        </div>
+                    </router-link>
+                </li>
+
+                <li class="menu">
+                    <router-link :to="{ name: 'inscriptions' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-check-square">
+                                <polyline points="9 11 12 14 22 4"></polyline>
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                            </svg>
+                            <span>Inscripciones</span>
+                        </div>
+                    </router-link>
+                </li>
+
+                <li class="menu">
+                    <router-link :to="{ name: 'attendances' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-list">
+                                <line x1="8" y1="6" x2="21" y2="6"></line>
+                                <line x1="8" y1="12" x2="21" y2="12"></line>
+                                <line x1="8" y1="18" x2="21" y2="18"></line>
+                                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                            </svg>
+                            <span>Asistencias</span>
+                        </div>
+                    </router-link>
+                </li>
+                <li class="menu">
+                    <router-link :to="{ name: 'payments' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-dollar-sign" data-v-5522efca="">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                            <span>Mensualidades</span>
+                        </div>
+                    </router-link>
                 </li>
 
             </perfect-scrollbar>
