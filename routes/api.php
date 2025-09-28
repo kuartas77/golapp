@@ -8,6 +8,7 @@ use App\Http\Controllers\API\AuthControllerSPA;
 use App\Http\Controllers\API\Instructor\AssistsController;
 use App\Http\Controllers\API\Instructor\GroupsController;
 use App\Http\Controllers\API\LoginController;
+use App\Http\Controllers\API\PlayersController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\DataTableController;
 use App\Http\Controllers\FileController;
@@ -64,6 +65,8 @@ Route::prefix('v2')->group(function(){
             Route::get('school', [SchoolsController::class, 'index']);
             Route::put('school/{school}', [SchoolsController::class, 'update']);
         });
+
+        Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);
 
         Route::prefix('datatables')->group(function () {
             Route::get('inscriptions_enabled', [DataTableController::class, 'enabledInscriptions']);

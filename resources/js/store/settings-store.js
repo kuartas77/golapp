@@ -17,6 +17,7 @@ export const useSetting = defineStore('settings-store', {
         document_types: [],
         jornada: [],
         schools: [],
+        months: []
     }),
     getters: {},
     actions: {
@@ -38,6 +39,7 @@ export const useSetting = defineStore('settings-store', {
             this.document_types = response.data.document_types
             this.jornada = response.data.jornada
             this.schools = response.data.schools
+            this.months = response.data.months
         }
     }
 

@@ -40,8 +40,8 @@ class SettingsController extends Controller
             }
         });
 
-        $firstGroup = Cache::remember('PROVISIONAL_GROUP_' . $school_id, now()->addYear(), fn() => TrainingGroup::orderBy('id')->firstWhere('school_id', $school_id));
-        $training_groups->push($firstGroup);
+        // $firstGroup = Cache::remember('PROVISIONAL_GROUP_' . $school_id, now()->addYear(), fn() => TrainingGroup::orderBy('id')->firstWhere('school_id', $school_id));
+        // $training_groups->push($firstGroup);
 
 
         $categories = Cache::remember(
@@ -81,6 +81,8 @@ class SettingsController extends Controller
 
         $jornada = Cache::remember('KEY_JORNADA_TYPES', now()->addYear(), fn() => config('variables.KEY_JORNADA'));
 
+        $months = Cache::rememberForever("KEY_MONTHS_INDEX", fn() => config('variables.KEY_MONTHS_INDEX'));
+
         $schools = [];
         if (isAdmin()) {
             $schools = School::query()->select(['id', 'name'])->get();
@@ -101,6 +103,7 @@ class SettingsController extends Controller
             'document_types' => $document_types,
             'jornada' => $jornada,
             'schools' => $schools,
+            'months' => $months,
         ]);
     }
 }

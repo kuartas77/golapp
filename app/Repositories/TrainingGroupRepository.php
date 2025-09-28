@@ -166,7 +166,7 @@ class TrainingGroupRepository
             'year_four', 'year_five', 'year_six', 'year_seven',
             'year_eight','year_nine', 'year_ten', 'year_eleven',
             'year_twelve',
-        ]);
+        ])->withCount('members');
         if ($deleted) {
             $query->onlyTrashedRelations()
                 ->whereRelation('instructors', fn($query) => $query->where('assigned_year', '<', now()->year));
