@@ -1,10 +1,10 @@
-import cloneDeep from "lodash.clonedeep"
+import cloneDeep from "lodash.clonedeep";
 
-import { getCurrentInstance, ref, toRaw, onMounted, watch } from "vue";
 import useSettings from "@/composables/settingsComposable";
 import { usePageTitle } from "@/composables/use-meta";
-import * as yup from 'yup';
 import api from "@/utils/axios";
+import { getCurrentInstance, onMounted, ref, toRaw, watch } from "vue";
+import * as yup from 'yup';
 
 
 export default function useMonthlyPayments() {

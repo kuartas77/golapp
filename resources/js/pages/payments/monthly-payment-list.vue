@@ -221,9 +221,9 @@ export default {
 }
 </script>
 <script setup>
-import CurrencyInput from '@/components/general/CurrencyInput'
-import { Form, Field, ErrorMessage } from 'vee-validate'
-import useMonthlyPayments from '@/composables/payments/monthly-payments'
+import CurrencyInput from '@/components/general/CurrencyInput';
+import useMonthlyPayments from '@/composables/payments/monthly-payments';
+import { ErrorMessage, Field, Form } from 'vee-validate';
 
 const {
     moneyFormat,
