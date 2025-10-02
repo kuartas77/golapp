@@ -17,7 +17,7 @@
 
 <body>
     <noscript>
-        <strong>We're sorry but Cork doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+        <strong>Lo sentimos, pero Golapp no funciona correctamente sin JavaScript habilitado. Actívalo para continuar.</strong>
     </noscript>
 
     <div id="app"></div>
