@@ -1,16 +1,11 @@
 <template>
-
     <div class="layout-px-spacing ">
-
         <div class="row layout-top-spacing">
-
             <div class="layout-spacing col-xl-12 col-lg-12 col-sm-12">
                 <div class="panel br-6 p-2">
                     <div class="panel-body">
-
                         <div class="row mb-3">
                             <div class="col-xl-6 col-lg-6 col-sm-12 text-center">
-
                                 <Form ref="form" :validation-schema="schema" @submit="handleSearch"
                                     :initial-values="formData" class="row align-items-center justify-content-center">
                                     <div class="col-auto">
@@ -90,9 +85,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- <hr v-if="selected_group || groupPayments.length"
-                            class="bg-primary border-2 border-top border-primary" /> -->
 
                         <hr v-if="selected_group || groupPayments.length"
                             class="bg-primary border-2 border-top border-primary" />
@@ -207,37 +199,11 @@
                                 </tfoot>
                             </table>
                         </div>
-
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Modal Payments -->
-    <div class="modal fade" id="modalPayments" tabindex="-1" role="dialog" aria-labelledby="ModalLabelPayments"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-                    <button type="button" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"
-                        class="btn-close"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="modal-text">
-                        PAGOOS
-                    </p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn" data-dismiss="modal" data-bs-dismiss="modal"><i
-                            class="flaticon-cancel-12"></i> Discard</button>
-                    <button type="button" class="btn btn-primary">Save</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <breadcrumb :parent="'Plataforma'" :current="'Mensualidades'" />
 </template>
 <script>
