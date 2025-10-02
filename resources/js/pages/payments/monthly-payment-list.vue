@@ -37,18 +37,18 @@
                                             <template v-if="loading">
                                                 &nbsp;
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round"
-                                                class="feather feather-loader spin me-2">
-                                                <line x1="12" y1="2" x2="12" y2="6"></line>
-                                                <line x1="12" y1="18" x2="12" y2="22"></line>
-                                                <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                                                <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                                                <line x1="2" y1="12" x2="6" y2="12"></line>
-                                                <line x1="18" y1="12" x2="22" y2="12"></line>
-                                                <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                                                <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
-                                            </svg>
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    class="feather feather-loader spin me-2">
+                                                    <line x1="12" y1="2" x2="12" y2="6"></line>
+                                                    <line x1="12" y1="18" x2="12" y2="22"></line>
+                                                    <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                                                    <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                                                    <line x1="2" y1="12" x2="6" y2="12"></line>
+                                                    <line x1="18" y1="12" x2="22" y2="12"></line>
+                                                    <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                                                    <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                                                </svg>
                                             </template>
                                         </button>
                                     </div>
@@ -58,23 +58,22 @@
                             <div class="col-xl-6 col-lg-6 col-sm-12 text-center">
                                 <div class="row">
 
-                                    <div class="col-12">
-                                        <div class="btn-group" role="group">
-                                            <span class="badge outline-badge-info me-1">
-                                                Efectivo {{ moneyFormat(totalByType.cash) }}
-                                            </span>
-                                            <span class="badge outline-badge-info me-1">
-                                                Consignación {{ moneyFormat(totalByType.consignment) }}
-                                            </span>
-                                            <span class="badge outline-badge-info me-1">
-                                                Otros {{ moneyFormat(totalByType.others) }}
-                                            </span>
-                                            <span class="badge outline-badge-danger  me-1">
-                                                Deben {{ moneyFormat(totalByType.debts) }}
-                                            </span>
-                                        </div>
+                                    <div class="col-12 mt-1">
 
-                                        <div class="btn-group" role="group">
+                                        <span class="badge outline-badge-info me-1">
+                                            Efectivo {{ moneyFormat(totalByType.cash) }}
+                                        </span>
+                                        <span class="badge outline-badge-info me-1">
+                                            Consignación {{ moneyFormat(totalByType.consignment) }}
+                                        </span>
+                                        <span class="badge outline-badge-info me-1">
+                                            Otros {{ moneyFormat(totalByType.others) }}
+                                        </span>
+                                        <span class="badge outline-badge-danger  me-1">
+                                            Deben {{ moneyFormat(totalByType.debts) }}
+                                        </span>
+
+                                        <div class="btn-group mt-1" role="group">
                                             <a v-if="export_pdf" :href="export_pdf" target="_blank"
                                                 class="badge badge-info btn btn-sm me-1">
                                                 <i class="far fa-file-pdf fa-lg"> PDF</i>
@@ -93,6 +92,13 @@
                             class="bg-primary border-2 border-top border-primary" />
 
                         <div class="table-responsive">
+
+                            <div
+                                class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto">
+                                <div class="dt-info" aria-live="polite" id="inscription_table_info" role="status">
+                                    Mostrando {{ player_count }} Deportistas</div>
+                            </div>
+
                             <table class="table table-bordered table-sm dataTable align-middle text-center"
                                 ref="payments_table">
                                 <thead class="">
@@ -227,6 +233,7 @@ const {
     handleSelectChange,
     saveField,
     loading,
+    player_count,
     selected_group,
     export_excel,
     export_pdf,

@@ -33,6 +33,7 @@ export default function useMonthlyPayments() {
     const annuity_amount = ref(0)
     const enrollment_amount = ref(0)
     const monthly_amount = ref(0)
+    const player_count = ref(0)
     const paymentFields = {
         0: 'enrollment',
         1: 'january',
@@ -86,6 +87,7 @@ export default function useMonthlyPayments() {
                     annuity_amount.value = data.annuity
                     enrollment_amount.value = data.inscription_amount
                     monthly_amount.value = data.monthly_payment
+                    player_count.value = data.count
                 } else {
                     groupPayments.value = []
                     export_excel.value = null
@@ -256,6 +258,7 @@ export default function useMonthlyPayments() {
         handleSelectChange,
         saveField,
         loading,
+        player_count,
         selected_group,
         export_excel,
         export_pdf,
