@@ -26,6 +26,7 @@ export default function useMonthlyPayments() {
         training_group: null,
         category: null
     })
+    const loading = ref(false)
     const editingCell = ref(null)
     const backupCell = ref(null)
     const typesNoEditables = ['6', '14']
@@ -67,6 +68,7 @@ export default function useMonthlyPayments() {
 
     const handleSearch = async (values, actions) => {
         try {
+            loading.value = true
             const params = {
                 // unique_code
                 category: values.category?.category,
@@ -91,17 +93,19 @@ export default function useMonthlyPayments() {
                 }
 
                 selected_group.value = (values?.training_group?.id) ? groups.find((group) => group.id === values.training_group.id) : null
-
+                loading.value = false
             } else {
                 groupPayments.value = []
                 export_excel.value = null
                 export_pdf.value = null
+                loading.value = false
             }
         } catch (error) {
             groupPayments.value = []
             export_excel.value = null
             export_pdf.value = null
             proxy.$handleBackendErrors(error, actions.setErrors, (msg) => (globalError.value = msg))
+            loading.value = false
         }
     }
 
@@ -191,12 +195,14 @@ export default function useMonthlyPayments() {
         const data = cloneDeep(toRaw(changed))
         data._method = 'PUT'
         delete data.player
-
+        loading.value = true
         const response = await api.post(`/api/v2/payments/${data.id}`, data)
         if (response.data.data) {
             showMessage("Se guardó correctamente")
             editingCell.value = null
+            loading.value = false
         } else {
+            loading.value = false
             showMessage("Algo salió mal", 'error')
         }
     }
@@ -247,6 +253,7 @@ export default function useMonthlyPayments() {
         cancelEdition,
         handleSelectChange,
         saveField,
+        loading,
         selected_group,
         export_excel,
         export_pdf,
