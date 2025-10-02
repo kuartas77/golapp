@@ -26,7 +26,6 @@ export default function useSchoolList() {
                 recordsFiltered: response.data.recordsFiltered,
             });
         } catch (error) {
-            console.error('Error fetching data:', error);
             callback({ data: [], recordsTotal: 0, recordsFiltered: 0 });
         }
     }

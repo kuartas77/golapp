@@ -15,7 +15,6 @@ export default function useMonthlyPayments() {
 
     }
     const sendPay = async (payment) => {
-        console.log(payment)
         payment._method = "PUT"
         payment[`${payment.column}_amount`] = payment.value
         payment[`${payment.column}`] = payment.selected

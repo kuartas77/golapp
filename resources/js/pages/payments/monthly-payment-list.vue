@@ -47,26 +47,24 @@
 
                                     <div class="col-12">
                                         <div class="btn-group" role="group">
-                                            <span class="btn-outline-primary btn-sm ">
+                                            <span class="badge outline-badge-info me-1">
                                                 Efectivo {{ moneyFormat(totalByType.cash) }}
                                             </span>
-                                            <span class="btn-outline-primary btn-sm ">
+                                            <span class="badge outline-badge-info me-1">
                                                 Consignación {{ moneyFormat(totalByType.consignment) }}
                                             </span>
-                                            <span class="btn-outline-primary btn-sm ">
+                                            <span class="badge outline-badge-info me-1">
                                                 Otros {{ moneyFormat(totalByType.others) }}
                                             </span>
                                         </div>
-                                    </div>
 
-                                    <div class="col-12">
                                         <div class="btn-group" role="group">
                                             <a v-if="export_pdf" :href="export_pdf" target="_blank"
-                                                class="btn btn-outline-primary btn-sm">
+                                                class="badge badge-info btn btn-sm me-1">
                                                 <i class="far fa-file-pdf fa-lg"> PDF</i>
                                             </a>
                                             <a v-if="export_excel" :href="export_excel" target="_blank"
-                                                class="btn btn-outline-primary btn-sm">
+                                                class="badge badge-info btn btn-sm me-1">
                                                 <i class="far fa-file-excel fa-lg"> Excel</i>
                                             </a>
                                         </div>
@@ -162,7 +160,7 @@
                                                     <small class="text-muted">
                                                         {{ moneyFormat(payPlayer[`${field}_amount`]) }}
                                                     </small>
-                                                    <span class="badge badge-light" @click="editRow(payPlayer, field)"
+                                                    <span class="badge badge-light btn btn-sm" @click="editRow(payPlayer, field)"
                                                         :class="!typesNoEditables.some((e) => e === payPlayer[field]) ? 'clickable' : ''">
                                                         <i class="far fa-edit"></i>
                                                     </span>

@@ -34,7 +34,6 @@ export default function useInfoSchoolList() {
             });
         } catch (error) {
             callback({ data: [], recordsTotal: 0, recordsFiltered: 0 });
-            console.error('Error fetching data:', error);
         }
     }
 

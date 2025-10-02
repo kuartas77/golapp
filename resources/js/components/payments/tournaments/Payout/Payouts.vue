@@ -43,7 +43,6 @@ export default {
         createPaymentsControl(payload){
             this.createPayments(payload)
             this.getPays(payload)
-            console.log("createTournamentPay", payload)
         },
         paginationMeta(){
             return {}

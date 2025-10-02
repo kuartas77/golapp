@@ -16,7 +16,6 @@ const api = axios.create({
 // Interceptor de request (antes de enviar la petición)
 api.interceptors.request.use(
     async (config) => {
-
         return config;
     },
     (error) => {
@@ -39,12 +38,6 @@ api.interceptors.response.use(
                 await router.push({ name: 'login' })
             }
         }
-        // if (error.response && error.response.status === 401 || error.response.status === 419) {
-        //     console.warn("No autorizado, redirigiendo al login...");
-        //     // Redirigir o limpiar sesión
-        //     localStorage.removeItem('auth-user')
-        //     window.location.href = '/'
-        // }
         return Promise.reject(error);
     }
 );

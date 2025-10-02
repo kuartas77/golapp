@@ -213,7 +213,6 @@ export default {
                 this.totalOthers += this.pays.filter(pay => !['9','12','10', '11'].includes(pay.october)).reduce((accumulator, pay) => accumulator + pay.october_amount, 0)
                 this.totalOthers += this.pays.filter(pay => !['9','12','10', '11'].includes(pay.november)).reduce((accumulator, pay) => accumulator + pay.november_amount, 0)
                 this.totalOthers += this.pays.filter(pay => !['9','12','10', '11'].includes(pay.december)).reduce((accumulator, pay) => accumulator + pay.december_amount, 0)
-                // console.log(cash)
                 //     // }
                 // ||pay.january
                     // ||pay.february
@@ -241,7 +240,6 @@ export default {
 
 
                 this.totalPayment = Object.values(this.perMonth).reduce((accumulator, currentValue) => {
-                    console.log(currentValue)
                     if (typeof currentValue === 'number') {
                         return accumulator + currentValue;
                     }

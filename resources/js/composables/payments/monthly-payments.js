@@ -193,15 +193,12 @@ export default function useMonthlyPayments() {
         delete data.player
 
         const response = await api.post(`/api/v2/payments/${data.id}`, data)
-        console.log(response.data)
         if (response.data.data) {
             showMessage("Se guardó correctamente")
             editingCell.value = null
         } else {
             showMessage("Algo salió mal", 'error')
         }
-
-        //
     }
 
     onMounted(() => {
