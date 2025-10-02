@@ -21,7 +21,7 @@ export default function useInscriptionList() {
 
     const options = {
         ...configLanguaje,
-        lengthMenu: [[15, 30, 50, 70, 100], [15, 30, 50, 70, 100]],
+        lengthMenu: [[10, 20, 30, 50, 100], [10, 20, 30, 50, 100]],
         columnDefs: [
             { responsivePriority: 1, targets: columns.length - 1 },
             {
@@ -35,7 +35,8 @@ export default function useInscriptionList() {
             // { searchable: false, targets: [0,4, 5]},
             // { orderable: false, targets: [0,4, 5]},
         ],
-        scrollX: true,
+        // scrollX: true,
+        // dom: 'lfitp',//lftip
         serverSide: true,
         processing: true,
         order: [[1, 'desc']],

@@ -40,6 +40,10 @@ class SettingsController extends Controller
             }
         });
 
+        $firstGroup = TrainingGroup::orderBy('id')->firstWhere('school_id', $school_id);
+        $allGroups = $training_groups;
+        $allGroups->prepend($firstGroup);
+
         $categories = Cache::remember(
             "KEY_CATEGORIES_SELECT_{$school_id}",
             now()->addMinutes(5),
@@ -87,6 +91,7 @@ class SettingsController extends Controller
 
 
         return response()->json([
+            'all_t_groups' => $allGroups,
             't_groups' => $training_groups,
             'categories' => $categories,
             'genders' => $genders,

@@ -230,7 +230,8 @@ export default function useMonthlyPayments() {
     const totalByType = ref({
         cash: 0,
         consignment: 0,
-        others: 0
+        others: 0,
+        debts: 0
     })
 
     watch(groupPayments, async (newValue) => {
@@ -242,7 +243,8 @@ export default function useMonthlyPayments() {
 
             totalByType.value.cash += newValue.filter(pay => ['9','12'].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
             totalByType.value.consignment += newValue.filter(pay => ['10', '11'].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
-            totalByType.value.others += newValue.filter(pay => !['9','12','10', '11'].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
+            totalByType.value.others += newValue.filter(pay => !['2','9','12','10', '11'].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
+            totalByType.value.debts += newValue.filter(pay => ['2'].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
         }
     }, { deep: true })
 

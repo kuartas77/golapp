@@ -28,7 +28,7 @@ class UserRepository
     {
         $school = getSchool(auth()->user());
         return User::query()->with(['roles', 'profile'])
-        ->select(['users.*', 'roles.name as role_name', 'roles.id as role_id'])
+        ->select(['users.*','users.name as user_name', 'roles.name as role_name', 'roles.id as role_id'])
             ->join('schools_user', 'schools_user.user_id', 'users.id')
             ->join('model_has_roles', 'model_has_roles.model_id', 'users.id')
             ->join('roles', 'model_has_roles.role_id', 'roles.id')

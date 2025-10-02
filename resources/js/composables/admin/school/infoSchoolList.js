@@ -39,7 +39,7 @@ export default function useInfoSchoolList() {
 
     const options = {
         ...configLanguaje,
-        lengthMenu: [[15, 30, 50, 70, 100], [15, 30, 50, 70, 100]],
+        lengthMenu: [[10, 20, 30, 50, 100], [10, 20, 30, 50, 100]],
         columnDefs: [
             { responsivePriority: 2, targets: 1 },
             {
@@ -47,7 +47,7 @@ export default function useInfoSchoolList() {
                 className: 'dt-head-center dt-body-center', // Center align their headers
             }
         ],
-        scrollX: true,
+        // scrollX: true,
         serverSide: true,
         processing: true,
         order: [[6, 'desc']],

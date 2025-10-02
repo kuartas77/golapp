@@ -69,6 +69,9 @@
                                             <span class="badge outline-badge-info me-1">
                                                 Otros {{ moneyFormat(totalByType.others) }}
                                             </span>
+                                            <span class="badge outline-badge-danger  me-1">
+                                                Deben {{ moneyFormat(totalByType.debts) }}
+                                            </span>
                                         </div>
 
                                         <div class="btn-group" role="group">
@@ -170,9 +173,9 @@
                                                     <small class="text-muted">
                                                         {{ moneyFormat(payPlayer[`${field}_amount`]) }}
                                                     </small>
-                                                    <span class="badge badge-light btn btn-sm"
-                                                        @click="editRow(payPlayer, field)"
-                                                        :class="!typesNoEditables.some((e) => e === payPlayer[field]) ? 'clickable' : ''">
+                                                    <span v-if="!typesNoEditables.some((e) => e === payPlayer[field])"
+                                                        class="badge badge-light btn btn-sm clickable"
+                                                        @click="editRow(payPlayer, field)">
                                                         <i class="far fa-edit"></i>
                                                     </span>
                                                 </template>

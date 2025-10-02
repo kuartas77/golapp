@@ -4,6 +4,7 @@ import api from "@/utils/axios";
 export const useSetting = defineStore('settings-store', {
     persist: true,
     state: () => ({
+        all_groups: [],
         groups: [],
         categories: [],
         genders: [],
@@ -27,6 +28,7 @@ export const useSetting = defineStore('settings-store', {
         },
         async getSettings()  {
             const response = await api.get('api/v2/settings/general')
+            this.all_groups = response.data.all_t_groups
             this.groups = response.data.t_groups
             this.categories = response.data.categories
             this.genders = response.data.genders

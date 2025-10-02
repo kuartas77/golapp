@@ -23,7 +23,7 @@
     <teleport defer to="#select_groups">
         <select placeholder="Grupos" id="groups" name="groups">
             <option value="">Grupos...</option>
-            <option v-for="group in settings.groups" :value="group.id" :key="group.id">{{ group.name }}
+            <option v-for="group in settings.all_groups" :value="group.id" :key="group.id">{{ group.name }}
             </option>
         </select>
     </teleport>

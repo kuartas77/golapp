@@ -20,7 +20,7 @@ export default function usePlayerList() {
     ];
     const options = {
         ...configLanguaje,
-        lengthMenu: [[15, 30, 50, 70, 100], [15, 30, 50, 70, 100]],
+        lengthMenu: [[10, 20, 30, 50, 100], [10, 20, 30, 50, 100]],
         columnDefs: [
             { responsivePriority: 1, targets: columns.length - 1 },
             {
@@ -28,7 +28,7 @@ export default function usePlayerList() {
                 className: 'dt-head-center dt-body-center', // Center align their headers
             },
         ],
-        scrollX: true,
+        // scrollX: true,
         serverSide: true,
         processing: true,
         order: [[1, 'desc']],
