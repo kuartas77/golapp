@@ -2200,3 +2200,204 @@ table.dataTable > tbody > tr.child ul.dtr-details {
     padding: 0;
     width: 100%;
 }
+
+.dark {
+    input:focus {
+        color: color_variables.$m-color_13;
+    }
+    .multiselect__select::before {
+        position: relative;
+        right: 0;
+        top: 65%;
+        color: color_variables.$m-color_14 !important;
+        margin-top: 4px;
+        border-style: solid;
+        border-width: 5px 5px 0 5px;
+        border-color: color_variables.$m-color_14 transparent transparent transparent !important;
+        content: "";
+    }
+
+    .multiselect__tag {
+        background-color: color_variables.$info !important;
+        color: white;
+    }
+
+    .multiselect__option--highlight {
+        background-color: color_variables.$info !important;
+        color: white;
+    }
+
+    .multiselect__content-wrapper{
+        color: color_variables.$m-color_13 !important;
+    }
+
+    .multiselect__option--selected {
+        background-color: color_variables.$info !important;
+        color: white;
+    }
+
+    .badge-light {
+        background-color: color_variables.$m-color_10 !important;
+        color: white;
+    }
+
+
+}
+
+.multiselect__option--highlight {
+    background-color: color_variables.$info !important;
+    color: white;
+}
+
+@media print {
+
+    .no-print,
+    #sidebar,
+    #header,
+    #sub-header-container,
+    #breadcrumb,
+    footer {
+        display: none !important;
+    }
+}
+
+hr {
+  margin: 1rem 0;
+  color: inherit;
+  background-color: currentColor;
+  border: 0;
+  opacity: 0.25;
+}
+
+.payments {
+    background-color: white;
+    color: black;
+    max-width: 18ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.payments-c-0 {
+    background-color: white;
+    color: black;
+    max-width: 12ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.payments-c-1 {
+    background-color: green;
+    color: white;
+    max-width: 12ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.payments-c-2 {
+    background-color: red;
+    color: white;
+    max-width: 12ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.payments-c-3 {
+    background-color: aqua;
+    color: black;
+    max-width: 12ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.payments-c-4 {
+    background-color: #fac282;
+    color: black;
+    max-width: 12ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.payments-c-5 {
+    background-color: orange;
+    color: white;
+    max-width: 12ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.payments-c-6 {
+    background-color: grey;
+    color: white;
+    max-width: 12ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.payments-c-7 {
+    background-color: white;
+    color: black;
+    max-width: 12ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.payments-c-8 {
+    background-color: #009688;
+    color: white;
+    max-width: 12ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.payments-c-9 {
+    background-color: yellow;
+    color: black;
+    max-width: 12ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.payments-c-10 {
+    background-color: blue;
+    color: white;
+    max-width: 12ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.payments-c-11 {
+    background-color: #572364;
+    color: white;
+    max-width: 12ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.payments-c-12 {
+    background-color: #6F4E37;
+    color: white;
+    max-width: 12ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.payments-c-13 {
+    background-color: white;
+    color: black;
+    max-width: 12ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.payments-c-14 {
+    background-color: white;
+    color: black;
+    max-width: 12ch;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.clickable {
+    cursor: pointer;
+}

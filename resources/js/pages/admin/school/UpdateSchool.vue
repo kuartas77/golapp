@@ -1,6 +1,6 @@
 <template>
     <panel>
-        <template #lateral></template>
+        <template #lateral class="algo"></template>
         <template #body>
             <Form ref="form" :validation-schema="schema" @submit="submit" :initial-values="formData">
                 <div class="row col-md-12">

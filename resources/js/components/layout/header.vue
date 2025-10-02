@@ -1,7 +1,7 @@
 <template>
     <div>
         <!--  BEGIN NAVBAR  -->
-        <div class="header-container fixed-top">
+        <div class="header-container fixed-top" id="header">
             <header class="header navbar navbar-expand-sm">
                 <ul class="navbar-item theme-brand flex-row text-center">
                     <li class="nav-item theme-logo">
@@ -246,7 +246,7 @@
         </div>
         <!--  END NAVBAR  -->
         <!--  BEGIN NAVBAR  -->
-        <div class="sub-header-container">
+        <div class="sub-header-container" id="sub-header-container">
             <header class="header navbar navbar-expand-sm">
                 <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom"
                     @click="toggleSideBar()">

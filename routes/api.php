@@ -12,6 +12,7 @@ use App\Http\Controllers\API\PlayersController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\DataTableController;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\Payments\PaymentController;
 use App\Http\Controllers\SchoolPages\SchoolsController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
@@ -67,6 +68,8 @@ Route::prefix('v2')->group(function(){
         });
 
         Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);
+
+        Route::resource("payments", PaymentController::class)->only(['index','update', 'show']);
 
         Route::prefix('datatables')->group(function () {
             Route::get('inscriptions_enabled', [DataTableController::class, 'enabledInscriptions']);

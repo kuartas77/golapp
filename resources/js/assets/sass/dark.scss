@@ -675,7 +675,7 @@ body.dark {
         box-shadow: 0 0 40px 0 rgb(94 92 154 / 6%);
         border: 1px solid #0e1726;
     }
-    /* 
+    /*
     =====================
         Navigation Bar
     =====================
@@ -886,7 +886,7 @@ body.dark {
             }
         }
     }
-    /* 
+    /*
     ===============
         Sidebar
     ===============
@@ -1059,7 +1059,7 @@ body.dark {
             }
         }
     }
-    /*  
+    /*
     ======================
         Footer-wrapper
     ======================
@@ -1077,7 +1077,7 @@ body.dark {
     .hljs {
         background: #191e3a;
     }
-    /*  
+    /*
     ======================
         MEDIA QUERIES
     ======================
@@ -3469,12 +3469,12 @@ body.dark {
         color: #888ea8;
     }
 
-    .select2 .multiselect__option--selected {
+    .multiselect__option--selected {
         background-color: rgba(0, 150, 136, 0.10980392156862745);
         color: #009688;
     }
 
-    .select2 .multiselect__option--highlight {
+    .multiselect__option--highlight {
         color: #009688;
         background: none;
     }
@@ -7654,7 +7654,7 @@ body.dark {
             color: #bfc9d4 !important;
         }
 
-        .bh-table-responsive table thead tr, .bh-table-responsive table tfoot tr, 
+        .bh-table-responsive table thead tr, .bh-table-responsive table tfoot tr,
         .bh-table-responsive table thead tr th.bh-sticky,.bh-table-responsive table tbody tr td.bh-sticky{
             background: #1b2e4b !important;
         }
@@ -7667,7 +7667,7 @@ body.dark {
             background-color: rgba(3, 3, 5, 0.122) !important;
         }
 
-        .bh-pagination { 
+        .bh-pagination {
             .bh-page-item {
                 background-color: #191e3a;
                 color:#bfc9d4;
@@ -7693,7 +7693,7 @@ body.dark {
             background-color: rgba(3, 3, 5, 0.122) !important;
         }
 
-        .bh-table-responsive input[type=checkbox]+div{ 
+        .bh-table-responsive input[type=checkbox]+div{
             background-color: transparent;
             border-color: #1B2E4B;
         }

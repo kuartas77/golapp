@@ -31,7 +31,7 @@ const routes = [
             { path: 'deportistas', name: 'players', component: () => import('@/pages/players/PlayersList.vue') },
             { path: 'inscripciones', name: 'inscriptions', component: () => import('@/pages/inscriptions/InscriptionsList.vue') },
             { path: 'asistencias', name: 'attendances', component: () => import('@/pages/attendances/attendance-list.vue') },
-            { path: 'mensualidades', name: 'payments', component: () => import('@/pages/payments/payment-list.vue') },
+            { path: 'mensualidades', name: 'payments', component: () => import('@/pages/payments/monthly-payment-list.vue') },
             {
                 path: '/administracion',
                 name: 'admin',

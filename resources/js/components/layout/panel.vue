@@ -5,7 +5,7 @@
             <div class="layout-spacing" :class="!shouldShowLateral() ? 'col-xl-12 col-lg-12 col-sm-12': 'col-xl-8 col-lg-8 col-sm-8'">
                 <div class="panel br-6 p-2">
                     <div class="panel-heading" v-if="shouldShowHeader()">
-                        <slot name="head"></slot>
+                        <slot name="header"></slot>
                     </div>
 
                     <div class="panel-body" v-if="shouldShowBody()">

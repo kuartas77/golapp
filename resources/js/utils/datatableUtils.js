@@ -16,12 +16,12 @@ const configLanguaje = {
         // sUrl: '',
         sInfoThousands: ',',
         sLoadingRecords: 'Cargando...',
-        // oPaginate: {
-        //     sFirst: '<<',
-        //     sLast: '>>',
-        //     sNext: '>',
-        //     sPrevious: '<',
-        // },
+        paginate: {
+            // first: "Primera",
+            // last: "Última",
+            // next: "Siguiente",
+            // previous: "Anterior"
+        },
         oAria: {
             sSortAscending: ': Activar para ordenar la columna de manera ascendente',
             sSortDescending: ': Activar para ordenar la columna de manera descendente',

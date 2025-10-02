@@ -1,6 +1,6 @@
 <template>
     <!--  BEGIN SIDEBAR  -->
-    <div class="sidebar-wrapper sidebar-theme">
+    <div class="sidebar-wrapper sidebar-theme" id="sidebar">
         <nav ref="menu" id="sidebar">
             <div class="shadow-bottom"></div>
 

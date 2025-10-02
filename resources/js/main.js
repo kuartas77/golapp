@@ -4,54 +4,57 @@ import { createHead } from "@vueuse/head";
 import App from "@/App.vue";
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+// custom errorHandler
 import errorHandler from "@/plugins/errorHandler";
 import i18n from "@/i18n";
 import router from "@/router";
+// datatable
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs5';
-// datatable
-import 'datatables.net-responsive-bs5';
-DataTable.use(DataTablesCore);
-
+// perfect scrollbar
+import { PerfectScrollbarPlugin } from 'vue3-perfect-scrollbar';
+//Sweetalert
+import VueSweetalert2 from 'vue-sweetalert2';
+// set default settings
+import appSetting from "@/app-setting";
+import '@/utils/yup-locale'
+// Directives
+import vHasRol from '@/directives/check-rol'
+// custom components
 import breadcrumb from "@/components/layout/breadcrumb.vue";
 import panel from '@/components/layout/panel.vue';
 import input from '@/components/form/Input.vue';
 import inputFile from '@/components/form/InputFile.vue';
 import Checkbox from '@/components/form/Checkbox.vue';
 import DatatableTemplate from "@/components/general/DatatableTemplate.vue";
+import Multiselect from "@suadelabs/vue3-multiselect";
 
 // bootstrap
 import * as bootstrap from "bootstrap";
 window.bootstrap = bootstrap;
-
 // modals
-import "./assets/sass/components/custom-modal.scss";
-
-// perfect scrollbar
-import { PerfectScrollbarPlugin } from 'vue3-perfect-scrollbar';
+import "@/assets/sass/components/custom-modal.scss";
+import 'datatables.net-responsive-bs5';
+import "@suadelabs/vue3-multiselect/dist/vue3-multiselect.css";
 import 'vue3-perfect-scrollbar/style.css';
-
-//Sweetalert
-// import Swal from "sweetalert2";
-// window.Swal = Swal;
-import VueSweetalert2 from 'vue-sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
+import '@/assets/sass/font-icons/fontawesome/css/fontawesome.css';
+import '@/assets/sass/font-icons/fontawesome/css/regular.css';
+
+// options VueSweetalert2
 const options = {
     confirmButtonColor: '#4361ee',
     cancelButtonColor: '#ff7674',
     cancelButtonText: 'Cancelar',
 };
 
-// set default settings
-import appSetting from "@/app-setting";
-import '@/utils/yup-locale'
+DataTable.use(DataTablesCore);
 
-import vHasRol from '@/directives/check-rol'
-
+const app = createApp(App);
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
 const head = createHead();
-const app = createApp(App);
+
 app.use(head)
 app.use(i18n)
 app.use(pinia)
@@ -66,6 +69,7 @@ app.component('breadcrumb', breadcrumb)
 app.component('panel', panel)
 app.component('inputField', input)
 app.component('inputFile', inputFile)
+app.component('Multiselect', Multiselect)
 app.component('checkbox', Checkbox)
 
 app.directive('has-role', vHasRol)
@@ -73,4 +77,4 @@ app.directive('has-role', vHasRol)
 app.mount('#app')
 window.$appSetting = appSetting;
 window.$appSetting.init();
-window.Swal =  app.config.globalProperties.$swal;
+window.Swal = app.config.globalProperties.$swal;

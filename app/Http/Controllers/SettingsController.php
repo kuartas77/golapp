@@ -40,15 +40,11 @@ class SettingsController extends Controller
             }
         });
 
-        // $firstGroup = Cache::remember('PROVISIONAL_GROUP_' . $school_id, now()->addYear(), fn() => TrainingGroup::orderBy('id')->firstWhere('school_id', $school_id));
-        // $training_groups->push($firstGroup);
-
-
         $categories = Cache::remember(
             "KEY_CATEGORIES_SELECT_{$school_id}",
             now()->addMinutes(5),
             fn() =>
-            DB::table('inscriptions')->where('school_id', $school_id)->orderBy('category')->groupBy('category')->select(['category'])->get()
+            DB::table('inscriptions')->where('school_id', $school_id)->where('year', now()->year)->orderBy('category')->groupBy('category')->select(['category'])->get()
         );
 
         $genders = Cache::remember('KEY_GENDERS', now()->addYear(), fn() => config('variables.KEY_GENDERS'));
@@ -62,6 +58,9 @@ class SettingsController extends Controller
         $dominant_profile = Cache::rememberForever('KEY_DOMINANT_PROFILE', fn() => config('variables.KEY_DOMINANT_PROFILE'));
 
         $relationships = Cache::remember('KEY_RELATIONSHIPS_SELECT', now()->addYear(), fn() => config('variables.KEY_RELATIONSHIPS_SELECT'));
+
+        $optionsAssist = Cache::remember("KEY_ASSIST_{$school_id}", now()->addYear(), fn() => config('variables.KEY_ASSIST'));
+        $optionsPayment = Cache::remember("KEY_PAYMENTS_SELECT_{$school_id}", now()->addYear(), fn() => config('variables.KEY_PAYMENTS_SELECT'));
 
         $competition_groups = Cache::remember(
             "KEY_COMPETITION_GROUPS_{$school_id}",
@@ -80,8 +79,6 @@ class SettingsController extends Controller
         $document_types = Cache::remember('KEY_DOCUMENT_TYPES', now()->addYear(), fn() => config('variables.KEY_DOCUMENT_TYPES'));
 
         $jornada = Cache::remember('KEY_JORNADA_TYPES', now()->addYear(), fn() => config('variables.KEY_JORNADA'));
-
-        $months = Cache::rememberForever("KEY_MONTHS_INDEX", fn() => config('variables.KEY_MONTHS_INDEX'));
 
         $schools = [];
         if (isAdmin()) {
@@ -103,7 +100,8 @@ class SettingsController extends Controller
             'document_types' => $document_types,
             'jornada' => $jornada,
             'schools' => $schools,
-            'months' => $months,
+            'type_assistance' => $optionsAssist,
+            'type_payments' => $optionsPayment,
         ]);
     }
 }

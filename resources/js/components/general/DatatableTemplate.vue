@@ -30,14 +30,19 @@
                 </svg>
             </template>
         </template>
-
-
         <template #link="props">
             <div class="text-center">
                 <a href="#" :data-item-id="props.cellData" class="link-primary">{{
                     props.rowData.unique_code }}</a>
             </div>
         </template>
+        <template #player="props">
+            <div class="text-center">
+                {{ props.rowData.unique_code }}
+                {{ props.rowData.full_names }}
+            </div>
+        </template>
+
     </DataTable>
 </template>
 <script>
@@ -47,7 +52,7 @@ export default {
 </script>
 <script setup>
 import dayjs from "@/utils/dayjs";
-import { useTemplateRef , defineExpose } from 'vue';
+import { useTemplateRef } from 'vue';
 const props = defineProps(['options', 'id'])
 
 const table = useTemplateRef('table')
