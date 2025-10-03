@@ -1,11 +1,11 @@
 <template>
-	<img :src="preview" class="img-thumbnail" style="max-width: 200px; max-height: 172px;" alt="Vista previa">
-	<div class="form-group">
-
-		<label v-if="label" :for="name" class="form-label">{{ label }}</label>
-
-		<input type="file" class="form-control form-control-sm" :id="name" :accept="accept" @change="onFileChange">
-
+	<div class="upload mt-4 pe-md-4">
+		<input ref="fl_profile" type="file" class="d-none" :id="name" :accept="accept" @change="onFileChange" />
+		<img :src="preview ? preview : 'http://golapp.local/img/ballon_dark.png'" alt="Logo Escuela"
+			class="profile-preview" @click="$refs.fl_profile.click()" />
+		<p class="mt-2"  v-if="label">
+			<label v-if="label" :for="name" class="form-label">{{ label }}</label>
+		</p>
 	</div>
 
 	<div :class="errorMessage ? 'custom-error' : ''">{{ errorMessage }}</div>
@@ -21,14 +21,13 @@ const props = defineProps({
 })
 
 const { value, errorMessage, handleChange } = useField(props.name);
-const preview = ref('http://golapp.local/img/ballon_dark.png');
-
+const preview = ref(null);
 // Actualizar preview cuando cambia el valor
 watch(value, (file) => {
 	if (file instanceof File) {
 		preview.value = URL.createObjectURL(file);
 	} else {
-		preview.value = isValidUrl(file) ? file : 'http://golapp.local/img/ballon_dark.png';
+		preview.value = file
 	}
 });
 
@@ -36,14 +35,5 @@ const onFileChange = (e) => {
 	const file = e.target.files[0];
 	handleChange(e); // notificar a vee-validate
 };
-
-const isValidUrl = (urlString) => {
-	try {
-		new URL(urlString);
-		return true;
-	} catch (error) {
-		return false;
-	}
-}
 
 </script>

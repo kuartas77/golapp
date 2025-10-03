@@ -7,6 +7,7 @@ export default function useFormSchool() {
     const { toastSuccess, toastError, } = useAlerts()
     const form = ref(null)
     const { proxy } = getCurrentInstance()
+    const globalError = ref(null)
 
     const formData = ref({
         id: '',
@@ -72,7 +73,7 @@ export default function useFormSchool() {
         form.value.setValues(data)
     });
 
-    const submit = (values) => {
+    const submit = (values, actions) => {
 
         Swal.fire({
             title: "¿Quieres guardar los cambios?",
@@ -82,22 +83,35 @@ export default function useFormSchool() {
             denyButtonText: `No`,
         }).then((result) => {
             if (result.isConfirmed) {
-                sendRequest(values)
+                sendRequest(values, actions)
             } else if (result.isDenied) {
                 toastSuccess('Cancelado correctamente.')
             }
         });
     }
 
-    const sendRequest = (values) => {
+    const sendRequest = (values, actions) => {
         try {
-            let data = new FormData();
-            data.append('_method', 'PUT')
-            for (let key in values) {
-                data.append(key, values[key]);
+            const formData = new FormData();
+            formData.append('_method', 'PUT')
+            for (const key in values) {
+                if (Object.prototype.hasOwnProperty.call(values, key)) {
+                    const value = values[key];
+                    // Append files or other data to FormData
+                    if (value instanceof File) {
+                        console.log(key, value, value.name)
+                        formData.append(key, value, value.name);
+                    } else {
+                        formData.append(key, value);
+                    }
+                }
             }
 
-            api.post(`/api/v2/admin/school/${values.slug}`, data).then(resp => {
+            api.post(`/api/v2/admin/school/${values.slug}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }).then(resp => {
                 if (resp.data.success) {
                     toastSuccess()
                 } else {
