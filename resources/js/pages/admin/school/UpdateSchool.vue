@@ -4,15 +4,15 @@
         <template #body>
             <Form ref="form" :validation-schema="schema" @submit="submit" :initial-values="formData">
                 <div class="row col-md-12">
-                    <div class="form-group col-md-4 text-center">
-                        <inputFile label="Logo" name="logo" />
+                    <div class="form-group col-md-3 text-center">
+                        <inputFileImage label="Logo" name="logo" />
                     </div>
                     <div class="col-md-4">
                         <div class="form-group ">
                             <inputField label="Nombre Escuela" name="name" />
                         </div>
                         <div class="form-group ">
-                            <inputField label="Correo Escuela" type="email" name="email" />
+                            <inputField label="Correo Escuela" type="email" name="email" readonly="true" />
                         </div>
                         <div class="form-group ">
                             <inputField label="Representante" name="agent" />
@@ -20,12 +20,12 @@
 
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         <div class="form-group ">
                             <inputField label="Dirección" name="address" />
                         </div>
                         <div class="form-group ">
-                            <inputField label="Teléfono" name="phone" />
+                            <inputField label="Teléfono(s)" name="phone" />
                         </div>
                     </div>
 

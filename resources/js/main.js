@@ -24,7 +24,7 @@ import vHasRol from '@/directives/check-rol'
 import breadcrumb from "@/components/layout/breadcrumb.vue";
 import panel from '@/components/layout/panel.vue';
 import input from '@/components/form/Input.vue';
-import inputFile from '@/components/form/InputFile.vue';
+import fileInputImage from '@/components/form/FileInputImage.vue';
 import Checkbox from '@/components/form/Checkbox.vue';
 import DatatableTemplate from "@/components/general/DatatableTemplate.vue";
 import Multiselect from "@suadelabs/vue3-multiselect";
@@ -68,7 +68,7 @@ app.component('DatatableTemplate', DatatableTemplate)
 app.component('breadcrumb', breadcrumb)
 app.component('panel', panel)
 app.component('inputField', input)
-app.component('inputFile', inputFile)
+app.component('inputFileImage', fileInputImage)
 app.component('Multiselect', Multiselect)
 app.component('checkbox', Checkbox)
 

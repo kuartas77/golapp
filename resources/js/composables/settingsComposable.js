@@ -9,5 +9,4 @@ export default function useSettings() {
         settings.getSettings()
     });
 
-    return {settings}
 }

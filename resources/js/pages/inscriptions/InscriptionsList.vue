@@ -40,10 +40,10 @@
     <breadcrumb :parent="'Plataforma'" :current="'Inscripciones'" />
 </template>
 <script setup>
-import useSettings from "@/composables/settingsComposable";
+import { useSetting } from '@/store/settings-store';
 import useInscriptionList from '@/composables/inscription/inscriptionList';
 import { usePageTitle } from "@/composables/use-meta";
 usePageTitle('Inscripciones')
-const { settings } = useSettings();
+const settings = useSetting()
 const { inscription_table, options, resolveRouteFromClick } = useInscriptionList()
 </script>
