@@ -43,6 +43,29 @@
             </div>
         </template>
 
+        <template #player-photo="props">
+            <div class="media d-md-flex d-block text-sm-start text-center">
+                <div class="media-aside align-self-start avatar avatar-sm me-1">
+                    <img :src="props.rowData.inscription.player.photo_url" alt="avatar" class="rounded-circle" />
+                </div>
+                <div class="media-body">
+                    <div class="d-xl-flex d-block justify-content-between">
+                        <div>
+                            <small>
+                                {{ props.rowData.inscription.player.full_names }}
+                            </small>
+                            <p>
+                                {{ props.rowData.inscription.player.unique_code }}
+                                <span>
+                                    | {{ props.rowData.inscription.player.category }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
     </DataTable>
 </template>
 <script>

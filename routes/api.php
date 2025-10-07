@@ -10,8 +10,10 @@ use App\Http\Controllers\API\Instructor\GroupsController;
 use App\Http\Controllers\API\LoginController;
 use App\Http\Controllers\API\PlayersController;
 use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\Assists\AssistController;
 use App\Http\Controllers\DataTableController;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\Groups\TrainingGroupController;
 use App\Http\Controllers\Payments\PaymentController;
 use App\Http\Controllers\SchoolPages\SchoolsController;
 use App\Http\Controllers\SettingsController;
@@ -70,6 +72,9 @@ Route::prefix('v2')->group(function(){
         Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);
 
         Route::resource("payments", PaymentController::class)->only(['index','update', 'show']);
+
+        Route::get("training_group/classdays", [TrainingGroupController::class, 'getClassDays']);
+        Route::resource("assists", AssistController::class)->except(['create','edit', 'destroy']);
 
         Route::prefix('datatables')->group(function () {
             Route::get('inscriptions_enabled', [DataTableController::class, 'enabledInscriptions']);

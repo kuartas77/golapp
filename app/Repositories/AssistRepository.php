@@ -32,7 +32,7 @@ class AssistRepository
     /**
      * @param false $deleted
      */
-    public function search(array $params, bool $deleted = false): array
+    public function search(array $params, bool $deleted = false, bool $raw = false): array
     {
         if (!$deleted) {
             $params['year'] = now()->year;
@@ -43,7 +43,8 @@ class AssistRepository
         $trainingGroup = TrainingGroup::query()->schoolId()
             ->when($deleted, fn($q) => $q->onlyTrashedRelations())->findOrFail($params['training_group_id']);
 
-        $assists = $this->assist->schoolId()->with('inscription.player')
+        $assists = $this->assist->schoolId()
+            ->with('inscription:id,player_id,category', 'inscription.player:id,names,last_names,unique_code,category')
             ->when($deleted, fn($q) => $q->withTrashed())
             ->where([
                 ['training_group_id', $params['training_group_id']],
@@ -51,7 +52,11 @@ class AssistRepository
                 ['year', $params['year']]
             ]);
 
-        return $this->service->generateTable($assists, $trainingGroup, $params, $deleted);
+        if(!$raw) {
+            return $this->service->generateTable($assists, $trainingGroup, $params, $deleted);
+        }else {
+            return $this->service->generateData($assists, $trainingGroup, $params, $deleted);
+        }
     }
 
     public function create(array $dataAssist): array

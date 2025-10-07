@@ -272,6 +272,7 @@ class TrainingGroupRepository
         return $classDays->map(function ($classDay) use ($group, $date) {
             $name = Str::ucfirst($classDay['name']);
             return [
+                'index' => $classDay['number_class'],
                 'id' => "{$group->id}{$date->month}{$classDay['day']}",
                 'date' => $classDay['day'],
                 'day' => $name,

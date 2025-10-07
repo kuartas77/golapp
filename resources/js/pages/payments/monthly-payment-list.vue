@@ -12,9 +12,8 @@
                                     @blur="handleBlur" v-model="modelGroup" :options="groups" :multiple="false"
                                     :searchable="true" :preselect-first="false" track-by="id" label="full_group"
                                     placeholder="Grupo" :show-labels="false" />
-                                <ErrorMessage name="training_group" class="custom-error" />
                             </Field>
-
+                            <ErrorMessage name="training_group" class="custom-error" />
                         </div>
                         <div class="col-auto">
                             <label for="category" class="sr-only">Categoría</label>
@@ -23,8 +22,8 @@
                                     v-model="modelCategory" :options="categories" :multiple="false" :searchable="true"
                                     :preselect-first="false" track-by="category" label="category"
                                     placeholder="Categoría" :show-labels="false" />
-                                <ErrorMessage name="month" class="custom-error" />
                             </Field>
+                            <ErrorMessage name="month" class="custom-error" />
                         </div>
                         <div class="col-auto">
                             <button type="submit" class="btn btn-primary w-100" :disabled="isLoading">
@@ -84,12 +83,14 @@
 
             <hr v-if="selected_group || groupPayments.length" class="bg-primary border-2 border-top border-primary" />
 
-            <div class="table-responsive">
-
-                <div class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto">
-                    <div class="dt-info" aria-live="polite" id="inscription_table_info" role="status">
-                        Mostrando {{ player_count }} Deportistas</div>
+            <div class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mb-2">
+                <div class="dt-info" aria-live="polite" id="table_info" role="status">
+                    Mostrando {{ player_count }} Deportistas, la página cuenta con scroll, mueve la rueda del mouse
                 </div>
+            </div>
+
+            <div class="table-responsive">
+                <perfect-scrollbar class="scroll-container" :options="scrollbarOptions">
 
                 <table class="table table-bordered table-sm dataTable align-middle text-center" ref="payments_table">
                     <thead class="">
@@ -110,22 +111,44 @@
                             <th class="dt-head-center dt-body-center">Dic</th>
                         </tr>
                     </thead>
+                    <tfoot v-if="groupPayments.length">
+                        <tr>
+                            <th class="dt-head-center dt-body-center">
+                                <span class="text-muted">Totales</span>
+                            </th>
+                            <th class="dt-head-center dt-body-center" v-for="field in totalsFooter">
+                                <span class="text-muted">{{ moneyFormat(field) }}</span>
+                            </th>
+                        </tr>
+                    </tfoot>
                     <tbody>
                         <template v-if="groupPayments.length">
 
                             <tr v-for="(payPlayer, index) in groupPayments" :key="index">
                                 <td class="dt-head-center dt-body-center">
-                                    <small class="text-muted">
-                                        {{ payPlayer.player.category }}
-                                    </small>
-                                    <br />
-                                    <small class="text-muted">
-                                        {{ payPlayer.player.unique_code }}
-                                    </small>
-                                    <br />
-                                    <small class="text-muted">
-                                        {{ payPlayer.player.full_names }}
-                                    </small>
+                                    <div class="media d-md-flex d-block text-sm-start text-center">
+                                        <div class="media-aside align-self-start avatar avatar-sm me-1">
+                                            <img :src="payPlayer.player.photo_url" alt="avatar"
+                                                class="rounded-circle" />
+                                        </div>
+                                        <div class="media-body">
+                                            <div class="d-xl-flex d-block justify-content-between">
+                                                <div>
+                                                    <small>
+                                                        {{ payPlayer.player.full_names }}
+                                                    </small>
+                                                    <p>
+                                                        <small>
+                                                            {{ payPlayer.player.unique_code }}
+                                                            <span>
+                                                                | {{ payPlayer.player.category }}
+                                                            </span>
+                                                        </small>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </td>
 
                                 <td class="dt-head-center dt-body-center" v-for="field in paymentFields" :key="field">
@@ -184,17 +207,9 @@
                             </tr>
                         </template>
                     </tbody>
-                    <tfoot v-if="groupPayments.length">
-                        <tr>
-                            <th class="dt-head-center dt-body-center">
-                                <span class="text-muted">Totales</span>
-                            </th>
-                            <th class="dt-head-center dt-body-center" v-for="field in totalsFooter">
-                                <span class="text-muted">{{ moneyFormat(field) }}</span>
-                            </th>
-                        </tr>
-                    </tfoot>
+
                 </table>
+                </perfect-scrollbar>
             </div>
         </template>
     </panel>
@@ -236,4 +251,15 @@ const {
     totalsFooter,
     totalByType,
 } = useMonthlyPayments()
+
+
+const scrollbarOptions = {
+        swipeEasing: true, // Always show scrollbar
+        wheelSpeed: 0.5, // Adjust scroll speed
+        maxScrollbarLength: 90
+      }
+
 </script>
+<style lang="scss" scoped>
+
+</style>

@@ -29,7 +29,8 @@ class AssistController extends Controller
     public function index(Request $request): Application|Factory|View|JsonResponse
     {
         if ($request->ajax()) {
-            return response()->json($this->repository->search($request->only(['training_group_id', 'year', 'month', 'column'])));
+            $search = $this->repository->search(params: $request->only(['training_group_id', 'year', 'month', 'column']), raw: $request->filled('dataRaw'));
+            return response()->json($search);
         }
         // return view('assists.assist.index');
         return view('assists.assist.single.index');
@@ -59,16 +60,16 @@ class AssistController extends Controller
         if ($action === 'observation') {
 
             $observations = '';
-            if(is_object($assist->observations)) {
-                foreach($assist->observations as $date => $observation){
-                    $observations .= $date .': '. $observation. PHP_EOL;
+            if (is_object($assist->observations)) {
+                foreach ($assist->observations as $date => $observation) {
+                    $observations .= $date . ': ' . $observation . PHP_EOL;
                 }
             }
 
             $assist->observations = $observations;
 
             return response()->json($assist);
-        }else {
+        } else {
             $column = request()->query('column');
             $date = request()->query('date');
 

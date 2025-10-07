@@ -10,7 +10,7 @@ import * as yup from 'yup';
 export default function useMonthlyPayments() {
     const currentDate = new Date()
     const settings = useSetting()
-    const groups = settings.groups
+    const groups = settings.groups.map((group) => { return { id: group.id, full_group: group.full_group } })
     const categories = settings.categories
     const type_payments = settings.type_payments
     const selected_group = ref(null)
