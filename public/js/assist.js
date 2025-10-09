@@ -171,23 +171,23 @@ function changeColorAssist(domelement, value = null){
         val = element.val().replace(/[\$,]/g, '')
     }
     switch (val) {
-        case 'as':
+        case '1':
             element.removeClass(removeAllClass)
             element.addClass('color-success')
             break;
-        case 'fa':
+        case '2':
             element.removeClass(removeAllClass)
             element.addClass('color-error')
             break;
-        case 'ex':
+        case '3':
             element.removeClass(removeAllClass)
             element.addClass('color-orange')
             break;
-        case 're':
+        case '4':
             element.removeClass(removeAllClass)
             element.addClass('color-grey')
             break;
-        case 'in':
+        case '5':
             element.removeClass(removeAllClass)
             element.addClass('color-warning')
             break;
