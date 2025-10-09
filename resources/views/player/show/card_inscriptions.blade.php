@@ -204,9 +204,9 @@
                                                 @for ($index = 1; $index <= $classCount; $index++)
                                                     @php
                                                     $column=numbersToLetters($index);
-                                                    $countAS +=$assistance->$column == 'as' ? 1 : 0;
+                                                    $countAS +=$assistance->$column == 1 ? 1 : 0;
                                                     @endphp
-                                                    <td class="text-center {{$assistance->$column == 'fa' ? 'error':''}}">
+                                                    <td class="text-center {{$assistance->$column == 2 ? 'error':''}}">
                                                         {!! $assistance->$column == null ? '': checkAssists($assistance->$column) !!}
                                                     </td>
                                                     @endfor
