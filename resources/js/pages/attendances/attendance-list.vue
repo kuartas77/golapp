@@ -121,12 +121,11 @@
                                 </template>
 
                                 <template #observations="props">
-                                    <span class="badge outline-badge-primary btn btn-sm m-1">
-                                        {{ props.rowData.id }}
-                                    </span>
+                                    <small>
+                                        {{ props.rowData.observations[`${classDaySelected.year}-${classDaySelected.month}-${classDaySelected.date}`] }}
+                                    </small>
                                 </template>
                             </DataTable>
-
                         </div>
                     </div>
                 </div>
@@ -134,7 +133,7 @@
         </div>
     </div>
     <div class="modal fade" id="composeModalAttendance" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
+        aria-hidden="false" aria-modal="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -152,18 +151,16 @@
                         </div>
                         <label for="attendance_name" class="col-sm-2 col-form-label">Fecha:</label>
                         <div class="col-sm-4">
-
                             <input type="text" readonly class="form-control-plaintext" id="attendance_name"
                                 :value="`${classDaySelected.day} ${classDaySelected.date} de ${classDaySelected.month_name}`">
                         </div>
                     </div>
                     <div class="mb-3 row">
-
-                        <label for="select_attendance" class="col-sm-2 col-form-label">¡Selecciona!:</label>
-                        <div class="col-sm-10">
+                        <label for="select_attendance" class="col-sm-4 col-form-label">Tomar Asistencia:</label>
+                        <div class="col-sm-8">
                             <select name="select_attendance" id="select_attendance"
-                                class="form-control form-control-sm form-select"
-                                v-model="takeAttendance[classDaySelected.column]">
+                                class="form-control form-control-sm form-select" v-model="takeAttendance.value">
+                                <option value="null">Selecciona...</option>
                                 <option :value="index" v-for="(value, index) in attendanceTypes" :key="index">
                                     {{ value }}
                                 </option>
@@ -175,10 +172,38 @@
                             <label for="observation">Observaciónes para el deportista en el entrenamiento:</label>
                             <span class="bar"></span>
                             <textarea name="observations" id="single_observation" cols="30" rows="10"
-                                class="form-control form-control-sm" v-model="takeAttendance.observations"></textarea>
+                                class="form-control form-control-sm" v-model="takeAttendance.observation"></textarea>
                         </div>
                     </div>
 
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" @click="onCancelModal">
+                        <i class="flaticon-cancel-12"></i> Cerrar</button>
+                    <button type="button" class="btn btn-primary" @click="onSaveModal">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="composeModalObservations" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalLabel" aria-hidden="false" aria-modal="true">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Large</h5>
+                    <button type="button" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"
+                        class="btn-close"></button>
+                </div>
+                <div class="modal-body" v-if="takeAttendance">
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="observation">Observaciónes para el deportista en el entrenamiento:</label>
+                            <span class="bar"></span>
+                            <textarea name="observations" id="single_observation" cols="30" rows="10"
+                                class="form-control form-control-sm" v-model="takeAttendance.observation"></textarea>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn" data-dismiss="modal" data-bs-dismiss="modal"><i
@@ -196,14 +221,16 @@ export default {
 };
 </script>
 <script setup>
+import cloneDeep from "lodash.clonedeep";
 import { ErrorMessage, Field, Form } from "vee-validate";
-import { getCurrentInstance, onMounted, ref, render, toRaw, watch } from "vue";
+import { getCurrentInstance, onMounted, ref, toRaw } from "vue";
 import api from "@/utils/axios";
 import * as yup from "yup";
 import { useSetting } from "@/store/settings-store";
 import configLanguaje from '@/utils/datatableUtils';
 
 const composeModalAttendance = ref(null);
+const composeModalObservations = ref(null);
 const isLoading = ref(false);
 const settings = useSetting();
 const groups = settings.groups.map((group) => {
@@ -228,16 +255,17 @@ const formData = ref({
     training_group: null,
     month: null,
 });
-const globalError = ref(null);
-const { proxy } = getCurrentInstance();
-const modelGroup = ref(null);
-const modelMonth = ref(null);
-const export_pdf = ref(null);
-const export_excel = ref(null);
-const classDays = ref([]);
-const classDaySelected = ref(null);
-const attendancesGroup = ref([]);
+const globalError = ref(null)
+const { proxy } = getCurrentInstance()
+const modelGroup = ref(null)
+const modelMonth = ref(null)
+const export_pdf = ref(null)
+const export_excel = ref(null)
+const classDays = ref([])
+const classDaySelected = ref(null)
+const attendancesGroup = ref([])
 const takeAttendance = ref(null)
+const backupCell = ref(null)
 
 const handleSearchClassdays = async (values, actions) => {
     try {
@@ -316,20 +344,14 @@ const attendanceTypes = {
     in: "Incapacidad",
 }
 
-const columns = [
-    { data: 'inscription', title: 'Deportista', render: '#player-photo', searchable: false },
-    { data: 'inscription.player.full_names', title: 'Asistencia', render: '#bagClick', searchable: false },
-    { data: 'inscription.player.full_names', title: 'Observaciones', render: '#observations', searchable: false },
-];
-
 const options = {
     ...configLanguaje,
     lengthMenu: [[8, 20, 30, 50], [8, 20, 30, 50]],
     columnDefs: [
-        { responsivePriority: 1, targets: columns.length - 2 },
+        { responsivePriority: 1, targets: 1 },
         {
-            targets: [2],
-            width: '5%'
+            targets: [0,1],
+            width: '30%'
         },
         {
             targets: ['_all'],
@@ -350,23 +372,74 @@ const options = {
     processing: true,
     order: [[1, 'desc']],
     ajax: null,
-    columns: columns
+    columns: [
+        { data: 'inscription', title: 'Deportista', render: '#player-photo', searchable: false, with: '30%' },
+        { data: 'inscription.player.full_names', title: 'Asistencia', render: '#bagClick', searchable: false,with: '30%' },
+        { data: 'inscription.player.full_names', title: 'Observaciones Mensuales', render: '#observations', searchable: false, with: '40%' },
+    ]
 };
 
 
 onMounted(() => {
     initModal()
-    // composeModalAttendance.value.show();
-    // composeModalAttendance.value.hide();
 })
 
 const initModal = () => {
-    composeModalAttendance.value = new window.bootstrap.Modal(document.getElementById("composeModalAttendance"));
+    composeModalObservations.value = new window.bootstrap.Modal(document.getElementById("composeModalObservations"));
+    composeModalAttendance.value = new window.bootstrap.Modal(document.getElementById("composeModalAttendance"), {
+        backdrop: 'static', // Prevents closing the modal by clicking outside
+        keyboard: false,    // Disables closing the modal with the escape key
+        focus: false         // Focuses the modal when initialized (default is true)
+    });
 }
 
-const onClickOpenModal = (row) => {
+const onClickOpenModal = async (row) => {
     takeAttendance.value = row
+    backupCell.value = cloneDeep(toRaw(row))
 
+    const response = await api.get(`/api/v2/assists/${row.id}`, {
+        params: {
+            column: classDaySelected.value.column,
+            date: `${classDaySelected.value.year}-${classDaySelected.value.month}-${classDaySelected.value.date}`,
+            action: 'assist'
+        }
+    })
+
+    takeAttendance.value = response.data
     composeModalAttendance.value.show();
+}
+
+const onCancelModal = () => {
+    let changed = attendancesGroup.value.find((attendance) => attendance.id === backupCell.value.id)
+    if (backupCell.value && changed) {
+        const clon = cloneDeep(toRaw(backupCell.value))
+        changed[classDaySelected.value.column] = clon[classDaySelected.value.column]
+        changed['observations'] = clon['observations']
+    }
+
+    backupCell.value = null
+    takeAttendance.value = null
+    composeModalAttendance.value.hide()
+}
+
+const onSaveModal = async () => {
+    let data = {
+        _method: 'PUT',
+        id: takeAttendance.value.id,
+        observations: takeAttendance.value.observation,
+        attendance_date: `${classDaySelected.value.year}-${classDaySelected.value.month}-${classDaySelected.value.date}`,
+    }
+    data[classDaySelected.value.column] = takeAttendance.value.value
+
+    const response = await api.post(`/api/v2/assists/${data.id}`, data)
+
+    let changed = attendancesGroup.value.find((attendance) => attendance.id === data.id)
+    if (response.data && changed) {
+        changed[classDaySelected.value.column] = data[classDaySelected.value.column]
+    }
+
+    backupCell.value = null
+    takeAttendance.value = null
+    composeModalAttendance.value.hide()
 }
 </script>
