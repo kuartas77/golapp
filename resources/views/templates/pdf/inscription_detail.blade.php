@@ -203,9 +203,9 @@
                         @for ($index = 1; $index <= $classCount; $index++)
                             @php
                                 $column = numbersToLetters($index);
-                                $countAS += $assistance->$column == 'as' ? 1 : 0;
+                                $countAS += $assistance->$column == 1 ? 1 : 0;
                             @endphp
-                            <td class="text-center bold {{$assistance->$column == 'fa' ? 'error':''}} {{$assistance->$column == 'as' ? 'success':''}}" >
+                            <td class="text-center bold {{$assistance->$column == 2 ? 'error':''}} {{$assistance->$column == 'as' ? 'success':''}}" >
                             {!! $assistance->$column == null ? '': $optionAssist[$assistance->$column] !!}
                             </td>
                         @endfor

@@ -58,7 +58,7 @@
                 <td class="center texto bold" style="width:2.5%">
                     @php
                         $column = numbersToLetters($index);
-                        $countAS += $assist->$column == 'as' ? 1 : 0;
+                        $countAS += $assist->$column == 1 ? 1 : 0;
                     @endphp
                     {!! $assist->$column == null ? '': $optionAssist[$assist->$column] !!}
                 </td>
