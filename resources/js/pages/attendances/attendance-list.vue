@@ -83,10 +83,8 @@
             <div class="layout-spacing col-xl-9 col-lg-9 col-sm-12">
                 <div class="panel br-6 p-2">
                     <div class="panel-body">
-                        <h5 v-if="modelGroup">
-                            {{ modelGroup.full_group }}
-                            <small v-if="classDaySelected"> | {{ `#${classDaySelected.index} | ${classDaySelected.day} ${classDaySelected.date}` }}</small>
-                        </h5>
+                        <h5 v-if="modelGroup">{{ modelGroup.full_group }}</h5>
+                        <h6 v-if="classDaySelected"> Clase: {{ `#${classDaySelected.index} | ${classDaySelected.day} ${classDaySelected.date}` }}</h6>
                         <div class="row">
                             <DataTable :options="options" :data="attendancesGroup" class="table table-bordered table-sm"
                                 id="attendance_table" ref="attendance_table">
