@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
     <x-bread-crumb title="Pagos Torneos" :option="0"/>
-    <x-row-card col-inside="12" >
+    <x-row-card col-inside="8" col-outside="2" >
         @include('payments.tournaments.form')
         @include('payments.tournaments.table')
     </x-row-card >
