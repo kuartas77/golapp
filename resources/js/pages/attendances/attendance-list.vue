@@ -4,7 +4,7 @@
             <div class="layout-spacing col-xl-3 col-lg-3 col-sm-12">
                 <div class="panel br-6 p-2">
                     <div class="panel-body">
-                        <div class="row mb-3">
+                        <div class="row">
                             <div class="text-center">
                                 <Form ref="form" :validation-schema="schema" @submit="handleSearchClassdays"
                                     :initial-values="formData" class="align-items-center justify-content-center">
@@ -83,7 +83,11 @@
             <div class="layout-spacing col-xl-9 col-lg-9 col-sm-12">
                 <div class="panel br-6 p-2">
                     <div class="panel-body">
-                        <div class="row mb-3">
+                        <h5 v-if="modelGroup">
+                            {{ modelGroup.full_group }}
+                            <small v-if="classDaySelected"> | {{ `#${classDaySelected.index} | ${classDaySelected.day} ${classDaySelected.date}` }}</small>
+                        </h5>
+                        <div class="row">
                             <DataTable :options="options" :data="attendancesGroup" class="table table-bordered table-sm"
                                 id="attendance_table" ref="attendance_table">
 
@@ -114,16 +118,14 @@
                                 </template>
                                 <template #bagClick="props">
                                     <button type="button" class="badge outline-badge-primary btn btn-sm m-1"
-                                        @click="onClickOpenModal(props.rowData)" :data-id="props.rowData.id">
-                                        {{ attendanceTypes[props.rowData[classDaySelected.column]] ?? 'Tomar Asistencia'
-                                        }}
+                                        @click="onClickOpenModalAttendance(props.rowData)" :data-id="props.rowData.id">
+                                        {{ attendanceTypes[props.rowData[classDaySelected.column]] ?? 'Tomar Asistencia'}}
                                     </button>
                                 </template>
 
                                 <template #observations="props">
-                                    <small>
-                                        {{ props.rowData.observations[`${classDaySelected.year}-${classDaySelected.month}-${classDaySelected.date}`] }}
-                                    </small>
+                                    <button type="button" class="badge outline-badge-primary btn btn-sm m-1"
+                                    @click="onClickOpenModalObservations(props.rowData)">Ver</button>
                                 </template>
                             </DataTable>
                         </div>
@@ -132,18 +134,18 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="composeModalAttendance" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    <div class="modal fade" id="composeModalAttendance" tabindex="-1" role="dialog" aria-labelledby="attendanceModal"
         aria-hidden="false" aria-modal="true">
         <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
+            <div class="modal-content" v-if="takeAttendance">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Large</h5>
+                    <h5 class="modal-title" id="attendanceModal">{{ takeAttendance.player_name }}</h5>
                     <button type="button" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"
-                        class="btn-close"></button>
+                        class="btn-close" @click="onCancelModalAttendance"></button>
                 </div>
-                <div class="modal-body" v-if="takeAttendance">
+                <div class="modal-body">
 
-                    <div class="mb-3 row">
+                    <div class="mb-3 row" v-if="classDaySelected">
                         <label for="attendance_number" class="col-sm-2 col-form-label">Entrenamiento#:</label>
                         <div class="col-sm-4">
                             <input type="text" readonly class="form-control-plaintext" id="attendance_number"
@@ -178,37 +180,36 @@
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn" @click="onCancelModal">
+                    <button type="button" class="btn" @click="onCancelModalAttendance">
                         <i class="flaticon-cancel-12"></i> Cerrar</button>
-                    <button type="button" class="btn btn-primary" @click="onSaveModal">Guardar</button>
+                    <button type="button" class="btn btn-primary" @click="onSaveModalAttendance">Guardar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="composeModalObservations" tabindex="-1" role="dialog"
-        aria-labelledby="exampleModalLabel" aria-hidden="false" aria-modal="true">
-        <div class="modal-dialog modal-md" role="document">
-            <div class="modal-content">
+    <div class="modal fade" id="composeModalObservations" tabindex="-1" role="dialog" aria-labelledby="observationModal"
+        aria-hidden="false" aria-modal="true">
+        <div class="modal-dialog modal-md" role="document" >
+            <div class="modal-content" v-if="takeAttendance">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Large</h5>
+                    <h5 class="modal-title" id="observationModal">{{ takeAttendance.player_name }}</h5>
                     <button type="button" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"
                         class="btn-close"></button>
                 </div>
-                <div class="modal-body" v-if="takeAttendance">
+                <div class="modal-body">
                     <div class="row">
                         <div class="form-group">
-                            <label for="observation">Observaciónes para el deportista en el entrenamiento:</label>
+                            <label for="observation">Observaciónes por fecha de entrenamiento:</label>
                             <span class="bar"></span>
                             <textarea name="observations" id="single_observation" cols="30" rows="10"
-                                class="form-control form-control-sm" v-model="takeAttendance.observation"></textarea>
+                                class="form-control form-control-sm" v-model="takeAttendance.observations" readonly></textarea>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn" data-dismiss="modal" data-bs-dismiss="modal"><i
                             class="flaticon-cancel-12"></i> Cerrar</button>
-                    <button type="button" class="btn btn-primary">Guardar</button>
                 </div>
             </div>
         </div>
@@ -221,225 +222,34 @@ export default {
 };
 </script>
 <script setup>
-import cloneDeep from "lodash.clonedeep";
 import { ErrorMessage, Field, Form } from "vee-validate";
-import { getCurrentInstance, onMounted, ref, toRaw } from "vue";
-import api from "@/utils/axios";
-import * as yup from "yup";
-import { useSetting } from "@/store/settings-store";
-import configLanguaje from '@/utils/datatableUtils';
+import useAttendances from '@/composables/attendances/attendances'
 
-const composeModalAttendance = ref(null);
-const composeModalObservations = ref(null);
-const isLoading = ref(false);
-const settings = useSetting();
-const groups = settings.groups.map((group) => {
-    return { id: group.id, full_group: group.full_group };
-});
-
-const schema = yup.object().shape({
-    training_group: yup
-        .object({
-            id: yup.string().required(),
-            full_group: yup.string().required(),
-        })
-        .required(),
-    month: yup
-        .object({
-            value: yup.string().required(),
-            label: yup.string().required(),
-        })
-        .required(),
-});
-const formData = ref({
-    training_group: null,
-    month: null,
-});
-const globalError = ref(null)
-const { proxy } = getCurrentInstance()
-const modelGroup = ref(null)
-const modelMonth = ref(null)
-const export_pdf = ref(null)
-const export_excel = ref(null)
-const classDays = ref([])
-const classDaySelected = ref(null)
-const attendancesGroup = ref([])
-const takeAttendance = ref(null)
-const backupCell = ref(null)
-
-const handleSearchClassdays = async (values, actions) => {
-    try {
-        classDaySelected.value = null;
-        isLoading.value = true;
-        attendancesGroup.value = [];
-        const params = {
-            month: values.month?.label,
-            training_group_id: values.training_group?.id,
-        };
-
-        const response = await api.get(`/api/v2/training_group/classdays`, {
-            params: params,
-        });
-        if (response?.data) {
-            classDays.value = response.data;
-        }
-    } catch (error) {
-        classDays.value = [];
-        proxy.$handleBackendErrors(
-            error,
-            actions.setErrors,
-            (msg) => (globalError.value = msg)
-        );
-    } finally {
-        isLoading.value = false;
-    }
-};
-
-const clickClassDay = async (classDay) => {
-    try {
-        isLoading.value = true;
-        attendancesGroup.value = [];
-        classDaySelected.value = classDay;
-        const params = {
-            month: classDay.month,
-            training_group_id: classDay.group_id,
-            column: classDay.column,
-            dataRaw: true,
-        };
-
-        const response = await api.get(`/api/v2/assists`, { params: params });
-        if (response?.data) {
-            attendancesGroup.value = response.data.rows;
-            export_pdf.value = response.data.url_print;
-            export_excel.value = response.data.url_print_excel;
-        }
-    } catch (error) {
-        attendancesGroup.value = [];
-        export_pdf.value = null;
-        export_excel.value = null;
-    } finally {
-        isLoading.value = false;
-    }
-};
-
-const optionsMonths = [
-    { value: 1, label: "Enero" },
-    { value: 2, label: "Febrero" },
-    { value: 3, label: "Marzo" },
-    { value: 4, label: "Abril" },
-    { value: 5, label: "Mayo" },
-    { value: 6, label: "Junio" },
-    { value: 7, label: "Julio" },
-    { value: 8, label: "Agosto" },
-    { value: 9, label: "Septiembre" },
-    { value: 10, label: "Octubre" },
-    { value: 11, label: "Noviembre" },
-    { value: 12, label: "Diciembre" },
-];
-const attendanceTypes = {
-    as: "Asistencia",
-    fa: "Falta",
-    ex: "Excusa",
-    re: "Retiro",
-    in: "Incapacidad",
-}
-
-const options = {
-    ...configLanguaje,
-    lengthMenu: [[8, 20, 30, 50], [8, 20, 30, 50]],
-    columnDefs: [
-        { responsivePriority: 1, targets: 1 },
-        {
-            targets: [0,1],
-            width: '30%'
-        },
-        {
-            targets: ['_all'],
-            className: 'dt-head-center dt-body-center', // Center align their headers
-        },
-    ],
-    // scrollY: 500,
-    // scrollCollapse: true,
-    layout: {
-        topStart: null,
-        topEnd: null,
-        bottomStart: 'info',
-        bottomEnd: 'paging'
-    },
-    paging: true,
-    ordering: false,
-    serverSide: false,
-    processing: true,
-    order: [[1, 'desc']],
-    ajax: null,
-    columns: [
-        { data: 'inscription', title: 'Deportista', render: '#player-photo', searchable: false, with: '30%' },
-        { data: 'inscription.player.full_names', title: 'Asistencia', render: '#bagClick', searchable: false,with: '30%' },
-        { data: 'inscription.player.full_names', title: 'Observaciones Mensuales', render: '#observations', searchable: false, with: '40%' },
-    ]
-};
+const {
+    isLoading,
+    groups,
+    schema,
+    formData,
+    modelGroup,
+    modelMonth,
+    export_pdf,
+    export_excel,
+    classDays,
+    classDaySelected,
+    attendancesGroup,
+    takeAttendance,
+    optionsMonths,
+    attendanceTypes,
+    options,
+    handleSearchClassdays,
+    clickClassDay,
+    onClickOpenModalAttendance,
+    onCancelModalAttendance,
+    onSaveModalAttendance,
+    onClickOpenModalObservations
+} = useAttendances()
 
 
-onMounted(() => {
-    initModal()
-})
 
-const initModal = () => {
-    composeModalObservations.value = new window.bootstrap.Modal(document.getElementById("composeModalObservations"));
-    composeModalAttendance.value = new window.bootstrap.Modal(document.getElementById("composeModalAttendance"), {
-        backdrop: 'static', // Prevents closing the modal by clicking outside
-        keyboard: false,    // Disables closing the modal with the escape key
-        focus: false         // Focuses the modal when initialized (default is true)
-    });
-}
 
-const onClickOpenModal = async (row) => {
-    takeAttendance.value = row
-    backupCell.value = cloneDeep(toRaw(row))
-
-    const response = await api.get(`/api/v2/assists/${row.id}`, {
-        params: {
-            column: classDaySelected.value.column,
-            date: `${classDaySelected.value.year}-${classDaySelected.value.month}-${classDaySelected.value.date}`,
-            action: 'assist'
-        }
-    })
-
-    takeAttendance.value = response.data
-    composeModalAttendance.value.show();
-}
-
-const onCancelModal = () => {
-    let changed = attendancesGroup.value.find((attendance) => attendance.id === backupCell.value.id)
-    if (backupCell.value && changed) {
-        const clon = cloneDeep(toRaw(backupCell.value))
-        changed[classDaySelected.value.column] = clon[classDaySelected.value.column]
-        changed['observations'] = clon['observations']
-    }
-
-    backupCell.value = null
-    takeAttendance.value = null
-    composeModalAttendance.value.hide()
-}
-
-const onSaveModal = async () => {
-    let data = {
-        _method: 'PUT',
-        id: takeAttendance.value.id,
-        observations: takeAttendance.value.observation,
-        attendance_date: `${classDaySelected.value.year}-${classDaySelected.value.month}-${classDaySelected.value.date}`,
-    }
-    data[classDaySelected.value.column] = takeAttendance.value.value
-
-    const response = await api.post(`/api/v2/assists/${data.id}`, data)
-
-    let changed = attendancesGroup.value.find((attendance) => attendance.id === data.id)
-    if (response.data && changed) {
-        changed[classDaySelected.value.column] = data[classDaySelected.value.column]
-    }
-
-    backupCell.value = null
-    takeAttendance.value = null
-    composeModalAttendance.value.hide()
-}
 </script>

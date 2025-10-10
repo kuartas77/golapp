@@ -66,9 +66,11 @@ class AssistController extends Controller
                 }
             }
 
-            $assist->observations = $observations;
-
-            return response()->json($assist);
+            return response()->json([
+                'id' => $assist->id,
+                'player_name' => $assist->player->full_names,
+                'observations' => $observations
+            ]);
         } else {
             $column = request()->query('column');
             $date = request()->query('date');
