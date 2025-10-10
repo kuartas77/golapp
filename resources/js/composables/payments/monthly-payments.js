@@ -10,7 +10,7 @@ import * as yup from 'yup';
 export default function useMonthlyPayments() {
     const currentDate = new Date()
     const settings = useSetting()
-    const groups = settings.groups.map((group) => { return { id: group.id, full_group: group.full_group } })
+    const groups = settings.groups.filter((group) => group.name !== 'Provisional').map((group) => ({ id: group.id, full_group: group.full_group }));
     const categories = settings.categories
     const type_payments = settings.type_payments
     const selected_group = ref(null)
@@ -29,7 +29,7 @@ export default function useMonthlyPayments() {
     const isLoading = ref(false)
     const editingCell = ref(null)
     const backupCell = ref(null)
-    const typesNoEditables = ['6', '14']
+    const typesNoEditables = [6, 14]
     const annuity_amount = ref(0)
     const enrollment_amount = ref(0)
     const monthly_amount = ref(0)
@@ -69,6 +69,7 @@ export default function useMonthlyPayments() {
 
     const handleSearch = async (values, actions) => {
         try {
+            groupPayments.value = []
             isLoading.value = true
             const params = {
                 // unique_code
@@ -131,21 +132,21 @@ export default function useMonthlyPayments() {
     const handleSelectChange = (payPlayer, field) => {
         const type = payPlayer[field]
         const inputAmount = payPlayer[`${field}_amount`]
-        if (inputAmount == 0 && ['1', '9', '10'].includes(type)) {
+        if (inputAmount == 0 && [1, 9, 10].includes(type)) {
             if (field === 'enrollment') {
                 payPlayer[`${field}_amount`] = enrollment_amount.value
             } else {
                 payPlayer[`${field}_amount`] = monthly_amount.value
             }
-        } else if (inputAmount !== annuity_amount.value && ['11', '12'].includes(type)) {
+        } else if (inputAmount !== annuity_amount.value && [11, 12].includes(type)) {
             payPlayer[`${field}_amount`] = annuity_amount.value
-        } else if (inputAmount === annuity_amount.value && ['11', '12'].includes(type)) {
+        } else if (inputAmount === annuity_amount.value && [11, 12].includes(type)) {
             payPlayer[`${field}_amount`] = annuity_amount.value
-        } else if (inputAmount !== 0 && ['0'].includes(type)) {
+        } else if (inputAmount !== 0 && [0].includes(type)) {
             payPlayer[`${field}_amount`] = 0
-        } else if (['13'].includes(type)) {
+        } else if ([13].includes(type)) {
             payPlayer[`${field}_amount`] = inputAmount
-        } else if (['8'].includes(type)) {
+        } else if ([8].includes(type)) {
             payPlayer[`${field}_amount`] = 0
         }
     }
@@ -159,21 +160,21 @@ export default function useMonthlyPayments() {
         let allFields = false
         let changed = groupPayments.value.find((payPlayer) => payPlayer.id === paymentId)
 
-        if (inputAmount == 0 && ['1', '9', '10'].includes(type)) {
+        if (inputAmount == 0 && [1, 9, 10].includes(type)) {
             if (field === 'enrollment') {
                 changed[`${field}_amount`] = enrollment_amount.value
             } else {
                 changed[`${field}_amount`] = monthly_amount.value
             }
-        } else if (inputAmount !== annuity_amount.value && ['11', '12'].includes(type)) {
+        } else if (inputAmount !== annuity_amount.value && [11, 12].includes(type)) {
             changed[`${field}_amount`] = annuity_amount.value
             amount = annuity_amount.value
             allFields = true
-        } else if (inputAmount === annuity_amount.value && ['11', '12'].includes(type)) {
+        } else if (inputAmount === annuity_amount.value && [11, 12].includes(type)) {
             changed[`${field}_amount`] = annuity_amount.value
             amount = annuity_amount.value
             allFields = true
-        } else if (inputAmount !== 0 && ['0'].includes(type)) {
+        } else if (inputAmount !== 0 && [0].includes(type)) {
             changed[`${field}_amount`] = 0
         } else if (['13'].includes(type)) {
             changed[`${field}_amount`] = annuity_amount.value
@@ -240,13 +241,14 @@ export default function useMonthlyPayments() {
         totalByType.value.cash = 0
         totalByType.value.consignment = 0
         totalByType.value.others = 0
+        totalByType.value.debts = 0
         for (const field in  paymentFields) {
             totalsFooter.value[`${paymentFields[field]}`] = newValue.reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
 
-            totalByType.value.cash += newValue.filter(pay => ['9','12'].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
-            totalByType.value.consignment += newValue.filter(pay => ['10', '11'].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
-            totalByType.value.others += newValue.filter(pay => !['2','9','12','10', '11'].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
-            totalByType.value.debts += newValue.filter(pay => ['2'].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
+            totalByType.value.cash += newValue.filter(pay => [9, 12].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
+            totalByType.value.consignment += newValue.filter(pay => [10, 11].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
+            totalByType.value.others += newValue.filter(pay => ![2, 9, 10, 11, 12].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
+            totalByType.value.debts += newValue.filter(pay => [2].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
         }
     }, { deep: true })
 

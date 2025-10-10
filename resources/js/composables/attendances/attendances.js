@@ -12,9 +12,7 @@ export default function useAttendances() {
     const composeModalObservations = ref(null);
     const isLoading = ref(false);
     const settings = useSetting();
-    const groups = settings.groups.map((group) => {
-        return { id: group.id, full_group: group.full_group };
-    });
+    const groups = settings.groups.filter((group) => group.name !== 'Provisional').map((group) => ({ id: group.id, full_group: group.full_group }));
 
     const schema = yup.object().shape({
         training_group: yup

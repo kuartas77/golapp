@@ -5,28 +5,28 @@
                 <div class="col-xl-6 col-lg-6 col-sm-12 text-center">
                     <Form ref="form" :validation-schema="schema" @submit="handleSearch" :initial-values="formData"
                         class="row align-items-center justify-content-center">
-                        <div class="col-auto">
+                        <div class="col-sm-8">
                             <label for="training_group" class="sr-only">Grupo</label>
                             <Field name="training_group" v-slot="{ field, handleChange, handleBlur }">
                                 <multiselect id="training_group" v-bind="field" @change="handleChange"
                                     @blur="handleBlur" v-model="modelGroup" :options="groups" :multiple="false"
                                     :searchable="true" :preselect-first="false" track-by="id" label="full_group"
-                                    placeholder="Grupo" :show-labels="false" />
+                                    placeholder="Grupo" :show-labels="false" open-direction="bottom"/>
                             </Field>
                             <ErrorMessage name="training_group" class="custom-error" />
                         </div>
-                        <div class="col-auto">
+                        <div class="col-sm-2">
                             <label for="category" class="sr-only">Categoría</label>
                             <Field name="category" v-slot="{ field, handleChange, handleBlur }">
                                 <multiselect id="category" v-bind="field" @change="handleChange" @blur="handleBlur"
                                     v-model="modelCategory" :options="categories" :multiple="false" :searchable="true"
                                     :preselect-first="false" track-by="category" label="category"
-                                    placeholder="Categoría" :show-labels="false" />
+                                    placeholder="Categoría" :show-labels="false" open-direction="bottom" />
                             </Field>
                             <ErrorMessage name="month" class="custom-error" />
                         </div>
-                        <div class="col-auto">
-                            <button type="submit" class="btn btn-primary w-100" :disabled="isLoading">
+                        <div class="col-sm-2">
+                            <button type="submit" class="btn btn-primary w-100" :disabled="isLoading || (modelGroup === null && modelCategory === null)">
                                 Buscar
                                 <template v-if="isLoading">
                                     &nbsp;
@@ -85,12 +85,12 @@
 
             <div class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mb-2">
                 <div class="dt-info" aria-live="polite" id="table_info" role="status">
-                    Mostrando {{ player_count }} Deportistas, la página cuenta con scroll, mueve la rueda del mouse
+                    Mostrando {{ player_count }} Deportistas, los totales no incluyen el estado <small class="badge payments-c-2">Debe</small>.
                 </div>
             </div>
 
             <div class="table-responsive">
-                <perfect-scrollbar class="scroll-container" :options="scrollbarOptions">
+                <!-- <perfect-scrollbar class="scroll-container" :options="scrollbarOptions"> -->
 
                 <table class="table table-bordered table-sm dataTable align-middle text-center" ref="payments_table">
                     <thead class="">
@@ -111,16 +111,16 @@
                             <th class="dt-head-center dt-body-center">Dic</th>
                         </tr>
                     </thead>
-                    <tfoot v-if="groupPayments.length">
+                    <thead v-if="groupPayments.length">
                         <tr>
                             <th class="dt-head-center dt-body-center">
-                                <span class="text-muted">Totales</span>
+                                <span class="text-muted">Pagos Totales</span>
                             </th>
                             <th class="dt-head-center dt-body-center" v-for="field in totalsFooter">
                                 <span class="text-muted">{{ moneyFormat(field) }}</span>
                             </th>
                         </tr>
-                    </tfoot>
+                    </thead>
                     <tbody>
                         <template v-if="groupPayments.length">
 
@@ -209,7 +209,7 @@
                     </tbody>
 
                 </table>
-                </perfect-scrollbar>
+                <!-- </perfect-scrollbar> -->
             </div>
         </template>
     </panel>
@@ -249,7 +249,7 @@ const {
     typesNoEditables,
     paymentFields,
     totalsFooter,
-    totalByType,
+    totalByType
 } = useMonthlyPayments()
 
 
