@@ -1,19 +1,19 @@
 @php
 $colorClass = " ";
 switch($value){
-    case 'as':
+    case 1:
         $colorClass = $deleted ? '' : "color-success";
         break;
-    case 'fa':
+    case 2:
         $colorClass = $deleted ? '' : "color-error";
         break;
-    case 'ex':
+    case 3:
         $colorClass = $deleted ? '' : "color-orange";
         break;
-    case 're':
+    case 4:
         $colorClass = $deleted ? '' : "color-grey";
         break;
-    case 'in':
+    case 5:
         $colorClass = $deleted ? '' : "color-warning";
         break;
     default:
