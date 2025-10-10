@@ -35,25 +35,25 @@
 <div class="tab-content clearfix" id="tab_content">
 
     <div class="tab-pane show active" id="enabled" role="tabpanel" aria-labelledby="enabled-tab">
-
-        <table class="display compact" id="active_table" width="100%">
-            <thead>
-            <tr>
-                <th class="text-center">Nombres</th>
-                <th class="text-center">Torneo</th>
-                <th class="text-center">Pago / Estado</th>
-            </tr>
-            </thead>
-            <tbody id="table_body"></tbody>
-            <tfoot>
+        <div class="table-responsive-md">
+            <table class="display compact" id="active_table" width="100%">
+                <thead>
                 <tr>
-                    <th style="text-align:center"></th>
-                    <th style="text-align:center"></th>
-                    <th style="text-align:center"></th>
+                    <th class="text-center">Nombres</th>
+                    <th class="text-center">Torneo</th>
+                    <th class="text-center">Pago / Estado</th>
                 </tr>
-            </tfoot>
-        </table>
-
+                </thead>
+                <tbody id="table_body"></tbody>
+                <tfoot>
+                    <tr>
+                        <th style="text-align:center"></th>
+                        <th style="text-align:center"></th>
+                        <th style="text-align:center"></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
     </div>
 
 </div>
