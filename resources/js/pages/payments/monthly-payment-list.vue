@@ -89,9 +89,7 @@
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <!-- <perfect-scrollbar class="scroll-container" :options="scrollbarOptions"> -->
-
+            <div class="table-responsive scroll-container">
                 <table class="table table-bordered table-sm dataTable align-middle text-center" ref="payments_table">
                     <thead class="">
                         <tr>
@@ -111,16 +109,7 @@
                             <th class="dt-head-center dt-body-center">Dic</th>
                         </tr>
                     </thead>
-                    <thead v-if="groupPayments.length">
-                        <tr>
-                            <th class="dt-head-center dt-body-center">
-                                <span class="text-muted">Pagos Totales</span>
-                            </th>
-                            <th class="dt-head-center dt-body-center" v-for="field in totalsFooter">
-                                <span class="text-muted">{{ moneyFormat(field) }}</span>
-                            </th>
-                        </tr>
-                    </thead>
+
                     <tbody>
                         <template v-if="groupPayments.length">
 
@@ -207,9 +196,17 @@
                             </tr>
                         </template>
                     </tbody>
-
+<tfoot v-if="groupPayments.length">
+                        <tr>
+                            <th class="dt-head-center dt-body-center">
+                                <span class="text-muted">Pagos Totales</span>
+                            </th>
+                            <th class="dt-head-center dt-body-center" v-for="field in totalsFooter">
+                                <span class="text-muted">{{ moneyFormat(field) }}</span>
+                            </th>
+                        </tr>
+                    </tfoot>
                 </table>
-                <!-- </perfect-scrollbar> -->
             </div>
         </template>
     </panel>
@@ -251,15 +248,4 @@ const {
     totalsFooter,
     totalByType
 } = useMonthlyPayments()
-
-
-const scrollbarOptions = {
-        swipeEasing: true, // Always show scrollbar
-        wheelSpeed: 0.5, // Adjust scroll speed
-        maxScrollbarLength: 90
-      }
-
 </script>
-<style lang="scss" scoped>
-
-</style>
