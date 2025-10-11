@@ -11,7 +11,7 @@
                                 <multiselect id="training_group" v-bind="field" @change="handleChange"
                                     @blur="handleBlur" v-model="modelGroup" :options="groups" :multiple="false"
                                     :searchable="true" :preselect-first="false" track-by="id" label="full_group"
-                                    placeholder="Grupo" :show-labels="false" open-direction="bottom"/>
+                                    placeholder="Grupo" :show-labels="false" open-direction="bottom" />
                             </Field>
                             <ErrorMessage name="training_group" class="custom-error" />
                         </div>
@@ -26,7 +26,8 @@
                             <ErrorMessage name="month" class="custom-error" />
                         </div>
                         <div class="col-sm-2">
-                            <button type="submit" class="btn btn-primary w-100" :disabled="isLoading || (modelGroup === null && modelCategory === null)">
+                            <button type="submit" class="btn btn-primary w-100"
+                                :disabled="isLoading || (modelGroup === null && modelCategory === null)">
                                 Buscar
                                 <template v-if="isLoading">
                                     &nbsp;
@@ -85,7 +86,8 @@
 
             <div class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mb-2">
                 <div class="dt-info" aria-live="polite" id="table_info" role="status">
-                    Mostrando {{ player_count }} Deportistas, los totales no incluyen el estado <small class="badge payments-c-2">Debe</small>.
+                    Mostrando {{ player_count }} Deportistas, los totales no incluyen el estado <small
+                        class="badge payments-c-2">Debe</small>.
                 </div>
             </div>
 
@@ -196,7 +198,8 @@
                             </tr>
                         </template>
                     </tbody>
-<tfoot v-if="groupPayments.length">
+
+                    <tfoot v-if="groupPayments.length">
                         <tr>
                             <th class="dt-head-center dt-body-center">
                                 <span class="text-muted">Pagos Totales</span>
