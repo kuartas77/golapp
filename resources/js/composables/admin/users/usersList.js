@@ -71,13 +71,18 @@ export default function useUsersList() {
     }
     const submit = async (values, actions) => {
         try {
-            let userData = {...values }
+            let userData = { ...values }
 
-            if(userData.id) {
+            if (userData.id) {
                 userData._method = 'PUT'
                 await api.post(`/api/v2/admin/users/${userData.id}`, userData)
-            }else {
+            } else {
                 await api.post(`/api/v2/admin/users`, userData)
+            }
+
+            if (table.value) {
+                let dt = table.value.table.dt;
+                dt.ajax.reload(null, false)
             }
 
             modalHidden()
@@ -92,29 +97,26 @@ export default function useUsersList() {
     }
 
     const onClickRow = async (e) => {
-        try {
-            const itemId = e.target.dataset.itemId
-            if (!itemId) {
-                return
-            }
-            e.preventDefault()
-            const response = await api.get(`/api/v2/admin/users/${itemId}`)
-
-            const data = {
-                id: itemId,
-                name: response.data.data.name,
-                email: response.data.data.email,
-                rol_id: response.data.data.role.id
-            }
-
-            form.value.resetForm()
-            form.value.setValues(data)
-
-            composeModalUser.value.show()
-
-        } catch (error) {
-
+        const itemId = e.target.dataset.itemId
+        if (!itemId) {
+            return
         }
+        e.preventDefault()
+        const response = await api.get(`/api/v2/admin/users/${itemId}`)
+
+        const data = {
+            id: itemId,
+            name: response.data.data.name,
+            email: response.data.data.email,
+            rol_id: response.data.data.role.id
+        }
+
+        form.value.resetForm()
+        form.value.setValues(data)
+
+        composeModalUser.value.show()
+
+
     }
 
     onMounted(() => {
@@ -126,5 +128,5 @@ export default function useUsersList() {
         })
     })
 
-    return { table, options, initialData, schema, onClickRow, onCancel, submit}
+    return { table, options, initialData, schema, onClickRow, onCancel, submit }
 }
