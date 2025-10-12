@@ -71,6 +71,7 @@ Route::prefix('v2')->group(function(){
         Route::prefix('admin')->middleware(['role:super-admin|school'])->group(function (){
             Route::get('school', [SchoolsController::class, 'index']);
             Route::put('school/{school}', [SchoolsController::class, 'update']);
+            Route::apiResource('users', UsersController::class);
         });
 
         Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);

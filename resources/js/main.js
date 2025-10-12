@@ -78,3 +78,17 @@ app.mount('#app')
 window.$appSetting = appSetting;
 window.$appSetting.init();
 window.Swal = app.config.globalProperties.$swal;
+
+const modalHidden = () => {
+    document.querySelectorAll('.modal').forEach((modal) => {
+        modal.addEventListener('hide.bs.modal', () => {
+            document.activeElement.blur();
+        });
+    });
+}
+const showMessage = (msg = "", type = "success") => {
+    const toast = window.Swal.mixin({ toast: true, position: "top", showConfirmButton: false, timer: 5000 });
+    toast.fire({ icon: type, title: msg, padding: "10px 20px" });
+}
+window.modalHidden = modalHidden
+window.showMessage = showMessage

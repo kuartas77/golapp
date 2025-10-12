@@ -195,6 +195,7 @@ export default function useAttendances() {
 
         backupCell.value = null
         takeAttendance.value = null
+        modalHidden()
         composeModalAttendance.value.hide()
     }
 
@@ -216,6 +217,7 @@ export default function useAttendances() {
 
         backupCell.value = null
         takeAttendance.value = null
+        modalHidden()
         composeModalAttendance.value.hide()
         showMessage('Guardado correctamente')
     }
@@ -231,11 +233,6 @@ export default function useAttendances() {
             takeAttendance.value = null
         }
     }
-
-    const showMessage = (msg = "", type = "success") => {
-        const toast = window.Swal.mixin({ toast: true, position: "top", showConfirmButton: false, timer: 5000 });
-        toast.fire({ icon: type, title: msg, padding: "10px 20px" });
-    };
 
     onMounted(() => {
         initModals()

@@ -17,14 +17,18 @@ class UserResource extends JsonResource
      */
     public function toArray($request): array|JsonSerializable|Arrayable
     {
-        $role = [];
-        $role['name'] = $this->whenLoaded('roles')->first()->name;
         return [
             'name' => $this->name,
+            'email' => $this->email,
             'school_name' => $this->school->name,
             'school_slug' => $this->school->slug,
             'school_logo' => $this->school->logo_file,
-            'role' => $role
+            'role' =>  $this->whenLoaded('roles', $this->getRole())
         ];
+    }
+
+    private function getRole()
+    {
+        return $this->roles->map(fn($rol) => ['id' => $rol->id, 'name' => $rol->name])->first();
     }
 }

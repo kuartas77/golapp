@@ -33,7 +33,7 @@
         <template #link="props">
             <div class="text-center">
                 <a href="#" :data-item-id="props.cellData" class="link-primary">{{
-                    props.rowData.unique_code }}</a>
+                    props.cellData }}</a>
             </div>
         </template>
         <template #player="props">
