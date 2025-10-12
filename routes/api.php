@@ -5,6 +5,7 @@ use App\Http\Controllers\API\Admin\RegisterController;
 use App\Http\Controllers\API\Admin\SchoolController;
 use App\Http\Controllers\API\Admin\UsersController;
 use App\Http\Controllers\API\AuthControllerSPA;
+use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\Instructor\AssistsController;
 use App\Http\Controllers\API\Instructor\GroupsController;
 use App\Http\Controllers\API\LoginController;
@@ -61,6 +62,9 @@ Route::prefix('v2')->group(function(){
         Route::prefix('settings')->group(function(){
             Route::get('general', [SettingsController::class, 'index']);
         });
+
+        Route::get('dashboard', [DashboardController::class, 'index']);
+        Route::get('kpis', [DashboardController::class, 'kpis']);
 
         Route::get('user', [UserController::class, 'user']);
 

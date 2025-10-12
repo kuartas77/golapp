@@ -17,7 +17,7 @@ BEGIN
     */
 
     SELECT
-        t.training_group_id,
+        t.name AS grupo,
         t.school_id,
         t.year,
         t.month,
@@ -36,7 +36,7 @@ BEGIN
         COALESCE(ROUND(100 * t.total_disabilities / NULLIF(t.total_valids, 0), 2), 0) AS percentage_disabilities
     FROM (
         SELECT
-            a.training_group_id,
+            tg.name,
             a.school_id,
             a.year,
             a.month,
@@ -141,12 +141,13 @@ BEGIN
             ) AS total_disabilities
 
         FROM assists a
+        INNER JOIN training_groups tg ON tg.id = a.training_group_id
         WHERE
             (p_year IS NULL OR a.year = p_year) AND
             (p_month IS NULL OR a.month = p_month) AND
             (p_training_group_id IS NULL OR a.training_group_id = p_training_group_id) AND
             (p_school_id IS NULL OR a.school_id = p_school_id)
-        GROUP BY a.training_group_id, a.school_id, a.year, a.month
+        GROUP BY tg.name, a.school_id, a.year, a.month
     ) AS t
-    ORDER BY t.year DESC, t.month DESC, t.training_group_id DESC;
+    ORDER BY t.year DESC, t.month DESC, t.name DESC;
 END
