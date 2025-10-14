@@ -48,3 +48,28 @@ export const useSetting = defineStore('settings-store', {
     }
 
 })
+
+export const useSettingGroups = defineStore('settings-groups-store', {
+    state: () => ({
+        users: [],
+        year_active: [],
+        schedules: [],
+        categories: [],
+        tournaments: [],
+    }),
+    getters: {},
+    actions: {
+        clearState() {
+            this.$reset()
+        },
+        async getGroupSettings()  {
+            const response = await api.get('api/v2/settings/groups')
+            this.users = response.data.users
+            this.year_active = response.data.year_active
+            this.schedules = response.data.schedules
+            this.categories = response.data.categories
+            this.tournaments = response.data.tournaments
+        }
+    }
+
+})

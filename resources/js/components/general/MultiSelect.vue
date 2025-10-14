@@ -1,214 +1,197 @@
 <template>
-    <div class="ms-container">
-        <div class="ms-selectable">
-            <ul class="ms-list">
-                <li v-for="option in availableOptions" :key="option.id" class="ms-elem-selectable"
-                    @click="addSelection(option)">
+    <div class="ms-container responsive-ms d-flex justify-content-between align-items-stretch flex-nowrap gap-3">
+
+        <select :id="id" class="form-select d-none" multiple v-model="selectedValues" name="selectedOptions">
+            <option v-for="opt in selectedOptions" :key="opt.id" :value="opt.id">
+                {{ opt.name }}
+            </option>
+        </select>
+
+        <div class="ms-selectable d-flex flex-column flex-fill" :class="{ 'ms-focus': activeList === 'available' }"
+            @click="setActive('available')">
+            <ul class="ms-list flex-grow-1">
+                <li v-for="option in sortedAvailable" :key="option.id" class="ms-elem-selectable"
+                    @click.stop="addSelection(option)">
                     {{ option.name }}
                 </li>
             </ul>
-            <template v-if="buttons">
-                <br>
-                <div class="text-center">
-                    <button type="button" class="btn waves-effect waves-light btn-rounded btn-info" @click="addAll"
-                        :disabled="disabledAddAll">Agregar Todos</button>
-                </div>
-            </template>
+
+            <div v-if="buttons" class="ms-buttons text-center p-2">
+                <button type="button" class="btn btn-primary btn-sm" @click.stop="addAll"
+                    :disabled="sortedAvailable.length === 0" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                    title="Agregar todos!">
+                    >>
+                </button>
+            </div>
         </div>
 
-        <div class="ms-selection">
-            <ul class="ms-list">
-                <li v-for="option in selectedOptions" :key="option.id" class="ms-elem-selection"
-                    @click="removeSelection(option)">
+        <div class="ms-selection d-flex flex-column flex-fill" :class="{ 'ms-focus': activeList === 'selected' }"
+            @click="setActive('selected')">
+            <ul class="ms-list flex-grow-1">
+                <li v-for="option in sortedSelected" :key="option.id" class="ms-elem-selection"
+                    @click.stop="removeSelection(option)">
                     {{ option.name }}
                 </li>
             </ul>
-            <template v-if="buttons">
-                <br>
-                <div class="text-center">
-                    <button type="button" class="btn waves-effect waves-light btn-rounded btn-info" @click="removeAll"
-                        :disabled="disabledRemoveall">Quitar Todos</button>
-                </div>
-            </template>
+
+            <div v-if="buttons" class="ms-buttons text-center p-2">
+                <button type="button" class="btn btn-primary btn-sm" @click.stop="removeAll"
+                    :disabled="sortedSelected.length === 0" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                    title="Quitar todos!">
+                    << </button>
+            </div>
         </div>
     </div>
 </template>
 
+<script setup>
+import { ref, computed, watch, onMounted } from 'vue'
 
-<!-- <MultiSelect :buttons="true" :options="[
-                { id: 10, name: 'Option A' },
-                { id: 11, name: 'Option B' },
-                { id: 12, name: 'Option C' },
-                { id: 13, name: 'Option D' },
-                { id: 14, name: 'Option E' },
-                { id: 15, name: 'Option F' }
-                ]" v-model:preselected="preselected"/> -->
-
-
-<script>
-export default {
-    name: 'multiSelect',
-    props: {
-        buttons: {
-            type: Boolean,
-            default: false
-        },
-        options: {
-            type: Array,
-            required: true
-        },
-        preselected: {
-            type: Array,
-            default: []
-        },
+// Props y emisión estándar (para usar con v-model o vee-validate)
+const props = defineProps({
+    id: {
+        type: String,
+        default: 'multiSelect'
     },
-    emits: ['update:preselected'],
-    data() {
-        return {
-            availableOptions: [],
-            selectedOptions: []
-        };
+    modelValue: {
+        type: Array,
+        default: () => []
     },
-    computed: {
-        disabledAddAll: ({ availableOptions }) => availableOptions.length == 0,
-        disabledRemoveall: ({ selectedOptions }) => selectedOptions.length == 0
+    value: {
+        type: Array,
+        default: () => []
     },
-    watch: {
-        'availableOptions'() { this.selectedOptions.sort((a, b) => a.id - b.id) },
-        'selectedOptions'() { this.availableOptions.sort((a, b) => a.id - b.id) }
+    options: {
+        type: Array,
+        required: true
     },
-    methods: {
-        handleSelect() {
-            this.$emit('update:preselected', this.selectedOptions)
-        },
-        addSelection(item) {
-            this.selectedOptions.push(item);
-            this.availableOptions = this.availableOptions.filter(option => option.id !== item.id)
-            this.handleSelect()
-        },
-        removeSelection(item) {
-            this.availableOptions.push(item);
-            this.selectedOptions = this.selectedOptions.filter(option => option.id !== item.id)
-            this.handleSelect()
-        },
-        addAll() {
-            this.selectedOptions = this.options
-            this.availableOptions = []
-            this.handleSelect()
-        },
-        removeAll() {
-            this.availableOptions = this.options
-            this.selectedOptions = []
-            this.handleSelect()
-        },
-        checkLoadPreselected() {
-            if (this.preselected.length > 0) {
-                this.selectedOptions = this.preselected
-                this.availableOptions = this.options.filter(option => !this.preselected.find(selected => selected.id === option.id))
-            }
-        }
-    },
-    mounted() {
-        this.availableOptions = this.options
-        this.checkLoadPreselected()
+    buttons: {
+        type: Boolean,
+        default: false
     }
-};
+})
+const emit = defineEmits(['update:modelValue', 'update:value'])
+
+const selectedOptions = ref([])
+const activeList = ref(null)
+
+const availableOptions = computed(() =>
+    props.options.filter(opt => !selectedOptions.value.some(sel => sel.id === opt.id))
+)
+
+const sortedAvailable = computed(() =>
+    [...availableOptions.value].sort((a, b) => a.id - b.id)
+)
+
+const sortedSelected = computed(() =>
+    [...selectedOptions.value].sort((a, b) => a.id - b.id)
+)
+
+const selectedValues = computed({
+    get: () => selectedOptions.value.map(opt => opt.id),
+    set: (ids) => {
+        selectedOptions.value = props.options.filter(opt => ids.includes(opt.id))
+        emitUpdates()
+    }
+})
+
+function emitUpdates() {
+    emit('update:modelValue', selectedOptions.value)
+    emit('update:value', selectedOptions.value)
+}
+
+function addSelection(item) {
+    selectedOptions.value = [...selectedOptions.value, item]
+    emitUpdates()
+}
+
+function removeSelection(item) {
+    selectedOptions.value = selectedOptions.value.filter(opt => opt.id !== item.id)
+    emitUpdates()
+}
+
+function addAll() {
+    selectedOptions.value = [...props.options]
+    emitUpdates()
+}
+
+function removeAll() {
+    selectedOptions.value = []
+    emitUpdates()
+}
+
+function setActive(list) {
+    activeList.value = list
+}
+
+// Carga inicial correcta (tanto de modelValue como de value)
+onMounted(() => {
+    const initial = props.modelValue.length ? props.modelValue : props.value
+    selectedOptions.value = [...initial]
+})
+
+// Reacciona cuando cambia desde fuera
+watch(() => props.modelValue, (val) => {
+    if (val && val !== selectedOptions.value) {
+        selectedOptions.value = [...val]
+    }
+})
+
+watch(() => props.value, (val) => {
+    if (val && val !== selectedOptions.value) {
+        selectedOptions.value = [...val]
+    }
+})
 </script>
 
 <style scoped>
-.ms-container {
-    background: transparent url('../img/switch.png') no-repeat 50% 50%;
-    width: 370px;
-}
+/* ==== Responsivo y altura flexible ==== */
 
-.ms-container:after {
-    content: ".";
-    display: block;
-    height: 0;
-    line-height: 0;
-    font-size: 0;
-    clear: both;
-    min-height: 0;
-    visibility: hidden;
-}
-
-.ms-container .ms-selectable,
-.ms-container .ms-selection {
-    background: #fff;
-    color: #555555;
-    float: left;
-    width: 45%;
-}
-
-.ms-container .ms-selection {
-    float: right;
-}
-
-.ms-container .ms-list {
-    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-    -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-    -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
-    -moz-transition: border linear 0.2s, box-shadow linear 0.2s;
-    -ms-transition: border linear 0.2s, box-shadow linear 0.2s;
-    -o-transition: border linear 0.2s, box-shadow linear 0.2s;
-    transition: border linear 0.2s, box-shadow linear 0.2s;
-    border: 1px solid #ccc;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-    position: relative;
-    height: 200px;
-    padding: 0;
-    overflow-y: auto;
-}
-
-.ms-container .ms-list.ms-focus {
-    border-color: rgba(82, 168, 236, 0.8);
-    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
-    -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
-    outline: 0;
-    outline: thin dotted \9;
-}
-
-.ms-container ul {
-    margin: 0;
-    list-style-type: none;
-    padding: 0;
-}
-
-.ms-container .ms-optgroup-container {
+.responsive-ms {
     width: 100%;
+    max-width: 100%;
+    flex-wrap: nowrap;
+    /* siempre lado a lado */
+    background-size: contain;
+    background-position: center bottom;
+    min-height: 250px;
+    /* altura base ajustable */
 }
 
-.ms-container .ms-optgroup-label {
-    margin: 0;
-    padding: 5px 0px 0px 5px;
-    cursor: pointer;
-    color: #999;
+/* ambas columnas comparten espacio 50/50 */
+.ms-selectable,
+.ms-selection {
+    width: 48% !important;
+    display: flex;
+    flex-direction: column;
 }
 
-.ms-container .ms-selectable li.ms-elem-selectable,
-.ms-container .ms-selection li.ms-elem-selection {
-    border-bottom: 1px #eee solid;
-    padding: 2px 10px;
-    color: #555;
-    font-size: 14px;
+/* la lista crece para ocupar el espacio disponible */
+.ms-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    min-height: 200px;
 }
 
-.ms-container .ms-selectable li.ms-hover,
-.ms-container .ms-selection li.ms-hover {
-    cursor: pointer;
-    color: #fff;
-    text-decoration: none;
-    background-color: #08c;
-}
+/* En pantallas muy pequeñas, conserva lado a lado pero ajusta tamaños */
+@media (max-width: 576px) {
+    .responsive-ms {
+        gap: 0.5rem;
+    }
 
-.ms-container .ms-selectable li.disabled,
-.ms-container .ms-selection li.disabled {
-    background-color: #eee;
-    color: #aaa;
-    cursor: text;
+    .ms-selectable,
+    .ms-selection {
+        justify-content: center;
+        width: 50% !important;
+    }
+
+    .ms-list {
+        min-height: 150px;
+    }
+
+    .btn {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.75rem;
+    }
 }
 </style>

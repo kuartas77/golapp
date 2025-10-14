@@ -1,24 +1,21 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { useTemplateRef, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthUser } from '@/store/auth-user'
+import { useTemplateRef, onMounted, ref } from 'vue';
 import api from '@/utils/axios'
 
 export default function useTrainingList() {
 
-    const store = useAuthUser()
-    // const router = useRouter()
-    const table = useTemplateRef('table');
+    const table = useTemplateRef('table')
+    const selectedId = ref(null)
 
     const columns = [
-        { data: 'id', width: '1%', title: 'ID', searchable: false, orderable: true },
+        { data: 'id', width: '1%', title: 'ID', render: '#link', searchable: false, orderable: true },
         { data: 'name', title: 'Nombre', searchable: true, orderable: true },
         { data: 'stage', title: 'Escenario', name: 'roles.name', searchable: true, orderable: true },
         { data: 'category', title: 'Categorias', searchable: true, orderable: false },
         { data: 'members_count', title: 'Integrantes', searchable: false, orderable: true },
         { data: 'instructors_names', title: 'Instructor(es)', searchable: false, orderable: true },
         { data: 'days', title: 'Días', searchable: false, orderable: false },
-    ];
+    ]
 
     const options = {
         ...configLanguaje,
@@ -47,7 +44,17 @@ export default function useTrainingList() {
             }
         },
         columns: columns
-    };
+    }
 
-    return { table, options }
+    const onClickRow = async (e) => {
+        const itemId = e.target.dataset.itemId
+        if (!itemId) {
+            return
+        }
+        e.preventDefault()
+
+        selectedId.value = itemId
+    }
+
+    return { table, options, selectedId, onClickRow }
 }

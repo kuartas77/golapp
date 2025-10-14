@@ -28,6 +28,7 @@ import fileInputImage from '@/components/form/FileInputImage.vue';
 import Checkbox from '@/components/form/Checkbox.vue';
 import DatatableTemplate from "@/components/general/DatatableTemplate.vue";
 import Multiselect from "@suadelabs/vue3-multiselect";
+import CustomMultiSelect from "@/components/general/MultiSelect.vue";
 
 // bootstrap
 import * as bootstrap from "bootstrap";
@@ -70,6 +71,7 @@ app.component('panel', panel)
 app.component('inputField', input)
 app.component('inputFileImage', fileInputImage)
 app.component('Multiselect', Multiselect)
+app.component('CustomMultiSelect', CustomMultiSelect)
 app.component('checkbox', Checkbox)
 
 app.directive('has-role', vHasRol)

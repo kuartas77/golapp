@@ -61,6 +61,7 @@ Route::prefix('v2')->group(function(){
 
         Route::prefix('settings')->group(function(){
             Route::get('general', [SettingsController::class, 'index']);
+            Route::get('groups', [SettingsController::class, 'configGroups']);
         });
 
         Route::get('dashboard', [DashboardController::class, 'index']);
@@ -72,6 +73,7 @@ Route::prefix('v2')->group(function(){
             Route::get('school', [SchoolsController::class, 'index']);
             Route::put('school/{school}', [SchoolsController::class, 'update']);
             Route::apiResource('users', UsersController::class);
+            Route::resource('training_groups', TrainingGroupController::class, ['only' => ['show', 'store', 'update']]);
         });
 
         Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);

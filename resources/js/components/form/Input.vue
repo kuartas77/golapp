@@ -1,5 +1,6 @@
 <template>
     <label v-if="label" :for="name" class="form-label">{{ label }}</label>
+    <span v-if="isRequired" class="text-danger">*</span>
     <template v-if="!currency">
         <input  :type="type" autocomplete="off"
             class="form-control form-control-sm"
@@ -23,6 +24,7 @@
 <script setup>
 import { useField } from 'vee-validate'
 import CurrencyInput from '@/components/general/CurrencyInput'
+import { boolean } from 'yup'
 const props = defineProps({
     name: {
         type: String,
@@ -37,6 +39,10 @@ const props = defineProps({
         default: false
     },
     label: String,
+    isRequired: {
+        type: Boolean,
+        default: false
+    }
 })
 
 const { value, errorMessage, meta } = useField(() => props.name)
