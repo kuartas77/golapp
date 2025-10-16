@@ -1,6 +1,7 @@
 import configLanguaje from '@/utils/datatableUtils';
 import { useTemplateRef, onMounted, ref } from 'vue';
 import api from '@/utils/axios'
+import { usePageTitle } from "@/composables/use-meta";
 
 export default function useTrainingList() {
 
@@ -67,6 +68,10 @@ export default function useTrainingList() {
     const onCancel = () => {
         selectedId.value = null
     }
+
+    onMounted(() => {
+        usePageTitle('G. Entrenamiento')
+    })
 
     return { table, options, selectedId, onClickRow, reloadTable, onCancel }
 }
