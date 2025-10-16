@@ -64,11 +64,11 @@ export const useSettingGroups = defineStore('settings-groups-store', {
         },
         async getGroupSettings()  {
             const response = await api.get('api/v2/settings/groups')
-            this.users = response.data.users
+            this.users = response.data.users.map((i) => ({value: i.id, label: i.name}))
             this.year_active = response.data.year_active
-            this.schedules = response.data.schedules
-            this.categories = response.data.categories
-            this.tournaments = response.data.tournaments
+            this.schedules = response.data.schedules.map((i) => ({value: i.id, label: i.name}))
+            this.categories = response.data.categories.map((i) => ({value: i.id, label: i.name}))
+            this.tournaments = response.data.tournaments.map((i) => ({value: i.id, label: i.name}))
         }
     }
 

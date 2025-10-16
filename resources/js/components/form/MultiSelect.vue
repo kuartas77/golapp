@@ -2,17 +2,17 @@
     <div class="ms-container responsive-ms d-flex justify-content-between align-items-stretch flex-nowrap gap-3">
 
         <select :id="id" class="form-select d-none" multiple v-model="selectedValues" name="selectedOptions">
-            <option v-for="opt in selectedOptions" :key="opt.id" :value="opt.id">
-                {{ opt.name }}
+            <option v-for="opt in selectedOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
             </option>
         </select>
 
         <div class="ms-selectable d-flex flex-column flex-fill" :class="{ 'ms-focus': activeList === 'available' }"
             @click="setActive('available')">
             <ul class="ms-list flex-grow-1">
-                <li v-for="option in sortedAvailable" :key="option.id" class="ms-elem-selectable"
+                <li v-for="option in sortedAvailable" :key="option.value" class="ms-elem-selectable"
                     @click.stop="addSelection(option)">
-                    {{ option.name }}
+                    {{ option.label }}
                 </li>
             </ul>
 
@@ -28,9 +28,9 @@
         <div class="ms-selection d-flex flex-column flex-fill" :class="{ 'ms-focus': activeList === 'selected' }"
             @click="setActive('selected')">
             <ul class="ms-list flex-grow-1">
-                <li v-for="option in sortedSelected" :key="option.id" class="ms-elem-selection"
+                <li v-for="option in sortedSelected" :key="option.value" class="ms-elem-selection"
                     @click.stop="removeSelection(option)">
-                    {{ option.name }}
+                    {{ option.label }}
                 </li>
             </ul>
 
@@ -76,21 +76,21 @@ const selectedOptions = ref([])
 const activeList = ref(null)
 
 const availableOptions = computed(() =>
-    props.options.filter(opt => !selectedOptions.value.some(sel => sel.id === opt.id))
+    props.options.filter(opt => !selectedOptions.value.some(sel => sel.value === opt.value))
 )
 
 const sortedAvailable = computed(() =>
-    [...availableOptions.value].sort((a, b) => a.id - b.id)
+    [...availableOptions.value].sort((a, b) => a.value - b.value)
 )
 
 const sortedSelected = computed(() =>
-    [...selectedOptions.value].sort((a, b) => a.id - b.id)
+    [...selectedOptions.value].sort((a, b) => a.value - b.value)
 )
 
 const selectedValues = computed({
-    get: () => selectedOptions.value.map(opt => opt.id),
-    set: (ids) => {
-        selectedOptions.value = props.options.filter(opt => ids.includes(opt.id))
+    get: () => selectedOptions.value.map(opt => opt.value),
+    set: (values) => {
+        selectedOptions.value = props.options.filter(opt => values.includes(opt.value))
         emitUpdates()
     }
 })
@@ -106,7 +106,7 @@ function addSelection(item) {
 }
 
 function removeSelection(item) {
-    selectedOptions.value = selectedOptions.value.filter(opt => opt.id !== item.id)
+    selectedOptions.value = selectedOptions.value.filter(opt => opt.value !== item.value)
     emitUpdates()
 }
 

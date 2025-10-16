@@ -1,11 +1,11 @@
 <template>
     <div class="modal fade" id="composeModalTrainigG" tabindex="-1" role="dialog" aria-labelledby="modalTrainigG"
         aria-hidden="false" aria-modal="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-sm" role="document">
             <Form ref="form" :validation-schema="schema" @submit="submit" :initial-values="initialData">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="modalTrainigG">Grupo de entrenamiento</h5>
+                        <h5 class="modal-title" id="modalTrainigG">Grupo de competencia</h5>
                         <button type="button" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"
                             class="btn-close" @click="onCancel"></button>
                     </div>
@@ -20,7 +20,9 @@
 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <inputField label="Lugar de entrenamiento" name="stage" />
+                                        <Field name="user_id" v-slot="{ field, handleChange, handleBlur }">
+                                            <CustomSelect2 v-binf="field" :options="items" @change="handleChange" @blur="handleBlur"/>
+                                        </Field>
                                     </div>
                                 </div>
                             </div>
@@ -30,13 +32,7 @@
                                     <div class="form-group">
                                         <label for="year_active" class="form-label">Año de actividad</label><span
                                             class="text-danger">*</span>
-                                        <Field id="year_active" name="year_active" as="select"
-                                            class="form-select form-select-sm">
-                                            <option :value="year" v-for="year in settingsGroup.year_active">
-                                                {{ year }}
-                                            </option>
-                                            <ErrorMessage name="year_active" class="custom-error" />
-                                        </Field>
+
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -48,54 +44,6 @@
                                 </div>
                             </div>
 
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <Field name="days" v-slot="{ field, handleChange, handleBlur }">
-                                            <label for="days">Días</label><span class="text-danger">*</span>
-                                            <CustomMultiSelect v-bind="field" :buttons="true" :options="daysOptions"
-                                                @change="handleChange" @blur="handleBlur" id="days" />
-                                            <ErrorMessage name="days" class="custom-error" />
-                                        </Field>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <Field name="schedules" v-slot="{ field, handleChange, handleBlur }">
-                                            <label for="schedules">Horario(s)</label><span class="text-danger">*</span>
-                                            <CustomMultiSelect v-bind="field" :buttons="true"
-                                                :options="settingsGroup.schedules" @change="handleChange"
-                                                @blur="handleBlur" id="schedules" />
-                                            <ErrorMessage name="schedules" class="custom-error" />
-                                        </Field>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <Field name="user_id" v-slot="{ field, handleChange, handleBlur }">
-                                            <label for="user_id">Instructor(es)</label><span
-                                                class="text-danger">*</span>
-                                            <CustomMultiSelect v-bind="field" :buttons="true"
-                                                :options="settingsGroup.users" @change="handleChange" @blur="handleBlur"
-                                                id="user_id" />
-                                            <ErrorMessage name="user_id" class="custom-error" />
-                                        </Field>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <Field name="years" v-slot="{ field, handleChange, handleBlur }">
-                                            <label for="years">Categoria(s)</label><span class="text-danger">*</span>
-                                            <CustomMultiSelect v-bind="field" :buttons="true"
-                                                :options="settingsGroup.categories" @change="handleChange"
-                                                @blur="handleBlur" id="years" />
-                                            <ErrorMessage name="years" class="custom-error" />
-                                        </Field>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -109,6 +57,11 @@
         </div>
     </div>
 </template>
+<script>
+export default {
+    name: 'modal_competition_group'
+}
+</script>
 <script setup>
 import { getCurrentInstance, useTemplateRef, ref, onMounted, watch } from "vue";
 import { ErrorMessage, Field, Form } from "vee-validate";

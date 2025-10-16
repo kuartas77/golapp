@@ -1,0 +1,277 @@
+<template>
+    <div class="position-relative" ref="root">
+        <div class="form-select d-flex align-items-center justify-content-between flex-wrap"
+            :class="{ 'dropdown-toggle': true, disabled: disabled }" role="combobox" :aria-expanded="isOpen.toString()"
+            @click="toggleDropdown">
+            <div class="d-flex flex-wrap gap-1 align-items-center flex-grow-1">
+                <template v-if="multiple">
+                    <template v-if="selected.length">
+                        <span v-for="opt in selected" :key="opt.value"
+                            class="badge bg-primary d-flex align-items-center">
+                            {{ opt.label }}
+                            <button type="button" class="btn-close btn-close-white btn-sm ms-1" aria-label="Remove"
+                                @click.stop="removeTag(opt.value)"></button>
+                        </span>
+                    </template>
+                    <span v-else class="text-muted">{{ placeholder }}</span>
+                </template>
+                <template v-else>
+                    <template v-if="selected">
+                        <span class="me-2">{{ selected.label }}</span>
+                        <!-- <small class="text-muted">({{ selected.value }})</small> -->
+                    </template>
+                    <template v-else>
+                        <span class="text-muted">{{ placeholder }}</span>
+                    </template>
+                </template>
+            </div>
+
+            <div class="d-flex align-items-center ms-auto">
+                <button v-if="clearable && hasValue && !disabled" type="button" class="btn-close btn-sm ms-1"
+                    @click.stop="clearSelection" aria-label="Clear selection">
+                </button>
+            </div>
+        </div>
+
+        <div class="dropdown-menu w-100 p-2" :class="{ show: isOpen }" style="max-height: 260px; overflow: auto;"
+            @click.stop>
+            <label for="search" class="d-none"></label>
+            <input ref="searchInput" type="search" id="search" class="form-control mb-2" :placeholder="searchPlaceholder"
+                v-model="query" @keydown.down.prevent="focusNext" @keydown.up.prevent="focusPrev"
+                @keydown.enter.prevent="selectFocused" />
+
+            <template v-if="filtered.length === 0">
+                <div class="text-muted small p-2">No hay resultados</div>
+            </template>
+
+            <ul class="list-group list-group-flush">
+                <li v-for="(opt, idx) in filtered" :key="opt.value"
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    :class="{ active: idx === focusedIndex }" @mouseenter="focusedIndex = idx"
+                    @mouseleave="focusedIndex = -1" @click="selectOption(opt)" role="option"
+                    :aria-selected="isSelected(opt).toString()">
+                    <div>
+                        <div>{{ opt.label }}</div>
+                        <!-- <small class="text-muted">{{ opt.meta || '' }}</small> -->
+                    </div>
+                    <span v-if="isSelected(opt)" class="badge bg-primary">Seleccionado</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</template>
+
+<script setup>
+import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'
+
+const props = defineProps({
+    modelValue: { required: false },
+    options: { type: Array, default: () => [] },
+    placeholder: { type: String, default: 'Selecciona...' },
+    searchPlaceholder: { type: String, default: 'Buscar...' },
+    clearable: { type: Boolean, default: true },
+    disabled: { type: Boolean, default: false },
+    filterFunction: { type: Function, default: null },
+    multiple: { type: Boolean, default: false }
+})
+
+const emit = defineEmits(['update:modelValue', 'update:value', 'change', 'open', 'close'])
+
+const root = ref(null)
+const searchInput = ref(null)
+const isOpen = ref(false)
+const query = ref('')
+const focusedIndex = ref(-1)
+
+const hasValue = computed(() => props.multiple ? (Array.isArray(props.modelValue) && props.modelValue.length > 0) : !!props.modelValue)
+
+const selected = computed(() => {
+    if (props.multiple) {
+        if (!Array.isArray(props.modelValue)) return []
+        return props.options.filter(o => props.modelValue.includes(o.value))
+    } else {
+        if (props.modelValue == null) return null
+        return props.options.find(o => o.value === props.modelValue) || { value: props.modelValue, label: String(props.modelValue) }
+    }
+})
+
+function normalize(str) {
+    return String(str).toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '')
+}
+
+const filtered = computed(() => {
+    if (!query.value) return props.options
+    if (props.filterFunction && typeof props.filterFunction === 'function') {
+        return props.options.filter(o => props.filterFunction(query.value, o))
+    }
+    const q = normalize(query.value)
+    return props.options.filter(o => {
+        return normalize(o.label).includes(q) || normalize(o.value).includes(q) || (o.meta && normalize(o.meta).includes(q))
+    })
+})
+
+function openDropdown() {
+    if (props.disabled) return
+    isOpen.value = true
+    emit('open')
+    setTimeout(() => {
+        if (searchInput.value) searchInput.value.focus()
+    }, 0)
+}
+function closeDropdown() {
+    isOpen.value = false
+    query.value = ''
+    focusedIndex.value = -1
+    emit('close')
+}
+function toggleDropdown() {
+    if (isOpen.value) closeDropdown(); else openDropdown()
+}
+
+function selectOption(opt) {
+    if (props.multiple) {
+        let newValues = Array.isArray(props.modelValue) ? [...props.modelValue] : []
+        if (newValues.includes(opt.value)) {
+            newValues = newValues.filter(v => v !== opt.value)
+        } else {
+            newValues.push(opt.value)
+        }
+        emit('update:modelValue', newValues)
+        emit('update:value', newValues)
+        emit('change', newValues)
+    } else {
+        emit('update:modelValue', opt.value)
+        emit('update:value', opt.value)
+        emit('change', opt)
+        closeDropdown()
+    }
+}
+
+function removeTag(val) {
+    if (!props.multiple) return
+    let newValues = Array.isArray(props.modelValue) ? [...props.modelValue] : []
+    newValues = newValues.filter(v => v !== val)
+    emit('update:modelValue', newValues)
+    emit('update:value', newValues)
+    emit('change', newValues)
+}
+
+function clearSelection() {
+    const cleared = props.multiple ? [] : null
+    emit('update:modelValue', cleared)
+    emit('update:value', cleared)
+    emit('change', cleared)
+}
+
+function isSelected(opt) {
+    if (props.multiple) {
+        return Array.isArray(props.modelValue) && props.modelValue.includes(opt.value)
+    }
+    return props.modelValue === opt.value
+}
+
+function focusNext() {
+    if (filtered.value.length === 0) return
+    focusedIndex.value = Math.min(filtered.value.length - 1, focusedIndex.value + 1)
+    scrollFocusedIntoView()
+}
+function focusPrev() {
+    if (filtered.value.length === 0) return
+    focusedIndex.value = Math.max(0, focusedIndex.value - 1)
+    scrollFocusedIntoView()
+}
+function selectFocused() {
+    if (focusedIndex.value >= 0 && filtered.value[focusedIndex.value]) {
+        selectOption(filtered.value[focusedIndex.value])
+    }
+}
+function scrollFocusedIntoView() {
+    requestAnimationFrame(() => {
+        const menu = root.value?.querySelector('.dropdown-menu')
+        const items = menu?.querySelectorAll('.list-group-item')
+        const el = items?.[focusedIndex.value]
+        if (el) el.scrollIntoView({ block: 'nearest' })
+    })
+}
+
+function onDocumentClick(e) {
+    if (!root.value) return
+    if (!root.value.contains(e.target)) closeDropdown()
+}
+
+onMounted(() => {
+    document.addEventListener('click', onDocumentClick)
+})
+onBeforeUnmount(() => {
+    document.removeEventListener('click', onDocumentClick)
+})
+
+watch([filtered, isOpen], () => {
+    focusedIndex.value = filtered.value.length ? 0 : -1
+})
+</script>
+
+<style scoped lang="scss">
+.form-select.dropdown-toggle {
+    // cursor: pointer;
+    height: 45px !important;
+    /* altura fija */
+    min-height: 45px !important;
+    /* asegura consistencia */
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    /* oculta contenido que exceda la altura */
+}
+
+.form-select.dropdown-toggle>div.flex-grow-1 {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    /* permite scroll horizontal si hay muchos tags */
+    gap: 0.25rem;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.list-group-item.active {
+    background-color: rgba(13, 110, 253, 0.12);
+}
+
+.badge button {
+    font-size: 0.25rem;
+    padding: 0.2em 0.5em;
+}
+
+.badge:hover {
+    transition: none;
+    -webkit-transition: none;
+    -webkit-transform: none;
+    transform: none;
+}
+
+.list-group {
+    cursor: pointer;
+}
+
+.dark {
+    .list-group .list-group-item {
+        border: 1px solid #151516;
+        background-color: #1b2e4b;
+        color: #25d5e4;
+    }
+
+    .list-group-item-action:hover {
+        color: #009688;
+    }
+}
+
+.list-group-item-action:hover {
+    color: #151516;
+}
+</style>
