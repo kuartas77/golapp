@@ -56,5 +56,17 @@ export default function useTrainingList() {
         selectedId.value = itemId
     }
 
-    return { table, options, selectedId, onClickRow }
+    const reloadTable = () => {
+        selectedId.value = null
+        if (table.value) {
+            let dt = table.value.table.dt;
+            dt.ajax.reload(null, false)
+        }
+    }
+
+    const onCancel = () => {
+        selectedId.value = null
+    }
+
+    return { table, options, selectedId, onClickRow, reloadTable, onCancel }
 }

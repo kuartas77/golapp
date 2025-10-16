@@ -58,16 +58,17 @@ class TrainingGroupController extends Controller
      * @param TrainingGroupRequest $request
      * @return Application|Redirector|RedirectResponse
      */
-    public function store(TrainingGroupRequest $request): Redirector|RedirectResponse|Application
+    public function store(TrainingGroupRequest $request): JsonResponse
     {
-        $training_group = $this->repository->createTrainingGroup($request);
-        if ($training_group->wasRecentlyCreated) {
-            alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));
+        $response = [];
+        $trainingGroup = $this->repository->createTrainingGroup($request);
+        if ($trainingGroup->wasRecentlyCreated) {
+            $response['success'] = true;
         } else {
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+            $response['success'] = false;
         }
 
-        return redirect(route('training_groups.index'));
+        return response()->json($response);
     }
 
     /**
@@ -100,18 +101,17 @@ class TrainingGroupController extends Controller
      * @param TrainingGroup $trainingGroup
      * @return Application|Redirector|RedirectResponse
      */
-    public function update(TrainingGroupRequest $request, TrainingGroup $trainingGroup)
+    public function update(TrainingGroupRequest $request, TrainingGroup $trainingGroup): JsonResponse
     {
-        abort_if($trainingGroup->id === 1, 401, 'El Grupo Provicional No Se Puede Eliminar o Modificar');
-
+        $response = [];
         $trainingGroup = $this->repository->updateTrainingGroup($request, $trainingGroup);
         if ($trainingGroup->exists) {
-            alert()->success(env('APP_NAME'), __('messages.training_group_edit_success'));
+            $response['success'] = true;
         } else {
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+            $response['success'] = false;
         }
 
-        return redirect(route('training_groups.index'));
+        return response()->json($response);
     }
 
     /**

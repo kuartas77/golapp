@@ -99,7 +99,6 @@ export default function useFormSchool() {
                     const value = values[key];
                     // Append files or other data to FormData
                     if (value instanceof File) {
-                        console.log(key, value, value.name)
                         formData.append(key, value, value.name);
                     } else {
                         formData.append(key, value);

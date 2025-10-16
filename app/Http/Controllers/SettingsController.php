@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\ViewComposers\Payments\PaymentsViewComposer;
 use App\Models\Inscription;
+use App\Models\Schedule;
 use App\Models\School;
+use App\Models\Tournament;
 use App\Models\TrainingGroup;
 use App\Repositories\CompetitionGroupRepository;
 use App\Repositories\TrainingGroupRepository;
@@ -107,6 +109,51 @@ class SettingsController extends Controller
             'schools' => $schools,
             'type_assistance' => $optionsAssist,
             'type_payments' => $optionsPayment,
+        ]);
+    }
+
+    public function configGroups()
+    {
+        $school = getSchool(auth()->user());
+        $school_id = $school->id;
+
+        $users = Cache::remember("KEY_USERS_{$school_id}", now()->addMinute(), function() use($school){
+            return $school->users()->get(['users.id', 'users.name'])->map(fn($user) => ['id'=>$user->id, 'name'=>$user->name]);
+        });
+
+        $schedules = Cache::remember("SCHEDULES_{$school_id}",
+            now()->addMinute(),
+            fn() => Schedule::query()->schoolId()->get(['schedule']))->map(fn($item) => ['id'=>$item->schedule, 'name'=>$item->schedule]);
+
+        $tournaments = Cache::remember("KEY_TOURNAMENT_{$school_id}", now()->addMinutes(10), fn() => Tournament::orderBy('name')->schoolId()->get(['name', 'id']));
+
+        $year_active = Cache::remember("KEY_YEARS_{$school_id}", now()->addDay(), function () {
+            $now = now();
+            $years = [];
+            $years[$now->format('Y')] = $now->format('Y');
+
+            if(in_array($now->month, [10, 11, 12])) {
+                $year = $now->addYear()->format('Y');
+                $years[$year] = $year;
+            }
+            return $years;
+        });
+
+        $categories = Cache::remember("KEY_CATEGORIES_{$school_id}", now()->addDay(), function () {
+            $categories = [];
+            for ($i = now()->subYears(18)->year; $i <= now()->subYears(2)->year; $i++) {
+                $categorie = categoriesName($i); //SUB-
+                array_push($categories, ['id' => $categorie, 'name' => $categorie]);
+            }
+            return $categories;
+        });
+
+        return response()->json([
+            'users' => $users,
+            'year_active' => $year_active,
+            'schedules' => $schedules,
+            'categories' => $categories,
+            'tournaments' => $tournaments,
         ]);
     }
 }

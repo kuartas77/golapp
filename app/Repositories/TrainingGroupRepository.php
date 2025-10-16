@@ -65,8 +65,7 @@ class TrainingGroupRepository
 
             DB::beginTransaction();
 
-            $userInstructors = $group['user_id'];
-            unset($group['user_id']);
+            $userInstructors = $formRequest->input('users_id');
             $trainingGroup = new TrainingGroup($group);
             $trainingGroup->save();
             $trainingGroup->instructors()->syncWithPivotValues($userInstructors, ['assigned_year' => $formRequest->input('year_active', now()->year)]);
@@ -92,19 +91,7 @@ class TrainingGroupRepository
             'name' => $formRequest->input('name'),
             'stage' => $formRequest->input('stage'),
             'user_id' => $formRequest->input('user_id'),
-            'category' => array_map('categoriesName', $formRequest->input('years')),
-            'year' => $formRequest->input('years.0', null),
-            'year_two' => $formRequest->input('years.1', null),
-            'year_three' => $formRequest->input('years.2', null),
-            'year_four' => $formRequest->input('years.3', null),
-            'year_five' => $formRequest->input('years.4', null),
-            'year_six' => $formRequest->input('years.5', null),
-            'year_seven' => $formRequest->input('years.6', null),
-            'year_eight' => $formRequest->input('years.7', null),
-            'year_nine' => $formRequest->input('years.8', null),
-            'year_ten' => $formRequest->input('years.9', null),
-            'year_eleven' => $formRequest->input('years.10', null),
-            'year_twelve' => $formRequest->input('years.11', null),
+            'category' => $formRequest->input('categories', []),
             'schedules' => $formRequest->input('schedules', []),
             'days' => $formRequest->input('days', []),
             'school_id' => $formRequest->input('school_id'),
@@ -119,8 +106,7 @@ class TrainingGroupRepository
         try {
             DB::beginTransaction();
 
-            $userInstructors = $group['user_id'];
-            unset($group['user_id']);
+            $userInstructors = $formRequest->input('users_id');
             $trainingGroup->update($group);
             $trainingGroup->instructors()->syncWithPivotValues($userInstructors, ['assigned_year' => $formRequest->input('year_active', now()->year)]);
 

@@ -3,13 +3,13 @@
         <template #body>
             <a data-bs-toggle="modal" data-bs-target="#composeModalTrainigG" id="btn-compose-user"
                 class="btn btn-block btn-primary" href="javascript:void(0);">
-                Crear usuario
+                Crear Grupo
             </a>
             <DatatableTemplate :options="options" :id="'training_table'" ref="table" @click="onClickRow"/>
         </template>
     </panel>
 
-    <ModalTrainingGroup :id="selectedId"/>
+    <ModalTrainingGroup :id="selectedId" @update="reloadTable" @cancel="onCancel"/>
 
     <breadcrumb :parent="'Adminstración'" :current="'Grupos de entrenamiento'" />
 </template>
@@ -18,5 +18,5 @@ import useTrainingList from '@/composables/admin/groups/trainingList'
 import { usePageTitle } from "@/composables/use-meta";
 import ModalTrainingGroup from './ModalTrainingGroup.vue';
 usePageTitle('G. Entrenamiento')
-const { table, options, selectedId, onClickRow } = useTrainingList()
+const { table, options, selectedId, onClickRow, reloadTable, onCancel } = useTrainingList()
 </script>

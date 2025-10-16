@@ -89,7 +89,6 @@ export default function useUsersList() {
             composeModalUser.value.hide()
             showMessage('Guardado correctamente')
         } catch (error) {
-            console.log(error)
             proxy.$handleBackendErrors(error, actions.setErrors, (msg) => (globalError.value = msg))
         } finally {
             form.value.resetForm()
