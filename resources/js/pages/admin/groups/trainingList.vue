@@ -15,8 +15,6 @@
 </template>
 <script setup>
 import useTrainingList from '@/composables/admin/groups/trainingList'
-import { usePageTitle } from "@/composables/use-meta";
 import ModalTrainingGroup from './ModalTrainingGroup.vue';
-usePageTitle('G. Entrenamiento')
 const { table, options, selectedId, onClickRow, reloadTable, onCancel } = useTrainingList()
 </script>
