@@ -1,13 +1,14 @@
 <template>
     <div class="position-relative" ref="root">
-        <div class="form-select d-flex align-items-center justify-content-between flex-wrap"
+        <div class="form-select form-select-sm d-flex align-items-center justify-content-between flex-wrap"
             :class="{ 'dropdown-toggle': true, disabled: disabled }" role="combobox" :aria-expanded="isOpen.toString()"
             @click="toggleDropdown">
-            <div class="d-flex flex-wrap gap-1 align-items-center flex-grow-1">
+            <div class="d-flex flex-wrap gap-1 align-items-center flex-grow-1"
+                :style="multiple ? 'overflow-x: auto;' : ''">
                 <template v-if="multiple">
                     <template v-if="selected.length">
                         <span v-for="opt in selected" :key="opt.value"
-                            class="badge bg-primary d-flex align-items-center">
+                            class="badge bg-primary d-flex align-items-center" :title="selected?.label">
                             {{ opt.label }}
                             <button type="button" class="btn-close btn-close-white btn-sm ms-1" aria-label="Remove"
                                 @click.stop="removeTag(opt.value)"></button>
@@ -17,7 +18,9 @@
                 </template>
                 <template v-else>
                     <template v-if="selected">
-                        <span class="me-2">{{ selected.label }}</span>
+                        <span class="text-truncate" :title="selected.label">
+                            {{ selected.label }}
+                        </span>
                         <!-- <small class="text-muted">({{ selected.value }})</small> -->
                     </template>
                     <template v-else>
@@ -27,7 +30,7 @@
             </div>
 
             <div class="d-flex align-items-center ms-auto">
-                <button v-if="clearable && hasValue && !disabled" type="button" class="btn-close btn-sm ms-1"
+                <button v-if="clearable && hasValue && !disabled" type="button" class="btn-clear btn-close btn-sm ms-1"
                     @click.stop="clearSelection" aria-label="Clear selection">
                 </button>
             </div>
@@ -35,8 +38,7 @@
 
         <div class="dropdown-menu w-100 p-2" :class="{ show: isOpen }" style="max-height: 260px; overflow: auto;"
             @click.stop>
-            <label for="search" class="d-none"></label>
-            <input ref="searchInput" type="search" id="search" class="form-control mb-2" :placeholder="searchPlaceholder"
+            <input ref="searchInput" :id="id" type="search" class="form-control mb-2" :placeholder="searchPlaceholder"
                 v-model="query" @keydown.down.prevent="focusNext" @keydown.up.prevent="focusPrev"
                 @keydown.enter.prevent="selectFocused" />
 
@@ -65,6 +67,7 @@
 import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
+    id: { type: String, default: 'select2' },
     modelValue: { required: false },
     options: { type: Array, default: () => [] },
     placeholder: { type: String, default: 'Selecciona...' },
@@ -214,7 +217,7 @@ watch([filtered, isOpen], () => {
 <style scoped lang="scss">
 .form-select.dropdown-toggle {
     // cursor: pointer;
-    height: 45px !important;
+    // height: 45px !important;
     /* altura fija */
     min-height: 45px !important;
     /* asegura consistencia */
@@ -230,9 +233,31 @@ watch([filtered, isOpen], () => {
     display: flex;
     align-items: center;
     flex-wrap: nowrap;
-    overflow-x: auto;
-    /* permite scroll horizontal si hay muchos tags */
     gap: 0.25rem;
+    overflow: hidden;
+    padding-right: 2rem; /* espacio para el botón y el ícono */
+}
+
+// .form-select.dropdown-toggle>div.flex-grow-1 {
+//     position: relative;
+//   cursor: text;
+//   height: 45px !important;
+//   min-height: 45px !important;
+//   display: flex;
+//   align-items: center;
+//   overflow: hidden;
+//   padding-right: 2rem; /* espacio para el botón y el ícono */
+// }
+
+.btn-clear {
+  position: absolute;
+  right: 1.75rem;
+  top: 30%;
+//   z-index: 2;
+}
+
+.btn-clear:hover {
+  color: #000;
 }
 
 .dropdown-menu.show {
@@ -267,11 +292,16 @@ watch([filtered, isOpen], () => {
     }
 
     .list-group-item-action:hover {
-        color: #009688;
+       color: antiquewhite;
     }
 }
 
 .list-group-item-action:hover {
     color: #151516;
+}
+
+.list-group-item.active {
+    background-color: #0d6efd !important;
+    color: antiquewhite;
 }
 </style>

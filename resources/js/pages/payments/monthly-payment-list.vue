@@ -5,23 +5,22 @@
                 <div class="col-xl-6 col-lg-6 col-sm-12 text-center">
                     <Form ref="form" :validation-schema="schema" @submit="handleSearch" :initial-values="formData"
                         class="row align-items-center justify-content-center">
-                        <div class="col-sm-8">
+                        <div class="col-sm-6">
                             <label for="training_group" class="sr-only">Grupo</label>
                             <Field name="training_group" v-slot="{ field, handleChange, handleBlur }">
-                                <multiselect id="training_group" v-bind="field" @change="handleChange"
-                                    @blur="handleBlur" v-model="modelGroup" :options="groups" :multiple="false"
-                                    :searchable="true" :preselect-first="false" track-by="id" label="full_group"
-                                    placeholder="Grupo" :show-labels="false" open-direction="bottom" />
+                                <CustomSelect2 id="training_group" v-model="modelGroup" :options="groups" v-bind="field"
+                                    @change="handleChange" @blur="handleBlur" placeholder="Seleccona el grupo" />
+
                             </Field>
                             <ErrorMessage name="training_group" class="custom-error" />
                         </div>
-                        <div class="col-sm-2">
+                        <div class="col-sm-4">
                             <label for="category" class="sr-only">Categoría</label>
                             <Field name="category" v-slot="{ field, handleChange, handleBlur }">
-                                <multiselect id="category" v-bind="field" @change="handleChange" @blur="handleBlur"
-                                    v-model="modelCategory" :options="categories" :multiple="false" :searchable="true"
-                                    :preselect-first="false" track-by="category" label="category"
-                                    placeholder="Categoría" :show-labels="false" open-direction="bottom" />
+                                <CustomSelect2 id="category" v-model="modelCategory" :options="categories"
+                                    v-bind="field" @change="handleChange" @blur="handleBlur"
+                                    placeholder="Seleccona el grupo" />
+
                             </Field>
                             <ErrorMessage name="month" class="custom-error" />
                         </div>

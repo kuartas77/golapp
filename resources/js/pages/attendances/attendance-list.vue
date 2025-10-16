@@ -11,21 +11,18 @@
                                     <div class="mb-3">
                                         <label for="training_group" class="sr-only">Grupo</label>
                                         <Field name="training_group" v-slot="{ field, handleChange, handleBlur }">
-                                            <multiselect id="training_group" v-bind="field" @change="handleChange"
-                                                @blur="handleBlur" v-model="modelGroup" :options="groups"
-                                                :multiple="false" :searchable="true" :preselect-first="false"
-                                                track-by="id" label="full_group" placeholder="Grupo"
-                                                :show-labels="false" />
+                                            <CustomSelect2 id="training_group" v-model="modelGroup" :options="groups"
+                                                v-bind="field" @change="handleChange" @blur="handleBlur"
+                                                placeholder="Seleccona el grupo" />
                                         </Field>
                                         <ErrorMessage name="training_group" class="custom-error" />
                                     </div>
                                     <div class="mb-3">
                                         <label for="month" class="sr-only">Mes</label>
                                         <Field name="month" v-slot="{ field, handleChange, handleBlur }">
-                                            <multiselect id="month" v-bind="field" @change="handleChange"
-                                                @blur="handleBlur" v-model="modelMonth" :options="optionsMonths"
-                                                :multiple="false" :searchable="true" :preselect-first="false"
-                                                track-by="value" label="label" placeholder="Mes" :show-labels="false" />
+                                            <CustomSelect2 id="month" v-model="modelMonth" :options="optionsMonths"
+                                                v-bind="field" @change="handleChange" @blur="handleBlur"
+                                                placeholder="Selecciona el mes" />
                                         </Field>
                                         <ErrorMessage name="month" class="custom-error" />
                                     </div>
@@ -84,7 +81,8 @@
                 <div class="panel br-6 p-2">
                     <div class="panel-body">
                         <h5 v-if="modelGroup">{{ modelGroup.full_group }}</h5>
-                        <h6 v-if="classDaySelected"> Clase: {{ `#${classDaySelected.index} | ${classDaySelected.day} ${classDaySelected.date}` }}</h6>
+                        <h6 v-if="classDaySelected"> Clase: {{ `#${classDaySelected.index} | ${classDaySelected.day}
+                            ${classDaySelected.date}` }}</h6>
                         <div class="row">
                             <DataTable :options="options" :data="attendancesGroup" class="table table-bordered table-sm"
                                 id="attendance_table" ref="attendance_table">
@@ -117,13 +115,14 @@
                                 <template #bagClick="props">
                                     <button type="button" class="badge outline-badge-primary btn btn-sm m-1"
                                         @click="onClickOpenModalAttendance(props.rowData)" :data-id="props.rowData.id">
-                                        {{ attendanceTypes[props.rowData[classDaySelected.column]] ?? 'Tomar Asistencia'}}
+                                        {{ attendanceTypes[props.rowData[classDaySelected.column]] ?? 'Tomar Asistencia'
+                                        }}
                                     </button>
                                 </template>
 
                                 <template #observations="props">
                                     <button type="button" class="badge outline-badge-primary btn btn-sm m-1"
-                                    @click="onClickOpenModalObservations(props.rowData)">Ver</button>
+                                        @click="onClickOpenModalObservations(props.rowData)">Ver</button>
                                 </template>
                             </DataTable>
                         </div>
@@ -169,7 +168,7 @@
                     </div>
                     <div class="row">
                         <div class="form-group">
-                            <label for="observation">Observaciónes para el deportista en el entrenamiento:</label>
+                            <label for="single_observation">Observaciónes para el deportista en el entrenamiento:</label>
                             <span class="bar"></span>
                             <textarea name="observations" id="single_observation" cols="30" rows="10"
                                 class="form-control form-control-sm" v-model="takeAttendance.observation"></textarea>
@@ -188,7 +187,7 @@
 
     <div class="modal fade" id="composeModalObservations" tabindex="-1" role="dialog" aria-labelledby="observationModal"
         aria-hidden="false" aria-modal="true">
-        <div class="modal-dialog modal-md" role="document" >
+        <div class="modal-dialog modal-md" role="document">
             <div class="modal-content" v-if="takeAttendance">
                 <div class="modal-header">
                     <h5 class="modal-title" id="observationModal">{{ takeAttendance.player_name }}</h5>
@@ -198,10 +197,11 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="form-group">
-                            <label for="observation">Observaciónes por fecha de entrenamiento:</label>
+                            <label for="single_observation_">Observaciónes por fecha de entrenamiento:</label>
                             <span class="bar"></span>
-                            <textarea name="observations" id="single_observation" cols="30" rows="10"
-                                class="form-control form-control-sm" v-model="takeAttendance.observations" readonly></textarea>
+                            <textarea name="observations" id="single_observation_" cols="30" rows="10"
+                                class="form-control form-control-sm" v-model="takeAttendance.observations"
+                                readonly></textarea>
                         </div>
                     </div>
                 </div>

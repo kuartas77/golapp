@@ -10,8 +10,8 @@ import * as yup from 'yup';
 export default function useMonthlyPayments() {
     const currentDate = new Date()
     const settings = useSetting()
-    const groups = settings.groups.filter((group) => group.name !== 'Provisional').map((group) => ({ id: group.id, full_group: group.full_group }));
-    const categories = settings.categories
+    const groups = settings.groups.filter((group) => group.name !== 'Provisional').map((group) => ({ value: group.id, label: group.full_group }));
+    const categories = settings.categories.map((i) => ({ value: i.category, label: i.category }));
     const type_payments = settings.type_payments
     const selected_group = ref(null)
     const groupPayments = ref([])
@@ -73,9 +73,9 @@ export default function useMonthlyPayments() {
             isLoading.value = true
             const params = {
                 // unique_code
-                category: values.category?.category,
+                category: values.category?.value,
                 year: currentDate.getFullYear(),
-                training_group_id: values.training_group?.id,
+                training_group_id: values.training_group?.value,
                 dataRaw: true
             }
             const response = await api.get(`/api/v2/payments/`, { params: params })

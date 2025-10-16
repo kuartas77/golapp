@@ -12,13 +12,13 @@ export default function useAttendances() {
     const composeModalObservations = ref(null);
     const isLoading = ref(false);
     const settings = useSetting();
-    const groups = settings.groups.filter((group) => group.name !== 'Provisional').map((group) => ({ id: group.id, full_group: group.full_group }));
+    const groups = settings.groups.filter((group) => group.name !== 'Provisional').map((group) => ({ value: group.id, label: group.full_group }));
 
     const schema = yup.object().shape({
         training_group: yup
             .object({
-                id: yup.string().required(),
-                full_group: yup.string().required(),
+                value: yup.string().required(),
+                label: yup.string().required(),
             })
             .required(),
         month: yup
@@ -107,8 +107,8 @@ export default function useAttendances() {
             isLoading.value = true;
             attendancesGroup.value = [];
             const params = {
-                month: values.month?.label,
-                training_group_id: values.training_group?.id,
+                month: values.month?.value,
+                training_group_id: values.training_group?.value,
             };
 
             const response = await api.get(`/api/v2/training_group/classdays`, {
