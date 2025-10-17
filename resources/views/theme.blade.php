@@ -11,7 +11,6 @@
           content="Ayuda a tu escuela de futbol a mejorar deportivamente con nuestra herramienta, la cual te facilitará muchos procesos, asistencias, entrenamientos, pagos entre otros">
     <link rel="icon" type="image/png" href="/img/ballon.png"/>
 
-    <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700" rel="stylesheet">
     @vite(['resources/js/main.js'])
 </head>
 

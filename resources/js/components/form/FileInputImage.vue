@@ -1,7 +1,7 @@
 <template>
 	<div class="upload mt-4 pe-md-4">
 		<input ref="fl_profile" type="file" class="d-none" :id="name" :accept="accept" @change="onFileChange" />
-		<img :src="preview ? preview : 'http://golapp.local/img/ballon_dark.png'" alt="Logo Escuela"
+		<img :src="preview ? preview : 'http://golapp.local/img/ball-dark.webp'" alt="Logo Escuela"
 			class="profile-preview" @click="$refs.fl_profile.click()" />
 		<p class="mt-2"  v-if="label">
 			<label v-if="label" :for="name" class="form-label">{{ label }}</label>

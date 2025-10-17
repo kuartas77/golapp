@@ -6,7 +6,7 @@
                 <ul class="navbar-item theme-brand flex-row text-center">
                     <li class="nav-item theme-logo">
                         <router-link :to="{name:'dashboard'}">
-                            <img src="/img/ballon_dark.png" class="navbar-logo" alt="logo" />
+                            <img src="/img/ball-dark.webp" class="navbar-logo" alt="logo" />
                         </router-link>
                     </li>
                     <li class="nav-item theme-text">

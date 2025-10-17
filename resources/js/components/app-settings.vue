@@ -17,7 +17,7 @@
             <perfect-scrollbar class="sidbarchat p-3" tag="div">
                 <a class="btn-close" href="javascript:;" @click="isOpen = !isOpen"> </a>
                 <div class="text-center">
-                    <img src="/img/logo-light.svg" alt="..." class="img-fluid" />
+                    <img src="/img/logo-light.svg" alt="logo app" class="img-fluid" />
                 </div>
                 <h5 class="mb-0 text-center">TEMPLATE CUSTOMIZER</h5>
                 <p class="text-center">Set preferences that will be cookied for your live preview demonstration.</p>

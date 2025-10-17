@@ -90,7 +90,7 @@ class School extends Model
             return route('images', $this->attributes['logo']);
         }
 
-        return asset('img/ballon.png');
+        return asset('img/ballon.webp');
     }
 
     public function getUrlEditAttribute(): string
@@ -119,7 +119,7 @@ class School extends Model
             return storage_path('app/public/' . $this->attributes['logo']);
         }
 
-        return storage_path('standard/ballon.png');
+        return storage_path('standard/ballon.webp');
     }
 
     public function users(): HasManyThrough

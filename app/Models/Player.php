@@ -127,7 +127,7 @@ class Player extends Authenticatable
             return route('images', $this->attributes['photo']);
         }
 
-        return url('img/user.png');
+        return url('img/user.webp');
     }
 
     public function getPhotoUrlPublicAttribute(): string
@@ -136,7 +136,7 @@ class Player extends Authenticatable
             return route('portal.player.images', $this->attributes['photo']);
         }
 
-        return url('img/user.png');
+        return url('img/user.webp');
     }
 
     public function getPhotoLocalAttribute(): string
@@ -145,7 +145,7 @@ class Player extends Authenticatable
             return storage_path('app/public/' . $this->attributes['photo']);
         }
 
-        return url('img/user.png');
+        return url('img/user.webp');
     }
 
     public function routeNotificationForMail($notification): array

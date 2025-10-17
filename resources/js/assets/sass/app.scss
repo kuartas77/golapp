@@ -1,6 +1,6 @@
 @use "sass:meta";
 @use 'forms/theme-checkbox-radio.scss';
-
+@import url('https://fonts.googleapis.com/css?family=Nunito:400,600,700');
 /*main pluging css*/
 @import '@bhplugin/vue3-datatable/dist/style.css';
 @import 'bootstrap/dist/css/bootstrap.min.css';
