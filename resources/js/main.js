@@ -106,3 +106,6 @@ window.Swal = app.config.globalProperties.$swal
 app.config.globalProperties.modalHidden = modalHidden
 app.config.globalProperties.showMessage = showMessage
 app.config.globalProperties.moneyFormat = moneyFormat
+window.modalHidden = app.config.globalProperties.modalHidden
+window.showMessage = app.config.globalProperties.showMessage
+window.moneyFormat = app.config.globalProperties.moneyFormat

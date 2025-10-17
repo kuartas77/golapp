@@ -24,9 +24,9 @@ export default defineConfig({
         },
         extensions: ['.js', '.vue', '.json'],
     },
-    optimizeDeps: {
-        include: ["quill", "nouislider"],
-    },
+    // optimizeDeps: {
+    //     include: ["quill", "nouislider"],
+    // },
     assetsInclude: ["resources/js/assets"],
     server: {
         cors: {
