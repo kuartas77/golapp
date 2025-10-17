@@ -15,21 +15,11 @@ export default function useAttendances() {
     const groups = settings.groups.filter((group) => group.name !== 'Provisional').map((group) => ({ value: group.id, label: group.full_group }));
 
     const schema = yup.object().shape({
-        training_group: yup
-            .object({
-                value: yup.string().required(),
-                label: yup.string().required(),
-            })
-            .required(),
-        month: yup
-            .object({
-                value: yup.string().required(),
-                label: yup.string().required(),
-            })
-            .required(),
+        training_group_id: yup.string().required(),
+        month: yup.string().required(),
     });
     const formData = ref({
-        training_group: null,
+        training_group_id: null,
         month: null,
     });
     const globalError = ref(null)
@@ -106,10 +96,7 @@ export default function useAttendances() {
             classDaySelected.value = null;
             isLoading.value = true;
             attendancesGroup.value = [];
-            const params = {
-                month: values.month?.value,
-                training_group_id: values.training_group?.value,
-            };
+            const params = { ...values };
 
             const response = await api.get(`/api/v2/training_group/classdays`, {
                 params: params,

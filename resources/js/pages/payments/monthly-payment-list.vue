@@ -5,28 +5,20 @@
                 <div class="col-xl-6 col-lg-6 col-sm-12 text-center">
                     <Form ref="form" :validation-schema="schema" @submit="handleSearch" :initial-values="formData"
                         class="row align-items-center justify-content-center">
+                        <p class="text-muted">Puedes seleccionar un grupo y/o una categoría, en otro caso combinarlos.</p>
                         <div class="col-sm-6">
-                            <label for="training_group" class="sr-only">Grupo</label>
-                            <Field name="training_group" v-slot="{ field, handleChange, handleBlur }">
-                                <CustomSelect2 id="training_group" v-model="modelGroup" :options="groups" v-bind="field"
-                                    @change="handleChange" @blur="handleBlur" placeholder="Seleccona el grupo" />
-
-                            </Field>
-                            <ErrorMessage name="training_group" class="custom-error" />
+                            <label for="training_group_id" class="sr-only">Grupo</label>
+                            <Field name="training_group_id" as="CustomSelect2" :options="groups" placeholder="Selecciona un grupo"/>
+                            <ErrorMessage name="training_group_id" class="custom-error" />
                         </div>
                         <div class="col-sm-4">
                             <label for="category" class="sr-only">Categoría</label>
-                            <Field name="category" v-slot="{ field, handleChange, handleBlur }">
-                                <CustomSelect2 id="category" v-model="modelCategory" :options="categories"
-                                    v-bind="field" @change="handleChange" @blur="handleBlur"
-                                    placeholder="Seleccona el grupo" />
-
-                            </Field>
+                            <Field name="category" as="CustomSelect2" :options="categories" placeholder="Selecciona una categoría"/>
                             <ErrorMessage name="month" class="custom-error" />
                         </div>
                         <div class="col-sm-2">
                             <button type="submit" class="btn btn-primary w-100"
-                                :disabled="isLoading || (modelGroup === null && modelCategory === null)">
+                                :disabled="isLoading">
                                 Buscar
                                 <template v-if="isLoading">
                                     &nbsp;
@@ -225,7 +217,6 @@ import useMonthlyPayments from '@/composables/payments/monthly-payments';
 import { ErrorMessage, Field, Form } from 'vee-validate';
 
 const {
-    moneyFormat,
     handleSearch,
     editRow,
     cancelEdition,

@@ -21,9 +21,16 @@ export default function useMonthlyPayments() {
     const modelGroup = ref(null)
     const modelCategory = ref(null)
     const { proxy } = getCurrentInstance()
-    const schema = yup.object().shape({})
+    const schema = yup.object().shape({
+        category: yup.string().nullable().optional(),
+        training_group_id: yup.string().when('category', {
+            is: (controlValue) => !controlValue || controlValue === null , // Check if category is empty
+            then: (schema) => schema.required(), // If empty, training_group_id is required
+            otherwise: (schema) => schema.notRequired(), // Otherwise, training_group_id is not required
+        }),
+    })
     const formData = ref({
-        training_group: null,
+        training_group_id: null,
         category: null
     })
     const isLoading = ref(false)
@@ -50,32 +57,15 @@ export default function useMonthlyPayments() {
         12: 'december',
     }
 
-    const moneyFormat = (amount) => {
-        const locale = 'es-CO'; // Colombian Spanish locale
-        const options = {
-            style: 'currency',
-            currency: 'COP', // Colombian Peso currency code
-            minimumFractionDigits: 0, // Ensure two decimal places for cents
-            maximumFractionDigits: 0, // Ensure two decimal places for cents
-        };
-        const formatter = new Intl.NumberFormat(locale, options).format(amount);
-        return formatter;
-    }
-
-    const showMessage = (msg = "", type = "success") => {
-        const toast = window.Swal.mixin({ toast: true, position: "top", showConfirmButton: false, timer: 3000 });
-        toast.fire({ icon: type, title: msg, padding: "10px 20px" });
-    };
-
     const handleSearch = async (values, actions) => {
         try {
+            console.log(values)
             groupPayments.value = []
             isLoading.value = true
             const params = {
-                // unique_code
-                category: values.category?.value,
+                category: values.category,
                 year: currentDate.getFullYear(),
-                training_group_id: values.training_group?.value,
+                training_group_id: values.training_group_id,
                 dataRaw: true
             }
             const response = await api.get(`/api/v2/payments/`, { params: params })
@@ -242,7 +232,7 @@ export default function useMonthlyPayments() {
         totalByType.value.consignment = 0
         totalByType.value.others = 0
         totalByType.value.debts = 0
-        for (const field in  paymentFields) {
+        for (const field in paymentFields) {
             totalsFooter.value[`${paymentFields[field]}`] = newValue.reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
 
             totalByType.value.cash += newValue.filter(pay => [9, 12].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
@@ -253,7 +243,6 @@ export default function useMonthlyPayments() {
     }, { deep: true })
 
     return {
-        moneyFormat,
         handleSearch,
         editRow,
         cancelEdition,

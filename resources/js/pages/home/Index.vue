@@ -38,18 +38,6 @@ import api from "@/utils/axios";
 const appState = useAppState()
 const is_dark = appState.is_dark_mode;
 
-const moneyFormat = (amount) => {
-    const locale = 'es-CO'; // Colombian Spanish locale
-    const options = {
-        style: 'currency',
-        currency: 'COP', // Colombian Peso currency code
-        minimumFractionDigits: 0, // Ensure two decimal places for cents
-        maximumFractionDigits: 0, // Ensure two decimal places for cents
-    };
-    const formatter = new Intl.NumberFormat(locale, options).format(amount);
-    return formatter;
-}
-
 const options_1 = ref({
     chart: { stacked: true, toolbar: { show: false } },
     responsive: [{ breakpoint: 480, options: { legend: { position: "bottom", offsetX: -10, offsetY: 5 } } }],

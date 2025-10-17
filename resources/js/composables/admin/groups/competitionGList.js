@@ -1,17 +1,17 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { useTemplateRef, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useTemplateRef, onMounted, ref } from 'vue';
 import { useAuthUser } from '@/store/auth-user'
 import api from '@/utils/axios'
+import { usePageTitle } from "@/composables/use-meta";
 
 export default function useCompetitionGList() {
 
     const store = useAuthUser()
-    // const router = useRouter()
     const table = useTemplateRef('table');
+    const selectedId = ref(null)
 
     const columns = [
-        { data: 'id', width: '1%', title: 'ID', searchable: false, orderable: true },
+        { data: 'id', width: '1%', title: 'ID', render:'#link',searchable: false, orderable: true },
         { data: 'name', title: 'Nombre', searchable: true, orderable: true },
         { data: 'category', title: 'Categoria', searchable: true, orderable: true },
         { data: 'year', title: 'Año', searchable: true, orderable: false },
@@ -48,5 +48,31 @@ export default function useCompetitionGList() {
         columns: columns
     };
 
-    return { table, options }
+    const onClickRow = async (e) => {
+        const itemId = e.target.dataset.itemId
+        if (!itemId) {
+            return
+        }
+        e.preventDefault()
+
+        selectedId.value = itemId
+    }
+
+    const reloadTable = () => {
+        selectedId.value = null
+        if (table.value) {
+            let dt = table.value.table.dt;
+            dt.ajax.reload(null, false)
+        }
+    }
+
+    const onCancel = () => {
+        selectedId.value = null
+    }
+
+    onMounted(() => {
+        usePageTitle('G Competencia')
+    })
+
+    return { table, options, selectedId, onClickRow, reloadTable, onCancel }
 }

@@ -14,9 +14,6 @@ importers:
       '@popperjs/core':
         specifier: ^2.11.2
         version: 2.11.8
-      '@suadelabs/vue3-multiselect':
-        specifier: ^1.0.2
-        version: 1.0.2
       '@vueuse/core':
         specifier: ^13.9.0
         version: 13.9.0(vue@3.5.21)
@@ -535,10 +532,6 @@ packages:
     resolution: {integrity: sha512-xMmiWRR8sp72Zqwjgtf3QbZfF1wdh8X2ABu3EaozvZcyHJeU0r+XAnXdKgs4cCAp6ORoYoCygipYP1mjmbjrsg==}
     cpu: [x64]
     os: [win32]
-
-  '@suadelabs/vue3-multiselect@1.0.2':
-    resolution: {integrity: sha512-bRe5SOAkY/egKC4yMQ1lXg3BTlnulA+0CXbl9yM0X7oMh8oavJUlSgb7WV7EXyOzIH2Ot0k28hdF3/K6D/YEFA==}
-    engines: {node: '>= 4.0.0', npm: '>= 3.0.0'}
 
   '@svgdotjs/svg.draggable.js@3.0.6':
     resolution: {integrity: sha512-7iJFm9lL3C40HQcqzEfezK2l+dW2CpoVY3b77KQGqc8GXWa6LhhmX5Ckv7alQfUXBuZbjpICZ+Dvq1czlGx7gA==}
@@ -1545,8 +1538,6 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.50.0':
     optional: true
-
-  '@suadelabs/vue3-multiselect@1.0.2': {}
 
   '@svgdotjs/svg.draggable.js@3.0.6(@svgdotjs/svg.js@3.2.5)':
     dependencies:

@@ -25,6 +25,7 @@ const routes = [
         meta: { requiresAuth: true },
         component: () => import('@/layouts/app-layout.vue'),
         children: [
+            { path: '', redirect: '/inicio', name: 'redirect' },
             { path: 'inicio', name: 'dashboard', component: () => import('@/pages/home/Index.vue'), },
             { path: 'kpi', name: 'kpi', component: () => import('@/pages/home/Index.vue'), },
             { path: 'perfil/usuario', name: 'user-profile', component: () => import('@/pages/home/Index.vue'), },

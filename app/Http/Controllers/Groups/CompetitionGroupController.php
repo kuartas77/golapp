@@ -47,7 +47,7 @@ class CompetitionGroupController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CompetitionGroupRequest $request)
+    public function store(CompetitionGroupRequest $request): JsonResponse
     {
         $competitionGroup = $this->repository->createOrUpdateTeam(
             $request->only([
@@ -55,12 +55,15 @@ class CompetitionGroupController extends Controller
                 'user_id', 'category', 'school_id'
             ])
         );
+        $response = [];
+
         if ($competitionGroup->wasRecentlyCreated) {
-            alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));
+            $response['success'] = true;
         } else {
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+            $response['success'] = false;
         }
-        return back();
+
+        return response()->json($response);
     }
 
     /**
@@ -89,7 +92,7 @@ class CompetitionGroupController extends Controller
      * Update the specified resource in storage.
      *
      */
-    public function update(CompetitionGroupRequest $request, CompetitionGroup $competitionGroup)
+    public function update(CompetitionGroupRequest $request, CompetitionGroup $competitionGroup): JsonResponse
     {
         $competitionGroup = $this->repository->createOrUpdateTeam(
             $request->only([
@@ -100,12 +103,14 @@ class CompetitionGroupController extends Controller
             $competitionGroup
         );
 
-        if (!$competitionGroup->exists)
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
-        else {
-            alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));
+        $response = [];
+        if ($competitionGroup->exists) {
+            $response['success'] = true;
+        } else {
+            $response['success'] = false;
         }
-        return back();
+
+        return response()->json($response);
     }
 
     /**

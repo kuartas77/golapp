@@ -69,6 +69,7 @@ import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'
 const props = defineProps({
     id: { type: String, default: 'select2' },
     modelValue: { required: false },
+    value: { required: false },
     options: { type: Array, default: () => [] },
     placeholder: { type: String, default: 'Selecciona...' },
     searchPlaceholder: { type: String, default: 'Buscar...' },
@@ -79,22 +80,30 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'update:value', 'change', 'open', 'close'])
-
+const innerValue = ref(props.modelValue ?? props.value ?? (props.multiple ? [] : null))
 const root = ref(null)
 const searchInput = ref(null)
 const isOpen = ref(false)
 const query = ref('')
 const focusedIndex = ref(-1)
 
-const hasValue = computed(() => props.multiple ? (Array.isArray(props.modelValue) && props.modelValue.length > 0) : !!props.modelValue)
-
+const hasValue = computed(() =>
+    props.multiple
+        ? Array.isArray(innerValue.value) && innerValue.value.length > 0
+        : !!innerValue.value
+)
 const selected = computed(() => {
     if (props.multiple) {
-        if (!Array.isArray(props.modelValue)) return []
-        return props.options.filter(o => props.modelValue.includes(o.value))
+        if (!Array.isArray(innerValue.value)) return []
+        const selectedOptions = props.options.filter(o => innerValue.value.includes(o.value))
+        const missing = innerValue.value
+            .filter(v => !selectedOptions.some(o => o.value === v))
+            .map(v => ({ value: v, label: String(v) }))
+        return [...selectedOptions, ...missing]
     } else {
-        if (props.modelValue == null) return null
-        return props.options.find(o => o.value === props.modelValue) || { value: props.modelValue, label: String(props.modelValue) }
+        if (innerValue.value == null) return null
+        const found = props.options.find(o => o.value === innerValue.value)
+        return found || { value: innerValue.value, label: String(innerValue.value) }
     }
 })
 
@@ -133,44 +142,35 @@ function toggleDropdown() {
 
 function selectOption(opt) {
     if (props.multiple) {
-        let newValues = Array.isArray(props.modelValue) ? [...props.modelValue] : []
+        let newValues = Array.isArray(innerValue.value) ? [...innerValue.value] : []
         if (newValues.includes(opt.value)) {
             newValues = newValues.filter(v => v !== opt.value)
         } else {
             newValues.push(opt.value)
         }
-        emit('update:modelValue', newValues)
-        emit('update:value', newValues)
-        emit('change', newValues)
+        innerValue.value = newValues
     } else {
-        emit('update:modelValue', opt.value)
-        emit('update:value', opt.value)
-        emit('change', opt)
+        innerValue.value = opt.value
         closeDropdown()
     }
 }
 
 function removeTag(val) {
     if (!props.multiple) return
-    let newValues = Array.isArray(props.modelValue) ? [...props.modelValue] : []
+    let newValues = Array.isArray(innerValue.value) ? [...innerValue.value] : []
     newValues = newValues.filter(v => v !== val)
-    emit('update:modelValue', newValues)
-    emit('update:value', newValues)
-    emit('change', newValues)
+    innerValue.value = newValues
 }
 
 function clearSelection() {
-    const cleared = props.multiple ? [] : null
-    emit('update:modelValue', cleared)
-    emit('update:value', cleared)
-    emit('change', cleared)
+    innerValue.value = props.multiple ? [] : null
 }
 
 function isSelected(opt) {
     if (props.multiple) {
-        return Array.isArray(props.modelValue) && props.modelValue.includes(opt.value)
+        return Array.isArray(innerValue.value) && innerValue.value.includes(opt.value)
     }
-    return props.modelValue === opt.value
+    return innerValue.value === opt.value
 }
 
 function focusNext() {
@@ -212,6 +212,21 @@ onBeforeUnmount(() => {
 watch([filtered, isOpen], () => {
     focusedIndex.value = filtered.value.length ? 0 : -1
 })
+watch(
+    [() => props.modelValue, () => props.value],
+    ([newModel, newValue]) => {
+        const incoming = newModel ?? newValue
+        if (JSON.stringify(incoming) !== JSON.stringify(innerValue.value)) {
+            innerValue.value = incoming
+        }
+    },
+    { immediate: true }
+)
+watch(innerValue, (val) => {
+    emit('update:modelValue', val)
+    emit('update:value', val)
+    emit('change', val)
+})
 </script>
 
 <style scoped lang="scss">
@@ -235,7 +250,8 @@ watch([filtered, isOpen], () => {
     flex-wrap: nowrap;
     gap: 0.25rem;
     overflow: hidden;
-    padding-right: 2rem; /* espacio para el botón y el ícono */
+    padding-right: 2rem;
+    /* espacio para el botón y el ícono */
 }
 
 // .form-select.dropdown-toggle>div.flex-grow-1 {
@@ -250,14 +266,14 @@ watch([filtered, isOpen], () => {
 // }
 
 .btn-clear {
-  position: absolute;
-  right: 1.75rem;
-  top: 30%;
-//   z-index: 2;
+    position: absolute;
+    right: 1.75rem;
+    top: 30%;
+    //   z-index: 2;
 }
 
 .btn-clear:hover {
-  color: #000;
+    color: #000;
 }
 
 .dropdown-menu.show {
@@ -292,7 +308,7 @@ watch([filtered, isOpen], () => {
     }
 
     .list-group-item-action:hover {
-       color: antiquewhite;
+        color: antiquewhite;
     }
 }
 

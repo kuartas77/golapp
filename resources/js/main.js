@@ -27,7 +27,6 @@ import input from '@/components/form/Input.vue';
 import fileInputImage from '@/components/form/FileInputImage.vue';
 import Checkbox from '@/components/form/Checkbox.vue';
 import DatatableTemplate from "@/components/general/DatatableTemplate.vue";
-import Multiselect from "@suadelabs/vue3-multiselect";
 import CustomMultiSelect from "@/components/form/MultiSelect.vue";
 import CustomSelect2 from "@/components/form/CustomSelect2.vue";
 
@@ -37,7 +36,6 @@ window.bootstrap = bootstrap;
 // modals
 import "@/assets/sass/components/custom-modal.scss";
 import 'datatables.net-responsive-bs5';
-import "@suadelabs/vue3-multiselect/dist/vue3-multiselect.css";
 import 'vue3-perfect-scrollbar/style.css';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import '@/assets/sass/font-icons/fontawesome/css/fontawesome.css';
@@ -71,7 +69,6 @@ app.component('breadcrumb', breadcrumb)
 app.component('panel', panel)
 app.component('inputField', input)
 app.component('inputFileImage', fileInputImage)
-app.component('Multiselect', Multiselect)
 app.component('CustomMultiSelect', CustomMultiSelect)
 app.component('checkbox', Checkbox)
 app.component('CustomSelect2', CustomSelect2)
@@ -79,9 +76,6 @@ app.component('CustomSelect2', CustomSelect2)
 app.directive('has-role', vHasRol)
 
 app.mount('#app')
-window.$appSetting = appSetting;
-window.$appSetting.init();
-window.Swal = app.config.globalProperties.$swal;
 
 const modalHidden = () => {
     document.querySelectorAll('.modal').forEach((modal) => {
@@ -94,5 +88,21 @@ const showMessage = (msg = "", type = "success") => {
     const toast = window.Swal.mixin({ toast: true, position: "top", showConfirmButton: false, timer: 5000 });
     toast.fire({ icon: type, title: msg, padding: "10px 20px" });
 }
-window.modalHidden = modalHidden
-window.showMessage = showMessage
+const moneyFormat = (amount) => {
+    const locale = 'es-CO'; // Colombian Spanish locale
+    const options = {
+        style: 'currency',
+        currency: 'COP', // Colombian Peso currency code
+        minimumFractionDigits: 0, // Ensure two decimal places for cents
+        maximumFractionDigits: 0, // Ensure two decimal places for cents
+    };
+    const formatter = new Intl.NumberFormat(locale, options).format(amount);
+    return formatter;
+}
+
+window.$appSetting = appSetting
+window.$appSetting.init()
+window.Swal = app.config.globalProperties.$swal
+app.config.globalProperties.modalHidden = modalHidden
+app.config.globalProperties.showMessage = showMessage
+app.config.globalProperties.moneyFormat = moneyFormat

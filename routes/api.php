@@ -14,6 +14,7 @@ use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Assists\AssistController;
 use App\Http\Controllers\DataTableController;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\Groups\CompetitionGroupController;
 use App\Http\Controllers\Groups\TrainingGroupController;
 use App\Http\Controllers\Payments\PaymentController;
 use App\Http\Controllers\SchoolPages\SchoolsController;
@@ -74,6 +75,8 @@ Route::prefix('v2')->group(function(){
             Route::put('school/{school}', [SchoolsController::class, 'update']);
             Route::apiResource('users', UsersController::class);
             Route::resource('training_groups', TrainingGroupController::class, ['only' => ['show', 'store', 'update']]);
+            Route::resource('competition_groups', CompetitionGroupController::class, ['only' => ['show', 'store', 'update']]);
+
         });
 
         Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);

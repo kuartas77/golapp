@@ -9,21 +9,16 @@
                                 <Form ref="form" :validation-schema="schema" @submit="handleSearchClassdays"
                                     :initial-values="formData" class="align-items-center justify-content-center">
                                     <div class="mb-3">
-                                        <label for="training_group" class="sr-only">Grupo</label>
-                                        <Field name="training_group" v-slot="{ field, handleChange, handleBlur }">
-                                            <CustomSelect2 id="training_group" v-model="modelGroup" :options="groups"
-                                                v-bind="field" @change="handleChange" @blur="handleBlur"
-                                                placeholder="Seleccona el grupo" />
-                                        </Field>
-                                        <ErrorMessage name="training_group" class="custom-error" />
+                                        <label for="training_group_id" class="sr-only">Grupo</label>
+                                        <Field name="training_group_id" as="CustomSelect2" id="training_group_id"
+                                            :options="groups" />
+
+                                        <ErrorMessage name="training_group_id" class="custom-error" />
                                     </div>
                                     <div class="mb-3">
                                         <label for="month" class="sr-only">Mes</label>
-                                        <Field name="month" v-slot="{ field, handleChange, handleBlur }">
-                                            <CustomSelect2 id="month" v-model="modelMonth" :options="optionsMonths"
-                                                v-bind="field" @change="handleChange" @blur="handleBlur"
-                                                placeholder="Selecciona el mes" />
-                                        </Field>
+                                        <Field name="month" as="CustomSelect2" id="month"
+                                            :options="optionsMonths" />
                                         <ErrorMessage name="month" class="custom-error" />
                                     </div>
                                     <div class="mb-3">
