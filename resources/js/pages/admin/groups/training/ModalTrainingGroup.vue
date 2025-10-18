@@ -208,7 +208,6 @@ const submit = async (values, actions) => {
             actions.setErrors,
             (msg) => (globalError.value = msg)
         );
-        console.log(error)
     } finally {
         emit("update");
         modalHidden();
@@ -255,9 +254,6 @@ const onLoadData = async () => {
             user_id: instructors.map((i) => ({ value: i.id, label: i.name })),
             years: category.map((i) => ({ value: i, label: i })),
         };
-
-
-        console.log(data)
 
         form.value.resetForm();
         form.value.setValues(data);

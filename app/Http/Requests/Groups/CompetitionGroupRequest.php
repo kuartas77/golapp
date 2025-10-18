@@ -42,7 +42,7 @@ class CompetitionGroupRequest extends FormRequest
     {
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
-            'category' => categoriesName((int)$this->year)
+            'category' => $this->year
         ]);
     }
 }

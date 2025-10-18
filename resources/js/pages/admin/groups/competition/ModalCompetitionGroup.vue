@@ -1,7 +1,7 @@
 <template>
-    <div class="modal fade" id="composeModalTrainigG" tabindex="-1" role="dialog" aria-labelledby="modalTrainigG"
+    <div class="modal fade" id="composeModalCompetitionG" tabindex="-1" role="dialog" aria-labelledby="modalTrainigG"
         aria-hidden="false" aria-modal="true">
-        <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <Form ref="form" :validation-schema="schema" @submit="submit" :initial-values="initialData">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -20,9 +20,11 @@
 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <Field name="user_id" v-slot="{ field, handleChange, handleBlur }">
-                                            <CustomSelect2 v-binf="field" :options="items" @change="handleChange" @blur="handleBlur"/>
-                                        </Field>
+                                        <label for="user_id" class="form-label">Formador</label><span
+                                            class="text-danger">*</span>
+                                        <Field name="user_id" as="CustomSelect2" id="user_id"
+                                            :options="settingsGroup.users" />
+                                        <ErrorMessage name="user_id" class="custom-error" />
                                     </div>
                                 </div>
                             </div>
@@ -30,16 +32,19 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="year_active" class="form-label">Año de actividad</label><span
+                                        <label for="name" class="form-label">Torneo</label><span
                                             class="text-danger">*</span>
-
+                                        <Field name="tournament_id" as="CustomSelect2"
+                                            :options="settingsGroup.tournaments" />
+                                        <ErrorMessage name="tournament_id" class="custom-error" />
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <br>
-                                        <small class="text-justify">El Año de actividad determina que año se mostrará el grupo, en los meses 10,
-                                            11, 12 se pueden crear los grupos del año siguiente.</small>
+                                        <label for="year" class="form-label">Categoria</label><span
+                                            class="text-danger">*</span>
+                                        <Field name="year" as="CustomSelect2" :options="settingsGroup.categories" />
+                                        <ErrorMessage name="year" class="custom-error" />
                                     </div>
                                 </div>
                             </div>
@@ -69,7 +74,7 @@ import * as yup from "yup";
 import api from "@/utils/axios";
 import { useSettingGroups } from "@/store/settings-store";
 
-const url = "/api/v2/admin/training_groups";
+const url = "/api/v2/admin/competition_groups";
 const props = defineProps({
     id: {
         type: String,
@@ -81,67 +86,32 @@ const emit = defineEmits(["update", "cancel"]);
 const { proxy } = getCurrentInstance();
 const globalError = ref(null);
 const settingsGroup = useSettingGroups();
-
-const daysOptions = ref([
-    { id: "Lunes", name: "Lunes" },
-    { id: "Martes", name: "Martes" },
-    { id: "Miércoles", name: "Miércoles" },
-    { id: "Jueves", name: "Jueves" },
-    { id: "Viernes", name: "Viernes" },
-    { id: "Sábado", name: "Sábado" },
-    { id: "Domingo", name: "Domingo" },
-]);
-
 const form = useTemplateRef("form");
-const composeModalTrainigG = ref(null);
+const composeModalCompetitionG = ref(null);
 const initialData = ref({
-    id: null,
     name: null,
-    stage: "",
-    year_active: null,
-    days: [],
-    schedules: [],
-    user_id: [],
-    years: [],
+    user_id: null,
+    tournament_id: null,
+    year: null,
 });
 
 const schema = yup.object().shape({
     name: yup.string().required(),
-    stage: yup.string(),
-    year_active: yup.mixed().required(),
-    days: yup
-        .array()
-        .min(1, "Selecciona al menos un día")
-        .max(3, "No puedes seleccionar más de 3 días")
-        .required(),
-    schedules: yup.array().min(1, "Selecciona al menos un horario").required(),
-    user_id: yup.array().min(1, "Selecciona al menos un instructor").required(),
-    years: yup
-        .array()
-        .min(1, "Selecciona al menos una categoría")
-        .max(12, "No puedes seleccionar más de 12 categorías")
-        .required(),
+    user_id: yup.string().required(),
+    tournament_id: yup.string().required(),
+    year: yup.string().required()
 });
 
 const submit = async (values, actions) => {
     try {
-        let formData = {
-            days: values.days.map((day) => day.id),
-            schedules: values.schedules.map((day) => day.id),
-            users_id: values.user_id.map((user) => user.id),
-            categories: values.years.map((year) => year.id),
-            name: values.name,
-            stage: values.stage,
-            year_active: values.year_active,
-        };
 
         let urlAction = url
         if (props.id) {
-            formData._method = "PUT";
+            values._method = "PUT";
             urlAction = `${url}/${props.id}`;
         }
 
-        const response = await api.post(urlAction, formData);
+        const response = await api.post(urlAction, values);
 
         if (response.data.success === true) {
             const message = props.id ? 'Modifiado correctamente' : 'Guardado correctamente';
@@ -156,11 +126,10 @@ const submit = async (values, actions) => {
             actions.setErrors,
             (msg) => (globalError.value = msg)
         );
-        console.log(error)
     } finally {
         emit("update");
         modalHidden();
-        composeModalTrainigG.value.hide();
+        composeModalCompetitionG.value.hide();
         form.value.resetForm();
     }
 };
@@ -168,46 +137,27 @@ const submit = async (values, actions) => {
 const onCancel = async () => {
     form.value.resetForm();
     modalHidden();
-    composeModalTrainigG.value.hide();
+    composeModalCompetitionG.value.hide();
     emit("cancel");
 };
 
 const onLoadData = async () => {
     const response = await api.get(`${url}/${props.id}`);
-
     if (response.data?.data) {
-        const {
-            id,
-            name,
-            stage,
-            year_active,
-            years,
-            explode_days,
-            explode_schedules,
-            instructors,
-            category,
-        } = response.data.data;
-
-        if (name === "Provisional") {
-            showMessage("El grupo Provisional no se puede modificar.", "warning");
-            return;
-        }
+        const { id, category, name, tournament_id, user_id, year } = response.data.data;
 
         const data = {
             id: id,
             name: name,
-            stage: stage,
-            year_active: year_active,
-            days: explode_days.map((i) => ({ id: i, name: i })),
-            schedules: explode_schedules.map((i) => ({ id: i, name: i })),
-            user_id: instructors.map((i) => ({ id: i.id, name: i.name })),
-            years: category.map((i) => ({ id: i, name: i })),
-        };
+            tournament_id: tournament_id,
+            user_id: user_id,
+            year: year,
+        }
 
         form.value.resetForm();
         form.value.setValues(data);
 
-        composeModalTrainigG.value.show();
+        composeModalCompetitionG.value.show();
     }
 };
 
@@ -223,8 +173,8 @@ watch(
 onMounted(() => {
     settingsGroup.getGroupSettings();
 
-    composeModalTrainigG.value = new window.bootstrap.Modal(
-        document.getElementById("composeModalTrainigG"),
+    composeModalCompetitionG.value = new window.bootstrap.Modal(
+        document.getElementById("composeModalCompetitionG"),
         {
             backdrop: "static", // Prevents closing the modal by clicking outside
             keyboard: false, // Disables closing the modal with the escape key

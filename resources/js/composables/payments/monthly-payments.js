@@ -59,7 +59,6 @@ export default function useMonthlyPayments() {
 
     const handleSearch = async (values, actions) => {
         try {
-            console.log(values)
             groupPayments.value = []
             isLoading.value = true
             const params = {
