@@ -9,6 +9,7 @@ use App\Models\Player;
 use App\Repositories\PlayerRepository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -58,47 +59,42 @@ class PlayerController extends Controller
 
     /**
      * @param Player $player
-     * @return Application|Factory|View
+     * @return JsonResponse
      */
-    public function show($uniqueCode): Factory|View|Application
+    public function show($uniqueCode): JsonResponse
     {
         $player = Player::where('unique_code', $uniqueCode)->where('school_id', getSchool(auth()->user())->id)->first();
         $player = $this->repository->loadShow($player);
-        view()->share('player', $player);
-        return view('player.show');
+
+        return response()->json($player);
     }
 
     /**
      * @param Player $player
-     * @return Application|Factory|View
+     * @return JsonResponse
      */
-    public function edit($uniqueCode): Factory|View|Application
+    public function edit($uniqueCode): JsonResponse
     {
         abort_unless(isAdmin() || isSchool(), 404);
         $player = Player::with('people')->where('unique_code', $uniqueCode)->where('school_id', getSchool(auth()->user())->id)->first();
-        $player->load('people');
-        view()->share('edit', true);
-        view()->share('player', $player);
-        return view('player.edit');
+
+        return response()->json($player);
     }
 
     /**
      * @param PlayerUpdateRequest $request
      * @param Player $player
-     * @return RedirectResponse
+     * @return JsonResponse
      */
-    public function update(PlayerUpdateRequest $request, $uniqueCode): RedirectResponse
+    public function update(PlayerUpdateRequest $request, $uniqueCode): JsonResponse
     {
         abort_unless(isAdmin() || isSchool(), 404);
+        $response = [];
         $player = Player::where('unique_code', $uniqueCode)->where('school_id', getSchool(auth()->user())->id)->first();
         $isUpdated = $this->repository->updatePlayer($player, $request);
-        if (!$isUpdated) {
-            alert()->error(env('APP_NAME'), __('messages.error_general'));
-            return back()->withInput($request->input());
-        }
+        $response['success'] = $isUpdated ?: false;
 
-        alert()->success(env('APP_NAME'), __('messages.player_updated'));
-        return redirect()->to(route('players.index'));
+        return response()->json($response);
     }
 
     /**

@@ -14,6 +14,9 @@ importers:
       '@popperjs/core':
         specifier: ^2.11.8
         version: 2.11.8
+      '@vuepic/vue-datepicker':
+        specifier: ^11.0.3
+        version: 11.0.3(vue@3.5.22)
       '@vueuse/core':
         specifier: ^13.9.0
         version: 13.9.0(vue@3.5.22)
@@ -47,6 +50,9 @@ importers:
       feather-icons:
         specifier: ^4.29.2
         version: 4.29.2
+      flatpickr:
+        specifier: ^4.6.13
+        version: 4.6.13
       highlight.js:
         specifier: ^11.11.1
         version: 11.11.1
@@ -83,6 +89,9 @@ importers:
       vue-feather:
         specifier: ^2.0.0
         version: 2.0.0(feather-icons@4.29.2)(vue@3.5.22)
+      vue-flatpickr-component:
+        specifier: ^12.0.0
+        version: 12.0.0(vue@3.5.22)
       vue-i18n:
         specifier: ^11.1.12
         version: 11.1.12(vue@3.5.22)
@@ -102,8 +111,8 @@ importers:
         specifier: 1.0.3
         version: 1.0.3
       vue3-form-wizard:
-        specifier: ^0.0.4
-        version: 0.0.4
+        specifier: ^0.3.4
+        version: 0.3.4
       vue3-perfect-scrollbar:
         specifier: 2.0.0
         version: 2.0.0(vue@3.5.22)
@@ -620,6 +629,12 @@ packages:
   '@vue/shared@3.5.22':
     resolution: {integrity: sha512-F4yc6palwq3TT0u+FYf0Ns4Tfl9GRFURDN2gWG7L1ecIaS/4fCIuFOjMTnCyjsu/OK6vaDKLCrGAa+KvvH+h4w==}
 
+  '@vuepic/vue-datepicker@11.0.3':
+    resolution: {integrity: sha512-sb2adwqwK2PizLQOpxCYps2SwhVT6/ic2HMIOqHJXuYa6iAJZWGL5YVlS7O4aW+sk6ZyxlDURLO7kDZPL4HB/w==}
+    engines: {node: '>=18.12.0'}
+    peerDependencies:
+      vue: '>=3.3.0'
+
   '@vueuse/core@13.9.0':
     resolution: {integrity: sha512-ts3regBQyURfCE2BcytLqzm8+MmLlo5Ln/KLoxDVcsZ2gzIwVNnQpQOL/UKV8alUqjSZOlpFZcRNsLRqj+OzyA==}
     peerDependencies:
@@ -748,6 +763,9 @@ packages:
   datatables.net@2.3.4:
     resolution: {integrity: sha512-fKuRlrBIdpAl2uIFgl9enKecHB41QmFd/2nN9LBbOvItV/JalAxLcyqdZXex7wX4ZXjnJQEnv6xeS9veOpKzSw==}
 
+  date-fns@4.1.0:
+    resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
+
   dayjs@1.11.18:
     resolution: {integrity: sha512-zFBQ7WFRvVRhKcWoUh+ZA1g2HVgUbsZm9sbddh8EC5iv93sui8DVVz1Npvz+r6meo9VKfa8NyLWBsQK1VvIKPA==}
 
@@ -847,6 +865,9 @@ packages:
   fill-range@7.1.1:
     resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
     engines: {node: '>=8'}
+
+  flatpickr@4.6.13:
+    resolution: {integrity: sha512-97PMG/aywoYpB4IvbvUJi0RQi8vearvU0oov1WW3k0WZPBMrTQVqekSX5CjSG/M4Q3i6A/0FKXC7RyAoAUUSPw==}
 
   follow-redirects@1.15.11:
     resolution: {integrity: sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ==}
@@ -1246,6 +1267,12 @@ packages:
       feather-icons: ^4.28.0
       vue: ^3.0.0
 
+  vue-flatpickr-component@12.0.0:
+    resolution: {integrity: sha512-CJ5jrgTaeD66Z4mjEocSTAdB/n6IGSlUICwdBanpyCI8hswq5rwXvEYQ5IKA3K3uVjP5pBlY9Rg6o3xoszTPpA==}
+    engines: {node: '>=14.13.0'}
+    peerDependencies:
+      vue: ^3.2.0
+
   vue-i18n@11.1.12:
     resolution: {integrity: sha512-BnstPj3KLHLrsqbVU2UOrPmr0+Mv11bsUZG0PyCOzsawCivk8W00GMXHeVUWIDOgNaScCuZah47CZFE+Wnl8mw==}
     engines: {node: '>= 16'}
@@ -1279,8 +1306,8 @@ packages:
   vue3-echarts@1.0.3:
     resolution: {integrity: sha512-a9zKlbu0FzILIP4Yj9yc/mxXahF00amOJWLnxq+Rsxchh/DwqfFgJc1WAb4Tq54r1zfxpncZGugtZK9LT/DQyw==}
 
-  vue3-form-wizard@0.0.4:
-    resolution: {integrity: sha512-9mTqevJAr66xyZRe8nAO2OBvd91S6Ar5yZofF0M0t9KJ/Y9vz9uxiv71/CtFjNhpt32U8Q15QXvkFkMwfrv4Og==}
+  vue3-form-wizard@0.3.4:
+    resolution: {integrity: sha512-+ngqnIiOud62huLsS5FjCHzKDRchnjATlJjO1BfH5/Rep8naUMlS1awd5Yuhp9/9MTrmi6XJ+WN+2n8soDHCSg==}
 
   vue3-perfect-scrollbar@2.0.0:
     resolution: {integrity: sha512-nSWVcRyViCgt0Pe3RhU3w/BllLcFSrEzYOGlRBjSyhVmiZlERHHziffW+9P8L0IMEWouC5t+uYrgNJGSAElqMA==}
@@ -1655,6 +1682,11 @@ snapshots:
 
   '@vue/shared@3.5.22': {}
 
+  '@vuepic/vue-datepicker@11.0.3(vue@3.5.22)':
+    dependencies:
+      date-fns: 4.1.0
+      vue: 3.5.22
+
   '@vueuse/core@13.9.0(vue@3.5.22)':
     dependencies:
       '@types/web-bluetooth': 0.0.21
@@ -1808,6 +1840,8 @@ snapshots:
     dependencies:
       jquery: 3.7.1
 
+  date-fns@4.1.0: {}
+
   dayjs@1.11.18: {}
 
   deep-equal@1.1.2:
@@ -1924,6 +1958,8 @@ snapshots:
     dependencies:
       to-regex-range: 5.0.1
     optional: true
+
+  flatpickr@4.6.13: {}
 
   follow-redirects@1.15.11: {}
 
@@ -2281,6 +2317,11 @@ snapshots:
       feather-icons: 4.29.2
       vue: 3.5.22
 
+  vue-flatpickr-component@12.0.0(vue@3.5.22):
+    dependencies:
+      flatpickr: 4.6.13
+      vue: 3.5.22
+
   vue-i18n@11.1.12(vue@3.5.22):
     dependencies:
       '@intlify/core-base': 11.1.12
@@ -2325,7 +2366,7 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  vue3-form-wizard@0.0.4: {}
+  vue3-form-wizard@0.3.4: {}
 
   vue3-perfect-scrollbar@2.0.0(vue@3.5.22):
     dependencies:

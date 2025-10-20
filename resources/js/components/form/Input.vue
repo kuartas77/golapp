@@ -24,7 +24,6 @@
 <script setup>
 import { useField } from 'vee-validate'
 import CurrencyInput from '@/components/general/CurrencyInput'
-import { boolean } from 'yup'
 const props = defineProps({
     name: {
         type: String,

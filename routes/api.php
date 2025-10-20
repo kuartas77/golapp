@@ -17,6 +17,7 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\Groups\CompetitionGroupController;
 use App\Http\Controllers\Groups\TrainingGroupController;
 use App\Http\Controllers\Payments\PaymentController;
+use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\SchoolPages\SchoolsController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
@@ -74,17 +75,20 @@ Route::prefix('v2')->group(function(){
             Route::get('school', [SchoolsController::class, 'index']);
             Route::put('school/{school}', [SchoolsController::class, 'update']);
             Route::apiResource('users', UsersController::class);
-            Route::resource('training_groups', TrainingGroupController::class, ['only' => ['show', 'store', 'update']]);
-            Route::resource('competition_groups', CompetitionGroupController::class, ['only' => ['show', 'store', 'update']]);
+            Route::apiResource('training_groups', TrainingGroupController::class, ['only' => ['show', 'store', 'update']]);
+            Route::apiResource('competition_groups', CompetitionGroupController::class, ['only' => ['show', 'store', 'update']]);
 
         });
 
         Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);
-
-        Route::resource("payments", PaymentController::class)->only(['index','update', 'show']);
-
         Route::get("training_group/classdays", [TrainingGroupController::class, 'getClassDays']);
-        Route::resource("assists", AssistController::class)->except(['create','edit', 'destroy']);
+
+        Route::apiResource("players", PlayerController::class, ['only' => ['edit','show', 'update']]);
+
+
+
+        Route::apiResource("payments", PaymentController::class)->only(['index','update', 'show']);
+        Route::apiResource("assists", AssistController::class)->except(['create','edit', 'destroy']);
 
         Route::prefix('datatables')->group(function () {
             Route::get('inscriptions_enabled', [DataTableController::class, 'enabledInscriptions']);

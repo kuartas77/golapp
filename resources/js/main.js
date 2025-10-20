@@ -29,7 +29,8 @@ import Checkbox from '@/components/form/Checkbox.vue';
 import DatatableTemplate from "@/components/general/DatatableTemplate.vue";
 import CustomMultiSelect from "@/components/form/MultiSelect.vue";
 import CustomSelect2 from "@/components/form/CustomSelect2.vue";
-
+// import VueDatePicker from '@vuepic/vue-datepicker';
+// import '@vuepic/vue-datepicker/dist/main.css'
 // bootstrap
 import * as bootstrap from "bootstrap";
 window.bootstrap = bootstrap;
@@ -72,6 +73,7 @@ app.component('inputFileImage', fileInputImage)
 app.component('CustomMultiSelect', CustomMultiSelect)
 app.component('checkbox', Checkbox)
 app.component('CustomSelect2', CustomSelect2)
+// app.component('VueDatePicker', VueDatePicker)
 
 app.directive('has-role', vHasRol)
 

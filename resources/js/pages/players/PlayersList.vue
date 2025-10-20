@@ -1,19 +1,18 @@
 <template>
     <panel>
         <template #body>
-            <DatatableTemplate :options="options" :id="'players_table'" ref="table" @click="resolveRouteFromClick($event)"/>
+            <DatatableTemplate :options="options" :id="'players_table'" ref="table" @click="onClickRow"/>
         </template>
     </panel>
+
+    <ModalPlayer :unique_code="selectedId" @update="reloadTable" @cancel="onCancel"></ModalPlayer>
 
     <breadcrumb :parent="'Plataforma'" :current="'Deportistas'" />
 </template>
 <script setup>
-import dayjs from "@/utils/dayjs";
 import usePlayerList from '@/composables/player/playersList'
-import { usePageTitle } from "@/composables/use-meta";
+import ModalPlayer from './ModalPlayer.vue';
 
-usePageTitle('Deportistas')
-
-const { table, options, resolveRouteFromClick } = usePlayerList()
+const {  options, table, selectedId, onClickRow, reloadTable, onCancel  } = usePlayerList()
 
 </script>

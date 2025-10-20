@@ -2598,4 +2598,40 @@ textarea {
         color: #fff;
         background-color: color_variables.$m-color_13;
     }
+
+    fieldset {
+        background-color: color_variables.$m-color_18;
+
+        legend  {
+            color: color_variables.$l-dark;
+            background-color: color_variables.$m-color_10;
+            border: 1px solid color_variables.$m-color_10;
+        }
+    }
+
+    .dp__input {
+        background-color: color_variables.$m-color_12;
+        color: color_variables.$m-color_14;
+    }
+
+}
+
+.drag-drop {
+    min-height: 220px;
+}
+
+fieldset {
+    background-color: rgba(239, 239, 240, 0.3);
+    border-radius: 4px;
+
+    legend  {
+        float: none !important;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 17px;
+        font-weight: bold;
+        padding: 3px 5px 3px 7px;
+        width: auto;
+    }
 }

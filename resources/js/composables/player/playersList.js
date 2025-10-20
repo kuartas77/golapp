@@ -1,15 +1,12 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { useTemplateRef } from 'vue';
-import { useAuthUser } from '@/store/auth-user'
-import { useRouter } from 'vue-router';
+import { useTemplateRef, ref, onMounted } from 'vue';
 import api from '@/utils/axios'
-import { name } from 'dayjs/locale/es';
+import { usePageTitle } from "@/composables/use-meta";
 
 export default function usePlayerList() {
 
-    const store = useAuthUser()
-    const router = useRouter()
-    const table = useTemplateRef('');
+    const table = useTemplateRef('table');
+    const selectedId = ref(null)
     const columns = [
         { data: 'photo_url', title: '', width: '1%', render: '#photo', searchable: false, orderable: false},
         { data: 'unique_code', title: 'Código', width: '5%', render: '#link', searchable: true, orderable: true},
@@ -47,14 +44,30 @@ export default function usePlayerList() {
         columns: columns
     };
 
-    const resolveRouteFromClick = (e) => {
+    const onClickRow = (e) => {
         const itemId = e.target.dataset.itemId
         if (!itemId) {
             return
         }
         e.preventDefault()
-        router.push('/deportistas/' + itemId);
+        selectedId.value = itemId
     }
 
-    return { options, table, resolveRouteFromClick };
+    const reloadTable = () => {
+        selectedId.value = null
+        if (table.value) {
+            let dt = table.value.table.dt;
+            dt.ajax.reload(null, false)
+        }
+    }
+
+    const onCancel = () => {
+        selectedId.value = null
+    }
+
+    onMounted(() => {
+        usePageTitle('Deportistas')
+    })
+
+    return { options, table, selectedId, onClickRow, reloadTable, onCancel };
 }

@@ -42,6 +42,7 @@ const routes = [
                     { path: 'escuela', name: 'school', component: () => import('@/pages/admin/school/UpdateSchool.vue') },
                     { path: 'usuarios', name: 'users', component: () => import('@/pages/admin/users/UsersList.vue') },
                     { path: 'g-entrenamiento', name: 'training-groups', component: () => import('@/pages/admin/groups/training/trainingList.vue') },
+                    { path: 'g-entrenamiento/admin', name: 'training-groups-admin', component: () => import('@/pages/admin/groups/training/AdminTrainingGroup.vue') },
                     { path: 'g-competencia', name: 'competition-groups', component: () => import('@/pages/admin/groups/competition/competitionGList.vue') },
 
                     { path: 'schools', name: 'schools', component: () => import('@/pages/admin/school/list-schools.vue'), meta: { requiresRole: ['super-admin'] } },
