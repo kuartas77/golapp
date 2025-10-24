@@ -66,50 +66,50 @@ export default function usePlayerDetail() {
 
     const schemas = [
         yup.object({
-            photo: yup.mixed().nullable(),
-            unique_code: yup.string().trim().required(),
-            identification_document: yup.string().trim().required(),
-            document_type: yup.string().trim().required(),
-            date_birth: yup.string().trim().required(),
-            names: yup.string().trim().required(),
-            last_names: yup.string().trim().required(),
-            place_birth: yup.string().trim().required(),
-            gender: yup.string().trim().required(),
-            rh: yup.string().trim().required(),
+            photo: yup.mixed().nullable().transform((value, original) => (original === '' ? null : value)),
+            unique_code: yup.string().required().transform((value, original) => (original === '' ? null : value)),
+            identification_document: yup.string().required().transform((value, original) => (original === '' ? null : value)),
+            document_type: yup.string().required().transform((value, original) => (original === '' ? null : value)),
+            date_birth: yup.string().required().transform((value, original) => (original === '' ? null : value)),
+            names: yup.string().required().transform((value, original) => (original === '' ? null : value)),
+            last_names: yup.string().required().transform((value, original) => (original === '' ? null : value)),
+            place_birth: yup.string().required().transform((value, original) => (original === '' ? null : value)),
+            gender: yup.string().required().transform((value, original) => (original === '' ? null : value)),
+            rh: yup.string().required().transform((value, original) => (original === '' ? null : value)),
         }),
         yup.object({
-            email: yup.string().email().required(),
-            eps: yup.string().trim().nullable(),
-            address: yup.string().trim().nullable(),
-            municipality: yup.string().trim().nullable(),
-            neighborhood: yup.string().trim().nullable(),
-            phones: yup.string().trim().nullable(),
-            school: yup.string().trim().nullable(),
-            degree: yup.string().trim().nullable(),
-            jornada: yup.string().trim().nullable(),
-            student_insurance: yup.string().trim().nullable(),
-            medical_history: yup.string().trim().nullable()
+            email: yup.string().email().required().transform((value, original) => (original === '' ? null : value)),
+            eps: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
+            address: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
+            municipality: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
+            neighborhood: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
+            phones: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
+            school: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
+            degree: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
+            jornada: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
+            student_insurance: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
+            medical_history: yup.string().nullable().transform((value, original) => (original === '' ? null : value))
         }),
         yup.object({
-            relationship_0: yup.string().trim().nullable(),
-            names_0: yup.string().trim().nullable(),
+            relationship_0: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
+            names_0: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
             document_0: yup.string().when('names_0', {
                 is: (namesValue) => !namesValue || namesValue === null,
                 then: (schema) => schema.notRequired(),
                 otherwise: (schema) => schema.required(),
-            }).trim().nullable(),
-            phone_0: yup.string().trim().nullable(),
-            business_0: yup.string().trim().nullable(),
+            }).nullable().transform((value, original) => (original === '' ? null : value)),
+            phone_0: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
+            business_0: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
 
-            relationship_1: yup.string().trim().nullable(),
-            names_1: yup.string().trim().nullable(),
+            relationship_1: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
+            names_1: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
             document_1: yup.string().when('names_1', {
                 is: (namesValue) => !namesValue || namesValue === null,
                 then: (schema) => schema.notRequired(),
                 otherwise: (schema) => schema.required(),
-            }).trim().nullable(),
-            phone_1: yup.string().trim().nullable(),
-            business_1: yup.string().trim().nullable()
+            }).nullable().transform((value, original) => (original === '' ? null : value)),
+            phone_1: yup.string().nullable().transform((value, original) => (original === '' ? null : value)),
+            business_1: yup.string().nullable().transform((value, original) => (original === '' ? null : value))
         })
     ]
 
@@ -146,7 +146,15 @@ export default function usePlayerDetail() {
                 }
             }
 
-            const response = await api.post(`/api/v2/players/${route.params.unique_code}`, formData)
+            api.post(`/api/v2/players/${route.params.unique_code}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            }).then(resp => {
+                if (resp.data.success) {
+                    showMessage('Guardado correctamente.')
+                } else {
+                    showMessage('Algo salió mal.', 'error')
+                }
+            })
 
             showMessage('Guardado correctamente.')
 
