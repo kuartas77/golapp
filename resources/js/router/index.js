@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthUser } from '@/store/auth-user'
 
-const checkRequiresRoles = (to, from, next)  => {
+const checkRequiresRoles = (to, from, next) => {
     const userStore = useAuthUser()
     const userRoleName = userStore.user.role.name
-    if(!to.meta.requiresRole.includes(userRoleName)){
+    if (!to.meta.requiresRole.includes(userRoleName)) {
         return next({ name: 'dashboard' })
     }
     return next()
@@ -30,6 +30,7 @@ const routes = [
             { path: 'kpi', name: 'kpi', component: () => import('@/pages/home/Index.vue'), },
             { path: 'perfil/usuario', name: 'user-profile', component: () => import('@/pages/home/Index.vue'), },
             { path: 'deportistas', name: 'players', component: () => import('@/pages/players/PlayersList.vue') },
+            { path: 'deportistas/:unique_code', name: 'player-detail', component: () => import('@/pages/players/PlayerDetail.vue') },
             { path: 'inscripciones', name: 'inscriptions', component: () => import('@/pages/inscriptions/InscriptionsList.vue') },
             { path: 'asistencias', name: 'attendances', component: () => import('@/pages/attendances/attendance-list.vue') },
             { path: 'mensualidades', name: 'payments', component: () => import('@/pages/payments/monthly-payment-list.vue') },
@@ -37,7 +38,7 @@ const routes = [
                 path: '/administracion',
                 name: 'admin',
                 meta: { requiresRole: ['super-admin', 'school'] },
-                beforeEnter:[ checkRequiresRoles ],
+                beforeEnter: [checkRequiresRoles],
                 children: [
                     { path: 'escuela', name: 'school', component: () => import('@/pages/admin/school/UpdateSchool.vue') },
                     { path: 'usuarios', name: 'users', component: () => import('@/pages/admin/users/UsersList.vue') },

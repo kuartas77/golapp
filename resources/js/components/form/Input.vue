@@ -1,6 +1,6 @@
 <template>
-    <label v-if="label" :for="name" class="form-label">{{ label }}</label>
-    <span v-if="isRequired" class="text-danger">*</span>
+    <label v-if="label" :for="name" class="form-label">{{ label }}<span v-if="isRequired" class="text-danger">&nbsp;(*)</span></label>
+
     <template v-if="!currency">
         <input  :type="type" autocomplete="off"
             class="form-control form-control-sm"

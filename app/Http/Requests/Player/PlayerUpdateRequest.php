@@ -69,17 +69,23 @@ class PlayerUpdateRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        $people = $this->input('people', []);
-        foreach($people as $key => $person){
-            if ($person['relationship'] == '' && $person['names'] == '' && $person['identification_card'] == '' && $person['phone'] == '') {
-                unset($people[$key]);
-            }
+        $people = [];
+        for ($i = 0; $i <= 2; $i++) {
+            $people[$i]['tutor'] = $i === 0;
+            $people[$i]['names'] = $this->{'names_' . $i} !== 'null' ? $this->{'names_' . $i} : null;
+            $people[$i]['phone'] = $this->{'phone_' . $i} !== 'null' ? $this->{'phone_' . $i} : null;
+            $people[$i]['business'] = $this->{'business_' . $i} !== 'null' ? $this->{'business_' . $i} : null;
+            $people[$i]['identification_card'] = $this->{'document_' . $i} !== 'null' ? $this->{'document_' . $i} : null;
+            $people[$i]['relationship'] = $this->{'relationship_' . $i} !== 'null' ? $this->{'relationship_' . $i} : null;
 
+            if (blank($people[$i]['names']) && blank($people[$i]['phone']) && blank($people[$i]['identification_card']) && blank($people[$i]['phone'])) {
+                unset($people[$i]);
+            }
         }
 
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
-            'people' => array_values($people),
+            'people' => $people,
             'mobile' => $this->phones
         ]);
     }

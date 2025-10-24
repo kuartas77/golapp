@@ -1,10 +1,8 @@
 import { getCurrentInstance, ref, onMounted } from 'vue'
 import * as yup from 'yup'
 import api from "@/utils/axios";
-import useAlerts from '@/composables/alerts'
 
 export default function useFormSchool() {
-    const { toastSuccess, toastError, } = useAlerts()
     const form = ref(null)
     const { proxy } = getCurrentInstance()
     const globalError = ref(null)
@@ -85,7 +83,7 @@ export default function useFormSchool() {
             if (result.isConfirmed) {
                 sendRequest(values, actions)
             } else if (result.isDenied) {
-                toastSuccess('Cancelado correctamente.')
+                showMessage('Cancelado correctamente.')
             }
         });
     }
@@ -112,9 +110,9 @@ export default function useFormSchool() {
                 }
             }).then(resp => {
                 if (resp.data.success) {
-                    toastSuccess()
+                    showMessage('Guardado correctamente.')
                 } else {
-                    toastError()
+                    showMessage('Algo salió mal.', 'error')
                 }
             })
         } catch (error) {

@@ -24,7 +24,7 @@ export default function useMonthlyPayments() {
     const schema = yup.object().shape({
         category: yup.string().nullable().optional(),
         training_group_id: yup.string().when('category', {
-            is: (controlValue) => !controlValue || controlValue === null , // Check if category is empty
+            is: (categoryValue) => !categoryValue || categoryValue === null , // Check if category is empty
             then: (schema) => schema.required(), // If empty, training_group_id is required
             otherwise: (schema) => schema.notRequired(), // Otherwise, training_group_id is not required
         }),

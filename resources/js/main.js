@@ -29,6 +29,7 @@ import Checkbox from '@/components/form/Checkbox.vue';
 import DatatableTemplate from "@/components/general/DatatableTemplate.vue";
 import CustomMultiSelect from "@/components/form/MultiSelect.vue";
 import CustomSelect2 from "@/components/form/CustomSelect2.vue";
+import VueWizardSteps from '@/plugins/wizard'
 // import VueDatePicker from '@vuepic/vue-datepicker';
 // import '@vuepic/vue-datepicker/dist/main.css'
 // bootstrap
@@ -63,6 +64,7 @@ app.use(router)
 app.use(PerfectScrollbarPlugin)
 app.use(VueSweetalert2, options)
 app.use(errorHandler)
+app.use(VueWizardSteps)
 
 app.component('DataTable', DataTable)
 app.component('DatatableTemplate', DatatableTemplate)
