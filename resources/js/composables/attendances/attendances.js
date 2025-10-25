@@ -187,26 +187,33 @@ export default function useAttendances() {
     }
 
     const onSaveModalAttendance = async () => {
-        let data = {
-            _method: 'PUT',
-            id: takeAttendance.value.id,
-            observations: takeAttendance.value.observation,
-            attendance_date: `${classDaySelected.value.year}-${classDaySelected.value.month}-${classDaySelected.value.date}`,
+        try {
+            let data = {
+                _method: 'PUT',
+                id: takeAttendance.value.id,
+                observations: takeAttendance.value.observation,
+                attendance_date: `${classDaySelected.value.year}-${classDaySelected.value.month}-${classDaySelected.value.date}`,
+            }
+            data[classDaySelected.value.column] = takeAttendance.value.value
+
+            const response = await api.post(`/api/v2/assists/${data.id}`, data)
+
+            let changed = attendancesGroup.value.find((attendance) => attendance.id === data.id)
+            if (response.data && changed) {
+                changed[classDaySelected.value.column] = data[classDaySelected.value.column]
+                showMessage('Guardado correctamente')
+            } else {
+                showMessage("Algo salió mal", 'error')
+            }
+
+        } catch (error) {
+            showMessage("Algo salió mal", 'error')
+        } finally {
+            backupCell.value = null
+            takeAttendance.value = null
+            modalHidden()
+            composeModalAttendance.value.hide()
         }
-        data[classDaySelected.value.column] = takeAttendance.value.value
-
-        const response = await api.post(`/api/v2/assists/${data.id}`, data)
-
-        let changed = attendancesGroup.value.find((attendance) => attendance.id === data.id)
-        if (response.data && changed) {
-            changed[classDaySelected.value.column] = data[classDaySelected.value.column]
-        }
-
-        backupCell.value = null
-        takeAttendance.value = null
-        modalHidden()
-        composeModalAttendance.value.hide()
-        showMessage('Guardado correctamente')
     }
 
     const onClickOpenModalObservations = async (row) => {

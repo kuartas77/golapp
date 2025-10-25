@@ -12,13 +12,11 @@
                                         <label for="training_group_id" class="sr-only">Grupo</label>
                                         <Field name="training_group_id" as="CustomSelect2" id="training_group_id"
                                             :options="groups" />
-
                                         <ErrorMessage name="training_group_id" class="custom-error" />
                                     </div>
                                     <div class="mb-3">
                                         <label for="month" class="sr-only">Mes</label>
-                                        <Field name="month" as="CustomSelect2" id="month"
-                                            :options="optionsMonths" />
+                                        <Field name="month" as="CustomSelect2" id="month" :options="optionsMonths" />
                                         <ErrorMessage name="month" class="custom-error" />
                                     </div>
                                     <div class="mb-3">
@@ -108,7 +106,7 @@
                                     </div>
                                 </template>
                                 <template #bagClick="props">
-                                    <button type="button" class="badge outline-badge-primary btn btn-sm m-1"
+                                    <button type="button" class="badge badge-primary btn btn-sm m-1"
                                         @click="onClickOpenModalAttendance(props.rowData)" :data-id="props.rowData.id">
                                         {{ attendanceTypes[props.rowData[classDaySelected.column]] ?? 'Tomar Asistencia'
                                         }}
@@ -116,7 +114,7 @@
                                 </template>
 
                                 <template #observations="props">
-                                    <button type="button" class="badge outline-badge-primary btn btn-sm m-1"
+                                    <button type="button" class="badge badge-primary btn btn-sm m-1"
                                         @click="onClickOpenModalObservations(props.rowData)">Ver</button>
                                 </template>
                             </DataTable>
@@ -128,7 +126,7 @@
     </div>
     <div class="modal fade" id="composeModalAttendance" tabindex="-1" role="dialog" aria-labelledby="attendanceModal"
         aria-hidden="false" aria-modal="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-md" role="document">
             <div class="modal-content" v-if="takeAttendance">
                 <div class="modal-header">
                     <h5 class="modal-title" id="attendanceModal">{{ takeAttendance.player_name }}</h5>
@@ -137,20 +135,23 @@
                 </div>
                 <div class="modal-body">
 
-                    <div class="mb-3 row" v-if="classDaySelected">
-                        <label for="attendance_number" class="col-sm-2 col-form-label">Entrenamiento#:</label>
-                        <div class="col-sm-4">
+                    <div class="mb-1 row" v-if="classDaySelected">
+                        <label for="attendance_number" class="col-sm-4 col-form-label">Entrenamiento#:</label>
+                        <div class="col-sm-8">
                             <input type="text" readonly class="form-control-plaintext" id="attendance_number"
                                 :value="classDaySelected.index">
                         </div>
-                        <label for="attendance_name" class="col-sm-2 col-form-label">Fecha:</label>
-                        <div class="col-sm-4">
+                    </div>
+                    <div class="mb-1 row" v-if="classDaySelected">
+                        <label for="attendance_name" class="col-sm-4 col-form-label">Fecha:</label>
+                        <div class="col-sm-8">
                             <input type="text" readonly class="form-control-plaintext" id="attendance_name"
                                 :value="`${classDaySelected.day} ${classDaySelected.date} de ${classDaySelected.month_name}`">
                         </div>
                     </div>
-                    <div class="mb-3 row">
-                        <label for="select_attendance" class="col-sm-4 col-form-label">Tomar Asistencia:</label>
+
+                    <div class="mb-1 row">
+                        <label for="select_attendance" class="col-sm-4 col-form-label">Estado:</label>
                         <div class="col-sm-8">
                             <select name="select_attendance" id="select_attendance"
                                 class="form-control form-control-sm form-select" v-model="takeAttendance.value">
@@ -163,7 +164,8 @@
                     </div>
                     <div class="row">
                         <div class="form-group">
-                            <label for="single_observation">Observaciónes para el deportista en el entrenamiento:</label>
+                            <label for="single_observation">Observaciónes para el deportista en el
+                                entrenamiento:</label>
                             <span class="bar"></span>
                             <textarea name="observations" id="single_observation" cols="30" rows="10"
                                 class="form-control form-control-sm" v-model="takeAttendance.observation"></textarea>

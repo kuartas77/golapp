@@ -2662,3 +2662,15 @@ fieldset {
         width: auto;
     }
 }
+
+input[readonly].form-control-plaintext  {
+    background-color: transparent !important;
+    border: solid transparent;
+    cursor: auto;
+}
+
+textarea[disabled], textarea[readonly] {
+    cursor: auto !important;
+    background-color: #f1f2f3 !important;
+    color: #bfc9d4;
+}

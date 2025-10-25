@@ -9,7 +9,7 @@
             </div>
         </template>
         <template #date="props">
-            {{ dayjs(props.cellData).format('l') }}
+            {{ dayjs(props.cellData).format('YYYY-MM-DD') }}
         </template>
         <template #check="props">
             <template v-if="props.cellData">
@@ -64,6 +64,12 @@
                     </div>
                 </div>
             </div>
+        </template>
+
+        <template #inscription="props">
+            <small v-if="props.rowData.pre_inscription"
+                    class="badge outline-badge-warning btn btn-sm m-1">Pre-inscrito</small>
+                    {{ props.cellData }}
         </template>
 
     </DataTable>

@@ -83,6 +83,7 @@ class Inscription extends Model
     protected $casts = [
         'start_date' => "datetime:Y-m-d",
         'created_at' => "datetime:Y-m-d",
+        'pre_inscription' => 'boolean'
     ];
 
     public static $documentFields = [
