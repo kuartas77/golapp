@@ -12,10 +12,10 @@ export default function useInscriptionList() {
     const columns = [
         { data: 'player.photo_url', width: '1%', render: '#photo', searchable: false },
         { data: 'unique_code', render: '#link', searchable: true },
-        { data: 'player.identification_document', searchable: true },
         { data: 'training_group.name', name: 'training_group_id', orderable: false, searchable: true },
         { data: 'player.category', name: 'inscriptions.category', orderable: false, searchable: true },
-        { data: 'player.full_names', name: 'player.last_names', searchable: true, orderable: false },
+        { data: 'player.gender', name: 'player.gender', orderable: false, searchable: true },
+        { data: 'player.full_names', render: '#inscription', name: 'player.last_names', searchable: true, orderable: false },
         { data: 'created_at', render: '#date', searchable: false },
     ];
 
@@ -25,11 +25,19 @@ export default function useInscriptionList() {
         columnDefs: [
             { responsivePriority: 1, targets: columns.length - 1 },
             {
-                targets: [1, 2, 3, 4, 6],
-                width: '5%'
+                targets: [1, 2, 3],
+                width: '9%'
             },
             {
-                targets: ['_all'],
+                targets: [4],
+                width: '1%'
+            },
+            {
+                targets: [5],
+                width: '35%'
+            },
+            {
+                targets: [0,1, 2, 3, 4, 6],
                 className: 'dt-head-center dt-body-center', // Center align their headers
             },
             // { searchable: false, targets: [0,4, 5]},

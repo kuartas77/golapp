@@ -152,11 +152,12 @@
                                                 placeholder="Monto" />
 
                                             <div class="d-flex justify-content-between">
-                                                <span class="badge badge-success clickable" @click="saveField">
+                                                <span class="badge badge-success clickable"
+                                                    @click="saveField" title="Guardar">
                                                     <i class="far fa-check-square fa-lg"></i>
                                                 </span>
-                                                <span class="badge badge-secondary clickable"
-                                                    @click="cancelEdition(field)">
+                                                <span class="badge badge-info clickable"
+                                                    @click="cancelEdition(field)" title="Cancelar">
                                                     <i class="far fa-window-close fa-lg"></i>
                                                 </span>
 

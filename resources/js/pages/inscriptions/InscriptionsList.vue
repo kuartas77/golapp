@@ -8,11 +8,11 @@
                         <tr>
                             <th></th>
                             <th>Código</th>
-                            <th>Doc</th>
                             <th id="select_groups"></th>
                             <th id="select_categories"></th>
+                            <th>Genero</th>
                             <th>Nombres</th>
-                            <th>Registro</th>
+                            <th>F.Inicio</th>
                         </tr>
                     </thead>
                 </template>

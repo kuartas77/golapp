@@ -33,16 +33,16 @@ h6 {
     outline: none;
 }
 
-::-moz-selection {
-    /* Code for Firefox */
-    color: color_variables.$primary;
-    background: transparent;
-}
+// ::-moz-selection {
+//     /* Code for Firefox */
+//     color: color_variables.$primary;
+//     background: transparent;
+// }
 
-::selection {
-    color: color_variables.$primary;
-    background: transparent;
-}
+// ::selection {
+//     color: color_variables.$primary;
+//     background: transparent;
+// }
 a {
     text-decoration: none;
 }
