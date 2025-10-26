@@ -230,6 +230,7 @@ export default function useAttendances() {
 
     onMounted(() => {
         initModals()
+        usePageTitle('Asistencias')
     })
 
     return {

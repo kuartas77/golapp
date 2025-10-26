@@ -210,6 +210,7 @@
         </div>
     </div>
 
+    <breadcrumb :parent="'Plataforma'" :current="'Asistencias'" />
 </template>
 <script>
 export default {
