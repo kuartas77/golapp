@@ -13,18 +13,21 @@ use App\Repositories\InscriptionRepository;
 use App\Repositories\TrainingGroupRepository;
 use App\Repositories\TrainingSessionRepository;
 use App\Repositories\CompetitionGroupRepository;
+use App\Repositories\GameRepository;
 
 class DataTableController extends Controller
 {
-    public function __construct(private InscriptionRepository      $inscriptionRepository,
-                                private TrainingGroupRepository    $trainingGroupRepository,
-                                private CompetitionGroupRepository $competitionGroupRepository,
-                                private PlayerRepository           $playerRepository,
-                                private ScheduleRepository         $scheduleRepository,
-                                private SchoolRepository           $schoolRepository,
-                                private TrainingSessionRepository  $trainingSessionRepository,
-                                private UserRepository             $userRepository,
-                                )
+    public function __construct(
+        private InscriptionRepository      $inscriptionRepository,
+        private TrainingGroupRepository    $trainingGroupRepository,
+        private CompetitionGroupRepository $competitionGroupRepository,
+        private PlayerRepository           $playerRepository,
+        private ScheduleRepository         $scheduleRepository,
+        private SchoolRepository           $schoolRepository,
+        private TrainingSessionRepository  $trainingSessionRepository,
+        private UserRepository             $userRepository,
+        private GameRepository             $gameRepository,
+    )
     {
     }
 
@@ -134,6 +137,14 @@ class DataTableController extends Controller
         abort_unless($request->ajax() && isAdmin(), 403);
 
         return datatables()->of($this->schoolRepository->schoolsInfo())->toJson();
+    }
+
+    public function matches(Request $request)
+    {
+        abort_unless($request->ajax() && isAdmin(), 403);
+
+        return datatables()->of($this->gameRepository->getDatatable())->toJson();
+
     }
 
     public function trainingSessions(Request $request)

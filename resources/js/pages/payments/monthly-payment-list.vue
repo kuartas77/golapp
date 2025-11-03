@@ -1,24 +1,26 @@
 <template>
     <panel>
         <template #body>
-            <div class="row mb-3">
+            <div class="row">
                 <div class="col-xl-6 col-lg-6 col-sm-12 text-center">
                     <Form ref="form" :validation-schema="schema" @submit="handleSearch" :initial-values="formData"
                         class="row align-items-center justify-content-center">
-                        <p class="text-muted">Puedes seleccionar un grupo y/o una categoría, en otro caso combinarlos.</p>
+                        <p class="text-muted">Puedes seleccionar un grupo y/o una categoría, en otro caso combinarlos.
+                        </p>
                         <div class="col-sm-6">
                             <label for="training_group_id" class="sr-only">Grupo</label>
-                            <Field name="training_group_id" as="CustomSelect2" :options="groups" placeholder="Selecciona un grupo"/>
+                            <Field name="training_group_id" as="CustomSelect2" :options="groups"
+                                placeholder="Selecciona un grupo" />
                             <ErrorMessage name="training_group_id" class="custom-error" />
                         </div>
                         <div class="col-sm-4">
                             <label for="category" class="sr-only">Categoría</label>
-                            <Field name="category" as="CustomSelect2" :options="categories" placeholder="Selecciona una categoría"/>
+                            <Field name="category" as="CustomSelect2" :options="categories"
+                                placeholder="Selecciona una categoría" />
                             <ErrorMessage name="month" class="custom-error" />
                         </div>
                         <div class="col-sm-2">
-                            <button type="submit" class="btn btn-primary w-100"
-                                :disabled="isLoading">
+                            <button type="submit" class="btn btn-primary w-100" :disabled="isLoading">
                                 Buscar
                                 <template v-if="isLoading">
                                     &nbsp;
@@ -58,16 +60,19 @@
                                 Deben {{ moneyFormat(totalByType.debts) }}
                             </span>
 
-                            <div class="btn-group mt-1" role="group">
-                                <a v-if="export_pdf" :href="export_pdf" target="_blank"
-                                    class="badge badge-info btn btn-sm me-1">
-                                    <i class="far fa-file-pdf fa-lg"> PDF</i>
-                                </a>
-                                <a v-if="export_excel" :href="export_excel" target="_blank"
-                                    class="badge badge-info btn btn-sm me-1">
-                                    <i class="far fa-file-excel fa-lg"> Excel</i>
-                                </a>
-                            </div>
+                            <a v-if="export_pdf" :href="export_pdf" target="_blank">
+                                <span class="badge badge-info me-1">
+                                    <i class="far fa-file-pdf fa-lg"></i>
+                                    PDF
+                                </span>
+                            </a>
+                            <a v-if="export_excel" :href="export_excel" target="_blank">
+                                <span class="badge badge-info me-1">
+                                    <i class="far fa-file-excel fa-lg"></i>
+                                    EXCEL
+                                </span>
+                            </a>
+
                         </div>
                     </div>
                 </div>
@@ -152,12 +157,12 @@
                                                 placeholder="Monto" />
 
                                             <div class="d-flex justify-content-between">
-                                                <span class="badge badge-success clickable"
-                                                    @click="saveField" title="Guardar">
+                                                <span class="badge badge-success clickable" @click="saveField"
+                                                    title="Guardar">
                                                     <i class="far fa-check-square fa-lg"></i>
                                                 </span>
-                                                <span class="badge badge-info clickable"
-                                                    @click="cancelEdition(field)" title="Cancelar">
+                                                <span class="badge badge-info clickable" @click="cancelEdition(field)"
+                                                    title="Cancelar">
                                                     <i class="far fa-window-close fa-lg"></i>
                                                 </span>
 

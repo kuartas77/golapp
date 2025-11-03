@@ -21,7 +21,7 @@
     </panel>
 
     <teleport defer to="#select_groups">
-        <select placeholder="Grupos" id="groups" name="groups">
+        <select placeholder="Grupos" id="groups" name="groups" class="form-select form-select-sm form-select-custom">
             <option value="">Grupos...</option>
             <option v-for="group in settings.all_groups" :value="group.id" :key="group.id">{{ group.name }}
             </option>
@@ -29,7 +29,7 @@
     </teleport>
 
     <teleport defer to="#select_categories">
-        <select placeholder="Categorias" id="categories" name="categories">
+        <select placeholder="Categorias" id="categories" name="categories" class="form-select form-select-sm form-select-custom">
             <option value="">Categorias...</option>
             <option v-for="category in settings.categories" :value="category.category" :key="category.category">
                 {{ category.category }}

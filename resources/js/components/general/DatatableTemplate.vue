@@ -4,7 +4,7 @@
         <slot name="thead"></slot>
 
         <template #photo="props">
-            <div class="avatar avatar-sm me-1">
+            <div class="media-aside align-self-start avatar avatar-sm">
                 <img :src="props.cellData" alt="avatar" class="rounded-circle">
             </div>
         </template>

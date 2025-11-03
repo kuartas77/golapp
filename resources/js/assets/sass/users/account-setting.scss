@@ -6,7 +6,7 @@
 @use "../../base/color_variables";
 
 .section {
-    border: 1px solid $m-color_3;
+    border: 1px solid color_variables.$m-color_3;
     box-shadow: 0 0 40px 0 rgba(94, 92, 154, 0.06);
 }
 
@@ -18,7 +18,7 @@
     display: none;
     text-align: left;
     padding: 15px;
-    background-color: $success;
+    background-color: color_variables.$success;
     color: #fff;
     border-radius: 3px;
 
@@ -35,7 +35,7 @@
 .skill .info h5,
 .edu-experience .info h5,
 .work-experience .info h5 {
-    color: $dark;
+    color: color_variables.$dark;
     margin: 4px 8px 40px 8px;
     font-weight: 700;
     font-size: 16px;
@@ -61,23 +61,23 @@
         }
 
         .upload {
-            border-right: 1px solid $m-color_2;
+            border-right: 1px solid color_variables.$m-color_2;
 
             p {
                 font-size: 14px;
                 font-weight: 600;
-                color: $primary;
+                color: color_variables.$primary;
 
                 i {
                     font-size: 22px;
-                    color: $primary;
+                    color: color_variables.$primary;
                     vertical-align: middle;
                 }
             }
         }
 
         label {
-            color: $m-color_6;
+            color: color_variables.$m-color_6;
             font-size: 13px;
             letter-spacing: 1px;
         }
@@ -127,14 +127,14 @@
             }
 
             &.touch-fallback {
-                border: 1px solid $m-color_2;
+                border: 1px solid color_variables.$m-color_2;
 
                 .dropify-preview .dropify-infos .dropify-infos-inner {
                     padding: 0;
                 }
 
                 .dropify-clear {
-                    color: $m-color_9;
+                    color: color_variables.$m-color_9;
                 }
 
                 .dropify-preview .dropify-infos .dropify-infos-inner p.dropify-filename {
@@ -163,7 +163,7 @@
     }
 
     .info label {
-        color: $m-color_6;
+        color: color_variables.$m-color_6;
         font-size: 13px;
         letter-spacing: 1px;
     }
@@ -185,7 +185,7 @@
         &:not(:last-child) {
             margin-bottom: 55px;
             padding-bottom: 55px;
-            border-bottom: 2px solid $m-color_3;
+            border-bottom: 2px solid color_variables.$m-color_3;
         }
 
         &:last-child {
@@ -208,7 +208,7 @@
     }
 
     .info label {
-        color: $m-color_6;
+        color: color_variables.$m-color_6;
         font-size: 13px;
         letter-spacing: 1px;
     }
@@ -235,7 +235,7 @@
 }
 
 .input-group .input-group-text svg {
-    color: $primary;
+    color: color_variables.$primary;
 }
 
 .social .info input {
@@ -279,7 +279,7 @@
 
     .info label {
         text-transform: uppercase;
-        color: $l-primary;
+        color: color_variables.$l-primary;
     }
 
     .custom-progress {
@@ -294,15 +294,15 @@
 
     .range-count {
         font-weight: 700;
-        color: $dark;
+        color: color_variables.$dark;
 
         .range-count-number {
             display: inline-block;
             background: #ffffff;
             padding: 3px 8px;
             border-radius: 5px;
-            color: $primary;
-            border: 1px solid $m-color_3;
+            color: color_variables.$primary;
+            border: 1px solid color_variables.$m-color_3;
         }
     }
 
@@ -317,7 +317,7 @@
         &::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            background: $primary;
+            background: color_variables.$primary;
             cursor: pointer;
             height: 16px;
             width: 16px;
@@ -332,7 +332,7 @@
         }
 
         &:focus::-webkit-slider-thumb {
-            background: $primary;
+            background: color_variables.$primary;
             cursor: pointer;
             height: 16px;
             width: 16px;
@@ -341,7 +341,7 @@
         }
 
         &::-moz-range-thumb {
-            background: $primary;
+            background: color_variables.$primary;
             cursor: pointer;
             height: 16px;
             width: 16px;
@@ -362,7 +362,7 @@
         &:not(:last-child) {
             margin-bottom: 55px;
             padding-bottom: 55px;
-            border-bottom: 2px solid $m-color_3;
+            border-bottom: 2px solid color_variables.$m-color_3;
         }
 
         &:last-child {
@@ -376,7 +376,7 @@
     }
 
     .info label {
-        color: $m-color_6;
+        color: color_variables.$m-color_6;
         font-size: 13px;
         letter-spacing: 1px;
     }
@@ -394,7 +394,7 @@
         &:not(:last-child) {
             margin-bottom: 55px;
             padding-bottom: 55px;
-            border-bottom: 2px solid $m-color_3;
+            border-bottom: 2px solid color_variables.$m-color_3;
         }
 
         &:last-child {
@@ -408,7 +408,7 @@
     }
 
     .info label {
-        color: $m-color_6;
+        color: color_variables.$m-color_6;
         font-size: 13px;
         letter-spacing: 1px;
     }
@@ -422,12 +422,12 @@
     position: sticky;
     bottom: 0;
     width: 100%;
-    background: $dark;
+    background: color_variables.$m-color_3;
     padding: 12px 20px;
     -webkit-box-shadow: -2px -9px 20px rgba(126, 142, 177, 0.12);
     -moz-box-shadow: -2px -9px 20px rgba(126, 142, 177, 0.12);
     box-shadow: -2px -9px 20px rgba(126, 142, 177, 0.12);
-    border-top: 1px solid $m-color_1;
+    border-top: 1px solid color_variables.$m-color_1;
     border-radius: 6px 6px 0 0;
     z-index: 5;
 
@@ -451,5 +451,11 @@
 
     .skill .input-form {
         width: 100%;
+    }
+}
+
+.dark {
+    .account-settings-footer {
+        background: color_variables.$m-color_18;
     }
 }

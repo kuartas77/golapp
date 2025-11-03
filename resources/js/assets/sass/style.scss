@@ -2186,40 +2186,6 @@
 
 .dark {
 
-    .page-item.active .page-link {
-        z-index: 3;
-        color: #fff;
-        background-color: color_variables.$m-color_14;
-        border-color: color_variables.$m-color_14;
-    }
-
-    .page-link {
-        position: relative;
-        display: block;
-        color: #fff;
-        text-decoration: none;
-        background-color: color_variables.$m-color_14;
-        border: 1px solid color_variables.$m-color_12;
-        transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
-    }
-
-    .page-item.disabled .page-link {
-        color: #fff;
-        pointer-events: none;
-        background-color: color_variables.$m-color_10;
-        border-color: color_variables.$m-color_12;
-    }
-}
-
-table.dataTable > tbody > tr.child ul.dtr-details {
-    display: inline-block;
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-}
-
-.dark {
     input:focus {
         color: color_variables.$m-color_13;
     }
@@ -2259,7 +2225,51 @@ table.dataTable > tbody > tr.child ul.dtr-details {
         color: white;
     }
 
+    .page-item.active .page-link {
+        z-index: 3;
+        color: #fff;
+        background-color: color_variables.$m-color_14;
+        border-color: color_variables.$m-color_14;
+    }
 
+    .page-item.disabled .page-link {
+        color: #fff;
+        pointer-events: none;
+        background-color: color_variables.$m-color_10;
+        border-color:color_variables.$m-color_18;
+    }
+
+    .page-item .ellipsis {
+        color: #fff;
+        pointer-events: none;
+        background-color: color_variables.$m-color_10;
+        border-color:color_variables.$m-color_18;
+    }
+
+    .page-link {
+        position: relative;
+        display: block;
+        color: #fff;
+        text-decoration: none;
+        background-color: color_variables.$m-color_19;
+        border: 1px solid color_variables.$m-color_12;
+        transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+}
+
+.page-item .ellipsis {
+    color: #6c757d;
+    pointer-events: none;
+    background-color: #fff;
+    border-color: #dee2e6;
+}
+
+table.dataTable > tbody > tr.child ul.dtr-details {
+    display: inline-block;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
 }
 
 .multiselect__option--highlight {
@@ -2422,13 +2432,13 @@ hr {
 
 
 .scroll-container {
-  min-height: 55vh;
-  max-height: 55vh;
+  min-height: 54vh;
+  max-height: 50vh;
   overflow: auto;
 }
 .scroll-container thead, .scroll-container tfoot {
   position: sticky;
-  z-index: 10;
+  z-index: 5;
 }
 
 .scroll-container thead {
@@ -2439,25 +2449,6 @@ hr {
 .scroll-container tfoot {
   margin-top: 0;
   bottom: -1px;
-}
-
-.dark {
-    .scroll-container thead,
-    .scroll-container tfoot {
-        background-color: #0e1726;
-    }
-
-    .form-control-plaintext {
-        display: block;
-        width: 100%;
-        padding: .375rem 0;
-        margin-bottom: 0;
-        line-height: 1.5;
-        color: color_variables.$m-color_14 !important;
-        background-color: transparent !important;
-        border: solid transparent;
-        border-width: 1px 0;
-    }
 }
 
 .scroll-container thead,
@@ -2641,6 +2632,24 @@ textarea {
         color: #fff;
 
     }
+
+    .scroll-container thead,
+    .scroll-container tfoot {
+        background-color: #0e1726;
+    }
+
+    .form-control-plaintext {
+        display: block;
+        width: 100%;
+        padding: .375rem 0;
+        margin-bottom: 0;
+        line-height: 1.5;
+        color: color_variables.$m-color_14 !important;
+        background-color: transparent !important;
+        border: solid transparent;
+        border-width: 1px 0;
+    }
+
 }
 
 .drag-drop {
@@ -2674,4 +2683,23 @@ textarea[disabled], textarea[readonly] {
     cursor: auto !important;
     background-color: #f1f2f3 !important;
     color: #bfc9d4;
+}
+
+.form-select-custom {
+    padding: 1px 16px !important;
+}
+
+input[readonly].form-control.flatpickr.flatpickr-input  {
+    cursor: pointer;
+    color: #000;
+}
+.dark {
+    input[readonly].form-control.flatpickr.flatpickr-input  {
+        color: color_variables.$m-color_14 !important;
+    }
+}
+
+input[disabled].numInput.cur-year {
+    font-size: 15px !important;
+    background: transparent !important;
 }

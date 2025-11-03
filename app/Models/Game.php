@@ -38,7 +38,7 @@ class Game extends Model
     ];
 
     protected $appends = [
-        'general_concept_short', 'url_destroy', 'url_edit', 'url_update', 'url_show',
+        'general_concept_short', 'url_show',/*'url_destroy', 'url_edit', 'url_update'*/
     ];
 
     protected $casts = [
@@ -66,7 +66,7 @@ class Game extends Model
 
     public function getGeneralConceptShortAttribute()
     {
-        return Str::limit($this->attributes['general_concept'], 100, '...');
+        return Str::limit($this->attributes['general_concept'], 50, '...');
     }
 
     public function getUrlDestroyAttribute()

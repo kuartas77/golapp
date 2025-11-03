@@ -73,7 +73,7 @@ class Player extends Authenticatable
         'remember_token',
     ];
 
-    protected $appends = ['full_names', 'url_edit', 'url_show', 'url_impression', 'photo_url', 'photo_local', 'photo_url_public'];
+    protected $appends = ['full_names', 'photo_url', 'photo_local', 'photo_url_public', /*'url_edit', 'url_show', 'url_impression',*/];
 
     public function getRouteKeyName(): string
     {
