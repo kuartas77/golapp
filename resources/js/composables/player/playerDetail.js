@@ -156,8 +156,6 @@ export default function usePlayerDetail() {
                 }
             })
 
-            showMessage('Guardado correctamente.')
-
         } catch (error) {
             showMessage('Algo ha salido mal.', 'error')
             proxy.$handleBackendErrors(error, actions.setErrors, (msg) => (globalError.value = msg))

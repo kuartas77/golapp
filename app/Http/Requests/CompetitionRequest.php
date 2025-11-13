@@ -23,38 +23,51 @@ class CompetitionRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            "ids" => ['array'],
-            "name" => ['required', 'string'],
-            "competition_group_id" => ['required', 'string'],
-            "tournament_id" => ['required', 'string'],
-            "user_id" => ['required', 'string'],
-            "num_match" => ['required', 'string'],
-            "place" => ['required', 'string'],
-            "date" => ['required', 'string'],
-            "hour" => ['required', 'string'],
-            "rival_name" => ['required', 'string'],
-            "final_score" => ['required', 'array'],
-            "general_concept" => ['nullable', 'string'],
-            "details" => ['nullable', 'string'],
-            "inscriptions_id" => ['required', 'array'],
-            "assistance" => ['required', 'array'],
-            "titular" => ['required', 'array'],
-            "played_approx" => ['required', 'array'],
-            "position" => ['required', 'array'],
-            "goals" => ['required', 'array'],
-            "yellow_cards" => ['required', 'array'],
-            "red_cards" => ['required', 'array'],
-            "qualification" => ['required', 'array'],
-            "observation" => ['required', 'array'],
+        $rules = [
+            'id' => ['nullable', 'numeric'],
+            'tournament_id' => ['required', 'numeric'],
+            'competition_group_id' => ['required', 'numeric'],
+            'date' => ['required'],
+            'hour' => ['required'],
+            'num_match' => ['required'],
+            'place' => ['required'],
+            'rival_name' => ['required'],
+            'final_score' => ['required', 'array'],
+            'general_concept' => ['nullable'],
             'school_id' => ['required'],
+
+            'skill_controls' => ['required','array', 'min:1'],
+
+            'skill_controls.*.id' => ['nullable'],
+            // 'skill_controls.*.game_id' => ['required'],
+            'skill_controls.*.inscription_id' => ['required'],
+            'skill_controls.*.assistance' => ['required'],
+            'skill_controls.*.titular' => ['required'],
+            'skill_controls.*.played_approx' => ['required'],
+            'skill_controls.*.position' => ['required'],
+            'skill_controls.*.goals' => ['required'],
+            'skill_controls.*.red_cards' => ['required'],
+            'skill_controls.*.yellow_cards' => ['required'],
+            'skill_controls.*.qualification' => ['required'],
+            'skill_controls.*.observation' => ['nullable'],
         ];
+
+        if ($this->isMethod('put')) {
+            $rules['skill_controls.*.game_id'] = ['required'];
+        }
+
+        return $rules;
     }
 
     protected function prepareForValidation()
     {
+        $final_score = [];
+        $final_score['soccer'] = $this->input('final_score_school');
+        $final_score['rival'] = $this->input('final_score_rival');
+
         $this->merge([
-            'school_id' => getSchool(auth()->user())->id
+            'school_id' => getSchool(auth()->user())->id,
+            'final_score' => $final_score,
         ]);
     }
 }

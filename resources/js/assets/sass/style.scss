@@ -2284,6 +2284,7 @@ table.dataTable > tbody > tr.child ul.dtr-details {
     #header,
     #sub-header-container,
     #breadcrumb,
+    .setting,
     footer {
         display: none !important;
     }
@@ -2677,6 +2678,7 @@ input[readonly].form-control-plaintext  {
     background-color: transparent !important;
     border: solid transparent;
     cursor: auto;
+    color: #000;
 }
 
 textarea[disabled], textarea[readonly] {

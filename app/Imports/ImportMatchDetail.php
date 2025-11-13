@@ -22,7 +22,8 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
 
     public function collection(Collection $rows)
     {
-        $inscriptions = Inscription::with(['player'])
+        $inscriptions = Inscription::query()->select(['id', 'player_id','unique_code'])
+            ->with('player:id,names,last_names,unique_code')
             ->whereIn('unique_code', $rows->pluck('codigo'))
             ->where('school_id', getSchool(auth()->user())->id)
             ->get();

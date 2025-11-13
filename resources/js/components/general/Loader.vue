@@ -6,7 +6,7 @@
 </template>
 <script setup>
 const props = defineProps({
-    isLoading: { type: Boolean, required: true },
+    isLoading: { type: Boolean, default: true },
     loadingText: { type: String, default: '' }
 })
 </script>

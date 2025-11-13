@@ -12,6 +12,7 @@ use App\Http\Controllers\API\LoginController;
 use App\Http\Controllers\API\PlayersController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Assists\AssistController;
+use App\Http\Controllers\Competition\GameController;
 use App\Http\Controllers\DataTableController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\Groups\CompetitionGroupController;
@@ -85,10 +86,10 @@ Route::prefix('v2')->group(function(){
 
         Route::apiResource("players", PlayerController::class, ['only' => ['edit','show', 'update']]);
 
-
-
         Route::apiResource("payments", PaymentController::class)->only(['index','update', 'show']);
         Route::apiResource("assists", AssistController::class)->except(['create','edit', 'destroy']);
+
+        Route::apiResource("matches", GameController::class)->except(['index','edit','create']);
 
         Route::prefix('datatables')->group(function () {
             Route::get('inscriptions_enabled', [DataTableController::class, 'enabledInscriptions']);
@@ -101,6 +102,7 @@ Route::prefix('v2')->group(function(){
             Route::get('players_enabled', [DataTableController::class, 'enabledPlayers']);
             Route::get('training_sessions_enabled', [DataTableController::class, 'trainingSessions']);
             Route::get('users_enabled', [DataTableController::class, 'enabledUsers']);
+            Route::get('matches', [DataTableController::class, 'matches']);
 
             Route::middleware(['role:super-admin'])->group(function (){
                 Route::get('schools', [DataTableController::class, 'schools']);
