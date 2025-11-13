@@ -57,11 +57,11 @@
                                     <div class="btn-group mt-1" role="group">
                                         <a v-if="export_pdf" :href="export_pdf" target="_blank"
                                             class="badge badge-info btn btn-sm me-1">
-                                            <i class="far fa-file-pdf fa-lg"> PDF</i>
+                                            <i class="far fa-file-pdf fa-lg"></i>PDF
                                         </a>
                                         <a v-if="export_excel" :href="export_excel" target="_blank"
                                             class="badge badge-info btn btn-sm me-1">
-                                            <i class="far fa-file-excel fa-lg"> Excel</i>
+                                            <i class="far fa-file-excel fa-lg"></i>Excel
                                         </a>
                                     </div>
                                 </div>
