@@ -3,7 +3,7 @@
         <router-view></router-view>
     </div>
     <template v-else>
-        <Loader />
+        <Loader :is-loading="!auth.initialized"/>
     </template>
 </template>
 <script setup>
