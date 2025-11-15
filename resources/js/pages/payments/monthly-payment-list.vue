@@ -71,7 +71,7 @@
 
                         </div>
 
-                        <small class="text-info mt-2"> La opción otros incluye: Pagó, Acuerdo de Pago, Abonó, Incapacidad, Retiro Temporal, Retiro Definitivo, Otro.</small>
+                        <small class="text-info mt-2"> La opción de arriba "OTROS" incluye: Pagó, Acuerdo de Pago, Abonó, Incapacidad, Retiro Temporal, Retiro Definitivo, Otro.</small>
                     </div>
                 </div>
             </div>

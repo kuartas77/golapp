@@ -42,5 +42,5 @@ export default function useFormLogin() {
         await api.get("/sanctum/csrf-cookie")
     })
 
-    return { form, formData, schema, handleLogin, pwd_type }
+    return { form, formData, schema, handleLogin, pwd_type, globalError }
 }

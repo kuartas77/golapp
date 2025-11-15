@@ -44,6 +44,9 @@
                                         </svg>
                                     </div>
                                     <div class="d-sm-flex justify-content-between">
+                                        <span class="text-danger">{{ globalError }}</span>
+                                    </div>
+                                    <div class="d-sm-flex justify-content-between">
                                         <div class="field-wrapper">
                                             <button type="submit" class="btn btn-primary">Ingresar</button>
                                         </div>
@@ -64,7 +67,7 @@ import "@/assets/sass/authentication/auth-boxed.scss";
 import useFormLogin from '@/composables/auth/formLogin'
 import { Form } from 'vee-validate'
 
-const { form, formData, schema, handleLogin, pwd_type } = useFormLogin()
+const { form, formData, schema, handleLogin, pwd_type, globalError } = useFormLogin()
 
 const set_pwd_type = () => {
     if (pwd_type.value === "password") {

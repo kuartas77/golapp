@@ -1,10 +1,7 @@
 <template>
-    <div v-if="auth.initialized" :class="[appState.layout_style, appState.menu_style]">
+    <div :class="[appState.layout_style, appState.menu_style]">
         <router-view></router-view>
     </div>
-    <template v-else>
-        <Loader :is-loading="!auth.initialized"/>
-    </template>
 </template>
 <script setup>
 import "@/assets/sass/app.scss"
