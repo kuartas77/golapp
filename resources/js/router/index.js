@@ -30,7 +30,13 @@ const routes = [
             },
             { path: 'inscripciones', name: 'inscriptions', component: () => import('@/pages/inscriptions/InscriptionsList.vue') },
             { path: 'asistencias', name: 'attendances', component: () => import('@/pages/attendances/attendance-list.vue') },
-            { path: 'mensualidades', name: 'payments', component: () => import('@/pages/payments/monthly-payment-list.vue') },
+
+            {
+                path: 'mensualidades',
+                name: 'payments',
+                meta: { requiresRole: ['super-admin', 'school'] },
+                component: () => import('@/pages/payments/monthly-payment-list.vue')
+            },
             {
                 path: 'control-competencias', component: { render: () => h(RouterView) },
                 children: [

@@ -61,29 +61,41 @@
                             </span>
 
                             <a v-if="export_pdf" :href="export_pdf" target="_blank"
-                            class="badge badge-info btn btn-sm me-1">
-                                    <i class="far fa-file-pdf fa-lg"></i>PDF
+                                class="badge badge-info btn btn-sm me-1">
+                                <i class="far fa-file-pdf fa-lg"></i>PDF
                             </a>
                             <a v-if="export_excel" :href="export_excel" target="_blank"
-                            class="badge badge-info btn btn-sm me-1">
+                                class="badge badge-info btn btn-sm me-1">
                                 <i class="far fa-file-excel fa-lg"></i>EXCEL
                             </a>
 
                         </div>
+
+                        <small class="text-info mt-2"> La opción otros incluye: Pagó, Acuerdo de Pago, Abonó, Incapacidad, Retiro Temporal, Retiro Definitivo, Otro.</small>
                     </div>
                 </div>
             </div>
 
-            <hr v-if="selected_group || groupPayments.length" class="bg-primary border-2 border-top border-primary" />
+            <hr class="bg-primary border-2 border-top border-primary" />
 
-            <div class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mb-2">
-                <div class="dt-info" aria-live="polite" id="table_info" role="status">
-                    Mostrando {{ player_count }} Deportistas, los totales no incluyen el estado <small
-                        class="badge payments-c-2">Debe</small>.
+            <div class="row mt-2 justify-content-between">
+
+                <div
+                    class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mb-2">
+                    <div class="dt-info">
+                        Mostrando {{ player_count }} Deportistas.
+                    </div>
+                </div>
+                <div
+                    class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mb-2">
+                    <div class="dt-info">
+                        Los totales no incluyen el estado
+                        <small class="text-danger">Debe</small>.
+                    </div>
                 </div>
             </div>
 
-            <div class="table-responsive scroll-container">
+            <div class="table-responsive" :class="groupPayments.length ? 'scroll-container' : ''">
                 <table class="table table-bordered table-sm dataTable align-middle text-center" ref="payments_table">
                     <thead class="">
                         <tr>

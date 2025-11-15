@@ -10,12 +10,12 @@ export default function useInscriptionList() {
     const inscription_table = useTemplateRef('inscription_table')
 
     const columns = [
-        { data: 'player.photo_url', width: '1%', render: '#photo', searchable: false },
-        { data: 'unique_code', render: '#link', searchable: true },
-        { data: 'training_group.name', name: 'training_group_id', orderable: false, searchable: true },
+        { data: 'player.photo_url', width: '1%', render: '#photo', searchable: false, orderable: false },
+        { data: 'unique_code', name:'inscriptions.unique_code', render: '#link', searchable: true },
+        { data: 'training_group.name', name: 'inscriptions.training_group_id', orderable: false, searchable: true },
         { data: 'player.category', name: 'inscriptions.category', orderable: false, searchable: true },
-        { data: 'player.gender', name: 'player.gender', orderable: false, searchable: true },
-        { data: 'player.full_names', render: '#inscription', name: 'player.last_names', searchable: true, orderable: false },
+        { data: 'player.gender', name: 'player.gender', orderable: false, searchable: false },
+        { data: 'player.full_names', render: '#inscription', name: 'player.last_names', orderable: false, searchable: true  },
         { data: 'created_at', render: '#date', searchable: false },
     ];
 
@@ -78,13 +78,13 @@ export default function useInscriptionList() {
             const selectGroups = document.querySelector('thead select[placeholder="Grupos"]');
             if (selectGroups) {
                 selectGroups.addEventListener('change', function () {
-                    return dt.column(3).search(this.value).draw()
+                    return dt.column(2).search(this.value).draw()
                 });
             }
             const selectCategories = document.querySelector('thead select[placeholder="Categorias"]');
             if (selectCategories) {
                 selectCategories.addEventListener('change', function () {
-                    return dt.column(4).search(this.value).draw()
+                    return dt.column(3).search(this.value).draw()
                 });
             }
         }

@@ -82,6 +82,7 @@ export default function useMonthlyPayments() {
                     groupPayments.value = []
                     export_excel.value = null
                     export_pdf.value = null
+                    player_count.value = 0
                 }
 
                 selected_group.value = (values?.training_group?.id) ? groups.find((group) => group.id === values.training_group.id) : null
