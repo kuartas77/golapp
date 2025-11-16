@@ -20,3 +20,4 @@ package-lock.json
 .phpunit.result.cache
 /.phpunit.cache
 /public/contracts
+public/build/*
