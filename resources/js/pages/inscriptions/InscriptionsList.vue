@@ -12,6 +12,7 @@
                             <th id="select_categories"></th>
                             <th>Genero</th>
                             <th>Nombres</th>
+                            <th>Cert. Médico</th>
                             <th>F.Inicio</th>
                         </tr>
                     </thead>
@@ -41,9 +42,9 @@
 </template>
 <script setup>
 import { useSetting } from '@/store/settings-store';
-import useInscriptionList from '@/composables/inscription/inscriptionList';
+import useInscriptionConfig from '@/composables/inscription/inscriptionList';
 import { usePageTitle } from "@/composables/use-meta";
 usePageTitle('Inscripciones')
 const settings = useSetting()
-const { inscription_table, options, resolveRouteFromClick } = useInscriptionList()
+const { inscription_table, options, uniqueCodeSelected, resolveRouteFromClick, onCancelModal } = useInscriptionConfig()
 </script>

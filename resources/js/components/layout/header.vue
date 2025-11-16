@@ -5,12 +5,12 @@
             <header class="header navbar navbar-expand-sm">
                 <ul class="navbar-item theme-brand flex-row text-center">
                     <li class="nav-item theme-logo">
-                        <router-link :to="{name:'dashboard'}">
+                        <router-link :to="{ name: 'dashboard' }">
                             <img src="/img/ball-dark.webp" class="navbar-logo" alt="logo" />
                         </router-link>
                     </li>
                     <li class="nav-item theme-text">
-                        <router-link :to="{name:'dashboard'}" class="nav-link"> GOLAPP </router-link>
+                        <router-link :to="{ name: 'dashboard' }" class="nav-link"> GOLAPP </router-link>
                     </li>
                 </ul>
                 <div class="d-none horizontal-menu">
@@ -52,9 +52,21 @@
                 </ul> -->
 
                 <div class="navbar-item flex-row ms-md-auto">
+                    <!-- <div class="dark-mode d-flex align-items-center">
+                        <a href="javascript:;" class="d-flex align-items-center" @click="toggleMode('dark')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-refresh-cw">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <polyline points="1 20 1 14 7 14"></polyline>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                            <span class="ms-2">Club de Fútbol Felipe Echavarría</span>
+                        </a>
+                    </div> -->
                     <div class="dark-mode d-flex align-items-center">
-                        <a v-if="appState.dark_mode == 'light'" href="javascript:;"
-                            class="d-flex align-items-center" @click="toggleMode('dark')">
+                        <a v-if="appState.dark_mode == 'light'" href="javascript:;" class="d-flex align-items-center"
+                            @click="toggleMode('dark')">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                 stroke-linejoin="round" class="feather feather-sun">
@@ -70,8 +82,8 @@
                             </svg>
                             <span class="ms-2">Claro</span>
                         </a>
-                        <a v-if="appState.dark_mode == 'dark'" href="javascript:;"
-                            class="d-flex align-items-center" @click="toggleMode('system')">
+                        <a v-if="appState.dark_mode == 'dark'" href="javascript:;" class="d-flex align-items-center"
+                            @click="toggleMode('system')">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                 stroke-linejoin="round" class="feather feather-moon">
@@ -79,8 +91,8 @@
                             </svg>
                             <span class="ms-2">Oscuro</span>
                         </a>
-                        <a v-if="appState.dark_mode == 'system'" href="javascript:;"
-                            class="d-flex align-items-center" @click="toggleMode('light')">
+                        <a v-if="appState.dark_mode == 'system'" href="javascript:;" class="d-flex align-items-center"
+                            @click="toggleMode('light')">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                 stroke-linejoin="round" class="feather feather-airplay">
@@ -217,7 +229,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-right m-0" aria-labelledby="ddluser">
                             <li role="presentation">
-                                <router-link :to="{name:'user-profile'}" class="dropdown-item">
+                                <router-link :to="{ name: 'user-profile' }" class="dropdown-item">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                         stroke-linejoin="round" class="feather feather-user">
@@ -248,8 +260,7 @@
         <!--  BEGIN NAVBAR  -->
         <div class="sub-header-container" id="sub-header-container">
             <header class="header navbar navbar-expand-sm">
-                <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom"
-                    @click="toggleSideBar()">
+                <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom" @click="toggleSideBar()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                         class="feather feather-menu">

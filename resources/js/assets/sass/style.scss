@@ -2699,6 +2699,15 @@ input[readonly].form-control.flatpickr.flatpickr-input  {
     input[readonly].form-control.flatpickr.flatpickr-input  {
         color: color_variables.$m-color_14 !important;
     }
+
+    .form-group label,
+    label {
+        font-size: 15px;
+        color: #888ea8;
+        letter-spacing: 1px;
+        padding-top: 0;
+        margin-bottom: 0.5rem;
+    }
 }
 
 input[disabled].numInput.cur-year {

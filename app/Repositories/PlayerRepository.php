@@ -189,7 +189,11 @@ class PlayerRepository
 
     public function getListPlayersNotInscription(bool $isTrashed = true)
     {
-        return $this->player->query()->schoolId()->whereDoesntHave('inscription')->pluck('unique_code');
+        $query = request()->input('query');
+        return $this->player->query()->where('unique_code', 'LIKE', '%' . $query )
+            ->schoolId()
+            ->whereDoesntHave('inscription')
+            ->pluck('unique_code');
     }
 
     public function getListPlayersWithInscription(bool $isTrashed = true)

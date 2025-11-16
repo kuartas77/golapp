@@ -1,13 +1,10 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { useTemplateRef, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthUser } from '@/store/auth-user'
+import { useTemplateRef, onMounted, ref } from 'vue';
 import api from '@/utils/axios'
 
-export default function useInscriptionList() {
-    const store = useAuthUser()
-    const router = useRouter()
+export default function useInscriptionConfig() {
     const inscription_table = useTemplateRef('inscription_table')
+    const uniqueCodeSelected = ref(null)
 
     const columns = [
         { data: 'player.photo_url', width: '1%', render: '#photo', searchable: false, orderable: false },
@@ -16,6 +13,7 @@ export default function useInscriptionList() {
         { data: 'player.category', name: 'inscriptions.category', orderable: false, searchable: true },
         { data: 'player.gender', name: 'player.gender', orderable: false, searchable: false },
         { data: 'player.full_names', render: '#inscription', name: 'player.last_names', orderable: false, searchable: true  },
+        { data: 'eps_certificate', render: (data) => `<span class="badge badge-warning">`+(data ? 'Sí':'No')+`</span>`, orderable: false, searchable: true },
         { data: 'created_at', render: '#date', searchable: false },
     ];
 
@@ -25,7 +23,7 @@ export default function useInscriptionList() {
         columnDefs: [
             { responsivePriority: 1, targets: columns.length - 1 },
             {
-                targets: [1, 2, 3],
+                targets: [1, 2, 3, 6],
                 width: '9%'
             },
             {
@@ -37,7 +35,7 @@ export default function useInscriptionList() {
                 width: '35%'
             },
             {
-                targets: [0,1, 2, 3, 4, 6],
+                targets: [0,1, 2, 3, 4, 6, 7],
                 className: 'dt-head-center dt-body-center', // Center align their headers
             },
             // { searchable: false, targets: [0,4, 5]},
@@ -69,7 +67,11 @@ export default function useInscriptionList() {
             return
         }
         e.preventDefault()
-        router.push('/inscripciones/' + itemId);
+        uniqueCodeSelected.value = itemId
+    }
+
+    const onCancelModal = () => {
+        uniqueCodeSelected.value = null
     }
 
     onMounted(() => {
@@ -90,5 +92,5 @@ export default function useInscriptionList() {
         }
     });
 
-    return { options, inscription_table, resolveRouteFromClick };
+    return { options, inscription_table, uniqueCodeSelected, resolveRouteFromClick, onCancelModal };
 }

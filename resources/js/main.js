@@ -15,6 +15,7 @@ import DataTablesCore from 'datatables.net-bs5';
 import { PerfectScrollbarPlugin } from 'vue3-perfect-scrollbar';
 //Sweetalert
 import VueSweetalert2 from 'vue-sweetalert2';
+import TypeAhead from "vue3-bootstrap-typeahead";
 // set default settings
 import appSetting from "@/app-setting";
 import '@/utils/yup-locale'
@@ -75,6 +76,7 @@ app.component('inputFileImage', fileInputImage)
 app.component('CustomMultiSelect', CustomMultiSelect)
 app.component('checkbox', Checkbox)
 app.component('CustomSelect2', CustomSelect2)
+app.component('TypeAhead', TypeAhead)
 // app.component('VueDatePicker', VueDatePicker)
 
 app.directive('has-role', vHasRol)
@@ -89,7 +91,7 @@ const modalHidden = () => {
     });
 }
 const showMessage = (msg = "", type = "success") => {
-    const toast = window.Swal.mixin({ toast: true, position: "top", showConfirmButton: false, timer: 5000 });
+    const toast = window.Swal.mixin({ toast: true, position: "top-end", showConfirmButton: false, timer: 5000 });
     toast.fire({ icon: type, title: msg, padding: "10px 20px" });
 }
 const moneyFormat = (amount) => {

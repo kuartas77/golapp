@@ -17,6 +17,8 @@ use App\Http\Controllers\DataTableController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\Groups\CompetitionGroupController;
 use App\Http\Controllers\Groups\TrainingGroupController;
+use App\Http\Controllers\Inscription\InscriptionController as WebInscriptions;
+use App\Http\Controllers\MasterController;
 use App\Http\Controllers\Payments\PaymentController;
 use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\SchoolPages\SchoolsController;
@@ -88,6 +90,7 @@ Route::prefix('v2')->group(function(){
 
         Route::apiResource("payments", PaymentController::class)->only(['index','update', 'show']);
         Route::apiResource("assists", AssistController::class)->except(['create','edit', 'destroy']);
+        Route::resource("inscriptions", WebInscriptions::class)->except(['index','create','show']);
 
         Route::apiResource("matches", GameController::class)->except(['index','edit','create']);
 
@@ -108,6 +111,18 @@ Route::prefix('v2')->group(function(){
                 Route::get('schools', [DataTableController::class, 'schools']);
                 Route::get('schools_info', [DataTableController::class, 'schoolsInfo']);
             });
+        });
+
+        Route::prefix('autocomplete')->group(function () {
+            // Route::get('autocomplete', [MasterController::class, 'autoComplete'])->name('autocomplete.fields');
+            // Route::get('identification_document_exists', [MasterController::class, 'existDocument'])->name('autocomplete.document_exists');
+            // Route::get('code_unique_verify', [MasterController::class, 'codeUniqueVerify'])->name('autocomplete.verify_code');
+            Route::get('list_code_unique', [MasterController::class, 'listUniqueCode']);
+            Route::get('search_unique_code', [MasterController::class, 'searchUniqueCode']);
+            // Route::get('list_code_unique_inscription', [MasterController::class, 'listUniqueCodeWithInscription'])->name('autocomplete.list_code_unique_inscription');
+            // Route::get('competition_groups', [MasterController::class, 'competitionGroupsByTournament'])->name('autocomplete.competition_groups');
+
+            // Route::get('tournaments', [MasterController::class, 'tournamentsBySchool'])->name('autocomplete.tournaments');
         });
     });
 

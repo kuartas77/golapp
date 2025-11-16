@@ -234,7 +234,7 @@ watch(innerValue, (val) => {
     // cursor: pointer;
     // height: 45px !important;
     /* altura fija */
-    min-height: 45px !important;
+    min-height: 39px !important;
     /* asegura consistencia */
     padding-top: 0.375rem;
     padding-bottom: 0.375rem;
