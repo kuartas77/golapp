@@ -38,12 +38,15 @@
         </select>
     </teleport>
 
+    <ModalInscription :unique_code="uniqueCodeSelected" @success="" @cancel="onCancelModal"/>
+
     <breadcrumb :parent="'Plataforma'" :current="'Inscripciones'" />
 </template>
 <script setup>
 import { useSetting } from '@/store/settings-store';
 import useInscriptionConfig from '@/composables/inscription/inscriptionList';
 import { usePageTitle } from "@/composables/use-meta";
+import ModalInscription from './ModalInscription.vue';
 usePageTitle('Inscripciones')
 const settings = useSetting()
 const { inscription_table, options, uniqueCodeSelected, resolveRouteFromClick, onCancelModal } = useInscriptionConfig()

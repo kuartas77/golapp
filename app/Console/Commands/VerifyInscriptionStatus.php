@@ -46,15 +46,19 @@ class VerifyInscriptionStatus extends Command
     public function handle(): int
     {
         $schools = School::with(['settingsValues'])->where('is_enable', true)->get();
-
+        /** @var \App\Models\School $school */
         foreach ($schools as $school) {
 
-            $inscriptions = $this->inscriptionRepository->getPreinscriptionsOrProvicionalGroup($school->id)->get();
+            $trainingGroupId = $this->inscriptionRepository->getTrainingGroupId(['school_id' => $school->id]);
 
-            if($inscriptions->isNotEmpty()) {
+            $inscriptions = $this->inscriptionRepository->getPreinscriptionsOrProvicionalGroup(
+                schoolId: $school->id, trainingGroupId: $trainingGroupId
+            )->get();
+
+            if ($inscriptions->isNotEmpty()) {
                 $users = User::query()->where('school_id', $school->id)->role('school')->get();
 
-                if($users->isNotEmpty()) {
+                if ($users->isNotEmpty()) {
                     Mail::to($users)->send((new PreinscriptionsProvitional($school->name, $inscriptions))->onQueue('emails'));
                 }
             }

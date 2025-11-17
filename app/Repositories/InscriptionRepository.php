@@ -44,7 +44,7 @@ class InscriptionRepository
         $result = false;
         try {
 
-            $this->setTrainingGroupId($requestData);
+            $requestData['training_group_id'] = $this->getTrainingGroupId($requestData);
             $requestData['deleted_at'] = null;
 
             DB::beginTransaction();
@@ -75,9 +75,10 @@ class InscriptionRepository
         return $result;
     }
 
-    private function setTrainingGroupId(array &$requestData): void
+    public function getTrainingGroupId(array $requestData): mixed
     {
-        $requestData['training_group_id'] = ($requestData['training_group_id'] ?? TrainingGroup::orderBy('id')->firstWhere('school_id', $requestData['school_id'])->id);
+        $group = TrainingGroup::orderBy('id');
+        return isset($requestData['training_group_id']) ? $requestData['training_group_id'] : $group->firstWhere('school_id', $requestData['school_id'])->id;
     }
 
     private function setCompetitionGroupIds($inscription, $requestData): void
@@ -92,7 +93,7 @@ class InscriptionRepository
     {
         $result = false;
         try {
-            $this->setTrainingGroupId($requestData);
+            $requestData['training_group_id'] = $this->getTrainingGroupId($requestData);
             $requestData['deleted_at'] = null;
             $requestData['unique_code'] = $inscription->unique_code;
             $requestData['start_date'] = $inscription->start_date;
@@ -117,7 +118,7 @@ class InscriptionRepository
     /**
      * @return Builder[]|Collection
      */
-    public function getInscriptionsEnabled()
+    public function getInscriptionsEnabled(): Builder
     {
         return $this->inscription->with(['player.people', 'trainingGroup' => fn($q) => $q->withTrashed()])
             ->inscriptionYear(request('inscription_year'))->schoolId();
@@ -126,13 +127,13 @@ class InscriptionRepository
     /**
      * @return Builder[]|Collection
      */
-    public function getInscriptionsDisabled()
+    public function getInscriptionsDisabled(): Builder
     {
         return $this->inscription->with(['player.people', 'trainingGroup'])
             ->inscriptionYear(request('inscription_year'))->schoolId()->onlyTrashed();
     }
 
-    public function searchInscriptionCompetition(array $fields)
+    public function searchInscriptionCompetition(array $fields): ?Inscription
     {
         return $this->inscription->query()->with('player')
             ->where('unique_code', $fields['unique_code'])
@@ -144,15 +145,19 @@ class InscriptionRepository
             ->first();
     }
 
-    public function searchInsUniqueCode($id)
+    public function searchInsUniqueCode($id): ?Inscription
     {
-        $inscription = $this->inscription->query()->with(['player', 'competitionGroup'])->schoolId()->orderBy('id', 'desc')->firstWhere('unique_code', $id);
+        $inscription = $this->inscription->query()
+            ->with(['player', 'competitionGroup'])
+            ->schoolId()
+            ->orderBy('id', 'desc')
+            ->firstWhere('unique_code', $id);
         $inscription->setRelation('competitionGroup', $inscription->competitionGroup->pluck('id'));
 
         return $inscription;
     }
 
-    public function disable(Inscription $inscription): void
+    public function disable(Inscription $inscription): bool
     {
         try {
             DB::beginTransaction();
@@ -180,11 +185,11 @@ class InscriptionRepository
             $inscription->tournament_payouts()->delete();
             $inscription->delete();
             DB::commit();
-            alert()->success(env('APP_NAME'), __('messages.ins_delete_success'));
+            return true;
         } catch (Throwable $throwable) {
             DB::rollBack();
             $this->logError("InscriptionRepository disable", $throwable);
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+            return false;
         }
     }
 
@@ -227,7 +232,7 @@ class InscriptionRepository
         }
     }
 
-    public function getPreinscriptionsOrProvicionalGroup($schoolId): Builder
+    public function getPreinscriptionsOrProvicionalGroup($schoolId, $trainingGroupId): Builder
     {
         return Inscription::query()
             ->select([
@@ -238,7 +243,9 @@ class InscriptionRepository
             ->join('players', 'players.id', '=', 'inscriptions.player_id')
             ->where('inscriptions.year', now()->year)
             ->where('inscriptions.school_id', $schoolId)
-            ->where(fn($query) => $query->where('inscriptions.training_group_id', 1)->orWhere('inscriptions.pre_inscription', 1));
+            ->where(
+                fn($query) => $query->where('inscriptions.training_group_id', $trainingGroupId)
+                    ->orWhere('inscriptions.pre_inscription', 1));
     }
 
 }

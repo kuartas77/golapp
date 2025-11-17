@@ -7,16 +7,11 @@ use App\Http\Requests\Inscription\InscriptionRequest;
 use App\Http\Requests\Inscription\InscriptionUpdateRequest;
 use App\Models\Inscription;
 use App\Repositories\InscriptionRepository;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
-
 class InscriptionController extends Controller
 {
 
-    public function __construct(private InscriptionRepository $repository)
+    public function __construct(private InscriptionRepository $repository, private $response = [])
     {
         $this->repository = $repository;
     }
@@ -31,11 +26,9 @@ class InscriptionController extends Controller
 
         $inscription = $this->repository->createInscription(requestData: $request->validated());
 
-        if ($inscription) {
-            return response()->json([__('messages.ins_create_success')]);
-        } else {
-            return response()->json([__('messages.ins_create_failure')], 422);
-        }
+        $this->response['success'] = $inscription;
+        $this->response['message'] = $inscription ? __('messages.ins_create_success') : __('messages.ins_create_failure');
+        return response()->json($this->response);
     }
 
 
@@ -47,7 +40,9 @@ class InscriptionController extends Controller
     {
         abort_unless(isAdmin() || isSchool(), 401);
 
-        return response()->json($this->repository->searchInsUniqueCode($id));
+        $this->response = $this->repository->searchInsUniqueCode($id);
+
+        return response()->json($this->response);
     }
 
     /**
@@ -61,16 +56,19 @@ class InscriptionController extends Controller
 
         $inscription = $this->repository->updateInscription(requestData: $request->validated(), inscription: $inscription);
 
-        if ($inscription) {
-            return response()->json([__('messages.ins_update_success')]);
-        } else {
-            return response()->json([__('messages.ins_create_failure')], 422);
-        }
+        $this->response['success'] = $inscription;
+        $this->response['message'] = $inscription ? __('messages.ins_update_success') : __('messages.ins_create_failure');
+        return response()->json($this->response);
     }
 
-    public function destroy(Inscription $inscription): RedirectResponse
+    public function destroy(Inscription $inscription): JsonResponse
     {
-        $this->repository->disable($inscription);
-        return back();
+        abort_unless(isAdmin() || isSchool(), 401);
+
+        $delete = $this->repository->disable($inscription);
+
+        $this->response['success'] = $delete;
+        $this->response['message'] = $delete ? __('messages.ins_delete_success') : __('messages.ins_create_failure');
+        return response()->json($this->response);
     }
 }
