@@ -31,8 +31,8 @@ import DatatableTemplate from "@/components/general/DatatableTemplate.vue";
 import CustomMultiSelect from "@/components/form/MultiSelect.vue";
 import CustomSelect2 from "@/components/form/CustomSelect2.vue";
 import VueWizardSteps from '@/plugins/wizard'
-// import VueDatePicker from '@vuepic/vue-datepicker';
-// import '@vuepic/vue-datepicker/dist/main.css'
+import Can from '@/components/general/Can.vue'
+
 // bootstrap
 import * as bootstrap from "bootstrap";
 window.bootstrap = bootstrap;
@@ -77,9 +77,8 @@ app.component('CustomMultiSelect', CustomMultiSelect)
 app.component('checkbox', Checkbox)
 app.component('CustomSelect2', CustomSelect2)
 app.component('TypeAhead', TypeAhead)
-// app.component('VueDatePicker', VueDatePicker)
+app.component('Can', Can)
 
-app.directive('has-role', vHasRol)
 
 app.mount('#app')
 

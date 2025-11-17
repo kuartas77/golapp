@@ -12,7 +12,6 @@ use App\Repositories\CompetitionGroupRepository;
 use App\Repositories\TrainingGroupRepository;
 use App\Traits\Commons;
 use Closure;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 

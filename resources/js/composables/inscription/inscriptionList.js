@@ -74,6 +74,14 @@ export default function useInscriptionConfig() {
         uniqueCodeSelected.value = null
     }
 
+    const onSuccessModal = () => {
+        uniqueCodeSelected.value = null
+        if (inscription_table.value) {
+            let dt = inscription_table.value.table.dt;
+            dt.ajax.reload(null, false)
+        }
+    }
+
     onMounted(() => {
         if (inscription_table.value) {
             let dt = inscription_table.value.table.dt;
@@ -92,5 +100,5 @@ export default function useInscriptionConfig() {
         }
     });
 
-    return { options, inscription_table, uniqueCodeSelected, resolveRouteFromClick, onCancelModal };
+    return { options, inscription_table, uniqueCodeSelected, resolveRouteFromClick, onCancelModal, onSuccessModal };
 }

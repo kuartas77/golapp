@@ -111,8 +111,9 @@ const options = {
 
 const openGroupSelection = () => {
     Swal.fire({
+        backdrop: true,
         title: 'Selecciona Un Grupo De Competencia',
-        type: "info",
+        icon: "info",
         input: 'select',
         inputOptions: Object.fromEntries(settings.competition_groups.map(item => [item.id, item.name])),
         inputPlaceholder: 'Selecciona...',

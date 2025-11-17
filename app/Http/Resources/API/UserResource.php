@@ -23,12 +23,8 @@ class UserResource extends JsonResource
             'school_name' => $this->school->name,
             'school_slug' => $this->school->slug,
             'school_logo' => $this->school->logo_file,
-            'role' =>  $this->whenLoaded('roles', $this->getRole())
+            'roles' => $this->getRoleNames(),
+            // 'permissions' => $this->getAllPermissions()->pluck('name')
         ];
-    }
-
-    private function getRole()
-    {
-        return $this->roles->map(fn($rol) => ['id' => $rol->id, 'name' => $rol->name])->first();
     }
 }

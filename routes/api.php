@@ -12,6 +12,7 @@ use App\Http\Controllers\API\LoginController;
 use App\Http\Controllers\API\PlayersController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Assists\AssistController;
+use App\Http\Controllers\BackOffice\SchoolController as BackOfficeShoolController;
 use App\Http\Controllers\Competition\GameController;
 use App\Http\Controllers\DataTableController;
 use App\Http\Controllers\FileController;
@@ -80,6 +81,9 @@ Route::prefix('v2')->group(function(){
             Route::apiResource('users', UsersController::class);
             Route::apiResource('training_groups', TrainingGroupController::class, ['only' => ['show', 'store', 'update']]);
             Route::apiResource('competition_groups', CompetitionGroupController::class, ['only' => ['show', 'store', 'update']]);
+
+            Route::get('info_campus', [BackOfficeShoolController::class, 'infoCampus']);
+            Route::post('change_school', [BackOfficeShoolController::class, 'choose']);
 
         });
 

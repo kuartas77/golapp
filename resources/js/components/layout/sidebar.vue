@@ -41,60 +41,64 @@
                     </ul>
                 </li>
 
-                <li class="menu" v-has-role="{ roles: ['super-admin', 'school'] }">
-                    <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#apps" aria-controls="apps"
-                        aria-expanded="false">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-cpu">
-                                <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-                                <rect x="9" y="9" width="6" height="6"></rect>
-                                <line x1="9" y1="1" x2="9" y2="4"></line>
-                                <line x1="15" y1="1" x2="15" y2="4"></line>
-                                <line x1="9" y1="20" x2="9" y2="23"></line>
-                                <line x1="15" y1="20" x2="15" y2="23"></line>
-                                <line x1="20" y1="9" x2="23" y2="9"></line>
-                                <line x1="20" y1="14" x2="23" y2="14"></line>
-                                <line x1="1" y1="9" x2="4" y2="9"></line>
-                                <line x1="1" y1="14" x2="4" y2="14"></line>
-                            </svg>
-                            <span>Administración</span>
-                        </div>
-                        <div>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-chevron-right">
-                                <polyline points="9 18 15 12 9 6"></polyline>
-                            </svg>
-                        </div>
-                    </a>
-                    <ul id="apps" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
-                        <li v-has-role="{ roles: ['super-admin'] }">
-                            <router-link :to="{ name: 'schools' }" @click="toggleMobileMenu">Listado
-                                Escuelas</router-link>
-                        </li>
-                        <li v-has-role="{ roles: ['super-admin'] }">
-                            <router-link :to="{ name: 'schools-info' }" @click="toggleMobileMenu">Información
-                                Escuelas</router-link>
-                        </li>
-                        <li>
-                            <router-link :to="{ name: 'school' }" @click="toggleMobileMenu">Escuela</router-link>
-                        </li>
-                        <li>
-                            <router-link :to="{ name: 'users' }" @click="toggleMobileMenu">Usuarios</router-link>
-                        </li>
-                        <li>
-                            <router-link :to="{ name: 'training-groups' }" @click="toggleMobileMenu">G.
-                                Entrenamiento</router-link>
-                        </li>
-                        <li>
-                            <router-link :to="{ name: 'competition-groups' }" @click="toggleMobileMenu">G.
-                                Competencia</router-link>
-                        </li>
+                <Can anyRole :roles="['super-admin', 'school']">
+                    <li class="menu">
+                        <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#apps" aria-controls="apps"
+                            aria-expanded="false">
+                            <div class="">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="feather feather-cpu">
+                                    <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                                    <rect x="9" y="9" width="6" height="6"></rect>
+                                    <line x1="9" y1="1" x2="9" y2="4"></line>
+                                    <line x1="15" y1="1" x2="15" y2="4"></line>
+                                    <line x1="9" y1="20" x2="9" y2="23"></line>
+                                    <line x1="15" y1="20" x2="15" y2="23"></line>
+                                    <line x1="20" y1="9" x2="23" y2="9"></line>
+                                    <line x1="20" y1="14" x2="23" y2="14"></line>
+                                    <line x1="1" y1="9" x2="4" y2="9"></line>
+                                    <line x1="1" y1="14" x2="4" y2="14"></line>
+                                </svg>
+                                <span>Administración</span>
+                            </div>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="feather feather-chevron-right">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </div>
+                        </a>
+                        <ul id="apps" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
+                            <Can :role="'super-admin'">
+                                <li>
+                                    <router-link :to="{ name: 'schools' }" @click="toggleMobileMenu">Listado
+                                        Escuelas</router-link>
+                                </li>
+                                <li>
+                                    <router-link :to="{ name: 'schools-info' }" @click="toggleMobileMenu">Información
+                                        Escuelas</router-link>
+                                </li>
+                            </Can>
+                            <li>
+                                <router-link :to="{ name: 'school' }" @click="toggleMobileMenu">Escuela</router-link>
+                            </li>
+                            <li>
+                                <router-link :to="{ name: 'users' }" @click="toggleMobileMenu">Usuarios</router-link>
+                            </li>
+                            <li>
+                                <router-link :to="{ name: 'training-groups' }" @click="toggleMobileMenu">G.
+                                    Entrenamiento</router-link>
+                            </li>
+                            <li>
+                                <router-link :to="{ name: 'competition-groups' }" @click="toggleMobileMenu">G.
+                                    Competencia</router-link>
+                            </li>
 
-                    </ul>
-                </li>
+                        </ul>
+                    </li>
+                </Can>
 
                 <li class="menu">
                     <router-link :to="{ name: 'players' }" class="dropdown-toggle" @click="toggleMobileMenu">

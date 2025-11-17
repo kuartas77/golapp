@@ -38,7 +38,7 @@
         </select>
     </teleport>
 
-    <ModalInscription :unique_code="uniqueCodeSelected" @success="" @cancel="onCancelModal"/>
+    <ModalInscription :unique_code="uniqueCodeSelected" @success="onSuccessModal" @cancel="onCancelModal"/>
 
     <breadcrumb :parent="'Plataforma'" :current="'Inscripciones'" />
 </template>
@@ -49,5 +49,5 @@ import { usePageTitle } from "@/composables/use-meta";
 import ModalInscription from './ModalInscription.vue';
 usePageTitle('Inscripciones')
 const settings = useSetting()
-const { inscription_table, options, uniqueCodeSelected, resolveRouteFromClick, onCancelModal } = useInscriptionConfig()
+const { inscription_table, options, uniqueCodeSelected, resolveRouteFromClick, onCancelModal, onSuccessModal } = useInscriptionConfig()
 </script>

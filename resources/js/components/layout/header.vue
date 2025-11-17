@@ -52,18 +52,7 @@
                 </ul> -->
 
                 <div class="navbar-item flex-row ms-md-auto">
-                    <!-- <div class="dark-mode d-flex align-items-center">
-                        <a href="javascript:;" class="d-flex align-items-center" @click="toggleMode('dark')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-refresh-cw">
-                                <polyline points="23 4 23 10 17 10"></polyline>
-                                <polyline points="1 20 1 14 7 14"></polyline>
-                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                            </svg>
-                            <span class="ms-2">Club de Fútbol Felipe Echavarría</span>
-                        </a>
-                    </div> -->
+                    <SchoolSelecter></SchoolSelecter>
                     <div class="dark-mode d-flex align-items-center">
                         <a v-if="appState.dark_mode == 'light'" href="javascript:;" class="d-flex align-items-center"
                             @click="toggleMode('dark')">
@@ -283,12 +272,13 @@ import { useAppState } from '@/store/app-state'
 import { useAuthUser } from '@/store/auth-user'
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router'
+import SchoolSelecter from '../general/SchoolSelecter.vue';
 
 const appState = useAppState()
 const userState = useAuthUser()
 const router = useRouter()
 const selectedLang = ref(null);
-const userName = userState.user.name.replace(' ', '+')
+const userName = userState.user?.name?.replace(' ', '+')
 const urlImgAvatar = ref(`https://ui-avatars.com/api/?name=${userName}`)
 
 onMounted(() => {

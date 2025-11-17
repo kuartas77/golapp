@@ -9,13 +9,13 @@
                         </p>
                         <div class="col-sm-6">
                             <label for="training_group_id" class="sr-only">Grupo</label>
-                            <Field name="training_group_id" as="CustomSelect2" :options="groups"
+                            <Field name="training_group_id" as="CustomSelect2" :options="groups" id="training_group_id"
                                 placeholder="Selecciona un grupo" />
                             <ErrorMessage name="training_group_id" class="custom-error" />
                         </div>
                         <div class="col-sm-4">
                             <label for="category" class="sr-only">Categoría</label>
-                            <Field name="category" as="CustomSelect2" :options="categories"
+                            <Field name="category" as="CustomSelect2" :options="categories" id="category"
                                 placeholder="Selecciona una categoría" />
                             <ErrorMessage name="month" class="custom-error" />
                         </div>

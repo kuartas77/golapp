@@ -56,7 +56,7 @@
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label for="training_group_id">Grupo de entrenamiento:</label>
-                                    <Field name="training_group_id" as="CustomSelect2" :options="trainingGroups" />
+                                    <Field name="training_group_id" as="CustomSelect2" :options="trainingGroups" id="training_group_id"/>
                                     <ErrorMessage name="training_group_id" class="custom-error" as="div" />
                                     <small class="form-text text-muted">Si no se selecciona, se agregará al grupo
                                         "Provisional"</small>
@@ -66,7 +66,7 @@
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label for="competition_groups">Grupo de competencia:</label>
-                                    <Field name="competition_groups" as="CustomSelect2" :options="competitionGroups"
+                                    <Field name="competition_groups" as="CustomSelect2" :options="competitionGroups" id="competition_groups"
                                         :multiple="true" />
                                     <ErrorMessage name="competition_groups" class="custom-error" />
                                 </div>

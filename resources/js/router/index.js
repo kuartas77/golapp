@@ -93,12 +93,23 @@ router.beforeEach(async (to, from, next) => {
         return
     }
 
+    const userRoles = userStore.roles || [];
+    const requiredRoles = to.matched
+        .filter(r => r.meta?.requiresRole)
+        .flatMap(r => r.meta.requiresRole);
 
-    const requiredRole = to.matched.find(r => r.meta?.requiresRole)?.meta?.requiresRole;
-    const role = userStore.user?.role?.name;
+    if (requiredRoles.length > 0) {
+        const hasRole = requiredRoles.some(role => userRoles.includes(role));
+        if (!hasRole) return next({ name: 'dashboard' });
+    }
 
-    if (requiredRole && !requiredRole.includes(role)) {
-        return next({ name: 'dashboard' });
+    const requiredRolesAll = to.matched
+        .filter(r => r.meta?.requiresRoleAll)
+        .flatMap(r => r.meta.requiresRoleAll);
+
+    if (requiredRolesAll.length > 0) {
+        const hasAllRoles = requiredRolesAll.every(role => userRoles.includes(role));
+        if (!hasAllRoles) return next({ name: 'dashboard' });
     }
 
     return next();
