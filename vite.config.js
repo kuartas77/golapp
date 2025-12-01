@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue'
-import path from 'path';
+import path from 'node:path';
 
 export default defineConfig({
     plugins: [
@@ -37,13 +37,17 @@ export default defineConfig({
     },
     build: {
         chunkSizeWarningLimit: 1600,
-        sourcemap: true,
+        sourcemap: process.env.NODE_ENV !== 'production',
         reportCompressedSize: true,
         rollupOptions: {
             output: {
                 manualChunks(id) {
                     if (id.includes('node_modules')) {
-                        // Group all vendor dependencies into a single 'vendor' chunk
+                        if (id.includes('echarts')) return 'echarts';
+                        if (id.includes('apexcharts')) return 'apexcharts';
+                        if (id.includes('sweetalert2')) return 'sweetalert2';
+                        if (id.includes('quill')) return 'quill';
+                        if (id.includes('datatables')) return 'datatables';
                         return 'vendor';
                     }
                 },
