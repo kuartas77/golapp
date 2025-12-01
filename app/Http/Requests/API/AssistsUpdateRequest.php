@@ -80,6 +80,7 @@ class AssistsUpdateRequest extends FormRequest
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
             $this->column => $value,
+            'value' => $value,
             'training_group_id' => $this->group_id,
             'year' => $this->input('year', now()->year),
         ]);
