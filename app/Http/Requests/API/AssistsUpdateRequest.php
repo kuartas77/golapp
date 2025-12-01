@@ -66,9 +66,20 @@ class AssistsUpdateRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+
+        $KEY_ASSIST = [
+            'as' => 1,
+            'fa' => 2,
+            'ex' => 3,
+            're' => 4,
+            'in' => 5,
+        ];
+
+        $value = $KEY_ASSIST[$this->value];
+
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
-            $this->column => $this->value,
+            $this->column => $value,
             'training_group_id' => $this->group_id,
             'year' => $this->input('year', now()->year),
         ]);
