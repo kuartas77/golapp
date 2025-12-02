@@ -81,7 +81,7 @@
 </div>
 
 <div class="row">
-<div class="col-md-3">
+    <div class="col-md-3">
         <div class="form-group">
             <label>Logo</label>
             <div class="custom-file">
@@ -94,4 +94,12 @@
         <label>Logo</label>
         <img src="{{$school->logo_file}}" class="rounded" alt="player" id="player-img" width="200" height="200">
     </div>
+    @if($school->inscriptions_enabled)
+    <div class="col-md-3">
+        <label>Enlace:</label>
+        <a href="https://app.golapp.com.co/portal/{{$school->slug}}">Enlace Inscripciones</a>
+        <br>
+        <small class="text-muted">Si tiene la sesión iniciada el enlace no te sirve.</small>
+    </div>
+    @endif
 </div>

@@ -148,6 +148,8 @@ class GameRepository
             'played_approx' => intval($skillsData["played_approx"][$i]),
             'position' => $skillsData["position"][$i],
             'goals' =>  intval($skillsData["goals"][$i]),
+            'goal_assists' =>  intval($skillsData["goal_assists"][$i]),
+            'goal_saves' =>  intval($skillsData["goal_saves"][$i]),
             'red_cards' => intval($skillsData["red_cards"][$i]),
             'yellow_cards' => intval($skillsData["yellow_cards"][$i]),
             'qualification' => $skillsData["qualification"][$i] == '' ? 1 : $skillsData["qualification"][$i],
