@@ -60,7 +60,7 @@ class AssistsUpdateRequest extends FormRequest
             'observations' => ['nullable', 'string'],
             'attendance_date' => ['nullable', 'string'],
             'column' => ['nullable', 'string'],
-            'value' => ['nullable', 'string'],
+            'value' => ['nullable', 'numeric'],
         ];
     }
 
