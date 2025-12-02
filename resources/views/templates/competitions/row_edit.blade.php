@@ -1,17 +1,15 @@
 <tr>
 
-    <td style="display: flex;">
+    <td class="text-center">
         @if($skillControl->id)
         <input name="ids[{{$index}}]" type="hidden" value="{{$skillControl->id}}">
         @endif
         <input name="inscriptions_id[{{$index}}]" type="hidden" value="{{$inscription->id}}">
         <img class="media-object img-rounded" src="{{$inscription->player->photo_url}}" width="60" height="60">
-        <p>
-            {{$inscription->player->full_names}}<br>
-            Teléfono: <small>{{$inscription->player->phones}}</small><br>
-            Celular: <small>{{$inscription->player->mobile}}</small><br>
-            Código: <strong>{{$inscription->player->unique_code}}</strong><br>
-        </p>
+        <br>
+        {{$inscription->player->full_names}}<br>
+        Código: <strong>{{$inscription->player->unique_code}}</strong><br>
+
     </td>
 
     <td>
@@ -33,6 +31,14 @@
     <td>
         @include('templates.competitions.select_g_t', [
             'name'=> "goals[{$index}]", 'values' => $scores, 'value' => $skillControl->goals])
+    </td>
+    <td>
+        @include('templates.competitions.select_g_t', [
+            'name'=> "goal_assists[{$index}]", 'values' => $scores, 'value' => $skillControl->goal_assists])
+    </td>
+    <td>
+        @include('templates.competitions.select_g_t', [
+            'name'=> "goal_saves[{$index}]", 'values' => $scores, 'value' => $skillControl->goal_saves])
     </td>
     <td>
         @include('templates.competitions.select_g_t', [

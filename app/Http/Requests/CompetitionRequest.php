@@ -43,6 +43,8 @@ class CompetitionRequest extends FormRequest
             "played_approx" => ['required', 'array'],
             "position" => ['required', 'array'],
             "goals" => ['required', 'array'],
+            "goal_assists" => ['nullable', 'array'],
+            "goal_saves" => ['nullable', 'array'],
             "yellow_cards" => ['required', 'array'],
             "red_cards" => ['required', 'array'],
             "qualification" => ['required', 'array'],

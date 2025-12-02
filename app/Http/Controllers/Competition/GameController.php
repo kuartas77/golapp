@@ -59,7 +59,7 @@ class GameController extends Controller
             ]),
             $request->only([
                 'inscriptions_id', 'assistance', 'titular', 'played_approx',
-                'position', 'goals', 'yellow_cards', 'red_cards',
+                'position', 'goals', 'yellow_cards', 'red_cards','goal_assists','goal_saves',
                 'qualification', 'observation'
             ])
         );
@@ -95,7 +95,7 @@ class GameController extends Controller
         ]);
         $skillsData = $request->only([
             'inscriptions_id', 'assistance', 'titular', 'played_approx',
-            'position', 'goals', 'yellow_cards', 'red_cards',
+            'position', 'goals', 'yellow_cards', 'red_cards','goal_assists','goal_saves',
             'qualification', 'observation', 'ids'
         ]);
 

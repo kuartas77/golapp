@@ -34,25 +34,24 @@
         $(document).ready(() => {
             $("#accept_add").on('click', () => {
                 let member = '<tr>' +
-                    '<td style="display: flex;">' +
+                    '<td class="text-center">' +
                     '<input name="ids[' + count + ']" type="hidden" value="">' +
                     '<input name="inscriptions_id[' + count + ']" type="hidden" value="' + member_add.id + '" class="inscriptions">' +
                     '<img class="media-object img-rounded" src="' + member_add.player.photo_url + '" width="60" height="60">' +
-                    '<p>' +
+                    '<br>' +
                     member_add.player.full_names + '<br>' +
-                    'Teléfono: <small>' + member_add.player.phones + '</small><br>' +
-                    'Celular: <small>' + member_add.player.mobile + '</small><br>' +
                     'Código: <strong>' + member_add.player.unique_code + '</strong><br>' +
-                    '</p>' +
                     '</td>' +
-                    '<td><select class="form-control form-control-sm select" name="assistance[' + count + ']">' + selectOptions() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="titular[' + count + ']">' + selectOptions() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="played_approx[' + count + ']">' + selectMinutes() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="position[' + count + ']" required>' + selectPositions() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="goals[' + count + ']">' + selectGoals() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="yellow_cards[' + count + ']">' + selectYellowCards() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="red_cards[' + count + ']">' + selectRedCards() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="qualification[' + count + ']" required>' + selectScore() + '</select></td>' +
+                    '<td><select class="form-select form-select-sm select" name="assistance[' + count + ']">' + selectOptions() + '</select></td>' +
+                    '<td><select class="form-select form-select-sm select" name="titular[' + count + ']">' + selectOptions() + '</select></td>' +
+                    '<td><select class="form-select form-select-sm select" name="played_approx[' + count + ']">' + selectMinutes() + '</select></td>' +
+                    '<td><select class="form-select form-select-sm select" name="position[' + count + ']" required>' + selectPositions() + '</select></td>' +
+                    '<td><select class="form-select form-select-sm select" name="goals[' + count + ']">' + selectGoals() + '</select></td>' +
+                    '<td><select class="form-select form-select-sm select" name="goal_assists[' + count + ']">' + selectGoals() + '</select></td>' +
+                    '<td><select class="form-select form-select-sm select" name="goal_saves[' + count + ']">' + selectGoals() + '</select></td>' +
+                    '<td><select class="form-select form-select-sm select" name="yellow_cards[' + count + ']">' + selectYellowCards() + '</select></td>' +
+                    '<td><select class="form-select form-select-sm select" name="red_cards[' + count + ']">' + selectRedCards() + '</select></td>' +
+                    '<td><select class="form-select form-select-sm select" name="qualification[' + count + ']" required>' + selectScore() + '</select></td>' +
                     '<td><textarea class="form-control form-control-sm" name="observation[' + count + ']" cols="30" rows="3"></textarea></td> ' +
                     '</tr>';
 

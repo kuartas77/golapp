@@ -31,6 +31,14 @@
     </td>
     <td>
         @include('templates.competitions.select_g_t', [
+            'name'=> "goal_assists[{$index}]", 'values' => $scores, 'value' => 0])
+    </td>
+    <td>
+        @include('templates.competitions.select_g_t', [
+            'name'=> "goal_saves[{$index}]", 'values' => $scores, 'value' => 0])
+    </td>
+    <td>
+        @include('templates.competitions.select_g_t', [
                 'name'=> "yellow_cards[{$index}]", 'values' => ['0'=>'0', '1'=>'1','2'=>'2'], 'value' => 0])
     </td>
     <td>
