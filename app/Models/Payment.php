@@ -56,6 +56,22 @@ class Payment extends Model
         'deleted_at'
     ];
 
+    static $pending = 0;
+    static $paid = 1;
+    static $debt = 2;
+    static $paid_ = 3;
+    static $disability = 4;
+    static $temporary_retirement = 5;
+    static $permanent_retirement = 6;
+    static $other = 7;
+    static $scholarship_recipient = 8;
+    static $paid_cash = 9;
+    static $paid_deposit = 10;
+    static $annuity_payment_deposit = 11;
+    static $annuity_payment_cash = 12;
+    static $payment_agreement = 13;
+    static $no_application = 14;
+
     public function inscription(): BelongsTo
     {
         return $this->belongsTo(Inscription::class, 'inscription_id', 'id');

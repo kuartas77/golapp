@@ -27,6 +27,8 @@ class SkillsControl extends Model
         'played_approx',
         'position',
         'goals',
+        'goal_assists',
+        'goal_saves',
         'red_cards',
         'yellow_cards',
         'qualification',

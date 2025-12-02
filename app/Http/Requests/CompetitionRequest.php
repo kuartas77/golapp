@@ -46,6 +46,8 @@ class CompetitionRequest extends FormRequest
             'skill_controls.*.played_approx' => ['required'],
             'skill_controls.*.position' => ['required'],
             'skill_controls.*.goals' => ['required'],
+            'skill_controls.*.goal_assists' => ['required'],
+            'skill_controls.*.goal_saves' => ['required'],
             'skill_controls.*.red_cards' => ['required'],
             'skill_controls.*.yellow_cards' => ['required'],
             'skill_controls.*.qualification' => ['required'],

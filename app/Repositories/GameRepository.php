@@ -86,6 +86,8 @@ class GameRepository
             $control['played_approx'] = 0;
             $control['position'] = '';
             $control['goals'] = 0;
+            $control['goal_assists'] = 0;
+            $control['goal_saves'] = 0;
             $control['red_cards'] = 0;
             $control['yellow_cards'] = 0;
             $control['qualification'] = 0;
