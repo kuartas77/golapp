@@ -1,10 +1,190 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" href="{{ asset('css/dompdf.css') }}" media="all">
     <title>Factura {{ $invoice->invoice_number }}</title>
-<style>.badge {
+    <style>
+        .clearfix:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        a {
+            color: #5D6975;
+            text-decoration: underline;
+        }
+
+        body {
+            position: relative;
+            width: 21cm;
+            height: 29.7cm;
+            margin: 0 auto;
+            color: #001028;
+            background: #FFFFFF;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            font-family: Arial;
+        }
+
+        header {
+            padding: 10px 0;
+            margin-bottom: 30px;
+        }
+
+        #logo {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        #logo img {
+            width: 90px;
+        }
+
+        h1 {
+            border-top: 1px solid #5D6975;
+            border-bottom: 1px solid #5D6975;
+            color: #5D6975;
+            font-size: 2.4em;
+            line-height: 1.4em;
+            font-weight: normal;
+            text-align: center;
+            margin: 0 0 20px 0;
+            background: url(img/dimension.png);
+        }
+
+        /* TABLA para alinear perfectamente cliente y empresa */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .header-table td {
+            vertical-align: top;
+            /* padding: 0; */
+            width: 50%;
+        }
+
+        #project {
+            text-align: left; /* Aseguramos alineación izquierda */
+        }
+
+        #project span.project-label {
+            color: #5D6975;
+            text-align: right;
+            width: 80px;
+            margin-right: 10px;
+            display: inline-block;
+            font-size: 0.8em;
+            font-weight: bold;
+            vertical-align: top;
+        }
+
+        #company {
+            text-align: right;
+        }
+
+        #project div,
+        #company div {
+            margin-bottom: 5px;
+            line-height: 1.4;
+            text-align: left; /* Aseguramos alineación izquierda para los divs de project */
+        }
+
+        /* Estructura de tabla dentro de project para mejor control */
+        .project-row {
+            display: table;
+            width: 100%;
+        }
+
+        .project-label {
+            display: table-cell;
+            text-align: right;
+            padding-right: 10px;
+            width: 80px;
+            color: #5D6975;
+            font-weight: bold;
+            font-size: 0.8em;
+            vertical-align: top;
+            white-space: nowrap;
+        }
+
+        .project-value {
+            display: table-cell;
+            vertical-align: top;
+            text-align: left; /* Aseguramos alineación izquierda */
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+            margin-bottom: 20px;
+        }
+
+        table tr:nth-child(2n-1) td {
+            background: #F5F5F5;
+        }
+
+        table th,
+        table td {
+            text-align: center;
+        }
+
+        table th {
+            padding: 5px 20px;
+            color: #5D6975;
+            border-bottom: 1px solid #C1CED9;
+            white-space: nowrap;
+            font-weight: normal;
+        }
+
+        table .service,
+        table .desc {
+            text-align: left;
+        }
+
+        table td {
+            padding: 20px;
+            text-align: right;
+        }
+
+        table td.service,
+        table td.desc {
+            vertical-align: top;
+        }
+
+        table td.unit,
+        table td.qty,
+        table td.total {
+            font-size: 1.2em;
+        }
+
+        table td.grand {
+            border-top: 1px solid #5D6975;
+        }
+
+        #notices .notice {
+            padding: 3mm;
+
+            background-color: #f9f9f9;
+            font-size: 1.2em;
+        }
+
+        footer {
+            color: #5D6975;
+            width: 100%;
+            height: 30px;
+            position: absolute;
+            bottom: 0;
+            border-top: 1px solid #C1CED9;
+            padding: 8px 0;
+            text-align: center;
+        }
+        .badge {
             display: inline-block;
             padding: 5mm;
             font-size: 8pt;
@@ -19,48 +199,56 @@
         .text-center { text-align: center; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <!-- Encabezado con información de la empresa y la factura -->
-        <table class="table-full title">
-            <tr>
-                <td class="text-left" width="20%">
-                    <img src="{{ $school->logo_local }}" width="70" height="70">
-                </td>
-                <td class="text-center school-title" width="60%">{{ $school->name }}
-                    <br>FACTURA
-                    <br><strong>Nº: {{ $invoice->invoice_number }}</strong>
-                </td>
-                <td class="text-right" width="20%">
-                    <img src="{{ $school->logo_local }}" width="70" height="70">
-                </td>
-            </tr>
-            <!-- <tr class="tr-tit">
-                <td class="text-center bold" width="45%">
-                    <h3 class="school-title"><strong>Fecha:</strong> {{ \Carbon\Carbon::parse($invoice->issue_date)->format('d/m/Y') }}</h3>
-                </td>
-                <td class="text-center" width="10%"></td>
-                <td class="text-center bold" width="45%">
-                    <h3 class="school-title"><strong>Vencimiento:</strong> {{ \Carbon\Carbon::parse($invoice->due_date)->format('d/m/Y') }}</h3>
-                </td>
-            </tr> -->
-        </table>
 
-        <table class="table-full title">
-            <tbody>
-                <tr>
-                    <td class="text-left" width="50%"><strong class="bold">&nbsp;{{ $school->name ?? 'INSTITUCIÓN EDUCATIVA' }}</strong></td>
-                    <td class="text-right" width="50%"><strong class="bold">&nbsp;Fecha: {{ \Carbon\Carbon::parse($invoice->issue_date)->format('d/m/Y') }}</strong></td>
-                </tr>
-                <tr>
-                    <td class="text-left" width="50%"><strong class="bold">&nbsp;{{ $school->address ?? 'Dirección no especificada' }}</strong></td>
-                    <td class="text-right" width="50%"><strong class="bold">&nbsp;Vencimiento: {{ \Carbon\Carbon::parse($invoice->due_date)->format('d/m/Y') }}</strong></td>
-                </tr>
-                <tr>
-                    <td class="text-left" width="50%"><strong class="bold">&nbsp;Tel: {{ $school->phone ?? 'N/A' }}</strong></td>
-                    <td class="text-right" width="50%">
-                        <strong>Estado:</strong>
-                        @if($invoice->status == 'paid')
+<body>
+    <header class="clearfix">
+        <div id="logo">
+            <img src="{{ $school->logo_local }}" width="70" height="70">
+        </div>
+        <h1>Factura #{{ $invoice->invoice_number }}</h1>
+
+        <!-- TABLA para alinear perfectamente cliente y empresa -->
+        <table class="header-table">
+            <tr>
+                <td style="text-align: left;">
+                    <!-- Información del cliente -->
+                    <div id="project">
+                        @if($tutor?->names)
+                        <div class="project-row">
+                            <span class="project-label">&nbsp;ACUDIENTE</span>
+                            <span class="project-value">&nbsp;{{$tutor->names}} CC:{{$tutor->identification_card}}</span>
+                        </div>
+                        @endif
+                        <div class="project-row">
+                            <span class="project-label">&nbsp;DEPORTISTA</span>
+                            <span class="project-value">&nbsp;<strong>{{ $invoice->student_name }}</strong></span>
+                        </div>
+                        <div class="project-row">
+                            <span class="project-label">&nbsp;CÓDIGO</span>
+                            <span class="project-value">&nbsp;<strong>{{ $invoice->inscription->player->unique_code ?? 'N/A' }}</strong></span>
+                        </div>
+                        <div class="project-row">
+                            <span class="project-label">&nbsp;EMAIL</span>
+                            <span class="project-value">&nbsp;<strong>{{ $invoice->inscription->player->email ?? 'N/A' }}</strong></span>
+                        </div>
+                        <div class="project-row">
+                            <span class="project-label">&nbsp;FECHA</span>
+                            <span class="project-value"><strong class="bold">&nbsp;{{ \Carbon\Carbon::parse($invoice->issue_date)->format('d/m/Y') }}</strong></span>
+                        </div>
+                        <div class="project-row">
+                            <span class="project-label">&nbsp;VENCIMIENTO</span>
+                            <span class="project-value"><strong class="bold">&nbsp;{{ \Carbon\Carbon::parse($invoice->due_date)->format('d/m/Y') }}</strong></span>
+                        </div>
+                    </div>
+                </td>
+                <td style="text-align: right;">
+                    <!-- Información de la empresa -->
+                    <div id="company">
+                        <div><strong class="bold">&nbsp;{{ $school->name ?? 'INSTITUCIÓN EDUCATIVA' }}</strong></div>
+                        <div><strong class="bold">&nbsp;{{ $school->address ?? 'Dirección no especificada' }}</strong></div>
+                        <div><strong class="bold">&nbsp;Tel {{ $school->phone ?? 'N/A' }}</strong></div>
+                        <div><strong class="bold">&nbsp;Email {{ $school->email ?? 'N/A' }}</strong></div>
+                        <div><strong class="bold">&nbsp;Estado @if($invoice->status == 'paid')
                         <span class="badge badge-success ">Pagada</span>
                         @elseif($invoice->status == 'partial')
                         <span class="badge badge-warning">Parcial</span>
@@ -68,59 +256,38 @@
                         <span class="badge badge-danger">Pendiente</span>
                         @else
                         <span class="badge badge-secondary">Cancelada</span>
-                        @endif
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-left" width="50%"><strong class="bold">&nbsp;Email: {{ $school->email ?? 'N/A' }}</strong></td>
-                    <td class="text-right" width="50%"><strong>Factura creada por:</strong> {{ $invoice->creator->name ?? 'SISTEMA' }}</td>
-                </tr>
-            </tbody>
+                        @endif</strong>
+                        </div>
+                    </div>
+                </td>
+            </tr>
         </table>
+    </header>
 
-        <h3 style="margin-top:0;">DATOS DEL DEPORTISTA</h3>
-        <table class="table-full title">
-            <tbody>
-                <tr>
-                    <td class="text-left" width="50%"><strong>Nombre:</strong> {{ $invoice->student_name }}</td>
-                    <td class="text-right" width="50%"><strong class="bold">&nbsp;<strong>Grupo:</strong> {{ $invoice->trainingGroup->name ?? 'N/A' }}</strong></td>
-                </tr>
-                <tr>
-                    <td class="text-left" width="50%"><strong>Documento:</strong> {{ $invoice->inscription->player->identification_document ?? 'N/A' }}</td>
-                    <td class="text-right" width="50%"><strong class="bold">&nbsp;<strong>Año:</strong> {{ $invoice->year }}</strong></td>
-                </tr>
-                <tr>
-                    <td class="text-left" width="50%"><strong>Teléfono:</strong> {{ $invoice->inscription->player->phones ?? 'N/A' }}</td>
-                    <td class="text-right" width="50%"><strong>Email:</strong> {{ $invoice->inscription->player->email ?? 'N/A' }}</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <!-- Tabla de productos/servicios -->
-        <h3 style="margin-top:0;">DETALLE DE LA FACTURA</h3>
-        <table class="table-full title ">
+    <main>
+        <table>
             <thead>
                 <tr>
-                    <th width="5%">#</th>
-                    <th width="45%">DESCRIPCIÓN</th>
-                    <th width="10%">TIPO</th>
-                    <th width="1%" class="text-center">CANT</th>
-                    <th width="20%" class="text-right">PRECIO UNIT.</th>
-                    <th width="19%" class="text-right">TOTAL</th>
+                    <th class="service">#</th>
+                    <th class="desc">DESCRIPCIÓN</th>
+                    <th class="desc">TIPO</th>
+                    <th class="text-center">CANT</th>
+                    <th class="text-right">PRECIO UNIT.</th>
+                    <th class="text-right">TOTAL</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($invoice->items as $index => $item)
                 <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>
+                    <td class="service">{{ $index + 1 }}</td>
+                    <td class="desc">
                         @if($item->month)
                             <strong>Mes:</strong> {{ $item->description }}
                         @else
                             {{ $item->description }}
                         @endif
                     </td>
-                    <td>
+                    <td class="desc">
                         @if($item->type == 'monthly')
                             <span class="badge badge-secondary">MENSUALIDAD</span>
                         @elseif($item->type == 'enrollment')
@@ -130,48 +297,28 @@
                         @endif
                     </td>
                     <td class="text-center">{{ $item->quantity }}</td>
-                    <td class="text-right">${{ number_format($item->unit_price, 2) }}</td>
-                    <td class="text-right">${{ number_format($item->total, 2) }}</td>
+                    <td class="text-right">${{ number_format($item->unit_price, 0) }}</td>
+                    <td class="text-right">${{ number_format($item->total, 0) }}</td>
                 </tr>
                 @endforeach
+
+                <tr>
+                    <td colspan="5">SUBTOTAL</td>
+                    <td class="total">${{ number_format($invoice->total_amount, 0) }}</td>
+                </tr>
+                <tr>
+                    <td colspan="5">SALDO PENDIENTE</td>
+                    <td class="total">${{ number_format($invoice->total_amount - $invoice->paid_amount, 0) }}</td>
+                </tr>
+                <tr>
+                    <td colspan="5" class="grand total">PAGADO</td>
+                    <td class="grand total text-right">${{ number_format($invoice->paid_amount, 0) }}</td>
+                </tr>
+
             </tbody>
         </table>
-
-        <hr style="margin-top: 10mm; padding-top: 5mm; border-top: 1px solid #ddd;">
-
-        <!-- Totales -->
+        @if($invoice->payments && $invoice->payments->count() > 0)
         <div >
-            <table class="table-full title ">
-                <tr>
-                    <td><strong>SUBTOTAL:</strong></td>
-                    <td class="text-right">${{ number_format($invoice->total_amount, 2) }}</td>
-                </tr>
-                <tr>
-                    <td><strong>PAGADO:</strong></td>
-                    <td class="text-right">${{ number_format($invoice->paid_amount, 2) }}</td>
-                </tr>
-                <tr style="background-color: #f5f5f5;">
-                    <td><strong>SALDO PENDIENTE:</strong></td>
-                    <td class="text-right">
-                        <strong>${{ number_format($invoice->total_amount - $invoice->paid_amount, 2) }}</strong>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- Observaciones -->
-        @if($invoice->notes)
-        <div>
-            <h3>OBSERVACIONES</h3>
-            <div style="padding: 3mm; border: 1px solid #ddd; border-radius: 2mm; background-color: #f9f9f9;">
-                {{ $invoice->notes }}
-            </div>
-        </div>
-        @endif
-
-        <!-- Historial de pagos (si existe) -->
-        <!-- @if($invoice->payments && $invoice->payments->count() > 1)
-        <div style="margin-top: 10mm;">
             <h3>HISTORIAL DE PAGOS</h3>
             <table>
                 <thead>
@@ -199,33 +346,20 @@
                             @endif
                         </td>
                         <td>{{ $payment->reference ?? 'N/A' }}</td>
-                        <td class="text-right">${{ number_format($payment->amount, 2) }}</td>
+                        <td class="text-right">${{ number_format($payment->amount, 0) }}</td>
                         <td>{{ $payment->creator->name ?? 'SISTEMA' }}</td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
-        @endif -->
-
-        <!-- Información adicional -->
-        <!-- <div style="margin-top: 10mm; padding-top: 5mm; border-top: 1px solid #ddd;">
-            <div style="width: 50%; float: left;">
-                <p><strong>Factura creada por:</strong> {{ $invoice->creator->name ?? 'SISTEMA' }}</p>
-                <p><strong>Fecha de creación:</strong> {{ \Carbon\Carbon::parse($invoice->created_at)->format('d/m/Y H:i:s') }}</p>
-            </div>
-             <div style="width: 50%; float: right;">
-                <p><strong>Condiciones:</strong></p>
-                <p style="font-size: 8pt;">Esta factura es válida según las políticas de la institución. El pago después de la fecha de vencimiento puede generar recargos.</p>
-            </div>
-        </div> -->
-
-        <!-- Pie de página -->
-        <!-- <div class="footer clearfix">
-            <p>{{ $school->name ?? 'Institución Educativa' }} - Factura generada electrónicamente</p>
-            <p>Documento válido sin firma ni sello según Resolución DIAN 00000 de 2023</p>
-            <p>Impreso el: {{ \Carbon\Carbon::now()->format('d/m/Y H:i:s') }}</p>
-        </div> -->
-    </div>
+        @endif
+        @if($invoice->notes)
+        <div id="notices">
+            <div>OBSERVACIONES</div>
+            <div class="notice">{{ $invoice->notes }}</div>
+        </div>
+        @endif
+    </main>
 </body>
 </html>

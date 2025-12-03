@@ -73,23 +73,26 @@ class InvoiceController extends Controller
 
     public function print($id)
     {
-        $invoice = Invoice::with(['school', 'items', 'payments.creator', 'inscription.player', 'trainingGroup', 'creator'])
+        $invoice = Invoice::with(['school', 'items', 'payments.creator', 'inscription.player.people', 'trainingGroup', 'creator'])
             ->firstWhere('invoice_number', $id);
+
 
         abort_if(is_null($invoice), 404, 'not found');
 
         $data = [];
         $data['school'] = getSchool(auth()->user());
         $data['invoice'] = $invoice;
+        $data['tutor'] = $invoice->inscription->player->people->firstWhere('tutor', 1);
 
 
         // view()->share('school', $data['school']);
         // view()->share('invoice', $data['invoice']);
+        // view()->share('tutor', $data['tutor']);
         // return view('templates.pdf.invoice');
 
         $filename = "Factura #{$invoice->invoice_number}.pdf";
         // $this->setConfigurationMpdf(['format' => [140, 200], 'mode' => 'utf-8', 'default_font' => 'dejavusans',]);
-        $this->setConfigurationMpdf(['format' => [140, 220], 'mode' => 'utf-8', 'default_font' => 'dejavusans',]);
+        $this->setConfigurationMpdf(['format' => 'A4','default_font' => 'dejavusans']);
         $this->createPDF($data, 'invoice.blade.php');
         return $this->stream($filename);
     }
