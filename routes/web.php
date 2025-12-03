@@ -4,6 +4,7 @@ use App\Http\Controllers\AppController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
 use App\Http\Controllers\ImportController;
+use App\Http\Controllers\Invoices\InvoiceController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\Reports\ReportAssistsController;
 use App\Http\Controllers\Reports\ReportPaymentController;

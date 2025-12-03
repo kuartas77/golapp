@@ -59,6 +59,16 @@ const routes = [
                     { path: 'schools', name: 'schools', component: () => import('@/pages/admin/school/list-schools.vue'), meta: { requiresRole: ['super-admin'] } },
                     { path: 'schools-info', name: 'schools-info', component: () => import('@/pages/admin/school/list-info.vue'), meta: { requiresRole: ['super-admin'] } },
                 ]
+            },
+            {
+                path: '/facturas',
+                meta: { requiresRole: ['super-admin', 'school'] },
+                component: { render: () => h(RouterView) },
+                children: [
+                    { path: '', name: 'invoices.index', component: () => import('@/pages/invoices/InvoiceIndex.vue') },
+                    { path: 'factura/:id', name: 'invoices.show', component: () => import('@/pages/invoices/InvoiceShow.vue') },
+                    { path: 'factura/crear/:inscription', name: 'invoices.create', component: () => import('@/pages/invoices/InvoiceCreate.vue') },
+                ]
             }
         ]
     },

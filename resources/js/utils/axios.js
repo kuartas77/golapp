@@ -9,6 +9,7 @@ const api = axios.create({
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
     }
 });
@@ -16,6 +17,11 @@ const api = axios.create({
 // Interceptor de request (antes de enviar la petición)
 api.interceptors.request.use(
     async (config) => {
+        // Agregar token CSRF para Laravel
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')
+        if (csrfToken) {
+            config.headers['X-CSRF-TOKEN'] = csrfToken.content
+        }
         return config;
     },
     (error) => {
@@ -43,3 +49,31 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+// export default {
+//     // Facturas
+//     getInvoices(params) {
+//         return apiClient.get('/invoices', { params })
+//     },
+
+//     getInvoice(id) {
+//         return apiClient.get(`/invoices/${id}`)
+//     },
+
+//     createInvoice(data) {
+//         return apiClient.post('/invoices', data)
+//     },
+
+//     deleteInvoice(id) {
+//         return apiClient.delete(`/invoices/${id}`)
+//     },
+
+//     addPayment(invoiceId, data) {
+//         return apiClient.post(`/invoices/${invoiceId}/payment`, data)
+//     },
+
+//     // Datos de inscripción
+//     getInscriptionData(inscriptionId) {
+//         return apiClient.get(`/inscriptions/${inscriptionId}/invoice-data`)
+//     }
+// }
