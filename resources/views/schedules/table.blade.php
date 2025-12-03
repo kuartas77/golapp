@@ -19,7 +19,7 @@
 <div class="tab-content clearfix" id="tab_content">
     <div class="tab-pane show active" id="enabled" role="tabpanel" aria-labelledby="enabled-tab">
         <div class="table-responsive-md">
-            <table class="display compact" id="active_table">
+            <table class="display compact cell-border" id="active_table">
                 <thead>
                     <tr>
                         <th>Horario</th>

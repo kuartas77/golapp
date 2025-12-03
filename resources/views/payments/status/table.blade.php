@@ -1,5 +1,5 @@
 <div class="table-responsive-md">
-    <table class="display compact" id="active_table" style="width:100%">
+    <table class="display compact cell-border" id="active_table" style="width:100%">
         <thead>
             <tr>
                 <th class="text-center">Deportista</th>

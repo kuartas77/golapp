@@ -3,7 +3,7 @@
     <x-bread-crumb title="Cumpleaños" :option="0"/>
     <x-row-card col-outside="2" col-inside="8">
         <h4 class="text-themecolor card-subtitle">Cumpleños Del Día</h4>
-        <table class="display compact" id="table_players" width="100%">
+        <table class="ddisplay compact cell-border" id="table_players" width="100%">
             <thead>
             <tr>
                 <th>Foto</th>
