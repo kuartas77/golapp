@@ -1,19 +1,21 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
-use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
-use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
-use App\Http\Controllers\{Competition\GameController, Payments\PaymentController, Schedule\SchedulesController, SchoolPages\SchoolsController};
-use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
-use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
-use App\Http\Controllers\Reports\ReportPaymentController;
-use App\Http\Controllers\Reports\ReportAssistsController;
-use App\Http\Controllers\Payments\TournamentPayoutsController;
-use App\Http\Controllers\ImportController;
-use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
+use App\Http\Controllers\ImportController;
+
+use App\Http\Controllers\Invoices\InvoiceController;
+use App\Http\Controllers\Payments\TournamentPayoutsController;
+use App\Http\Controllers\Reports\ReportAssistsController;
+use App\Http\Controllers\Reports\ReportPaymentController;
+use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
+use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
+use App\Http\Controllers\{Competition\GameController, Payments\PaymentController, Schedule\SchedulesController, SchoolPages\SchoolsController};
+use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
+use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
+use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 Auth::routes(['register' => false, 'verify' => false]);
 
@@ -132,6 +134,14 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
         Route::get('tournaments', [MasterController::class, 'tournamentsBySchool'])->name('autocomplete.tournaments');
     });
+
+    Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('invoices/create/{inscription}', [InvoiceController::class, 'create'])->name('invoices.create');
+    Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
+    Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::delete('invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
+    Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'addPayment'])->name('invoices.addPayment');
+    Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
 
 });
 
