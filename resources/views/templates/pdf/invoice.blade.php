@@ -148,7 +148,7 @@
         }
 
         table td {
-            padding: 20px;
+            padding: 5px;
             text-align: right;
         }
 
