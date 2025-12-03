@@ -29,7 +29,7 @@
 <div class="tab-content clearfix" id="tab_content">
     <div class="tab-pane show active" id="enabled" role="tabpanel" aria-labelledby="enabled-tab">
         <div class="table-responsive-md">
-            <table class="display compact" id="active_table">
+            <table class="display compact cell-border" id="active_table">
                 <thead>
                     <tr>
                         <th>Grupo</th>
@@ -45,7 +45,7 @@
 
     <div class="tab-pane" id="disabled" role="tabpanel" aria-labelledby="disabled-tab">
         <div class="table-responsive-md">
-            <table class="display compact" id="disabled_table" width="100%">
+            <table class="display compact cell-border" id="disabled_table" width="100%">
                 <thead>
                     <tr>
                         <th>Grupo</th>

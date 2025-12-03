@@ -36,7 +36,7 @@
 
     <div class="tab-pane show active" id="enabled" role="tabpanel" aria-labelledby="enabled-tab">
         <div class="table-responsive-md">
-            <table class="display compact" id="active_table" width="100%">
+            <table class="display compact cell-border" id="active_table" width="100%">
                 <thead>
                 <tr>
                     <th class="text-center">Nombres</th>

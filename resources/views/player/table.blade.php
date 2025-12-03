@@ -29,7 +29,7 @@
 <div class="tab-content clearfix" id="tab_content">
     <div class="tab-pane show active" id="activos" role="tabpanel" aria-labelledby="activos-tab">
         <div class="table-responsive-md">
-            <table class="display compact" id="table_players" width="100%">
+            <table class="display compact cell-border" id="table_players" width="100%">
                 <thead>
                     <tr>
                         <th></th>

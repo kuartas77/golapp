@@ -901,3 +901,11 @@ select.payments option[value="14"] {
     background-color: white;
     color: black;
 }
+
+.card-header {
+    background-color: transparent !important;
+}
+
+td .badge {
+    font-size: 10px;
+}

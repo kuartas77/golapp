@@ -20,7 +20,7 @@
 <div class="tab-content clearfix" id="tab_content">
     <div class="tab-pane show active" id="activos" role="tabpanel" aria-labelledby="activos-tab">
         <div class="table-responsive-md">
-            <table class="table display compact" id="user-table" style="width:100%">
+            <table class="table display compact cell-border" id="user-table" style="width:100%">
                 <thead>
                     @hasanyrole('super-admin')
                     <td>Escuela</td>
@@ -73,7 +73,7 @@
 
     <div class="tab-pane" id="inactivos" role="tabpanel" aria-labelledby="inactivos-tab">
         <div class="table-responsive-md">
-            <table class="table display compact" id="userTrash-table" style="width:100%">
+            <table class="table display compact cell-border" id="userTrash-table" style="width:100%">
                 <thead>
                     @hasanyrole('super-admin')
                     <td>Escuela</td>
