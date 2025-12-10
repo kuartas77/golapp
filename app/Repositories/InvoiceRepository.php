@@ -23,7 +23,10 @@ class InvoiceRepository
 
     public function createInvoice($inscriptionId)
     {
-        $inscription = Inscription::with(['player', 'trainingGroup'])->findOrFail($inscriptionId);
+        $school = getSchool(auth()->user());
+        $inscription = Inscription::with(['player', 'trainingGroup'])
+            ->where('school_id', $school->id)
+            ->findOrFail($inscriptionId);
 
         // Buscar registro en payments para el año actual
         $currentYear = date('Y');

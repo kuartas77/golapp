@@ -6,6 +6,7 @@ use App\Http\Controllers\ImportController;
 
 use App\Http\Controllers\Invoices\InvoiceController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
+use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\Reports\ReportAssistsController;
 use App\Http\Controllers\Reports\ReportPaymentController;
 use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
@@ -142,6 +143,11 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::delete('invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
     Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'addPayment'])->name('invoices.addPayment');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
+
+
+    Route::get('/player-stats', [PlayerStatsController::class, 'index'])->name('player.stats');
+    Route::get('/top-players', [PlayerStatsController::class, 'topPlayers'])->name('players.top');
+    Route::get('/player/{id}/detail', [PlayerStatsController::class, 'playerDetail'])->name('player.detail');
 
 });
 

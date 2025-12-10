@@ -148,7 +148,7 @@
         }
 
         table td {
-            padding: 20px;
+            padding: 5px;
             text-align: right;
         }
 
@@ -194,7 +194,7 @@
         .badge-success { background-color: #28a745; color: #fff; }
         .badge-warning { background-color: #ffc107; color: #212529; }
         .badge-danger { background-color: #dc3545; color: #fff; }
-        .badge-secondary { background-color: #000000ff; color: #fff; }
+        .badge-secondary { background-color: #868686ff; color: #000; }
         .text-right { text-align: right; }
         .text-center { text-align: center; }
     </style>

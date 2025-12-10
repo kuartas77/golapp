@@ -104,7 +104,7 @@ function filterTable() {
     });
 
     let start_date = this.api().columns(10);
-    $("<input type='search' class='' placeholder='Buscar F.Inicio' />")
+    $("<input type='search' class='' placeholder='F.Inicio' />")
         .appendTo($(start_date.header()).empty())
         .on('keyup change search', function () {
             if (start_date.search() !== this.value) {
@@ -146,19 +146,22 @@ const columns = [
         "render": function (data, type, row) {
             let edit = ""
             let deleteButton = ''
+            let invioceButton = ''
 
             if(row.deleted_at !== null) return ''
 
             if(isAdmin && (yearSelected >= currentYear)){
                 edit = '<a href="javascript:void(0)" data-toggle="modal" data-target-custom="#create_inscription" data-backdrop="static"\n' +
-                    'data-keyboard="false" data-href="' + row.url_edit + '" data-update="'+row.url_update+'" class="btn btn-warning btn-xs edit_inscription"><i class="fas fa-pencil-alt"></i></a>'
-                deleteButton = '<button class="btn btn-danger btn-xs disable-inscription"><i class="fas fa-trash-alt"></i></button>'
+                    'data-keyboard="false" data-href="' + row.url_edit + '" data-update="'+row.url_update+'" class="btn btn-warning btn-xs edit_inscription" title="Modificar Inscripción"><i class="fas fa-pencil-alt"></i></a>'
+                deleteButton = '<button class="btn btn-danger btn-xs disable-inscription" title="Eliminar inscripción"><i class="fas fa-trash-alt"></i></button>'
+                invioceButton = '<a href="'+row.url_invoice+'" class="btn btn-success btn-xs invoice-inscription" title="Factura"><i class="fas fa-file-alt"></i></a>'
             }
 
             return '<form method="POST" action="' + row.url_destroy + '" accept-charset="UTF-8"><input name="_method" type="hidden" value="DELETE"><input name="_token" type="hidden" value="' + window.token.csrfToken + '"><div class="btn-group">'
             + edit
-            +'<a href="' + row.url_show + '" class="btn btn-info btn-xs"><i class="fas fa-eye"></i></a>'
-            + '<a href="' + row.url_impression + '" target="_blank" class="btn btn-info btn-xs"><i class="fas fa-print" aria-hidden="true"></i></a>'
+            +'<a href="' + row.url_show + '" class="btn btn-info btn-xs" title="Ficha"><i class="fas fa-eye"></i></a>'
+            + '<a href="' + row.url_impression + '" target="_blank" class="btn btn-info btn-xs" title="PDF"><i class="fas fa-print" aria-hidden="true"></i></a>'
+            + invioceButton
             + deleteButton
             + '</div></form>';
         }, 'searchable': false
@@ -185,9 +188,10 @@ const columnsDelete = [
     {data: 'category', name: 'category', "className": 'text-center'},//9
 ];
 const columnDefs = [
-    {"targets": [2,3,4,7,11], "searchable": true},
-    {"targets": [0, 1, 6, 7, 8, 10, 11, 12], "orderable": false},
-    {"targets": [7, 10, 11], "width": "1%" }
+    { "targets": [2, 3, 4, 7, 11], "searchable": true },
+    { "targets": [0, 1, 6, 7, 8, 9, 10, 11, 12], "orderable": false },
+    { "targets": [7, 11], "width": "1%" },
+    { "targets": [1, 2, 3, 5, 6, 8, 10,12], "width": "1px" },
 
 ];
 

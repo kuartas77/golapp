@@ -92,7 +92,7 @@ class Inscription extends Model
         'payment_receipt'
     ];
 
-    protected $appends = ['url_edit','url_update','url_show', 'url_impression', 'url_destroy'];
+    protected $appends = ['url_edit','url_update','url_show', 'url_impression', 'url_destroy', 'url_invoice'];
 
     protected static function booted()
     {
@@ -141,6 +141,11 @@ class Inscription extends Model
     public function getUrlDestroyAttribute(): string
     {
         return route('inscriptions.destroy', [$this->attributes['id']]);
+    }
+
+    public function getUrlInvoiceAttribute(): string
+    {
+        return route('invoices.create', [$this->attributes['id']]);
     }
 
     public function player(): BelongsTo
