@@ -55,6 +55,9 @@
 <li class="{{ Request::is('tournamentpayout*') ? 'active' : '' }}">
     <a class="waves-effect waves-dark" href="{{route('tournamentpayout.index')}}" aria-expanded="false"><i class="fas fa-dollar-sign"></i><span class="hide-menu">Pagos Torneos</span></a>
 </li>
+<li class="{{ Request::is('invoices*') ? 'active' : '' }}">
+    <a class="waves-effect waves-dark" href="{{route('invoices.index')}}" aria-expanded="false"><i class="fas fa-dollar-sign"></i><span class="hide-menu">Facturas</span></a>
+</li>
 @endhasanyrole
 
 <li class="{{ Request::is('training-sessions*') ? 'active' : '' }}">
