@@ -123,6 +123,7 @@ class PlayerStatsController extends Controller
 
     public function topPlayers()
     {
+        $school = getSchool(auth()->user());
         // Top goleadores - incluir minutos jugados para calcular eficiencia
         $topScorers = DB::table('skills_control as sc')
             ->selectRaw("
@@ -153,6 +154,7 @@ class PlayerStatsController extends Controller
             ->leftJoin('schools as s', 'sc.school_id', '=', 's.id')
             ->whereNull('sc.deleted_at')
             ->where('sc.assistance', 1)
+            ->where('sc.school_id', $school->id)
             ->groupBy('i.player_id', 'p.names', 'p.last_names', 'p.photo', 's.name')
             ->having('total_goles', '>', 0)
             ->orderBy('total_goles', 'DESC')
@@ -181,6 +183,7 @@ class PlayerStatsController extends Controller
             ->leftJoin('schools as s', 'sc.school_id', '=', 's.id')
             ->whereNull('sc.deleted_at')
             ->where('sc.assistance', 1)
+            ->where('sc.school_id', $school->id)
             ->groupBy('i.player_id', 'p.names', 'p.last_names', 'p.photo', 's.name')
             ->having('total_asistencias', '>', 0)
             ->orderBy('total_asistencias', 'DESC')
@@ -210,6 +213,7 @@ class PlayerStatsController extends Controller
             ->whereNull('sc.deleted_at')
             ->where('sc.assistance', 1)
             ->where('sc.position', 'like', '%Portero%')
+            ->where('sc.school_id', $school->id)
             ->groupBy('i.player_id', 'p.names', 'p.last_names', 'p.photo', 's.name')
             ->having('total_atajadas', '>', 0)
             ->orderBy('total_atajadas', 'DESC')
@@ -240,6 +244,7 @@ class PlayerStatsController extends Controller
             ->leftJoin('schools as s', 'sc.school_id', '=', 's.id')
             ->whereNull('sc.deleted_at')
             ->where('sc.assistance', 1)
+            ->where('sc.school_id', $school->id)
             ->groupBy('i.player_id', 'p.names', 'p.last_names', 'p.photo', 's.name')
             ->having('partidos', '>=', 3) // Mínimo 3 partidos
             ->having('promedio_calificacion', '>', 0)
@@ -397,7 +402,7 @@ class PlayerStatsController extends Controller
         }
 
         if (!empty($playerStats->photo) && Storage::disk('public')->exists($playerStats->photo)) {
-            $playerStats->photo = route('images', $player->photo);
+            $playerStats->photo = route('images', $playerStats->photo);
         } else {
             $playerStats->photo = url('img/user.png');
         }
