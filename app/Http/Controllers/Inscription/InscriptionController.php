@@ -26,7 +26,11 @@ class InscriptionController extends Controller
      */
     public function index()
     {
-        return view('inscription.index');
+        $year = date('Y');
+        if (in_array(now()->month, [11, 12])) {
+            $year = now()->addYear()->format('Y');
+        }
+        return view('inscription.index', compact('year'));
     }
 
     /**

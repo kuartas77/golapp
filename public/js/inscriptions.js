@@ -56,12 +56,12 @@ function addSelectTraining(column){
             );
 
             column
-                .search(val ? '^' + val + '$' : '', true, false)
+                .search(val , true, false)
                 .draw();
         });
 
         groups.forEach(function (d, j) {
-            if (column.search() === '^' + d + '$') {
+            if (column.search() === d) {
                 select.append('<option value="' + d + '" selected="selected">' + d + '</option>')
             } else {
                 select.append('<option value="' + d.id + '">' + d.name + '</option>')
@@ -139,7 +139,7 @@ const columns = [
         }, 'searchable': false
     },//8
     {data: 'player.mobile', 'searchable': false},//9
-    {data: 'start_date', 'searchable': false},//10
+    {data: 'start_date', 'searchable': true},//10
     {data: 'category', name: 'inscriptions.category', "className": 'text-center'},//11
     {
         data: 'id',
@@ -210,7 +210,6 @@ $(document).ready(function () {
         "columns": columns,
         "columnDefs": columnDefs,
         "createdRow": function (row, data, dataIndex) {
-            console.log(data.pre_inscription)
             if (data.pre_inscription == 1 && data.training_group_id == firstGroup) {
                 $(row).addClass('bg-warning')
             }else if (data.training_group_id == firstGroup) {
@@ -242,6 +241,8 @@ $(document).ready(function () {
             pages: 5 // number of pages to cache
         })
     });
+
+    inscriptionYear()
 
     $('a[data-toggle="tab"]').on('shown.bs.tab', function () {
         $.fn.dataTable.tables({visible: true, api: true}).columns.adjust();
@@ -333,12 +334,18 @@ $(document).ready(function () {
     });
 
     $('#inscription_year').on('change', function(){
-        let element = $(this)
-        yearSelected = element.val()
-        let parameter = "?" + element.attr('id') + "=" + element.val()
-        let url_enabled = url_inscriptions_enabled + parameter
-        // let url_disabled = url_inscriptions_disabled + parameter
-        active_table.ajax.url($.fn.dataTable.pipeline({url: url_enabled})).load();
-        // inactive_table.ajax.url($.fn.dataTable.pipeline({url: url_disabled})).load();
+        inscriptionYear ()
     })
+
+    function inscriptionYear() {
+        let element = $('#inscription_year')
+        yearSelected = element.val()
+        if(yearSelected) {
+            let parameter = "?" + element.attr('id') + "=" + element.val()
+            let url_enabled = url_inscriptions_enabled + parameter
+            // let url_disabled = url_inscriptions_disabled + parameter
+            active_table.ajax.url($.fn.dataTable.pipeline({url: url_enabled})).load();
+            // inactive_table.ajax.url($.fn.dataTable.pipeline({url: url_disabled})).load();
+        }
+    }
 });

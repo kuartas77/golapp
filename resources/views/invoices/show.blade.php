@@ -59,13 +59,13 @@
                                         @if($item->type == 'monthly')
                                         <span class="badge badge-info">Mensualidad</span>
                                         @else
-                                        <span class="badge badge-secondary">Adicional</span>
+                                        <span class="badge badge-secondary">Item</span>
                                         @endif
                                     </td>
                                     <td>{{ $item->description }}</td>
                                     <td class="text-center">{{ $item->quantity }}</td>
-                                    <td class="text-right">${{ number_format($item->unit_price, 2) }}</td>
-                                    <td class="text-right">${{ number_format($item->total, 2) }}</td>
+                                    <td class="text-right">${{ number_format($item->unit_price, 0) }}</td>
+                                    <td class="text-right">${{ number_format($item->total, 0) }}</td>
                                     <td class="text-center">
                                         @if($item->is_paid)
                                         <span class="badge badge-success">Pagado</span>
@@ -79,19 +79,19 @@
                             <tfoot class="bg-light">
                                 <tr>
                                     <td colspan="4" class="text-right"><strong>Total Factura:</strong></td>
-                                    <td class="text-right"><strong>${{ number_format($invoice->total_amount, 2) }}</strong></td>
+                                    <td class="text-right"><strong>${{ number_format($invoice->total_amount, 0) }}</strong></td>
                                     <td></td>
                                 </tr>
                                 <tr>
                                     <td colspan="4" class="text-right"><strong>Pagado:</strong></td>
-                                    <td class="text-right"><strong>${{ number_format($invoice->paid_amount, 2) }}</strong></td>
+                                    <td class="text-right"><strong>${{ number_format($invoice->paid_amount, 0) }}</strong></td>
                                     <td></td>
                                 </tr>
                                 <tr>
                                     <td colspan="4" class="text-right"><strong>Saldo Pendiente:</strong></td>
                                     <td class="text-right">
                                         <strong class="{{ $invoice->total_amount - $invoice->paid_amount > 0 ? 'text-danger' : 'text-success' }}">
-                                            ${{ number_format($invoice->total_amount - $invoice->paid_amount, 2) }}
+                                            ${{ number_format($invoice->total_amount - $invoice->paid_amount, 0) }}
                                         </strong>
                                     </td>
                                     <td></td>
@@ -143,7 +143,7 @@
                                         @endif
                                     </td>
                                     <td>{{ $payment->reference ?? 'N/A' }}</td>
-                                    <td class="text-right">${{ number_format($payment->amount, 2) }}</td>
+                                    <td class="text-right">${{ number_format($payment->amount, 0) }}</td>
                                     <td>{{ $payment->creator->name ?? 'N/A' }}</td>
                                 </tr>
                                 @endforeach
@@ -162,15 +162,16 @@
                     <h5 class="text-themecolor"><i class="fas fa-money-bill-wave"></i> Registrar Pago</h5>
                 </div>
                 <div class="card-body col-md-12">
-                    <form action="{{ route('invoices.addPayment', $invoice->id) }}" method="POST">
+                    <form action="{{ route('invoices.addPayment', $invoice->id) }}" method="POST" id="paymentForm">
                         @csrf
-                        <div class="row ">
+                        <div class="row">
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label>Monto a Pagar *</label>
-                                    <input type="number" class="form-control" name="amount"
+                                    <input type="number" class="form-control" name="amount" id="paymentAmount"
                                         step="0.01" min="0.01" max="{{ $invoice->total_amount - $invoice->paid_amount }}"
-                                        value="{{ $invoice->total_amount - $invoice->paid_amount }}" required>
+                                        value="0" required readonly>
+                                    <small class="text-muted" id="amountHelper">Seleccione ítems para calcular el monto</small>
                                 </div>
                             </div>
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
@@ -209,47 +210,79 @@
                                 <!-- Selección de ítems a marcar como pagados (opcional) -->
                                 @if($invoice->items()->where('is_paid', false)->exists())
                                 <div class="form-group">
-                                    <label>Marcar ítems como pagados (opcional):</label>
-                                    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
+                                    <label>Marcar ítems como pagados:</label>
+                                    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background-color: #f8f9fa;" id="itemsContainer">
                                         @foreach($invoice->items()->where('is_paid', false)->get() as $item)
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input"
-                                                name="paid_items[]" value="{{ $item->id }}" id="item_{{ $item->id }}">
+                                        <div class="form-check mb-2 item-checkbox-container">
+                                            <input type="checkbox" class="form-check-input item-checkbox"
+                                                name="paid_items[]" value="{{ $item->id }}"
+                                                id="item_{{ $item->id }}"
+                                                data-amount="{{ $item->total }}"
+                                                data-description="{{ $item->description }}"
+                                                data-type="{{ $item->type }}"
+                                                data-month="{{ $item->month ?? '' }}">
                                             <label class="form-check-label" for="item_{{ $item->id }}">
-                                                {{ $item->description }} - ${{ number_format($item->total, 2) }}
+                                                <span class="item-description">{{ $item->description }}</span>
+                                                - <span class="item-amount">${{ number_format($item->total, 0) }}</span>
                                                 @if($item->type == 'monthly' && $item->month)
                                                 <small class="text-muted">({{ ucfirst($item->month) }})</small>
                                                 @endif
                                             </label>
                                         </div>
                                         @endforeach
+
+                                        <!-- Botones de selección rápida -->
+                                        <div class="mt-3 text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-primary mr-1" id="selectAllItems">
+                                                <i class="fas fa-check-square"></i> Seleccionar Todos
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" id="deselectAllItems">
+                                                <i class="fas fa-times-circle"></i> Deseleccionar Todos
+                                            </button>
+                                        </div>
                                     </div>
+
+                                    <!-- Resumen de selección -->
+                                    <div class="mt-3" id="selectionSummary" style="display: none;">
+                                        <h6><i class="fas fa-list-check"></i> Resumen de Selección</h6>
+                                        <div id="selectedItemsList" class="small text-muted mb-2">
+                                            <!-- Los ítems seleccionados aparecerán aquí -->
+                                        </div>
+                                        <div class="alert alert-info py-2">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span><strong>Total Seleccionado:</strong></span>
+                                                <span id="selectedTotal" class="font-weight-bold">$0.00</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @else
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle"></i> Todos los ítems ya están pagados.
                                 </div>
                                 @endif
                             </div>
 
                             <div class="col-md-12 mb-2">
-                                <button type="submit" class="btn btn-success btn-block">
+                                <button type="submit" class="btn btn-success btn-block" id="submitPaymentBtn">
                                     <i class="fas fa-check-circle"></i> Registrar Pago
                                 </button>
                             </div>
                         </div>
                     </form>
 
-                    <div class="row ">
-
+                    <div class="row">
                         <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
                             <a href="{{ route('invoices.index') }}" class="btn btn-secondary btn-block mb-2">
                                 <i class="fas fa-list"></i> Volver al Listado
                             </a>
                         </div>
                         <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
-                            <a href="{{$invoice->url_print}}" class="btn btn-info btn-block mb-2" target="_blank">
+                            <a href="{{ $invoice->url_print }}" class="btn btn-info btn-block mb-2" target="_blank">
                                 <i class="fas fa-print"></i> Imprimir Factura
                             </a>
                         </div>
                         <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
-
                             <form action="{{ route('invoices.destroy', $invoice->id) }}" method="POST"
                                 onsubmit="return confirm('¿Está seguro de eliminar esta factura?');">
                                 @csrf
@@ -258,13 +291,259 @@
                                     <i class="fas fa-trash"></i> Eliminar Factura
                                 </button>
                             </form>
-
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
 </div>
 @endsection
+@push('scripts')
+<script>
+$(document).ready(function() {
+    // Variables globales
+    let selectedItems = [];
+    let totalAmount = 0;
+    const maxAmount = parseFloat({{ $invoice->total_amount - $invoice->paid_amount }});
+    const unpaidItems = {!! $invoice->items()->where('is_paid', false)->get() !!};
+
+    // Inicializar array de ítems disponibles
+    const availableItems = unpaidItems.map(item => ({
+        id: item.id,
+        description: item.description,
+        amount: parseFloat(item.total),
+        type: item.type,
+        month: item.month || '',
+        isSelected: false
+    }));
+
+    // Función para actualizar el resumen
+    function updateSelectionSummary() {
+        selectedItems = availableItems.filter(item => item.isSelected);
+        totalAmount = selectedItems.reduce((sum, item) => sum + item.amount, 0);
+
+        // Actualizar campo amount
+        $('#paymentAmount').val(totalAmount.toFixed(0));
+
+        // Actualizar helper text
+        if (selectedItems.length > 0) {
+            $('#amountHelper').html(`
+                <i class="fas fa-info-circle"></i>
+                ${selectedItems.length} ítem(s) seleccionado(s) - Total: $${totalAmount.toFixed(0)}
+            `);
+            $('#selectionSummary').show();
+        } else {
+            $('#amountHelper').html('Seleccione ítems para calcular el monto');
+            $('#selectionSummary').hide();
+        }
+
+        // Actualizar lista de ítems seleccionados
+        updateSelectedItemsList();
+
+        // Actualizar total en resumen
+        $('#selectedTotal').text('$' + totalAmount.toFixed(0));
+
+        // Validar si se puede enviar el formulario
+        validateForm();
+    }
+
+    // Función para actualizar la lista de ítems seleccionados
+    function updateSelectedItemsList() {
+        const listContainer = $('#selectedItemsList');
+        listContainer.empty();
+
+        if (selectedItems.length === 0) {
+            listContainer.html('<p class="text-muted">No hay ítems seleccionados</p>');
+            return;
+        }
+
+        const list = $('<ul class="list-unstyled mb-0"></ul>');
+
+        selectedItems.forEach(item => {
+            let itemText = item.description;
+            if (item.type === 'monthly' && item.month) {
+                itemText += ` <small class="text-muted">(${item.month})</small>`;
+            }
+            itemText += ` - <strong>$${item.amount.toFixed(0)}</strong>`;
+
+            list.append(`
+                <li class="mb-1">
+                    <i class="fas fa-check text-success mr-1"></i>
+                    ${itemText}
+                </li>
+            `);
+        });
+
+        listContainer.append(list);
+    }
+
+    // Función para validar el formulario
+    function validateForm() {
+        const submitBtn = $('#submitPaymentBtn');
+
+        if (totalAmount <= 0) {
+            submitBtn.prop('disabled', true).html('<i class="fas fa-ban"></i> Seleccione al menos un ítem');
+            submitBtn.removeClass('btn-success').addClass('btn-secondary');
+        } else if (totalAmount > maxAmount) {
+            submitBtn.prop('disabled', true).html('<i class="fas fa-exclamation-triangle"></i> Monto excede el saldo');
+            submitBtn.removeClass('btn-success').addClass('btn-warning');
+        } else {
+            submitBtn.prop('disabled', false).html('<i class="fas fa-check-circle"></i> Registrar Pago');
+            submitBtn.removeClass('btn-secondary btn-warning').addClass('btn-success');
+        }
+    }
+
+    // Evento para checkboxes de ítems
+    $(document).on('change', '.item-checkbox', function() {
+        const itemId = parseInt($(this).val());
+        const isChecked = $(this).is(':checked');
+
+        // Encontrar y actualizar el ítem en el array
+        const itemIndex = availableItems.findIndex(item => item.id === itemId);
+        if (itemIndex !== -1) {
+            availableItems[itemIndex].isSelected = isChecked;
+
+            // Actualizar estilo visual del contenedor
+            const container = $(this).closest('.item-checkbox-container');
+            if (isChecked) {
+                container.addClass('bg-light border-left border-primary pl-2');
+            } else {
+                container.removeClass('bg-light border-left border-primary pl-2');
+            }
+
+            // Actualizar resumen
+            updateSelectionSummary();
+        }
+    });
+
+    // Botón para seleccionar todos
+    $('#selectAllItems').click(function() {
+        $('.item-checkbox').prop('checked', true).trigger('change');
+        $(this).addClass('btn-primary').removeClass('btn-outline-primary');
+        $('#deselectAllItems').addClass('btn-secondary').removeClass('btn-outline-secondary');
+    });
+
+    // Botón para deseleccionar todos
+    $('#deselectAllItems').click(function() {
+        $('.item-checkbox').prop('checked', false).trigger('change');
+        $(this).addClass('btn-secondary').removeClass('btn-outline-secondary');
+        $('#selectAllItems').addClass('btn-primary').removeClass('btn-outline-primary');
+    });
+
+    // Permitir modificación manual del monto (opcional)
+    $('#paymentAmount').on('input', function() {
+        const manualAmount = parseFloat($(this).val()) || 0;
+
+        if (manualAmount > maxAmount) {
+            $(this).val(maxAmount.toFixed(0));
+            alert('El monto no puede exceder el saldo pendiente de $' + maxAmount.toFixed(0));
+            updateSelectionSummary();
+            return;
+        }
+
+        // Si el usuario modifica manualmente, deseleccionar todos los checkboxes
+        // y actualizar la lógica si es necesario
+        if (manualAmount !== totalAmount) {
+            // Opcional: Aquí podrías implementar lógica para ajustar checkboxes
+            // automáticamente según el monto ingresado
+            // Por ahora, solo actualizamos el total
+            totalAmount = manualAmount;
+            updateSelectionSummary();
+        }
+    });
+
+    // Validar envío del formulario
+    $('#paymentForm').submit(function(e) {
+        if (totalAmount <= 0) {
+            e.preventDefault();
+            alert('Por favor, seleccione al menos un ítem para pagar.');
+            return false;
+        }
+
+        if (totalAmount > maxAmount) {
+            e.preventDefault();
+            alert('El monto seleccionado excede el saldo pendiente. Por favor, ajuste la selección.');
+            return false;
+        }
+
+        // Confirmar pago
+        if (!confirm(`¿Desea registrar el pago de $${totalAmount.toFixed(0)}?`)) {
+            e.preventDefault();
+            return false;
+        }
+
+        // Mostrar indicador de procesamiento
+        $('#submitPaymentBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
+    });
+
+    // Inicializar validación
+    validateForm();
+
+    // Función adicional: Selección por tipo de ítem
+    function selectByType(type) {
+        $('.item-checkbox').each(function() {
+            const itemType = $(this).data('type');
+            if (itemType === type) {
+                $(this).prop('checked', true).trigger('change');
+            }
+        });
+    }
+
+    // Función adicional: Selección por mes
+    function selectByMonth(month) {
+        $('.item-checkbox').each(function() {
+            const itemMonth = $(this).data('month');
+            if (itemMonth === month) {
+                $(this).prop('checked', true).trigger('change');
+            }
+        });
+    }
+
+    // Botones de selección rápida por tipo (opcional - puedes agregarlos si lo necesitas)
+    // Ejemplo: agregar botones para seleccionar solo matrículas o solo mensualidades
+});
+</script>
+
+<style>
+.item-checkbox-container {
+    transition: all 0.2s ease;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.item-checkbox-container:hover {
+    background-color: #f0f8ff;
+}
+
+.item-checkbox-container.bg-light {
+    background-color: #e8f4fd !important;
+    border-left: 3px solid #007bff !important;
+}
+
+#selectedItemsList ul {
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+#selectedItemsList li {
+    padding: 3px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+#selectedItemsList li:last-child {
+    border-bottom: none;
+}
+
+#submitPaymentBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+#amountHelper {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.85em;
+}
+</style>
+@endpush
