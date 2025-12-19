@@ -15,6 +15,7 @@ use App\Http\Controllers\{Competition\GameController, Payments\PaymentController
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
+use App\Http\Controllers\Invoices\ItemInvoicesController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -143,6 +144,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::delete('invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
     Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'addPayment'])->name('invoices.addPayment');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
+    Route::get('items/invoices', [ItemInvoicesController::class, 'index'])->name('items.invoices.index');
 
 
     Route::get('/player-stats', [PlayerStatsController::class, 'index'])->name('player.stats');

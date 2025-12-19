@@ -49,14 +49,19 @@
 </li>
 
 <li class="{{ Request::is('payments*') ? 'active' : '' }}">
-    <a class="waves-effect waves-dark" href="{{route('payments.index')}}" aria-expanded="false"><i class="fas fa-dollar-sign"></i><span class="hide-menu">Pagos</span></a>
+    <a class="waves-effect waves-dark" href="{{route('payments.index')}}" aria-expanded="false"><i class="fas fa-dollar-sign"></i><span class="hide-menu">Mensualidades</span></a>
 </li>
 
 <li class="{{ Request::is('tournamentpayout*') ? 'active' : '' }}">
     <a class="waves-effect waves-dark" href="{{route('tournamentpayout.index')}}" aria-expanded="false"><i class="fas fa-dollar-sign"></i><span class="hide-menu">Pagos Torneos</span></a>
 </li>
+
 <li class="{{ Request::is('invoices*') ? 'active' : '' }}">
-    <a class="waves-effect waves-dark" href="{{route('invoices.index')}}" aria-expanded="false"><i class="fas fa-dollar-sign"></i><span class="hide-menu">Facturas</span></a>
+    <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><i class="fas fa-dollar-sign"></i><span class="hide-menu"> Facturación</span></a>
+    <ul aria-expanded="false" class="collapse">
+        <li><a href="{{route('invoices.index')}}">Facturas</a></li>
+        <li><a href="{{route('items.invoices.index')}}">Items Facturas</a></li>
+    </ul>
 </li>
 @endhasanyrole
 
@@ -77,7 +82,7 @@
     <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><i class="fa fa-flag"></i><span class="hide-menu">Informes</span></a>
     <ul aria-expanded="false" class="collapse">
         <!-- <li><a href="{{route('reports.assists')}}">Asistencias</a></li> -->
-        <li><a href="{{route('reports.payments')}}">Pagos</a></li>
+        <li><a href="{{route('reports.payments')}}">Mensualidades</a></li>
     </ul>
 </li>
 

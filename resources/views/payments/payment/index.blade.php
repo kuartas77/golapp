@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('content')
-    <x-bread-crumb title="Pagos" :option="0"/>
+    <x-bread-crumb title="Mensualidades" :option="0"/>
     <x-row-card col-inside="12" >
         @include('payments.payment.form')
         <hr>

@@ -6,6 +6,7 @@ use App\Http\Requests\InvoiceAddPaymentRequest;
 use App\Http\Requests\InvoiceStoreRequest;
 use App\Models\Inscription;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\Payment;
 use App\Models\PaymentReceived;
 use Illuminate\Database\Eloquent\Builder;
@@ -137,5 +138,11 @@ class InvoiceRepository
             // Si hay ítems de meses marcados como pagados, actualizar la tabla payments original
             $invoice->markMonthsAsPaid();
         }
+    }
+
+    public function getAllItems()
+    {
+        $school_id = getSchool(auth()->user())->id;
+        return InvoiceItem::query()->withWhereHas('invoice', fn($q) => $q->where('school_id', $school_id));
     }
 }

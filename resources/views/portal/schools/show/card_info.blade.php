@@ -24,16 +24,20 @@
                                     <div class="text-center m-2">
                                         <h2><strong>{{$school->name}}</strong> Formulario de inscripción {{$year}}</h2>
                                         @if($school->inscriptions_enabled)
-                                        <p class="lead">Recuerda tener listo de forma digital la siguiente documentación:</p>
-                                        <ul class="list-group list-group-flush">
-                                            <li class="list-group-item">Se solicitará la firma del acudiente y del deportista</li>
-                                            <li class="list-group-item">Documento de identidad del deportista</li>
-                                            <li class="list-group-item">Foto del deportista</li>
-                                            <li class="list-group-item">Certificado eps</li>
-                                            <li class="list-group-item">El documento de identidad del acudiente</li>
-                                            <li class="list-group-item">Recibo de pago de la inscripción</li>
-                                        </ul>
-                                        <p class="lead">Una vez finalizado el proceso, se revisarán los archivos proporcionados y se enviará una notificación del estado de la inscripción.</p>
+                                            @if($school->send_documents)
+                                            <p class="lead">Recuerda tener listo de forma digital la siguiente documentación:</p>
+                                            <ul class="list-group list-group-flush">
+                                                <li class="list-group-item">Se solicitará la firma del acudiente y del deportista</li>
+                                                <li class="list-group-item">Documento de identidad del deportista</li>
+                                                <li class="list-group-item">Foto del deportista</li>
+                                                <li class="list-group-item">Certificado eps</li>
+                                                <li class="list-group-item">El documento de identidad del acudiente</li>
+                                                <li class="list-group-item">Recibo de pago de la inscripción</li>
+                                            </ul>
+                                            <p class="lead">Una vez finalizado el proceso, se revisarán los archivos proporcionados y se enviará una notificación del estado de la inscripción.</p>
+                                            @else
+                                            <p class="lead">Con la información proporcionada al momento de la inscripción, la escuela gestionará el resto del proceso.</p>
+                                            @endif
                                         <a class="btn waves-effect waves-light btn-rounded btn-info"
                                             href="javascript:void(0)" data-toggle="modal" data-target="#modal_inscription" data-backdrop="static" data-keyboard="false">
                                             <i class="fa fa-plus" aria-hidden="true"></i>
