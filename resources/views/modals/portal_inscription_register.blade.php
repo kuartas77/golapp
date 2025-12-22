@@ -8,10 +8,8 @@
                     @include('portal.inscriptions.fields.step_1')
                     @include('portal.inscriptions.fields.step_2')
                     @include('portal.inscriptions.fields.step_3')
-                    @include('portal.inscriptions.fields.step_4')
-                    @if($school->send_documents)
-                    @include('portal.inscriptions.fields.step_5')
-                    @endif
+                    @includeWhen($school->create_contract, 'portal.inscriptions.fields.step_4')
+                    @includeWhen($school->send_documents, 'portal.inscriptions.fields.step_5')
                     {{ html()->form()->close() }}
                 </div>
             </div>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupCo
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Invoices\InvoiceController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
+use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\Reports\ReportAssistsController;
 use App\Http\Controllers\Reports\ReportPaymentController;
 use App\Http\Controllers\SettingsController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\{Competition\GameController, Payments\PaymentController
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
+use App\Http\Controllers\Invoices\ItemInvoicesController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -145,6 +147,12 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::delete('invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
     Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'addPayment'])->name('invoices.addPayment');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
+    Route::get('items/invoices', [ItemInvoicesController::class, 'index'])->name('items.invoices.index');
+
+
+    Route::get('/player-stats', [PlayerStatsController::class, 'index'])->name('player.stats');
+    Route::get('/top-players', [PlayerStatsController::class, 'topPlayers'])->name('players.top');
+    Route::get('/player/{id}/detail', [PlayerStatsController::class, 'playerDetail'])->name('player.detail');
 
 });
 

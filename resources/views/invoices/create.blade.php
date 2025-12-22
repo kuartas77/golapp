@@ -2,7 +2,7 @@
 @section('title', 'Facturas')
 @section('content')
 <x-bread-crumb title="Crear Factura" :option="0" />
-<x-row-card col-inside="8" col-outside="2">
+<x-row-card col-inside="6" col-outside="3">
 
 
     <div class="row mb-4">
@@ -180,7 +180,7 @@
         </div>
 
         <div class="form-group text-right">
-            <a href=""
+            <a href="{{route('inscriptions.index')}}"
                 class="btn btn-secondary">
                 <i class="fas fa-times"></i> Cancelar
             </a>
@@ -295,7 +295,7 @@
             const unitPrice = parseFloat(row.find('.item-unit-price').val()) || 0;
             const total = quantity * unitPrice;
 
-            row.find('.item-total').val(total.toFixed(2));
+            row.find('.item-total').val(total.toFixed(0));
             return total;
         }
 
@@ -315,8 +315,8 @@
             });
 
             // Actualizar display
-            $('#subtotalAmount').text('$' + subtotal.toFixed(2));
-            $('#totalAmount').text('$' + subtotal.toFixed(2));
+            $('#subtotalAmount').text('$' + subtotal.toFixed(0));
+            $('#totalAmount').text('$' + subtotal.toFixed(0));
 
             // Actualizar índices del formulario
             updateFormIndexes();

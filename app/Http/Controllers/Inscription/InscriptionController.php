@@ -17,6 +17,18 @@ class InscriptionController extends Controller
     }
 
     /**
+     * @return Application|Factory|View
+     */
+    public function index()
+    {
+        $year = date('Y');
+        if (in_array(now()->month, [11, 12])) {
+            $year = now()->addYear()->format('Y');
+        }
+        return view('inscription.index', compact('year'));
+    }
+
+    /**
      * @param InscriptionRequest $request
      * @return JsonResponse
      */

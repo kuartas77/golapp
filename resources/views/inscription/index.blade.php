@@ -11,7 +11,7 @@
 @endsection
 @section('scripts')
     <script>
-        const currentYear = moment().format("YYYY")
+        const currentYear = {{$year}}
         let yearSelected = currentYear
         const firstGroup = {{$provisional_group_id}}
         const isAdmin = {{auth()->user()->hasAnyRole(['super-admin','school']) ? 1 : 0}};

@@ -39,7 +39,11 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->of($this->inscriptionRepository->getInscriptionsEnabled())->toJson();
+        return datatables()->of($this->inscriptionRepository->getInscriptionsEnabled())
+        ->filterColumn('training_group_id', fn ($query, $keyword) => $query->where('training_group_id', $keyword))
+        ->filterColumn('start_date', fn ($query, $keyword) => $query->where('start_date', $keyword))
+        ->filterColumn('category', fn ($query, $keyword) => $query->where('category', $keyword))
+        ->toJson();
     }
 
     /**

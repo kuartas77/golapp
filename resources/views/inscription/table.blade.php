@@ -4,10 +4,10 @@
             <a class="nav-link active show" id="active-tab" data-toggle="tab" href="#active" role="tab"
                 aria-controls="active" aria-expanded="false">@lang('messages.inscription_actived')</a>
         </li>
-        <li class="nav-item">
+        <!-- <li class="nav-item">
             <a class="nav-link" id="inactive-tab" data-toggle="tab" href="#inactive" role="tab"
                 aria-controls="inactive" aria-expanded="false">@lang('messages.inscription_inactived')</a>
-        </li>
+        </li> -->
         <li class="nav-item">
             <a class="nav-link">
                 {{ html()->select('inscription_year', $inscription_years, now()->year)->attributes(['id'=>'inscription_year','class' => 'form-control form-control-sm'])->placeholder('Selecciona...') }}
@@ -43,7 +43,7 @@
 
     <div class="tab-pane show active" id="active" role="tabpanel" aria-labelledby="active-tab">
         <div class="table-responsive-md">
-            <table class="display compact cell-border" id="active_table">
+            <table class="display compact cell-border table-sm" id="active_table">
                 <thead>
                     <tr>
                         <th></th>
@@ -58,14 +58,14 @@
                         <th>Teléfonos</th>
                         <th>F.Inicio</th>
                         <th>Categoría</th>
-                        <th>Opciones</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
             </table>
         </div>
     </div>
 
-    <div class="tab-pane" id="inactive" role="tabpanel" aria-labelledby="inactive-tab">
+    <!-- <div class="tab-pane" id="inactive" role="tabpanel" aria-labelledby="inactive-tab">
         <div class="table-responsive-md">
             <table class="display compact cell-border" id="inactive_table" width="100%">
                 <thead>
@@ -83,5 +83,5 @@
                 </thead>
             </table>
         </div>
-    </div>
+    </div> -->
 </div>

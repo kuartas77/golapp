@@ -909,3 +909,29 @@ select.payments option[value="14"] {
 td .badge {
     font-size: 10px;
 }
+
+@media print {
+    .left-sidebar {
+        display: none !important;
+    }
+
+    .btn, .no-print {
+        display: none !important;
+    }
+
+    .card {
+        border: 1px solid #dee2e6 !important;
+        box-shadow: none !important;
+    }
+
+    .col-md-2 {
+        /* Adjust width, margins, or display for print */
+        width: 20%; /* Example: Make it a third of the page for print */
+    }
+    .col-md-6 {
+        width: 50%;
+    }
+    .col-md-4 {
+        width: 30%;
+    }
+}

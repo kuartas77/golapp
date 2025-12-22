@@ -44,6 +44,8 @@
         <td width="5%" class="bold text-center">Jugó Apx.</td>
         <td width="15%" class="bold text-center">Posición</td>
         <td width="3%" class="bold text-center">Goles</td>
+        <td width="3%" class="bold text-center">Asist Gol</td>
+        <td width="3%" class="bold text-center">Salvadas</td>
         <td width="4%" class="bold text-center">T. Ama</td>
         <td width="4%" class="bold text-center">T. Roj</td>
         <td width="3%" class="bold text-center">Cal</td>
@@ -59,6 +61,8 @@
             <td class="text-center">{{ $control->played_approx }}</td>
             <td class="text-center">{{ $control->position }}</td>
             <td class="text-center">{{ $control->goals}}</td>
+            <td class="text-center">{{ $control->goal_assists}}</td>
+            <td class="text-center">{{ $control->goal_saves}}</td>
             <td class="text-center">{{ $control->yellow_cards }}</td>
             <td class="text-center">{{ $control->red_cards }}</td>
             <td class="text-center">{{ $control->qualification }}</td>
@@ -80,11 +84,13 @@
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
         </tr>
     @endfor
     <tr>
         <td colspan="2" class="bold">Concepto general</td>
-        <td colspan="11" class="text-center">{{ mb_strtoupper($match->general_concept, 'UTF-8') }}</td>
+        <td colspan="13" class="text-center">{{ mb_strtoupper($match->general_concept, 'UTF-8') }}</td>
     </tr>
 </table>
 
