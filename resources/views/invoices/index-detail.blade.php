@@ -71,9 +71,9 @@
             });
 
         let created = this.api().columns(1);
-        $("<input type='search' class='' placeholder='Fecha' />")
+        $("<input type='date' class='' placeholder='Fecha' />")
             .appendTo($(created.header()).empty())
-            .on('keyup search', function () {
+            .on('change', function () {
                 if (created.search() !== this.value) {
                     created.search(this.value)
                         .draw();
@@ -147,7 +147,7 @@
                     name: 'created_at',
                     searchable: true,
                     orderable: false,
-                    render: (data, type, row) => moment(data).format('YYYY-MM-DD')
+                    render: (data, type, row) => moment(data).format('DD/MM/YYYY')
                 },
                 {
                     data: 'invoice.student_name',
