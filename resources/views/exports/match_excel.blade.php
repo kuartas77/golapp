@@ -7,6 +7,8 @@
         <td>Jugó Aprox</td>
         <td>Posición</td>
         <td>Goles</td>
+        <td>Asistencia Gol</td>
+        <td>Atajadas</td>
         <td>Amarillas</td>
         <td>Rojas</td>
         <td>Calificación</td>
@@ -28,15 +30,19 @@
             <td></td>
             <td></td>
             <td></td>
+            <td></td>
+            <td></td>
         </tr>
     @endforeach
-    
+
     @php
         $resultado = (20 - $cantidad);
     @endphp
     @for ($i = 0; $i <= $resultado; $i++)
         <tr class="tr-info">
             <td class="texto">&nbsp;</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>

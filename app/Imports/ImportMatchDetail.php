@@ -15,14 +15,15 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
 {
     private $data;
 
-    public function __construct()
+    public function __construct(private $matchId)
     {
         $this->data = collect();
     }
 
     public function collection(Collection $rows)
     {
-        $inscriptions = Inscription::with(['player'])
+        $inscriptions = Inscription::query()->select(['id', 'player_id','unique_code'])
+            ->with('player:id,names,last_names,unique_code')
             ->whereIn('unique_code', $rows->pluck('codigo'))
             ->where('school_id', getSchool(auth()->user())->id)
             ->get();
@@ -35,17 +36,22 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
                 $inscription = $inscriptions[$row['codigo']];
 
                 $skillControll = new SkillsControl([
+                    'game_id' => $this->matchId,
                     'inscription_id' => $inscription->id,
                     'assistance' => cleanString(strtolower($row['asistio'])) == 'si' ? 1 : 0,
                     'titular' => cleanString(strtolower($row['titular'])) == 'si' ? 1 : 0,
                     'played_approx' => intval($row['jugo_aprox']),
                     'position' => $row['posicion'],
                     'goals' => intval($row['goles']),
+                    'goal_assists'=> intval($row['asistencia_gol']),
+                    'goal_saves'=> intval($row['atajadas']),
                     'red_cards' => intval($row['rojas']),
                     'yellow_cards' => intval($row['amarillas']),
                     'qualification' => intval($row['calificacion']),
                     'observation' => $row['observacion'],
                 ]);
+
+                $skillControll->save();
 
                 $skillControll->inscription = $inscription;
 

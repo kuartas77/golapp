@@ -56,6 +56,8 @@
         <td width="7%" align="center" class="texto">Jugó Apx.</td>
         <td width="6%" align="center" class="texto">Pos</td>
         <td width="5%" align="center" class="texto">Goles</td>
+        <td width="5%" align="center" class="texto">Asist Gol</td>
+        <td width="5%" align="center" class="texto">Atajadas</td>
         <td width="6%" align="center" class="texto">Amarillas</td>
         <td width="6%" align="center" class="texto">Rojas</td>
         <td width="5%" align="center" class="texto">Cal</td>
@@ -78,6 +80,8 @@
             <td class="texto" align="center">{{ $control->played_approx }}</td>
             <td class="texto" align="center">{{ $control->position }}</td>
             <td class="texto" align="center">{{ $control->goals == 0 ? 0 : $control->goles }}</td>
+            <td class="texto" align="center">{{ $control->goal_assists == 0 ? 0 : $control->goal_assists }}</td>
+            <td class="texto" align="center">{{ $control->goal_saves == 0 ? 0 : $control->goal_saves }}</td>
             <td class="texto" align="center">{{ $control->yellow_cards }}</td>
             <td class="texto" align="center">{{ $control->red_cards }}</td>
             <td class="texto" align="center">{{ $control->qualification }}</td>
@@ -91,6 +95,8 @@
         <tr class="tr-info">
             <td class="texto">{{$cantidad++}}</td>
             <td class="texto">&nbsp;</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
