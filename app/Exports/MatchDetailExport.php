@@ -2,19 +2,20 @@
 
 namespace App\Exports;
 
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
-use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\FromView;
-use Maatwebsite\Excel\Concerns\Exportable;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Contracts\View\View;
 use App\Repositories\GameRepository;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Cache;
+use Maatwebsite\Excel\Concerns\Exportable;
+use Maatwebsite\Excel\Concerns\FromView;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 
 class MatchDetailExport implements ShouldQueue, FromView, WithTitle, WithStyles , ShouldAutoSize, WithEvents
@@ -55,7 +56,7 @@ class MatchDetailExport implements ShouldQueue, FromView, WithTitle, WithStyles 
                 $event->sheet->getStyle($range)->applyFromArray([
                     'borders' => [
                         'allBorders' => [
-                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'borderStyle' => Border::BORDER_THIN,
                             'color' => ['argb' => '#000000'],
                         ],
                     ],
@@ -66,14 +67,34 @@ class MatchDetailExport implements ShouldQueue, FromView, WithTitle, WithStyles 
 
     public function styles(Worksheet $sheet)
     {
+        $scores = Cache::rememberForever('KEY_SCORE', function () {
+            $scores = collect();
+            for ($i = 0; $i <= 10; ++$i) {
+                $scores->put($i, $i);
+            }
+
+            return $scores;
+        });
+
+        $qualifications = Cache::rememberForever('KEY_SCORE_QUA', function () {
+            $qualifications = collect();
+            for ($i = 1; $i <= 5; ++$i) {
+                $qualifications->put($i, $i);
+            }
+
+            return $qualifications;
+        });
+
         $this->addDropdown($sheet, "C", [1=>'Sí',0 => 'No']);
         $this->addDropdown($sheet, "D", [1=>'Sí',0 => 'No']);
         $this->addDropdownMin($sheet, "E");
-        $this->addDropdown($sheet, "F", Cache::get('KEY_POSITIONS', []));
-        $this->addDropdown($sheet, "G", Cache::get('KEY_SCORE', collect())->toArray());
-        $this->addDropdown($sheet, "H", ['0'=>'0', '1'=>'1','2'=>'2']);
-        $this->addDropdown($sheet, "I", ['0'=>'0','1'=>'1']);
-        $this->addDropdown($sheet, "J", Cache::get('KEY_SCORE_QUA', collect())->toArray());
+        $this->addDropdown($sheet, "F", config('variables.KEY_POSITIONS', []));
+        $this->addDropdown($sheet, "G", $scores->toArray());
+        $this->addDropdown($sheet, "H", $scores->toArray());
+        $this->addDropdown($sheet, "I", $scores->toArray());
+        $this->addDropdown($sheet, "J", ['0'=>'0', '1'=>'1','2'=>'2']);
+        $this->addDropdown($sheet, "K", ['0'=>'0','1'=>'1']);
+        $this->addDropdown($sheet, "L", $qualifications->toArray());
 
         $sheet->getColumnDimension('A')->setAutoSize(true);
         $sheet->getColumnDimension('B')->setAutoSize(true);
@@ -86,6 +107,7 @@ class MatchDetailExport implements ShouldQueue, FromView, WithTitle, WithStyles 
         $sheet->getColumnDimension('I')->setAutoSize(true);
         $sheet->getColumnDimension('J')->setAutoSize(true);
         $sheet->getColumnDimension('K')->setAutoSize(true);
+        $sheet->getColumnDimension('L')->setAutoSize(true);
     }
 
     private function addDropdown(Worksheet $sheet, string $cell, array $options)
