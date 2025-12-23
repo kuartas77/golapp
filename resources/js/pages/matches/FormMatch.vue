@@ -93,52 +93,55 @@
                                     </div>
                                 </div>
 
-                                <h6 class="text-center">Resultado Final</h6>
-                                <div class="col-md-12 col-sm-12 col-lg-4 col-xl-4">
-                                    <div class="form-group" v-if="isEdition">
-                                        <label for="file_upload" class="form-label small">Formato</label>
-                                        <input type="file" id="file_upload" name="details"
-                                            class="form-control form-control-sm" @change="uploadFileFormat"
-                                            accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-                                        <small class="text-muted">Se debe subir el formato descargado y lo mostrará
-                                            en el listado de abajo.</small>
-                                    </div>
-                                </div>
+                                <template v-if="isEdition">
 
-                                <div class="col-md-12 col-sm-12 col-lg-2 col-xl-2">
-                                    <div class="form-group">
-                                        <label for="final_score_school" class="form-label small">Escuela</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="far fa-futbol"></i></span>
-                                            <inputField name="final_score_school" :is-required="true"
-                                                id="final_score_school" />
+                                    <h6 class="text-center">Resultado Final</h6>
+                                    <div class="col-md-12 col-sm-12 col-lg-4 col-xl-4">
+                                        <div class="form-group" v-if="isEdition">
+                                            <label for="file_upload" class="form-label small">Formato</label>
+                                            <input type="file" id="file_upload" name="details"
+                                                class="form-control form-control-sm" @change="uploadFileFormat"
+                                                accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                                            <small class="text-muted">Se debe subir el formato descargado y lo mostrará
+                                                en el listado de abajo.</small>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="col-md-12 col-sm-12 col-lg-2 col-xl-2">
-                                    <div class="form-group">
-                                        <label for="final_score_rival" class="form-label small">Rival</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="far fa-futbol"></i></span>
-                                            <inputField name="final_score_rival" :is-required="true"
-                                                id="final_score_rival" />
+                                    <div class="col-md-12 col-sm-12 col-lg-2 col-xl-2">
+                                        <div class="form-group">
+                                            <label for="final_score_school" class="form-label small">Escuela</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="far fa-futbol"></i></span>
+                                                <inputField name="final_score_school" :is-required="true"
+                                                    id="final_score_school" />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="col-md-12 col-sm-12 col-lg-4 col-xl-4"></div>
-
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="general_concept" class="form-label">Concepto General</label>
-                                        <Field name="general_concept" as="textarea" id="general_concept"
-                                            class="form-control form-control-sm" rows="2"
-                                            placeholder="Concepto General" />
-                                        <ErrorMessage name="general_concept" class="custom-error" />
+                                    <div class="col-md-12 col-sm-12 col-lg-2 col-xl-2">
+                                        <div class="form-group">
+                                            <label for="final_score_rival" class="form-label small">Rival</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="far fa-futbol"></i></span>
+                                                <inputField name="final_score_rival" :is-required="true"
+                                                    id="final_score_rival" />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
 
+                                    <div class="col-md-12 col-sm-12 col-lg-4 col-xl-4"></div>
+
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="general_concept" class="form-label">Concepto General</label>
+                                            <Field name="general_concept" as="textarea" id="general_concept"
+                                                class="form-control form-control-sm" rows="2"
+                                                placeholder="Concepto General" />
+                                            <ErrorMessage name="general_concept" class="custom-error" />
+                                        </div>
+                                    </div>
+
+                                </template>
 
                             </div>
 
@@ -146,16 +149,29 @@
                                 <table class="table table-bordered table-sm dataTable align-middle ">
                                     <thead>
                                         <tr>
-                                            <th class="dt-head-center" style="width: 20%;">deportista</th>
-                                            <th class="dt-head-center" style="width: 8%;">asistió?</th>
-                                            <th class="dt-head-center" style="width: 8%;">titular?</th>
-                                            <th class="dt-head-center" style="width: 10%;">tiempo jugado</th>
-                                            <th class="dt-head-center" style="width: 12%;">posición</th>
-                                            <th class="dt-head-center" style="width: 6%">goles</th>
-                                            <th class="dt-head-center" style="width: 6%">t.amarillas</th>
-                                            <th class="dt-head-center" style="width: 6%">t.roja</th>
-                                            <th class="dt-head-center" style="width: 9%;">calificación</th>
-                                            <th class="dt-head-center" style="width: 15%;">observación</th>
+                                            <th class="dt-head-center" style="width: 15%;">deportista</th>
+                                            <th class="dt-head-center" style="width: 2%;" v-tooltip.top="'Asistio?'">A</th>
+                                            <th class="dt-head-center" style="width: 2%;" v-tooltip.top="'Titular?'">T</th>
+                                            <th class="dt-head-center" style="width: 6%;" v-tooltip.top="'Tiempo Jugado'">
+                                                ⏱️ MIN
+                                            </th>
+                                            <th class="dt-head-center" style="width: 12%;" v-tooltip.top="''">posición</th>
+                                            <th class="dt-head-center" style="width: 1%" v-tooltip.top="'Goles'">⚽ G</th>
+                                            <th class="dt-head-center" style="width: 1%" v-tooltip.top="'Asistencias de Gol'">
+                                                🎯 A.G
+                                            </th>
+                                            <th class="dt-head-center" style="width: 1%" v-tooltip.top="'Atajadas'">🧤 A
+                                            </th>
+                                            <th class="dt-head-center" style="width: 1%" v-tooltip.top="'Tarjetas Amarillas'">
+                                               🟨 t.a
+                                            </th>
+                                            <th class="dt-head-center" style="width: 1%" v-tooltip.top="'Tarjetas Rojas'">
+                                                🟥t.r
+                                            </th>
+                                            <th class="dt-head-center" style="width: 1%;" v-tooltip.top="'Calificación'">
+                                                ⭐ CAL
+                                            </th>
+                                            <th class="dt-head-center" style="width: 15%;" v-tooltip.top="''">observación</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -164,7 +180,8 @@
                                             <tr v-for="(skill_control, index) in skills_controls">
                                                 <td>
                                                     <div class="media d-md-flex d-block text-sm-start text-center">
-                                                        <div class="media-aside align-self-start avatar avatar-sm me-1">
+                                                        <div
+                                                            class="media-aside align-self-start avatar avatar-sm me-1">
                                                             <img :src="skill_control.player.photo_url" alt="avatar"
                                                                 class="rounded-circle" />
                                                         </div>
@@ -180,35 +197,17 @@
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <Field :name="`skill_controls[${index}].assistance`" as="select"
-                                                        :id="`skill_controls[${index}].assistance`"
-                                                        class="form-select form-select-sm">
-                                                        <option value="">Selecciona...</option>
-                                                        <option value="1">Sí</option>
-                                                        <option value="0">No</option>
-                                                    </Field>
-
-                                                    <ErrorMessage :name="`skill_controls[${index}].assistance`"
-                                                        class="custom-error" />
-
+                                                    <checkbox :name="`skill_controls[${index}].assistance`"
+                                                        return-value-type="number" />
                                                 </td>
                                                 <td>
-                                                    <Field :name="`skill_controls[${index}].titular`" as="select"
-                                                        :id="`skill_controls[${index}].titular`"
-                                                        class="form-select form-select-sm">
-                                                        <option value="">Selecciona...</option>
-                                                        <option value="1">Sí</option>
-                                                        <option value="0">No</option>
-                                                    </Field>
-
-                                                    <ErrorMessage :name="`skill_controls[${index}].titular`"
-                                                        class="custom-error" />
+                                                    <checkbox :name="`skill_controls[${index}].titular`"
+                                                        return-value-type="number" />
                                                 </td>
                                                 <td>
-                                                    <Field :name="`skill_controls[${index}].played_approx`" as="select"
-                                                        :id="`skill_controls[${index}].played_approx`"
+                                                    <Field :name="`skill_controls[${index}].played_approx`"
+                                                        as="select" :id="`skill_controls[${index}].played_approx`"
                                                         class="form-select form-select-sm">
-                                                        <option value="">Selecciona...</option>
                                                         <option value="0">0 MIN</option>
                                                         <option value="1">1 MIN</option>
                                                         <option value="2">2 MIN</option>
@@ -314,14 +313,42 @@
                                                         <option value="Defensa(Central)">Defensa(Central)</option>
                                                         <option value="Defensa(Derecho)(Izquierdo)">
                                                             Defensa(Derecho)(Izquierdo)</option>
-                                                        <option value="Volante(Central)">Volante(Central)</option>
+                                                        <option value="Defensa(Izquierdo)">Defensa(Izquierdo)
+                                                        </option>
+                                                        <option value="Defensa(Derecho)">Defensa(Derecho)</option>
+                                                        <option value="Defensa">Defensa</option>
+                                                        <option value="Volante(Defensivo Izquierdo)">
+                                                            Volante(Defensivo Izquierdo)</option>
+                                                        <option value="Volante(Defensivo Derecho)">Volante(Defensivo
+                                                            Derecho)</option>
+                                                        <option value="Volante(Defensivo Central)">Volante(Defensivo
+                                                            Central)</option>
+                                                        <option value="Volante(Ofensivo Izquierdo)">Volante(Ofensivo
+                                                            Izquierdo)</option>
+                                                        <option value="Volante(Ofensivo Derecho)">Volante(Ofensivo
+                                                            Derecho)</option>
+                                                        <option value="Volante(Ofensivo Central)">Volante(Ofensivo
+                                                            Central)</option>
+                                                        <option value="Volante(Extremo Izquierdo)">Volante(Extremo
+                                                            Izquierdo)</option>
+                                                        <option value="Volante(Extremo Derecho)">Volante(Extremo
+                                                            Derecho)</option>
+                                                        <option value="Volante(Primera línea)">Volante(Primera
+                                                            línea)</option>
+                                                        <option value="Volante(Segunda línea)">Volante(Segunda
+                                                            línea)</option>
                                                         <option value="Volante(Primera linea)">Volante(Primera
-                                                            linea)
-                                                        </option>
+                                                            linea)</option>
                                                         <option value="Volante(Segunda linea)">Volante(Segunda
-                                                            linea)
-                                                        </option>
+                                                            linea)</option>
                                                         <option value="Volante(Extremo)">Volante(Extremo)</option>
+                                                        <option value="Volante(Central)">Volante(Central)</option>
+                                                        <option value="Delantero(Izquierdo)">Delantero(Izquierdo)
+                                                        </option>
+                                                        <option value="Delantero(Derecho)">Delantero(Derecho)
+                                                        </option>
+                                                        <option value="Delantero(Central)">Delantero(Central)
+                                                        </option>
                                                         <option value="Delantero">Delantero</option>
                                                     </Field>
 
@@ -349,8 +376,48 @@
                                                         class="custom-error" />
                                                 </td>
                                                 <td>
-                                                    <Field :name="`skill_controls[${index}].yellow_cards`" as="select"
-                                                        :id="`skill_controls[${index}].yellow_cards`"
+                                                    <Field :name="`skill_controls[${index}].goal_assists`"
+                                                        as="select" :id="`skill_controls[${index}].goal_assists`"
+                                                        class="form-select form-select-sm">
+                                                        <option value="0">0</option>
+                                                        <option value="1">1</option>
+                                                        <option value="2">2</option>
+                                                        <option value="3">3</option>
+                                                        <option value="4">4</option>
+                                                        <option value="5">5</option>
+                                                        <option value="6">6</option>
+                                                        <option value="7">7</option>
+                                                        <option value="8">8</option>
+                                                        <option value="9">9</option>
+                                                        <option value="10">10</option>
+                                                    </Field>
+
+                                                    <ErrorMessage :name="`skill_controls[${index}].goal_assists`"
+                                                        class="custom-error" />
+                                                </td>
+                                                <td>
+                                                    <Field :name="`skill_controls[${index}].goal_saves`" as="select"
+                                                        :id="`skill_controls[${index}].goal_saves`"
+                                                        class="form-select form-select-sm">
+                                                        <option value="0">0</option>
+                                                        <option value="1">1</option>
+                                                        <option value="2">2</option>
+                                                        <option value="3">3</option>
+                                                        <option value="4">4</option>
+                                                        <option value="5">5</option>
+                                                        <option value="6">6</option>
+                                                        <option value="7">7</option>
+                                                        <option value="8">8</option>
+                                                        <option value="9">9</option>
+                                                        <option value="10">10</option>
+                                                    </Field>
+
+                                                    <ErrorMessage :name="`skill_controls[${index}].goal_saves`"
+                                                        class="custom-error" />
+                                                </td>
+                                                <td>
+                                                    <Field :name="`skill_controls[${index}].yellow_cards`"
+                                                        as="select" :id="`skill_controls[${index}].yellow_cards`"
                                                         class="form-select form-select-sm">
                                                         <option value="0">0</option>
                                                         <option value="1">1</option>
@@ -374,8 +441,8 @@
 
                                                 </td>
                                                 <td>
-                                                    <Field :name="`skill_controls[${index}].qualification`" as="select"
-                                                        :id="`skill_controls[${index}].qualification`"
+                                                    <Field :name="`skill_controls[${index}].qualification`"
+                                                        as="select" :id="`skill_controls[${index}].qualification`"
                                                         class="form-select form-select-sm">
                                                         <option value="0">0</option>
                                                         <option value="1">1</option>
@@ -391,8 +458,9 @@
                                                 </td>
                                                 <td>
                                                     <Field :name="`skill_controls[${index}].general_concept`"
-                                                        :id="`skill_controls[${index}].general_concept`" as="textarea"
-                                                        class="form-control form-control-sm" rows="2" />
+                                                        :id="`skill_controls[${index}].general_concept`"
+                                                        as="textarea" class="form-control form-control-sm"
+                                                        rows="2" />
                                                     <ErrorMessage :name="`skill_controls[${index}].general_concept`"
                                                         class="custom-error" />
                                                 </td>
@@ -409,7 +477,6 @@
                                     </tbody>
                                 </table>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -418,7 +485,7 @@
                     <div class="as-footer-container">
 
                         <template v-if="urlExportFormat">
-                            <a :href="urlExportFormat" class="btn btn-info">Descargar formato</a>
+                            <a :href="urlExportFormat" class="btn btn-info" v-tooltip.top="'Sin datos, sólo jugadores'">Descargar formato</a>
                         </template>
 
                         <button type="submit" class="btn btn-info" :disabled="!skills_controls.length">Guardar</button>
@@ -460,8 +527,8 @@ const players = ref([])
 // settings flatpick
 const flatpickrConfigDate = {
     locale: Spanish,
-    minDate: dayjs().subtract(1, 'month').format('YYYY-M-D'),
-    maxDate: dayjs().format('YYYY-M-D'),
+    // minDate: dayjs().subtract(1, 'month').format('YYYY-M-D'),
+    maxDate: dayjs().add(1, 'month').format('YYYY-M-D'),
 }
 const flatpickrConfigHour = {
     enableTime: true,
@@ -481,8 +548,8 @@ const schema = yup.object().shape({
         'La hora debe estar en formato de 12 horas. (ejemplo: 9:30 AM o 12:00 PM)'
     ).required(),
     rival_name: yup.string().required(),
-    final_score_school: yup.number().integer().required().typeError('Debe ser un número.'),
-    final_score_rival: yup.number().integer().required().typeError('Debe ser un número.'),
+    final_score_school: yup.number().integer().default(0),
+    final_score_rival: yup.number().integer().default(0),
     general_concept: yup.string().nullable(),
     skill_controls: yup.array().of(
         yup.object({
@@ -497,10 +564,11 @@ const schema = yup.object().shape({
             qualification: yup.number().integer().required('Es requerido'),
             general_concept: yup.string().nullable(),
             game_id: yup.number().nullable(),
+            goal_assists: yup.number().integer().required('Es requerido'),
+            goal_saves: yup.number().integer().required('Es requerido'),
         })
     )
 })
-
 
 const onLoadData = async () => {
     try {
@@ -550,8 +618,8 @@ const onLoadData = async () => {
 }
 
 const handleSubmit = async (values, actions) => {
-
     try {
+        isLoading.value = true
 
         let data = {}
         let url = ''
@@ -562,8 +630,6 @@ const handleSubmit = async (values, actions) => {
             url = `/api/v2/matches`
             data = { ...values }
         }
-
-        isLoading.value = true
 
         const response = await api.post(url, data)
 
@@ -587,12 +653,11 @@ const uploadFileFormat = async (e) => {
     const file = e.target.files[0];
     const formData = new FormData();
     formData.append('file', file, file.name)
-    console.log('upload', file)
-
     api.post(`/import/matches/${route.params.id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
         .then(resp => {
             if (resp.data.success) {
-                showMessage('Guardado correctamente.')
+                formMatches.value.setValues({ skill_controls: resp.data.skills_controls })
+                showMessage('Se cargaron los datos correctamente.')
             } else {
                 showMessage('Algo salió mal.', 'error')
             }

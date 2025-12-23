@@ -1,5 +1,5 @@
 <template>
-    <FormMatch :isEdition="false"></FormMatch>
+    <FormMatch :isEdition="false"/>
     <breadcrumb :parent="'Plataforma'" :current="'Crear Competencia'" />
 </template>
 <script setup>

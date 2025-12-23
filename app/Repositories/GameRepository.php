@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Http\Requests\CompetitionRequest;
+use App\Http\Requests\CompetitionStoreRequest;
 use App\Models\CompetitionGroup;
 use App\Models\Game;
 use App\Models\Master;
@@ -12,6 +13,7 @@ use App\Models\SkillsControl;
 use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
 use Exception;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Mpdf\MpdfException;
@@ -120,7 +122,7 @@ class GameRepository
     /**
      * @param $request
      */
-    public function createMatchSkill(CompetitionRequest $request): bool
+    public function createMatchSkill(CompetitionStoreRequest $request): bool
     {
         $result = false;
         try {
@@ -153,7 +155,7 @@ class GameRepository
     /**
      * @param $request
      */
-    private function getDataFromRequest(CompetitionRequest $request): array
+    private function getDataFromRequest(FormRequest $request): array
     {
         $matchData = $request->only([
             'tournament_id',
@@ -249,6 +251,7 @@ class GameRepository
     public function loadDataFromFile($skillControls): array
     {
         return [
+            'success' => true,
             'skills_controls' => $skillControls,
         ];
     }

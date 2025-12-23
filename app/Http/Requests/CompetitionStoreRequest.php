@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CompetitionRequest extends FormRequest
+class CompetitionStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -41,19 +41,15 @@ class CompetitionRequest extends FormRequest
             'skill_controls.*.assistance' => ['required', 'numeric'],
             'skill_controls.*.titular' => ['required', 'numeric'],
             'skill_controls.*.played_approx' => ['required', 'numeric'],
-            'skill_controls.*.position' => ['required'],
+            'skill_controls.*.position' => ['required', 'string'],
             'skill_controls.*.goals' => ['required', 'numeric'],
             'skill_controls.*.goal_assists' => ['required', 'numeric'],
             'skill_controls.*.goal_saves' => ['required', 'numeric'],
             'skill_controls.*.red_cards' => ['required', 'numeric'],
             'skill_controls.*.yellow_cards' => ['required', 'numeric'],
             'skill_controls.*.qualification' => ['required', 'numeric'],
-            'skill_controls.*.observation' => ['nullable', 'string'],
+            'skill_controls.*.observation' => ['nullable'],
         ];
-
-        if ($this->isMethod('put')) {
-            $rules['skill_controls.*.game_id'] = ['required', 'numeric'];
-        }
 
         return $rules;
     }

@@ -15,7 +15,7 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
 {
     private $data;
 
-    public function __construct()
+    public function __construct(private $matchId)
     {
         $this->data = collect();
     }
@@ -36,6 +36,7 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
                 $inscription = $inscriptions[$row['codigo']];
 
                 $skillControll = new SkillsControl([
+                    'game_id' => $this->matchId,
                     'inscription_id' => $inscription->id,
                     'assistance' => cleanString(strtolower($row['asistio'])) == 'si' ? 1 : 0,
                     'titular' => cleanString(strtolower($row['titular'])) == 'si' ? 1 : 0,

@@ -2,57 +2,48 @@
     <div class="mb-3 no-print">
 
         <div class="row col-md-12">
-            <div class="col-md-12 col-sm-12 col-lg-3 col-xl-3">
+            <div class="col-md-12 col-sm-12 col-lg-4 col-xl-4">
                 <div class="form-group">
                     <label class="form-label" for="modality">Modalidad</label>
-                    <select class="form-select form-select-sm" v-model="modalitySelected" @change="emitChange" id="modality">
+                    <select class="form-select form-select-sm" v-model="modalitySelected" @change="emitChange"
+                        id="modality">
                         <option v-for="(label, key) in footballModality" :key="key" :value="parseInt(key)">{{ label }}
                         </option>
                     </select>
                 </div>
             </div>
-            <div class="col-md-12 col-sm-12 col-lg-3 col-xl-3">
+            <div class="col-md-12 col-sm-12 col-lg-4 col-xl-4">
                 <div class="form-group">
                     <label class="form-label" for="systemt">Sistema táctico</label>
-                    <select class="form-select form-select-sm" v-model="selectedFormation" @change="emitChange" id="systemt">
+                    <select class="form-select form-select-sm" v-model="selectedFormation" @change="emitChange"
+                        id="systemt">
                         <option v-for="formation in availableFormations" :key="formation" :value="formation">{{
                             formation }}
                         </option>
                     </select>
                 </div>
             </div>
-            <div class="col-md-6 col-sm-6 col-lg-3 col-xl-3">
-                <div class="form-group">
-                    <label class="form-label" for="newsystem">Agregar sistema táctico</label>
-                    <input v-model="newFormation" placeholder="ej: 4-3-3" class="form-control form-control-sm" id="newsystem" />
-                    <div v-if="error" class="custom-error">{{ error }}</div>
-                    <div v-if="success" class="text-success small mt-1">{{ success }}</div>
-                </div>
-
-            </div>
-            <div class="col-md-6 col-sm-6 col-lg-3 col-xl-3">
-                <!-- <div class="form-group"> -->
-                    <div class="mt-4">
-                        <button class="btn btn-sm btn-primary" @click="tryAdd">Agregar</button>
+            <div class="row col-md-6 col-sm-6 col-lg-4 col-xl-4">
+                <div class="col-md-10">
+                    <div class="form-group">
+                        <label class="form-label" for="newsystem">+ sistema táctico</label>
+                        <input v-model="newFormation" placeholder="ej: 4-3-3" class="form-control form-control-sm"
+                            id="newsystem" />
+                        <div v-if="error" class="custom-error">{{ error }}</div>
+                        <div v-if="success" class="text-success small mt-1">{{ success }}</div>
                     </div>
-                <!-- </div> -->
-
+                </div>
+                <div class="col-md-2 mt-4">
+                    <button class="btn btn-sm btn-primary" @click="tryAdd">+</button>
+                </div>
             </div>
         </div>
-
-
-
-
-
-
-
-
 
         <!-- Sugerencias automáticas -->
         <div v-if="suggestedFormations.length > 0" class="mt-2">
             <small class="text-muted">Sugerencias: </small>
             <button v-for="suggestion in suggestedFormations" :key="suggestion"
-                class="btn btn-sm btn-outline-secondary ms-1 mb-1" @click="applySuggestion(suggestion)">
+                class="btn btn-sm btn-secondary ms-1 mb-1 text-primary" @click="applySuggestion(suggestion)">
                 {{ suggestion }}
             </button>
         </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Competition;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CompetitionRequest;
+use App\Http\Requests\CompetitionStoreRequest;
 use App\Models\Game;
 use App\Repositories\GameRepository;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +24,7 @@ class GameController extends Controller
         return response()->json([], 204);
     }
 
-    public function store(CompetitionRequest $request): JsonResponse
+    public function store(CompetitionStoreRequest $request): JsonResponse
     {
         $response = [];
         $response['success'] = $this->repository->createMatchSkill($request);

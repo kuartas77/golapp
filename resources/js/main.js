@@ -32,6 +32,7 @@ import CustomMultiSelect from "@/components/form/MultiSelect.vue";
 import CustomSelect2 from "@/components/form/CustomSelect2.vue";
 import VueWizardSteps from '@/plugins/wizard'
 import Can from '@/components/general/Can.vue'
+import tooltipDirective from '@/directives/tooltip';
 
 // bootstrap
 import * as bootstrap from "bootstrap";
@@ -66,6 +67,8 @@ app.use(PerfectScrollbarPlugin)
 app.use(VueSweetalert2, options)
 app.use(errorHandler)
 app.use(VueWizardSteps)
+
+app.directive('tooltip', tooltipDirective)
 
 app.component('DataTable', DataTable)
 app.component('DatatableTemplate', DatatableTemplate)

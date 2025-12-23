@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="mb-3">
         <label class="form-label">Jugadores disponibles / Suplentes</label>
 
         <div class="d-flex gap-2 flex-wrap player-list">
@@ -31,7 +31,7 @@ img {
     object-fit: cover;
 }
 .player-list{
-        cursor: move; /* fallback if grab cursor is unsupported */
+    cursor: move; /* fallback if grab cursor is unsupported */
     cursor: grab;
     cursor: -moz-grab;
     cursor: -webkit-grab;

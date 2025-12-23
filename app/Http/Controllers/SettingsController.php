@@ -54,7 +54,11 @@ class SettingsController extends Controller
 
         $genders = Cache::remember('KEY_GENDERS', now()->addYear(), fn() => config('variables.KEY_GENDERS'));
 
-        $positions = Cache::remember('KEY_POSITIONS', now()->addYear(), fn() => config('variables.KEY_POSITIONS'));
+        $positions = Cache::remember('KEY_POSITIONS', now()->addYear(), fn() =>
+            collect(config('variables.KEY_POSITIONS'))
+                ->values()
+                ->map(fn($item) => ['id'=>$item, 'name'=>$item])
+        );
 
         $blood_types = Cache::rememberForever('KEY_BLOOD_TYPES', fn() => config('variables.KEY_BLOOD_TYPES'));
 

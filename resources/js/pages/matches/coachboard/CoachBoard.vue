@@ -1,7 +1,7 @@
 <template>
 
     <div class="row">
-        <div class="col-xl-6 col-lg-6 col-sm-12">
+         <div class="col-xl-6 col-lg-6 col-sm-12">
 
             <Field ref="field" :formation="currentFormation" :formations-map="currentFormationsMap" :players-field="playersField"
                 :player-count="currentModality" :include-goalkeeper="true" @assign-player="handleAssignPlayer"
@@ -9,15 +9,15 @@
 
         </div>
         <div class="col-xl-6 col-lg-6 col-sm-12">
-            <TacticalSelector :formation="currentFormation" :modality="currentModality"
-                :custom-formations="customFormations" @change-formation="handleFormationChange"
-                @add-formation="handleAddFormation" />
+            <fieldset class="p-3">
 
-            <div class="mt-3">
-                <PlayerList :players="availablePlayers" @dragstart="onPlayerDragStart" />
-            </div>
+                <TacticalSelector :formation="currentFormation" :modality="currentModality"
+                    :custom-formations="customFormations" @change-formation="handleFormationChange"
+                    @add-formation="handleAddFormation" />
 
+                <PlayerList :players="availablePlayers"  />
 
+            </fieldset>
         </div>
     </div>
 
@@ -95,11 +95,6 @@ function handleAddFormation({ modality, formation, parts }) {
 /* ---------- Handlers ---------- */
 const field = ref(null)
 
-// cuando arranca el Field, le pasamos players vía prop (ya lo hace)
-function onPlayerDragStart(player) {
-    // nada adicional por ahora
-}
-
 function handleAssignPlayer({ player, posKey }) {
     // player fue asignado en Field; quitarlo de available o bench
     availablePlayers.value = availablePlayers.value.filter(p => p.id !== player.id)
@@ -110,6 +105,7 @@ function handleAssignPlayer({ player, posKey }) {
 
 function handleUnassignPlayer({ player }) {
     // devolver a available (si no existe)
+    // player removido a la banca
     if (!availablePlayers.value.find(p => p.id === player.id)) {
         availablePlayers.value.push(player)
     }

@@ -2285,8 +2285,11 @@ table.dataTable > tbody > tr.child ul.dtr-details {
     #sub-header-container,
     #breadcrumb,
     .setting,
-    footer {
+    .footer-wrapper {
         display: none !important;
+    }
+    .panel {
+        border-color: transparent !important;
     }
 }
 

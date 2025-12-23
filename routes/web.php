@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\AppController;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\FormationPdfController;
 use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Invoices\InvoiceController;
+use App\Http\Controllers\Invoices\ItemInvoicesController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\Reports\ReportAssistsController;
@@ -16,7 +18,6 @@ use App\Http\Controllers\{Competition\GameController, Payments\PaymentController
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
-use App\Http\Controllers\Invoices\ItemInvoicesController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -46,7 +47,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::get('statuses/payments', [PaymentController::class, 'paymentStatuses'])->name('payments.status');
 
     Route::prefix('import')->group(function(){
-        Route::post('matches/{competition_group}', [ImportController::class, 'importMatchDetail'])->name('import.match');
+        Route::post('matches/{match}', [ImportController::class, 'importMatchDetail'])->name('import.match');
         Route::post('players', [ImportController::class, 'importPlayers'])->name('import.players');
     });
 

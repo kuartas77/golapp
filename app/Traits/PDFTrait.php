@@ -108,14 +108,16 @@ trait PDFTrait
     {
         $this->mpdf = new Mpdf($this->configDefault);
 
-        if ($data['school']) {
+        if (isset($data['school'])) {
             $this->mpdf->SetAuthor($data['school']->name);
             $this->mpdf->SetWatermarkImage($data['school']->logo_local, -1, $this->configWatermarkSize);
             $this->mpdf->showWatermarkImage = true;
         }
+
         $this->mpdf->SetCreator('GOLAPP');
         $this->mpdf->WriteHTML(view()->file($this->getTemplate($template), $data));
-        if($showFooter) {
+
+        if (isset($data['school']) && $showFooter) {
             $this->mpdf->SetHTMLFooter(view()->file($this->getTemplate('footer.blade.php'), $data));
         }
     }

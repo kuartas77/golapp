@@ -1,14 +1,27 @@
 <template>
-    <div>
-    <button @click="exportLayout">Guardar</button>
-        <div class="field-wrapper position-relative">
-            <canvas ref="canvas" @dblclick="onDblClick" @dragover.prevent @drop.prevent="onDrop"></canvas>
+
+        <div class="field-wrapper">
+            <canvas ref="canvas" @dblclick="onDblClick" @drop.prevent="onDrop"></canvas>
         </div>
-    </div>
+
+        <!-- Botones de control -->
+        <div class="mt-3 d-flex gap-2 no-print">
+            <button @click="resetToDefault" class="btn btn-secondary">
+                Reiniciar
+            </button>
+            <button @click="exportLayout" class="btn btn-info">
+                Guardar JSON
+            </button>
+            <button @click="exportToPDF" class="btn btn-success">
+                Exportar PDF
+            </button>
+            <input type="file" @change="importLayoutFile" accept=".json" style="display: none;" ref="fileInput">
+        </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
+import api from '@/utils/axios'
 
 const props = defineProps({
     formation: { type: String, required: true },
@@ -352,19 +365,29 @@ function findNearestPosition(x, y, radius = 40) {
     let best = null
     let bestDist = Infinity
 
-    // Radio adaptativo basado en la posición Y
-    const adaptiveRadius = radius * (0.7 + 0.3 * (y / canvasHeight.value))
+    // Radio dinámico basado en la densidad de jugadores
+    const positionsInArea = posKeys.value.filter(k => {
+        const p = positions.value[k]
+        const dx = p.x - x
+        const dy = p.y - y
+        return Math.sqrt(dx * dx + dy * dy) < radius * 2
+    }).length
+
+    // Ajustar radio según densidad (mayor densidad = radio más pequeño)
+    const densityFactor = Math.max(0.5, 1 - (positionsInArea / 20))
+    const adjustedRadius = radius * densityFactor
 
     for (const k of posKeys.value) {
         const p = positions.value[k]
-        // Si la posición ya tiene un jugador, hacerla menos "atractiva" para evitar reemplazos accidentales
-        const penalty = p.assigned ? 15 : 0
+
+        // Penalizar posiciones con jugadores asignados
+        const penalty = p.assigned ? 20 : 0
 
         const dx = p.x - x
         const dy = p.y - y
         const d = Math.sqrt(dx * dx + dy * dy) + penalty
 
-        if (d < bestDist && d <= adaptiveRadius) {
+        if (d < bestDist && d <= adjustedRadius) {
             bestDist = d
             best = k
         }
@@ -519,8 +542,10 @@ function onDblClick(e) {
     const x = (e.clientX - rect.left) * scaleX
     const y = (e.clientY - rect.top) * scaleY
 
+    // drawDebugPoint(x, y, 'red')
+
     // Radio más pequeño para doble click para mayor precisión
-    const nearest = findNearestPosition(x, y, 25)
+    const nearest = findNearestPosition(x, y, 50)
 
     if (!nearest) return
 
@@ -530,6 +555,16 @@ function onDblClick(e) {
         emits('unassign-player', { player: prev, posKey: nearest })
         drawField()
     }
+}
+
+function drawDebugPoint(x, y, color = 'red') {
+    if (!ctx) return
+    ctx.save()
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.arc(x, y, 5, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.restore()
 }
 
 // dibujo del campo y jugadores
@@ -885,8 +920,85 @@ function resetToDefault() {
     drawField()
 }
 
+// Función para extraer el canvas como imagen
+function getCanvasImage(format = 'png', quality = 0.9) {
+    if (!canvas.value) return null;
+
+    // Convertir canvas a imagen base64
+    const dataUrl = canvas.value.toDataURL(`image/${format}`, quality);
+    return {
+        base64: dataUrl,
+        format: format,
+        width: canvasWidth.value,
+        height: canvasHeight.value
+    };
+}
+
+async function exportToPDF() {
+    try {
+        // Extraer imagen del canvas
+        const canvasImage = getCanvasImage();
+        if (!canvasImage) {
+            throw new Error('No se pudo capturar la imagen del canvas');
+        }
+
+        // Preparar datos de la formación
+        const formationData = getPositionsSnapshot();
+
+        // Agregar la imagen al snapshot
+        const dataToSend = {
+            ...formationData,
+            canvasImage: canvasImage.base64,
+            // También podemos incluir información adicional
+            metadata: {
+                title: `Formación ${props.formation}`,
+                date: new Date().toISOString(),
+                playerCount: props.playerCount,
+                includeGoalkeeper: props.includeGoalkeeper
+            }
+        };
+
+        // Opción 1: Enviar como JSON directamente
+        const response = await api.post('/api/v2/formation/pdf/generate', dataToSend);
+
+        if (!response.ok) {
+            throw new Error(`Error del servidor: ${response.status}`);
+        }
+
+        // Descargar PDF
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `formacion_${props.formation}_${new Date().toISOString().slice(0,10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+    } catch (error) {
+        console.error('Error generando PDF:', error);
+        alert('Error al generar el PDF. Por favor, intente nuevamente.');
+    }
+}
+
+// Función para guardar solo la imagen
+function saveCanvasImage() {
+    const canvasImage = getCanvasImage();
+    if (!canvasImage) return;
+
+    const a = document.createElement('a');
+    a.href = canvasImage.base64;
+    a.download = `formacion_${props.formation}_${new Date().toISOString().slice(0,10)}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
 // Exponer funciones a padre
-defineExpose({ exportLayout, loadLayout, applyFormation })
+defineExpose({ exportLayout, loadLayout, applyFormation, exportToPDF,
+    saveCanvasImage,
+    getCanvasImage  })
 
 // watchers
 watch(() => props.formation, (n) => {
