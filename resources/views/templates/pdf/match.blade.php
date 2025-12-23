@@ -45,7 +45,7 @@
         <td width="15%" class="bold text-center">Posición</td>
         <td width="3%" class="bold text-center">Goles</td>
         <td width="3%" class="bold text-center">Asist Gol</td>
-        <td width="3%" class="bold text-center">Salvadas</td>
+        <td width="3%" class="bold text-center">Atajadas</td>
         <td width="4%" class="bold text-center">T. Ama</td>
         <td width="4%" class="bold text-center">T. Roj</td>
         <td width="3%" class="bold text-center">Cal</td>
