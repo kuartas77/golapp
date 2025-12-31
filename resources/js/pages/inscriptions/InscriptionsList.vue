@@ -14,6 +14,7 @@
                             <th>Nombres</th>
                             <th>Cert. Médico</th>
                             <th>F.Inicio</th>
+                            <th></th>
                         </tr>
                     </thead>
                 </template>

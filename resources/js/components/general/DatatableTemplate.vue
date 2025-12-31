@@ -9,7 +9,7 @@
             </div>
         </template>
         <template #date="props">
-            {{ dayjs(props.cellData).format('YYYY-MM-DD') }}
+            {{ dayjs(props.cellData).format('YYYY-M-D') }}
         </template>
         <template #check="props">
             <template v-if="props.cellData">

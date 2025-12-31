@@ -19,6 +19,8 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\Groups\CompetitionGroupController;
 use App\Http\Controllers\Groups\TrainingGroupController;
 use App\Http\Controllers\Inscription\InscriptionController as WebInscriptions;
+use App\Http\Controllers\Invoices\InvoiceController;
+use App\Http\Controllers\Invoices\ItemInvoicesController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\Payments\PaymentController;
 use App\Http\Controllers\Players\PlayerController;
@@ -128,6 +130,25 @@ Route::prefix('v2')->group(function(){
 
             // Route::get('tournaments', [MasterController::class, 'tournamentsBySchool'])->name('autocomplete.tournaments');
         });
+
+        Route::prefix('invoices')->group(function () {
+            Route::get('', [InvoiceController::class, 'index']);
+            Route::post('', [InvoiceController::class, 'store']);
+            Route::get('create/{inscription}', [InvoiceController::class, 'create']);
+            Route::get('{invoice}', [InvoiceController::class, 'show']);
+            Route::delete('{invoice}', [InvoiceController::class, 'destroy']);
+            Route::post('{invoice}/payment', [InvoiceController::class, 'addPayment']);
+            Route::get('{invoice}/print', [InvoiceController::class, 'print']);
+            Route::get('items/invoices', [ItemInvoicesController::class, 'index']);
+
+        });
+
+
+
+
+
+
+
     });
 
 });

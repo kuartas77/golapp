@@ -3237,6 +3237,15 @@ body.dark {
             }
         }
 
+        tfoot {
+            tr {
+                th {
+                    color: #d3d3d3;
+                    background: transparent;
+                }
+            }
+        }
+
         &.table-hover {
             tbody {
                 tr {

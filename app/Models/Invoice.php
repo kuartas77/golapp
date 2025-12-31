@@ -32,7 +32,7 @@ class Invoice extends Model
         'due_date' => 'date',
     ];
 
-    protected $appends = ['url_print', 'url_destroy'];
+    protected $appends = ['url_print', /*'url_destroy'*/];
 
     public function getUrlDestroyAttribute(): string
     {

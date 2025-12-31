@@ -98,12 +98,12 @@
                                     <h6 class="text-center">Resultado Final</h6>
                                     <div class="col-md-12 col-sm-12 col-lg-4 col-xl-4">
                                         <div class="form-group" v-if="isEdition">
-                                            <label for="file_upload" class="form-label small">Formato</label>
+                                            <label for="file_upload" class="form-label small">Cargar formato</label>
                                             <input type="file" id="file_upload" name="details"
                                                 class="form-control form-control-sm" @change="uploadFileFormat"
                                                 accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-                                            <small class="text-muted">Se debe subir el formato descargado y lo mostrará
-                                                en el listado de abajo.</small>
+                                            <small class="text-muted">Se debe cargar el mismo formato descargado y los datos se mostrarán
+                                                en el listado de estadísticas por deportista.</small>
                                         </div>
                                     </div>
 
@@ -146,6 +146,8 @@
                             </div>
 
                             <div class="table-responsive no-print">
+                                <h6 class="text-center">Estadisticas por deportista</h6>
+                                <small class="text-muted text-center"></small>
                                 <table class="table table-bordered table-sm dataTable align-middle ">
                                     <thead>
                                         <tr>
@@ -485,7 +487,7 @@
                     <div class="as-footer-container">
 
                         <template v-if="urlExportFormat">
-                            <a :href="urlExportFormat" class="btn btn-info" v-tooltip.top="'Sin datos, sólo jugadores'">Descargar formato</a>
+                            <a :href="urlExportFormat" class="btn btn-info" v-tooltip.top="'Sólo datos de los deportistas, llenalo y lo podras cargar'">Descargar formato</a>
                         </template>
 
                         <button type="submit" class="btn btn-info" :disabled="!skills_controls.length">Guardar</button>

@@ -21,35 +21,34 @@ class InvoiceController extends Controller
 
     public function index(Request $request)
     {
-        if ($request->ajax()) {
-            return datatables()->of($this->invoice_repository->query())->toJson();
-        }
-
-        return view('invoices.index');
+        return datatables()->of($this->invoice_repository->query())
+        ->filterColumn('created_at', fn($query, $keyword) => $query->whereBetween('created_at', explode(' a ', $keyword)))
+        ->toJson();
     }
 
     public function create($inscriptionId)
     {
         [$inscription, $pendingMonths] = $this->invoice_repository->createInvoice($inscriptionId);
 
-        return view('invoices.create', compact('inscription', 'pendingMonths'));
+        return response()->json([
+            'inscription' => $inscription,
+            'pendingMonths' => $pendingMonths
+        ]);
     }
 
     public function store(InvoiceStoreRequest $request)
     {
         $invoiceId = $this->invoice_repository->storeInvoide($request);
 
-        alert()->success(env('APP_NAME'), 'Factura creada exitosamente.');
-
-        return redirect()->route('invoices.show', $invoiceId);
+        return response()->json(['id' => $invoiceId]);
     }
 
     public function show($id)
     {
-        $invoice = Invoice::with(['items', 'payments', 'inscription.player', 'trainingGroup'])
+        $invoice = Invoice::with(['items', 'payments', 'inscription.player', 'trainingGroup', 'creator'])
             ->findOrFail($id);
 
-        return view('invoices.show', compact('invoice'));
+        return response()->json($invoice);
     }
 
     public function addPayment(InvoiceAddPaymentRequest $request, $invoiceId)

@@ -86,13 +86,13 @@
                         Mostrando {{ player_count }} Deportistas.
                     </div>
                 </div>
-                <div
+                <!-- <div
                     class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mb-2">
                     <div class="dt-info">
                         Los totales no incluyen el estado
                         <small class="text-danger">Debe</small>.
                     </div>
-                </div>
+                </div> -->
             </div>
 
             <div class="table-responsive" :class="groupPayments.length ? 'scroll-container' : ''">

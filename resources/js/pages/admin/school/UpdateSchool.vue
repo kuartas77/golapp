@@ -46,7 +46,7 @@
 
                     <div class="col-md-3">
                         <div class="form-group ">
-                            <inputField label="Precio de la Anualidad / Mes" name="ANNUITY" :currency="true" />
+                            <inputField label="Precio de la Anualidad / Mes" name="ANNUITY" :currency="true"/>
                         </div>
                         <div class="form-group ">
                             <inputField label="Día de notificación" type="number" name="NOTIFY_PAYMENT_DAY" />
@@ -54,16 +54,23 @@
                     </div>
 
                     <div class="col-md-3">
-                        <checkbox label="Inscripciones habilitadas" name="inscriptions_enabled" disabled="disabled"/>
-                        <checkbox label="Creación de contratos?" name="create_contract" disabled="disabled"/>
-                        <checkbox label="Envio documentos?" name="send_documents" disabled="disabled"/>
+                        <checkbox label="Inscripciones habilitadas" name="inscriptions_enabled" v-tooltip.top="'Habilita las inscripciones por medio del enlace.'"/>
+                        <checkbox label="Creación de contratos?" name="create_contract" disabled="disabled" v-tooltip.top="'Se requiere el formato del contrato.'"/>
+                        <checkbox label="Envio documentos?" name="send_documents" disabled="disabled" v-tooltip.top="'Los documentos que adjuntan en la inscripción serán enviados al correo de la escuela.'"/>
                     </div>
                     <div class="col-md-3">
-                        <checkbox label="Plataforma Tutores?" name="tutor_platform" disabled="disabled"/>
-                        <checkbox label="Firma Deportistas?" name="sign_player" disabled="disabled"/>
+                        <checkbox label="Plataforma Tutores?" name="tutor_platform" v-tooltip.top="'Permite el ingreso de los acudientes a la plataforma, sólo podrá ver información del deportista.'"/>
+                        <checkbox label="Firma Deportistas?" name="sign_player" disabled="disabled" v-tooltip.top="'Sí firma el acudiente y el deportista ó sólo el acudiente.'"/>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary mt-3">Guardar</button>
+                <div class="row text-center">
+                    <div class="col-md-4"></div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary mt-3">Guardar</button>
+                    </div>
+                    <div class="col-md-4"></div>
+
+                </div>
             </Form>
         </template>
     </panel>

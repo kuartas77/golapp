@@ -93,7 +93,7 @@ class Inscription extends Model
         'payment_receipt'
     ];
 
-    // protected $appends = ['url_edit','url_update','url_show', 'url_impression', 'url_destroy', 'url_invoice'];
+    protected $appends = [/*'url_edit','url_update','url_show', */'url_impression', 'url_destroy', 'url_invoice'];
 
     protected static function booted()
     {

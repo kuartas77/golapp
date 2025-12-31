@@ -1,5 +1,13 @@
 <template>
     <panel>
+        <template #lateral />
+        <template #header>
+            <div class="row">
+                <div class="col-md-auto">
+                    <p>En este listado se incluyen todos los deportistas que han sido parte de la escuela en el transcurso de los años.</p>
+                </div>
+            </div>
+        </template>
         <template #body>
             <DatatableTemplate :options="options" :id="'players_table'" ref="table" @click="onClickRow" />
         </template>

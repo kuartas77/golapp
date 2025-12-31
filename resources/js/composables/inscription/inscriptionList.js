@@ -15,6 +15,18 @@ export default function useInscriptionConfig() {
         { data: 'player.full_names', render: '#inscription', name: 'player.last_names', orderable: false, searchable: true  },
         { data: 'eps_certificate', render: (data) => `<span class="badge badge-warning">`+(data ? 'Sí':'No')+`</span>`, orderable: false, searchable: true },
         { data: 'created_at', render: '#date', searchable: false },
+        {
+            data: 'id', title: 'Acciones', render: (data, type, row, meta) => {
+                return `<div class="btn-group">
+                    <a class="btn btn-sm btn-success" href="${row.url_impression}" target="_blank" title="Imprimir inscripción"><i href="${row.url_show}" class="fa-solid fa-file-pdf fa-width-auto"></i></a>
+                    <button class="btn btn-sm btn-warning" data-item-id="${row.id}" data-type="invoice" title="Crear factura"><i data-item-id="${row.id}" class="fa fa-file-invoice fa-width-auto" data-type="delete"></i></button>
+                    <button class="btn btn-sm btn-info" data-item-id="${row.unique_code}" data-type="edit" title="Modificar Inscripción"><i data-item-id="${row.unique_code}" class="fa fa-edit fa-width-auto" data-type="edit"></i></button>
+                    <button class="btn btn-sm btn-danger" data-item-id="${row.url_destroy}" data-type="delete" title="Eliminar inscripción"><i data-item-id="${row.url_destroy}" class="fa fa-trash fa-width-auto" data-type="delete"></i></button>
+
+
+                </div>`
+            }, searchable: false, orderable: false
+        }
     ];
 
     const options = {
@@ -22,27 +34,11 @@ export default function useInscriptionConfig() {
         lengthMenu: [[10, 20, 30, 50, 100], [10, 20, 30, 50, 100]],
         columnDefs: [
             { responsivePriority: 1, targets: columns.length - 1 },
-            {
-                targets: [1, 2, 3, 6],
-                width: '9%'
-            },
-            {
-                targets: [4],
-                width: '1%'
-            },
-            {
-                targets: [5],
-                width: '35%'
-            },
-            {
-                targets: [0,1, 2, 3, 4, 6, 7],
-                className: 'dt-head-center dt-body-center', // Center align their headers
-            },
-            // { searchable: false, targets: [0,4, 5]},
-            // { orderable: false, targets: [0,4, 5]},
+            { targets: [1, 2, 3],  width: '9%' },
+            { targets: [4, 6, 7, 8], width: '1%', className: 'dt-head-center dt-body-center' },
+            { targets: [5], width: '35%'},
+            { targets: [0, 1, 2, 3], className: 'dt-head-center dt-body-center' },
         ],
-        // scrollX: true,
-        // dom: 'lfitp',//lftip
         serverSide: true,
         processing: true,
         order: [[1, 'desc']],
@@ -62,12 +58,23 @@ export default function useInscriptionConfig() {
     };
 
     const resolveRouteFromClick = (e) => {
+        const type = e.target.dataset.type
         const itemId = e.target.dataset.itemId
-        if (!itemId) {
+        if (!itemId || !type) {
             return
         }
         e.preventDefault()
-        uniqueCodeSelected.value = itemId
+        switch (type) {
+            case 'edit':
+                uniqueCodeSelected.value = itemId
+                break;
+            case 'delete':
+                // router.push({ name: 'invoices.show', params: { id: itemId } })
+                break;
+
+            default:
+                break;
+        }
     }
 
     const onCancelModal = () => {

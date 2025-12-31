@@ -21,6 +21,7 @@
         "feather-icons": "^4.29.2",
         "flatpickr": "^4.6.13",
         "highlight.js": "^11.11.1",
+        "lodash-es": "^4.17.22",
         "lodash.clonedeep": "^4.5.0",
         "pinia": "^3.0.3",
         "pinia-plugin-persistedstate": "^4.5.0",
@@ -36,13 +37,13 @@
         "vue-router": "^4.6.3",
         "vue-sweetalert2": "^5.0.11",
         "vue3-apexcharts": "^1.9.0",
+        "vue3-bootstrap-typeahead": "^1.1.0",
         "vue3-carousel": "^0.1.48",
         "vue3-echarts": "1.0.3",
         "vue3-form-wizard": "^0.3.4",
         "vue3-perfect-scrollbar": "2.0.0",
         "vue3-quill": "^0.2.9",
         "vue3-scroll-spy": "^1.0.8",
-        "vue3-bootstrap-typeahead": "^1.1.0",
         "yup": "^1.7.1"
     },
     "devDependencies": {
@@ -50,9 +51,9 @@
         "@vitejs/plugin-vue": "^5.2.4",
         "autoprefixer": "^10.4.21",
         "laravel-vite-plugin": "^1.3.0",
+        "path": "^0.12.7",
         "postcss": "^8.5.6",
         "sass": "^1.93.2",
-        "vite": "^6.4.0",
-        "path": "^0.12.7"
+        "vite": "^6.4.0"
     }
 }

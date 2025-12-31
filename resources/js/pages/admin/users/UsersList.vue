@@ -1,12 +1,21 @@
 <template>
     <panel>
         <template #lateral />
+        <template #header>
+            <div class="row">
+                <div class="col-md-auto">
+                    <a data-bs-toggle="modal" data-bs-target="#composeModalUser" id="btn-compose-user"
+                        class="btn btn-block btn-primary" href="javascript:void(0);">
+                        Crear usuario
+                    </a>
+                </div>
+                <div class="col-md-8">
+                    <p>Se pueden crear usuarios con el perfil de instructor, de ser requerido un usuario con el perfil de school que es perfil para administrar la escuela, favor solicitarlo.</p>
+                </div>
+            </div>
+        </template>
         <template #body>
-            <div class="col-sm-auto">
-             <a data-bs-toggle="modal" data-bs-target="#composeModalUser" id="btn-compose-user"
-                    class="btn btn-block btn-primary" href="javascript:void(0);">
-                    Crear usuario
-                </a></div>
+
             <DatatableTemplate :options="options" :id="'users_table'" ref="table" @click="onClickRow($event)" />
         </template>
     </panel>

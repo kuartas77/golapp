@@ -1,5 +1,6 @@
 <template>
     <panel>
+        <template #lateral />
         <template #body>
             <Form v-slot="{ validate, handleSubmit }" :validation-schema="schema" :initial-values="initialValues"
                 :keep-values="true" @submit="onSubmit" ref="form-player">
@@ -28,7 +29,7 @@
                                             readonly="true" />
                                     </div>
                                     <div class="form-group mb-2">
-                                        <inputField label="# Documento de identidad" name="identification_document"
+                                        <inputField label="# Doc de identidad" name="identification_document"
                                             :is-required="true" />
                                     </div>
                                     <div class="form-group">
@@ -83,7 +84,7 @@
                                                 :key="value">{{ value }}
                                             </option>
                                         </Field>
-                                        <ErrorMessage name="rh" class="custom-error" />
+                                        <ErrorMessage name="rh" class="custom-error"/>
                                     </div>
                                 </div>
                             </div>
@@ -99,7 +100,7 @@
                                         <inputField label="Correo Electrónico" name="email" :is-required="true" />
                                     </div>
                                     <div class="form-group">
-                                        <inputField label="Entidad prestadora de salud" name="eps" />
+                                        <inputField label="Entidad de salud" name="eps" />
                                     </div>
 
                                     <div class="form-group">

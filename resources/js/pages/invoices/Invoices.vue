@@ -1,24 +1,11 @@
 <template>
-    <div class="container-fluid">
-        <div class="card">
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">
-                    <i class="fas fa-file-invoice"></i> Facturas
-                </h4>
-                <div>
-                    <input type="text"
-                           class="form-control form-control-sm"
-                           placeholder="Buscar..."
-                           v-model="search"
-                           style="width: 200px; display: inline-block;">
-                </div>
-            </div>
+    <panel>
+        <template #body>
 
-            <div class="card-body">
-                <!-- Filtros -->
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <select class="form-control form-control-sm" v-model="filters.status">
+            <div class="row ">
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <select class="form-select form-select-sm" id="filterStatus" >
                             <option value="">Todos los estados</option>
                             <option value="pending">Pendiente</option>
                             <option value="partial">Parcial</option>
@@ -26,142 +13,78 @@
                             <option value="cancelled">Cancelada</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <input type="number"
-                               class="form-control form-control-sm"
-                               placeholder="Año"
-                               v-model="filters.year">
-                    </div>
-                    <div class="col-md-3">
-                        <button class="btn btn-sm btn-primary" @click="loadInvoices">
-                            <i class="fas fa-filter"></i> Filtrar
-                        </button>
-                        <button class="btn btn-sm btn-secondary" @click="resetFilters">
-                            <i class="fas fa-redo"></i> Limpiar
-                        </button>
-                    </div>
                 </div>
-
-                <!-- Tabla de facturas -->
-                <div v-if="loading" class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Cargando...</span>
-                    </div>
-                </div>
-
-                <div v-else>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th @click="sortBy('invoice_number')" class="cursor-pointer">
-                                        # Factura
-                                        <i v-if="sort.field === 'invoice_number'"
-                                           :class="`fas fa-sort-${sort.order === 'asc' ? 'up' : 'down'}`"></i>
-                                    </th>
-                                    <th @click="sortBy('student_name')" class="cursor-pointer">
-                                        Estudiante
-                                        <i v-if="sort.field === 'student_name'"
-                                           :class="`fas fa-sort-${sort.order === 'asc' ? 'up' : 'down'}`"></i>
-                                    </th>
-                                    <th>Grupo</th>
-                                    <th @click="sortBy('total_amount')" class="cursor-pointer">
-                                        Total
-                                        <i v-if="sort.field === 'total_amount'"
-                                           :class="`fas fa-sort-${sort.order === 'asc' ? 'up' : 'down'}`"></i>
-                                    </th>
-                                    <th>Pagado</th>
-                                    <th @click="sortBy('status')" class="cursor-pointer">
-                                        Estado
-                                        <i v-if="sort.field === 'status'"
-                                           :class="`fas fa-sort-${sort.order === 'asc' ? 'up' : 'down'}`"></i>
-                                    </th>
-                                    <th @click="sortBy('created_at')" class="cursor-pointer">
-                                        Fecha
-                                        <i v-if="sort.field === 'created_at'"
-                                           :class="`fas fa-sort-${sort.order === 'asc' ? 'up' : 'down'}`"></i>
-                                    </th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="invoice in filteredInvoices" :key="invoice.id">
-                                    <td>
-                                        <strong>{{ invoice.invoice_number }}</strong>
-                                    </td>
-                                    <td>{{ invoice.student_name }}</td>
-                                    <td>{{ invoice.training_group?.name || 'N/A' }}</td>
-                                    <td>${{ formatNumber(invoice.total_amount) }}</td>
-                                    <td>${{ formatNumber(invoice.paid_amount) }}</td>
-                                    <td>
-                                        <span :class="`badge badge-${getStatusClass(invoice.status)}`">
-                                            {{ getStatusLabel(invoice.status) }}
-                                        </span>
-                                    </td>
-                                    <td>{{ formatDate(invoice.created_at) }}</td>
-                                    <td>
-                                        <button @click="viewInvoice(invoice.id)"
-                                                class="btn btn-sm btn-info mr-1"
-                                                title="Ver">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button v-if="canDeleteInvoice(invoice)"
-                                                @click="deleteInvoice(invoice.id, invoice.invoice_number)"
-                                                class="btn btn-sm btn-danger"
-                                                title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Paginación -->
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div>
-                            Mostrando {{ filteredInvoices.length }} de {{ totalInvoices }} facturas
-                        </div>
-                        <nav v-if="pagination.last_page > 1">
-                            <ul class="pagination pagination-sm">
-                                <li class="page-item" :class="{ disabled: pagination.current_page === 1 }">
-                                    <button class="page-link" @click="changePage(1)">«</button>
-                                </li>
-                                <li class="page-item" :class="{ disabled: pagination.current_page === 1 }">
-                                    <button class="page-link" @click="changePage(pagination.current_page - 1)">‹</button>
-                                </li>
-
-                                <li v-for="page in visiblePages"
-                                    :key="page"
-                                    class="page-item"
-                                    :class="{ active: page === pagination.current_page }">
-                                    <button class="page-link" @click="changePage(page)">{{ page }}</button>
-                                </li>
-
-                                <li class="page-item" :class="{ disabled: pagination.current_page === pagination.last_page }">
-                                    <button class="page-link" @click="changePage(pagination.current_page + 1)">›</button>
-                                </li>
-                                <li class="page-item" :class="{ disabled: pagination.current_page === pagination.last_page }">
-                                    <button class="page-link" @click="changePage(pagination.last_page)">»</button>
-                                </li>
-                            </ul>
-                        </nav>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <flat-pickr :config="flatpickrConfig" class="form-control form-control-sm flatpickr"
+                            id="filterDate" v-model="filterDate" placeholder="Rango fecha facturación"></flat-pickr>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+
+            <DatatableTemplate :options="options" :id="'invoives_table'" ref="invoives_table" @click="onClickRow">
+                <template #thead>
+                    <thead>
+                        <tr>
+                            <th># Factura</th>
+                            <th>Deportista</th>
+                            <th>Grupo</th>
+                            <th class="text-right">Total</th>
+                            <th class="text-right">Pagado</th>
+                            <th class="text-center">Estado</th>
+                            <th>Fecha</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th>Totales:</th>
+                            <th></th>
+                            <th></th>
+                            <th class="text-right"></th>
+                            <th class="text-right"></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </template>
+            </DatatableTemplate>
+
+        </template>
+
+    </panel>
+
+    <breadcrumb :parent="'Plataforma'" :current="'Facturas'" />
+
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue'
+import { ref, computed, onMounted, reactive, watch } from 'vue'
+import useInvoicesList from '@/composables/invoices/invoicesList'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import debounce from 'lodash/debounce'
+import dayjs from '@/utils/dayjs';
+import { debounce } from 'lodash-es';
+import { Spanish } from "flatpickr/dist/l10n/es.js"
+import flatPickr from 'vue-flatpickr-component';
+import 'flatpickr/dist/flatpickr.css';
+import "@/assets/sass/forms/custom-flatpickr.css";
+
+const flatpickrConfig = {
+    wrap: true,
+    mode: "range",
+    locale: Spanish,
+    maxDate: dayjs().format('YYYY-M-D'),
+    minDate: dayjs().subtract(5, 'year').format('YYYY-M-D'),
+}
+
+const { options, invoives_table, onClickRow, reloadTable } = useInvoicesList()
 
 const router = useRouter()
 
 // Estado reactivo
+const filterDate = ref('')
 const invoices = ref([])
 const loading = ref(false)
 const search = ref('')
@@ -252,24 +175,24 @@ const visiblePages = computed(() => {
 // Métodos
 const loadInvoices = async () => {
     try {
-        loading.value = true
+        // loading.value = true
 
-        const params = {
-            page: pagination.current_page,
-            per_page: pagination.per_page,
-            status: filters.status,
-            year: filters.year,
-            sort: sort.field,
-            order: sort.order
-        }
+        // const params = {
+        //     page: pagination.current_page,
+        //     per_page: pagination.per_page,
+        //     status: filters.status,
+        //     year: filters.year,
+        //     sort: sort.field,
+        //     order: sort.order
+        // }
 
-        const response = await axios.get('/api/invoices', { params })
+        // const response = await axios.get('/api/v2/invoices', { params })
 
-        invoices.value = response.data.data
-        pagination.current_page = response.data.current_page
-        pagination.last_page = response.data.last_page
-        pagination.total = response.data.total
-        totalInvoices.value = response.data.total
+        // invoices.value = response.data.data
+        // pagination.current_page = response.data.current_page
+        // pagination.last_page = response.data.last_page
+        // pagination.total = response.data.total
+        // totalInvoices.value = response.data.total
 
     } catch (error) {
         console.error('Error al cargar facturas:', error)
@@ -303,13 +226,13 @@ const resetFilters = () => {
 }
 
 const viewInvoice = (id) => {
-    router.push(`/invoices/${id}`)
+    router.push({ name: 'invoices.show', params: { id: id } })
 }
 
 const deleteInvoice = async (id, invoiceNumber) => {
     if (confirm(`¿Está seguro de eliminar la factura ${invoiceNumber}?`)) {
         try {
-            await axios.delete(`/api/invoices/${id}`)
+            await axios.delete(`/api/v2/invoices/${id}`)
             loadInvoices()
             alert('Factura eliminada exitosamente')
         } catch (error) {
@@ -328,10 +251,6 @@ const canDeleteInvoice = (invoice) => {
 const formatDate = (dateString) => {
     const date = new Date(dateString)
     return date.toLocaleDateString('es-ES')
-}
-
-const formatNumber = (number) => {
-    return parseFloat(number).toFixed(2)
 }
 
 const getStatusClass = (status) => {

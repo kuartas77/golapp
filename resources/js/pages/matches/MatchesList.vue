@@ -1,6 +1,6 @@
 <template>
-
     <panel>
+        <template #lateral/>
         <template #body>
             <a class="btn btn-block btn-primary" href="javascript:void(0);" @click="openGroupSelection()">
                 Crear Competencia
@@ -11,8 +11,6 @@
     </panel>
 
     <breadcrumb :parent="'Plataforma'" :current="'Competencias'" />
-
-
 </template>
 <script setup>
 import { usePageTitle } from "@/composables/use-meta"

@@ -63,11 +63,12 @@ const routes = [
             {
                 path: '/facturas',
                 meta: { requiresRole: ['super-admin', 'school'] },
+                name: 'invoices',
                 component: { render: () => h(RouterView) },
                 children: [
                     { path: '', name: 'invoices.index', component: () => import('@/pages/invoices/Invoices.vue') },
-                    { path: 'factura/:id', name: 'invoices.show', component: () => import('@/pages/invoices/InvoiceShow.vue') },
-                    { path: 'factura/crear/:inscription', name: 'invoices.create', component: () => import('@/pages/invoices/InvoiceCreate.vue') },
+                    { path: ':id', name: 'invoices.show', component: () => import('@/pages/invoices/InvoiceShow.vue') },
+                    { path: 'crear/:inscription', name: 'invoices.create', component: () => import('@/pages/invoices/InvoiceCreate.vue') },
                 ]
             }
         ]
