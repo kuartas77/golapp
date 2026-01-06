@@ -1,16 +1,17 @@
 <?php
 
+use App\Http\Controllers\API\Admin\InscriptionController;
+use App\Http\Controllers\API\Admin\RegisterController;
+use App\Http\Controllers\API\Admin\SchoolController;
+use App\Http\Controllers\API\Admin\UsersController;
+use App\Http\Controllers\API\Instructor\AssistsController;
+use App\Http\Controllers\API\Instructor\GroupsController;
+use App\Http\Controllers\API\LoginController;
+use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\FileController;
+use App\Http\Controllers\Notifications\LoginPlayerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\FileController;
-use App\Http\Controllers\API\UserController;
-use App\Http\Controllers\API\LoginController;
-use App\Http\Controllers\API\Admin\UsersController;
-use App\Http\Controllers\API\Admin\SchoolController;
-use App\Http\Controllers\API\Admin\RegisterController;
-use App\Http\Controllers\API\Admin\InscriptionController;
-use App\Http\Controllers\API\Instructor\GroupsController;
-use App\Http\Controllers\API\Instructor\AssistsController;
 
 Route::post('login', [LoginController::class, 'login']);
 
@@ -40,4 +41,36 @@ Route::middleware(['auth:sanctum'])->group(function(){
         Route::apiResource('schools', SchoolController::class);
     });
 
+});
+
+Route::prefix('notify')->group(function() {
+
+    Route::post('login', [LoginPlayerController::class, 'login']);
+
+
+    Route::middleware(['auth:sanctum'])->group(function(){
+
+        Route::prefix('notifications')->group(function() {
+            Route::get('', function(){
+                return response()->json(['hola']);
+            });
+            // Route::post('login', [LoginPlayerController::class, 'login']);
+            // Route::post('login', [LoginPlayerController::class, 'login']);
+            // Route::post('login', [LoginPlayerController::class, 'login']);
+        });
+        Route::prefix('payments')->group(function() {
+            // Route::post('login', [LoginPlayerController::class, 'login']);
+            // Route::post('login', [LoginPlayerController::class, 'login']);
+            // Route::post('login', [LoginPlayerController::class, 'login']);
+            // Route::post('login', [LoginPlayerController::class, 'login']);
+        });
+        Route::prefix('requests')->group(function() {
+            // Route::post('login', [LoginPlayerController::class, 'login']);
+            // Route::post('login', [LoginPlayerController::class, 'login']);
+            // Route::post('login', [LoginPlayerController::class, 'login']);
+            // Route::post('login', [LoginPlayerController::class, 'login']);
+        });
+            // TODO:rutas
+
+    });
 });
