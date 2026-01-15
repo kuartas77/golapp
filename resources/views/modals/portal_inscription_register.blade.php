@@ -74,7 +74,7 @@
             player_document: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
             medical_certificate: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
             tutor_document: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
-            payment_receipt: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
+            payment_receipt: {required: false, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
 
             contrato_aff: {required: true},
             contrato_insc: {required: true},
