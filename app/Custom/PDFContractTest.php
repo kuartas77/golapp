@@ -14,7 +14,7 @@ class PDFContractTest
     public static function makeContract($documentOption, $filename, array $params)
     {
         $class = new self();
-        $player = $class->providePlayerData();
+        $player = $class->providePlayerData($params['empty']);
         $school = School::find($params['school_id']);
         $contract = Contract::where('contract_type_id', $documentOption)->firstWhere('school_id', $params['school_id']);
 
@@ -29,9 +29,9 @@ class PDFContractTest
         $variables['IMAGE_ONE'] = storage_path("app/public/".'10pro-violetas/firma10+pro.jpg');
         $variables['IMAGE_TWO'] = storage_path("app/public/".'10pro-violetas/firma10+pro.jpg');
         $variables['IMAGE_THREE'] = storage_path("app/public/".'10pro-violetas/firma10+pro.jpg');
-        $variables['SIGN_TUTOR'] = storage_path("app/public/".'10pro-violetas/firma10+pro.jpg');
+        $variables['SIGN_TUTOR'] = $params['empty'] ? '' : storage_path("app/public/".'10pro-violetas/firma10+pro.jpg');
         $variables['SCHOOL_NAMES'] = Str::upper($school->name);
-        $variables['SIGN_PLAYER'] = storage_path("app/public/".'10pro-violetas/firma10+pro.jpg');
+        $variables['SIGN_PLAYER'] = $params['empty'] ? '' :storage_path("app/public/".'10pro-violetas/firma10+pro.jpg');
         $variables['DAY'] = now()->format('d');
         $variables['MONTH'] = config('variables.KEY_MONTHS_INDEX')[now()->month];
         $variables['YEAR'] = now()->format('Y');
@@ -49,7 +49,7 @@ class PDFContractTest
         $variables['DAD_MOBILE'] = '';
         $variables['DAD_EMAIL'] = '';
         $variables['SCHOOL_AGENT'] = $school->agent;
-        $variables['SCHOOL_SIGN'] = storage_path("app/public/".'10pro-violetas/firma10+pro.jpg');
+        $variables['SCHOOL_SIGN'] = $params['empty'] ? '' : storage_path("app/public/".'10pro-violetas/firma10+pro.jpg');
 
         // {{config('variables.KEY_RELATIONSHIPS_SELECT')[$people->relationship]}}
 
@@ -98,8 +98,61 @@ class PDFContractTest
         return $class->stream($filename);
     }
 
-    private function providePlayerData() : array
+    private function providePlayerData($empty = false) : array
     {
+        if($empty) {
+
+            return [
+                'unique_code' => '',
+                'names' => '',
+                'last_names' => '',
+                'full_names' => '_______________',
+                'gender' => 'M',
+                'date_birth' => '_______________',
+                'place_birth' => '',
+                'identification_document' => '_______________',
+                'rh' => '',
+                'eps' => '',
+                'email' => '',
+                'address' => '',
+                'municipality' => '',
+                'neighborhood' => '',
+                'zone' => '',
+                'commune' => '',
+                'phones' => '',
+                'mobile' => '',
+                'school' => '',
+                'degree' => '',
+                'category' => '1989',
+                'people' => [
+                    [
+                        "tutor" => "true",
+                        "relationship" => "30",
+                        "names" => "_______________",
+                        "identification_card" => "_______________",
+                        "mobile" => "",
+                        "email" => "",
+                    ],
+                    [
+                        "tutor" => "false",
+                        "relationship" => "15",
+                        "names" => "",
+                        "identification_card" => "",
+                        "mobile" => "",
+                        "email" => "",
+                    ],
+                    [
+                        "tutor" => "false",
+                        "relationship" => "20",
+                        "names" => "",
+                        "identification_card" => "",
+                        "mobile" => "",
+                        "email" => "",
+                    ]
+                ]
+            ];
+
+        }
         return [
             'unique_code' => '',
             'names' => '',
