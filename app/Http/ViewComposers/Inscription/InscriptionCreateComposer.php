@@ -74,7 +74,7 @@ class InscriptionCreateComposer
             });
 
             $categories = Cache::remember("KEY_CATEGORIES_SELECT_{$school_id}", now()->addMinutes(5), function() use($school_id){
-                return DB::table('inscriptions')->where('school_id', $school_id)->orderBy('category')->groupBy('category')->select(['category'])->get();
+                return DB::table('inscriptions')->where('school_id', $school_id)->where('year', now()->year)->orderBy('category')->groupBy('category')->select(['category'])->get();
             });
 
             $training_groups_arr = Cache::remember("KEY_TRAINING_GROUPS_ARR_{$school_id}", now()->addMinutes(5), function () {
