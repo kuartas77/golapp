@@ -134,20 +134,19 @@ class InscriptionRepository
 
     public function searchInscriptionCompetition(array $fields)
     {
-        return $this->inscription->query()->with('player')
-            ->schoolId()
+        return Inscription::query()->with('player')
             ->where('unique_code', $fields['unique_code'])
-            ->where(function ($query) use ($fields): void {
-                $query->where('competition_group_id', '<>', $fields['competition_group_id'])
-                    ->orWhere('competition_group_id', null);
-            })
+            ->whereHas(
+                'competitionGroup',
+                fn($q)=> $q->where('competition_group_id', $fields['competition_group_id']), '<=', 0)
             ->where('year', now()->year)
+            ->schoolId()
             ->first();
     }
 
     public function searchInsUniqueCode($id)
     {
-        $inscription = $this->inscription->query()->with(['player', 'competitionGroup'])->schoolId()->orderBy('id', 'desc')->firstWhere('unique_code', $id);
+        $inscription = Inscription::query()->with(['player', 'competitionGroup'])->schoolId()->orderBy('id', 'desc')->firstWhere('unique_code', $id);
         $inscription->setRelation('competitionGroup', $inscription->competitionGroup->pluck('id'));
 
         return $inscription;
