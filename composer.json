@@ -13,6 +13,7 @@
         "intervention/image": "^2.7",
         "jenssegers/date": "^4.0",
         "josiasmontag/laravel-recaptchav3": "^1.0",
+        "kreait/firebase-php": "^8.0",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",

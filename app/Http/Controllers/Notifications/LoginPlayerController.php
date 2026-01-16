@@ -23,16 +23,19 @@ class LoginPlayerController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required',
+            'uniqueCode' => 'required',
             'password' => 'required',
         ]);
 
-        $player = Player::where('email', $request->input('email'))->whereHas('inscription')->first();
+        $player = Player::query()
+            ->where('unique_code', $request->input('uniqueCode'))
+            ->where('identification_document', $request->input('password'))
+            ->whereHas('inscription')->first();
 
         if(!$player || !Hash::check($request->input('password'), $player->password)) {
 
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'uniqueCode' => ['The provided credentials are incorrect.'],
             ]);
         }
 

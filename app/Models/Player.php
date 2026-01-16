@@ -181,6 +181,11 @@ class Player extends Authenticatable
         return $this->belongsTo(School::class, 'school_id');
     }
 
+    public function uniform_requests(): HasMany
+    {
+        return $this->hasMany(UniformRequest::class);
+    }
+
     public function scopeSchool($query)
     {
         return $query->where('school_id', getSchool(auth()->user())->id);

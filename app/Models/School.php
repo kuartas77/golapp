@@ -182,6 +182,16 @@ class School extends Model
         return $this->hasMany(Incident::class);
     }
 
+    public function uniform_requests(): HasMany
+    {
+        return $this->hasMany(UniformRequest::class);
+    }
+
+    public function topic_notifications(): HasMany
+    {
+        return $this->hasMany(TopicNotification::class);
+    }
+
     public function configDefault(): void
     {
         $this->schedules()->create([
