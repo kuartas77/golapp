@@ -15,7 +15,7 @@ class InscriptionRegisterRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        $rules = [
             'g-recaptcha-response' => 'required|recaptchav3:inscriptions,0.5',
             // Step 1
             'names' => ['required', 'string', 'max:50'],
@@ -70,6 +70,12 @@ class InscriptionRegisterRequest extends FormRequest
             'signatureAlumno' => ['nullable', 'string'],
             'school_data' => ['required'],
         ];
+
+        if (env('APP_ENV', null) == 'local') {
+            unset($rules['g-recaptcha-response']);
+        }
+
+        return $rules;
     }
 
     protected function prepareForValidation(): void

@@ -135,6 +135,7 @@ class InscriptionRepository
     public function searchInscriptionCompetition(array $fields)
     {
         return $this->inscription->query()->with('player')
+            ->schoolId()
             ->where('unique_code', $fields['unique_code'])
             ->where(function ($query) use ($fields): void {
                 $query->where('competition_group_id', '<>', $fields['competition_group_id'])

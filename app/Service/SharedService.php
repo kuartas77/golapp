@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Models\Inscription;
+use App\Models\School;
 use App\Models\TrainingGroup;
 use App\Traits\ErrorTrait;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,8 @@ class SharedService
     public function paymentAssist(Inscription $inscription)
     {
         try {
+            $inscription->load('school.settingsValues');
+            $school = $inscription->school;
             DB::beginTransaction();
 
             $start_date = Date::parse($inscription->start_date);
@@ -40,6 +43,7 @@ class SharedService
                     'training_group_id' => $inscription->training_group_id,
                     'school_id' => $inscription->school_id,
                     'unique_code' => $inscription->unique_code,
+                    'enrollment' => $paymentValue,
                     'january' => $paymentValue,
                     'february' => $paymentValue,
                     'march' => $paymentValue,
@@ -56,6 +60,10 @@ class SharedService
 
                 if ($start_date->month > 1) {
                     $this->checkMonthValue($start_date->month, $paymentValue, $dataPayment);
+                }
+
+                if($inscription->school_id == 9 && !$inscription->scholarship) {
+                    $this->debtMonth($school, $start_date->month, $dataPayment);
                 }
 
                 $assistance = [
@@ -97,6 +105,20 @@ class SharedService
         $configMonths = config('variables.KEY_INDEX_MONTHS');
         foreach (range(1, $actualMonth) as $numMonth) {
             $dataPayment[$configMonths[$numMonth]] = ($actualMonth == $numMonth) ? $value : '14'; //No aplica
+        }
+    }
+
+    private function debtMonth(School $school, int $actualMonth, &$dataPayment)
+    {
+        $inscriptionAmount = data_get($school->settings, 'INSCRIPTION_AMOUNT', 70000);
+        $monthlyAmount = data_get($school->settings, 'MONTHLY_PAYMENT', 50000);
+
+        $dataPayment['enrollment'] = '2';
+        $dataPayment['enrollment_amount'] = $inscriptionAmount;
+        $configMonths = config('variables.KEY_INDEX_MONTHS');
+        foreach (range(1, 12) as $numMonth) {
+            $dataPayment[$configMonths[$numMonth]] = '2';
+            $dataPayment[$configMonths[$numMonth].'_amount'] = $monthlyAmount;
         }
     }
 
