@@ -39,7 +39,10 @@
                     <table class="table table-sm table-bordered">
                         <thead class="thead-light">
                             <tr>
-                                <th width="5%">Incluir</th>
+                                <th width="5%">
+                                    <input type="checkbox" name="select_all" id="select_all" class="include-all" checked data-index="all">
+                                    <label for="select_all" class="checkboxsizeletter"></label>
+                                </th>
                                 <th width="25%">Mes</th>
                                 <th width="20%">Descripción</th>
                                 <th width="15%">Cantidad</th>
@@ -260,18 +263,35 @@
             updateTotals();
         });
 
+        // Manejar checkbox "Seleccionar todos"
+        $('#select_all').change(function() {
+            const isChecked = $(this).prop('checked');
+
+            // Seleccionar/deseleccionar todos los checkboxes de meses pendientes
+            $('.include-item').prop('checked', isChecked).trigger('change');
+        });
+
+        // Actualizar estado de "Seleccionar todos" cuando cambien checkboxes individuales
+        $(document).on('change', '.include-item', function() {
+            const totalItems = $('.include-item').length;
+            const checkedItems = $('.include-item:checked').length;
+
+            // Actualizar checkbox "Seleccionar todos"
+            $('#select_all').prop('checked', totalItems === checkedItems);
+        });
+
         // Manejar checkboxes de meses pendientes
         $(document).on('change', '.include-item', function() {
             const row = $(this).closest('tr');
 
             if (!$(this).is(':checked')) {
-                // Deshabilitar solo los inputs específicos que necesitamos, excluyendo el checkbox
+                // Deshabilitar inputs cuando se desmarca el checkbox
                 row.find('input.item-description, input.item-unit-price, input.item-quantity, input[type="hidden"]')
                 .prop('disabled', true)
                 .prop('readonly', true);
                 row.addClass('table-secondary');
             } else {
-                // Habilitar inputs con configuración específica
+                // Habilitar inputs cuando se marca el checkbox
                 row.find('input.item-description, input.item-unit-price')
                 .prop('disabled', false)
                 .prop('readonly', false);
@@ -280,7 +300,6 @@
                 .prop('disabled', false)
                 .prop('readonly', true);
 
-                // Los hidden inputs también deben estar habilitados
                 row.find('input[type="hidden"]')
                 .prop('disabled', false);
 
@@ -289,6 +308,11 @@
 
             updateTotals();
         });
+
+        // Inicializar estado de "Seleccionar todos"
+        const totalItems = $('.include-item').length;
+        const checkedItems = $('.include-item:checked').length;
+        $('#select_all').prop('checked', totalItems === checkedItems);
 
         function calculateRowTotal(row) {
             const quantity = parseFloat(row.find('.item-quantity').val()) || 0;

@@ -129,7 +129,7 @@ const columns = [
     },
     {data: 'unique_code'},//2
     {data: 'player.identification_document'},//3
-    {data: 'player.full_names', name :'players.last_names'},//4
+    {data: 'player.full_names', name :'player.last_names'},//4
     {data: 'player.date_birth', 'searchable': false},//5
     {data: 'player.gender', 'searchable': false},//6
     {data: 'training_group.name', name: 'training_group_id'},//7
