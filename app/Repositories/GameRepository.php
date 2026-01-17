@@ -219,7 +219,7 @@ class GameRepository
     public function exportMatchDetail($competitionGroupId)
     {
         $competitionGroup = CompetitionGroup::find($competitionGroupId)->load([
-            'inscriptions' => fn($q) => $q->with('player')
+            'inscriptions' => fn($q) => $q->with('player')->year()
         ]);
 
         return $competitionGroup->inscriptions;
