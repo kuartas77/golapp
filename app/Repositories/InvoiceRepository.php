@@ -112,7 +112,7 @@ class InvoiceRepository
     {
         $invoice = Invoice::findOrFail($invoiceId);
 
-        PaymentReceived::create([
+        $paymentReceived = PaymentReceived::query()->create([
             'invoice_id' => $invoiceId,
             'amount' => $request->amount,
             'payment_method' => $request->payment_method,
@@ -131,7 +131,7 @@ class InvoiceRepository
             foreach ($request->paid_items as $itemId) {
                 $item = $invoice->items()->find($itemId);
                 if ($item) {
-                    $item->update(['is_paid' => true]);
+                    $item->update(['is_paid' => true, 'payment_received_id' => $paymentReceived->id]);
                 }
             }
 
@@ -143,6 +143,9 @@ class InvoiceRepository
     public function getAllItems()
     {
         $school_id = getSchool(auth()->user())->id;
-        return InvoiceItem::query()->withWhereHas('invoice', fn($q) => $q->where('school_id', $school_id));
+        return InvoiceItem::query()
+            ->select(['invoice_items.*', 'payments_received.payment_method'])
+            ->leftJoin('payments_received', 'payment_received_id', 'payments_received.id')
+            ->withWhereHas('invoice', fn($q) => $q->where('school_id', $school_id));
     }
 }
