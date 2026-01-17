@@ -30,7 +30,7 @@ class PaymentController extends Controller
      */
     public function index(Request $request)
     {
-        view()->share('enabledPaymentOld', false);
+        view()->share('enabledPaymentOld', true);
         if ($request->ajax()) {
             $request->merge(['school_id' => getSchool(auth()->user())->id]);
             return $this->repository->filter($request, false, $request->filled('dataRaw'));

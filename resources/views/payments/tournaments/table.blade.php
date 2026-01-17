@@ -42,11 +42,13 @@
                     <th class="text-center">Nombres</th>
                     <th class="text-center">Torneo</th>
                     <th class="text-center">Pago / Estado</th>
+                    <th class="text-center">Eliminar</th>
                 </tr>
                 </thead>
                 <tbody id="table_body"></tbody>
                 <tfoot>
                     <tr>
+                        <th style="text-align:center"></th>
                         <th style="text-align:center"></th>
                         <th style="text-align:center"></th>
                         <th style="text-align:center"></th>

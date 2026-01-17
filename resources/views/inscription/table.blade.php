@@ -10,7 +10,7 @@
         </li> -->
         <li class="nav-item">
             <a class="nav-link">
-                {{ html()->select('inscription_year', $inscription_years, now()->year)->attributes(['id'=>'inscription_year','class' => 'form-control form-control-sm'])->placeholder('Selecciona...') }}
+                {{ html()->select('inscription_year', $inscription_years, now()->year)->attributes(['id'=>'inscription_year','class' => 'form-control form-control-sm']) }}
             </a>
         </li>
         <li class="nav-item">
@@ -42,8 +42,8 @@
 <div class="tab-content clearfix" id="tab_content">
 
     <div class="tab-pane show active" id="active" role="tabpanel" aria-labelledby="active-tab">
-        <div class="table-responsive-md">
-            <table class="display compact cell-border table-sm" id="active_table">
+        <div class="table-responsive">
+            <table class="display compact cell-border nowrap" id="active_table" style="width:100%">
                 <thead>
                     <tr>
                         <th></th>
@@ -52,10 +52,9 @@
                         <th>Doc.Identidad</th>
                         <th>Nombres</th>
                         <th>F.Nacimiento</th>
-                        <th>Genero</th>
+                        <th>G</th>
                         <th>Grupo</th>
-                        <th>Cert. Médico</th>
-                        <th>Teléfonos</th>
+                        <th>C.Médico</th>
                         <th>F.Inicio</th>
                         <th>Categoría</th>
                         <th>Acciones</th>

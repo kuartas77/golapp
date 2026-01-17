@@ -153,11 +153,11 @@
                 pages: 5 // number of pages to cache
             }),
             "columnDefs": [{
-                    targets: [6, 7],
+                    targets: [7, 8],
                     className: 'dt-body-right',
                 },
                 {
-                    targets: [3, 8],
+                    targets: [3, 9],
                     className: 'dt-body-center dt-head-center',
                 }
             ],
@@ -274,17 +274,17 @@
 
                 // Calculate total for column 4 (e.g., Quantity)
                 const total = api
-                    .column(6)
-                    .data()
-                    .reduce((a, b) => intVal(a) + intVal(b), 0);
-
-                const payment = api
                     .column(7)
                     .data()
                     .reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                api.column(6).footer().innerHTML = `$${formatMoney(total)}`;
-                api.column(7).footer().innerHTML = `$${formatMoney(payment)}`;
+                const payment = api
+                    .column(8)
+                    .data()
+                    .reduce((a, b) => intVal(a) + intVal(b), 0);
+
+                api.column(7).footer().innerHTML = `$${formatMoney(total)}`;
+                api.column(8).footer().innerHTML = `$${formatMoney(payment)}`;
             }
 
         })
