@@ -50,7 +50,7 @@ class TrainingSession extends Model
 
     public function training_group(): BelongsTo
     {
-        return $this->belongsTo(TrainingGroup::class);
+        return $this->belongsTo(TrainingGroup::class, 'training_group_id', 'id');
     }
 
     public function tasks()
