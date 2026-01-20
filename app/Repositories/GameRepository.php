@@ -32,13 +32,13 @@ class GameRepository
         return Game::query()->schoolId()->with([
             'tournament' => fn($q) => $q->withTrashed(),
             'competitionGroup' => fn($q) => $q->with('professor')->withTrashed(),
-        ])->whereYear('created_at', $year)->orderBy('date', 'desc')->get();
+        ])->whereYear('created_at', $year);
     }
 
     /**
      * @param Game|null $game
      */
-    public function getInformationToMatch(Game $game = null): object
+    public function getInformationToMatch(?Game $game = null): object
     {
         if (is_null($game)) {
             $competitionGroup = CompetitionGroup::query()->findOrFail(request('competition_group'));
