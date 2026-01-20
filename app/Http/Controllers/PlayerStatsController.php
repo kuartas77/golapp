@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -82,7 +83,8 @@ class PlayerStatsController extends Controller
             ->join('players as p', 'i.player_id', '=', 'p.id')
             ->whereNull('sc.deleted_at')
             ->where('sc.assistance', 1) // Solo partidos donde asistió
-            ->where('sc.school_id', $school->id);
+            ->where('sc.school_id', $school->id)
+            ->where('i.year', $request->filled('year', now()->year));
 
 
         // Filtros opcionales
@@ -92,6 +94,10 @@ class PlayerStatsController extends Controller
 
         if ($request->filled('player_id')) {
             $query->where('i.player_id', $request->player_id);
+        }
+
+        if ($request->filled('category')) {
+            $query->where('i.category', $request->category);
         }
 
         $players = $query->groupBy('i.player_id', 'p.names', 'p.last_names', 'p.photo')
@@ -110,6 +116,10 @@ class PlayerStatsController extends Controller
             'Delantero' => 'Delantero',
         ]);
 
+        $categories = Cache::remember("KEY_CATEGORIES_SELECT_{$school->id}_PLUCK", now()->addMinutes(5), function() use($school){
+            return DB::table('inscriptions')->where('school_id', $school->id)->where('year', now()->year)->orderBy('category')->groupBy('category')->pluck('category');
+        });
+
         foreach ($players as $player) {
             if (!empty($player->photo) && Storage::disk('public')->exists($player->photo)) {
                 $player->photo = route('images', $player->photo);
@@ -118,7 +128,10 @@ class PlayerStatsController extends Controller
             }
         }
 
-        return view('player-stats.index', compact('players', 'school', 'positions'));
+        return view(
+            'player-stats.index',
+            compact('players', 'school', 'positions', 'categories')
+        );
     }
 
     public function topPlayers()

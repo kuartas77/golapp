@@ -4,9 +4,9 @@
 <x-bread-crumb title="Inicio" :option="1" :birthdays="$birthdays"/>
 <div class="row no-gutters">
 
-    <div class="col-lg-12 col-md-12 col-sm-12">
-        <div class="card m-b-0">
-            <div class="card-body m-b-0">
+    <div class="col-lg-6 col-md-12 col-sm-12">
+        <div class="card ">
+            <div class="card-body ">
                 <h4 class="text-themecolor card-subtitle">Pagos Año {{now()->format('Y')}}</h4>
                 <div class="col-md-12">
                     <div class="chart-payments amp-pxl chartist-chart"></div>
@@ -40,33 +40,33 @@
         </div>
     </div>
 
-    <div class="col-lg-12 col-md-12 col-sm-12">
-        <div class="card m-b-0">
-            <div class="card-body m-b-0">
+    <div class="col-lg-6 col-md-12 col-sm-12">
+        <div class="card">
+            <div class="card-body">
                 <h4 class="text-themecolor card-subtitle">Pagos Año {{now()->subYear()->format('Y')}}</h4>
                 <div class="col-md-12">
                     <div class="chart-payments-old amp-pxl chartist-chart"></div>
                     <div class="text-center">
                         <ul class="list-inline">
                             <li>
-                                <h6 class="" style="color: #1e88e5;">
+                                <a href="javascript:void(0);" class="" style="color: #1e88e5;">
                                     <i class="fa fa-circle font-10 m-r-10 "></i>Pagaron (<span id="past_year_payment"></span>)
-                                </h6>
+                                </a>
                             </li>
                             <li>
-                                <h6 class="" style="color: red;">
+                                <a href="javascript:void(0);" class="" style="color: red;">
                                     <i class="fa fa-circle font-10 m-r-10"></i>Deben (<span id="past_year_due"></span>)
-                                </h6>
+                                </a>
                             </li>
                             <li>
-                                <h6 class="" style="color: #ffb22b;">
+                                <a href="javascript:void(0);" class="" style="color: #ffb22b;">
                                     <i class="fa fa-circle font-10 m-r-10"></i>Becados (<span id="past_year_scholarship"></span>)
-                                </h6>
+                                </a>
                             </li>
                             <li>
-                                <h6 class="" style="color: #26c6da;">
+                                <a href="javascript:void(0);" class="" style="color: #26c6da;">
                                     <i class="fa fa-circle font-10 m-r-10"></i>Pendientes (<span id="past_year_pending"></span>)
-                                </h6>
+                                </a>
                             </li>
                         </ul>
                         <h4 class="text-themecolor card-subtitle">Totales, sumando todos los meses</h4>

@@ -22,6 +22,18 @@
                     </select>
                 </div>
 
+                <div class="col-md-3">
+                    <label for="category" class="form-label">Categoría</label>
+                    <select name="category" id="category" class="form-control form-control-sm">
+                        <option value="">Todas las categorias</option>
+                        @foreach($categories as $key)
+                        <option value="{{ $key }}" {{ request('category') == $key ? 'selected' : '' }}>
+                        {{ $key }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <div class="col-md-6 d-flex align-items-end text-end">
                     <div class="btn-group w-100">
                         <button type="submit" class="btn btn-primary btn-sm">
