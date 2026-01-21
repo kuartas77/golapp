@@ -83,8 +83,8 @@ class PlayerStatsController extends Controller
             ->join('players as p', 'i.player_id', '=', 'p.id')
             ->whereNull('sc.deleted_at')
             ->where('sc.assistance', 1) // Solo partidos donde asistió
-            ->where('sc.school_id', $school->id)
-            ->where('i.year', $request->filled('year', now()->year));
+            ->where('sc.school_id', $school->id);
+            // ->where('i.year', $request->filled('year', now()->year));
 
 
         // Filtros opcionales
