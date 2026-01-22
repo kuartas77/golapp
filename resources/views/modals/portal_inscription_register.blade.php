@@ -23,8 +23,8 @@
     const url_autocomplete = "{{ route('portal.autocomplete.fields') }}";
     const url_search = "{{ route('portal.autocomplete.search_doc') }}";
     const form_inscripcion = $("#form_inscripcion");
-    const MinDateBirth = moment().subtract(18, 'year'); //TODO: settings
-    const MaxDateBirth = moment().subtract(4, 'year'); //TODO: settings
+    const MinDateBirth = moment().subtract(20, 'year'); //TODO: settings
+    const MaxDateBirth = moment().subtract(3, 'year'); //TODO: settings
     const fileSize = 3;
 
     $("#filesize").html(`${fileSize} `)
