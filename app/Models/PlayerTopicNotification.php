@@ -3,27 +3,22 @@
 namespace App\Models;
 
 use App\Traits\GeneralScopes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class UniformRequest extends Model
+class PlayerTopicNotification extends Pivot
 {
-    use HasFactory;
     use GeneralScopes;
 
-    protected $table = "uniform_request";
+    public $incrementing = true;
+
+    protected $table = "player_topic_notifications";
 
     protected $fillable = [
+        'topic_notification_id',
         'school_id',
         'player_id',
-        'type',
-        'status',
-        'quantity',
-        'size',
-        'additional_notes',
-        'rejection_reason',
-        'rejected_at',
+        'is_read',
     ];
 
     public function school(): BelongsTo

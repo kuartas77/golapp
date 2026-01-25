@@ -13,12 +13,14 @@ return new class extends Migration
     {
         Schema::create('topic_notifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('school_id')->nullable()->constrained()->onDelete('set null');
+            $table->unsignedBigInteger('school_id');
             $table->string('topic');
             $table->string('title');
             $table->text('body');
             $table->string('image_url')->nullable();
             $table->timestamps();
+
+            $table->foreign('school_id')->references('id')->on('schools')->constrained()->onDelete('cascade');
         });
     }
 

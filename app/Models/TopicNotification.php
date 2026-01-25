@@ -6,6 +6,7 @@ use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class TopicNotification extends Model
 {
@@ -25,5 +26,10 @@ class TopicNotification extends Model
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
+    }
+
+    public function players(): BelongsToMany
+    {
+        return $this->belongsToMany(Player::class)->using(PlayerTopicNotification::class)->withPivot(['is_read']);
     }
 }

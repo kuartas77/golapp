@@ -11,19 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('uniform_request', function (Blueprint $table) {
+        Schema::create('player_topic_notification', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('topic_notification_id');
             $table->unsignedBigInteger('school_id');
             $table->unsignedBigInteger('player_id');
-            $table->enum('type', ['UNIFORM', 'BALL', 'SOCKS', 'SHOES', 'SHORTS', 'JERSEY', 'OTHER']);
-            $table->enum('status', ['PENDING', 'APPROVED', 'REJECTED','CANCELLED'])->default('PENDING');
-            $table->smallInteger(column:'quantity', unsigned:true)->default(1);
-            $table->string('size', 10)->nullable();
-            $table->text('additional_notes')->nullable();
-            $table->string('rejection_reason')->nullable();
-            $table->timestamp('rejected_at')->nullable();
+            $table->boolean('is_read');
             $table->timestamps();
 
+            $table->foreign('topic_notification_id')->references('id')->on('topic_notifications')->constrained()->onDelete('cascade');
             $table->foreign('school_id')->references('id')->on('schools')->constrained()->onDelete('cascade');
             $table->foreign('player_id')->references('id')->on('players')->constrained()->onDelete('cascade');
         });
@@ -34,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('uniform_request');
+        Schema::dropIfExists('player_topic_notification');
     }
 };

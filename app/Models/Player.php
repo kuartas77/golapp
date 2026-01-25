@@ -75,7 +75,7 @@ class Player extends Authenticatable
         'remember_token',
     ];
 
-    protected $appends = ['full_names', 'url_edit', 'url_show', 'url_impression', 'photo_url', 'photo_local', 'photo_url_public'];
+    // protected $appends = ['full_names', 'url_edit', 'url_show', 'url_impression', 'photo_url', 'photo_local', 'photo_url_public'];
 
     public function getRouteKeyName(): string
     {
@@ -184,6 +184,14 @@ class Player extends Authenticatable
     public function uniform_requests(): HasMany
     {
         return $this->hasMany(UniformRequest::class);
+    }
+
+    public function notifications_unread(): BelongsToMany
+    {
+        return $this->belongsToMany(TopicNotification::class)
+            ->using(PlayerTopicNotification::class)
+            ->withPivot(['is_read'])
+            ->wherePivot('is_read', false);
     }
 
     public function scopeSchool($query)
