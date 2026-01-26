@@ -40,16 +40,16 @@ jQuery(function() {
     });
 });
 
-// $('body').on('change', 'select.assist', function()  {
-//     let element = $(this)
-//     let data = element.parent().parent().find('input, select').serializeArray();
-//     let id = element.parent().parent().find('input').val();
-//     if (this.value === '') {return;}
-//     changeColorAssist(element)
-//     data.push({name: '_method', value: 'PUT'});
-//     $.post(url_current + `/${id}`, data);
+$('body').on('change', 'select.assist', function()  {
+    let element = $(this)
+    let data = element.parent().parent().find('input, select').serializeArray();
+    let id = element.parent().parent().find('input').val();
+    if (this.value === '') {return;}
+    changeColorAssist(element, this.value)
+    data.push({name: '_method', value: 'PUT'});
+    $.post(url_current + `/${id}`, data);
 
-// });
+});
 
 $('body').on('click', 'a.assist', function()  {
     selectRow = $(this)
@@ -167,32 +167,36 @@ const initTable = () => {
 
 function changeColorAssist(domelement, value = null){
     let element = $(domelement)
-
-element.html(options[value])
-        console.log(element, value)
+    // element.html(options[value])
     switch (value) {
-        case '1':
+        case "1":
             element.removeClass(removeAllClass)
             element.addClass('color-success')
+            console.log('color-success')
             break;
-        case '2':
+        case "2":
             element.removeClass(removeAllClass)
             element.addClass('color-error')
+            console.log('color-error')
             break;
-        case '3':
+        case "3":
             element.removeClass(removeAllClass)
             element.addClass('color-orange')
+            console.log('color-orange')
             break;
-        case '4':
+        case "4":
             element.removeClass(removeAllClass)
             element.addClass('color-grey')
+            console.log('color-grey')
             break;
-        case '5':
+        case "5":
             element.removeClass(removeAllClass)
             element.addClass('color-warning')
+            console.log('color-warning')
             break;
         default:
             element.removeClass(removeAllClass)
+            console.log('default')
             break
     }
     element.blur()
