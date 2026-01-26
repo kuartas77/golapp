@@ -48,13 +48,14 @@
     <a class="waves-effect waves-dark" href="{{route('inscriptions.index')}}" aria-expanded="false"><i class="fas fa-id-card"></i><span class="hide-menu">Inscripciones</span></a>
 </li>
 
-<li class="{{ Request::is('payments*') ? 'active' : '' }}">
-    <a class="waves-effect waves-dark" href="{{route('payments.index')}}" aria-expanded="false"><i class="fas fa-dollar-sign"></i><span class="hide-menu">Mensualidades</span></a>
+<li class="">
+    <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><i class="fas fa-dollar-sign"></i><span class="hide-menu"> Pagos</span></a>
+    <ul aria-expanded="false" class="collapse">
+        <li><a href="{{route('payments.index')}}">Mensualidades</a></li>
+        <li><a href="{{route('tournamentpayout.index')}}">Torneos</a></li>
+    </ul>
 </li>
 
-<li class="{{ Request::is('tournamentpayout*') ? 'active' : '' }}">
-    <a class="waves-effect waves-dark" href="{{route('tournamentpayout.index')}}" aria-expanded="false"><i class="fas fa-dollar-sign"></i><span class="hide-menu">Pagos Torneos</span></a>
-</li>
 
 <li class="{{ Request::is('invoices*') ? 'active' : '' }}">
     <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><i class="fas fa-dollar-sign"></i><span class="hide-menu"> Facturación</span></a>

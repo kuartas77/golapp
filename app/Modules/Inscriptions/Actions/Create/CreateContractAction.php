@@ -155,6 +155,8 @@ final class CreateContractAction implements IContractPassable
         $variables['TUTOR_NAME']        = data_get($tutor, 'names', '');
         $variables['TUTOR_DOC']         = data_get($tutor, 'identification_card', '');
         $variables['SIGN_TUTOR']        = isset($this->paths['sign_tutor']) ? storage_path("app/public/" . $this->paths['sign_tutor']) : '';
+        $variables['TUTOR_MAIL']        = data_get($tutor, 'email', '');
+        $variables['TUTOR_PHONE']        = data_get($tutor, 'mobile', '');
 
         $variables['MOTHER_NAMES']      = data_get($mother, 'names', '');
         $variables['MOTHER_MOBILE']     = data_get($mother, 'mobile', '');

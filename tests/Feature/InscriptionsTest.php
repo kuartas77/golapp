@@ -203,7 +203,7 @@ final class InscriptionsTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $testResponse = $this->get(route('inscriptions.edit', [$inscription->id]));
+        $testResponse = $this->get(route('inscriptions.edit', [$inscription->unique_code]));
 
         $testResponse->assertStatus(200);
 

@@ -23,7 +23,7 @@ class MatchesViewComposer
 
             $years = Cache::remember('KEY_MIN_YEAR_' . $school_id, now()->addDay(), function () use ($school_id) {
                 $minYear = Game::getMinYear($school_id);
-                return range($minYear, now()->year);
+                return collect(range($minYear, now()->year))->reverse()->toArray();
             });
 
             $tournaments = Cache::remember('KEY_TOURNAMENT_' . $school_id, now()->addDay(), function () {

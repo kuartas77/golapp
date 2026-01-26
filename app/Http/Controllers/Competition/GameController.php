@@ -19,9 +19,21 @@ class GameController extends Controller
         $this->repository = $repository;
     }
 
-    public function index(Request $request): JsonResponse
+    /**
+     * @param Request $request
+     * @return Application|Factory|JsonResponse|View
+     */
+    public function index(Request $request)
     {
-        return response()->json([], 204);
+        if ($request->ajax()) {
+            return datatables()->of(
+                $this->repository->getDatatable(request('year_', now()->year))
+            )
+            ->filterColumn('tournament_id', fn ($query, $keyword) => $query->where('tournament_id', $keyword))
+            ->filterColumn('competition_group_id', fn ($query, $keyword) => $query->where('competition_group_id', $keyword))
+            ->toJson();
+        }
+        return view('competition.match.index');
     }
 
     public function store(CompetitionStoreRequest $request): JsonResponse

@@ -12,6 +12,7 @@
                     <th>Deportista</th>
                     <th>Tipo</th>
                     <th>Descripción</th>
+                    <th>Metodo Pago</th>
                     <th class="text-center">Cantidad</th>
                     <th class="text-right">Precio Unitario</th>
                     <th class="text-right">Total</th>
@@ -22,6 +23,7 @@
             <tfoot>
                 <tr>
                     <th>Totales:</th>
+                    <th></th>
                     <th></th>
                     <th></th>
                     <th></th>
@@ -56,6 +58,26 @@
 
         select.append('<option value="1">Pagado</option>')
         select.append('<option value="0">Pendiente</option>')
+    }
+
+    function addSelectPaymentMethod(column) {
+        let select = $('<select><option value="">Método Pago</option></select>')
+        .appendTo($(column.header()).empty())
+        .on('change', function () {
+            let val = $.fn.dataTable.util.escapeRegex(
+                $(this).val()
+            );
+
+            column
+                .search(val ? val : '', true, false)
+                .draw();
+        });
+
+        select.append('<option value="cash">Efectivo</option>')
+        select.append('<option value="card">Tarjeta</option>')
+        select.append('<option value="transfer">Transferencia</option>')
+        select.append('<option value="check">Cheque</option>')
+        select.append('<option value="other">Otro</option>')
     }
 
     function filterTable() {
@@ -100,7 +122,11 @@
             });
 
         // Apply the search
-        this.api().columns(8).every(function () {
+        this.api().columns(5).every(function () {
+            let column = this;
+            addSelectPaymentMethod(column)
+        });
+        this.api().columns(9).every(function () {
             let column = this;
             addSelectStatus(column)
         });
@@ -127,11 +153,11 @@
                 pages: 5 // number of pages to cache
             }),
             "columnDefs": [{
-                    targets: [6, 7],
+                    targets: [7, 8],
                     className: 'dt-body-right',
                 },
                 {
-                    targets: [3, 8],
+                    targets: [3, 9],
                     className: 'dt-body-center dt-head-center',
                 }
             ],
@@ -144,7 +170,7 @@
                 },
                 {
                     data: 'created_at',
-                    name: 'created_at',
+                    name: 'invoice_items.created_at',
                     searchable: true,
                     orderable: false,
                     render: (data, type, row) => moment(data).format('DD/MM/YYYY')
@@ -166,6 +192,36 @@
                     data: 'description',
                     name: 'description',
                     searchable: true,
+                    orderable: false
+                },
+                {
+                    data: 'payment_method',
+                    name: 'payment_method',
+                    searchable: true,
+                    render: (data, type, row) => {
+                        let badge = ''
+                        switch (data) {
+                            case 'cash':
+                                badge = '<span class="badge">Efectivo</span>'
+                                break;
+                            case 'card':
+                                badge = '<span class="badge">Tarjeta</span>'
+                                break;
+                            case 'transfer':
+                                badge = '<span class="badge">Transferencia</span>'
+                                break;
+                            case 'check':
+                                badge = '<span class="badge">Cheque</span>'
+                                break;
+                            case 'other':
+                                badge = '<span class="other">Otro</span>'
+                                break;
+
+                            default:
+                                break;
+                        }
+                        return badge
+                    },
                     orderable: false
                 },
                 {
@@ -218,17 +274,17 @@
 
                 // Calculate total for column 4 (e.g., Quantity)
                 const total = api
-                    .column(6)
-                    .data()
-                    .reduce((a, b) => intVal(a) + intVal(b), 0);
-
-                const payment = api
                     .column(7)
                     .data()
                     .reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                api.column(6).footer().innerHTML = `$${formatMoney(total)}`;
-                api.column(7).footer().innerHTML = `$${formatMoney(payment)}`;
+                const payment = api
+                    .column(8)
+                    .data()
+                    .reduce((a, b) => intVal(a) + intVal(b), 0);
+
+                api.column(7).footer().innerHTML = `$${formatMoney(total)}`;
+                api.column(8).footer().innerHTML = `$${formatMoney(payment)}`;
             }
 
         })

@@ -33,29 +33,22 @@ Route::middleware(['auth'])->prefix('test')->group(function () {
 
     Route::get('contract', function (Request $request) {
 
-        $player = Player::with('people')->find(560);
+        $validated = $request->validate([
+            'school_id' => ['required', 'numeric'],
+            'document' => ['required', 'numeric'],
+        ]);
 
-        $people = $player->people;
+        if (!$validated) {
+            return response()->json($validated, 422);
+        }
 
-        $tutor = $people->firstWhere('tutor', true);
-        $mother = $people->whereIn('relationship', ['15', '16'])->first();
-        $dad = $people->whereIn('relationship', ['20', '21'])->first();
+        $params = $request->only(['school_id']);
+        $params['empty'] = true;
 
-        dd($mother, $dad);
-
-        // $validated = $request->validate([
-        //     'school_id' => ['required', 'numeric'],
-        //     'document' => ['required', 'numeric'],
-        // ]);
-
-        // if (!$validated) {
-        //     return response()->json($validated, 422);
-        // }
-
-        // return PDFContractTest::makeContract(
-        //     documentOption: $request->input('document', 0),
-        //     filename: 'CONTRATO.pdf',
-        //     params: $request->only(['school_id'])
-        // );
+        return PDFContractTest::makeContract(
+            documentOption: $request->input('document', 0),
+            filename: 'CONTRATO.pdf',
+            params: $params
+        );
     });
 });

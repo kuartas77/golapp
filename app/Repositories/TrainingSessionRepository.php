@@ -18,7 +18,7 @@ class TrainingSessionRepository
 
     public function list()
     {
-        return $this->trainingSession->query()->with(['school', 'user', 'training_group'])->withCount(['tasks'])->schoolId()->get();
+        return $this->trainingSession->query()->whereHas('training_group')->with(['school', 'user', 'training_group'])->withCount(['tasks'])->schoolId()->get();
     }
 
     public function store(array $payload): ?TrainingSession

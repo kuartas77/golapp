@@ -29,15 +29,62 @@
     const url_current = "{{URL::current()}}";
     const url_create = "{{route('matches.create')}}";
     const competitionGroups = @json($competitionGroups);
+    const tournaments = @json($tournaments);
     let actualYear = moment().format("YYYY")
     let selectYear = moment().format("YYYY")
 
+    function filterTable() {
+
+        // Apply the search
+        this.api().columns(0).every(function () {
+            let column = this;
+            tournamentsFilter(column)
+        });
+        this.api().columns(1).every(function () {
+            let column = this;
+            competitionGroupsFilter(column)
+        });
+
+        $.fn.dataTable.tables({visible: true, api: true}).columns.adjust();
+    }
+
+    function tournamentsFilter(column) {
+        let select = $('<select><option value="">Torneo</option></select>')
+        .appendTo($(column.header()).empty())
+        .on('change', function () {
+            let val = $.fn.dataTable.util.escapeRegex($(this).val());
+            column.search(val , true, false).draw();
+        });
+
+        $.each(tournaments,function(index, value){
+            if(index !== "") {
+                select.append('<option value="' + index + '">' + value + '</option>')
+            }
+        });
+    }
+
+    function competitionGroupsFilter(column) {
+
+        let select = $('<select><option value="">G. Competencia</option></select>')
+        .appendTo($(column.header()).empty())
+        .on('change', function () {
+            let val = $.fn.dataTable.util.escapeRegex($(this).val());
+            column.search(val , true, false).draw();
+        });
+
+        $.each(competitionGroups,function(index, value){
+            select.append('<option value="' + index + '">' + value + '</option>')
+        });
+    }
+
     $(document).ready(function() {
         $('#partidos-table').DataTable({
+            dom: 'ltip',//lftip
             "lengthMenu": [
                 [10, 20, 30, -1],
                 [10, 20, 30, "Todos"]
             ],
+            initComplete: filterTable,
             "processing": true,
             "serverSide": true,
             "ajax": $.fn.dataTable.pipeline({
@@ -47,39 +94,17 @@
             "order": [
                 [2, 'desc'],
             ],
-            "columns": [{
-                    data: 'tournament.name'
-                },
-                {
-                    data: 'competition_group.name'
-                },
-                {
-                    data: 'date'
-                },
-                {
-                    data: 'hour'
-                },
-                {
-                    data: 'place'
-                },
-                {
-                    data: 'num_match'
-                },
-                {
-                    data: 'rival_name'
-                },
-                {
-                    data: 'final_score',
-                    render: function(data, type, row, meta) {
-                        return `${data.soccer} - ${data.rival}`;
-                    }
-                },
-                {
-                    data: 'general_concept_short'
-                },
-                {
-                    data: 'id',
-                    render: function(data, type, row, meta) {
+            "columns": [
+                { data: 'tournament.name', name: 'tournament_id', orderable: false },
+                { data: 'competition_group.name', name: 'competition_group_id', orderable: false },
+                { data: 'date', searchable: false },
+                { data: 'hour' , searchable: false, orderable: false},
+                { data: 'place' , searchable: false, orderable: false},
+                { data: 'num_match' , searchable: false, orderable: false},
+                { data: 'rival_name', searchable: false, orderable: false},
+                { data: 'final_score', render: (data, type, row, meta) => `${data.soccer} - ${data.rival}` , searchable: false, orderable: false},
+                { data: 'general_concept_short', searchable: false, orderable: false},
+                { data: 'id', render: function(data, type, row, meta) {
                         btnEdit = selectYear !== actualYear ? '' : '<a href="' + row.url_edit + '" class="btn btn-info btn-xs"><i class="fas fa-pencil-alt" aria-hidden="true"></i></a>';
                         btnDelete = selectYear !== actualYear ? '' : '<button type="submit" class="btn btn-danger btn-xs" onclick="confirmDelete(this, event)"><i class="fas fa-trash-alt" aria-hidden="true"></i></button>';
 
@@ -88,7 +113,7 @@
                             btnEdit +
                             btnDelete +
                             '</div></form>';
-                    }
+                    } , searchable: false, orderable: false
                 },
             ]
         });

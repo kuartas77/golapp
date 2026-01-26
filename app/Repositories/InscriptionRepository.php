@@ -135,13 +135,13 @@ class InscriptionRepository
 
     public function searchInscriptionCompetition(array $fields): ?Inscription
     {
-        return $this->inscription->query()->with('player')
+        return Inscription::query()->with('player')
             ->where('unique_code', $fields['unique_code'])
-            ->where(function ($query) use ($fields): void {
-                $query->where('competition_group_id', '<>', $fields['competition_group_id'])
-                    ->orWhere('competition_group_id', null);
-            })
+            ->whereHas(
+                'competitionGroup',
+                fn($q)=> $q->where('competition_group_id', $fields['competition_group_id']), '<=', 0)
             ->where('year', now()->year)
+            ->schoolId()
             ->first();
     }
 

@@ -27,7 +27,7 @@
             </div>
             <div class="col-md-6 mb-3">
                 <div class="form-group">
-                    <label for="payment_receipt">Adjunte recibo de consignación o transferencia (<span class="text-danger">*</span>)</label>
+                    <label for="payment_receipt">Adjunte recibo de consignación o transferencia (Opcional)</label>
                     <input type="file" accept="image/png, image/jpeg, application/pdf" name="payment_receipt" id="payment_receipt">
                 </div>
             </div>

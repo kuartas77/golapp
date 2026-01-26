@@ -23,8 +23,8 @@
     const url_autocomplete = "{{ route('portal.autocomplete.fields') }}";
     const url_search = "{{ route('portal.autocomplete.search_doc') }}";
     const form_inscripcion = $("#form_inscripcion");
-    const MinDateBirth = moment().subtract(18, 'year'); //TODO: settings
-    const MaxDateBirth = moment().subtract(4, 'year'); //TODO: settings
+    const MinDateBirth = moment().subtract(20, 'year'); //TODO: settings
+    const MaxDateBirth = moment().subtract(3, 'year'); //TODO: settings
     const fileSize = 3;
 
     $("#filesize").html(`${fileSize} `)
@@ -74,7 +74,7 @@
             player_document: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
             medical_certificate: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
             tutor_document: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
-            payment_receipt: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
+            payment_receipt: {required: false, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
 
             contrato_aff: {required: true},
             contrato_insc: {required: true},
