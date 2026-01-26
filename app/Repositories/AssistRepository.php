@@ -135,6 +135,7 @@ class AssistRepository
     public function update(Assist $assist, array $validated): bool
     {
         try {
+
             DB::beginTransaction();
             if ($assist->observations || ($validated['observations'] && $validated['attendance_date'])) {
                 if ($assist->observations !== null && is_object($assist->observations)) {
@@ -143,8 +144,10 @@ class AssistRepository
                     $observations = new \stdClass;
                 }
 
-                $observations->{$validated['attendance_date']} = $validated['observations'];
-                $validated['observations'] = $observations;
+                if(isset($validated['attendance_date'])) {
+                    $observations->{$validated['attendance_date']} = $validated['observations'];
+                    $validated['observations'] = $observations;
+                }
             }
 
             $updated = $assist->update($validated);

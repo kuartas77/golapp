@@ -4,7 +4,7 @@
             <form id="form_attendance" class="form-material m-t-0">
                 @csrf
                 <div class="modal-header">
-                    <h4 class="modal-title" id="modal_title text-uppercase"><strong>Tomar Asistencia:</strong>&nbsp;<span id="player_name"></span></h4>
+                    <h4 class="modal-title" id="modal_title text-uppercase"><strong>Observaciones:</strong>&nbsp;<span id="player_name"></span></h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 </div>
                 <div class="modal-body">
@@ -37,12 +37,12 @@
                             </div>
                         </div>
 
-                        <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                        {{--<div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                             <div class="form-group">
                                 <label for="select_attendance">¡Selecciona!:</label>
                                 {!! html()->select(null, $optionAssist, null)->attributes(['class' => "form-control form-control-sm", "id" => 'select_attendance', 'required'])->placeholder('Selecciona...') !!}
                             </div>
-                        </div>
+                        </div>--}}
 
                         <div class="col-md-12 col-sm-12 col-lg-12 col-xs-12">
                             <div class="form-group">
