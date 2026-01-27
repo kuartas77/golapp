@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('title');
             $table->text('body');
             $table->string('image_url')->nullable();
+            $table->smallInteger(column:'tries', unsigned:true)->default(3);
+            $table->smallInteger(column:'tries_count', unsigned:true)->default(0);
             $table->timestamps();
 
             $table->foreign('school_id')->references('id')->on('schools')->constrained()->onDelete('cascade');
