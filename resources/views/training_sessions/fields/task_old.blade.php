@@ -4,8 +4,8 @@
        <div class="col-md-12">
            <div class="form-group form-group-sm">
                 <label for="task_name_{{$task}}">Ejercicio N° {{$task}}</label>
-                <input type="hidden" name="task_number[]" value="{{$task}}" id="task_number_{{$task}}">
-                {!! html()->text('task_name[]', null)->attributes(['class' => 'form-control form-control-sm','id' => 'task_name_'.$task]) !!}
+                <input type="hidden" name="task_number[]" value="{{$task}}">
+                {{html()->select('task_name[]', $tasks, null)->attributes(['class' => 'form-control form-control-sm','id' => 'task_name_'.$task])->placeholder('Selecciona...')}}
            </div>
        </div>
    </div>
@@ -15,7 +15,7 @@
            <div class="form-group form-group-sm">
                <label for="general_objective_{{$task}}">Objetivo General </label>
                <span class="bar"></span>
-               {!! html()->text('general_objective[]', null)->attributes(['class' => 'form-control form-control-sm','id' => 'general_objective_'.$task]) !!}
+               {{html()->select('general_objective[]', $generals, null)->attributes(['class' => 'form-control form-control-sm','id' => 'general_objective_'.$task])->placeholder('Selecciona...')}}
            </div>
        </div>
 
@@ -23,7 +23,7 @@
            <div class="form-group form-group-sm">
                <label for="specific_goal_{{$task}}">Objetivo Específico </label>
                <span class="bar"></span>
-               {!! html()->text('specific_goal[]', null)->attributes(['class' => 'form-control form-control-sm','id' => 'specific_goal_'.$task]) !!}
+               {{html()->select('specific_goal[]', $specifics, null)->attributes(['class' => 'form-control form-control-sm','id' => 'specific_goal_'.$task])->placeholder('Selecciona...')}}
            </div>
        </div>
 
@@ -31,11 +31,11 @@
            <div class="form-group form-group-sm">
                <span >Contenidos</span>
                <span class="bar"></span>
-               {!! html()->text('content_one[]', null)->attributes(['class' => 'form-control form-control-sm','id' => 'content_one_'.$task]) !!}
+               {{html()->select('content_one[]', $contents, null)->attributes(['class' => 'form-control form-control-sm','id' => 'content_one_'.$task])->placeholder('Selecciona...')}}
 
-               {!! html()->text('content_two[]', null)->attributes(['class' => 'form-control form-control-sm','id' => 'content_two_'.$task]) !!}
+               {{html()->select('content_two[]', $contents, null)->attributes(['class' => 'form-control form-control-sm','id' => 'content_two_'.$task])->placeholder('Selecciona...')}}
 
-               {!! html()->text('content_three[]', null)->attributes(['class' => 'form-control form-control-sm','id' => 'content_three_'.$task]) !!}
+               {{html()->select('content_three[]', $contents, null)->attributes(['class' => 'form-control form-control-sm','id' => 'content_three_'.$task])->placeholder('Selecciona...')}}
            </div>
        </div>
    </div>
@@ -72,7 +72,7 @@
            <div class="form-group form-group-sm">
                <label for="observations{{$task}}">Observaciones</label>
                <span class="bar"></span>
-               {!! html()->textarea('observations[]', null)->attributes(['class' => 'form-control form-control-sm','size'=>'3x5','id' => 'observations_'.$task]) !!}
+               {!! html()->textarea('observations[]', null)->attributes(['class' => 'form-control form-control-sm','size'=>'3x5','id' => 'observations'.$task]) !!}
            </div>
        </div>
     </div>
