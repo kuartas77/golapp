@@ -30,7 +30,7 @@ jQuery(function() {
             $.post(url_current, data, (response) => {
                 swal.fire({
                     title: 'Atención!!',
-                    text: `Se Han Creado ${response.count} Asistencia(s).`,
+                    text: `Se Han Creado Asistencia.`,
                     type: 'info',
                     showCancelButton: false,
                     timer: 1500
@@ -122,7 +122,7 @@ $("#form_observation").validate({
 
 const validateData = ({table, group_name, count, url_print, url_print_excel}, search) => {
     if (count > 0) {
-        let message = search ? `Se Han Encontrado ${count} Asistencia(s).` : `Se Han Creado ${count} Asistencia(s).`;
+        let message = search ? `Se Han Encontrado Asistencia(s).` : `Se Han Creado Asistencia(s).`;
         tableActive.destroy();
         $("#enabled").empty().append(table);
         $('#group_name').empty().append(group_name);
