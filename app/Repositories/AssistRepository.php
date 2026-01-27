@@ -137,17 +137,15 @@ class AssistRepository
         try {
 
             DB::beginTransaction();
-            if ($assist->observations || ($validated['observations'] && $validated['attendance_date'])) {
+            if ($assist->observations || (isset($validated['attendance_date'], $validated['attendance_date']))) {
                 if ($assist->observations !== null && is_object($assist->observations)) {
                     $observations = $assist->observations;
                 } else {
                     $observations = new \stdClass;
                 }
 
-                if(isset($validated['attendance_date'])) {
-                    $observations->{$validated['attendance_date']} = $validated['observations'];
-                    $validated['observations'] = $observations;
-                }
+                $observations->{$validated['attendance_date']} = $validated['observations'];
+                $validated['observations'] = $observations;
             }
 
             $updated = $assist->update($validated);
