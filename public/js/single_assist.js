@@ -44,7 +44,6 @@ $('body').on('change', 'select.assist', function()  {
     let element = $(this)
     let data = element.parent().parent().find('input, select').serializeArray();
     let id = element.parent().parent().find('input').val();
-    if (this.value === '') {return;}
     changeColorAssist(element, this.value)
     data.push({name: '_method', value: 'PUT'});
     $.post(url_current + `/${id}`, data);
