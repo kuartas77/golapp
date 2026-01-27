@@ -159,9 +159,12 @@ class DataTableController extends Controller
         ->addColumn('hour', '{{$hour}}')
         ->addColumn('created_at', fn($model) => $model->created_at->format('Y-m-d'))
         ->addColumn('buttons', function($model){
+            $editRoute = route('training-sessions.show', [$model->id]);
+            $updateRoute = route('training-sessions.update', [$model->id]);
             $exportPdfURL = route('export.training_sessions.pdf', [$model->id]);
             return '<div class="btn-group">'
             .'<a href="'.$exportPdfURL.'" target="_blank" class="btn btn-info btn-xs"><i class="fas fa-print" aria-hidden="true"></i></a>'
+            .'<a href="javascript:void(0)" data-toggle="modal" data-target-custom="#modal_training_sessions" data-backdrop="static" data-keyboard="false" data-edit="'.$editRoute.'" data-update="'.$updateRoute.'" class="btn btn-warning btn-xs edit_session" title="Modificar Sesion"><i class="fas fa-pencil-alt"></i></a>'
             .'</div>';
         })
         ->escapeColumns([])
