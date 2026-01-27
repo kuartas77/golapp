@@ -83,7 +83,7 @@ class AssistRepository
 
             DB::commit();
 
-            $table = $this->service->generateTable($assistsQuery, $trainingGroup, $dataAssist);
+            // $table = $this->service->generateTable($assistsQuery, $trainingGroup, $dataAssist);
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("AssistRepository create", $exception);
