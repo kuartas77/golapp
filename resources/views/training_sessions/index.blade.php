@@ -54,6 +54,12 @@
                 'ts[]': {number: true},
                 'sr[]': {maxlength: 15},
                 'tt[]': {number: true},
+                'task_name[]': {maxlength: 100},
+                'general_objective[]': {maxlength: 50},
+                'specific_goal[]': {maxlength: 50},
+                'content_one[]': {maxlength: 50},
+                'content_two[]': {maxlength: 50},
+                'content_three[]': {maxlength: 50},
             }
         });
 
