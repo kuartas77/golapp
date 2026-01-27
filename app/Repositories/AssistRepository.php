@@ -144,8 +144,10 @@ class AssistRepository
                     $observations = new \stdClass;
                 }
 
-                $observations->{$validated['attendance_date']} = $validated['observations'];
-                $validated['observations'] = $observations;
+                if(isset($validated['attendance_date'])) {
+                    $observations->{$validated['attendance_date']} = $validated['observations'];
+                    $validated['observations'] = $observations;
+                }
             }
 
             $updated = $assist->update($validated);
