@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Http\Resources\API\Invoices;
+namespace App\Http\Resources\API\Notification\Invoices;
 
-use App\Http\Resources\API\Invoices\InvoiceResource;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use JsonSerializable;

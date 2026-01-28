@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\API\Invoices;
+namespace App\Http\Resources\API\Notification\Invoices;
 
 use App\Models\Invoice;
 use Illuminate\Contracts\Support\Arrayable;
@@ -9,6 +9,7 @@ use JsonSerializable;
 
 class ItemInvoiceResource extends JsonResource
 {
+    public static $wrap = null;
     public $resource = Invoice::class;
     /**
      * Transform the resource into an array.

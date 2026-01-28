@@ -91,7 +91,7 @@ final class CreatePlayerAction implements IContractPassable
     {
         foreach ($this->attributes as $attribute => $value) {
             if($attribute == 'photo' && $value instanceof UploadedFile){
-                $this->attributes['photo'] = $this->uploadFile($value, $this->school->slug);
+                $this->attributes['photo'] = $this->uploadFile($value, $this->school->slug, 'players');
             }
         }
 

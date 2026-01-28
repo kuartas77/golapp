@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\API\Notifications\InvoiceController;
 use App\Http\Controllers\API\Notifications\LoginPlayerController;
-use App\Http\Controllers\API\Notifications\RequestController;
+use App\Http\Controllers\API\Notifications\UniformRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('login', [LoginPlayerController::class, 'login']);
@@ -21,17 +21,23 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
         Route::get('statistics', [InvoiceController::class, 'statistics']);
 
-        Route::post('store', [InvoiceController::class, 'store']);
+        Route::post('payment', [InvoiceController::class, 'payment']);
+
+        Route::get('/{invoice}', [InvoiceController::class, 'show']);
 
     });
 
 
     Route::prefix('requests')->group(function() {
-        Route::get('', [RequestController::class, 'index']);
+        Route::get('', [UniformRequestController::class, 'index']);
 
-        Route::get('statistics', [RequestController::class, 'statistics']);
+        Route::get('statistics', [UniformRequestController::class, 'statistics']);
 
-        Route::post('store', [RequestController::class, 'store']);
+        Route::post('store', [UniformRequestController::class, 'store']);
+
+        Route::get('/{uniformRequest}', [UniformRequestController::class, 'show']);
+
+        Route::get('/{uniformRequest}/cancel', [UniformRequestController::class, 'cancel']);
     });
         // TODO:rutas
 

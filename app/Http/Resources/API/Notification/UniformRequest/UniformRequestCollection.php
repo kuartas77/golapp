@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Resources\API\Invoices;
+namespace App\Http\Resources\API\Notification\UniformRequest;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use JsonSerializable;
 
-class ItemInvoiceCollection extends ResourceCollection
+class UniformRequestCollection extends ResourceCollection
 {
+    public static $wrap = null;
     /**
      * Transform the resource into an array.
      *
@@ -17,7 +18,7 @@ class ItemInvoiceCollection extends ResourceCollection
     public function toArray($request): array|JsonSerializable|Arrayable
     {
         return $this->collection->map(function ($item) {
-            return new ItemInvoiceResource($item);
+            return new UniformRequestResource($item);
         })->toArray();
     }
 }

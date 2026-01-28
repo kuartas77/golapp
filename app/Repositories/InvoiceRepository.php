@@ -14,6 +14,20 @@ use Illuminate\Support\Str;
 
 class InvoiceRepository
 {
+    public function invoicesPlayer()
+    {
+        $player = request()->user();
+        $player->load(['inscription.invoices.items']);
+        return $player->inscription->invoices;
+    }
+
+    public function statisticsPlayer()
+    {
+        $player = request()->user();
+        $player->load(['inscription.invoices.items']);
+        return data_get($player->inscription, 'invoices', collect());
+    }
+
     public function query(): Builder
     {
         $school_id = getSchool(auth()->user())->id;

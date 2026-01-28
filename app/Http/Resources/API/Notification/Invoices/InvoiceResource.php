@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\API\Invoices;
+namespace App\Http\Resources\API\Notification\Invoices;
 
 use App\Models\Invoice;
 use Carbon\Carbon;
@@ -11,7 +11,8 @@ use JsonSerializable;
 
 class InvoiceResource extends JsonResource
 {
-     public $resource = Invoice::class;
+    public static $wrap = null;
+    public $resource = Invoice::class;
     /**
      * Transform the resource into an array.
      *
