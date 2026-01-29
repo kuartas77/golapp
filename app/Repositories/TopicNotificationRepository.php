@@ -9,6 +9,20 @@ class TopicNotificationRepository
 {
     use ErrorTrait;
 
+    public function getPlayerNotifications()
+    {
+        $player = request()->user();
+        $player->load('notifications_unread');
+        return $player->notifications_unread;
+    }
+
+    public function getPlayerNotification($id)
+    {
+        $player = request()->user();
+        $player->load('notifications_unread');
+        return $player->notifications_unread->firstWhere('id', $id);
+    }
+
     public function getAll()
     {
         return TopicNotification::query()->schoolId();

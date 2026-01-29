@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\Notifications\InvoiceController;
 use App\Http\Controllers\API\Notifications\LoginPlayerController;
+use App\Http\Controllers\API\Notifications\NotificationController;
 use App\Http\Controllers\API\Notifications\UniformRequestController;
 use Illuminate\Support\Facades\Route;
 
@@ -10,9 +11,10 @@ Route::post('login', [LoginPlayerController::class, 'login']);
 Route::middleware(['auth:sanctum'])->group(function(){
 
     Route::prefix('notifications')->group(function() {
-        Route::get('', function(){
-            return response()->json([]);
-        });
+        Route::get('', [NotificationController::class, 'index']);
+        Route::get('/{topic_notification}', [NotificationController::class, 'show']);
+        Route::put('/read-all', [NotificationController::class, 'readAll']);
+        Route::put('/{topic_notification}/read', [NotificationController::class, 'read']);
     });
 
     Route::prefix('invoices')->group(function() {
@@ -27,7 +29,6 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
     });
 
-
     Route::prefix('requests')->group(function() {
         Route::get('', [UniformRequestController::class, 'index']);
 
@@ -39,6 +40,5 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
         Route::get('/{uniformRequest}/cancel', [UniformRequestController::class, 'cancel']);
     });
-        // TODO:rutas
 
 });

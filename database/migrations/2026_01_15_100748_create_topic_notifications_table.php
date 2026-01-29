@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('school_id');
             $table->string('topic');
+            $table->enum('type', ['REQUEST_UPDATE','PAYMENT_CONFIRMATION','SYSTEM_ALERT','REMINDER','GENERAL'])->default('GENERAL');
+            $table->enum('priority', ['LOW','NORMAL','HIGH','URGENT'])->default('NORMAL');
             $table->string('title');
             $table->text('body');
             $table->string('image_url')->nullable();

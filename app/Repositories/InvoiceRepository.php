@@ -9,11 +9,18 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Payment;
 use App\Models\PaymentReceived;
+use App\Models\PaymentRequest;
+use App\Traits\ErrorTrait;
+use App\Traits\UploadFile;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class InvoiceRepository
 {
+    use ErrorTrait;
+    use UploadFile;
+
     public function invoicesPlayer()
     {
         $player = request()->user();
@@ -26,6 +33,40 @@ class InvoiceRepository
         $player = request()->user();
         $player->load(['inscription.invoices.items']);
         return data_get($player->inscription, 'invoices', collect());
+    }
+
+    public function createPaymentRequest(array $validated): ?Invoice
+    {
+        $invoice = null;
+        try {
+            $player = request()->user();
+            $player->load('schoolData');
+            $school = $player->schoolData;
+
+            $paymentRequest = new PaymentRequest();
+            $paymentRequest->school_id = $player->school_id;
+            $paymentRequest->player_id = $player->id;
+            $paymentRequest->invoice_id = $validated['invoice_id'];
+            $paymentRequest->amount = $validated['amount'];
+            $paymentRequest->description = $validated['description'];
+            $paymentRequest->reference_number = $validated['reference_number'];
+            $paymentRequest->payment_method = $validated['payment_method'];
+
+            $paymentRequest->image = $this->uploadFile($validated['image'], $school->slug, 'invoice_receipts');
+
+            $paymentRequest->save();
+            DB::commit();
+
+            $paymentRequest->load('invoice.items');
+
+            $invoice = $paymentRequest->invoice;
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            $this->logError('InvoiceRepository@createPaymentRequest', $th);
+        }
+
+        return $invoice;
     }
 
     public function query(): Builder

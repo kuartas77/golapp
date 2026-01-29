@@ -21,6 +21,10 @@ class PlayerTopicNotification extends Pivot
         'is_read',
     ];
 
+    protected $casts = [
+        'is_read' => 'boolean',
+    ];
+
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
