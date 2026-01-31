@@ -10,6 +10,7 @@ use App\Models\InvoiceItem;
 use App\Models\Payment;
 use App\Models\PaymentReceived;
 use App\Models\PaymentRequest;
+use App\Models\UniformRequest;
 use App\Traits\ErrorTrait;
 use App\Traits\UploadFile;
 use Illuminate\Database\Eloquent\Builder;
@@ -35,46 +36,10 @@ class InvoiceRepository
         return data_get($player->inscription, 'invoices', collect());
     }
 
-    public function createPaymentRequest(array $validated): ?Invoice
-    {
-        $invoice = null;
-        try {
-            $player = request()->user();
-            $player->load('schoolData');
-            $school = $player->schoolData;
-
-            $paymentRequest = new PaymentRequest();
-            $paymentRequest->school_id = $player->school_id;
-            $paymentRequest->player_id = $player->id;
-            $paymentRequest->invoice_id = $validated['invoice_id'];
-            $paymentRequest->amount = $validated['amount'];
-            $paymentRequest->description = $validated['description'];
-            $paymentRequest->reference_number = $validated['reference_number'];
-            $paymentRequest->payment_method = $validated['payment_method'];
-
-            $paymentRequest->image = $this->uploadFile($validated['image'], $school->slug, 'invoice_receipts');
-
-            $paymentRequest->save();
-            DB::commit();
-
-            $paymentRequest->load('invoice.items');
-
-            $invoice = $paymentRequest->invoice;
-
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            $this->logError('InvoiceRepository@createPaymentRequest', $th);
-        }
-
-        return $invoice;
-    }
-
     public function query(): Builder
     {
-        $school_id = getSchool(auth()->user())->id;
-
         return Invoice::with(['inscription.player', 'trainingGroup'])
-            ->where('school_id', $school_id);
+            ->schoolId();
     }
 
     public function createInvoice($inscriptionId)
@@ -88,6 +53,7 @@ class InvoiceRepository
         $currentYear = date('Y');
         $payment = Payment::where('inscription_id', $inscriptionId)
             ->where('year', $currentYear)
+            ->with('inscription:id,player_id')
             ->first();
 
         $pendingMonths = [];
@@ -120,10 +86,12 @@ class InvoiceRepository
             }
         }
 
-        return [$inscription, $pendingMonths];
+        $pendingUniformRequests = $this->addUniformRequest($payment->inscription->player_id);
+
+        return [$inscription, $pendingMonths, $pendingUniformRequests];
     }
 
-    public function storeInvoide(InvoiceStoreRequest $request): mixed
+    public function storeInvoice(InvoiceStoreRequest $request): mixed
     {
         // Generar número de factura único
         $invoiceNumber = 'FAC-' . strtoupper(Str::random(6)) . '-' . date('Ymd');
@@ -149,7 +117,7 @@ class InvoiceRepository
 
         foreach ($request->items as $itemData) {
 
-            $invoice->items()->create([
+            $item = [
                 'type' => $itemData['type'],
                 'description' => $itemData['description'],
                 'quantity' => $itemData['quantity'],
@@ -157,7 +125,14 @@ class InvoiceRepository
                 'month' => $itemData['month'] ?? null,
                 'payment_id' => $itemData['payment_id'] ?? null,
                 'is_paid' => false,
-            ]);
+                'uniform_request_id' => $itemData['uniform_request_id'] ?? null,
+            ];
+
+            $invoice->items()->create($item);
+
+            if(isset($item['uniform_request_id'])) {
+                UniformRequest::where('id', $item['uniform_request_id'])->update(['status' => 'APPROVED']);
+            }
         }
 
         return $invoice->id;
@@ -197,7 +172,34 @@ class InvoiceRepository
 
     public function getAllItems()
     {
-        $school_id = getSchool(auth()->user())->id;
-        return InvoiceItem::query()->withWhereHas('invoice', fn($q) => $q->where('school_id', $school_id));
+        return InvoiceItem::query()->withWhereHas('invoice', fn($q) => $q->schoolId());
+    }
+
+    private function addUniformRequest($playerId)
+    {
+        $uniformRequests = UniformRequest::query()
+            ->where('player_id', $playerId)
+            ->where('status', 'PENDING')
+            ->get();
+
+        $pendingUniformRequests = [];
+        if($uniformRequests->isNotEmpty()) {
+            foreach ($uniformRequests as $uniformRequests) {
+
+                if(isset(config('variables.KEY_POSITIONS')[$uniformRequests->type])) {
+                    $type = config('variables.KEY_POSITIONS')[$uniformRequests->type] . " Talla: {$uniformRequests->size}";
+                }else{
+                    $type = $uniformRequests->additional_notes . " Talla: {$uniformRequests->size}";
+                }
+
+                $pendingUniformRequests[] = [
+                    'description' => $type,
+                    'uniform_request_id' => $uniformRequests->id,
+                    'quantity' => $uniformRequests->quantity,
+                ];
+            }
+        }
+
+        return $pendingUniformRequests;
     }
 }

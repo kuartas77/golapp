@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
 class PaymentRequest extends Model
 {
+    use GeneralScopes;
+
     protected $table = 'payment_request';
     protected $fillable = [
         'school_id',
@@ -23,6 +26,8 @@ class PaymentRequest extends Model
         'amount' => 'decimal:2',
     ];
 
+    protected $appends = ['url_image'];
+
     public function invoice()
     {
         return $this->belongsTo(Invoice::class);
@@ -38,7 +43,7 @@ class PaymentRequest extends Model
         return $this->belongsTo(Player::class);
     }
 
-    public function getImageAttribute(): ?string
+    public function getUrlImageAttribute(): ?string
     {
         if (!empty($this->attributes['image']) && Storage::disk('public')->exists($this->attributes['image'])) {
             return route('images', $this->attributes['image']);

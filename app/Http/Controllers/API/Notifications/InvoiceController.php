@@ -9,11 +9,12 @@ use App\Http\Resources\API\Notification\Invoices\InvoiceResource;
 use App\Http\Resources\API\Notification\Invoices\InvoiceStatistcsResource;
 use App\Models\Invoice;
 use App\Repositories\InvoiceRepository;
+use App\Repositories\PaymentRequestRepository;
 use Illuminate\Http\JsonResponse;
 
 class InvoiceController extends Controller
 {
-    public function __construct(private InvoiceRepository $invoice_repository)
+    public function __construct(private InvoiceRepository $invoice_repository, private PaymentRequestRepository $payment_request_repository)
     {
         //
     }
@@ -30,7 +31,7 @@ class InvoiceController extends Controller
 
     public function payment(PaymentInvoiceRequest $request): InvoiceResource
     {
-        $invoice = $this->invoice_repository->createPaymentRequest($request->validated());
+        $invoice = $this->payment_request_repository->createPaymentRequest($request->validated());
         return new InvoiceResource($invoice);
     }
 

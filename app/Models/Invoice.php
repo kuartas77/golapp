@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Invoice extends Model
 {
     use SoftDeletes;
+    use GeneralScopes;
 
     protected $fillable = [
         'invoice_number',
@@ -32,7 +34,7 @@ class Invoice extends Model
         'due_date' => 'date',
     ];
 
-    protected $appends = ['url_print', 'url_destroy'];
+    protected $appends = ['url_print', 'url_destroy', 'url_show'];
 
     public function getUrlDestroyAttribute(): string
     {
@@ -42,6 +44,11 @@ class Invoice extends Model
     public function getUrlprintAttribute(): string
     {
         return route('invoices.print', [$this->attributes['invoice_number']]);
+    }
+
+    public function getUrlShowAttribute(): string
+    {
+        return route('invoices.show', [$this->attributes['id']]);
     }
 
     public function inscription()
@@ -72,6 +79,11 @@ class Invoice extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function paymentRequests()
+    {
+        return $this->hasMany(PaymentRequest::class);
     }
 
     // Obtener los meses pendientes de la tabla payments

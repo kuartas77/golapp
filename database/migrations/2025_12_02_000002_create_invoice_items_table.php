@@ -27,6 +27,7 @@ return new class extends Migration
             ])->nullable();
             $table->foreignId('payment_id')->nullable()->constrained('payments')->onDelete('set null');
             $table->boolean('is_paid')->default(false);
+            $table->integer('uniform_request_id', false, true)->nullable();
             $table->timestamps();
         });
     }

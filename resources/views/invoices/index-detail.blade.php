@@ -1,8 +1,9 @@
 @extends('layouts.app')
-@section('title', 'Facturas')
+@section('title', 'Items Facturas')
 @section('content')
-<x-bread-crumb title="Facturas" :option="0" />
+<x-bread-crumb title="Items Facturas" :option="0" />
 <x-row-card col-inside="12">
+    <p>En esta página podrás encontrar los items de todas las facturas.</p>
     <div class="table-responsive-md">
         <table class="display compact cell-border" id="invoicesTable">
             <thead class="thead-light">
@@ -194,7 +195,7 @@
                     searchable: true,
                     orderable: false,
                     render: function(data, type, row) {
-                        let badge = '<span class="badge badge-danger">Pendiente</span>'
+                        let badge = '<span class="badge badge-warning">Pendiente</span>'
 
                         if (data == '1') {
                             badge = '<span class="badge badge-success">Pagada</span>'

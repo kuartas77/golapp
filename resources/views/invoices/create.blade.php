@@ -31,7 +31,7 @@
             <div class="card-header bg-light">
                 <h5 class="mb-0">
                     <i class="fas fa-calendar-alt"></i> Meses Pendientes
-                    <small class="text-muted">(Desde Mensualidades)</small>
+                    <small class="text-muted">(Desde Mensualidades) Hasta que no tengan estado pagado seguiran apareciendo en las facturas nuevas, presta atencíon ya que se puede facturar varias veces.</small>
                 </h5>
             </div>
             <div class="card-body">
@@ -118,6 +118,33 @@
                         </thead>
                         <tbody id="additionalItemsBody">
                             <!-- Los ítems adicionales se agregarán aquí -->
+
+                            @if(count($pendingUniformRequests) > 0)
+                            @foreach($pendingUniformRequests as $uniformRequest)
+                            <tr class="item-row" data-index="{{$loop->index}}">
+                                <td>
+                                    <input type="text" class="form-control form-control-sm item-description" name="items[{{$loop->index}}][description]" placeholder="Descripción del ítem" required="" value="{{$uniformRequest['description']}}">
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm item-quantity" name="items[{{$loop->index}}][quantity]" value="{{$uniformRequest['quantity']}}" min="1" required="">
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm item-unit-price" name="items[{{$loop->index}}][unit_price]" value="0" step="1" min="1" required="">
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm item-total" value="0" readonly="">
+                                    <input type="hidden" name="items[{{$loop->index}}][type]" value="additional">
+                                    <input type="hidden" name="items[{{$loop->index}}][uniform_request_id]" value="{{$uniformRequest['uniform_request_id']}}">
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-danger remove-item">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            @endforeach
+                            @endif
+
                         </tbody>
                     </table>
                 </div>

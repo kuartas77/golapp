@@ -75,6 +75,7 @@
             <label for="ANNUITY">Precio de la Anualidad </label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
             <input type="text" name="ANNUITY" id="ANNUITY" class="form-control money" required autocomplete="off" value="{{$annuity}}">
+            <small class="form-text text-muted">Se debe agregar el valor por mes en la anualidad, no el total de la anualidad.</small>
         </div>
     </div>
 
@@ -97,9 +98,41 @@
     @if($school->inscriptions_enabled)
     <div class="col-md-3">
         <label>Enlace:</label>
-        <a href="https://app.golapp.com.co/portal/escuelas/{{$school->slug}}">Enlace Inscripciones</a>
+        <a href="https://app.golapp.com.co/portal/escuelas/{{$school->slug}}" id="link-inscription">Enlace Inscripciones</a>
         <br>
-        <small class="text-muted">Si tiene la sesión iniciada el enlace no te sirve.</small>
+        <small class="text-muted">Al hacer click, el enlace se guardará en el portapapeles.</small>
     </div>
     @endif
 </div>
+@push('scripts')
+<script>
+    $('#link-inscription').click(async function(event) {
+        event.preventDefault();
+        const link = $(this).attr('href')
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                await navigator.clipboard.writeText(link);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+        } else {
+            // Fallback for non-secure contexts or old browsers
+            const textarea = document.createElement('textarea');
+            textarea.value = link;
+            // Move the textarea outside the viewport to make it invisible
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('Fallback copying failed: ', err);
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+    });
+</script>
+@endpush

@@ -5,6 +5,8 @@ use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupCo
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Invoices\InvoiceController;
 use App\Http\Controllers\Invoices\ItemInvoicesController;
+use App\Http\Controllers\Notifications\PaymentRequestController;
+use App\Http\Controllers\Notifications\UniformRequestsController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\Reports\ReportAssistsController;
@@ -144,6 +146,8 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'addPayment'])->name('invoices.addPayment');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
     Route::get('items/invoices', [ItemInvoicesController::class, 'index'])->name('items.invoices.index');
+    Route::get('payment-request/invoices', [PaymentRequestController::class, 'index'])->name('payment-request.index');
+    Route::get('uniform-request/invoices', [UniformRequestsController::class, 'index'])->name('uniform-request.index');
 
 
     Route::get('/player-stats', [PlayerStatsController::class, 'index'])->name('player.stats');

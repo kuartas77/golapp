@@ -17,6 +17,31 @@ class UniformRequestRepository
         return $player->uniform_requests;
     }
 
+    public function queryTable()
+    {
+        $generalQuery = UniformRequest::query()
+        ->select([
+            'uniform_request.*',
+            'inscriptions.id as inscription_id',
+            DB::raw("concat(players.names, ' ', players.last_names) AS full_names")
+        ])
+        ->join('players', 'uniform_request.player_id', '=', 'players.id')
+        ->join('inscriptions', function($join) {
+            $join->on('players.id', '=', 'inscriptions.player_id')
+            ->where('year', now()->year)
+            ->whereNull('inscriptions.deleted_at');
+        })
+        ->schoolId();
+
+        return datatables()->of($generalQuery)
+        ->filterColumn('created_at', fn($query, $keyword) => $query->whereDate('uniform_request.created_at', $keyword))
+        ->filterColumn('full_names', function($query, $keyword) {
+            $sql = "CONCAT(players.names, ' ', players.last_names) like ?";
+            $query->whereRaw($sql, ["%{$keyword}%"]);
+        })
+        ->toJson();
+    }
+
     public function store(array $validated): array|UniformRequest
     {
         $model = [];
