@@ -102,7 +102,7 @@ final class SendDocumentsAction implements IContractPassable
             $destinations = [];
             $destinations[$school['email']] = $school['name'];
             Notification::route('mail', $destinations)->notify(
-                (new InscriptionToSchoolNotification($this->inscription, $this->school))->onQueue('golapp-emails')
+                (new InscriptionToSchoolNotification($this->inscription, $this->school))
             );
         }
     }
@@ -134,7 +134,7 @@ final class SendDocumentsAction implements IContractPassable
             }
 
             Notification::route('mail', $destinations)->notify(
-                (new InscriptionNotification($this->inscription, $contracts))->onQueue('golapp-emails')
+                (new InscriptionNotification($this->inscription, $contracts))
             );
         }
     }
