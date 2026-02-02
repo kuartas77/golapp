@@ -36,6 +36,6 @@ class EmailSentListener
 
     private function notificationInscription($inscription, $school)
     {
-        dispatch(new DeleteDocuments($school->slug, (string)$inscription->unique_code))->delay(now()->addWeek())->onQueue('cleaner');
+        dispatch(new DeleteDocuments($school->slug, (string)$inscription->unique_code))->delay(now()->addWeek());
     }
 }
