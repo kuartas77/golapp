@@ -22,7 +22,6 @@ class EmailSentListener
 
         switch ($notification) {
             case InscriptionNotification::class:
-            case InscriptionToSchoolNotification::class:
                 $inscription = data_get($event->data, 'inscription');
                 $school = data_get($inscription, 'school');
                 $this->notificationInscription($inscription, $school);
