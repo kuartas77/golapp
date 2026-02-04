@@ -142,7 +142,7 @@ class InvoiceRepository
     {
         $invoice = Invoice::findOrFail($invoiceId);
 
-        PaymentReceived::create([
+        $paymentReceived = PaymentReceived::query()->create([
             'invoice_id' => $invoiceId,
             'amount' => $request->amount,
             'payment_method' => $request->payment_method,
@@ -161,7 +161,7 @@ class InvoiceRepository
             foreach ($request->paid_items as $itemId) {
                 $item = $invoice->items()->find($itemId);
                 if ($item) {
-                    $item->update(['is_paid' => true]);
+                    $item->update(['is_paid' => true, 'payment_received_id' => $paymentReceived->id]);
                 }
             }
 

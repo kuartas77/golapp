@@ -15,5 +15,5 @@
         let url_enabled = "{{route('training_groups.enabled')}}";
         let url_disabled = "{{route('training_groups.retired')}}";
     </script>
-    <script src="{{asset('js/trainingGroupIndex.js')}}" defer></script>
+    <script src="{{mix('js/trainingGroupIndex.js')}}" defer></script>
 @endsection

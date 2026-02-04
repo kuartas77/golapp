@@ -30,7 +30,7 @@ jQuery(function() {
             $.post(url_current, data, (response) => {
                 swal.fire({
                     title: 'Atención!!',
-                    text: `Se Han Creado ${response.count} Asistencia(s).`,
+                    text: `Se Han Creado Asistencia.`,
                     type: 'info',
                     showCancelButton: false,
                     timer: 1500
@@ -40,16 +40,15 @@ jQuery(function() {
     });
 });
 
-// $('body').on('change', 'select.assist', function()  {
-//     let element = $(this)
-//     let data = element.parent().parent().find('input, select').serializeArray();
-//     let id = element.parent().parent().find('input').val();
-//     if (this.value === '') {return;}
-//     changeColorAssist(element)
-//     data.push({name: '_method', value: 'PUT'});
-//     $.post(url_current + `/${id}`, data);
+$('body').on('change', 'select.assist', function()  {
+    let element = $(this)
+    let data = element.parent().parent().find('input, select').serializeArray();
+    let id = element.parent().parent().find('input').val();
+    changeColorAssist(element, this.value)
+    data.push({name: '_method', value: 'PUT'});
+    $.post(url_current + `/${id}`, data);
 
-// });
+});
 
 $('body').on('click', 'a.assist', function()  {
     selectRow = $(this)
@@ -123,7 +122,7 @@ $("#form_observation").validate({
 
 const validateData = ({table, group_name, count, url_print, url_print_excel}, search) => {
     if (count > 0) {
-        let message = search ? `Se Han Encontrado ${count} Asistencia(s).` : `Se Han Creado ${count} Asistencia(s).`;
+        let message = search ? `Se Han Encontrado Asistencia(s).` : `Se Han Creado Asistencia(s).`;
         tableActive.destroy();
         $("#enabled").empty().append(table);
         $('#group_name').empty().append(group_name);
@@ -167,32 +166,36 @@ const initTable = () => {
 
 function changeColorAssist(domelement, value = null){
     let element = $(domelement)
-
-element.html(options[value])
-        console.log(element, value)
+    // element.html(options[value])
     switch (value) {
-        case '1':
+        case "1":
             element.removeClass(removeAllClass)
             element.addClass('color-success')
+            console.log('color-success')
             break;
-        case '2':
+        case "2":
             element.removeClass(removeAllClass)
             element.addClass('color-error')
+            console.log('color-error')
             break;
-        case '3':
+        case "3":
             element.removeClass(removeAllClass)
             element.addClass('color-orange')
+            console.log('color-orange')
             break;
-        case '4':
+        case "4":
             element.removeClass(removeAllClass)
             element.addClass('color-grey')
+            console.log('color-grey')
             break;
-        case '5':
+        case "5":
             element.removeClass(removeAllClass)
             element.addClass('color-warning')
+            console.log('color-warning')
             break;
         default:
             element.removeClass(removeAllClass)
+            console.log('default')
             break
     }
     element.blur()

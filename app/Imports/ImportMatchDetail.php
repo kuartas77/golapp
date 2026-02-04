@@ -15,7 +15,7 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
 {
     private $data;
 
-    public function __construct(private $matchId)
+    public function __construct(private $matchId = null)
     {
         $this->data = collect();
     }
@@ -51,7 +51,9 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
                     'observation' => $row['observacion'],
                 ]);
 
-                $skillControll->save();
+                if($this->matchId) {
+                    $skillControll->save();
+                }
 
                 $skillControll->inscription = $inscription;
 

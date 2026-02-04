@@ -60,7 +60,10 @@ final class SendDocumentsAction implements IContractPassable
 
     public function storeDocumentsLocal(string $year, string $uniqueCode): void
     {
-        $folderDocuments = $this->school->slug . DIRECTORY_SEPARATOR . $uniqueCode;
+        $base = 'tmp'. DIRECTORY_SEPARATOR .$this->school->slug;
+        $short = data_get($this->school, 'short_name', 'tmp');
+        $folderPlayer = "{$short}-{$this->player->unique_code}";
+        $folderDocuments = trim($base, "/\\") . DIRECTORY_SEPARATOR . $folderPlayer;
 
         foreach (Inscription::$documentFields as $field) {
 
@@ -91,7 +94,7 @@ final class SendDocumentsAction implements IContractPassable
 
             $destinationFile = str_replace(['[NAME]'], [$name], $filename);
 
-            $this->paths[$field] = Storage::putFileAs($folderDocuments, $file, $destinationFile, 'public');
+            $this->paths[$field] = Storage::disk('local')->putFileAs($folderDocuments, $file, $destinationFile, 'public');
         }
     }
 
@@ -102,7 +105,7 @@ final class SendDocumentsAction implements IContractPassable
             $destinations = [];
             $destinations[$school['email']] = $school['name'];
             Notification::route('mail', $destinations)->notify(
-                (new InscriptionToSchoolNotification($this->inscription, $this->school))->onQueue('emails')
+                (new InscriptionToSchoolNotification($this->inscription, $this->school))
             );
         }
     }
@@ -134,7 +137,7 @@ final class SendDocumentsAction implements IContractPassable
             }
 
             Notification::route('mail', $destinations)->notify(
-                (new InscriptionNotification($this->inscription, $contracts))->onQueue('emails')
+                (new InscriptionNotification($this->inscription, $contracts))
             );
         }
     }

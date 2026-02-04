@@ -81,7 +81,11 @@ function checkValue(element){
         }else{
             input.val(monthly_payment)
         }
-    }else if(input_val != annuity && ['11','12'].includes(element.val())){
+    }
+    else if(input_val == 0 && ['2'].includes(element.val())){
+        input.val(monthly_payment)
+    }
+    else if(input_val != annuity && ['11','12'].includes(element.val())){
         verifyInputs(element, annuity)
     }else if(input_val == annuity && ['11','12'].includes(element.val())){
         verifyInputs(element, annuity)
@@ -96,30 +100,31 @@ function checkValue(element){
     }
 }
 
-function verifyInputs(element, value = 0){
-    let dataId = element.data('id')
-    let inputs = element.parent().parent().find('input.payments_amount, select.payments')
+/**
+ * Verifica y actualiza inputs relacionados
+ */
+function verifyInputs(element, value = 0) {
+    const dataId = element.data('id');
+    const inputs = element.parent().parent().find('input.payments_amount, select.payments');
 
-    $.each(inputs, function(_, domElement){
-        let domInput = $(domElement)
-        let domInputId = $(domElement).data('id')
-        let input_val = domInput.val().replace(/[\$,]/g, '') * 1
+    inputs.each((_, domElement) => {
+        const $input = $(domElement);
+        const inputId = $input.data('id');
+        const inputValue = parseFloat($input.val().replace(/[\$,]/g, '')) || 0;
 
-        if(!domInput.attr('name').includes('enrollment')){
-            if(domInput.is('select') && domInputId >= dataId){
-                domInput.val(element.val())
-                changeColors(domInput)
-            }
-            else {
-                if(input_val != 0 ){
-                    changeColors(domInput)
-                }
-                else{
-                    domInput.val(value);
-                }
-            }
+        if ($input.attr('name').includes('enrollment')) {
+            return; // Continuar con el siguiente elemento
         }
-    })
+
+        if ($input.is('select') && inputId >= dataId) {
+            $input.val(element.val());
+            changeColors($input);
+        } else if (inputValue !== 0) {
+            changeColors($input);
+        } else {
+            $input.val(value);
+        }
+    });
 }
 
 //inicia la tabla con datatables

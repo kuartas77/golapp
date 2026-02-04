@@ -70,7 +70,7 @@ class InscriptionCreateComposer
             });
 
             $inscription_years = Cache::remember("KEY_INSCRIPTION_YEARS_{$school_id}", now()->addMinutes(5), function () use($school_id) {
-                return Inscription::query()->where('school_id', $school_id)->distinct('year')->orderBy('year')->pluck('year', 'year');
+                return Inscription::query()->where('school_id', $school_id)->distinct('year')->orderBy('year','desc')->pluck('year', 'year');
             });
 
             $categories = Cache::remember("KEY_CATEGORIES_SELECT_{$school_id}", now()->addMinutes(5), function() use($school_id){

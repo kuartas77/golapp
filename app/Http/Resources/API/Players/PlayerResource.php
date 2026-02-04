@@ -40,6 +40,7 @@ class PlayerResource extends JsonResource
             'full_names' => $this->full_names,
             'photo_url' => str_replace('img/dynamic', 'api/img/dynamic', $this->photo_url),
             'group_id' => $this->when($request->has('group_id'), $request->group_id),
+            'inscription_id' => $this->inscription_id
         ];
 
         if($this->loadRelations) {

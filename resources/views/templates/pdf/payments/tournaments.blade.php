@@ -25,6 +25,7 @@
             <th class="text-center">Nombres</th>
             <th class="text-center">Torneo</th>
             <th class="text-center">Estado</th>
+            <th class="text-right">Valor</th>
         </tr>
     </thead>
     <tbody>
@@ -35,6 +36,7 @@
             </td>
             <td class="text-center">{{$tournament->name}}</td>
             @include('templates.payments.tournaments.color',['value' => $payment->status])
+            <td class="text-right">{{ $payment->value }}</td>
         </tr>
         @endforeach
     </tbody>

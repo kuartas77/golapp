@@ -65,7 +65,7 @@ class InscriptionUpdateRequest extends FormRequest
             'school_id' => getSchool(auth()->user())->id,
             'year' => $startDate->year,
             'start_date' => $startDate,
-            'category' => Date::parse($dateBirth)->year,
+            'category' => categoriesName(Date::parse($dateBirth)->year),
             'photos' => $this->input('photos', false),
             'copy_identification_document' => $this->input('copy_identification_document', false),
             'eps_certificate' => $this->input('eps_certificate', false),

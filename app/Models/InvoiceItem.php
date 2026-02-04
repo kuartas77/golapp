@@ -16,7 +16,8 @@ class InvoiceItem extends Model
         'month',
         'payment_id',
         'is_paid',
-        'uniform_request_id'
+        'payment_received_id',
+        'uniform_request_id',
     ];
 
     protected $casts = [
@@ -34,6 +35,11 @@ class InvoiceItem extends Model
     public function originalPayment()
     {
         return $this->belongsTo(Payment::class, 'payment_id');
+    }
+
+    public function paymentReceived()
+    {
+        return $this->belongsTo(PaymentReceived::class, 'payment_received_id');
     }
 
     protected static function boot()

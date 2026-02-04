@@ -62,7 +62,7 @@ class VerifyMonthlyPaymentsDue extends Command
                 if($duePayments->isNotEmpty()) {
                     $users = User::query()->where('school_id', $school->id)->role('school')->get();
                     if($users->isNotEmpty()) {
-                        Mail::to($users)->send((new DuePayments($school->name, $month, $duePayments))->onQueue('emails'));
+                        Mail::to($users)->send((new DuePayments($school->name, $month, $duePayments)));
                     }
                 }
             }

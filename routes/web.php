@@ -40,7 +40,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::resource("players", PlayerController::class);
     Route::resource("tournamentpayout", TournamentPayoutsController::class)->only(['index', 'store', 'update']);
 
-    Route::resource("training-sessions", TrainingSessionsController::class)->only(['index', 'create', 'store']);
+    Route::resource("training-sessions", TrainingSessionsController::class)->only(['index', 'create', 'store', 'update', 'show']);
 
     Route::get('statuses/payments', [PaymentController::class, 'paymentStatuses'])->name('payments.status');
 

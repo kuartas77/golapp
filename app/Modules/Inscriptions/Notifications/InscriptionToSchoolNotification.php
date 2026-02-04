@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\Inscriptions\Notifications;
 
-use Illuminate\Support\Facades\File;
-use Illuminate\Notifications\Notification;
-use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Bus\Queueable;
+use App\Jobs\DeleteTempZipAndPlayerFolder;
 use App\Models\Inscription;
 use App\Models\School;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Storage;
 
 class InscriptionToSchoolNotification extends Notification implements ShouldQueue
 {
@@ -48,9 +49,16 @@ class InscriptionToSchoolNotification extends Notification implements ShouldQueu
             ->subject("Notificación de Registro.")
             ->markdown('emails.inscriptions.new_school', ['inscription' => $this->inscription, 'school' => $this->school, 'sendContract' => true]);
 
-        $pathFile = $this->attachment();
+        [$zipAbsolute, $zipRelative, $playerFolder] = $this->attachment();
 
-        $mailMessage->attach($pathFile);
+        $mailMessage->attach($zipAbsolute, [
+            'as' => "{$this->inscription->unique_code}.zip",
+            'mime' => 'application/zip',
+        ]);
+
+        DeleteTempZipAndPlayerFolder::dispatch($zipRelative, $playerFolder)
+        ->onQueue('golapp_default') // opcional pero recomendado
+        ->delay(now()->addMinutes(2));
 
         return $mailMessage;
     }
@@ -67,28 +75,33 @@ class InscriptionToSchoolNotification extends Notification implements ShouldQueu
         ];
     }
 
-    private function attachment(): string
+    private function attachment()
     {
         $folderDocuments = $this->school->slug;
-        $storagePath = "app".DIRECTORY_SEPARATOR."public".DIRECTORY_SEPARATOR;
-        $folder = $folderDocuments . DIRECTORY_SEPARATOR . $this->inscription->unique_code;
-        $fileName = $this->inscription->unique_code . '.zip';
-        $zipArchive = new \ZipArchive();
+        $short = data_get($this->school, 'short_name', 'tmp');
+        $playerFolder = 'tmp'. DIRECTORY_SEPARATOR .$folderDocuments . DIRECTORY_SEPARATOR . "{$short}-{$this->inscription->unique_code}";
 
-        $tmpFilePath = sys_get_temp_dir() . '/' . $fileName;
+        $zipName = $folderDocuments. '-'.$this->inscription->unique_code . '.zip';
+        $zipRelative = 'tmp/zips/' . $zipName;
 
-        if ($zipArchive->open($tmpFilePath, \ZipArchive::CREATE)== TRUE)
-        {
-            $files = File::files(storage_path($storagePath . $folder));
+        Storage::disk('local')->makeDirectory('tmp/zips');
+        $zipAbsolute = Storage::disk('local')->path($zipRelative);
 
-            foreach ($files as $file){
-                $relativeName = basename($file->getRelativePathname());
-                $zipArchive->addFile($file->getPathname(), $relativeName);
+        $zip = new \ZipArchive();
+
+        if ($zip->open($zipAbsolute, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+            $files = Storage::disk('local')->files($playerFolder);
+
+            foreach ($files as $file) {
+                $absoluteFile = Storage::disk('local')->path($file);
+                $zip->addFile($absoluteFile, basename($file));
             }
 
-            $zipArchive->close();
+            $zip->close();
         }
 
-        return $tmpFilePath;
+        return [$zipAbsolute, $zipRelative, $playerFolder];
     }
+
+
 }

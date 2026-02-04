@@ -83,7 +83,7 @@ class AssistRepository
 
             DB::commit();
 
-            $table = $this->service->generateTable($assistsQuery, $trainingGroup, $dataAssist);
+            // $table = $this->service->generateTable($assistsQuery, $trainingGroup, $dataAssist);
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("AssistRepository create", $exception);
@@ -135,16 +135,19 @@ class AssistRepository
     public function update(Assist $assist, array $validated): bool
     {
         try {
+
             DB::beginTransaction();
-            if ($assist->observations || ($validated['observations'] && $validated['attendance_date'])) {
+            if ($assist->observations || (isset($validated['observations'], $validated['attendance_date']))) {
                 if ($assist->observations !== null && is_object($assist->observations)) {
                     $observations = $assist->observations;
                 } else {
                     $observations = new \stdClass;
                 }
 
-                $observations->{$validated['attendance_date']} = $validated['observations'];
-                $validated['observations'] = $observations;
+                if(isset($validated['attendance_date'])) {
+                    $observations->{$validated['attendance_date']} = $validated['observations'];
+                    $validated['observations'] = $observations;
+                }
             }
 
             $updated = $assist->update($validated);

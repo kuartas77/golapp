@@ -32,7 +32,7 @@ class ImportController extends Controller
     {
         $file = $request->file('file');
 
-        $importMatchDetail = new ImportMatchDetail($request->match);
+        $importMatchDetail = new ImportMatchDetail($request->input('match', null));
 
         Excel::import($importMatchDetail, $file);
 

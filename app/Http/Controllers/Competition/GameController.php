@@ -30,9 +30,12 @@ class GameController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            return datatables()->collection(
+            return datatables()->of(
                 $this->repository->getDatatable(request('year_', now()->year))
-            )->toJson();
+            )
+            ->filterColumn('tournament_id', fn ($query, $keyword) => $query->where('tournament_id', $keyword))
+            ->filterColumn('competition_group_id', fn ($query, $keyword) => $query->where('competition_group_id', $keyword))
+            ->toJson();
         }
         return view('competition.match.index');
     }
