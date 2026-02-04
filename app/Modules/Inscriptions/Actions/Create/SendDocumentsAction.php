@@ -60,7 +60,10 @@ final class SendDocumentsAction implements IContractPassable
 
     public function storeDocumentsLocal(string $year, string $uniqueCode): void
     {
-        $folderDocuments = $this->school->slug . DIRECTORY_SEPARATOR . $uniqueCode;
+        $base = 'tmp'. DIRECTORY_SEPARATOR .$this->school->slug;
+        $short = data_get($this->school, 'short_name', 'tmp');
+        $folderPlayer = "{$short}-{$this->player->unique_code}";
+        $folderDocuments = trim($base, "/\\") . DIRECTORY_SEPARATOR . $folderPlayer;
 
         foreach (Inscription::$documentFields as $field) {
 
@@ -91,7 +94,7 @@ final class SendDocumentsAction implements IContractPassable
 
             $destinationFile = str_replace(['[NAME]'], [$name], $filename);
 
-            $this->paths[$field] = Storage::putFileAs($folderDocuments, $file, $destinationFile, 'public');
+            $this->paths[$field] = Storage::disk('local')->putFileAs($folderDocuments, $file, $destinationFile, 'public');
         }
     }
 
