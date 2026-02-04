@@ -7,6 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Storage;
 
 class InscriptionNotification extends Notification implements ShouldQueue
 {
@@ -55,7 +56,9 @@ class InscriptionNotification extends Notification implements ShouldQueue
                     $contract = array_values($contract)[0];
                 }
 
-                $mailMessage->attach($contract, [
+                $absolutePath = Storage::disk('local')->path($contract);
+
+                $mailMessage->attach($absolutePath, [
                     'as' => "{$this->inscription->year}_{$this->inscription->unique_code}_{$key}.pdf",
                     'mime' => 'application/pdf',
                 ]);

@@ -75,7 +75,7 @@ trait UploadFile
 
         $img = Image::make($file)->resize(200, 200);
 
-        Storage::disk('public')->put($path, (string)$img->encode(), 'public');
+        Storage::disk('local')->put($path, (string)$img->encode(), 'public');
 
         return $path;
     }
