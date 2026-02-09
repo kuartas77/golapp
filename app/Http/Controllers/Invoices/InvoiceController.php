@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\InvoiceAddPaymentRequest;
 use App\Http\Requests\InvoiceStoreRequest;
 use App\Models\Invoice;
+use App\Models\UniformRequest;
 use App\Repositories\InvoiceRepository;
 use App\Traits\PDFTrait;
 use Illuminate\Http\Request;
@@ -28,16 +29,16 @@ class InvoiceController extends Controller
         return view('invoices.index');
     }
 
-    public function create($inscriptionId)
+    public function create($inscriptionId, Request $request)
     {
-        [$inscription, $pendingMonths] = $this->invoice_repository->createInvoice($inscriptionId);
+        [$inscription, $pendingMonths, $pendingUniformRequests] = $this->invoice_repository->createInvoice($inscriptionId);
 
-        return view('invoices.create', compact('inscription', 'pendingMonths'));
+        return view('invoices.create', compact('inscription', 'pendingMonths', 'pendingUniformRequests'));
     }
 
     public function store(InvoiceStoreRequest $request)
     {
-        $invoiceId = $this->invoice_repository->storeInvoide($request);
+        $invoiceId = $this->invoice_repository->storeInvoice($request);
 
         alert()->success(env('APP_NAME'), 'Factura creada exitosamente.');
 
@@ -46,8 +47,10 @@ class InvoiceController extends Controller
 
     public function show($id)
     {
-        $invoice = Invoice::with(['items', 'payments', 'inscription.player', 'trainingGroup'])
+        $invoice = Invoice::with(['items', 'payments', 'inscription.player', 'trainingGroup', 'paymentRequests'])
+            ->schoolId()
             ->findOrFail($id);
+
 
         return view('invoices.show', compact('invoice'));
     }

@@ -32,6 +32,8 @@ class Setting extends Model
 
     public const ANNUITY = 'ANNUITY';
 
+    public const SYSTEM_NOTIFY = 'SYSTEM_NOTIFY';
+
     protected $table = "settings";
 
     protected $fillable = [

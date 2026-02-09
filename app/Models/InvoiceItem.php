@@ -16,7 +16,8 @@ class InvoiceItem extends Model
         'month',
         'payment_id',
         'is_paid',
-        'payment_received_id'
+        'payment_received_id',
+        'uniform_request_id',
     ];
 
     protected $casts = [

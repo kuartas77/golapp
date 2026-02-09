@@ -86,6 +86,6 @@ class CompetitionGroup extends Model
      */
     public function inscriptions(): BelongsToMany
     {
-        return $this->belongsToMany(Inscription::class)->using(CompetitionGroupInscription::class);
+        return $this->belongsToMany(Inscription::class)->using(CompetitionGroupInscription::class)->where('inscriptions.year', now()->year);
     }
 }

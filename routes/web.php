@@ -3,8 +3,10 @@
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
 use App\Http\Controllers\ImportController;
-
 use App\Http\Controllers\Invoices\InvoiceController;
+use App\Http\Controllers\Invoices\ItemInvoicesController;
+use App\Http\Controllers\Notifications\PaymentRequestController;
+use App\Http\Controllers\Notifications\UniformRequestsController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\Reports\ReportAssistsController;
@@ -15,7 +17,7 @@ use App\Http\Controllers\{Competition\GameController, Payments\PaymentController
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
-use App\Http\Controllers\Invoices\ItemInvoicesController;
+use App\Http\Controllers\Notifications\TopicNotificationsController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -150,6 +152,14 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::get('/player-stats', [PlayerStatsController::class, 'index'])->name('player.stats');
     Route::get('/top-players', [PlayerStatsController::class, 'topPlayers'])->name('players.top');
     Route::get('/player/{id}/detail', [PlayerStatsController::class, 'playerDetail'])->name('player.detail');
+
+    Route::middleware('check_notify_system')->group(function(){
+        Route::get('payment-request/invoices', [PaymentRequestController::class, 'index'])->name('payment-request.index');
+        Route::get('uniform-request/invoices', [UniformRequestsController::class, 'index'])->name('uniform-request.index');
+        Route::get('notifications', [TopicNotificationsController::class, 'index'])->name('notification.index');
+        Route::post('notifications', [TopicNotificationsController::class, 'store'])->name('notification.store');
+    });
+
 
 });
 

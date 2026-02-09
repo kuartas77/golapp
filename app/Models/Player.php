@@ -181,6 +181,20 @@ class Player extends Authenticatable
         return $this->belongsTo(School::class, 'school_id');
     }
 
+    public function uniform_requests(): HasMany
+    {
+        return $this->hasMany(UniformRequest::class);
+    }
+
+    public function notifications(): BelongsToMany
+    {
+        return $this->belongsToMany(TopicNotification::class)
+            ->using(PlayerTopicNotification::class)
+            ->withPivot(['is_read'])
+            ->orderBy('topic_notifications.created_at', 'desc')
+            ->whereRaw("topic_notifications.created_at >= NOW() - INTERVAL 8 DAY");
+    }
+
     public function scopeSchool($query)
     {
         return $query->where('school_id', getSchool(auth()->user())->id);

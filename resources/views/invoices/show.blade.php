@@ -109,13 +109,72 @@
                 </div>
             </div>
 
+            <!-- Solicitudes de pago -->
+            @if($invoice->paymentRequests->count() > 0)
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="text-themecolor">
+                        <i class="fas fa-history"></i> Solicitudes de Pago
+                        <small class="text-muted">"Enviadas desde la App ClubLink"</small>
+                        <p>
+                            Información importante
+                            <i class="fas fa-question-circle text-muted"
+                            data-toggle="tooltip"
+                            data-placement="right"
+                            title="Revisa las solicitudes, para poder registrar los pagos por su valor."></i>
+                        </p>
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Enviado en</th>
+                                    <th>Método</th>
+                                    <th>Referencia</th>
+                                    <th class="text-right">Monto</th>
+                                    <th>Comprobante</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($invoice->paymentRequests as $paymentRequest)
+                                <tr>
+                                    <td>{{ $paymentRequest->created_at->format('d/m/Y') }}</td>
+                                    <td>
+                                        @if($paymentRequest->payment_method == 'cash')
+                                        <span class="badge badge-success">Efectivo</span>
+                                        @elseif($paymentRequest->payment_method == 'card')
+                                        <span class="badge badge-primary">Tarjeta</span>
+                                        @elseif($paymentRequest->payment_method == 'transfer')
+                                        <span class="badge badge-info">Transferencia</span>
+                                        @else
+                                        <span class="badge badge-secondary">{{ $paymentRequest->payment_method }}</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $paymentRequest->reference_number ?? 'N/A' }}</td>
+                                    <td class="text-right">${{ number_format($paymentRequest->amount, 0) }}</td>
+                                    <td>
+                                        <a href="javascript:void(0)"
+                                            data-toggle="modal"
+                                            data-target="#imageModal"
+                                            data-image="{{ $paymentRequest->url_image }}"
+                                            data-title="{{ $paymentRequest->reference_number }}"
+                                            alt="{{ $paymentRequest->reference_number }}">Ver</a>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+
             <!-- Historial de pagos -->
             @if($invoice->payments->count() > 0)
             <div class="card">
-                <div class="card-header">
-                    <h5 class="text-themecolor"><i class="fas fa-history"></i> Historial de Pagos</h5>
-                </div>
                 <div class="card-body">
+                    <h5 class="text-themecolor"><i class="fas fa-history"></i> Historial de Pagos</h5>
                     <div class="table-responsive">
                         <table class="table table-sm">
                             <thead>
@@ -155,8 +214,8 @@
             @endif
         </div>
 
+        <!-- Panel de pagos -->
         <div class="col-md-4">
-            <!-- Panel de pagos -->
             <div class="card">
                 <div class="card-header">
                     <h5 class="text-themecolor"><i class="fas fa-money-bill-wave"></i> Registrar Pago</h5>
@@ -224,9 +283,9 @@
                                             <label class="form-check-label" for="item_{{ $item->id }}">
                                                 <span class="item-description">{{ $item->description }}</span>
                                                 - <span class="item-amount">${{ number_format($item->total, 0) }}</span>
-                                                @if($item->type == 'monthly' && $item->month)
-                                                <small class="text-muted">({{ ucfirst($item->month) }})</small>
-                                                @endif
+                                                {{--@if($item->type == 'monthly' && $item->month)
+                                                <small class="text-muted">(Mensualidad)</small>
+                                                @endif--}}
                                             </label>
                                         </div>
                                         @endforeach
@@ -299,6 +358,9 @@
     </div>
 </div>
 @endsection
+@section('modals')
+    @include('modals.image')
+@endsection
 @push('scripts')
 <script>
 $(document).ready(function() {
@@ -306,7 +368,7 @@ $(document).ready(function() {
     let selectedItems = [];
     let totalAmount = 0;
     const maxAmount = parseFloat({{ $invoice->total_amount - $invoice->paid_amount }});
-    const unpaidItems = {!! $invoice->items()->where('is_paid', false)->get() !!};
+    const unpaidItems = {!! $invoice->items->where('is_paid', false) !!};
 
     // Inicializar array de ítems disponibles
     const availableItems = unpaidItems.map(item => ({
@@ -324,13 +386,13 @@ $(document).ready(function() {
         totalAmount = selectedItems.reduce((sum, item) => sum + item.amount, 0);
 
         // Actualizar campo amount
-        $('#paymentAmount').val(totalAmount.toFixed(0));
+        $('#paymentAmount').val(formatMoney(totalAmount));
 
         // Actualizar helper text
         if (selectedItems.length > 0) {
             $('#amountHelper').html(`
                 <i class="fas fa-info-circle"></i>
-                ${selectedItems.length} ítem(s) seleccionado(s) - Total: $${totalAmount.toFixed(0)}
+                ${selectedItems.length} ítem(s) seleccionado(s) - Total: $${formatMoney(totalAmount)}
             `);
             $('#selectionSummary').show();
         } else {
@@ -342,7 +404,7 @@ $(document).ready(function() {
         updateSelectedItemsList();
 
         // Actualizar total en resumen
-        $('#selectedTotal').text('$' + totalAmount.toFixed(0));
+        $('#selectedTotal').text('$' + formatMoney(totalAmount));
 
         // Validar si se puede enviar el formulario
         validateForm();
@@ -362,10 +424,10 @@ $(document).ready(function() {
 
         selectedItems.forEach(item => {
             let itemText = item.description;
-            if (item.type === 'monthly' && item.month) {
-                itemText += ` <small class="text-muted">(${item.month})</small>`;
-            }
-            itemText += ` - <strong>$${item.amount.toFixed(0)}</strong>`;
+            // if (item.type === 'monthly' && item.month) {
+            //     itemText += ` <small class="text-muted">(${item.month})</small>`;
+            // }
+            itemText += ` - <strong>$${formatMoney(item.amount)}</strong>`;
 
             list.append(`
                 <li class="mb-1">
@@ -437,7 +499,7 @@ $(document).ready(function() {
 
         if (manualAmount > maxAmount) {
             $(this).val(maxAmount.toFixed(0));
-            alert('El monto no puede exceder el saldo pendiente de $' + maxAmount.toFixed(0));
+            alert('El monto no puede exceder el saldo pendiente de $' + formatMoney(maxAmount));
             updateSelectionSummary();
             return;
         }
@@ -468,7 +530,7 @@ $(document).ready(function() {
         }
 
         // Confirmar pago
-        if (!confirm(`¿Desea registrar el pago de $${totalAmount.toFixed(0)}?`)) {
+        if (!confirm(`¿Desea registrar el pago de $${formatMoney(totalAmount)}?`)) {
             e.preventDefault();
             return false;
         }
@@ -500,9 +562,20 @@ $(document).ready(function() {
         });
     }
 
+    $('#imageModal').on('shown.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var imageUrl = button.data('image');
+        var imageTitle = button.data('title');
+
+        $(this).find('#modalImage').attr('src', imageUrl);
+        $(this).find('#imageTitle').text('Referencia: ' + imageTitle);
+    });
+
     // Botones de selección rápida por tipo (opcional - puedes agregarlos si lo necesitas)
     // Ejemplo: agregar botones para seleccionar solo matrículas o solo mensualidades
 });
+
+
 </script>
 
 <style>

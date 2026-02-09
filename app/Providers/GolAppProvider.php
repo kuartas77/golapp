@@ -2,29 +2,31 @@
 
 namespace App\Providers;
 
-use Lunaweb\RecaptchaV3\RecaptchaV3;
-use Illuminate\Support\Str;
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Collection;
-use GuzzleHttp\Client;
-use App\Http\ViewComposers\TrainingSession\TrainingSessionComposer;
-use App\Http\ViewComposers\TrainingGroup\TrainingGroupComposer;
-use App\Http\ViewComposers\TemplatesComposer;
-use App\Http\ViewComposers\Public\PortalComposer;
-use App\Http\ViewComposers\Profile\ProfileComposer;
-use App\Http\ViewComposers\Payments\TournamentPaymentsViewComposer;
-use App\Http\ViewComposers\Payments\PaymentsViewComposer;
-use App\Http\ViewComposers\Payments\PaymentsHistoricViewComposer;
-use App\Http\ViewComposers\Inscription\InscriptionCreateComposer;
-use App\Http\ViewComposers\Incidents\IncidentComposer;
-use App\Http\ViewComposers\Competition\MatchesViewComposer;
-use App\Http\ViewComposers\Assists\AssistViewComposer;
-use App\Http\ViewComposers\Assists\AssistHistoricViewComposer;
-use App\Http\ViewComposers\AdminComposer;
-use App\Custom\CustomSanctumToken;
+use App\Channels\FirebaseTopicChannel;
 use App\Custom\CustomRecaptchaV3;
+use App\Custom\CustomSanctumToken;
+use App\Http\ViewComposers\AdminComposer;
+use App\Http\ViewComposers\Assists\AssistHistoricViewComposer;
+use App\Http\ViewComposers\Assists\AssistViewComposer;
+use App\Http\ViewComposers\Competition\MatchesViewComposer;
+use App\Http\ViewComposers\Incidents\IncidentComposer;
+use App\Http\ViewComposers\Inscription\InscriptionCreateComposer;
+use App\Http\ViewComposers\Payments\PaymentsHistoricViewComposer;
+use App\Http\ViewComposers\Payments\PaymentsViewComposer;
+use App\Http\ViewComposers\Payments\TournamentPaymentsViewComposer;
+use App\Http\ViewComposers\Profile\ProfileComposer;
+use App\Http\ViewComposers\Public\PortalComposer;
+use App\Http\ViewComposers\TemplatesComposer;
+use App\Http\ViewComposers\TrainingGroup\TrainingGroupComposer;
+use App\Http\ViewComposers\TrainingSession\TrainingSessionComposer;
+use GuzzleHttp\Client;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
+use Lunaweb\RecaptchaV3\RecaptchaV3;
 
 class GolAppProvider extends ServiceProvider
 {
@@ -35,7 +37,9 @@ class GolAppProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->singleton(FirebaseTopicChannel::class, function ($app) {
+            return new FirebaseTopicChannel();
+        });
     }
 
     /**
@@ -54,6 +58,8 @@ class GolAppProvider extends ServiceProvider
         $this->macros();
 
         $this->viewComposers();
+
+        $this->registerChannels();
     }
 
     private function loggerQueries()
@@ -137,6 +143,13 @@ class GolAppProvider extends ServiceProvider
     {
         $this->app->bind(RecaptchaV3::class, function ($app) {
             return new CustomRecaptchaV3(config(), new Client, request(), $app);
+        });
+    }
+
+    private function registerChannels()
+    {
+        Notification::extend('firebase-topic', function ($app) {
+            return new FirebaseTopicChannel();
         });
     }
 }
