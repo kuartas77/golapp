@@ -61,10 +61,17 @@
     <ul aria-expanded="false" class="collapse">
         <li><a href="{{route('invoices.index')}}">Facturas</a></li>
         <li><a href="{{route('items.invoices.index')}}">Items Facturas</a></li>
+        @if(filter_var($settings->get('SYSTEM_NOTIFY'), FILTER_VALIDATE_BOOLEAN))
         <li><a href="{{route('payment-request.index')}}">Comprobantes de Pago</a></li>
         <li><a href="{{route('uniform-request.index')}}">Solicitudes de Uniformes</a></li>
+        @endif
     </ul>
 </li>
+@if(filter_var($settings->get('SYSTEM_NOTIFY'), FILTER_VALIDATE_BOOLEAN))
+<li class="{{ Request::is('notifications*') ? 'active' : '' }}">
+    <a class="waves-effect waves-dark" href="{{route('notification.index')}}" aria-expanded="false"><i class="fas fa-bell"></i><span class="hide-menu">Notificaciones</span></a>
+</li>
+@endif
 @endhasanyrole
 
 <li class="{{ Request::is('training-sessions*') ? 'active' : '' }}">

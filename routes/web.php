@@ -153,10 +153,13 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::get('/top-players', [PlayerStatsController::class, 'topPlayers'])->name('players.top');
     Route::get('/player/{id}/detail', [PlayerStatsController::class, 'playerDetail'])->name('player.detail');
 
-    Route::get('payment-request/invoices', [PaymentRequestController::class, 'index'])->name('payment-request.index');
-    Route::get('uniform-request/invoices', [UniformRequestsController::class, 'index'])->name('uniform-request.index');
-    Route::get('notifications', [TopicNotificationsController::class, 'index'])->name('notification.index');
-    Route::post('notifications', [TopicNotificationsController::class, 'store'])->name('notification.store');
+    Route::middleware('check_notify_system')->group(function(){
+        Route::get('payment-request/invoices', [PaymentRequestController::class, 'index'])->name('payment-request.index');
+        Route::get('uniform-request/invoices', [UniformRequestsController::class, 'index'])->name('uniform-request.index');
+        Route::get('notifications', [TopicNotificationsController::class, 'index'])->name('notification.index');
+        Route::post('notifications', [TopicNotificationsController::class, 'store'])->name('notification.store');
+    });
+
 
 });
 

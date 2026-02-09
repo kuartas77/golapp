@@ -64,6 +64,11 @@ class SettingValue extends Model
                 'school_id' => $school_id,
                 'value' => 48333
             ],
+            [
+                'setting_key' => Setting::SYSTEM_NOTIFY,
+                'school_id' => $school_id,
+                'value' => false
+            ]
         ];
     }
 

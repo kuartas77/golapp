@@ -194,9 +194,24 @@ class School extends Model
 
     public function configDefault(): void
     {
-        $this->schedules()->create([
-            'schedule' => '10:00AM - 11:00AM',
-        ]);
+        $schedules = [
+            ['schedule' => '07:00AM - 08:00AM'],
+            ['schedule' => "08:00AM - 09:00AM"],
+            ['schedule' => "09:00AM - 10:00AM"],
+            ['schedule' => "10:00AM - 11:00AM"],
+            ['schedule' => "11:00AM - 12:00M"],
+            ['schedule' => "12:00M  - 01:00PM"],
+            ['schedule' => "01:00PM - 02:00PM"],
+            ['schedule' => "02:00PM - 03:00PM"],
+            ['schedule' => "03:00PM - 04:00PM"],
+            ['schedule' => "04:00PM - 05:00PM"],
+            ['schedule' => "05:00PM - 06:00PM"],
+            ['schedule' => "06:00PM - 07:00PM"],
+            ['schedule' => "07:00PM - 08:00PM"],
+            ['schedule' => "08:00PM - 09:00PM"],
+            ['schedule' => "09:00PM - 10:00PM"],
+        ];
+        $this->schedules()->createMany($schedules);
 
         $this->trainingGroups()->create([
             'name' => 'Provisional',
