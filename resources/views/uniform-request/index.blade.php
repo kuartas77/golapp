@@ -5,7 +5,7 @@
 <x-row-card col-inside="12">
     <p>Podrás encontrar las solicitudes pendientes de uniformes generadas desde la App ClubLink.</p>
     <span class="text-muted">
-        Al dar click en crear una factura las solicitudes pendientes se agregarán a esta, sin importar la solicitud seleccionada
+        Al dar click en crear una factura las solicitudes pendientes se agregarán a esta, sin importar la solicitud seleccionada del estudiante y se aprovará si está incluida en la factura.
     </span>
     <div class="table-responsive-md">
         <table class="display compact cell-border" id="uniformRequestTable">

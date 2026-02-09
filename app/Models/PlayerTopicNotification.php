@@ -11,8 +11,9 @@ class PlayerTopicNotification extends Pivot
     use GeneralScopes;
 
     public $incrementing = true;
+    public $timestamps = false;
 
-    protected $table = "player_topic_notifications";
+    protected $table = "player_topic_notification";
 
     protected $fillable = [
         'topic_notification_id',

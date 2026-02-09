@@ -19,7 +19,7 @@ class FirebaseTopicNotification extends Notification implements ShouldQueue
 
     public function __construct()
     {
-        //
+        $this->afterCommit();
     }
 
     public static function create(): self

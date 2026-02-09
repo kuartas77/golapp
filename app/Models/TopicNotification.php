@@ -18,10 +18,12 @@ class TopicNotification extends Model
 
     protected $fillable = [
         'school_id',
-        'topic',
+        'topics',
         'title',
         'body',
         'image_url',
+        'type',
+        'priority'
     ];
 
     public function school(): BelongsTo
