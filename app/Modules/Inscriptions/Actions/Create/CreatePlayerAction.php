@@ -75,7 +75,7 @@ final class CreatePlayerAction implements IContractPassable
             'medical_history' => $passable->getPropertyFromData('medical_history'),
             'jornada' => $passable->getPropertyFromData('jornada'),
             'student_insurance' => $passable->getPropertyFromData('student_insurance'),
-            'password' => Hash::make($this->player->unique_code),
+            'password' => Hash::make($this->player->identification_document),
             'school_id' => $this->school->id
         ];
     }

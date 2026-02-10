@@ -23,8 +23,11 @@ class InvoiceAddPaymentRequest extends FormRequest
 
     protected function prepareForValidation()
     {
+        $cleanedValue = preg_replace('/[^0-9]/', '', $this->input('amount'));
+
         $this->merge([
-            'school_id' => getSchool(auth()->user())->id
+            'school_id' => getSchool(auth()->user())->id,
+            'amount' => $cleanedValue
         ]);
     }
 }
