@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\IncidentStore;
 use App\Models\Incident;
 use App\Repositories\IncidentRepository;
@@ -11,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class IncidentController extends Controller
 {
@@ -58,9 +60,9 @@ class IncidentController extends Controller
     {
         $incident = $this->repository->createIncident($request);
         if ($incident->wasRecentlyCreated) {
-            alert()->success(env('APP_NAME'), __('messages.incident_created'));
+            Alert::success(env('APP_NAME'), __('messages.incident_created'));
         } else {
-            alert()->success(env('APP_NAME'), __('messages.incident_fail'));
+            Alert::success(env('APP_NAME'), __('messages.incident_fail'));
         }
         return redirect()->to(route('incidents.index'));
     }

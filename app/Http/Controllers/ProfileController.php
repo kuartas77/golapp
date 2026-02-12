@@ -8,6 +8,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class ProfileController extends Controller
 {
@@ -24,7 +25,7 @@ class ProfileController extends Controller
             view()->share('profile', $profile);
             return view('profile.show');
         }
-        alert()->error(config('app.name'), __('messages.denied'));
+        Alert::error(config('app.name'), __('messages.denied'));
         return redirect()->to(route('home'));
     }
 
@@ -41,7 +42,7 @@ class ProfileController extends Controller
             view()->share('profile', $profile);
             return view('profile.edit');
         }
-        alert()->error(config('app.name'), __('messages.denied'));
+        Alert::error(config('app.name'), __('messages.denied'));
         return redirect()->to(route('home'));
     }
 
@@ -56,7 +57,7 @@ class ProfileController extends Controller
     function update(ProfileUpdate $request, Profile $profile): RedirectResponse
     {
         $profile->fill($request->validated())->save();
-        alert()->success(config('app.name'), __('messages.profile_save'));
+        Alert::success(config('app.name'), __('messages.profile_save'));
         return redirect()->to(route('profiles.show', [$profile->id]));
     }
 }

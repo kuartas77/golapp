@@ -3,7 +3,7 @@
 @section('content')
 <x-bread-crumb title="Solicitudes de Pago" :option="0" />
 <x-row-card col-inside="12">
-    <p>Podrás encontrar todos los comprobantes de pago subidas desde la App ClubLink.</p>
+    <p>Podrás encontrar todos los comprobantes de pago subidas desde la App GOLAPPLINK.</p>
     <div class="table-responsive-md">
         <table class="display compact cell-border" id="paymentRequestTable">
             <thead>

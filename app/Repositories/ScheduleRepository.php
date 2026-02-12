@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class ScheduleRepository
 {
@@ -42,11 +43,11 @@ class ScheduleRepository
             DB::commit();
 
             Cache::forget('SCHEDULES_' . $data['school_id']);
-            alert()->success(env('APP_NAME'), __('messages.schedule_create_success'));
+            Alert::success(env('APP_NAME'), __('messages.schedule_create_success'));
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("ScheduleRepository store", $exception);
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+            Alert::error(env('APP_NAME'), __('messages.ins_create_failure'));
         }
     }
 
@@ -62,11 +63,11 @@ class ScheduleRepository
             DB::commit();
 
             Cache::forget('SCHEDULES_' . $data['school_id']);
-            alert()->success(env('APP_NAME'), __('messages.schedule_create_success'));
+            Alert::success(env('APP_NAME'), __('messages.schedule_create_success'));
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("ScheduleRepository updateDay", $exception);
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+            Alert::error(env('APP_NAME'), __('messages.ins_create_failure'));
         }
     }
 }

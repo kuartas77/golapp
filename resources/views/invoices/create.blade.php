@@ -104,7 +104,11 @@
             <div class="card-header bg-light">
                 <h5 class="mb-0">
                     <i class="fas fa-plus-circle"></i> Ítems
-                    <small class="text-muted">Uniformes, balones, rifas ...</small>
+                    @if(filter_var($settings->get('SYSTEM_NOTIFY'), FILTER_VALIDATE_BOOLEAN))
+                    <small class="text-muted">En esta sección se agregarán las solicitudes de uniformes desde GOLAPPLINK. Además se pueden agregar otros items para la factura.</small>
+                    @else
+                    <small class="text-muted">En esta sección se pueden agregar otros items para la factura.</small>
+                    @endif
                 </h5>
             </div>
             <div class="card-body">
@@ -112,6 +116,10 @@
                     <table class="table table-sm table-bordered">
                         <thead class="thead-light">
                             <tr>
+                                <th width="5%" class="text-center">
+                                    <input type="checkbox" id="select_all_custom" checked>
+                                    <label for="select_all_custom" class="checkboxsizeletter"></label>
+                                </th>
                                 <th width="25%">Descripción</th>
                                 <th width="15%">Cantidad</th>
                                 <th width="20%">Precio Unitario</th>
@@ -120,11 +128,52 @@
                             </tr>
                         </thead>
                         <tbody id="additionalItemsBody">
-                            <!-- Los ítems adicionales se agregarán aquí -->
+                            @if(count($customItems) > 0)
+                            @foreach($customItems as $customItem)
+                            <tr class="item-row" data-index="{{$loop->index}}">
+                                <td class="text-center">
+                                    <input
+                                        type="checkbox"
+                                        class="include-custom"
+                                        id="custom_include_{{$loop->index}}"
+                                        name="items[{{$loop->index}}][include]"
+                                        checked
+                                    >
+                                    <label for="custom_include_{{$loop->index}}" class="checkboxsizeletter"></label>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm item-description" name="items[{{$loop->index}}][description]" placeholder="Descripción del ítem" required="" value="{{$customItem->name}}">
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm item-quantity" name="items[{{$loop->index}}][quantity]" value="1" min="1" required="">
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm item-unit-price" name="items[{{$loop->index}}][unit_price]" value="{{intval($customItem->unit_price)}}" step="1" min="1" required="">
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm item-total" value="0" readonly="">
+                                    <input type="hidden" name="items[{{$loop->index}}][type]" value="additional">
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-danger remove-item">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            @endforeach
+                            @endif
 
                             @if(count($pendingUniformRequests) > 0)
                             @foreach($pendingUniformRequests as $uniformRequest)
                             <tr class="item-row" data-index="{{$loop->index}}">
+                                <td >
+                                    <p class="text-center">
+                                        <i class="fas fa-question-circle text-muted"
+                                        data-toggle="tooltip"
+                                        data-placement="right"
+                                        title="Estos Items fueron solicitados desde GOLAPPLINK"></i>
+                                    </p>
+                                </td>
                                 <td>
                                     <input type="text" class="form-control form-control-sm item-description" name="items[{{$loop->index}}][description]" placeholder="Descripción del ítem" required="" value="{{$uniformRequest['description']}}">
                                 </td>
@@ -132,7 +181,7 @@
                                     <input type="number" class="form-control form-control-sm item-quantity" name="items[{{$loop->index}}][quantity]" value="{{$uniformRequest['quantity']}}" min="1" required="">
                                 </td>
                                 <td>
-                                    <input type="number" class="form-control form-control-sm item-unit-price" name="items[{{$loop->index}}][unit_price]" value="0" step="1" min="1" required="">
+                                    <input type="number" class="form-control form-control-sm item-unit-price" name="items[{{$loop->index}}][unit_price]" value="{{$uniformRequest['unit_price']}}" step="1" min="1" required="">
                                 </td>
                                 <td>
                                     <input type="number" class="form-control form-control-sm item-total" value="0" readonly="">
@@ -147,6 +196,7 @@
                             </tr>
                             @endforeach
                             @endif
+                            <!-- Los ítems adicionales se agregarán aquí -->
 
                         </tbody>
                     </table>
@@ -156,6 +206,39 @@
                 </button>
             </div>
         </div>
+
+        <!-- Sección de custom items -->
+
+        <!-- <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-plus-circle"></i> Ítems personalizados
+                    <small class="text-muted">Se mostrarán los items personalizados con su precio unitario, en cualquier factura se agregarán si no los requieres eliminalos de la factura.</small>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+
+                                <th width="25%">Descripción</th>
+                                <th width="15%">Cantidad</th>
+                                <th width="20%">Precio Unitario</th>
+                                <th width="20%">Total</th>
+                                <th width="5%"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="customItemsBody">
+
+
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div> -->
+
 
         <!-- Información de la factura -->
         <div class="card mb-4">
@@ -245,29 +328,39 @@
     $(document).ready(function() {
         // Plantilla para ítem adicional
         const itemTemplate = `
-    <tr class="item-row" data-index="__INDEX__">
-        <td>
-            <input type="text" class="form-control form-control-sm item-description"
-                   name="items[__INDEX__][description]" placeholder="Descripción del ítem" required>
-        </td>
-        <td>
-            <input type="number" class="form-control form-control-sm item-quantity"
-                   name="items[__INDEX__][quantity]" value="1" min="1" required>
-        </td>
-        <td>
-            <input type="number" class="form-control form-control-sm item-unit-price"
-                   name="items[__INDEX__][unit_price]" value="0" step="0.01" min="0" required>
-        </td>
-        <td>
-            <input type="number" class="form-control form-control-sm item-total" value="0" readonly>
-            <input type="hidden" name="items[__INDEX__][type]" value="additional">
-        </td>
-        <td class="text-center">
-            <button type="button" class="btn btn-sm btn-danger remove-item">
-                <i class="fas fa-trash"></i>
-            </button>
-        </td>
-    </tr>`;
+        <tr class="item-row" data-index="__INDEX__">
+            <td></td>
+            <td>
+                <input type="text" class="form-control form-control-sm item-description"
+                    name="items[__INDEX__][description]" placeholder="Descripción del ítem" required>
+            </td>
+            <td>
+                <input type="number" class="form-control form-control-sm item-quantity"
+                    name="items[__INDEX__][quantity]" value="1" min="1" required>
+            </td>
+            <td>
+                <input type="number" class="form-control form-control-sm item-unit-price"
+                    name="items[__INDEX__][unit_price]" value="0" step="0.01" min="0" required>
+            </td>
+            <td>
+                <input type="number" class="form-control form-control-sm item-total" value="0" readonly>
+                <input type="hidden" name="items[__INDEX__][type]" value="additional">
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-danger remove-item">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>`;
+
+
+
+        // Aplica el estado visual/disabled según el checkbox (custom quedarán deshabilitados)
+        $('.pending-month-row .include-item, .custom-item-row .include-custom').each(function() {
+            toggleRow($(this).closest('tr'), $(this).is(':checked'));
+        });
+        syncSelectAll('#select_all', '.include-item');
+        syncSelectAll('#select_all_custom', '.include-custom');
 
         // Agregar ítem adicional
         $('#addItemBtn').click(function() {
@@ -299,12 +392,22 @@
         });
 
         // Actualizar estado de "Seleccionar todos" cuando cambien checkboxes individuales
-        $(document).on('change', '.include-item', function() {
-            const totalItems = $('.include-item').length;
-            const checkedItems = $('.include-item:checked').length;
+        $(document).on('change', '.include-item, .include-custom', function() {
+            const row = $(this).closest('tr');
+            const checked = $(this).is(':checked');
 
-            // Actualizar checkbox "Seleccionar todos"
-            $('#select_all').prop('checked', totalItems === checkedItems);
+            toggleRow(row, checked);
+
+            // Sync de "seleccionar todos"
+            syncSelectAll('#select_all', '.include-item');
+            syncSelectAll('#select_all_custom', '.include-custom');
+
+            updateTotals();
+        });
+
+        $('#select_all_custom').change(function() {
+            const isChecked = $(this).prop('checked');
+            $('.include-custom').prop('checked', isChecked).trigger('change');
         });
 
         // Manejar checkboxes de meses pendientes
@@ -336,6 +439,42 @@
             updateTotals();
         });
 
+        function rowIsIncluded(row) {
+            // Si no tiene checkbox (ej: uniformes o items nuevos), siempre cuenta
+            const cb = row.find('.include-item, .include-custom');
+            return cb.length ? cb.is(':checked') : true;
+        }
+
+        function syncSelectAll(selectAllId, itemSelector) {
+            const total = $(itemSelector).length;
+            const checked = $(itemSelector + ':checked').length;
+            $(selectAllId).prop('checked', total > 0 && total === checked);
+        }
+
+        function toggleRow(row, enabled) {
+            // deshabilita todo excepto el checkbox y el botón de eliminar
+            row.find(':input')
+                .not('.include-item, .include-custom')
+                .prop('disabled', !enabled);
+
+            row.toggleClass('table-secondary', !enabled);
+
+            if (!enabled) {
+                row.find('.item-description, .item-unit-price, .item-quantity').prop('readonly', true);
+                return;
+            }
+
+            // habilitado
+            row.find('.item-description, .item-unit-price').prop('readonly', false);
+
+            // mensualidades: quantity siempre readonly
+            if (row.hasClass('pending-month-row')) {
+                row.find('.item-quantity').prop('readonly', true);
+            } else {
+                row.find('.item-quantity').prop('readonly', false);
+            }
+        }
+
         // Inicializar estado de "Seleccionar todos"
         const totalItems = $('.include-item').length;
         const checkedItems = $('.include-item:checked').length;
@@ -353,52 +492,56 @@
         function updateTotals() {
             let subtotal = 0;
 
-            // Sumar meses pendientes incluidos
+            // mensualidades (solo si están incluidas)
             $('.pending-month-row').each(function() {
-                if ($(this).find('.include-item').is(':checked')) {
-                    subtotal += calculateRowTotal($(this));
+                const row = $(this);
+                if (rowIsIncluded(row)) {
+                    subtotal += calculateRowTotal(row);
                 }
             });
 
-            // Sumar ítems adicionales
+            // item-row (custom solo si está incluido; uniformes/nuevos siempre)
             $('.item-row').each(function() {
-                subtotal += calculateRowTotal($(this));
+                const row = $(this);
+                if (rowIsIncluded(row)) {
+                    subtotal += calculateRowTotal(row);
+                }
             });
 
-            // Actualizar display
             $('#subtotalAmount').text('$' + subtotal.toFixed(0));
             $('#totalAmount').text('$' + subtotal.toFixed(0));
 
-            // Actualizar índices del formulario
             updateFormIndexes();
         }
 
         function updateFormIndexes() {
             let newIndex = 0;
 
-            // Reindexar meses pendientes incluidos
+            // mensualidades incluidas
             $('.pending-month-row').each(function() {
-                if ($(this).find('.include-item').is(':checked')) {
-                    $(this).find('input[name]').each(function() {
-                        const oldName = $(this).attr('name');
-                        if (oldName) {
-                            const newName = oldName.replace(/items\[\d+\]/, `items[${newIndex}]`);
-                            $(this).attr('name', newName);
-                        }
-                    });
-                    newIndex++;
-                }
+                const row = $(this);
+                if (!rowIsIncluded(row)) return;
+
+                row.find('[name]').each(function() {
+                    const oldName = $(this).attr('name');
+                    if (!oldName) return;
+                    $(this).attr('name', oldName.replace(/items\[\d+\]/, `items[${newIndex}]`));
+                });
+
+                newIndex++;
             });
 
-            // Reindexar ítems adicionales
+            // item-row incluidos (custom incluidos + otros siempre)
             $('.item-row').each(function() {
-                $(this).find('input[name], select[name]').each(function() {
+                const row = $(this);
+                if (!rowIsIncluded(row)) return;
+
+                row.find('[name]').each(function() {
                     const oldName = $(this).attr('name');
-                    if (oldName) {
-                        const newName = oldName.replace(/items\[\d+\]/, `items[${newIndex}]`);
-                        $(this).attr('name', newName);
-                    }
+                    if (!oldName) return;
+                    $(this).attr('name', oldName.replace(/items\[\d+\]/, `items[${newIndex}]`));
                 });
+
                 newIndex++;
             });
 

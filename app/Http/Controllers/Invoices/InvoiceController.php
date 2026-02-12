@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\InvoiceAddPaymentRequest;
 use App\Http\Requests\InvoiceStoreRequest;
 use App\Models\Invoice;
-use App\Models\UniformRequest;
 use App\Repositories\InvoiceRepository;
 use App\Traits\PDFTrait;
 use Illuminate\Http\Request;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class InvoiceController extends Controller
 {
@@ -31,16 +31,21 @@ class InvoiceController extends Controller
 
     public function create($inscriptionId, Request $request)
     {
-        [$inscription, $pendingMonths, $pendingUniformRequests] = $this->invoice_repository->createInvoice($inscriptionId);
 
-        return view('invoices.create', compact('inscription', 'pendingMonths', 'pendingUniformRequests'));
+        $settings = getSchool(auth()->user())->settings;
+
+        [$inscription, $pendingMonths, $pendingUniformRequests, $customItems] = $this->invoice_repository->createInvoice($inscriptionId);
+
+        $data = compact('inscription', 'pendingMonths', 'pendingUniformRequests', 'customItems', 'settings');
+
+        return view('invoices.create', $data);
     }
 
     public function store(InvoiceStoreRequest $request)
     {
         $invoiceId = $this->invoice_repository->storeInvoice($request);
 
-        alert()->success(env('APP_NAME'), 'Factura creada exitosamente.');
+        Alert::success(env('APP_NAME'), 'Factura creada exitosamente.');
 
         return redirect()->route('invoices.show', $invoiceId);
     }
@@ -59,7 +64,7 @@ class InvoiceController extends Controller
     {
         $this->invoice_repository->addPayment($request, $invoiceId);
 
-        alert()->success(env('APP_NAME'), 'Pago registrado exitosamente.');
+        Alert::success(env('APP_NAME'), 'Pago registrado exitosamente.');
 
         return back();
     }
@@ -69,7 +74,7 @@ class InvoiceController extends Controller
         $invoice = Invoice::findOrFail($id);
         $invoice->delete();
 
-        alert()->success(env('APP_NAME'), 'Factura eliminada exitosamente.');
+        Alert::success(env('APP_NAME'), 'Factura eliminada exitosamente.');
 
         return redirect()->route('invoices.index');
     }

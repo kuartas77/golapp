@@ -1,15 +1,25 @@
 <div class="row">
+       <div class="col-md-4">
+        <div class="form-group">
+            <div class="text-center">
+                <img src="{{$school->logo_file}}" class="rounded" alt="player" id="player-img" width="200" height="200">
+            </div>
+            <div class="custom-file">
+                <input type="file" class="custom-file-input" id="file-upload" accept="image/png, image/jpeg" name="logo">
+                <label class="custom-file-label" for="file-upload">Seleccionar...</label>
+            </div>
+
+        </div>
+    </div>
+
     <div class="col-md-6">
         <div class="form-group">
             <label for="name">Nombre </label>
             <span class="bar"></span>
             <input type="text" name="name" id="name" class="form-control" required autocomplete="off" value="{{$school->name}}" readonly>
         </div>
-    </div>
-
-    <div class="col-md-6">
         <div class="form-group">
-            <label for="email">Correo </label>
+            <label for="email">Correo de la escuela</label>
             <span class="bar"></span>
             <input type="text" name="email" id="email" class="form-control" required autocomplete="off" value="{{$school->email}}" readonly>
         </div>
@@ -25,14 +35,14 @@
             <input type="text" name="agent" id="agent" class="form-control" required autocomplete="off" value="{{$school->agent}}">
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="form-group">
             <label for="address">Dirección </label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
             <input type="text" name="address" id="address" class="form-control" required autocomplete="off" value="{{$school->address}}">
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="form-group">
             <label for="phone">Teléfono </label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
@@ -82,21 +92,9 @@
 </div>
 
 <div class="row">
-    <div class="col-md-3">
-        <div class="form-group">
-            <label>Logo</label>
-            <div class="custom-file">
-                <input type="file" class="custom-file-input" id="file-upload" accept="image/png, image/jpeg" name="logo">
-                <label class="custom-file-label" for="file-upload">Seleccionar...</label>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <label>Logo</label>
-        <img src="{{$school->logo_file}}" class="rounded" alt="player" id="player-img" width="200" height="200">
-    </div>
+
     @if($school->inscriptions_enabled)
-    <div class="col-md-3">
+    <div class="col-md-6">
         <label>Enlace:</label>
         <a href="https://app.golapp.com.co/portal/escuelas/{{$school->slug}}" id="link-inscription">Enlace Inscripciones</a>
         <br>
@@ -131,6 +129,7 @@
                 console.error('Fallback copying failed: ', err);
             } finally {
                 document.body.removeChild(textarea);
+                alert('copiado al porta papeles')
             }
         }
     });

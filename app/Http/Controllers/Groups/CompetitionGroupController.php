@@ -11,6 +11,7 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class CompetitionGroupController extends Controller
 {
@@ -56,9 +57,9 @@ class CompetitionGroupController extends Controller
             ])
         );
         if ($competitionGroup->wasRecentlyCreated) {
-            alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));
+            Alert::success(env('APP_NAME'), __('messages.training_group_create_success'));
         } else {
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+            Alert::error(env('APP_NAME'), __('messages.ins_create_failure'));
         }
         return back();
     }
@@ -101,9 +102,9 @@ class CompetitionGroupController extends Controller
         );
 
         if (!$competitionGroup->exists)
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+            Alert::error(env('APP_NAME'), __('messages.ins_create_failure'));
         else {
-            alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));
+            Alert::success(env('APP_NAME'), __('messages.training_group_create_success'));
         }
         return back();
     }

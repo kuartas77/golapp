@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use Exception;
-use Throwable;
-use App\Traits\ErrorTrait;
 use App\Models\Inscription;
 use App\Models\TrainingGroup;
-use Illuminate\Support\Facades\DB;
+use App\Notifications\InscriptionNotification;
+use App\Repositories\PeopleRepository;
+use App\Traits\ErrorTrait;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use App\Notifications\InscriptionNotification;
+use Illuminate\Support\Facades\DB;
+use RealRashid\SweetAlert\Facades\Alert;
+use Throwable;
 
 class InscriptionRepository
 {
@@ -180,11 +182,11 @@ class InscriptionRepository
             $inscription->tournament_payouts()->delete();
             $inscription->delete();
             DB::commit();
-            alert()->success(env('APP_NAME'), __('messages.ins_delete_success'));
+            Alert::success(env('APP_NAME'), __('messages.ins_delete_success'));
         } catch (Throwable $throwable) {
             DB::rollBack();
             $this->logError("InscriptionRepository disable", $throwable);
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+            Alert::error(env('APP_NAME'), __('messages.ins_create_failure'));
         }
     }
 

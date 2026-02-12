@@ -16,12 +16,14 @@ class SchoolsController extends Controller
     public function index(Request $request, School $school)
     {
         $school->load(['settingsValues']);
+        $UNIFORM_REQUESTS_TYPES = config('variables.UNIFORM_REQUESTS_TYPES');
 
         view()->share('school', $school);
         view()->share('notify_payment_day', data_get($school, 'settings.NOTIFY_PAYMENT_DAY', 16));
         view()->share('inscription_amount', data_get($school, 'settings.INSCRIPTION_AMOUNT', 70000));
         view()->share('monthly_payment', data_get($school, 'settings.MONTHLY_PAYMENT', 50000));
         view()->share('annuity', data_get($school, 'settings.ANNUITY', 48333));
+        view()->share('uniform_request_types', $UNIFORM_REQUESTS_TYPES);
         return view('admin.school.index');
     }
 
