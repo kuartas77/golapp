@@ -121,8 +121,10 @@ class InscriptionRepository
      */
     public function getInscriptionsEnabled()
     {
-        return $this->inscription->with(['player.people', 'trainingGroup' => fn($q) => $q->withTrashed()])
-            ->inscriptionYear(request('inscription_year'))->schoolId();
+        return Inscription::query()->select('inscriptions.*')->with(['player.people', 'trainingGroup' => fn($q) => $q->withTrashed()])
+            ->join('players', 'inscriptions.player_id', '=', 'players.id')
+            ->inscriptionYear(request('inscription_year'))
+            ->schoolId();
     }
 
     /**

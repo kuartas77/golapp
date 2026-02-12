@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Portal;
 use App\Repositories\PlayerRepository;
 use App\Http\Requests\Portal\PlayerPortalUpdateRequest;
 use App\Http\Controllers\Controller;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class HomePlayerController extends Controller
 {
@@ -28,11 +29,11 @@ class HomePlayerController extends Controller
     {
         $saved = $playerRepository->updatePlayerPortal(auth()->user(), $request);
         if (is_null($saved)) {
-            alert()->error(env('APP_NAME'), __('messages.error_general'));
+            Alert::error(env('APP_NAME'), __('messages.error_general'));
             return back()->withInput($request->input());
         }
 
-        alert()->success(env('APP_NAME'), __('messages.player_updated'));
+        Alert::success(env('APP_NAME'), __('messages.player_updated'));
         return redirect(route('portal.player.show', [auth()->user()->unique_code]));
     }
 }
