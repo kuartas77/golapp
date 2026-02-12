@@ -1,4 +1,4 @@
-Alert<?php
+<?php
 
 namespace App\Http\Controllers\Competition;
 
