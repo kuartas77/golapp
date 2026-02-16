@@ -3,9 +3,9 @@
 @section('content')
 <x-bread-crumb title="Notificaciones" :option="0" />
 <x-row-card col-inside="12">
-    <p>Podrás encontrar todas las notificaciones generadas para la App ClubLink.</p>
+    <p>Podrás encontrar todas las notificaciones generadas para la App GOLAPPLINK.</p>
     <span class="text-muted">
-        Las notificaciones se mostrarán en ClubLink sólo hasta despues de 8 días de haber sido creadas.
+        Las notificaciones se mostrarán en GOLAPPLINK sólo hasta despues de 8 días de haber sido creadas.
     </span>
 
     @include('topic-notification.table')

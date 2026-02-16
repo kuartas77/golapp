@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
 use Illuminate\View\View;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class GameController extends Controller
 {
@@ -67,10 +68,10 @@ class GameController extends Controller
             ])
         );
         if ($match->wasRecentlyCreated) {
-            alert()->success(env('APP_NAME'), __("messages.match_stored"));
+            Alert::success(env('APP_NAME'), __("messages.match_stored"));
             return redirect()->to(route('matches.index'));
         } else {
-            alert()->error(env('APP_NAME'), __("messages.match_fail"));
+            Alert::error(env('APP_NAME'), __("messages.match_fail"));
             return back()->withInput($request->input());
         }
     }
@@ -103,10 +104,10 @@ class GameController extends Controller
         ]);
 
         if ($this->repository->updateMatchSkill($matchData, $skillsData, $match)) {
-            alert()->success(env('APP_NAME'), __("messages.match_updated"));
+            Alert::success(env('APP_NAME'), __("messages.match_updated"));
             return redirect(route('matches.index'));
         }
-        alert()->error(env('APP_NAME'), __("messages.match_fail"));
+        Alert::error(env('APP_NAME'), __("messages.match_fail"));
         return redirect(route('matches.index'));
     }
 
@@ -117,10 +118,10 @@ class GameController extends Controller
     public function destroy(Game $match)
     {
         if ($match->forceDelete()) {
-            alert()->success(env('APP_NAME'), __("messages.match_deleted"));
+            Alert::success(env('APP_NAME'), __("messages.match_deleted"));
             return redirect(route('matches.index'));
         }
-        alert()->error(env('APP_NAME'), __("messages.match_fail"));
+        Alert::error(env('APP_NAME'), __("messages.match_fail"));
         return redirect(route('matches.index'));
     }
 }

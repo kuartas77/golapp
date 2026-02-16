@@ -3,7 +3,7 @@
 @section('content')
 <x-bread-crumb title="Solicitudes de uniformes" :option="0" />
 <x-row-card col-inside="12">
-    <p>Podrás encontrar las solicitudes pendientes de uniformes generadas desde la App ClubLink.</p>
+    <p>Podrás encontrar las solicitudes pendientes de uniformes generadas desde la App GOLAPPLINK.</p>
     <span class="text-muted">
         Al dar click en crear una factura las solicitudes pendientes se agregarán a esta, sin importar la solicitud seleccionada del estudiante y se aprovará si está incluida en la factura.
     </span>

@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\Admin\InvoiceCustomItemController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Invoices\InvoiceController;
 use App\Http\Controllers\Invoices\ItemInvoicesController;
 use App\Http\Controllers\Notifications\PaymentRequestController;
+use App\Http\Controllers\Notifications\TopicNotificationsController;
 use App\Http\Controllers\Notifications\UniformRequestsController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\PlayerStatsController;
@@ -17,7 +19,6 @@ use App\Http\Controllers\{Competition\GameController, Payments\PaymentController
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
-use App\Http\Controllers\Notifications\TopicNotificationsController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -80,6 +81,8 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('availability_competition_groups/{competition_groups?}', [CompetitionGroupController::class, 'availabilityGroup'])->name('competition_groups.availability');
 
         Route::post('users/activate/{id}', [UserController::class, 'activate'])->name('users.activate');
+
+        Route::resource("invoice-items-custom", InvoiceCustomItemController::class)->except(['create','destroy']);
 
     });
 
@@ -159,8 +162,6 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('notifications', [TopicNotificationsController::class, 'index'])->name('notification.index');
         Route::post('notifications', [TopicNotificationsController::class, 'store'])->name('notification.store');
     });
-
-
 });
 
 Route::middleware(['auth', 'verified_school'])->prefix('v1')->group(function () {

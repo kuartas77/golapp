@@ -6,6 +6,7 @@ use App\Http\Requests\InvoiceAddPaymentRequest;
 use App\Http\Requests\InvoiceStoreRequest;
 use App\Models\Inscription;
 use App\Models\Invoice;
+use App\Models\InvoiceCustomItem;
 use App\Models\InvoiceItem;
 use App\Models\Payment;
 use App\Models\PaymentReceived;
@@ -86,9 +87,9 @@ class InvoiceRepository
             }
         }
 
-        $pendingUniformRequests = $this->addUniformRequest($payment->inscription->player_id);
+        [$pendingUniformRequests, $customItems] = $this->addUniformRequest($payment->inscription->player_id);
 
-        return [$inscription, $pendingMonths, $pendingUniformRequests];
+        return [$inscription, $pendingMonths, $pendingUniformRequests, $customItems];
     }
 
     public function storeInvoice(InvoiceStoreRequest $request): mixed
@@ -178,28 +179,68 @@ class InvoiceRepository
     private function addUniformRequest($playerId)
     {
         $uniformRequests = UniformRequest::query()
+        ->leftJoin('invoice_custom_items as ici', function ($join) {
+            $join->on('ici.type', '=', 'uniform_request.type')
+                ->on('ici.school_id', '=', 'uniform_request.school_id')
+                ->whereNull('ici.deleted_at')
+                // evita que un request OTHER intente matchear con items
+                ->where('uniform_request.type', '!=', 'OTHER')
+                // evita “usar” item OTHER (pueden existir muchos)
+                ->where('ici.type', '!=', 'OTHER');
+        })
+        ->where('uniform_request.player_id', $playerId)
+        ->where('uniform_request.status', 'PENDING')
+        ->where('uniform_request.type', '!=', 'OTHER') // si quieres excluir OTHER del cálculo
+        ->schoolId()
+        ->select([
+            'uniform_request.*',
+            DB::raw('COALESCE(ici.unit_price, 0) as unit_price'),
+            DB::raw('ici.name as item_name'),
+            DB::raw('ici.id as custom_id'),
+        ])
+        ->get();
+
+        $custonIds = $uniformRequests->pluck('custom_id')->filter();
+
+        $customItems = InvoiceCustomItem::query()
+            ->when($custonIds->isNotEmpty(), fn($q) => $q->whereNotIn('id', $custonIds))
+            ->schoolId()->get();
+
+        $uniformRequestsOthers = UniformRequest::query()
             ->where('player_id', $playerId)
-            ->where('status', 'PENDING')
+            ->where('type', 'OTHER')
             ->get();
+
+        $uniformRequests = $uniformRequests->merge($uniformRequestsOthers);
 
         $pendingUniformRequests = [];
         if($uniformRequests->isNotEmpty()) {
+            $UNIFORM_REQUESTS_TYPES = config('variables.UNIFORM_REQUESTS_TYPES');
             foreach ($uniformRequests as $uniformRequests) {
 
-                if(isset(config('variables.KEY_POSITIONS')[$uniformRequests->type])) {
-                    $type = config('variables.KEY_POSITIONS')[$uniformRequests->type] . " Talla: {$uniformRequests->size}";
+                $size = $uniformRequests->size ? "Talla: {$uniformRequests->size}": '';
+
+                if(!isset($uniformRequests->item_name) && isset($UNIFORM_REQUESTS_TYPES[$uniformRequests->type])) {
+                    if($uniformRequests->type === 'OTHER') {
+                        $type = trim("{$uniformRequests->additional_notes}");
+                    }else {
+                        $type = $UNIFORM_REQUESTS_TYPES[$uniformRequests->type];
+                        $type = trim("{$type}: {$size} {$uniformRequests->additional_notes}");
+                    }
+
                 }else{
-                    $type = $uniformRequests->additional_notes . " Talla: {$uniformRequests->size}";
+                    $type = trim("{$uniformRequests->item_name} {$size} {$uniformRequests->additional_notes}");
                 }
 
                 $pendingUniformRequests[] = [
                     'description' => $type,
                     'uniform_request_id' => $uniformRequests->id,
                     'quantity' => $uniformRequests->quantity,
+                    'unit_price' => intval($uniformRequests->unit_price)
                 ];
             }
         }
 
-        return $pendingUniformRequests;
+        return [$pendingUniformRequests, $customItems];
     }
 }

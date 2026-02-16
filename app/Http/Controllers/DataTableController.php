@@ -38,6 +38,10 @@ class DataTableController extends Controller
         ->filterColumn('training_group_id', fn ($query, $keyword) => $query->where('training_group_id', $keyword))
         ->filterColumn('start_date', fn ($query, $keyword) => $query->whereDate('start_date', $keyword))
         ->filterColumn('category', fn ($query, $keyword) => $query->where('category', $keyword))
+        ->filterColumn('player.last_names', function($query, $keyword) {
+            $sql = "CONCAT(players.names, ' ', players.last_names) like ?";
+            $query->whereRaw($sql, ["%{$keyword}%"]);
+        })
         ->toJson();
     }
 

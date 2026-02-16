@@ -18,6 +18,7 @@ use App\Models\Inscription;
 use App\Http\ViewComposers\Payments\PaymentsViewComposer;
 use App\Http\Requests\Groups\TrainingGroupRequest;
 use App\Http\Controllers\Controller;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class TrainingGroupController extends Controller
 {
@@ -62,9 +63,9 @@ class TrainingGroupController extends Controller
     {
         $training_group = $this->repository->createTrainingGroup($request);
         if ($training_group->wasRecentlyCreated) {
-            alert()->success(env('APP_NAME'), __('messages.training_group_create_success'));
+            Alert::success(env('APP_NAME'), __('messages.training_group_create_success'));
         } else {
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+            Alert::error(env('APP_NAME'), __('messages.ins_create_failure'));
         }
 
         return redirect(route('training_groups.index'));
@@ -106,9 +107,9 @@ class TrainingGroupController extends Controller
 
         $trainingGroup = $this->repository->updateTrainingGroup($request, $trainingGroup);
         if ($trainingGroup->exists) {
-            alert()->success(env('APP_NAME'), __('messages.training_group_edit_success'));
+            Alert::success(env('APP_NAME'), __('messages.training_group_edit_success'));
         } else {
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+            Alert::error(env('APP_NAME'), __('messages.ins_create_failure'));
         }
 
         return redirect(route('training_groups.index'));
@@ -127,9 +128,9 @@ class TrainingGroupController extends Controller
         abort_if($firtsTrainigGroup == $trainingGroup->id, 401, 'El Grupo Provicional No Se Puede Eliminar o Modificar');
 
         if ($trainingGroup->delete()) {
-            alert()->success(env('APP_NAME'), __('messages.ins_delete_success'));
+            Alert::success(env('APP_NAME'), __('messages.ins_delete_success'));
         } else {
-            alert()->error(env('APP_NAME'), __('messages.ins_create_failure'));
+            Alert::error(env('APP_NAME'), __('messages.ins_create_failure'));
         }
         return redirect(route('training_groups.index'));
     }

@@ -115,7 +115,7 @@
                 <div class="card-body">
                     <h5 class="text-themecolor">
                         <i class="fas fa-history"></i> Solicitudes de Pago
-                        <small class="text-muted">"Enviadas desde la App ClubLink"</small>
+                        <small class="text-muted">"Enviadas desde la App GOLAPPLINK"</small>
                         <p>
                             Información importante
                             <i class="fas fa-question-circle text-muted"

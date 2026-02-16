@@ -12,6 +12,7 @@ use Exception;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class UserRepository
 {
@@ -52,13 +53,13 @@ class UserRepository
             DB::commit();
             Cache::forget('KEY_USERS_' . $school->id);
 
-            alert()->success(__('messages.user_stored_success'));
+            Alert::success(__('messages.user_stored_success'));
 
             return $user;
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("UserRepository create", $exception);
-            alert()->error(__('messages.error'));
+            Alert::error(__('messages.error'));
             return $this->user;
         }
     }
@@ -73,12 +74,12 @@ class UserRepository
             Cache::forget('KEY_USERS_' . $user->school_id);
             DB::commit();
 
-            alert()->success(config('app.name'), __('messages.user_updated', ['user_name' => $user->name]));
+            Alert::success(config('app.name'), __('messages.user_updated', ['user_name' => $user->name]));
 
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("UserRepository update", $exception);
-            alert()->error(__('messages.error'));
+            Alert::error(__('messages.error'));
         }
     }
 

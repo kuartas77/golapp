@@ -11,6 +11,7 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class TrainingSessionsController extends Controller
 {
@@ -35,11 +36,11 @@ class TrainingSessionsController extends Controller
         $trainingSession = $this->repository->store($request->validated());
 
         if($trainingSession){
-            alert()->success(env('APP_NAME'), __('messages.training_session_created'));
+            Alert::success(env('APP_NAME'), __('messages.training_session_created'));
             return redirect()->to(route('training-sessions.index'));
         }
 
-        alert()->error(env('APP_NAME'), __('messages.error_general'));
+        Alert::error(env('APP_NAME'), __('messages.error_general'));
         return back()->withInput($request->input());
     }
 
@@ -55,11 +56,11 @@ class TrainingSessionsController extends Controller
         $trainingSession = $this->repository->update($trainingSession, $request->validated());
 
         if($trainingSession){
-            alert()->success(env('APP_NAME'), __('Actualizado'));
+            Alert::success(env('APP_NAME'), __('Actualizado'));
             return redirect()->to(route('training-sessions.index'));
         }
 
-        alert()->error(env('APP_NAME'), __('messages.error_general'));
+        Alert::error(env('APP_NAME'), __('messages.error_general'));
         return back()->withInput($request->input());
     }
 }

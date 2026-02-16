@@ -10,7 +10,7 @@
                 <div class="modal-body m-l-20 m-r-20">
 
                     <span class="text-muted">
-                        Las notificaciones se envían a unos tópicos a los cuales los usuarios de ClubLink se subscriben al momento de ingresar a
+                        Las notificaciones se envían a unos tópicos a los cuales los usuarios de GOLAPPLINK se subscriben al momento de ingresar a
                         la App, estos tópicos se conforman por el nombre seguido de un guión y el nombre de la escuela.
                     </span>
 

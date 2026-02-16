@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\TrainingGroup;
 use App\Http\Controllers\Controller;
 use App\Traits\ErrorTrait;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class ReportAssistsController extends Controller
 {
@@ -49,7 +50,7 @@ class ReportAssistsController extends Controller
 
         } catch (\Throwable $th) {
             $this->logError("ReportAssistsController@report", $th);
-            alert()->error(env('APP_NAME'), __('messages.error_general'));
+            Alert::error(env('APP_NAME'), __('messages.error_general'));
         }
     }
 }

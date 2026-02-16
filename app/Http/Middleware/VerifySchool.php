@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class VerifySchool
 {
@@ -32,7 +33,7 @@ class VerifySchool
     {
         auth()->logout();
 
-        alert()->error(config('app.name'), __('messages.schools_dissabled'));
+        Alert::error(config('app.name'), __('messages.schools_dissabled'));
 
         return redirect('login');
     }
