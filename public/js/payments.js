@@ -90,7 +90,6 @@ function checkValue(element){
     }else if(input_val == annuity && ['11','12'].includes(element.val())){
         verifyInputs(element, annuity)
     }else if(input_val != 0 && ['0'].includes(element.val())){
-        input.val(0)
         changeColors(element)
     }else if(['13'].includes(element.val())){
         input.val(annuity)
