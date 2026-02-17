@@ -44,6 +44,8 @@
             <td>&nbsp;
                 @if($item->type == 'monthly')
                 Mensualidad
+                @elseif($item->type == 'enrollment')
+                Inscripción
                 @else
                 Item
                 @endif

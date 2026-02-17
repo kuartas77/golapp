@@ -190,7 +190,7 @@
                     name: 'type',
                     searchable: false,
                     orderable: false,
-                    render: (data, type, row) => data === 'monthly' ? `Mensualidad`: 'Item'
+                    render: (data, type, row) => data === 'monthly' ? `Mensualidad`: data == 'enrollment' ? 'Inscripción' : 'Item'
                 },
                 {
                     data: 'description',
@@ -199,7 +199,7 @@
                     orderable: false
                 },
                 {
-                    data: 'payment_method',
+                    data: 'payment_received.payment_method',
                     name: 'payment_method',
                     searchable: true,
                     render: (data, type, row) => {
