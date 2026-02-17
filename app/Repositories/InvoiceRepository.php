@@ -10,9 +10,9 @@ use App\Models\InvoiceCustomItem;
 use App\Models\InvoiceItem;
 use App\Models\Payment;
 use App\Models\PaymentReceived;
-use App\Models\PaymentRequest;
 use App\Models\UniformRequest;
 use App\Traits\ErrorTrait;
+use App\Traits\PDFTrait;
 use App\Traits\UploadFile;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +22,7 @@ class InvoiceRepository
 {
     use ErrorTrait;
     use UploadFile;
+    use PDFTrait;
 
     public function invoicesPlayer()
     {
@@ -242,5 +243,21 @@ class InvoiceRepository
         }
 
         return [$pendingUniformRequests, $customItems];
+    }
+
+    public function exportPendingItems(bool $stream = true)
+    {
+        $items = $this->getAllItems()->where('is_paid', false)->get();
+
+        $date = now()->format('d-m-Y H:i:s');
+        $data = [];
+        $data['school'] = getSchool(auth()->user());
+        $data['items'] = $items;
+        $data['date'] = $date;
+
+        $filename = "Items de factura pendientes {$date}.pdf";
+        $this->setConfigurationMpdf(['format' => 'A4-L']);
+        $this->createPDF($data, 'items-invoices.blade.php');
+        return $stream ? $this->stream($filename) : $this->output($filename);
     }
 }

@@ -4,6 +4,9 @@
 <x-bread-crumb title="Items Facturas" :option="0" />
 <x-row-card col-inside="12">
     <p>En esta página podrás encontrar los items de todas las facturas.</p>
+    <a class="float-right btn waves-effect waves-light btn-rounded btn-info" href="{{route('export.items.invoices')}}" id="export-pdf" target="_blank">
+        <i class="fa fa-print" aria-hidden="true"></i> Exportar pendientes en PDF
+    </a>
     <div class="table-responsive-md">
         <table class="display compact cell-border" id="invoicesTable">
             <thead class="thead-light">

@@ -114,6 +114,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('tournament/payouts/excel', [ExportController::class, 'exportTournamentPayoutsExcel'])->name('tournaments.payouts.excel');
         Route::get('tournament/payouts/pdf', [ExportController::class, 'exportTournamentPayoutsPDF'])->name('tournaments.payouts.pdf');
         Route::get('training_sessions/pdf/{id}', [ExportController::class, 'exportTrainingSession'])->name('training_sessions.pdf');
+        Route::get('items/invoices', [ExportController::class, 'exportPendingItemsInvoices'])->name('items.invoices');
     });
 
     Route::prefix('historic')->name('historic.')->group(function () {
@@ -150,7 +151,6 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'addPayment'])->name('invoices.addPayment');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
     Route::get('items/invoices', [ItemInvoicesController::class, 'index'])->name('items.invoices.index');
-
 
     Route::get('/player-stats', [PlayerStatsController::class, 'index'])->name('player.stats');
     Route::get('/top-players', [PlayerStatsController::class, 'topPlayers'])->name('players.top');
