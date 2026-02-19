@@ -199,7 +199,7 @@
                     orderable: false
                 },
                 {
-                    data: 'payment_received.payment_method',
+                    data: 'payment_method',
                     name: 'payment_method',
                     searchable: true,
                     render: (data, type, row) => {

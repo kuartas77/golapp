@@ -95,6 +95,9 @@ class AssistRepository
     public function upsert(AssistDTO $assistDto): bool
     {
         try {
+            if($assistDto->value) {
+                return true;
+            }
             DB::beginTransaction();
 
             $assist = Assist::query()
