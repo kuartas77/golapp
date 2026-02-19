@@ -174,7 +174,9 @@ class InvoiceRepository
 
     public function getAllItems()
     {
-        return InvoiceItem::query()->with('paymentReceived')->withWhereHas('invoice', fn($q) => $q->schoolId());
+        return InvoiceItem::query()->select(['invoice_items.*', 'payments_received.payment_method'])->with('paymentReceived')
+            ->withWhereHas('invoice', fn($q) => $q->schoolId())
+            ->leftJoin('payments_received', 'invoice_items.payment_received_id', 'payments_received.id');
     }
 
     private function addUniformRequest($playerId)
