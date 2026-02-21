@@ -23,12 +23,12 @@ class LoginPlayerController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'uniqueCode' => 'required',
+            'email' => 'required|email:rfc,dns',
             'password' => 'required',
         ]);
 
         $player = Player::query()
-            ->where('unique_code', $request->input('uniqueCode'))
+            ->where('email', $request->input('email'))
             ->where('identification_document', $request->input('password'))
             ->whereHas('inscription')->first();
 
