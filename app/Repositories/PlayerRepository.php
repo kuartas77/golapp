@@ -21,6 +21,7 @@ use App\Http\Requests\Player\PlayerCreateRequest;
 use App\Http\Requests\Player\PlayerUpdateRequest;
 use App\Notifications\RegisterPlayerNotification;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Hash;
 
 class PlayerRepository
 {
@@ -95,6 +96,8 @@ class PlayerRepository
         $dataPlayer['date_birth'] = Carbon::parse($dataPlayer['date_birth']);
         $dataPlayer['category'] = categoriesName($dataPlayer['date_birth']->year);
         $dataPlayer['unique_code'] = ($dataPlayer['unique_code'] ?? optional($player)->unique_code);
+        $dataPlayer['password'] = Hash::make($dataPlayer['identification_document']);
+
         return $dataPlayer;
     }
 

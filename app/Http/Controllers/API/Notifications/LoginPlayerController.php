@@ -35,7 +35,7 @@ class LoginPlayerController extends Controller
         if(!$player || !Hash::check($request->input('password'), $player->password)) {
 
             throw ValidationException::withMessages([
-                'uniqueCode' => ['The provided credentials are incorrect.'],
+                'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
