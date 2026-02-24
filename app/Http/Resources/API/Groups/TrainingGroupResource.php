@@ -35,7 +35,7 @@ class TrainingGroupResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'days' => $this->days,
-            'explode_schedules' => $this->explode_schedules,
+            'explode_schedules' => $this->schedules,
             'full_schedule_group' => $this->full_schedule_group,
             'full_group' => $this->full_group,
             'player_count' => $this->inscriptions_count,
