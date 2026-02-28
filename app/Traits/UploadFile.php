@@ -38,11 +38,11 @@ trait UploadFile
         return $path;
     }
 
-    public function uploadFile(UploadedFile $file, string $schoolFolder, string $field = 'player'): ?string
+    public function uploadFile(UploadedFile $file, string $schoolFolder, string $field = 'players'): ?string
     {
         $path = null;
 
-        $folder = $field === 'player' ? 'players' : 'profiles';
+        $folder = $field;
 
         $path = $file->hashName("{$schoolFolder}/{$folder}");
 
@@ -75,7 +75,7 @@ trait UploadFile
 
         $img = Image::make($file)->resize(200, 200);
 
-        Storage::disk('public')->put($path, (string)$img->encode(), 'public');
+        Storage::disk('local')->put($path, (string)$img->encode(), 'public');
 
         return $path;
     }

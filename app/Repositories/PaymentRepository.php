@@ -144,7 +144,7 @@ class PaymentRepository
             ->when($unique_code, fn($q) => $q->where('unique_code', $unique_code))
             ->when($training_group_id != 0, fn($q) => $q->where('training_group_id', $training_group_id))
             ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', $year)->where('category', $category)->withTrashed()))
-            ->orderBy('inscription_id', 'asc');
+            ->orderByRaw("CAST(SUBSTRING_INDEX(category, '-', -1) AS UNSIGNED) ASC");
 
         return $query;
     }

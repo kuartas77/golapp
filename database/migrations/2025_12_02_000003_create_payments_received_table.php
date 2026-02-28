@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\ContractType;
-use App\Models\School;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

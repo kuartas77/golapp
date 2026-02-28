@@ -59,7 +59,7 @@ class VerifyInscriptionStatus extends Command
                 $users = User::query()->where('school_id', $school->id)->role('school')->get();
 
                 if ($users->isNotEmpty()) {
-                    Mail::to($users)->send((new PreinscriptionsProvitional($school->name, $inscriptions))->onQueue('emails'));
+                    Mail::to($users)->send((new PreinscriptionsProvitional($school->name, $inscriptions)));
                 }
             }
         }

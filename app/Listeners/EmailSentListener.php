@@ -22,7 +22,6 @@ class EmailSentListener
 
         switch ($notification) {
             case InscriptionNotification::class:
-            case InscriptionToSchoolNotification::class:
                 $inscription = data_get($event->data, 'inscription');
                 $school = data_get($inscription, 'school');
                 $this->notificationInscription($inscription, $school);
@@ -36,6 +35,6 @@ class EmailSentListener
 
     private function notificationInscription($inscription, $school)
     {
-        dispatch(new DeleteDocuments($school->slug, (string)$inscription->unique_code))->delay(now()->addWeek())->onQueue('cleaner');
+        dispatch(new DeleteDocuments($school->slug, (string)$inscription->unique_code));
     }
 }

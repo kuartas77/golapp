@@ -10,6 +10,7 @@ use App\Exports\PaymentsExport;
 use App\Http\Controllers\Controller;
 use Illuminate\Filesystem\Filesystem;
 use App\Jobs\NotifyUserOfCompletedExport;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class ReportPaymentController extends Controller
 {
@@ -53,11 +54,11 @@ class ReportPaymentController extends Controller
                 new NotifyUserOfCompletedExport(auth()->user(), $filename),
             ]);
 
-            alert()->info("El Archivo será enviado al correo electronico.");
+            Alert::info("El Archivo será enviado al correo electronico.");
 
         } catch (\Throwable $th) {
             $this->logError("ReportPaymentController@report", $th);
-            alert()->error(env('APP_NAME'), __('messages.error_general'));
+            Alert::error(env('APP_NAME'), __('messages.error_general'));
         }
 
         return back();

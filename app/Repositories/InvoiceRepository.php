@@ -6,20 +6,42 @@ use App\Http\Requests\InvoiceAddPaymentRequest;
 use App\Http\Requests\InvoiceStoreRequest;
 use App\Models\Inscription;
 use App\Models\Invoice;
+use App\Models\InvoiceCustomItem;
 use App\Models\InvoiceItem;
 use App\Models\Payment;
 use App\Models\PaymentReceived;
+use App\Models\UniformRequest;
+use App\Traits\ErrorTrait;
+use App\Traits\PDFTrait;
+use App\Traits\UploadFile;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class InvoiceRepository
 {
+    use ErrorTrait;
+    use UploadFile;
+    use PDFTrait;
+
+    public function invoicesPlayer()
+    {
+        $player = request()->user();
+        $player->load(['inscription.invoices.items']);
+        return $player->inscription->invoices;
+    }
+
+    public function statisticsPlayer()
+    {
+        $player = request()->user();
+        $player->load(['inscription.invoices.items']);
+        return data_get($player->inscription, 'invoices', collect());
+    }
+
     public function query(): Builder
     {
-        $school_id = getSchool(auth()->user())->id;
-
         return Invoice::with(['inscription.player', 'trainingGroup'])
-            ->where('school_id', $school_id);
+            ->schoolId();
     }
 
     public function createInvoice($inscriptionId)
@@ -33,6 +55,7 @@ class InvoiceRepository
         $currentYear = date('Y');
         $payment = Payment::where('inscription_id', $inscriptionId)
             ->where('year', $currentYear)
+            ->with('inscription:id,player_id')
             ->first();
 
         $pendingMonths = [];
@@ -65,10 +88,12 @@ class InvoiceRepository
             }
         }
 
-        return [$inscription, $pendingMonths];
+        [$pendingUniformRequests, $customItems] = $this->addUniformRequest($payment->inscription->player_id);
+
+        return [$inscription, $pendingMonths, $pendingUniformRequests, $customItems];
     }
 
-    public function storeInvoide(InvoiceStoreRequest $request): mixed
+    public function storeInvoice(InvoiceStoreRequest $request): mixed
     {
         // Generar número de factura único
         $invoiceNumber = 'FAC-' . strtoupper(Str::random(6)) . '-' . date('Ymd');
@@ -94,7 +119,7 @@ class InvoiceRepository
 
         foreach ($request->items as $itemData) {
 
-            $invoice->items()->create([
+            $item = [
                 'type' => $itemData['type'],
                 'description' => $itemData['description'],
                 'quantity' => $itemData['quantity'],
@@ -102,7 +127,14 @@ class InvoiceRepository
                 'month' => $itemData['month'] ?? null,
                 'payment_id' => $itemData['payment_id'] ?? null,
                 'is_paid' => false,
-            ]);
+                'uniform_request_id' => $itemData['uniform_request_id'] ?? null,
+            ];
+
+            $invoice->items()->create($item);
+
+            if(isset($item['uniform_request_id'])) {
+                UniformRequest::where('id', $item['uniform_request_id'])->update(['status' => 'APPROVED']);
+            }
         }
 
         return $invoice->id;
@@ -142,10 +174,92 @@ class InvoiceRepository
 
     public function getAllItems()
     {
-        $school_id = getSchool(auth()->user())->id;
-        return InvoiceItem::query()
-            ->select(['invoice_items.*', 'payments_received.payment_method'])
-            ->leftJoin('payments_received', 'payment_received_id', 'payments_received.id')
-            ->withWhereHas('invoice', fn($q) => $q->where('school_id', $school_id));
+        return InvoiceItem::query()->select(['invoice_items.*', 'payments_received.payment_method'])->with('paymentReceived')
+            ->withWhereHas('invoice', fn($q) => $q->schoolId())
+            ->leftJoin('payments_received', 'invoice_items.payment_received_id', 'payments_received.id');
+    }
+
+    private function addUniformRequest($playerId)
+    {
+        $uniformRequests = UniformRequest::query()
+        ->leftJoin('invoice_custom_items as ici', function ($join) {
+            $join->on('ici.type', '=', 'uniform_request.type')
+                ->on('ici.school_id', '=', 'uniform_request.school_id')
+                ->whereNull('ici.deleted_at')
+                // evita que un request OTHER intente matchear con items
+                ->where('uniform_request.type', '!=', 'OTHER')
+                // evita “usar” item OTHER (pueden existir muchos)
+                ->where('ici.type', '!=', 'OTHER');
+        })
+        ->where('uniform_request.player_id', $playerId)
+        ->where('uniform_request.status', 'PENDING')
+        ->where('uniform_request.type', '!=', 'OTHER') // si quieres excluir OTHER del cálculo
+        ->schoolId()
+        ->select([
+            'uniform_request.*',
+            DB::raw('COALESCE(ici.unit_price, 0) as unit_price'),
+            DB::raw('ici.name as item_name'),
+            DB::raw('ici.id as custom_id'),
+        ])
+        ->get();
+
+        $custonIds = $uniformRequests->pluck('custom_id')->filter();
+
+        $customItems = InvoiceCustomItem::query()
+            ->when($custonIds->isNotEmpty(), fn($q) => $q->whereNotIn('id', $custonIds))
+            ->schoolId()->get();
+
+        $uniformRequestsOthers = UniformRequest::query()
+            ->where('player_id', $playerId)
+            ->where('type', 'OTHER')
+            ->get();
+
+        $uniformRequests = $uniformRequests->merge($uniformRequestsOthers);
+
+        $pendingUniformRequests = [];
+        if($uniformRequests->isNotEmpty()) {
+            $UNIFORM_REQUESTS_TYPES = config('variables.UNIFORM_REQUESTS_TYPES');
+            foreach ($uniformRequests as $uniformRequests) {
+
+                $size = $uniformRequests->size ? "Talla: {$uniformRequests->size}": '';
+
+                if(!isset($uniformRequests->item_name) && isset($UNIFORM_REQUESTS_TYPES[$uniformRequests->type])) {
+                    if($uniformRequests->type === 'OTHER') {
+                        $type = trim("{$uniformRequests->additional_notes}");
+                    }else {
+                        $type = $UNIFORM_REQUESTS_TYPES[$uniformRequests->type];
+                        $type = trim("{$type}: {$size} {$uniformRequests->additional_notes}");
+                    }
+
+                }else{
+                    $type = trim("{$uniformRequests->item_name} {$size} {$uniformRequests->additional_notes}");
+                }
+
+                $pendingUniformRequests[] = [
+                    'description' => $type,
+                    'uniform_request_id' => $uniformRequests->id,
+                    'quantity' => $uniformRequests->quantity,
+                    'unit_price' => intval($uniformRequests->unit_price)
+                ];
+            }
+        }
+
+        return [$pendingUniformRequests, $customItems];
+    }
+
+    public function exportPendingItems(bool $stream = true)
+    {
+        $items = $this->getAllItems()->where('is_paid', false)->get();
+
+        $date = now()->format('d-m-Y H:i:s');
+        $data = [];
+        $data['school'] = getSchool(auth()->user());
+        $data['items'] = $items;
+        $data['date'] = $date;
+
+        $filename = "Items de factura pendientes {$date}.pdf";
+        $this->setConfigurationMpdf(['format' => 'A4-L']);
+        $this->createPDF($data, 'items-invoices.blade.php');
+        return $stream ? $this->stream($filename) : $this->output($filename);
     }
 }

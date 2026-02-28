@@ -7,6 +7,7 @@ use App\Http\Requests\Inscription\InscriptionRequest;
 use App\Http\Requests\Inscription\InscriptionUpdateRequest;
 use App\Models\Inscription;
 use App\Repositories\InscriptionRepository;
+use App\Service\TopicService;
 use Illuminate\Http\JsonResponse;
 class InscriptionController extends Controller
 {

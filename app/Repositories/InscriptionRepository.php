@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use Exception;
-use Throwable;
-use App\Traits\ErrorTrait;
 use App\Models\Inscription;
 use App\Models\TrainingGroup;
-use Illuminate\Support\Facades\DB;
+use App\Notifications\InscriptionNotification;
+use App\Repositories\PeopleRepository;
+use App\Traits\ErrorTrait;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use App\Notifications\InscriptionNotification;
+use Illuminate\Support\Facades\DB;
+use RealRashid\SweetAlert\Facades\Alert;
+use Throwable;
 
 class InscriptionRepository
 {
@@ -120,8 +122,10 @@ class InscriptionRepository
      */
     public function getInscriptionsEnabled(): Builder
     {
-        return $this->inscription->with(['player.people', 'trainingGroup' => fn($q) => $q->withTrashed()])
-            ->inscriptionYear(request('inscription_year'))->schoolId();
+        return Inscription::query()->select('inscriptions.*')->with(['player.people', 'trainingGroup' => fn($q) => $q->withTrashed()])
+            ->join('players', 'inscriptions.player_id', '=', 'players.id')
+            ->inscriptionYear(request('inscription_year'))
+            ->schoolId();
     }
 
     /**

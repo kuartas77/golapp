@@ -1,8 +1,12 @@
 @extends('layouts.app')
-@section('title', 'Facturas')
+@section('title', 'Items Facturas')
 @section('content')
-<x-bread-crumb title="Facturas" :option="0" />
+<x-bread-crumb title="Items Facturas" :option="0" />
 <x-row-card col-inside="12">
+    <p>En esta página podrás encontrar los items de todas las facturas.</p>
+    <a class="float-right btn waves-effect waves-light btn-rounded btn-info" href="{{route('export.items.invoices')}}" id="export-pdf" target="_blank">
+        <i class="fa fa-print" aria-hidden="true"></i> Exportar pendientes en PDF
+    </a>
     <div class="table-responsive-md">
         <table class="display compact cell-border" id="invoicesTable">
             <thead class="thead-light">
@@ -186,7 +190,7 @@
                     name: 'type',
                     searchable: false,
                     orderable: false,
-                    render: (data, type, row) => data === 'monthly' ? `Mensualidad`: 'Item'
+                    render: (data, type, row) => data === 'monthly' ? `Mensualidad`: data == 'enrollment' ? 'Inscripción' : 'Item'
                 },
                 {
                     data: 'description',
@@ -250,7 +254,7 @@
                     searchable: true,
                     orderable: false,
                     render: function(data, type, row) {
-                        let badge = '<span class="badge badge-danger">Pendiente</span>'
+                        let badge = '<span class="badge badge-warning">Pendiente</span>'
 
                         if (data == '1') {
                             badge = '<span class="badge badge-success">Pagada</span>'

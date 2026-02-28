@@ -77,7 +77,7 @@ class CheckPayments extends Command
                         $player = $payment->inscription->player;
                         if ($player->email && filter_var($player->email, FILTER_VALIDATE_EMAIL)) {
                             $player->notify(
-                                (new PaymentNotification($payment, $school))->delay($now->addMinute()->addSeconds($delaySeconds))->onQueue('emails')
+                                (new PaymentNotification($payment, $school))->delay($now->addMinute()->addSeconds($delaySeconds))
                             );
                         }
                         $iteration++;

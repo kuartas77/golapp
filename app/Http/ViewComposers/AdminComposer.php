@@ -15,6 +15,8 @@ class AdminComposer
             $school_selected = '';
             $schools = [];
             $isSchool = 0;
+            $user = auth()->user();
+            $school = getSchool($user);
 
             if (isAdmin()) {
                 $schools = Cache::remember('admin.schools', now()->addMinutes(5), fn() => School::query()->get());
@@ -22,8 +24,6 @@ class AdminComposer
                 $schools = $schools->pluck('name', 'id');
 
             }elseif(isSchool()){
-                $user = auth()->user();
-                $school = getSchool($user);
                 $isSchool = 1;
 
                 if($multiple = $school->settings->get('MULTIPLE_SCHOOLS')){
@@ -36,8 +36,6 @@ class AdminComposer
                     $school_selected = $school->name;
                 }
             }elseif(isInstructor()){
-                $user = auth()->user();
-                $school = getSchool($user);
                 $isSchool = 1;
                 $school_selected = $school->name;
             }
@@ -45,6 +43,7 @@ class AdminComposer
             $view->with('isSchool', $isSchool);
             $view->with('admin_schools', $schools);
             $view->with('school_selected', $school_selected);
+            $view->with('settings', $school->settings);
         }
     }
 

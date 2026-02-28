@@ -10,11 +10,9 @@
                     {{html()->form('post', route('training-sessions.store'))->attributes(['id' => 'form_session', 'class' => 'form-material m-t-0 validation-wizard wizard-circle'])->open()}}
                     @include('training_sessions.fields.header')
 
-                    @foreach($numberTasks as $task)
-
-                    @include('training_sessions.fields.task', ['task' => $task])
-
-                    @endforeach
+                    @include('training_sessions.fields.task', ['task' => 1])
+                    @include('training_sessions.fields.task', ['task' => 2])
+                    @include('training_sessions.fields.task', ['task' => 3])
 
                     @include('training_sessions.fields.footer')
                     {{ html()->form()->close() }}

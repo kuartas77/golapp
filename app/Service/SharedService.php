@@ -62,7 +62,7 @@ class SharedService
                     $this->checkMonthValue($start_date->month, $paymentValue, $dataPayment);
                 }
 
-                if($inscription->school_id == 9 && !$inscription->scholarship) {
+                if(!$inscription->scholarship) {
                     $this->debtMonth($school, $start_date->month, $dataPayment);
                 }
 
@@ -116,10 +116,9 @@ class SharedService
         $dataPayment['enrollment'] = '2';
         $dataPayment['enrollment_amount'] = $inscriptionAmount;
         $configMonths = config('variables.KEY_INDEX_MONTHS');
-        foreach (range(1, 12) as $numMonth) {
-            $dataPayment[$configMonths[$numMonth]] = '2';
-            $dataPayment[$configMonths[$numMonth].'_amount'] = $monthlyAmount;
-        }
+
+        $dataPayment[$configMonths[$actualMonth]] = '2';
+        $dataPayment[$configMonths[$actualMonth].'_amount'] = $monthlyAmount;
     }
 
     private function enableSkillControl($inscription)

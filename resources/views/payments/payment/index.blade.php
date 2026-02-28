@@ -22,7 +22,7 @@
         })
     </script>
     @if($enabledPaymentOld)
-    <script src="{{asset('js/payments.js')}}"></script>
+    <script src="{{mix('js/payments.js')}}"></script>
     @else
     <script src="{{asset('js/payments_modal.js')}}"></script>
     @endif

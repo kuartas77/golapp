@@ -2,23 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use Mpdf\MpdfException;
-use Illuminate\Http\Request;
 use App\Exports\AssistExport;
-use App\Exports\PaymentsExport;
 use App\Exports\MatchDetailExport;
-use App\Repositories\GameRepository;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Repositories\AssistRepository;
-use App\Repositories\PaymentRepository;
+use App\Exports\PaymentsExport;
 use App\Exports\TournamentPayoutsExport;
+use App\Repositories\AssistRepository;
+use App\Repositories\GameRepository;
 use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
+use App\Repositories\InvoiceRepository;
+use App\Repositories\PaymentRepository;
+use App\Repositories\TournamentPayoutsRepository;
 use App\Service\Assist\AssistExportService;
 use App\Service\Payment\PaymentExportService;
-use App\Repositories\TournamentPayoutsRepository;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use App\Service\TrainigSession\TrainingSessionExportService;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Mpdf\MpdfException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ExportController extends Controller
 {
@@ -29,7 +30,8 @@ class ExportController extends Controller
         private IncidentRepository          $incidentRepository,
         private GameRepository              $gameRepository,
         private PaymentRepository           $paymentRepository,
-        private TournamentPayoutsRepository $tournamentPayoutsRepository
+        private TournamentPayoutsRepository $tournamentPayoutsRepository,
+        private InvoiceRepository $invoiceRepository
     )
     {
     }
@@ -130,5 +132,10 @@ class ExportController extends Controller
     public function exportTrainingSession(Request $request, int $id, TrainingSessionExportService $trainingSessionExportService,)
     {
         return $trainingSessionExportService->exportSessionPDF($id);
+    }
+
+    public function exportPendingItemsInvoices()
+    {
+        return $this->invoiceRepository->exportPendingItems();
     }
 }

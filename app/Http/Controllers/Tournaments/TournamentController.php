@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class TournamentController extends Controller
 {
@@ -42,16 +43,16 @@ class TournamentController extends Controller
 
         if ($exist) {
             $exist->trashed() == false ?: $exist->restore();
-            alert()->info(env('APP_NAME'), __('messages.tournament_exists'));
+            Alert::info(env('APP_NAME'), __('messages.tournament_exists'));
             Cache::forget("KEY_TOURNAMENT_{$request->input('school_id')}");
             return back();
         }
         $tournament = Tournament::create($request->validated());
         if ($tournament->wasRecentlyCreated) {
-            alert()->success(env('APP_NAME'), __('messages.tournament_stored'));
+            Alert::success(env('APP_NAME'), __('messages.tournament_stored'));
             Cache::forget("KEY_TOURNAMENT_{$request->input('school_id')}");
         } else {
-            alert()->error(env('APP_NAME'), __('match_fail'));
+            Alert::error(env('APP_NAME'), __('match_fail'));
         }
         return back();
 
@@ -97,10 +98,10 @@ class TournamentController extends Controller
     public function update(TournamentUpdateRequest $request, Tournament $tournament): RedirectResponse
     {
         if ($tournament->update($request->validated())) {
-            alert()->success(env('APP_NAME'), __('messages.tournament_updated'));
+            Alert::success(env('APP_NAME'), __('messages.tournament_updated'));
             Cache::forget("KEY_TOURNAMENT_{$request->input('school_id')}");
         } else {
-            alert()->error(env('APP_NAME'), __('match_fail'));
+            Alert::error(env('APP_NAME'), __('match_fail'));
         }
         return back();
     }

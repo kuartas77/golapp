@@ -194,6 +194,11 @@ class Inscription extends Model
         return $this->hasMany(TournamentPayout::class);
     }
 
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
     public function getFormatAverageAttribute(): array
     {
         return [

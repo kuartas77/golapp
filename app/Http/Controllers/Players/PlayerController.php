@@ -12,6 +12,7 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class PlayerController extends Controller
 {
@@ -49,11 +50,11 @@ class PlayerController extends Controller
         $player = $this->repository->createPlayer($request);
 
         if($player){
-            alert()->success(env('APP_NAME'), __('messages.player_created'));
+            Alert::success(env('APP_NAME'), __('messages.player_created'));
             return redirect()->to(route('players.index'));
         }
 
-        alert()->error(env('APP_NAME'), __('messages.error_general'));
+        Alert::error(env('APP_NAME'), __('messages.error_general'));
         return back()->withInput($request->input());
     }
 

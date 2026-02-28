@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
 use Throwable;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class UserController extends Controller
 {
@@ -96,7 +97,7 @@ class UserController extends Controller
             view()->share('user', $user->load('roles'));
             return view('admin.user.edit');
         } else {
-            alert()->error(config('app.name'), __('messages.denied'));
+            Alert::error(config('app.name'), __('messages.denied'));
         }
 
         return back();
@@ -147,7 +148,7 @@ class UserController extends Controller
             $this->logError("MatchRepository updateMatchSkill", $th);
         }
 
-        alert()->success(config('app.name'), __('messages.user_disabled'));
+        Alert::success(config('app.name'), __('messages.user_disabled'));
 
         return redirect(route('users.index'));
     }
@@ -167,7 +168,7 @@ class UserController extends Controller
 
                     Cache::forget("KEY_USERS_{$school_id}");
                 }
-                alert()->success(config('app.name'), __('messages.user_enabled'));
+                Alert::success(config('app.name'), __('messages.user_enabled'));
             }
 
         } catch (Throwable $th) {

@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class SchedulesController extends Controller
 {
@@ -103,9 +104,9 @@ class SchedulesController extends Controller
     public function destroy(Schedule $schedule)
     {
         if ($schedule->delete()) {
-            alert()->success(env('APP_NAME'), __('messages.schedule_delete_success'));
+            Alert::success(env('APP_NAME'), __('messages.schedule_delete_success'));
         } else {
-            alert()->error(env('APP_NAME'), __('messages.error_general'));
+            Alert::error(env('APP_NAME'), __('messages.error_general'));
         }
         abort(404);
     }

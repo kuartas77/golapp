@@ -278,4 +278,14 @@ return [
         'Tarde' => 'Tarde',
     ],
 
+    'UNIFORM_REQUESTS_TYPES' => [
+       'UNIFORM' => 'Uniforme',
+       'BALL' => 'Balón',
+       'SOCKS' => 'Medias',
+       'SHOES' => 'Guayos',
+       'SHORTS' => 'Pantaloneta',
+       'JERSEY' => 'Camisa',
+       'OTHER' => 'Otro',
+    ]
+
 ];

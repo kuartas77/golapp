@@ -52,9 +52,11 @@ final class CreateContractAction implements IContractPassable
 
     private function makeDirectory(): void
     {
-        $folderDocuments = $this->school->slug;
-        $this->folderDocuments = $folderDocuments . DIRECTORY_SEPARATOR . $this->player->unique_code;
-        Storage::createDirectory($folderDocuments);
+        $base = 'tmp'. DIRECTORY_SEPARATOR .$this->school->slug;
+        $short = data_get($this->school, 'short_name', 'tmp');
+        $folderPlayer = "{$short}-{$this->player->unique_code}";
+        $this->folderDocuments = trim($base, "/\\") . DIRECTORY_SEPARATOR . $folderPlayer;
+        Storage::disk('local')->makeDirectory($this->folderDocuments);
     }
 
     private function uploadSigns(Passable $passable): void
@@ -71,18 +73,18 @@ final class CreateContractAction implements IContractPassable
     private function signContracts(Passable $passable): void
     {
         $year = $passable->getPropertyFromData('year');
-        $storagePath = "app" . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR;
 
-        $fileContractPDF = $this->folderDocuments . DIRECTORY_SEPARATOR . sprintf('CONTRATO DE INSCRIPCIÓN %s.pdf', $year);
-        $fileContractPDFPath = storage_path($storagePath . $fileContractPDF);
-        $this->makeContract(1, $fileContractPDFPath);
-        $this->paths['contract_one'] = ['CONTRATO DE INSCRIPCIÓN' => $fileContractPDFPath];
+        $relativeConInscr = $this->folderDocuments . DIRECTORY_SEPARATOR . sprintf('CONTRATO DE INSCRIPCIÓN %s.pdf', $year);
+        $absoluteInscr = Storage::disk('local')->path($relativeConInscr);
+        $this->makeContract(1, $absoluteInscr);
+        $this->paths['contract_one'] = ['CONTRATO DE INSCRIPCIÓN' => $relativeConInscr];
 
         if ($this->school->sign_player && isset($this->paths['sign_player'])) {
-            $fileContractPDF = $this->folderDocuments . DIRECTORY_SEPARATOR . sprintf('CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA %s.pdf', $year);
-            $fileContractPDFPath = storage_path($storagePath . $fileContractPDF);
-            $this->makeContract(2, $fileContractPDFPath);
-            $this->paths['contract_two'] = ['CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA' => $fileContractPDFPath];
+
+            $relativeCACD = "{$this->folderDocuments}/CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA {$year}.pdf";
+            $absCACD = Storage::disk('local')->path($relativeCACD);
+            $this->makeContract(2, $absCACD);
+            $this->paths['contract_two'] = ['CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA' => $relativeCACD];
         }
     }
 
@@ -140,7 +142,7 @@ final class CreateContractAction implements IContractPassable
         $variables['YEAR']              = now()->format('Y');
         $variables['DATE']              = now()->format('d-m-Y');
 
-        $variables['SIGN_PLAYER']       = ($this->school->sign_player && isset($this->paths['sign_player'])) ? storage_path("app/public/" . $this->paths['sign_player']) : '';
+        $variables['SIGN_PLAYER']       = ($this->school->sign_player && isset($this->paths['sign_player'])) ? Storage::disk('local')->path($this->paths['sign_player']) : '';
         $variables['PLAYER_FULLNAMES']  = Str::upper($this->player->full_names);
         $variables['PLAYER_DOC']        = (string) $this->player->identification_document;
         $variables['PLAYER_DATE_BIRTH'] = (string) $this->player->date_birth;
@@ -154,7 +156,7 @@ final class CreateContractAction implements IContractPassable
 
         $variables['TUTOR_NAME']        = data_get($tutor, 'names', '');
         $variables['TUTOR_DOC']         = data_get($tutor, 'identification_card', '');
-        $variables['SIGN_TUTOR']        = isset($this->paths['sign_tutor']) ? storage_path("app/public/" . $this->paths['sign_tutor']) : '';
+        $variables['SIGN_TUTOR']        = isset($this->paths['sign_tutor']) ? Storage::disk('local')->path($this->paths['sign_tutor']) : '';
         $variables['TUTOR_MAIL']        = data_get($tutor, 'email', '');
         $variables['TUTOR_PHONE']        = data_get($tutor, 'mobile', '');
 

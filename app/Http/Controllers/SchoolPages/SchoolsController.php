@@ -17,6 +17,7 @@ class SchoolsController extends Controller
     {
         $school = getSchool(auth()->user());
         $school->load(['settingsValues']);
+        $school->uniform_request_types = config('variables.UNIFORM_REQUESTS_TYPES');
 
         return response()->json($school);
     }

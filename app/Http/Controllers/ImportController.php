@@ -13,6 +13,7 @@ use App\Traits\ErrorTrait;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class ImportController extends Controller
 {
@@ -49,7 +50,7 @@ class ImportController extends Controller
             $diff = $this->playerRepository->validateImport($request->file('file'));
             if ($diff !== "") {
 
-                alert()->error("Error en las columnas a importar",
+                Alert::error("Error en las columnas a importar",
                     "Error en las columnas: {$diff}");
                 return back();
             }
@@ -57,11 +58,11 @@ class ImportController extends Controller
             $importPlayers = new ImportPlayers($request->school_id, $playerRepository);
             Excel::import($importPlayers, $request->file('file'));
 
-            alert()->success(env('APP_NAME'), __('messages.player_created'));
+            Alert::success(env('APP_NAME'), __('messages.player_created'));
 
         } catch (Throwable $th) {
             $this->logError('importPlayers', $th);
-            alert()->error(env('APP_NAME'), __('messages.error_general'));
+            Alert::error(env('APP_NAME'), __('messages.error_general'));
         }
 
         return back();

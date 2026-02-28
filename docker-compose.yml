@@ -4,7 +4,7 @@ services:
         container_name: php
         build:
             args:
-                user: 1000 # your username (echo $USER)
+                user: skidrunk77 # your username (echo $USER)
                 uid: 1000 # your uid (id -u)
             context: .
             dockerfile: docker/php/Dockerfile

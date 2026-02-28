@@ -88,7 +88,7 @@ class AssistRepository
 
             DB::commit();
 
-            $table = $this->service->generateTable($assistsQuery, $trainingGroup, $dataAssist);
+            // $table = $this->service->generateTable($assistsQuery, $trainingGroup, $dataAssist);
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError("AssistRepository create", $exception);
@@ -100,6 +100,9 @@ class AssistRepository
     public function upsert(AssistDTO $assistDto): bool
     {
         try {
+            if($assistDto->value) {
+                return true;
+            }
             DB::beginTransaction();
 
             $assist = Assist::query()
@@ -142,7 +145,7 @@ class AssistRepository
         try {
 
             DB::beginTransaction();
-            if ($assist->observations || (isset($validated['observations']) && isset($validated['attendance_date']))) {
+            if ($assist->observations || (isset($validated['observations'], $validated['attendance_date']))) {
                 if ($assist->observations !== null && is_object($assist->observations)) {
                     $observations = $assist->observations;
                 } else {

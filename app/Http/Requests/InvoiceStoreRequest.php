@@ -26,6 +26,7 @@ class InvoiceStoreRequest extends FormRequest
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.month' => 'nullable|string',
             'items.*.payment_id' => 'nullable|exists:payments,id',
+            'items.*.uniform_request_id' => 'nullable|exists:uniform_request,id',
         ];
     }
 

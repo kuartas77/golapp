@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Notifications;
+namespace App\Http\Controllers\API\Notifications;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\API\LoginPlayerResource;
@@ -17,25 +17,29 @@ class LoginPlayerController extends Controller
     {
         return Auth::guard('players');
     }
-/**
+    /**
      * @throws ValidationException
      */
     public function login(Request $request)
     {
+        logger("try-login-player-1", $request->all());
         $request->validate([
-            'email' => 'required',
+            'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        $player = Player::where('email', $request->input('email'))->whereHas('inscription')->first();
+        $player = Player::query()
+            ->where('email', $request->input('email'))
+            ->where('identification_document', $request->input('password'))
+            ->whereHas('inscription')->first();
 
         if(!$player || !Hash::check($request->input('password'), $player->password)) {
-
+            logger("try-login-player-2", ['no-player']);
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
-
+        logger("try-login-player-3", $request->all());
         return $this->generateResponse($player);
     }
 

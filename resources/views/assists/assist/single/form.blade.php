@@ -18,6 +18,9 @@
         </div>
 
         <div class="col-md-12">
+            <div class="alert alert-info" role="alert">
+                <p>Las Asistencias se crean automaticamente cada mes, si uno de los deportistas no aparece has clic en el botón crear Asistencias y debería de aparecer, el grupo debe tener integrantes.</p>
+            </div>
             <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info mt-4">Buscar</button>
             <button type="button" class="btn waves-effect waves-light btn-rounded btn-success mt-4" id="createAssist">Crear Asistencias</button>
         </div>

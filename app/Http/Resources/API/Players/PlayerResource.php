@@ -3,10 +3,9 @@
 namespace App\Http\Resources\API\Players;
 
 use App\Models\Player;
+use App\Service\Notification\TopicService;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\MissingValue;
-use Illuminate\Support\Str;
 use JsonSerializable;
 
 class PlayerResource extends JsonResource
@@ -56,23 +55,9 @@ class PlayerResource extends JsonResource
             $response['school_slug'] = $this->whenLoaded('schoolData',$this->schoolData->slug);
             $response['school_logo'] = $this->whenLoaded('schoolData',$this->schoolData->logo_file);
             $response['team'] = $team;
-            $response['topics'] = $this->generateTopics($team);
+            $response['topics'] = TopicService::generatePlayerTopics($this->resource->resource);
         }
 
         return $response;
-    }
-
-    private function generateTopics($team): array
-    {
-        $topics = [];
-        $topics[] = $this->whenLoaded('schoolData',Str::slug("general-{$this->schoolData->slug}"));
-        $topics[] = $this->whenLoaded('schoolData',Str::slug("{$this->category}-{$this->schoolData->slug}"));
-        $topics[] = $this->whenLoaded('schoolData',Str::slug("{$this->unique_code}-{$this->schoolData->slug}"));
-
-        if(!$team instanceof MissingValue) {
-            $topics[] = $this->whenLoaded('schoolData',Str::slug("{$team}-{$this->schoolData->slug}"));
-        }
-
-        return $topics;
     }
 }

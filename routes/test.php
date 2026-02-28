@@ -1,32 +1,42 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Http\Request;
-use App\Modules\Inscriptions\Notifications\InscriptionToSchoolNotification;
-use App\Models\Inscription;
 use App\Custom\PDFContractTest;
-use App\Models\Player;
+use App\Models\Inscription;
+use App\Models\School;
+use App\Modules\Inscriptions\Notifications\InscriptionToSchoolNotification;
+use App\Service\SharedService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->prefix('test')->group(function () {
 
     Route::get('tester', function (Request $request) {
 
-        $validated = $request->validate([
-            'unique_code' => ['required', 'numeric']
-        ]);
 
-        if (!$validated) {
-            return response()->json($validated, 422);
-        }
 
-        $inscription = Inscription::with(['school'])->firstWhere('unique_code', '20250001');
-        $school = $inscription->school;
-        $destinations = [];
-        $destinations[$school->email] = $school->name;
-        Notification::route('mail', $destinations)->notify(
-            (new InscriptionToSchoolNotification($inscription, $school))->onQueue('emails')
-        );
+        // $school = School::query()->with('inscriptions')->firstWhere('id', 9);
+
+        // $service = new SharedService();
+        // foreach ($$school->inscriptions as $inscription) {
+        //     $service->paymentAssist($inscription);
+        // }
+
+        // $validated = $request->validate([
+        //     'unique_code' => ['required', 'numeric']
+        // ]);
+
+        // if (!$validated) {
+        //     return response()->json($validated, 422);
+        // }
+
+        // $inscription = Inscription::with(['school'])->firstWhere('unique_code', '20250001');
+        // $school = $inscription->school;
+        // $destinations = [];
+        // $destinations[$school->email] = $school->name;
+        // Notification::route('mail', $destinations)->notify(
+        //     (new InscriptionToSchoolNotification($inscription, $school))->onQueue('emails')
+        // );
 
         response()->json(['success'], 200);
     });

@@ -9,6 +9,7 @@ use App\Models\Invoice;
 use App\Repositories\InvoiceRepository;
 use App\Traits\PDFTrait;
 use Illuminate\Http\Request;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class InvoiceController extends Controller
 {
@@ -26,26 +27,32 @@ class InvoiceController extends Controller
         ->toJson();
     }
 
-    public function create($inscriptionId)
+    public function create($inscriptionId, Request $request)
     {
-        [$inscription, $pendingMonths] = $this->invoice_repository->createInvoice($inscriptionId);
+
+        $settings = getSchool(auth()->user())->settings;
+
+        [$inscription, $pendingMonths, $pendingUniformRequests, $customItems] = $this->invoice_repository->createInvoice($inscriptionId);
 
         return response()->json([
             'inscription' => $inscription,
-            'pendingMonths' => $pendingMonths
+            'pendingMonths' => $pendingMonths,
+            'pendingUniformRequests' => $pendingUniformRequests,
+            'customItems' => $customItems
         ]);
     }
 
     public function store(InvoiceStoreRequest $request)
     {
-        $invoiceId = $this->invoice_repository->storeInvoide($request);
+        $invoiceId = $this->invoice_repository->storeInvoice($request);
 
         return response()->json(['id' => $invoiceId]);
     }
 
     public function show($id)
     {
-        $invoice = Invoice::with(['items', 'payments', 'inscription.player', 'trainingGroup', 'creator'])
+        $invoice = Invoice::with(['items', 'payments', 'inscription.player', 'trainingGroup', 'creator', 'paymentRequests'])
+            ->schoolId()
             ->findOrFail($id);
 
         return response()->json($invoice);
@@ -55,7 +62,7 @@ class InvoiceController extends Controller
     {
         $this->invoice_repository->addPayment($request, $invoiceId);
 
-        alert()->success(env('APP_NAME'), 'Pago registrado exitosamente.');
+        Alert::success(env('APP_NAME'), 'Pago registrado exitosamente.');
 
         return back();
     }
@@ -65,7 +72,7 @@ class InvoiceController extends Controller
         $invoice = Invoice::findOrFail($id);
         $invoice->delete();
 
-        alert()->success(env('APP_NAME'), 'Factura eliminada exitosamente.');
+        Alert::success(env('APP_NAME'), 'Factura eliminada exitosamente.');
 
         return redirect()->route('invoices.index');
     }

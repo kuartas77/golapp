@@ -16,7 +16,7 @@ final class AssistDTO
     public readonly int $month;
     public readonly int $year;
     public readonly string $column;
-    public readonly int $value;
+    public readonly int|null $value;
     public readonly string|null $attendance_date;
     public readonly string|null $observations;
 }

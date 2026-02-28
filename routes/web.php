@@ -1,12 +1,16 @@
 <?php
 
 use App\Http\Controllers\AppController;
+use App\Http\Controllers\Admin\InvoiceCustomItemController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\FormationPdfController;
 use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Invoices\InvoiceController;
 use App\Http\Controllers\Invoices\ItemInvoicesController;
+use App\Http\Controllers\Notifications\PaymentRequestController;
+use App\Http\Controllers\Notifications\TopicNotificationsController;
+use App\Http\Controllers\Notifications\UniformRequestsController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\Reports\ReportAssistsController;
@@ -42,7 +46,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::resource("players", PlayerController::class);
     Route::resource("tournamentpayout", TournamentPayoutsController::class)->only(['index', 'store', 'update']);
 
-    Route::resource("training-sessions", TrainingSessionsController::class)->only(['index', 'create', 'store']);
+    Route::resource("training-sessions", TrainingSessionsController::class)->only(['index', 'create', 'store', 'update', 'show']);
 
     Route::get('statuses/payments', [PaymentController::class, 'paymentStatuses'])->name('payments.status');
 
@@ -82,6 +86,8 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
         Route::post('users/activate/{id}', [UserController::class, 'activate'])->name('users.activate');
 
+        Route::resource("invoice-items-custom", InvoiceCustomItemController::class)->except(['create']);
+
     });
 
     Route::prefix('datatables')->group(function () {
@@ -113,6 +119,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('tournament/payouts/excel', [ExportController::class, 'exportTournamentPayoutsExcel'])->name('tournaments.payouts.excel');
         Route::get('tournament/payouts/pdf', [ExportController::class, 'exportTournamentPayoutsPDF'])->name('tournaments.payouts.pdf');
         Route::get('training_sessions/pdf/{id}', [ExportController::class, 'exportTrainingSession'])->name('training_sessions.pdf');
+        Route::get('items/invoices', [ExportController::class, 'exportPendingItemsInvoices'])->name('items.invoices');
     });
 
     Route::prefix('historic')->name('historic.')->group(function () {
@@ -150,11 +157,16 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
     Route::get('items/invoices', [ItemInvoicesController::class, 'index'])->name('items.invoices.index');
 
-
     Route::get('/player-stats', [PlayerStatsController::class, 'index'])->name('player.stats');
     Route::get('/top-players', [PlayerStatsController::class, 'topPlayers'])->name('players.top');
     Route::get('/player/{id}/detail', [PlayerStatsController::class, 'playerDetail'])->name('player.detail');
 
+    Route::middleware('check_notify_system')->group(function(){
+        Route::get('payment-request/invoices', [PaymentRequestController::class, 'index'])->name('payment-request.index');
+        Route::get('uniform-request/invoices', [UniformRequestsController::class, 'index'])->name('uniform-request.index');
+        Route::get('notifications', [TopicNotificationsController::class, 'index'])->name('notification.index');
+        Route::post('notifications', [TopicNotificationsController::class, 'store'])->name('notification.store');
+    });
 });
 
 Route::middleware(['auth', 'verified_school'])->prefix('v1')->group(function () {
