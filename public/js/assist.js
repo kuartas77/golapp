@@ -114,7 +114,7 @@ $("#form_observation").validate({
 
 const validateData = ({table, group_name, count, url_print, url_print_excel}, search) => {
     if (count > 0) {
-        let message = search ? `Se Han Encontrado ${count} Asistencia(s).` : `Se Han Creado ${count} Asistencia(s).`;
+        let message = search ? `Se encontraron ${count} asistencia(s).` : `Se crearon ${count} asistencia(s).`;
         tableActive.destroy();
         $("#enabled").empty().append(table);
         $('#group_name').empty().append(group_name);
@@ -123,28 +123,17 @@ const validateData = ({table, group_name, count, url_print, url_print_excel}, se
         btnPrint.removeClass('hide');
         btnPrintExcel.prop("href", url_print_excel);
         btnPrintExcel.removeClass('hide');
-        swal.fire({
-            title: 'Atención!!',
-            text: message,
-            type: 'info',
-            showCancelButton: false,
-            timer: 1500
-        });
+
+        showMessage(message, "success")
     } else {
-        let message = search ? "Se Deben Crear Las Asistencias." : "El Grupo No Cuenta Con Integrantes."
+        let message = search ? "Se deben crear las asistencias." : "Grupo sin integrantes."
         tableActive.clear().draw();
         $('#group_name').empty().append(group_name);
         btnPrint.prop("href", "");
         btnPrint.addClass('hide');
         btnPrintExcel.prop("href", "");
         btnPrintExcel.addClass('hide');
-        swal.fire({
-            title: 'Atención!!',
-            text: message,
-            type: 'warning',
-            showCancelButton: false,
-            timer: 1500
-        });
+        showMessage(message, "warning")
     }
 }
 
