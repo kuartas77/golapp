@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\ViewComposers\Payments\PaymentsViewComposer;
-use App\Models\Inscription;
 use App\Models\Schedule;
 use App\Models\School;
 use App\Models\Tournament;
@@ -82,7 +81,7 @@ class SettingsController extends Controller
             "KEY_INSCRIPTION_YEARS_{$school_id}",
             now()->addMinutes(5),
             fn() =>
-            Inscription::query()->where('school_id', $school_id)->distinct('year')->orderBy('year')->select(['year as id', 'year'])->get()
+            DB::table('inscriptions')->where('school_id', $school_id)->distinct('year')->orderBy('year')->select(['year as id', 'year'])->get()
         );
 
         $document_types = Cache::remember('KEY_DOCUMENT_TYPES', now()->addYear(), fn() => config('variables.KEY_DOCUMENT_TYPES'));
