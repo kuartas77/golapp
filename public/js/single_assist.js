@@ -28,13 +28,7 @@ jQuery(function() {
         if (form_assist.valid()) {
             let data = $("#form_assist").serializeArray();
             $.post(url_current, data, (response) => {
-                swal.fire({
-                    title: 'Atención!!',
-                    text: `Se Han Creado Asistencia.`,
-                    type: 'info',
-                    showCancelButton: false,
-                    timer: 1500
-                });
+                showMessage("Se Han Creado Asistencia.", "info")
             });
         }
     });
@@ -131,13 +125,7 @@ const validateData = ({table, group_name, count, url_print, url_print_excel}, se
         btnPrint.removeClass('hide');
         btnPrintExcel.prop("href", url_print_excel);
         btnPrintExcel.removeClass('hide');
-        swal.fire({
-            title: 'Atención!!',
-            text: message,
-            type: 'info',
-            showCancelButton: false,
-            timer: 1500
-        });
+        showMessage(message, "info")
     } else {
         let message = search ? "Se Deben Crear Las Asistencias." : "El Grupo No Cuenta Con Integrantes."
         tableActive.clear().draw();
@@ -146,13 +134,7 @@ const validateData = ({table, group_name, count, url_print, url_print_excel}, se
         btnPrint.addClass('hide');
         btnPrintExcel.prop("href", "");
         btnPrintExcel.addClass('hide');
-        swal.fire({
-            title: 'Atención!!',
-            text: message,
-            type: 'warning',
-            showCancelButton: false,
-            timer: 1500
-        });
+        showMessage(message, "warning")
     }
 }
 

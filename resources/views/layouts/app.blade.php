@@ -54,8 +54,8 @@
     window.img_logout = "{{asset('img/logout.png')}}";
 </script>
 @include('sweetalert::alert')
-<script src="{{asset('js/all.js')}}"></script>
-<script src="{{asset('js/config.js')}}"></script>
+<script src="{{mix('js/all.js')}}"></script>
+<script src="{{mix('js/config.js')}}"></script>
 @yield('scripts')
 @stack('scripts')
 <script>
