@@ -12,6 +12,7 @@ use App\Traits\ErrorTrait;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use RealRashid\SweetAlert\Facades\Alert;
 use Throwable;
@@ -79,7 +80,16 @@ class InscriptionRepository
 
     private function setTrainingGroupId(array &$requestData): void
     {
-        $requestData['training_group_id'] = ($requestData['training_group_id'] ?? TrainingGroup::orderBy('id')->firstWhere('school_id', $requestData['school_id'])->id);
+        if (!empty($requestData['training_group_id'])) {
+            return;
+        }
+
+        $trainingGroup = TrainingGroup::query()
+            ->orderBy('id')
+            ->firstWhere('school_id', $requestData['school_id']);
+
+        throw_if(is_null($trainingGroup), Exception::class, 'Training group not found for school');
+        $requestData['training_group_id'] = $trainingGroup->id;
     }
 
     private function setCompetitionGroupIds($inscription, $requestData): void
@@ -151,9 +161,11 @@ class InscriptionRepository
     public function searchInsUniqueCode($id)
     {
         $inscription = Inscription::query()->with(['player', 'competitionGroup'])->schoolId()->orderBy('id', 'desc')->firstWhere('unique_code', $id);
-        $inscription->setRelation('competitionGroup', $inscription->competitionGroup->pluck('id'));
-
-        return $inscription;
+        if($inscription) {
+            $inscription->setRelation('competitionGroup', $inscription->competitionGroup->pluck('id'));
+            return $inscription;
+        }
+        return null;
     }
 
     public function disable(Inscription $inscription): void
@@ -194,21 +206,35 @@ class InscriptionRepository
 
     public function createInscriptionByYear($actualYear = null, $futureYear = null): void
     {
-        $actualYear = $actualYear ?: now()->year;
-        $futureYear = $futureYear ?: now()->addYear()->year;
+        try {
+            $actualYear = (int) ($actualYear ?: now()->year);
 
-        $training_group_id = TrainingGroup::query()->orderBy('id')->schoolId()->first()->id;
+            if ($futureYear instanceof Carbon) {
+                $futureYearValue = (int) $futureYear->year;
+                $futureStartDate = $futureYear->copy()->startOfYear()->format('Y-m-d');
+            } elseif (is_numeric($futureYear)) {
+                $futureYearValue = (int) $futureYear;
+                $futureStartDate = Carbon::create($futureYearValue, 1, 1)->format('Y-m-d');
+            } else {
+                $futureDate = now()->addYear()->startOfYear();
+                $futureYearValue = (int) $futureDate->year;
+                $futureStartDate = $futureDate->format('Y-m-d');
+            }
 
-        $inscriptions = $this->inscription->where('year', $actualYear)->schoolId()->get();
+            $trainingGroup = TrainingGroup::query()->orderBy('id')->schoolId()->first();
+            throw_if(is_null($trainingGroup), Exception::class, 'Training group not found');
 
-        foreach ($inscriptions as $inscription) {
+            $inscriptions = $this->inscription->where('year', $actualYear)->schoolId()->get();
 
+            DB::beginTransaction();
+
+            foreach ($inscriptions as $inscription) {
                 $inscriptionData = [
                     'school_id' => $inscription->school_id,
                     'player_id' => $inscription->player_id,
                     'unique_code' => $inscription->unique_code,
-                    'year' => $futureYear->year,
-                    'start_date' => $futureYear->format('Y-m-d'),
+                    'year' => $futureYearValue,
+                    'start_date' => $futureStartDate,
                     'category' => $inscription->category,
                     'photos' => $inscription->photos,
                     'copy_identification_document' => $inscription->copy_identification_document,
@@ -226,8 +252,20 @@ class InscriptionRepository
                     'period_three' => $inscription->period_three,
                     'period_four' => $inscription->period_four,
                     'scholarship' => $inscription->scholarship,
-                    'training_group_id' => $training_group_id
+                    'training_group_id' => $trainingGroup->id
                 ];
+
+                $this->inscription->withTrashed()->updateOrCreate([
+                    'unique_code' => $inscriptionData['unique_code'],
+                    'year' => $inscriptionData['year'],
+                    'school_id' => $inscriptionData['school_id']
+                ], $inscriptionData);
+            }
+
+            DB::commit();
+        } catch (Throwable $throwable) {
+            DB::rollBack();
+            $this->logError(__METHOD__, $throwable);
         }
     }
 

@@ -41,10 +41,16 @@ class IncidentRepository extends BaseRepository
      */
     public function createIncident($request): Model
     {
+        $arguments = [];
         $professor = User::query()->find($request->input('user_incident_id'));
-        $arguments = $request->validated();
-        $arguments['user_created_id'] = auth()->id();
-        $arguments['slug_name'] = Str::slug($professor->name);
-        return Incident::query()->create($arguments);
+        if($professor) {
+            $arguments = $request->validated();
+            $arguments['user_created_id'] = auth()->id();
+            $arguments['slug_name'] = Str::slug($professor->name);
+        }
+        if(!empty($arguments)) {
+            return Incident::query()->create($arguments);
+        }
+        return new Incident;
     }
 }

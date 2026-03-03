@@ -53,29 +53,30 @@ class InvoiceRepository
 
         // Buscar registro en payments para el año actual
         $currentYear = date('Y');
-        $payment = Payment::where('inscription_id', $inscriptionId)
+        $payment = Payment::query()->where('inscription_id', $inscriptionId)
             ->where('year', $currentYear)
             ->with('inscription:id,player_id')
             ->first();
 
         $pendingMonths = [];
-        if ($payment) {
-            $months = [
-                'enrollment' => 'Matrícula',
-                'january' => 'Enero',
-                'february' => 'Febrero',
-                'march' => 'Marzo',
-                'april' => 'Abril',
-                'may' => 'Mayo',
-                'june' => 'Junio',
-                'july' => 'Julio',
-                'august' => 'Agosto',
-                'september' => 'Septiembre',
-                'october' => 'Octubre',
-                'november' => 'Noviembre',
-                'december' => 'Diciembre'
-            ];
 
+        $months = [
+            'enrollment' => 'Matrícula',
+            'january' => 'Enero',
+            'february' => 'Febrero',
+            'march' => 'Marzo',
+            'april' => 'Abril',
+            'may' => 'Mayo',
+            'june' => 'Junio',
+            'july' => 'Julio',
+            'august' => 'Agosto',
+            'september' => 'Septiembre',
+            'october' => 'Octubre',
+            'november' => 'Noviembre',
+            'december' => 'Diciembre'
+        ];
+
+        if ($payment) {
             foreach ($months as $key => $name) {
                 if ($payment->{$key} == 2) { // 2 = debe
                     $pendingMonths[] = [
@@ -88,7 +89,7 @@ class InvoiceRepository
             }
         }
 
-        [$pendingUniformRequests, $customItems] = $this->addUniformRequest($payment->inscription->player_id);
+        [$pendingUniformRequests, $customItems] = $this->addUniformRequest($inscription->player_id);
 
         return [$inscription, $pendingMonths, $pendingUniformRequests, $customItems];
     }

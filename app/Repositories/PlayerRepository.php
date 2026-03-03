@@ -91,12 +91,14 @@ class PlayerRepository
      * @param $request
      * @param Player|null $player
      */
-    private function setAttributes(array $dataPlayer, ?Player $player = null): array
+    private function setAttributes(array $dataPlayer, ?Player $player = null, bool $shouldUpdatePassword = true): array
     {
         $dataPlayer['date_birth'] = Carbon::parse($dataPlayer['date_birth']);
         $dataPlayer['category'] = categoriesName($dataPlayer['date_birth']->year);
         $dataPlayer['unique_code'] = ($dataPlayer['unique_code'] ?? optional($player)->unique_code);
-        $dataPlayer['password'] = Hash::make($dataPlayer['identification_document']);
+        if ($shouldUpdatePassword) {
+            $dataPlayer['password'] = Hash::make($dataPlayer['identification_document']);
+        }
 
         return $dataPlayer;
     }
@@ -109,7 +111,7 @@ class PlayerRepository
                 $dataPlayer['photo'] = $file_name;
             }
 
-            $dataPlayer = $this->setAttributes($dataPlayer, $player);
+            $dataPlayer = $this->setAttributes($dataPlayer, $player, false);
 
             DB::beginTransaction();
 

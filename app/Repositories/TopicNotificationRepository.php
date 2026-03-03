@@ -2,12 +2,10 @@
 
 namespace App\Repositories;
 
-use App\Models\Inscription;
 use App\Models\TopicNotification;
 use App\Service\Notification\TopicService;
 use App\Traits\ErrorTrait;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class TopicNotificationRepository
 {
@@ -35,16 +33,23 @@ class TopicNotificationRepository
     public function markRead($idNotification = null)
     {
         $id = request()->input('notificationId', $idNotification);
-        $notification = TopicNotification::query()->findOrFail($id);
-        $notification->player_topic_notification()->update(['is_read' => true]);
+        $player = request()->user();
+        $notification = $player->notifications()->whereKey($id)->first();
+
+        if (is_null($notification)) {
+            throw new ModelNotFoundException('Notification not found for player');
+        }
+
+        $player->notifications()->updateExistingPivot($id, ['is_read' => true]);
     }
 
     public function markReadAll()
     {
         $player = request()->user();
-        $player->load('notifications');
-        foreach ($player->notifications as $notification) {
-            $this->markRead($notification->id);
+        $notificationIds = $player->notifications()->pluck('topic_notifications.id');
+
+        foreach ($notificationIds as $notificationId) {
+            $player->notifications()->updateExistingPivot($notificationId, ['is_read' => true]);
         }
     }
 

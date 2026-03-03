@@ -28,6 +28,7 @@ trait WithLogin
         Setting::insert(['key' => Setting::MONTHLY_PAYMENT]);
         Setting::insert(['key' => Setting::NOTIFY_PAYMENT_DAY]);
         Setting::insert(['key' => Setting::ANNUITY]);
+        Setting::insert(['key' => Setting::SYSTEM_NOTIFY]);
     }
 
     protected function createRoles()

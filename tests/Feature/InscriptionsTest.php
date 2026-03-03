@@ -182,7 +182,7 @@ final class InscriptionsTest extends TestCase
         $testResponse = $this->post(route('inscriptions.destroy', [$inscription->id]), ['_method' => 'DELETE']);
         $testResponse->assertStatus(302);
 
-        $this->assertDatabaseHas('inscriptions', ['id' => $inscription->id, 'deleted_at' => $now]);
+        $this->assertSoftDeleted('inscriptions', ['id' => $inscription->id]);
     }
 
     public function testGetEdit(): void

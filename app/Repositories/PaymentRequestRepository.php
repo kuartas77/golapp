@@ -17,6 +17,8 @@ class PaymentRequestRepository
     {
         $invoice = null;
         try {
+            DB::beginTransaction();
+
             $player = request()->user();
             $player->load('schoolData');
             $school = $player->schoolData;

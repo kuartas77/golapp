@@ -327,7 +327,7 @@ class PaymentRepository
     {
         // '1' Pay
         // '2' Due
-        if (!is_null($month) && $month < 1 || $month > 12) {
+        if (!is_null($month) && ($month < 1 || $month > 12)) {
             $month = now()->month;
         }
 
