@@ -24,7 +24,16 @@
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-2">
+            <div class="form-group">
+                <label for="unique_code">Año</label>
+                <span class="bar"></span>
+                {{ html()->select('year', $years, now()->year)->attributes(['id'=>'year','class' => 'form-control form-control-sm']) }}
+                <small class="text-muted">Para buscar por año no es necesario el grupo.</small>
+            </div>
+        </div>
+
+        <div class="col-md-2">
             <button class="btn waves-effect waves-light btn-rounded btn-info mt-4" id="busqueda">Buscar</button>
         </div>
     </div>
