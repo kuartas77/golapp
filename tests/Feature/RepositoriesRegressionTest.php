@@ -108,4 +108,32 @@ final class RepositoriesRegressionTest extends TestCase
             )
         );
     }
+
+    public function testApiUserRepositoryUsesExplicitSchoolFilterAndPerPageClamp(): void
+    {
+        $this->actingAs($this->user);
+
+        $requestUser = User::query()->findOrFail($this->user->id);
+        $otherSchool = $this->createSchool();
+
+        User::factory()->create(['school_id' => $requestUser->school_id]);
+        User::factory()->create(['school_id' => $otherSchool['id']]);
+
+        $request = Request::create('/api/users', 'GET', [
+            'school_id' => $otherSchool['id'],
+            'per_page' => 999,
+        ]);
+        $request->setUserResolver(fn() => $requestUser);
+
+        $repository = app(ApiUserRepository::class);
+        $result = $repository->getUsersPaginate($request);
+
+        $this->assertSame(100, $result->perPage());
+        $this->assertGreaterThan(0, $result->count());
+        $this->assertTrue(
+            $result->getCollection()->every(
+                fn(User $user) => (int) $user->school_id === (int) $otherSchool['id']
+            )
+        );
+    }
 }
