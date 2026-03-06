@@ -75,7 +75,13 @@ class AssistsUpdateRequest extends FormRequest
             'in' => 5,
         ];
 
-        $value = isset($KEY_ASSIST[$this->value]) ? $KEY_ASSIST[$this->value] : null;
+        if (isset($KEY_ASSIST[$this->value])) {
+            $value = $KEY_ASSIST[$this->value];
+        } elseif (is_numeric($this->value)) {
+            $value = $this->value;
+        } else {
+            $value = null;
+        }
 
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
