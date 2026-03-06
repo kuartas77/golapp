@@ -40,7 +40,8 @@ class PaymentsViewComposer
 
             $categories = Inscription::where('year', now()->year)->distinct()->schoolId()->pluck('category', 'category');
 
-            $years = Payment::query()->select('year')->distinct()->groupBy('year')->pluck('year', 'year')->toArray();
+            $years = Payment::query()->select('year')->schoolId()->distinct()->groupBy('year')->pluck('year', 'year')->toArray();
+
             $view->with('years', $years);
             $view->with('categories', $categories);
             $view->with('training_groups', ($training_groups ?? collect()));
