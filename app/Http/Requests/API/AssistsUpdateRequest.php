@@ -78,7 +78,7 @@ class AssistsUpdateRequest extends FormRequest
         if (isset($KEY_ASSIST[$this->value])) {
             $value = $KEY_ASSIST[$this->value];
         } elseif (is_numeric($this->value)) {
-            $value = $this->value;
+            $value = intval($this->value);
         } else {
             $value = null;
         }
