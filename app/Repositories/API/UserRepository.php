@@ -21,6 +21,15 @@ class UserRepository
 
     public function getUsersPaginate(Request $request)
     {
+        $perPage = max(1, min((int) $request->input('per_page', 15), 100));
+        $query = $this->user->query()->with(['roles', 'profile', 'school']);
 
+        if ($request->filled('school_id')) {
+            $query->where('school_id', $request->input('school_id'));
+        } elseif ($request->user()) {
+            $query->where('school_id', $request->user()->school_id);
+        }
+
+        return $query->paginate($perPage);
     }
 }

@@ -172,7 +172,12 @@ class GameRepository
             for ($i = 0; $i < $counter; ++$i) {
                 $data = $this->dataSkills($skillsData, $i, $matchData['school_id']);
                 if (!empty($ids[$i])) {
-                    SkillsControl::find($ids[$i])->update($data);
+                    $skillControl = SkillsControl::find($ids[$i]);
+                    if ($skillControl) {
+                        $skillControl->update($data);
+                    } else {
+                        $game->skillsControls()->save(new SkillsControl($data));
+                    }
                 } else {
                     $game->skillsControls()->save(new SkillsControl($data));
                 }
@@ -218,7 +223,7 @@ class GameRepository
 
     public function exportMatchDetail($competitionGroupId)
     {
-        $competitionGroup = CompetitionGroup::find($competitionGroupId)->load([
+        $competitionGroup = CompetitionGroup::findOrFail($competitionGroupId)->load([
             'inscriptions' => fn($q) => $q->with('player')->year()
         ]);
 

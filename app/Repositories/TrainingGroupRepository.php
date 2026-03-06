@@ -37,11 +37,14 @@ class TrainingGroupRepository
         return $this->trainingGroup->query()
             ->schoolId()
             ->with(['instructors'])
-            ->where(fn ($query) =>
+            ->where(function ($query) use ($firstTeam): void {
                 $query->whereRelation('instructors', 'assigned_year', '>=', now()->year)
-                ->orWhere('id', $firstTeam->id)
-                ->orWhere('year_active', '>=', now()->year)
-            )
+                    ->orWhere('year_active', '>=', now()->year);
+
+                if ($firstTeam) {
+                    $query->orWhere('id', $firstTeam->id);
+                }
+            })
             ->get();
     }
 
@@ -170,8 +173,11 @@ class TrainingGroupRepository
         } else {
             $firstTeam = $this->trainingGroup->query()->select(['id'])->schoolId()->orderBy('id', 'ASC')->first();
             $query->where(function ($query) use ($firstTeam): void {
-                $query->whereRelation('instructors', 'assigned_year', '>=', now()->year)
-                    ->orWhere('id',  $firstTeam->id);
+                $query->whereRelation('instructors', 'assigned_year', '>=', now()->year);
+
+                if ($firstTeam) {
+                    $query->orWhere('id', $firstTeam->id);
+                }
             });
         }
 
@@ -216,18 +222,20 @@ class TrainingGroupRepository
     public function getGroupsYear($year): Collection
     {
         return $this->trainingGroup->query()->schoolId()
-            ->where('year', $year)
-            ->orWhere('year_two', $year)
-            ->orWhere('year_three', $year)
-            ->orWhere('year_four', $year)
-            ->orWhere('year_five', $year)
-            ->orWhere('year_six', $year)
-            ->orWhere('year_seven', $year)
-            ->orWhere('year_eight', $year)
-            ->orWhere('year_nine', $year)
-            ->orWhere('year_ten', $year)
-            ->orWhere('year_eleven', $year)
-            ->orWhere('year_twelve', $year)
+            ->where(function ($query) use ($year): void {
+                $query->where('year', $year)
+                    ->orWhere('year_two', $year)
+                    ->orWhere('year_three', $year)
+                    ->orWhere('year_four', $year)
+                    ->orWhere('year_five', $year)
+                    ->orWhere('year_six', $year)
+                    ->orWhere('year_seven', $year)
+                    ->orWhere('year_eight', $year)
+                    ->orWhere('year_nine', $year)
+                    ->orWhere('year_ten', $year)
+                    ->orWhere('year_eleven', $year)
+                    ->orWhere('year_twelve', $year);
+            })
             ->orderBy('name', 'ASC')
             ->get()
             ->pluck('full_schedule_group', 'id');

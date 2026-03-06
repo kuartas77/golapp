@@ -466,7 +466,7 @@ function changeColors(domelement){
     }
 }
 
-const showMessage = (title = "", msg = "", type = "success") => {
+const showMessage = (msg = "", type = "success") => {
     const toast = window.Swal.mixin({ toast: true, position: "bottom-end", showConfirmButton: false, timer: 5000 });
     toast.fire({ type: type, title: msg, padding: "10px 20px" });
 }

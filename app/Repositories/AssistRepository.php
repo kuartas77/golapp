@@ -122,10 +122,12 @@ class AssistRepository
 
                 $assist->save();
 
-                DB::commit();
 
-                Cache::delete("statistics.groups.user." . auth()->user()->id);
             }
+
+            DB::commit();
+
+            Cache::delete("statistics.groups.user." . auth()->user()->id);
 
             return true;
         } catch (Exception $exception) {
