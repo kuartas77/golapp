@@ -46,7 +46,7 @@ class UpdatePaymentsStartMonth extends Command
     {
         $currentDate = now();
 
-        // if ($currentDate->isLastOfMonth()) {
+        if ($currentDate->isLastOfMonth()) {
             $targetDate = $currentDate->copy()->addDay();
             $targetYear = $targetDate->year;
             $month = $this->getMonth(
@@ -84,7 +84,7 @@ class UpdatePaymentsStartMonth extends Command
                             ]);
                     }
                 });
-        // }
+        }
 
         return 1;
     }
