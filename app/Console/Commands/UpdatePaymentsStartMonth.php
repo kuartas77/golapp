@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class UpdatePaymentsStartMonth extends Command
 {
@@ -43,30 +44,47 @@ class UpdatePaymentsStartMonth extends Command
      */
     public function handle(): Int
     {
-
         $currentDate = now();
-        if ($currentDate->isLastOfMonth()) {
-            $currentDate->addDay();
-            $month = $this->getMonth(collect(config('variables.KEY_INDEX_MONTHS')), $currentDate->month);
 
-            School::query()->where('is_enable', true)->chunkById(10, function ($schools) use ($month): void {
+        // if ($currentDate->isLastOfMonth()) {
+            $targetDate = $currentDate->copy()->addDay();
+            $targetYear = $targetDate->year;
+            $month = $this->getMonth(
+                collect(config('variables.KEY_INDEX_MONTHS')),
+                $targetDate->month
+            );
 
-                foreach ($schools as $school) {
-                    $school->load(['settingsValues']);
-                    $monthlyPayment = data_get($school, 'settings.MONTHLY_PAYMENT', 50000);
+            School::query()
+                ->where('is_enable', true)
+                ->chunkById(10, function ($schools) use ($month, $targetYear): void {
+                    $schools->load('settingsValues');
 
-                    Payment::query()
-                        ->withWhereHas('inscription', fn($query) => $query->with(['player'])->where('year', now()->year)->where('school_id', $school->id))
-                        ->where('year', now()->year)
-                        ->where('school_id', $school->id)
-                        ->where($month, Payment::$pending)
-                        ->update([
-                            $month => Payment::$debt,
-                            "{$month}_amount" => $monthlyPayment
-                        ]);
-                }
-            });
-        }
+                    foreach ($schools as $school) {
+                        $monthlyPayment = (float) data_get($school, 'settings.MONTHLY_PAYMENT', 50000);
+                        $amountColumn = "{$month}_amount";
+
+                        Payment::query()
+                            ->whereHas(
+                                'inscription',
+                                fn($query) => $query
+                                    ->where('year', $targetYear)
+                                    ->where('school_id', $school->id)
+                            )
+                            ->where('year', $targetYear)
+                            ->where('school_id', $school->id)
+                            ->where($month, Payment::$pending)
+                            ->update([
+                                $month => Payment::$debt,
+                                $amountColumn => DB::raw("
+                                    CASE
+                                        WHEN {$amountColumn} = 0.00 THEN {$monthlyPayment}
+                                        ELSE {$amountColumn}
+                                    END
+                                "),
+                            ]);
+                    }
+                });
+        // }
 
         return 1;
     }
