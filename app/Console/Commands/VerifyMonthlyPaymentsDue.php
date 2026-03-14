@@ -15,59 +15,73 @@ class VerifyMonthlyPaymentsDue extends Command
 {
     use ErrorTrait;
 
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'payments:monthly';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'send notification to administrators about payments due on the last day of month';
+    protected $description = 'Send notification to administrators about payments due on the last day of month';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
     public function __construct(private PaymentRepository $paymentRepository)
     {
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return int
-     */
     public function handle(): int
     {
         $currentDate = now();
 
-        if ($currentDate->isLastOfMonth()) {
-
-            $schools = School::with(['settingsValues'])->where('is_enable', true)->get();
-
-            $month = config('variables.KEY_MONTHS_INDEX')[$currentDate->month];
-            foreach ($schools as $school) {
-
-                $query = $this->paymentRepository->queryPaymentsDueByMonth($school->id, $currentDate->year, $currentDate->month);
-
-                $duePayments = $query->get();
-
-                if($duePayments->isNotEmpty()) {
-                    $users = User::query()->where('school_id', $school->id)->role('school')->get();
-                    if($users->isNotEmpty()) {
-                        Mail::to($users)->send((new DuePayments($school->name, $month, $duePayments)));
-                    }
-                }
-            }
+        if (! $currentDate->isLastOfMonth()) {
+            return self::SUCCESS;
         }
 
-        return 1;
+        $year = (int) $currentDate->year;
+        $monthNumber = (int) $currentDate->month;
+        $monthLabel = config('variables.KEY_MONTHS_INDEX')[$monthNumber] ?? $currentDate->translatedFormat('F');
+        $reportDate = $currentDate->format('d-m-Y');
+
+        School::query()
+            ->select(['id', 'name'])
+            ->where('is_enable', true)
+            ->chunkById(100, function ($schools) use ($year, $monthNumber, $monthLabel, $reportDate): void {
+                foreach ($schools as $school) {
+                    try {
+                        $duePayments = $this->paymentRepository
+                            ->queryPaymentsDueByMonth($school->id, $year, $monthNumber, true)
+                            ->get();
+
+                        if ($duePayments->isEmpty()) {
+                            continue;
+                        }
+
+                        $emails = User::query()
+                            ->where('school_id', $school->id)
+                            ->role('school')
+                            ->whereNotNull('email')
+                            ->pluck('email')
+                            ->filter()
+                            ->unique()
+                            ->values()
+                            ->all();
+
+                        if (empty($emails)) {
+                            continue;
+                        }
+
+                        Mail::to($emails)->queue(
+                            new DuePayments(
+                                $school->name,
+                                $monthLabel,
+                                $duePayments,
+                                $reportDate
+                            )
+                        );
+
+                        $this->info("Correo encolado para escuela #{$school->id} - {$school->name}");
+                    } catch (\Throwable $e) {
+                        report($e);
+                        $this->error("Error procesando escuela #{$school->id}: {$e->getMessage()}");
+                    }
+                }
+            });
+
+        return self::SUCCESS;
     }
 }

@@ -8,6 +8,7 @@ use App\Models\Inscription;
 use App\Models\Payment;
 use App\Traits\ErrorTrait;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -323,19 +324,19 @@ class PaymentRepository
         return collect(['labels' => $labels, 'series' => $series]);
     }
 
-    public function queryPaymentsDueByMonth($schoolId, ?int $year = null, ?int $month = null, bool $onlyDue = true)
+    public function queryPaymentsDueByMonth(int $schoolId, ?int $year = null, ?int $month = null, bool $onlyDue = true): QueryBuilder
     {
-        // '1' Pay
-        // '2' Due
-        if (!is_null($month) && ($month < 1 || $month > 12)) {
-            $month = now()->month;
+        if ($month !== null && ($month < 1 || $month > 12)) {
+            $month = null;
         }
 
-        $months = config('variables.KEY_MONTHS_EN');
-        $selectYear = is_null($year) ? now()->year : $year;
-        $selectMonth = is_null($month) ? $months[now()->month] : $months[$month];
+        $months = config('variables.KEY_INDEX_MONTHS');
+        $selectedYear = $year ?? now()->year;
+        $selectedMonthNumber = $month ?? now()->month;
+        $selectedMonthColumn = $months[$selectedMonthNumber];
+        $qualifiedMonthColumn = "payments.{$selectedMonthColumn}";
 
-        return Payment::query()
+        return DB::table('payments')
             ->select([
                 'payments.id',
                 'payments.unique_code',
@@ -343,23 +344,32 @@ class PaymentRepository
                 'players.email',
                 DB::raw("CONCAT(players.names, ' ', players.last_names) as names"),
                 DB::raw('training_groups.name as group_name'),
-                $selectMonth,
+                DB::raw("{$qualifiedMonthColumn} as payment_month_value"),
             ])
             ->when(
                 $onlyDue,
-                fn($query) => $query->addSelect(DB::raw("'Due' as payment_status")),
-                fn($query) => $query->addSelect(DB::raw("(CASE WHEN $selectMonth = '1' THEN 'Pay' WHEN $selectMonth = '2' THEN 'Due' END) as payment_status"))
+                fn ($query) => $query->selectRaw("'Due' as payment_status"),
+                fn ($query) => $query->selectRaw("
+                    CASE
+                        WHEN {$qualifiedMonthColumn} = '1' THEN 'Pay'
+                        WHEN {$qualifiedMonthColumn} = '2' THEN 'Due'
+                        ELSE 'Unknown'
+                    END as payment_status
+                ")
             )
             ->join('inscriptions', 'inscriptions.id', '=', 'payments.inscription_id')
             ->join('players', 'players.id', '=', 'inscriptions.player_id')
             ->join('training_groups', 'training_groups.id', '=', 'payments.training_group_id')
-            ->where('payments.year', $selectYear)
-            ->whereRaw(DB::raw("payments.created_at <= (DATE_SUB(CURDATE(), INTERVAL 1 MONTH))"))
+            ->where('payments.year', $selectedYear)
+            ->whereDate('payments.created_at', '<=', now()->subMonthNoOverflow()->toDateString())
             ->where('payments.school_id', $schoolId)
             ->when(
                 $onlyDue,
-                fn($query) => $query->where($selectMonth, '2'),
-                fn($query) => $query->where(fn($query) => $query->where($selectMonth, '2')->orWhere($selectMonth, '1'))
+                fn ($query) => $query->where($qualifiedMonthColumn, '2'),
+                fn ($query) => $query->where(function ($query) use ($qualifiedMonthColumn) {
+                    $query->where($qualifiedMonthColumn, '2')
+                        ->orWhere($qualifiedMonthColumn, '1');
+                })
             );
     }
 
