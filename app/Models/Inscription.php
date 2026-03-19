@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Traits\GeneralScopes;
-use App\Traits\CustomModelLogic;
-use Illuminate\Support\Collection;
+use App\Models\Evaluations\PlayerEvaluation;
 use App\Observers\InscriptionObserver;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\CustomModelLogic;
+use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 
 /**
  * @property mixed player_id
@@ -196,6 +197,11 @@ class Inscription extends Model
     public function invoices()
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function playerEvaluations(): HasMany
+    {
+        return $this->hasMany(PlayerEvaluation::class);
     }
 
     public function getFormatAverageAttribute(): array

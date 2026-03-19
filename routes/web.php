@@ -1,6 +1,13 @@
 <?php
 
+use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
+use App\Http\Controllers\{Competition\GameController, Payments\PaymentController, Schedule\SchedulesController, SchoolPages\SchoolsController};
+use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
+use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
+use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
 use App\Http\Controllers\Admin\InvoiceCustomItemController;
+use App\Http\Controllers\Evaluations\PlayerEvaluationController;
+use App\Http\Controllers\Evaluations\PlayerEvaluationInsightsController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
 use App\Http\Controllers\ImportController;
@@ -14,11 +21,6 @@ use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\Reports\ReportAssistsController;
 use App\Http\Controllers\Reports\ReportPaymentController;
 use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
-use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
-use App\Http\Controllers\{Competition\GameController, Payments\PaymentController, Schedule\SchedulesController, SchoolPages\SchoolsController};
-use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
-use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
-use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -161,6 +163,23 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('uniform-request/invoices', [UniformRequestsController::class, 'index'])->name('uniform-request.index');
         Route::get('notifications', [TopicNotificationsController::class, 'index'])->name('notification.index');
         Route::post('notifications', [TopicNotificationsController::class, 'store'])->name('notification.store');
+    });
+
+    Route::prefix('')->group(function () {
+        Route::get(
+            'evaluations/inscriptions/{inscription}/compare',
+            [PlayerEvaluationInsightsController::class, 'compare']
+        )->name('evaluations.compare');
+
+        Route::get(
+            'evaluations/{evaluation}/inscriptions/{inscription}/guardian-report',
+            [PlayerEvaluationInsightsController::class, 'guardianReportPdf']
+        )->name('evaluations.report');
+
+        Route::resource('evaluations.inscriptions', PlayerEvaluationController::class)
+        ->parameters([
+            'evaluations' => 'evaluation',
+        ]);
     });
 });
 
