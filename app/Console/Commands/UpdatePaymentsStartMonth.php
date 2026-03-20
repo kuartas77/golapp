@@ -86,7 +86,7 @@ class UpdatePaymentsStartMonth extends Command
                 });
         }
 
-        return 1;
+        return self::SUCCESS;
     }
 
     private function getMonth(Collection $months, int $month): string

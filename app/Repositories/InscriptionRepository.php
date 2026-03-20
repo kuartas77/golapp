@@ -80,16 +80,13 @@ class InscriptionRepository
 
     private function setTrainingGroupId(array &$requestData): void
     {
-        if (!empty($requestData['training_group_id'])) {
-            return;
-        }
-
         $trainingGroup = TrainingGroup::query()
             ->orderBy('id')
             ->firstWhere('school_id', $requestData['school_id']);
 
         throw_if(is_null($trainingGroup), Exception::class, 'Training group not found for school');
-        $requestData['training_group_id'] = $trainingGroup->id;
+        $requestData['training_group_id'] = isset($requestData['training_group_id']) ? $requestData['training_group_id'] : $trainingGroup->id;
+        $requestData['pre_inscription'] = $requestData['training_group_id'] == $trainingGroup->id;
     }
 
     private function setCompetitionGroupIds($inscription, $requestData): void

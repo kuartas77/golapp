@@ -3,11 +3,11 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Collection;
 
-class DuePayments extends Mailable
+class DuePayments extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -16,7 +16,12 @@ class DuePayments extends Mailable
      *
      * @return void
      */
-    public function __construct(public $schoolName, public string $month, public Collection $payments)
+    public function __construct(
+        public string $schoolName,
+        public string $month,
+        public $payments,
+        public string $reportDate
+    )
     {
         //
     }
@@ -28,6 +33,7 @@ class DuePayments extends Mailable
      */
     public function build()
     {
-        return $this->markdown('emails.admin.due_payments')->subject("{$this->schoolName} - Listado de mensualidades con novedades en {$this->month}");
+        return $this->subject("Mensualidades en deuda - {$this->schoolName} - {$this->month}")
+            ->markdown('emails.admin.due_payments');
     }
 }
