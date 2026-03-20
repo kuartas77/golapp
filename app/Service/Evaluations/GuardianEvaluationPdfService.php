@@ -39,14 +39,15 @@ class GuardianEvaluationPdfService
             ?? $evaluation->inscription->player?->name
             ?? 'jugador';
 
+        $school = getSchool(auth()->user());
 
         $this->createPDF([
-            'school' => getSchool(auth()->user()),
+            'school' => $school,
             'evaluation' => $evaluation,
             'dimensionScores' => $dimensionScores,
             'playerName' => $playerName,
-            'clubName' => config('app.name'),
-        ], 'evaluations/guardian-evaluation-report');
+            'clubName' => $school->name,
+        ], 'evaluations/guardian-evaluation-report.blade.php');
 
         $fileName = sprintf(
             'reporte-evaluacion-%s-%s.pdf',

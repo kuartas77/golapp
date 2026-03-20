@@ -15,6 +15,7 @@ class StorePlayerEvaluationRequest extends FormRequest
     public function rules()
     {
         return [
+            'inscription_id' => ['required', 'integer', 'exists:inscriptions,id'],
             'evaluation_period_id' => ['required', 'integer', 'exists:evaluation_periods,id'],
             'evaluation_template_id' => ['required', 'integer', 'exists:evaluation_templates,id'],
             'evaluation_type' => ['nullable', Rule::in(['initial', 'periodic', 'final', 'special'])],
@@ -42,7 +43,7 @@ class StorePlayerEvaluationRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => getSchool(auth()->user())->id
+            'school_id' => getSchool(auth()->user())->id,
         ]);
     }
 }

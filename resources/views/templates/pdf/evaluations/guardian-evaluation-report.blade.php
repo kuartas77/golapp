@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reporte de Evaluación</title>
+    <title>Reporte de evaluación</title>
+        <link rel="stylesheet" href="{{ asset('css/dompdf.css') }}">
     <style>
         body {
             font-family: sans-serif;
@@ -10,191 +11,176 @@
             color: #222;
         }
 
-        .header {
-            border-bottom: 2px solid #111;
-            padding-bottom: 8px;
-            margin-bottom: 14px;
+        h1, h2, h3, h4 {
+            margin: 0 0 8px 0;
         }
 
-        .title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 2px;
+        .text-center {
+            text-align: center;
         }
 
-        .subtitle {
-            font-size: 11px;
-            color: #555;
+        .mb-10 {
+            margin-bottom: 10px;
         }
 
-        .section {
-            margin-bottom: 14px;
+        .mb-15 {
+            margin-bottom: 15px;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+
+        .box {
+            border: 1px solid #d9d9d9;
+            padding: 10px;
+            margin-bottom: 12px;
         }
 
         .section-title {
-            font-size: 13px;
+            background: #f3f3f3;
+            padding: 8px;
             font-weight: bold;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 4px;
-            margin-bottom: 8px;
+            border: 1px solid #d9d9d9;
+            margin-bottom: 0;
         }
 
-        .grid {
+        table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .grid td,
-        .grid th {
-            border: 1px solid #dcdcdc;
+        th, td {
+            border: 1px solid #d9d9d9;
             padding: 6px;
             vertical-align: top;
         }
 
-        .grid th {
-            background: #f2f2f2;
-            text-align: left;
-        }
-
-        .summary-box {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-
-        .score-big {
-            font-size: 22px;
-            font-weight: bold;
-        }
-
-        .muted {
-            color: #666;
+        th {
+            background: #f3f3f3;
         }
 
         .small {
             font-size: 10px;
+            color: #555;
         }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <div class="title">{{ $clubName }}</div>
-        <div class="subtitle">Reporte de evaluación para acudiente</div>
+    <div class="text-center mb-20">
+        <h2>{{ $clubName ?? 'Club' }}</h2>
+        <h3>Reporte de evaluación del jugador</h3>
     </div>
 
-    <div class="section">
-        <div class="section-title">Datos generales</div>
-
-        <table class="grid">
+    <div class="box">
+        <table>
             <tr>
-                <th width="25%">Jugador</th>
-                <td width="25%">{{ $playerName }}</td>
-                <th width="25%">Grupo</th>
-                <td width="25%">{{ $evaluation->inscription->trainingGroup?->name ?? 'N/A' }}</td>
+                <td width="50%">
+                    <strong>Jugador:</strong>
+                    {{ $playerName ?? ($evaluation->inscription->player?->full_names ?? $evaluation->inscription->player?->name ?? '—') }}
+                </td>
+                <td width="50%">
+                    <strong>Grupo:</strong>
+                    {{ $evaluation->inscription->trainingGroup?->name ?? '—' }}
+                </td>
             </tr>
             <tr>
-                <th>Período</th>
-                <td>{{ $evaluation->period?->name ?? 'N/A' }}</td>
-                <th>Fecha de evaluación</th>
-                <td>{{ optional($evaluation->evaluated_at)->format('Y-m-d H:i') ?? 'N/A' }}</td>
+                <td>
+                    <strong>Período:</strong>
+                    {{ $evaluation->period?->name ?? '—' }}
+                </td>
+                <td>
+                    <strong>Plantilla:</strong>
+                    {{ $evaluation->template?->name ?? '—' }}
+                </td>
             </tr>
             <tr>
-                <th>Plantilla</th>
-                <td>{{ $evaluation->template?->name ?? 'N/A' }}</td>
-                <th>Evaluador</th>
-                <td>{{ $evaluation->evaluator?->name ?? 'N/A' }}</td>
+                <td>
+                    <strong>Tipo:</strong>
+                    {{ ucfirst($evaluation->evaluation_type ?? '—') }}
+                </td>
+                <td>
+                    <strong>Estado:</strong>
+                    {{ $evaluation->status ?? '—' }}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <strong>Fecha evaluación:</strong>
+                    {{ optional($evaluation->evaluated_at)->format('d/m/Y H:i') ?? '—' }}
+                </td>
+                <td>
+                    <strong>Evaluador:</strong>
+                    {{ $evaluation->evaluator?->name ?? '—' }}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <strong>Nota general:</strong>
+                    {{ $evaluation->overall_score !== null ? number_format($evaluation->overall_score, 2) : '—' }}
+                </td>
             </tr>
         </table>
     </div>
 
-    <div class="section">
-        <div class="section-title">Resultado general</div>
+    <h4 class="section-title">Puntajes por dimensión</h4>
+    <table class="mb-15">
+        <thead>
+            <tr>
+                <th>Dimensión</th>
+                <th width="150">Puntaje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($dimensionScores as $dimension => $score)
+                <tr>
+                    <td>{{ $dimension }}</td>
+                    <td>{{ $score !== null ? number_format((float) $score, 2) : '—' }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="2">No hay información por dimensión.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
 
-        <div class="summary-box">
-            <div class="muted">Puntuación general</div>
-            <div class="score-big">
-                {{ number_format((float) ($evaluation->overall_score ?? 0), 2) }}
-            </div>
-        </div>
-    </div>
+    @php
+        $scoresByDimension = $evaluation->scores
+            ->sortBy(fn ($score) => optional($score->criterion)->sort_order ?? 9999)
+            ->groupBy(fn ($score) => optional($score->criterion)->dimension ?: 'Sin dimensión');
+    @endphp
 
-    <div class="section">
-        <div class="section-title">Promedio por dimensión</div>
-
-        <table class="grid">
+    @foreach($scoresByDimension as $dimension => $scores)
+        <h4 class="section-title">{{ $dimension }}</h4>
+        <table class="mb-15">
             <thead>
                 <tr>
-                    <th>Dimensión</th>
-                    <th width="25%">Promedio</th>
+                    <th>Criterio</th>
+                    <th width="90">Puntaje</th>
+                    <th width="100">Escala</th>
+                    <th>Comentario</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($dimensionScores as $dimension => $score)
+                @foreach($scores as $score)
                     <tr>
-                        <td>{{ $dimension }}</td>
-                        <td>{{ number_format((float) $score, 2) }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="2">No hay datos de dimensiones disponibles.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Detalle por criterio</div>
-
-        <table class="grid">
-            <thead>
-                <tr>
-                    <th width="20%">Dimensión</th>
-                    <th width="28%">Criterio</th>
-                    <th width="12%">Puntaje</th>
-                    <th width="40%">Observación</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($evaluation->scores->sortBy(fn($score) => ($score->criterion->sort_order ?? 9999)) as $score)
-                    <tr>
-                        <td>{{ $score->criterion?->dimension ?? 'N/A' }}</td>
-                        <td>{{ $score->criterion?->name ?? 'N/A' }}</td>
-                        <td>{{ $score->score !== null ? number_format((float) $score->score, 2) : 'N/A' }}</td>
-                        <td>{{ $score->comment ?? 'Sin observación' }}</td>
+                        <td>{{ $score->criterion?->name ?? '—' }}</td>
+                        <td>{{ $score->score !== null ? number_format($score->score, 2) : '—' }}</td>
+                        <td>{{ $score->scale_value ?: '—' }}</td>
+                        <td>{{ $score->comment ?: '—' }}</td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
+    @endforeach
+
+    <h4 class="section-title">Conclusiones</h4>
+    <div class="box">
+        <p><strong>Comentario general:</strong><br>{{ $evaluation->general_comment ?: '—' }}</p>
+        <p><strong>Fortalezas:</strong><br>{{ $evaluation->strengths ?: '—' }}</p>
+        <p><strong>Oportunidades de mejora:</strong><br>{{ $evaluation->improvement_opportunities ?: '—' }}</p>
+        <p class="mb-0"><strong>Recomendaciones:</strong><br>{{ $evaluation->recommendations ?: '—' }}</p>
     </div>
-
-    <div class="section">
-        <div class="section-title">Comentarios del entrenador</div>
-
-        <table class="grid">
-            <tr>
-                <th width="28%">Comentario general</th>
-                <td>{{ $evaluation->general_comment ?: 'Sin comentario general.' }}</td>
-            </tr>
-            <tr>
-                <th>Fortalezas</th>
-                <td>{{ $evaluation->strengths ?: 'No registradas.' }}</td>
-            </tr>
-            <tr>
-                <th>Oportunidades de mejora</th>
-                <td>{{ $evaluation->improvement_opportunities ?: 'No registradas.' }}</td>
-            </tr>
-            <tr>
-                <th>Recomendaciones</th>
-                <td>{{ $evaluation->recommendations ?: 'No registradas.' }}</td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="section small muted">
-        Documento generado automáticamente por {{ $clubName }} el {{ now()->format('Y-m-d H:i') }}.
-    </div>
-
 </body>
 </html>

@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Comparativo de Evaluaciones</title>
+    <title>Comparativo de evaluaciones</title>
+        <link rel="stylesheet" href="{{ asset('css/dompdf.css') }}">
     <style>
         body {
             font-family: sans-serif;
@@ -10,296 +11,223 @@
             color: #222;
         }
 
-        .header {
-            border-bottom: 2px solid #111;
-            padding-bottom: 8px;
-            margin-bottom: 14px;
+        h1, h2, h3, h4 {
+            margin: 0 0 8px 0;
         }
 
-        .title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 2px;
+        .text-center {
+            text-align: center;
         }
 
-        .subtitle {
-            font-size: 11px;
-            color: #555;
+        .mb-10 {
+            margin-bottom: 10px;
         }
 
-        .section {
-            margin-bottom: 14px;
+        .mb-15 {
+            margin-bottom: 15px;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+
+        .box {
+            border: 1px solid #d9d9d9;
+            padding: 10px;
+            margin-bottom: 12px;
         }
 
         .section-title {
-            font-size: 13px;
+            background: #f3f3f3;
+            padding: 8px;
             font-weight: bold;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 4px;
-            margin-bottom: 8px;
+            border: 1px solid #d9d9d9;
+            margin-bottom: 0;
         }
 
-        .grid {
+        table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .grid td,
-        .grid th {
-            border: 1px solid #dcdcdc;
+        th, td {
+            border: 1px solid #d9d9d9;
             padding: 6px;
             vertical-align: top;
         }
 
-        .grid th {
-            background: #f2f2f2;
-            text-align: left;
-        }
-
-        .summary-box {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 8px;
-        }
-
-        .summary-box td {
-            border: 1px solid #dcdcdc;
-            padding: 10px;
-            vertical-align: top;
-        }
-
-        .score-big {
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .muted {
-            color: #666;
-        }
-
-        .up {
-            font-weight: bold;
-        }
-
-        .down {
-            font-weight: bold;
-        }
-
-        .equal {
-            font-weight: bold;
-        }
-
-        .small {
-            font-size: 9px;
-        }
-
-        .page-break {
-            page-break-before: always;
+        th {
+            background: #f3f3f3;
         }
     </style>
 </head>
 <body>
-
-    @php
-        $periodA = $comparison['period_a'];
-        $periodB = $comparison['period_b'];
-        $overall = $comparison['overall'];
-        $dimensions = $comparison['dimensions'];
-        $criteria = $comparison['criteria'];
-        $comments = $comparison['comments'];
-
-        $trendLabel = function ($trend) {
-            return match ($trend) {
-                'up' => 'Mejoró',
-                'down' => 'Disminuyó',
-                default => 'Sin cambio',
-            };
-        };
-
-        $deltaLabel = function ($delta) {
-            if ($delta === null) {
-                return 'N/A';
-            }
-
-            $prefix = $delta > 0 ? '+' : '';
-            return $prefix . number_format((float) $delta, 2);
-        };
-    @endphp
-
-    <div class="header">
-        <div class="title">{{ $clubName }}</div>
-        <div class="subtitle">Comparativo de evaluaciones para acudiente</div>
+    <div class="text-center mb-20">
+        <h2>{{ $clubName ?? 'Club' }}</h2>
+        <h3>Comparativo de evaluaciones del jugador</h3>
     </div>
 
-    <div class="section">
-        <div class="section-title">Datos generales</div>
-
-        <table class="grid">
+    <div class="box">
+        <table>
             <tr>
-                <th width="20%">Jugador</th>
-                <td width="30%">{{ $comparison['player']['name'] ?? 'N/A' }}</td>
-                <th width="20%">Grupo</th>
-                <td width="30%">{{ $comparison['inscription']['training_group_name'] ?? 'N/A' }}</td>
+                <td width="50%">
+                    <strong>Jugador:</strong> {{ $playerName ?? data_get($comparison, 'player.name', '—') }}
+                </td>
+                <td width="50%">
+                    <strong>Grupo:</strong> {{ data_get($comparison, 'inscription.training_group_name', '—') }}
+                </td>
             </tr>
             <tr>
-                <th>Temporada</th>
-                <td>{{ $comparison['inscription']['year'] ?? 'N/A' }}</td>
-                <th>Documento</th>
-                <td>Comparativo entre períodos</td>
+                <td>
+                    <strong>Período A:</strong> {{ data_get($comparison, 'period_a.period_name', '—') }}
+                </td>
+                <td>
+                    <strong>Período B:</strong> {{ data_get($comparison, 'period_b.period_name', '—') }}
+                </td>
             </tr>
-        </table>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Resumen general</div>
-
-        <table class="summary-box">
             <tr>
-                <td width="33%">
-                    <div class="muted">{{ $periodA['period_name'] ?? 'Período A' }}</div>
-                    <div class="score-big">{{ number_format((float) ($overall['period_a_score'] ?? 0), 2) }}</div>
-                    <div class="small">
-                        Fecha:
-                        {{ !empty($periodA['evaluated_at']) ? \Carbon\Carbon::parse($periodA['evaluated_at'])->format('Y-m-d H:i') : 'N/A' }}
-                    </div>
+                <td>
+                    <strong>Plantilla A:</strong> {{ data_get($comparison, 'period_a.template_name', '—') }}
                 </td>
-                <td width="33%">
-                    <div class="muted">{{ $periodB['period_name'] ?? 'Período B' }}</div>
-                    <div class="score-big">{{ number_format((float) ($overall['period_b_score'] ?? 0), 2) }}</div>
-                    <div class="small">
-                        Fecha:
-                        {{ !empty($periodB['evaluated_at']) ? \Carbon\Carbon::parse($periodB['evaluated_at'])->format('Y-m-d H:i') : 'N/A' }}
-                    </div>
-                </td>
-                <td width="34%">
-                    <div class="muted">Variación general</div>
-                    <div class="score-big">{{ $deltaLabel($overall['delta'] ?? null) }}</div>
-                    <div>
-                        Tendencia:
-                        <span class="{{ $overall['trend'] ?? 'equal' }}">
-                            {{ $trendLabel($overall['trend'] ?? 'equal') }}
-                        </span>
-                    </div>
+                <td>
+                    <strong>Plantilla B:</strong> {{ data_get($comparison, 'period_b.template_name', '—') }}
                 </td>
             </tr>
         </table>
     </div>
 
-    <div class="section">
-        <div class="section-title">Comparativo por dimensión</div>
+    <h4 class="section-title">Resultado general</h4>
+    <table class="mb-15">
+        <thead>
+            <tr>
+                <th>Período A</th>
+                <th>Período B</th>
+                <th>Delta</th>
+                <th>Tendencia</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    {{ data_get($comparison, 'overall.period_a_score') !== null ? number_format((float) data_get($comparison, 'overall.period_a_score'), 2) : '—' }}
+                </td>
+                <td>
+                    {{ data_get($comparison, 'overall.period_b_score') !== null ? number_format((float) data_get($comparison, 'overall.period_b_score'), 2) : '—' }}
+                </td>
+                <td>
+                    {{ data_get($comparison, 'overall.delta') !== null ? number_format((float) data_get($comparison, 'overall.delta'), 2) : '—' }}
+                </td>
+                <td>
+                    {{ data_get($comparison, 'overall.trend', 'neutral') }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
-        <table class="grid">
-            <thead>
+    <h4 class="section-title">Comparativo por dimensión</h4>
+    <table class="mb-15">
+        <thead>
+            <tr>
+                <th>Dimensión</th>
+                <th>Período A</th>
+                <th>Período B</th>
+                <th>Delta</th>
+                <th>Tendencia</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse(data_get($comparison, 'dimensions', []) as $item)
                 <tr>
-                    <th width="28%">Dimensión</th>
-                    <th width="18%">{{ $periodA['period_name'] ?? 'Período A' }}</th>
-                    <th width="18%">{{ $periodB['period_name'] ?? 'Período B' }}</th>
-                    <th width="18%">Variación</th>
-                    <th width="18%">Tendencia</th>
+                    <td>{{ data_get($item, 'dimension', '—') }}</td>
+                    <td>{{ data_get($item, 'period_a_score') !== null ? number_format((float) data_get($item, 'period_a_score'), 2) : '—' }}</td>
+                    <td>{{ data_get($item, 'period_b_score') !== null ? number_format((float) data_get($item, 'period_b_score'), 2) : '—' }}</td>
+                    <td>{{ data_get($item, 'delta') !== null ? number_format((float) data_get($item, 'delta'), 2) : '—' }}</td>
+                    <td>{{ data_get($item, 'trend', 'neutral') }}</td>
                 </tr>
-            </thead>
-            <tbody>
-                @forelse($dimensions as $dimension)
-                    <tr>
-                        <td>{{ $dimension['dimension'] }}</td>
-                        <td>{{ $dimension['period_a_score'] !== null ? number_format((float) $dimension['period_a_score'], 2) : 'N/A' }}</td>
-                        <td>{{ $dimension['period_b_score'] !== null ? number_format((float) $dimension['period_b_score'], 2) : 'N/A' }}</td>
-                        <td>{{ $deltaLabel($dimension['delta']) }}</td>
-                        <td>{{ $trendLabel($dimension['trend']) }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5">No hay información para comparar por dimensión.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Comentarios del entrenador</div>
-
-        <table class="grid">
-            <thead>
+            @empty
                 <tr>
-                    <th width="24%">Campo</th>
-                    <th width="38%">{{ $periodA['period_name'] ?? 'Período A' }}</th>
-                    <th width="38%">{{ $periodB['period_name'] ?? 'Período B' }}</th>
+                    <td colspan="5">No hay información por dimensión.</td>
                 </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Comentario general</td>
-                    <td>{{ $comments['period_a']['general_comment'] ?? 'Sin comentario.' }}</td>
-                    <td>{{ $comments['period_b']['general_comment'] ?? 'Sin comentario.' }}</td>
-                </tr>
-                <tr>
-                    <td>Fortalezas</td>
-                    <td>{{ $comments['period_a']['strengths'] ?? 'No registradas.' }}</td>
-                    <td>{{ $comments['period_b']['strengths'] ?? 'No registradas.' }}</td>
-                </tr>
-                <tr>
-                    <td>Oportunidades de mejora</td>
-                    <td>{{ $comments['period_a']['improvement_opportunities'] ?? 'No registradas.' }}</td>
-                    <td>{{ $comments['period_b']['improvement_opportunities'] ?? 'No registradas.' }}</td>
-                </tr>
-                <tr>
-                    <td>Recomendaciones</td>
-                    <td>{{ $comments['period_a']['recommendations'] ?? 'No registradas.' }}</td>
-                    <td>{{ $comments['period_b']['recommendations'] ?? 'No registradas.' }}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+            @endforelse
+        </tbody>
+    </table>
 
-    <div class="page-break"></div>
-
-    <div class="section">
-        <div class="section-title">Comparativo detallado por criterio</div>
-
-        <table class="grid">
-            <thead>
+    <h4 class="section-title">Comparativo por criterio</h4>
+    <table class="mb-15">
+        <thead>
+            <tr>
+                <th>Dimensión</th>
+                <th>Criterio</th>
+                <th>Período A</th>
+                <th>Período B</th>
+                <th>Delta</th>
+                <th>Comentario A</th>
+                <th>Comentario B</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse(data_get($comparison, 'criteria', []) as $item)
                 <tr>
-                    <th width="16%">Dimensión</th>
-                    <th width="22%">Criterio</th>
-                    <th width="10%">{{ $periodA['period_name'] ?? 'A' }}</th>
-                    <th width="10%">{{ $periodB['period_name'] ?? 'B' }}</th>
-                    <th width="10%">Variación</th>
-                    <th width="12%">Tendencia</th>
-                    <th width="20%">Observación relevante</th>
+                    <td>{{ data_get($item, 'dimension', '—') }}</td>
+                    <td>{{ data_get($item, 'criterion', '—') }}</td>
+                    <td>{{ data_get($item, 'period_a_score') !== null ? number_format((float) data_get($item, 'period_a_score'), 2) : '—' }}</td>
+                    <td>{{ data_get($item, 'period_b_score') !== null ? number_format((float) data_get($item, 'period_b_score'), 2) : '—' }}</td>
+                    <td>{{ data_get($item, 'delta') !== null ? number_format((float) data_get($item, 'delta'), 2) : '—' }}</td>
+                    <td>{{ data_get($item, 'period_a_comment') ?: '—' }}</td>
+                    <td>{{ data_get($item, 'period_b_comment') ?: '—' }}</td>
                 </tr>
-            </thead>
-            <tbody>
-                @forelse($criteria as $item)
-                    <tr>
-                        <td>{{ $item['dimension'] ?? 'N/A' }}</td>
-                        <td>{{ $item['criterion'] ?? 'N/A' }}</td>
-                        <td>{{ $item['period_a_score'] !== null ? number_format((float) $item['period_a_score'], 2) : 'N/A' }}</td>
-                        <td>{{ $item['period_b_score'] !== null ? number_format((float) $item['period_b_score'], 2) : 'N/A' }}</td>
-                        <td>{{ $deltaLabel($item['delta']) }}</td>
-                        <td>{{ $trendLabel($item['trend']) }}</td>
-                        <td>
-                            @if(!empty($item['period_b_comment']))
-                                {{ $item['period_b_comment'] }}
-                            @elseif(!empty($item['period_a_comment']))
-                                {{ $item['period_a_comment'] }}
-                            @else
-                                Sin observación.
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7">No hay información de criterios para comparar.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+            @empty
+                <tr>
+                    <td colspan="7">No hay información por criterio.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
 
-    <div class="section small muted">
-        Documento generado automáticamente por {{ $clubName }} el {{ now()->format('Y-m-d H:i') }}.
-    </div>
+    <h4 class="section-title">Comentarios comparados</h4>
+    <table>
+        <thead>
+            <tr>
+                <th width="50%">Período A</th>
+                <th width="50%">Período B</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <strong>Comentario general:</strong><br>
+                    {{ data_get($comparison, 'comments.period_a.general_comment') ?: '—' }}
+                    <br><br>
 
+                    <strong>Fortalezas:</strong><br>
+                    {{ data_get($comparison, 'comments.period_a.strengths') ?: '—' }}
+                    <br><br>
+
+                    <strong>Oportunidades de mejora:</strong><br>
+                    {{ data_get($comparison, 'comments.period_a.improvement_opportunities') ?: '—' }}
+                    <br><br>
+
+                    <strong>Recomendaciones:</strong><br>
+                    {{ data_get($comparison, 'comments.period_a.recommendations') ?: '—' }}
+                </td>
+                <td>
+                    <strong>Comentario general:</strong><br>
+                    {{ data_get($comparison, 'comments.period_b.general_comment') ?: '—' }}
+                    <br><br>
+
+                    <strong>Fortalezas:</strong><br>
+                    {{ data_get($comparison, 'comments.period_b.strengths') ?: '—' }}
+                    <br><br>
+
+                    <strong>Oportunidades de mejora:</strong><br>
+                    {{ data_get($comparison, 'comments.period_b.improvement_opportunities') ?: '—' }}
+                    <br><br>
+
+                    <strong>Recomendaciones:</strong><br>
+                    {{ data_get($comparison, 'comments.period_b.recommendations') ?: '—' }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </body>
 </html>

@@ -14,8 +14,9 @@ class ComparePlayerEvaluationsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'period_a_id' => ['required', 'integer', 'exists:evaluation_periods,id', 'different:period_b_id'],
-            'period_b_id' => ['required', 'integer', 'exists:evaluation_periods,id'],
+            'inscription_id' => ['required', 'integer', 'exists:inscriptions,id'],
+            'period_a_id' => ['required', 'integer', 'exists:evaluation_periods,id'],
+            'period_b_id' => ['required', 'integer', 'exists:evaluation_periods,id', 'different:period_a_id'],
         ];
     }
 }

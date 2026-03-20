@@ -30,6 +30,7 @@ class PlayerEvaluationCrudService
 
         return DB::transaction(function () use ($inscription, $data, $userId) {
             $evaluation = PlayerEvaluation::create([
+                'school_id' => $data['school_id'],
                 'inscription_id' => $inscription->id,
                 'evaluation_period_id' => $data['evaluation_period_id'],
                 'evaluation_template_id' => $data['evaluation_template_id'],
