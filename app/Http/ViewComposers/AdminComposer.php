@@ -2,7 +2,9 @@
 
 namespace App\Http\ViewComposers;
 
+use App\Models\PaymentRequest;
 use App\Models\School;
+use App\Models\UniformRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -40,10 +42,22 @@ class AdminComposer
                 $school_selected = $school->name;
             }
 
+            $notificationPRs = Cache::remember(
+                "admin.notification.payment_request.{$school->id}", 10,
+                fn() => PaymentRequest::query()->where('school_id', $school->id)->whereHas('invoice', fn($q) => $q->where('status', '<>', 'paid'))->count()
+            );
+
+            $notificationURs = Cache::remember(
+                "admin.notification.uniform_request.{$school->id}", 10,
+                fn() => UniformRequest::query()->where('school_id', $school->id)->where('status', 'PENDING')->count()
+            );
+
             $view->with('isSchool', $isSchool);
             $view->with('admin_schools', $schools);
             $view->with('school_selected', $school_selected);
             $view->with('settings', $school->settings);
+            $view->with('notification_prs', $notificationPRs);
+            $view->with('notification_urs', $notificationURs);
         }
     }
 

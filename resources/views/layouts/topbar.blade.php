@@ -40,7 +40,7 @@
             </ul>
             <ul class="navbar-nav my-lg-0">
 
-                {{--                @include( 'plantillas.notification')--}}
+                @includeWhen(filter_var($settings->get('SYSTEM_NOTIFY'), FILTER_VALIDATE_BOOLEAN), 'layouts.notifications')
                 {{-- Profile --}}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href=""
