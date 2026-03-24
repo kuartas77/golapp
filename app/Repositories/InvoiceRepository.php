@@ -3,7 +3,6 @@
 namespace App\Repositories;
 
 use App\Http\Requests\InvoiceAddPaymentRequest;
-use App\Http\Requests\InvoiceStoreRequest;
 use App\Models\Inscription;
 use App\Models\Invoice;
 use App\Models\InvoiceCustomItem;
@@ -44,9 +43,8 @@ class InvoiceRepository
             ->schoolId();
     }
 
-    public function createInvoice($inscriptionId)
+    public function makeInvoice($inscriptionId, $school)
     {
-        $school = getSchool(auth()->user());
         $inscription = Inscription::with(['player', 'trainingGroup'])
             ->where('school_id', $school->id)
             ->findOrFail($inscriptionId);
@@ -89,56 +87,72 @@ class InvoiceRepository
             }
         }
 
+        return [$inscription, $pendingMonths];
+    }
+
+    public function createInvoice($inscriptionId)
+    {
+        $school = getSchool(auth()->user());
+
+        [$inscription, $pendingMonths] = $this->makeInvoice($inscriptionId, $school);
+
         [$pendingUniformRequests, $customItems] = $this->addUniformRequest($inscription->player_id);
 
         return [$inscription, $pendingMonths, $pendingUniformRequests, $customItems];
     }
 
-    public function storeInvoice(InvoiceStoreRequest $request): mixed
+    public function storeInvoice(array $validated): ?Int
     {
-        // Generar número de factura único
-        $invoiceNumber = 'FAC-' . strtoupper(Str::random(6)) . '-' . date('Ymd');
+        try {
+            return DB::transaction(function () use ($validated) {
+                // Generar número de factura único
+                $invoiceNumber = 'FAC-' . strtoupper(Str::random(6)) . '-' . date('Ymd');
 
-        // Verificar que no exista
-        while (Invoice::where('invoice_number', $invoiceNumber)->exists()) {
-            $invoiceNumber = 'FAC-' . strtoupper(Str::random(6)) . '-' . date('Ymd');
+                // Verificar que no exista
+                while (Invoice::where('invoice_number', $invoiceNumber)->exists()) {
+                    $invoiceNumber = 'FAC-' . strtoupper(Str::random(6)) . '-' . date('Ymd');
+                }
+
+                $invoice = Invoice::create([
+                    'invoice_number' => $invoiceNumber,
+                    'inscription_id' => $validated['inscription_id'],
+                    'training_group_id' => $validated['training_group_id'],
+                    'year' => $validated['year'],
+                    'student_name' => $validated['student_name'],
+                    'issue_date' => now()->toDateString(),
+                    'due_date' => $validated['due_date'],
+                    'status' => 'pending',
+                    'school_id' =>  $validated['school_id'],
+                    'created_by' => auth()->id(),
+                    'notes' => $validated['notes'],
+                ]);
+
+                foreach ($validated['items'] as $itemData) {
+
+                    $item = [
+                        'type' => $itemData['type'],
+                        'description' => $itemData['description'] ?? null,
+                        'quantity' => $itemData['quantity'],
+                        'unit_price' => $itemData['unit_price'],
+                        'month' => $itemData['month'] ?? null,
+                        'payment_id' => $itemData['payment_id'] ?? null,
+                        'is_paid' => false,
+                        'uniform_request_id' => $itemData['uniform_request_id'] ?? null,
+                    ];
+
+                    $invoice->items()->create($item);
+
+                    if (isset($item['uniform_request_id'])) {
+                        UniformRequest::where('id', $item['uniform_request_id'])->update(['status' => 'APPROVED']);
+                    }
+                }
+
+                return $invoice->id;
+            });
+        } catch (\Throwable $th) {
+            $this->logError('InvoiceRepository@storeInvoice', $th);
+            return null;
         }
-
-        $invoice = Invoice::create([
-            'invoice_number' => $invoiceNumber,
-            'inscription_id' => $request->inscription_id,
-            'training_group_id' => $request->training_group_id,
-            'year' => $request->year,
-            'student_name' => $request->student_name,
-            'issue_date' => now()->toDateString(),
-            'due_date' => $request->due_date,
-            'status' => 'pending',
-            'school_id' =>  $request->school_id,
-            'created_by' => auth()->id(),
-            'notes' => $request->notes,
-        ]);
-
-        foreach ($request->items as $itemData) {
-
-            $item = [
-                'type' => $itemData['type'],
-                'description' => $itemData['description'],
-                'quantity' => $itemData['quantity'],
-                'unit_price' => $itemData['unit_price'],
-                'month' => $itemData['month'] ?? null,
-                'payment_id' => $itemData['payment_id'] ?? null,
-                'is_paid' => false,
-                'uniform_request_id' => $itemData['uniform_request_id'] ?? null,
-            ];
-
-            $invoice->items()->create($item);
-
-            if(isset($item['uniform_request_id'])) {
-                UniformRequest::where('id', $item['uniform_request_id'])->update(['status' => 'APPROVED']);
-            }
-        }
-
-        return $invoice->id;
     }
 
     public function addPayment(InvoiceAddPaymentRequest $request, $invoiceId)

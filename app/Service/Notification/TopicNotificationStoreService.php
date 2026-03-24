@@ -7,7 +7,6 @@ use App\Models\TopicNotification;
 use App\Notifications\FirebaseTopicNotification;
 use App\Repositories\TopicNotificationRepository;
 use App\Traits\ErrorTrait;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -21,23 +20,28 @@ class TopicNotificationStoreService
         //
     }
 
-    public function store(FormRequest $request)
+    public function store(array $data)
     {
-        [$topics, $playerIds] = $this->getTopicsAndPlayers($request);
+        [$topics, $playerIds] = $this->getTopicsAndPlayers($data);
 
+        $this->saveNotification($data, $topics, $playerIds);
+    }
+
+    public function saveNotification(array $data, $topics, $playerIds)
+    {
         try {
-            DB::transaction(function() use($request, $topics, $playerIds){
-                    $tipicNotification = TopicNotification::query()->create([
-                    'school_id' => $request->validated('school_id'),
+            DB::transaction(function() use($data, $topics, $playerIds){
+                $tipicNotification = TopicNotification::query()->create([
+                    'school_id' => $data['school_id'],
                     'topics'  => implode(',', $topics),
-                    'title'  => $request->validated('notification_title'),
-                    'body'  => $request->validated('notification_body'),
+                    'title'  => $data['notification_title'],
+                    'body'  => $data['notification_body'],
                     'type' => 'GENERAL',
                     'priority' => 'NORMAL'
                 ]);
 
                 $tipicNotification->players()->attach($playerIds, [
-                    'school_id' => $request->validated('school_id'),
+                    'school_id' => $data['school_id'],
                     'is_read' => false
                 ]);
 
@@ -60,7 +64,7 @@ class TopicNotificationStoreService
         }
     }
 
-    private function getTopicsAndPlayers(FormRequest $request)
+    private function getTopicsAndPlayers(array $data)
     {
         $topics = [];
         $searchs = [];
@@ -68,8 +72,8 @@ class TopicNotificationStoreService
         $school = getSchool(auth()->user());
         [$topicCategories, $topicGroups, $topicUniqueCodes, $topicCompetitionGroups] = $this->repository->getTopics();
 
-        $type = $request->validated('notification_type');
-        $topics = $request->validated($type, []);
+        $type = $data['notification_type'];
+        $topics = $type ?? [];
 
         switch ($type) {
             case 'general':
@@ -91,7 +95,7 @@ class TopicNotificationStoreService
                 throw new \Exception('tipo de notificacion no existe ' . $type);
         }
 
-        $searchs = $this->getSearch($source, $request->validated($type, []), );
+        $searchs = $this->getSearch($source, $topics);
 
         $playerIds = $this->getPlayerIds($type, $searchs);
 

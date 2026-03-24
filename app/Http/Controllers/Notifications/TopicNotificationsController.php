@@ -31,7 +31,7 @@ class TopicNotificationsController extends Controller
 
     public function store(NotificationStoreRequest $request, TopicNotificationStoreService $service)
     {
-        $service->store($request);
+        $service->store($request->validate());
         return back();
     }
 }
