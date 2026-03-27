@@ -4,10 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Payment;
 use App\Models\School;
-use App\Notifications\PaymentNotification;
-use Carbon\Carbon;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -55,9 +52,9 @@ class UpdatePaymentsStartMonth extends Command
             );
 
             School::query()
+                ->with(['settingsValues'])
                 ->where('is_enable', true)
                 ->chunkById(10, function ($schools) use ($month, $targetYear): void {
-                    $schools->load('settingsValues');
 
                     foreach ($schools as $school) {
                         $monthlyPayment = (float) data_get($school, 'settings.MONTHLY_PAYMENT', 50000);

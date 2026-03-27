@@ -90,7 +90,7 @@
 <li class="{{ Request::is('reports*') ? 'active' : '' }}">
     <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><i class="fa fa-flag"></i><span class="hide-menu">Informes</span></a>
     <ul aria-expanded="false" class="collapse">
-        <!-- <li><a href="{{route('reports.assists')}}">Asistencias</a></li> -->
+        <li><a href="{{route('reports.assists')}}">Asistencias</a></li>
         <li><a href="{{route('reports.payments')}}">Mensualidades</a></li>
     </ul>
 </li>

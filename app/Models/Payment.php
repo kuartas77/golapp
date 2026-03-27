@@ -79,7 +79,7 @@ class Payment extends Model
 
     public function player(): HasOneThrough
     {
-        return $this->hasOneThrough(Player::class, Inscription::class, 'id', 'id', 'inscription_id', 'player_id');
+        return $this->hasOneThrough(Player::class, Inscription::class, 'id', 'id', 'inscription_id', 'player_id')->withTrashedParents();
     }
 
     public function training_group(): BelongsTo

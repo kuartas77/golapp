@@ -36,6 +36,11 @@ class InscriptionCreateComposer
 
             $school_id = getSchool(auth()->user())->id;
 
+
+            $provitionalGroup = Cache::remember("PROVITIONAL_GROUP_{$school_id}", now()->addMonth(), function() use($school_id){
+                return TrainingGroup::query()->orderBy('id')->firstWhere('school_id', $school_id);
+            });
+
             $genders = Cache::remember('KEY_GENDERS', now()->addYear(), function () {
                 return config('variables.KEY_GENDERS');
             });
@@ -96,6 +101,8 @@ class InscriptionCreateComposer
                 $training_groups_arr->push($firstGroup);
             }
 
+            // dd($competition_groups);
+
             $view->with('jornada', $jornada);
             $view->with('schools', $schools);
             $view->with('genders', $genders);
@@ -111,6 +118,7 @@ class InscriptionCreateComposer
             $view->with('inscription_years', $inscription_years);
             $view->with('competition_groups', $competition_groups);
             $view->with('training_groups_arr', $training_groups_arr);
+            $view->with('provitional_group', $provitionalGroup);
         }
     }
 

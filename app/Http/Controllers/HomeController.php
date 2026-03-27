@@ -39,7 +39,8 @@ class HomeController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'current' => $this->paymentRepository->dataGraphicsYear(now()->year),
-                'past' => $this->paymentRepository->dataGraphicsYear(now()->subYear()->year)
+                'past' => $this->paymentRepository->dataGraphicsYear(now()->subYear()->year),
+                'other' => $this->paymentRepository->dataGraphicsDashboard(),
             ]);
         }
         $birthdays = $this->playerRepository->birthdayToday()->count();

@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
+use App\Http\Controllers\{Competition\GameController, Payments\PaymentController, Schedule\SchedulesController, SchoolPages\SchoolsController};
+use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
+use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
+use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
 use App\Http\Controllers\Admin\InvoiceCustomItemController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
@@ -11,14 +16,10 @@ use App\Http\Controllers\Notifications\TopicNotificationsController;
 use App\Http\Controllers\Notifications\UniformRequestsController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\PlayerStatsController;
+use App\Http\Controllers\Reports\AttendanceReportExportController;
 use App\Http\Controllers\Reports\ReportAssistsController;
 use App\Http\Controllers\Reports\ReportPaymentController;
 use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
-use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
-use App\Http\Controllers\{Competition\GameController, Payments\PaymentController, Schedule\SchedulesController, SchoolPages\SchoolsController};
-use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
-use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
-use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -115,6 +116,11 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('tournament/payouts/pdf', [ExportController::class, 'exportTournamentPayoutsPDF'])->name('tournaments.payouts.pdf');
         Route::get('training_sessions/pdf/{id}', [ExportController::class, 'exportTrainingSession'])->name('training_sessions.pdf');
         Route::get('items/invoices', [ExportController::class, 'exportPendingItemsInvoices'])->name('items.invoices');
+
+        Route::get('{report}/{format}', [AttendanceReportExportController::class, 'download'])
+        ->whereIn('report', ['monthly-player', 'monthly-group', 'annual-consolidated'])
+        ->whereIn('format', ['xlsx', 'pdf'])
+        ->name('assist.export');
     });
 
     Route::prefix('historic')->name('historic.')->group(function () {
@@ -126,7 +132,13 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('assists', [ReportAssistsController::class, 'index'])->name('assists');
-        Route::post('assists', [ReportAssistsController::class, 'report'])->name('assists.report');
+        // Route::post('assists', [ReportAssistsController::class, 'report'])->name('assists.report');
+
+        Route::get('attendance/monthly-by-player', [ReportAssistsController::class, 'monthlyByPlayer'])->name('assists.monthly-by-player');
+        Route::get('attendance/monthly-by-group', [ReportAssistsController::class, 'monthlyByGroup'])->name('assists.monthly-by-group');
+        Route::get('attendance/annual-consolidated', [ReportAssistsController::class, 'annualConsolidated'])->name('assists.annual-consolidated');
+
+
         Route::get('payments', [ReportPaymentController::class, 'index'])->name('payments');
         Route::post('payments', [ReportPaymentController::class, 'report'])->name('payments.report');
     });

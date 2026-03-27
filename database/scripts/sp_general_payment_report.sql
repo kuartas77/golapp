@@ -1,3 +1,7 @@
+DROP PROCEDURE IF EXISTS sp_general_payment_report;
+
+DELIMITER $$
+
 CREATE PROCEDURE sp_general_payment_report(
     IN p_year INTEGER,
     IN p_school_id BIGINT UNSIGNED
@@ -45,4 +49,6 @@ BEGIN
         (p_year IS NULL OR p.year = p_year)
         AND (p_school_id IS NULL OR p.school_id = p_school_id)
     GROUP BY p.year;
-END
+END$$
+
+DELIMITER ;

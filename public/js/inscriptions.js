@@ -168,25 +168,6 @@ const columns = [
     },//11
 ];
 
-const columnsDelete = [
-    {
-        data: 'id', "render": function (data, type, row) {
-            return "<img class='rounded-circle' width='70' height='50' src='" + row.player.photo_url + "' alt='" + row.player.full_names + "'>";
-        }, 'searchable': false
-    },
-    {data: 'unique_code'},//2
-    {data: 'player.identification_document'},//3
-    {data: 'player.full_names', name :'player.last_names'},//4
-    {data: 'player.date_birth', 'searchable': false},//5
-    {data: 'player.gender', 'searchable': false},//6
-    {
-        data: 'medic_certificate', "render": function (data) {
-            return data === 1 ? '<span class="label label-success">SI</span>' : '<span class="label label-warning">NO</span>';
-        }, 'searchable': false
-    },//7
-    {data: 'player.mobile', 'searchable': false},//8
-    {data: 'category', name: 'category', "className": 'text-center'},//9
-];
 const columnDefs = [
     { "targets": [2, 3, 4, 7, 9, 10], "searchable": true },
     { "targets": [0, 1, 7, 8, 9, 10, 11], "orderable": false },
@@ -219,24 +200,6 @@ $(document).ready(function () {
         initComplete: filterTable,
         "ajax": $.fn.dataTable.pipeline({
             url: url_inscriptions_enabled,
-            pages: 5 // number of pages to cache
-        })
-    });
-
-    const inactive_table = $('#inactive_table').DataTable({
-        "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
-        "order": [[2, "desc"]],
-        "scrollX": true,
-        "scrollCollapse":true,
-        "processing": true,
-        "serverSide": true,
-        "deferRender": true,
-        "fixedColumns": true,
-        "columns": columnsDelete,
-        // "columnDefs": columnDefs,
-        // initComplete: filterTable,
-        "ajax": $.fn.dataTable.pipeline({
-            url: url_inscriptions_disabled,
             pages: 5 // number of pages to cache
         })
     });
