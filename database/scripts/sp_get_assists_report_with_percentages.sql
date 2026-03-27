@@ -1,3 +1,6 @@
+DROP PROCEDURE IF EXISTS sp_get_assists_report_with_percentages;
+
+DELIMITER $$
 CREATE PROCEDURE sp_get_assists_report_with_percentages (
     IN p_year INTEGER,
     IN p_month TINYINT,
@@ -149,4 +152,6 @@ BEGIN
         GROUP BY a.training_group_id, a.school_id, a.year, a.month
     ) AS t
     ORDER BY t.year DESC, t.month DESC, t.training_group_id DESC;
-END
+END$$
+
+DELIMITER ;

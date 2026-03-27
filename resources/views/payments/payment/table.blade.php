@@ -9,6 +9,10 @@
                 aria-controls="disabled" aria-expanded="false">Total: $ 0</a>
         </li>
         <li class="nav-item">
+            <a class="nav-link disabled" id="pay-tab" data-toggle="tab" role="tab"
+                aria-controls="disabled" aria-expanded="false">Pagos: $ 0</a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link disabled" id="cash-tab" data-toggle="tab" role="tab"
                 aria-controls="disabled" aria-expanded="false">Efectivo: $ 0</a>
         </li>
@@ -18,7 +22,7 @@
         </li>
         <li class="nav-item">
             <a class="nav-link disabled" id="other-tab" data-toggle="tab" role="tab"
-                aria-controls="disabled" aria-expanded="false">Otros: $ 0</a>
+                aria-controls="disabled" aria-expanded="false">Deben: $ 0</a>
         </li>
         <li class=" nav-item ml-auto">
             <a class="float-right btn waves-effect waves-light btn-rounded btn-info disabled" href="" id="export-excel" target="_blank">

@@ -172,6 +172,7 @@ function initTable() {
                     total = total + intVal(a);
                 });
             });
+            let pay = 0
             let cash = 0;
             let consignment = 0;
             let others = 0;
@@ -188,9 +189,13 @@ function initTable() {
                     if(['9','12'].includes(select)){
                         cash = cash + intVal(inputVal);
                     }
+                    else if(['1'].includes(select)){
+                        pay = pay + intVal(inputVal);
+                    }
                     else if(['10', '11'].includes(select)){
                         consignment = consignment + intVal(inputVal);
-                    }else{
+                    }
+                    else if(['2'].includes(select)){
                         others = others + intVal(inputVal);
                     }
 
@@ -201,10 +206,12 @@ function initTable() {
             let totalCash = `$${formatMoney(cash)}`
             let totalConsignment = `$${formatMoney(consignment)}`
             let totalOthers = `$${formatMoney(others)}`
+            let pays = `$${formatMoney(pay)}`
             $('#total-tab').html(`Total: ${totalFormat}`)
             $('#cash-tab').html(`Efectivo: ${totalCash}`)
             $('#consignment-tab').html(`Consignación: ${totalConsignment}`)
-            $('#other-tab').html(`Otros: ${totalOthers}`)
+            $('#other-tab').html(`Beben: ${totalOthers}`)
+            $('#pay-tab').html(`Pagos: ${pays}`)
             $( api.column( 2 ).footer() ).html(sumTotal(api, 2, intVal));
             $( api.column( 3 ).footer() ).html(sumTotal(api, 3, intVal));
             $( api.column( 4 ).footer() ).html(sumTotal(api, 4, intVal));
@@ -230,8 +237,11 @@ function sumTotal(api, column, intVal){
         .nodes();
 
     $.each(columnas_total, function(index, value) {
+        let select = $(value).find('select').val();
         let a = $(value).find('input[type=text]').val();
-        total = total + intVal(a);
+        if(!['0', '2'].includes(select)){
+            total = total + intVal(a);
+        }
     });
 
     return `$${formatMoney(total)}`

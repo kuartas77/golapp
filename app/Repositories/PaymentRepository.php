@@ -6,6 +6,7 @@ namespace App\Repositories;
 
 use App\Models\Inscription;
 use App\Models\Payment;
+use App\Service\ReportService;
 use App\Traits\ErrorTrait;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
@@ -138,13 +139,14 @@ class PaymentRepository
 
         $query
             ->addSelect([
-                'category' => Inscription::query()->select('category')->whereColumn('inscriptions.id', 'inscription_id')->where('year', $year)->take(1)
+                'category' => Inscription::query()->select('category')->whereColumn('inscriptions.id', 'inscription_id')->where('year', $year)->withTrashed()->take(1)
             ])
             ->where('year', $year)
             ->whereHas('player')
             ->when($unique_code, fn($q) => $q->where('unique_code', $unique_code))
             ->when($training_group_id != 0, fn($q) => $q->where('training_group_id', $training_group_id))
             ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', $year)->where('category', $category)->withTrashed()))
+            ->withTrashed()
             ->orderByRaw("CAST(SUBSTRING_INDEX(category, '-', -1) AS UNSIGNED) ASC");
 
         return $query;
@@ -440,4 +442,75 @@ class PaymentRepository
             ->where('payments.school_id', $schoolId)->get();
     }
 
+    public function dataGraphicsDashboard()
+    {
+        $schoolId = getSchool(auth()->user())->id;
+
+        return Cache::remember('statistics.school.' . $schoolId, 1, function () use ($schoolId) {
+        // return Cache::remember('statistics.school.' . $schoolId, now()->addMinutes(3), function () use ($schoolId) {
+
+            // mensualidades x grupo
+            $paymentByGroup = ReportService::paymentByGroupReport(year: now()->year, schoolId: $schoolId, groupId: null);
+            $assistReport = ReportService::assistsPercentagesReport(year: now()->year, month: 2, groupId: null, schoolId: $schoolId);
+            $monthlyReport = ReportService::monthlyReport(year:now()->year, schoolId: $schoolId, groupId: null)->first();
+            $generalReport = ReportService::generalReport(year:now()->year, schoolId: $schoolId);
+
+            $paymentGroup = [
+                'categories' => $paymentByGroup->pluck('grupo')->toArray(),
+                'data' => [
+                    // ['name' => 'Inscripciones', 'data' => $paymentByGroup->pluck('total_inscriptions')->toArray()],
+                    ['name' => 'Pagos', 'data' => $paymentByGroup->pluck('monthly_payments_paid')->toArray()],
+                    ['name' => 'Deben', 'data' => $paymentByGroup->pluck('monthly_payments_debt')->toArray()],
+                    ['name' => 'Becados', 'data' => $paymentByGroup->pluck('monthly_payments_scholarship')->toArray()],
+                    // ['name' => 'Otros', 'data' => $paymentByGroup->pluck('monthly_payments_others')->toArray()],
+                ]
+            ];
+
+            $amountGroup = [
+                'categories' => $paymentByGroup->pluck('grupo')->toArray(),
+                'data' => [
+                    ['type' => 'column', 'name' => 'Mensualidades', 'data' => $paymentByGroup->pluck('total_raised')->toArray()],
+                    ['type' => 'column', 'name' => 'Inscripciones', 'data' => $paymentByGroup->pluck('total_enrollment')->toArray()],
+                    ['type' => 'line', 'name' => '% de cumplimiento', 'data' => $paymentByGroup->pluck('percentage_compliance')->toArray()],
+                ]
+            ];
+
+
+            $assistReportData = [
+                'categories' => ['Asistencias', 'Excusas', 'Ausencias', 'Retiros', 'Incapacidades'],
+                'data' => [
+                    $assistReport->sum('total_attendances'),
+                    $assistReport->sum('total_excuses'),
+                    $assistReport->sum('total_absences'),
+                    $assistReport->sum('total_retreat'),
+                    $assistReport->sum('total_disabilities'),
+                ]
+            ];
+
+            $months = array_keys(config('variables.KEY_INDEX_MONTHS_LABEL', []));
+            $valueMonths = [];
+            $paymentByMonth = [];
+
+            foreach ($months as $month) {
+                $valueMonths[] = $monthlyReport->{$month};
+                $paymentByMonth[] = (int) $monthlyReport->{'payments_'.$month};
+            }
+
+            $amountReportMonthly = [
+                'categories' => array_values(config('variables.KEY_INDEX_MONTHS_LABEL', [])),
+                'data' => [
+                    ['type' => 'column', 'name' => 'Valor', 'data' => $valueMonths],
+                    ['type' => 'column', 'name' => 'Pagos', 'data' => $paymentByMonth],
+                ]
+            ];
+
+            return [
+                'payment_group_report' => $paymentGroup,
+                'amount_payment_group_report' => $amountGroup,
+                'assist_report' => $assistReportData,
+                'monthly_report' => $amountReportMonthly,
+                // 'general_report' => $generalReport
+            ];
+        });
+    }
 }
