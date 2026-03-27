@@ -18,16 +18,24 @@
 </div>
 @push('scripts')
 <script>
-    let imgUser = "{{asset('img/user.png')}}";
+    let imgUser = "{{ asset('img/user.png') }}";
     const school = @json($school);
     const url_autocomplete = "{{ route('portal.autocomplete.fields') }}";
     const url_search = "{{ route('portal.autocomplete.search_doc') }}";
     const form_inscripcion = $("#form_inscripcion");
-    const MinDateBirth = moment().subtract(20, 'year'); //TODO: settings
-    const MaxDateBirth = moment().subtract(3, 'year'); //TODO: settings
+    const MinDateBirth = moment().subtract(20, 'year');
+    const MaxDateBirth = moment().subtract(3, 'year');
     const fileSize = 3;
 
-    $("#filesize").html(`${fileSize} `)
+    // ----------------------------
+    // Estado de la foto
+    // ----------------------------
+    let selectedPhotoFile = null;
+    let rotatedPhotoBlob = null;
+    let currentRotation = 0;
+    let currentPreviewObjectUrl = null;
+
+    $("#filesize").html(`${fileSize} `);
 
     form_inscripcion.validate({
         rules: {
@@ -79,7 +87,7 @@
             contrato_aff: {required: true},
             contrato_insc: {required: true},
         },
-    })
+    });
 
     form_inscripcion.steps({
         headerTag: "h6",
@@ -99,77 +107,78 @@
         onInit: function(event, currentIndex){
             $('.date').inputmask("yyyy-mm-dd");
             $(".form-control").attr('autocomplete', 'off');
-            events()
+            events();
+
             $("#date_birth").bootstrapMaterialDatePicker({
                 time: false,
                 clearButton: false,
                 lang: 'es',
                 cancelText: 'Cancelar',
                 okText: 'Aceptar',
-                minDate: MinDateBirth,//TODO: settings
-                maxDate: MaxDateBirth// TODO: settings
+                minDate: MinDateBirth,
+                maxDate: MaxDateBirth
             });
         },
         onStepChanging: function(event, currentIndex, newIndex) {
-            if(currentIndex == 3){
-                if (school.create_contract && signaturePadTutor.isEmpty()) {
-                    Swal.fire({
-                        title: window.app_name,
-                        text: 'Ingresa la firma del acudiente para poder continuar',
-                        type: 'warning',
-                        allowOutsideClick: true,
-                        allowEscapeKey: true,
-                    })
-                    return false
-                }
-            }
-            if(currentIndex == 3) {
-                if (school.sign_player && signaturePadPlayer.isEmpty()) {
-                    Swal.fire({
-                        title: window.app_name,
-                        text: 'Ingresa la firma del deportista para poder continuar',
-                        type: 'warning',
-                        allowOutsideClick: true,
-                        allowEscapeKey: true,
-                    })
-                    return false
-                }
+            if (currentIndex == 3 && tutorSignatureRequiredAndMissing()) {
+                Swal.fire({
+                    title: window.app_name,
+                    text: 'Ingresa la firma del acudiente para poder continuar',
+                    type: 'warning',
+                    allowOutsideClick: true,
+                    allowEscapeKey: true,
+                });
+                return false;
             }
 
-            return currentIndex > newIndex || (currentIndex < newIndex &&
-                (form_inscripcion.find(".body:eq(" + newIndex + ") label.error").remove(),
-                    form_inscripcion.find(".body:eq(" + newIndex + ") .error").removeClass("error")),
-                form_inscripcion.validate().settings.ignore = ":disabled,:hidden", form_inscripcion.valid())
+            if (currentIndex == 3 && playerSignatureRequiredAndMissing()) {
+                Swal.fire({
+                    title: window.app_name,
+                    text: 'Ingresa la firma del deportista para poder continuar',
+                    type: 'warning',
+                    allowOutsideClick: true,
+                    allowEscapeKey: true,
+                });
+                return false;
+            }
+
+            return currentIndex > newIndex || (
+                currentIndex < newIndex &&
+                (
+                    form_inscripcion.find(".body:eq(" + newIndex + ") label.error").remove(),
+                    form_inscripcion.find(".body:eq(" + newIndex + ") .error").removeClass("error")
+                ),
+                form_inscripcion.validate().settings.ignore = ":disabled,:hidden",
+                form_inscripcion.valid()
+            );
         },
         onFinishing: function(event, currentIndex) {
-            onClickRecaptcha(event)
-            return form_inscripcion.validate().settings.ignore = ":disabled", form_inscripcion.valid()
+            onClickRecaptcha(event);
+            return form_inscripcion.validate().settings.ignore = ":disabled", form_inscripcion.valid();
         },
         onFinished: function(event, currentIndex) {
-            if(currentIndex == 3){
-                if (school.create_contract && signaturePadTutor.isEmpty()) {
-                    Swal.fire({
-                        title: window.app_name,
-                        text: 'Ingresa la firma del acudiente para poder continuar',
-                        type: 'warning',
-                        allowOutsideClick: true,
-                        allowEscapeKey: true,
-                    })
-                    return false
-                }
+            if (currentIndex == 3 && tutorSignatureRequiredAndMissing()) {
+                Swal.fire({
+                    title: window.app_name,
+                    text: 'Ingresa la firma del acudiente para poder continuar',
+                    type: 'warning',
+                    allowOutsideClick: true,
+                    allowEscapeKey: true,
+                });
+                return false;
             }
-            if(currentIndex == 3) {
-                if (school.sign_player && signaturePadPlayer.isEmpty()) {
-                    Swal.fire({
-                        title: window.app_name,
-                        text: 'Ingresa la firma del deportista para poder continuar',
-                        type: 'warning',
-                        allowOutsideClick: true,
-                        allowEscapeKey: true,
-                    })
-                    return false
-                }
+
+            if (currentIndex == 3 && playerSignatureRequiredAndMissing()) {
+                Swal.fire({
+                    title: window.app_name,
+                    text: 'Ingresa la firma del deportista para poder continuar',
+                    type: 'warning',
+                    allowOutsideClick: true,
+                    allowEscapeKey: true,
+                });
+                return false;
             }
+
             Swal.fire({
                 title: window.app_name,
                 text: '¿Deseas envíar el formulario y crear una inscripción?',
@@ -185,7 +194,7 @@
                 if (result?.value !== undefined) {
                     sendData();
                 }
-            })
+            });
         },
         onCanceled: function (event) {
             Swal.fire({
@@ -201,21 +210,40 @@
                 cancelButtonText: 'No'
             }).then((result) => {
                 if (result?.value !== undefined) {
-                    form_inscripcion.resetForm()
-                    form_inscripcion.clearForm()
+                    form_inscripcion.resetForm();
+                    form_inscripcion.clearForm();
                     document.getElementById("form_inscripcion").reset();
-                    localStorage.removeItem('form-storage')
+                    resetPhotoState();
+                    localStorage.removeItem('form-storage');
                     $('#modal_inscription').modal('hide');
                 }
-            })
-
+            });
         }
     });
 
-    const signaturePadTutor = new SignaturePad(document.getElementById("firma_tutor"));
-    const signaturePadPlayer = new SignaturePad(document.getElementById("firma_alumno"));
+    const tutorCanvas = document.getElementById("firma_tutor");
+    const playerCanvas = document.getElementById("firma_alumno");
 
-    function sendData(){
+    const signaturePadTutor = (school.create_contract && tutorCanvas)
+        ? new SignaturePad(tutorCanvas)
+        : null;
+
+    const signaturePadPlayer = (school.sign_player && playerCanvas)
+        ? new SignaturePad(playerCanvas)
+        : null;
+
+    function tutorSignatureRequiredAndMissing() {
+        return school.create_contract && (!signaturePadTutor || signaturePadTutor.isEmpty());
+    }
+
+    function playerSignatureRequiredAndMissing() {
+        return school.sign_player && (!signaturePadPlayer || signaturePadPlayer.isEmpty());
+    }
+
+    // ----------------------------
+    // Envío
+    // ----------------------------
+    function sendData() {
         let data = new FormData();
         let form_data = $(form_inscripcion).serializeArray();
         let url = $(form_inscripcion).attr('action');
@@ -225,17 +253,28 @@
         });
 
         $.each($("input[type=file]"), function(i, input) {
-            $.each(input.files,function(j, file){
-                data.append(input.name, file);
-            })
-        })
+            if (input.name === 'photo') {
+                if (rotatedPhotoBlob) {
+                    const originalName = input.files?.[0]?.name || 'photo.jpg';
+                    const extension = rotatedPhotoBlob.type === 'image/png' ? '.png' : '.jpg';
+                    const cleanName = originalName.replace(/\.[^/.]+$/, '');
+                    data.append('photo', rotatedPhotoBlob, cleanName + extension);
+                } else if (input.files && input.files[0]) {
+                    data.append('photo', input.files[0]);
+                }
+            } else {
+                $.each(input.files, function(j, file) {
+                    data.append(input.name, file);
+                });
+            }
+        });
 
-        if(school.create_contract) {
-            data.append("signatureTutor", document.getElementById("firma_tutor").toDataURL("image/png"));
+        if (school.create_contract && signaturePadTutor) {
+            data.append("signatureTutor", signaturePadTutor.toDataURL("image/png"));
         }
 
-        if(school.sign_player) {
-            data.append("signatureAlumno", document.getElementById("firma_alumno").toDataURL("image/png"));
+        if (school.sign_player && signaturePadPlayer) {
+            data.append("signatureAlumno", signaturePadPlayer.toDataURL("image/png"));
         }
 
         $.ajax({
@@ -253,91 +292,233 @@
                     if (okay) {
                         $('#modal_inscription').modal('hide');
                         document.getElementById("form_inscripcion").reset();
-                        localStorage.removeItem('form-storage')
-                        window.location.reload()
+                        resetPhotoState();
+                        localStorage.removeItem('form-storage');
+                        window.location.reload();
                     }
-                })
-
+                });
             },
             error: function(xhr, status, error) {
-                let message = 'Algo salío mal, no hemos podido procesar la información en este momento, por favor intenta de nuevo más tarde!'
+                let message = 'Algo salío mal, no hemos podido procesar la información en este momento, por favor intenta de nuevo más tarde!';
                 if (xhr.status == 422 || xhr.status == 500) {
-                    message = xhr.responseJSON.message
+                    message = xhr.responseJSON.message;
                 }
+
                 Swal.fire({
                     type: 'error',
                     title: window.app_name,
                     text: message,
                 }).then(okay => {
                     if (okay) {
-                        window.location.reload()
+                        window.location.reload();
                     }
-                })
+                });
             }
         });
     }
 
-
+    // ----------------------------
+    // Autocompletado y otros eventos
+    // ----------------------------
     $('#identification_document').on('keyup', function(){
         let documentInput = $("#identification_document");
-        let documentVal = documentInput.val().toLowerCase().trim()
+        let documentVal = documentInput.val().toLowerCase().trim();
+
         if(documentVal.length >= 8 && documentInput.valid()){
             $.get(url_search, {doc: documentVal, school_id: school.id}, function (result) {
-                let info = result.data
+                let info = result.data;
                 if(info?.names){
-                    $('#names').val(info.names)
-                    $('#last_names').val(info.last_names)
-                    $('#date_birth').val(info.date_birth)
-                    $('#place_birth').val(info.place_birth)
-                    $('#document_type').val(info.document_type)
-                    $('#gender').val(info.gender)
-                    $('#email').val(info.email.toLowerCase())
-                    $('#mobile').val(info.mobile)
-                    $('#medical_history').val(info.medical_history)
-                    $('#address').val(info.address)
-                    $('#municipality').val(info.municipality)
-                    $('#neighborhood').val(info.neighborhood)
-                    $('#rh').val(info.rh)
-                    $('#eps').val(info.eps)
-                    $('#student_insurance').val(info.student_insurance)
-                    $('#school').val(info.school)
-                    $('#degree').val(info.degree)
-                    $('#jornada').val(info.jornada)
+                    $('#names').val(info.names);
+                    $('#last_names').val(info.last_names);
+                    $('#date_birth').val(info.date_birth);
+                    $('#place_birth').val(info.place_birth);
+                    $('#document_type').val(info.document_type);
+                    $('#gender').val(info.gender);
+                    $('#email').val(info.email.toLowerCase());
+                    $('#mobile').val(info.mobile);
+                    $('#medical_history').val(info.medical_history);
+                    $('#address').val(info.address);
+                    $('#municipality').val(info.municipality);
+                    $('#neighborhood').val(info.neighborhood);
+                    $('#rh').val(info.rh);
+                    $('#eps').val(info.eps);
+                    $('#student_insurance').val(info.student_insurance);
+                    $('#school').val(info.school);
+                    $('#degree').val(info.degree);
+                    $('#jornada').val(info.jornada);
                 }
-            })
+            });
         }
     });
 
     $('#email').on('change', function(){
         let inputEmail = $("#email");
-        let email = inputEmail.val().toLowerCase().trim()
-        inputEmail.val(email)
-        $('#tutor_email').val(email)
+        let email = inputEmail.val().toLowerCase().trim();
+        inputEmail.val(email);
+        $('#tutor_email').val(email);
     });
 
-    $('#file-upload').on('change', function(){
-        readFile(this);
+    // ----------------------------
+    // Foto: seleccionar + rotar
+    // ----------------------------
+    $(document).on('change', '#file-upload', function () {
+        handlePhotoSelection(this);
     });
 
-    function readFile(input) {
-        let label = $(input).next('label.custom-file-label')
-        if (input.files && input.files[0]) {
-            let reader = new FileReader();
-            reader.onload = function (e) {
-                $('#player-img').attr('src', e.target.result);
-            }
-            reader.readAsDataURL(input.files[0]);
-            // label.empty().html(input.files[0].name)
-            label.empty().html('Seleccionada.')
-        }else{
-            label.empty().html("Seleccionar...")
-            $('#player-img').attr('src', imgUser);
+    $(document).on('click', '#rotate-left', function () {
+        if (!selectedPhotoFile) return;
+        currentRotation = (currentRotation - 90 + 360) % 360;
+        updateRotatedPreview();
+    });
+
+    $(document).on('click', '#rotate-right', function () {
+        if (!selectedPhotoFile) return;
+        currentRotation = (currentRotation + 90) % 360;
+        updateRotatedPreview();
+    });
+
+    function handlePhotoSelection(input) {
+        const label = $(input).next('label.custom-file-label');
+
+        if (!input.files || !input.files[0]) {
+            resetPhotoState();
+            label.html('Seleccionar...');
+            return;
         }
+
+        const file = input.files[0];
+
+        if (!/^image\/(jpeg|png)$/.test(file.type)) {
+            Swal.fire({
+                type: 'warning',
+                title: window.app_name,
+                text: 'Solo se permiten imágenes JPG, JPEG o PNG.'
+            });
+            input.value = '';
+            resetPhotoState();
+            label.html('Seleccionar...');
+            return;
+        }
+
+        selectedPhotoFile = file;
+        currentRotation = 0;
+        label.html('Seleccionada.');
+
+        updateRotatedPreview();
+    }
+
+    function updateRotatedPreview() {
+        if (!selectedPhotoFile) {
+            resetPhotoState();
+            return;
+        }
+
+        createRotatedImage(selectedPhotoFile, currentRotation)
+            .then(function (result) {
+                rotatedPhotoBlob = result.blob;
+
+                if (currentPreviewObjectUrl) {
+                    URL.revokeObjectURL(currentPreviewObjectUrl);
+                }
+
+                currentPreviewObjectUrl = result.url;
+                $('#player-img').attr('src', currentPreviewObjectUrl);
+            })
+            .catch(function (error) {
+                console.error('Error procesando imagen:', error);
+
+                // Fallback para que al menos la vista previa salga
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#player-img').attr('src', e.target.result);
+                };
+                reader.readAsDataURL(selectedPhotoFile);
+
+                rotatedPhotoBlob = null;
+            });
+    }
+
+    function createRotatedImage(file, rotation) {
+        return new Promise(function (resolve, reject) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const image = new Image();
+
+                image.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    const normalizedRotation = ((rotation % 360) + 360) % 360;
+                    const isSideways = normalizedRotation === 90 || normalizedRotation === 270;
+
+                    canvas.width = isSideways ? image.height : image.width;
+                    canvas.height = isSideways ? image.width : image.height;
+
+                    ctx.save();
+
+                    if (normalizedRotation === 90) {
+                        ctx.translate(canvas.width, 0);
+                    } else if (normalizedRotation === 180) {
+                        ctx.translate(canvas.width, canvas.height);
+                    } else if (normalizedRotation === 270) {
+                        ctx.translate(0, canvas.height);
+                    }
+
+                    ctx.rotate(normalizedRotation * Math.PI / 180);
+                    ctx.drawImage(image, 0, 0);
+                    ctx.restore();
+
+                    const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+
+                    canvas.toBlob(function (blob) {
+                        if (!blob) {
+                            reject(new Error('No se pudo generar el blob de la imagen.'));
+                            return;
+                        }
+
+                        const objectUrl = URL.createObjectURL(blob);
+
+                        resolve({
+                            blob: blob,
+                            url: objectUrl
+                        });
+                    }, mimeType, 0.95);
+                };
+
+                image.onerror = function () {
+                    reject(new Error('No se pudo cargar la imagen.'));
+                };
+
+                image.src = e.target.result;
+            };
+
+            reader.onerror = function () {
+                reject(new Error('No se pudo leer el archivo.'));
+            };
+
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function resetPhotoState() {
+        selectedPhotoFile = null;
+        rotatedPhotoBlob = null;
+        currentRotation = 0;
+
+        if (currentPreviewObjectUrl) {
+            URL.revokeObjectURL(currentPreviewObjectUrl);
+            currentPreviewObjectUrl = null;
+        }
+
+        $('#player-img').attr('src', imgUser);
+        $('#file-upload').val('');
+        $('#file-upload').next('label.custom-file-label').html('Seleccionar...');
     }
 
     function events() {
-            // campos los cuales se van a buscar en la tabla maestra para autocompletado
         let campos = ['school', 'place_birth', 'neighborhood', 'eps', 'commune'];
+
         $.get(url_autocomplete, {fields: campos}, function (result) {
             $('#place_birth').typeahead({
                 source: result.place_birth,
@@ -372,110 +553,84 @@
     }
 
     const objectFromAttributes = function(elem, attributes = []) {
-        const clone = {}
+        const clone = {};
 
         for (const attribute of attributes) {
-            const value = elem[attribute]
-            // attributes with false and undefined values are ignored
+            const value = elem[attribute];
             if (value ?? false) {
-                clone[attribute] = value
+                clone[attribute] = value;
             }
         }
-        return clone
-    }
 
-    const deMethodize = (fn) => (arg0, ...args) => fn.apply(arg0, args)
+        return clone;
+    };
 
-    // will work on array like objects e.g. HTMLCollections
-    const flatMap = deMethodize(Array.prototype.flatMap)
-
-    // check for empty objects
-    const notEmpty = (obj) => Object.keys(obj).length
+    const deMethodize = (fn) => (arg0, ...args) => fn.apply(arg0, args);
+    const flatMap = deMethodize(Array.prototype.flatMap);
+    const notEmpty = (obj) => Object.keys(obj).length;
 
     window.addEventListener('DOMContentLoaded', () => {
-
-        // Extracts user filled inputs and copies those entries to an Array
-        // @param(HTMLElement) form
-        // @param(Array) attributes = Array of attribute names e.g. ['value' , 'checked']
-        // @param(Array) exclude = Array of types to exclude e.g. ['[type=password]', ...]
-        // @returns(Array) An array of user inputs e.g. [[0, {value:'John'}], [3, {checked:true}]]
         const filterFormElements = function(form, {
             attributes = [],
             exclude = []
         }) {
-            if (!attributes.length) return []
+            if (!attributes.length) return [];
 
-            // create selector e.g. 'input:not([type=password],[type=hidden])'
-            const selectedInputs = `input:not(${exclude.join(',')})`
+            const selectedInputs = `input:not(${exclude.join(',')})`;
 
-            // using flatMap to filter selected inputs
             return flatMap(form, (elem, i) => {
-
                 if (elem.matches(selectedInputs) || elem.matches('select') || elem.matches('textarea')) {
-                    const inputs = objectFromAttributes(elem, attributes)
-                    // ignore empty inputs
-                    if (notEmpty(inputs)) return [
-                        [i, inputs]
-                    ]
+                    const inputs = objectFromAttributes(elem, attributes);
+                    if (notEmpty(inputs)) {
+                        return [[i, inputs]];
+                    }
                 }
 
-                return []
-            })
-        }
+                return [];
+            });
+        };
 
         const getFormData = function() {
-            return JSON.parse(localStorage.getItem('form-storage')) ?? []
-        }
+            return JSON.parse(localStorage.getItem('form-storage')) ?? [];
+        };
 
         const deleteFormData = function() {
-            localStorage.removeItem('form-storage')
-        }
+            localStorage.removeItem('form-storage');
+        };
 
         const storeFormData = function(formData = []) {
-            localStorage.setItem('form-storage', JSON.stringify(formData))
-        }
+            localStorage.setItem('form-storage', JSON.stringify(formData));
+        };
 
-        // Populate form with form data from localStorage
-        // @param(HTMLElement) form
-        // @param(Array) formData
         const populateForm = function(form, formData) {
             formData.forEach(([i, attributes]) => {
-                const formElement = form[i]
+                const formElement = form[i];
 
                 for (const key in attributes) {
-                    formElement[key] = attributes[key]
+                    formElement[key] = attributes[key];
                 }
-            })
-        }
+            });
+        };
 
-        const form = document.querySelector('#form_inscripcion')
+        const form = document.querySelector('#form_inscripcion');
 
         form.addEventListener('change', (event) => {
-            const form = event.currentTarget
-            const formData = filterFormElements(
-                form, {
-                    // input attributes to store
-                    attributes: ['value', 'checked'],
-                    // input types to ignore
-                    exclude: ['[type=password]', '[type=hidden]', '[type=file]']
-                }
-            )
+            const form = event.currentTarget;
+            const formData = filterFormElements(form, {
+                attributes: ['value', 'checked'],
+                exclude: ['[type=password]', '[type=hidden]', '[type=file]']
+            });
 
-            storeFormData(formData)
-        })
+            storeFormData(formData);
+        });
 
-        // clear form-storage on submitting
-        form.addEventListener('submit', deleteFormData)
-
-        // clear form-storage on reset
-        form.addEventListener('reset', deleteFormData)
-
-        // populate form with stored data
-        populateForm(form, getFormData())
-    })
+        form.addEventListener('submit', deleteFormData);
+        form.addEventListener('reset', deleteFormData);
+        populateForm(form, getFormData());
+    });
 
     function forceLower(strInput) {
-        strInput.value=strInput.value.toLowerCase();
+        strInput.value = strInput.value.toLowerCase();
     }
 </script>
 @endpush

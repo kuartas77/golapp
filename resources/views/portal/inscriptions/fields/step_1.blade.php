@@ -7,16 +7,41 @@
 
             <input type="hidden" name="year" value="{{$year}}" />
             <div class="col-md-3">
-                <img src="{{ isset($player) ? $player->photo_url : asset('img/user.png') }}" class="rounded img-center mx-auto mb-1" alt="player" id="player-img" width="200" height="200">
+                <span class="text-muted d-flex justify-content-center">La cabeza hacía arriba</span>
+                <img
+                    src="{{ isset($player) ? $player->photo_url : asset('img/user.png') }}"
+                    class="rounded img-center mx-auto mb-2 d-block"
+                    alt="player"
+                    id="player-img"
+                    width="200"
+                    height="200"
+                    style="object-fit: cover;"
+                >
+
+                <div class="d-flex justify-content-center mb-2">
+                    <button type="button" class="btn btn-sm btn-secondary mr-1" id="rotate-left">
+                        <i class="fa fa-undo"></i> Izquierda
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary" id="rotate-right">
+                        <i class="fa fa-redo"></i> Derecha
+                    </button>
+                </div>
+
+                <span class="text-muted d-flex justify-content-center">Foto tipo documento</span>
                 <div class="form-group">
-                    <label>Foto JPG, JPEG, PNG</label>
                     <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="file-upload" accept="image/png, image/jpeg" name="photo">
+                        <input
+                            type="file"
+                            class="custom-file-input"
+                            id="file-upload"
+                            accept="image/png, image/jpeg"
+                            name="photo"
+                        >
                         <label class="custom-file-label" for="file-upload">Seleccionar...</label>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 mb-2">
+            <div class="col-md-3">
                 <div class="form-group">
                     <label for="identification_document" class=""># Documento de identidad (<span class="text-danger">*</span>)</label>
                     {{ html()->text('identification_document', null)->attributes(['class' => 'form-control']) }}
@@ -31,7 +56,7 @@
                 </div>
             </div>
 
-            <div class="col-md-3 mb-2">
+            <div class="col-md-3">
                 <div class="form-group">
                     <label for="names" class="">Nombres (<span class="text-danger">*</span>)</label>
                     {{ html()->text('names', null)->attributes(['class' => 'form-control']) }}
@@ -46,7 +71,7 @@
                 </div>
             </div>
 
-            <div class="col-md-3 mb-2">
+            <div class="col-md-3">
                 <div class="form-group">
                     <label for="gender" class="">Genero (<span class="text-danger">*</span>)</label>
                     {{ html()->select('gender', $genders, null)->attributes(['class' => 'form-control'])->placeholder('Selecciona...') }}
