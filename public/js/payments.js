@@ -239,7 +239,7 @@ function sumTotal(api, column, intVal){
     $.each(columnas_total, function(index, value) {
         let select = $(value).find('select').val();
         let a = $(value).find('input[type=text]').val();
-        if(!['0', '2'].includes(select)){
+        if(!['0', '2', '14'].includes(select)){
             total = total + intVal(a);
         }
     });

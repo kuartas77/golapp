@@ -99,3 +99,10 @@ ALTER TABLE payments_received DROP FOREIGN KEY payments_received_invoice_id_fore
 ALTER TABLE payments_received ADD CONSTRAINT payments_received_invoice_id_foreign FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE ON UPDATE RESTRICT;
 ALTER TABLE payments_received DROP FOREIGN KEY payments_received_created_by_foreign;
 ALTER TABLE payments_received ADD CONSTRAINT payments_received_created_by_foreign FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE ON UPDATE RESTRICT;
+
+ALTER TABLE skills_control DROP FOREIGN KEY skills_control_school_id_foreign;
+ALTER TABLE skills_control ADD CONSTRAINT skills_control_school_id_foreign FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE ON UPDATE RESTRICT;
+ALTER TABLE skills_control DROP FOREIGN KEY skills_control_inscription_id_foreign;
+ALTER TABLE skills_control ADD CONSTRAINT skills_control_inscription_id_foreign FOREIGN KEY (inscription_id) REFERENCES inscriptions(id) ON DELETE CASCADE ON UPDATE RESTRICT;
+ALTER TABLE skills_control DROP FOREIGN KEY skills_control_game_id_foreign;
+ALTER TABLE skills_control ADD CONSTRAINT skills_control_game_id_foreign FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE ON UPDATE RESTRICT;
