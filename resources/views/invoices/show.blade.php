@@ -368,7 +368,7 @@ $(document).ready(function() {
     let selectedItems = [];
     let totalAmount = 0;
     const maxAmount = parseFloat({{ $invoice->total_amount - $invoice->paid_amount }});
-    const unpaidItems = {!! $invoice->items->where('is_paid', false) !!};
+    const unpaidItems = @json($invoice->items->where('is_paid', false));
 
     // Inicializar array de ítems disponibles
     const availableItems = unpaidItems.map(item => ({
@@ -517,26 +517,47 @@ $(document).ready(function() {
 
     // Validar envío del formulario
     $('#paymentForm').submit(function(e) {
+
+        // Prevent the default form submission immediately
+        e.preventDefault();
+        let form = this; // Store a reference to the form element
         if (totalAmount <= 0) {
-            e.preventDefault();
-            alert('Por favor, seleccione al menos un ítem para pagar.');
+            Swal.fire({
+                title: 'Atención',
+                text: "Por favor, seleccione al menos un ítem para pagar.",
+                type: 'warning',
+            });
             return false;
         }
 
         if (totalAmount > maxAmount) {
-            e.preventDefault();
-            alert('El monto seleccionado excede el saldo pendiente. Por favor, ajuste la selección.');
+            Swal.fire({
+                title: 'Atención',
+                text: "El monto seleccionado excede el saldo pendiente. Por favor, ajuste la selección.",
+                type: 'warning',
+            });
             return false;
         }
 
         // Confirmar pago
-        if (!confirm(`¿Desea registrar el pago de $${formatMoney(totalAmount)}?`)) {
-            e.preventDefault();
-            return false;
-        }
-
-        // Mostrar indicador de procesamiento
-        $('#submitPaymentBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
+        Swal.fire({
+            title: 'Atención',
+            text: `¿Desea registrar el pago de $${formatMoney(totalAmount)}?`,
+            type: 'warning',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result?.value !== undefined) {
+                // Mostrar indicador de procesamiento
+                $('#submitPaymentBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
+                form.submit();
+            }
+        })
     });
 
     // Inicializar validación
