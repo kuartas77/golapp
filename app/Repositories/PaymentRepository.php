@@ -451,7 +451,7 @@ class PaymentRepository
 
             // mensualidades x grupo
             $paymentByGroup = ReportService::paymentByGroupReport(year: now()->year, schoolId: $schoolId, groupId: null);
-            $assistReport = ReportService::assistsPercentagesReport(year: now()->year, month: 2, groupId: null, schoolId: $schoolId);
+            $assistReport = ReportService::assistsPercentagesReport(year: now()->year, month: now()->month, groupId: null, schoolId: $schoolId);
             $monthlyReport = ReportService::monthlyReport(year:now()->year, schoolId: $schoolId, groupId: null)->first();
             $generalReport = ReportService::generalReport(year:now()->year, schoolId: $schoolId);
 
@@ -491,9 +491,11 @@ class PaymentRepository
             $valueMonths = [];
             $paymentByMonth = [];
 
-            foreach ($months as $month) {
-                $valueMonths[] = $monthlyReport->{$month};
-                $paymentByMonth[] = (int) $monthlyReport->{'payments_'.$month};
+            if(!is_null($monthlyReport)) {
+                foreach ($months as $month) {
+                    $valueMonths[] = $monthlyReport->{$month};
+                    $paymentByMonth[] = (int) $monthlyReport->{'payments_'.$month};
+                }
             }
 
             $amountReportMonthly = [
