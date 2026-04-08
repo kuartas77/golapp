@@ -12,3 +12,9 @@ ALTER TABLE payments
   MODIFY COLUMN october TINYINT UNSIGNED NOT NULL DEFAULT 0,
   MODIFY COLUMN november TINYINT UNSIGNED NOT NULL DEFAULT 0,
   MODIFY COLUMN december TINYINT UNSIGNED NOT NULL DEFAULT 0;
+
+
+ALTER TABLE payments
+ADD INDEX idx_payments_school_year (school_id, `year`),
+ADD INDEX idx_payments_school_unique_year (school_id, unique_code, `year`),
+ADD INDEX idx_payments_school_deleted_year (school_id, deleted_at, `year`);
