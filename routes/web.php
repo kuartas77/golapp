@@ -5,8 +5,10 @@ use App\Http\Controllers\{Competition\GameController, Payments\PaymentController
 use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
+use App\Http\Controllers\AppController;
 use App\Http\Controllers\Admin\InvoiceCustomItemController;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\FormationPdfController;
 use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Invoices\InvoiceController;
@@ -19,19 +21,21 @@ use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\Reports\AttendanceReportExportController;
 use App\Http\Controllers\Reports\ReportAssistsController;
 use App\Http\Controllers\Reports\ReportPaymentController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Auth::routes(['register' => false, 'verify' => false]);
+// Route::get('/{any}', [AppController::class, 'index'])->where('any', '.*');
+// Auth::routes(['register' => false, 'verify' => false]);
 
-Route::get('/', fn() => redirect('login'));
+// Route::get('/', fn() => redirect('login'));
 
 Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
 
 Route::middleware(['auth', 'verified_school'])->group(function () {
 
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
+//     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/birthdays', [HomeController::class, 'birthDays'])->name('birthDays');
 
     Route::post('inscriptions/activate/{id}', [InscriptionController::class, 'activate'])->name('inscriptions.activate');
@@ -88,8 +92,8 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     });
 
     Route::prefix('datatables')->group(function () {
-        Route::get('enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');
-        Route::get('disabled', [DataTableController::class, 'disabledInscriptions'])->name('inscriptions.disabled');
+        Route::get('inscriptions_enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');
+        Route::get('inscriptions_disabled', [DataTableController::class, 'disabledInscriptions'])->name('inscriptions.disabled');
         Route::get('training_groups_enabled', [DataTableController::class, 'enabledTrainingGroups'])->name('training_groups.enabled');
         Route::get('training_groups_retired', [DataTableController::class, 'disabledTrainingGroups'])->name('training_groups.retired');
         Route::get('competition_groups_enabled', [DataTableController::class, 'enabledCompetitionGroups'])->name('competition_groups.enabled');
@@ -97,6 +101,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('schedules_enabled', [DataTableController::class, 'enabledSchedules'])->name('schedules.enabled');
         Route::get('players_enabled', [DataTableController::class, 'enabledPlayers'])->name('players.enabled');
         Route::get('training_sessions_enabled', [DataTableController::class, 'trainingSessions'])->name('training_sessions.enabled');
+        Route::get('users_enabled', [DataTableController::class, 'enabledUsers'])->name('users_enabled');
     });
 
     Route::prefix('export')->name('export.')->group(function () {
@@ -187,4 +192,12 @@ Route::middleware(['auth', 'verified_school'])->prefix('v1')->group(function () 
     Route::get('payments', [PaymentController::class, 'searchRaw']);
 
     Route::get("training_group/classdays", [TrainingGroupController::class, 'getClassDays'])->name('group_classdays');
+
+    Route::prefix('admin')->middleware(['role:super-admin|school'])->group(function (){
+        Route::get('school', [SchoolsController::class, 'index']);
+        Route::put('school/{school}', [SchoolsController::class, 'update']);
+    });
 });
+
+
+Route::get('/{any}', [AppController::class, 'index'])->where('any', '.*');

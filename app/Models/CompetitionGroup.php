@@ -41,7 +41,8 @@ class CompetitionGroup extends Model
     ];
 
     protected $appends = [
-        'full_name_group'
+        'full_name_group',
+        'url_format_match'
     ];
 
     protected $withCount = [
@@ -64,6 +65,11 @@ class CompetitionGroup extends Model
     public function getFullNameAttribute(): string
     {
         return sprintf('%s (%s)', $this->name, $this->category);
+    }
+
+    public function getUrlFormatMatchAttribute()
+    {
+        return route('export.match_detail', [$this->attributes['id']]);
     }
 
     public function tournament(): BelongsTo

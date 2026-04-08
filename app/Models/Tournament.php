@@ -22,7 +22,7 @@ class Tournament extends Model
     ];
 
     protected $appends = [
-        'url_destroy'
+        // 'url_destroy'
     ];
 
     public function getUrlDestroyAttribute(): string

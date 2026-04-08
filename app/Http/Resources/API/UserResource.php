@@ -19,10 +19,12 @@ class UserResource extends JsonResource
     {
         return [
             'name' => $this->name,
-            'school_id' => $this->school_id,
+            'email' => $this->email,
             'school_name' => $this->school->name,
             'school_slug' => $this->school->slug,
             'school_logo' => $this->school->logo_file,
+            'roles' => $this->getRoleNames(),
+            // 'permissions' => $this->getAllPermissions()->pluck('name')
         ];
     }
 }

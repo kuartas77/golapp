@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\UserRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -12,17 +13,21 @@ use App\Repositories\InscriptionRepository;
 use App\Repositories\TrainingGroupRepository;
 use App\Repositories\TrainingSessionRepository;
 use App\Repositories\CompetitionGroupRepository;
+use App\Repositories\GameRepository;
 
 class DataTableController extends Controller
 {
-    public function __construct(private InscriptionRepository      $inscriptionRepository,
-                                private TrainingGroupRepository    $trainingGroupRepository,
-                                private CompetitionGroupRepository $competitionGroupRepository,
-                                private PlayerRepository           $playerRepository,
-                                private ScheduleRepository         $scheduleRepository,
-                                private SchoolRepository           $schoolRepository,
-                                private TrainingSessionRepository  $trainingSessionRepository
-                                )
+    public function __construct(
+        private InscriptionRepository      $inscriptionRepository,
+        private TrainingGroupRepository    $trainingGroupRepository,
+        private CompetitionGroupRepository $competitionGroupRepository,
+        private PlayerRepository           $playerRepository,
+        private ScheduleRepository         $scheduleRepository,
+        private SchoolRepository           $schoolRepository,
+        private TrainingSessionRepository  $trainingSessionRepository,
+        private UserRepository             $userRepository,
+        private GameRepository             $gameRepository,
+    )
     {
     }
 
@@ -64,7 +69,7 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->collection($this->trainingGroupRepository->listGroupEnabled())->toJson();
+        return datatables()->of($this->trainingGroupRepository->listGroupEnabled())->toJson();
     }
 
     /**
@@ -86,7 +91,7 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->collection($this->competitionGroupRepository->listGroupEnabled())->toJson();
+        return datatables()->of($this->competitionGroupRepository->listGroupEnabled())->toJson();
     }
 
     /**
@@ -122,28 +127,32 @@ class DataTableController extends Controller
         return datatables()->of($this->playerRepository->getPlayersPeople())->toJson();
     }
 
+    public function enabledUsers(Request $request)
+    {
+        abort_unless($request->ajax(), 403);
+        return datatables()->of($this->userRepository->getAll())->toJson();
+    }
+
     public function schools(Request $request)
     {
         abort_unless($request->ajax() && isAdmin(), 403);
 
-        return datatables()->collection($this->schoolRepository->getAll())
-            ->addColumn('logo', '{{$logo}}')
-            ->addColumn('name', '{{$name}}')
-            ->addColumn('agent', '{{$agent}}')
-            ->addColumn('address', '{{$address}}')
-            ->addColumn('phone', '{{$phone}}')
-            ->addColumn('email', '{{$email}}')
-            ->addColumn('is_enable', fn($model) => $model->is_enable ? '<span class="label label-success">SI</span>' : '<span class="label label-warning">NO</span>')
-            ->addColumn('created_at', fn($model) => $model->created_at->format('Y-m-d'))
-            ->escapeColumns([])
-            ->toJson();
+        return datatables()->of($this->schoolRepository->getAll())->toJson();
     }
 
     public function schoolsInfo(Request $request)
     {
         abort_unless($request->ajax() && isAdmin(), 403);
 
-        return datatables()->collection($this->schoolRepository->schoolsInfo())->toJson();
+        return datatables()->of($this->schoolRepository->schoolsInfo())->toJson();
+    }
+
+    public function matches(Request $request)
+    {
+        abort_unless($request->ajax() && isAdmin(), 403);
+
+        return datatables()->of($this->gameRepository->getDatatable())->toJson();
+
     }
 
     public function trainingSessions(Request $request)

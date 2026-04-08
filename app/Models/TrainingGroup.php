@@ -72,9 +72,9 @@ class TrainingGroup extends Model
         'explode_name',
         'explode_days',
         'explode_schedules',
-        'url_edit',
-        'url_show',
-        'url_destroy',
+        // 'url_edit',
+        // 'url_show',
+        // 'url_destroy',
         'instructors_names',
         'instructors_ids'
     ];
@@ -136,10 +136,10 @@ class TrainingGroup extends Model
     private function nameGroup(bool $full = false): string
     {
         if ($this->name !== 'Provisional') {
-            $optional = ($this->year_active ?? $this->days);
-            $var = sprintf('%s => %s %s', $optional, $this->name, $this->stage);
-            $years = array_filter([$this->year, $this->year_two, $this->year_three, $this->year_four, $this->year_five, $this->year_six, $this->year_seven, $this->year_eight, $this->year_nine, $this->year_ten, $this->year_eleven, $this->year_twelve]);
-            $var .= sprintf(' (%s) ', implode(',', $years));
+
+            // $optional = ($this->year_active ?? implode(', ', $this->explode_days));
+
+            $var = sprintf('%s - (%s) ', $this->name, implode(',', $this->category) );
 
             if ($full) {
                 $var .= sprintf('%s %s', $this->days, $this->schedules);

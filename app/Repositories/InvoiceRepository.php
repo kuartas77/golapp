@@ -58,26 +58,26 @@ class InvoiceRepository
             ->first();
 
         $pendingMonths = [];
-
-        $months = [
-            'enrollment' => 'Matrícula',
-            'january' => 'Enero',
-            'february' => 'Febrero',
-            'march' => 'Marzo',
-            'april' => 'Abril',
-            'may' => 'Mayo',
-            'june' => 'Junio',
-            'july' => 'Julio',
-            'august' => 'Agosto',
-            'september' => 'Septiembre',
-            'october' => 'Octubre',
-            'november' => 'Noviembre',
-            'december' => 'Diciembre'
-        ];
+        if ($payment) {
+            $months = [
+                'enrollment' => 'Inscripción',
+                'january' => 'Enero',
+                'february' => 'Febrero',
+                'march' => 'Marzo',
+                'april' => 'Abril',
+                'may' => 'Mayo',
+                'june' => 'Junio',
+                'july' => 'Julio',
+                'august' => 'Agosto',
+                'september' => 'Septiembre',
+                'october' => 'Octubre',
+                'november' => 'Noviembre',
+                'december' => 'Diciembre'
+            ];
 
         if ($payment) {
             foreach ($months as $key => $name) {
-                if ($payment->{$key} == 2) { // 2 = debe
+                if (in_array($payment->{$key}, [0,2])) { // 0 = pendiente, 2 = debe
                     $pendingMonths[] = [
                         'month' => $key,
                         'name' => $name,

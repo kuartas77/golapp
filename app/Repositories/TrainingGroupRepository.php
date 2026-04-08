@@ -37,15 +37,13 @@ class TrainingGroupRepository
         return $this->trainingGroup->query()
             ->schoolId()
             ->with(['instructors'])
-            ->where(function ($query) use ($firstTeam): void {
+            ->withCount('members')
+            ->where(
+                fn($query) =>
                 $query->whereRelation('instructors', 'assigned_year', '>=', now()->year)
-                    ->orWhere('year_active', '>=', now()->year);
-
-                if ($firstTeam) {
-                    $query->orWhere('id', $firstTeam->id);
-                }
-            })
-            ->get();
+                    ->orWhere('id', $firstTeam->id)
+                    ->orWhere('year_active', '>=', now()->year)
+            );
     }
 
     public function listGroupDisabled()
@@ -53,7 +51,7 @@ class TrainingGroupRepository
         return $this->trainingGroup->query()
             ->onlyTrashedRelations()
             ->schoolId()
-            ->whereRelation('instructors', fn ($query) => $query->where('assigned_year', '<', now()->year))
+            ->whereRelation('instructors', fn($query) => $query->where('assigned_year', '<', now()->year))
             ->where('year_active', '<', now()->year)
             ->get();
     }
@@ -67,8 +65,7 @@ class TrainingGroupRepository
 
             DB::beginTransaction();
 
-            $userInstructors = $group['user_id'];
-            unset($group['user_id']);
+            $userInstructors = $formRequest->input('users_id');
             $trainingGroup = new TrainingGroup($group);
             $trainingGroup->save();
             $trainingGroup->instructors()->syncWithPivotValues($userInstructors, ['assigned_year' => $formRequest->input('year_active', now()->year)]);
@@ -94,19 +91,7 @@ class TrainingGroupRepository
             'name' => $formRequest->input('name'),
             'stage' => $formRequest->input('stage'),
             'user_id' => $formRequest->input('user_id'),
-            'category' => array_map('categoriesName', $formRequest->input('years')),
-            'year' => $formRequest->input('years.0', null),
-            'year_two' => $formRequest->input('years.1', null),
-            'year_three' => $formRequest->input('years.2', null),
-            'year_four' => $formRequest->input('years.3', null),
-            'year_five' => $formRequest->input('years.4', null),
-            'year_six' => $formRequest->input('years.5', null),
-            'year_seven' => $formRequest->input('years.6', null),
-            'year_eight' => $formRequest->input('years.7', null),
-            'year_nine' => $formRequest->input('years.8', null),
-            'year_ten' => $formRequest->input('years.9', null),
-            'year_eleven' => $formRequest->input('years.10', null),
-            'year_twelve' => $formRequest->input('years.11', null),
+            'category' => $formRequest->input('categories', []),
             'schedules' => $formRequest->input('schedules', []),
             'days' => $formRequest->input('days', []),
             'school_id' => $formRequest->input('school_id'),
@@ -121,8 +106,7 @@ class TrainingGroupRepository
         try {
             DB::beginTransaction();
 
-            $userInstructors = $group['user_id'];
-            unset($group['user_id']);
+            $userInstructors = $formRequest->input('users_id');
             $trainingGroup->update($group);
             $trainingGroup->instructors()->syncWithPivotValues($userInstructors, ['assigned_year' => $formRequest->input('year_active', now()->year)]);
 
@@ -162,9 +146,16 @@ class TrainingGroupRepository
     public function getListGroupsSchedule(bool $deleted = false, ?int $user_id = null, ?callable $filter = null): Collection
     {
         $query = $this->trainingGroup->query()->schoolId()->where('year_active', '>=', now()->year);
+        $query->select([
+            'id', 'name', 'stage', 'category',
+            'schedules', 'days', 'year_two', 'year_three',
+            'year_four', 'year_five', 'year_six', 'year_seven',
+            'year_eight','year_nine', 'year_ten', 'year_eleven',
+            'year_twelve',
+        ])->withCount('members');
         if ($deleted) {
             $query->onlyTrashedRelations()
-                ->whereRelation('instructors', fn ($query) => $query->where('assigned_year', '<', now()->year));
+                ->whereRelation('instructors', fn($query) => $query->where('assigned_year', '<', now()->year));
         } elseif ($user_id) {
             $query->whereRelation('instructors', function ($query) use ($user_id): void {
                 $query->where('training_group_user.user_id', $user_id)
@@ -196,11 +187,11 @@ class TrainingGroupRepository
     public function historicAssistData()
     {
         return $this->trainingGroup->query()->schoolId()
-            ->whereHas('assists', fn ($query) => $query->withTrashed()->where('year', '<', now()->year))
+            ->whereHas('assists', fn($query) => $query->withTrashed()->where('year', '<', now()->year))
             ->onlyTrashedRelationsFilter()
             ->orderBy('created_at', 'desc')
             ->get()
-            ->each(fn ($group) => $group->assists->setAppends(['url_historic', 'months']));
+            ->each(fn($group) => $group->assists->setAppends(['url_historic', 'months']));
     }
 
     /**
@@ -209,11 +200,11 @@ class TrainingGroupRepository
     public function historicPaymentData()
     {
         return $this->trainingGroup->query()->schoolId()
-            ->whereHas('payments', fn ($query) => $query->withTrashed()->where('year', '<', now()->year))
+            ->whereHas('payments', fn($query) => $query->withTrashed()->where('year', '<', now()->year))
             ->onlyTrashedRelationsPayments()
             ->orderBy('created_at', 'desc')
             ->get()
-            ->each(fn ($group) => $group->payments->setAppends(['url_historic']));
+            ->each(fn($group) => $group->payments->setAppends(['url_historic']));
     }
 
     /**
@@ -243,7 +234,7 @@ class TrainingGroupRepository
 
     public function makeRows(TrainingGroup $trainingGroup): string
     {
-        $trainingGroup->load(['inscriptions' => fn ($q) => $q->with('player')->where('year', now()->year)]);
+        $trainingGroup->load(['inscriptions' => fn($q) => $q->with('player')->where('year', now()->year)]);
         $rows = '';
         foreach ($trainingGroup->inscriptions as $inscription) {
             $rows .= View::make('templates.groups.div_row', [
@@ -256,10 +247,10 @@ class TrainingGroupRepository
 
     public static function getClassDays($group, $month = null): Collection
     {
-        if($month) {
+        if ($month) {
             $month = getMonthNumber($month);
             $date = Carbon::now()->setMonth($month);
-        }else{
+        } else {
             $date = Carbon::now();
         }
 
@@ -269,9 +260,10 @@ class TrainingGroupRepository
             array_map('dayToNumber', $group->explode_days)
         );
 
-        return $classDays->map(function ($classDay)use($group, $date) {
+        return $classDays->map(function ($classDay) use ($group, $date) {
             $name = Str::ucfirst($classDay['name']);
             return [
+                'index' => $classDay['number_class'],
                 'id' => "{$group->id}{$date->month}{$classDay['day']}",
                 'date' => $classDay['day'],
                 'day' => $name,

@@ -22,11 +22,9 @@ class InvoiceController extends Controller
 
     public function index(Request $request)
     {
-        if ($request->ajax()) {
-            return datatables()->of($this->invoice_repository->query())->toJson();
-        }
-
-        return view('invoices.index');
+        return datatables()->of($this->invoice_repository->query())
+        ->filterColumn('created_at', fn($query, $keyword) => $query->whereBetween('created_at', explode(' a ', $keyword)))
+        ->toJson();
     }
 
     public function create($inscriptionId, Request $request)
@@ -36,9 +34,12 @@ class InvoiceController extends Controller
 
         [$inscription, $pendingMonths, $pendingUniformRequests, $customItems] = $this->invoice_repository->createInvoice($inscriptionId);
 
-        $data = compact('inscription', 'pendingMonths', 'pendingUniformRequests', 'customItems', 'settings');
-
-        return view('invoices.create', $data);
+        return response()->json([
+            'inscription' => $inscription,
+            'pendingMonths' => $pendingMonths,
+            'pendingUniformRequests' => $pendingUniformRequests,
+            'customItems' => $customItems
+        ]);
     }
 
     public function store(InvoiceStoreRequest $request)
@@ -50,18 +51,16 @@ class InvoiceController extends Controller
             return redirect()->route('invoices.index');
         }
 
-        Alert::success(env('APP_NAME'), 'Factura creada exitosamente.');
-        return redirect()->route('invoices.show', $invoiceId);
+        return response()->json(['id' => $invoiceId]);
     }
 
     public function show($id)
     {
-        $invoice = Invoice::with(['items', 'payments', 'inscription.player', 'trainingGroup', 'paymentRequests'])
+        $invoice = Invoice::with(['items', 'payments', 'inscription.player', 'trainingGroup', 'creator', 'paymentRequests'])
             ->schoolId()
             ->findOrFail($id);
 
-
-        return view('invoices.show', compact('invoice'));
+        return response()->json($invoice);
     }
 
     public function addPayment(InvoiceAddPaymentRequest $request, $invoiceId)

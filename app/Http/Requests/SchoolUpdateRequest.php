@@ -44,6 +44,7 @@ class SchoolUpdateRequest extends FormRequest
             'INSCRIPTION_AMOUNT' => $this->cleanString($this->INSCRIPTION_AMOUNT),
             'MONTHLY_PAYMENT' => $this->cleanString($this->MONTHLY_PAYMENT),
             'ANNUITY' => $this->cleanString($this->ANNUITY),
+            'logo' => $this->hasFile('logo') ? $this->logo : null,
         ]);
     }
 

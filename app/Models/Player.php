@@ -75,7 +75,7 @@ class Player extends Authenticatable
         'remember_token',
     ];
 
-    protected $appends = ['full_names', 'url_edit', 'url_show', 'url_impression', 'photo_url', 'photo_local', 'photo_url_public'];
+    protected $appends = ['full_names', 'photo_url', 'photo_local', 'photo_url_public', /*'url_edit', 'url_show', 'url_impression',*/];
 
     public function getRouteKeyName(): string
     {
@@ -129,7 +129,7 @@ class Player extends Authenticatable
             return route('images', $this->attributes['photo']);
         }
 
-        return url('img/user.png');
+        return url('img/user.webp');
     }
 
     public function getPhotoUrlPublicAttribute(): string
@@ -138,7 +138,7 @@ class Player extends Authenticatable
             return route('portal.player.images', $this->attributes['photo']);
         }
 
-        return url('img/user.png');
+        return url('img/user.webp');
     }
 
     public function getPhotoLocalAttribute(): string
@@ -147,7 +147,7 @@ class Player extends Authenticatable
             return storage_path('app/public/' . $this->attributes['photo']);
         }
 
-        return url('img/user.png');
+        return url('img/user.webp');
     }
 
     public function routeNotificationForMail($notification): array

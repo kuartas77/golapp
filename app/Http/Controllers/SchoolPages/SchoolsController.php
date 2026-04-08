@@ -15,22 +15,17 @@ class SchoolsController extends Controller
 
     public function index(Request $request, School $school)
     {
+        $school = getSchool(auth()->user());
         $school->load(['settingsValues']);
-        $UNIFORM_REQUESTS_TYPES = config('variables.UNIFORM_REQUESTS_TYPES');
+        $school->uniform_request_types = config('variables.UNIFORM_REQUESTS_TYPES');
 
-        view()->share('school', $school);
-        view()->share('notify_payment_day', data_get($school, 'settings.NOTIFY_PAYMENT_DAY', 16));
-        view()->share('inscription_amount', data_get($school, 'settings.INSCRIPTION_AMOUNT', 70000));
-        view()->share('monthly_payment', data_get($school, 'settings.MONTHLY_PAYMENT', 50000));
-        view()->share('annuity', data_get($school, 'settings.ANNUITY', 48333));
-        view()->share('uniform_request_types', $UNIFORM_REQUESTS_TYPES);
-        return view('admin.school.index');
+        return response()->json($school);
     }
 
     public function update(SchoolUpdateRequest $request, School $school, RegisterService $registerService)
     {
-        $registerService->updateSchoolUsesCase($request, $school);
+        $success = $registerService->updateSchoolUsesCase($request, $school);
 
-        return redirect(route('school.index', ['school' => $school]));
+        return response()->json(['success' => $success]);
     }
 }

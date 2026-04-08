@@ -58,7 +58,7 @@ class UsersController extends Controller
      */
     public function show(User $user): UserResource
     {
-        return new UserResource($user->load(['profile', 'school']));
+        return new UserResource($user->load(['profile', 'school', 'roles']));
     }
 
     /**
@@ -71,7 +71,7 @@ class UsersController extends Controller
     public function update(UpdateUserRequest $request, User $user): UserResource
     {
         $this->userRepository->update($user, $request);
-        return new UserResource($user->refresh());
+        return new UserResource($user->load(['profile', 'school', 'roles']));
     }
 
     /**

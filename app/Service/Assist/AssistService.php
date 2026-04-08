@@ -8,20 +8,20 @@ use Illuminate\Support\Facades\View;
 
 class AssistService
 {
-    public function generateTable($assists, TrainingGroup $trainingGroup, array $data, bool $deleted = false): array
+    public function generateTable($assists, TrainingGroup $trainingGroup, array $params, bool $deleted = false): array
     {
         $group_name = $trainingGroup->full_schedule_group;
         $assists = $assists->get();
 
         $classDays = classDays(
-            $data['year'],
-            $data['month'],
+            $params['year'],
+            $params['month'],
             array_map('dayToNumber', $trainingGroup->explode_days)
         );
 
-        $table = $this->makeTable($assists, $classDays, $deleted, $data);
+        $table = $this->makeTable($assists, $classDays, $deleted, $params);
 
-        $links = $this->makeLinks($data, $deleted);
+        $links = $this->makeLinks($params, $deleted);
 
         return [
             'table' => $table,
@@ -32,10 +32,33 @@ class AssistService
         ];
     }
 
-    private function makeTable($assists, Collection $classDays, bool $deleted, $data): string
+    public function generateData($assists, TrainingGroup $trainingGroup, array $params, bool $deleted = false): array
+    {
+        $group_name = $trainingGroup->full_schedule_group;
+        $assists = $assists->get();
+
+        [$urlExportPDF, $urlExportExcel] = $this->makeLinks($params, $deleted);;
+
+        return $this->generateResponse($assists, $group_name, $urlExportPDF, $urlExportExcel);
+    }
+
+    private function generateResponse($rows, $group_name, $urlExportPDF, $urlExportExcel, array $extra = []): array
+    {
+        $response = [
+            'rows' => $rows,
+            'group_name' => $group_name,
+            'count' => $rows->count(),
+            'url_print' => $urlExportPDF,
+            'url_print_excel' => $urlExportExcel
+        ];
+
+        return array_merge($response, $extra);
+    }
+
+    private function makeTable($assists, Collection $classDays, bool $deleted, $params): string
     {
         $rows = '';
-        $column = isset($data['column']) ? $data['column'] : null;
+        $column = isset($params['column']) ? $params['column'] : null;
         foreach ($assists as $assist) {
             $rows .= View::make('templates.assists.row', [
                 'assist' => $assist,
@@ -51,12 +74,12 @@ class AssistService
         ])->render();
     }
 
-    private function makeLinks(array $data, bool $deleted): array
+    private function makeLinks(array $params, bool $deleted): array
     {
         $params = [
-            'training_group_id' => $data['training_group_id'],
-            'year' => $data['year'],
-            'month' => $data['month'],
+            'training_group_id' => $params['training_group_id'],
+            'year' => $params['year'],
+            'month' => $params['month'],
             'deleted' => $deleted
         ];
 

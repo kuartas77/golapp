@@ -26,18 +26,19 @@ class UpdateCategoryPlayers extends Command
     {
         try {
 
-            Player::query()->whereRelation('inscriptions', 'year', '=', now()->year)->chunkByIdDesc(50, function($players){
-                foreach ($players as $player) {
-                    DB::transaction(function() use($player){
+            Player::query()->whereRelation('inscriptions', 'year', '>=', now()->year)->chunkByIdDesc(50, function($players){
+                DB::transaction(function() use($players){
+                    foreach ($players as $player) {
                         $categoryName = categoriesName(Carbon::parse($player->date_birth)->year);
                         $player->category = $categoryName;
                         $player->save();
                         Inscription::query()
                             ->where('player_id', $player->id)
                             ->where('year', now()->year)
+                            ->withTrashed()
                             ->update(['category' => $categoryName]);
-                    });
-                }
+                    }
+                });
             });
         } catch (\Throwable $th) {
             $this->logError(__CLASS__, $th);

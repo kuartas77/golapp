@@ -61,14 +61,18 @@ class SchoolController extends Controller
         //
     }
 
+    public function infoCampus(Request $request)
+    {
+        abort_unless($request->ajax(), 404);
+
+        $response = $this->repository->checkSchoolCampus();
+        return response()->json($response, 200);
+    }
+
     public function choose(Request $request): JsonResponse
     {
-        $prefixKey = isAdmin() ? 'admin.' : (isSchool() ? 'school.': '');
-        Session::put("{$prefixKey}selected_school", $request->school_id);
-
-        Cache::remember(School::KEY_SCHOOL_CACHE . "_{$prefixKey}_{$request->school_id}",
-            now()->addMinutes(env('SESSION_LIFETIME', 120)),
-            fn() => School::with(['settingsValues'])->find($request->school_id));
-        return response()->json(true, 200);
+        abort_unless($request->ajax(), 404);
+        $success = $this->repository->chooseSchool();
+        return response()->json($success, $success ? 200 : 500);
     }
 }

@@ -1,23 +1,20 @@
 <template>
-  <input
-    ref="inputRef"
-    type="text"
-  />
+  <input ref="inputRef" type="text" v-model="formattedValue" />
 </template>
 
-<script>
-import { useCurrencyInput } from 'vue-currency-input'
+<script setup>
+import { useCurrencyInput } from 'vue-currency-input';
+import { watch } from 'vue';
 
-export default {
-  name: 'CurrencyInput',
-  props: {
-    modelValue: Number, // Vue 2: value
-    options: Object
-  },
-  setup(props) {
-    const { inputRef } = useCurrencyInput(props.options)
+const props = defineProps({ modelValue: Number });
 
-    return { inputRef }
-  }
-}
+const { inputRef, formattedValue, numberValue, setValue } = useCurrencyInput({
+  currency: 'COP',
+  hideCurrencySymbolOnFocus: false,
+  hideGroupingSeparatorOnFocus: false,
+  precision: 0,
+  valueRange: { min: 0 },
+});
+
+watch(() => props.modelValue, (value) => { setValue(value) })
 </script>

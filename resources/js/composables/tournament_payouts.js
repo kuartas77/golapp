@@ -9,7 +9,7 @@ export default function usePayouts() {
     const pays = ref([])
 
     const fetchRows = async () => {
-        let response = await axios.get('/api/schools')
+        let response = await axios.get('/api/v2/schools')
         rows.value = response.data.data
         paginationMeta.value = response.data.meta
     }
