@@ -9,6 +9,7 @@ use App\Models\InvoiceCustomItem;
 use App\Models\InvoiceItem;
 use App\Models\Payment;
 use App\Models\PaymentReceived;
+use App\Models\PaymentRequest;
 use App\Models\UniformRequest;
 use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
@@ -161,12 +162,12 @@ class InvoiceRepository
 
         $paymentReceived = PaymentReceived::query()->create([
             'invoice_id' => $invoiceId,
-            'amount' => $request->amount,
-            'payment_method' => $request->payment_method,
-            'reference' => $request->reference,
-            'payment_date' => $request->payment_date,
-            'notes' => $request->notes,
-            'school_id' => $request->school_id,
+            'amount' => $request->validated('amount'),
+            'payment_method' => $request->validated('payment_method'),
+            'reference' => $request->validated('reference'),
+            'payment_date' => $request->validated('payment_date'),
+            'notes' => $request->validated('notes'),
+            'school_id' => $request->validated('school_id'),
             'created_by' => auth()->id(),
         ]);
 
@@ -175,7 +176,7 @@ class InvoiceRepository
 
         // Si el usuario seleccionó ítems específicos para marcar como pagados
         if ($request->has('paid_items')) {
-            foreach ($request->paid_items as $itemId) {
+            foreach ($request->validated('paid_items') as $itemId) {
                 $item = $invoice->items()->find($itemId);
                 if ($item) {
                     $item->update(['is_paid' => true, 'payment_received_id' => $paymentReceived->id]);
@@ -185,6 +186,30 @@ class InvoiceRepository
             // Si hay ítems de meses marcados como pagados, actualizar la tabla payments original
             $invoice->markMonthsAsPaid();
         }
+    }
+
+    public function addPaymentButton($invoiceId, $paymentRequestId)
+    {
+        $invoice = Invoice::findOrFail($invoiceId);
+        $paymentRequest = PaymentRequest::findOrFail($paymentRequestId);
+
+        $paymentReceived = PaymentReceived::query()->create([
+            'invoice_id' => $invoiceId,
+            'amount' => $invoice->total_amount,
+            'payment_method' => $paymentRequest->payment_method,
+            'reference' => $paymentRequest->reference_number,
+            'payment_date' => now(),
+            'notes' => $paymentRequest->description,
+            'school_id' => $invoice->school_id,
+            'created_by' => auth()->id(),
+        ]);
+
+        // Actualizar totales de la factura
+        $invoice->updateTotals();
+
+        $invoice->items()->update(['is_paid' => true, 'payment_received_id' => $paymentReceived->id]);
+        // Si hay ítems de meses marcados como pagados, actualizar la tabla payments original
+        $invoice->markMonthsAsPaid();
     }
 
     public function getAllItems()

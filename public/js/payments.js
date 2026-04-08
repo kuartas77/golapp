@@ -1,4 +1,13 @@
 $('#training_group_id').select2({placeholder:'Seleccione...',allowClear: true});
+const inputOptions = new Promise((resolve) => {
+    setTimeout(() => {
+        resolve({
+            null: 'Todos',
+            '2': 'Debe',
+        })
+    }, 1000)
+})
+
 let table = $('#active_table');
 $(document).ready(() => {
     $("#export").attr('disabled',true);
@@ -52,6 +61,40 @@ $('body').on('change', 'select.payments', function () {
         }
     });
 });
+
+$('body').on('click', '#export-pdf', async function(event) {
+    event.preventDefault()
+    const element = $(this)
+    exportStatus(element)
+})
+$('body').on('click', '#export-excel', async function(event) {
+    event.preventDefault()
+    const element = $(this)
+    exportStatus(element)
+})
+
+function exportStatus(element) {
+    Swal.fire({
+        title: 'Selecciona una opción ',
+        text: 'Para exportar pagos con ese estado',
+        type: 'info',
+        input: 'select',
+        inputOptions: inputOptions,
+        inputValidator: function (value) {
+            return new Promise(function (resolve) {
+                if (value !== '') {
+                    resolve();
+                } else {
+                    resolve('Necesitas Seleccionar Uno.');
+                }
+            });
+        }
+    }).then((result) => {
+        if (result?.value !== undefined) {
+            window.open(element.attr('href') + `&status=${result.value}`, '_blank');
+        }
+    });
+}
 
 function checkValue(element){
     let name = element.attr('name')

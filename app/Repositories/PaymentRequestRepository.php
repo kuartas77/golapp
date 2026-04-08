@@ -56,6 +56,7 @@ class PaymentRequestRepository
             ->join('invoices', 'payment_request.invoice_id', '=', 'invoices.id')
             ->join('training_groups', 'invoices.training_group_id', '=', 'training_groups.id')
             ->join('players', 'payment_request.player_id', '=', 'players.id')
+            ->whereHas('invoice', fn($q) => $q->whereIn('status', ['partial','pending']))
             ->schoolId();
 
         return datatables()->of($generalQuery)

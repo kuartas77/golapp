@@ -18,6 +18,10 @@ class InvoiceAddPaymentRequest extends FormRequest
             'payment_method' => 'required|in:cash,card,transfer,check,other',
             'payment_date' => 'required|date',
             'reference' => 'nullable|string|max:100',
+            'notes' => 'nullable|string|max:100',
+            'paid_items' => 'required|array|min:1',
+            'paid_items.*' => 'required|numeric',
+            'school_id' => 'required'
         ];
     }
 

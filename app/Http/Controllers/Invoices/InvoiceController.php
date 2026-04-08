@@ -73,6 +73,12 @@ class InvoiceController extends Controller
         return back();
     }
 
+    public function update($invoiceId, $paymentRequestId)
+    {
+        $this->invoice_repository->addPaymentButton($invoiceId, $paymentRequestId);
+        return response()->json(['success' => true]);
+    }
+
     public function destroy($id)
     {
         $invoice = Invoice::findOrFail($id);

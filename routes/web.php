@@ -169,6 +169,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::get('/player/{id}/detail', [PlayerStatsController::class, 'playerDetail'])->name('player.detail');
 
     Route::middleware('check_notify_system')->group(function(){
+        Route::put('invoice/{invoice}/payment-request/{paymentRequest}', [InvoiceController::class, 'update']);
         Route::get('payment-request/invoices', [PaymentRequestController::class, 'index'])->name('payment-request.index');
         Route::get('uniform-request/invoices', [UniformRequestsController::class, 'index'])->name('uniform-request.index');
         Route::get('notifications', [TopicNotificationsController::class, 'index'])->name('notification.index');

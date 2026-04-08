@@ -17,6 +17,7 @@
                     <th>Referencia</th>
                     <th class="text-right">Monto Comprobante</th>
                     <th>Comprobante</th>
+                    <th>Marcar cómo pagada</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -31,6 +32,7 @@
 <script>
     let active_table = $('#paymentRequestTable');
     const urlCurrent = "{{route('payment-request.index')}}";
+    const url = "{{url('/')}}"
     $(document).ready(function() {
         active_table = $('#paymentRequestTable').DataTable({
             "lengthMenu": [
@@ -39,6 +41,15 @@
             ],
             "order": [
                 [0, "desc"]
+            ],
+            "columnDefs": [{
+                    targets: [3, 7],
+                    className: 'dt-body-right',
+                },
+                // {
+                //     targets: [7],
+                //     className: 'dt-body-center',
+                // }
             ],
             "processing": true,
             "serverSide": true,
@@ -111,6 +122,7 @@
                     data: 'url_image',
                     render: (data, type, row) => {
                         return '<a href="javascript:void(0)" '
+                        +'class="btn btn-sm btn-info"'
                         +'data-toggle="modal"'
                         +'data-target="#imageModal"'
                         +'data-image="'+ row.url_image +'"'
@@ -120,17 +132,68 @@
                     searchable: false,
                     orderable: false,
                 },
+                {
+                    data: 'id', render: (data, type, row) => {
+                        let route = `${url}/invoice/${row.invoice_id}/payment-request/${row.id}`
+                        return '<a href="javascript:void(0)"'
+                        +'class="btn btn-sm btn-success button-pay"'
+                        +'data-url="'+route+'"'
+                        +'>Pagar</a>'
+                    }
+                }
             ]
         });
 
         $('#imageModal').on('shown.bs.modal', function (event) {
-            var button = $(event.relatedTarget);
-            var imageUrl = button.data('image');
-            var imageTitle = button.data('title');
+            let button = $(event.relatedTarget);
+            let imageUrl = button.data('image');
+            let imageTitle = button.data('title');
 
             $(this).find('#modalImage').attr('src', imageUrl);
             $(this).find('#imageTitle').text('Referencia: ' + imageTitle);
         });
+
+        $(document).on('click', '.button-pay', function(event) {
+            let button = $(this);
+            let urlUpdateInvoice = button.data('url');
+
+            Swal.fire({
+                title: app_name,
+                text: "¿Pagar factura?",
+                type: 'warning',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result?.value !== undefined) {
+                    sendPaymentInvoice(urlUpdateInvoice)
+                }
+            })
+
+
+        });
+
+        function sendPaymentInvoice(url) {
+            const postData = {
+                _method: 'PUT',
+                _token: window.token.csrfToken
+            };
+
+            $.post(url, postData, (response) =>{
+                if(response.success) {
+                    Swal.fire({
+                        title: app_name,
+                        text: "Pago de factura realizado",
+                        type: 'success',
+                    });
+                    active_table.ajax.url($.fn.dataTable.pipeline()).load();
+                }
+            });
+        }
 })
 </script>
 @endpush
