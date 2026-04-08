@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Traits\GeneralScopes;
 use App\Traits\PaymentTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -79,7 +80,7 @@ class Payment extends Model
 
     public function player(): HasOneThrough
     {
-        return $this->hasOneThrough(Player::class, Inscription::class, 'id', 'id', 'inscription_id', 'player_id')->withTrashedParents();
+        return $this->hasOneThrough(Player::class, Inscription::class, 'id', 'id', 'inscription_id', 'player_id');
     }
 
     public function training_group(): BelongsTo
@@ -98,5 +99,23 @@ class Payment extends Model
             'training_group_id' => $this->attributes['training_group_id'],
             'year' => $this->attributes['year']
         ]);
+    }
+
+    public function scopeByPaymentStatus(Builder $query, $status = null): void
+    {
+        $query->where(function($q) use($status){
+            $q->where('january', $status)
+            ->orWhere('february', $status)
+            ->orWhere('march', $status)
+            ->orWhere('april', $status)
+            ->orWhere('may', $status)
+            ->orWhere('june', $status)
+            ->orWhere('july', $status)
+            ->orWhere('august', $status)
+            ->orWhere('september', $status)
+            ->orWhere('october', $status)
+            ->orWhere('november', $status)
+            ->orWhere('december', $status);
+        });
     }
 }
