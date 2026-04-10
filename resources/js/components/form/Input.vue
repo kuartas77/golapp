@@ -2,24 +2,27 @@
     <label v-if="label" :for="name" class="form-label">{{ label }}<span v-if="isRequired" class="text-danger">&nbsp;(*)</span></label>
 
     <template v-if="!currency">
-        <input  :type="type" autocomplete="off"
-            class="form-control form-control-sm"
+        <input
+            v-bind="$attrs"
+            v-model="value"
+            :type="type"
             :id="name"
             :placeholder="label"
-            :class="{ field_error: errorMessage, valid: meta.valid }"
-            v-model="value" v-bind="$attrs"/>
+            class="form-control form-control-sm"
+            :class="{ 'is-invalid': meta.touched && errorMessage }"
+            autocomplete="off"/>
     </template>
     <template v-else>
         <CurrencyInput
+            v-bind="$attrs"
             v-model="value"
-            autocomplete="off"
-            class="form-control form-control-sm"
             :id="name"
             :placeholder="label"
-            :class="{ field_error: errorMessage, valid: meta.valid }"
-            v-bind="$attrs"/>
+            class="form-control form-control-sm"
+            :class="{ 'is-invalid': meta.touched && errorMessage }"
+            autocomplete="off"/>
     </template>
-    <div :class="errorMessage ? 'custom-error' : ''">{{ errorMessage }}</div>
+    <div :class="errorMessage ? 'invalid-feedback d-block' : ''">{{ errorMessage }}</div>
 </template>
 <script setup>
 import { useField } from 'vee-validate'
@@ -44,5 +47,5 @@ const props = defineProps({
     }
 })
 
-const { value, errorMessage, meta } = useField(() => props.name)
+const { value,  meta, errorMessage } = useField(() => props.name)
 </script>

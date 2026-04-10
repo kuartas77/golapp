@@ -1,29 +1,32 @@
-import cloneDeep from "lodash.clonedeep";
-
-import configLanguaje from '@/utils/datatableUtils';
-import { useSetting } from '@/store/settings-store';
-import { usePageTitle } from "@/composables/use-meta";
-import api from "@/utils/axios";
-import { getCurrentInstance, onMounted, ref, toRaw } from "vue";
-import * as yup from 'yup';
+import configLanguaje from '@/utils/datatableUtils'
+import { useSetting } from '@/store/settings-store'
+import { usePageTitle } from "@/composables/use-meta"
+import api from "@/utils/axios"
+import { getCurrentInstance, onMounted, ref } from "vue"
+import * as yup from 'yup'
 
 export default function useAttendances() {
-    const composeModalAttendance = ref(null);
-    const composeModalObservations = ref(null);
-    const isLoading = ref(false);
-    const settings = useSetting();
-    const groups = settings.groups.filter((group) => group.name !== 'Provisional').map((group) => ({ value: group.id, label: group.full_group }));
+    const composeModalObservation = ref(null)
+    const isLoading = ref(false)
+    const settings = useSetting()
+
+    const groups = settings.groups
+        .filter((group) => group.name !== 'Provisional')
+        .map((group) => ({ value: group.id, label: group.full_group }))
 
     const schema = yup.object().shape({
         training_group_id: yup.string().required(),
         month: yup.string().required(),
-    });
+    })
+
     const formData = ref({
         training_group_id: null,
-        month: null,
-    });
+        month: new Date().getMonth() + 1,
+    })
+
     const globalError = ref(null)
     const { proxy } = getCurrentInstance()
+
     const modelGroup = ref(null)
     const modelMonth = ref(null)
     const export_pdf = ref(null)
@@ -32,7 +35,6 @@ export default function useAttendances() {
     const classDaySelected = ref(null)
     const attendancesGroup = ref([])
     const takeAttendance = ref(null)
-    const backupCell = ref(null)
 
     const optionsMonths = [
         { value: 1, label: "Enero" },
@@ -47,7 +49,8 @@ export default function useAttendances() {
         { value: 10, label: "Octubre" },
         { value: 11, label: "Noviembre" },
         { value: 12, label: "Diciembre" },
-    ];
+    ]
+
     const attendanceTypes = {
         1: "Asistencia",
         2: "Falta",
@@ -67,11 +70,9 @@ export default function useAttendances() {
             },
             {
                 targets: ['_all'],
-                className: 'dt-head-center dt-body-center', // Center align their headers
+                className: 'dt-head-center dt-body-center',
             },
         ],
-        // scrollY: 500,
-        // scrollCollapse: true,
         layout: {
             topStart: null,
             topEnd: null,
@@ -85,146 +86,200 @@ export default function useAttendances() {
         order: [[1, 'desc']],
         ajax: null,
         columns: [
-            { data: 'inscription', title: 'Deportista', render: '#player-photo', searchable: false, with: '30%' },
-            { data: 'inscription.player.full_names', title: 'Asistencia', render: '#bagClick', searchable: false, with: '30%' },
-            { data: 'inscription.player.full_names', title: 'Observaciones Mensuales', render: '#observations', searchable: false, with: '40%' },
+            {
+                data: 'inscription',
+                title: 'Deportista',
+                render: '#player-photo',
+                searchable: false,
+                with: '30%'
+            },
+            {
+                data: 'inscription.player.full_names',
+                title: 'Asistencia',
+                render: '#attendance-select',
+                searchable: false,
+                with: '30%'
+            },
+            {
+                data: 'inscription.player.full_names',
+                title: 'Observación',
+                render: '#observations',
+                searchable: false,
+                with: '40%'
+            },
         ]
-    };
+    }
+
+    const buildAttendanceDate = () => {
+        if (!classDaySelected.value) return null
+
+        const year = classDaySelected.value.year
+        const month = String(classDaySelected.value.month).padStart(2, '0')
+        const day = String(classDaySelected.value.date).padStart(2, '0')
+
+        return `${year}-${month}-${day}`
+    }
+
+    const normalizeAttendanceValue = (value) => {
+        if (value === '' || value === null || value === undefined) return null
+        return Number(value)
+    }
 
     const handleSearchClassdays = async (values, actions) => {
         try {
-            classDaySelected.value = null;
-            isLoading.value = true;
-            attendancesGroup.value = [];
-            const params = { ...values };
+            classDaySelected.value = null
+            isLoading.value = true
+            attendancesGroup.value = []
 
             const response = await api.get(`/api/v2/training_group/classdays`, {
-                params: params,
-            });
+                params: { ...values },
+            })
+
             if (response?.data) {
-                classDays.value = response.data;
+                classDays.value = response.data
             }
         } catch (error) {
-            classDays.value = [];
+            classDays.value = []
             proxy.$handleBackendErrors(
                 error,
                 actions.setErrors,
                 (msg) => (globalError.value = msg)
-            );
+            )
         } finally {
-            isLoading.value = false;
+            isLoading.value = false
         }
-    };
+    }
 
     const clickClassDay = async (classDay) => {
         try {
-            isLoading.value = true;
-            attendancesGroup.value = [];
-            classDaySelected.value = classDay;
+            isLoading.value = true
+            attendancesGroup.value = []
+            classDaySelected.value = classDay
+
             const params = {
                 month: classDay.month,
                 training_group_id: classDay.group_id,
                 column: classDay.column,
                 dataRaw: true,
-            };
+            }
 
-            const response = await api.get(`/api/v2/assists`, { params: params });
+            const response = await api.get(`/api/v2/assists`, { params })
+
             if (response?.data) {
-                attendancesGroup.value = response.data.rows;
-                export_pdf.value = response.data.url_print;
-                export_excel.value = response.data.url_print_excel;
+                attendancesGroup.value = response.data.rows
+                export_pdf.value = response.data.url_print
+                export_excel.value = response.data.url_print_excel
+
                 if (response.data.rows.length === 0) {
                     showMessage("No se encontraron resultados para el grupo en este mes.", 'warning')
                 }
             }
         } catch (error) {
-            attendancesGroup.value = [];
-            export_pdf.value = null;
-            export_excel.value = null;
+            attendancesGroup.value = []
+            export_pdf.value = null
+            export_excel.value = null
             showMessage("Algo salió mal", 'error')
         } finally {
-            isLoading.value = false;
+            isLoading.value = false
         }
-    };
+    }
 
     const initModals = () => {
-        composeModalAttendance.value = new window.bootstrap.Modal(document.getElementById("composeModalAttendance"), {
-            backdrop: 'static', // Prevents closing the modal by clicking outside
-            keyboard: false,    // Disables closing the modal with the escape key
-            focus: false         // Focuses the modal when initialized (default is true)
-        });
-        composeModalObservations.value = new window.bootstrap.Modal(document.getElementById("composeModalObservations"));
-    }
-
-    const onClickOpenModalAttendance = async (row) => {
-        takeAttendance.value = row
-        backupCell.value = cloneDeep(toRaw(row))
-
-        const response = await api.get(`/api/v2/assists/${row.id}`, {
-            params: {
-                column: classDaySelected.value.column,
-                date: `${classDaySelected.value.year}-${classDaySelected.value.month}-${classDaySelected.value.date}`,
-                action: 'assist'
+        composeModalObservation.value = new window.bootstrap.Modal(
+            document.getElementById("composeModalObservation"),
+            {
+                backdrop: 'static',
+                keyboard: false,
+                focus: false
             }
-        })
-
-        takeAttendance.value = response.data
-        composeModalAttendance.value.show();
+        )
     }
 
-    const onCancelModalAttendance = () => {
-        let changed = attendancesGroup.value.find((attendance) => attendance.id === backupCell.value.id)
-        if (backupCell.value && changed) {
-            const clon = cloneDeep(toRaw(backupCell.value))
-            changed[classDaySelected.value.column] = clon[classDaySelected.value.column]
-            changed['observations'] = clon['observations']
-        }
+    const onChangeAttendance = async (row, selectedValue) => {
+        const previousValue = row[classDaySelected.value.column]
+        const normalizedValue = normalizeAttendanceValue(selectedValue)
 
-        backupCell.value = null
+        row[classDaySelected.value.column] = normalizedValue
+
+        try {
+            const data = {
+                _method: 'PUT',
+                id: row.id,
+            }
+
+            data[classDaySelected.value.column] = normalizedValue
+
+            const response = await api.post(`/api/v2/assists/${row.id}`, data)
+
+            if (response?.data) {
+                showMessage('Guardado correctamente')
+            } else {
+                row[classDaySelected.value.column] = previousValue
+                showMessage("Algo salió mal", 'error')
+            }
+        } catch (error) {
+            row[classDaySelected.value.column] = previousValue
+            showMessage("Algo salió mal", 'error')
+        }
+    }
+
+    const onClickOpenModalObservation = async (row) => {
+        try {
+            isLoading.value = true
+            takeAttendance.value = null
+
+            const response = await api.get(`/api/v2/assists/${row.id}`, {
+                params: {
+                    column: classDaySelected.value.column,
+                    date: buildAttendanceDate(),
+                    action: 'assist'
+                }
+            })
+
+            if (response?.data) {
+                takeAttendance.value = response.data
+                composeModalObservation.value.show()
+            } else {
+                showMessage("Algo salió mal", 'error')
+            }
+        } catch (error) {
+            takeAttendance.value = null
+            showMessage("Algo salió mal", 'error')
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    const onCancelModalObservation = () => {
         takeAttendance.value = null
         modalHidden()
-        composeModalAttendance.value.hide()
+        composeModalObservation.value.hide()
     }
 
-    const onSaveModalAttendance = async () => {
+    const onSaveModalObservation = async () => {
         try {
-            let data = {
+            const data = {
                 _method: 'PUT',
                 id: takeAttendance.value.id,
                 observations: takeAttendance.value.observation,
-                attendance_date: `${classDaySelected.value.year}-${classDaySelected.value.month}-${classDaySelected.value.date}`,
+                attendance_date: buildAttendanceDate(),
             }
-            data[classDaySelected.value.column] = takeAttendance.value.value
+
+            data[classDaySelected.value.column] = takeAttendance.value.value ?? null
 
             const response = await api.post(`/api/v2/assists/${data.id}`, data)
 
-            let changed = attendancesGroup.value.find((attendance) => attendance.id === data.id)
-            if (response.data && changed) {
-                changed[classDaySelected.value.column] = data[classDaySelected.value.column]
+            if (response?.data) {
                 showMessage('Guardado correctamente')
             } else {
                 showMessage("Algo salió mal", 'error')
             }
-
         } catch (error) {
             showMessage("Algo salió mal", 'error')
         } finally {
-            backupCell.value = null
             takeAttendance.value = null
             modalHidden()
-            composeModalAttendance.value.hide()
-        }
-    }
-
-    const onClickOpenModalObservations = async (row) => {
-        takeAttendance.value = null
-        const response = await api.get(`/api/v2/assists/${row.id}`, { params: { action: 'observation' } })
-        if (response.data) {
-            takeAttendance.value = response.data
-            composeModalObservations.value.show()
-        } else {
-            showMessage("Algo salió mal", 'error')
-            takeAttendance.value = null
+            composeModalObservation.value.hide()
         }
     }
 
@@ -251,9 +306,9 @@ export default function useAttendances() {
         options,
         handleSearchClassdays,
         clickClassDay,
-        onClickOpenModalAttendance,
-        onCancelModalAttendance,
-        onSaveModalAttendance,
-        onClickOpenModalObservations
+        onChangeAttendance,
+        onClickOpenModalObservation,
+        onCancelModalObservation,
+        onSaveModalObservation
     }
 }

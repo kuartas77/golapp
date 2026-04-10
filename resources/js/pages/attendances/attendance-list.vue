@@ -105,17 +105,39 @@
                                         </div>
                                     </div>
                                 </template>
-                                <template #bagClick="props">
+                                <!-- <template #bagClick="props">
                                     <button type="button" class="badge badge-primary btn btn-sm m-1"
                                         @click="onClickOpenModalAttendance(props.rowData)" :data-id="props.rowData.id">
                                         {{ attendanceTypes[props.rowData[classDaySelected.column]] ?? 'Tomar Asistencia'
                                         }}
                                     </button>
+                                </template> -->
+                                <template #attendance-select="props">
+                                    <select
+                                    class="form-control form-control-sm form-select"
+                                    :value="props.rowData[classDaySelected.column] ?? ''"
+                                    :disabled="isLoading"
+                                    @change="onChangeAttendance(props.rowData, $event.target.value)"
+                                    >
+                                    <option value="">Selecciona...</option>
+                                    <option
+                                        v-for="(label, value) in attendanceTypes"
+                                        :key="value"
+                                        :value="value"
+                                    >
+                                        {{ label }}
+                                    </option>
+                                    </select>
                                 </template>
 
                                 <template #observations="props">
-                                    <button type="button" class="badge badge-primary btn btn-sm m-1"
-                                        @click="onClickOpenModalObservations(props.rowData)">Ver</button>
+                                    <button
+                                    type="button"
+                                    class="badge badge-primary btn btn-sm m-1"
+                                    @click="onClickOpenModalObservation(props.rowData)"
+                                    >
+                                    Observación
+                                    </button>
                                 </template>
                             </DataTable>
                         </div>
@@ -124,92 +146,62 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="composeModalAttendance" tabindex="-1" role="dialog" aria-labelledby="attendanceModal"
+    <div class="modal fade" id="composeModalObservation" tabindex="-1" role="dialog" aria-labelledby="observationModal"
         aria-hidden="false" aria-modal="true">
         <div class="modal-dialog modal-md" role="document">
             <div class="modal-content" v-if="takeAttendance">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="attendanceModal">{{ takeAttendance.player_name }}</h5>
+                    <h5 class="modal-title" id="observationModal">
+                        {{ takeAttendance.player_name }}
+                    </h5>
                     <button type="button" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"
-                        class="btn-close" @click="onCancelModalAttendance"></button>
+                        class="btn-close" @click="onCancelModalObservation"></button>
                 </div>
-                <div class="modal-body">
 
+                <div class="modal-body">
                     <div class="mb-1 row" v-if="classDaySelected">
-                        <label for="attendance_number" class="col-sm-4 col-form-label">Entrenamiento#:</label>
+                        <label for="attendance_number" class="col-sm-4 col-form-label">
+                            Entrenamiento#:
+                        </label>
                         <div class="col-sm-8">
                             <input type="text" readonly class="form-control-plaintext" id="attendance_number"
-                                :value="classDaySelected.index">
-                        </div>
-                    </div>
-                    <div class="mb-1 row" v-if="classDaySelected">
-                        <label for="attendance_name" class="col-sm-4 col-form-label">Fecha:</label>
-                        <div class="col-sm-8">
-                            <input type="text" readonly class="form-control-plaintext" id="attendance_name"
-                                :value="`${classDaySelected.day} ${classDaySelected.date} de ${classDaySelected.month_name}`">
+                                :value="classDaySelected.index" />
                         </div>
                     </div>
 
-                    <div class="mb-1 row">
-                        <label for="select_attendance" class="col-sm-4 col-form-label">Estado:</label>
+                    <div class="mb-1 row" v-if="classDaySelected">
+                        <label for="attendance_name" class="col-sm-4 col-form-label">
+                            Fecha:
+                        </label>
                         <div class="col-sm-8">
-                            <select name="select_attendance" id="select_attendance"
-                                class="form-control form-control-sm form-select" v-model="takeAttendance.value">
-                                <option value="null">Selecciona...</option>
-                                <option :value="index" v-for="(value, index) in attendanceTypes" :key="index">
-                                    {{ value }}
-                                </option>
-                            </select>
+                            <input type="text" readonly class="form-control-plaintext" id="attendance_name"
+                                :value="`${classDaySelected.day} ${classDaySelected.date} de ${classDaySelected.month_name}`" />
                         </div>
                     </div>
+
                     <div class="row">
                         <div class="form-group">
-                            <label for="single_observation">Observaciónes para el deportista en el
-                                entrenamiento:</label>
+                            <label for="single_observation">
+                                Observación para el deportista en el entrenamiento:
+                            </label>
                             <span class="bar"></span>
                             <textarea name="observations" id="single_observation" cols="30" rows="10"
                                 class="form-control form-control-sm" v-model="takeAttendance.observation"></textarea>
                         </div>
                     </div>
-
                 </div>
+
                 <div class="modal-footer">
-                    <button type="button" class="btn" @click="onCancelModalAttendance">
-                        <i class="flaticon-cancel-12"></i> Cerrar</button>
-                    <button type="button" class="btn btn-primary" @click="onSaveModalAttendance">Guardar</button>
+                    <button type="button" class="btn" @click="onCancelModalObservation">
+                        <i class="flaticon-cancel-12"></i> Cerrar
+                    </button>
+                    <button type="button" class="btn btn-primary" @click="onSaveModalObservation">
+                        Guardar
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="modal fade" id="composeModalObservations" tabindex="-1" role="dialog" aria-labelledby="observationModal"
-        aria-hidden="false" aria-modal="true">
-        <div class="modal-dialog modal-md" role="document">
-            <div class="modal-content" v-if="takeAttendance">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="observationModal">{{ takeAttendance.player_name }}</h5>
-                    <button type="button" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"
-                        class="btn-close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="form-group">
-                            <label for="single_observation_">Observaciónes por fecha de entrenamiento:</label>
-                            <span class="bar"></span>
-                            <textarea name="observations" id="single_observation_" cols="30" rows="10"
-                                class="form-control form-control-sm" v-model="takeAttendance.observations"
-                                readonly></textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn" data-dismiss="modal" data-bs-dismiss="modal"><i
-                            class="flaticon-cancel-12"></i> Cerrar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <breadcrumb :parent="'Plataforma'" :current="'Asistencias'" />
 </template>
 <script>
@@ -239,13 +231,9 @@ const {
     options,
     handleSearchClassdays,
     clickClassDay,
-    onClickOpenModalAttendance,
-    onCancelModalAttendance,
-    onSaveModalAttendance,
-    onClickOpenModalObservations
+    onChangeAttendance,
+    onClickOpenModalObservation,
+    onCancelModalObservation,
+    onSaveModalObservation
 } = useAttendances()
-
-
-
-
 </script>

@@ -74,6 +74,7 @@ class InvoiceRepository
                 'november' => 'Noviembre',
                 'december' => 'Diciembre'
             ];
+        }
 
         if ($payment) {
             foreach ($months as $key => $name) {

@@ -2711,6 +2711,20 @@ input[readonly].form-control.flatpickr.flatpickr-input  {
         padding-top: 0;
         margin-bottom: 0.5rem;
     }
+
+    .flatpickr-calendar {
+        span.flatpickr-weekday {
+            color: #ffffff;
+        }
+        .flatpickr-day {
+            color: #ffffff;
+            .prevMonthDay{
+                color: #888ea8;
+            }
+        }
+    }
+
+    // .flatpickr-calendar .flatpickr-day.prevMonthDay
 }
 
 input[disabled].numInput.cur-year {
@@ -2731,4 +2745,12 @@ input[disabled].numInput.cur-year {
     padding-right: 20px;
     padding-bottom: 20px;
     padding-left: 20px;
+}
+
+.dark {
+    .dropdown-menu {
+        button {
+            color: #ffffff;
+        }
+    }
 }

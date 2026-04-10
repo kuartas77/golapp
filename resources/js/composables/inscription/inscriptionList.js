@@ -8,7 +8,7 @@ export default function useInscriptionConfig() {
 
     const columns = [
         { data: 'player.photo_url', width: '1%', render: '#photo', searchable: false, orderable: false },
-        { data: 'unique_code', name:'inscriptions.unique_code', render: '#link', searchable: true },
+        { data: 'unique_code', name:'inscriptions.unique_code', searchable: true },
         { data: 'training_group.name', name: 'inscriptions.training_group_id', orderable: false, searchable: true },
         { data: 'player.category', name: 'inscriptions.category', orderable: false, searchable: true },
         { data: 'player.gender', name: 'player.gender', orderable: false, searchable: false },
@@ -16,15 +16,89 @@ export default function useInscriptionConfig() {
         { data: 'eps_certificate', render: (data) => `<span class="badge badge-warning">`+(data ? 'Sí':'No')+`</span>`, orderable: false, searchable: true },
         { data: 'created_at', render: '#date', searchable: false },
         {
-            data: 'id', title: 'Acciones', render: (data, type, row, meta) => {
-                return `<div class="btn-group">
-                    <a class="btn btn-sm btn-success" href="${row.url_impression}" target="_blank" title="Imprimir inscripción"><i href="${row.url_show}" class="fa-solid fa-file-pdf fa-width-auto"></i></a>
-                    <button class="btn btn-sm btn-warning" data-item-id="${row.id}" data-type="invoice" title="Crear factura"><i data-item-id="${row.id}" class="fa fa-file-invoice fa-width-auto" data-type="delete"></i></button>
-                    <button class="btn btn-sm btn-info" data-item-id="${row.unique_code}" data-type="edit" title="Modificar Inscripción"><i data-item-id="${row.unique_code}" class="fa fa-edit fa-width-auto" data-type="edit"></i></button>
-                    <button class="btn btn-sm btn-danger" data-item-id="${row.url_destroy}" data-type="delete" title="Eliminar inscripción"><i data-item-id="${row.url_destroy}" class="fa fa-trash fa-width-auto" data-type="delete"></i></button>
 
+            data: 'id',
+            title: 'Acciones',
+            render: (data, type, row, meta) => {
+                return `
+                <div class="dropdown">
+                    <button
+                        class="btn btn-sm btn-primary dropdown-toggle"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                    >
+                        Acciones
+                    </button>
 
-                </div>`
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a
+                                class="dropdown-item"
+                                href="${row.url_impression}"
+                                target="_blank"
+                                title="Imprimir inscripción"
+                            >
+                                <i href="${row.url_show}" class="fa-solid fa-file-pdf fa-width-auto me-2"></i>
+                                Imprimir inscripción
+                            </a>
+                        </li>
+
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                data-item-id="${row.id}"
+                                data-type="invoice"
+                                title="Crear factura"
+                                type="button"
+                            >
+                                <i
+                                    data-item-id="${row.id}"
+                                    class="fa fa-file-invoice fa-width-auto me-2"
+                                    data-type="invoice"
+                                ></i>
+                                Crear factura
+                            </button>
+                        </li>
+
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                data-item-id="${row.unique_code}"
+                                data-type="edit"
+                                title="Modificar Inscripción"
+                                type="button"
+                            >
+                                <i
+                                    data-item-id="${row.unique_code}"
+                                    class="fa fa-edit fa-width-auto me-2"
+                                    data-type="edit"
+                                ></i>
+                                Modificar inscripción
+                            </button>
+                        </li>
+
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li>
+                            <button
+                                class="dropdown-item text-danger"
+                                data-item-id="${row.url_destroy}"
+                                data-type="delete"
+                                title="Eliminar inscripción"
+                                type="button"
+                            >
+                                <i
+                                    data-item-id="${row.url_destroy}"
+                                    class="fa fa-trash fa-width-auto me-2"
+                                    data-type="delete"
+                                ></i>
+                                Eliminar inscripción
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            `
             }, searchable: false, orderable: false
         }
     ];
@@ -67,6 +141,8 @@ export default function useInscriptionConfig() {
         switch (type) {
             case 'edit':
                 uniqueCodeSelected.value = itemId
+                break;
+            case 'invoice':
                 break;
             case 'delete':
                 // router.push({ name: 'invoices.show', params: { id: itemId } })
