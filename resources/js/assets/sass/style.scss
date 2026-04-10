@@ -2600,8 +2600,8 @@ textarea {
 
         legend  {
             color: color_variables.$l-dark;
-            background-color: color_variables.$m-color_10;
-            border: 1px solid color_variables.$m-color_19;
+            background-color: color_variables.$m-color_18;
+            border: 1px solid color_variables.$m-color_18;
         }
     }
 
@@ -2667,12 +2667,13 @@ fieldset {
 
     legend  {
         float: none !important;
-        background-color: #fff;
-        border: 1px solid #ddd;
+        background-color:  rgba(239, 239, 240, 0.3);
+        // border: 0px solid  rgba(239, 239, 240, 0.3);
         border-radius: 4px;
         font-size: 17px;
         font-weight: bold;
         padding: 3px 5px 3px 7px;
+        margin-inline-start: -16px;
         width: auto;
     }
 }

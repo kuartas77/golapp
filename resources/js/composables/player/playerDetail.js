@@ -6,15 +6,16 @@ import * as yup from 'yup'
 import { usePageTitle } from "@/composables/use-meta";
 import api from "@/utils/axios";
 import { Spanish } from "flatpickr/dist/l10n/es.js"
-
+import { useRouter } from 'vue-router'
 
 export default function usePlayerDetail() {
 
+    const router = useRouter()
     // settings flatpick
     const flatpickrConfig = {
         locale: Spanish,
         minDate: dayjs().subtract(20, 'year').format('YYYY-M-D'),
-        maxDate: dayjs().subtract(1, 'year').endOf('year').format('YYYY-M-D')
+        maxDate: dayjs().subtract(1, 'year').format('YYYY-M-D')
     }
     const globalError = ref(null)
     const { proxy } = getCurrentInstance()
@@ -129,7 +130,7 @@ export default function usePlayerDetail() {
         },
     })
 
-    const onSubmit = async (values, actions) => {
+    const onSubmit = async (values, { setErrors }) => {
         try {
             isLoading.value = true
             const formData = new FormData();
@@ -146,19 +147,20 @@ export default function usePlayerDetail() {
                 }
             }
 
-            api.post(`/api/v2/players/${route.params.unique_code}`, formData, {
+            const response = await api.post(`/api/v2/players/${route.params.unique_code}`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
-            }).then(resp => {
-                if (resp.data.success) {
-                    showMessage('Guardado correctamente.')
-                } else {
-                    showMessage('Algo salió mal.', 'error')
-                }
             })
+
+            if (response.data.success) {
+                showMessage('Guardado correctamente.')
+                router.push({ name: 'players' })
+            }
 
         } catch (error) {
             showMessage('Algo ha salido mal.', 'error')
-            proxy.$handleBackendErrors(error, actions.setErrors, (msg) => (globalError.value = msg))
+           proxy.$handleBackendErrors(error, setErrors, (msg) => {
+            globalError.value = msg
+        })
         } finally {
             isLoading.value = false
         }
@@ -218,5 +220,5 @@ export default function usePlayerDetail() {
         }
     }
 
-    return { onSubmit, currentTextPlayer, wizardOptions, step, initialValues, flatpickrConfig, settings, schema, degrees, parients, loadingText, isLoading }
+    return { onSubmit, currentTextPlayer, wizardOptions, step, initialValues, flatpickrConfig, settings, schema, degrees, parients, loadingText, isLoading, globalError }
 }

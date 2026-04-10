@@ -9,7 +9,7 @@
             :id="name"
             :placeholder="label"
             class="form-control form-control-sm"
-            :class="{ 'is-invalid': meta.touched && errorMessage }"
+            :class="{ 'is-invalid': !meta.valid && errorMessage }"
             autocomplete="off"/>
     </template>
     <template v-else>
@@ -19,10 +19,10 @@
             :id="name"
             :placeholder="label"
             class="form-control form-control-sm"
-            :class="{ 'is-invalid': meta.touched && errorMessage }"
+            :class="{ 'is-invalid': !meta.valid && errorMessage }"
             autocomplete="off"/>
     </template>
-    <div :class="errorMessage ? 'invalid-feedback d-block' : ''">{{ errorMessage }}</div>
+    <!-- <div :class="errorMessage ? 'invalid-feedback d-block' : ''">{{ errorMessage }}</div> -->
 </template>
 <script setup>
 import { useField } from 'vee-validate'

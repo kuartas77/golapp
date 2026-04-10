@@ -24,6 +24,7 @@ trait UploadFile
 
             switch ($field) {
                 case 'player':
+                case 'photo':
                     $path = $file->hashName($school . DIRECTORY_SEPARATOR . "players");
                     break;
                 case 'logo':

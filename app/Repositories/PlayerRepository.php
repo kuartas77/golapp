@@ -42,14 +42,14 @@ class PlayerRepository
     {
         $result = false;
         try {
-            $dataPlayer = $playerCreateRequest->only($this->getAttributes());
+            $dataPlayer = $playerCreateRequest->validated();
             $school_id = $dataPlayer['school_id'];
 
             if(!isset($dataPlayer['unique_code'])){
                 $dataPlayer['unique_code'] = createUniqueCode($dataPlayer['school_id']);
             }
 
-            if ($file_name = $this->saveFile($playerCreateRequest, 'player')) {
+            if ($file_name = $this->saveFile($playerCreateRequest, 'photo')) {
                 $dataPlayer['photo'] = $file_name;
             }
 
@@ -106,8 +106,8 @@ class PlayerRepository
     public function updatePlayer(Player $player, PlayerUpdateRequest $playerUpdateRequest): bool
     {
         try {
-            $dataPlayer = $playerUpdateRequest->only($this->getAttributes());
-            if ($file_name = $this->saveFile($playerUpdateRequest, 'player')) {
+            $dataPlayer = $playerUpdateRequest->validated();
+            if ($file_name = $this->saveFile($playerUpdateRequest, 'photo')) {
                 $dataPlayer['photo'] = $file_name;
             }
 

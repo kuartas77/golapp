@@ -271,7 +271,6 @@ const submit = async (values, actions) => {
         }
 
     } catch (error) {
-        console.log(error)
        proxy.$handleBackendErrors(error, actions.setErrors, (msg) => (globalError.value = msg));
     } finally {
         emit("success")

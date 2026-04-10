@@ -2,10 +2,15 @@
     <panel>
         <template #lateral />
         <template #body>
+                            <div class="d-sm-flex justify-content-between">
+                                        <span class="text-danger">{{ globalError }}</span>
+                                    </div>
             <Form v-slot="{ validate, handleSubmit }" :validation-schema="schema" :initial-values="initialValues"
                 :keep-values="true" @submit="onSubmit" ref="form-player">
 
                 <Loader :is-loading="isLoading" :loading-text="loadingText" />
+
+
 
                 <Wizard v-model="step" :options="wizardOptions(validate)" @finish="handleSubmit(onSubmit)">
 
@@ -20,7 +25,7 @@
                             <div class="row col-md-12">
                                 <div class="col-md-3 text-center">
                                     <div class="form-group">
-                                        <inputFileImage label="Foto JPG, JPEG, PNG" name="photo" />
+                                        <inputFileImage label="Foto jpg, jpeg, png" name="photo" />
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -35,9 +40,10 @@
                                     <div class="form-group">
                                         <label for="date_birth" class="form-label">Fecha de
                                             nacimiento<span class="text-danger">&nbsp;(*)</span></label>
-                                        <Field name="date_birth" v-slot="{ field }">
+                                        <Field name="date_birth" v-slot="{ field, errorMessage, meta }">
                                             <flat-pickr v-bind="field" v-model="field.value" :config="flatpickrConfig"
                                                 class="form-control form-control-sm flatpickr"
+                                                :class="{ 'is-invalid': !meta.valid && errorMessage }"
                                                 id="date_birth"></flat-pickr>
                                         </Field>
                                     </div>
@@ -49,13 +55,13 @@
                                     <div class="form-group mb-2">
                                         <label for="document_type" class="form-label">Tipo Documento<span
                                                 class="text-danger">&nbsp;(*)</span></label>
-                                        <Field name="document_type" as="select" id="document_type"
-                                            class="form-select form-select-sm">
-                                            <option :value="key" v-for="value, key in settings.document_types"
-                                                :key="value">
-                                                {{ value }}</option>
+                                        <Field name="document_type" v-slot="{ field, errorMessage, meta }">
+                                            <select v-bind="field" id="document_type" class="form-select form-select-sm"
+                                                :class="{ 'is-invalid': !meta.valid && errorMessage }">
+                                                <option :value="key" v-for="value, key in settings.document_types"
+                                                    :key="value">{{ value }}</option>
+                                            </select>
                                         </Field>
-                                        <ErrorMessage name="document_type" class="custom-error" />
                                     </div>
 
                                     <div class="form-group">
@@ -70,21 +76,25 @@
                                     <div class="form-group mb-2">
                                         <label for="gender" class="form-label">Genero<span
                                                 class="text-danger">&nbsp;(*)</span></label>
-                                        <Field name="gender" as="select" id="gender" class="form-select form-select-sm">
-                                            <option :value="key" v-for="value, key in settings.genders" :key="value">{{
-                                                value }}</option>
+                                        <Field name="gender" v-slot="{ field, errorMessage, meta }">
+                                            <select v-bind="field" id="gender" class="form-select form-select-sm"
+                                                :class="{ 'is-invalid': !meta.valid && errorMessage }">
+                                                <option :value="key" v-for="value, key in settings.genders"
+                                                    :key="value">{{ value }}</option>
+                                            </select>
                                         </Field>
-                                        <ErrorMessage name="gender" class="custom-error" />
                                     </div>
                                     <div class="form-group">
                                         <label for="rh" class="form-label">Grupo sanguíneo<span
                                                 class="text-danger">&nbsp;(*)</span></label>
-                                        <Field name="rh" as="select" id="rh" class="form-select form-select-sm">
-                                            <option :value="key" v-for="value, key in settings.blood_types"
-                                                :key="value">{{ value }}
-                                            </option>
+                                        <Field name="rh" v-slot="{ field, errorMessage, meta }">
+                                            <select v-bind="field" id="rh" class="form-select form-select-sm"
+                                                :class="{ 'is-invalid': !meta.valid && errorMessage }">
+                                                <option :value="key" v-for="value, key in settings.blood_types"
+                                                    :key="value">{{ value }}
+                                                </option>
+                                            </select>
                                         </Field>
-                                        <ErrorMessage name="rh" class="custom-error"/>
                                     </div>
                                 </div>
                             </div>
@@ -124,21 +134,24 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="degree" class="form-label">Grado que cursa</label>
-                                        <Field name="degree" as="select" id="degree" class="form-select form-select-sm">
-                                            <option value="Preescolar">Preescolar</option>
-                                            <option :value="value" v-for="value in degrees" :key="value">{{
-                                                value }}</option>
+                                        <Field name="degree" v-slot="{ field, errorMessage, meta }">
+                                            <select v-bind="field" id="degree" class="form-select form-select-sm"
+                                                :class="{ 'is-invalid': !meta.valid && errorMessage }">
+                                                <option value="Preescolar">Preescolar</option>
+                                                <option :value="value" v-for="value in degrees" :key="value">{{ value }}</option>
+                                            </select>
                                         </Field>
-                                        <ErrorMessage name="degree" class="custom-error" />
+
                                     </div>
                                     <div class="form-group">
                                         <label for="jornada" class="form-label">Jornada de estudio</label>
-                                        <Field name="jornada" as="select" id="jornada"
-                                            class="form-select form-select-sm">
-                                            <option :value="value" v-for="value in ['Mañana', 'Tarde']" :key="value">{{
+                                        <Field name="jornada"  v-slot="{ field, errorMessage, meta }">
+                                            <select v-bind="field" id="jornada" class="form-select form-select-sm"
+                                                :class="{ 'is-invalid': !meta.valid && errorMessage }">
+                                                <option :value="value" v-for="value in ['Mañana', 'Tarde']" :key="value">{{
                                                 value }}</option>
+                                            </select>
                                         </Field>
-                                        <ErrorMessage name="jornada" class="custom-error" />
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -148,10 +161,9 @@
                                     <div class="form-group">
                                         <label for="medical_history" class="form-label">Antecedentes
                                             Médicos</label>
-                                        <Field id="medical_history" name="medical_history" as="textarea"
-                                            class="form-control" rows="5">
+                                        <Field name="medical_history" v-slot="{ field, errorMessage, meta }">
+                                            <textarea v-bind="field" id="medical_history" class="form-control form-control-sm" rows="5" :class="{ 'is-invalid': !meta.valid && errorMessage }"></textarea>
                                         </Field>
-                                        <ErrorMessage name="medical_history" class="custom-error" />
                                     </div>
 
                                 </div>
@@ -164,11 +176,13 @@
                         <fieldset class="col-md-12 p-3" v-for="value, key in parients" :key="`${value}_${key}`">
                             <legend>
                                 Parentesco:
-                                <Field :name="`relationship_${key}`" :id="`relationship_${key}`" as="select"
-                                    class="form-select form-select-sm">
-                                    <option :value="key" v-for="value, key in settings.relationships">{{
+                                <Field :name="`relationship_${key}`"  v-slot="{ field, errorMessage, meta }">
+                                    <select v-bind="field" :id="`relationship_${key}`" class="form-select form-select-sm"
+                                        :class="{ 'is-invalid': !meta.valid && errorMessage }">
+                                        <option :value="key" v-for="value, key in settings.relationships">{{
                                         value }}</option>
-                                </Field>
+                                    </select>
+                            </Field>
                             </legend>
                             <div class="row col-md-12">
                                 <div class="col-md-3">
@@ -211,6 +225,6 @@ import 'flatpickr/dist/flatpickr.css';
 import "@/assets/sass/forms/custom-flatpickr.css";
 import usePlayerDetail from '@/composables/player/playerDetail'
 
-const { onSubmit, wizardOptions, currentTextPlayer, step, initialValues, flatpickrConfig, settings, schema, degrees, parients, loadingText, isLoading } = usePlayerDetail()
+const { globalError, onSubmit, wizardOptions, currentTextPlayer, step, initialValues, flatpickrConfig, settings, schema, degrees, parients, loadingText, isLoading } = usePlayerDetail()
 
 </script>

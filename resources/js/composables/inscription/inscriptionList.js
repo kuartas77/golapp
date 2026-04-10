@@ -1,7 +1,7 @@
 import configLanguaje from '@/utils/datatableUtils';
 import { useTemplateRef, onMounted, ref } from 'vue';
 import api from '@/utils/axios'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 export default function useInscriptionConfig() {
     const router = useRouter()
