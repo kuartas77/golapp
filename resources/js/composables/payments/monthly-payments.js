@@ -102,7 +102,6 @@ export default function useMonthlyPayments() {
         }
     }
 
-
     const editRow = (payPlayer, field) => {
         editingCell.value = { payPlayer, field }
         backupCell.value = cloneDeep(toRaw(payPlayer));
@@ -221,24 +220,40 @@ export default function useMonthlyPayments() {
     })
 
     const totalByType = ref({
+        pay: 0,
         cash: 0,
         consignment: 0,
-        others: 0,
-        debts: 0
+        debts: 0,
+        total: 0
     })
+
+    const statusPay = [1, 9, 10, 11, 12]
+    const statusPayCash = [9, 12]
+    const statusPayConsignment = [10, 11]
+    const statsDeb = [2]
 
     watch(groupPayments, async (newValue) => {
         totalByType.value.cash = 0
         totalByType.value.consignment = 0
-        totalByType.value.others = 0
+        totalByType.value.pay = 0
         totalByType.value.debts = 0
         for (const field in paymentFields) {
-            totalsFooter.value[`${paymentFields[field]}`] = newValue.reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
+            totalsFooter.value[`${paymentFields[field]}`] = newValue.filter(pay => statusPay.includes(pay[`${paymentFields[field]}`]))
+                .reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
 
-            totalByType.value.cash += newValue.filter(pay => [9, 12].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
-            totalByType.value.consignment += newValue.filter(pay => [10, 11].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
-            totalByType.value.others += newValue.filter(pay => ![2, 9, 10, 11, 12].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
-            totalByType.value.debts += newValue.filter(pay => [2].includes(pay[`${paymentFields[field]}`])).reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
+            totalByType.value.cash += newValue.filter(pay => statusPayCash.includes(pay[`${paymentFields[field]}`]))
+                .reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
+
+            totalByType.value.pay += newValue.filter(pay => statusPay.includes(pay[`${paymentFields[field]}`]))
+                .reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
+
+            totalByType.value.consignment += newValue.filter(pay => statusPayConsignment.includes(pay[`${paymentFields[field]}`]))
+                .reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
+
+            totalByType.value.debts += newValue.filter(pay => statsDeb.includes(pay[`${paymentFields[field]}`]))
+                .reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
+
+            totalByType.value.total += newValue.reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
         }
     }, { deep: true })
 

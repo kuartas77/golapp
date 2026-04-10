@@ -16,8 +16,18 @@
                 </div>
                 <div class="col-md-2">
                     <div class="form-group">
-                        <flat-pickr :config="flatpickrConfig" class="form-control form-control-sm flatpickr"
+
+
+
+                            <div class="input-group">
+                                <flat-pickr :config="flatpickrConfig" class="form-control form-control-sm flatpickr"
                             id="filterDate" v-model="filterDate" placeholder="Rango fecha facturación"></flat-pickr>
+                                <span class="input-group-text" @click="clearDate">
+                                    <i class="fa-solid fa-x" ></i>
+                                </span>
+
+                            </div>
+
                     </div>
                 </div>
             </div>
@@ -109,6 +119,13 @@ const pagination = reactive({
     per_page: 20,
     total: 0
 })
+
+const clearDate = () => {
+    console.log(filterDate.value)
+  if (filterDate.value) {
+    filterDate.value = ''
+  }
+};
 
 // Computed
 const filteredInvoices = computed(() => {

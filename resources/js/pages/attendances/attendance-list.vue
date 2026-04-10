@@ -74,11 +74,20 @@
                 <div class="panel br-6 p-2">
                     <div class="panel-body">
                         <h5 v-if="modelGroup">{{ modelGroup.full_group }}</h5>
-                        <h6 v-if="classDaySelected"> Clase: {{ `#${classDaySelected.index} | ${classDaySelected.day}
-                            ${classDaySelected.date}` }}</h6>
+                        <h6 v-if="classDaySelected">
+                            Clase: {{ `#${classDaySelected.index} | ${classDaySelected.day} ${classDaySelected.date}` }}
+                        </h6>
                         <div class="row">
                             <DataTable :options="options" :data="attendancesGroup" class="table table-bordered table-sm"
                                 id="attendance_table" ref="attendance_table">
+
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Asistencia</th>
+                                        <th>Observación</th>
+                                    </tr>
+                                </thead>
 
                                 <template #player-photo="props">
                                     <div class="media d-md-flex d-block text-sm-start text-center">
@@ -105,18 +114,13 @@
                                         </div>
                                     </div>
                                 </template>
-                                <!-- <template #bagClick="props">
-                                    <button type="button" class="badge badge-primary btn btn-sm m-1"
-                                        @click="onClickOpenModalAttendance(props.rowData)" :data-id="props.rowData.id">
-                                        {{ attendanceTypes[props.rowData[classDaySelected.column]] ?? 'Tomar Asistencia'
-                                        }}
-                                    </button>
-                                </template> -->
+
                                 <template #attendance-select="props">
                                     <select
-                                    class="form-control form-control-sm form-select"
+                                    class="form-select form-select-sm"
                                     :value="props.rowData[classDaySelected.column] ?? ''"
                                     :disabled="isLoading"
+                                    :id="props.rowData.id"
                                     @change="onChangeAttendance(props.rowData, $event.target.value)"
                                     >
                                     <option value="">Selecciona...</option>
@@ -203,6 +207,10 @@
         </div>
     </div>
     <breadcrumb :parent="'Plataforma'" :current="'Asistencias'" />
+
+    <!-- <teleport defer to="#search_players">
+        <input type="text" id="players" name="players" class="form-control control-sm form-control-custom" placeholder="Deportista">
+    </teleport> -->
 </template>
 <script>
 export default {
@@ -214,6 +222,7 @@ import { ErrorMessage, Field, Form } from "vee-validate";
 import useAttendances from '@/composables/attendances/attendances'
 
 const {
+    attendance_table,
     isLoading,
     groups,
     schema,

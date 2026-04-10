@@ -48,18 +48,29 @@
                         <div class="col-12 mt-1">
 
                             <span class="badge outline-badge-info me-1">
+                                Total página {{ moneyFormat(totalByType.total) }}
+                            </span>
+                            <span class="badge outline-badge-info me-1">
+                                Pagos {{ moneyFormat(totalByType.pay) }}
+                            </span>
+                            <span class="badge outline-badge-info me-1">
                                 Efectivo {{ moneyFormat(totalByType.cash) }}
                             </span>
                             <span class="badge outline-badge-info me-1">
                                 Consignación {{ moneyFormat(totalByType.consignment) }}
                             </span>
-                            <span class="badge outline-badge-info me-1">
-                                Otros {{ moneyFormat(totalByType.others) }}
-                            </span>
                             <span class="badge outline-badge-danger  me-1">
                                 Deben {{ moneyFormat(totalByType.debts) }}
                             </span>
+                            <!-- <span class="badge outline-badge-info  me-1">
+                                Otros {{ moneyFormat(totalByType.others) }}
+                            </span> -->
 
+
+
+                        </div>
+
+                        <div class="col-12 mt-1">
                             <a v-if="export_pdf" :href="export_pdf" target="_blank"
                                 class="badge badge-info btn btn-sm me-1">
                                 <i class="far fa-file-pdf fa-lg"></i>PDF
@@ -68,10 +79,8 @@
                                 class="badge badge-info btn btn-sm me-1">
                                 <i class="far fa-file-excel fa-lg"></i>EXCEL
                             </a>
-
                         </div>
-
-                        <small class="text-info mt-2"> La opción de arriba "OTROS" incluye: Pagó, Acuerdo de Pago, Abonó, Incapacidad, Retiro Temporal, Retiro Definitivo, Otro.</small>
+                        <!-- <small class="text-info mt-2"> La opción de arriba "OTROS" incluye: Acuerdo de Pago, Abonó, Incapacidad, Retiro Temporal, Retiro Definitivo, Otro, Becado.</small> -->
                     </div>
                 </div>
             </div>

@@ -19,7 +19,6 @@ export default function useInscriptionConfig() {
         { data: 'eps_certificate', render: (data) => `<span class="badge badge-warning">`+(data ? 'Sí':'No')+`</span>`, orderable: false, searchable: true },
         { data: 'created_at', render: '#date', searchable: false },
         {
-
             data: 'id',
             title: 'Acciones',
             render: (data, type, row, meta) => {

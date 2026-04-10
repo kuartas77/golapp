@@ -11,6 +11,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use App\Repositories\AssistRepository;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 
 class CreateAssistsOnEndMonth extends Command
@@ -21,7 +22,7 @@ class CreateAssistsOnEndMonth extends Command
      *
      * @var string
      */
-    protected $signature = 'assists:month';
+    protected $signature = 'assists:month {--date=}';
 
     /**
      * The console command description.
@@ -49,7 +50,7 @@ class CreateAssistsOnEndMonth extends Command
     {
         try {
             $dataAssist = [];
-            $currentDate = now();
+            $currentDate = $this->option('date') ? Carbon::parse($this->option('date')): now();
 
             if ($currentDate->isLastOfMonth()) {
 

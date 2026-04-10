@@ -2,13 +2,14 @@ import configLanguaje from '@/utils/datatableUtils'
 import { useSetting } from '@/store/settings-store'
 import { usePageTitle } from "@/composables/use-meta"
 import api from "@/utils/axios"
-import { getCurrentInstance, onMounted, ref } from "vue"
+import { getCurrentInstance, useTemplateRef, onMounted, ref } from "vue"
 import * as yup from 'yup'
 
 export default function useAttendances() {
     const composeModalObservation = ref(null)
     const isLoading = ref(false)
     const settings = useSetting()
+    const attendance_table = useTemplateRef('attendance_table')
 
     const groups = settings.groups
         .filter((group) => group.name !== 'Provisional')
@@ -91,17 +92,17 @@ export default function useAttendances() {
                 title: 'Deportista',
                 render: '#player-photo',
                 searchable: false,
-                with: '30%'
+                with: '50%'
             },
             {
-                data: 'inscription.player.full_names',
+                data: 'id',
                 title: 'Asistencia',
                 render: '#attendance-select',
                 searchable: false,
-                with: '30%'
+                with: '20%'
             },
             {
-                data: 'inscription.player.full_names',
+                data: 'id',
                 title: 'Observación',
                 render: '#observations',
                 searchable: false,
@@ -286,9 +287,20 @@ export default function useAttendances() {
     onMounted(() => {
         initModals()
         usePageTitle('Asistencias')
+
+        // if (attendance_table.value) {
+        //     let dt = attendance_table.value.dt;
+        //     const searchPlayer = document.querySelector('thead input[placeholder="Deportista"]');
+        //     if (searchPlayer) {
+        //         searchPlayer.addEventListener('input', function () {
+        //             return dt.column(1).search(this.value).draw()
+        //         });
+        //     }
+        // }
     })
 
     return {
+        attendance_table,
         isLoading,
         groups,
         schema,
