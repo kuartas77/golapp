@@ -2724,7 +2724,9 @@ input[readonly].form-control.flatpickr.flatpickr-input  {
         }
     }
 
-    // .flatpickr-calendar .flatpickr-day.prevMonthDay
+    tfoot>tr>td>strong {
+        color: #ffffff;
+    }
 }
 
 input[disabled].numInput.cur-year {

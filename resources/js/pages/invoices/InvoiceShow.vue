@@ -60,7 +60,7 @@
                                         </td>
                                     </tr>
                                 </tbody>
-                                <tfoot class="bg-light">
+                                <tfoot>
                                     <tr>
                                         <td colspan="4" class="text-right"><strong>Total Factura:</strong></td>
                                         <td class="text-right">
@@ -89,17 +89,19 @@
                         </div>
 
                         <!-- Notas -->
-                        <div v-if="invoice.notes" class="alert alert-info mt-2">
+                        <div v-if="invoice.notes" class="alert mt-2">
                             <h6><i class="fa fa-sticky-note"></i> Notas:</h6>
                             <p>{{ invoice.notes }}</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- Payment request TODO: -->
+
                 <!-- Historial de pagos -->
                 <div v-if="invoice.payments?.length > 0" class="card">
                     <div class="card-header">
-                        <h5><i class="fa fa-history"></i> Historial de Pagos</h5>
+                        <h5 class="mb-0"><i class="fa fa-history"></i> Historial de Pagos</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -172,59 +174,62 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label>Monto a Pagar <span class="text-danger">&nbsp;(*)</span></label>
-                                        <div class="input-group">
-                                            <input type="text" class="form-control form-control-sm"
-                                                :value="moneyFormat(calculatedAmount)" disabled
-                                                style="background-color: #f8f9fa; font-weight: bold;">
-                                            <div class="input-group-append">
-                                                <span class="input-group-text"
-                                                    style="background-color: #e9ecef; font-weight: bold;">Total</span>
+                                <template v-if="unpaidItems.length > 0">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Monto a Pagar <span class="text-danger">&nbsp;(*)</span></label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control form-control-sm"
+                                                    :value="moneyFormat(calculatedAmount)" disabled
+                                                    style="background-color: #f8f9fa; font-weight: bold;">
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text"
+                                                        style="background-color: #e9ecef; font-weight: bold;">Total</span>
+                                                </div>
                                             </div>
+                                            <small class="text-muted">Monto calculado automáticamente basado en los ítems
+                                                seleccionados</small>
                                         </div>
-                                        <small class="text-muted">Monto calculado automáticamente basado en los ítems
-                                            seleccionados</small>
                                     </div>
-                                </div>
 
-                                <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
-                                    <div class="form-group">
-                                        <label>Método de Pago <span class="text-danger">&nbsp;(*)</span></label>
-                                        <select class="form-select form-select-sm" v-model="payment.payment_method"
-                                            required>
-                                            <option value="cash">Efectivo</option>
-                                            <option value="card">Tarjeta</option>
-                                            <option value="transfer">Transferencia</option>
-                                            <option value="check">Cheque</option>
-                                            <option value="other">Otro</option>
-                                        </select>
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                        <div class="form-group">
+                                            <label>Método de Pago <span class="text-danger">&nbsp;(*)</span></label>
+                                            <select class="form-select form-select-sm" v-model="payment.payment_method"
+                                                required>
+                                                <option value="cash">Efectivo</option>
+                                                <option value="card">Tarjeta</option>
+                                                <option value="transfer">Transferencia</option>
+                                                <option value="check">Cheque</option>
+                                                <option value="other">Otro</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
-                                    <div class="form-group">
-                                        <label>Referencia</label>
-                                        <input type="text" class="form-control form-control-sm"
-                                            v-model="payment.reference" placeholder="Nº de transacción, cheque, etc.">
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                        <div class="form-group">
+                                            <label>Referencia</label>
+                                            <input type="text" class="form-control form-control-sm"
+                                                v-model="payment.reference" placeholder="Nº de transacción, cheque, etc.">
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
-                                    <div class="form-group">
-                                        <label>Fecha del Pago <span class="text-danger">&nbsp;(*)</span></label>
-                                        <flat-pickr :config="flatpickrConfig" class="form-control form-control-sm flatpickr"
-                                        id="filterDate" v-model="payment.payment_date" required></flat-pickr>
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                        <div class="form-group">
+                                            <label>Fecha del Pago <span class="text-danger">&nbsp;(*)</span></label>
+                                            <flat-pickr :config="flatpickrConfig" class="form-control form-control-sm flatpickr"
+                                            id="filterDate" v-model="payment.payment_date" required></flat-pickr>
+                                        </div>
                                     </div>
-                                </div>
-                                <!-- <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label>Notas</label>
-                                        <textarea class="form-control form-control-sm" v-model="payment.notes" rows="2"></textarea>
-                                    </div>
-                                </div> -->
+                                    <!-- <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Notas</label>
+                                            <textarea class="form-control form-control-sm" v-model="payment.notes" rows="2"></textarea>
+                                        </div>
+                                    </div> -->
+                                </template>
+
                                 <div class="btn-group">
 
-                                    <button type="submit" class="btn btn-success btn-block"
+                                    <button type="submit" class="btn btn-success btn-block" v-if="unpaidItems.length > 0"
                                         :disabled="paymentLoading || calculatedAmount <= 0 || payment.paid_items.length === 0">
                                         <span v-if="paymentLoading" class="spinner-border spinner-border-sm"></span>
                                         <i v-else class="fas fa-check-circle"></i>

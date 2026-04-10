@@ -60,7 +60,7 @@ class InvoiceRepository
         $pendingMonths = [];
         if ($payment) {
             $months = [
-                'enrollment' => 'Inscripción',
+                'enrollment' => 'Matrícula',
                 'january' => 'Enero',
                 'february' => 'Febrero',
                 'march' => 'Marzo',
@@ -78,7 +78,7 @@ class InvoiceRepository
 
         if ($payment) {
             foreach ($months as $key => $name) {
-                if (in_array($payment->{$key}, [0,2])) { // 0 = pendiente, 2 = debe
+                if (in_array($payment->{$key}, [2])) { //2 = debe
                     $pendingMonths[] = [
                         'month' => $key,
                         'name' => $name,

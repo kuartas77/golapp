@@ -1,10 +1,13 @@
 import configLanguaje from '@/utils/datatableUtils';
 import { useTemplateRef, onMounted, ref } from 'vue';
 import api from '@/utils/axios'
+import { useRouter, useRoute } from 'vue-router'
 
 export default function useInscriptionConfig() {
+    const router = useRouter()
     const inscription_table = useTemplateRef('inscription_table')
     const uniqueCodeSelected = ref(null)
+    const disableUrlSelected = ref(null)
 
     const columns = [
         { data: 'player.photo_url', width: '1%', render: '#photo', searchable: false, orderable: false },
@@ -84,14 +87,14 @@ export default function useInscriptionConfig() {
                             <button
                                 class="dropdown-item text-danger"
                                 data-item-id="${row.url_destroy}"
-                                data-type="delete"
+                                data-type="disable"
                                 title="Eliminar inscripción"
                                 type="button"
                             >
                                 <i
                                     data-item-id="${row.url_destroy}"
                                     class="fa fa-trash fa-width-auto me-2"
-                                    data-type="delete"
+                                    data-type="disable"
                                 ></i>
                                 Eliminar inscripción
                             </button>
@@ -143,26 +146,67 @@ export default function useInscriptionConfig() {
                 uniqueCodeSelected.value = itemId
                 break;
             case 'invoice':
+                router.push({ name: 'invoices.create', params: { inscription: itemId } })
                 break;
-            case 'delete':
-                // router.push({ name: 'invoices.show', params: { id: itemId } })
+            case 'disable':
+                disableUrlSelected.value = itemId
+                confirmDisable()
                 break;
-
             default:
+                Swal.fire("Acción no implementada");
                 break;
         }
     }
 
     const onCancelModal = () => {
         uniqueCodeSelected.value = null
+        disableUrlSelected.value = null
     }
 
     const onSuccessModal = () => {
         uniqueCodeSelected.value = null
+        disableUrlSelected.value = null
         if (inscription_table.value) {
             let dt = inscription_table.value.table.dt;
             dt.ajax.reload(null, false)
         }
+    }
+
+    const confirmDisable = async () => {
+        Swal.fire({
+            title: "¿Retirar inscripción?",
+            text: "¡Despues de esto sí lo necesitas, sólo inscribelo de nuevo!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "¡Sí, retirarlo!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                api.delete(disableUrlSelected.value)
+                    .then(() => {
+                        disableUrlSelected.value = null
+                        if (inscription_table.value) {
+                            let dt = inscription_table.value.table.dt;
+                            dt.ajax.reload(null, false)
+                        }
+                        Swal.fire({
+                            title: "Inscripción retirada",
+                            text: "La inscripción fue eliminada exitosamente.",
+                            icon: "success",
+                            confirmButtonColor: "#3085d6",
+                        })
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            title: "Error",
+                            text: "No se pudo eliminar la inscripción.",
+                            icon: "error",
+                            confirmButtonColor: "#3085d6",
+                        })
+                    })
+            }
+        });
     }
 
     onMounted(() => {

@@ -10,6 +10,7 @@ const props = defineProps({ modelValue: Number });
 
 const { inputRef, formattedValue, numberValue, setValue } = useCurrencyInput({
   currency: 'COP',
+  currencyDisplay: 'hidden',
   hideCurrencySymbolOnFocus: false,
   hideGroupingSeparatorOnFocus: false,
   precision: 0,
