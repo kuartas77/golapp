@@ -22,7 +22,7 @@
             :class="{ 'is-invalid': !meta.valid && errorMessage }"
             autocomplete="off"/>
     </template>
-    <!-- <div :class="errorMessage ? 'invalid-feedback d-block' : ''">{{ errorMessage }}</div> -->
+    <div :class="errorMessage ? 'invalid-feedback d-block' : ''">{{ errorMessage }}</div>
 </template>
 <script setup>
 import { useField } from 'vee-validate'

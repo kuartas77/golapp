@@ -1,4 +1,4 @@
-import { getCurrentInstance, ref, onMounted } from 'vue'
+import { getCurrentInstance, ref, useTemplateRef, onMounted } from 'vue'
 import { useMeta } from "@/composables/use-meta"
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthUser } from '@/store/auth-user'
@@ -11,7 +11,7 @@ export default function useFormLogin() {
     const route = useRoute()
     const router = useRouter()
     const pwd_type = ref("password")
-    const form = ref(null)
+    const form = useTemplateRef('form')
     const { proxy } = getCurrentInstance()
     const globalError = ref(null)
 
@@ -24,7 +24,7 @@ export default function useFormLogin() {
 
     const schema = yup.object().shape({
         email: yup.string().email().required(),
-        password: yup.string().required().min(6),
+        password: yup.string().min(6).required(),
     })
 
     const handleLogin = async (values, actions) => {

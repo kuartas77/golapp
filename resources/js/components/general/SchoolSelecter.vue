@@ -22,16 +22,18 @@ import api from '@/utils/axios';
 
 const schoolSelected = ref('')
 const isSchool = ref(false);
-const text = ref(isSchool.value ? 'sede' : 'escuela');
+const text = ref(isSchool.value ? 'Sede' : 'Escuela');
 const schoolOptions = ref([])
 
 function selectSchool() {
+
     Swal.fire({
-        title: `Para seguir seleciona una ${text.value}`,
+        title: `Para seguir seleciona`,
         icon: "info",
         input: 'select',
+        inputLabel: `${text.value}`,
         inputOptions: schoolOptions.value,
-        inputPlaceholder: 'Selecciona...',
+        // inputPlaceholder: 'Selecciona...',
         allowOutsideClick: false,
         allowEscapeKey: false,
         showCancelButton: true,
@@ -52,6 +54,9 @@ function selectSchool() {
                 .then(() => setTimeout(location.reload(), 2000))
         }
     });
+
+    const element = document.getElementsByClassName('swal2-select');
+    element.style.removeProperty("display");
 }
 
 const getInfoCampus = async () => {

@@ -72,11 +72,11 @@
 
                         <div class="col-12 mt-1">
                             <a v-if="export_pdf" :href="export_pdf" target="_blank"
-                                class="badge badge-info btn btn-sm me-1">
+                                class="badge badge-info btn btn-sm me-1" @click="exportFile($event)">
                                 <i class="far fa-file-pdf fa-lg"></i>PDF
                             </a>
                             <a v-if="export_excel" :href="export_excel" target="_blank"
-                                class="badge badge-info btn btn-sm me-1">
+                                class="badge badge-info btn btn-sm me-1" @click="exportFile($event)">
                                 <i class="far fa-file-excel fa-lg"></i>EXCEL
                             </a>
                         </div>
@@ -245,6 +245,7 @@ const {
     cancelEdition,
     handleSelectChange,
     saveField,
+    exportFile,
     isLoading,
     player_count,
     selected_group,

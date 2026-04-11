@@ -199,6 +199,35 @@ export default function useMonthlyPayments() {
         }
     }
 
+    const exportFile = async (event) => {
+        event.preventDefault()
+        const link = event.currentTarget
+        // console.log(link.href)
+        Swal.fire({
+            title: 'Exportar pagos',
+            icon: 'info',
+            input: 'select',
+            inputLabel: 'Estado de la mensualidad',
+            inputOptions: {
+                null: 'Todos',
+                '2': 'Debe',
+            },
+            inputValidator: function (value) {
+                return new Promise(function (resolve) {
+                    if (value !== '') {
+                        resolve()
+                    } else {
+                        resolve('Necesitas Seleccionar Uno.')
+                    }
+                })
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.open(link.href + `&status=${result.value}`, '_blank')
+            }
+        })
+    }
+
     onMounted(() => {
         usePageTitle('Mensualidades')
     })
@@ -263,6 +292,7 @@ export default function useMonthlyPayments() {
         cancelEdition,
         handleSelectChange,
         saveField,
+        exportFile,
         isLoading,
         player_count,
         selected_group,
