@@ -54,9 +54,6 @@ function selectSchool() {
                 .then(() => setTimeout(location.reload(), 2000))
         }
     });
-
-    const element = document.getElementsByClassName('swal2-select');
-    element.style.removeProperty("display");
 }
 
 const getInfoCampus = async () => {

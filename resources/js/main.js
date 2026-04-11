@@ -50,6 +50,10 @@ const options = {
     confirmButtonColor: '#4361ee',
     cancelButtonColor: '#ff7674',
     cancelButtonText: 'Cancelar',
+    didOpen: () => {
+        const content = Swal.getInput();
+        content.style.display = ''
+    }
 };
 
 DataTable.use(DataTablesCore);

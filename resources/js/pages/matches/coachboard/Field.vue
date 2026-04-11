@@ -1,37 +1,91 @@
 <template>
+    <section class="field-card">
+        <header class="field-head">
+            <div>
+                <div class="section-kicker">Visualizador táctico</div>
+                <h3 class="field-title">Cancha interactiva</h3>
+                <p class="field-copy">
+                    Arrastra jugadores desde la plantilla, reajusta posiciones en el campo y guarda la alineación como imagen.
+                </p>
+            </div>
+
+            <div class="field-stats">
+                <article class="stat-chip">
+                    <span>Formación</span>
+                    <strong>{{ formation }}</strong>
+                </article>
+                <article class="stat-chip">
+                    <span>Titulares</span>
+                    <strong>{{ assignedCount }}/{{ playerCount }}</strong>
+                </article>
+                <article class="stat-chip">
+                    <span>Libres</span>
+                    <strong>{{ openSlots }}</strong>
+                </article>
+            </div>
+        </header>
+
+        <div class="field-toolbar no-print">
+            <div class="hint-pill">{{ canvasStatus }}</div>
+            <div class="toolbar-actions">
+                <button @click="resetToDefault" class="btn btn-secondary btn-sm" type="button">
+                    Reiniciar
+                </button>
+                <button @click="saveCanvasImage" class="btn btn-success btn-sm" type="button">
+                    PNG
+                </button>
+            </div>
+        </div>
 
         <div class="field-wrapper">
-            <canvas ref="canvas" @dblclick="onDblClick" @drop.prevent="onDrop"></canvas>
+            <div class="field-overlay">
+                <div class="overlay-label">{{ formation }}</div>
+                <div class="overlay-subtitle">Sistema activo</div>
+            </div>
+
+            <canvas
+                ref="canvas"
+                @dblclick="onDblClick"
+                @drop.prevent="onDrop"
+                @pointerdown="onCanvasPointerDown"
+                @pointermove="onCanvasPointerMove"
+                @pointerup="onCanvasPointerUp"
+                @pointerleave="onCanvasPointerUp"
+            ></canvas>
         </div>
 
-        <!-- Botones de control -->
-        <div class="mt-3 d-flex gap-2 no-print">
-            <button @click="resetToDefault" class="btn btn-secondary">
-                Reiniciar
-            </button>
-            <button @click="exportLayout" class="btn btn-info">
-                Guardar JSON
-            </button>
-            <button @click="exportToPDF" class="btn btn-success">
-                Exportar PDF
-            </button>
-            <input type="file" @change="importLayoutFile" accept=".json" style="display: none;" ref="fileInput">
+        <div class="legend-row">
+            <div class="legend-list">
+                <span class="legend-item">
+                    <i class="legend-dot defense"></i>
+                    Defensa
+                </span>
+                <span class="legend-item">
+                    <i class="legend-dot midfield"></i>
+                    Medio campo
+                </span>
+                <span class="legend-item">
+                    <i class="legend-dot attack"></i>
+                    Ataque
+                </span>
+            </div>
         </div>
+    </section>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
-import api from '@/utils/axios'
 
 const props = defineProps({
     formation: { type: String, required: true },
     formationsMap: { type: Object, required: true },
     playersField: { type: Array, required: true },
+    availablePlayers: { type: Array, default: () => [] },
     playerCount: { type: Number, default: 11 }, // Nuevo prop para número de jugadores
     includeGoalkeeper: { type: Boolean, default: true } // Si incluye portero o no
 })
 
-const emits = defineEmits(['assign-player', 'unassign-player', 'update-positions', 'layout-saved', 'layout-loaded'])
+const emits = defineEmits(['assign-player', 'unassign-player', 'reset-lineup', 'update-positions'])
 
 const canvas = ref(null)
 let ctx = null
@@ -40,6 +94,13 @@ fieldImg.src = '/img/field-vertical.webp'
 
 const canvasWidth = ref(0)
 const canvasHeight = ref(0)
+const hoveredKey = ref(null)
+const canvasStatus = ref('Arrastra jugadores al campo o mueve un titular dentro de la cancha.')
+
+const assignedCount = computed(() =>
+    posKeys.value.reduce((total, key) => total + (positions.value[key]?.assigned ? 1 : 0), 0)
+)
+const openSlots = computed(() => Math.max(props.playerCount - assignedCount.value, 0))
 
 // POSICIONES DINÁMICAS según el número de jugadores
 const posKeys = computed(() => {
@@ -395,6 +456,17 @@ function findNearestPosition(x, y, radius = 40) {
     return best
 }
 
+function toCanvasPoint(e) {
+    const rect = canvas.value.getBoundingClientRect()
+    const scaleX = canvasWidth.value / rect.width
+    const scaleY = canvasHeight.value / rect.height
+
+    return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+    }
+}
+
 // asignar jugador a posKey
 function assignPlayerToPos(playerObj, posKey) {
     if (!playerObj || !posKey) return
@@ -413,8 +485,15 @@ function assignPlayerToPos(playerObj, posKey) {
         emits('unassign-player', { player: prev, posKey })
     }
 
+    const playerData = playerObj.player || playerObj
     const clone = {
         ...playerObj,
+        player: playerData,
+        id: playerData.id ?? playerObj.id ?? playerObj.inscription_id,
+        inscription_id: playerObj.inscription_id ?? null,
+        unique_code: playerData.unique_code ?? playerObj.unique_code ?? null,
+        name: playerObj.name || playerData.full_names || `${playerData.last_names || ''} ${playerData.names || ''}`.trim(),
+        img: playerObj.img || playerData.photo_url_public || playerData.photo_url || playerData.photo_local || null,
         imgLoading: false, // Bandera para controlar carga de imagen
         position: positionRole
     }
@@ -449,6 +528,7 @@ function assignPlayerToPos(playerObj, posKey) {
 
     positions.value[posKey].assigned = clone
     emits('assign-player', { player: clone, posKey })
+    emits('update-positions', getPositionsSnapshot())
     drawField()
 }
 
@@ -469,17 +549,16 @@ function onDrop(e) {
 
     try {
         const player = JSON.parse(raw)
-        const rect = canvas.value.getBoundingClientRect()
-        const scaleX = canvasWidth.value / rect.width
-        const scaleY = canvasHeight.value / rect.height
-        const x = (e.clientX - rect.left) * scaleX
-        const y = (e.clientY - rect.top) * scaleY
+        const { x, y } = toCanvasPoint(e)
 
         // Encontrar la posición más cercana con radio más pequeño para mayor precisión
         const nearest = findNearestPosition(x, y, 40) // Reducir el radio para más precisión
 
         if (nearest) {
             assignPlayerToPos(player, nearest)
+            canvasStatus.value = `${player.name} asignado a ${positions.value[nearest].specificRole || nearest}.`
+        } else {
+            canvasStatus.value = 'Suelta el jugador cerca de un punto táctico para asignarlo.'
         }
     } catch (error) {
         console.error('Error processing drop:', error)
@@ -488,11 +567,7 @@ function onDrop(e) {
 
 // DnD interno: mover jugador en el canvas
 function startDrag(e) {
-    const rect = canvas.value.getBoundingClientRect()
-    const scaleX = canvasWidth.value / rect.width
-    const scaleY = canvasHeight.value / rect.height
-    const x = (e.clientX - rect.left) * scaleX
-    const y = (e.clientY - rect.top) * scaleY
+    const { x, y } = toCanvasPoint(e)
 
     for (const k of posKeys.value) {
         // No permitir arrastrar portero si está incluido
@@ -502,8 +577,10 @@ function startDrag(e) {
         if (p.assigned && Math.hypot(p.x - x, p.y - y) <= 24) {
             dragging = true
             dragKey = k
+            hoveredKey.value = k
             dragOffsetX = x - p.x
             dragOffsetY = y - p.y
+            canvasStatus.value = `Moviendo a ${p.assigned.name}.`
             return
         }
     }
@@ -514,33 +591,95 @@ function onDrag(e) {
     // No permitir mover al portero si está incluido
     if (props.includeGoalkeeper && dragKey === 'GK') return
 
-    const rect = canvas.value.getBoundingClientRect()
-    const scaleX = canvasWidth.value / rect.width
-    const scaleY = canvasHeight.value / rect.height
-    const x = (e.clientX - rect.left) * scaleX
-    const y = (e.clientY - rect.top) * scaleY
+    const { x, y } = toCanvasPoint(e)
     positions.value[dragKey].x = x - dragOffsetX
     positions.value[dragKey].y = y - dragOffsetY
     drawField()
 }
 
-function endDrag() {
+function releaseAssignedPlayer(posKey, statusMessage = null) {
+    const prev = positions.value[posKey]?.assigned
+    if (!prev) return false
+
+    positions.value[posKey].assigned = null
+    emits('unassign-player', { player: prev, posKey })
+    emits('update-positions', getPositionsSnapshot())
+
+    if (statusMessage) {
+        canvasStatus.value = statusMessage
+    }
+
+    drawField()
+    return true
+}
+
+function endDrag(e = null) {
     if (dragging && dragKey) {
+        const droppedInPlayerList = e?.clientX != null && e?.clientY != null
+            ? document.elementFromPoint(e.clientX, e.clientY)?.closest('.player-panel, .player-list')
+            : null
+
+        if (droppedInPlayerList) {
+            const playerName = positions.value[dragKey].assigned?.name
+            releaseAssignedPlayer(dragKey, `${playerName} regresó a la plantilla disponible.`)
+            dragging = false
+            dragKey = null
+            hoveredKey.value = null
+            return
+        }
+
         // Actualizar el rol específico de la posición movida
         positions.value[dragKey].specificRole = getSpecificRole(positions.value[dragKey]);
+        const playerName = positions.value[dragKey].assigned?.name
         emits('update-positions', getPositionsSnapshot())
+        if (playerName) {
+            canvasStatus.value = `${playerName} reubicado en ${positions.value[dragKey].specificRole}.`
+        }
     }
     dragging = false
     dragKey = null
 }
 
+function onCanvasPointerDown(e) {
+    if (!canvas.value) return
+    canvas.value.setPointerCapture?.(e.pointerId)
+    startDrag(e)
+}
+
+function onCanvasPointerMove(e) {
+    if (!canvas.value) return
+    const { x, y } = toCanvasPoint(e)
+
+    if (dragging) {
+        onDrag(e)
+        return
+    }
+
+    const nearest = findNearestPosition(x, y, 36)
+    hoveredKey.value = nearest
+
+    if (nearest && positions.value[nearest]?.assigned) {
+        const position = positions.value[nearest]
+        canvasStatus.value = `${position.assigned.name} | ${position.specificRole || nearest}`
+    } else if (nearest) {
+        canvasStatus.value = `${positions.value[nearest]?.specificRole || nearest} disponible para asignación.`
+    } else {
+        canvasStatus.value = 'Arrastra jugadores al campo o mueve un titular dentro de la cancha.'
+    }
+
+    drawField()
+}
+
+function onCanvasPointerUp(e) {
+    if (dragging) {
+        endDrag(e)
+    }
+    canvas.value?.releasePointerCapture?.(e.pointerId)
+}
+
 // doble click para desasignar
 function onDblClick(e) {
-    const rect = canvas.value.getBoundingClientRect()
-    const scaleX = canvasWidth.value / rect.width
-    const scaleY = canvasHeight.value / rect.height
-    const x = (e.clientX - rect.left) * scaleX
-    const y = (e.clientY - rect.top) * scaleY
+    const { x, y } = toCanvasPoint(e)
 
     // drawDebugPoint(x, y, 'red')
 
@@ -550,11 +689,7 @@ function onDblClick(e) {
     if (!nearest) return
 
     const prev = positions.value[nearest].assigned
-    if (prev) {
-        positions.value[nearest].assigned = null
-        emits('unassign-player', { player: prev, posKey: nearest })
-        drawField()
-    }
+    if (prev) releaseAssignedPlayer(nearest, `${prev.name} regresó a la lista de disponibles.`)
 }
 
 function drawDebugPoint(x, y, color = 'red') {
@@ -567,10 +702,94 @@ function drawDebugPoint(x, y, color = 'red') {
     ctx.restore()
 }
 
+function getMarkerPalette(type) {
+    switch (type) {
+        case 'defense':
+            return {
+                fill: '#8fd3ff',
+                stroke: '#0c5a82',
+                glow: 'rgba(90, 193, 255, 0.38)'
+            }
+        case 'mid-defensive':
+        case 'mid-offensive':
+        case 'midfield':
+            return {
+                fill: '#f7df7c',
+                stroke: '#9b7525',
+                glow: 'rgba(247, 223, 124, 0.35)'
+            }
+        case 'attack':
+            return {
+                fill: '#ff8f8f',
+                stroke: '#9b1f2d',
+                glow: 'rgba(255, 120, 120, 0.35)'
+            }
+        default:
+            return {
+                fill: '#d8dde5',
+                stroke: '#576475',
+                glow: 'rgba(129, 145, 166, 0.25)'
+            }
+    }
+}
+
+function drawBackgroundOverlay() {
+    ctx.save()
+
+    const topShade = ctx.createLinearGradient(0, 0, 0, canvasHeight.value * 0.25)
+    topShade.addColorStop(0, 'rgba(0, 0, 0, 0.22)')
+    topShade.addColorStop(1, 'rgba(0, 0, 0, 0)')
+    ctx.fillStyle = topShade
+    ctx.fillRect(0, 0, canvasWidth.value, canvasHeight.value * 0.25)
+
+    const bottomShade = ctx.createLinearGradient(0, canvasHeight.value, 0, canvasHeight.value * 0.76)
+    bottomShade.addColorStop(0, 'rgba(0, 0, 0, 0.26)')
+    bottomShade.addColorStop(1, 'rgba(0, 0, 0, 0)')
+    ctx.fillStyle = bottomShade
+    ctx.fillRect(0, canvasHeight.value * 0.76, canvasWidth.value, canvasHeight.value * 0.24)
+
+    ctx.restore()
+}
+
+function drawPositionNode(p, palette, isHovered) {
+    const radius = isHovered ? 34 : 30
+
+    ctx.save()
+    ctx.shadowColor = palette.glow
+    ctx.shadowBlur = isHovered ? 26 : 16
+    ctx.shadowOffsetX = 0
+    ctx.shadowOffsetY = 8
+
+    const gradient = ctx.createRadialGradient(p.x - 8, p.y - 10, 8, p.x, p.y, radius)
+    gradient.addColorStop(0, '#ffffff')
+    gradient.addColorStop(0.2, palette.fill)
+    gradient.addColorStop(1, palette.stroke)
+
+    ctx.beginPath()
+    ctx.fillStyle = gradient
+    ctx.strokeStyle = '#ffffff'
+    ctx.lineWidth = isHovered ? 3 : 2
+    ctx.arc(p.x, p.y, radius, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.stroke()
+    ctx.restore()
+
+    if (isHovered) {
+        ctx.save()
+        ctx.beginPath()
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)'
+        ctx.lineWidth = 2
+        ctx.arc(p.x, p.y, radius + 7, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.restore()
+    }
+}
+
 // dibujo del campo y jugadores
 function drawField() {
     if (!canvas.value) return
     if (!ctx) ctx = canvas.value.getContext('2d')
+    ctx.imageSmoothingEnabled = true
     ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value)
 
     if (fieldImg.complete) {
@@ -581,38 +800,14 @@ function drawField() {
         ctx.fillRect(0, 0, canvasWidth.value, canvasHeight.value)
     }
 
+    drawBackgroundOverlay()
+
     for (const k of posKeys.value) {
         const p = positions.value[k]
+        const palette = getMarkerPalette(p.type)
+        const isHovered = hoveredKey.value === k || dragKey === k
 
-        // Color del marcador basado en el tipo de posición
-        let circleColor = '#cccccc'
-        let strokeColor = '#666666'
-
-        switch (p.type) {
-            case 'defense':
-                circleColor = '#a8d5e5' // Azul claro para defensas
-                strokeColor = '#2c6f8a'
-                break;
-            case 'mid-defensive':
-            case 'mid-offensive':
-            case 'midfield':
-                circleColor = '#f0e6a8' // Amarillo claro para medios
-                strokeColor = '#b3a44e'
-                break;
-            case 'attack':
-                circleColor = '#f5a8a8' // Rojo claro para delanteros
-                strokeColor = '#a84e4e'
-                break;
-        }
-
-        // Círculo base con color según el tipo
-        ctx.beginPath()
-        ctx.fillStyle = circleColor
-        ctx.strokeStyle = strokeColor
-        ctx.lineWidth = 2
-        ctx.arc(p.x, p.y, 30, 0, Math.PI * 2)
-        ctx.fill()
-        ctx.stroke()
+        drawPositionNode(p, palette, isHovered)
 
         // Jugador o placeholder
         if (p.assigned) {
@@ -632,7 +827,7 @@ function drawField() {
                 } catch (error) {
                     console.error('Error dibujando imagen:', error)
                     // Fallback: dibujar marcador por defecto
-                    drawDefaultMarker(p.x, p.y, p.assigned.name, circleColor, strokeColor)
+                    drawDefaultMarker(p.x, p.y, p.assigned.name, palette)
                 }
             } else if (p.assigned.img) {
                 // Si hay URL de imagen pero no está cargada, cargarla
@@ -653,133 +848,87 @@ function drawField() {
                     img.src = p.assigned.img
                 }
                 // Mientras carga, dibujar marcador temporal
-                drawDefaultMarker(p.x, p.y, p.assigned.name, circleColor, strokeColor)
+                drawDefaultMarker(p.x, p.y, p.assigned.name, palette)
             } else {
                 // Sin imagen, usar marcador por defecto
-                drawDefaultMarker(p.x, p.y, p.assigned.name, circleColor, strokeColor)
+                drawDefaultMarker(p.x, p.y, p.assigned.name, palette)
             }
 
             // Dibujar nombre en todos los casos
-            drawPlayerName(p.x, p.y, p.assigned.name);
+            drawPlayerName(p.x, p.y, p.assigned.name, p.specificRole);
         } else {
             // Marcador por defecto con clave corta
-            drawDefaultMarker(p.x, p.y, k, circleColor, strokeColor)
+            drawDefaultMarker(p.x, p.y, p.specificRole || k, palette)
         }
     }
 }
 
-function drawDefaultMarker(x, y, label, circleColor = '#cccccc', strokeColor = '#666666') {
-    ctx.beginPath()
-    ctx.fillStyle = circleColor
-    ctx.strokeStyle = strokeColor
-    ctx.lineWidth = 2
-    ctx.arc(x, y, 30, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.stroke()
-    ctx.fillStyle = '#222'
-    ctx.font = 'bold 16px sans-serif' // Reducir tamaño de fuente
+function drawDefaultMarker(x, y, label, palette) {
+    ctx.fillStyle = '#0b1d17'
+    ctx.font = '700 13px "Trebuchet MS", Arial, sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
 
     // Acortar label más agresivamente para evitar desbordamiento
     let shortLabel = label
-    if (label.length > 6) {
-        shortLabel = label.substring(0, 4) + '...'
+    if (label.length > 10) {
+        shortLabel = label.substring(0, 8) + '…'
     }
     ctx.fillText(shortLabel, x, y)
 }
 
 function drawPlayerName(x, y, name, specificRole = null) {
-    const shortText = name.length > 12 ? name.substring(0, 10) + '...' : name
-    ctx.font = 'bold 13px "Arial Black", Arial, sans-serif'
+    const shortText = name.length > 14 ? name.substring(0, 12) + '…' : name
+    const roleText = specificRole && specificRole !== 'Jugador' ? specificRole : ''
+    ctx.font = '700 13px "Trebuchet MS", Arial, sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
 
     const textWidth = ctx.measureText(shortText).width
+    const roleWidth = roleText ? ctx.measureText(roleText).width : 0
     const padding = 12
-    const totalWidth = Math.max(textWidth + padding * 2, 80) // Ancho mínimo
-    const totalHeight = 26
+    const totalWidth = Math.max(textWidth + padding * 2, roleText ? roleWidth + 24 : 90)
+    const totalHeight = roleText ? 42 : 28
 
     // Posicionar en la parte INFERIOR centrado
     const badgeX = x - totalWidth / 2
     const badgeY = y + 38
 
-    // Efectos de sombra y gradiente
     ctx.save()
-
-    // Sombra exterior
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.4)'
-    ctx.shadowBlur = 6
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.28)'
+    ctx.shadowBlur = 10
     ctx.shadowOffsetX = 0
-    ctx.shadowOffsetY = 2
-
-    // Gradiente principal del badge
+    ctx.shadowOffsetY = 4
     const gradient = ctx.createLinearGradient(badgeX, badgeY, badgeX, badgeY + totalHeight)
-    gradient.addColorStop(0, '#e74c3c')
-    gradient.addColorStop(0.4, '#c0392b')
-    gradient.addColorStop(0.6, '#a53125')
-    gradient.addColorStop(1, '#e74c3c')
+    gradient.addColorStop(0, 'rgba(12, 28, 22, 0.9)')
+    gradient.addColorStop(1, 'rgba(7, 18, 14, 0.94)')
 
-    // Badge con bordes redondeados
     roundRect(ctx, badgeX, badgeY, totalWidth, totalHeight, 15)
     ctx.fillStyle = gradient
     ctx.fill()
-
-    // Resaltar borde superior
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'
-    ctx.lineWidth = 1
-    ctx.beginPath()
-    ctx.moveTo(badgeX + 5, badgeY + 1)
-    ctx.lineTo(badgeX + totalWidth - 5, badgeY + 1)
-    ctx.stroke()
-
     ctx.restore()
 
-    // Borde exterior blanco
-    ctx.strokeStyle = '#fff'
-    ctx.lineWidth = 2
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)'
+    ctx.lineWidth = 1.6
     roundRect(ctx, badgeX, badgeY, totalWidth, totalHeight, 15)
     ctx.stroke()
 
-    // Efecto de costura o patrón deportivo (opcional)
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)'
-    ctx.lineWidth = 1
-    ctx.setLineDash([1, 2])
-    ctx.beginPath()
-    ctx.moveTo(badgeX + 8, badgeY + totalHeight / 2)
-    ctx.lineTo(badgeX + totalWidth - 8, badgeY + totalHeight / 2)
-    ctx.stroke()
-    ctx.setLineDash([])
-
-    // Texto con efecto de relieve
-    ctx.save()
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)'
-    ctx.shadowBlur = 3
-    ctx.shadowOffsetX = 1
-    ctx.shadowOffsetY = 1
-
     ctx.fillStyle = 'white'
-    ctx.fillText(shortText, x, badgeY + totalHeight / 2 + 1)
-    ctx.restore()
+    ctx.font = '700 13px "Trebuchet MS", Arial, sans-serif'
+    ctx.fillText(shortText, x, badgeY + (roleText ? 13 : totalHeight / 2))
 
-    // Conector sólido en lugar de punteado
-    ctx.strokeStyle = 'rgba(231, 76, 60, 0.8)'
-    ctx.lineWidth = 2
+    if (roleText) {
+        ctx.fillStyle = 'rgba(194, 231, 212, 0.9)'
+        ctx.font = '600 10px "Trebuchet MS", Arial, sans-serif'
+        ctx.fillText(roleText, x, badgeY + 29)
+    }
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)'
+    ctx.lineWidth = 1.5
     ctx.beginPath()
     ctx.moveTo(x, y + 30)
     ctx.lineTo(x, badgeY)
     ctx.stroke()
-
-    // Punto de conexión en el marcador
-    ctx.fillStyle = '#e74c3c'
-    ctx.beginPath()
-    ctx.arc(x, y + 30, 3, 0, Math.PI * 2)
-    ctx.fill()
-
-    // Punto de conexión en el badge
-    ctx.beginPath()
-    ctx.arc(x, badgeY, 3, 0, Math.PI * 2)
-    ctx.fill()
 }
 
 // Función auxiliar mejorada para bordes redondeados
@@ -827,96 +976,24 @@ function getPositionsSnapshot() {
     }
 }
 
-function exportLayout() {
-    // const data = JSON.stringify(getPositionsSnapshot(), null, 2)
-    // console.log(data)
-    // const blob = new Blob([data], { type: 'application/json' })
-    // const url = URL.createObjectURL(blob)
-    // const a = document.createElement('a')
-    // a.href = url
-    // a.download = 'layout.json'
-    // a.click()
-    // URL.revokeObjectURL(url)
-    emits('layout-saved', getPositionsSnapshot())
-}
-
-function importLayoutFile(e) {
-    const file = e.target.files[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => {
-        try {
-            const obj = JSON.parse(reader.result)
-            loadLayout(obj)
-            emits('layout-loaded', obj)
-        } catch (err) {
-            console.error('JSON inválido', err)
-        }
-    }
-    reader.readAsText(file)
-}
-
-function loadLayout(obj) {
-    if (!obj || !obj.positions) return
-
-    if (obj.canvasWidth && obj.canvasHeight) {
-        canvasWidth.value = obj.canvasWidth
-        canvasHeight.value = obj.canvasHeight
-        canvas.value.width = canvasWidth.value
-        canvas.value.height = canvasHeight.value
-    }
-
-    // Primero, limpiar todas las asignaciones existentes
-    for (const k of posKeys.value) {
-        positions.value[k].assigned = null
-    }
-
-    // Luego, asignar los jugadores del layout
-    for (const k in obj.positions) {
-        if (positions.value[k]) {
-            const s = obj.positions[k]
-            positions.value[k] = {
-                ...positions.value[k],
-                x: s.x,
-                y: s.y,
-                type: s.type || 'midfield',
-                line: s.line || 0,
-                order: s.order || 0,
-                key: s.key || k,
-                specificRole: s.specificRole || getSpecificRole({...s, key: k})
-            }
-
-            if (s.assigned) {
-                // Buscar el jugador en la lista actual de jugadores
-                const p = props.playersField.find(pp => pp.id === s.assigned.id)
-                if (p) {
-                    positions.value[k].assigned = { ...p  }
-                    if (p.img) {
-                        const img = new Image()
-                        img.src = p.img
-                        img.onload = () => {
-                            positions.value[k].assigned.imgObj = img
-                            drawField()
-                        }
-                    }
-                } else {
-                    // Si no se encuentra en la lista actual, usar los datos del layout
-                    positions.value[k].assigned = { ...s.assigned, imgObj: null }
-                }
-            }
-        }
-    }
-
-    // Actualizar roles por si acaso
-    updateSpecificRoles();
-
-    drawField()
-}
-
 // reset default
 function resetToDefault() {
-    for (const k of posKeys.value) positions.value[k].assigned = null
+    let hadAssignedPlayers = false
+
+    for (const k of posKeys.value) {
+        if (positions.value[k]?.assigned) {
+            hadAssignedPlayers = true
+            positions.value[k].assigned = null
+        }
+    }
+
+    if (hadAssignedPlayers) {
+        emits('reset-lineup')
+    }
+
     applyFormation(props.formation)
+    hoveredKey.value = null
+    canvasStatus.value = 'Cancha reiniciada a la distribución base.'
     drawField()
 }
 
@@ -924,62 +1001,140 @@ function resetToDefault() {
 function getCanvasImage(format = 'png', quality = 0.9) {
     if (!canvas.value) return null;
 
+    const exportCanvas = buildExportCanvas()
+    if (!exportCanvas) return null;
+
     // Convertir canvas a imagen base64
-    const dataUrl = canvas.value.toDataURL(`image/${format}`, quality);
+    const dataUrl = exportCanvas.toDataURL(`image/${format}`, quality);
     return {
         base64: dataUrl,
         format: format,
-        width: canvasWidth.value,
-        height: canvasHeight.value
+        width: exportCanvas.width,
+        height: exportCanvas.height
     };
 }
 
-async function exportToPDF() {
-    try {
-        // Extraer imagen del canvas
-        const canvasImage = getCanvasImage();
-        if (!canvasImage) {
-            throw new Error('No se pudo capturar la imagen del canvas');
-        }
+function buildExportCanvas() {
+    if (!canvas.value) return null
 
-        // Preparar datos de la formación
-        const formationData = getPositionsSnapshot();
+    const roster = [...props.availablePlayers]
+        .filter(player => player?.name)
+        .sort((left, right) => left.name.localeCompare(right.name, 'es', { sensitivity: 'base' }))
 
-        // Agregar la imagen al snapshot
-        const dataToSend = {
-            ...formationData,
-            canvasImage: canvasImage.base64,
-            // También podemos incluir información adicional
-            metadata: {
-                title: `Formación ${props.formation}`,
-                date: new Date().toISOString(),
-                playerCount: props.playerCount,
-                includeGoalkeeper: props.includeGoalkeeper
-            }
-        };
+    const width = canvasWidth.value
+    const baseHeight = canvasHeight.value
+    const sectionGap = 24
+    const paddingX = 42
+    const paddingY = 32
+    const columnGap = 20
+    const columns = roster.length > 8 ? 3 : 2
+    const cardHeight = 34
+    const rowGap = 12
+    const headerHeight = 56
+    const emptyHeight = 56
+    const rows = Math.max(Math.ceil(roster.length / columns), 1)
+    const rosterHeight = headerHeight + paddingY + (roster.length ? rows * cardHeight + (rows - 1) * rowGap : emptyHeight)
+    const exportCanvas = document.createElement('canvas')
+    exportCanvas.width = width
+    exportCanvas.height = baseHeight + sectionGap + rosterHeight
 
-        // Opción 1: Enviar como JSON directamente
-        const response = await api.post('/api/v2/formation/pdf/generate', dataToSend);
+    const exportCtx = exportCanvas.getContext('2d')
+    exportCtx.imageSmoothingEnabled = true
+    exportCtx.drawImage(canvas.value, 0, 0)
 
-        if (!response.ok) {
-            throw new Error(`Error del servidor: ${response.status}`);
-        }
+    const sectionY = baseHeight + sectionGap
+    const sectionHeight = exportCanvas.height - sectionY
+    const panelGradient = exportCtx.createLinearGradient(0, sectionY, 0, exportCanvas.height)
+    panelGradient.addColorStop(0, '#0d1f18')
+    panelGradient.addColorStop(1, '#10281f')
+    exportCtx.fillStyle = panelGradient
+    exportCtx.fillRect(0, sectionY, width, sectionHeight)
 
-        // Descargar PDF
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `formacion_${props.formation}_${new Date().toISOString().slice(0,10)}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+    exportCtx.strokeStyle = 'rgba(255, 255, 255, 0.12)'
+    exportCtx.lineWidth = 1
+    exportCtx.beginPath()
+    exportCtx.moveTo(paddingX, sectionY)
+    exportCtx.lineTo(width - paddingX, sectionY)
+    exportCtx.stroke()
 
-    } catch (error) {
-        console.error('Error generando PDF:', error);
-        alert('Error al generar el PDF. Por favor, intente nuevamente.');
+    exportCtx.fillStyle = 'rgba(194, 231, 212, 0.85)'
+    exportCtx.font = '800 24px "Trebuchet MS", Arial, sans-serif'
+    exportCtx.textAlign = 'left'
+    exportCtx.textBaseline = 'alphabetic'
+    exportCtx.fillText('Convocatoria', paddingX, sectionY + 36)
+
+    if (!roster.length) {
+        drawExportEmptyState(exportCtx, {
+            x: paddingX,
+            y: sectionY + headerHeight,
+            width: width - paddingX * 2,
+            height: emptyHeight
+        })
+        return exportCanvas
     }
+
+    const cardWidth = (width - paddingX * 2 - columnGap * (columns - 1)) / columns
+    roster.forEach((player, index) => {
+        const column = index % columns
+        const row = Math.floor(index / columns)
+        const x = paddingX + column * (cardWidth + columnGap)
+        const y = sectionY + headerHeight + row * (cardHeight + rowGap)
+
+        drawExportRosterCard(exportCtx, {
+            x,
+            y,
+            width: cardWidth,
+            height: cardHeight,
+            name: player.name
+        })
+    })
+
+    return exportCanvas
+}
+
+function drawExportEmptyState(exportCtx, box) {
+    exportCtx.fillStyle = 'rgba(255, 255, 255, 0.06)'
+    roundRect(exportCtx, box.x, box.y, box.width, box.height, 16)
+    exportCtx.fill()
+
+    exportCtx.strokeStyle = 'rgba(255, 255, 255, 0.12)'
+    exportCtx.lineWidth = 1
+    roundRect(exportCtx, box.x, box.y, box.width, box.height, 16)
+    exportCtx.stroke()
+
+    exportCtx.fillStyle = 'rgba(235, 243, 239, 0.92)'
+    exportCtx.font = '600 15px "Trebuchet MS", Arial, sans-serif'
+    exportCtx.textAlign = 'center'
+    exportCtx.fillText('No hay jugadores disponibles fuera de la cancha.', box.x + box.width / 2, box.y + 36)
+}
+
+function drawExportRosterCard(exportCtx, card) {
+    exportCtx.fillStyle = 'rgba(255, 255, 255, 0.06)'
+    roundRect(exportCtx, card.x, card.y, card.width, card.height, 14)
+    exportCtx.fill()
+
+    exportCtx.strokeStyle = 'rgba(255, 255, 255, 0.12)'
+    exportCtx.lineWidth = 1
+    roundRect(exportCtx, card.x, card.y, card.width, card.height, 14)
+    exportCtx.stroke()
+
+    exportCtx.fillStyle = '#ffffff'
+    exportCtx.font = '700 14px "Trebuchet MS", Arial, sans-serif'
+    const nameX = card.x + 14
+    const maxNameWidth = card.width - 28
+    exportCtx.fillText(truncateText(exportCtx, card.name, maxNameWidth), nameX, card.y + 22)
+}
+
+function truncateText(exportCtx, text, maxWidth) {
+    if (!text) return ''
+    if (exportCtx.measureText(text).width <= maxWidth) return text
+
+    let truncated = text
+    while (truncated.length > 0 && exportCtx.measureText(`${truncated}…`).width > maxWidth) {
+        truncated = truncated.slice(0, -1)
+    }
+
+    return `${truncated}…`
 }
 
 // Función para guardar solo la imagen
@@ -993,12 +1148,16 @@ function saveCanvasImage() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    canvasStatus.value = 'Imagen PNG descargada con convocatoria.'
 }
 
 // Exponer funciones a padre
-defineExpose({ exportLayout, loadLayout, applyFormation, exportToPDF,
+defineExpose({
+    applyFormation,
+    resetToDefault,
     saveCanvasImage,
-    getCanvasImage  })
+    getCanvasImage
+})
 
 // watchers
 watch(() => props.formation, (n) => {
@@ -1036,14 +1195,140 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.field-card {
+    display: grid;
+    gap: 1rem;
+    padding: 1.2rem;
+    border-radius: 26px;
+    background:
+        radial-gradient(circle at top left, rgba(50, 141, 88, 0.18), transparent 30%),
+        linear-gradient(180deg, #fdfefe 0%, #f3f7f4 100%);
+    border: 1px solid rgba(14, 58, 36, 0.12);
+    box-shadow: 0 24px 54px rgba(17, 56, 36, 0.12);
+}
+
+.field-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.section-kicker {
+    color: #4d7b63;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.field-title {
+    margin: 0.25rem 0 0;
+    color: #123524;
+    font-size: 1.3rem;
+    font-weight: 800;
+}
+
+.field-copy {
+    margin: 0.5rem 0 0;
+    max-width: 62ch;
+    color: #607567;
+    line-height: 1.5;
+}
+
+.field-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(88px, 1fr));
+    gap: 0.75rem;
+}
+
+.stat-chip {
+    padding: 0.8rem 0.9rem;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(16, 63, 40, 0.1);
+    min-width: 96px;
+}
+
+.stat-chip span {
+    display: block;
+    color: #6b7e73;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.stat-chip strong {
+    color: #173e2b;
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.field-toolbar {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.hint-pill {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 40px;
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(9, 29, 19, 0.88);
+    color: #eef8f1;
+    font-size: 0.9rem;
+    line-height: 1.25;
+}
+
+.toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    width: 100%;
+}
+
 .field-wrapper {
     width: 100%;
-    max-width: 800px;
-    /* Limitar el ancho máximo */
+    max-width: 860px;
     margin: 0 auto;
-    /* Centrar */
-    /* Quitamos el padding-bottom y la posición relativa */
     position: relative;
+    overflow: hidden;
+    border-radius: 26px;
+    box-shadow: 0 28px 52px rgba(8, 24, 16, 0.24);
+    background: #102418;
+}
+
+.field-overlay {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.overlay-label {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(6, 19, 13, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.overlay-subtitle {
+    margin-top: 0.45rem;
+    color: rgba(255, 255, 255, 0.84);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
 canvas {
@@ -1052,14 +1337,119 @@ canvas {
     height: auto;
     touch-action: none;
     -webkit-tap-highlight-color: transparent;
-    /* Quitamos la posición absoluta */
+    cursor: crosshair;
 }
 
-/* Para pantallas muy pequeñas */
-@media (max-width: 480px) {
-    .field-wrapper {
-        padding-bottom: 85%;
-        /* Un poco más alto en móviles */
+.legend-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.legend-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: #375242;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.legend-dot.defense {
+    background: #58bff4;
+}
+
+.legend-dot.midfield {
+    background: #e0b848;
+}
+
+.legend-dot.attack {
+    background: #ef6770;
+}
+
+@media (max-width: 767px) {
+    .field-stats {
+        width: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
+
+    .hint-pill {
+        width: 100%;
+    }
+}
+
+@media (max-width: 560px) {
+    .field-card {
+        padding: 1rem;
+        border-radius: 22px;
+    }
+
+    .field-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .overlay-label {
+        font-size: 0.85rem;
+    }
+}
+
+:global(.dark) .field-card {
+    background:
+        radial-gradient(circle at top left, rgba(60, 150, 108, 0.18), transparent 30%),
+        linear-gradient(180deg, #17221c 0%, #101813 100%);
+    border-color: rgba(173, 214, 189, 0.12);
+    box-shadow: 0 24px 54px rgba(0, 0, 0, 0.32);
+}
+
+:global(.dark) .section-kicker,
+:global(.dark) .field-copy,
+:global(.dark) .legend-item,
+:global(.dark) .stat-chip span {
+    color: #a7c3b3;
+}
+
+:global(.dark) .field-title,
+:global(.dark) .stat-chip strong {
+    color: #eef8f1;
+}
+
+:global(.dark) .stat-chip {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(194, 227, 209, 0.1);
+}
+
+:global(.dark) .hint-pill {
+    background: rgba(235, 244, 239, 0.1);
+    color: #edf7f1;
+    border: 1px solid rgba(199, 226, 210, 0.12);
+}
+
+:global(.dark) .field-wrapper {
+    background: #08110c;
+    box-shadow: 0 28px 52px rgba(0, 0, 0, 0.42);
+}
+
+:global(.dark) .overlay-label {
+    background: rgba(5, 13, 9, 0.8);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+:global(.dark) .overlay-subtitle {
+    color: rgba(231, 243, 236, 0.82);
 }
 </style>

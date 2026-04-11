@@ -1,16 +1,40 @@
 <template>
-    <div class="mb-3">
-        <label class="form-label">Jugadores disponibles / Suplentes</label>
-
-        <div class="d-flex gap-2 flex-wrap player-list">
-            <div v-for="p in players" :key="p.id" class="text-center" draggable="true"
-                @dragstart="onDragStart($event, p)" style="width:80px;">
-                <img :src="p.img" alt="suple" width="60" height="60" class="rounded-circle" />
-                <div class="small">{{ p.name }}</div>
+    <section class="card border-0 shadow-sm">
+        <div class="card-body p-3">
+            <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-2">
+                <div>
+                    <div class="small text-muted text-uppercase fw-semibold mb-1">Plantilla disponible</div>
+                    <h3 class="h5 mb-0">Jugadores listos para arrastrar</h3>
+                </div>
+                <span class="badge rounded-pill text-bg-dark px-3 py-2">{{ players.length }}</span>
             </div>
-            <div v-if="players.length === 0" class="text-muted small">No quedan jugadores</div>
+
+            <p class="text-muted small mb-3">
+                Arrastra cada jugador al campo para asignarlo a una posición. Doble clic sobre un titular para regresarlo.
+            </p>
+
+            <div class="row g-2 player-list">
+                <div v-for="p in players" :key="p.id" class="col-xl-6 col-md-6 col-12">
+                    <div
+                        class="player-card h-100 border rounded-3 p-2 d-flex align-items-center gap-2"
+                        draggable="true"
+                        @dragstart="onDragStart($event, p)"
+                    >
+                        <img :src="p.img" :alt="p.name" width="56" height="56" class="player-avatar" />
+                        <div class="min-w-0">
+                            <div class="small fw-semibold text-break">{{ p.name }}</div>
+                            <div class="text-muted player-hint">Arrastrar al campo</div>
+                        </div>
+                    </div>
+                </div>
+                <div v-if="players.length === 0" class="col-12">
+                    <div class="empty-state border rounded-3 p-3 text-center text-muted small">
+                        No quedan jugadores disponibles. El once ya está completo.
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+    </section>
 </template>
 
 <script setup>
@@ -27,18 +51,46 @@ function onDragStart(e, player) {
 </script>
 
 <style scoped>
-img {
-    object-fit: cover;
-}
-.player-list{
-    cursor: move; /* fallback if grab cursor is unsupported */
+.player-list {
     cursor: grab;
     cursor: -moz-grab;
     cursor: -webkit-grab;
 }
+
+.player-card {
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.player-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 28px rgba(17, 40, 63, 0.1);
+}
+
+.player-avatar {
+    object-fit: cover;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.player-hint {
+    font-size: 0.8rem;
+}
+
 .player-list:active {
     cursor: grabbing;
     cursor: -moz-grabbing;
     cursor: -webkit-grabbing;
+}
+
+:global(.dark) .player-card {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+:global(.dark) .player-card:hover {
+    box-shadow: 0 16px 28px rgba(0, 0, 0, 0.22);
+}
+
+:global(.dark) .empty-state {
+    background: rgba(255, 255, 255, 0.04);
 }
 </style>

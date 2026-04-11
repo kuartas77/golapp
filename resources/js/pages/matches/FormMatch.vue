@@ -152,357 +152,366 @@
 
                             </div>
 
-                            <div class="table-responsive no-print">
-                                <h6 class="text-center">Estadisticas por deportista</h6>
-                                <small class="text-muted text-center"></small>
-                                <table class="table table-bordered table-sm dataTable align-middle ">
-                                    <thead>
-                                        <tr>
-                                            <th class="dt-head-center" style="width: 15%;">deportista</th>
-                                            <th class="dt-head-center" style="width: 2%;" v-tooltip.top="'Asistio?'">A
-                                            </th>
-                                            <th class="dt-head-center" style="width: 2%;" v-tooltip.top="'Titular?'">T
-                                            </th>
-                                            <th class="dt-head-center" style="width: 6%;"
-                                                v-tooltip.top="'Tiempo Jugado'">
-                                                ⏱️ MIN
-                                            </th>
-                                            <th class="dt-head-center" style="width: 12%;" v-tooltip.top="''">posición
-                                            </th>
-                                            <th class="dt-head-center" style="width: 1%" v-tooltip.top="'Goles'">⚽ G
-                                            </th>
-                                            <th class="dt-head-center" style="width: 1%"
-                                                v-tooltip.top="'Asistencias de Gol'">
-                                                🎯 A.G
-                                            </th>
-                                            <th class="dt-head-center" style="width: 1%" v-tooltip.top="'Atajadas'">🧤 A
-                                            </th>
-                                            <th class="dt-head-center" style="width: 1%"
-                                                v-tooltip.top="'Tarjetas Amarillas'">
-                                                🟨 t.a
-                                            </th>
-                                            <th class="dt-head-center" style="width: 1%"
-                                                v-tooltip.top="'Tarjetas Rojas'">
-                                                🟥t.r
-                                            </th>
-                                            <th class="dt-head-center" style="width: 1%;"
-                                                v-tooltip.top="'Calificación'">
-                                                ⭐ CAL
-                                            </th>
-                                            <th class="dt-head-center" style="width: 15%;" v-tooltip.top="''">
-                                                observación</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                            <template v-if="isEdition">
 
-                                        <template v-if="skills_controls.length">
-                                            <tr v-for="(skill_control, index) in skills_controls">
-                                                <td>
-                                                    <div class="media d-md-flex d-block text-sm-start text-center">
-                                                        <div class="media-aside align-self-start avatar avatar-sm me-1">
-                                                            <img :src="skill_control.player.photo_url" alt="avatar"
-                                                                class="rounded-circle" />
-                                                        </div>
-                                                        <div class="media-body">
-                                                            <div class="d-xl-flex d-block justify-content-between">
-                                                                <div>
-                                                                    <small>{{ skill_control.player.full_names
-                                                                    }}</small>
-                                                                    <p>{{ skill_control.player.unique_code }}</p>
+                                <div class="table-responsive no-print">
+                                    <h6 class="text-center">Estadisticas por deportista</h6>
+                                    <small class="text-muted text-center"></small>
+                                    <table class="table table-bordered table-sm dataTable align-middle ">
+                                        <thead>
+                                            <tr>
+                                                <th class="dt-head-center" style="width: 15%;">deportista</th>
+                                                <th class="dt-head-center" style="width: 2%;" v-tooltip.top="'Asistio?'">A
+                                                </th>
+                                                <th class="dt-head-center" style="width: 2%;" v-tooltip.top="'Titular?'">T
+                                                </th>
+                                                <th class="dt-head-center" style="width: 6%;"
+                                                    v-tooltip.top="'Tiempo Jugado'">
+                                                    ⏱️ MIN
+                                                </th>
+                                                <th class="dt-head-center" style="width: 12%;" v-tooltip.top="''">posición
+                                                </th>
+                                                <th class="dt-head-center" style="width: 1%" v-tooltip.top="'Goles'">⚽ G
+                                                </th>
+                                                <th class="dt-head-center" style="width: 1%"
+                                                    v-tooltip.top="'Asistencias de Gol'">
+                                                    🎯 A.G
+                                                </th>
+                                                <th class="dt-head-center" style="width: 1%" v-tooltip.top="'Atajadas'">🧤 A
+                                                </th>
+                                                <th class="dt-head-center" style="width: 1%"
+                                                    v-tooltip.top="'Tarjetas Amarillas'">
+                                                    🟨 t.a
+                                                </th>
+                                                <th class="dt-head-center" style="width: 1%"
+                                                    v-tooltip.top="'Tarjetas Rojas'">
+                                                    🟥t.r
+                                                </th>
+                                                <th class="dt-head-center" style="width: 1%;"
+                                                    v-tooltip.top="'Calificación'">
+                                                    ⭐ CAL
+                                                </th>
+                                                <th class="dt-head-center" style="width: 15%;" v-tooltip.top="''">
+                                                    observación</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                            <template v-if="skills_controls.length">
+                                                <tr v-for="(skill_control, index) in skills_controls">
+                                                    <td>
+                                                        <div class="media d-md-flex d-block text-sm-start text-center">
+                                                            <div class="media-aside align-self-start avatar avatar-sm me-1">
+                                                                <img :src="skill_control.player.photo_url" alt="avatar"
+                                                                    class="rounded-circle" />
+                                                            </div>
+                                                            <div class="media-body">
+                                                                <div class="d-xl-flex d-block justify-content-between">
+                                                                    <div>
+                                                                        <small>{{ skill_control.player.full_names
+                                                                        }}</small>
+                                                                        <p>{{ skill_control.player.unique_code }}</p>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <checkbox :name="`skill_controls[${index}].assistance`"
-                                                        return-value-type="number" />
-                                                </td>
-                                                <td>
-                                                    <checkbox :name="`skill_controls[${index}].titular`"
-                                                        return-value-type="number" />
-                                                </td>
-                                                <td>
-                                                    <Field :name="`skill_controls[${index}].played_approx`"
-                                                        v-slot="{ field, errorMessage, meta }">
-                                                        <select v-bind="field"
-                                                            :id="`skill_controls[${index}].played_approx`"
-                                                            class="form-select form-select-sm"
-                                                            :class="{ 'is-invalid': meta.touched && errorMessage }">
-                                                            <option value="0">0 MIN</option>
-                                                            <option value="1">1 MIN</option>
-                                                            <option value="2">2 MIN</option>
-                                                            <option value="3">3 MIN</option>
-                                                            <option value="4">4 MIN</option>
-                                                            <option value="5">5 MIN</option>
-                                                            <option value="6">6 MIN</option>
-                                                            <option value="7">7 MIN</option>
-                                                            <option value="8">8 MIN</option>
-                                                            <option value="9">9 MIN</option>
-                                                            <option value="10">10 MIN</option>
-                                                            <option value="11">11 MIN</option>
-                                                            <option value="12">12 MIN</option>
-                                                            <option value="13">13 MIN</option>
-                                                            <option value="14">14 MIN</option>
-                                                            <option value="15">15 MIN</option>
-                                                            <option value="16">16 MIN</option>
-                                                            <option value="17">17 MIN</option>
-                                                            <option value="18">18 MIN</option>
-                                                            <option value="19">19 MIN</option>
-                                                            <option value="20">20 MIN</option>
-                                                            <option value="21">21 MIN</option>
-                                                            <option value="22">22 MIN</option>
-                                                            <option value="23">23 MIN</option>
-                                                            <option value="24">24 MIN</option>
-                                                            <option value="25">25 MIN</option>
-                                                            <option value="26">26 MIN</option>
-                                                            <option value="27">27 MIN</option>
-                                                            <option value="28">28 MIN</option>
-                                                            <option value="29">29 MIN</option>
-                                                            <option value="30">30 MIN</option>
-                                                            <option value="31">31 MIN</option>
-                                                            <option value="32">32 MIN</option>
-                                                            <option value="33">33 MIN</option>
-                                                            <option value="34">34 MIN</option>
-                                                            <option value="35">35 MIN</option>
-                                                            <option value="36">36 MIN</option>
-                                                            <option value="37">37 MIN</option>
-                                                            <option value="38">38 MIN</option>
-                                                            <option value="39">39 MIN</option>
-                                                            <option value="40">40 MIN</option>
-                                                            <option value="41">41 MIN</option>
-                                                            <option value="42">42 MIN</option>
-                                                            <option value="43">43 MIN</option>
-                                                            <option value="44">44 MIN</option>
-                                                            <option value="45">45 MIN</option>
-                                                            <option value="46">46 MIN</option>
-                                                            <option value="47">47 MIN</option>
-                                                            <option value="48">48 MIN</option>
-                                                            <option value="49">49 MIN</option>
-                                                            <option value="50">50 MIN</option>
-                                                            <option value="51">51 MIN</option>
-                                                            <option value="52">52 MIN</option>
-                                                            <option value="53">53 MIN</option>
-                                                            <option value="54">54 MIN</option>
-                                                            <option value="55">55 MIN</option>
-                                                            <option value="56">56 MIN</option>
-                                                            <option value="57">57 MIN</option>
-                                                            <option value="58">58 MIN</option>
-                                                            <option value="59">59 MIN</option>
-                                                            <option value="60">60 MIN</option>
-                                                            <option value="61">61 MIN</option>
-                                                            <option value="62">62 MIN</option>
-                                                            <option value="63">63 MIN</option>
-                                                            <option value="64">64 MIN</option>
-                                                            <option value="65">65 MIN</option>
-                                                            <option value="66">66 MIN</option>
-                                                            <option value="67">67 MIN</option>
-                                                            <option value="68">68 MIN</option>
-                                                            <option value="69">69 MIN</option>
-                                                            <option value="70">70 MIN</option>
-                                                            <option value="71">71 MIN</option>
-                                                            <option value="72">72 MIN</option>
-                                                            <option value="73">73 MIN</option>
-                                                            <option value="74">74 MIN</option>
-                                                            <option value="75">75 MIN</option>
-                                                            <option value="76">76 MIN</option>
-                                                            <option value="77">77 MIN</option>
-                                                            <option value="78">78 MIN</option>
-                                                            <option value="79">79 MIN</option>
-                                                            <option value="80">80 MIN</option>
-                                                            <option value="81">81 MIN</option>
-                                                            <option value="82">82 MIN</option>
-                                                            <option value="83">83 MIN</option>
-                                                            <option value="84">84 MIN</option>
-                                                            <option value="85">85 MIN</option>
-                                                            <option value="86">86 MIN</option>
-                                                            <option value="87">87 MIN</option>
-                                                            <option value="88">88 MIN</option>
-                                                            <option value="89">89 MIN</option>
-                                                            <option value="90">90 MIN</option>
-                                                        </select>
-                                                    </Field>
+                                                    </td>
+                                                    <td>
+                                                        <checkbox :name="`skill_controls[${index}].assistance`"
+                                                            return-value-type="number" />
+                                                    </td>
+                                                    <td>
+                                                        <checkbox :name="`skill_controls[${index}].titular`"
+                                                            return-value-type="number" />
+                                                    </td>
+                                                    <td>
+                                                        <Field :name="`skill_controls[${index}].played_approx`"
+                                                            v-slot="{ field, errorMessage, meta }">
+                                                            <select v-bind="field"
+                                                                :id="`skill_controls[${index}].played_approx`"
+                                                                class="form-select form-select-sm"
+                                                                :class="{ 'is-invalid': meta.touched && errorMessage }">
+                                                                <option value="0">0 MIN</option>
+                                                                <option value="1">1 MIN</option>
+                                                                <option value="2">2 MIN</option>
+                                                                <option value="3">3 MIN</option>
+                                                                <option value="4">4 MIN</option>
+                                                                <option value="5">5 MIN</option>
+                                                                <option value="6">6 MIN</option>
+                                                                <option value="7">7 MIN</option>
+                                                                <option value="8">8 MIN</option>
+                                                                <option value="9">9 MIN</option>
+                                                                <option value="10">10 MIN</option>
+                                                                <option value="11">11 MIN</option>
+                                                                <option value="12">12 MIN</option>
+                                                                <option value="13">13 MIN</option>
+                                                                <option value="14">14 MIN</option>
+                                                                <option value="15">15 MIN</option>
+                                                                <option value="16">16 MIN</option>
+                                                                <option value="17">17 MIN</option>
+                                                                <option value="18">18 MIN</option>
+                                                                <option value="19">19 MIN</option>
+                                                                <option value="20">20 MIN</option>
+                                                                <option value="21">21 MIN</option>
+                                                                <option value="22">22 MIN</option>
+                                                                <option value="23">23 MIN</option>
+                                                                <option value="24">24 MIN</option>
+                                                                <option value="25">25 MIN</option>
+                                                                <option value="26">26 MIN</option>
+                                                                <option value="27">27 MIN</option>
+                                                                <option value="28">28 MIN</option>
+                                                                <option value="29">29 MIN</option>
+                                                                <option value="30">30 MIN</option>
+                                                                <option value="31">31 MIN</option>
+                                                                <option value="32">32 MIN</option>
+                                                                <option value="33">33 MIN</option>
+                                                                <option value="34">34 MIN</option>
+                                                                <option value="35">35 MIN</option>
+                                                                <option value="36">36 MIN</option>
+                                                                <option value="37">37 MIN</option>
+                                                                <option value="38">38 MIN</option>
+                                                                <option value="39">39 MIN</option>
+                                                                <option value="40">40 MIN</option>
+                                                                <option value="41">41 MIN</option>
+                                                                <option value="42">42 MIN</option>
+                                                                <option value="43">43 MIN</option>
+                                                                <option value="44">44 MIN</option>
+                                                                <option value="45">45 MIN</option>
+                                                                <option value="46">46 MIN</option>
+                                                                <option value="47">47 MIN</option>
+                                                                <option value="48">48 MIN</option>
+                                                                <option value="49">49 MIN</option>
+                                                                <option value="50">50 MIN</option>
+                                                                <option value="51">51 MIN</option>
+                                                                <option value="52">52 MIN</option>
+                                                                <option value="53">53 MIN</option>
+                                                                <option value="54">54 MIN</option>
+                                                                <option value="55">55 MIN</option>
+                                                                <option value="56">56 MIN</option>
+                                                                <option value="57">57 MIN</option>
+                                                                <option value="58">58 MIN</option>
+                                                                <option value="59">59 MIN</option>
+                                                                <option value="60">60 MIN</option>
+                                                                <option value="61">61 MIN</option>
+                                                                <option value="62">62 MIN</option>
+                                                                <option value="63">63 MIN</option>
+                                                                <option value="64">64 MIN</option>
+                                                                <option value="65">65 MIN</option>
+                                                                <option value="66">66 MIN</option>
+                                                                <option value="67">67 MIN</option>
+                                                                <option value="68">68 MIN</option>
+                                                                <option value="69">69 MIN</option>
+                                                                <option value="70">70 MIN</option>
+                                                                <option value="71">71 MIN</option>
+                                                                <option value="72">72 MIN</option>
+                                                                <option value="73">73 MIN</option>
+                                                                <option value="74">74 MIN</option>
+                                                                <option value="75">75 MIN</option>
+                                                                <option value="76">76 MIN</option>
+                                                                <option value="77">77 MIN</option>
+                                                                <option value="78">78 MIN</option>
+                                                                <option value="79">79 MIN</option>
+                                                                <option value="80">80 MIN</option>
+                                                                <option value="81">81 MIN</option>
+                                                                <option value="82">82 MIN</option>
+                                                                <option value="83">83 MIN</option>
+                                                                <option value="84">84 MIN</option>
+                                                                <option value="85">85 MIN</option>
+                                                                <option value="86">86 MIN</option>
+                                                                <option value="87">87 MIN</option>
+                                                                <option value="88">88 MIN</option>
+                                                                <option value="89">89 MIN</option>
+                                                                <option value="90">90 MIN</option>
+                                                            </select>
+                                                        </Field>
 
-                                                    <ErrorMessage :name="`skill_controls[${index}].played_approx`"
-                                                        class="invalid-feedback d-block" />
-                                                </td>
-                                                <td>
+                                                        <ErrorMessage :name="`skill_controls[${index}].played_approx`"
+                                                            class="invalid-feedback d-block" />
+                                                    </td>
+                                                    <td>
 
-                                                    <Field :name="`skill_controls[${index}].position`"
-                                                        v-slot="{ field, errorMessage, meta }">
-                                                        <select
-                                                            v-bind="field"
-                                                            :id="`skill_controls[${index}].position`"
-                                                            class="form-select form-select-sm"
-                                                            :class="{ 'is-invalid': meta.touched && errorMessage }">
-                                                            <option value="">Selecciona...</option>
-                                                            <option value="Portero">Portero</option>
-                                                            <option value="Defensa(Central)">Defensa(Central)</option>
-                                                            <option value="Defensa(Derecho)(Izquierdo)">
-                                                                Defensa(Derecho)(Izquierdo)</option>
-                                                            <option value="Defensa(Izquierdo)">Defensa(Izquierdo)
-                                                            </option>
-                                                            <option value="Defensa(Derecho)">Defensa(Derecho)</option>
-                                                            <option value="Defensa">Defensa</option>
-                                                            <option value="Volante(Defensivo Izquierdo)">
-                                                                Volante(Defensivo Izquierdo)</option>
-                                                            <option value="Volante(Defensivo Derecho)">Volante(Defensivo
-                                                                Derecho)</option>
-                                                            <option value="Volante(Defensivo Central)">Volante(Defensivo
-                                                                Central)</option>
-                                                            <option value="Volante(Ofensivo Izquierdo)">Volante(Ofensivo
-                                                                Izquierdo)</option>
-                                                            <option value="Volante(Ofensivo Derecho)">Volante(Ofensivo
-                                                                Derecho)</option>
-                                                            <option value="Volante(Ofensivo Central)">Volante(Ofensivo
-                                                                Central)</option>
-                                                            <option value="Volante(Extremo Izquierdo)">Volante(Extremo
-                                                                Izquierdo)</option>
-                                                            <option value="Volante(Extremo Derecho)">Volante(Extremo
-                                                                Derecho)</option>
-                                                            <option value="Volante(Primera línea)">Volante(Primera
-                                                                línea)</option>
-                                                            <option value="Volante(Segunda línea)">Volante(Segunda
-                                                                línea)</option>
-                                                            <option value="Volante(Primera linea)">Volante(Primera
-                                                                linea)</option>
-                                                            <option value="Volante(Segunda linea)">Volante(Segunda
-                                                                linea)</option>
-                                                            <option value="Volante(Extremo)">Volante(Extremo)</option>
-                                                            <option value="Volante(Central)">Volante(Central)</option>
-                                                            <option value="Delantero(Izquierdo)">Delantero(Izquierdo)
-                                                            </option>
-                                                            <option value="Delantero(Derecho)">Delantero(Derecho)
-                                                            </option>
-                                                            <option value="Delantero(Central)">Delantero(Central)
-                                                            </option>
-                                                            <option value="Delantero">Delantero</option>
-                                                        </select>
-                                                    </Field>
+                                                        <Field :name="`skill_controls[${index}].position`"
+                                                            v-slot="{ field, errorMessage, meta }">
+                                                            <select
+                                                                v-bind="field"
+                                                                :id="`skill_controls[${index}].position`"
+                                                                class="form-select form-select-sm"
+                                                                :class="{ 'is-invalid': meta.touched && errorMessage }">
+                                                                <option value="">Selecciona...</option>
+                                                                <option value="Portero">Portero</option>
+                                                                <option value="Defensa(Central)">Defensa(Central)</option>
+                                                                <option value="Defensa(Derecho)(Izquierdo)">
+                                                                    Defensa(Derecho)(Izquierdo)</option>
+                                                                <option value="Defensa(Izquierdo)">Defensa(Izquierdo)
+                                                                </option>
+                                                                <option value="Defensa(Derecho)">Defensa(Derecho)</option>
+                                                                <option value="Defensa">Defensa</option>
+                                                                <option value="Volante(Defensivo Izquierdo)">
+                                                                    Volante(Defensivo Izquierdo)</option>
+                                                                <option value="Volante(Defensivo Derecho)">Volante(Defensivo
+                                                                    Derecho)</option>
+                                                                <option value="Volante(Defensivo Central)">Volante(Defensivo
+                                                                    Central)</option>
+                                                                <option value="Volante(Ofensivo Izquierdo)">Volante(Ofensivo
+                                                                    Izquierdo)</option>
+                                                                <option value="Volante(Ofensivo Derecho)">Volante(Ofensivo
+                                                                    Derecho)</option>
+                                                                <option value="Volante(Ofensivo Central)">Volante(Ofensivo
+                                                                    Central)</option>
+                                                                <option value="Volante(Extremo Izquierdo)">Volante(Extremo
+                                                                    Izquierdo)</option>
+                                                                <option value="Volante(Extremo Derecho)">Volante(Extremo
+                                                                    Derecho)</option>
+                                                                <option value="Volante(Primera línea)">Volante(Primera
+                                                                    línea)</option>
+                                                                <option value="Volante(Segunda línea)">Volante(Segunda
+                                                                    línea)</option>
+                                                                <option value="Volante(Primera linea)">Volante(Primera
+                                                                    linea)</option>
+                                                                <option value="Volante(Segunda linea)">Volante(Segunda
+                                                                    linea)</option>
+                                                                <option value="Volante(Extremo)">Volante(Extremo)</option>
+                                                                <option value="Volante(Central)">Volante(Central)</option>
+                                                                <option value="Delantero(Izquierdo)">Delantero(Izquierdo)
+                                                                </option>
+                                                                <option value="Delantero(Derecho)">Delantero(Derecho)
+                                                                </option>
+                                                                <option value="Delantero(Central)">Delantero(Central)
+                                                                </option>
+                                                                <option value="Delantero">Delantero</option>
+                                                            </select>
+                                                        </Field>
 
 
-                                                </td>
-                                                <td>
-                                                    <Field :name="`skill_controls[${index}].goals`" as="select"
-                                                        :id="`skill_controls[${index}].goals`"
-                                                        class="form-select form-select-sm">
-                                                        <option value="0">0</option>
-                                                        <option value="1">1</option>
-                                                        <option value="2">2</option>
-                                                        <option value="3">3</option>
-                                                        <option value="4">4</option>
-                                                        <option value="5">5</option>
-                                                        <option value="6">6</option>
-                                                        <option value="7">7</option>
-                                                        <option value="8">8</option>
-                                                        <option value="9">9</option>
-                                                        <option value="10">10</option>
-                                                    </Field>
+                                                    </td>
+                                                    <td>
+                                                        <Field :name="`skill_controls[${index}].goals`" as="select"
+                                                            :id="`skill_controls[${index}].goals`"
+                                                            class="form-select form-select-sm">
+                                                            <option value="0">0</option>
+                                                            <option value="1">1</option>
+                                                            <option value="2">2</option>
+                                                            <option value="3">3</option>
+                                                            <option value="4">4</option>
+                                                            <option value="5">5</option>
+                                                            <option value="6">6</option>
+                                                            <option value="7">7</option>
+                                                            <option value="8">8</option>
+                                                            <option value="9">9</option>
+                                                            <option value="10">10</option>
+                                                        </Field>
 
-                                                    <ErrorMessage :name="`skill_controls[${index}].goals`"
-                                                        class="invalid-feedback d-block" />
-                                                </td>
-                                                <td>
-                                                    <Field :name="`skill_controls[${index}].goal_assists`" as="select"
-                                                        :id="`skill_controls[${index}].goal_assists`"
-                                                        class="form-select form-select-sm">
-                                                        <option value="0">0</option>
-                                                        <option value="1">1</option>
-                                                        <option value="2">2</option>
-                                                        <option value="3">3</option>
-                                                        <option value="4">4</option>
-                                                        <option value="5">5</option>
-                                                        <option value="6">6</option>
-                                                        <option value="7">7</option>
-                                                        <option value="8">8</option>
-                                                        <option value="9">9</option>
-                                                        <option value="10">10</option>
-                                                    </Field>
+                                                        <ErrorMessage :name="`skill_controls[${index}].goals`"
+                                                            class="invalid-feedback d-block" />
+                                                    </td>
+                                                    <td>
+                                                        <Field :name="`skill_controls[${index}].goal_assists`" as="select"
+                                                            :id="`skill_controls[${index}].goal_assists`"
+                                                            class="form-select form-select-sm">
+                                                            <option value="0">0</option>
+                                                            <option value="1">1</option>
+                                                            <option value="2">2</option>
+                                                            <option value="3">3</option>
+                                                            <option value="4">4</option>
+                                                            <option value="5">5</option>
+                                                            <option value="6">6</option>
+                                                            <option value="7">7</option>
+                                                            <option value="8">8</option>
+                                                            <option value="9">9</option>
+                                                            <option value="10">10</option>
+                                                        </Field>
 
-                                                    <ErrorMessage :name="`skill_controls[${index}].goal_assists`"
-                                                        class="invalid-feedback d-block" />
-                                                </td>
-                                                <td>
-                                                    <Field :name="`skill_controls[${index}].goal_saves`" as="select"
-                                                        :id="`skill_controls[${index}].goal_saves`"
-                                                        class="form-select form-select-sm">
-                                                        <option value="0">0</option>
-                                                        <option value="1">1</option>
-                                                        <option value="2">2</option>
-                                                        <option value="3">3</option>
-                                                        <option value="4">4</option>
-                                                        <option value="5">5</option>
-                                                        <option value="6">6</option>
-                                                        <option value="7">7</option>
-                                                        <option value="8">8</option>
-                                                        <option value="9">9</option>
-                                                        <option value="10">10</option>
-                                                    </Field>
+                                                        <ErrorMessage :name="`skill_controls[${index}].goal_assists`"
+                                                            class="invalid-feedback d-block" />
+                                                    </td>
+                                                    <td>
+                                                        <Field :name="`skill_controls[${index}].goal_saves`" as="select"
+                                                            :id="`skill_controls[${index}].goal_saves`"
+                                                            class="form-select form-select-sm">
+                                                            <option value="0">0</option>
+                                                            <option value="1">1</option>
+                                                            <option value="2">2</option>
+                                                            <option value="3">3</option>
+                                                            <option value="4">4</option>
+                                                            <option value="5">5</option>
+                                                            <option value="6">6</option>
+                                                            <option value="7">7</option>
+                                                            <option value="8">8</option>
+                                                            <option value="9">9</option>
+                                                            <option value="10">10</option>
+                                                        </Field>
 
-                                                    <ErrorMessage :name="`skill_controls[${index}].goal_saves`"
-                                                        class="invalid-feedback d-block" />
-                                                </td>
-                                                <td>
-                                                    <Field :name="`skill_controls[${index}].yellow_cards`" as="select"
-                                                        :id="`skill_controls[${index}].yellow_cards`"
-                                                        class="form-select form-select-sm">
-                                                        <option value="0">0</option>
-                                                        <option value="1">1</option>
-                                                        <option value="2">2</option>
-                                                    </Field>
+                                                        <ErrorMessage :name="`skill_controls[${index}].goal_saves`"
+                                                            class="invalid-feedback d-block" />
+                                                    </td>
+                                                    <td>
+                                                        <Field :name="`skill_controls[${index}].yellow_cards`" as="select"
+                                                            :id="`skill_controls[${index}].yellow_cards`"
+                                                            class="form-select form-select-sm">
+                                                            <option value="0">0</option>
+                                                            <option value="1">1</option>
+                                                            <option value="2">2</option>
+                                                        </Field>
 
-                                                    <ErrorMessage :name="`skill_controls[${index}].yellow_cards`"
-                                                        class="invalid-feedback d-block" />
+                                                        <ErrorMessage :name="`skill_controls[${index}].yellow_cards`"
+                                                            class="invalid-feedback d-block" />
 
-                                                </td>
-                                                <td>
-                                                    <Field :name="`skill_controls[${index}].red_cards`" as="select"
-                                                        :id="`skill_controls[${index}].red_cards`"
-                                                        class="form-select form-select-sm">
-                                                        <option value="0">0</option>
-                                                        <option value="1">1</option>
-                                                    </Field>
+                                                    </td>
+                                                    <td>
+                                                        <Field :name="`skill_controls[${index}].red_cards`" as="select"
+                                                            :id="`skill_controls[${index}].red_cards`"
+                                                            class="form-select form-select-sm">
+                                                            <option value="0">0</option>
+                                                            <option value="1">1</option>
+                                                        </Field>
 
-                                                    <ErrorMessage :name="`skill_controls[${index}].red_cards`"
-                                                        class="invalid-feedback d-block" />
+                                                        <ErrorMessage :name="`skill_controls[${index}].red_cards`"
+                                                            class="invalid-feedback d-block" />
 
-                                                </td>
-                                                <td>
-                                                    <Field :name="`skill_controls[${index}].qualification`" as="select"
-                                                        :id="`skill_controls[${index}].qualification`"
-                                                        class="form-select form-select-sm">
-                                                        <option value="0">0</option>
-                                                        <option value="1">1</option>
-                                                        <option value="2">2</option>
-                                                        <option value="3">3</option>
-                                                        <option value="4">4</option>
-                                                        <option value="5">5</option>
-                                                    </Field>
+                                                    </td>
+                                                    <td>
+                                                        <Field :name="`skill_controls[${index}].qualification`" as="select"
+                                                            :id="`skill_controls[${index}].qualification`"
+                                                            class="form-select form-select-sm">
+                                                            <option value="0">0</option>
+                                                            <option value="1">1</option>
+                                                            <option value="2">2</option>
+                                                            <option value="3">3</option>
+                                                            <option value="4">4</option>
+                                                            <option value="5">5</option>
+                                                        </Field>
 
-                                                    <ErrorMessage :name="`skill_controls[${index}].qualification`"
-                                                        class="invalid-feedback d-block" />
+                                                        <ErrorMessage :name="`skill_controls[${index}].qualification`"
+                                                            class="invalid-feedback d-block" />
 
-                                                </td>
-                                                <td>
-                                                    <Field :name="`skill_controls[${index}].general_concept`"
-                                                        :id="`skill_controls[${index}].general_concept`" as="textarea"
-                                                        class="form-control form-control-sm" rows="2" />
-                                                    <ErrorMessage :name="`skill_controls[${index}].general_concept`"
-                                                        class="invalid-feedback d-block" />
-                                                </td>
-                                            </tr>
-                                        </template>
-                                        <template v-else>
-                                            <tr>
-                                                <td colspan="10" class="dt-body-center">
-                                                    El grupo no cuenta con integrantes
-                                                </td>
-                                            </tr>
-                                        </template>
+                                                    </td>
+                                                    <td>
+                                                        <Field :name="`skill_controls[${index}].general_concept`"
+                                                            :id="`skill_controls[${index}].general_concept`" as="textarea"
+                                                            class="form-control form-control-sm" rows="2" />
+                                                        <ErrorMessage :name="`skill_controls[${index}].general_concept`"
+                                                            class="invalid-feedback d-block" />
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <template v-else>
+                                                <tr>
+                                                    <td colspan="10" class="dt-body-center">
+                                                        El grupo no cuenta con integrantes
+                                                    </td>
+                                                </tr>
+                                            </template>
 
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </template>
+                            <template v-else>
+                                <CoachBoard ref="coach_board" :initialPlayers="skills_controls" ></CoachBoard>
+                            </template>
+
+
                         </div>
                     </div>
                 </div>
@@ -531,6 +540,7 @@ import dayjs from '@/utils/dayjs'
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import flatPickr from 'vue-flatpickr-component'
 import Loader from '@/components/general/Loader'
+import CoachBoard from "./coachboard/CoachBoard.vue"
 
 import api from '@/utils/axios'
 import { usePageTitle } from "@/composables/use-meta"
@@ -548,6 +558,7 @@ const route = useRoute()
 const settingsGroup = useSettingGroups()
 const currentTitlePage = ref("")
 const formMatches = useTemplateRef('form_matches')
+const coachBoard = useTemplateRef('coach_board')
 const isLoading = ref(true)
 const urlExportFormat = ref(null)
 const skills_controls = ref([])
@@ -583,9 +594,13 @@ const schema = yup.object().shape({
         yup.object({
             id: yup.number().nullable(),
             assistance: yup.string().required('Es requerido'),
-            titular: yup.string().required('Es requerido'),
+            titular: yup.mixed().required('Es requerido'),
             played_approx: yup.string().required('Es requerido'),
-            position: yup.string().nullable().required('Es requerido'),
+            position: yup.string().nullable().when('titular', {
+                is: (titular) => Number(titular) === 1,
+                then: (schema) => schema.required('Es requerido'),
+                otherwise: (schema) => schema.nullable().default('')
+            }),
             goals: yup.number().integer().required('Es requerido'),
             yellow_cards: yup.number().integer().required('Es requerido'),
             red_cards: yup.number().integer().required('Es requerido'),
@@ -645,18 +660,49 @@ const onLoadData = async () => {
     }
 }
 
+const mergeCoachBoardPayload = (skillControls, lineupPayload) => {
+    const lineupByPlayerId = new Map(lineupPayload.map((item) => [item.player.id, item]))
+
+    return skillControls.map((skillControl) => {
+        const lineupItem = lineupByPlayerId.get(skillControl.player?.id)
+
+        if (!lineupItem) {
+            return {
+                ...skillControl,
+                titular: 0,
+                position: ''
+            }
+        }
+
+        return {
+            ...skillControl,
+            titular: lineupItem.titular,
+            position: lineupItem.position
+        }
+    })
+}
+
 const handleSubmit = async (values, actions) => {
     try {
         isLoading.value = true
+
+        const mergedSkillControls = props.isEdition
+            ? (values.skill_controls ?? skills_controls.value)
+            : mergeCoachBoardPayload(
+                values.skill_controls ?? skills_controls.value,
+                coachBoard.value?.getSkillControlsPayload?.() || []
+            )
+
+        skills_controls.value = mergedSkillControls
 
         let data = {}
         let url = ''
         if (props.isEdition) {
             url = `/api/v2/matches/${route.params.id}`
-            data = { _method: 'PUT', ...values }
+            data = { _method: 'PUT', ...values, skill_controls: mergedSkillControls }
         } else {
             url = `/api/v2/matches`
-            data = { ...values }
+            data = { ...values, skill_controls: mergedSkillControls }
         }
 
         const response = await api.post(url, data)
@@ -684,7 +730,8 @@ const uploadFileFormat = async (e) => {
     api.post(`/import/matches/${route.params.id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
         .then(resp => {
             if (resp.data.success) {
-                formMatches.value.setValues({ skill_controls: resp.data.skills_controls })
+                skills_controls.value = resp.data.skills_controls
+                formMatches.value?.setFieldValue?.('skill_controls', resp.data.skills_controls)
                 showMessage('Se cargaron los datos correctamente.')
             } else {
                 showMessage('Algo salió mal.', 'error')

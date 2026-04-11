@@ -41,7 +41,7 @@ class CompetitionStoreRequest extends FormRequest
             'skill_controls.*.assistance' => ['required', 'numeric'],
             'skill_controls.*.titular' => ['required', 'numeric'],
             'skill_controls.*.played_approx' => ['required', 'numeric'],
-            'skill_controls.*.position' => ['required', 'string'],
+            'skill_controls.*.position' => ['nullable', 'string'],
             'skill_controls.*.goals' => ['required', 'numeric'],
             'skill_controls.*.goal_assists' => ['required', 'numeric'],
             'skill_controls.*.goal_saves' => ['required', 'numeric'],
