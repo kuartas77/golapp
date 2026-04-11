@@ -5,7 +5,7 @@
             <Form ref="form" :validation-schema="schema" @submit="submit" :initial-values="initialData">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="modalInscription">Inscripción</h5>
+                        <h5 class="modal-title" id="modalInscription">{{ isEditing ? 'Modificar inscripción' : 'Inscripción' }}</h5>
                         <button type="button" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"
                             class="btn-close" @click="onCancel"></button>
                     </div>
@@ -14,7 +14,9 @@
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label for="unique_code">Jugador</label><span class="text-danger">(*)</span>:
-                                    <Field name="unique_code" v-slot="{ field }">
+                                    <Field v-if="isEditing" name="unique_code" as="input" id="unique_code" readonly
+                                        class="form-control form-control-sm" />
+                                    <Field v-else name="unique_code" v-slot="{ field }">
                                         <TypeAhead inputClass="form-control form-control-sm"
                                             dropdownClass="dropdown custom-dropdown-icon"
                                             dropdownMenuClass="dropdown-menu w-100" id="unique_code" :items="search"
@@ -22,7 +24,8 @@
                                             @update:modelValue="field.onChange($event);onChangeCode($event)"/>
                                     </Field>
 
-                                    <small class="form-text text-muted">Buscará deportistas sin inscripción</small>
+                                    <small v-if="isEditing" class="form-text text-muted">El jugador no se puede modificar desde este formulario.</small>
+                                    <small v-else class="form-text text-muted">Buscará deportistas sin inscripción</small>
                                 </div>
                             </div>
 
@@ -38,12 +41,14 @@
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label for="start_date">Fecha de inicio</label><span class="text-danger">(*)</span>:
-                                    <Field name="start_date" v-slot="{ field }" id="start_date">
+                                    <Field v-if="isEditing" name="start_date" as="input" id="start_date" readonly
+                                        class="form-control form-control-sm" />
+                                    <Field v-else name="start_date" v-slot="{ field }" id="start_date">
                                         <flat-pickr v-bind="field" v-model="field.value" :config="flatpickrConfigDate"
                                             class="form-control form-control-sm flatpickr" id="start_date" />
                                     </Field>
                                     <ErrorMessage name="start_date" class="custom-error" />
-
+                                    <small v-if="isEditing" class="form-text text-muted">La fecha de inicio se conserva para evitar desajustes con pagos y asistencias.</small>
                                 </div>
                             </div>
 
@@ -56,7 +61,14 @@
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label for="training_group_id">Grupo de entrenamiento:</label>
-                                    <Field name="training_group_id" as="CustomSelect2" :options="trainingGroups" id="training_group_id"/>
+                                    <Field name="training_group_id" v-slot="{ field, handleChange }">
+                                        <CustomSelect2
+                                            id="training_group_id"
+                                            :options="trainingGroups"
+                                            :modelValue="field.value"
+                                            @update:modelValue="(value) => { handleChange(value); onTrainingGroupChange(value) }"
+                                        />
+                                    </Field>
                                     <ErrorMessage name="training_group_id" class="custom-error" as="div" />
                                     <small class="form-text text-muted">Si no se selecciona, se agregará al grupo
                                         "Provisional"</small>
@@ -88,22 +100,37 @@
                                 <h6 class="text-center text-uppercase text-muted">
                                     <strong>Pre-Inscripción</strong>
                                 </h6>
-                                <small class="text-info text-uppercase text-justify">Al estar marcado cómo
-                                    <span class="text-uppercase text-warning">"PRE-INSCRIPCIÓN"</span>, este
-                                    <span class="text-uppercase text-danger">Deportista no aparecerá en los listados de asistencias ni
-                                        pagos</span>, verifica la documentación y desmarcalo.
-                                </small>
-                                <checkbox label="¿ PRE-INSCRIPCIÓN ?" name="pre_inscription" />
-                            <h6 class="text-center text-uppercase">
-                                <strong class="text-muted">
-                                    Grupo provisional (principal).
-                                </strong>
-                            </h6>
-                                <small class="text-info text-uppercase text-justify">
-                                    <span>este grupo sólo se utilizará para las inscripciones realizadas
-                                    desde el enlance.</span>
-                                    <span class="text-danger"> no tendrá asistencias ni pagos, si se encuentra en el
-                                    provisional y/o está marcado cómo pre-inscripción.</span>
+                                <div
+                                    class="rounded border p-2 mb-2"
+                                    :class="preInscriptionAutoReason ? 'bg-light border-warning' : 'bg-light border-secondary'"
+                                >
+                                    <small class="d-block text-uppercase fw-semibold mb-1">
+                                        {{ preInscriptionStatusTitle }}
+                                    </small>
+                                    <small class="d-block">
+                                        {{ preInscriptionStatusMessage }}
+                                    </small>
+                                </div>
+                                <Field name="pre_inscription" v-slot="{ value, handleChange }">
+                                    <div class="form-group mt-2">
+                                        <div class="form-check ps-0">
+                                            <div class="custom-control custom-checkbox checkbox-primary">
+                                                <input
+                                                    id="pre_inscription"
+                                                    type="checkbox"
+                                                    class="custom-control-input"
+                                                    :checked="Boolean(value)"
+                                                    @change="(event) => { handleChange(event); onPreInscriptionChange(event.target.checked) }"
+                                                />
+                                                <label class="custom-control-label" for="pre_inscription">
+                                                    Marcar como preinscripción
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Field>
+                                <small class="form-text text-muted">
+                                    Marca esta opción solo si la inscripción aún está pendiente de documentación.
                                 </small>
                             </div>
 
@@ -129,13 +156,17 @@ import 'flatpickr/dist/flatpickr.css'
 import dayjs from '@/utils/dayjs'
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import flatPickr from 'vue-flatpickr-component'
-import { getCurrentInstance, useTemplateRef, ref, onMounted, watch, onUnmounted, onBeforeUnmount } from "vue";
+import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { ErrorMessage, Field, Form } from "vee-validate";
 import * as yup from "yup";
 import api from "@/utils/axios";
 import { useSetting } from "@/store/settings-store";
 
 const props = defineProps({
+    inscription_id: {
+        type: [Number, String],
+        default: null,
+    },
     unique_code: {
         type: String,
         default: null,
@@ -154,18 +185,65 @@ const { proxy } = getCurrentInstance();
 const globalError = ref(null);
 const settings = useSetting();
 const form = useTemplateRef("form");
-const composeModalInscription = ref('null');
-const trainingGroups = ref([])
-const competitionGroups = ref([])
+const composeModalInscription = ref(null);
+const currentTrainingGroupId = ref(null);
+const currentPreInscription = ref(false);
+const editIdentifier = computed(() => props.inscription_id ?? props.unique_code);
+const isEditing = computed(() => editIdentifier.value !== null);
+const trainingGroups = computed(() => settings.groups.map((group) => ({ value: group.id, label: group.name })));
+const competitionGroups = computed(() => settings.competition_groups.map((group) => ({
+    value: String(group.id),
+    label: group.full_name_group ?? group.full_name ?? group.name ?? String(group.id),
+})));
+const provisionalTrainingGroup = computed(() => settings.all_groups?.[0] ?? null);
+const hasTrainingGroupSelected = computed(() => ![null, '', undefined].includes(currentTrainingGroupId.value));
+const preInscriptionAutoReason = computed(() => {
+    if (!hasTrainingGroupSelected.value) {
+        return 'empty'
+    }
 
-const initialData = ref({
+    if (provisionalTrainingGroup.value && String(currentTrainingGroupId.value) === String(provisionalTrainingGroup.value.id)) {
+        return 'provisional'
+    }
+
+    return null
+});
+const preInscriptionStatusTitle = computed(() => {
+    if (preInscriptionAutoReason.value) {
+        return 'Se guardará como preinscripción'
+    }
+
+    if (currentPreInscription.value) {
+        return 'Preinscripción manual'
+    }
+
+    return 'Inscripción lista para activarse'
+});
+const preInscriptionStatusMessage = computed(() => {
+    if (preInscriptionAutoReason.value === 'empty') {
+        return `Si guardas sin grupo de entrenamiento, el sistema asignará "${provisionalTrainingGroup.value?.name ?? 'Provisional'}". Mientras esté en preinscripción o en ese grupo, este deportista no aparecerá en asistencias ni pagos.`
+    }
+
+    if (preInscriptionAutoReason.value === 'provisional') {
+        return `El grupo seleccionado es "${provisionalTrainingGroup.value?.name ?? 'Provisional'}". Mientras permanezca en ese grupo o en preinscripción, este deportista no aparecerá en asistencias ni pagos.`
+    }
+
+    if (currentPreInscription.value) {
+        return 'Usa este estado cuando la inscripción aún esté pendiente de validación documental. En este estado, el deportista no aparecerá en asistencias ni pagos.'
+    }
+
+    return 'Con grupo definitivo y documentación validada, el deportista podrá aparecer en asistencias y pagos.'
+});
+
+const defaultValues = () => ({
+    id: null,
     player_id: null,
     unique_code: null,
     player_name: null,
     start_date: null,
     scholarship: false,
     training_group_id: null,
-    competition_groups: null,
+    competition_groups: [],
     photos: false,
     copy_identification_document: false,
     eps_certificate: false,
@@ -174,14 +252,16 @@ const initialData = ref({
     pre_inscription: false,
 });
 
+const initialData = defaultValues();
+
 const schema = yup.object().shape({
     player_id: yup.string().nullable(),
     unique_code: yup.string().required('Ingresa un código único'),
     player_name: yup.string().required('Ingresa un código único'),
     start_date: yup.date().required('La Fecha de inicio es requerida'),
     scholarship: yup.boolean().default(false),
-    training_group_id: yup.string().required(),
-    competition_groups: yup.array().of(yup.string()).nullable(),
+    training_group_id: yup.mixed().nullable(),
+    competition_groups: yup.array().default([]),
     photos: yup.boolean().default(false),
     copy_identification_document: yup.boolean().default(false),
     eps_certificate: yup.boolean().default(false),
@@ -190,110 +270,134 @@ const schema = yup.object().shape({
     pre_inscription: yup.boolean().default(false),
 })
 
-const onCancel = () => {
-    form.value.resetForm()
+const resetFormState = () => {
+    form.value?.resetForm({ values: defaultValues() })
+    currentTrainingGroupId.value = null
+    currentPreInscription.value = false
+    globalError.value = null
+}
+
+const closeModal = () => {
     modalHidden()
-    composeModalInscription.value.hide()
+    composeModalInscription.value?.hide()
+}
+
+const onCancel = () => {
+    resetFormState()
+    closeModal()
     emit("cancel")
 }
 
-
-
 const search = async (query) => {
-    if (!query) return;
+    if (!query) return [];
+
     const response = await api.get('/api/v2/autocomplete/list_code_unique?trashed=true', { params: { query: query } })
-    return response.data.data
+    return response.data.data ?? []
 }
 
-const onLoadData = async (uniqueCode) => {
+const loadInscriptionForEdit = async (inscriptionId) => {
+    try {
+        const resp = await api.get(`/api/v2/inscriptions/${inscriptionId}/edit`)
+        const data = resp.data
 
-
-    if(props.unique_code !== null) {
-        api.get(`/api/v2/inscriptions/${uniqueCode}/edit`).then((resp) => {
-            const data = resp.data
-
-            form.value.setValues({
-                id: data.id,
-                player_id: data.player_id,
-                player_name: data.player.full_names,
-                start_date: data.start_date,
-                training_group_id: data.training_group_id,
-                competition_groups: data.competition_groups,
-                pre_inscription: data.pre_inscription,
-                photos: data.photos == 1,
-                copy_identification_document: data.copy_identification_document == 1,
-                eps_certificate: data.eps_certificate == 1,
-                medic_certificate: data.medic_certificate == 1,
-                study_certificate: data.study_certificate == 1,
-                pre_inscription: data.pre_inscription == 1,
-            })
+        resetFormState()
+        currentTrainingGroupId.value = data.training_group_id
+        currentPreInscription.value = Boolean(data.pre_inscription)
+        form.value.setValues({
+            ...defaultValues(),
+            id: data.id,
+            player_id: data.player_id,
+            unique_code: data.unique_code,
+            player_name: data.player.full_names,
+            start_date: data.start_date,
+            scholarship: Boolean(data.scholarship),
+            training_group_id: data.training_group_id,
+            competition_groups: data.competition_groups ?? [],
+            photos: Boolean(data.photos),
+            copy_identification_document: Boolean(data.copy_identification_document),
+            eps_certificate: Boolean(data.eps_certificate),
+            medic_certificate: Boolean(data.medic_certificate),
+            study_certificate: Boolean(data.study_certificate),
+            pre_inscription: Boolean(data.pre_inscription),
         })
-    }else {
 
-        api.get('/api/v2/autocomplete/search_unique_code?unique=true', { params: { unique_code: uniqueCode } })
-        .then((response) => {
-            const data = response.data.data
-            if(data) {
-                form.value.setValues({
-                    player_id: data.id,
-                    player_name: data.full_names,
-                    start_date: dayjs().format('YYYY-M-D')
-                })
-            } else {
-                showMessage("El Deportista ya tiene una inscripción.", 'warning')
-            }
-        })
-        .catch(() =>showMessage("El Deportista ya tiene una inscripción ó no se encontró.", 'error'));
+        composeModalInscription.value?.show()
+    } catch (error) {
+        showMessage("No se pudo cargar la inscripción.", 'error')
+        emit("cancel")
+    }
+}
+
+const loadPlayerByUniqueCode = async (uniqueCode) => {
+    if (!uniqueCode) {
+        return
     }
 
-    composeModalInscription.value.show()
+    try {
+        const response = await api.get('/api/v2/autocomplete/search_unique_code?unique=true', { params: { unique_code: uniqueCode } })
+        const data = response.data.data
+
+        if (!data) {
+            showMessage("El Deportista ya tiene una inscripción.", 'warning')
+            return
+        }
+
+        form.value.setValues({
+            player_id: data.id,
+            player_name: data.full_names,
+            start_date: dayjs().format('YYYY-M-D')
+        })
+    } catch (error) {
+        showMessage("El Deportista ya tiene una inscripción ó no se encontró.", 'error')
+    }
 }
 
 const submit = async (values, actions) => {
     try {
-
         let response = null
-        let data = {...values}
-        if(props.unique_code !== null) {
-            data. _method = 'PUT'
+        const data = { ...values }
+
+        if (isEditing.value) {
+            data._method = 'PUT'
             response = await api.post(`/api/v2/inscriptions/${data.id}`, data)
         } else {
-
             response = await api.post(`/api/v2/inscriptions`, data)
         }
 
-        if (response.data.success === true) {
-            const message = props.unique_code ? 'Modifiado correctamente' : 'Guardado correctamente';
-            showMessage(message);
-        }
-        if (response.data.success === false) {
-            showMessage('Algo salió mal', 'error');
+        if (response.data.success !== true) {
+            showMessage('Algo salió mal', 'error')
+            return
         }
 
-    } catch (error) {
-       proxy.$handleBackendErrors(error, actions.setErrors, (msg) => (globalError.value = msg));
-    } finally {
+        const message = isEditing.value ? 'Modificado correctamente' : 'Guardado correctamente'
+        showMessage(message)
         emit("success")
-        modalHidden()
-        composeModalInscription.value.hide()
-        form.value.resetForm();
+        closeModal()
+        resetFormState()
+    } catch (error) {
+        proxy.$handleBackendErrors(error, actions.setErrors, (msg) => (globalError.value = msg))
     }
 }
 
 watch(
-    () => props.unique_code,
-    (newValue) => {
+    editIdentifier,
+    async (newValue) => {
         if (newValue !== null) {
-            form.value.setValues({
-                unique_code: props.unique_code
-            })
-            onChangeCode(props.unique_code)
+            await loadInscriptionForEdit(newValue)
         }
     }
 )
 
 const onChangeCode = (uniqueCode) => {
-    onLoadData(uniqueCode)
+    loadPlayerByUniqueCode(uniqueCode)
+}
+
+const onTrainingGroupChange = (value) => {
+    currentTrainingGroupId.value = value
+}
+
+const onPreInscriptionChange = (value) => {
+    currentPreInscription.value = Boolean(value)
 }
 
 const listenerClickOutSide = (event) => {
@@ -303,7 +407,7 @@ const listenerClickOutSide = (event) => {
     }
 }
 
-onMounted(() => {
+onMounted(async () => {
     const modalElement = document.getElementById("composeModalInscription")
     composeModalInscription.value = new window.bootstrap.Modal(modalElement,
         {
@@ -315,14 +419,11 @@ onMounted(() => {
 
     modalElement.addEventListener('click', listenerClickOutSide)
 
-    settings.getSettings()
-
-    trainingGroups.value = settings.groups.map((i) => ({ value: i.id, label: i.name }))
-    competitionGroups.value = settings.competition_groups.map((i) => ({ value: i.id, label: i.name }))
+    await settings.getSettings()
 })
 
 onBeforeUnmount(() => {
     const modalElement = document.getElementById("composeModalInscription")
-    modalElement.removeEventListener('click', listenerClickOutSide)
+    modalElement?.removeEventListener('click', listenerClickOutSide)
 })
 </script>

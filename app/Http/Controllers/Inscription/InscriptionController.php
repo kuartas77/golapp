@@ -55,6 +55,8 @@ class InscriptionController extends Controller
 
         $this->response = $this->repository->searchInsUniqueCode($id);
 
+        abort_if(is_null($this->response), 404);
+
         return response()->json($this->response);
     }
 

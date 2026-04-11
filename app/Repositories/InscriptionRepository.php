@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use RealRashid\SweetAlert\Facades\Alert;
 use Throwable;
 
 class InscriptionRepository
@@ -94,9 +93,8 @@ class InscriptionRepository
     private function setCompetitionGroupIds($inscription, $requestData): void
     {
         $competitionGroupIds = data_get($requestData, 'competition_groups', []);
-        if(!empty($competitionGroupIds)){
-            $inscription->competitionGroup()->sync($competitionGroupIds);
-        }
+
+        $inscription->competitionGroup()->sync($competitionGroupIds);
     }
 
     public function updateInscription(array $requestData, Inscription $inscription): bool
@@ -159,16 +157,32 @@ class InscriptionRepository
 
     public function searchInsUniqueCode($id): ?Inscription
     {
-        $inscription = $this->inscription->query()
+        $query = $this->inscription->query()
             ->with(['player', 'competitionGroup'])
-            ->schoolId()
-            ->orderBy('id', 'desc')
-            ->firstWhere('unique_code', $id);
-        if($inscription) {
-            $inscription->setRelation('competitionGroup', $inscription->competitionGroup->pluck('id'));
-            return $inscription;
+            ->schoolId();
+
+        $inscription = null;
+
+        if (is_numeric($id)) {
+            $inscription = (clone $query)->find((int) $id);
         }
-        return null;
+
+        if (!$inscription) {
+            $inscription = $query
+                ->orderByDesc('id')
+                ->firstWhere('unique_code', (string) $id);
+        }
+
+        if (!$inscription) {
+            return null;
+        }
+
+        $inscription->setAttribute(
+            'competition_groups',
+            $inscription->competitionGroup->pluck('id')->map(fn ($groupId) => (string) $groupId)->values()->all()
+        );
+
+        return $inscription;
     }
 
     public function disable(Inscription $inscription): bool

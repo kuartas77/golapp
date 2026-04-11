@@ -56,14 +56,6 @@ final class ServicesCoverageTest extends TestCase
         $trainingGroup = $this->createTrainingGroup('Assists API Group');
         $inscription = $this->createInscription($this->makePlayer(), $trainingGroup);
 
-        Assist::query()->create([
-            'training_group_id' => $trainingGroup->id,
-            'inscription_id' => $inscription->id,
-            'year' => now()->year,
-            'month' => '1',
-            'school_id' => $this->school['id'],
-        ]);
-
         $service = new AssistsService();
         $assists = $service->getAssists([
             'training_group_id' => $trainingGroup->id,
@@ -138,13 +130,6 @@ final class ServicesCoverageTest extends TestCase
         $this->actingAs($this->user);
         $group = $this->createTrainingGroup('Assist Service Group');
         $inscription = $this->createInscription($this->makePlayer(), $group);
-        Assist::query()->create([
-            'training_group_id' => $group->id,
-            'inscription_id' => $inscription->id,
-            'year' => now()->year,
-            'month' => '1',
-            'school_id' => $this->school['id'],
-        ]);
 
         $renderable = new class
         {
@@ -260,13 +245,6 @@ final class ServicesCoverageTest extends TestCase
 
         $enabledPlayer = $this->makePlayer();
         $inscription = $this->createInscription($enabledPlayer, $group);
-        Assist::query()->create([
-            'training_group_id' => $group->id,
-            'inscription_id' => $inscription->id,
-            'year' => now()->year,
-            'month' => '1',
-            'school_id' => $this->school['id'],
-        ]);
 
         $this->makePlayer();
 

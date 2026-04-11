@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Collection;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Database\Eloquent\Model;
@@ -87,16 +88,21 @@ class TrainingGroupRepository
      */
     private function setTrainingGroupParams(FormRequest $formRequest): array
     {
-        return [
+        $params = [
             'name' => $formRequest->input('name'),
             'stage' => $formRequest->input('stage'),
-            'user_id' => $formRequest->input('user_id'),
             'category' => $formRequest->input('categories', []),
             'schedules' => $formRequest->input('schedules', []),
             'days' => $formRequest->input('days', []),
             'school_id' => $formRequest->input('school_id'),
             'year_active' => $formRequest->input('year_active')
         ];
+
+        if (Schema::hasColumn('training_groups', 'user_id') && !blank($formRequest->input('user_id'))) {
+            $params['user_id'] = $formRequest->input('user_id');
+        }
+
+        return $params;
     }
 
     public function updateTrainingGroup(FormRequest $formRequest, TrainingGroup $trainingGroup): ?TrainingGroup

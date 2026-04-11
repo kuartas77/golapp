@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Dto\AssistDTO;
+use App\Http\Requests\CompetitionRequest;
+use App\Http\Requests\CompetitionStoreRequest;
 use App\Models\Assist;
 use App\Models\CompetitionGroup;
 use App\Models\CompetitionGroupInscription;
@@ -196,15 +198,14 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ]);
         $this->assertTrue($repository->upsert($skipDto));
 
-        DB::table('assists')->insert([
-            'training_group_id' => $trainingGroup->id,
-            'inscription_id' => $inscription->id,
-            'year' => now()->year,
-            'month' => '1',
-            'school_id' => $this->school['id'],
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $assist = Assist::query()->where([
+            ['training_group_id', $trainingGroup->id],
+            ['inscription_id', $inscription->id],
+            ['year', now()->year],
+            ['month', '1'],
+            ['school_id', $this->school['id']],
+        ])->firstOrFail();
+        $this->assertNull($assist->assistance_one);
 
         $updateDto = AssistDTO::fromArray([
             'school_id' => $this->school['id'],
@@ -365,11 +366,11 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->actingAs($this->user);
         $repository = app(SchoolRepository::class);
 
-        $schools = $repository->getAll();
+        $schools = $repository->getAll()->get();
         $this->assertGreaterThan(0, $schools->count());
         $this->assertNotEmpty($schools->first()->url_edit);
 
-        $schoolInfo = $repository->schoolsInfo((int) $this->school['id']);
+        $schoolInfo = $repository->schoolsInfo()->findOrFail((int) $this->school['id']);
         $this->assertNotNull($schoolInfo);
         $this->assertSame((int) $this->school['id'], (int) $schoolInfo->id);
     }
@@ -390,11 +391,11 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        $all = $repository->getAll();
+        $all = $repository->getAll()->get();
         $this->assertTrue($all->contains(fn(User $item) => $item->id === $user->id));
 
         $user->delete();
-        $trash = $repository->getAllTrash();
+        $trash = $repository->getAllTrash()->get();
         $this->assertTrue($trash->contains(fn(User $item) => $item->id === $user->id));
 
         $restored = $repository->restore($user->id);
@@ -500,11 +501,11 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ]);
         $this->assertNotNull($group->id);
 
-        $enabled = $repository->listGroupEnabled();
+        $enabled = $repository->listGroupEnabled()->get();
         $this->assertTrue($enabled->contains(fn(CompetitionGroup $item) => $item->id === $group->id));
 
         $fullName = $repository->getListGroupFullName();
-        $this->assertArrayHasKey($group->id, $fullName->toArray());
+        $this->assertTrue($fullName->contains(fn(CompetitionGroup $item) => $item->id === $group->id));
 
         $yearGroups = $repository->getGroupsYear((string) now()->year);
         $this->assertArrayHasKey($group->id, $yearGroups->toArray());
@@ -537,8 +538,9 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $payload = [
             'name' => 'Grupo Entreno',
             'stage' => 'Stage A',
-            'user_id' => [$this->user->id],
-            'years' => [2010, 2011],
+            'user_id' => $this->user->id,
+            'users_id' => [$this->user->id],
+            'categories' => ['2010', '2011'],
             'schedules' => ['08:00AM - 09:00AM'],
             'days' => ['lunes', 'miercoles'],
             'school_id' => $this->school['id'],
@@ -551,6 +553,11 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         $group = $repository->createTrainingGroup($request);
         $this->assertNotNull($group);
+
+        DB::table('training_groups')
+            ->where('id', $group->id)
+            ->update(['year' => '2010']);
+        $group = $group->fresh();
 
         $loadedGroup = $repository->getTrainingGroup($group);
         $this->assertGreaterThan(0, $loadedGroup->years->count());
@@ -781,14 +788,14 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $repository = app(GameRepository::class);
         request()->merge(['competition_group' => $competitionGroup->id]);
         $matchInfo = $repository->getInformationToMatch();
-        $this->assertSame($competitionGroup->id, $matchInfo->id);
-        $this->assertSame(1, $matchInfo->count);
+        $this->assertSame($competitionGroup->id, $matchInfo->competition_group_id);
+        $this->assertCount(1, $matchInfo->skills_controls);
 
         $matchInfoEdit = $repository->getInformationToMatch($game->fresh());
-        $this->assertSame($competitionGroup->id, $matchInfoEdit->id);
-        $this->assertSame(1, $matchInfoEdit->count);
+        $this->assertSame($competitionGroup->id, $matchInfoEdit->competition_group_id);
+        $this->assertCount(1, $matchInfoEdit->skillsControls);
 
-        $newMatch = $repository->createMatchSkill([
+        $newMatch = $repository->createMatchSkill($this->makeCompetitionStoreRequest([
             'tournament_id' => $tournament->id,
             'competition_group_id' => $competitionGroup->id,
             'date' => now()->toDateString(),
@@ -796,15 +803,33 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'num_match' => '3',
             'place' => 'Cancha C',
             'rival_name' => 'Rival C',
-            'final_score' => '{"local":0,"visitor":0}',
+            'final_score' => ['soccer' => 0, 'rival' => 0],
             'general_concept' => 'Sin goles',
             'school_id' => $this->school['id'],
-        ], [
-            'inscriptions_id' => [],
+            'skill_controls' => [
+                [
+                    'inscription_id' => $inscription->id,
+                    'assistance' => 1,
+                    'titular' => 1,
+                    'played_approx' => 35,
+                    'position' => 'DEF',
+                    'goals' => 0,
+                    'goal_assists' => 0,
+                    'goal_saves' => 0,
+                    'red_cards' => 0,
+                    'yellow_cards' => 0,
+                    'qualification' => 4,
+                    'observation' => 'Creado desde test',
+                ],
+            ],
+        ]));
+        $this->assertTrue($newMatch);
+        $this->assertDatabaseHas('games', [
+            'competition_group_id' => $competitionGroup->id,
+            'num_match' => '3',
         ]);
-        $this->assertNotNull($newMatch->id);
 
-        $updated = $repository->updateMatchSkill([
+        $updated = $repository->updateMatchSkill($this->makeCompetitionUpdateRequest([
             'tournament_id' => $tournament->id,
             'competition_group_id' => $competitionGroup->id,
             'date' => now()->toDateString(),
@@ -812,25 +837,33 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'num_match' => '4',
             'place' => 'Cancha D',
             'rival_name' => 'Rival D',
-            'final_score' => '{"local":1,"visitor":1}',
+            'final_score' => ['soccer' => 1, 'rival' => 1],
             'general_concept' => 'Empate',
             'school_id' => $this->school['id'],
-        ], [
-            'ids' => [],
-            'inscriptions_id' => [],
-            'assistance' => [],
-            'titular' => [],
-            'played_approx' => [],
-            'position' => [],
-            'goals' => [],
-            'goal_assists' => [],
-            'goal_saves' => [],
-            'red_cards' => [],
-            'yellow_cards' => [],
-            'qualification' => [],
-            'observation' => [],
-        ], $game);
+            'skill_controls' => [
+                [
+                    'game_id' => $game->id,
+                    'inscription_id' => $inscription->id,
+                    'assistance' => 1,
+                    'titular' => 1,
+                    'played_approx' => 40,
+                    'position' => 'MID',
+                    'goals' => 1,
+                    'goal_assists' => 0,
+                    'goal_saves' => 0,
+                    'red_cards' => 0,
+                    'yellow_cards' => 1,
+                    'qualification' => 5,
+                    'observation' => 'Actualizado desde test',
+                ],
+            ],
+        ]), $game);
         $this->assertTrue($updated);
+        $this->assertDatabaseHas('games', [
+            'id' => $game->id,
+            'num_match' => '4',
+            'place' => 'Cancha D',
+        ]);
 
         $pdfRepository = Mockery::mock(GameRepository::class, [new Game()])
             ->makePartial()
@@ -881,7 +914,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ]);
 
         $repository = app(GameRepository::class);
-        $createdMatch = $repository->createMatchSkill([
+        $createdMatch = $repository->createMatchSkill($this->makeCompetitionStoreRequest([
             'tournament_id' => $tournament->id,
             'competition_group_id' => $competitionGroup->id,
             'date' => now()->toDateString(),
@@ -889,25 +922,32 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'num_match' => '5',
             'place' => 'Cancha E',
             'rival_name' => 'Rival E',
-            'final_score' => '{"local":3,"visitor":2}',
+            'final_score' => ['soccer' => 3, 'rival' => 2],
             'general_concept' => 'Partido con skills',
             'school_id' => $this->school['id'],
-        ], [
-            'inscriptions_id' => [$inscriptionA->id],
-            'assistance' => [1],
-            'titular' => [1],
-            'played_approx' => ['30'],
-            'position' => ['MID'],
-            'goals' => ['2'],
-            'goal_assists' => ['1'],
-            'goal_saves' => ['0'],
-            'red_cards' => ['0'],
-            'yellow_cards' => ['1'],
-            'qualification' => [''],
-            'observation' => ['Buen partido'],
-        ]);
+            'skill_controls' => [
+                [
+                    'inscription_id' => $inscriptionA->id,
+                    'assistance' => 1,
+                    'titular' => 1,
+                    'played_approx' => 30,
+                    'position' => 'MID',
+                    'goals' => 2,
+                    'goal_assists' => 1,
+                    'goal_saves' => 0,
+                    'red_cards' => 0,
+                    'yellow_cards' => 1,
+                    'qualification' => 1,
+                    'observation' => 'Buen partido',
+                ],
+            ],
+        ]));
 
-        $this->assertNotNull($createdMatch->id);
+        $this->assertTrue($createdMatch);
+        $createdMatch = Game::query()
+            ->where('competition_group_id', $competitionGroup->id)
+            ->where('num_match', '5')
+            ->firstOrFail();
         $this->assertDatabaseHas('skills_control', [
             'game_id' => $createdMatch->id,
             'inscription_id' => $inscriptionA->id,
@@ -933,7 +973,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'school_id' => $this->school['id'],
         ]);
 
-        $updated = $repository->updateMatchSkill([
+        $updated = $repository->updateMatchSkill($this->makeCompetitionUpdateRequest([
             'tournament_id' => $tournament->id,
             'competition_group_id' => $competitionGroup->id,
             'date' => now()->toDateString(),
@@ -941,24 +981,58 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'num_match' => '6',
             'place' => 'Cancha F',
             'rival_name' => 'Rival F',
-            'final_score' => '{"local":1,"visitor":0}',
+            'final_score' => ['soccer' => 1, 'rival' => 0],
             'general_concept' => 'Actualizacion completa',
             'school_id' => $this->school['id'],
-        ], [
-            'ids' => [$existingSkill->id, 999999, ''],
-            'inscriptions_id' => [$inscriptionB->id, $inscriptionC->id, $inscriptionA->id],
-            'assistance' => [0, 1, 1],
-            'titular' => [0, 1, 0],
-            'played_approx' => [20, 40, 50],
-            'position' => ['VOL', 'DEL', 'POR'],
-            'goals' => [1, 2, 0],
-            'goal_assists' => [3, 1, 0],
-            'goal_saves' => [0, 0, 4],
-            'red_cards' => [0, 0, 0],
-            'yellow_cards' => [1, 0, 1],
-            'qualification' => ['5', '4', '3'],
-            'observation' => ['Actualizado', 'Nuevo por id no existente', 'Nuevo por id vacio'],
-        ], $createdMatch->fresh());
+            'skill_controls' => [
+                [
+                    'game_id' => $createdMatch->id,
+                    'id' => $existingSkill->id,
+                    'inscription_id' => $inscriptionB->id,
+                    'assistance' => 0,
+                    'titular' => 0,
+                    'played_approx' => 20,
+                    'position' => 'VOL',
+                    'goals' => 1,
+                    'goal_assists' => 3,
+                    'goal_saves' => 0,
+                    'red_cards' => 0,
+                    'yellow_cards' => 1,
+                    'qualification' => 5,
+                    'observation' => 'Actualizado',
+                ],
+                [
+                    'game_id' => $createdMatch->id,
+                    'inscription_id' => $inscriptionC->id,
+                    'assistance' => 1,
+                    'titular' => 1,
+                    'played_approx' => 40,
+                    'position' => 'DEL',
+                    'goals' => 2,
+                    'goal_assists' => 1,
+                    'goal_saves' => 0,
+                    'red_cards' => 0,
+                    'yellow_cards' => 0,
+                    'qualification' => 4,
+                    'observation' => 'Nuevo por id no existente',
+                ],
+                [
+                    'game_id' => $createdMatch->id,
+                    'inscription_id' => $inscriptionA->id,
+                    'assistance' => 1,
+                    'titular' => 0,
+                    'played_approx' => 50,
+                    'position' => 'POR',
+                    'goals' => 0,
+                    'goal_assists' => 0,
+                    'goal_saves' => 4,
+                    'red_cards' => 0,
+                    'yellow_cards' => 1,
+                    'qualification' => 3,
+                    'observation' => 'Nuevo por id vacio',
+                ],
+            ],
+        ]), $createdMatch->fresh());
         $this->assertTrue($updated);
         $this->assertDatabaseHas('skills_control', [
             'id' => $existingSkill->id,
@@ -967,11 +1041,11 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'goal_assists' => 3,
             'observation' => 'Actualizado',
         ]);
-        $this->assertGreaterThanOrEqual(4, SkillsControl::query()->where('game_id', $createdMatch->id)->count());
+        $this->assertGreaterThanOrEqual(3, SkillsControl::query()->where('game_id', $createdMatch->id)->count());
 
         $loadedData = $repository->loadDataFromFile(SkillsControl::query()->where('game_id', $createdMatch->id)->get());
-        $this->assertGreaterThan(0, $loadedData->count);
-        $this->assertStringContainsString('<tr>row</tr>', $loadedData->rows);
+        $this->assertTrue($loadedData['success']);
+        $this->assertGreaterThan(0, $loadedData['skills_controls']->count());
     }
 
     public function testGameRepositoryCreateAndUpdateHandleExceptions(): void
@@ -981,7 +1055,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $repository = Mockery::mock(GameRepository::class, [new Game()])->makePartial();
         $repository->shouldReceive('logError')->twice();
 
-        $failedCreate = $repository->createMatchSkill([
+        $failedCreate = $repository->createMatchSkill($this->makeCompetitionStoreRequest([
             'tournament_id' => 99999999,
             'competition_group_id' => 99999999,
             'date' => now()->toDateString(),
@@ -989,18 +1063,32 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'num_match' => '7',
             'place' => 'Cancha G',
             'rival_name' => 'Rival G',
-            'final_score' => '{"local":0,"visitor":0}',
+            'final_score' => ['soccer' => 0, 'rival' => 0],
             'general_concept' => 'Debe fallar',
             'school_id' => $this->school['id'],
-        ], [
-            'inscriptions_id' => [],
-        ]);
-        $this->assertNull($failedCreate->id);
+            'skill_controls' => [
+                [
+                    'inscription_id' => 99999999,
+                    'assistance' => 1,
+                    'titular' => 1,
+                    'played_approx' => 30,
+                    'position' => 'MID',
+                    'goals' => 0,
+                    'goal_assists' => 0,
+                    'goal_saves' => 0,
+                    'red_cards' => 0,
+                    'yellow_cards' => 0,
+                    'qualification' => 3,
+                    'observation' => 'Debe fallar',
+                ],
+            ],
+        ]));
+        $this->assertFalse($failedCreate);
 
         $gameMock = Mockery::mock(Game::class);
         $gameMock->shouldReceive('update')->once()->andThrow(new \Exception('forced update error'));
 
-        $failedUpdate = $repository->updateMatchSkill([
+        $failedUpdate = $repository->updateMatchSkill($this->makeCompetitionUpdateRequest([
             'tournament_id' => 1,
             'competition_group_id' => 1,
             'date' => now()->toDateString(),
@@ -1008,24 +1096,27 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'num_match' => '8',
             'place' => 'Cancha H',
             'rival_name' => 'Rival H',
-            'final_score' => '{"local":0,"visitor":1}',
+            'final_score' => ['soccer' => 0, 'rival' => 1],
             'general_concept' => 'Debe fallar update',
             'school_id' => $this->school['id'],
-        ], [
-            'ids' => [],
-            'inscriptions_id' => [],
-            'assistance' => [],
-            'titular' => [],
-            'played_approx' => [],
-            'position' => [],
-            'goals' => [],
-            'goal_assists' => [],
-            'goal_saves' => [],
-            'red_cards' => [],
-            'yellow_cards' => [],
-            'qualification' => [],
-            'observation' => [],
-        ], $gameMock);
+            'skill_controls' => [
+                [
+                    'game_id' => 1,
+                    'inscription_id' => 1,
+                    'assistance' => 1,
+                    'titular' => 1,
+                    'played_approx' => 10,
+                    'position' => 'DEF',
+                    'goals' => 0,
+                    'goal_assists' => 0,
+                    'goal_saves' => 0,
+                    'red_cards' => 0,
+                    'yellow_cards' => 0,
+                    'qualification' => 1,
+                    'observation' => 'Debe fallar update',
+                ],
+            ],
+        ]), $gameMock);
         $this->assertFalse($failedUpdate);
     }
 
@@ -1310,22 +1401,24 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $createResult = $createRepository->create(['training_group_id' => 1]);
         $this->assertSame([], $createResult);
 
-        $assist = Assist::query()->create([
-            'training_group_id' => TrainingGroup::query()->where('school_id', $this->school['id'])->firstOrFail()->id,
-            'inscription_id' => Inscription::query()->create([
-                'school_id' => $this->school['id'],
-                'player_id' => $this->createTestPlayer()->id,
-                'unique_code' => 'RC-ERR-' . fake()->unique()->numberBetween(1000, 9999),
-                'year' => now()->year,
-                'start_date' => now()->startOfYear()->format('Y-m-d'),
-                'category' => '2010-2011',
-                'training_group_id' => TrainingGroup::query()->where('school_id', $this->school['id'])->firstOrFail()->id,
-                'competition_group_id' => null,
-            ])->id,
-            'year' => now()->year,
-            'month' => '1',
+        $trainingGroupId = TrainingGroup::query()->where('school_id', $this->school['id'])->firstOrFail()->id;
+        $inscription = Inscription::query()->create([
             'school_id' => $this->school['id'],
+            'player_id' => $this->createTestPlayer()->id,
+            'unique_code' => 'RC-ERR-' . fake()->unique()->numberBetween(1000, 9999),
+            'year' => now()->year,
+            'start_date' => now()->startOfYear()->format('Y-m-d'),
+            'category' => '2010-2011',
+            'training_group_id' => $trainingGroupId,
+            'competition_group_id' => null,
         ]);
+        $assist = Assist::query()->where([
+            ['training_group_id', $trainingGroupId],
+            ['inscription_id', $inscription->id],
+            ['year', now()->year],
+            ['month', '1'],
+            ['school_id', $this->school['id']],
+        ])->firstOrFail();
 
         $upsertRepository = Mockery::mock(AssistRepository::class, [new Assist()])->makePartial();
         $upsertRepository->shouldReceive('logError')->once();
@@ -1504,6 +1597,58 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'school_id' => $this->school['id'],
             'unique_code' => 'RC-' . fake()->unique()->numberBetween(1000, 9999),
         ]);
+    }
+
+    private function makeCompetitionStoreRequest(array $data): CompetitionStoreRequest
+    {
+        return new class ($data) extends CompetitionStoreRequest
+        {
+            public function __construct(private array $payload)
+            {
+                parent::__construct();
+            }
+
+            public function only($keys): array
+            {
+                return collect((array) $keys)
+                    ->mapWithKeys(fn(string $key) => [$key => data_get($this->payload, $key)])
+                    ->filter(fn($value) => !is_null($value))
+                    ->all();
+            }
+
+            public function validated($key = null, $default = null): mixed
+            {
+                return is_null($key)
+                    ? $this->payload
+                    : data_get($this->payload, $key, $default);
+            }
+        };
+    }
+
+    private function makeCompetitionUpdateRequest(array $data): CompetitionRequest
+    {
+        return new class ($data) extends CompetitionRequest
+        {
+            public function __construct(private array $payload)
+            {
+                parent::__construct();
+            }
+
+            public function only($keys): array
+            {
+                return collect((array) $keys)
+                    ->mapWithKeys(fn(string $key) => [$key => data_get($this->payload, $key)])
+                    ->filter(fn($value) => !is_null($value))
+                    ->all();
+            }
+
+            public function validated($key = null, $default = null): mixed
+            {
+                return is_null($key)
+                    ? $this->payload
+                    : data_get($this->payload, $key, $default);
+            }
+        };
     }
 
     private function createInscriptionAndPayment(?Player $player = null, ?TrainingGroup $trainingGroup = null): array

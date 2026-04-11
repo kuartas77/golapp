@@ -1,13 +1,17 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { useTemplateRef, onMounted, ref } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 import api from '@/utils/axios'
 import { useRouter } from 'vue-router'
 
 export default function useInscriptionConfig() {
     const router = useRouter()
     const inscription_table = useTemplateRef('inscription_table')
-    const uniqueCodeSelected = ref(null)
+    const selectedInscriptionId = ref(null)
     const disableUrlSelected = ref(null)
+    let selectGroupsElement = null
+    let selectCategoriesElement = null
+    let handleGroupsChange = null
+    let handleCategoriesChange = null
 
     const columns = [
         { data: 'player.photo_url', width: '1%', render: '#photo', searchable: false, orderable: false },
@@ -17,7 +21,7 @@ export default function useInscriptionConfig() {
         { data: 'player.gender', name: 'player.gender', orderable: false, searchable: false },
         { data: 'player.full_names', render: '#inscription', name: 'player.last_names', orderable: false, searchable: true  },
         { data: 'eps_certificate', render: (data) => `<span class="badge badge-warning">`+(data ? 'Sí':'No')+`</span>`, orderable: false, searchable: true },
-        { data: 'created_at', render: '#date', searchable: false },
+        { data: 'start_date', name: 'inscriptions.start_date', render: '#date', searchable: false },
         {
             data: 'id',
             title: 'Acciones',
@@ -66,13 +70,13 @@ export default function useInscriptionConfig() {
                         <li>
                             <button
                                 class="dropdown-item"
-                                data-item-id="${row.unique_code}"
+                                data-item-id="${row.id}"
                                 data-type="edit"
                                 title="Modificar Inscripción"
                                 type="button"
                             >
                                 <i
-                                    data-item-id="${row.unique_code}"
+                                    data-item-id="${row.id}"
                                     class="fa fa-edit fa-width-auto me-2"
                                     data-type="edit"
                                 ></i>
@@ -133,6 +137,13 @@ export default function useInscriptionConfig() {
         columns: columns
     };
 
+    const reloadTable = () => {
+        if (inscription_table.value) {
+            const dt = inscription_table.value.table.dt
+            dt.ajax.reload(null, false)
+        }
+    }
+
     const resolveRouteFromClick = (e) => {
         const type = e.target.dataset.type
         const itemId = e.target.dataset.itemId
@@ -142,7 +153,7 @@ export default function useInscriptionConfig() {
         e.preventDefault()
         switch (type) {
             case 'edit':
-                uniqueCodeSelected.value = itemId
+                selectedInscriptionId.value = Number(itemId)
                 break;
             case 'invoice':
                 router.push({ name: 'invoices.create', params: { inscription: itemId } })
@@ -158,17 +169,14 @@ export default function useInscriptionConfig() {
     }
 
     const onCancelModal = () => {
-        uniqueCodeSelected.value = null
+        selectedInscriptionId.value = null
         disableUrlSelected.value = null
     }
 
     const onSuccessModal = () => {
-        uniqueCodeSelected.value = null
+        selectedInscriptionId.value = null
         disableUrlSelected.value = null
-        if (inscription_table.value) {
-            let dt = inscription_table.value.table.dt;
-            dt.ajax.reload(null, false)
-        }
+        reloadTable()
     }
 
     const confirmDisable = async () => {
@@ -185,10 +193,7 @@ export default function useInscriptionConfig() {
                 api.delete(disableUrlSelected.value)
                     .then(() => {
                         disableUrlSelected.value = null
-                        if (inscription_table.value) {
-                            let dt = inscription_table.value.table.dt;
-                            dt.ajax.reload(null, false)
-                        }
+                        reloadTable()
                         Swal.fire({
                             title: "Inscripción retirada",
                             text: "La inscripción fue eliminada exitosamente.",
@@ -208,23 +213,39 @@ export default function useInscriptionConfig() {
         });
     }
 
-    onMounted(() => {
+    onMounted(async () => {
+        await nextTick()
+
         if (inscription_table.value) {
-            let dt = inscription_table.value.table.dt;
-            const selectGroups = document.querySelector('thead select[placeholder="Grupos"]');
-            if (selectGroups) {
-                selectGroups.addEventListener('change', function () {
+            const dt = inscription_table.value.table.dt
+
+            selectGroupsElement = document.querySelector('thead select[placeholder="Grupos"]')
+            if (selectGroupsElement) {
+                handleGroupsChange = function () {
                     return dt.column(2).search(this.value).draw()
-                });
+                }
+                selectGroupsElement.addEventListener('change', handleGroupsChange)
             }
-            const selectCategories = document.querySelector('thead select[placeholder="Categorias"]');
-            if (selectCategories) {
-                selectCategories.addEventListener('change', function () {
+
+            selectCategoriesElement = document.querySelector('thead select[placeholder="Categorias"]')
+            if (selectCategoriesElement) {
+                handleCategoriesChange = function () {
                     return dt.column(3).search(this.value).draw()
-                });
+                }
+                selectCategoriesElement.addEventListener('change', handleCategoriesChange)
             }
         }
-    });
+    })
 
-    return { options, inscription_table, uniqueCodeSelected, resolveRouteFromClick, onCancelModal, onSuccessModal };
+    onBeforeUnmount(() => {
+        if (selectGroupsElement && handleGroupsChange) {
+            selectGroupsElement.removeEventListener('change', handleGroupsChange)
+        }
+
+        if (selectCategoriesElement && handleCategoriesChange) {
+            selectCategoriesElement.removeEventListener('change', handleCategoriesChange)
+        }
+    })
+
+    return { options, inscription_table, selectedInscriptionId, resolveRouteFromClick, onCancelModal, onSuccessModal };
 }

@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/{any}', [AppController::class, 'index'])->where('any', '.*');
-// Auth::routes(['register' => false, 'verify' => false]);
+Auth::routes(['register' => false, 'verify' => false]);
 
 // Route::get('/', fn() => redirect('login'));
 
@@ -35,7 +35,7 @@ Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->w
 
 Route::middleware(['auth', 'verified_school'])->group(function () {
 
-//     Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/birthdays', [HomeController::class, 'birthDays'])->name('birthDays');
 
     Route::post('inscriptions/activate/{id}', [InscriptionController::class, 'activate'])->name('inscriptions.activate');

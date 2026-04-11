@@ -7,8 +7,10 @@ namespace Tests\Feature;
 use Carbon\Carbon;
 use Tests\TestCase;
 use App\Mail\ErrorLog;
+use App\Models\CompetitionGroup;
 use App\Models\Inscription;
 use App\Models\Player;
+use App\Models\Tournament;
 use Mockery\MockInterface;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Mail;
@@ -70,15 +72,15 @@ final class InscriptionsTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $testResponse = $this->post(route('inscriptions.store'), [
-            'unique_code' => $player->unique_code,
+        $testResponse = $this->postJson(route('inscriptions.store'), [
+            'unique_code' => 'INVALID-CODE',
             'player_id' => $player->id,
             'start_date' => $now->format('Y-m-d'),
-            'competition_groups' => [1, 2, 3, 4, 5]
         ]);
 
         $testResponse->assertStatus(422);
-        Mail::assertSent(ErrorLog::class);
+        $testResponse->assertJsonValidationErrors(['unique_code']);
+        Mail::assertNotSent(ErrorLog::class);
         Notification::assertNotSentTo($player, InscriptionNotification::class);
         $this->assertDatabaseEmpty('inscriptions');
     }
@@ -122,6 +124,7 @@ final class InscriptionsTest extends TestCase
     public function testUptadeInscriptionError(): void
     {
         Mail::fake();
+        Notification::fake();
 
         $now = Carbon::now();
 
@@ -142,13 +145,69 @@ final class InscriptionsTest extends TestCase
         $dataInscription['player_id'] = $player->id;
         $dataInscription['start_date'] = $now->format('Y-m-d');
         $dataInscription['photos'] = true;
-        $dataInscription['competition_groups'] = [1, 2, 3, 4, 5];
+        $dataInscription['unique_code'] = 'INVALID-CODE';
 
         $this->actingAs($this->user);
 
-        $testResponse = $this->post(route('inscriptions.update', [$inscription->id]), $dataInscription + ['_method' => 'PATCH']);
+        $testResponse = $this->patchJson(route('inscriptions.update', [$inscription->id]), $dataInscription);
         $testResponse->assertStatus(422);
-        Mail::assertSent(ErrorLog::class);
+        $testResponse->assertJsonValidationErrors(['unique_code']);
+        Mail::assertNotSent(ErrorLog::class);
+        Notification::assertNothingSent();
+        $this->assertDatabaseHas('inscriptions', [
+            'id' => $inscription->id,
+            'photos' => false,
+        ]);
+    }
+
+    public function testUpdateInscriptionCanClearCompetitionGroups(): void
+    {
+        $now = Carbon::now();
+
+        $player = Player::factory()->create();
+        $inscription = Inscription::factory()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => $now->year,
+            'training_group_id' => 1,
+            'competition_group_id' => null,
+            'start_date' => $now->format('Y-m-d'),
+            'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+            'school_id' => $this->school['id']
+        ]);
+
+        $tournament = Tournament::query()->create([
+            'name' => 'Torneo de prueba',
+            'school_id' => $this->school['id'],
+        ]);
+
+        $competitionGroup = CompetitionGroup::query()->create([
+            'name' => 'Grupo de prueba',
+            'year' => (string) $now->year,
+            'tournament_id' => $tournament->id,
+            'user_id' => $this->user->id,
+            'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+            'school_id' => $this->school['id'],
+        ]);
+
+        $inscription->competitionGroup()->attach($competitionGroup->id);
+
+        $this->actingAs($this->user);
+
+        $testResponse = $this->post(route('inscriptions.update', [$inscription->id]), [
+            'unique_code' => $player->unique_code,
+            'player_id' => $player->id,
+            'start_date' => $now->format('Y-m-d'),
+            'competition_groups' => [],
+            '_method' => 'PATCH',
+        ]);
+
+        $testResponse->assertStatus(200);
+
+        $this->assertDatabaseMissing('competition_group_inscription', [
+            'competition_group_id' => $competitionGroup->id,
+            'inscription_id' => $inscription->id,
+        ]);
     }
 
     public function testGetIndex(): void
@@ -180,7 +239,8 @@ final class InscriptionsTest extends TestCase
         $this->actingAs($this->user);
 
         $testResponse = $this->post(route('inscriptions.destroy', [$inscription->id]), ['_method' => 'DELETE']);
-        $testResponse->assertStatus(302);
+        $testResponse->assertStatus(200);
+        $testResponse->assertJsonPath('success', true);
 
         $this->assertSoftDeleted('inscriptions', ['id' => $inscription->id]);
     }
@@ -209,7 +269,40 @@ final class InscriptionsTest extends TestCase
 
         $testResponse->assertJsonStructure([
             "id",
-            "player_id"
+            "player_id",
+            "competition_groups",
+        ]);
+    }
+
+    public function testGetEditById(): void
+    {
+        $now = Carbon::now();
+
+        $player = Player::factory()->create();
+        $inscription = Inscription::factory()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => $now->year,
+            'training_group_id' => 1,
+            'competition_group_id' => null,
+            'start_date' => $now->format('Y-m-d'),
+            'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+            'school_id' => $this->school['id']
+        ]);
+
+        $this->actingAs($this->user);
+
+        $testResponse = $this->get(route('inscriptions.edit', [$inscription->id]));
+
+        $testResponse->assertStatus(200);
+        $testResponse->assertJson([
+            'id' => $inscription->id,
+            'player_id' => $player->id,
+        ]);
+        $testResponse->assertJsonStructure([
+            "id",
+            "player_id",
+            "competition_groups",
         ]);
     }
 }
