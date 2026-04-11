@@ -2,9 +2,20 @@
     <panel>
         <template #lateral />
         <template #body>
-                            <div class="d-sm-flex justify-content-between">
-                                        <span class="text-danger">{{ globalError }}</span>
-                                    </div>
+            <div v-if="hasGeneralErrors" class="alert alert-danger mb-3" role="alert">
+                <div class="fw-semibold">Hay errores por corregir antes de guardar.</div>
+                <div v-if="globalError" class="mt-1">{{ globalError }}</div>
+                <ul v-if="formErrorSummary.length" class="mb-0 mt-2 ps-3">
+                    <li v-for="error in formErrorSummary" :key="`${error.field}_${error.message}`">
+                        <button v-if="error.stepIndex !== null" type="button" class="btn btn-link btn-sm alert-link p-0 align-baseline"
+                            @click="goToStep(error.stepIndex)">
+                            Paso {{ error.stepIndex + 1 }} · {{ error.stepTitle }}
+                        </button>
+                        <span v-if="error.stepIndex !== null">:</span>
+                        <span>{{ error.label }}. {{ error.message }}</span>
+                    </li>
+                </ul>
+            </div>
             <Form v-slot="{ validate, handleSubmit }" :validation-schema="schema" :initial-values="initialValues"
                 :keep-values="true" @submit="onSubmit" ref="form-player">
 
@@ -110,27 +121,27 @@
                                         <inputField label="Correo Electrónico" name="email" :is-required="true" />
                                     </div>
                                     <div class="form-group">
-                                        <inputField label="Entidad de salud" name="eps" />
+                                        <inputField label="Entidad de salud" name="eps" :is-required="true" />
                                     </div>
 
                                     <div class="form-group">
-                                        <inputField label="Direccion de residencia" name="address" />
+                                        <inputField label="Direccion de residencia" name="address" :is-required="true" />
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <inputField label="Municipio de residencia" name="municipality" />
+                                        <inputField label="Municipio de residencia" name="municipality" :is-required="true" />
                                     </div>
                                     <div class="form-group">
-                                        <inputField label="Barrio de residencia" name="neighborhood" />
+                                        <inputField label="Barrio de residencia" name="neighborhood" :is-required="true" />
                                     </div>
                                     <div class="form-group">
-                                        <inputField label="# Teléfonicos/Celular" name="phones" />
+                                        <inputField label="# Teléfonicos/Celular" name="phones" :is-required="true" />
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <inputField label="Institución educativa" name="school" />
+                                        <inputField label="Institución educativa" name="school" :is-required="true" />
                                     </div>
                                     <div class="form-group">
                                         <label for="degree" class="form-label">Grado que cursa</label>
@@ -217,7 +228,7 @@
     <breadcrumb :parent="'Plataforma'" :current="currentTextPlayer" />
 </template>
 <script setup>
-import { Form, Field, ErrorMessage } from 'vee-validate'
+import { Form, Field } from 'vee-validate'
 import flatPickr from 'vue-flatpickr-component';
 import Loader from '@/components/general/Loader';
 import 'vue3-form-wizard/dist/style.css'
@@ -225,6 +236,6 @@ import 'flatpickr/dist/flatpickr.css';
 import "@/assets/sass/forms/custom-flatpickr.css";
 import usePlayerDetail from '@/composables/player/playerDetail'
 
-const { globalError, onSubmit, wizardOptions, currentTextPlayer, step, initialValues, flatpickrConfig, settings, schema, degrees, parients, loadingText, isLoading } = usePlayerDetail()
+const { globalError, onSubmit, wizardOptions, currentTextPlayer, step, initialValues, flatpickrConfig, settings, schema, degrees, parients, loadingText, isLoading, formErrorSummary, hasGeneralErrors, goToStep } = usePlayerDetail()
 
 </script>

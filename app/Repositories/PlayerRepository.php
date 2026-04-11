@@ -35,7 +35,19 @@ class PlayerRepository
 
     public function getPlayersPeople()
     {
-        return $this->player->query()->with(['people'])->schoolId();
+        return $this->player->query()
+            ->select([
+                'players.id',
+                'players.unique_code',
+                'players.identification_document',
+                'players.date_birth',
+                'players.names',
+                'players.last_names',
+                'players.photo',
+                'players.created_at',
+                'players.school_id',
+            ])
+            ->schoolId();
     }
 
     public function createPlayer(PlayerCreateRequest $playerCreateRequest): bool

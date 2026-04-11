@@ -124,7 +124,16 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->of($this->playerRepository->getPlayersPeople())->toJson();
+        return datatables()->of($this->playerRepository->getPlayersPeople())
+            ->filterColumn('full_names', function ($query, $keyword) {
+                $sql = "CONCAT(players.names, ' ', players.last_names) like ?";
+                $query->whereRaw($sql, ["%{$keyword}%"]);
+            })
+            ->orderColumn('full_names', function ($query, $order) {
+                $query->orderBy('players.last_names', $order)
+                    ->orderBy('players.names', $order);
+            })
+            ->toJson();
     }
 
     public function enabledUsers(Request $request)

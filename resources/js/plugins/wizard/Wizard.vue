@@ -89,7 +89,7 @@ export const stepsOrientation = { horizontal: 0, vertical: 1 }
 export const transitionEffect = { none: 0, fade: 1, slide: 2, slideLeft: 3 }
 </script>
 <script setup>
-import { reactive, shallowRef, computed, onMounted, useSlots } from 'vue'
+import { reactive, shallowRef, computed, onMounted, useSlots, watch } from 'vue'
 import Step from './Step.vue'
 
 const defaultOptions = {
@@ -187,6 +187,26 @@ onMounted(() => {
     loadAsyncContent()
     options.value.onInit(state.currentIndex)
     emit('init', state.currentIndex)
+})
+
+watch(() => props.modelValue, async (newIndex) => {
+    if (typeof newIndex !== 'number' || newIndex === state.currentIndex) {
+        return
+    }
+
+    if (newIndex < 0 || newIndex >= state.stepCount) {
+        return
+    }
+
+    const oldIndex = state.currentIndex
+    state.currentIndex = newIndex
+
+    if (typeof options.value.onStepChanged === 'function') {
+        options.value.onStepChanged(state.currentIndex, oldIndex)
+    }
+
+    saveState()
+    await loadAsyncContent()
 })
 
 /* Computeds */
