@@ -14,7 +14,8 @@
                             <div class="row mb-4">
                                 <div class="col-md-6">
                                     <h5>Información del Estudiante</h5>
-                                    <p v-if="inscription"><strong>Nombre:</strong> {{ inscription.player.full_names }}</p>
+                                    <p v-if="inscription"><strong>Nombre:</strong> {{ inscription.player.full_names }}
+                                    </p>
                                     <p v-if="inscription"><strong>Grupo:</strong> {{ inscription.training_group.name }}
                                     </p>
                                     <p><strong>Año:</strong> {{ currentYear }}</p>
@@ -45,18 +46,13 @@
                                                 <thead class="thead-light">
                                                     <tr>
                                                         <th width="5%" class="text-center">
-                                                            <div class="custom-control custom-checkbox checkbox-primary">
-                                                                <input
-                                                                    id="month-include-all"
-                                                                    type="checkbox"
-                                                                    checked="true"
-                                                                    class="custom-control-input"
-                                                                    v-model="selectAllMonts"
-                                                                >
-                                                                <label
-                                                                    class="custom-control-label"
-                                                                    for="month-include-all"
-                                                                ></label>
+                                                            <div
+                                                                class="custom-control custom-checkbox checkbox-primary">
+                                                                <input id="month-include-all" type="checkbox"
+                                                                    checked="true" class="custom-control-input"
+                                                                    v-model="selectAllMonts">
+                                                                <label class="custom-control-label"
+                                                                    for="month-include-all"></label>
                                                             </div>
                                                         </th>
                                                         <th width="25%">Descripción</th>
@@ -70,17 +66,13 @@
                                                     <tr v-for="(month, index) in pendingMonths" :key="month.month"
                                                         :class="{ 'table-secondary': !month.include }">
                                                         <td class="text-center">
-                                                            <div class="custom-control custom-checkbox checkbox-primary">
-                                                                <input
-                                                                    :id="`month-include-${index}`"
-                                                                    v-model="month.include"
-                                                                    type="checkbox"
-                                                                    class="custom-control-input"
-                                                                >
-                                                                <label
-                                                                    class="custom-control-label"
-                                                                    :for="`month-include-${index}`"
-                                                                ></label>
+                                                            <div
+                                                                class="custom-control custom-checkbox checkbox-primary">
+                                                                <input :id="`month-include-${index}`"
+                                                                    v-model="month.include" type="checkbox"
+                                                                    class="custom-control-input">
+                                                                <label class="custom-control-label"
+                                                                    :for="`month-include-${index}`"></label>
                                                             </div>
                                                         </td>
                                                         <td>
@@ -93,19 +85,18 @@
                                                         </td>
                                                         <td>
                                                             <input type="number" class="form-control form-control-sm"
-                                                                v-model="month.quantity" min="1"
-                                                                :disabled="true"
+                                                                v-model="month.quantity" min="1" :disabled="true"
                                                                 @input="calculateMonthTotal(month)">
                                                         </td>
                                                         <td>
                                                             <CurrencyInput class="form-control form-control-sm"
-                                                            v-model="month.unit_price" autocomplete="off"
-                                                            :disabled="!month.include"
-                                                             @input="calculateItemTotal(month)"/>
+                                                                v-model="month.unit_price" autocomplete="off"
+                                                                :disabled="!month.include"
+                                                                @input="calculateItemTotal(month)" />
                                                         </td>
                                                         <td>
                                                             <CurrencyInput class="form-control form-control-sm"
-                                                            v-model="month.total" autocomplete="off" readonly/>
+                                                                v-model="month.total" autocomplete="off" readonly />
                                                         </td>
                                                         <td></td>
                                                     </tr>
@@ -128,18 +119,13 @@
                                                 <thead class="thead-light">
                                                     <tr>
                                                         <th width="5%" class="text-center">
-                                                            <div class="custom-control custom-checkbox checkbox-primary">
-                                                                <input
-                                                                    id="item-include-all"
-                                                                    type="checkbox"
-                                                                    checked="true"
-                                                                    class="custom-control-input"
-                                                                    v-model="selectAllAdditionalItems"
-                                                                >
-                                                                <label
-                                                                    class="custom-control-label"
-                                                                    for="item-include-all"
-                                                                ></label>
+                                                            <div
+                                                                class="custom-control custom-checkbox checkbox-primary">
+                                                                <input id="item-include-all" type="checkbox"
+                                                                    checked="true" class="custom-control-input"
+                                                                    v-model="selectAllAdditionalItems">
+                                                                <label class="custom-control-label"
+                                                                    for="item-include-all"></label>
                                                             </div>
                                                         </th>
                                                         <th width="25%">Descripción</th>
@@ -153,22 +139,19 @@
                                                     <tr v-for="(item, index) in additionalItems" :key="index"
                                                         :class="{ 'table-secondary': !item.include }">
                                                         <td class="text-center">
-                                                            <div class="custom-control custom-checkbox checkbox-primary">
-                                                                <input
-                                                                    :id="`item-include-${index}`"
-                                                                    v-model="item.include"
-                                                                    type="checkbox"
-                                                                    class="custom-control-input"
-                                                                >
-                                                                <label
-                                                                    class="custom-control-label"
-                                                                    :for="`item-include-${index}`"
-                                                                ></label>
+                                                            <div
+                                                                class="custom-control custom-checkbox checkbox-primary">
+                                                                <input :id="`item-include-${index}`"
+                                                                    v-model="item.include" type="checkbox"
+                                                                    class="custom-control-input">
+                                                                <label class="custom-control-label"
+                                                                    :for="`item-include-${index}`"></label>
                                                             </div>
                                                         </td>
                                                         <td>
                                                             <input type="text" class="form-control form-control-sm"
-                                                                v-model="item.description" :disabled="!item.include" required>
+                                                                v-model="item.description" :disabled="!item.include"
+                                                                required>
                                                         </td>
                                                         <td>
                                                             <input type="number" class="form-control form-control-sm"
@@ -178,13 +161,13 @@
                                                         </td>
                                                         <td>
                                                             <CurrencyInput class="form-control form-control-sm"
-                                                            v-model="item.unit_price" autocomplete="off"
-                                                            :disabled="!item.include"
-                                                             @input="calculateItemTotal(item)"/>
+                                                                v-model="item.unit_price" autocomplete="off"
+                                                                :disabled="!item.include"
+                                                                @input="calculateItemTotal(item)" />
                                                         </td>
                                                         <td>
                                                             <CurrencyInput class="form-control form-control-sm"
-                                                            v-model="item.total" autocomplete="off" readonly/>
+                                                                v-model="item.total" autocomplete="off" readonly />
                                                         </td>
 
                                                         <td class="text-center">
@@ -213,13 +196,15 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label>Fecha de Vencimiento</label>
-                                                    <input type="date" class="form-control form-control-sm" v-model="dueDate" required>
+                                                    <input type="date" class="form-control form-control-sm"
+                                                        v-model="dueDate" required>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label>Notas</label>
-                                                    <textarea class="form-control form-control-sm" v-model="notes" rows="3"></textarea>
+                                                    <textarea class="form-control form-control-sm" v-model="notes"
+                                                        rows="3"></textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -235,18 +220,24 @@
                                         <div class="row">
                                             <div class="col-md-6 offset-md-6">
                                                 <table class="table table-sm table-borderless">
-                                                    <tr>
-                                                        <th class="text-right"><h6>Subtotal:</h6></th>
-                                                        <td width="150" class="text-right">
-                                                            <h6>{{ moneyFormat(subtotal) }}</h6>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="text-right"><h6>Total Factura:</h6></th>
-                                                        <td class="text-right">
-                                                            <h4>{{ moneyFormat(total) }}</h4>
-                                                        </td>
-                                                    </tr>
+                                                    <tbody>
+                                                        <tr>
+                                                            <th class="text-right">
+                                                                <h6>Subtotal:</h6>
+                                                            </th>
+                                                            <td width="150" class="text-right">
+                                                                <h6>{{ moneyFormat(subtotal) }}</h6>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th class="text-right">
+                                                                <h6>Total Factura:</h6>
+                                                            </th>
+                                                            <td class="text-right">
+                                                                <h4>{{ moneyFormat(total) }}</h4>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
                                                 </table>
                                             </div>
                                         </div>
@@ -257,7 +248,8 @@
                                     <button type="button" class="btn btn-secondary me-1" @click="cancel">
                                         <i class="fa fa-times"></i> Cancelar
                                     </button>
-                                    <button type="submit" class="btn btn-primary me-1" :disabled="loading || total == 0">
+                                    <button type="submit" class="btn btn-primary me-1"
+                                        :disabled="loading || total == 0">
                                         <span v-if="loading" class="spinner-border spinner-border-sm"></span>
                                         <i v-else class="fa fa-save"></i>
                                         {{ loading ? 'Guardando...' : 'Guardar Factura' }}
@@ -308,7 +300,7 @@ const subtotal = computed(() => {
 
     // Sumar ítems adicionales
     additionalItems.value.forEach(item => {
-        if(item.include){
+        if (item.include) {
             total += item.total
         }
     })
@@ -340,7 +332,7 @@ const loadData = async () => {
 
         const uniformRequest = response.data.pendingUniformRequests.map(item => ({
             ...item,
-            include:true,
+            include: true,
             description: item.description,
             quantity: 1,
             unit_price: Math.trunc(item.unit_price),
@@ -351,7 +343,7 @@ const loadData = async () => {
 
         const customItems = response.data.customItems.map(item => ({
             ...item,
-            include:true,
+            include: true,
             description: item.name,
             quantity: 1,
             unit_price: Math.trunc(item.unit_price),
@@ -395,7 +387,7 @@ const calculateMonthTotal = (month) => {
 }
 
 const calculateItemTotal = (item) => {
-    if(item.include){
+    if (item.include) {
         item.total = item.quantity * item.unit_price
     }
 }
@@ -420,18 +412,18 @@ const removeAdditionalItem = (index) => {
 
 const confirmCreate = async () => {
     Swal.fire({
-            title: `¿Guardar factura por: ${moneyFormat(total.value)} ?`,
-            text: "¡Puedes cancelar y verificar la factura!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "¡Sí, guardar!"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                submitInvoice()
-            }
-        })
+        title: `¿Guardar factura por: ${moneyFormat(total.value)} ?`,
+        text: "¡Puedes cancelar y verificar la factura!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "¡Sí, guardar!"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            submitInvoice()
+        }
+    })
 }
 
 const submitInvoice = async () => {
@@ -483,7 +475,7 @@ const submitInvoice = async () => {
         const response = await axios.post('/api/v2/invoices', data)
 
         // Redirigir a la vista de la factura creada
-        router.push({ name: 'invoices.show', params: {id: response.data.id}})
+        router.push({ name: 'invoices.show', params: { id: response.data.id } })
 
     } catch (error) {
         console.error('Error al crear factura:', error)
@@ -494,7 +486,7 @@ const submitInvoice = async () => {
 }
 
 const cancel = () => {
-    router.push({name: 'inscriptions'})
+    router.push({ name: 'inscriptions' })
 }
 
 // Cargar datos al montar el componente
