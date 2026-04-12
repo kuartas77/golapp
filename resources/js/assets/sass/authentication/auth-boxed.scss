@@ -63,6 +63,23 @@ body {
                 box-shadow: 0 0.1px 0px rgba(0, 0, 0, 0.002), 0 0.2px 0px rgba(0, 0, 0, 0.003), 0 0.4px 0px rgba(0, 0, 0, 0.004), 0 0.6px 0px rgba(0, 0, 0, 0.004), 0 0.9px 0px rgba(0, 0, 0, 0.005),
                     0 1.2px 0px rgba(0, 0, 0, 0.006), 0 1.8px 0px rgba(0, 0, 0, 0.006), 0 2.6px 0px rgba(0, 0, 0, 0.007), 0 3.9px 0px rgba(0, 0, 0, 0.008), 0 7px 0px rgba(0, 0, 0, 0.01);
 
+                .auth-brand {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+
+                    .auth-brand-logo {
+                        width: 100%;
+                        max-width: 240px;
+                        height: auto;
+                        display: block;
+                    }
+
+                    .logo-dark-mode {
+                        display: none;
+                    }
+                }
+
                 h1 {
                     font-size: 32px;
                     color: color_variables.$dark;
@@ -357,6 +374,26 @@ body {
     @supports (-ms-ime-align: auto) {
         .form-form .form-form-wrap {
             height: 100%;
+        }
+    }
+}
+
+body.dark {
+    .auth-boxed {
+        .form-form {
+            .form-container {
+                .form-content {
+                    .auth-brand {
+                        .logo-light-mode {
+                            display: none;
+                        }
+
+                        .logo-dark-mode {
+                            display: block;
+                        }
+                    }
+                }
+            }
         }
     }
 }

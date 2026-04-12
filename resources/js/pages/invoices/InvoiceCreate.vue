@@ -257,7 +257,7 @@
                                     <button type="button" class="btn btn-secondary me-1" @click="cancel">
                                         <i class="fa fa-times"></i> Cancelar
                                     </button>
-                                    <button type="submit" class="btn btn-primary me-1" :disabled="loading">
+                                    <button type="submit" class="btn btn-primary me-1" :disabled="loading || total == 0">
                                         <span v-if="loading" class="spinner-border spinner-border-sm"></span>
                                         <i v-else class="fa fa-save"></i>
                                         {{ loading ? 'Guardando...' : 'Guardar Factura' }}
@@ -407,7 +407,10 @@ const addAdditionalItem = () => {
         description: '',
         quantity: 1,
         unit_price: 0,
-        total: 0
+        total: 0,
+        uniform_request_id: null,
+        month: null,
+        payment_id: null
     })
 }
 

@@ -36,7 +36,7 @@ export default function useMonthlyPayments() {
     const isLoading = ref(false)
     const editingCell = ref(null)
     const backupCell = ref(null)
-    const typesNoEditables = [6, 14]
+    const typesNoEditables = [14]
     const annuity_amount = ref(0)
     const enrollment_amount = ref(0)
     const monthly_amount = ref(0)
@@ -56,6 +56,7 @@ export default function useMonthlyPayments() {
         11: 'november',
         12: 'december',
     }
+    const paymentFieldNames = Object.values(paymentFields)
 
     const handleSearch = async (values, actions) => {
         try {
@@ -107,95 +108,135 @@ export default function useMonthlyPayments() {
         backupCell.value = cloneDeep(toRaw(payPlayer));
     };
 
-    const cancelEdition = (field) => {
+    const cancelEdition = () => {
+        if (!backupCell.value) {
+            editingCell.value = null;
+            return
+        }
+
         let changed = groupPayments.value.find((payPlayer) => payPlayer.id === backupCell.value.id)
         if (backupCell.value && changed) {
             const clon = cloneDeep(toRaw(backupCell.value))
-            changed[field] = clon[field];
-            changed[`${field}_amount`] = clon[`${field}_amount`]
+            Object.assign(changed, clon)
         }
         editingCell.value = null;
         backupCell.value = null;
     }
 
-    const handleSelectChange = (payPlayer, field) => {
-        const type = payPlayer[field]
-        const inputAmount = payPlayer[`${field}_amount`]
-        if (inputAmount == 0 && [1, 9, 10].includes(type)) {
-            if (field === 'enrollment') {
-                payPlayer[`${field}_amount`] = enrollment_amount.value
-            } else {
-                payPlayer[`${field}_amount`] = monthly_amount.value
+    const normalizeAmount = (amount) => Number(amount) || 0
+
+    const applyStatusToFollowingFields = (payPlayer, field, type, valueIfZero = 0, forceAmount = false) => {
+        const currentFieldIndex = paymentFieldNames.indexOf(field)
+        const startIndex = currentFieldIndex <= 0 ? 0 : currentFieldIndex
+
+        paymentFieldNames.forEach((fieldName, index) => {
+            if (index < startIndex) {
+                return
             }
-        } else if (inputAmount !== annuity_amount.value && [11, 12].includes(type)) {
-            payPlayer[`${field}_amount`] = annuity_amount.value
-        } else if (inputAmount === annuity_amount.value && [11, 12].includes(type)) {
-            payPlayer[`${field}_amount`] = annuity_amount.value
-        } else if (inputAmount !== 0 && [0].includes(type)) {
-            payPlayer[`${field}_amount`] = 0
-        } else if ([13].includes(type)) {
-            payPlayer[`${field}_amount`] = inputAmount
-        } else if ([8].includes(type)) {
-            payPlayer[`${field}_amount`] = 0
+
+            if (field !== 'enrollment' && fieldName === 'enrollment') {
+                return
+            }
+
+            payPlayer[fieldName] = type
+
+            const amountKey = `${fieldName}_amount`
+            if (forceAmount) {
+                payPlayer[amountKey] = valueIfZero
+                return
+            }
+
+            if (normalizeAmount(payPlayer[amountKey]) === 0) {
+                payPlayer[amountKey] = valueIfZero
+            }
+        })
+    }
+
+    const applyPaymentRules = (payPlayer, field) => {
+        const type = Number(payPlayer[field])
+        const amountKey = `${field}_amount`
+        const inputAmount = normalizeAmount(payPlayer[amountKey])
+
+        payPlayer[field] = type
+
+        if (inputAmount === 0 && [1, 9, 10].includes(type)) {
+            payPlayer[amountKey] = field === 'enrollment'
+                ? enrollment_amount.value
+                : monthly_amount.value
+            return
+        }
+
+        if (inputAmount === 0 && type === 2) {
+            payPlayer[amountKey] = monthly_amount.value
+            return
+        }
+
+        if ([11, 12].includes(type)) {
+            applyStatusToFollowingFields(payPlayer, field, type, annuity_amount.value)
+            return
+        }
+
+        if (type === 13) {
+            payPlayer[amountKey] = annuity_amount.value
+            return
+        }
+
+        if (type === 6) {
+            applyStatusToFollowingFields(payPlayer, field, type, 0, true)
         }
     }
 
+    const handleSelectChange = (payPlayer, field) => {
+        applyPaymentRules(payPlayer, field)
+    }
+
+    const getSaveErrorMessage = (error) => {
+        const backendErrors = error.response?.data?.errors
+        if (backendErrors) {
+            const firstError = Object.values(backendErrors).flat()[0]
+            if (firstError) {
+                return firstError
+            }
+        }
+
+        return error.response?.data?.message || "No fue posible guardar la mensualidad"
+    }
+
     const saveField = async () => {
+        if (!editingCell.value) {
+            return
+        }
+
         const { payPlayer, field } = editingCell.value
         const paymentId = payPlayer.id
-        const type = payPlayer[field]
-        const inputAmount = payPlayer[`${field}_amount`]
-        let amount = 0
-        let allFields = false
         let changed = groupPayments.value.find((payPlayer) => payPlayer.id === paymentId)
 
-        if (inputAmount == 0 && [1, 9, 10].includes(type)) {
-            if (field === 'enrollment') {
-                changed[`${field}_amount`] = enrollment_amount.value
+        if (!changed) {
+            return
+        }
+
+        applyPaymentRules(changed, field)
+
+        try {
+            const data = cloneDeep(toRaw(changed))
+            data._method = 'PUT'
+            delete data.player
+            isLoading.value = true
+
+            const response = await api.post(`/api/v2/payments/${data.id}`, data)
+
+            if (response.data.data) {
+                showMessage("Se guardó correctamente")
+                editingCell.value = null
+                backupCell.value = null
             } else {
-                changed[`${field}_amount`] = monthly_amount.value
+                showMessage("Algo salió mal", 'error')
             }
-        } else if (inputAmount !== annuity_amount.value && [11, 12].includes(type)) {
-            changed[`${field}_amount`] = annuity_amount.value
-            amount = annuity_amount.value
-            allFields = true
-        } else if (inputAmount === annuity_amount.value && [11, 12].includes(type)) {
-            changed[`${field}_amount`] = annuity_amount.value
-            amount = annuity_amount.value
-            allFields = true
-        } else if (inputAmount !== 0 && [0].includes(type)) {
-            changed[`${field}_amount`] = 0
-        } else if (['13'].includes(type)) {
-            changed[`${field}_amount`] = annuity_amount.value
-        } else if (['6'].includes(type)) {
-            allFields = true
-        } else if (['8'].includes(type)) {
-            changed[`${field}_amount`] = 0
-            amount = 0
-            allFields = true
-        }
-
-        if (allFields && changed) {
-            for (const [key, value] of Object.entries(paymentFields)) {
-                changed[value] = type
-                if (changed[`${value}_amount`] === 0) {
-                    changed[`${value}_amount`] = amount
-                }
-            }
-        }
-
-        const data = cloneDeep(toRaw(changed))
-        data._method = 'PUT'
-        delete data.player
-        isLoading.value = true
-        const response = await api.post(`/api/v2/payments/${data.id}`, data)
-        if (response.data.data) {
-            showMessage("Se guardó correctamente")
-            editingCell.value = null
+        } catch (error) {
+            globalError.value = getSaveErrorMessage(error)
+            showMessage(globalError.value, 'error')
+        } finally {
             isLoading.value = false
-        } else {
-            isLoading.value = false
-            showMessage("Algo salió mal", 'error')
         }
     }
 
@@ -209,7 +250,7 @@ export default function useMonthlyPayments() {
             input: 'select',
             inputLabel: 'Estado de la mensualidad',
             inputOptions: {
-                null: 'Todos',
+                all: 'Todos',
                 '2': 'Debe',
             },
             inputValidator: function (value) {
@@ -223,7 +264,11 @@ export default function useMonthlyPayments() {
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                window.open(link.href + `&status=${result.value}`, '_blank')
+                const exportUrl = result.value === 'all'
+                    ? link.href
+                    : `${link.href}&status=${result.value}`
+
+                window.open(exportUrl, '_blank')
             }
         })
     }
@@ -266,6 +311,7 @@ export default function useMonthlyPayments() {
         totalByType.value.consignment = 0
         totalByType.value.pay = 0
         totalByType.value.debts = 0
+        totalByType.value.total = 0
         for (const field in paymentFields) {
             totalsFooter.value[`${paymentFields[field]}`] = newValue.filter(pay => statusPay.includes(pay[`${paymentFields[field]}`]))
                 .reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)

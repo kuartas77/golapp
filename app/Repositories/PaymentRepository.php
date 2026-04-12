@@ -119,6 +119,21 @@ class PaymentRepository
         ];
     }
 
+    private function normalizePaymentStatus($paymentStatus): ?string
+    {
+        if ($paymentStatus === null) {
+            return null;
+        }
+
+        $paymentStatus = trim((string) $paymentStatus);
+
+        if ($paymentStatus === '' || in_array(strtolower($paymentStatus), ['null', 'all'], true)) {
+            return null;
+        }
+
+        return $paymentStatus;
+    }
+
     /**
      * @param $params
      * @param false $deleted
@@ -130,7 +145,7 @@ class PaymentRepository
         $year = data_get($params, 'year', now()->year);
         $unique_code = data_get($params, 'unique_code');
         $training_group_id = data_get($params, 'training_group_id', 0);
-        $paymentStatus = data_get($params, 'status', null);
+        $paymentStatus = $this->normalizePaymentStatus(data_get($params, 'status'));
 
         $query = $this->payment->where('school_id', $school_id)
         ->when($raw,
@@ -160,7 +175,7 @@ class PaymentRepository
         $year = data_get($params, 'year', now()->year);
         $unique_code = data_get($params, 'unique_code');
         $training_group_id = data_get($params, 'training_group_id', 0);
-        $paymentStatus = data_get($params, 'status', null);
+        $paymentStatus = $this->normalizePaymentStatus(data_get($params, 'status'));
 
         return $this->payment->addSelect([
             'category' => Inscription::query()->select('category')->whereColumn('inscriptions.id', 'inscription_id')->where('year', $year)->take(1)

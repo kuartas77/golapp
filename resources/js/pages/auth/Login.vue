@@ -5,8 +5,10 @@
                 <div class="form-form-wrap">
                     <div class="form-container">
                         <div class="form-content">
-                            <h1 class="">Ingreso</h1>
-                            <p class="">Ingrese con su cuenta para continuar.</p>
+                            <div class="auth-brand" aria-label="Logo GOLAPP">
+                                <img src="/img/logo-light.svg" alt="Logo GOLAPP" class="auth-brand-logo logo-light-mode" />
+                                <img src="/img/logo-dark.svg" alt="Logo GOLAPP" class="auth-brand-logo logo-dark-mode" />
+                            </div>
 
                             <Form ref="form" :validation-schema="schema" @submit="handleLogin"
                                 :initial-values="formData" class="text-start">
@@ -25,8 +27,7 @@
                                     <div id="password-field" class="field-wrapper input mb-2">
                                         <div class="d-flex justify-content-between">
                                             <label for="password">Contraseña</label>
-                                            <router-link to="/auth/pass-recovery-boxed" class="forgot-pass-link">Forgot
-                                                Password?</router-link>
+                                            <router-link to="/auth/pass-recovery-boxed" class="forgot-pass-link">Recuperar?</router-link>
                                         </div>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"

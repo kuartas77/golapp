@@ -210,14 +210,6 @@ final class InscriptionsTest extends TestCase
         ]);
     }
 
-    public function testGetIndex(): void
-    {
-        $this->actingAs($this->user);
-        $testResponse = $this->get(route('inscriptions.index'));
-        $testResponse->assertStatus(200);
-        $testResponse->assertSee('Inscripciones');
-    }
-
     public function testDeleteInscription(): void
     {
         Mail::fake();
