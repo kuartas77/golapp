@@ -17,13 +17,15 @@
     </div>
 </template>
 <script setup>
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import api from '@/utils/axios';
+import { useSetting } from '@/store/settings-store';
 
 const schoolSelected = ref('')
 const isSchool = ref(false);
-const text = ref(isSchool.value ? 'Sede' : 'Escuela');
 const schoolOptions = ref([])
+const settings = useSetting()
+const text = computed(() => (isSchool.value ? 'Sede' : 'Escuela'))
 
 function selectSchool() {
 
@@ -48,10 +50,20 @@ function selectSchool() {
                 }
             });
         }
-    }).then(function (result) {
-        if (result.value) {
-            api.post('/api/v2/admin/change_school', { 'school_id': result.value })
-                .then(() => setTimeout(location.reload(), 2000))
+    }).then(async function (result) {
+        if (result.isConfirmed && result.value) {
+            try {
+                await api.post('/api/v2/admin/change_school', { school_id: result.value })
+                await settings.getSettings()
+                window.location.reload()
+            } catch (error) {
+                console.log(error)
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No fue posible cambiar la escuela',
+                    text: 'Intenta nuevamente en unos segundos.'
+                })
+            }
         }
     });
 }

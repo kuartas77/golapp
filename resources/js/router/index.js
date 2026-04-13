@@ -19,7 +19,7 @@ const routes = [
         children: [
             { path: '', redirect: '/inicio', name: 'redirect' },
             { path: 'inicio', name: 'dashboard', component: () => import('@/pages/home/Index.vue'), },
-            { path: 'kpi', name: 'kpi', component: () => import('@/pages/home/Index.vue'), },
+            { path: 'kpi', name: 'kpi', component: () => import('@/pages/kpi/Index.vue'), },
             { path: 'perfil/usuario', name: 'user-profile', component: () => import('@/pages/home/Index.vue'), },
             {
                 path: 'deportistas', component: { render: () => h(RouterView) },

@@ -2760,6 +2760,20 @@ input[disabled].numInput.cur-year {
 
 select.swal2-select{
     font-size: 0.9em !important;
+    .dark {
+        option {
+            color: #009688;
+        }
+
+    }
+}
+
+.dark {
+    select.swal2-select {
+        option {
+            color: #009688;
+        }
+    }
 }
 
 // div:where(.swal2-container) .swal2-select {
