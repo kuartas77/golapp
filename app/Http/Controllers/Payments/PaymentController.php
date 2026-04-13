@@ -59,9 +59,19 @@ class PaymentController extends Controller
     public function update(SetPaymentRequest $request, $id): JsonResponse
     {
         abort_unless($request->ajax(), 401);
-        $payment = Payment::withTrashed()->find($id);
+        $payment = Payment::withTrashed()->findOrFail($id);
         $isPay = $this->repository->setPay($request->validated(), $payment);
-        return $this->responseJson($isPay);
+        if (!$isPay) {
+            return $this->responseJson(false);
+        }
+
+        $payment = Payment::query()
+            ->with(['player'])
+            ->withTrashed()
+            ->whereHas('player')
+            ->findOrFail($id);
+
+        return $this->responseJson($payment);
     }
 
     public function paymentStatuses(Request $request)

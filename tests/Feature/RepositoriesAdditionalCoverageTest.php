@@ -157,6 +157,87 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertTrue($graphics->has('series'));
     }
 
+    public function testPaymentRepositorySetPaySupportsColumnScopedNormalization(): void
+    {
+        $this->actingAs($this->user);
+        [, $payment] = $this->createInscriptionAndPayment();
+        $repository = app(PaymentRepository::class);
+        $annuity = (int) data_get(getSchool(auth()->user()), 'settings.ANNUITY', 48333);
+
+        $payment->update([
+            'january' => 9,
+            'january_amount' => 12345,
+            'february' => 1,
+            'february_amount' => 54321,
+            'march' => 0,
+            'march_amount' => 0,
+            'april' => 3,
+            'april_amount' => 0,
+            'may' => 0,
+            'may_amount' => 777,
+        ]);
+
+        $setPay = $repository->setPay([
+            'column' => 'march',
+            'march' => '11',
+            'march_amount' => '0',
+        ], $payment->fresh());
+
+        $this->assertTrue($setPay);
+
+        $payment = $payment->fresh();
+
+        $this->assertSame('9', (string) $payment->january);
+        $this->assertSame(12345, (int) $payment->january_amount);
+        $this->assertSame('1', (string) $payment->february);
+        $this->assertSame(54321, (int) $payment->february_amount);
+        $this->assertSame('11', (string) $payment->march);
+        $this->assertSame($annuity, (int) $payment->march_amount);
+        $this->assertSame('11', (string) $payment->april);
+        $this->assertSame($annuity, (int) $payment->april_amount);
+        $this->assertSame('11', (string) $payment->may);
+        $this->assertSame(777, (int) $payment->may_amount);
+    }
+
+    public function testPaymentUpdateAcceptsColumnScopedPayloadWithoutFullRow(): void
+    {
+        $this->actingAs($this->user);
+        [, $payment] = $this->createInscriptionAndPayment();
+
+        $payment->update([
+            'june' => 9,
+            'june_amount' => 1000,
+            'july' => 1,
+            'july_amount' => 25000,
+            'august' => 3,
+            'august_amount' => 8000,
+        ]);
+
+        $response = $this
+            ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+            ->put("/payments/{$payment->id}", [
+                'column' => 'july',
+                'july' => '6',
+                'july_amount' => '$25.000',
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.id', $payment->id)
+            ->assertJsonPath('data.july', 6)
+            ->assertJsonPath('data.august', 6);
+
+        $this->assertDatabaseHas('payments', [
+            'id' => $payment->id,
+            'june' => '9',
+            'june_amount' => 1000,
+            'july' => '6',
+            'july_amount' => 0,
+            'august' => '6',
+            'august_amount' => 0,
+        ]);
+    }
+
     public function testTrainingSessionRepositoryStoreUpdateAndList(): void
     {
         $this->actingAs($this->user);

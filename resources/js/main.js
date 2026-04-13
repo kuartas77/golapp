@@ -52,7 +52,9 @@ const options = {
     cancelButtonText: 'Cancelar',
     didOpen: () => {
         const content = Swal.getInput();
-        content.style.display = ''
+        if (content) {
+            content.style.display = '';
+        }
     }
 };
 

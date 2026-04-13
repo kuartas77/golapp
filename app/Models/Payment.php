@@ -20,7 +20,56 @@ class Payment extends Model
     use HasFactory;
     use PaymentTrait;
 
+    public const FIELD_AMOUNT_MAP = [
+        'enrollment' => 'enrollment_amount',
+        'january' => 'january_amount',
+        'february' => 'february_amount',
+        'march' => 'march_amount',
+        'april' => 'april_amount',
+        'may' => 'may_amount',
+        'june' => 'june_amount',
+        'july' => 'july_amount',
+        'august' => 'august_amount',
+        'september' => 'september_amount',
+        'october' => 'october_amount',
+        'november' => 'november_amount',
+        'december' => 'december_amount',
+    ];
+
+    public const STATUS_VALUES = [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+    ];
+
     protected $table = "payments";
+
+    protected $casts = [
+        'enrollment' => 'integer',
+        'january' => 'integer',
+        'february' => 'integer',
+        'march' => 'integer',
+        'april' => 'integer',
+        'may' => 'integer',
+        'june' => 'integer',
+        'july' => 'integer',
+        'august' => 'integer',
+        'september' => 'integer',
+        'october' => 'integer',
+        'november' => 'integer',
+        'december' => 'integer',
+        'enrollment_amount' => 'integer',
+        'january_amount' => 'integer',
+        'february_amount' => 'integer',
+        'march_amount' => 'integer',
+        'april_amount' => 'integer',
+        'may_amount' => 'integer',
+        'june_amount' => 'integer',
+        'july_amount' => 'integer',
+        'august_amount' => 'integer',
+        'september_amount' => 'integer',
+        'october_amount' => 'integer',
+        'november_amount' => 'integer',
+        'december_amount' => 'integer',
+    ];
 
     protected $fillable = [
         'year',
@@ -72,6 +121,16 @@ class Payment extends Model
     static $annuity_payment_cash = 12;
     static $payment_agreement = 13;
     static $no_application = 14;
+
+    public static function paymentFields(): array
+    {
+        return array_keys(self::FIELD_AMOUNT_MAP);
+    }
+
+    public static function amountFieldFor(string $field): ?string
+    {
+        return self::FIELD_AMOUNT_MAP[$field] ?? null;
+    }
 
     public function inscription(): BelongsTo
     {

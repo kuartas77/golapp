@@ -190,12 +190,13 @@ class PaymentRepository
         ->orderBy('inscription_id', 'asc');
     }
 
-    public function setPay(array $values, $payment)
+    public function setPay(array $values, Payment $payment): bool
     {
         $isPay = false;
         try {
             DB::beginTransaction();
-            $isPay = $payment->fill($values)->save();
+            $normalizedValues = $this->normalizePaymentUpdate($payment, $values);
+            $isPay = $payment->fill($normalizedValues)->save();
             DB::commit();
         } catch (Throwable $throwable) {
             DB::rollBack();
@@ -204,6 +205,195 @@ class PaymentRepository
         }
 
         return $isPay;
+    }
+
+    private function normalizePaymentUpdate(Payment $payment, array $values): array
+    {
+        $column = data_get($values, 'column');
+
+        if (is_string($column) && $column !== '' && Payment::amountFieldFor($column)) {
+            return $this->normalizeColumnUpdate($payment, $column, $values);
+        }
+
+        return $this->normalizeFullUpdate($values);
+    }
+
+    private function normalizeColumnUpdate(Payment $payment, string $column, array $values): array
+    {
+        $normalizedValues = [];
+        $amountField = Payment::amountFieldFor($column);
+        $status = $this->normalizeStatusValue($values[$column] ?? $payment->{$column});
+        $amount = $this->normalizeAmountValue($values[$amountField] ?? $payment->{$amountField});
+        $defaults = $this->paymentDefaults();
+
+        $normalizedValues[$column] = $status;
+        $normalizedValues[$amountField] = $amount;
+
+        if ($status === Payment::$permanent_retirement) {
+            $this->applyStatusToFollowingFields(
+                $normalizedValues,
+                $column,
+                $status,
+                0,
+                true,
+                $payment
+            );
+
+            return $normalizedValues;
+        }
+
+        if (in_array($status, [Payment::$annuity_payment_deposit, Payment::$annuity_payment_cash], true)) {
+            $this->applyStatusToFollowingFields(
+                $normalizedValues,
+                $column,
+                $status,
+                $defaults['annuity'],
+                false,
+                $payment
+            );
+
+            return $normalizedValues;
+        }
+
+        $normalizedValues[$amountField] = $this->normalizeAmountByStatus(
+            $column,
+            $status,
+            $amount,
+            $defaults
+        );
+
+        return $normalizedValues;
+    }
+
+    private function normalizeFullUpdate(array $values): array
+    {
+        $normalizedValues = [];
+        $defaults = $this->paymentDefaults();
+
+        foreach (Payment::FIELD_AMOUNT_MAP as $field => $amountField) {
+            $normalizedValues[$field] = $this->normalizeStatusValue(data_get($values, $field));
+            $normalizedValues[$amountField] = $this->normalizeAmountValue(data_get($values, $amountField));
+        }
+
+        foreach (Payment::paymentFields() as $field) {
+            $amountField = Payment::amountFieldFor($field);
+            $status = $normalizedValues[$field];
+
+            if ($status === Payment::$permanent_retirement) {
+                $this->applyStatusToFollowingFields(
+                    $normalizedValues,
+                    $field,
+                    $status,
+                    0,
+                    true
+                );
+
+                break;
+            }
+
+            if (in_array($status, [Payment::$annuity_payment_deposit, Payment::$annuity_payment_cash], true)) {
+                $this->applyStatusToFollowingFields(
+                    $normalizedValues,
+                    $field,
+                    $status,
+                    $defaults['annuity']
+                );
+
+                break;
+            }
+
+            $normalizedValues[$amountField] = $this->normalizeAmountByStatus(
+                $field,
+                $status,
+                $normalizedValues[$amountField],
+                $defaults
+            );
+        }
+
+        return $normalizedValues;
+    }
+
+    private function normalizeAmountByStatus(string $field, int $status, int $amount, array $defaults): int
+    {
+        if (in_array($status, [Payment::$paid, Payment::$paid_cash, Payment::$paid_deposit], true) && $amount === 0) {
+            return $this->defaultAmountForField($field, $defaults);
+        }
+
+        if ($status === Payment::$debt && $amount === 0) {
+            return $defaults['monthly'];
+        }
+
+        if ($status === Payment::$payment_agreement) {
+            return $defaults['annuity'];
+        }
+
+        return $amount;
+    }
+
+    private function applyStatusToFollowingFields(
+        array &$values,
+        string $field,
+        int $status,
+        int $valueIfZero,
+        bool $forceAmount = false,
+        ?Payment $payment = null
+    ): void {
+        foreach ($this->paymentFieldsFrom($field) as $fieldName) {
+            $amountField = Payment::amountFieldFor($fieldName);
+            $currentAmount = array_key_exists($amountField, $values)
+                ? $this->normalizeAmountValue($values[$amountField])
+                : $this->normalizeAmountValue($payment ? $payment->{$amountField} : 0);
+
+            $values[$fieldName] = $status;
+
+            if ($forceAmount || $currentAmount === 0) {
+                $values[$amountField] = $valueIfZero;
+            }
+        }
+    }
+
+    private function paymentFieldsFrom(string $field): array
+    {
+        $fields = Payment::paymentFields();
+        $startIndex = array_search($field, $fields, true);
+
+        if ($startIndex === false) {
+            return [$field];
+        }
+
+        return array_slice($fields, $startIndex);
+    }
+
+    private function paymentDefaults(): array
+    {
+        $school = getSchool(auth()->user());
+
+        return [
+            'inscription' => $this->normalizeAmountValue(data_get($school, 'settings.INSCRIPTION_AMOUNT', 70000)),
+            'monthly' => $this->normalizeAmountValue(data_get($school, 'settings.MONTHLY_PAYMENT', 50000)),
+            'annuity' => $this->normalizeAmountValue(data_get($school, 'settings.ANNUITY', 48333)),
+        ];
+    }
+
+    private function defaultAmountForField(string $field, array $defaults): int
+    {
+        return $field === 'enrollment'
+            ? $defaults['inscription']
+            : $defaults['monthly'];
+    }
+
+    private function normalizeStatusValue($status): int
+    {
+        $statusValue = (int) ($status ?? 0);
+
+        return in_array($statusValue, Payment::STATUS_VALUES, true)
+            ? $statusValue
+            : 0;
+    }
+
+    private function normalizeAmountValue($amount): int
+    {
+        return max(0, (int) $amount);
     }
 
     public function dataGraphicsYear(int $year = 0): Collection

@@ -226,6 +226,7 @@ export default function useMonthlyPayments() {
 
         const { payPlayer, field } = editingCell.value
         const paymentId = payPlayer.id
+        const amountField = `${field}_amount`
         let changed = groupPayments.value.find((payPlayer) => payPlayer.id === paymentId)
 
         if (!changed) {
@@ -235,14 +236,18 @@ export default function useMonthlyPayments() {
         syncPaymentField(changed, field)
 
         try {
-            const data = cloneDeep(toRaw(changed))
-            data._method = 'PUT'
-            delete data.player
+            const data = {
+                _method: 'PUT',
+                column: field,
+                [field]: changed[field],
+                [amountField]: changed[amountField],
+            }
             isLoading.value = true
 
-            const response = await api.post(`/api/v2/payments/${data.id}`, data)
+            const response = await api.post(`/api/v2/payments/${paymentId}`, data)
 
             if (response.data.data) {
+                Object.assign(changed, response.data.data)
                 showMessage("Se guardó correctamente")
                 editingCell.value = null
                 backupCell.value = null

@@ -2436,8 +2436,8 @@ hr {
 
 
 .scroll-container {
-  min-height: 54vh;
-  max-height: 50vh;
+  min-height: 50vh;
+  max-height: 60vh;
   overflow: auto;
 }
 .scroll-container thead, .scroll-container tfoot {
@@ -2452,7 +2452,7 @@ hr {
 
 .scroll-container tfoot {
   margin-top: 0;
-  bottom: -1px;
+  bottom: 0px;
 }
 
 .scroll-container thead,
