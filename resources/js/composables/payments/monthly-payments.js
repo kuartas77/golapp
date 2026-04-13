@@ -152,42 +152,59 @@ export default function useMonthlyPayments() {
         })
     }
 
-    const applyPaymentRules = (payPlayer, field) => {
-        const type = Number(payPlayer[field])
-        const amountKey = `${field}_amount`
-        const inputAmount = normalizeAmount(payPlayer[amountKey])
+    const getDefaultAmountByField = (field) => field === 'enrollment'
+        ? enrollment_amount.value
+        : monthly_amount.value
 
-        payPlayer[field] = type
-
-        if (inputAmount === 0 && [1, 9, 10].includes(type)) {
-            payPlayer[amountKey] = field === 'enrollment'
-                ? enrollment_amount.value
-                : monthly_amount.value
-            return
-        }
-
-        if (inputAmount === 0 && type === 2) {
-            payPlayer[amountKey] = monthly_amount.value
-            return
-        }
-
-        if ([11, 12].includes(type)) {
-            applyStatusToFollowingFields(payPlayer, field, type, annuity_amount.value)
-            return
-        }
-
-        if (type === 13) {
+    const paymentRuleHandlers = {
+        setDefaultAmount: ({ payPlayer, field, amountKey, inputAmount }) => {
+            if (inputAmount === 0) {
+                payPlayer[amountKey] = getDefaultAmountByField(field)
+            }
+        },
+        setMonthlyAmount: ({ payPlayer, amountKey, inputAmount }) => {
+            if (inputAmount === 0) {
+                payPlayer[amountKey] = monthly_amount.value
+            }
+        },
+        setAnnuityAmount: ({ payPlayer, amountKey }) => {
             payPlayer[amountKey] = annuity_amount.value
-            return
-        }
-
-        if (type === 6) {
+        },
+        setFollowingFieldsWithAnnuity: ({ payPlayer, field, type }) => {
+            applyStatusToFollowingFields(payPlayer, field, type, annuity_amount.value)
+        },
+        clearFollowingFields: ({ payPlayer, field, type }) => {
             applyStatusToFollowingFields(payPlayer, field, type, 0, true)
         }
     }
 
+    const paymentRulesByType = {
+        1: paymentRuleHandlers.setDefaultAmount,
+        2: paymentRuleHandlers.setMonthlyAmount,
+        6: paymentRuleHandlers.clearFollowingFields,
+        9: paymentRuleHandlers.setDefaultAmount,
+        10: paymentRuleHandlers.setDefaultAmount,
+        11: paymentRuleHandlers.setFollowingFieldsWithAnnuity,
+        12: paymentRuleHandlers.setFollowingFieldsWithAnnuity,
+        13: paymentRuleHandlers.setAnnuityAmount
+    }
+
+    const syncPaymentField = (payPlayer, field) => {
+        const type = Number(payPlayer[field])
+        const amountKey = `${field}_amount`
+
+        payPlayer[field] = type
+        paymentRulesByType[type]?.({
+            payPlayer,
+            field,
+            type,
+            amountKey,
+            inputAmount: normalizeAmount(payPlayer[amountKey])
+        })
+    }
+
     const handleSelectChange = (payPlayer, field) => {
-        applyPaymentRules(payPlayer, field)
+        syncPaymentField(payPlayer, field)
     }
 
     const getSaveErrorMessage = (error) => {
@@ -215,7 +232,7 @@ export default function useMonthlyPayments() {
             return
         }
 
-        applyPaymentRules(changed, field)
+        syncPaymentField(changed, field)
 
         try {
             const data = cloneDeep(toRaw(changed))
