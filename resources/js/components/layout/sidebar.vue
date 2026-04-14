@@ -38,6 +38,11 @@
                                 KPI
                             </router-link>
                         </li>
+                        <li>
+                            <router-link :to="{ name: 'player-stats.index' }" @click="toggleMobileMenu">
+                                Estadísticas Jugador
+                            </router-link>
+                        </li>
                     </ul>
                 </li>
 

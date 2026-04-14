@@ -17,7 +17,6 @@ use App\Http\Controllers\Notifications\PaymentRequestController;
 use App\Http\Controllers\Notifications\TopicNotificationsController;
 use App\Http\Controllers\Notifications\UniformRequestsController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
-use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\Reports\AttendanceReportExportController;
 use App\Http\Controllers\Reports\ReportAssistsController;
 use App\Http\Controllers\Reports\ReportPaymentController;
@@ -168,10 +167,6 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'addPayment'])->name('invoices.addPayment');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
     Route::get('items/invoices', [ItemInvoicesController::class, 'index'])->name('items.invoices.index');
-
-    Route::get('/player-stats', [PlayerStatsController::class, 'index'])->name('player.stats');
-    Route::get('/top-players', [PlayerStatsController::class, 'topPlayers'])->name('players.top');
-    Route::get('/player/{id}/detail', [PlayerStatsController::class, 'playerDetail'])->name('player.detail');
 
     Route::middleware('check_notify_system')->group(function(){
         Route::put('invoice/{invoice}/payment-request/{paymentRequest}', [InvoiceController::class, 'update']);

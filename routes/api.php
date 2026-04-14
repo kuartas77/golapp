@@ -23,6 +23,7 @@ use App\Http\Controllers\Invoices\ItemInvoicesController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\Payments\PaymentController;
 use App\Http\Controllers\Players\PlayerController;
+use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\SchoolPages\SchoolsController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
@@ -98,6 +99,10 @@ Route::prefix('v2')->group(function(){
         Route::resource("inscriptions", WebInscriptions::class)->except(['index','create','show']);
 
         Route::apiResource("matches", GameController::class)->except(['index','edit','create']);
+
+        Route::get('/player-stats', [PlayerStatsController::class, 'index']);
+        Route::get('/top-players', [PlayerStatsController::class, 'topPlayers']);
+        Route::get('/player/{id}/detail', [PlayerStatsController::class, 'playerDetail']);
 
         Route::prefix('datatables')->group(function () {
             Route::get('inscriptions_enabled', [DataTableController::class, 'enabledInscriptions']);

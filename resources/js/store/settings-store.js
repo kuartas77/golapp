@@ -38,7 +38,7 @@ export const useSetting = defineStore('settings-store', {
             this.dominant_profile = response.data.dominant_profile
             this.relationships = response.data.relationships
             this.competition_groups = response.data.competition_groups
-            this.inscription_years = response.data.inscription_years
+            this.inscription_years = response.data.inscription_years.map((i) => ({value: i.id, label: i.year}))
             this.document_types = response.data.document_types
             this.jornada = response.data.jornada
             this.schools = response.data.schools
