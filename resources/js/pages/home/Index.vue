@@ -27,7 +27,7 @@
                                     <router-link :to="{ name: preferredLink.routeName }" class="btn btn-primary">
                                         {{ preferredLink.cta }}
                                     </router-link>
-                                    <router-link :to="{ name: 'kpi' }" class="btn btn-outline-secondary">
+                                    <router-link :to="{ name: 'kpi' }" class="btn btn-secondary">
                                         Ver indicadores
                                     </router-link>
                                 </div>

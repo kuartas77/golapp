@@ -142,18 +142,20 @@
                     </div>
                 </div>
 
-                <div class="surface-card card overflow-hidden">
-                    <div class="surface-card-header card-header">
-                        <div class="section-label mb-2">Listado</div>
+                <div class="surface-card card mb-4">
+                    <div class="surface-card-body card-body compact-stats">
                         <h5 class="mb-1">Seguimiento por jugador y período</h5>
                         <p class="text-muted mb-0">
                             Navega entre borradores, evaluaciones completadas y reportes cerrados.
                         </p>
                     </div>
+                </div>
+
+                <div class="surface-card card overflow-hidden">
 
                     <div class="surface-card-body card-body p-0">
                         <div v-if="evaluations.length" class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
+                            <table class="table table-bordered table-hover align-middle mb-0">
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -576,14 +578,6 @@ watch(
     font-size: 0.8rem;
     font-weight: 600;
     opacity: 0.75;
-}
-
-.player-avatar {
-    width: 44px;
-    height: 44px;
-    object-fit: cover;
-    border-radius: 14px;
-    border: 1px solid rgba(127, 127, 127, 0.22);
 }
 
 .empty-state {

@@ -32,7 +32,7 @@
                                 <div class="row g-3 align-items-end">
                                     <div class="col-md-5">
                                         <label class="form-label">Posición</label>
-                                        <select v-model="filters.position" class="form-select">
+                                        <select v-model="filters.position" class="form-select form-select-sm">
                                             <option :value="null">Todas las posiciones</option>
                                             <option
                                                 v-for="position in positions"
@@ -46,7 +46,7 @@
 
                                     <div class="col-md-5">
                                         <label class="form-label">Categoría</label>
-                                        <select v-model="filters.category" class="form-select">
+                                        <select v-model="filters.category" class="form-select form-select-sm">
                                             <option :value="null">Todas las categorías</option>
                                             <option v-for="category in categories" :key="category" :value="category">
                                                 {{ category }}
@@ -55,7 +55,7 @@
                                     </div>
 
                                     <div class="col-md-2 d-grid">
-                                        <button type="button" class="btn btn-outline-primary" @click="applyFilters">
+                                        <button type="button" class="btn btn-primary" @click="applyFilters">
                                             Filtrar
                                         </button>
                                     </div>
@@ -64,13 +64,13 @@
                                 <div class="d-flex flex-wrap gap-2 mt-3">
                                     <button
                                         type="button"
-                                        class="btn btn-outline-secondary btn-sm"
+                                        class="btn btn-secondary btn-sm"
                                         :disabled="!hasActiveFilters"
                                         @click="resetFilters"
                                     >
                                         Limpiar filtros
                                     </button>
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" @click="reload">
+                                    <button type="button" class="btn btn-secondary btn-sm" @click="reload">
                                         Recargar
                                     </button>
                                     <span v-if="school?.name" class="theme-chip align-self-center">
@@ -102,7 +102,7 @@
 
                 <div v-if="globalError" class="alert alert-danger d-flex flex-column flex-md-row justify-content-between gap-3">
                     <span>{{ globalError }}</span>
-                    <button type="button" class="btn btn-sm btn-outline-danger align-self-start" @click="reload">
+                    <button type="button" class="btn btn-sm btn-danger align-self-start" @click="reload">
                         Reintentar
                     </button>
                 </div>
@@ -356,14 +356,6 @@ const {
 .stat-help {
     color: #6c757d;
     margin-top: 0.45rem;
-}
-
-.player-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid rgba(13, 110, 253, 0.18);
 }
 
 .empty-state {

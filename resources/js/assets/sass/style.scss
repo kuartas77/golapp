@@ -2776,6 +2776,10 @@ select.swal2-select{
     }
 }
 
-// div:where(.swal2-container) .swal2-select {
-//     display: inline !important;
-// }
+.player-avatar {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 1px solid rgba(127, 127, 127, 0.22);
+}

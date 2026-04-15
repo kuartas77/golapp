@@ -60,7 +60,7 @@
                     v-for="suggestion in suggestedFormations"
                     :key="suggestion"
                     type="button"
-                    class="btn btn-outline-secondary btn-sm"
+                    class="btn btn-secondary btn-sm"
                     @click="applySuggestion(suggestion)"
                 >
                     {{ suggestion }}

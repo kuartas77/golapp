@@ -139,7 +139,7 @@
                                     <div class="media d-md-flex d-block text-sm-start text-center">
                                         <div class="media-aside align-self-start avatar avatar-sm me-1">
                                             <img :src="payPlayer.player.photo_url" alt="avatar"
-                                                class="rounded-circle" />
+                                                class="player-avatar" />
                                         </div>
                                         <div class="media-body">
                                             <div class="d-xl-flex d-block justify-content-between">

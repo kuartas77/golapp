@@ -17,10 +17,10 @@
                 </div>
 
                 <div class="d-flex flex-wrap gap-2">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" @click="goBack">
+                    <button type="button" class="btn btn-secondary btn-sm" @click="goBack">
                         Volver
                     </button>
-                    <router-link :to="{ name: 'player-stats.top' }" class="btn btn-outline-primary btn-sm">
+                    <router-link :to="{ name: 'player-stats.top' }" class="btn btn-primary btn-sm">
                         Ver destacados
                     </router-link>
                 </div>
@@ -33,7 +33,7 @@
 
                 <div v-if="globalError" class="alert alert-danger d-flex flex-column flex-md-row justify-content-between gap-3">
                     <span>{{ globalError }}</span>
-                    <button type="button" class="btn btn-sm btn-outline-danger align-self-start" @click="loadPlayerDetail()">
+                    <button type="button" class="btn btn-sm btn-danger align-self-start" @click="loadPlayerDetail()">
                         Reintentar
                     </button>
                 </div>

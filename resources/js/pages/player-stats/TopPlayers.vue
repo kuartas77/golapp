@@ -9,10 +9,10 @@
                     </p>
                 </div>
                 <div class="d-flex flex-wrap gap-2">
-                    <router-link :to="{ name: 'player-stats.index' }" class="btn btn-outline-primary btn-sm">
+                    <router-link :to="{ name: 'player-stats.index' }" class="btn btn-primary btn-sm">
                         Ver ranking
                     </router-link>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" @click="loadTopPlayers">
+                    <button type="button" class="btn btn-secondary btn-sm" @click="loadTopPlayers">
                         Recargar
                     </button>
                 </div>
@@ -75,7 +75,7 @@
 
                 <div v-if="globalError" class="alert alert-danger d-flex flex-column flex-md-row justify-content-between gap-3">
                     <span>{{ globalError }}</span>
-                    <button type="button" class="btn btn-sm btn-outline-danger align-self-start" @click="loadTopPlayers">
+                    <button type="button" class="btn btn-sm btn-danger align-self-start" @click="loadTopPlayers">
                         Reintentar
                     </button>
                 </div>

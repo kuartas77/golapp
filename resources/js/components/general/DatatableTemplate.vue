@@ -4,8 +4,8 @@
         <slot name="thead"></slot>
 
         <template #photo="props">
-            <div class="media-aside align-self-start avatar avatar-sm">
-                <img :src="props.cellData" alt="avatar" class="rounded-circle">
+            <div class="">
+                <img :src="props.cellData" alt="avatar" class="player-avatar">
             </div>
         </template>
         <template #date="props">
@@ -45,8 +45,8 @@
 
         <template #player-photo="props">
             <div class="media d-md-flex d-block text-sm-start text-center">
-                <div class="media-aside align-self-start avatar avatar-sm me-1">
-                    <img :src="props.rowData.inscription.player.photo_url" alt="avatar" class="rounded-circle" />
+                <div class=" me-1">
+                    <img :src="props.rowData.inscription.player.photo_url" alt="avatar" class="player-avatar" />
                 </div>
                 <div class="media-body">
                     <div class="d-xl-flex d-block justify-content-between">

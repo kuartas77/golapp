@@ -11,7 +11,7 @@
         <template #body>
             <div v-if="globalError" class="alert alert-danger d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
                 <span>{{ globalError }}</span>
-                <button type="button" class="btn btn-sm btn-outline-danger" @click="reloadTable">
+                <button type="button" class="btn btn-sm btn-danger" @click="reloadTable">
                     Reintentar
                 </button>
             </div>
