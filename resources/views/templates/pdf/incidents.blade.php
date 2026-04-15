@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>INCIDENCIAS {{$professor->name}}</title>
-    <link rel="stylesheet" href="{{ asset('css/dompdf.css') }}">
+    <link rel="stylesheet" href="{{ public_path('css/dompdf.css') }}">
     <style type="text/css">
         .texto {
             font-size: 9.5px;

@@ -12,6 +12,10 @@ export default function useMonthlyPayments() {
     const settings = useSetting()
     const groups = settings.groups.filter((group) => group.name !== 'Provisional').map((group) => ({ value: group.id, label: group.full_group }));
     const categories = settings.categories.map((i) => ({ value: i.category, label: i.category }));
+    const years = settings.inscription_years
+    const defaultYear = years.find((year) => Number(year.value) === currentDate.getFullYear())?.value
+        ?? years[years.length - 1]?.value
+        ?? currentDate.getFullYear()
     const type_payments = settings.type_payments
     const selected_group = ref(null)
     const groupPayments = ref([])
@@ -22,6 +26,7 @@ export default function useMonthlyPayments() {
     const modelCategory = ref(null)
     const { proxy } = getCurrentInstance()
     const schema = yup.object().shape({
+        year: yup.mixed().required(),
         category: yup.string().nullable().optional(),
         training_group_id: yup.string().when('category', {
             is: (categoryValue) => !categoryValue || categoryValue === null , // Check if category is empty
@@ -30,6 +35,7 @@ export default function useMonthlyPayments() {
         }),
     })
     const formData = ref({
+        year: defaultYear,
         training_group_id: null,
         category: null
     })
@@ -64,11 +70,11 @@ export default function useMonthlyPayments() {
             isLoading.value = true
             const params = {
                 category: values.category,
-                year: currentDate.getFullYear(),
+                year: values.year ?? defaultYear,
                 training_group_id: values.training_group_id,
                 dataRaw: true
             }
-            const response = await api.get(`/api/v2/payments/`, { params: params })
+            const response = await api.get(`/api/v2/payments`, { params: params })
             if (response?.data) {
                 const data = response.data
                 if (data.rows.length) {
@@ -373,6 +379,7 @@ export default function useMonthlyPayments() {
         formData,
         editingCell,
         groups,
+        years,
         categories,
         type_payments,
         typesNoEditables,

@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Items Facturas Pendientes</title>
-    <link rel="stylesheet" href="{{ asset('css/dompdf.css') }}">
+    <link rel="stylesheet" href="{{ public_path('css/dompdf.css') }}">
 </head>
 <body>
 

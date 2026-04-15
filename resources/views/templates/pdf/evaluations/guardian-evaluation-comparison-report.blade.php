@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Comparativo de evaluaciones</title>
-        <link rel="stylesheet" href="{{ asset('css/dompdf.css') }}">
+        <link rel="stylesheet" href="{{ public_path('css/dompdf.css') }}">
     <style>
         body {
             font-family: sans-serif;
