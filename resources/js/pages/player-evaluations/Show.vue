@@ -316,69 +316,17 @@ watch(
 )
 </script>
 
-<style scoped>
-.surface-card {
-    border-radius: 16px;
-    overflow: hidden;
-}
+<style scoped lang="scss">
+@use './shared' as shared;
 
-.surface-card-body,
-.surface-card-header {
-    padding: 1.5rem;
-}
-
-.surface-card-body.p-0,
-.surface-card-header.p-0 {
-    padding: 0 !important;
-}
-
-.section-label,
-.theme-chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.35rem 0.75rem;
-    border-radius: 999px;
-    color: inherit;
-    border: 1px solid currentColor;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    opacity: 0.8;
-}
-
-.stat-card,
-.metric-card {
-    padding: 1.2rem 1.3rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-}
-
-.stat-label {
-    font-size: 0.82rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: inherit;
-    opacity: 0.75;
-}
-
-.stat-value {
-    font-size: 1.9rem;
-    line-height: 1;
-}
-
-.stat-value-sm {
-    font-size: 1.3rem;
-    line-height: 1.2;
-}
+@include shared.page-shared-styles;
 
 .player-avatar-xl {
     width: 64px;
     height: 64px;
     object-fit: cover;
     border-radius: 18px;
-    border: 1px solid rgba(127, 127, 127, 0.22);
+    border: 1px solid shared.$soft-border-strong;
 }
 
 .detail-grid {
@@ -388,37 +336,11 @@ watch(
 }
 
 .detail-item {
-    border: 1px solid rgba(127, 127, 127, 0.18);
-    border-radius: 18px;
-    padding: 1rem;
+    @include shared.outlined-block();
 }
 
-.detail-item span,
-.comment-block span {
-    display: block;
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: inherit;
-    opacity: 0.75;
-    margin-bottom: 0.35rem;
-}
-
-.comment-block {
-    margin-bottom: 1.25rem;
-}
-
-.comment-block p {
-    margin-bottom: 0;
-    white-space: pre-line;
-}
-
-.empty-card {
-    border-style: dashed;
-}
-
-.table > :not(caption) > * > * {
-    padding: 1rem 0.85rem;
+.detail-item span {
+    @include shared.caption-label();
 }
 
 @media (max-width: 991px) {

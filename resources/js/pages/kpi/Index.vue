@@ -39,12 +39,14 @@ const appState = useAppState()
 const is_dark = appState.is_dark_mode;
 
 const options_1 = ref({
-    chart: { stacked: true, toolbar: { show: false } },
+    // chart: { stacked: true, toolbar: { show: false } },
+    chart: { stacked: true, toolbar: { show: false }, zoom: {enabled: false, allowMouseWheelZoom: false} },
     responsive: [{ breakpoint: 480, options: { legend: { position: "bottom", offsetX: -10, offsetY: 5 } } }],
     title: { text: 'Mensualidades x Grupo en el año', align: 'left' },
+    subtitle: { text: 'Sólo se muestran cantidades de estados pagados, deben y becados', align: 'left' },
     plotOptions: {
         bar: {
-            horizontal: true,
+            horizontal: false,
             dataLabels: {
                 total: {
                     enabled: true,
@@ -64,21 +66,18 @@ const options_1 = ref({
 })
 
 const options_2 = ref({
-    chart: {
-        stacked: false,
-        toolbar: { show: false }
-    },
+    chart: { stacked: true, toolbar: { show: false }, zoom: {enabled: false, allowMouseWheelZoom: false} },
     dataLabels: { enabled: false },
     stroke: { width: [1, 1, 4] },
-    title: { text: 'Recaudo', align: 'left', offsetX: 110 },
+    title: { text: 'Recaudo de dinero', align: 'left', offsetX: 110 },
     xaxis: { categories: [] },
     yaxis: [
         {
-            seriesName: 'Recaudo',
+            seriesName: 'Mensualidades',
             axisTicks: { show: true, },
             axisBorder: { show: true, color: '#008FFB' },
             labels: { style: { colors: '#008FFB', }, formatter: moneyFormat },
-            title: { text: "Recaudado", style: { color: '#008FFB', } },
+            title: { text: "Mensualidades", style: { color: '#008FFB', } },
             tooltip: { enabled: true }
         },
         {
@@ -97,7 +96,7 @@ const options_2 = ref({
             axisTicks: { show: true, },
             axisBorder: { show: true, color: '#FEB019' },
             labels: { style: { colors: '#FEB019', }, formatter: (value) => `% ${value}` },
-            title: { text: "Porcentaje de cumplimiento pago", style: { color: '#FEB019', } }
+            title: { text: "% de cumplimiento pago", style: { color: '#FEB019', } }
         },
     ],
     tooltip: {
@@ -114,7 +113,7 @@ const options_2 = ref({
 
 const options_3 = ref({
     chart: { toolbar: { show: false } },
-    title: { text: 'Asistencias en el mes actual', align: 'left', style: { fontWeight: 'normal' } },
+    title: { text: 'Asistencias de los grupos en el mes actual', align: 'left', style: { fontWeight: 'normal' } },
     plotOptions: {
         radialBar: {
             offsetY: 0,

@@ -53,4 +53,7 @@ const visible = computed(() => {
     <template v-if="visible">
         <slot />
     </template>
+    <template v-else>
+        <slot name="else" />
+    </template>
 </template>

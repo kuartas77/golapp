@@ -1,0 +1,118 @@
+$surface-radius: 16px;
+$content-radius: 18px;
+$surface-padding: 1.5rem;
+$soft-border: rgba(127, 127, 127, 0.18);
+$soft-border-strong: rgba(127, 127, 127, 0.22);
+$divider-color: rgba(127, 127, 127, 0.16);
+$muted-opacity: 0.75;
+
+@mixin overline($font-size: 0.82rem, $letter-spacing: 0.05em, $opacity: $muted-opacity) {
+    font-size: $font-size;
+    text-transform: uppercase;
+    letter-spacing: $letter-spacing;
+    color: inherit;
+    opacity: $opacity;
+}
+
+@mixin pill(
+    $font-size: 0.75rem,
+    $font-weight: 700,
+    $opacity: 0.8,
+    $padding: 0.35rem 0.75rem
+) {
+    display: inline-flex;
+    align-items: center;
+    padding: $padding;
+    border-radius: 999px;
+    color: inherit;
+    border: 1px solid currentColor;
+    font-size: $font-size;
+    font-weight: $font-weight;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: $opacity;
+}
+
+@mixin outlined-block(
+    $padding: 1rem,
+    $radius: $content-radius,
+    $border-color: $soft-border
+) {
+    border: 1px solid $border-color;
+    border-radius: $radius;
+    padding: $padding;
+}
+
+@mixin caption-label($font-size: 0.78rem, $opacity: $muted-opacity) {
+    display: block;
+    @include overline($font-size, 0.05em, $opacity);
+    margin-bottom: 0.35rem;
+}
+
+@mixin page-shared-styles() {
+    .surface-card {
+        border-radius: $surface-radius;
+        overflow: hidden;
+    }
+
+    .surface-card-body,
+    .surface-card-header {
+        padding: $surface-padding;
+    }
+
+    .surface-card-body.p-0,
+    .surface-card-header.p-0 {
+        padding: 0 !important;
+    }
+
+    .section-label {
+        @include pill();
+    }
+
+    .theme-chip {
+        @include pill();
+    }
+
+    .stat-card,
+    .metric-card {
+        padding: 1.2rem 1.3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .stat-label {
+        @include overline();
+    }
+
+    .stat-value {
+        font-size: 1.9rem;
+        line-height: 1;
+    }
+
+    .stat-value-sm {
+        font-size: 1.3rem;
+        line-height: 1.2;
+    }
+
+    .comment-block {
+        margin-bottom: 1.25rem;
+    }
+
+    .comment-block span {
+        @include caption-label();
+    }
+
+    .comment-block p {
+        margin-bottom: 0;
+        white-space: pre-line;
+    }
+
+    .empty-card {
+        border-style: dashed;
+    }
+
+    .table > :not(caption) > * > * {
+        padding: 1rem 0.85rem;
+    }
+}

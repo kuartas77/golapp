@@ -40,7 +40,7 @@ class DashboardController extends Controller
             $amountGroup = [
                 'categories' => $paymentByGroup->pluck('grupo')->toArray(),
                 'data' => [
-                    ['type' => 'column', 'name' => 'Recauto total (incluye inscripción)', 'data' => $paymentByGroup->pluck('total_raised')->toArray()],
+                    ['type' => 'column', 'name' => 'Mensualidades', 'data' => $paymentByGroup->pluck('total_raised')->toArray()],
                     ['type' => 'column', 'name' => 'Inscripciones', 'data' => $paymentByGroup->pluck('total_enrollment')->toArray()],
                     ['type' => 'line', 'name' => '% de cumplimiento', 'data' => $paymentByGroup->pluck('percentage_compliance')->toArray()],
                 ]

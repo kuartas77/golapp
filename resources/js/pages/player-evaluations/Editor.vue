@@ -975,75 +975,26 @@ watch(
 )
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@use './shared' as shared;
+
+@include shared.page-shared-styles;
+
 .editor-workspace {
     max-width: 1160px;
     margin: 0 auto;
 }
 
-.surface-card {
-    border-radius: 16px;
-    overflow: hidden;
-}
-
-.surface-card-body,
-.surface-card-header {
-    padding: 1.5rem;
-}
-
-.surface-card-body.p-0,
-.surface-card-header.p-0 {
-    padding: 0 !important;
-}
-
-.section-label,
-.theme-chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.35rem 0.75rem;
-    border-radius: 999px;
-    color: inherit;
-    border: 1px solid currentColor;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    opacity: 0.8;
-}
-
-.selection-card {
-    overflow: hidden;
-}
-
 .selection-tip {
-    border: 1px solid rgba(127, 127, 127, 0.18);
-    border-radius: 18px;
-    padding: 1rem;
+    @include shared.outlined-block();
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
     height: 100%;
 }
 
-.selection-tip strong,
-.stat-label {
-    font-size: 0.82rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: inherit;
-    opacity: 0.75;
-}
-
-.stat-card {
-    padding: 1.2rem 1.3rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-}
-
-.stat-value {
-    font-size: 1.9rem;
-    line-height: 1;
+.selection-tip strong {
+    @include shared.overline();
 }
 
 .stat-value-sm {
@@ -1052,9 +1003,7 @@ watch(
 }
 
 .summary-pill {
-    border: 1px solid rgba(127, 127, 127, 0.18);
-    border-radius: 18px;
-    padding: 1rem 1.1rem;
+    @include shared.outlined-block(1rem 1.1rem);
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
@@ -1062,11 +1011,7 @@ watch(
 }
 
 .summary-pill span {
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: inherit;
-    opacity: 0.75;
+    @include shared.caption-label();
 }
 
 .summary-pill strong {
@@ -1149,7 +1094,7 @@ watch(
 }
 
 .criterion-row + .criterion-row {
-    border-top: 1px solid rgba(127, 127, 127, 0.16);
+    border-top: 1px solid shared.$divider-color;
 }
 
 .criterion-title-row {
@@ -1178,10 +1123,7 @@ watch(
 
 .criterion-row-input .form-label,
 .criterion-row-comment .form-label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    opacity: 0.7;
+    @include shared.overline(0.75rem, 0.04em, 0.7);
     margin-bottom: 0.35rem;
 }
 
@@ -1193,7 +1135,7 @@ watch(
     padding: 0.2rem 0.55rem;
     border-radius: 999px;
     color: inherit;
-    border: 1px solid rgba(127, 127, 127, 0.22);
+    border: 1px solid shared.$soft-border-strong;
     font-size: 0.72rem;
     font-weight: 600;
     line-height: 1.3;
