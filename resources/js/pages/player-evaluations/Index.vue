@@ -10,7 +10,7 @@
                 </div>
 
                 <div class="d-flex flex-wrap gap-2">
-                    <router-link :to="{ name: 'player-evaluations.comparison' }" class="btn btn-outline-primary btn-sm">
+                    <router-link :to="{ name: 'player-evaluations.comparison' }" class="btn btn-primary btn-sm">
                         Comparativo
                     </router-link>
                     <router-link :to="{ name: 'player-evaluations.create' }" class="btn btn-primary btn-sm">
@@ -32,7 +32,7 @@
                                 <input
                                     v-model.trim="filters.search"
                                     type="text"
-                                    class="form-control"
+                                    class="form-control form-control-sm"
                                     placeholder="Jugador, código o grupo"
                                     @keyup.enter="applyFilters"
                                 >
@@ -40,7 +40,7 @@
 
                             <div class="col-12 col-md-6 col-lg-2">
                                 <label class="form-label">Jugador</label>
-                                <select v-model="filters.player_id" class="form-select">
+                                <select v-model="filters.player_id" class="form-select form-select-sm">
                                     <option value="">Todos</option>
                                     <option v-for="player in filterOptions.players" :key="player.id" :value="String(player.id)">
                                         {{ player.name }}
@@ -50,7 +50,7 @@
 
                             <div class="col-12 col-md-6 col-lg-2">
                                 <label class="form-label">Grupo</label>
-                                <select v-model="filters.training_group_id" class="form-select">
+                                <select v-model="filters.training_group_id" class="form-select form-select-sm">
                                     <option value="">Todos</option>
                                     <option
                                         v-for="group in filterOptions.training_groups"
@@ -64,7 +64,7 @@
 
                             <div class="col-12 col-md-4 col-lg-2">
                                 <label class="form-label">Período</label>
-                                <select v-model="filters.evaluation_period_id" class="form-select">
+                                <select v-model="filters.evaluation_period_id" class="form-select form-select-sm">
                                     <option value="">Todos</option>
                                     <option v-for="period in filterOptions.periods" :key="period.id" :value="String(period.id)">
                                         {{ period.name }}
@@ -74,7 +74,7 @@
 
                             <div class="col-12 col-md-4 col-lg-1">
                                 <label class="form-label">Estado</label>
-                                <select v-model="filters.status" class="form-select">
+                                <select v-model="filters.status" class="form-select form-select-sm">
                                     <option value="">Todos</option>
                                     <option v-for="status in filterOptions.statuses" :key="status.value" :value="status.value">
                                         {{ status.label }}
@@ -84,7 +84,7 @@
 
                             <div class="col-12 col-md-4 col-lg-1">
                                 <label class="form-label">Tipo</label>
-                                <select v-model="filters.evaluation_type" class="form-select">
+                                <select v-model="filters.evaluation_type" class="form-select form-select-sm">
                                     <option value="">Todos</option>
                                     <option
                                         v-for="type in filterOptions.evaluation_types"
@@ -101,10 +101,10 @@
                             <button type="button" class="btn btn-primary btn-sm" @click="applyFilters">
                                 Aplicar filtros
                             </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" @click="resetFilters">
+                            <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters">
                                 Limpiar
                             </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" @click="reload">
+                            <button type="button" class="btn btn-secondary btn-sm" @click="reload">
                                 Recargar
                             </button>
                         </div>
@@ -113,7 +113,7 @@
 
                 <div v-if="globalError" class="alert alert-danger d-flex flex-column flex-md-row justify-content-between gap-3">
                     <span>{{ globalError }}</span>
-                    <button type="button" class="btn btn-sm btn-outline-danger align-self-start" @click="reload">
+                    <button type="button" class="btn btn-sm btn-danger align-self-start" @click="reload">
                         Reintentar
                     </button>
                 </div>
@@ -216,20 +216,20 @@
                                             <div class="d-flex flex-wrap justify-content-end gap-2">
                                                 <router-link
                                                     :to="{ name: 'player-evaluations.show', params: { id: evaluation.id } }"
-                                                    class="btn btn-outline-primary btn-sm"
+                                                    class="btn btn-primary btn-sm"
                                                 >
                                                     Ver
                                                 </router-link>
                                                 <router-link
                                                     v-if="!evaluation.is_closed"
                                                     :to="{ name: 'player-evaluations.edit', params: { id: evaluation.id } }"
-                                                    class="btn btn-outline-warning btn-sm"
+                                                    class="btn btn-warning btn-sm"
                                                 >
                                                     Editar
                                                 </router-link>
                                                 <a
                                                     :href="evaluation.urls?.pdf"
-                                                    class="btn btn-outline-dark btn-sm"
+                                                    class="btn btn-dark btn-sm"
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                 >
@@ -238,7 +238,7 @@
                                                 <button
                                                     v-if="!evaluation.is_closed"
                                                     type="button"
-                                                    class="btn btn-outline-danger btn-sm"
+                                                    class="btn btn-danger btn-sm"
                                                     @click="confirmDelete(evaluation)"
                                                 >
                                                     Eliminar
@@ -270,7 +270,7 @@
                     <div class="d-flex flex-wrap gap-2">
                         <button
                             type="button"
-                            class="btn btn-outline-secondary btn-sm"
+                            class="btn btn-secondary btn-sm"
                             :disabled="pagination.current_page <= 1"
                             @click="goToPage(pagination.current_page - 1)"
                         >
@@ -282,7 +282,7 @@
                             :key="page"
                             type="button"
                             class="btn btn-sm"
-                            :class="page === pagination.current_page ? 'btn-primary' : 'btn-outline-secondary'"
+                            :class="page === pagination.current_page ? 'btn-primary' : 'btn-secondary'"
                             @click="goToPage(page)"
                         >
                             {{ page }}
@@ -290,7 +290,7 @@
 
                         <button
                             type="button"
-                            class="btn btn-outline-secondary btn-sm"
+                            class="btn btn-secondary btn-sm"
                             :disabled="pagination.current_page >= pagination.last_page"
                             @click="goToPage(pagination.current_page + 1)"
                         >

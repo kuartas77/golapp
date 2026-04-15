@@ -14,13 +14,13 @@
                 </div>
 
                 <div class="d-flex flex-wrap gap-2">
-                    <router-link :to="{ name: 'player-evaluations.index' }" class="btn btn-outline-secondary btn-sm">
+                    <router-link :to="{ name: 'player-evaluations.index' }" class="btn btn-secondary btn-sm">
                         Volver al listado
                     </router-link>
                     <router-link
                         v-if="isEditMode"
                         :to="{ name: 'player-evaluations.show', params: { id: route.params.id } }"
-                        class="btn btn-outline-primary btn-sm"
+                        class="btn btn-primary btn-sm"
                     >
                         Ver detalle
                     </router-link>
@@ -34,7 +34,7 @@
 
                 <div v-if="globalError" class="alert alert-danger d-flex flex-column flex-md-row justify-content-between gap-3">
                     <span>{{ globalError }}</span>
-                    <button type="button" class="btn btn-sm btn-outline-danger align-self-start" @click="loadEditor">
+                    <button type="button" class="btn btn-sm btn-danger align-self-start" @click="loadEditor">
                         Reintentar
                     </button>
                 </div>
@@ -53,7 +53,7 @@
                             <div class="row g-3 align-items-end">
                                 <div class="col-12 col-lg-5">
                                     <label class="form-label">Inscripción</label>
-                                    <select v-model="setup.inscription_id" class="form-select" @change="handleInscriptionChange">
+                                    <select v-model="setup.inscription_id" class="form-select form-select-sm" @change="handleInscriptionChange">
                                         <option value="">Selecciona una inscripción</option>
                                         <option
                                             v-for="inscription in selectionOptions.inscriptions"
@@ -67,7 +67,7 @@
 
                                 <div class="col-12 col-md-6 col-lg-3">
                                     <label class="form-label">Período</label>
-                                    <select v-model="setup.evaluation_period_id" class="form-select">
+                                    <select v-model="setup.evaluation_period_id" class="form-select form-select-sm">
                                         <option value="">Selecciona un período</option>
                                         <option v-for="period in selectionOptions.periods" :key="period.id" :value="String(period.id)">
                                             {{ period.name }}
@@ -77,7 +77,7 @@
 
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <label class="form-label">Plantilla</label>
-                                    <select v-model="setup.evaluation_template_id" class="form-select">
+                                    <select v-model="setup.evaluation_template_id" class="form-select form-select-sm">
                                         <option value="">Selecciona una plantilla</option>
                                         <option
                                             v-for="template in selectionOptions.templates"
@@ -116,7 +116,7 @@
                                 <button type="button" class="btn btn-primary" @click="submitSetup">
                                     Continuar al formulario
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary" @click="resetSetup">
+                                <button type="button" class="btn btn-secondary" @click="resetSetup">
                                     Limpiar selección
                                 </button>
                             </div>
@@ -125,7 +125,8 @@
                 </template>
 
                 <template v-else-if="formReady">
-                    <div class="row g-3 mb-4">
+                    <div class="editor-workspace">
+                        <div class="row g-3 mb-4">
                         <div class="col-12 col-md-6 col-xl-3">
                             <div class="surface-card card stat-card">
                                 <span class="stat-label">Jugador</span>
@@ -180,7 +181,7 @@
                             <div class="row g-3 align-items-end">
                                 <div class="col-12 col-md-4">
                                     <label class="form-label">Tipo de evaluación</label>
-                                    <select v-model="form.evaluation_type" class="form-select" :disabled="isReadOnly">
+                                    <select v-model="form.evaluation_type" class="form-select form-select-sm" :disabled="isReadOnly">
                                         <option
                                             v-for="type in evaluationTypeOptions"
                                             :key="type.value"
@@ -193,7 +194,7 @@
 
                                 <div class="col-12 col-md-4">
                                     <label class="form-label">Estado</label>
-                                    <select v-model="form.status" class="form-select" :disabled="isReadOnly">
+                                    <select v-model="form.status" class="form-select form-select-sm" :disabled="isReadOnly">
                                         <option
                                             v-for="status in statusOptions"
                                             :key="status.value"
@@ -209,7 +210,7 @@
                                     <input
                                         v-model="form.evaluated_at"
                                         type="datetime-local"
-                                        class="form-control"
+                                        class="form-control form-control-sm"
                                         :disabled="isReadOnly"
                                     >
                                 </div>
@@ -268,47 +269,105 @@
                         </div>
                     </div>
 
-                    <div v-for="([dimension, criteria]) in dimensionEntries" :key="dimension" class="surface-card card mb-4">
-                        <div class="surface-card-header card-header d-flex flex-column flex-lg-row justify-content-between gap-3">
-                            <div>
-                                <div class="section-label mb-2">Dimensión</div>
-                                <h5 class="mb-1">{{ dimension }}</h5>
-                                <p class="text-muted mb-0">
-                                    Promedio actual: {{ formatScore(dimensionAverages[dimension]) }}
-                                </p>
-                            </div>
-
-                            <span class="theme-chip align-self-start">
-                                {{ dimensionCompletion[dimension]?.completed || 0 }} / {{ dimensionCompletion[dimension]?.total || 0 }} diligenciados
-                            </span>
+                    <div class="dimensions-toolbar mb-3">
+                        <div>
+                            <div class="section-label mb-2">Dimensiones</div>
+                            <h5 class="mb-1">Evaluación por bloques</h5>
+                            <p class="text-muted mb-0">
+                                Abre solo la dimensión que estés diligenciando para mantener el formulario más compacto.
+                            </p>
                         </div>
 
-                        <div class="surface-card-body card-body">
-                            <div v-for="criterion in criteria" :key="criterion.id" class="criterion-card">
-                                <div class="criterion-main">
-                                    <div>
-                                        <div class="criterion-title">{{ criterion.name }}</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                class="btn btn-secondary btn-sm"
+                                :disabled="areAllDimensionsExpanded"
+                                @click="expandAllDimensions"
+                            >
+                                Expandir todas
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-secondary btn-sm"
+                                :disabled="!hasExpandedDimensions"
+                                @click="collapseAllDimensions"
+                            >
+                                Contraer todas
+                            </button>
+                        </div>
+                    </div>
+
+                    <div
+                        v-for="summary in dimensionSummaries"
+                        :key="summary.dimension"
+                        class="surface-card card dimension-card mb-3"
+                    >
+                        <div
+                            class="surface-card-header card-header dimension-toggle"
+                            role="button"
+                            tabindex="0"
+                            :aria-expanded="isDimensionExpanded(summary.dimension)"
+                            @click="toggleDimension(summary.dimension)"
+                            @keydown.enter.prevent="toggleDimension(summary.dimension)"
+                            @keydown.space.prevent="toggleDimension(summary.dimension)"
+                        >
+                            <div class="dimension-toggle-main">
+                                <div class="dimension-title-row">
+                                    <h5 class="mb-0">{{ summary.dimension }}</h5>
+                                    <span
+                                        class="criterion-state-chip"
+                                        :class="{ 'is-filled': summary.required_pending_count === 0 }"
+                                    >
+                                        {{ summary.required_pending_count ? `${summary.required_pending_count} obligatorios pendientes` : 'Al día' }}
+                                    </span>
+                                </div>
+
+                                <div class="dimension-meta-row">
+                                    <span>Promedio {{ formatScore(summary.average) }}</span>
+                                    <span>{{ summary.completion.completed }} / {{ summary.completion.total }} diligenciados</span>
+                                    <span>{{ summary.criteria.length }} criterios</span>
+                                </div>
+                            </div>
+
+                            <div class="dimension-toggle-side">
+                                <span class="theme-chip">
+                                    {{ isDimensionExpanded(summary.dimension) ? 'Ocultar' : 'Abrir' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div v-show="isDimensionExpanded(summary.dimension)" class="surface-card-body card-body">
+                            <div class="criterion-list">
+                                <div v-for="criterion in summary.criteria" :key="criterion.id" class="criterion-row">
+                                    <div class="criterion-row-main">
+                                        <div class="criterion-title-row">
+                                            <div class="criterion-title">{{ criterion.name }}</div>
+                                            <span
+                                                class="criterion-state-chip"
+                                                :class="{ 'is-filled': criterionHasValue(scoreForm[criterion.id]) }"
+                                                :title="criterionDisplayValue(criterion)"
+                                            >
+                                                {{ criterionDisplayValue(criterion) }}
+                                            </span>
+                                        </div>
+
                                         <div class="criterion-meta">
-                                            <span>{{ criterion.code || 'Sin código' }}</span>
-                                            <span>Tipo {{ criterion.score_type }}</span>
+                                            <!-- <span>{{ criterion.code || 'Sin código' }}</span>
+                                            <span>Tipo {{ criterion.score_type }}</span> -->
                                             <span v-if="criterion.score_type === 'numeric'">
                                                 Rango {{ formatScore(criterion.min_score) }} - {{ formatScore(criterion.max_score) }}
                                             </span>
                                             <span>Peso {{ formatScore(criterion.weight || 1) }}</span>
                                             <span v-if="criterion.is_required">Obligatorio</span>
                                         </div>
+
                                         <p v-if="criterion.description" class="criterion-description">
                                             {{ criterion.description }}
                                         </p>
                                     </div>
 
-                                    <div class="criterion-value-chip">
-                                        {{ criterionDisplayValue(criterion) }}
-                                    </div>
-                                </div>
-
-                                <div class="row g-3 mt-1">
-                                    <div class="col-12 col-md-3">
+                                    <div class="criterion-row-input">
                                         <label class="form-label">
                                             {{ criterion.score_type === 'numeric' ? 'Puntaje' : 'Selección' }}
                                         </label>
@@ -318,7 +377,7 @@
                                             v-model="scoreForm[criterion.id].score"
                                             type="number"
                                             step="0.01"
-                                            class="form-control"
+                                            class="form-control form-control-sm"
                                             :min="criterion.min_score ?? 0"
                                             :max="criterion.max_score ?? 5"
                                             :disabled="isReadOnly"
@@ -327,7 +386,7 @@
                                         <select
                                             v-else
                                             v-model="scoreForm[criterion.id].scale_value"
-                                            class="form-select"
+                                            class="form-select form-select-sm"
                                             :disabled="isReadOnly"
                                         >
                                             <option value="">Selecciona una opción</option>
@@ -341,12 +400,12 @@
                                         </select>
                                     </div>
 
-                                    <div class="col-12 col-md-9">
+                                    <div class="criterion-row-comment">
                                         <label class="form-label">Comentario</label>
                                         <input
                                             v-model="scoreForm[criterion.id].comment"
                                             type="text"
-                                            class="form-control"
+                                            class="form-control form-control-sm"
                                             placeholder="Observación sobre este criterio"
                                             :disabled="isReadOnly"
                                         >
@@ -368,7 +427,7 @@
                                         <label class="form-label">Comentario general</label>
                                         <textarea
                                             v-model="form.general_comment"
-                                            class="form-control"
+                                            class="form-control form-control-sm"
                                             rows="4"
                                             :disabled="isReadOnly"
                                         ></textarea>
@@ -378,7 +437,7 @@
                                         <label class="form-label">Fortalezas</label>
                                         <textarea
                                             v-model="form.strengths"
-                                            class="form-control"
+                                            class="form-control form-control-sm"
                                             rows="4"
                                             :disabled="isReadOnly"
                                         ></textarea>
@@ -398,7 +457,7 @@
                                         <label class="form-label">Oportunidades de mejora</label>
                                         <textarea
                                             v-model="form.improvement_opportunities"
-                                            class="form-control"
+                                            class="form-control form-control-sm"
                                             rows="4"
                                             :disabled="isReadOnly"
                                         ></textarea>
@@ -408,7 +467,7 @@
                                         <label class="form-label">Recomendaciones</label>
                                         <textarea
                                             v-model="form.recommendations"
-                                            class="form-control"
+                                            class="form-control form-control-sm"
                                             rows="4"
                                             :disabled="isReadOnly"
                                         ></textarea>
@@ -423,7 +482,7 @@
                             <button
                                 v-if="!isEditMode"
                                 type="button"
-                                class="btn btn-outline-secondary"
+                                class="btn btn-secondary"
                                 @click="changeSelection"
                             >
                                 Cambiar selección
@@ -431,7 +490,7 @@
                         </div>
 
                         <div class="d-flex flex-wrap gap-2">
-                            <router-link :to="{ name: 'player-evaluations.index' }" class="btn btn-outline-secondary">
+                            <router-link :to="{ name: 'player-evaluations.index' }" class="btn btn-secondary">
                                 Cancelar
                             </router-link>
                             <button
@@ -443,6 +502,7 @@
                                 {{ isSubmitting ? 'Guardando...' : (isEditMode ? 'Actualizar evaluación' : 'Guardar evaluación') }}
                             </button>
                         </div>
+                    </div>
                     </div>
                 </template>
             </div>
@@ -511,6 +571,7 @@ const form = reactive({
 })
 
 const scoreForm = reactive({})
+const expandedDimensions = ref([])
 
 const isEditMode = computed(() => Boolean(route.params.id))
 const isReadOnly = computed(() => Boolean(loadedEvaluation.value?.is_closed))
@@ -572,6 +633,21 @@ const dimensionCompletion = computed(() => {
     }, {})
 })
 
+const dimensionSummaries = computed(() => (
+    dimensionEntries.value.map(([dimension, criteria]) => ({
+        dimension,
+        criteria,
+        average: dimensionAverages.value[dimension] ?? null,
+        completion: dimensionCompletion.value[dimension] || {
+            completed: 0,
+            total: criteria.length,
+        },
+        required_pending_count: criteria.filter((criterion) => (
+            criterion.is_required && !criterionHasValue(scoreForm[criterion.id])
+        )).length,
+    }))
+))
+
 const overallComputation = computed(() => {
     let weightedTotal = 0
     let weightTotal = 0
@@ -615,6 +691,13 @@ const progressBarClass = computed(() => {
     return 'bg-success'
 })
 
+const areAllDimensionsExpanded = computed(() => (
+    dimensionEntries.value.length > 0 &&
+    dimensionEntries.value.every(([dimension]) => expandedDimensions.value.includes(dimension))
+))
+
+const hasExpandedDimensions = computed(() => expandedDimensions.value.length > 0)
+
 function resetFormState() {
     formReady.value = false
     loadedEvaluation.value = null
@@ -622,6 +705,7 @@ function resetFormState() {
     formContext.period = null
     formContext.template = null
     formContext.criteria_by_dimension = {}
+    expandedDimensions.value = []
 
     form.evaluation_type = 'periodic'
     form.status = 'draft'
@@ -668,6 +752,41 @@ function initializeScores(criteriaByDimension, existingScores = {}) {
     })
 }
 
+function resetExpandedDimensions(criteriaByDimension = formContext.criteria_by_dimension) {
+    const entries = Object.entries(criteriaByDimension || {})
+    const firstPendingDimension = entries.find(([, criteria]) => (
+        criteria.some((criterion) => criterion.is_required && !criterionHasValue(scoreForm[criterion.id]))
+    ))
+
+    if (firstPendingDimension) {
+        expandedDimensions.value = [firstPendingDimension[0]]
+        return
+    }
+
+    expandedDimensions.value = entries.length ? [entries[0][0]] : []
+}
+
+function isDimensionExpanded(dimension) {
+    return expandedDimensions.value.includes(dimension)
+}
+
+function toggleDimension(dimension) {
+    if (isDimensionExpanded(dimension)) {
+        expandedDimensions.value = expandedDimensions.value.filter((item) => item !== dimension)
+        return
+    }
+
+    expandedDimensions.value = [...expandedDimensions.value, dimension]
+}
+
+function expandAllDimensions() {
+    expandedDimensions.value = dimensionEntries.value.map(([dimension]) => dimension)
+}
+
+function collapseAllDimensions() {
+    expandedDimensions.value = []
+}
+
 function applyPayload(payload) {
     resetFormState()
 
@@ -693,6 +812,7 @@ function applyPayload(payload) {
     form.recommendations = sourceEvaluation?.recommendations || ''
 
     initializeScores(formContext.criteria_by_dimension, payload.existingScores || {})
+    resetExpandedDimensions(formContext.criteria_by_dimension)
     formReady.value = true
 }
 
@@ -856,6 +976,11 @@ watch(
 </script>
 
 <style scoped>
+.editor-workspace {
+    max-width: 1160px;
+    margin: 0 auto;
+}
+
 .surface-card {
     border-radius: 16px;
     overflow: hidden;
@@ -953,26 +1078,87 @@ watch(
     border-radius: 999px;
 }
 
-.criterion-card {
-    border: 1px solid rgba(127, 127, 127, 0.18);
-    border-radius: 20px;
-    padding: 1rem 1.1rem;
-}
-
-.criterion-card + .criterion-card {
-    margin-top: 1rem;
-}
-
-.criterion-main {
+.dimensions-toolbar {
     display: flex;
     justify-content: space-between;
+    align-items: flex-end;
     gap: 1rem;
+}
+
+.dimension-card .surface-card-header {
+    padding: 1rem 1.25rem;
+}
+
+.dimension-card .surface-card-body {
+    padding: 0.25rem 1.25rem 1rem;
+}
+
+.dimension-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+}
+
+.dimension-toggle-main,
+.criterion-row-main,
+.criterion-row-input,
+.criterion-row-comment {
+    min-width: 0;
+}
+
+.dimension-toggle-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.dimension-toggle-side {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.dimension-title-row,
+.criterion-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.dimension-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1rem;
+    font-size: 0.82rem;
+    opacity: 0.75;
+}
+
+.criterion-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.criterion-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(180px, 0.75fr) minmax(240px, 1fr);
+    gap: 1rem;
+    padding: 0.95rem 0;
+}
+
+.criterion-row + .criterion-row {
+    border-top: 1px solid rgba(127, 127, 127, 0.16);
+}
+
+.criterion-title-row {
     align-items: flex-start;
 }
 
 .criterion-title {
     font-weight: 700;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0;
 }
 
 .criterion-meta {
@@ -981,33 +1167,78 @@ watch(
     gap: 0.5rem 1rem;
     font-size: 0.82rem;
     opacity: 0.75;
+    margin-top: 0.4rem;
 }
 
 .criterion-description {
-    margin-top: 0.5rem;
+    margin-top: 0.45rem;
     margin-bottom: 0;
     opacity: 0.75;
 }
 
-.criterion-value-chip {
-    min-width: 110px;
-    text-align: center;
-    border-radius: 14px;
-    padding: 0.7rem 0.9rem;
+.criterion-row-input .form-label,
+.criterion-row-comment .form-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.7;
+    margin-bottom: 0.35rem;
+}
+
+.criterion-state-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    max-width: min(100%, 220px);
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
     color: inherit;
-    border: 1px solid currentColor;
-    font-weight: 700;
-    opacity: 0.8;
+    border: 1px solid rgba(127, 127, 127, 0.22);
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.75;
+}
+
+.criterion-state-chip.is-filled {
+    opacity: 1;
+}
+
+.criterion-row-input :deep(.form-control),
+.criterion-row-input :deep(.form-select),
+.criterion-row-comment :deep(.form-control) {
+    width: 100%;
+}
+
+@media (max-width: 1199px) {
+    .criterion-row {
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+    }
+
+    .criterion-row-comment {
+        grid-column: 1 / -1;
+    }
 }
 
 @media (max-width: 767px) {
-    .criterion-main {
+    .dimensions-toolbar,
+    .dimension-toggle,
+    .dimension-title-row,
+    .criterion-title-row {
         flex-direction: column;
+        align-items: flex-start;
     }
 
-    .criterion-value-chip {
-        min-width: auto;
+    .dimension-toggle-side {
         width: 100%;
+        justify-content: flex-start;
+    }
+
+    .criterion-row {
+        grid-template-columns: 1fr;
     }
 }
 </style>

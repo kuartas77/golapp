@@ -10,7 +10,7 @@
                 </div>
 
                 <div class="d-flex flex-wrap gap-2">
-                    <router-link :to="{ name: 'player-evaluations.index' }" class="btn btn-outline-secondary btn-sm">
+                    <router-link :to="{ name: 'player-evaluations.index' }" class="btn btn-secondary btn-sm">
                         Volver al listado
                     </router-link>
                     <a
@@ -75,10 +75,10 @@
                         </div>
 
                         <div class="d-flex flex-wrap gap-2 mt-3">
-                            <button type="button" class="btn btn-outline-secondary btn-sm" @click="resetComparison">
+                            <button type="button" class="btn btn-secondary btn-sm" @click="resetComparison">
                                 Limpiar
                             </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" @click="reload">
+                            <button type="button" class="btn btn-secondary btn-sm" @click="reload">
                                 Recargar
                             </button>
                         </div>
@@ -87,7 +87,7 @@
 
                 <div v-if="globalError" class="alert alert-danger d-flex flex-column flex-md-row justify-content-between gap-3">
                     <span>{{ globalError }}</span>
-                    <button type="button" class="btn btn-sm btn-outline-danger align-self-start" @click="reload">
+                    <button type="button" class="btn btn-sm btn-danger align-self-start" @click="reload">
                         Reintentar
                     </button>
                 </div>

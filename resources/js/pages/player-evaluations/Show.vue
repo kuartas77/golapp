@@ -20,13 +20,13 @@
                 </div>
 
                 <div class="d-flex flex-wrap gap-2">
-                    <router-link :to="{ name: 'player-evaluations.index' }" class="btn btn-outline-secondary btn-sm">
+                    <router-link :to="{ name: 'player-evaluations.index' }" class="btn btn-secondary btn-sm">
                         Volver
                     </router-link>
                     <router-link
                         v-if="evaluation && !evaluation.is_closed"
                         :to="{ name: 'player-evaluations.edit', params: { id: evaluation.id } }"
-                        class="btn btn-outline-warning btn-sm"
+                        class="btn btn-warning btn-sm"
                     >
                         Editar
                     </router-link>
@@ -42,7 +42,7 @@
                     <button
                         v-if="evaluation && !evaluation.is_closed"
                         type="button"
-                        class="btn btn-outline-danger btn-sm"
+                        class="btn btn-danger btn-sm"
                         @click="confirmDelete"
                     >
                         Eliminar
@@ -57,7 +57,7 @@
 
                 <div v-if="globalError" class="alert alert-danger d-flex flex-column flex-md-row justify-content-between gap-3">
                     <span>{{ globalError }}</span>
-                    <button type="button" class="btn btn-sm btn-outline-danger align-self-start" @click="loadEvaluation">
+                    <button type="button" class="btn btn-sm btn-danger align-self-start" @click="loadEvaluation">
                         Reintentar
                     </button>
                 </div>
