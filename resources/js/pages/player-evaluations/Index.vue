@@ -118,30 +118,26 @@
                     </button>
                 </div>
 
-                <div class="row g-3 mb-4">
-                    <div class="col-12 col-md-4">
-                        <div class="surface-card card stat-card">
-                            <span class="stat-label">Total registrado</span>
-                            <strong class="stat-value">{{ pagination.total }}</strong>
-                            <small class="text-muted">Evaluaciones filtradas</small>
+                <div class="surface-card card mb-4">
+                    <div class="surface-card-body card-body compact-stats">
+                        <div class="compact-stat-item">
+                            <span class="compact-stat-label">Total registrado</span>
+                            <strong class="compact-stat-value">{{ pagination.total }}</strong>
+                            <span class="text-muted">evaluaciones filtradas</span>
                         </div>
-                    </div>
 
-                    <div class="col-12 col-md-4">
-                        <div class="surface-card card stat-card">
-                            <span class="stat-label">Página actual</span>
-                            <strong class="stat-value">{{ pagination.current_page }}</strong>
-                            <small class="text-muted">de {{ pagination.last_page || 1 }}</small>
+                        <div class="compact-stat-item">
+                            <span class="compact-stat-label">Página actual</span>
+                            <strong class="compact-stat-value">{{ pagination.current_page }}</strong>
+                            <span class="text-muted">de {{ pagination.last_page || 1 }}</span>
                         </div>
-                    </div>
 
-                    <div class="col-12 col-md-4">
-                        <div class="surface-card card stat-card">
-                            <span class="stat-label">Rango visible</span>
-                            <strong class="stat-value">
+                        <div class="compact-stat-item">
+                            <span class="compact-stat-label">Rango visible</span>
+                            <strong class="compact-stat-value">
                                 {{ pagination.from || 0 }} - {{ pagination.to || 0 }}
                             </strong>
-                            <small class="text-muted">Resultados de esta página</small>
+                            <span class="text-muted">resultados en esta página</span>
                         </div>
                     </div>
                 </div>
@@ -533,14 +529,31 @@ watch(
     opacity: 0.8;
 }
 
-.stat-card {
-    padding: 1.2rem 1.3rem;
+.compact-stats {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.compact-stat-item {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
     gap: 0.35rem;
 }
 
-.stat-label {
+.compact-stat-item + .compact-stat-item::before {
+    content: '';
+    width: 1px;
+    height: 1rem;
+    margin-right: 0.2rem;
+    background: rgba(127, 127, 127, 0.2);
+}
+
+.compact-stat-label {
     font-size: 0.82rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -548,9 +561,9 @@ watch(
     opacity: 0.75;
 }
 
-.stat-value {
-    font-size: 1.8rem;
-    line-height: 1;
+.compact-stat-value {
+    font-size: 1rem;
+    line-height: 1.2;
 }
 
 .theme-chip {
@@ -580,5 +593,19 @@ watch(
 
 .table > :not(caption) > * > * {
     padding: 1rem 0.85rem;
+}
+
+@media (max-width: 767px) {
+    .compact-stats {
+        gap: 0.6rem 0.9rem;
+    }
+
+    .compact-stat-item {
+        width: 100%;
+    }
+
+    .compact-stat-item + .compact-stat-item::before {
+        display: none;
+    }
 }
 </style>
