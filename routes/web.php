@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
 use App\Http\Controllers\{Competition\GameController, Payments\PaymentController, Schedule\SchedulesController, SchoolPages\SchoolsController};
-use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
 use App\Http\Controllers\AppController;
+use App\Http\Controllers\{HistoricController, IncidentController, DataTableController};
 use App\Http\Controllers\Admin\InvoiceCustomItemController;
+use App\Http\Controllers\Evaluations\PlayerEvaluationController;
+use App\Http\Controllers\Evaluations\PlayerEvaluationComparisonController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\FormationPdfController;
 use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
@@ -175,6 +177,39 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('notifications', [TopicNotificationsController::class, 'index'])->name('notification.index');
         Route::post('notifications', [TopicNotificationsController::class, 'store'])->name('notification.store');
     });
+
+    Route::prefix('player-evaluations')->name('player-evaluations.')->group(function () {
+        Route::get('/', [PlayerEvaluationController::class, 'index'])->name('index');
+        Route::get('/create', [PlayerEvaluationController::class, 'create'])->name('create');
+        Route::post('/', [PlayerEvaluationController::class, 'store'])->name('store');
+
+        Route::get('/{playerEvaluation}', [PlayerEvaluationController::class, 'show'])->name('show');
+        Route::get('/{playerEvaluation}/edit', [PlayerEvaluationController::class, 'edit'])->name('edit');
+        Route::put('/{playerEvaluation}', [PlayerEvaluationController::class, 'update'])->name('update');
+        Route::delete('/{playerEvaluation}', [PlayerEvaluationController::class, 'destroy'])->name('destroy');
+
+        Route::get('/{playerEvaluation}/pdf', [PlayerEvaluationController::class, 'pdf'])->name('pdf');
+
+        Route::get('/comparison', [PlayerEvaluationComparisonController::class, 'index'])->name('comparison');
+        Route::get('/comparison/pdf', [PlayerEvaluationComparisonController::class, 'pdf'])->name('comparison.pdf');
+    });
+
+    // Route::prefix('')->group(function () {
+    //     Route::get(
+    //         'evaluations/inscriptions/{inscription}/compare',
+    //         [PlayerEvaluationInsightsController::class, 'compare']
+    //     )->name('evaluations.compare');
+
+    //     Route::get(
+    //         'evaluations/{evaluation}/inscriptions/{inscription}/guardian-report',
+    //         [PlayerEvaluationInsightsController::class, 'guardianReportPdf']
+    //     )->name('evaluations.report');
+
+    //     Route::resource('evaluations.inscriptions', PlayerEvaluationController::class)
+    //     ->parameters([
+    //         'evaluations' => 'evaluation',
+    //     ]);
+    // });
 });
 
 Route::middleware(['auth', 'verified_school'])->prefix('v1')->group(function () {
