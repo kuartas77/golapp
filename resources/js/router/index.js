@@ -23,6 +23,17 @@ const routes = [
             { path: 'player-stats', name: 'player-stats.index', component: () => import('@/pages/player-stats/Ranking.vue') },
             { path: 'top-players', name: 'player-stats.top', component: () => import('@/pages/player-stats/TopPlayers.vue') },
             { path: 'player/:id/detail', name: 'player-stats.detail', component: () => import('@/pages/player-stats/Detail.vue') },
+            {
+                path: 'player-evaluations',
+                component: { render: () => h(RouterView) },
+                children: [
+                    { path: '', name: 'player-evaluations.index', component: () => import('@/pages/player-evaluations/Index.vue') },
+                    { path: 'comparison', name: 'player-evaluations.comparison', component: () => import('@/pages/player-evaluations/Comparison.vue') },
+                    { path: 'create', name: 'player-evaluations.create', component: () => import('@/pages/player-evaluations/Editor.vue') },
+                    { path: ':id/edit', name: 'player-evaluations.edit', component: () => import('@/pages/player-evaluations/Editor.vue') },
+                    { path: ':id', name: 'player-evaluations.show', component: () => import('@/pages/player-evaluations/Show.vue') },
+                ]
+            },
             { path: 'perfil/usuario', name: 'user-profile', component: () => import('@/pages/home/Index.vue'), },
             {
                 path: 'deportistas', component: { render: () => h(RouterView) },

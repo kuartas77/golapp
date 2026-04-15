@@ -34,6 +34,8 @@ class PlayerEvaluationResource extends JsonResource
                     'year' => $this->template->year,
                     'status' => $this->template->status,
                     'version' => $this->template->version,
+                    'training_group_id' => $this->template->training_group_id,
+                    'training_group_name' => $this->template->trainingGroup?->name,
                 ];
             }),
 
@@ -55,8 +57,13 @@ class PlayerEvaluationResource extends JsonResource
                         function () {
                             return [
                                 'id' => $this->inscription->player->id,
-                                'name' => $this->inscription->player->name
+                                'name' => $this->inscription->player->full_names
                                     ?? $this->inscription->player->full_name
+                                    ?? $this->inscription->player->name
+                                    ?? null,
+                                'unique_code' => $this->inscription->player->unique_code
+                                    ?? null,
+                                'photo_url' => $this->inscription->player->photo_url
                                     ?? null,
                             ];
                         }
@@ -77,6 +84,8 @@ class PlayerEvaluationResource extends JsonResource
             'status' => $this->status,
             'evaluated_at' => optional($this->evaluated_at)->toISOString(),
             'overall_score' => $this->overall_score,
+            'is_closed' => (bool) $this->is_closed,
+            'is_completed' => (bool) $this->is_completed,
 
             'general_comment' => $this->general_comment,
             'strengths' => $this->strengths,
@@ -97,6 +106,11 @@ class PlayerEvaluationResource extends JsonResource
 
             'created_at' => optional($this->created_at)->toISOString(),
             'updated_at' => optional($this->updated_at)->toISOString(),
+            'urls' => [
+                'show' => route('player-evaluations.show', $this->id),
+                'edit' => route('player-evaluations.edit', $this->id),
+                'pdf' => route('player-evaluations.pdf', $this->id),
+            ],
         ];
     }
 }

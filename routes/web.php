@@ -10,7 +10,6 @@ use App\Http\Controllers\Admin\InvoiceCustomItemController;
 use App\Http\Controllers\Evaluations\PlayerEvaluationController;
 use App\Http\Controllers\Evaluations\PlayerEvaluationComparisonController;
 use App\Http\Controllers\FileController;
-use App\Http\Controllers\FormationPdfController;
 use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Invoices\InvoiceController;
@@ -22,9 +21,7 @@ use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\Reports\AttendanceReportExportController;
 use App\Http\Controllers\Reports\ReportAssistsController;
 use App\Http\Controllers\Reports\ReportPaymentController;
-use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/{any}', [AppController::class, 'index'])->where('any', '.*');
@@ -179,19 +176,19 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     });
 
     Route::prefix('player-evaluations')->name('player-evaluations.')->group(function () {
-        Route::get('/', [PlayerEvaluationController::class, 'index'])->name('index');
-        Route::get('/create', [PlayerEvaluationController::class, 'create'])->name('create');
+        Route::get('/comparison/pdf', [PlayerEvaluationComparisonController::class, 'pdf'])->name('comparison.pdf');
+        Route::get('/comparison', [AppController::class, 'index'])->name('comparison');
+
+        Route::get('/', [AppController::class, 'index'])->name('index');
+        Route::get('/create', [AppController::class, 'index'])->name('create');
         Route::post('/', [PlayerEvaluationController::class, 'store'])->name('store');
 
-        Route::get('/{playerEvaluation}', [PlayerEvaluationController::class, 'show'])->name('show');
-        Route::get('/{playerEvaluation}/edit', [PlayerEvaluationController::class, 'edit'])->name('edit');
+        Route::get('/{playerEvaluation}/edit', [AppController::class, 'index'])->name('edit');
         Route::put('/{playerEvaluation}', [PlayerEvaluationController::class, 'update'])->name('update');
         Route::delete('/{playerEvaluation}', [PlayerEvaluationController::class, 'destroy'])->name('destroy');
 
         Route::get('/{playerEvaluation}/pdf', [PlayerEvaluationController::class, 'pdf'])->name('pdf');
-
-        Route::get('/comparison', [PlayerEvaluationComparisonController::class, 'index'])->name('comparison');
-        Route::get('/comparison/pdf', [PlayerEvaluationComparisonController::class, 'pdf'])->name('comparison.pdf');
+        Route::get('/{playerEvaluation}', [AppController::class, 'index'])->name('show');
     });
 
     // Route::prefix('')->group(function () {

@@ -14,6 +14,8 @@ use App\Http\Controllers\Assists\AssistController;
 use App\Http\Controllers\BackOffice\SchoolController as BackOfficeShoolController;
 use App\Http\Controllers\Competition\GameController;
 use App\Http\Controllers\DataTableController;
+use App\Http\Controllers\Evaluations\PlayerEvaluationComparisonController;
+use App\Http\Controllers\Evaluations\PlayerEvaluationController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\Groups\CompetitionGroupController;
 use App\Http\Controllers\Groups\TrainingGroupController;
@@ -147,11 +149,18 @@ Route::prefix('v2')->group(function(){
 
         });
 
-
-
-
-
-
+        Route::prefix('player-evaluations')->group(function () {
+            Route::get('options', [PlayerEvaluationController::class, 'options']);
+            Route::get('comparison', [PlayerEvaluationComparisonController::class, 'index']);
+            Route::get('create', [PlayerEvaluationController::class, 'create']);
+            Route::get('', [PlayerEvaluationController::class, 'index']);
+            Route::post('', [PlayerEvaluationController::class, 'store']);
+            Route::get('{playerEvaluation}/edit', [PlayerEvaluationController::class, 'edit']);
+            Route::get('{playerEvaluation}', [PlayerEvaluationController::class, 'show']);
+            Route::put('{playerEvaluation}', [PlayerEvaluationController::class, 'update']);
+            Route::patch('{playerEvaluation}', [PlayerEvaluationController::class, 'update']);
+            Route::delete('{playerEvaluation}', [PlayerEvaluationController::class, 'destroy']);
+        });
 
     });
 

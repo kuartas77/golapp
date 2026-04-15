@@ -27,8 +27,9 @@ class PlayerEvaluationComparisonService
         return [
             'player' => [
                 'id' => $inscription->player?->id,
-                'name' => $inscription->player?->name
+                'name' => $inscription->player?->full_names
                     ?? $inscription->player?->full_name
+                    ?? $inscription->player?->name
                     ?? null,
             ],
             'inscription' => [
