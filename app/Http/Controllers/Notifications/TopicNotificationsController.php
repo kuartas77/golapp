@@ -29,9 +29,38 @@ class TopicNotificationsController extends Controller
         );
     }
 
+    public function options()
+    {
+        [$topicCategories, $topicGroups, $topicUniqueCodes, $topicCompetitionGroups] = $this->repository->getTopics();
+
+        return response()->json([
+            'categories' => collect($topicCategories)->map(fn(array $item) => [
+                'value' => $item['topic'],
+                'label' => $item['name'],
+            ])->values(),
+            'training_groups' => collect($topicGroups)->map(fn(array $item) => [
+                'value' => $item['topic'],
+                'label' => $item['name'],
+            ])->values(),
+            'players' => collect($topicUniqueCodes)->map(fn(array $item) => [
+                'value' => $item['topic'],
+                'label' => $item['name'],
+            ])->values(),
+            'competition_groups' => collect($topicCompetitionGroups)->map(fn(array $item) => [
+                'value' => $item['topic'],
+                'label' => $item['name'],
+            ])->values(),
+        ]);
+    }
+
     public function store(NotificationStoreRequest $request, TopicNotificationStoreService $service)
     {
         $service->store($request->validate());
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true]);
+        }
+
         return back();
     }
 }

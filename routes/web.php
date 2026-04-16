@@ -171,6 +171,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::put('invoice/{invoice}/payment-request/{paymentRequest}', [InvoiceController::class, 'update']);
         Route::get('payment-request/invoices', [PaymentRequestController::class, 'index'])->name('payment-request.index');
         Route::get('uniform-request/invoices', [UniformRequestsController::class, 'index'])->name('uniform-request.index');
+        Route::get('notifications/options', [TopicNotificationsController::class, 'options'])->name('notification.options');
         Route::get('notifications', [TopicNotificationsController::class, 'index'])->name('notification.index');
         Route::post('notifications', [TopicNotificationsController::class, 'store'])->name('notification.store');
     });

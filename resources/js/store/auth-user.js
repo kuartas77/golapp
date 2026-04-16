@@ -10,13 +10,14 @@ export const useAuthUser = defineStore('auth-user', {
     }),
     getters: {
         isAuthenticated: state => !!state.user,
+        hasSystemNotify: state => Boolean(state.user?.system_notify),
     },
     actions: {
         clearState() {
             this.$reset()
         },
         async init() {
-            if (this.initialized) return this.isAuthenticated;
+            if (this.initialized && this.user?.system_notify !== undefined) return this.isAuthenticated;
             try {
                 await this.getUser();
             } catch {
@@ -38,6 +39,7 @@ export const useAuthUser = defineStore('auth-user', {
                     school_name: data.data.school_name,
                     school_slug: data.data.school_slug,
                     school_logo: data.data.school_logo,
+                    system_notify: data.data.system_notify,
                 };
                 this.roles = data.data.roles
                 this.permissions = data.data.permissions || []

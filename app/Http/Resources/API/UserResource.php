@@ -24,6 +24,7 @@ class UserResource extends JsonResource
             'school_slug' => $this->school->slug,
             'school_logo' => $this->school->logo_file,
             'roles' => $this->getRoleNames(),
+            'system_notify' => filter_var($this->school?->settings?->get('SYSTEM_NOTIFY'), FILTER_VALIDATE_BOOLEAN),
             // 'permissions' => $this->getAllPermissions()->pluck('name')
         ];
     }

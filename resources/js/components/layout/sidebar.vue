@@ -189,7 +189,8 @@
                         </router-link>
                     </li>
                     <li class="menu">
-                        <router-link :to="{ name: 'invoices.index' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                        <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#billing"
+                            aria-controls="billing" aria-expanded="false">
                             <div class="">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -197,7 +198,45 @@
                                     <line x1="12" y1="1" x2="12" y2="23"></line>
                                     <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                                 </svg>
-                                <span>Facturas</span>
+                                <span>Facturación</span>
+                            </div>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="feather feather-chevron-right">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </div>
+                        </a>
+                        <ul id="billing" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
+                            <li>
+                                <router-link :to="{ name: 'invoices.index' }" @click="toggleMobileMenu">
+                                    Facturas
+                                </router-link>
+                            </li>
+                            <li v-if="hasSystemNotify">
+                                <router-link :to="{ name: 'payment-requests.index' }" @click="toggleMobileMenu">
+                                    Comprobantes de Pago
+                                </router-link>
+                            </li>
+                            <li v-if="hasSystemNotify">
+                                <router-link :to="{ name: 'uniform-requests.index' }" @click="toggleMobileMenu">
+                                    Solicitudes de Uniformes
+                                </router-link>
+                            </li>
+                        </ul>
+                    </li>
+                    <li v-if="hasSystemNotify" class="menu">
+                        <router-link :to="{ name: 'topic-notifications.index' }" class="dropdown-toggle"
+                            @click="toggleMobileMenu">
+                            <div class="">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="feather feather-bell">
+                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                </svg>
+                                <span>Notificaciones</span>
                             </div>
                         </router-link>
                     </li>
@@ -225,10 +264,13 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useAppState } from '@/store/app-state'
+import { useAuthUser } from '@/store/auth-user'
 
 const appState = useAppState();
+const auth = useAuthUser()
+const hasSystemNotify = computed(() => auth.hasSystemNotify)
 
 const toggleMobileMenu = () => {
     if (window.innerWidth < 991) {

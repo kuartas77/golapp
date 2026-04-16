@@ -122,10 +122,28 @@ const routes = [
                 component: { render: () => h(RouterView) },
                 children: [
                     { path: '', name: 'invoices.index', component: () => import('@/pages/invoices/Invoices.vue') },
-                    { path: ':id', name: 'invoices.show', component: () => import('@/pages/invoices/InvoiceShow.vue') },
+                    {
+                        path: 'comprobantes-pago',
+                        name: 'payment-requests.index',
+                        component: () => import('@/pages/notifications/PaymentRequests.vue'),
+                        meta: { requiresSystemNotify: true }
+                    },
+                    {
+                        path: 'solicitudes-uniformes',
+                        name: 'uniform-requests.index',
+                        component: () => import('@/pages/notifications/UniformRequests.vue'),
+                        meta: { requiresSystemNotify: true }
+                    },
                     { path: 'crear/:inscription', name: 'invoices.create', component: () => import('@/pages/invoices/InvoiceCreate.vue') },
+                    { path: ':id', name: 'invoices.show', component: () => import('@/pages/invoices/InvoiceShow.vue') },
                 ]
-            }
+            },
+            {
+                path: 'notificaciones',
+                name: 'topic-notifications.index',
+                meta: { requiresRole: ['super-admin', 'school'], requiresSystemNotify: true },
+                component: () => import('@/pages/notifications/TopicNotifications.vue')
+            },
         ]
     },
 
@@ -196,6 +214,12 @@ router.beforeEach(async (to, from, next) => {
     if (requiredRolesAll.length > 0) {
         const hasAllRoles = requiredRolesAll.every(role => userRoles.includes(role));
         if (!hasAllRoles) return next({ name: 'dashboard' });
+    }
+
+    const requiresSystemNotify = to.matched.some(r => r.meta?.requiresSystemNotify);
+
+    if (requiresSystemNotify && !userStore.hasSystemNotify) {
+        return next({ name: 'dashboard' });
     }
 
     return next();

@@ -19,11 +19,13 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import api from '@/utils/axios';
+import { useAuthUser } from '@/store/auth-user';
 import { useSetting } from '@/store/settings-store';
 
 const schoolSelected = ref('')
 const isSchool = ref(false);
 const schoolOptions = ref([])
+const auth = useAuthUser()
 const settings = useSetting()
 const text = computed(() => (isSchool.value ? 'Sede' : 'Escuela'))
 
@@ -54,7 +56,8 @@ function selectSchool() {
         if (result.isConfirmed && result.value) {
             try {
                 await api.post('/api/v2/admin/change_school', { school_id: result.value })
-                await settings.getSettings()
+                auth.clearState()
+                settings.clearState()
                 window.location.reload()
             } catch (error) {
                 console.log(error)
