@@ -10,7 +10,16 @@ class PortalComposer
 {
     public function compose(View $view): void
     {
-        $schools = Cache::remember('SCHOOLS_ENABLED', now()->addMinutes(10), fn() => School::query()->where('id', '<>', 1)->where('is_enable', true)->orderBy('name')->pluck('name', 'slug'));
+        $schools = Cache::remember(
+            'SCHOOLS_ENABLED',
+            now()->addMinutes(10),
+            fn () => School::query()
+                ->where('id', '<>', 1)
+                ->where('is_enable', true)
+                ->where('inscriptions_enabled', true)
+                ->orderBy('name')
+                ->pluck('name', 'slug')
+        );
 
         $year = date('Y');
         if (in_array(now()->month, [11, 12])) {

@@ -113,7 +113,9 @@ class PortalGuardiansBackfill extends Command
             ->where('tutor', true)
             ->whereHas('players.inscriptions', function ($query) {
                 $query->where('year', now()->year)
-                    ->whereHas('school', fn ($schoolQuery) => $schoolQuery->where('is_enable', true));
+                    ->whereHas('school', fn ($schoolQuery) => $schoolQuery
+                        ->where('is_enable', true)
+                        ->where('tutor_platform', true));
             })
             ->distinct()
             ->orderBy('names')

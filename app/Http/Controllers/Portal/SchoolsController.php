@@ -28,6 +28,7 @@ class SchoolsController extends Controller
         $schools = School::query()
             ->where('id', '<>', 1)
             ->where('is_enable', true)
+            ->where('inscriptions_enabled', true)
             ->orderBy('name')
             ->get()
             ->map(fn (School $school) => [

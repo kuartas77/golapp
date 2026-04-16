@@ -16,8 +16,9 @@ final class InviteGuardianAction implements IContractPassable
     public function handle(Passable $passable, Closure $next)
     {
         $guardian = $passable->getGuardian();
+        $school = $passable->getSchool();
 
-        if ($guardian && $passable->shouldInviteGuardian()) {
+        if ($guardian && $passable->shouldInviteGuardian() && $school->tutor_platform) {
             $this->guardianInvitationService->invite($guardian);
         }
 

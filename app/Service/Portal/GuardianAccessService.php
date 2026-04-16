@@ -20,7 +20,7 @@ class GuardianAccessService
             ->select('players.*')
             ->whereHas('inscriptions', function (Builder $query) {
                 $query->where('year', now()->year)
-                    ->whereHas('school', fn (Builder $schoolQuery) => $schoolQuery->where('is_enable', true));
+                    ->whereHas('school', fn (Builder $schoolQuery) => $this->applyEligibleSchoolScope($schoolQuery));
             })
             ->distinct();
     }
@@ -29,7 +29,7 @@ class GuardianAccessService
     {
         return Inscription::query()
             ->where('year', now()->year)
-            ->whereHas('school', fn (Builder $query) => $query->where('is_enable', true))
+            ->whereHas('school', fn (Builder $query) => $this->applyEligibleSchoolScope($query))
             ->whereHas('player.people', fn (Builder $query) => $query->where('peoples.id', $guardian->id));
     }
 
@@ -38,9 +38,16 @@ class GuardianAccessService
         return PlayerEvaluation::query()
             ->whereHas('inscription', function (Builder $query) use ($guardian) {
                 $query->where('year', now()->year)
-                    ->whereHas('school', fn (Builder $schoolQuery) => $schoolQuery->where('is_enable', true))
+                    ->whereHas('school', fn (Builder $schoolQuery) => $this->applyEligibleSchoolScope($schoolQuery))
                     ->whereHas('player.people', fn (Builder $peopleQuery) => $peopleQuery->where('peoples.id', $guardian->id));
             });
+    }
+
+    private function applyEligibleSchoolScope(Builder $query): void
+    {
+        $query
+            ->where('is_enable', true)
+            ->where('tutor_platform', true);
     }
 
     public function hasEligiblePlayers(People $guardian): bool

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Portal;
 
 use App\Models\School;
 use App\Rules\UniqueGuardianEmail;
+use Closure;
 use Jenssegers\Date\Date;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -65,7 +66,19 @@ class InscriptionRegisterRequest extends FormRequest
 
             'signatureTutor'  => ['nullable', 'string'],
             'signatureAlumno' => ['nullable', 'string'],
-            'school_data' => ['required'],
+            'school_data' => [
+                'required',
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    if (!$value instanceof School || !$value->is_enable) {
+                        $fail('La escuela no está disponible para inscripciones en el portal.');
+                        return;
+                    }
+
+                    if (!$value->inscriptions_enabled) {
+                        $fail('Las inscripciones están deshabilitadas para esta escuela en el portal.');
+                    }
+                },
+            ],
         ];
 
         if (env('APP_ENV', null) == 'local') {

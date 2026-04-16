@@ -9,6 +9,8 @@ use App\Models\People;
 use App\Models\Player;
 use App\Models\School;
 use App\Models\TrainingGroup;
+use App\Modules\Inscriptions\Actions\Create\InviteGuardianAction;
+use App\Modules\Inscriptions\Actions\Create\Passable;
 use App\Notifications\GuardianPasswordResetNotification;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -52,6 +54,22 @@ final class PortalGuardiansTest extends TestCase
         $response = $this->postJson('/api/v2/portal/acudientes/login', [
             'email' => $guardian->email,
             'password' => 'blocked-secret',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['email']);
+    }
+
+    public function testGuardianLoginIsBlockedWhenSchoolTutorPlatformIsDisabled(): void
+    {
+        [$guardian] = $this->createGuardianScenario([
+            'email' => 'blocked-platform.guardian@example.com',
+            'password' => 'blocked-platform-secret',
+        ], schoolAttributes: ['tutor_platform' => false]);
+
+        $response = $this->postJson('/api/v2/portal/acudientes/login', [
+            'email' => $guardian->email,
+            'password' => 'blocked-platform-secret',
         ]);
 
         $response->assertStatus(422);
@@ -105,6 +123,10 @@ final class PortalGuardiansTest extends TestCase
             'email' => 'inactive-school.guardian@example.com',
         ], schoolAttributes: ['is_enable' => false]);
 
+        [$disabledPlatformGuardian] = $this->createGuardianScenario([
+            'email' => 'disabled-platform.guardian@example.com',
+        ], schoolAttributes: ['tutor_platform' => false]);
+
         $this->artisan('portal:guardians-backfill', ['--send' => true])
             ->assertExitCode(0);
 
@@ -113,12 +135,54 @@ final class PortalGuardiansTest extends TestCase
         Notification::assertNotSentTo($duplicateGuardianA, GuardianPasswordResetNotification::class);
         Notification::assertNotSentTo($duplicateGuardianB, GuardianPasswordResetNotification::class);
         Notification::assertNotSentTo($inactiveSchoolGuardian, GuardianPasswordResetNotification::class);
+        Notification::assertNotSentTo($disabledPlatformGuardian, GuardianPasswordResetNotification::class);
 
         $this->assertNotNull($invitableGuardian->fresh()->invited_at);
         $this->assertNull($configuredGuardian->fresh()->invited_at);
         $this->assertNull($duplicateGuardianA->fresh()->invited_at);
         $this->assertNull($duplicateGuardianB->fresh()->invited_at);
         $this->assertNull($inactiveSchoolGuardian->fresh()->invited_at);
+        $this->assertNull($disabledPlatformGuardian->fresh()->invited_at);
+    }
+
+    public function testInviteGuardianActionSkipsInvitationWhenTutorPlatformIsDisabled(): void
+    {
+        Notification::fake();
+
+        [$guardian, , , $school] = $this->createGuardianScenario([
+            'email' => 'no-platform.guardian@example.com',
+        ]);
+        $school->setAttribute('tutor_platform', false);
+
+        $passable = new Passable(['school_data' => $school]);
+        $passable->setSchool();
+        $passable->setGuardian($guardian);
+        $passable->setShouldInviteGuardian(true);
+
+        app(InviteGuardianAction::class)->handle($passable, fn (Passable $value) => $value);
+
+        Notification::assertNotSentTo($guardian, GuardianPasswordResetNotification::class);
+        $this->assertNull($guardian->fresh()->invited_at);
+    }
+
+    public function testInviteGuardianActionSendsInvitationWhenTutorPlatformIsEnabled(): void
+    {
+        Notification::fake();
+
+        [$guardian, , , $school] = $this->createGuardianScenario([
+            'email' => 'platform.guardian@example.com',
+        ]);
+        $school->setAttribute('tutor_platform', true);
+
+        $passable = new Passable(['school_data' => $school]);
+        $passable->setSchool();
+        $passable->setGuardian($guardian);
+        $passable->setShouldInviteGuardian(true);
+
+        app(InviteGuardianAction::class)->handle($passable, fn (Passable $value) => $value);
+
+        Notification::assertSentTo($guardian, GuardianPasswordResetNotification::class);
+        $this->assertNotNull($guardian->fresh()->invited_at);
     }
 
     private function createGuardianScenario(
@@ -127,8 +191,11 @@ final class PortalGuardiansTest extends TestCase
         array $schoolAttributes = []
     ): array {
         $school = empty($schoolAttributes)
-            ? School::query()->findOrFail($this->school['id'])
-            : School::factory()->create($schoolAttributes + ['email' => fake()->unique()->safeEmail()]);
+            ? tap(School::query()->findOrFail($this->school['id']))->update(['tutor_platform' => true])
+            : School::factory()->create(array_merge([
+                'email' => fake()->unique()->safeEmail(),
+                'tutor_platform' => true,
+            ], $schoolAttributes));
 
         if (!$school->trainingGroups()->exists()) {
             $school->schedules()->create([

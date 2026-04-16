@@ -22,8 +22,14 @@ class CreateSchoolsTable extends Migration
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->boolean('is_enable')->default(false);
+            $table->boolean('create_contract')->default(false);
+            $table->boolean('send_documents')->default(false);
+            $table->boolean('tutor_platform')->default(false);
+            $table->boolean('sign_player')->default(false);
+            $table->boolean('inscriptions_enabled')->default(false);
             $table->string('logo')->nullable();
-            $table->json('config')->nullable();
+            $table->string('short_name')->nullable();
+            $table->string('email_info')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
