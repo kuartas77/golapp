@@ -17,6 +17,7 @@ class GuardianEvaluationComparisonPdfService
     {
         $inscription->loadMissing([
             'player',
+            'school',
             'trainingGroup'
         ]);
 
@@ -44,7 +45,7 @@ class GuardianEvaluationComparisonPdfService
         );
 
         $this->createPDF([
-            'school' => getSchool(auth()->user()),
+            'school' => $inscription->school,
             'comparison' => $comparison,
             'clubName' => config('app.name'),
             'playerName' => $playerName,

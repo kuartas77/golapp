@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\EnsureGuardian;
 use App\Http\Middleware\CheckSettingNotification;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\HttpRedirect;
@@ -85,6 +86,7 @@ class Kernel extends HttpKernel
         'auth' => Authenticate::class,
         'auth.basic' => AuthenticateWithBasicAuth::class,
         'auth.session' => AuthenticateSession::class,
+        'ensure.guardian' => EnsureGuardian::class,
         'cache.headers' => SetCacheHeaders::class,
         'can' => Authorize::class,
         'guest' => RedirectIfAuthenticated::class,

@@ -16,7 +16,9 @@ class GuardianEvaluationPdfService
     public function download(PlayerEvaluation $evaluation)
     {
         $evaluation->loadMissing([
+            'school',
             'inscription.player',
+            'inscription.school',
             'inscription.trainingGroup',
             'period',
             'template',
@@ -39,7 +41,7 @@ class GuardianEvaluationPdfService
             ?? $evaluation->inscription->player?->name
             ?? 'jugador';
 
-        $school = getSchool(auth()->user());
+        $school = $evaluation->school ?? $evaluation->inscription->school;
 
         $this->createPDF([
             'school' => $school,

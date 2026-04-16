@@ -38,10 +38,10 @@ class PeopleRepository
     {
         return $this->people->query()->updateOrCreate(
             [
-                'names' => $person['names'],
                 'identification_card' => $person['identification_card']
             ],
             [
+                'names' => $person['names'],
                 'tutor' => $person['tutor'],
                 'relationship' => $person['relationship'],
                 'phone' => ($person['phone'] ?? null),

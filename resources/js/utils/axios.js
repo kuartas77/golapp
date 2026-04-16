@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useAuthUser } from '@/store/auth-user'
+import { useGuardianAuth } from '@/store/guardian-auth'
 import router from "@/router";
 
 // Crear instancia
@@ -34,14 +35,42 @@ api.interceptors.response.use(
     response => response,
     async (error) => {
         const auth = useAuthUser()
+        const guardianAuth = useGuardianAuth()
 
         const status = error.response?.status
+        const skipAuthRedirect = Boolean(error.config?.skipAuthRedirect)
+        const currentRoute = router.currentRoute.value
+        const currentPath = String(currentRoute.path ?? '')
+        const isGuardianArea = currentPath.startsWith('/portal/acudientes')
+        const isPublicPortal = currentPath.startsWith('/portal') && !isGuardianArea
+
         // Manejo centralizado de errores
         if (status === 401 || status === 419) {
-            auth.clearState()
+            if (skipAuthRedirect) {
+                return Promise.reject(error);
+            }
 
-            if (router.currentRoute.value.name !== 'login') {
-                await router.push({ name: 'login' })
+            if (isGuardianArea) {
+                guardianAuth.clearState()
+
+                if (!['guardian-login', 'guardian-reset-password'].includes(String(currentRoute.name ?? ''))) {
+                    await router.push({
+                        name: 'guardian-login',
+                        query: currentPath !== '/portal/acudientes/login'
+                            ? { redirect: currentRoute.fullPath }
+                            : undefined,
+                    })
+                }
+
+                return Promise.reject(error);
+            }
+
+            if (!isPublicPortal) {
+                auth.clearState()
+
+                if (router.currentRoute.value.name !== 'login') {
+                    await router.push({ name: 'login' })
+                }
             }
         }
         return Promise.reject(error);

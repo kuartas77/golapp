@@ -117,7 +117,7 @@
                                 <li class="list-group-item px-0 bg-transparent">Ver y actualizar la información del deportista.</li>
                                 <li class="list-group-item px-0 bg-transparent">Consultar pagos y estado de mensualidades.</li>
                                 <li class="list-group-item px-0 bg-transparent">Revisar asistencias, estadísticas e historial por año.</li>
-                                <li class="list-group-item px-0 bg-transparent">Ingresar con el documento del deportista y el código único enviado al correo del acudiente.</li>
+                                <li class="list-group-item px-0 bg-transparent">Activar el acceso con el correo del acudiente y una contraseña personal.</li>
                             </ul>
 
                             <a :href="pageData.links.guardianLogin" class="btn btn-outline-primary">

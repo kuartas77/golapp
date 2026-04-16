@@ -1,7 +1,6 @@
 <h6>Información Familiar</h6>
 <section>
     <h6 class="row block-helper justify-content-center">Los campos con (<span class="text-danger">*</span>) son requeridos.</h6>
-    <h6 class="row block-helper justify-content-center "><strong>Sí el acudiente es el padre o la madre no es necesario ingresar la información en los otros campos respectivamente.</strong></h6>
     <div class="row">
         <fieldset class="col-md-12 p-2">
             <legend>Acudiente:</legend>
@@ -57,67 +56,4 @@
 
         </fieldset>
     </div>
-
-    <fieldset class="col-md-12 p-2">
-        <legend>Madre:</legend>
-        <div class="row">
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label for="mom_name">Nombres completos </label>
-                    {{ html()->text('mom_name', null)->attributes(['class' => 'form-control']) }}
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label for="mom_doc"># Doc de identidad </label>
-                    {{ html()->text('mom_doc', null)->attributes(['class' => 'form-control']) }}
-                    <input name="relationship_mom" value="15" type="hidden" />
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label for="mom_phone">WhatsApp </label>
-                    {{ html()->text('mom_phone', null)->attributes(['class' => 'form-control']) }}
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label for="mom_work">Ocupación </label>
-                    {{ html()->text('mom_work', null)->attributes(['class' => 'form-control']) }}
-                </div>
-            </div>
-        </div>
-    </fieldset>
-
-    <fieldset class="col-md-12 p-2">
-        <legend>Padre:</legend>
-        <div class="row">
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label for="dad_name">Nombres completos </label>
-                    {{ html()->text('dad_name', null)->attributes(['class' => 'form-control']) }}
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label for="dad_doc"># Doc de identidad </label>
-                    {{ html()->text('dad_doc', null)->attributes(['class' => 'form-control']) }}
-                    <input name="relationship_dad" value="20" type="hidden" />
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label for="dad_phone">WhatsApp </label>
-                    {{ html()->text('dad_phone', null)->attributes(['class' => 'form-control']) }}
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label for="dad_work">Ocupación </label>
-                    {{ html()->text('dad_work', null)->attributes(['class' => 'form-control']) }}
-                </div>
-            </div>
-        </div>
-    </fieldset>
-
 </section>

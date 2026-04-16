@@ -71,8 +71,8 @@ class SchoolsController extends Controller
             'storageKey' => "portal-inscription-form-{$school->slug}",
             'links' => [
                 'schoolIndex' => '',//route('portal.school.index.data'),
-                'guardianLogin' => '',//route('portal.login.form'),
-                'schoolLogin' => '',//route('login'),
+                'guardianLogin' => url('/portal/acudientes/login'),
+                'schoolLogin' => url('/login'),
             ],
             'endpoints' => [
                 'store' => route('portal.school.inscription.store', [$school->slug]),

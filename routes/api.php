@@ -2,6 +2,10 @@
 
 use App\Http\Controllers\Portal\InscriptionsController as PortalInscription;
 use App\Http\Controllers\Portal\SchoolsController as PortalSchool;
+use App\Http\Controllers\API\Portal\GuardianAuthController;
+use App\Http\Controllers\API\Portal\GuardianEvaluationController;
+use App\Http\Controllers\API\Portal\GuardianPlayerController;
+use App\Http\Controllers\API\Portal\GuardianProfileController;
 use App\Http\Controllers\API\Admin\InscriptionController;
 use App\Http\Controllers\API\Admin\RegisterController;
 use App\Http\Controllers\API\Admin\SchoolController;
@@ -180,6 +184,25 @@ Route::prefix('v2')->group(function(){
                 Route::get('search_doc', [MasterController::class, 'searchDoc'])->name('autocomplete.search_doc');
             });
         // });
+
+        Route::prefix('acudientes')->name('guardians.')->group(function () {
+            Route::post('login', [GuardianAuthController::class, 'login'])->name('login');
+            Route::post('forgot-password', [GuardianAuthController::class, 'forgotPassword'])->name('forgot-password');
+            Route::post('reset-password', [GuardianAuthController::class, 'resetPassword'])->name('reset-password');
+
+            Route::middleware(['auth:sanctum', 'ensure.guardian'])->group(function () {
+                Route::get('me', [GuardianAuthController::class, 'me'])->name('me');
+                Route::post('logout', [GuardianAuthController::class, 'logout'])->name('logout');
+                Route::put('profile', [GuardianProfileController::class, 'update'])->name('profile.update');
+
+                Route::get('players', [GuardianPlayerController::class, 'index'])->name('players.index');
+                Route::get('players/{player}', [GuardianPlayerController::class, 'show'])->name('players.show');
+                Route::put('players/{player}', [GuardianPlayerController::class, 'update'])->name('players.update');
+                Route::get('players/{player}/inscription-report', [GuardianPlayerController::class, 'inscriptionReport'])->name('players.inscription-report');
+                Route::get('evaluations/{evaluation}/pdf', [GuardianEvaluationController::class, 'pdf'])->name('evaluations.pdf');
+                Route::get('inscriptions/{inscription}/comparison', [GuardianPlayerController::class, 'comparison'])->name('inscriptions.comparison');
+            });
+        });
     });
 
 });

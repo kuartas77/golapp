@@ -11,9 +11,9 @@
                     <router-link :to="{ name: 'portal-school-index' }" class="btn btn-outline-primary">
                         Escuelas
                     </router-link>
-                    <a href="/portal/ingreso" class="btn btn-outline-primary">
-                        Ingreso Acudiente/Deportista
-                    </a>
+                    <router-link :to="{ name: 'guardian-login' }" class="btn btn-outline-primary">
+                        Ingreso Acudiente
+                    </router-link>
                     <a href="/login" class="btn btn-primary">
                         Ingreso Escuela
                     </a>

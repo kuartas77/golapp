@@ -68,8 +68,8 @@
                                             <li class="list-group-item">Ver las estadísticas generadas en las competencias.</li>
                                             <li class="list-group-item">Historial por año de inscripción.</li>
                                         </ul>
-                                        <p class="lead">Para el ingreso debes proporcionar el documento de identidad del deportista y su código único que fue enviado al correo del acudiente en el momento de la inscripción.</p>
-                                        <a class="btn waves-effect waves-light btn-rounded btn-info" href="{{route('portal.login.form')}}">
+                                        <p class="lead">Para el ingreso el acudiente principal debe activar su cuenta con el correo registrado y definir una contraseña personal.</p>
+                                        <a class="btn waves-effect waves-light btn-rounded btn-info" href="{{url('/portal/acudientes/login')}}">
                                             Ir a plataforma de acudientes
                                         </a>
                                     </div>

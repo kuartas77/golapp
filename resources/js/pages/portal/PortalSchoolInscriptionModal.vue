@@ -292,10 +292,6 @@
                             </Step>
 
                             <Step title="Información Familiar">
-                                 <h6 class="d-flex block-helper justify-content-center">
-                                    <strong>Si el acudiente es el padre o la madre no es necesario ingresar la información en los otros campos respectivamente.</strong>
-                                </h6>
-
                                 <div class="row">
                                     <fieldset class="col-md-12 p-2">
                                         <legend>Acudiente:</legend>
@@ -384,48 +380,6 @@
                                         </div>
                                     </fieldset>
                                 </div>
-
-                                <fieldset class="col-md-12 p-2">
-                                    <legend>Madre:</legend>
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            <InputField name="mom_name" label="Nombres completos" />
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <InputField name="mom_doc" label="# Doc de identidad" />
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <InputField name="mom_phone" label="WhatsApp" />
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <InputField name="mom_work" label="Ocupación" />
-                                        </div>
-                                    </div>
-                                </fieldset>
-
-                                <fieldset class="col-md-12 p-2">
-                                    <legend>Padre:</legend>
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            <InputField name="dad_name" label="Nombres completos" />
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <InputField name="dad_doc" label="# Doc de identidad" />
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <InputField name="dad_phone" label="WhatsApp" />
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <InputField name="dad_work" label="Ocupación" />
-                                        </div>
-                                    </div>
-                                </fieldset>
                             </Step>
 
                             <Step v-if="hasTermsStep" title="T y C">
@@ -839,42 +793,6 @@ const schema = yup.object({
     tutor_position_held: yup.string().trim().required('Ingresa el cargo del acudiente.').max(50),
     tutor_email: yup.string().trim().required('Ingresa el correo del acudiente.').email('Ingresa un correo válido.').max(50),
 
-    mom_name: yup.string().nullable().max(50),
-    mom_doc: yup.string().nullable().when('mom_name', {
-        is: (value) => String(value ?? '').trim().length > 0,
-        then: (schema) => schema.required('Ingresa el documento de la madre.').max(50),
-        otherwise: (schema) => schema.max(50),
-    }),
-    mom_phone: yup.string().nullable().when('mom_name', {
-        is: (value) => String(value ?? '').trim().length > 0,
-        then: (schema) => schema.required('Ingresa el WhatsApp de la madre.').max(50),
-        otherwise: (schema) => schema.max(50),
-    }),
-    mom_work: yup.string().nullable().when('mom_name', {
-        is: (value) => String(value ?? '').trim().length > 0,
-        then: (schema) => schema.required('Ingresa la ocupación de la madre.').max(50),
-        otherwise: (schema) => schema.max(50),
-    }),
-    relationship_mom: yup.string().required(),
-
-    dad_name: yup.string().nullable().max(50),
-    dad_doc: yup.string().nullable().when('dad_name', {
-        is: (value) => String(value ?? '').trim().length > 0,
-        then: (schema) => schema.required('Ingresa el documento del padre.').max(50),
-        otherwise: (schema) => schema.max(50),
-    }),
-    dad_phone: yup.string().nullable().when('dad_name', {
-        is: (value) => String(value ?? '').trim().length > 0,
-        then: (schema) => schema.required('Ingresa el WhatsApp del padre.').max(50),
-        otherwise: (schema) => schema.max(50),
-    }),
-    dad_work: yup.string().nullable().when('dad_name', {
-        is: (value) => String(value ?? '').trim().length > 0,
-        then: (schema) => schema.required('Ingresa la ocupación del padre.').max(50),
-        otherwise: (schema) => schema.max(50),
-    }),
-    relationship_dad: yup.string().required(),
-
     signatureTutor: props.school.create_contract
         ? yup.string().required('Ingresa la firma del acudiente para continuar.')
         : yup.string().nullable(),
@@ -936,18 +854,6 @@ const defaultValues = () => ({
     tutor_work: '',
     tutor_position_held: '',
     tutor_email: '',
-
-    mom_name: '',
-    mom_doc: '',
-    mom_phone: '',
-    mom_work: '',
-    relationship_mom: '15',
-
-    dad_name: '',
-    dad_doc: '',
-    dad_phone: '',
-    dad_work: '',
-    relationship_dad: '20',
 
     signatureTutor: '',
     signatureAlumno: '',
@@ -1032,14 +938,6 @@ const steps = computed(() => {
                 'tutor_work',
                 'tutor_position_held',
                 'tutor_email',
-                'mom_name',
-                'mom_doc',
-                'mom_phone',
-                'mom_work',
-                'dad_name',
-                'dad_doc',
-                'dad_phone',
-                'dad_work',
             ],
         },
     ];
@@ -1281,8 +1179,6 @@ const submitForm = handleSubmit(async (submittedValues) => {
             email: normalizeEmail(submittedValues.email),
             tutor_email: normalizeEmail(submittedValues.tutor_email),
             year: String(submittedValues.year ?? props.year),
-            relationship_mom: '15',
-            relationship_dad: '20',
         };
 
         const formData = buildFormData(payload, recaptchaToken);

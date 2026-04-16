@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Inscriptions\Actions\Create;
 
 use App\Models\Inscription;
+use App\Models\People;
 use App\Models\Player;
 use App\Models\School;
 
@@ -19,6 +20,10 @@ final class Passable
     private array $filePaths = [];
 
     private array $tutor = [];
+
+    private ?People $guardian = null;
+
+    private bool $shouldInviteGuardian = false;
 
     public function __construct(private readonly array $data)
     {
@@ -55,6 +60,16 @@ final class Passable
         return $this->tutor;
     }
 
+    public function getGuardian(): ?People
+    {
+        return $this->guardian;
+    }
+
+    public function shouldInviteGuardian(): bool
+    {
+        return $this->shouldInviteGuardian;
+    }
+
     public function setPlayer(Player $player): void
     {
         $this->player = $player;
@@ -78,5 +93,15 @@ final class Passable
     public function setTutor(array $tutor): void
     {
         $this->tutor = $tutor;
+    }
+
+    public function setGuardian(People $guardian): void
+    {
+        $this->guardian = $guardian;
+    }
+
+    public function setShouldInviteGuardian(bool $shouldInviteGuardian): void
+    {
+        $this->shouldInviteGuardian = $shouldInviteGuardian;
     }
 }

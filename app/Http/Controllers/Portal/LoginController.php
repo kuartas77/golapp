@@ -109,6 +109,6 @@ class LoginController extends Controller
 
         return $request->wantsJson()
             ? new JsonResponse([], 204)
-            : redirect(route('portal.login.form'));
+            : redirect(url('/portal/acudientes/login'));
     }
 }

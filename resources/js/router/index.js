@@ -1,12 +1,25 @@
 import { createRouter, createWebHistory, RouterView } from 'vue-router';
 import { useAuthUser } from '@/store/auth-user'
+import { useGuardianAuth } from '@/store/guardian-auth'
 import { h } from 'vue'
 
 const routes = [
     {
+        path: '/portal/acudientes',
+        component: () => import('@/layouts/guardian-layout.vue'),
+        meta: { guardianArea: true },
+        children: [
+            { path: '', name: 'guardian-dashboard', component: () => import('@/pages/portal/guardians/GuardianDashboard.vue'), meta: { requiresGuardian: true, guardianArea: true } },
+            { path: 'login', name: 'guardian-login', component: () => import('@/pages/portal/guardians/GuardianLogin.vue'), meta: { guardianGuest: true, guardianArea: true } },
+            { path: 'restablecer', name: 'guardian-reset-password', component: () => import('@/pages/portal/guardians/GuardianResetPassword.vue'), meta: { guardianGuest: true, guardianArea: true } },
+            { path: 'perfil', name: 'guardian-profile', component: () => import('@/pages/portal/guardians/GuardianProfile.vue'), meta: { requiresGuardian: true, guardianArea: true } },
+            { path: 'jugadores/:id', name: 'guardian-player-detail', component: () => import('@/pages/portal/guardians/GuardianPlayerDetail.vue'), meta: { requiresGuardian: true, guardianArea: true } },
+        ]
+    },
+    {
         path: '/portal',
         component: () => import('@/layouts/portal-layout.vue'),
-        meta: { guest: true },
+        meta: { public: true },
         children: [
             { path: '', redirect: { name: 'portal-school-index' } },
             { path: 'escuelas', name: 'portal-school-index', component: () => import('@/pages/portal/PortalSchoolsIndex.vue'), meta: { public: true } },
@@ -116,7 +129,27 @@ const router = new createRouter({
 
 router.beforeEach(async (to, from, next) => {
     const userStore = useAuthUser();
-    const isGuestRoute = to.matched.some(r => r.meta.guest);
+    const guardianStore = useGuardianAuth();
+    const isGuardianRoute = to.matched.some(r => r.meta.guardianArea);
+
+    if (isGuardianRoute) {
+        const requiresGuardian = to.matched.some(r => r.meta.requiresGuardian);
+        const isGuardianGuestRoute = to.matched.some(r => r.meta.guardianGuest);
+        const isGuardianAuth = await guardianStore.init();
+
+        if (requiresGuardian && !isGuardianAuth) {
+            guardianStore.clearState();
+            return next({ name: 'guardian-login', query: { redirect: to.fullPath } });
+        }
+
+        if (isGuardianGuestRoute && isGuardianAuth) {
+            return next({ name: 'guardian-dashboard' });
+        }
+
+        return next();
+    }
+
+    const isGuestRoute = to.matched.some(r => r.meta.guest || r.meta.public);
 
     if (isGuestRoute) return next();
 

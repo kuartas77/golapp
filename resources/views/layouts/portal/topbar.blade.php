@@ -31,7 +31,7 @@
 					<a class="nav-link waves-effect waves-ligth text-themecolor" href="{{route('login')}}">Ingreso Escuela</a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link waves-effect waves-ligth text-themecolor" href="{{route('portal.login.form')}}">Ingreso Acudiente/Deportista</a>
+					<a class="nav-link waves-effect waves-ligth text-themecolor" href="{{url('/portal/acudientes/login')}}">Ingreso Acudiente</a>
 				</li>
 				@endguest
 

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Portal;
 
 use App\Models\School;
+use App\Rules\UniqueGuardianEmail;
 use Jenssegers\Date\Date;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -25,7 +26,7 @@ class InscriptionRegisterRequest extends FormRequest
             'identification_document' => ['required', 'string', 'max:50'],
             'document_type' => ['required', 'string', 'max:50'],
             'gender' => ['required', 'string', 'max:50'],
-            'email' => ['nullable', 'string', 'email:rfc,dns'],
+            'email' => ['nullable', 'string', 'email:rfc'],
             'mobile' => ['nullable', 'string', 'max:50'],
             'medical_history' => ['nullable', 'string', 'max:200'],
             'category' => ['required'],
@@ -46,17 +47,13 @@ class InscriptionRegisterRequest extends FormRequest
             'tutor_phone' => ['required', 'string', 'max:50'],
             'tutor_work' => ['required', 'string', 'max:50'],
             'tutor_position_held' => ['required', 'string', 'max:50'],
-            'tutor_email' => ['required', 'string', 'max:50'],
-            'dad_name' => ['nullable', 'string', 'max:50'],
-            'dad_doc' => ['nullable', 'string', 'max:50'],
-            'dad_phone' => ['nullable', 'string', 'max:50'],
-            'dad_work' => ['nullable', 'string', 'max:50'],
-            'relationship_dad' => ['nullable', 'numeric'],
-            'mom_name' => ['nullable', 'string', 'max:50'],
-            'mom_doc' => ['nullable', 'string', 'max:50'],
-            'mom_phone' => ['nullable', 'string', 'max:50'],
-            'mom_work' => ['nullable', 'string', 'max:50'],
-            'relationship_mom' => ['nullable', 'numeric'],
+            'tutor_email' => [
+                'required',
+                'string',
+                'email:rfc',
+                'max:50',
+                new UniqueGuardianEmail($this->input('tutor_num_doc')),
+            ],
             // Step 4
             'photo' => ['nullable', 'file', 'mimetypes:image/png,image/jpeg'],
             'player_document' => ['nullable', 'file', 'mimetypes:image/png,image/jpeg,application/pdf'],
@@ -84,6 +81,7 @@ class InscriptionRegisterRequest extends FormRequest
             'category' => Date::parse($this->date_birth)->year,
             'school_data' => School::firstWhere('slug', request()->segments()[3]),
             'tutor_doc' => $this->tutor_num_doc,
+            'tutor_email' => filled($this->tutor_email) ? mb_strtolower(trim((string) $this->tutor_email)) : null,
         ]);
 
     }

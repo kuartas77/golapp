@@ -68,16 +68,6 @@
             tutor_position_held: {required: true, maxlength:50},
             tutor_email: {required: true, emails:true},
 
-            dad_name: {required: false, maxlength:50},
-            dad_doc: {required: (element) => $("#dad_name").val().length > 0, maxlength:50},
-            dad_phone: {required: (element) => $("#dad_name").val().length > 0, maxlength:50},
-            dad_work: {required: (element) => $("#dad_name").val().length > 0, maxlength:50},
-
-            mom_name: {required: false, maxlength:50},
-            mom_doc: {required: (element) => $("#mom_name").val().length > 0, maxlength:50},
-            mom_phone: {required: (element) => $("#mom_name").val().length > 0, maxlength:50},
-            mom_work: {required: (element) => $("#mom_name").val().length > 0, maxlength:50},
-
             photo: {required: false, extension: "png|jpeg|jpg", filesize: fileSize},
             player_document: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
             medical_certificate: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},

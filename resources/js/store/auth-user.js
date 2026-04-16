@@ -29,7 +29,9 @@ export const useAuthUser = defineStore('auth-user', {
         },
         async getUser() {
             try {
-                const { data } = await api.get("/api/v2/user");
+                const { data } = await api.get("/api/v2/user", {
+                    skipAuthRedirect: true,
+                });
                 this.user = {
                     name: data.data.name,
                     email: data.data.email,
