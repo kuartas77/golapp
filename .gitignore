@@ -21,3 +21,4 @@ package-lock.json
 /.phpunit.cache
 /public/contracts
 public/build/*
+.codex

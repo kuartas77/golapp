@@ -4,6 +4,16 @@ import { h } from 'vue'
 
 const routes = [
     {
+        path: '/portal',
+        component: () => import('@/layouts/portal-layout.vue'),
+        meta: { guest: true },
+        children: [
+            { path: '', redirect: { name: 'portal-school-index' } },
+            { path: 'escuelas', name: 'portal-school-index', component: () => import('@/pages/portal/PortalSchoolsIndex.vue'), meta: { public: true } },
+            { path: 'escuelas/:slug', name: 'portal-school-show', component: () => import('@/pages/portal/PortalSchoolShow.vue'), meta: { public: true } },
+        ]
+    },
+    {
         path: '/login',
         component: () => import('@/layouts/auth-layout.vue'),
         meta: { guest: true },

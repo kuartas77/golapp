@@ -11,7 +11,9 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 
 class InscriptionToSchoolNotification extends Notification implements ShouldQueue
 {
@@ -56,9 +58,11 @@ class InscriptionToSchoolNotification extends Notification implements ShouldQueu
             'mime' => 'application/zip',
         ]);
 
-        DeleteTempZipAndPlayerFolder::dispatch($zipRelative, $playerFolder)
-        ->onQueue('golapp_default') // opcional pero recomendado
-        ->delay(now()->addMinutes(2));
+        if (config('queue.default') !== 'sync') {
+            DeleteTempZipAndPlayerFolder::dispatch($zipRelative, $playerFolder)
+                ->onQueue('golapp_default')
+                ->delay(now()->addMinutes(10));
+        }
 
         return $mailMessage;
     }
@@ -83,22 +87,27 @@ class InscriptionToSchoolNotification extends Notification implements ShouldQueu
 
         $zipName = $folderDocuments. '-'.$this->inscription->unique_code . '.zip';
         $zipRelative = 'tmp/zips/' . $zipName;
-
-        Storage::disk('local')->makeDirectory('tmp/zips');
         $zipAbsolute = Storage::disk('local')->path($zipRelative);
+        $zipDirectory = dirname($zipAbsolute);
+
+        File::ensureDirectoryExists($zipDirectory, 0775, true);
 
         $zip = new \ZipArchive();
 
-        if ($zip->open($zipAbsolute, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
-            $files = Storage::disk('local')->files($playerFolder);
+        $status = $zip->open($zipAbsolute, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
 
-            foreach ($files as $file) {
-                $absoluteFile = Storage::disk('local')->path($file);
-                $zip->addFile($absoluteFile, basename($file));
-            }
-
-            $zip->close();
+        if ($status !== true) {
+            throw new RuntimeException("No fue posible crear el ZIP temporal de la inscripción en {$zipAbsolute}.");
         }
+
+        $files = Storage::disk('local')->files($playerFolder);
+
+        foreach ($files as $file) {
+            $absoluteFile = Storage::disk('local')->path($file);
+            $zip->addFile($absoluteFile, basename($file));
+        }
+
+        $zip->close();
 
         return [$zipAbsolute, $zipRelative, $playerFolder];
     }

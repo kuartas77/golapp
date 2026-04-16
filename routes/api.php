@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Portal\InscriptionsController as PortalInscription;
+use App\Http\Controllers\Portal\SchoolsController as PortalSchool;
 use App\Http\Controllers\API\Admin\InscriptionController;
 use App\Http\Controllers\API\Admin\RegisterController;
 use App\Http\Controllers\API\Admin\SchoolController;
@@ -162,6 +164,22 @@ Route::prefix('v2')->group(function(){
             Route::delete('{playerEvaluation}', [PlayerEvaluationController::class, 'destroy']);
         });
 
+    });
+
+    Route::prefix('portal')->name('portal.')->group(function(){
+
+        // Route::middleware(['guest'])->group(function () {
+            Route::get('escuelas/data', [PortalSchool::class, 'indexData'])->name('school.index.data');
+            Route::get('escuelas/{school}/data', [PortalSchool::class, 'showData'])->name('school.show.data');
+
+
+            Route::post('{school}/inscripcion', [PortalInscription::class, 'store'])->name('school.inscription.store');
+
+            Route::prefix('autocomplete')->group(function () {
+                Route::get('autocomplete', [MasterController::class, 'autoComplete'])->name('autocomplete.fields');
+                Route::get('search_doc', [MasterController::class, 'searchDoc'])->name('autocomplete.search_doc');
+            });
+        // });
     });
 
 });

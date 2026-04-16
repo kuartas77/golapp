@@ -82,7 +82,8 @@ class InscriptionRegisterRequest extends FormRequest
     {
         $this->merge([
             'category' => Date::parse($this->date_birth)->year,
-            'school_data' => School::firstWhere('slug', request()->segments()[1])
+            'school_data' => School::firstWhere('slug', request()->segments()[3]),
+            'tutor_doc' => $this->tutor_num_doc,
         ]);
 
     }

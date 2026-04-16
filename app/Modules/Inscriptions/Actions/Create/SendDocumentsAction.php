@@ -47,6 +47,10 @@ final class SendDocumentsAction implements IContractPassable
 
         $this->sendNotification($passable);
 
+        if (config('queue.default') === 'sync') {
+            $this->cleanupTemporaryFiles();
+        }
+
         return $next($passable);
     }
 
@@ -140,5 +144,20 @@ final class SendDocumentsAction implements IContractPassable
                 (new InscriptionNotification($this->inscription, $contracts))
             );
         }
+    }
+
+    private function cleanupTemporaryFiles(): void
+    {
+        $base = 'tmp'. DIRECTORY_SEPARATOR .$this->school->slug;
+        $short = data_get($this->school, 'short_name', 'tmp');
+        $folderPlayer = "{$short}-{$this->player->unique_code}";
+        $playerFolder = trim($base, "/\\") . DIRECTORY_SEPARATOR . $folderPlayer;
+
+        if ($this->school->send_documents) {
+            $zipRelative = 'tmp/zips/' . $this->school->slug . '-' . $this->inscription->unique_code . '.zip';
+            Storage::disk('local')->delete($zipRelative);
+        }
+
+        Storage::disk('local')->deleteDirectory($playerFolder);
     }
 }

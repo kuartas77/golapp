@@ -12,6 +12,13 @@
           content="Ayuda a tu escuela de futbol a mejorar deportivamente con nuestra herramienta, la cual te facilitará muchos procesos, asistencias, entrenamientos, pagos entre otros">
     <link rel="icon" type="image/png" href="/img/ballon.webp"/>
 
+    <script>
+        window.__APP_CONFIG__ = @json([
+            'appName' => config('app.name'),
+            'recaptchaSiteKey' => config('recaptchav3.sitekey'),
+        ]);
+    </script>
+
     @vite(['resources/js/main.js'])
 </head>
 

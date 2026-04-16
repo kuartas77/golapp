@@ -16,6 +16,7 @@ import { PerfectScrollbarPlugin } from 'vue3-perfect-scrollbar';
 //Sweetalert
 import VueSweetalert2 from 'vue-sweetalert2';
 import TypeAhead from "vue3-bootstrap-typeahead";
+import { VueReCaptcha } from 'vue-recaptcha-v3';
 // set default settings
 import appSetting from "@/app-setting";
 import '@/utils/yup-locale'
@@ -64,6 +65,7 @@ const app = createApp(App);
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
 const head = createHead();
+const appConfig = window.__APP_CONFIG__ ?? {};
 
 app.use(head)
 app.use(i18n)
@@ -73,6 +75,15 @@ app.use(PerfectScrollbarPlugin)
 app.use(VueSweetalert2, options)
 app.use(errorHandler)
 app.use(VueWizardSteps)
+
+if (appConfig.recaptchaSiteKey) {
+    app.use(VueReCaptcha, {
+        siteKey: import.meta.env.VITE_RECAPTCHAV3_SITEKEY,
+        loaderOptions: {
+            autoHideBadge: true
+        }
+    })
+}
 
 app.directive('tooltip', tooltipDirective)
 
@@ -117,6 +128,7 @@ const moneyFormat = (amount) => {
 window.$appSetting = appSetting
 window.$appSetting.init()
 window.Swal = app.config.globalProperties.$swal
+window.__APP_CONFIG__ = appConfig
 app.config.globalProperties.modalHidden = modalHidden
 app.config.globalProperties.showMessage = showMessage
 app.config.globalProperties.moneyFormat = moneyFormat

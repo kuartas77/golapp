@@ -18,7 +18,7 @@
 @component('mail::panel')
 * Podras ingresar a nuestra plataforma y verificar, actualizar la información del Deportista.
 * Puedes Ingresar con el documento de identidad del deportista y su código único.
-    @component('mail::button', ['url' => route("portal.login.form")])
+    @component('mail::button', ['url' => route("portal.login.form")]){{-- TODO --}}
         Plataforma
     @endcomponent
 @endcomponent
