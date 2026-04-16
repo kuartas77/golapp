@@ -92,6 +92,24 @@ const routes = [
                     { path: 'g-entrenamiento', name: 'training-groups', component: () => import('@/pages/admin/groups/training/trainingList.vue') },
                     { path: 'g-entrenamiento/admin', name: 'training-groups-admin', component: () => import('@/pages/admin/groups/training/AdminTrainingGroup.vue') },
                     { path: 'g-competencia', name: 'competition-groups', component: () => import('@/pages/admin/groups/competition/competitionGList.vue') },
+                    {
+                        path: 'plantillas-evaluacion',
+                        name: 'evaluation-templates.index',
+                        component: () => import('@/pages/admin/evaluation-templates/Index.vue'),
+                        meta: { requiresRole: ['super-admin'] }
+                    },
+                    {
+                        path: 'plantillas-evaluacion/crear',
+                        name: 'evaluation-templates.create',
+                        component: () => import('@/pages/admin/evaluation-templates/Editor.vue'),
+                        meta: { requiresRole: ['super-admin'] }
+                    },
+                    {
+                        path: 'plantillas-evaluacion/:id/editar',
+                        name: 'evaluation-templates.edit',
+                        component: () => import('@/pages/admin/evaluation-templates/Editor.vue'),
+                        meta: { requiresRole: ['super-admin'] }
+                    },
 
                     { path: 'schools', name: 'schools', component: () => import('@/pages/admin/school/list-schools.vue'), meta: { requiresRole: ['super-admin'] } },
                     { path: 'schools-info', name: 'schools-info', component: () => import('@/pages/admin/school/list-info.vue'), meta: { requiresRole: ['super-admin'] } },

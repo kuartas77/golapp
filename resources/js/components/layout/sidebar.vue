@@ -85,6 +85,11 @@
                                     <router-link :to="{ name: 'schools-info' }" @click="toggleMobileMenu">Información
                                         Escuelas</router-link>
                                 </li>
+                                <li>
+                                    <router-link :to="{ name: 'evaluation-templates.index' }" @click="toggleMobileMenu">
+                                        Plantillas evaluación
+                                    </router-link>
+                                </li>
                             </Can>
                             <li>
                                 <router-link :to="{ name: 'school' }" @click="toggleMobileMenu">Escuela</router-link>

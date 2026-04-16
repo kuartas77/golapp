@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 
 class EvaluationTemplate extends Model
 {
@@ -50,5 +51,19 @@ class EvaluationTemplate extends Model
     public function playerEvaluations(): HasMany
     {
         return $this->hasMany(PlayerEvaluation::class);
+    }
+
+    public function scopeForSchool(Builder $query, int $schoolId): Builder
+    {
+        return $query->where('school_id', $schoolId);
+    }
+
+    public function isInUse(): bool
+    {
+        if (isset($this->player_evaluations_count)) {
+            return (int) $this->player_evaluations_count > 0;
+        }
+
+        return $this->playerEvaluations()->exists();
     }
 }

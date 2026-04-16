@@ -21,6 +21,7 @@ use App\Http\Controllers\BackOffice\SchoolController as BackOfficeShoolControlle
 use App\Http\Controllers\Competition\GameController;
 use App\Http\Controllers\DataTableController;
 use App\Http\Controllers\Evaluations\PlayerEvaluationComparisonController;
+use App\Http\Controllers\Evaluations\EvaluationTemplateController;
 use App\Http\Controllers\Evaluations\PlayerEvaluationController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\Groups\CompetitionGroupController;
@@ -95,6 +96,17 @@ Route::prefix('v2')->group(function(){
             Route::get('info_campus', [BackOfficeShoolController::class, 'infoCampus']);
             Route::post('change_school', [BackOfficeShoolController::class, 'choose']);
 
+            Route::middleware(['role:super-admin'])->prefix('evaluation-templates')->group(function () {
+                Route::get('options', [EvaluationTemplateController::class, 'options']);
+                Route::get('', [EvaluationTemplateController::class, 'index']);
+                Route::post('', [EvaluationTemplateController::class, 'store']);
+                Route::get('{evaluationTemplate}', [EvaluationTemplateController::class, 'show']);
+                Route::put('{evaluationTemplate}', [EvaluationTemplateController::class, 'update']);
+                Route::patch('{evaluationTemplate}', [EvaluationTemplateController::class, 'update']);
+                Route::patch('{evaluationTemplate}/status', [EvaluationTemplateController::class, 'updateStatus']);
+                Route::post('{evaluationTemplate}/duplicate', [EvaluationTemplateController::class, 'duplicate']);
+                Route::delete('{evaluationTemplate}', [EvaluationTemplateController::class, 'destroy']);
+            });
         });
 
         Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);

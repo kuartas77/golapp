@@ -191,6 +191,12 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('/{playerEvaluation}', [AppController::class, 'index'])->name('show');
     });
 
+    Route::prefix('administracion')->middleware(['role:super-admin'])->group(function () {
+        Route::get('plantillas-evaluacion', [AppController::class, 'index']);
+        Route::get('plantillas-evaluacion/crear', [AppController::class, 'index']);
+        Route::get('plantillas-evaluacion/{any}', [AppController::class, 'index'])->where('any', '.*');
+    });
+
     // Route::prefix('')->group(function () {
     //     Route::get(
     //         'evaluations/inscriptions/{inscription}/compare',
