@@ -197,6 +197,8 @@ Route::prefix('v2')->group(function(){
             });
         // });
 
+         Route::get('dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('player.images');
+
         Route::prefix('acudientes')->name('guardians.')->group(function () {
             Route::post('login', [GuardianAuthController::class, 'login'])->name('login');
             Route::post('forgot-password', [GuardianAuthController::class, 'forgotPassword'])->name('forgot-password');

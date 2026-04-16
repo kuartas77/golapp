@@ -23,6 +23,16 @@ api.interceptors.request.use(
         if (csrfToken) {
             config.headers['X-CSRF-TOKEN'] = csrfToken.content
         }
+
+        if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+            if (typeof config.headers?.setContentType === 'function') {
+                config.headers.setContentType(undefined)
+            } else if (config.headers) {
+                delete config.headers['Content-Type']
+                delete config.headers['content-type']
+            }
+        }
+
         return config;
     },
     (error) => {

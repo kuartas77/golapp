@@ -852,9 +852,13 @@ const submitPlayer = async () => {
                 payload.append(key, value ?? '');
             });
 
-            payload.append('photo', photoFile.value);
+            payload.append('photo', photoFile.value, photoFile.value.name);
 
-            response = await api.post(`/api/v2/portal/acudientes/players/${route.params.id}`, payload);
+            response = await api.post(`/api/v2/portal/acudientes/players/${route.params.id}`, payload, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
         } else {
             response = await api.put(`/api/v2/portal/acudientes/players/${route.params.id}`, { ...form });
         }
