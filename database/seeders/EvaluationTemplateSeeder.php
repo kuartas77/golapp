@@ -35,6 +35,7 @@ class EvaluationTemplateSeeder extends Seeder
                 'name' => 'Pase',
                 'weight' => 1.20,
                 'sort_order' => 1,
+                'score_type' => 'numeric',
             ],
             [
                 'code' => 'technical_control',
@@ -42,6 +43,7 @@ class EvaluationTemplateSeeder extends Seeder
                 'name' => 'Control orientado',
                 'weight' => 1.20,
                 'sort_order' => 2,
+                'score_type' => 'numeric',
             ],
             [
                 'code' => 'technical_dribbling',
@@ -49,6 +51,7 @@ class EvaluationTemplateSeeder extends Seeder
                 'name' => 'Conducción',
                 'weight' => 1.00,
                 'sort_order' => 3,
+                'score_type' => 'numeric',
             ],
             [
                 'code' => 'technical_finishing',
@@ -56,6 +59,7 @@ class EvaluationTemplateSeeder extends Seeder
                 'name' => 'Remate',
                 'weight' => 1.10,
                 'sort_order' => 4,
+                'score_type' => 'numeric',
             ],
 
             // Táctica
@@ -65,6 +69,7 @@ class EvaluationTemplateSeeder extends Seeder
                 'name' => 'Ubicación en campo',
                 'weight' => 1.20,
                 'sort_order' => 5,
+                'score_type' => 'numeric',
             ],
             [
                 'code' => 'tactical_game_reading',
@@ -72,6 +77,7 @@ class EvaluationTemplateSeeder extends Seeder
                 'name' => 'Lectura de juego',
                 'weight' => 1.30,
                 'sort_order' => 6,
+                'score_type' => 'numeric',
             ],
             [
                 'code' => 'tactical_decision_making',
@@ -79,6 +85,7 @@ class EvaluationTemplateSeeder extends Seeder
                 'name' => 'Toma de decisiones',
                 'weight' => 1.30,
                 'sort_order' => 7,
+                'score_type' => 'numeric',
             ],
 
             // Física
@@ -88,6 +95,7 @@ class EvaluationTemplateSeeder extends Seeder
                 'name' => 'Resistencia',
                 'weight' => 1.00,
                 'sort_order' => 8,
+                'score_type' => 'numeric',
             ],
             [
                 'code' => 'physical_speed',
@@ -95,6 +103,7 @@ class EvaluationTemplateSeeder extends Seeder
                 'name' => 'Velocidad',
                 'weight' => 1.10,
                 'sort_order' => 9,
+                'score_type' => 'numeric',
             ],
             [
                 'code' => 'physical_coordination',
@@ -102,6 +111,7 @@ class EvaluationTemplateSeeder extends Seeder
                 'name' => 'Coordinación',
                 'weight' => 1.00,
                 'sort_order' => 10,
+                'score_type' => 'numeric',
             ],
 
             // Actitudinal
@@ -111,6 +121,7 @@ class EvaluationTemplateSeeder extends Seeder
                 'name' => 'Disciplina',
                 'weight' => 1.20,
                 'sort_order' => 11,
+                'score_type' => 'scale',
             ],
             [
                 'code' => 'attitudinal_commitment',
@@ -118,6 +129,7 @@ class EvaluationTemplateSeeder extends Seeder
                 'name' => 'Compromiso',
                 'weight' => 1.20,
                 'sort_order' => 12,
+                'score_type' => 'scale',
             ],
             [
                 'code' => 'attitudinal_teamwork',
@@ -125,6 +137,7 @@ class EvaluationTemplateSeeder extends Seeder
                 'name' => 'Trabajo en equipo',
                 'weight' => 1.10,
                 'sort_order' => 13,
+                'score_type' => 'scale',
             ],
             [
                 'code' => 'attitudinal_punctuality',
@@ -132,6 +145,7 @@ class EvaluationTemplateSeeder extends Seeder
                 'name' => 'Puntualidad',
                 'weight' => 0.90,
                 'sort_order' => 14,
+                'score_type' => 'scale',
             ],
         ];
 
@@ -145,7 +159,7 @@ class EvaluationTemplateSeeder extends Seeder
                     'dimension' => $criterion['dimension'],
                     'name' => $criterion['name'],
                     'description' => null,
-                    'score_type' => 'numeric',
+                    'score_type' => $criterion['score_type'],
                     'min_score' => 1,
                     'max_score' => 5,
                     'weight' => $criterion['weight'],
