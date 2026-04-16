@@ -21,8 +21,8 @@ const routes = [
         component: () => import('@/layouts/portal-layout.vue'),
         meta: { public: true },
         children: [
-            { path: '', redirect: { name: 'portal-school-index' } },
-            { path: 'escuelas', name: 'portal-school-index', component: () => import('@/pages/portal/PortalSchoolsIndex.vue'), meta: { public: true } },
+            { path: '', redirect: { name: 'guardian-dashboard' } },
+            // { path: 'escuelas', name: 'portal-school-index', component: () => import('@/pages/portal/PortalSchoolsIndex.vue'), meta: { public: true } },
             { path: 'escuelas/:slug', name: 'portal-school-show', component: () => import('@/pages/portal/PortalSchoolShow.vue'), meta: { public: true } },
         ]
     },

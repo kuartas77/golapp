@@ -3,7 +3,7 @@
         <div class="col-12 col-lg-7 col-xl-6">
             <div class="card border-0 shadow-sm guardian-auth__card">
                 <div class="card-body p-4 p-md-5">
-                    <p class="guardian-auth__eyebrow mb-2">Portal de acudientes</p>
+                    <p class="guardian-auth__eyebrow mb-2 text-muted">Portal de acudientes</p>
                     <h1 class="h2 mb-3">
                         {{ mode === 'login' ? 'Ingresa para ver tus jugadores' : 'Recupera tu acceso' }}
                     </h1>
@@ -13,11 +13,11 @@
                             : 'Te enviaremos un enlace para definir o restablecer tu contraseña.' }}
                     </p>
 
-                    <div class="guardian-auth__switch mb-4">
+                    <!-- <div class="guardian-auth__switch mb-4">
                         <button
                             type="button"
                             class="btn"
-                            :class="mode === 'login' ? 'btn-primary' : 'btn-outline-primary'"
+                            :class="mode === 'login' ? 'btn-primary' : 'btn-primary'"
                             @click="setMode('login')"
                         >
                             Ingresar
@@ -25,12 +25,12 @@
                         <button
                             type="button"
                             class="btn"
-                            :class="mode === 'recover' ? 'btn-primary' : 'btn-outline-primary'"
+                            :class="mode === 'recover' ? 'btn-primary' : 'btn-primary'"
                             @click="setMode('recover')"
                         >
                             Recuperar acceso
                         </button>
-                    </div>
+                    </div> -->
 
                     <div v-if="notice" class="alert alert-success" role="alert">
                         {{ notice }}
@@ -98,17 +98,13 @@
                             <button type="submit" class="btn btn-primary" :disabled="loading">
                                 {{ loading ? 'Enviando...' : 'Enviar instrucciones' }}
                             </button>
-                            <button type="button" class="btn btn-outline-primary" @click="setMode('login')">
+                            <button type="button" class="btn btn-primary" @click="setMode('login')">
                                 Volver al ingreso
                             </button>
                         </div>
                     </form>
 
-                    <div class="guardian-auth__footer mt-4 pt-3">
-                        <router-link :to="{ name: 'portal-school-index' }" class="btn btn-link px-0">
-                            Volver al portal público
-                        </router-link>
-                    </div>
+
                 </div>
             </div>
         </div>

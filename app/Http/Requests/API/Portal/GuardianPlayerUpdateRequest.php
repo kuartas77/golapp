@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\API\Portal;
 
+use App\Models\Player;
 use Jenssegers\Date\Date;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -17,6 +18,7 @@ class GuardianPlayerUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'photo' => ['nullable', 'file', 'mimetypes:image/png,image/jpeg'],
             'names' => ['required', 'string', 'max:50'],
             'last_names' => ['required', 'string', 'max:50'],
             'date_birth' => ['required', 'date_format:Y-m-d'],
@@ -43,10 +45,12 @@ class GuardianPlayerUpdateRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $year = Date::parse($this->date_birth)->year;
+        $player = Player::query()->find($this->route('player'));
 
         $this->merge([
             'email' => filled($this->email) ? mb_strtolower(trim((string) $this->email)) : null,
             'category' => categoriesName($year),
+            'school_id' => $player?->school_id,
         ]);
     }
 }

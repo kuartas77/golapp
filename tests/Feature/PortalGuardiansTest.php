@@ -12,7 +12,9 @@ use App\Models\TrainingGroup;
 use App\Modules\Inscriptions\Actions\Create\InviteGuardianAction;
 use App\Modules\Inscriptions\Actions\Create\Passable;
 use App\Notifications\GuardianPasswordResetNotification;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 final class PortalGuardiansTest extends TestCase
@@ -42,6 +44,25 @@ final class PortalGuardiansTest extends TestCase
         $meResponse->assertOk();
         $meResponse->assertJsonPath('email', 'guardian@example.com');
         $meResponse->assertJsonPath('identification_card', $guardian->identification_card);
+    }
+
+    public function testGuardianLogoutInvalidatesSession(): void
+    {
+        [$guardian] = $this->createGuardianScenario([
+            'email' => 'logout.guardian@example.com',
+            'password' => 'logout-secret',
+        ]);
+
+        $this->postJson('/api/v2/portal/acudientes/login', [
+            'email' => $guardian->email,
+            'password' => 'logout-secret',
+        ])->assertOk();
+
+        $this->postJson('/api/v2/portal/acudientes/logout')
+            ->assertOk();
+
+        $this->getJson('/api/v2/portal/acudientes/me')
+            ->assertUnauthorized();
     }
 
     public function testGuardianLoginIsBlockedWithoutCurrentYearEligiblePlayer(): void
@@ -97,6 +118,53 @@ final class PortalGuardiansTest extends TestCase
 
         $showResponse = $this->getJson("/api/v2/portal/acudientes/players/{$otherPlayer->id}");
         $showResponse->assertNotFound();
+    }
+
+    public function testGuardianCanUpdatePlayerPhoto(): void
+    {
+        Storage::fake('public');
+
+        [$guardian, $player] = $this->createGuardianScenario([
+            'email' => 'photo.guardian@example.com',
+            'password' => 'photo-secret',
+        ]);
+
+        $this->actingAs($guardian, 'guardians');
+
+        $response = $this->withHeader('Accept', 'application/json')->post(
+            "/api/v2/portal/acudientes/players/{$player->id}",
+            [
+                '_method' => 'PUT',
+                'photo' => UploadedFile::fake()->image('guardian-photo.jpg'),
+                'names' => 'Jugador',
+                'last_names' => 'Actualizado',
+                'date_birth' => '2013-05-11',
+                'place_birth' => 'Medellin',
+                'document_type' => 'Tarjeta de Indentidad',
+                'gender' => 'M',
+                'email' => 'jugador.actualizado@example.com',
+                'mobile' => '3001234567',
+                'phones' => '6041234567',
+                'medical_history' => 'Sin novedades',
+                'school' => 'Colegio Demo',
+                'degree' => '7',
+                'jornada' => 'Mañana',
+                'address' => 'Calle 10 # 20 - 30',
+                'municipality' => 'Medellin',
+                'neighborhood' => 'Laureles',
+                'rh' => 'O+',
+                'eps' => 'Sura',
+                'student_insurance' => 'Seguro escolar',
+            ]
+        );
+
+        $response->assertOk();
+
+        $savedPhotoPath = $player->fresh()->getRawOriginal('photo');
+
+        $this->assertNotEmpty($savedPhotoPath);
+        Storage::disk('public')->assertExists($savedPhotoPath);
+        $response->assertJsonPath('data.id', $player->id);
     }
 
     public function testBackfillInvitesOnlyUniqueEligibleGuardiansWithoutPassword(): void

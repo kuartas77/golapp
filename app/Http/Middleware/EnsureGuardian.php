@@ -28,7 +28,7 @@ class EnsureGuardian
             Auth::guard('guardians')->logout();
 
             if ($request->hasSession()) {
-                $request->session()->migrate(true);
+                $request->session()->invalidate();
                 $request->session()->regenerateToken();
             }
 

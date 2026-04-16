@@ -2,15 +2,15 @@
     <div class="portal-public">
         <header class="portal-public__topbar">
             <div class="container portal-public__topbar-inner">
-                <router-link :to="{ name: 'portal-school-index' }" class="portal-public__brand" aria-label="Logo GOLAPP">
+                <a class="portal-public__brand" aria-label="Logo GOLAPP">
                     <img src="/img/logo-light.svg" alt="Logo GOLAPP" class="portal-public__brand-logo logo-light-mode" />
                     <img src="/img/logo-dark.svg" alt="Logo GOLAPP" class="portal-public__brand-logo logo-dark-mode" />
-                </router-link>
+                </a>
 
                 <nav class="portal-public__nav">
-                    <router-link :to="{ name: 'portal-school-index' }" class="btn btn-outline-primary">
+                    <a class="btn btn-outline-primary">
                         Escuelas
-                    </router-link>
+                    </a>
                     <router-link :to="{ name: 'guardian-login' }" class="btn btn-outline-primary">
                         Ingreso Acudiente
                     </router-link>

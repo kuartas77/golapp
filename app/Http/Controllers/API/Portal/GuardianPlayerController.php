@@ -10,6 +10,7 @@ use App\Http\Resources\API\Portal\GuardianPlayerDetailResource;
 use App\Http\Resources\API\Portal\GuardianPlayerListResource;
 use App\Models\People;
 use App\Models\Player;
+use App\Repositories\PlayerRepository;
 use App\Service\Evaluations\PlayerEvaluationComparisonService;
 use App\Service\Player\PlayerExportService;
 use App\Service\Portal\GuardianAccessService;
@@ -59,13 +60,19 @@ class GuardianPlayerController extends Controller
         ]);
     }
 
-    public function update(GuardianPlayerUpdateRequest $request, int $player): JsonResponse
+    public function update(GuardianPlayerUpdateRequest $request, int $player, PlayerRepository $playerRepository): JsonResponse
     {
         /** @var People $guardian */
         $guardian = $request->user();
 
         $playerModel = $this->guardianAccessService->findEligiblePlayer($guardian, $player);
-        $playerModel->update($request->validated());
+        $saved = $playerRepository->updatePlayerPortal($playerModel, $request);
+
+        if (!$saved) {
+            return response()->json([
+                'message' => 'No fue posible actualizar los datos del deportista.',
+            ], 500);
+        }
 
         return response()->json([
             'message' => 'Datos del deportista actualizados correctamente.',
@@ -122,7 +129,7 @@ class GuardianPlayerController extends Controller
                     'school',
                     'trainingGroup' => fn ($trainingQuery) => $trainingQuery->withTrashed(),
                     'payments',
-                    'assistance' => fn ($assistQuery) => $assistQuery->orderByRaw("MONTH(CONCAT('2000-', assists.month, '-01')) asc"),
+                    'assistance' => fn ($assistQuery) => $assistQuery->orderBy('month'),
                     'skillsControls',
                     'playerEvaluations.period',
                 ]),

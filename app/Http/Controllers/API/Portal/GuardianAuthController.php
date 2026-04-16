@@ -53,7 +53,7 @@ class GuardianAuthController extends Controller
 
         if (!$this->guardianAccessService->hasEligiblePlayers($guardian)) {
             throw ValidationException::withMessages([
-                'email' => ['Tu acceso está temporalmente bloqueado porque no tienes jugadores vigentes este año.'],
+                'email' => ['Tu acceso está temporalmente bloqueado porque no tienes jugadores vigentes este año o se ha deshabilitado la plataforma de acudientes.'],
             ]);
         }
 
@@ -82,7 +82,7 @@ class GuardianAuthController extends Controller
         Auth::guard('guardians')->logout();
 
         if ($request->hasSession()) {
-            $request->session()->migrate(true);
+            $request->session()->invalidate();
             $request->session()->regenerateToken();
         }
 

@@ -2,10 +2,10 @@
     <div class="guardian-portal">
         <header class="guardian-portal__topbar">
             <div class="container guardian-portal__topbar-inner">
-                <router-link :to="{ name: 'portal-school-index' }" class="guardian-portal__brand" aria-label="Logo GOLAPP">
+                <a class="guardian-portal__brand" aria-label="Logo GOLAPP">
                     <img src="/img/logo-light.svg" alt="Logo GOLAPP" class="guardian-portal__brand-logo logo-light-mode" />
                     <img src="/img/logo-dark.svg" alt="Logo GOLAPP" class="guardian-portal__brand-logo logo-dark-mode" />
-                </router-link>
+                </a>
 
                 <div class="guardian-portal__actions">
                     <div v-if="guardian" class="guardian-portal__welcome">

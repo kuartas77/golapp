@@ -13,7 +13,7 @@
                         <div class="row align-items-center g-4">
                             <div class="col-12 col-lg">
                                 <div class="d-flex align-items-center gap-3 flex-wrap">
-                                    <img :src="player.photo_url" :alt="player.full_names" class="guardian-player-detail__photo">
+                                    <img :src="playerDisplayPhotoUrl" :alt="player.full_names" class="guardian-player-detail__photo">
                                     <div>
                                         <p class="text-uppercase fw-semibold small mb-2">Jugador vigente</p>
                                         <h1 class="h2 mb-1">{{ player.full_names }}</h1>
@@ -69,6 +69,71 @@
                         </div>
 
                         <form class="row g-3" @submit.prevent="submitPlayer">
+                            <div class="col-12">
+                                <input
+                                    ref="photoInput"
+                                    type="file"
+                                    class="d-none"
+                                    accept="image/png, image/jpeg"
+                                    @change="onPhotoSelected"
+                                >
+
+                                <div class="guardian-player-detail__photo-editor">
+                                    <div class="guardian-player-detail__photo-editor-preview">
+                                        <img
+                                            :src="playerDisplayPhotoUrl"
+                                            :alt="`Foto de ${player.full_names}`"
+                                            class="guardian-player-detail__photo-editor-image"
+                                        >
+                                    </div>
+
+                                    <div class="guardian-player-detail__photo-editor-body">
+                                        <label class="form-label mb-1">Foto del deportista</label>
+                                        <p class="text-muted small mb-3">
+                                            Puedes cambiar la foto y corregir la orientación antes de guardar.
+                                        </p>
+
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" :disabled="saving" @click="openPhotoPicker">
+                                                Cambiar foto
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-secondary btn-sm"
+                                                :disabled="!hasSelectedPhoto || rotatingPhoto || saving"
+                                                @click="rotateSelectedPhoto(-90)"
+                                            >
+                                                {{ rotatingPhoto ? 'Rotando...' : 'Rotar izquierda' }}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-secondary btn-sm"
+                                                :disabled="!hasSelectedPhoto || rotatingPhoto || saving"
+                                                @click="rotateSelectedPhoto(90)"
+                                            >
+                                                {{ rotatingPhoto ? 'Rotando...' : 'Rotar derecha' }}
+                                            </button>
+                                            <button
+                                                v-if="hasSelectedPhoto"
+                                                type="button"
+                                                class="btn btn-outline-danger btn-sm"
+                                                :disabled="rotatingPhoto || saving"
+                                                @click="discardSelectedPhoto"
+                                            >
+                                                Descartar foto
+                                            </button>
+                                        </div>
+
+                                        <div class="small text-muted mt-2">
+                                            <span v-if="selectedPhotoName">Nueva foto lista para guardar: {{ selectedPhotoName }}</span>
+                                            <span v-else>Formatos permitidos: JPG y PNG.</span>
+                                        </div>
+
+                                        <div v-if="fieldErrors.photo" class="invalid-feedback d-block">{{ fieldErrors.photo }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="col-12 col-md-6">
                                 <label class="form-label">Nombres</label>
                                 <input v-model.trim="form.names" type="text" class="form-control form-control-sm" :class="{ 'is-invalid': fieldErrors.names }" required>
@@ -435,7 +500,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import Loader from '@/components/general/Loader.vue';
 import api from '@/utils/axios';
@@ -449,6 +514,10 @@ const errorMessage = ref('');
 const successMessage = ref('');
 const comparisonError = ref('');
 const fieldErrors = ref({});
+const photoInput = ref(null);
+const photoFile = ref(null);
+const photoPreviewUrl = ref('');
+const rotatingPhoto = ref(false);
 const activePaymentId = ref(null);
 const activeAttendanceId = ref(null);
 const player = ref(null);
@@ -514,6 +583,9 @@ const degreeOptions = Array.from({ length: 12 }, (_, index) => ({
 }));
 
 const currentInscription = computed(() => player.value?.current_inscription ?? null);
+const playerDisplayPhotoUrl = computed(() => photoPreviewUrl.value || player.value?.photo_url || '/img/user.webp');
+const hasSelectedPhoto = computed(() => photoFile.value instanceof File);
+const selectedPhotoName = computed(() => photoFile.value?.name ?? '');
 const activePayment = computed(() => {
     const payments = currentInscription.value?.payments ?? [];
 
@@ -558,6 +630,109 @@ const statsEntries = computed(() => {
 
 usePageTitle(computed(() => player.value?.full_names ?? 'Detalle del jugador'));
 
+const revokePhotoPreview = () => {
+    if (photoPreviewUrl.value?.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreviewUrl.value);
+    }
+};
+
+const setSelectedPhoto = (file) => {
+    revokePhotoPreview();
+    photoFile.value = file instanceof File ? file : null;
+    photoPreviewUrl.value = file instanceof File ? URL.createObjectURL(file) : '';
+};
+
+const discardSelectedPhoto = () => {
+    setSelectedPhoto(null);
+
+    if (photoInput.value) {
+        photoInput.value.value = '';
+    }
+};
+
+const openPhotoPicker = () => {
+    photoInput.value?.click();
+};
+
+const onPhotoSelected = (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+        return;
+    }
+
+    setSelectedPhoto(file);
+
+    if (photoInput.value) {
+        photoInput.value.value = '';
+    }
+};
+
+const loadImage = (src) => new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+});
+
+const canvasToBlob = (canvas, type, quality = 0.92) => new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+        if (!blob) {
+            reject(new Error('No fue posible generar la imagen rotada.'));
+            return;
+        }
+
+        resolve(blob);
+    }, type, quality);
+});
+
+const rotateSelectedPhoto = async (degrees) => {
+    if (!(photoFile.value instanceof File)) {
+        return;
+    }
+
+    rotatingPhoto.value = true;
+
+    try {
+        const currentFile = photoFile.value;
+        const imageUrl = URL.createObjectURL(currentFile);
+
+        try {
+            const img = await loadImage(imageUrl);
+            const normalizedDegrees = ((degrees % 360) + 360) % 360;
+            const isQuarterTurn = normalizedDegrees === 90 || normalizedDegrees === 270;
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+
+            if (!context) {
+                throw new Error('No fue posible inicializar el canvas.');
+            }
+
+            canvas.width = isQuarterTurn ? img.height : img.width;
+            canvas.height = isQuarterTurn ? img.width : img.height;
+
+            context.translate(canvas.width / 2, canvas.height / 2);
+            context.rotate((normalizedDegrees * Math.PI) / 180);
+            context.drawImage(img, -img.width / 2, -img.height / 2);
+
+            const outputType = currentFile.type || 'image/jpeg';
+            const rotatedBlob = await canvasToBlob(canvas, outputType);
+            const rotatedFile = new File([rotatedBlob], currentFile.name, {
+                type: outputType,
+                lastModified: Date.now(),
+            });
+
+            setSelectedPhoto(rotatedFile);
+        } finally {
+            URL.revokeObjectURL(imageUrl);
+        }
+    } catch (error) {
+        errorMessage.value = 'No fue posible rotar la foto seleccionada.';
+    } finally {
+        rotatingPhoto.value = false;
+    }
+};
+
 const applyPlayer = (playerData) => {
     player.value = playerData;
     form.names = playerData?.names ?? '';
@@ -579,6 +754,7 @@ const applyPlayer = (playerData) => {
     form.rh = playerData?.rh ?? '';
     form.eps = playerData?.eps ?? '';
     form.student_insurance = playerData?.student_insurance ?? '';
+    discardSelectedPhoto();
 
     const periods = playerData?.current_inscription?.comparison_periods ?? [];
     if (periods.length >= 2 && !comparisonForm.period_a_id && !comparisonForm.period_b_id) {
@@ -644,7 +820,24 @@ const submitPlayer = async () => {
     fieldErrors.value = {};
 
     try {
-        const response = await api.put(`/api/v2/portal/acudientes/players/${route.params.id}`, { ...form });
+        let response;
+
+        if (hasSelectedPhoto.value) {
+            const payload = new FormData();
+
+            payload.append('_method', 'PUT');
+
+            Object.entries(form).forEach(([key, value]) => {
+                payload.append(key, value ?? '');
+            });
+
+            payload.append('photo', photoFile.value);
+
+            response = await api.post(`/api/v2/portal/acudientes/players/${route.params.id}`, payload);
+        } else {
+            response = await api.put(`/api/v2/portal/acudientes/players/${route.params.id}`, { ...form });
+        }
+
         applyPlayer(response.data?.data ?? response.data);
         successMessage.value = response.data?.message || 'Datos del deportista actualizados correctamente.';
     } catch (error) {
@@ -752,6 +945,7 @@ const displayDelta = (value) => {
 };
 
 onMounted(fetchPlayer);
+onBeforeUnmount(revokePhotoPreview);
 </script>
 
 <style scoped>
@@ -788,6 +982,32 @@ onMounted(fetchPlayer);
 .guardian-player-detail__stat-label {
     font-size: 0.78rem;
     color: #5f6b85;
+}
+
+.guardian-player-detail__photo-editor {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 1rem;
+    background: #f7f9fd;
+    border: 1px solid rgba(35, 48, 77, 0.08);
+}
+
+.guardian-player-detail__photo-editor-preview {
+    flex: 0 0 auto;
+}
+
+.guardian-player-detail__photo-editor-image {
+    width: 108px;
+    height: 108px;
+    border-radius: 1.25rem;
+    object-fit: cover;
+    background: #dfe7f5;
+}
+
+.guardian-player-detail__photo-editor-body {
+    flex: 1 1 auto;
 }
 
 .guardian-player-detail__attendance-tabs {
@@ -938,6 +1158,13 @@ onMounted(fetchPlayer);
     color: #fff;
     background: #31529e;
     border-color: #31529e;
+}
+
+@media (max-width: 767.98px) {
+    .guardian-player-detail__photo-editor {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
 
 .guardian-player-detail__badge--success {
