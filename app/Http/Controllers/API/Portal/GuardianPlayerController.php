@@ -80,20 +80,24 @@ class GuardianPlayerController extends Controller
         ]);
     }
 
-    public function inscriptionReport(Request $request, int $player, PlayerExportService $playerExportService)
+    public function inscriptionReport(Request $request, PlayerExportService $playerExportService, int $player, ?int $inscription = null)
     {
         /** @var People $guardian */
         $guardian = $request->user();
 
         $playerModel = $this->guardianAccessService->findEligiblePlayer($guardian, $player);
-        $inscription = $playerModel->inscriptions()
-            ->where('year', now()->year)
+        $inscriptionModel = $playerModel->inscriptions()
+            ->when(
+                $inscription,
+                fn ($query) => $query->whereKey($inscription),
+                fn ($query) => $query->where('year', now()->year)
+            )
             ->firstOrFail();
 
         return $playerExportService->makePDFInscriptionDetail(
             player_id: $playerModel->id,
-            inscription_id: $inscription->id,
-            year: (string) $inscription->year
+            inscription_id: $inscriptionModel->id,
+            year: (string) $inscriptionModel->year
         );
     }
 
@@ -134,6 +138,12 @@ class GuardianPlayerController extends Controller
                     'playerEvaluations.period',
                 ]),
         ]);
+
+        $player->historical_inscriptions = $player->inscriptions()
+            ->select(['id', 'player_id', 'year'])
+            ->where('year', '<', now()->year)
+            ->orderByDesc('year')
+            ->get();
 
         $player->inscriptions->setAppends(['format_average']);
         PlayerExportService::loadClassDays($player);

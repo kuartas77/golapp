@@ -32,7 +32,7 @@ class PlayerExportService
         $player = Player::query()->with([
             'schoolData',
             'inscriptions' => fn($q) => $q->where('id', $inscription_id)->with([
-                'trainingGroup',
+                'trainingGroup' => fn ($query) => $query->withTrashed(),
                 'assistance' => fn($q) => $q->when($months, fn($q) => $q->whereIn('month', $months))->orderByRaw("MONTH(CONCAT('2000-', assists.month, '-01')) asc"),
                 'payments',
                 'skillsControls' => fn($q) => $q->when(($from && $to), fn($q) => $q->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to))
@@ -46,7 +46,7 @@ class PlayerExportService
                 $assistance->classDays = classDays(
                     $assistance->year,
                     array_search($assistance->month, $months_, true),
-                    array_map('dayToNumber', $inscription->trainingGroup->explode_days)
+                    array_map('dayToNumber', $inscription->trainingGroup?->explode_days ?? [])
                 );
             }
         });
@@ -153,7 +153,7 @@ class PlayerExportService
                 $assistance->classDays = classDays(
                     $assistance->year,
                     array_search($assistance->month, $months_, true),
-                    array_map('dayToNumber', $inscription->trainingGroup->explode_days)
+                    array_map('dayToNumber', $inscription->trainingGroup?->explode_days ?? [])
                 );
             }
         });

@@ -198,7 +198,7 @@ Route::prefix('v2')->group(function(){
                 Route::get('players', [GuardianPlayerController::class, 'index'])->name('players.index');
                 Route::get('players/{player}', [GuardianPlayerController::class, 'show'])->name('players.show');
                 Route::put('players/{player}', [GuardianPlayerController::class, 'update'])->name('players.update');
-                Route::get('players/{player}/inscription-report', [GuardianPlayerController::class, 'inscriptionReport'])->name('players.inscription-report');
+                Route::get('players/{player}/inscription-report/{inscription?}', [GuardianPlayerController::class, 'inscriptionReport'])->name('players.inscription-report');
                 Route::get('evaluations/{evaluation}/pdf', [GuardianEvaluationController::class, 'pdf'])->name('evaluations.pdf');
                 Route::get('inscriptions/{inscription}/comparison', [GuardianPlayerController::class, 'comparison'])->name('inscriptions.comparison');
             });

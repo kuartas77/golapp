@@ -35,7 +35,7 @@
             <div v-for="group in groupedPlayers" :key="group.key" class="col-12">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                     <div>
-                        <h2 class="h4 mb-1">{{ group.schoolName }}</h2>
+                        <h2 class="h4 mb-1 text-primary">{{ group.schoolName }}</h2>
                         <p class="text-muted mb-0">{{ group.players.length }} jugador(es) disponible(s)</p>
                     </div>
                 </div>

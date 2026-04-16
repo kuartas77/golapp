@@ -27,7 +27,7 @@
 
                             <div class="col-12 col-lg-auto">
                                 <div class="d-flex flex-wrap gap-2">
-                                    <router-link :to="{ name: 'guardian-dashboard' }" class="btn btn-light">
+                                    <router-link :to="{ name: 'guardian-dashboard' }" class="btn btn-outline-secondary">
                                         Volver
                                     </router-link>
                                     <button
@@ -286,10 +286,30 @@
                             <div class="row g-3">
                                 <div class="col-6" v-for="item in statsEntries" :key="item.key">
                                     <div class="guardian-player-detail__stat">
-                                        <span class="guardian-player-detail__stat-label">{{ item.label }}</span>
-                                        <strong>{{ item.value }}</strong>
+                                        <span class="guardian-player-detail__stat-label">
+                                            {{ item.label }}: <strong>{{ item.value }}</strong>
+                                        </span>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm" v-if="historicalInscriptions.length">
+                        <div class="card-body">
+                            <h2 class="h4 mb-1">Inscripciones anteriores</h2>
+                            <p class="text-muted mb-3">Exporta el PDF de cada año anterior.</p>
+
+                            <div class="d-flex flex-wrap gap-2">
+                                <button
+                                    v-for="inscription in historicalInscriptions"
+                                    :key="`historical-inscription-${inscription.id}`"
+                                    type="button"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    @click="openUrl(inscription.report_url)"
+                                >
+                                    PDF {{ inscription.year }}
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -583,6 +603,7 @@ const degreeOptions = Array.from({ length: 12 }, (_, index) => ({
 }));
 
 const currentInscription = computed(() => player.value?.current_inscription ?? null);
+const historicalInscriptions = computed(() => player.value?.historical_inscriptions ?? []);
 const playerDisplayPhotoUrl = computed(() => photoPreviewUrl.value || player.value?.photo_url || '/img/user.webp');
 const hasSelectedPhoto = computed(() => photoFile.value instanceof File);
 const selectedPhotoName = computed(() => photoFile.value?.name ?? '');
@@ -949,6 +970,59 @@ onBeforeUnmount(revokePhotoPreview);
 </script>
 
 <style scoped>
+.guardian-player-detail {
+    --guardian-player-detail-surface: #f7f9fd;
+    --guardian-player-detail-surface-soft: #f6f8fc;
+    --guardian-player-detail-surface-subtle: #edf2f9;
+    --guardian-player-detail-surface-hover: #eef3fb;
+    --guardian-player-detail-surface-image: #dfe7f5;
+    --guardian-player-detail-text: #23304d;
+    --guardian-player-detail-text-muted: #5f6b85;
+    --guardian-player-detail-border: rgba(35, 48, 77, 0.08);
+    --guardian-player-detail-border-strong: rgba(49, 82, 158, 0.16);
+    --guardian-player-detail-border-hover: rgba(49, 82, 158, 0.28);
+    --guardian-player-detail-primary: #31529e;
+    --guardian-player-detail-primary-strong: #0f1c46;
+    --guardian-player-detail-success-text: #0f5132;
+    --guardian-player-detail-success-bg: #d1e7dd;
+    --guardian-player-detail-success-border: #badbcc;
+    --guardian-player-detail-warning-text: #664d03;
+    --guardian-player-detail-warning-bg: #fff3cd;
+    --guardian-player-detail-warning-border: #ffecb5;
+    --guardian-player-detail-danger-text: #842029;
+    --guardian-player-detail-danger-bg: #f8d7da;
+    --guardian-player-detail-danger-border: #f1aeb5;
+    --guardian-player-detail-secondary-text: #41464b;
+    --guardian-player-detail-secondary-bg: #e2e3e5;
+    --guardian-player-detail-secondary-border: #d3d6d8;
+}
+
+:global(.dark) .guardian-player-detail,
+:global(body.dark) .guardian-player-detail {
+    --guardian-player-detail-surface: rgba(27, 46, 75, 0.42);
+    --guardian-player-detail-surface-soft: rgba(27, 46, 75, 0.34);
+    --guardian-player-detail-surface-subtle: rgba(16, 27, 45, 0.88);
+    --guardian-player-detail-surface-hover: rgba(49, 82, 158, 0.22);
+    --guardian-player-detail-surface-image: rgba(223, 231, 245, 0.14);
+    --guardian-player-detail-text: #f5f7ff;
+    --guardian-player-detail-text-muted: #b9c2db;
+    --guardian-player-detail-border: rgba(136, 142, 168, 0.18);
+    --guardian-player-detail-border-strong: rgba(126, 158, 255, 0.28);
+    --guardian-player-detail-border-hover: rgba(126, 158, 255, 0.44);
+    --guardian-player-detail-success-text: #9fe7bf;
+    --guardian-player-detail-success-bg: rgba(25, 135, 84, 0.2);
+    --guardian-player-detail-success-border: rgba(111, 224, 165, 0.28);
+    --guardian-player-detail-warning-text: #ffe08a;
+    --guardian-player-detail-warning-bg: rgba(255, 193, 7, 0.18);
+    --guardian-player-detail-warning-border: rgba(255, 224, 138, 0.3);
+    --guardian-player-detail-danger-text: #ffb3bc;
+    --guardian-player-detail-danger-bg: rgba(220, 53, 69, 0.18);
+    --guardian-player-detail-danger-border: rgba(255, 179, 188, 0.28);
+    --guardian-player-detail-secondary-text: #d7dce9;
+    --guardian-player-detail-secondary-bg: rgba(108, 117, 125, 0.2);
+    --guardian-player-detail-secondary-border: rgba(215, 220, 233, 0.24);
+}
+
 .guardian-player-detail__hero {
     background:
         linear-gradient(135deg, rgba(15, 28, 70, 0.96), rgba(35, 66, 138, 0.88)),
@@ -976,12 +1050,13 @@ onBeforeUnmount(revokePhotoPreview);
     gap: 0.15rem;
     padding: 0.9rem 1rem;
     border-radius: 1rem;
-    background: #f6f8fc;
+    background: var(--guardian-player-detail-surface-soft);
+    color: var(--guardian-player-detail-text);
 }
 
 .guardian-player-detail__stat-label {
     font-size: 0.78rem;
-    color: #5f6b85;
+    color: var(--guardian-player-detail-text-muted);
 }
 
 .guardian-player-detail__photo-editor {
@@ -990,8 +1065,9 @@ onBeforeUnmount(revokePhotoPreview);
     gap: 1rem;
     padding: 1rem;
     border-radius: 1rem;
-    background: #f7f9fd;
-    border: 1px solid rgba(35, 48, 77, 0.08);
+    background: var(--guardian-player-detail-surface);
+    border: 1px solid var(--guardian-player-detail-border);
+    color: var(--guardian-player-detail-text);
 }
 
 .guardian-player-detail__photo-editor-preview {
@@ -1003,7 +1079,7 @@ onBeforeUnmount(revokePhotoPreview);
     height: 108px;
     border-radius: 1.25rem;
     object-fit: cover;
-    background: #dfe7f5;
+    background: var(--guardian-player-detail-surface-image);
 }
 
 .guardian-player-detail__photo-editor-body {
@@ -1020,9 +1096,9 @@ onBeforeUnmount(revokePhotoPreview);
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
-    border: 1px solid rgba(49, 82, 158, 0.16);
-    background: #f7f9fd;
-    color: #23304d;
+    border: 1px solid var(--guardian-player-detail-border-strong);
+    background: var(--guardian-player-detail-surface);
+    color: var(--guardian-player-detail-text);
     border-radius: 999px;
     padding: 0.55rem 0.9rem;
     font-weight: 600;
@@ -1030,14 +1106,14 @@ onBeforeUnmount(revokePhotoPreview);
 }
 
 .guardian-player-detail__attendance-tab:hover {
-    background: #eef3fb;
-    border-color: rgba(49, 82, 158, 0.28);
+    background: var(--guardian-player-detail-surface-hover);
+    border-color: var(--guardian-player-detail-border-hover);
 }
 
 .guardian-player-detail__attendance-tab--active {
-    background: #0f1c46;
+    background: var(--guardian-player-detail-primary-strong);
     color: #fff;
-    border-color: #0f1c46;
+    border-color: var(--guardian-player-detail-primary-strong);
 }
 
 .guardian-player-detail__attendance-tab--active .guardian-player-detail__badge--primary {
@@ -1053,8 +1129,9 @@ onBeforeUnmount(revokePhotoPreview);
 .guardian-player-detail__attendance-panel {
     padding: 1rem;
     border-radius: 1rem;
-    background: #f7f9fd;
-    border: 1px solid rgba(35, 48, 77, 0.08);
+    background: var(--guardian-player-detail-surface);
+    border: 1px solid var(--guardian-player-detail-border);
+    color: var(--guardian-player-detail-text);
 }
 
 .guardian-player-detail__payment-tabs {
@@ -1067,9 +1144,9 @@ onBeforeUnmount(revokePhotoPreview);
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    border: 1px solid rgba(49, 82, 158, 0.16);
-    background: #f7f9fd;
-    color: #23304d;
+    border: 1px solid var(--guardian-player-detail-border-strong);
+    background: var(--guardian-player-detail-surface);
+    color: var(--guardian-player-detail-text);
     border-radius: 999px;
     padding: 0.55rem 0.9rem;
     font-weight: 600;
@@ -1077,21 +1154,22 @@ onBeforeUnmount(revokePhotoPreview);
 }
 
 .guardian-player-detail__payment-tab:hover {
-    background: #eef3fb;
-    border-color: rgba(49, 82, 158, 0.28);
+    background: var(--guardian-player-detail-surface-hover);
+    border-color: var(--guardian-player-detail-border-hover);
 }
 
 .guardian-player-detail__payment-tab--active {
-    background: #0f1c46;
+    background: var(--guardian-player-detail-primary-strong);
     color: #fff;
-    border-color: #0f1c46;
+    border-color: var(--guardian-player-detail-primary-strong);
 }
 
 .guardian-player-detail__payment-panel {
     padding: 1rem;
     border-radius: 1rem;
-    background: #f7f9fd;
-    border: 1px solid rgba(35, 48, 77, 0.08);
+    background: var(--guardian-player-detail-surface);
+    border: 1px solid var(--guardian-player-detail-border);
+    color: var(--guardian-player-detail-text);
 }
 
 .guardian-player-detail__payment-month {
@@ -1114,33 +1192,33 @@ onBeforeUnmount(revokePhotoPreview);
 }
 
 .guardian-player-detail__payment-month--neutral {
-    color: #23304d;
-    background: #edf2f9;
-    border-color: rgba(35, 48, 77, 0.08);
+    color: var(--guardian-player-detail-text);
+    background: var(--guardian-player-detail-surface-subtle);
+    border-color: var(--guardian-player-detail-border);
 }
 
 .guardian-player-detail__payment-month--success {
-    color: #0f5132;
-    background: #d1e7dd;
-    border-color: #badbcc;
+    color: var(--guardian-player-detail-success-text);
+    background: var(--guardian-player-detail-success-bg);
+    border-color: var(--guardian-player-detail-success-border);
 }
 
 .guardian-player-detail__payment-month--warning {
-    color: #664d03;
-    background: #fff3cd;
-    border-color: #ffecb5;
+    color: var(--guardian-player-detail-warning-text);
+    background: var(--guardian-player-detail-warning-bg);
+    border-color: var(--guardian-player-detail-warning-border);
 }
 
 .guardian-player-detail__payment-month--danger {
-    color: #842029;
-    background: #f8d7da;
-    border-color: #f1aeb5;
+    color: var(--guardian-player-detail-danger-text);
+    background: var(--guardian-player-detail-danger-bg);
+    border-color: var(--guardian-player-detail-danger-border);
 }
 
 .guardian-player-detail__payment-month--secondary {
-    color: #41464b;
-    background: #e2e3e5;
-    border-color: #d3d6d8;
+    color: var(--guardian-player-detail-secondary-text);
+    background: var(--guardian-player-detail-secondary-bg);
+    border-color: var(--guardian-player-detail-secondary-border);
 }
 
 .guardian-player-detail__badge {
@@ -1149,15 +1227,15 @@ onBeforeUnmount(revokePhotoPreview);
 }
 
 .guardian-player-detail__badge--neutral {
-    color: #23304d;
-    background: #edf2f9;
-    border-color: rgba(35, 48, 77, 0.08);
+    color: var(--guardian-player-detail-text);
+    background: var(--guardian-player-detail-surface-subtle);
+    border-color: var(--guardian-player-detail-border);
 }
 
 .guardian-player-detail__badge--primary {
     color: #fff;
-    background: #31529e;
-    border-color: #31529e;
+    background: var(--guardian-player-detail-primary);
+    border-color: var(--guardian-player-detail-primary);
 }
 
 @media (max-width: 767.98px) {
@@ -1168,26 +1246,26 @@ onBeforeUnmount(revokePhotoPreview);
 }
 
 .guardian-player-detail__badge--success {
-    color: #0f5132;
-    background: #d1e7dd;
-    border-color: #badbcc;
+    color: var(--guardian-player-detail-success-text);
+    background: var(--guardian-player-detail-success-bg);
+    border-color: var(--guardian-player-detail-success-border);
 }
 
 .guardian-player-detail__badge--danger {
-    color: #842029;
-    background: #f8d7da;
-    border-color: #f1aeb5;
+    color: var(--guardian-player-detail-danger-text);
+    background: var(--guardian-player-detail-danger-bg);
+    border-color: var(--guardian-player-detail-danger-border);
 }
 
 .guardian-player-detail__badge--warning {
-    color: #664d03;
-    background: #fff3cd;
-    border-color: #ffecb5;
+    color: var(--guardian-player-detail-warning-text);
+    background: var(--guardian-player-detail-warning-bg);
+    border-color: var(--guardian-player-detail-warning-border);
 }
 
 .guardian-player-detail__badge--secondary {
-    color: #41464b;
-    background: #e2e3e5;
-    border-color: #d3d6d8;
+    color: var(--guardian-player-detail-secondary-text);
+    background: var(--guardian-player-detail-secondary-bg);
+    border-color: var(--guardian-player-detail-secondary-border);
 }
 </style>

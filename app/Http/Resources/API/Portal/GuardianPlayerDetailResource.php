@@ -19,6 +19,7 @@ class GuardianPlayerDetailResource extends JsonResource
     {
         /** @var Inscription|null $inscription */
         $inscription = $this->inscriptions->first();
+        $historicalInscriptions = collect($this->historical_inscriptions ?? []);
 
         return [
             'id' => $this->id,
@@ -51,6 +52,14 @@ class GuardianPlayerDetailResource extends JsonResource
                 'slug' => $this->schoolData->slug,
                 'logo_file' => $this->schoolData->logo_file,
             ]),
+            'historical_inscriptions' => $historicalInscriptions->map(fn ($historicalInscription) => [
+                'id' => $historicalInscription->id,
+                'year' => $historicalInscription->year,
+                'report_url' => route('portal.guardians.players.inscription-report', [
+                    'player' => $this->id,
+                    'inscription' => $historicalInscription->id,
+                ]),
+            ])->values(),
             'current_inscription' => $inscription ? [
                 'id' => $inscription->id,
                 'year' => $inscription->year,
@@ -134,7 +143,10 @@ class GuardianPlayerDetailResource extends JsonResource
                     ])
                     ->unique('id')
                     ->values(),
-                'report_url' => route('portal.guardians.players.inscription-report', $this->id),
+                'report_url' => route('portal.guardians.players.inscription-report', [
+                    'player' => $this->id,
+                    'inscription' => $inscription->id,
+                ]),
             ] : null,
         ];
     }
