@@ -6,6 +6,12 @@
     <link rel="stylesheet" href="{{ asset('css/dompdf.css') }}">
 </head>
 <body>
+@php
+    $paymentFields = \App\Models\Payment::paymentFields();
+    $debtStatus = \App\Models\Payment::$debt;
+    $pendingStatus = \App\Models\Payment::$pending;
+    $selectedStatus = (int) ($selected_status ?? -1);
+@endphp
 
 <table class="table-full title">
     <tr>
@@ -53,19 +59,22 @@
                 &nbsp;<small>{{ $payment->unique_code }}</small>&nbsp;<small>{{ $payment->inscription->player->full_names }}</small>
             </td>
             <td class="text-center">&nbsp;<small>{{ $payment->category }}</small>&nbsp;</td>
-            @include('templates.payments.color',['value' => $payment->enrollment])
-            @include('templates.payments.color',['value' => $payment->january])
-            @include('templates.payments.color',['value' => $payment->february])
-            @include('templates.payments.color',['value' => $payment->march])
-            @include('templates.payments.color',['value' => $payment->april])
-            @include('templates.payments.color',['value' => $payment->may])
-            @include('templates.payments.color',['value' => $payment->june])
-            @include('templates.payments.color',['value' => $payment->july])
-            @include('templates.payments.color',['value' => $payment->august])
-            @include('templates.payments.color',['value' => $payment->september])
-            @include('templates.payments.color',['value' => $payment->october])
-            @include('templates.payments.color',['value' => $payment->november])
-            @include('templates.payments.color',['value' => $payment->december])
+            @foreach($paymentFields as $field)
+                @php
+                    $value = (int) $payment->{$field};
+                    $amount = null;
+
+                    if ($selectedStatus === $debtStatus) {
+                        if ($value === $debtStatus) {
+                            $amountField = \App\Models\Payment::amountFieldFor($field);
+                            $amount = number_format((float) data_get($payment, $amountField, 0), 0, ',', '.');
+                        } elseif ($value === $pendingStatus) {
+                            $amount = '--';
+                        }
+                    }
+                @endphp
+                @include('templates.payments.color', ['value' => $value, 'amount' => $amount])
+            @endforeach
         </tr>
         @endforeach
     </tbody>
