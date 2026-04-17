@@ -119,22 +119,28 @@ class PlayerExportService
         return $stream ? $this->stream($filename) : $this->output($filename);
     }
 
-    public function getExcel(): Collection
+    public function getExcel(?int $year = null): Collection
     {
+        $year = $year ?: now()->year;
         $collection = new Collection(['enabled' => collect(), 'disabled' => collect()]);
+        $inscriptionRelation = [
+            'inscriptions' => fn($q) => $q
+                ->where('year', $year)
+                ->with(['trainingGroup' => fn ($query) => $query->withTrashed()]),
+        ];
 
         $playersEnabled = Player::query()->schoolId()
-            ->whereHas('inscription')
+            ->whereHas('inscriptions', fn($q) => $q->where('year', $year))
             ->with([
-                'inscription.trainingGroup',
+                ...$inscriptionRelation,
                 'people',
                 'payments' => fn($q) => $q->withTrashed()
             ])->get();
 
         $playersDisabled = Player::query()->schoolId()
-            ->whereDoesntHave('inscription')
+            ->whereDoesntHave('inscriptions', fn($q) => $q->where('year', $year))
             ->with([
-                'inscription.trainingGroup',
+                ...$inscriptionRelation,
                 'people',
                 'payments' => fn($q) => $q->withTrashed()
             ])->get();

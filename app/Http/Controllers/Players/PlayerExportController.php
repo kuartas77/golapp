@@ -6,6 +6,7 @@ use App\Exports\InscriptionSheetsExport;
 use App\Http\Controllers\Controller;
 use App\Models\Player;
 use App\Service\Player\PlayerExportService;
+use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -31,11 +32,15 @@ class PlayerExportController extends Controller
     /**
      * @return BinaryFileResponse
      */
-    public function exportInscriptionsExcel(PlayerExportService $playerExportService): BinaryFileResponse
+    public function exportInscriptionsExcel(Request $request, PlayerExportService $playerExportService): BinaryFileResponse
     {
+        $year = $request->integer('inscription_year') ?: now()->year;
         $date = now()->timestamp;
 
-        return Excel::download(new InscriptionSheetsExport($playerExportService->getExcel()), "Inscripciones {$date}.xlsx");
+        return Excel::download(
+            new InscriptionSheetsExport($playerExportService->getExcel($year)),
+            "Inscripciones {$year} {$date}.xlsx"
+        );
     }
 
 }

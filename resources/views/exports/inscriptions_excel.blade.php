@@ -51,7 +51,7 @@
             <td>{{$player->mobile}}</td>
             <td>{{$player->eps}}</td>
             <td>{{$player->email}}</td>
-            <td>{{$player->inscription ? $player->inscription->trainingGroup->name : ''}}</td>
+            <td>{{$player->inscriptions->first()?->trainingGroup?->name ?? ''}}</td>
             @forelse($player->people as $people)
                 <td>{{$people?->names}}</td>
                 <td>{{$people?->identification_card}}</td>

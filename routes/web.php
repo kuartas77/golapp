@@ -128,6 +128,8 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
     Route::prefix('datatables')->group(function () {
         Route::middleware('school.permission:school.module.inscriptions')->group(function () {
+            // La SPA de inscripciones usa los equivalentes en routes/api.php:
+            // GET /api/v2/datatables/inscriptions_enabled y /api/v2/datatables/inscriptions_disabled.
             Route::get('inscriptions_enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');
             Route::get('inscriptions_disabled', [DataTableController::class, 'disabledInscriptions'])->name('inscriptions.disabled');
         });
@@ -158,6 +160,8 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         });
 
         Route::middleware('school.permission:school.module.inscriptions')->group(function () {
+            // La vista SPA resources/js/pages/inscriptions/InscriptionsList.vue mantiene estas rutas web
+            // para exportaciones binarias y consume el listado por API desde routes/api.php.
             Route::get('inscription/{player_id}/{inscription_id}/{year?}/{quarter?}', [PlayerExportController::class, 'exportInscription'])->name('inscription');
             Route::get('inscriptions/excel', [PlayerExportController::class, 'exportInscriptionsExcel'])->name('inscriptions');
         });

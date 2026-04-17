@@ -1,17 +1,23 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 import api from '@/utils/axios'
 import { useRouter } from 'vue-router'
 
-export default function useInscriptionConfig() {
+export default function useInscriptionConfig(selectedYear, canManageInscriptions) {
     const router = useRouter()
     const inscription_table = useTemplateRef('inscription_table')
     const selectedInscriptionId = ref(null)
     const disableUrlSelected = ref(null)
+    const currentYear = new Date().getFullYear()
     let selectGroupsElement = null
     let selectCategoriesElement = null
     let handleGroupsChange = null
     let handleCategoriesChange = null
+    const canManageSelectedYear = computed(() => {
+        const year = Number(selectedYear?.value ?? currentYear)
+
+        return Boolean(canManageInscriptions?.value) && year >= currentYear
+    })
 
     const columns = [
         { data: 'player.photo_url', width: '1%', render: '#photo', searchable: false, orderable: false },
@@ -26,30 +32,8 @@ export default function useInscriptionConfig() {
             data: 'id',
             title: 'Acciones',
             render: (data, type, row, meta) => {
-                return `
-                <div class="dropdown">
-                    <button
-                        class="btn btn-sm btn-primary dropdown-toggle"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                    >
-                        Acciones
-                    </button>
-
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <a
-                                class="dropdown-item"
-                                href="${row.url_impression}"
-                                target="_blank"
-                                title="Imprimir inscripción"
-                            >
-                                <i href="${row.url_show}" class="fa-solid fa-file-pdf fa-width-auto me-2"></i>
-                                Imprimir inscripción
-                            </a>
-                        </li>
-
+                const manageActions = canManageSelectedYear.value
+                    ? `
                         <li>
                             <button
                                 class="dropdown-item"
@@ -102,6 +86,34 @@ export default function useInscriptionConfig() {
                                 Eliminar inscripción
                             </button>
                         </li>
+                    `
+                    : ''
+
+                return `
+                <div class="dropdown">
+                    <button
+                        class="btn btn-sm btn-primary dropdown-toggle"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                    >
+                        Acciones
+                    </button>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a
+                                class="dropdown-item"
+                                href="${row.url_impression}"
+                                target="_blank"
+                                title="Imprimir inscripción"
+                            >
+                                <i href="${row.url_show}" class="fa-solid fa-file-pdf fa-width-auto me-2"></i>
+                                Imprimir inscripción
+                            </a>
+                        </li>
+
+                        ${manageActions}
                     </ul>
                 </div>
             `
@@ -124,9 +136,14 @@ export default function useInscriptionConfig() {
         order: [[1, 'desc']],
         ajax: async (data, callback, settings) => {
             try {
-                const response = await api.get('/api/v2/datatables/inscriptions_enabled', { params: data }); // Adjust endpoint and method
+                const response = await api.get('/api/v2/datatables/inscriptions_enabled', {
+                    params: {
+                        ...data,
+                        inscription_year: selectedYear?.value ?? currentYear,
+                    },
+                });
                 callback({
-                    data: response.data.data, // Adjust based on your API response structure
+                    data: response.data.data,
                     recordsTotal: response.data.recordsTotal,
                     recordsFiltered: response.data.recordsFiltered,
                 });
@@ -247,5 +264,5 @@ export default function useInscriptionConfig() {
         }
     })
 
-    return { options, inscription_table, selectedInscriptionId, resolveRouteFromClick, onCancelModal, onSuccessModal };
+    return { options, inscription_table, reloadTable, selectedInscriptionId, resolveRouteFromClick, onCancelModal, onSuccessModal };
 }

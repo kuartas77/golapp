@@ -31,6 +31,7 @@ class UniformRequestRepository
             ->where('year', now()->year)
             ->whereNull('inscriptions.deleted_at');
         })
+        ->where('status', '<>', 'APPROVED')
         ->schoolId();
 
         return datatables()->of($generalQuery)
