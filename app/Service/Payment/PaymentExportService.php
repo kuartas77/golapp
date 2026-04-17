@@ -27,6 +27,7 @@ class PaymentExportService
         $data['school'] = getSchool(auth()->user());
         $data['payments'] = $payments;
         $data['group'] = $group;
+        $data['selected_status'] = (int) $request->input('status', -1);
 
         // return view()->file(resource_path("views/templates/pdf/payments/payments.blade.php"), $data)->render();
 
