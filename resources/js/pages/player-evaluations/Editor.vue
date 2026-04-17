@@ -126,9 +126,9 @@
 
                 <template v-else-if="formReady">
                     <div class="editor-workspace">
-                        <div class="row g-3 mb-4">
+                        <div class="row g-3 mb-4 editor-summary-row">
                         <div class="col-12 col-md-6 col-xl-3">
-                            <div class="surface-card card stat-card">
+                            <div class="surface-card card stat-card editor-summary-card">
                                 <span class="stat-label">Jugador</span>
                                 <strong class="stat-value stat-value-sm">{{ formContext.inscription?.player?.name || '—' }}</strong>
                                 <small class="text-muted">{{ formContext.inscription?.training_group?.name || 'Sin grupo' }}</small>
@@ -136,7 +136,7 @@
                         </div>
 
                         <div class="col-12 col-md-6 col-xl-3">
-                            <div class="surface-card card stat-card">
+                            <div class="surface-card card stat-card editor-summary-card">
                                 <span class="stat-label">Período</span>
                                 <strong class="stat-value stat-value-sm">{{ formContext.period?.name || '—' }}</strong>
                                 <small class="text-muted">{{ formContext.period?.year || 'Sin año' }}</small>
@@ -144,7 +144,7 @@
                         </div>
 
                         <div class="col-12 col-md-6 col-xl-3">
-                            <div class="surface-card card stat-card">
+                            <div class="surface-card card stat-card editor-summary-card">
                                 <span class="stat-label">Plantilla</span>
                                 <strong class="stat-value stat-value-sm">{{ formContext.template?.name || '—' }}</strong>
                                 <small class="text-muted">
@@ -154,7 +154,7 @@
                         </div>
 
                         <div class="col-12 col-md-6 col-xl-3">
-                            <div class="surface-card card stat-card">
+                            <div class="surface-card card stat-card editor-summary-card">
                                 <span class="stat-label">Avance</span>
                                 <strong class="stat-value">{{ completionPercentage }}%</strong>
                                 <small class="text-muted">
@@ -983,6 +983,37 @@ watch(
 .editor-workspace {
     max-width: 1160px;
     margin: 0 auto;
+}
+
+.editor-summary-row > [class*='col-'] {
+    display: flex;
+}
+
+.editor-summary-card {
+    width: 100%;
+    min-height: 124px;
+    justify-content: space-between;
+}
+
+.editor-summary-card .stat-label {
+    font-size: 0.76rem;
+}
+
+.editor-summary-card .stat-value {
+    font-size: 1.65rem;
+    line-height: 1.05;
+}
+
+.editor-summary-card .stat-value-sm {
+    font-size: 1.08rem;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.editor-summary-card .text-muted {
+    display: block;
+    font-size: 0.8rem;
+    line-height: 1.35;
 }
 
 .selection-tip {

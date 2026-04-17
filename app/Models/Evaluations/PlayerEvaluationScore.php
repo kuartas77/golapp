@@ -33,4 +33,22 @@ class PlayerEvaluationScore extends Model
     {
         return $this->belongsTo(EvaluationTemplateCriterion::class, 'template_criterion_id');
     }
+
+    public function getScaleLabelAttribute(): ?string
+    {
+        if ($this->scale_value === null || $this->scale_value === '') {
+            return null;
+        }
+
+        $scoreType = $this->criterion?->score_type;
+
+        if (!$scoreType) {
+            return $this->scale_value;
+        }
+
+        return config(
+            "evaluations.scale_options.{$scoreType}.{$this->scale_value}",
+            $this->scale_value
+        );
+    }
 }

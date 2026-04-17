@@ -174,7 +174,7 @@
                                                 </small>
                                             </td>
                                             <td class="text-center">{{ formatScore(score.score) }}</td>
-                                            <td class="text-center">{{ score.scale_value || '—' }}</td>
+                                            <td class="text-center">{{ score.scale_label || score.scale_value || '—' }}</td>
                                             <td>{{ score.comment || '—' }}</td>
                                         </tr>
                                     </tbody>

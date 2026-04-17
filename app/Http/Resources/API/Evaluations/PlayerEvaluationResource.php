@@ -107,8 +107,8 @@ class PlayerEvaluationResource extends JsonResource
             'created_at' => optional($this->created_at)->toISOString(),
             'updated_at' => optional($this->updated_at)->toISOString(),
             'urls' => [
-                'show' => route('player-evaluations.show', $this->id),
-                'edit' => route('player-evaluations.edit', $this->id),
+                'show' => url("/player-evaluations/{$this->id}"),
+                'edit' => url("/player-evaluations/{$this->id}/edit"),
                 'pdf' => route('player-evaluations.pdf', $this->id),
             ],
         ];

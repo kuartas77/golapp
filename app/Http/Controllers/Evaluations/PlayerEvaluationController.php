@@ -188,7 +188,7 @@ class PlayerEvaluationController extends Controller
         }
 
         return redirect()
-            ->route('player-evaluations.show', $evaluation->id)
+            ->to($this->playerEvaluationShowUrl($evaluation->id))
             ->with('success', 'Evaluación creada correctamente.');
     }
 
@@ -263,7 +263,7 @@ class PlayerEvaluationController extends Controller
         }
 
         return redirect()
-            ->route('player-evaluations.show', $evaluation->id)
+            ->to($this->playerEvaluationShowUrl($evaluation->id))
             ->with('success', 'Evaluación actualizada correctamente.');
     }
 
@@ -279,7 +279,7 @@ class PlayerEvaluationController extends Controller
         }
 
         return redirect()
-            ->route('player-evaluations.index')
+            ->to($this->playerEvaluationIndexUrl())
             ->with('success', 'Evaluación eliminada correctamente.');
     }
 
@@ -317,6 +317,16 @@ class PlayerEvaluationController extends Controller
         abort_unless((int) $playerEvaluation->school_id === $this->currentSchoolId(), 404);
 
         return $playerEvaluation;
+    }
+
+    private function playerEvaluationIndexUrl(): string
+    {
+        return url('/player-evaluations');
+    }
+
+    private function playerEvaluationShowUrl(int $evaluationId): string
+    {
+        return url("/player-evaluations/{$evaluationId}");
     }
 
     private function periodOptions(int $schoolId)
