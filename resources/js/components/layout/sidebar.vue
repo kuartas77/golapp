@@ -9,7 +9,8 @@
                 <li class="menu">
                     <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#dashboard"
                         aria-controls="dashboard" :aria-expanded="isDashboardRoute ? 'true' : 'false'"
-                        :data-active="isDashboardRoute ? 'true' : null">
+                        :data-active="isDashboardRoute ? 'true' : null"
+                        :class="{active: isDashboardRoute}">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -51,7 +52,8 @@
                 <li v-if="showAdministrationMenu" class="menu">
                     <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#apps" aria-controls="apps"
                         :aria-expanded="isAdministrationRoute ? 'true' : 'false'"
-                        :data-active="isAdministrationRoute ? 'true' : null">
+                        :data-active="isAdministrationRoute ? 'true' : null"
+                        :class="{active: isAdministrationRoute}">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -204,7 +206,8 @@
                 <li v-if="canReports" class="menu">
                     <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#reports"
                         aria-controls="reports" :aria-expanded="isReportsRoute ? 'true' : 'false'"
-                        :data-active="isReportsRoute ? 'true' : null">
+                        :data-active="isReportsRoute ? 'true' : null"
+                        :class="{active: isReportsRoute}">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -239,7 +242,8 @@
                 <li v-if="canBilling" class="menu">
                     <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#billing"
                         aria-controls="billing" :aria-expanded="isBillingRoute ? 'true' : 'false'"
-                        :data-active="isBillingRoute ? 'true' : null">
+                        :data-active="isBillingRoute ? 'true' : null"
+                        :class="{active: isBillingRoute}">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
