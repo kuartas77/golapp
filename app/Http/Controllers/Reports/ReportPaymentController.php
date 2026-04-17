@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Reports;
 
 use App\Models\Payment;
 use App\Traits\ErrorTrait;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\TrainingGroup;
 use App\Exports\PaymentsExport;
@@ -18,18 +19,33 @@ class ReportPaymentController extends Controller
 
     public function index(Request $request)
     {
-        if ($request->ajax()) {
-            $groups = TrainingGroup::whereRelation('payments', 'year', '=', $request->input('year', now()->year))
-                ->schoolId()->get()->map(function ($group) {
-                return ['id' => $group->id, 'text' => $group->full_schedule_group];
-            });
-            $groups->prepend(['id' => 0, 'text' => 'Selecciona una opción...']);
-            return response()->json($groups);
-        }
+        return view('theme');
+    }
 
-        $years = Payment::schoolId()->distinct()->pluck('year', 'year');
+    public function metadata(Request $request): JsonResponse
+    {
+        $years = Payment::query()
+            ->select('year')
+            ->schoolId()
+            ->distinct()
+            ->orderBy('year')
+            ->pluck('year')
+            ->prepend(now()->year)
+            ->unique()
+            ->sort()
+            ->values();
 
-        return view('reports.payments.index', compact('years'));
+        $defaultYear = (int) ($request->input('year') ?: $years->last() ?: now()->year);
+        $groups = $this->paymentGroupOptions($defaultYear);
+
+        return response()->json([
+            'years' => $years->map(fn ($year) => [
+                'value' => (int) $year,
+                'label' => (string) $year,
+            ])->values(),
+            'groups' => $groups,
+            'defaultYear' => $defaultYear,
+        ]);
     }
 
     public function report(Request $request)
@@ -54,13 +70,39 @@ class ReportPaymentController extends Controller
                 new NotifyUserOfCompletedExport(auth()->user(), $filename),
             ]);
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'El archivo será enviado al correo electrónico registrado.',
+                ], 202);
+            }
+
             Alert::info("El Archivo será enviado al correo electronico.");
 
         } catch (\Throwable $th) {
             $this->logError("ReportPaymentController@report", $th);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => __('messages.error_general'),
+                ], 500);
+            }
+
             Alert::error(env('APP_NAME'), __('messages.error_general'));
         }
 
         return back();
+    }
+
+    private function paymentGroupOptions(int $year)
+    {
+        return TrainingGroup::whereRelation('payments', 'year', '=', $year)
+            ->schoolId()
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($group) => [
+                'value' => $group->id,
+                'label' => $group->full_schedule_group,
+            ])
+            ->values();
     }
 }

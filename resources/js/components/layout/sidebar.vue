@@ -189,6 +189,39 @@
                         </router-link>
                     </li>
                     <li class="menu">
+                        <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#reports"
+                            aria-controls="reports" aria-expanded="false">
+                            <div class="">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="feather feather-flag">
+                                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                                    <line x1="4" y1="22" x2="4" y2="15"></line>
+                                </svg>
+                                <span>Informes</span>
+                            </div>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="feather feather-chevron-right">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </div>
+                        </a>
+                        <ul id="reports" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
+                            <li>
+                                <router-link :to="{ name: 'reports.assists' }" @click="toggleMobileMenu">
+                                    Asistencias
+                                </router-link>
+                            </li>
+                            <li>
+                                <router-link :to="{ name: 'reports.payments' }" @click="toggleMobileMenu">
+                                    Mensualidades
+                                </router-link>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="menu">
                         <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#billing"
                             aria-controls="billing" aria-expanded="false">
                             <div class="">

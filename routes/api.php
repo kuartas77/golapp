@@ -1,11 +1,5 @@
 <?php
 
-use App\Http\Controllers\Portal\InscriptionsController as PortalInscription;
-use App\Http\Controllers\Portal\SchoolsController as PortalSchool;
-use App\Http\Controllers\API\Portal\GuardianAuthController;
-use App\Http\Controllers\API\Portal\GuardianEvaluationController;
-use App\Http\Controllers\API\Portal\GuardianPlayerController;
-use App\Http\Controllers\API\Portal\GuardianProfileController;
 use App\Http\Controllers\API\Admin\InscriptionController;
 use App\Http\Controllers\API\Admin\RegisterController;
 use App\Http\Controllers\API\Admin\SchoolController;
@@ -15,13 +9,17 @@ use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\Instructor\AssistsController;
 use App\Http\Controllers\API\Instructor\GroupsController;
 use App\Http\Controllers\API\LoginController;
+use App\Http\Controllers\API\Portal\GuardianAuthController;
+use App\Http\Controllers\API\Portal\GuardianEvaluationController;
+use App\Http\Controllers\API\Portal\GuardianPlayerController;
+use App\Http\Controllers\API\Portal\GuardianProfileController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Assists\AssistController;
 use App\Http\Controllers\BackOffice\SchoolController as BackOfficeShoolController;
 use App\Http\Controllers\Competition\GameController;
 use App\Http\Controllers\DataTableController;
-use App\Http\Controllers\Evaluations\PlayerEvaluationComparisonController;
 use App\Http\Controllers\Evaluations\EvaluationTemplateController;
+use App\Http\Controllers\Evaluations\PlayerEvaluationComparisonController;
 use App\Http\Controllers\Evaluations\PlayerEvaluationController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\Groups\CompetitionGroupController;
@@ -33,6 +31,10 @@ use App\Http\Controllers\MasterController;
 use App\Http\Controllers\Payments\PaymentController;
 use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\PlayerStatsController;
+use App\Http\Controllers\Portal\InscriptionsController as PortalInscription;
+use App\Http\Controllers\Portal\SchoolsController as PortalSchool;
+use App\Http\Controllers\Reports\ReportAssistsController;
+use App\Http\Controllers\Reports\ReportPaymentController;
 use App\Http\Controllers\SchoolPages\SchoolsController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
@@ -180,24 +182,31 @@ Route::prefix('v2')->group(function(){
             Route::delete('{playerEvaluation}', [PlayerEvaluationController::class, 'destroy']);
         });
 
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('assists', [ReportAssistsController::class, 'metadata'])->name('assists.metadata');
+            Route::get('payments', [ReportPaymentController::class, 'metadata'])->name('payments.metadata');
+            Route::get('attendance/monthly-by-player', [ReportAssistsController::class, 'monthlyByPlayer'])->name('assists.monthly-by-player');
+            Route::get('attendance/monthly-by-group', [ReportAssistsController::class, 'monthlyByGroup'])->name('assists.monthly-by-group');
+            Route::get('attendance/annual-consolidated', [ReportAssistsController::class, 'annualConsolidated'])->name('assists.annual-consolidated');
+
+        });
+
     });
 
     Route::prefix('portal')->name('portal.')->group(function(){
 
-        // Route::middleware(['guest'])->group(function () {
-            Route::get('escuelas/data', [PortalSchool::class, 'indexData'])->name('school.index.data');
-            Route::get('escuelas/{school}/data', [PortalSchool::class, 'showData'])->name('school.show.data');
+        Route::get('escuelas/data', [PortalSchool::class, 'indexData'])->name('school.index.data');
+        Route::get('escuelas/{school}/data', [PortalSchool::class, 'showData'])->name('school.show.data');
 
 
-            Route::post('{school}/inscripcion', [PortalInscription::class, 'store'])->name('school.inscription.store');
+        Route::post('{school}/inscripcion', [PortalInscription::class, 'store'])->name('school.inscription.store');
 
-            Route::prefix('autocomplete')->group(function () {
-                Route::get('autocomplete', [MasterController::class, 'autoComplete'])->name('autocomplete.fields');
-                Route::get('search_doc', [MasterController::class, 'searchDoc'])->name('autocomplete.search_doc');
-            });
-        // });
+        Route::prefix('autocomplete')->group(function () {
+            Route::get('autocomplete', [MasterController::class, 'autoComplete'])->name('autocomplete.fields');
+            Route::get('search_doc', [MasterController::class, 'searchDoc'])->name('autocomplete.search_doc');
+        });
 
-         Route::get('dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('player.images');
+        Route::get('dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('player.images');
 
         Route::prefix('acudientes')->name('guardians.')->group(function () {
             Route::post('login', [GuardianAuthController::class, 'login'])->name('login');

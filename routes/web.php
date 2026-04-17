@@ -135,13 +135,6 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('assists', [ReportAssistsController::class, 'index'])->name('assists');
-        // Route::post('assists', [ReportAssistsController::class, 'report'])->name('assists.report');
-
-        Route::get('attendance/monthly-by-player', [ReportAssistsController::class, 'monthlyByPlayer'])->name('assists.monthly-by-player');
-        Route::get('attendance/monthly-by-group', [ReportAssistsController::class, 'monthlyByGroup'])->name('assists.monthly-by-group');
-        Route::get('attendance/annual-consolidated', [ReportAssistsController::class, 'annualConsolidated'])->name('assists.annual-consolidated');
-
-
         Route::get('payments', [ReportPaymentController::class, 'index'])->name('payments');
         Route::post('payments', [ReportPaymentController::class, 'report'])->name('payments.report');
     });
@@ -178,24 +171,26 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
     Route::prefix('player-evaluations')->name('player-evaluations.')->group(function () {
         Route::get('/comparison/pdf', [PlayerEvaluationComparisonController::class, 'pdf'])->name('comparison.pdf');
-        Route::get('/comparison', [AppController::class, 'index'])->name('comparison');
+        // La vista SPA la resuelve Vue desde el catch-all final.
+        // Route::get('/comparison', [AppController::class, 'index'])->name('comparison');
 
-        Route::get('/', [AppController::class, 'index'])->name('index');
-        Route::get('/create', [AppController::class, 'index'])->name('create');
+        // Route::get('/', [AppController::class, 'index'])->name('index');
+        // Route::get('/create', [AppController::class, 'index'])->name('create');
         Route::post('/', [PlayerEvaluationController::class, 'store'])->name('store');
 
-        Route::get('/{playerEvaluation}/edit', [AppController::class, 'index'])->name('edit');
+        // Route::get('/{playerEvaluation}/edit', [AppController::class, 'index'])->name('edit');
         Route::put('/{playerEvaluation}', [PlayerEvaluationController::class, 'update'])->name('update');
         Route::delete('/{playerEvaluation}', [PlayerEvaluationController::class, 'destroy'])->name('destroy');
 
         Route::get('/{playerEvaluation}/pdf', [PlayerEvaluationController::class, 'pdf'])->name('pdf');
-        Route::get('/{playerEvaluation}', [AppController::class, 'index'])->name('show');
+        // Route::get('/{playerEvaluation}', [AppController::class, 'index'])->name('show');
     });
 
     Route::prefix('administracion')->middleware(['role:super-admin'])->group(function () {
-        Route::get('plantillas-evaluacion', [AppController::class, 'index']);
-        Route::get('plantillas-evaluacion/crear', [AppController::class, 'index']);
-        Route::get('plantillas-evaluacion/{any}', [AppController::class, 'index'])->where('any', '.*');
+        // Las vistas SPA de plantillas de evaluacion ya viven en el router de Vue.
+        // Route::get('plantillas-evaluacion', [AppController::class, 'index']);
+        // Route::get('plantillas-evaluacion/crear', [AppController::class, 'index']);
+        // Route::get('plantillas-evaluacion/{any}', [AppController::class, 'index'])->where('any', '.*');
     });
 
     // Route::prefix('')->group(function () {

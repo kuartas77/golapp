@@ -144,6 +144,23 @@ const routes = [
                 meta: { requiresRole: ['super-admin', 'school'], requiresSystemNotify: true },
                 component: () => import('@/pages/notifications/TopicNotifications.vue')
             },
+            {
+                path: 'informes',
+                meta: { requiresRole: ['super-admin', 'school'] },
+                component: { render: () => h(RouterView) },
+                children: [
+                    {
+                        path: 'asistencias',
+                        name: 'reports.assists',
+                        component: () => import('@/pages/reports/assists/Index.vue')
+                    },
+                    {
+                        path: 'pagos',
+                        name: 'reports.payments',
+                        component: () => import('@/pages/reports/payments/Index.vue')
+                    },
+                ]
+            },
         ]
     },
 

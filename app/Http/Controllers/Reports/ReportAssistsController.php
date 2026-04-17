@@ -10,7 +10,6 @@ use App\Traits\ErrorTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
-use Yajra\DataTables\Facades\DataTables;
 
 class ReportAssistsController extends Controller
 {
@@ -18,8 +17,41 @@ class ReportAssistsController extends Controller
 
     public function index(Request $request)
     {
+        return view('theme');
+    }
+
+    public function metadata(): JsonResponse
+    {
         $previousMonth = now()->subMonthNoOverflow();
-        return view('reports.assists.index', []);
+
+        $years = Assist::query()
+            ->select('year')
+            ->schoolId()
+            ->distinct()
+            ->orderBy('year')
+            ->pluck('year')
+            ->prepend($previousMonth->year)
+            ->unique()
+            ->sort()
+            ->values()
+            ->map(fn ($year) => [
+                'value' => (int) $year,
+                'label' => (string) $year,
+            ]);
+
+        $months = collect(config('variables.KEY_MONTHS_INDEX'))
+            ->map(fn ($label, $value) => [
+                'value' => (int) $value,
+                'label' => $label,
+            ])
+            ->values();
+
+        return response()->json([
+            'years' => $years,
+            'months' => $months,
+            'defaultYear' => (int) $previousMonth->year,
+            'defaultMonth' => (int) $previousMonth->month,
+        ]);
     }
 
     public function report(Request $request)
