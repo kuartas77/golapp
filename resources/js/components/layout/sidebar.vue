@@ -46,71 +46,66 @@
                     </ul>
                 </li>
 
-                <Can anyRole :roles="['super-admin', 'school']">
-                    <li class="menu">
-                        <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#apps" aria-controls="apps"
-                            aria-expanded="false">
-                            <div class="">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="feather feather-cpu">
-                                    <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-                                    <rect x="9" y="9" width="6" height="6"></rect>
-                                    <line x1="9" y1="1" x2="9" y2="4"></line>
-                                    <line x1="15" y1="1" x2="15" y2="4"></line>
-                                    <line x1="9" y1="20" x2="9" y2="23"></line>
-                                    <line x1="15" y1="20" x2="15" y2="23"></line>
-                                    <line x1="20" y1="9" x2="23" y2="9"></line>
-                                    <line x1="20" y1="14" x2="23" y2="14"></line>
-                                    <line x1="1" y1="9" x2="4" y2="9"></line>
-                                    <line x1="1" y1="14" x2="4" y2="14"></line>
-                                </svg>
-                                <span>Administración</span>
-                            </div>
-                            <div>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="feather feather-chevron-right">
-                                    <polyline points="9 18 15 12 9 6"></polyline>
-                                </svg>
-                            </div>
-                        </a>
-                        <ul id="apps" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
-                            <Can :role="'super-admin'">
-                                <li>
-                                    <router-link :to="{ name: 'schools' }" @click="toggleMobileMenu">Listado
-                                        Escuelas</router-link>
-                                </li>
-                                <li>
-                                    <router-link :to="{ name: 'schools-info' }" @click="toggleMobileMenu">Información
-                                        Escuelas</router-link>
-                                </li>
-                                <li>
-                                    <router-link :to="{ name: 'evaluation-templates.index' }" @click="toggleMobileMenu">
-                                        Plantillas evaluación
-                                    </router-link>
-                                </li>
-                            </Can>
-                            <li>
-                                <router-link :to="{ name: 'school' }" @click="toggleMobileMenu">Escuela</router-link>
-                            </li>
-                            <li>
-                                <router-link :to="{ name: 'users' }" @click="toggleMobileMenu">Usuarios</router-link>
-                            </li>
-                            <li>
-                                <router-link :to="{ name: 'training-groups' }" @click="toggleMobileMenu">G.
-                                    Entrenamiento</router-link>
-                            </li>
-                            <li>
-                                <router-link :to="{ name: 'competition-groups' }" @click="toggleMobileMenu">G.
-                                    Competencia</router-link>
-                            </li>
+                <li v-if="showAdministrationMenu" class="menu">
+                    <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#apps" aria-controls="apps"
+                        aria-expanded="false">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-cpu">
+                                <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                                <rect x="9" y="9" width="6" height="6"></rect>
+                                <line x1="9" y1="1" x2="9" y2="4"></line>
+                                <line x1="15" y1="1" x2="15" y2="4"></line>
+                                <line x1="9" y1="20" x2="9" y2="23"></line>
+                                <line x1="15" y1="20" x2="15" y2="23"></line>
+                                <line x1="20" y1="9" x2="23" y2="9"></line>
+                                <line x1="20" y1="14" x2="23" y2="14"></line>
+                                <line x1="1" y1="9" x2="4" y2="9"></line>
+                                <line x1="1" y1="14" x2="4" y2="14"></line>
+                            </svg>
+                            <span>Administración</span>
+                        </div>
+                        <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-chevron-right">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </div>
+                    </a>
+                    <ul id="apps" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
+                        <li v-if="canEvaluationTemplates">
+                            <router-link :to="{ name: 'schools' }" @click="toggleMobileMenu">Listado
+                                Escuelas</router-link>
+                        </li>
+                        <li v-if="canEvaluationTemplates">
+                            <router-link :to="{ name: 'schools-info' }" @click="toggleMobileMenu">Información
+                                Escuelas</router-link>
+                        </li>
+                        <li v-if="canEvaluationTemplates">
+                            <router-link :to="{ name: 'evaluation-templates.index' }" @click="toggleMobileMenu">
+                                Plantillas evaluación
+                            </router-link>
+                        </li>
+                        <li v-if="canSchoolProfile">
+                            <router-link :to="{ name: 'school' }" @click="toggleMobileMenu">Escuela</router-link>
+                        </li>
+                        <li v-if="canUserManagement">
+                            <router-link :to="{ name: 'users' }" @click="toggleMobileMenu">Usuarios</router-link>
+                        </li>
+                        <li v-if="canTrainingGroups">
+                            <router-link :to="{ name: 'training-groups' }" @click="toggleMobileMenu">G.
+                                Entrenamiento</router-link>
+                        </li>
+                        <li v-if="canCompetitionGroups">
+                            <router-link :to="{ name: 'competition-groups' }" @click="toggleMobileMenu">G.
+                                Competencia</router-link>
+                        </li>
+                    </ul>
+                </li>
 
-                        </ul>
-                    </li>
-                </Can>
-
-                <li class="menu">
+                <li v-if="canPlayers" class="menu">
                     <router-link :to="{ name: 'players' }" class="dropdown-toggle" @click="toggleMobileMenu">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -128,7 +123,7 @@
                     </router-link>
                 </li>
 
-                <li class="menu">
+                <li v-if="canInscriptions" class="menu">
                     <router-link :to="{ name: 'inscriptions' }" class="dropdown-toggle" @click="toggleMobileMenu">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -142,7 +137,7 @@
                     </router-link>
                 </li>
 
-                <li class="menu">
+                <li v-if="canEvaluations" class="menu">
                     <router-link :to="{ name: 'player-evaluations.index' }" class="dropdown-toggle" @click="toggleMobileMenu">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -159,7 +154,7 @@
                     </router-link>
                 </li>
 
-                <li class="menu">
+                <li v-if="canAttendances" class="menu">
                     <router-link :to="{ name: 'attendances' }" class="dropdown-toggle" @click="toggleMobileMenu">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -174,107 +169,7 @@
                         </div>
                     </router-link>
                 </li>
-                <Can anyRole :roles="['super-admin', 'school']">
-                    <li class="menu">
-                        <router-link :to="{ name: 'payments' }" class="dropdown-toggle" @click="toggleMobileMenu">
-                            <div class="">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="feather feather-dollar-sign">
-                                    <line x1="12" y1="1" x2="12" y2="23"></line>
-                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                                </svg>
-                                <span>Mensualidades</span>
-                            </div>
-                        </router-link>
-                    </li>
-                    <li class="menu">
-                        <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#reports"
-                            aria-controls="reports" aria-expanded="false">
-                            <div class="">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="feather feather-flag">
-                                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-                                    <line x1="4" y1="22" x2="4" y2="15"></line>
-                                </svg>
-                                <span>Informes</span>
-                            </div>
-                            <div>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="feather feather-chevron-right">
-                                    <polyline points="9 18 15 12 9 6"></polyline>
-                                </svg>
-                            </div>
-                        </a>
-                        <ul id="reports" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
-                            <li>
-                                <router-link :to="{ name: 'reports.assists' }" @click="toggleMobileMenu">
-                                    Asistencias
-                                </router-link>
-                            </li>
-                            <li>
-                                <router-link :to="{ name: 'reports.payments' }" @click="toggleMobileMenu">
-                                    Mensualidades
-                                </router-link>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="menu">
-                        <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#billing"
-                            aria-controls="billing" aria-expanded="false">
-                            <div class="">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="feather feather-dollar-sign">
-                                    <line x1="12" y1="1" x2="12" y2="23"></line>
-                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                                </svg>
-                                <span>Facturación</span>
-                            </div>
-                            <div>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="feather feather-chevron-right">
-                                    <polyline points="9 18 15 12 9 6"></polyline>
-                                </svg>
-                            </div>
-                        </a>
-                        <ul id="billing" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
-                            <li>
-                                <router-link :to="{ name: 'invoices.index' }" @click="toggleMobileMenu">
-                                    Facturas
-                                </router-link>
-                            </li>
-                            <li v-if="hasSystemNotify">
-                                <router-link :to="{ name: 'payment-requests.index' }" @click="toggleMobileMenu">
-                                    Comprobantes de Pago
-                                </router-link>
-                            </li>
-                            <li v-if="hasSystemNotify">
-                                <router-link :to="{ name: 'uniform-requests.index' }" @click="toggleMobileMenu">
-                                    Solicitudes de Uniformes
-                                </router-link>
-                            </li>
-                        </ul>
-                    </li>
-                    <li v-if="hasSystemNotify" class="menu">
-                        <router-link :to="{ name: 'topic-notifications.index' }" class="dropdown-toggle"
-                            @click="toggleMobileMenu">
-                            <div class="">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="feather feather-bell">
-                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                                </svg>
-                                <span>Notificaciones</span>
-                            </div>
-                        </router-link>
-                    </li>
-                </Can>
-                <li class="menu">
+                <li v-if="canMatches" class="menu">
                     <router-link :to="{ name: 'matches' }" class="dropdown-toggle" @click="toggleMobileMenu">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -289,6 +184,104 @@
                         </div>
                     </router-link>
                 </li>
+                <li v-if="canPayments" class="menu">
+                    <router-link :to="{ name: 'payments' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-dollar-sign">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                            <span>Mensualidades</span>
+                        </div>
+                    </router-link>
+                </li>
+                <li v-if="canReports" class="menu">
+                    <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#reports"
+                        aria-controls="reports" aria-expanded="false">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-flag">
+                                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                                <line x1="4" y1="22" x2="4" y2="15"></line>
+                            </svg>
+                            <span>Informes</span>
+                        </div>
+                        <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-chevron-right">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </div>
+                    </a>
+                    <ul id="reports" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
+                        <li>
+                            <router-link :to="{ name: 'reports.assists' }" @click="toggleMobileMenu">
+                                Asistencias
+                            </router-link>
+                        </li>
+                        <li>
+                            <router-link :to="{ name: 'reports.payments' }" @click="toggleMobileMenu">
+                                Mensualidades
+                            </router-link>
+                        </li>
+                    </ul>
+                </li>
+                <li v-if="canBilling" class="menu">
+                    <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#billing"
+                        aria-controls="billing" aria-expanded="false">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-dollar-sign">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                            <span>Facturación</span>
+                        </div>
+                        <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-chevron-right">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </div>
+                    </a>
+                    <ul id="billing" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
+                        <li>
+                            <router-link :to="{ name: 'invoices.index' }" @click="toggleMobileMenu">
+                                Facturas
+                            </router-link>
+                        </li>
+                        <li v-if="canPaymentRequests">
+                            <router-link :to="{ name: 'payment-requests.index' }" @click="toggleMobileMenu">
+                                Comprobantes de Pago
+                            </router-link>
+                        </li>
+                        <li v-if="canUniformRequests">
+                            <router-link :to="{ name: 'uniform-requests.index' }" @click="toggleMobileMenu">
+                                Solicitudes de Uniformes
+                            </router-link>
+                        </li>
+                    </ul>
+                </li>
+                <li v-if="canTopicNotifications" class="menu">
+                    <router-link :to="{ name: 'topic-notifications.index' }" class="dropdown-toggle"
+                        @click="toggleMobileMenu">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-bell">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span>Notificaciones</span>
+                        </div>
+                    </router-link>
+                </li>
 
             </perfect-scrollbar>
         </nav>
@@ -299,11 +292,35 @@
 <script setup>
 import { computed, onMounted } from 'vue';
 import { useAppState } from '@/store/app-state'
-import { useAuthUser } from '@/store/auth-user'
+import { useBackofficeAccess } from '@/composables/useBackofficeAccess'
 
 const appState = useAppState();
-const auth = useAuthUser()
-const hasSystemNotify = computed(() => auth.hasSystemNotify)
+const { access } = useBackofficeAccess()
+
+const canPlayers = access.players
+const canInscriptions = access.inscriptions
+const canEvaluations = access.evaluations
+const canAttendances = access.attendances
+const canMatches = access.matches
+const canPayments = access.payments
+const canReports = access.reports
+const canBilling = access.billing
+const canSchoolProfile = access.schoolProfile
+const canUserManagement = access.userManagement
+const canTrainingGroups = access.trainingGroups
+const canCompetitionGroups = access.competitionGroups
+const canTopicNotifications = access.topicNotifications
+const canPaymentRequests = access.paymentRequests
+const canUniformRequests = access.uniformRequests
+const canEvaluationTemplates = access.evaluationTemplates
+
+const showAdministrationMenu = computed(() => (
+    canEvaluationTemplates.value
+    || canSchoolProfile.value
+    || canUserManagement.value
+    || canTrainingGroups.value
+    || canCompetitionGroups.value
+))
 
 const toggleMobileMenu = () => {
     if (window.innerWidth < 991) {

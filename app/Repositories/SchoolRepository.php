@@ -130,7 +130,7 @@ class SchoolRepository
         Session::put("{$prefixKey}selected_school", $schoolId);
 
         Cache::remember(
-            School::KEY_SCHOOL_CACHE . "_{$prefixKey}_{$schoolId}",
+            School::cacheKeyFor($prefixKey, (int) $schoolId),
             now()->addMinutes(env('SESSION_LIFETIME', 120)),
             fn() => School::with(['settingsValues'])->find($schoolId)
         );

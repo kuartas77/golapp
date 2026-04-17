@@ -4,7 +4,7 @@ namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\API\UserResource;
+use App\Http\Resources\API\AuthUserResource;
 
 class UserController extends Controller
 {
@@ -13,8 +13,8 @@ class UserController extends Controller
 
     }
 
-    public function user(Request $request): UserResource
+    public function user(Request $request): AuthUserResource
     {
-        return new UserResource($request->user()->load(['roles', 'school.settingsValues']));
+        return new AuthUserResource($request->user()->loadMissing('roles'));
     }
 }

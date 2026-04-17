@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\API\Admin\SchoolPermissionsUpdateRequest;
 use App\Http\Resources\API\SchoolCollection;
 use App\Models\School;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
 class SchoolController extends Controller
@@ -57,6 +59,42 @@ class SchoolController extends Controller
     public function update(Request $request, $id): \Illuminate\Http\RedirectResponse
     {
         return back();
+    }
+
+    public function permissions(School $school): JsonResponse
+    {
+        return response()->json([
+            'school' => [
+                'id' => $school->id,
+                'name' => $school->name,
+                'slug' => $school->slug,
+            ],
+            'permissions' => $school->getResolvedSchoolPermissions(),
+            'catalog' => collect(School::permissionCatalog())
+                ->map(fn (array $permission, string $key) => [
+                    'key' => $key,
+                    'label' => $permission['label'] ?? $key,
+                    'description' => $permission['description'] ?? '',
+                    'group' => $permission['group'] ?? 'General',
+                    'default' => (bool) ($permission['default'] ?? false),
+                ])
+                ->values(),
+        ]);
+    }
+
+    public function updatePermissions(SchoolPermissionsUpdateRequest $request, School $school): JsonResponse
+    {
+        $school->forceFill([
+            'school_permissions' => School::normalizeSchoolPermissions($request->validated('permissions')),
+        ])->save();
+
+        School::forgetCachedSchool($school->id);
+        \Illuminate\Support\Facades\Cache::forget('admin.schools');
+
+        return response()->json([
+            'success' => true,
+            'permissions' => $school->fresh()->getResolvedSchoolPermissions(),
+        ]);
     }
 
     /**

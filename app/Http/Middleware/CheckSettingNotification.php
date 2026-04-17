@@ -18,14 +18,9 @@ class CheckSettingNotification
      */
     public function handle(Request $request, Closure $next)
     {
-        if (auth()->check()) {
-
-            $school = getSchool(auth()->user());
-
-            if (!filter_var($school->settings->get('SYSTEM_NOTIFY'), FILTER_VALIDATE_BOOLEAN)) {
-                alert(config('app.name'), __('messages.schools_dissabled'));
-                return redirect()->back();
-            }
+        if (auth()->check() && !schoolCan('school.feature.system_notify')) {
+            alert(config('app.name'), __('messages.schools_dissabled'));
+            return redirect()->back();
         }
 
         return $next($request);

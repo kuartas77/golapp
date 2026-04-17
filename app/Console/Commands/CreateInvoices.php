@@ -27,11 +27,14 @@ class CreateInvoices extends Command
 
         School::query()
             ->withWhereHas('inscriptions', fn($q) => $q->select(['id', 'player_id', 'school_id'])->where('year', now()->year))
-            ->withWhereHas('settingsValues', fn($q) => $q->where('setting_key', 'SYSTEM_NOTIFY')->where('value', 'true'))
             ->where('is_enable',  true)
             ->chunkById(10, function ($schools) use($currentDate) {
 
                 foreach ($schools as $school) {
+                    if (!$school->hasSchoolPermission('school.feature.system_notify')) {
+                        continue;
+                    }
+
                     $topics = [];
                     $playerIds = [];
 

@@ -1,7 +1,5 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-// import { useAuthUser } from '@/store/auth-user'
+import { ref } from 'vue';
 import api from '@/utils/axios'
 
 export default function useSchoolList() {
@@ -15,6 +13,7 @@ export default function useSchoolList() {
         { data: 'email', title: 'Correo', searchable: false, orderable: false },
         { data: 'phone', title: 'Teléfono', searchable: false, orderable: false },
         { data: 'created_at', title: 'Registro', name: 'created_at', render: '#date', searchable: false, orderable: true },
+        { data: 'id', title: 'Permisos', render: '#actions', searchable: false, orderable: false },
     ]
 
     const ajaxConfig = async (data, callback, settings) => {
@@ -34,7 +33,7 @@ export default function useSchoolList() {
         ...configLanguaje,
         lengthMenu: [[10, 20, 30, 50, 100], [10, 20, 30, 50, 100]],
         columnDefs: [
-            { responsivePriority: 2, targets: columns.length - 5 },
+            { responsivePriority: 2, targets: columns.length - 1 },
             {
                 targets: ['_all'],
                 className: 'dt-head-center dt-body-center', // Center align their headers

@@ -18,34 +18,33 @@ const props = defineProps({
 
 // ---- Lógica de visibilidad ----
 const visible = computed(() => {
-    // ======= PERMISO ÚNICO =======
+    const checks = []
+
     if (props.permission) {
-        return auth.can(props.permission)
+        checks.push(auth.can(props.permission))
     }
 
-    // ======= MÚLTIPLES PERMISOS =======
     if (props.permissions.length > 0) {
         if (props.any) {
-            return auth.canAny(props.permissions) // OR
+            checks.push(auth.canAny(props.permissions))
+        } else {
+            checks.push(props.permissions.every(p => auth.can(p)))
         }
-        return props.permissions.every(p => auth.can(p)) // AND
     }
 
-    // ======= ROL ÚNICO =======
     if (props.role) {
-        return auth.hasRole(props.role)
+        checks.push(auth.hasRole(props.role))
     }
 
-    // ======= MÚLTIPLES ROLES =======
     if (props.roles.length > 0) {
         if (props.anyRole) {
-            return props.roles.some(r => auth.hasRole(r)) // OR
+            checks.push(props.roles.some(r => auth.hasRole(r)))
+        } else {
+            checks.push(props.roles.every(r => auth.hasRole(r)))
         }
-        return props.roles.every(r => auth.hasRole(r)) // AND
     }
 
-    // Nada definido = no mostrar
-    return false
+    return checks.length > 0 && checks.every(Boolean)
 })
 </script>
 

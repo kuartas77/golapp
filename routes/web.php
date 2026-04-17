@@ -36,21 +36,40 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/birthdays', [HomeController::class, 'birthDays'])->name('birthDays');
 
-    Route::post('inscriptions/activate/{id}', [InscriptionController::class, 'activate'])->name('inscriptions.activate');
+    // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
+    Route::middleware('school.permission:school.module.inscriptions')->group(function () {
+        Route::post('inscriptions/activate/{id}', [InscriptionController::class, 'activate'])->name('inscriptions.activate');
+        Route::resource("inscriptions", InscriptionController::class)->except(['create','show']);
+    });
 
-    Route::resource("inscriptions", InscriptionController::class)->except(['create','show']);
-    Route::resource("payments", PaymentController::class)->only(['index','update', 'show']);
-    Route::resource("assists", AssistController::class)->except(['create','edit', 'destroy']);
-    Route::resource("matches", GameController::class)->except(['show']);
-    Route::resource("players", PlayerController::class);
+    // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
+    Route::middleware('school.permission:school.module.payments')->group(function () {
+        Route::resource("payments", PaymentController::class)->only(['index','update', 'show']);
+        Route::get('statuses/payments', [PaymentController::class, 'paymentStatuses'])->name('payments.status');
+    });
+
+    // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
+    Route::middleware('school.permission:school.module.attendances')->group(function () {
+        Route::resource("assists", AssistController::class)->except(['create','edit', 'destroy']);
+    });
+
+    // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
+    Route::middleware('school.permission:school.module.matches')->group(function () {
+        Route::resource("matches", GameController::class)->except(['show']);
+    });
+
+    // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
+    Route::middleware('school.permission:school.module.players')->group(function () {
+        Route::resource("players", PlayerController::class);
+    });
     Route::resource("tournamentpayout", TournamentPayoutsController::class)->only(['index', 'store', 'update']);
 
     Route::resource("training-sessions", TrainingSessionsController::class)->only(['index', 'create', 'store', 'update', 'show']);
 
-    Route::get('statuses/payments', [PaymentController::class, 'paymentStatuses'])->name('payments.status');
-
     Route::prefix('import')->group(function(){
-        Route::post('matches/{match}', [ImportController::class, 'importMatchDetail'])->name('import.match');
+        Route::middleware('school.permission:school.module.matches')->group(function () {
+            Route::post('matches/{match}', [ImportController::class, 'importMatchDetail'])->name('import.match');
+        });
         Route::post('players', [ImportController::class, 'importPlayers'])->name('import.players');
     });
 
@@ -58,82 +77,137 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
     Route::prefix('admin')->middleware(['role:super-admin|school'])->group(function (){
 
+        Route::middleware('school.permission:school.module.user_management')->group(function () {
+            Route::resource('users', UserController::class);
+        });
+
         Route::resources([
-            'users' => UserController::class,
             'schedules' => SchedulesController::class,
             'incidents' => IncidentController::class,
             'tournaments' => TournamentController::class,
-            'training_groups' => TrainingGroupController::class,
-            'competition_groups' => CompetitionGroupController::class,
         ]);
 
-        Route::get('school/{school}', [SchoolsController::class, 'index'])->name('school.index');
-        Route::put('school/{school}', [SchoolsController::class, 'update'])->name('school.update');
+        Route::middleware('school.permission:school.module.training_groups')->group(function () {
+            Route::resource('training_groups', TrainingGroupController::class);
+        });
 
-        Route::get('filter_training_groups', [TrainingGroupController::class, 'filterGroupYear'])->name('training_groups.filter');
-        Route::get('availability_training_groups/{training_group?}', [TrainingGroupController::class, 'availabilityGroup'])->name('training_groups.availability');
+        Route::middleware('school.permission:school.module.competition_groups')->group(function () {
+            Route::resource('competition_groups', CompetitionGroupController::class);
+        });
 
-        Route::get('inscription_training',[InscriptionTGroupController::class, 'index'])->name('ins_training.index');
-        Route::get('inscription_training/{training_group}', [InscriptionTGroupController::class, 'makeRows'])->name('ins_training.make');
-        Route::post('inscription_training/{inscription_id}', [InscriptionTGroupController::class, 'assignGroup'])->name('ins_training.assign');
+        Route::middleware('school.permission:school.module.school_profile')->group(function () {
+            Route::get('school/{school}', [SchoolsController::class, 'index'])->name('school.index');
+            Route::put('school/{school}', [SchoolsController::class, 'update'])->name('school.update');
+        });
 
-        Route::get('inscription_competition',[InscriptionCGroupController::class, 'index'])->name('ins_competition.index');
-        Route::get('inscription_competition/{competition_group}', [InscriptionCGroupController::class, 'makeRows'])->name('ins_competition.make');
-        Route::post('inscription_competition/{inscription}', [InscriptionCGroupController::class, 'assignGroup'])->name('ins_competition.change');
+        Route::middleware('school.permission:school.module.training_groups')->group(function () {
+            Route::get('filter_training_groups', [TrainingGroupController::class, 'filterGroupYear'])->name('training_groups.filter');
+            Route::get('availability_training_groups/{training_group?}', [TrainingGroupController::class, 'availabilityGroup'])->name('training_groups.availability');
+        });
 
-        Route::get('availability_competition_groups/{competition_groups?}', [CompetitionGroupController::class, 'availabilityGroup'])->name('competition_groups.availability');
+        Route::middleware('school.permission:school.module.training_groups')->group(function () {
+            Route::get('inscription_training',[InscriptionTGroupController::class, 'index'])->name('ins_training.index');
+            Route::get('inscription_training/{training_group}', [InscriptionTGroupController::class, 'makeRows'])->name('ins_training.make');
+            Route::post('inscription_training/{inscription_id}', [InscriptionTGroupController::class, 'assignGroup'])->name('ins_training.assign');
+        });
 
-        Route::post('users/activate/{id}', [UserController::class, 'activate'])->name('users.activate');
+        Route::middleware('school.permission:school.module.competition_groups')->group(function () {
+            Route::get('inscription_competition',[InscriptionCGroupController::class, 'index'])->name('ins_competition.index');
+            Route::get('inscription_competition/{competition_group}', [InscriptionCGroupController::class, 'makeRows'])->name('ins_competition.make');
+            Route::post('inscription_competition/{inscription}', [InscriptionCGroupController::class, 'assignGroup'])->name('ins_competition.change');
+            Route::get('availability_competition_groups/{competition_groups?}', [CompetitionGroupController::class, 'availabilityGroup'])->name('competition_groups.availability');
+        });
+
+        Route::middleware('school.permission:school.module.user_management')->group(function () {
+            Route::post('users/activate/{id}', [UserController::class, 'activate'])->name('users.activate');
+        });
 
         Route::resource("invoice-items-custom", InvoiceCustomItemController::class)->except(['create']);
 
     });
 
     Route::prefix('datatables')->group(function () {
-        Route::get('inscriptions_enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');
-        Route::get('inscriptions_disabled', [DataTableController::class, 'disabledInscriptions'])->name('inscriptions.disabled');
-        Route::get('training_groups_enabled', [DataTableController::class, 'enabledTrainingGroups'])->name('training_groups.enabled');
-        Route::get('training_groups_retired', [DataTableController::class, 'disabledTrainingGroups'])->name('training_groups.retired');
-        Route::get('competition_groups_enabled', [DataTableController::class, 'enabledCompetitionGroups'])->name('competition_groups.enabled');
-        Route::get('competition_groups_retired', [DataTableController::class, 'disabledCompetitionGroups'])->name('competition_groups.retired');
+        Route::middleware('school.permission:school.module.inscriptions')->group(function () {
+            Route::get('inscriptions_enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');
+            Route::get('inscriptions_disabled', [DataTableController::class, 'disabledInscriptions'])->name('inscriptions.disabled');
+        });
+
+        Route::middleware('school.permission:school.module.training_groups')->group(function () {
+            Route::get('training_groups_enabled', [DataTableController::class, 'enabledTrainingGroups'])->name('training_groups.enabled');
+            Route::get('training_groups_retired', [DataTableController::class, 'disabledTrainingGroups'])->name('training_groups.retired');
+        });
+
+        Route::middleware('school.permission:school.module.competition_groups')->group(function () {
+            Route::get('competition_groups_enabled', [DataTableController::class, 'enabledCompetitionGroups'])->name('competition_groups.enabled');
+            Route::get('competition_groups_retired', [DataTableController::class, 'disabledCompetitionGroups'])->name('competition_groups.retired');
+        });
+
         Route::get('schedules_enabled', [DataTableController::class, 'enabledSchedules'])->name('schedules.enabled');
-        Route::get('players_enabled', [DataTableController::class, 'enabledPlayers'])->name('players.enabled');
+        Route::middleware('school.permission:school.module.players')->group(function () {
+            Route::get('players_enabled', [DataTableController::class, 'enabledPlayers'])->name('players.enabled');
+        });
         Route::get('training_sessions_enabled', [DataTableController::class, 'trainingSessions'])->name('training_sessions.enabled');
-        Route::get('users_enabled', [DataTableController::class, 'enabledUsers'])->name('users_enabled');
+        Route::middleware('school.permission:school.module.user_management')->group(function () {
+            Route::get('users_enabled', [DataTableController::class, 'enabledUsers'])->name('users_enabled');
+        });
     });
 
     Route::prefix('export')->name('export.')->group(function () {
-        Route::get('player/{player}/pdf', [PlayerExportController::class, 'exportPlayerPDF'])->name('player');
-        Route::get('inscription/{player_id}/{inscription_id}/{year?}/{quarter?}', [PlayerExportController::class, 'exportInscription'])->name('inscription');
-        Route::get('inscriptions/excel', [PlayerExportController::class, 'exportInscriptionsExcel'])->name('inscriptions');
+        Route::middleware('school.permission:school.module.players')->group(function () {
+            Route::get('player/{player}/pdf', [PlayerExportController::class, 'exportPlayerPDF'])->name('player');
+        });
 
-        Route::get('assists/pdf/{training_group_id}/{year}/{month}/{deleted?}', [ExportController::class, 'exportAssistsPDF'])->name('pdf.assists');
-        Route::get('matches/pdf/{match}', [ExportController::class, 'exportMatchPDF'])->name('pdf.match');
+        Route::middleware('school.permission:school.module.inscriptions')->group(function () {
+            Route::get('inscription/{player_id}/{inscription_id}/{year?}/{quarter?}', [PlayerExportController::class, 'exportInscription'])->name('inscription');
+            Route::get('inscriptions/excel', [PlayerExportController::class, 'exportInscriptionsExcel'])->name('inscriptions');
+        });
+
+        Route::middleware('school.permission:school.module.attendances')->group(function () {
+            Route::get('assists/pdf/{training_group_id}/{year}/{month}/{deleted?}', [ExportController::class, 'exportAssistsPDF'])->name('pdf.assists');
+            Route::get('assists/excel/{training_group_id}/{year}/{month}/{deleted?}', [ExportController::class, 'exportAssistsExcel'])->name('assists');
+        });
+
+        Route::middleware('school.permission:school.module.matches')->group(function () {
+            Route::get('matches/pdf/{match}', [ExportController::class, 'exportMatchPDF'])->name('pdf.match');
+            Route::get('matches/create/{competition_group}/format', [ExportController::class, 'exportMatchDetail'])->name('match_detail');
+        });
+
         Route::get('incidents/pdf/{slug_name}', [ExportController::class, 'exportIncidentsPDF'])->name('pdf.incidents');
 
-        Route::get('payments/excel', [ExportController::class, 'exportPaymentsExcel'])->name('payments.excel');
-        Route::get('payments/pdf', [ExportController::class, 'exportPaymentsPDF'])->name('payments.pdf');
-        Route::get('assists/excel/{training_group_id}/{year}/{month}/{deleted?}', [ExportController::class, 'exportAssistsExcel'])->name('assists');
-        Route::get('matches/create/{competition_group}/format', [ExportController::class, 'exportMatchDetail'])->name('match_detail');
+        Route::middleware('school.permission:school.module.payments')->group(function () {
+            Route::get('payments/excel', [ExportController::class, 'exportPaymentsExcel'])->name('payments.excel');
+            Route::get('payments/pdf', [ExportController::class, 'exportPaymentsPDF'])->name('payments.pdf');
+        });
+
         Route::get('tournament/payouts/excel', [ExportController::class, 'exportTournamentPayoutsExcel'])->name('tournaments.payouts.excel');
         Route::get('tournament/payouts/pdf', [ExportController::class, 'exportTournamentPayoutsPDF'])->name('tournaments.payouts.pdf');
         Route::get('training_sessions/pdf/{id}', [ExportController::class, 'exportTrainingSession'])->name('training_sessions.pdf');
-        Route::get('items/invoices', [ExportController::class, 'exportPendingItemsInvoices'])->name('items.invoices');
+        Route::middleware('school.permission:school.module.billing')->group(function () {
+            Route::get('items/invoices', [ExportController::class, 'exportPendingItemsInvoices'])->name('items.invoices');
+        });
 
-        Route::get('{report}/{format}', [AttendanceReportExportController::class, 'download'])
-        ->whereIn('report', ['monthly-player', 'monthly-group', 'annual-consolidated'])
-        ->whereIn('format', ['xlsx', 'pdf'])
-        ->name('assist.export');
+        Route::middleware('school.permission:school.module.reports')->group(function () {
+            Route::get('{report}/{format}', [AttendanceReportExportController::class, 'download'])
+            ->whereIn('report', ['monthly-player', 'monthly-group', 'annual-consolidated'])
+            ->whereIn('format', ['xlsx', 'pdf'])
+            ->name('assist.export');
+        });
     });
 
     Route::prefix('historic')->name('historic.')->group(function () {
-        Route::get('assists', [HistoricController::class, 'assists'])->name('assists');
-        Route::get('assists/{training_group_id}/{year}/{month?}', [HistoricController::class, 'assistsGroup'])->name('assists.group');
-        Route::get('payments', [HistoricController::class, 'payments'])->name('payments');
-        Route::get('payments/{training_group_id}/{year}/{month?}', [HistoricController::class, 'paymentsGroup'])->name('payments.group');
+        Route::middleware('school.permission:school.module.attendances')->group(function () {
+            Route::get('assists', [HistoricController::class, 'assists'])->name('assists');
+            Route::get('assists/{training_group_id}/{year}/{month?}', [HistoricController::class, 'assistsGroup'])->name('assists.group');
+        });
+
+        Route::middleware('school.permission:school.module.payments')->group(function () {
+            Route::get('payments', [HistoricController::class, 'payments'])->name('payments');
+            Route::get('payments/{training_group_id}/{year}/{month?}', [HistoricController::class, 'paymentsGroup'])->name('payments.group');
+        });
     });
 
-    Route::prefix('reports')->name('reports.')->group(function () {
+    // Las vistas SPA equivalentes viven en resources/js/router/index.js y usan metadata desde routes/api.php.
+    Route::middleware('school.permission:school.module.reports')->prefix('reports')->name('reports.')->group(function () {
         Route::get('assists', [ReportAssistsController::class, 'index'])->name('assists');
         Route::get('payments', [ReportPaymentController::class, 'index'])->name('payments');
         Route::post('payments', [ReportPaymentController::class, 'report'])->name('payments.report');
@@ -151,25 +225,35 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('tournaments', [MasterController::class, 'tournamentsBySchool'])->name('autocomplete.tournaments');
     });
 
-    Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.index');
-    Route::get('invoices/create/{inscription}', [InvoiceController::class, 'create'])->name('invoices.create');
-    Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
-    Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
-    Route::delete('invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
-    Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'addPayment'])->name('invoices.addPayment');
-    Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
-    Route::get('items/invoices', [ItemInvoicesController::class, 'index'])->name('items.invoices.index');
+    // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
+    Route::middleware('school.permission:school.module.billing')->group(function () {
+        Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+        Route::get('invoices/create/{inscription}', [InvoiceController::class, 'create'])->name('invoices.create');
+        Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
+        Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+        Route::delete('invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
+        Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'addPayment'])->name('invoices.addPayment');
+        Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
+        Route::get('items/invoices', [ItemInvoicesController::class, 'index'])->name('items.invoices.index');
+    });
 
-    Route::middleware('check_notify_system')->group(function(){
+    Route::middleware([
+        'school.permission:school.module.billing',
+        'school.permission:school.feature.system_notify',
+    ])->group(function(){
         Route::put('invoice/{invoice}/payment-request/{paymentRequest}', [InvoiceController::class, 'update']);
         Route::get('payment-request/invoices', [PaymentRequestController::class, 'index'])->name('payment-request.index');
         Route::get('uniform-request/invoices', [UniformRequestsController::class, 'index'])->name('uniform-request.index');
+    });
+
+    Route::middleware('school.permission:school.feature.system_notify')->group(function () {
         Route::get('notifications/options', [TopicNotificationsController::class, 'options'])->name('notification.options');
         Route::get('notifications', [TopicNotificationsController::class, 'index'])->name('notification.index');
         Route::post('notifications', [TopicNotificationsController::class, 'store'])->name('notification.store');
     });
 
-    Route::prefix('player-evaluations')->name('player-evaluations.')->group(function () {
+    // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
+    Route::middleware('school.permission:school.module.evaluations')->prefix('player-evaluations')->name('player-evaluations.')->group(function () {
         Route::get('/comparison/pdf', [PlayerEvaluationComparisonController::class, 'pdf'])->name('comparison.pdf');
         // La vista SPA la resuelve Vue desde el catch-all final.
         // Route::get('/comparison', [AppController::class, 'index'])->name('comparison');
@@ -188,9 +272,10 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
     Route::prefix('administracion')->middleware(['role:super-admin'])->group(function () {
         // Las vistas SPA de plantillas de evaluacion ya viven en el router de Vue.
-        // Route::get('plantillas-evaluacion', [AppController::class, 'index']);
-        // Route::get('plantillas-evaluacion/crear', [AppController::class, 'index']);
-        // Route::get('plantillas-evaluacion/{any}', [AppController::class, 'index'])->where('any', '.*');
+        // Sus datos y escrituras se atienden desde routes/api.php.
+        Route::get('plantillas-evaluacion', [AppController::class, 'index']);
+        Route::get('plantillas-evaluacion/crear', [AppController::class, 'index']);
+        Route::get('plantillas-evaluacion/{any}', [AppController::class, 'index'])->where('any', '.*');
     });
 
     // Route::prefix('')->group(function () {

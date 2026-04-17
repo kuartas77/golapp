@@ -110,7 +110,7 @@ const modalHidden = () => {
     });
 }
 const showMessage = (msg = "", type = "success") => {
-    const toast = window.Swal.mixin({ toast: true, position: "top-end", showConfirmButton: false, timer: 5000 });
+    const toast = window.Swal.mixin({ toast: true, position: "bottom-end", showConfirmButton: false, timer: 5000 });
     toast.fire({ icon: type, title: msg, padding: "10px 20px" });
 }
 const moneyFormat = (amount) => {

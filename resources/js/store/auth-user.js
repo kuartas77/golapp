@@ -7,10 +7,11 @@ export const useAuthUser = defineStore('auth-user', {
         initialized: false,
         roles: [],
         permissions: [],
+        schoolPermissions: {},
     }),
     getters: {
         isAuthenticated: state => !!state.user,
-        hasSystemNotify: state => Boolean(state.user?.system_notify),
+        hasSystemNotify: state => Boolean(state.schoolPermissions?.['school.feature.system_notify']),
     },
     actions: {
         clearState() {
@@ -34,8 +35,10 @@ export const useAuthUser = defineStore('auth-user', {
                     skipAuthRedirect: true,
                 });
                 this.user = {
+                    id: data.data.id,
                     name: data.data.name,
                     email: data.data.email,
+                    school_id: data.data.school_id,
                     school_name: data.data.school_name,
                     school_slug: data.data.school_slug,
                     school_logo: data.data.school_logo,
@@ -43,8 +46,12 @@ export const useAuthUser = defineStore('auth-user', {
                 };
                 this.roles = data.data.roles
                 this.permissions = data.data.permissions || []
+                this.schoolPermissions = data.data.school_permissions || {}
             } catch {
                 this.user = null;
+                this.roles = []
+                this.permissions = []
+                this.schoolPermissions = {}
             }
         },
         async login(credentials) {
@@ -58,6 +65,9 @@ export const useAuthUser = defineStore('auth-user', {
             } catch {}
             finally {
                 this.user = null;
+                this.roles = []
+                this.permissions = []
+                this.schoolPermissions = {}
                 this.initialized = true
             }
         },
@@ -67,6 +77,14 @@ export const useAuthUser = defineStore('auth-user', {
 
         canAny(permissions) {
             return permissions.some(p => this.can(p))
+        },
+
+        hasSchoolPermission(permission) {
+            return Boolean(this.schoolPermissions?.[permission])
+        },
+
+        hasAnySchoolPermission(permissions) {
+            return permissions.some((permission) => this.hasSchoolPermission(permission))
         },
 
         hasRole(role) {

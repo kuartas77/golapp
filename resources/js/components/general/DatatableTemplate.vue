@@ -43,6 +43,10 @@
             </div>
         </template>
 
+        <template #actions="props">
+            <slot name="actions" v-bind="props" />
+        </template>
+
         <template #player-photo="props">
             <div class="media d-md-flex d-block text-sm-start text-center">
                 <div class=" me-1">

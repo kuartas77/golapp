@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use App\Service\StopWatch;
 use App\Models\School;
 use App\Models\Payment;
+use App\Models\User;
 
 if (!function_exists('getPay')) {
     /**
@@ -227,25 +228,47 @@ if (!function_exists('getSchool')) {
         $user = isset($user) ? $user : auth()->user();
         $prefixKey = isAdmin() ? 'admin.' : (isSchool() ? 'school.': '');
 
-        $school_id = Session::get($prefixKey . 'selected_school', 1);
+        $defaultSchoolId = max((int) data_get($user, 'school_id', 1), 1);
+        $school_id = filter_var(
+            Session::get($prefixKey . 'selected_school', $defaultSchoolId),
+            FILTER_VALIDATE_INT,
+            ['options' => ['min_range' => 1]]
+        );
+        $school_id = $school_id !== false ? $school_id : $defaultSchoolId;
 
-        $key = School::KEY_SCHOOL_CACHE . sprintf('_%s_%s', $prefixKey, $school_id);
+        $key = School::cacheKeyFor($prefixKey, $school_id);
         $ttl = now()->addMinutes(env('SESSION_LIFETIME', 120));
         $builder = School::with(['settingsValues']);
 
         if ((isAdmin() || isSchool()) && Cache::has($key)) {
             $data = Cache::get($key);
         } elseif (isAdmin() && !Cache::has($key)) {
-            $data = Cache::remember(School::KEY_SCHOOL_CACHE . "_admin_1", $ttl, fn() => $builder->first());
+            $key = School::cacheKeyFor(School::CACHE_PREFIX_ADMIN, $school_id);
+            $data = Cache::remember($key, $ttl, fn() => $builder->firstWhere('id', $school_id) ?? $builder->first());
         } elseif (isSchool() && !Cache::has($key)) {
-            $school_id = $user->school_id;
-            $data = Cache::remember(School::KEY_SCHOOL_CACHE . ('_' . $school_id), $ttl, fn() => $builder->firstWhere('id', $school_id));
+            $school_id = (int) $user->school_id;
+            $key = School::cacheKeyFor('', $school_id);
+            $data = Cache::remember($key, $ttl, fn() => $builder->firstWhere('id', $school_id));
         } else {
-            $school_id = $user->school_id;
-            $data = Cache::remember(School::KEY_SCHOOL_CACHE . ('_' . $school_id), $ttl, fn() => $builder->firstWhere('id', $school_id));
+            $school_id = (int) $user->school_id;
+            $key = School::cacheKeyFor('', $school_id);
+            $data = Cache::remember($key, $ttl, fn() => $builder->firstWhere('id', $school_id));
         }
 
         return $data;
+    }
+}
+
+if (!function_exists('schoolCan')) {
+    function schoolCan(string $key, ?User $user = null): bool
+    {
+        $user = $user ?? auth()->user();
+
+        if (!$user instanceof User) {
+            return false;
+        }
+
+        return getSchool($user)->hasSchoolPermission($key);
     }
 }
 

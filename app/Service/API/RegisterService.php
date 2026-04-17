@@ -125,13 +125,8 @@ class RegisterService
 
             $school->refresh()->load(['settingsValues']);
 
-            $key = School::KEY_SCHOOL_CACHE . "_{$school->id}";
-            $adminKey = School::KEY_SCHOOL_CACHE . "_admin_{$school->id}";
-            Cache::forget($key);
-            Cache::forget($adminKey);
+            School::forgetCachedSchool($school->id);
             Cache::forget('admin.schools');
-            Cache::remember($key, now()->addMinutes(env('SESSION_LIFETIME', 120)), fn() => $school);
-            Cache::remember($adminKey, now()->addMinutes(env('SESSION_LIFETIME', 120)), fn() => $school);
 
         } catch (Throwable $th) {
             DB::rollBack();

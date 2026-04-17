@@ -1,0 +1,15 @@
+export const SCHOOL_PERMISSION_KEYS = {
+    players: 'school.module.players',
+    inscriptions: 'school.module.inscriptions',
+    evaluations: 'school.module.evaluations',
+    attendances: 'school.module.attendances',
+    matches: 'school.module.matches',
+    payments: 'school.module.payments',
+    reports: 'school.module.reports',
+    billing: 'school.module.billing',
+    schoolProfile: 'school.module.school_profile',
+    userManagement: 'school.module.user_management',
+    trainingGroups: 'school.module.training_groups',
+    competitionGroups: 'school.module.competition_groups',
+    systemNotify: 'school.feature.system_notify',
+}

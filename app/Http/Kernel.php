@@ -4,6 +4,7 @@ namespace App\Http;
 
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\EnsureGuardian;
+use App\Http\Middleware\EnsureSchoolPermission;
 use App\Http\Middleware\CheckSettingNotification;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\HttpRedirect;
@@ -95,6 +96,7 @@ class Kernel extends HttpKernel
         'throttle' => ThrottleRequests::class,
         'verified' => EnsureEmailIsVerified::class,
         'role' => RoleMiddleware::class,
+        'school.permission' => EnsureSchoolPermission::class,
         'verified_school' => VerifySchool::class,
         'abilities' => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
         'ability' => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -29,6 +30,10 @@ class School extends Model
 
     public const KEY_SCHOOL_CACHE = 'school_';
 
+    public const CACHE_PREFIX_ADMIN = 'admin.';
+
+    public const CACHE_PREFIX_SCHOOL = 'school.';
+
     protected $table = "schools";
 
     protected $fillable = [
@@ -45,6 +50,7 @@ class School extends Model
         'tutor_platform',
         'sign_player',
         'inscriptions_enabled',
+        'school_permissions',
         'short_name',
         'email_info',
     ];
@@ -56,6 +62,7 @@ class School extends Model
         'tutor_platform' => 'bool',
         'sign_player' => 'bool',
         'inscriptions_enabled' => 'bool',
+        'school_permissions' => 'array',
     ];
 
     protected $appends = [
@@ -65,7 +72,66 @@ class School extends Model
 
     protected static function booted()
     {
+        self::creating(function (self $school) {
+            if ($school->getAttribute('school_permissions') === null) {
+                $school->setAttribute('school_permissions', self::defaultSchoolPermissions());
+            }
+        });
+
         self::observe(SchoolObserver::class);
+    }
+
+    public static function permissionCatalog(): array
+    {
+        return config('school_permissions.permissions', []);
+    }
+
+    public static function defaultSchoolPermissions(): array
+    {
+        return collect(self::permissionCatalog())
+            ->mapWithKeys(fn (array $permission, string $key) => [$key => (bool) ($permission['default'] ?? false)])
+            ->all();
+    }
+
+    public static function normalizeSchoolPermissions(array $permissions): array
+    {
+        $defaults = self::defaultSchoolPermissions();
+
+        foreach ($defaults as $key => $default) {
+            if (!array_key_exists($key, $permissions)) {
+                continue;
+            }
+
+            $normalized = filter_var($permissions[$key], FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE);
+            $defaults[$key] = $normalized ?? (bool) $permissions[$key];
+        }
+
+        return $defaults;
+    }
+
+    public static function cacheKeyFor(string $prefixKey, int $schoolId): string
+    {
+        if ($prefixKey === '') {
+            return self::KEY_SCHOOL_CACHE . $schoolId;
+        }
+
+        return self::KEY_SCHOOL_CACHE . sprintf('_%s_%s', $prefixKey, $schoolId);
+    }
+
+    public static function cacheKeysFor(int $schoolId): array
+    {
+        return [
+            self::cacheKeyFor('', $schoolId),
+            self::cacheKeyFor(self::CACHE_PREFIX_ADMIN, $schoolId),
+            self::cacheKeyFor(self::CACHE_PREFIX_SCHOOL, $schoolId),
+        ];
+    }
+
+    public static function forgetCachedSchool(int $schoolId): void
+    {
+        foreach (self::cacheKeysFor($schoolId) as $cacheKey) {
+            Cache::forget($cacheKey);
+        }
     }
 
     public function getRouteKeyName(): string
@@ -248,6 +314,18 @@ class School extends Model
         }
 
         return null;
+    }
+
+    public function getResolvedSchoolPermissions(): array
+    {
+        return self::normalizeSchoolPermissions($this->school_permissions ?? []);
+    }
+
+    public function hasSchoolPermission(string $key): bool
+    {
+        $permissions = $this->getResolvedSchoolPermissions();
+
+        return array_key_exists($key, $permissions) && (bool) $permissions[$key];
     }
 
 }
