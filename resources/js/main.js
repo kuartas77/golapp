@@ -1,137 +1,171 @@
 import '@/bootstrap';
-import { createApp } from 'vue';
-import { createHead } from "@vueuse/head";
-import App from "@/App.vue";
-import { createPinia } from 'pinia'
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
-// custom errorHandler
-import errorHandler from "@/plugins/errorHandler";
-import i18n from "@/i18n";
-import router from "@/router";
-// datatable
-import DataTable from 'datatables.net-vue3';
-import DataTablesCore from 'datatables.net-bs5';
-// perfect scrollbar
-import { PerfectScrollbarPlugin } from 'vue3-perfect-scrollbar';
-//Sweetalert
-import VueSweetalert2 from 'vue-sweetalert2';
-import TypeAhead from "vue3-bootstrap-typeahead";
-import { VueReCaptcha } from 'vue-recaptcha-v3';
-// set default settings
-import appSetting from "@/app-setting";
-import '@/utils/yup-locale'
-// Directives
-import vHasRol from '@/directives/check-rol'
-// custom components
-import breadcrumb from "@/components/layout/breadcrumb.vue";
-import panel from '@/components/layout/panel.vue';
-import input from '@/components/form/Input.vue';
-import fileInputImage from '@/components/form/FileInputImage.vue';
-import Checkbox from '@/components/form/Checkbox.vue';
-import DatatableTemplate from "@/components/general/DatatableTemplate.vue";
-import CustomMultiSelect from "@/components/form/MultiSelect.vue";
-import CustomSelect2 from "@/components/form/CustomSelect2.vue";
-import VueWizardSteps from '@/plugins/wizard'
-import Can from '@/components/general/Can.vue'
-import tooltipDirective from '@/directives/tooltip';
+import '@/utils/yup-locale';
 
-// bootstrap
-import * as bootstrap from "bootstrap";
-window.bootstrap = bootstrap;
-// modals
-import "@/assets/sass/components/custom-modal.scss";
+import { createHead } from '@vueuse/head';
+import * as bootstrap from 'bootstrap';
+import DataTablesCore from 'datatables.net-bs5';
 import 'datatables.net-responsive-bs5';
-import 'vue3-perfect-scrollbar/style.css';
+import DataTable from 'datatables.net-vue3';
+import { createPinia } from 'pinia';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import { createApp } from 'vue';
+import { VueReCaptcha } from 'vue-recaptcha-v3';
+import VueSweetalert2 from 'vue-sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
+import TypeAhead from 'vue3-bootstrap-typeahead';
+import { PerfectScrollbarPlugin } from 'vue3-perfect-scrollbar';
+import 'vue3-perfect-scrollbar/style.css';
+
+import App from '@/App.vue';
+import appSetting from '@/app-setting';
+import Checkbox from '@/components/form/Checkbox.vue';
+import fileInputImage from '@/components/form/FileInputImage.vue';
+import input from '@/components/form/Input.vue';
+import CustomMultiSelect from '@/components/form/MultiSelect.vue';
+import CustomSelect2 from '@/components/form/CustomSelect2.vue';
+import Can from '@/components/general/Can.vue';
+import DatatableTemplate from '@/components/general/DatatableTemplate.vue';
+import breadcrumb from '@/components/layout/breadcrumb.vue';
+import panel from '@/components/layout/panel.vue';
+import tooltipDirective from '@/directives/tooltip';
+import i18n from '@/i18n';
+import errorHandler from '@/plugins/errorHandler';
+import VueWizardSteps from '@/plugins/wizard';
+import router from '@/router';
+
+import '@/assets/sass/components/custom-modal.scss';
 import '@/assets/sass/font-icons/fontawesome/css/fontawesome.css';
 import '@/assets/sass/font-icons/fontawesome/css/regular.css';
 
-// options VueSweetalert2
-const options = {
+window.bootstrap = bootstrap;
+
+const SWEET_ALERT_OPTIONS = {
     confirmButtonColor: '#4361ee',
     cancelButtonColor: '#ff7674',
     cancelButtonText: 'Cancelar',
     didOpen: () => {
-        const content = Swal.getInput();
+        const content = window.Swal?.getInput();
         if (content) {
             content.style.display = '';
         }
     }
 };
 
-DataTable.use(DataTablesCore);
+const COP_CURRENCY_FORMATTER = new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+});
 
-const app = createApp(App);
-const pinia = createPinia()
-pinia.use(piniaPluginPersistedstate)
-const head = createHead();
-const appConfig = window.__APP_CONFIG__ ?? {};
+const GLOBAL_DIRECTIVES = {
+    tooltip: tooltipDirective
+};
 
-app.use(head)
-app.use(i18n)
-app.use(pinia)
-app.use(router)
-app.use(PerfectScrollbarPlugin)
-app.use(VueSweetalert2, options)
-app.use(errorHandler)
-app.use(VueWizardSteps)
+const GLOBAL_COMPONENTS = {
+    DataTable,
+    DatatableTemplate,
+    breadcrumb,
+    panel,
+    inputField: input,
+    inputFileImage: fileInputImage,
+    CustomMultiSelect,
+    checkbox: Checkbox,
+    CustomSelect2,
+    TypeAhead,
+    Can
+};
 
-if (appConfig.recaptchaSiteKey) {
-    app.use(VueReCaptcha, {
-        siteKey: import.meta.env.VITE_RECAPTCHAV3_SITEKEY,
-        loaderOptions: {
-            autoHideBadge: true
-        }
-    })
-}
-
-app.directive('tooltip', tooltipDirective)
-
-app.component('DataTable', DataTable)
-app.component('DatatableTemplate', DatatableTemplate)
-app.component('breadcrumb', breadcrumb)
-app.component('panel', panel)
-app.component('inputField', input)
-app.component('inputFileImage', fileInputImage)
-app.component('CustomMultiSelect', CustomMultiSelect)
-app.component('checkbox', Checkbox)
-app.component('CustomSelect2', CustomSelect2)
-app.component('TypeAhead', TypeAhead)
-app.component('Can', Can)
-
-
-app.mount('#app')
-
-const modalHidden = () => {
+function modalHidden() {
     document.querySelectorAll('.modal').forEach((modal) => {
         modal.addEventListener('hide.bs.modal', () => {
-            document.activeElement.blur();
+            document.activeElement?.blur();
         });
     });
 }
-const showMessage = (msg = "", type = "success") => {
-    const toast = window.Swal.mixin({ toast: true, position: "bottom-end", showConfirmButton: false, timer: 5000 });
-    toast.fire({ icon: type, title: msg, padding: "10px 20px" });
-}
-const moneyFormat = (amount) => {
-    const locale = 'es-CO'; // Colombian Spanish locale
-    const options = {
-        style: 'currency',
-        currency: 'COP', // Colombian Peso currency code
-        minimumFractionDigits: 0, // Ensure two decimal places for cents
-        maximumFractionDigits: 0, // Ensure two decimal places for cents
-    };
-    const formatter = new Intl.NumberFormat(locale, options).format(amount);
-    return formatter;
+
+function showMessage(msg = '', type = 'success') {
+    const toast = window.Swal.mixin({
+        toast: true,
+        position: 'bottom-end',
+        showConfirmButton: false,
+        timer: 5000
+    });
+
+    toast.fire({
+        icon: type,
+        title: msg,
+        padding: '10px 20px'
+    });
 }
 
-window.$appSetting = appSetting
-window.$appSetting.init()
-window.Swal = app.config.globalProperties.$swal
-window.__APP_CONFIG__ = appConfig
-app.config.globalProperties.modalHidden = modalHidden
-app.config.globalProperties.showMessage = showMessage
-app.config.globalProperties.moneyFormat = moneyFormat
-window.modalHidden = app.config.globalProperties.modalHidden
-window.showMessage = app.config.globalProperties.showMessage
-window.moneyFormat = app.config.globalProperties.moneyFormat
+function moneyFormat(amount) {
+    return COP_CURRENCY_FORMATTER.format(amount);
+}
+
+function registerPlugins(app, pinia, head, appConfig) {
+    app.use(head);
+    app.use(i18n);
+    app.use(pinia);
+    app.use(router);
+    app.use(PerfectScrollbarPlugin);
+    app.use(VueSweetalert2, SWEET_ALERT_OPTIONS);
+    app.use(errorHandler);
+    app.use(VueWizardSteps);
+
+    if (appConfig.recaptchaSiteKey) {
+        app.use(VueReCaptcha, {
+            siteKey: import.meta.env.VITE_RECAPTCHAV3_SITEKEY,
+            loaderOptions: {
+                autoHideBadge: true
+            }
+        });
+    }
+}
+
+function registerDirectives(app) {
+    Object.entries(GLOBAL_DIRECTIVES).forEach(([name, directive]) => {
+        app.directive(name, directive);
+    });
+}
+
+function registerComponents(app) {
+    Object.entries(GLOBAL_COMPONENTS).forEach(([name, component]) => {
+        app.component(name, component);
+    });
+}
+
+function registerGlobals(app, appConfig) {
+    window.$appSetting = appSetting;
+    window.$appSetting.init();
+    window.__APP_CONFIG__ = appConfig;
+    window.Swal = app.config.globalProperties.$swal;
+
+    Object.assign(app.config.globalProperties, {
+        modalHidden,
+        showMessage,
+        moneyFormat
+    });
+
+    Object.assign(window, {
+        modalHidden,
+        showMessage,
+        moneyFormat
+    });
+}
+
+DataTable.use(DataTablesCore);
+
+const app = createApp(App);
+const pinia = createPinia();
+const head = createHead();
+const appConfig = window.__APP_CONFIG__ ?? {};
+
+pinia.use(piniaPluginPersistedstate);
+
+registerPlugins(app, pinia, head, appConfig);
+registerDirectives(app);
+registerComponents(app);
+registerGlobals(app, appConfig);
+
+app.mount('#app');

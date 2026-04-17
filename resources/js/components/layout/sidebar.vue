@@ -8,7 +8,8 @@
                 :options="{ wheelSpeed: 0.5, swipeEasing: !0, minScrollbarLength: 40, maxScrollbarLength: 300, suppressScrollX: true }">
                 <li class="menu">
                     <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#dashboard"
-                        aria-controls="dashboard" aria-expanded="false">
+                        aria-controls="dashboard" :aria-expanded="isDashboardRoute ? 'true' : 'false'"
+                        :data-active="isDashboardRoute ? 'true' : null">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -27,7 +28,8 @@
                         </div>
                     </a>
 
-                    <ul id="dashboard" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
+                    <ul id="dashboard" class="collapse submenu list-unstyled" :class="{ show: isDashboardRoute }"
+                        data-bs-parent="#sidebar">
                         <li>
                             <router-link :to="{ name: 'dashboard' }" @click="toggleMobileMenu">
                                 Inicio
@@ -48,7 +50,8 @@
 
                 <li v-if="showAdministrationMenu" class="menu">
                     <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#apps" aria-controls="apps"
-                        aria-expanded="false">
+                        :aria-expanded="isAdministrationRoute ? 'true' : 'false'"
+                        :data-active="isAdministrationRoute ? 'true' : null">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -74,7 +77,8 @@
                             </svg>
                         </div>
                     </a>
-                    <ul id="apps" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
+                    <ul id="apps" class="collapse submenu list-unstyled" :class="{ show: isAdministrationRoute }"
+                        data-bs-parent="#sidebar">
                         <li v-if="canEvaluationTemplates">
                             <router-link :to="{ name: 'schools' }" @click="toggleMobileMenu">Listado
                                 Escuelas</router-link>
@@ -199,7 +203,8 @@
                 </li>
                 <li v-if="canReports" class="menu">
                     <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#reports"
-                        aria-controls="reports" aria-expanded="false">
+                        aria-controls="reports" :aria-expanded="isReportsRoute ? 'true' : 'false'"
+                        :data-active="isReportsRoute ? 'true' : null">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -217,7 +222,8 @@
                             </svg>
                         </div>
                     </a>
-                    <ul id="reports" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
+                    <ul id="reports" class="collapse submenu list-unstyled" :class="{ show: isReportsRoute }"
+                        data-bs-parent="#sidebar">
                         <li>
                             <router-link :to="{ name: 'reports.assists' }" @click="toggleMobileMenu">
                                 Asistencias
@@ -232,7 +238,8 @@
                 </li>
                 <li v-if="canBilling" class="menu">
                     <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#billing"
-                        aria-controls="billing" aria-expanded="false">
+                        aria-controls="billing" :aria-expanded="isBillingRoute ? 'true' : 'false'"
+                        :data-active="isBillingRoute ? 'true' : null">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -250,7 +257,8 @@
                             </svg>
                         </div>
                     </a>
-                    <ul id="billing" class="collapse submenu list-unstyled" data-bs-parent="#sidebar">
+                    <ul id="billing" class="collapse submenu list-unstyled" :class="{ show: isBillingRoute }"
+                        data-bs-parent="#sidebar">
                         <li>
                             <router-link :to="{ name: 'invoices.index' }" @click="toggleMobileMenu">
                                 Facturas
@@ -290,11 +298,13 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue';
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 import { useAppState } from '@/store/app-state'
 import { useBackofficeAccess } from '@/composables/useBackofficeAccess'
 
 const appState = useAppState();
+const route = useRoute();
 const { access } = useBackofficeAccess()
 
 const canPlayers = access.players
@@ -322,27 +332,22 @@ const showAdministrationMenu = computed(() => (
     || canCompetitionGroups.value
 ))
 
+const dashboardRouteNames = new Set([
+    'dashboard',
+    'kpi',
+    'player-stats.index',
+    'player-stats.top',
+    'player-stats.detail',
+]);
+
+const isDashboardRoute = computed(() => dashboardRouteNames.has(route.name));
+const isAdministrationRoute = computed(() => route.path.startsWith('/administracion'));
+const isReportsRoute = computed(() => route.path.startsWith('/informes'));
+const isBillingRoute = computed(() => route.path.startsWith('/facturas'));
+
 const toggleMobileMenu = () => {
     if (window.innerWidth < 991) {
         appState.toggleSideBar(!appState.is_show_sidebar);
     }
 };
-
-onMounted(() => {
-    const selector = document.querySelector('#sidebar a[href="' + window.location.pathname + '"]');
-    if (selector) {
-        const ul = selector.closest('ul.collapse');
-        if (ul) {
-            let ele = ul.closest('li.menu').querySelectorAll('.dropdown-toggle');
-            if (ele) {
-                ele = ele[0];
-                setTimeout(() => {
-                    ele.click();
-                });
-            }
-        } else {
-            selector.click();
-        }
-    }
-});
 </script>
