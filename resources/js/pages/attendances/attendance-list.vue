@@ -2,24 +2,31 @@
     <div class="layout-px-spacing">
         <div class="row layout-top-spacing">
             <div class="layout-spacing col-xl-3 col-lg-3 col-sm-12">
-                <div class="panel br-6 p-2">
+                <div class="panel br-6 p-2" data-tour="attendance-search-panel">
                     <div class="panel-body">
+                        <div class="d-flex justify-content-end mb-2">
+                            <button type="button" class="btn btn-outline-info btn-sm" @click="tutorial.start()">
+                                <i class="fa-regular fa-circle-question me-2"></i>
+                                Ver tutorial
+                            </button>
+                        </div>
+
                         <div class="row">
                             <div class="text-center">
                                 <Form ref="form" :validation-schema="schema" @submit="handleSearchClassdays"
                                     :initial-values="formData" class="align-items-center justify-content-center">
-                                    <div class="mb-3">
+                                    <div class="mb-3" data-tour="attendance-group-filter">
                                         <label for="training_group_id" class="sr-only">Grupo</label>
                                         <Field name="training_group_id" as="CustomSelect2" id="training_group_id"
                                             :options="groups" />
                                         <ErrorMessage name="training_group_id" class="custom-error" />
                                     </div>
-                                    <div class="mb-3">
+                                    <div class="mb-3" data-tour="attendance-month-filter">
                                         <label for="month" class="sr-only">Mes</label>
                                         <Field name="month" as="CustomSelect2" id="month" :options="optionsMonths" />
                                         <ErrorMessage name="month" class="custom-error" />
                                     </div>
-                                    <div class="mb-3">
+                                    <div class="mb-3" data-tour="attendance-search-button">
                                         <button type="submit" class="btn btn-primary w-100" :disabled="isLoading">
                                             Buscar
                                             <template v-if="isLoading">
@@ -43,17 +50,20 @@
                                 </Form>
                             </div>
 
-                            <div v-if="classDays.length" class="row text-center mt-3">
+                            <div v-if="classDays.length" class="row text-center mt-3" data-tour="attendance-classdays">
                                 <div class="col-12">
                                     <h5>Selecciona Día de Entrenamiento:</h5>
                                     <template v-for="classDay in classDays" :key="classDay.id">
-                                        <button class="badge outline-badge-info btn btn-sm m-1" :disabled="isLoading"
+                                        <button
+                                            class="badge outline-badge-info btn btn-sm m-1"
+                                            :disabled="isLoading"
+                                            data-tour="attendance-classday-button"
                                             @click="clickClassDay(classDay)">
                                             {{ `#${classDay.index} | ${classDay.day} ${classDay.date}` }}
                                         </button>
                                     </template>
                                 </div>
-                                <div class="col-12">
+                                <div class="col-12" data-tour="attendance-exports">
                                     <div class="btn-group mt-1" role="group">
                                         <a v-if="export_pdf" :href="export_pdf" target="_blank"
                                             class="badge badge-info btn btn-sm me-1">
@@ -71,13 +81,15 @@
                 </div>
             </div>
             <div class="layout-spacing col-xl-9 col-lg-9 col-sm-12">
-                <div class="panel br-6 p-2">
+                <div class="panel br-6 p-2" data-tour="attendance-table-panel">
                     <div class="panel-body">
-                        <h5 v-if="modelGroup">{{ modelGroup.full_group }}</h5>
-                        <h6 v-if="classDaySelected">
-                            Clase: {{ `#${classDaySelected.index} | ${classDaySelected.day} ${classDaySelected.date}` }}
-                        </h6>
-                        <div class="row">
+                        <div data-tour="attendance-session-summary">
+                            <h5 v-if="modelGroup">{{ modelGroup.full_group }}</h5>
+                            <h6 v-if="classDaySelected">
+                                Clase: {{ `#${classDaySelected.index} | ${classDaySelected.day} ${classDaySelected.date}` }}
+                            </h6>
+                        </div>
+                        <div class="row" data-tour="attendance-table">
                             <DataTable :options="options" :data="attendancesGroup" class="table table-bordered table-sm"
                                 id="attendance_table" ref="attendance_table">
 
@@ -117,30 +129,32 @@
 
                                 <template #attendance-select="props">
                                     <select
-                                    class="form-select form-select-sm"
-                                    :value="props.rowData[classDaySelected.column] ?? ''"
-                                    :disabled="isLoading"
-                                    :id="props.rowData.id"
-                                    @change="onChangeAttendance(props.rowData, $event.target.value)"
+                                        class="form-select form-select-sm"
+                                        :value="props.rowData[classDaySelected.column] ?? ''"
+                                        :disabled="isLoading"
+                                        :id="props.rowData.id"
+                                        data-tour="attendance-status-select"
+                                        @change="onChangeAttendance(props.rowData, $event.target.value)"
                                     >
-                                    <option value="">Selecciona...</option>
-                                    <option
-                                        v-for="(label, value) in attendanceTypes"
-                                        :key="value"
-                                        :value="value"
-                                    >
-                                        {{ label }}
-                                    </option>
+                                        <option value="">Selecciona...</option>
+                                        <option
+                                            v-for="(label, value) in attendanceTypes"
+                                            :key="value"
+                                            :value="value"
+                                        >
+                                            {{ label }}
+                                        </option>
                                     </select>
                                 </template>
 
                                 <template #observations="props">
                                     <button
-                                    type="button"
-                                    class="badge badge-primary btn btn-sm m-1"
-                                    @click="onClickOpenModalObservation(props.rowData)"
+                                        type="button"
+                                        class="badge badge-primary btn btn-sm m-1"
+                                        data-tour="attendance-observation-button"
+                                        @click="onClickOpenModalObservation(props.rowData)"
                                     >
-                                    Observación
+                                        Observación
                                     </button>
                                 </template>
                             </DataTable>
@@ -184,7 +198,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="form-group">
+                        <div class="form-group" data-tour="attendance-observation-field">
                             <label for="single_observation">
                                 Observación para el deportista en el entrenamiento:
                             </label>
@@ -206,6 +220,7 @@
             </div>
         </div>
     </div>
+    <PageTutorialOverlay :tutorial="tutorial" />
     <breadcrumb :parent="'Plataforma'" :current="'Asistencias'" />
 
     <!-- <teleport defer to="#search_players">
@@ -218,8 +233,14 @@ export default {
 };
 </script>
 <script setup>
+import { useTemplateRef } from 'vue'
 import { ErrorMessage, Field, Form } from "vee-validate";
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useAttendances from '@/composables/attendances/attendances'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { attendancesTutorial } from '@/tutorials/attendances'
+
+const form = useTemplateRef('form')
 
 const {
     attendance_table,
@@ -245,4 +266,22 @@ const {
     onCancelModalObservation,
     onSaveModalObservation
 } = useAttendances()
+const tutorial = usePageTutorial(attendancesTutorial, {
+    formRef: form,
+    groups,
+    formData,
+    optionsMonths,
+    classDays,
+    classDaySelected,
+    attendancesGroup,
+    takeAttendance,
+    exportPdf: export_pdf,
+    exportExcel: export_excel,
+    actions: {
+        handleSearchClassdays,
+        clickClassDay,
+        openObservationModal: onClickOpenModalObservation,
+        closeObservationModal: onCancelModalObservation,
+    },
+})
 </script>

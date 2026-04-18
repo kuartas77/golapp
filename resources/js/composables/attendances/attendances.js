@@ -2,18 +2,20 @@ import configLanguaje from '@/utils/datatableUtils'
 import { useSetting } from '@/store/settings-store'
 import { usePageTitle } from "@/composables/use-meta"
 import api from "@/utils/axios"
-import { getCurrentInstance, useTemplateRef, onMounted, ref } from "vue"
+import { computed, getCurrentInstance, useTemplateRef, onMounted, ref } from "vue"
 import * as yup from 'yup'
 
 export default function useAttendances() {
+    usePageTitle('Asistencias')
+
     const composeModalObservation = ref(null)
     const isLoading = ref(false)
     const settings = useSetting()
     const attendance_table = useTemplateRef('attendance_table')
 
-    const groups = settings.groups
+    const groups = computed(() => settings.groups
         .filter((group) => group.name !== 'Provisional')
-        .map((group) => ({ value: group.id, label: group.full_group }))
+        .map((group) => ({ value: group.id, label: group.full_group })))
 
     const schema = yup.object().shape({
         training_group_id: yup.string().required(),
@@ -126,11 +128,15 @@ export default function useAttendances() {
         return Number(value)
     }
 
-    const handleSearchClassdays = async (values, actions) => {
+    const handleSearchClassdays = async (values, actions = null) => {
         try {
             classDaySelected.value = null
             isLoading.value = true
             attendancesGroup.value = []
+            export_pdf.value = null
+            export_excel.value = null
+            modelGroup.value = settings.groups.find((group) => String(group.id) === String(values.training_group_id)) ?? null
+            modelMonth.value = optionsMonths.find((month) => Number(month.value) === Number(values.month)) ?? null
 
             const response = await api.get(`/api/v2/training_group/classdays`, {
                 params: { ...values },
@@ -141,11 +147,15 @@ export default function useAttendances() {
             }
         } catch (error) {
             classDays.value = []
-            proxy.$handleBackendErrors(
-                error,
-                actions.setErrors,
-                (msg) => (globalError.value = msg)
-            )
+            if (actions?.setErrors) {
+                proxy.$handleBackendErrors(
+                    error,
+                    actions.setErrors,
+                    (msg) => (globalError.value = msg)
+                )
+            } else {
+                showMessage("No fue posible consultar los días de entrenamiento.", 'error')
+            }
         } finally {
             isLoading.value = false
         }
@@ -284,9 +294,9 @@ export default function useAttendances() {
         }
     }
 
-    onMounted(() => {
+    onMounted(async () => {
+        await settings.getSettings()
         initModals()
-        usePageTitle('Asistencias')
 
         // if (attendance_table.value) {
         //     let dt = attendance_table.value.dt;
