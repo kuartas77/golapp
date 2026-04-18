@@ -7,7 +7,8 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center" data-tour="invoice-create-header">
                             <h4><i class="fa fa-file-invoice"></i> Crear Factura</h4>
-                            <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                            <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                                <i class="fa-regular fa-circle-question me-2"></i>
                                 Guia
                             </button>
                         </div>

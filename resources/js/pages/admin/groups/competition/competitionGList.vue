@@ -13,7 +13,8 @@
                     <p>Estos grupos cómo su nombre lo dice se crean para poder gestionar las competencias y así obtener los datos de las estadísticos de los deportistas.</p>
                 </div>
                 <div class="col-md-auto ms-md-auto">
-                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                    <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                        <i class="fa-regular fa-circle-question me-2"></i>
                         Guia
                     </button>
                 </div>

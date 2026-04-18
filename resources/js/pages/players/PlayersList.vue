@@ -7,7 +7,7 @@
                     <p data-tour="players-list-intro">En este listado se incluyen todos los deportistas que han sido parte de la escuela en el transcurso de los años.</p>
                 </div>
                 <div class="col-md-auto ms-md-auto">
-                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                    <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                         Guia
                     </button>
                 </div>

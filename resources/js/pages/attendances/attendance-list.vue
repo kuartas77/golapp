@@ -5,7 +5,7 @@
                 <div class="panel br-6 p-2" data-tour="attendance-search-panel">
                     <div class="panel-body">
                         <div class="d-flex justify-content-end mb-2">
-                            <button type="button" class="btn btn-outline-info btn-sm" @click="tutorial.start()">
+                            <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                                 <i class="fa-regular fa-circle-question me-2"></i>
                                 Guia
                             </button>

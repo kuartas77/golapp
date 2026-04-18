@@ -6,7 +6,8 @@
                 <a class="btn btn-block btn-primary" href="javascript:void(0);" @click="openGroupSelection()" data-tour="matches-list-actions">
                     Crear Competencia
                 </a>
-                <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                    <i class="fa-regular fa-circle-question me-2"></i>
                     Guia
                 </button>
             </div>

@@ -16,7 +16,7 @@
                                         Consulta los cortes mensuales y el consolidado anual desde un solo panel.
                                     </p>
                                 </div>
-                                <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                                <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                                     Guia
                                 </button>
                             </div>

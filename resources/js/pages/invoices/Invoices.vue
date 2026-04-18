@@ -1,11 +1,7 @@
 <template>
     <panel>
         <template #body>
-            <div class="d-flex justify-content-end mb-3">
-                <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
-                    Guia
-                </button>
-            </div>
+
 
             <div class="row " data-tour="invoices-index-filters">
                 <div class="col-md-2">
@@ -34,6 +30,12 @@
                             </div>
 
                     </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                        <i class="fa-regular fa-circle-question me-2"></i>
+                        Guia
+                    </button>
                 </div>
             </div>
 

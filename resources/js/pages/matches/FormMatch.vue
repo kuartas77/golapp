@@ -10,7 +10,8 @@
                         <div class="panel-body">
                             <Loader :is-loading="isLoading" />
                             <div class="d-flex justify-content-end mb-3 no-print" data-tour="match-form-header">
-                                <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                                <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                                    <i class="fa-regular fa-circle-question me-2"></i>
                                     Guia
                                 </button>
                             </div>

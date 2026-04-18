@@ -75,7 +75,7 @@
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-end mt-3">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                                    <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                                         Guia
                                     </button>
                                 </div>

@@ -21,13 +21,18 @@
 
                 <Loader :is-loading="isLoading" :loading-text="loadingText" />
 
-
-
                 <Wizard v-model="step" :options="wizardOptions(validate)" @finish="handleSubmit(onSubmit)" data-tour="player-detail-wizard">
 
                     <template #info>
                         <h6 class="d-flex block-helper justify-content-center">Los campos con <span
                                 class="text-danger">&ensp;(*)&ensp;</span> son requeridos.</h6>
+
+                        <div class="d-flex justify-content-end ">
+                            <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                                <i class="fa-regular fa-circle-question me-2"></i>
+                                Guia
+                            </button>
+                        </div>
                     </template>
 
                     <Step title="Información personal">
@@ -226,11 +231,7 @@
         </template>
     </panel>
     <breadcrumb :parent="'Plataforma'" :current="currentTextPlayer" />
-    <div class="d-flex justify-content-end mt-3">
-        <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
-            Guia
-        </button>
-    </div>
+
     <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>

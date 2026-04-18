@@ -30,7 +30,8 @@
                                     <router-link :to="{ name: 'kpi' }" class="btn btn-secondary">
                                         Ver indicadores
                                     </router-link>
-                                    <button type="button" class="btn btn-outline-primary" @click="tutorial.start()">
+                                    <button type="button" class="btn btn-info" @click="tutorial.start()">
+                                        <i class="fa-regular fa-circle-question me-2"></i>
                                         Guia
                                     </button>
                                 </div>

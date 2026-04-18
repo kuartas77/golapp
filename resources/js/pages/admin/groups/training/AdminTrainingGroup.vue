@@ -6,7 +6,8 @@
                     <h4>Grupos de entrenamiento</h4>
                 </div>
                 <div class="col-12 mt-2 d-flex justify-content-end">
-                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                    <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                        <i class="fa-regular fa-circle-question me-2"></i>
                         Guia
                     </button>
                 </div>

@@ -12,7 +12,8 @@
                     <p>Grupos de entrenamiento, son parte fundamental del sistema, ya que con ellos se pueden buscar las inscripciones, pagos y asistencias.</p>
                 </div>
                 <div class="col-md-auto ms-md-auto">
-                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                    <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                        <i class="fa-regular fa-circle-question me-2"></i>
                         Guia
                     </button>
                 </div>

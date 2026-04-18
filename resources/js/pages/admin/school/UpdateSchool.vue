@@ -4,7 +4,8 @@
         <template #body>
             <Form ref="form" :validation-schema="schema" @submit="submit" :initial-values="formData">
                 <div class="d-flex justify-content-end mb-3">
-                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                    <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                        <i class="fa-regular fa-circle-question me-2"></i>
                         Guia
                     </button>
                 </div>

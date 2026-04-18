@@ -1,13 +1,9 @@
 <template>
     <panel>
         <template #body>
-            <div class="d-flex justify-content-end mb-3">
-                <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
-                    Guia
-                </button>
-            </div>
 
             <div class="row" data-tour="monthly-payments-filters">
+
                 <div class="col-xl-6 col-lg-6 col-sm-12 text-center">
                     <Form ref="form" :validation-schema="schema" @submit="handleSearch" :initial-values="formData"
                         class="row align-items-center justify-content-center">
@@ -92,7 +88,7 @@
                                 <i class="far fa-file-excel fa-lg"></i>EXCEL
                             </a>
                         </div>
-                        <!-- <small class="text-info mt-2"> La opción de arriba "OTROS" incluye: Acuerdo de Pago, Abonó, Incapacidad, Retiro Temporal, Retiro Definitivo, Otro, Becado.</small> -->
+
                     </div>
                 </div>
             </div>
@@ -104,16 +100,19 @@
                 <div
                     class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mb-2">
                     <div class="dt-info">
+                        <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                            <i class="fa-regular fa-circle-question me-2"></i>
+                            Guia
+                        </button>
+                    </div>
+                </div>
+
+                <div
+                    class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mb-2">
+                    <div class="dt-info">
                         Mostrando {{ player_count }} Deportistas.
                     </div>
                 </div>
-                <!-- <div
-                    class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mb-2">
-                    <div class="dt-info">
-                        Los totales no incluyen el estado
-                        <small class="text-danger">Debe</small>.
-                    </div>
-                </div> -->
             </div>
 
             <div class="table-responsive" :class="groupPayments.length ? 'scroll-container' : ''" data-tour="monthly-payments-table">

@@ -13,7 +13,8 @@
                     <p>Se pueden crear usuarios con el perfil de instructor, de ser requerido un usuario con el perfil de school que es perfil para administrar la escuela, favor solicitarlo.</p>
                 </div>
                 <div class="col-md-auto ms-md-auto">
-                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                    <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                        <i class="fa-regular fa-circle-question me-2"></i>
                         Guia
                     </button>
                 </div>
