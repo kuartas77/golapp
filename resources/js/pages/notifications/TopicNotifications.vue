@@ -70,13 +70,12 @@
 
                                 <div v-if="form.notification_type === 'categories'" class="mb-3">
                                     <label class="form-label" for="categories">Categorías</label>
-                                    <select id="categories" v-model="form.categories" class="form-select" multiple
-                                        size="8">
-                                        <option v-for="option in optionGroups.categories" :key="option.value"
-                                            :value="option.value">
-                                            {{ option.label }}
-                                        </option>
-                                    </select>
+                                    <CustomSelect2
+                                        id="categories"
+                                        v-model="form.categories"
+                                        :options="optionGroups.categories"
+                                        multiple size="8"/>
+
                                     <div v-if="getError('categories')" class="text-danger small mt-1">
                                         {{ getError('categories') }}
                                     </div>
@@ -84,13 +83,12 @@
 
                                 <div v-if="form.notification_type === 'training_groups'" class="mb-3">
                                     <label class="form-label" for="training_groups">Grupos de entrenamiento</label>
-                                    <select id="training_groups" v-model="form.training_groups" class="form-select"
-                                        multiple size="8">
-                                        <option v-for="option in optionGroups.training_groups" :key="option.value"
-                                            :value="option.value">
-                                            {{ option.label }}
-                                        </option>
-                                    </select>
+                                    <CustomSelect2
+                                        id="training_groups"
+                                        v-model="form.training_groups"
+                                        :options="optionGroups.training_groups"
+                                        multiple size="8"/>
+
                                     <div v-if="getError('training_groups')" class="text-danger small mt-1">
                                         {{ getError('training_groups') }}
                                     </div>
@@ -98,13 +96,12 @@
 
                                 <div v-if="form.notification_type === 'competition_groups'" class="mb-3">
                                     <label class="form-label" for="competition_groups">Grupos de competencia</label>
-                                    <select id="competition_groups" v-model="form.competition_groups"
-                                        class="form-select" multiple size="8">
-                                        <option v-for="option in optionGroups.competition_groups" :key="option.value"
-                                            :value="option.value">
-                                            {{ option.label }}
-                                        </option>
-                                    </select>
+                                    <CustomSelect2
+                                        id="competition_groups"
+                                        v-model="form.competition_groups"
+                                        :options="optionGroups.competition_groups"
+                                        multiple size="8"/>
+
                                     <div v-if="getError('competition_groups')" class="text-danger small mt-1">
                                         {{ getError('competition_groups') }}
                                     </div>
@@ -146,7 +143,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, useTemplateRef } from 'vue'
+import { onMounted, reactive, ref, useTemplateRef, watch } from 'vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
 import dayjs from '@/utils/dayjs'
@@ -253,6 +250,12 @@ const resetForm = () => {
     submitting.value = false
 }
 
+const resetTopicSelections = () => {
+    form.categories = []
+    form.training_groups = []
+    form.competition_groups = []
+}
+
 const reloadTable = () => {
     const dt = notificationsTable.value?.table?.dt
 
@@ -320,5 +323,12 @@ onMounted(async () => {
     }
 
     await loadOptions()
+})
+
+watch(() => form.notification_type, () => {
+    resetTopicSelections()
+    delete validationErrors.value.categories
+    delete validationErrors.value.training_groups
+    delete validationErrors.value.competition_groups
 })
 </script>
