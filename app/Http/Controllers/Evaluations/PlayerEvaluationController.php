@@ -109,6 +109,7 @@ class PlayerEvaluationController extends Controller
                     ->values(),
                 'training_groups' => TrainingGroup::query()
                     ->where('school_id', $schoolId)
+                    ->where('year_active', now()->year)
                     ->orderBy('name')
                     ->get(['id', 'name'])
                     ->map(fn (TrainingGroup $group) => [
@@ -345,6 +346,7 @@ class PlayerEvaluationController extends Controller
         return Inscription::query()
             ->where('school_id', $schoolId)
             ->with(['player', 'trainingGroup'])
+            ->where('year', now()->year)
             ->latest('id')
             ->get()
             ->map(function (Inscription $inscription) {
@@ -357,7 +359,7 @@ class PlayerEvaluationController extends Controller
                     'training_group_name' => $inscription->trainingGroup?->name,
                     'label' => sprintf(
                         '#%s - %s%s',
-                        $inscription->id,
+                        $inscription->unique_code,
                         $this->playerName($inscription->player),
                         $inscription->trainingGroup?->name ? ' - ' . $inscription->trainingGroup->name : ''
                     ),
