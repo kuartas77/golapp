@@ -10,6 +10,7 @@ use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\Instructor\AssistsController;
 use App\Http\Controllers\API\Instructor\GroupsController;
 use App\Http\Controllers\API\LoginController;
+use App\Http\Controllers\API\Notifications\HeaderNotificationsController;
 use App\Http\Controllers\API\Portal\GuardianAuthController;
 use App\Http\Controllers\API\Portal\GuardianEvaluationController;
 use App\Http\Controllers\API\Portal\GuardianPlayerController;
@@ -153,6 +154,13 @@ Route::prefix('v2')->group(function(){
 
         Route::middleware('school.permission:school.module.matches')->group(function () {
             Route::apiResource("matches", GameController::class)->except(['index','edit','create']);
+        });
+
+        Route::middleware([
+            'school.permission:school.module.billing',
+            'school.permission:school.feature.system_notify',
+        ])->prefix('notifications')->group(function () {
+            Route::get('header-summary', [HeaderNotificationsController::class, 'index']);
         });
 
         Route::get('/player-stats', [PlayerStatsController::class, 'index']);

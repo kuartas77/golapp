@@ -249,6 +249,8 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         'school.permission:school.module.billing',
         'school.permission:school.feature.system_notify',
     ])->group(function(){
+        // Las vistas SPA equivalentes viven en resources/js/router/index.js.
+        // El header Vue consume el resumen desde GET /api/v2/notifications/header-summary.
         Route::put('invoice/{invoice}/payment-request/{paymentRequest}', [InvoiceController::class, 'update']);
         Route::get('payment-request/invoices', [PaymentRequestController::class, 'index'])->name('payment-request.index');
         Route::get('uniform-request/invoices', [UniformRequestsController::class, 'index'])->name('uniform-request.index');
