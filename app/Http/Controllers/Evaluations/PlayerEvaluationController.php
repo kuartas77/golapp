@@ -98,6 +98,7 @@ class PlayerEvaluationController extends Controller
             'filters' => [
                 'players' => Player::query()
                     ->where('school_id', $schoolId)
+                    ->whereHas('inscription', operator: '=', count: 1)
                     ->orderBy('names')
                     ->orderBy('last_names')
                     ->get()
