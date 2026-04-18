@@ -156,6 +156,8 @@ const routes = [
                     },
 
                     { path: 'schools', name: 'schools', component: () => import('@/pages/admin/school/list-schools.vue'), meta: { requiresRole: ['super-admin'] } },
+                    { path: 'schools/create', name: 'schools.create', component: () => import('@/pages/admin/school/CreateSchool.vue'), meta: { requiresRole: ['super-admin'] } },
+                    { path: 'schools/:slug/edit', name: 'schools.edit', component: () => import('@/pages/admin/school/EditSchool.vue'), meta: { requiresRole: ['super-admin'] } },
                     { path: 'schools-info', name: 'schools-info', component: () => import('@/pages/admin/school/list-info.vue'), meta: { requiresRole: ['super-admin'] } },
                 ]
             },

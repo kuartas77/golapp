@@ -36,6 +36,8 @@ class Setting extends Model
 
     public const SYSTEM_NOTIFY = 'SYSTEM_NOTIFY';
 
+    public const MULTIPLE_SCHOOLS = 'MULTIPLE_SCHOOLS';
+
     protected $table = "settings";
 
     protected $fillable = [

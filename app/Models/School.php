@@ -277,17 +277,27 @@ class School extends Model
             ['schedule' => "08:00PM - 09:00PM"],
             ['schedule' => "09:00PM - 10:00PM"],
         ];
-        $this->schedules()->createMany($schedules);
 
-        $this->trainingGroups()->create([
-            'name' => 'Provisional',
-            'year' => null,
-            'category' => 'Todas las categorías',
-            'days' => 'Grupo predeterminado',
-            'schedules' => '10:00AM - 11:00AM',
-        ]);
+        if (!$this->schedules()->exists()) {
+            $this->schedules()->createMany($schedules);
+        }
 
-        $this->settingsValues()->createMany(SettingValue::settingsDefault($this->id));
+        $this->trainingGroups()->firstOrCreate(
+            ['name' => 'Provisional'],
+            [
+                'year' => null,
+                'category' => 'Todas las categorías',
+                'days' => 'Grupo predeterminado',
+                'schedules' => '10:00AM - 11:00AM',
+            ]
+        );
+
+        foreach (SettingValue::settingsDefault($this->id) as $setting) {
+            $this->settingsValues()->updateOrCreate(
+                ['setting_key' => $setting['setting_key']],
+                ['value' => $setting['value']]
+            );
+        }
     }
 
     public function schedules(): HasMany

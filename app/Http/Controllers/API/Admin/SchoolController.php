@@ -4,14 +4,21 @@ namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\Admin\SchoolPermissionsUpdateRequest;
+use App\Http\Requests\API\Admin\SuperAdminSchoolStoreRequest;
+use App\Http\Requests\API\Admin\SuperAdminSchoolUpdateRequest;
 use App\Http\Resources\API\SchoolCollection;
 use App\Models\School;
-use Illuminate\Http\Request;
+use App\Service\Admin\SuperAdminSchoolService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class SchoolController extends Controller
 {
+    public function __construct(private SuperAdminSchoolService $superAdminSchoolService)
+    {
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -33,9 +40,19 @@ class SchoolController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(SuperAdminSchoolStoreRequest $request): JsonResponse
     {
-        return back();
+        $school = $this->superAdminSchoolService->store($request);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Escuela creada correctamente.',
+            'school' => [
+                'id' => $school->id,
+                'slug' => $school->slug,
+                'name' => $school->name,
+            ],
+        ], Response::HTTP_CREATED);
     }
 
     /**
@@ -44,9 +61,11 @@ class SchoolController extends Controller
      * @param int $id
      * @return Response
      */
-    public function show($id): \Illuminate\Http\RedirectResponse
+    public function show(School $school): JsonResponse
     {
-        return back();
+        abort_unless(auth()->check() && auth()->user()->hasRole('super-admin'), Response::HTTP_FORBIDDEN);
+
+        return response()->json($this->superAdminSchoolService->formData($school));
     }
 
     /**
@@ -56,9 +75,26 @@ class SchoolController extends Controller
      * @param int $id
      * @return Response
      */
-    public function update(Request $request, $id): \Illuminate\Http\RedirectResponse
+    public function update(SuperAdminSchoolUpdateRequest $request, School $school): JsonResponse
     {
-        return back();
+        $school = $this->superAdminSchoolService->update($request, $school);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Escuela actualizada correctamente.',
+            'school' => [
+                'id' => $school->id,
+                'slug' => $school->slug,
+                'name' => $school->name,
+            ],
+        ]);
+    }
+
+    public function options(): JsonResponse
+    {
+        abort_unless(auth()->check() && auth()->user()->hasRole('super-admin'), Response::HTTP_FORBIDDEN);
+
+        return response()->json($this->superAdminSchoolService->options());
     }
 
     public function permissions(School $school): JsonResponse

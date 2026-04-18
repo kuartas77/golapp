@@ -116,8 +116,12 @@ Route::prefix('v2')->group(function(){
             Route::post('change_school', [BackOfficeShoolController::class, 'choose']);
 
             Route::middleware(['role:super-admin'])->group(function () {
+                Route::get('schools/options', [SchoolController::class, 'options']);
                 Route::get('schools/{school}/permissions', [SchoolController::class, 'permissions']);
                 Route::put('schools/{school}/permissions', [SchoolController::class, 'updatePermissions']);
+                Route::get('schools/{school}', [SchoolController::class, 'show']);
+                Route::post('schools', [SchoolController::class, 'store']);
+                Route::put('schools/{school}', [SchoolController::class, 'update']);
             });
 
             Route::middleware(['role:super-admin'])->prefix('evaluation-templates')->group(function () {

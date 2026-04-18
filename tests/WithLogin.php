@@ -31,6 +31,7 @@ trait WithLogin
             Setting::NOTIFY_PAYMENT_DAY,
             Setting::ANNUITY,
             Setting::SYSTEM_NOTIFY,
+            Setting::MULTIPLE_SCHOOLS,
         ] as $key) {
             Setting::query()->firstOrCreate(['key' => $key], ['public' => false]);
         }

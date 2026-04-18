@@ -20,7 +20,8 @@ Route::middleware(['auth', 'role:super-admin'])->group(function () {
     Route::get('emails_registration_school', ManualEmailController::class);
 
     Route::prefix('config')->name('config.')->group(function (){
-
+        // El CRUD SPA de super-admin vive en resources/js/pages/admin/school y
+        // consume sus datos desde /api/v2/admin/schools y /api/v2/admin/schools/options.
         Route::resource("schools", SchoolController::class);
         Route::resource("schools_info", SchoolInfoController::class);
         Route::resource("settings", SettingValueController::class);

@@ -5,17 +5,22 @@
                 <div>
                     <h3 class="mb-1">Escuelas</h3>
                     <p class="text-muted mb-0">
-                        Administra el listado general y ajusta qué módulos del backoffice están disponibles por escuela.
+                        Administra el listado general, crea nuevas escuelas y ajusta qué módulos del backoffice están disponibles por escuela.
                     </p>
                 </div>
                 <div class="d-flex flex-column align-items-lg-end gap-2">
                     <div class="small text-muted">
                         Los permisos de escuela restringen acceso; no reemplazan los roles de usuario.
                     </div>
-                    <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
-                        <i class="fa-regular fa-circle-question me-2"></i>
-                        Guia
-                    </button>
+                    <div class="d-flex gap-2">
+                        <router-link :to="{ name: 'schools.create' }" class="btn btn-primary btn-sm">
+                            Crear escuela
+                        </router-link>
+                        <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                            <i class="fa-regular fa-circle-question me-2"></i>
+                            Guia
+                        </button>
+                    </div>
                 </div>
             </div>
         </template>
@@ -23,14 +28,23 @@
             <div data-tour="admin-schools-table">
                 <DatatableTemplate :options="options" :id="'schools_table'" ref="table">
                 <template #actions="props">
-                    <button
-                        type="button"
-                        class="btn btn-outline-primary btn-sm"
-                        data-tour="admin-schools-permissions"
-                        @click="openPermissions(props.rowData)"
-                    >
-                        Permisos
-                    </button>
+                    <div class="d-flex flex-column flex-md-row gap-2 justify-content-center">
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary btn-sm"
+                            @click="goToEdit(props.rowData)"
+                        >
+                            Editar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm"
+                            data-tour="admin-schools-permissions"
+                            @click="openPermissions(props.rowData)"
+                        >
+                            Permisos
+                        </button>
+                    </div>
                 </template>
                 </DatatableTemplate>
             </div>
@@ -153,12 +167,14 @@ import api from '@/utils/axios'
 import useSchoolList from '@/composables/admin/school/schoolList'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from "@/composables/use-meta";
+import { useRouter } from 'vue-router'
 import { schoolsListTutorial } from '@/tutorials/admin'
 
 usePageTitle('Escuelas')
 
 const { table, options } = useSchoolList()
 const tutorial = usePageTutorial(schoolsListTutorial)
+const router = useRouter()
 
 const modalError = ref('')
 const selectedSchool = ref(null)
@@ -206,6 +222,13 @@ const resetModalState = () => {
 
 const closeModal = () => {
     permissionsModal.value?.hide()
+}
+
+const goToEdit = (school) => {
+    router.push({
+        name: 'schools.edit',
+        params: { slug: school.slug },
+    })
 }
 
 const openPermissions = async (school) => {

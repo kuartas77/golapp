@@ -13,7 +13,7 @@ export default function useSchoolList() {
         { data: 'email', title: 'Correo', searchable: false, orderable: false },
         { data: 'phone', title: 'Teléfono', searchable: false, orderable: false },
         { data: 'created_at', title: 'Registro', name: 'created_at', render: '#date', searchable: false, orderable: true },
-        { data: 'id', title: 'Permisos', render: '#actions', searchable: false, orderable: false },
+        { data: 'id', title: 'Acciones', render: '#actions', searchable: false, orderable: false },
     ]
 
     const ajaxConfig = async (data, callback, settings) => {
