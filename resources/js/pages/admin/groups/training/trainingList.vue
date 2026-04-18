@@ -33,6 +33,7 @@
     <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>
+import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useTrainingList from '@/composables/admin/groups/trainingList'
 import { usePageTutorial } from '@/composables/usePageTutorial'

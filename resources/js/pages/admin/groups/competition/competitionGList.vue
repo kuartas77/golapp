@@ -40,6 +40,7 @@
     <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>
+import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import dayjs from "@/utils/dayjs";
 import useCompetitionGList from '@/composables/admin/groups/competitionGList'

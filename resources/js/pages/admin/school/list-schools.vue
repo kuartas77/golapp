@@ -147,6 +147,7 @@
 </template>
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
 import useSchoolList from '@/composables/admin/school/schoolList'

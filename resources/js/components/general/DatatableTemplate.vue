@@ -85,6 +85,7 @@ export default {
 </script>
 <script setup>
 import dayjs from "@/utils/dayjs";
+import DataTable from '@/plugins/datatables';
 import { useTemplateRef } from 'vue';
 const props = defineProps(['options', 'id'])
 

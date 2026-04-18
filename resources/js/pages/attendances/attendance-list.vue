@@ -235,6 +235,7 @@ export default {
 <script setup>
 import { useTemplateRef } from 'vue'
 import { ErrorMessage, Field, Form } from "vee-validate";
+import DataTable from '@/plugins/datatables'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useAttendances from '@/composables/attendances/attendances'
 import { usePageTutorial } from '@/composables/usePageTutorial'

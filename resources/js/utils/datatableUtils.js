@@ -1,4 +1,4 @@
-import DataTablesCore from 'datatables.net-bs5';
+import { DataTablesCore } from '@/plugins/datatables';
 
 const configLanguaje = {
     info: true,

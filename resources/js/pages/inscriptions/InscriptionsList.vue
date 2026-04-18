@@ -93,6 +93,7 @@
 </template>
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
+import DatatableTemplate from '@/components/general/DatatableTemplate.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useSetting } from '@/store/settings-store';
 import { useAuthUser } from '@/store/auth-user';

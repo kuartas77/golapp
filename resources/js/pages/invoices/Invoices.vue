@@ -81,6 +81,7 @@
 
 <script setup>
 import { ref, computed, onMounted, reactive, watch } from 'vue'
+import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useInvoicesList from '@/composables/invoices/invoicesList'
 import { usePageTutorial } from '@/composables/usePageTutorial'

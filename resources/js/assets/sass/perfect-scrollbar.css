@@ -17,6 +17,7 @@
     -ms-overflow-style: none;
     touch-action: auto;
     -ms-touch-action: auto;
+    position: relative;
 }
 
 /*

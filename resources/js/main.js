@@ -3,18 +3,12 @@ import '@/utils/yup-locale';
 
 import { createHead } from '@vueuse/head';
 import * as bootstrap from 'bootstrap';
-import DataTablesCore from 'datatables.net-bs5';
-import 'datatables.net-responsive-bs5';
-import DataTable from 'datatables.net-vue3';
 import { createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { createApp } from 'vue';
-import { VueReCaptcha } from 'vue-recaptcha-v3';
 import VueSweetalert2 from 'vue-sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
-import TypeAhead from 'vue3-bootstrap-typeahead';
 import { PerfectScrollbarPlugin } from 'vue3-perfect-scrollbar';
-import 'vue3-perfect-scrollbar/style.css';
 
 import App from '@/App.vue';
 import appSetting from '@/app-setting';
@@ -24,7 +18,6 @@ import input from '@/components/form/Input.vue';
 import CustomMultiSelect from '@/components/form/MultiSelect.vue';
 import CustomSelect2 from '@/components/form/CustomSelect2.vue';
 import Can from '@/components/general/Can.vue';
-import DatatableTemplate from '@/components/general/DatatableTemplate.vue';
 import breadcrumb from '@/components/layout/breadcrumb.vue';
 import panel from '@/components/layout/panel.vue';
 import tooltipDirective from '@/directives/tooltip';
@@ -63,8 +56,6 @@ const GLOBAL_DIRECTIVES = {
 };
 
 const GLOBAL_COMPONENTS = {
-    DataTable,
-    DatatableTemplate,
     breadcrumb,
     panel,
     inputField: input,
@@ -72,7 +63,6 @@ const GLOBAL_COMPONENTS = {
     CustomMultiSelect,
     checkbox: Checkbox,
     CustomSelect2,
-    TypeAhead,
     Can
 };
 
@@ -103,7 +93,7 @@ function moneyFormat(amount) {
     return COP_CURRENCY_FORMATTER.format(amount);
 }
 
-function registerPlugins(app, pinia, head, appConfig) {
+async function registerPlugins(app, pinia, head, appConfig) {
     app.use(head);
     app.use(i18n);
     app.use(pinia);
@@ -114,6 +104,8 @@ function registerPlugins(app, pinia, head, appConfig) {
     app.use(VueWizardSteps);
 
     if (appConfig.recaptchaSiteKey) {
+        const { VueReCaptcha } = await import('vue-recaptcha-v3');
+
         app.use(VueReCaptcha, {
             siteKey: import.meta.env.VITE_RECAPTCHAV3_SITEKEY,
             loaderOptions: {
@@ -154,18 +146,20 @@ function registerGlobals(app, appConfig) {
     });
 }
 
-DataTable.use(DataTablesCore);
+async function bootstrapApp() {
+    const app = createApp(App);
+    const pinia = createPinia();
+    const head = createHead();
+    const appConfig = window.__APP_CONFIG__ ?? {};
 
-const app = createApp(App);
-const pinia = createPinia();
-const head = createHead();
-const appConfig = window.__APP_CONFIG__ ?? {};
+    pinia.use(piniaPluginPersistedstate);
 
-pinia.use(piniaPluginPersistedstate);
+    await registerPlugins(app, pinia, head, appConfig);
+    registerDirectives(app);
+    registerComponents(app);
+    registerGlobals(app, appConfig);
 
-registerPlugins(app, pinia, head, appConfig);
-registerDirectives(app);
-registerComponents(app);
-registerGlobals(app, appConfig);
+    app.mount('#app');
+}
 
-app.mount('#app');
+bootstrapApp();

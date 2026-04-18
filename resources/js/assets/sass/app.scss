@@ -2,7 +2,6 @@
 @use 'forms/theme-checkbox-radio.scss';
 @import url('https://fonts.googleapis.com/css?family=Nunito:400,600,700');
 /*main pluging css*/
-@import '@bhplugin/vue3-datatable/dist/style.css';
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import 'perfect-scrollbar.css';
 @include meta.load-css('main.scss');
@@ -11,8 +10,6 @@
 @include meta.load-css('forms/switches.scss');
 @import 'custom-loader.css';
 @import 'animate.css';
-@import url('datatables.net-bs5');
-@import url('datatables.net-responsive-bs5');
 @include meta.load-css('tables/table-custom.scss');
 
 /*dark css*/

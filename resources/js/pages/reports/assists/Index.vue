@@ -250,6 +250,7 @@ export default {
 </script>
 
 <script setup>
+import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useAssistReports from '@/composables/reports/assist-reports'
 import { usePageTutorial } from '@/composables/usePageTutorial'

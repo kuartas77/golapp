@@ -75,6 +75,7 @@
     <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>
+import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useUsersList from '@/composables/admin/users/usersList'
 import { usePageTutorial } from '@/composables/usePageTutorial'

@@ -145,6 +145,7 @@
 
 <script setup>
 import { onMounted, reactive, ref, useTemplateRef, watch } from 'vue'
+import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
 import dayjs from '@/utils/dayjs'

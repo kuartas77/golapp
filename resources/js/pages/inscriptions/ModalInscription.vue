@@ -163,6 +163,7 @@ import 'flatpickr/dist/flatpickr.css'
 import dayjs from '@/utils/dayjs'
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import flatPickr from 'vue-flatpickr-component'
+import TypeAhead from 'vue3-bootstrap-typeahead'
 import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { ErrorMessage, Field, Form } from "vee-validate";
 import * as yup from "yup";
