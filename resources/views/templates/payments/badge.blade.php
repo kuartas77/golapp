@@ -39,7 +39,7 @@ switch($payment->$field){
     break;
 }
 $class = $deleted ? '': $class;
-$amount = checkValueEnrollment($payment, $field, $inscription_amount);
+$amount = checkValueEnrollment($payment, $field, $field === 'enrollment' ? $inscription_amount : $payment->default_monthly_amount);
 $selected = config('variables.KEY_PAYMENTS_SELECT')[$payment->$field];
 @endphp
 <div class="text-center">

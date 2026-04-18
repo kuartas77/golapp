@@ -51,6 +51,7 @@ class InscriptionUpdateRequest extends FormRequest
             'period_four' => ['nullable'],
             'scholarship' => ['nullable', 'boolean'],
             'pre_inscription' => ['nullable', 'boolean'],
+            'brother_payment' => ['nullable', 'boolean'],
         ];
     }
 
@@ -78,6 +79,7 @@ class InscriptionUpdateRequest extends FormRequest
             'competition_uniform' => $this->input('competition_uniform', false),
             'tournament_pay' => $this->input('tournament_pay', false),
             'scholarship' => $this->input('scholarship', false),
+            'brother_payment' => $this->input('brother_payment', false),
             'competition_groups' => array_filter($this->input('competition_groups', [])),
             'training_group_id' => $this->filled('training_group_id') ? $this->training_group_id : null,
             'pre_inscription' => $this->input('pre_inscription', false),

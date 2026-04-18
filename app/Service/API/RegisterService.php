@@ -106,18 +106,22 @@ class RegisterService
             $notify_payment_day = $settings->firstWhere('setting_key', 'NOTIFY_PAYMENT_DAY');
             $inscription_amount = $settings->firstWhere('setting_key', 'INSCRIPTION_AMOUNT');
             $monthly_payment = $settings->firstWhere('setting_key', 'MONTHLY_PAYMENT');
+            $brother_monthly_payment = $settings->firstWhere('setting_key', 'BROTHER_MONTHLY_PAYMENT');
             $annuity = $settings->firstWhere('setting_key', 'ANNUITY');
 
-            if($notify_payment_day && $request->NOTIFY_PAYMENT_DAY) {
+            if($notify_payment_day && $request->has('NOTIFY_PAYMENT_DAY')) {
                 $notify_payment_day->update(['value' => $request->NOTIFY_PAYMENT_DAY]);
             }
-            if($inscription_amount && $request->INSCRIPTION_AMOUNT) {
+            if($inscription_amount && $request->has('INSCRIPTION_AMOUNT')) {
                 $inscription_amount->update(['value' => $request->INSCRIPTION_AMOUNT]);
             }
-            if($monthly_payment && $request->MONTHLY_PAYMENT) {
+            if($monthly_payment && $request->has('MONTHLY_PAYMENT')) {
                 $monthly_payment->update(['value' => $request->MONTHLY_PAYMENT]);
             }
-            if($annuity && $request->ANNUITY) {
+            if($brother_monthly_payment && $request->has('BROTHER_MONTHLY_PAYMENT')) {
+                $brother_monthly_payment->update(['value' => $request->BROTHER_MONTHLY_PAYMENT]);
+            }
+            if($annuity && $request->has('ANNUITY')) {
                 $annuity->update(['value' => $request->ANNUITY]);
             }
 

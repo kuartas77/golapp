@@ -89,6 +89,14 @@
         </div>
     </div>
 
+    <div class="col-md-3">
+        <div class="form-group">
+            <label for="BROTHER_MONTHLY_PAYMENT">Precio Mensualidad Hermano.</label>(<span class="text-danger">*</span>)
+            <span class="bar"></span>
+            <input type="text" name="BROTHER_MONTHLY_PAYMENT" id="BROTHER_MONTHLY_PAYMENT" class="form-control money" required autocomplete="off" value="{{ data_get($school, 'settings.BROTHER_MONTHLY_PAYMENT', $monthly_payment) }}">
+        </div>
+    </div>
+
 </div>
 
 <div class="row">

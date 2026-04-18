@@ -24,6 +24,7 @@ export default function useFormSchool() {
         NOTIFY_PAYMENT_DAY: '',
         INSCRIPTION_AMOUNT: 0,
         MONTHLY_PAYMENT: 0,
+        BROTHER_MONTHLY_PAYMENT: 0,
         ANNUITY: 0,
     })
 
@@ -36,6 +37,7 @@ export default function useFormSchool() {
         NOTIFY_PAYMENT_DAY: yup.number().min(1).max(31).required(),
         INSCRIPTION_AMOUNT: yup.string().required(),
         MONTHLY_PAYMENT: yup.string().required(),
+        BROTHER_MONTHLY_PAYMENT: yup.string().required(),
         ANNUITY: yup.string().required(),
         logo: yup.mixed(),
         // create_contract: yup.boolean().oneOf([true]),
@@ -64,6 +66,7 @@ export default function useFormSchool() {
             NOTIFY_PAYMENT_DAY: response.data.settings.NOTIFY_PAYMENT_DAY,
             INSCRIPTION_AMOUNT: Number(response.data.settings.INSCRIPTION_AMOUNT),
             MONTHLY_PAYMENT: Number(response.data.settings.MONTHLY_PAYMENT),
+            BROTHER_MONTHLY_PAYMENT: Number(response.data.settings.BROTHER_MONTHLY_PAYMENT ?? response.data.settings.MONTHLY_PAYMENT ?? 0),
             ANNUITY: Number(response.data.settings.ANNUITY),
         }
 

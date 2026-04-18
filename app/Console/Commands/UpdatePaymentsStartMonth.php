@@ -4,9 +4,9 @@ namespace App\Console\Commands;
 
 use App\Models\Payment;
 use App\Models\School;
+use App\Service\PaymentAmountResolver;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 class UpdatePaymentsStartMonth extends Command
 {
@@ -29,7 +29,7 @@ class UpdatePaymentsStartMonth extends Command
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(private PaymentAmountResolver $paymentAmountResolver)
     {
         parent::__construct();
     }
@@ -57,10 +57,10 @@ class UpdatePaymentsStartMonth extends Command
                 ->chunkById(10, function ($schools) use ($month, $targetYear): void {
 
                     foreach ($schools as $school) {
-                        $monthlyPayment = (float) data_get($school, 'settings.MONTHLY_PAYMENT', 50000);
                         $amountColumn = "{$month}_amount";
 
                         Payment::query()
+                            ->with(['inscription.school.settingsValues'])
                             ->whereHas(
                                 'inscription',
                                 fn($query) => $query
@@ -70,15 +70,17 @@ class UpdatePaymentsStartMonth extends Command
                             ->where('year', $targetYear)
                             ->where('school_id', $school->id)
                             ->where($month, Payment::$pending)
-                            ->update([
-                                $month => Payment::$debt,
-                                $amountColumn => DB::raw("
-                                    CASE
-                                        WHEN {$amountColumn} = 0.00 THEN {$monthlyPayment}
-                                        ELSE {$amountColumn}
-                                    END
-                                "),
-                            ]);
+                            ->chunkById(100, function ($payments) use ($month, $amountColumn): void {
+                                foreach ($payments as $payment) {
+                                    $payment->{$month} = Payment::$debt;
+
+                                    if ((int) $payment->{$amountColumn} === 0) {
+                                        $payment->{$amountColumn} = $this->paymentAmountResolver->monthlyAmountForPayment($payment);
+                                    }
+
+                                    $payment->save();
+                                }
+                            });
                     }
                 });
         }

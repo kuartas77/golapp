@@ -8,6 +8,8 @@ use App\Models\Assist;
 use App\Models\CompetitionGroup;
 use App\Models\Inscription;
 use App\Models\Player;
+use App\Models\School;
+use App\Models\Setting;
 use App\Models\Tournament;
 use App\Models\TrainingGroup;
 use App\Models\TrainingSession;
@@ -16,6 +18,7 @@ use App\Service\API\Instructor\AssistsService;
 use App\Service\API\Instructor\TrainingGroupsService;
 use App\Service\Assist\AssistService;
 use App\Service\Notification\TopicService;
+use App\Service\PaymentAmountResolver;
 use App\Service\Payment\PaymentExportService;
 use App\Service\Player\PlayerExportService;
 use App\Service\SharedService;
@@ -157,6 +160,32 @@ final class ServicesCoverageTest extends TestCase
         $this->assertArrayHasKey('url_print_excel', $result);
     }
 
+    public function testPaymentAmountResolverFallsBackToRegularMonthlyAmountWhenBrotherSettingIsEmpty(): void
+    {
+        $this->actingAs($this->user);
+
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->settingsValues()->where('setting_key', Setting::MONTHLY_PAYMENT)->update(['value' => '51000']);
+        $school->settingsValues()->where('setting_key', Setting::BROTHER_MONTHLY_PAYMENT)->update(['value' => '']);
+
+        $player = Player::factory()->create();
+        $inscription = Inscription::factory()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => now()->year,
+            'training_group_id' => 1,
+            'competition_group_id' => null,
+            'start_date' => now()->format('Y-m-d'),
+            'category' => categoriesName(now()->subYears(10)->year),
+            'school_id' => $school->id,
+            'brother_payment' => true,
+        ]);
+
+        $resolver = app(PaymentAmountResolver::class);
+
+        $this->assertSame(51000, $resolver->monthlyAmountForInscription($inscription->fresh()));
+    }
+
     public function testPaymentExportServicePdfMethods(): void
     {
         $this->actingAs($this->user);
@@ -184,6 +213,11 @@ final class ServicesCoverageTest extends TestCase
             public function __construct(public int $training_group_id)
             {
             }
+
+            public function input(string $key, $default = null)
+            {
+                return $default;
+            }
         };
         $this->assertSame('streamed', $streamMock->paymentsPdfByGroup(collect(), $requestStream, true));
 
@@ -195,6 +229,11 @@ final class ServicesCoverageTest extends TestCase
         {
             public function __construct(public int $training_group_id)
             {
+            }
+
+            public function input(string $key, $default = null)
+            {
+                return $default;
             }
         };
         $this->assertSame('output', $outputMock->paymentsPdfByGroup(collect(), $requestOutput, false));
@@ -296,7 +335,7 @@ final class ServicesCoverageTest extends TestCase
             }
         };
 
-        $service = new SharedService();
+        $service = new SharedService(app(PaymentAmountResolver::class));
         $updated = $service->assignTrainingGroup($inscription->id, $requestWithTarget);
         $this->assertTrue($updated);
         $this->assertSame($target->id, $inscription->fresh()->training_group_id);
@@ -309,7 +348,7 @@ final class ServicesCoverageTest extends TestCase
             }
         };
         $this->assertFalse($service->assignTrainingGroup($inscription->id, $requestWithoutTarget));
-        $serviceError = Mockery::mock(SharedService::class)->makePartial();
+        $serviceError = Mockery::mock(SharedService::class, [app(PaymentAmountResolver::class)])->makePartial();
         $serviceError->shouldReceive('logError')->once();
         $this->assertFalse($serviceError->assignTrainingGroup(999999, $requestWithTarget));
     }

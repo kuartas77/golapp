@@ -6,6 +6,7 @@ namespace App\Repositories;
 
 use App\Models\Inscription;
 use App\Models\Payment;
+use App\Service\PaymentAmountResolver;
 use App\Service\ReportService;
 use App\Traits\ErrorTrait;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,7 +21,10 @@ class PaymentRepository
 {
     use ErrorTrait;
 
-    public function __construct(private Payment $payment)
+    public function __construct(
+        private Payment $payment,
+        private PaymentAmountResolver $paymentAmountResolver
+    )
     {
         //
     }
@@ -55,10 +59,11 @@ class PaymentRepository
 
     private function generateData($payments, $deleted)
     {
+        $payments = $this->decoratePayments($payments);
         $school = getSchool(auth()->user());
-        $inscription_amount = (float) $school->settings['INSCRIPTION_AMOUNT'] ?? 70000;
-        $monthly_payment = (float) $school->settings['MONTHLY_PAYMENT'] ?? 50000;
-        $annuity = (float) $school->settings['ANNUITY'] ?? 48333;
+        $inscription_amount = $this->paymentAmountResolver->inscriptionAmountForSchool($school);
+        $monthly_payment = $this->paymentAmountResolver->monthlyAmountForSchool($school);
+        $annuity = $this->paymentAmountResolver->annuityAmountForSchool($school);
 
         [$urlExportExcel, $urlExportPDF] = $this->generateLinks($payments, $deleted);
 
@@ -74,11 +79,12 @@ class PaymentRepository
     private function generateTable($payments, $deleted)
     {
         $rows = '';
+        $payments = $this->decoratePayments($payments);
         $payments->setAppends(['check_payments']);
         $school = getSchool(auth()->user());
-        $inscription_amount = $school->settings['INSCRIPTION_AMOUNT'] ?? 70000;
-        $monthly_payment = $school->settings['MONTHLY_PAYMENT'] ?? 50000;
-        $annuity = $school->settings['ANNUITY'] ?? 48333;
+        $inscription_amount = $this->paymentAmountResolver->inscriptionAmountForSchool($school);
+        $monthly_payment = $this->paymentAmountResolver->monthlyAmountForSchool($school);
+        $annuity = $this->paymentAmountResolver->annuityAmountForSchool($school);
         $nameFields = config('variables.KEY_INDEX_MONTHS');
         $nameFields[0] = 'enrollment';
         ksort($nameFields);
@@ -215,7 +221,7 @@ class PaymentRepository
             return $this->normalizeColumnUpdate($payment, $column, $values);
         }
 
-        return $this->normalizeFullUpdate($values);
+        return $this->normalizeFullUpdate($values, $payment);
     }
 
     private function normalizeColumnUpdate(Payment $payment, string $column, array $values): array
@@ -224,7 +230,7 @@ class PaymentRepository
         $amountField = Payment::amountFieldFor($column);
         $status = $this->normalizeStatusValue($values[$column] ?? $payment->{$column});
         $amount = $this->normalizeAmountValue($values[$amountField] ?? $payment->{$amountField});
-        $defaults = $this->paymentDefaults();
+        $defaults = $this->paymentDefaults($payment);
 
         $normalizedValues[$column] = $status;
         $normalizedValues[$amountField] = $amount;
@@ -265,10 +271,10 @@ class PaymentRepository
         return $normalizedValues;
     }
 
-    private function normalizeFullUpdate(array $values): array
+    private function normalizeFullUpdate(array $values, ?Payment $payment = null): array
     {
         $normalizedValues = [];
-        $defaults = $this->paymentDefaults();
+        $defaults = $this->paymentDefaults($payment);
 
         foreach (Payment::FIELD_AMOUNT_MAP as $field => $amountField) {
             $normalizedValues[$field] = $this->normalizeStatusValue(data_get($values, $field));
@@ -364,15 +370,31 @@ class PaymentRepository
         return array_slice($fields, $startIndex);
     }
 
-    private function paymentDefaults(): array
+    private function paymentDefaults(?Payment $payment = null): array
     {
         $school = getSchool(auth()->user());
 
         return [
-            'inscription' => $this->normalizeAmountValue(data_get($school, 'settings.INSCRIPTION_AMOUNT', 70000)),
-            'monthly' => $this->normalizeAmountValue(data_get($school, 'settings.MONTHLY_PAYMENT', 50000)),
-            'annuity' => $this->normalizeAmountValue(data_get($school, 'settings.ANNUITY', 48333)),
+            'inscription' => $this->paymentAmountResolver->inscriptionAmountForSchool($school),
+            'monthly' => $payment
+                ? $this->paymentAmountResolver->monthlyAmountForPayment($payment)
+                : $this->paymentAmountResolver->monthlyAmountForSchool($school),
+            'annuity' => $this->paymentAmountResolver->annuityAmountForSchool($school),
         ];
+    }
+
+    private function decoratePayments(Collection $payments): Collection
+    {
+        $payments->loadMissing(['inscription.school.settingsValues']);
+
+        return $payments->map(function (Payment $payment) {
+            $payment->setAttribute(
+                'default_monthly_amount',
+                $this->paymentAmountResolver->monthlyAmountForPayment($payment)
+            );
+
+            return $payment;
+        });
     }
 
     private function defaultAmountForField(string $field, array $defaults): int

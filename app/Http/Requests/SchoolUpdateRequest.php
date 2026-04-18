@@ -33,6 +33,7 @@ class SchoolUpdateRequest extends FormRequest
             'NOTIFY_PAYMENT_DAY' => ['required', 'string'],
             'INSCRIPTION_AMOUNT' => ['required', 'string'],
             'MONTHLY_PAYMENT' => ['required', 'string'],
+            'BROTHER_MONTHLY_PAYMENT' => ['required', 'string'],
             'ANNUITY' => ['required', 'string'],
         ];
     }
@@ -43,6 +44,7 @@ class SchoolUpdateRequest extends FormRequest
             'NOTIFY_PAYMENT_DAY' => $this->cleanString($this->NOTIFY_PAYMENT_DAY),
             'INSCRIPTION_AMOUNT' => $this->cleanString($this->INSCRIPTION_AMOUNT),
             'MONTHLY_PAYMENT' => $this->cleanString($this->MONTHLY_PAYMENT),
+            'BROTHER_MONTHLY_PAYMENT' => $this->cleanString($this->BROTHER_MONTHLY_PAYMENT),
             'ANNUITY' => $this->cleanString($this->ANNUITY),
             'logo' => $this->hasFile('logo') ? $this->logo : null,
         ]);

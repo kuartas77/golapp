@@ -158,19 +158,23 @@ export default function useMonthlyPayments() {
         })
     }
 
-    const getDefaultAmountByField = (field) => field === 'enrollment'
-        ? enrollment_amount.value
-        : monthly_amount.value
+    const getDefaultAmountByField = (field, payPlayer = null) => {
+        if (field === 'enrollment') {
+            return enrollment_amount.value
+        }
+
+        return Number(payPlayer?.default_monthly_amount) || monthly_amount.value
+    }
 
     const paymentRuleHandlers = {
         setDefaultAmount: ({ payPlayer, field, amountKey, inputAmount }) => {
             if (inputAmount === 0) {
-                payPlayer[amountKey] = getDefaultAmountByField(field)
+                payPlayer[amountKey] = getDefaultAmountByField(field, payPlayer)
             }
         },
         setMonthlyAmount: ({ payPlayer, amountKey, inputAmount }) => {
             if (inputAmount === 0) {
-                payPlayer[amountKey] = monthly_amount.value
+                payPlayer[amountKey] = getDefaultAmountByField('january', payPlayer)
             }
         },
         setAnnuityAmount: ({ payPlayer, amountKey }) => {

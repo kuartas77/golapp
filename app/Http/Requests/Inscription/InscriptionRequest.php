@@ -50,6 +50,7 @@ class InscriptionRequest extends FormRequest
             'period_three' => ['nullable'],
             'period_four' => ['nullable'],
             'scholarship' => ['nullable', 'boolean'],
+            'brother_payment' => ['nullable', 'boolean'],
         ];
     }
 
@@ -77,6 +78,7 @@ class InscriptionRequest extends FormRequest
             'competition_uniform' => $this->input('competition_uniform', false),
             'tournament_pay' => $this->input('tournament_pay', false),
             'scholarship' => $this->input('scholarship', false),
+            'brother_payment' => $this->input('brother_payment', false),
             'training_group_id' => $this->filled('training_group_id') ? $this->training_group_id : null,
             'competition_groups' => array_filter($this->input('competition_groups', [])),
             'pre_inscription' => $this->input('pre_inscription', false),

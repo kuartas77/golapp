@@ -59,6 +59,13 @@
                             </div>
 
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                <small class="form-text text-muted mt-4">
+                                    Usa la tarifa especial configurada en la escuela para mensualidades de hermano.
+                                </small>
+                                <checkbox label="¿ Mensualidad hermano ?" name="brother_payment" />
+                            </div>
+
+                            <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label for="training_group_id">Grupo de entrenamiento:</label>
                                     <Field name="training_group_id" v-slot="{ field, handleChange }">
@@ -242,6 +249,7 @@ const defaultValues = () => ({
     player_name: null,
     start_date: null,
     scholarship: false,
+    brother_payment: false,
     training_group_id: null,
     competition_groups: [],
     photos: false,
@@ -260,6 +268,7 @@ const schema = yup.object().shape({
     player_name: yup.string().required('Ingresa un código único'),
     start_date: yup.date().required('La Fecha de inicio es requerida'),
     scholarship: yup.boolean().default(false),
+    brother_payment: yup.boolean().default(false),
     training_group_id: yup.mixed().nullable(),
     competition_groups: yup.array().default([]),
     photos: yup.boolean().default(false),
@@ -311,6 +320,7 @@ const loadInscriptionForEdit = async (inscriptionId) => {
             player_name: data.player.full_names,
             start_date: data.start_date,
             scholarship: Boolean(data.scholarship),
+            brother_payment: Boolean(data.brother_payment),
             training_group_id: data.training_group_id,
             competition_groups: data.competition_groups ?? [],
             photos: Boolean(data.photos),

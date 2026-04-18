@@ -28,6 +28,8 @@ class Setting extends Model
 
     public const MONTHLY_PAYMENT = 'MONTHLY_PAYMENT';
 
+    public const BROTHER_MONTHLY_PAYMENT = 'BROTHER_MONTHLY_PAYMENT';
+
     public const NOTIFY_PAYMENT_DAY = 'NOTIFY_PAYMENT_DAY';
 
     public const ANNUITY = 'ANNUITY';

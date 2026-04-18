@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Models\Inscription;
+use App\Models\Payment;
 use App\Models\School;
 use App\Models\TrainingGroup;
 use App\Traits\ErrorTrait;
@@ -13,6 +14,10 @@ use Throwable;
 class SharedService
 {
     use ErrorTrait;
+
+    public function __construct(private PaymentAmountResolver $paymentAmountResolver)
+    {
+    }
 
     private array $searchPayment;
     private array $searchAssist;
@@ -63,7 +68,7 @@ class SharedService
                 }
 
                 if(!$inscription->scholarship) {
-                    $this->debtMonth($school, $start_date->month, $dataPayment);
+                    $this->debtMonth($inscription, $start_date->month, $dataPayment);
                 }
 
                 $assistance = [
@@ -78,7 +83,7 @@ class SharedService
                 $inscription->assistance()->create($assistance);
 
             }else{
-                if($inscription->isDirty('training_group_id')){
+                if($inscription->wasChanged('training_group_id')){
 
                     $dataToUpdate = ['training_group_id' => $inscription->training_group_id, 'deleted_at' => null];
 
@@ -87,6 +92,10 @@ class SharedService
                     $inscription->assistance()->withTrashed()->where('year', $start_date->year)->update($dataToUpdate);
 
                     $this->enableSkillControl($inscription);
+                }
+
+                if ($inscription->wasChanged('brother_payment')) {
+                    $this->refreshDebtMonthAmounts($inscription, $start_date->year);
                 }
             }
 
@@ -108,10 +117,11 @@ class SharedService
         }
     }
 
-    private function debtMonth(School $school, int $actualMonth, &$dataPayment)
+    private function debtMonth(Inscription $inscription, int $actualMonth, &$dataPayment)
     {
+        $school = $inscription->school;
         $inscriptionAmount = data_get($school->settings, 'INSCRIPTION_AMOUNT', 70000);
-        $monthlyAmount = data_get($school->settings, 'MONTHLY_PAYMENT', 50000);
+        $monthlyAmount = $this->paymentAmountResolver->monthlyAmountForInscription($inscription);
 
         $dataPayment['enrollment'] = '2';
         $dataPayment['enrollment_amount'] = $inscriptionAmount;
@@ -119,6 +129,35 @@ class SharedService
 
         $dataPayment[$configMonths[$actualMonth]] = '2';
         $dataPayment[$configMonths[$actualMonth].'_amount'] = $monthlyAmount;
+    }
+
+    private function refreshDebtMonthAmounts(Inscription $inscription, int $year): void
+    {
+        $payment = $inscription->payments()
+            ->withTrashed()
+            ->where('year', $year)
+            ->first();
+
+        if (!$payment) {
+            return;
+        }
+
+        $monthlyAmount = $this->paymentAmountResolver->monthlyAmountForInscription($inscription);
+        $updates = [];
+
+        foreach (config('variables.KEY_INDEX_MONTHS') as $field) {
+            if ((int) $payment->{$field} !== Payment::$debt) {
+                continue;
+            }
+
+            $updates["{$field}_amount"] = $monthlyAmount;
+        }
+
+        if (empty($updates)) {
+            return;
+        }
+
+        $payment->fill($updates)->save();
     }
 
     private function enableSkillControl($inscription)

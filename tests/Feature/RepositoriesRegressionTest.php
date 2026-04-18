@@ -40,6 +40,7 @@ final class RepositoriesRegressionTest extends TestCase
             'category' => '2010-2011',
             'training_group_id' => $trainingGroup->id,
             'competition_group_id' => null,
+            'brother_payment' => true,
         ]);
 
         $repository = app(InscriptionRepository::class);
@@ -52,6 +53,7 @@ final class RepositoriesRegressionTest extends TestCase
             'year' => $futureYear,
             'start_date' => sprintf('%d-01-01', $futureYear),
             'training_group_id' => $trainingGroup->id,
+            'brother_payment' => true,
         ]);
     }
 

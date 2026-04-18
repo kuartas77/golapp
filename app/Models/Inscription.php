@@ -78,13 +78,15 @@ class Inscription extends Model
         'period_four',
         'school_id',
         'deleted_at',
-        'pre_inscription'
+        'pre_inscription',
+        'brother_payment',
     ];
 
     protected $casts = [
         'start_date' => "datetime:Y-m-d",
         'created_at' => "datetime:Y-m-d",
-        'pre_inscription' => 'boolean'
+        'pre_inscription' => 'boolean',
+        'brother_payment' => 'boolean'
     ];
 
     public static $documentFields = [

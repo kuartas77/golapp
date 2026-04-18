@@ -18,17 +18,22 @@ trait WithLogin
 
     protected function createSettings(): void
     {
-        Setting::insert(['key' => Setting::MAX_USERS]);
-        Setting::insert(['key' => Setting::MAX_GROUPS]);
-        Setting::insert(['key' => Setting::MAX_PLAYERS]);
-        Setting::insert(['key' => Setting::MAX_INSCRIPTIONS]);
-        Setting::insert(['key' => Setting::MAX_REGISTRATION_DATE]);
-        Setting::insert(['key' => Setting::MIN_REGISTRATION_DATE]);
-        Setting::insert(['key' => Setting::INSCRIPTION_AMOUNT]);
-        Setting::insert(['key' => Setting::MONTHLY_PAYMENT]);
-        Setting::insert(['key' => Setting::NOTIFY_PAYMENT_DAY]);
-        Setting::insert(['key' => Setting::ANNUITY]);
-        Setting::insert(['key' => Setting::SYSTEM_NOTIFY]);
+        foreach ([
+            Setting::MAX_USERS,
+            Setting::MAX_GROUPS,
+            Setting::MAX_PLAYERS,
+            Setting::MAX_INSCRIPTIONS,
+            Setting::MAX_REGISTRATION_DATE,
+            Setting::MIN_REGISTRATION_DATE,
+            Setting::INSCRIPTION_AMOUNT,
+            Setting::MONTHLY_PAYMENT,
+            Setting::BROTHER_MONTHLY_PAYMENT,
+            Setting::NOTIFY_PAYMENT_DAY,
+            Setting::ANNUITY,
+            Setting::SYSTEM_NOTIFY,
+        ] as $key) {
+            Setting::query()->firstOrCreate(['key' => $key], ['public' => false]);
+        }
     }
 
     protected function createRoles()

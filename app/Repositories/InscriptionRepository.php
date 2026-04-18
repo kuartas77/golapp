@@ -269,6 +269,7 @@ class InscriptionRepository
                     'period_three' => $inscription->period_three,
                     'period_four' => $inscription->period_four,
                     'scholarship' => $inscription->scholarship,
+                    'brother_payment' => $inscription->brother_payment,
                     'training_group_id' => $trainingGroup->id
                 ];
 
