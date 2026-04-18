@@ -2,27 +2,39 @@
     <panel>
         <template #lateral/>
         <template #body>
-            <a class="btn btn-block btn-primary" href="javascript:void(0);" @click="openGroupSelection()">
-                Crear Competencia
-            </a>
-            <DatatableTemplate :id="'matches_table'" :options="options" ref="matches_table" class="table-hover">
-            </DatatableTemplate>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <a class="btn btn-block btn-primary" href="javascript:void(0);" @click="openGroupSelection()" data-tour="matches-list-actions">
+                    Crear Competencia
+                </a>
+                <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                    Guia
+                </button>
+            </div>
+            <div data-tour="matches-list-table">
+                <DatatableTemplate :id="'matches_table'" :options="options" ref="matches_table" class="table-hover">
+                </DatatableTemplate>
+            </div>
         </template>
     </panel>
 
     <breadcrumb :parent="'Plataforma'" :current="'Competencias'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>
 import { usePageTitle } from "@/composables/use-meta"
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import configLanguaje from '@/utils/datatableUtils';
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import { useTemplateRef, onMounted, ref } from 'vue';
 import api from '@/utils/axios'
 import { useRouter } from 'vue-router'
 import { useSetting } from '@/store/settings-store';
+import { matchesListTutorial } from '@/tutorials/matches'
 
 const settings = useSetting()
 const matches_table = useTemplateRef('matches_table')
 const router = useRouter()
+const tutorial = usePageTutorial(matchesListTutorial)
 
 const columns = [
     { data: 'tournament_name', title: 'Torneo', name: 'tournaments.name', render: (data) => `<small>${data}</small>`, searchable: true },

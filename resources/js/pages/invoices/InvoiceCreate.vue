@@ -5,8 +5,11 @@
                 <div class="col-md-3"></div>
                 <div class="col-md-6">
                     <div class="card">
-                        <div class="card-header">
+                        <div class="card-header d-flex justify-content-between align-items-center" data-tour="invoice-create-header">
                             <h4><i class="fa fa-file-invoice"></i> Crear Factura</h4>
+                            <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                                Guia
+                            </button>
                         </div>
 
                         <div class="card-body">
@@ -34,7 +37,7 @@
                                 <input type="hidden" name="student_name" :value="inscription?.player?.full_names">
 
                                 <!-- Sección de meses pendientes -->
-                                <div v-if="pendingMonths.length" class="card mb-4">
+                                <div v-if="pendingMonths.length" class="card mb-4" data-tour="invoice-create-months">
                                     <div class="card-header">
                                         <h6 class="mb-0">
                                             <i class="fa fa-calendar-alt"></i> Mensualidades Pendientes
@@ -107,7 +110,7 @@
                                 </div>
 
                                 <!-- Sección de ítems adicionales -->
-                                <div class="card mb-4">
+                                <div class="card mb-4" data-tour="invoice-create-items">
                                     <div class="card-header">
                                         <h6 class="mb-0">
                                             <i class="fa fa-plus-circle"></i> Ítems Adicionales
@@ -187,7 +190,7 @@
                                 </div>
 
                                 <!-- Información de la factura -->
-                                <div class="card mb-4">
+                                <div class="card mb-4" data-tour="invoice-create-billing">
                                     <div class="card-header">
                                         <h5 class="mb-0"><i class="fa fa-info-circle"></i> Información de Factura</h5>
                                     </div>
@@ -212,7 +215,7 @@
                                 </div>
 
                                 <!-- Totales -->
-                                <div class="card mb-4">
+                                <div class="card mb-4" data-tour="invoice-create-total">
                                     <div class="card-header">
                                         <h5 class="mb-0"><i class="fa fa-calculator"></i> Totales</h5>
                                     </div>
@@ -244,7 +247,7 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group text-right">
+                                <div class="form-group text-right" data-tour="invoice-create-actions">
                                     <button type="button" class="btn btn-secondary me-1" @click="cancel">
                                         <i class="fa fa-times"></i> Cancelar
                                     </button>
@@ -263,17 +266,23 @@
             </div>
         </div>
     </div>
+
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import CurrencyInput from '@/components/general/CurrencyInput';
+import { invoiceCreateTutorial } from '@/tutorials/invoices'
 
 const route = useRoute()
 const router = useRouter()
 const inscriptionId = route.params.inscription
+const tutorial = usePageTutorial(invoiceCreateTutorial)
 
 // Estado reactivo
 const inscription = ref(null)

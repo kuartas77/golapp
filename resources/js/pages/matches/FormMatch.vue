@@ -9,7 +9,13 @@
                     <div class="panel">
                         <div class="panel-body">
                             <Loader :is-loading="isLoading" />
-                            <div class="row col-md-12 no-print">
+                            <div class="d-flex justify-content-end mb-3 no-print" data-tour="match-form-header">
+                                <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                                    Guia
+                                </button>
+                            </div>
+
+                            <div class="row col-md-12 no-print" data-tour="match-form-general">
 
                                 <div class="col-md-12 col-sm-12 col-lg-3 col-xl-3">
                                     <div class="form-group">
@@ -101,7 +107,7 @@
 
                                 <template v-if="isEdition">
 
-                                    <h6 class="text-center">Resultado Final</h6>
+                                    <h6 class="text-center" data-tour="match-form-result">Resultado Final</h6>
                                     <div class="col-md-12 col-sm-12 col-lg-4 col-xl-4">
                                         <div class="form-group" v-if="isEdition">
                                             <label for="file_upload" class="form-label small">Cargar formato</label>
@@ -154,7 +160,7 @@
 
                             <template v-if="isEdition">
 
-                                <div class="table-responsive no-print">
+                                <div class="table-responsive no-print" data-tour="match-form-stats">
                                     <h6 class="text-center">Estadisticas por deportista</h6>
                                     <small class="text-muted text-center"></small>
                                     <table class="table table-bordered table-sm dataTable align-middle ">
@@ -508,7 +514,9 @@
 
                             </template>
                             <template v-else>
-                                <CoachBoard ref="coach_board" :initialPlayers="skills_controls" ></CoachBoard>
+                                <div data-tour="match-form-board">
+                                    <CoachBoard ref="coach_board" :initialPlayers="skills_controls" ></CoachBoard>
+                                </div>
                             </template>
 
 
@@ -516,7 +524,7 @@
                     </div>
                 </div>
 
-                <div class="account-settings-footer mt-2 no-print">
+                <div class="account-settings-footer mt-2 no-print" data-tour="match-form-actions">
                     <div class="as-footer-container">
 
                         <template v-if="urlExportFormat">
@@ -531,6 +539,8 @@
             </div>
         </div>
     </Form>
+
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>
 import "@/assets/sass/users/account-setting.scss"
@@ -540,15 +550,18 @@ import dayjs from '@/utils/dayjs'
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import flatPickr from 'vue-flatpickr-component'
 import Loader from '@/components/general/Loader'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import CoachBoard from "./coachboard/CoachBoard.vue"
 
 import api from '@/utils/axios'
 import { usePageTitle } from "@/composables/use-meta"
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import { ErrorMessage, Field, Form } from "vee-validate"
 import * as yup from 'yup'
 import { getCurrentInstance, useTemplateRef, onMounted, ref } from "vue"
 import { useRoute } from "vue-router"
 import { useSettingGroups } from '@/store/settings-store'
+import { matchFormTutorial } from '@/tutorials/matches'
 
 const props = defineProps({ isEdition: { type: Boolean, default: false } })
 
@@ -558,6 +571,9 @@ const route = useRoute()
 const settingsGroup = useSettingGroups()
 const currentTitlePage = ref("")
 const formMatches = useTemplateRef('form_matches')
+const tutorial = usePageTutorial(matchFormTutorial, {
+    isEdition: props.isEdition,
+})
 const coachBoard = useTemplateRef('coach_board')
 const isLoading = ref(true)
 const urlExportFormat = ref(null)

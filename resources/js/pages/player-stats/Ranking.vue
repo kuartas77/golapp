@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #header>
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3" data-tour="player-stats-ranking-actions">
                 <div>
                     <h3 class="mb-1">Estadísticas de jugadores</h3>
                     <p class="text-muted mb-0">
@@ -12,6 +12,9 @@
                     <router-link :to="{ name: 'player-stats.top' }" class="btn btn-primary btn-sm">
                         Ver destacados
                     </router-link>
+                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                        Guia
+                    </button>
                 </div>
             </div>
         </template>
@@ -21,7 +24,7 @@
                 <Loader :is-loading="isLoading" loading-text="Cargando escalafón..." />
 
                 <div class="row g-3 mb-4">
-                    <div class="col-12 col-xl-7">
+                    <div class="col-12 col-xl-7" data-tour="player-stats-ranking-filters">
                         <div class="surface-card h-100">
                             <div class="surface-card-body">
                                 <div class="section-label mb-2">Filtros del ranking</div>
@@ -81,7 +84,7 @@
                         </div>
                     </div>
 
-                    <div class="col-12 col-xl-5">
+                    <div class="col-12 col-xl-5" data-tour="player-stats-ranking-rules">
                         <div class="surface-card h-100">
                             <div class="surface-card-body">
                                 <div class="section-label mb-2">Sistema de puntuación</div>
@@ -107,7 +110,7 @@
                     </button>
                 </div>
 
-                <div class="row g-3 mb-4">
+                <div class="row g-3 mb-4" data-tour="player-stats-ranking-summary">
                     <div class="col-12 col-md-4">
                         <div class="surface-card stat-card">
                             <span class="stat-label">Jugadores en ranking</span>
@@ -137,7 +140,7 @@
                     </div>
                 </div>
 
-                <div class="surface-card overflow-hidden">
+                <div class="surface-card overflow-hidden" data-tour="player-stats-ranking-table">
                     <div class="surface-card-header">
                         <div class="section-label mb-2">Tabla principal</div>
                         <h5 class="mb-1">Escalafón de jugadores</h5>
@@ -229,11 +232,15 @@
     </panel>
 
     <breadcrumb :parent="'Plataforma'" :current="'Estadísticas de jugadores'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 
 <script setup>
 import Loader from '@/components/general/Loader.vue'
 import { usePlayerStatsRanking } from '@/composables/player/playerStats'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { playerStatsRankingTutorial } from '@/tutorials/playerStats'
 
 const {
     categories,
@@ -254,6 +261,7 @@ const {
     scoringRules,
     applyFilters,
 } = usePlayerStatsRanking()
+const tutorial = usePageTutorial(playerStatsRankingTutorial)
 </script>
 
 <style scoped>

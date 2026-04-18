@@ -1,7 +1,13 @@
 <template>
     <panel>
         <template #body>
-            <div class="row">
+            <div class="d-flex justify-content-end mb-3">
+                <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                    Guia
+                </button>
+            </div>
+
+            <div class="row" data-tour="monthly-payments-filters">
                 <div class="col-xl-6 col-lg-6 col-sm-12 text-center">
                     <Form ref="form" :validation-schema="schema" @submit="handleSearch" :initial-values="formData"
                         class="row align-items-center justify-content-center">
@@ -48,7 +54,7 @@
                     </Form>
                 </div>
 
-                <div class="col-xl-6 col-lg-6 col-sm-12 text-center">
+                <div class="col-xl-6 col-lg-6 col-sm-12 text-center" data-tour="monthly-payments-summary">
                     <div class="row">
 
                         <div class="col-12 mt-1">
@@ -110,7 +116,7 @@
                 </div> -->
             </div>
 
-            <div class="table-responsive" :class="groupPayments.length ? 'scroll-container' : ''">
+            <div class="table-responsive" :class="groupPayments.length ? 'scroll-container' : ''" data-tour="monthly-payments-table">
                 <table class="table table-bordered table-sm dataTable align-middle text-center" ref="payments_table">
                     <thead class="">
                         <tr>
@@ -234,6 +240,7 @@
         </template>
     </panel>
     <breadcrumb :parent="'Plataforma'" :current="'Mensualidades'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script>
 export default {
@@ -242,8 +249,11 @@ export default {
 </script>
 <script setup>
 import CurrencyInput from '@/components/general/CurrencyInput';
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useMonthlyPayments from '@/composables/payments/monthly-payments';
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import { ErrorMessage, Field, Form } from 'vee-validate';
+import { monthlyPaymentsTutorial } from '@/tutorials/payments'
 
 const {
     handleSearch,
@@ -272,4 +282,5 @@ const {
     totalsFooter,
     totalByType
 } = useMonthlyPayments()
+const tutorial = usePageTutorial(monthlyPaymentsTutorial)
 </script>

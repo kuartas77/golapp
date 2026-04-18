@@ -5,13 +5,18 @@
                 <div class="col-xl-12 col-md-12 col-sm-12 col-12">
                     <h4>Grupos de entrenamiento</h4>
                 </div>
+                <div class="col-12 mt-2 d-flex justify-content-end">
+                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                        Guia
+                    </button>
+                </div>
             </div>
         </template>
         <template #body>
 
             <div class="parent ex-4">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-6" data-tour="admin-training-board-pool">
                         <draggable id="left-rm-spill" class="drag-drop" group="news_feed" ghost-class="gu-transit"
                             drag-class="el-drag-ex-4" :animation="200" :list="start">
 
@@ -35,7 +40,7 @@
                         </draggable>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-6" data-tour="admin-training-board-target">
                         <draggable id="right-rm-spill" class="drag-drop" group="news_feed" ghost-class="gu-transit"
                             drag-class="el-drag-ex-4" :animation="200" :list="end">
 
@@ -63,11 +68,15 @@
 
         </template>
     </panel>
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>
 import "@/assets/sass/drag-drop/drag-drop.css";
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import { ref } from "vue";
 import { VueDraggableNext as draggable } from "vue-draggable-next";
+import { adminTrainingGroupTutorial } from '@/tutorials/admin'
 
 
 const start = ref([
@@ -78,6 +87,7 @@ const start = ref([
 ]);
 
 const end = ref([])
+const tutorial = usePageTutorial(adminTrainingGroupTutorial)
 
 
 

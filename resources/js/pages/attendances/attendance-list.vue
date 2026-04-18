@@ -7,7 +7,7 @@
                         <div class="d-flex justify-content-end mb-2">
                             <button type="button" class="btn btn-outline-info btn-sm" @click="tutorial.start()">
                                 <i class="fa-regular fa-circle-question me-2"></i>
-                                Ver tutorial
+                                Guia
                             </button>
                         </div>
 

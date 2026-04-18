@@ -3,7 +3,7 @@
         <template #lateral />
         <template #header>
             <div class="row">
-                <div class="col-md-auto">
+                <div class="col-md-auto" data-tour="admin-users-actions">
                     <a data-bs-toggle="modal" data-bs-target="#composeModalUser" id="btn-compose-user"
                         class="btn btn-block btn-primary" href="javascript:void(0);">
                         Crear usuario
@@ -12,11 +12,18 @@
                 <div class="col-md-8">
                     <p>Se pueden crear usuarios con el perfil de instructor, de ser requerido un usuario con el perfil de school que es perfil para administrar la escuela, favor solicitarlo.</p>
                 </div>
+                <div class="col-md-auto ms-md-auto">
+                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                        Guia
+                    </button>
+                </div>
             </div>
         </template>
         <template #body>
 
-            <DatatableTemplate :options="options" :id="'users_table'" ref="table" @click="onClickRow($event)" />
+            <div data-tour="admin-users-table">
+                <DatatableTemplate :options="options" :id="'users_table'" ref="table" @click="onClickRow($event)" />
+            </div>
         </template>
     </panel>
 
@@ -64,10 +71,15 @@
     </div>
 
     <breadcrumb :parent="'Adminstración'" :current="'Cuentas de usuarios'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useUsersList from '@/composables/admin/users/usersList'
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import { ErrorMessage, Field, Form } from 'vee-validate'
+import { usersListTutorial } from '@/tutorials/admin'
 
 const { table, options, initialData, schema, onClickRow, onCancel, submit } = useUsersList()
+const tutorial = usePageTutorial(usersListTutorial)
 </script>

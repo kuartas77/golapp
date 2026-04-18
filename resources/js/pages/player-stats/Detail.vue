@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #header>
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3" data-tour="player-stats-detail-header">
                 <div class="d-flex align-items-center gap-3">
                     <img
                         :src="player?.photo || '/img/user.png'"
@@ -23,6 +23,9 @@
                     <router-link :to="{ name: 'player-stats.top' }" class="btn btn-primary btn-sm">
                         Ver destacados
                     </router-link>
+                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                        Guia
+                    </button>
                 </div>
             </div>
         </template>
@@ -39,7 +42,7 @@
                 </div>
 
                 <template v-if="player">
-                    <div class="row g-3 mb-4">
+                    <div class="row g-3 mb-4" data-tour="player-stats-detail-metrics">
                         <div class="col-12 col-md-6 col-xl-3">
                             <div class="surface-card metric-card">
                                 <span class="metric-label">Puntuación total</span>
@@ -74,7 +77,7 @@
                     </div>
 
                     <div class="row g-4 mb-4">
-                        <div class="col-12 col-xl-6">
+                        <div class="col-12 col-xl-6" data-tour="player-stats-detail-summary">
                             <div class="surface-card h-100">
                                 <div class="surface-card-header">
                                     <div class="section-label mb-2">Resumen del jugador</div>
@@ -155,7 +158,7 @@
                     </div>
 
                     <div class="row g-4 mb-4">
-                        <div class="col-12 col-xl-7">
+                        <div class="col-12 col-xl-7" data-tour="player-stats-detail-matches">
                             <div class="surface-card h-100 overflow-hidden">
                                 <div class="surface-card-header">
                                     <div class="section-label mb-2">Historial reciente</div>
@@ -212,7 +215,7 @@
                             </div>
                         </div>
 
-                        <div class="col-12 col-xl-5">
+                        <div class="col-12 col-xl-5" data-tour="player-stats-detail-positions">
                             <div class="surface-card h-100">
                                 <div class="surface-card-header">
                                     <div class="section-label mb-2">Mapa de posiciones</div>
@@ -263,12 +266,16 @@
     </panel>
 
     <breadcrumb :parent="'Plataforma'" :current="player?.player_name || 'Detalle del jugador'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 
 <script setup>
 import apexchart from 'vue3-apexcharts'
 import Loader from '@/components/general/Loader.vue'
 import { usePlayerStatsDetail } from '@/composables/player/playerStats'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { playerStatsDetailTutorial } from '@/tutorials/playerStats'
 
 const {
     age,
@@ -295,6 +302,7 @@ const {
     savesPerMatch,
     starterPercentage,
 } = usePlayerStatsDetail()
+const tutorial = usePageTutorial(playerStatsDetailTutorial)
 </script>
 
 <style scoped>

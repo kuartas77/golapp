@@ -3,11 +3,16 @@
         <template #lateral class="algo"></template>
         <template #body>
             <Form ref="form" :validation-schema="schema" @submit="submit" :initial-values="formData">
+                <div class="d-flex justify-content-end mb-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                        Guia
+                    </button>
+                </div>
                 <div class="row col-md-12">
-                    <div class="form-group col-md-3 text-center">
+                    <div class="form-group col-md-3 text-center" data-tour="admin-school-brand">
                         <inputFileImage label="Logo" name="logo" />
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-4" data-tour="admin-school-brand">
                         <div class="form-group ">
                             <inputField label="Nombre Escuela" name="name" />
                         </div>
@@ -20,7 +25,7 @@
 
                     </div>
 
-                    <div class="col-md-5">
+                    <div class="col-md-5" data-tour="admin-school-brand">
                         <div class="form-group ">
                             <inputField label="Dirección" name="address" />
                         </div>
@@ -33,8 +38,8 @@
                 <br>
                 <h6>Configuraciones</h6>
                 <hr>
-                <div class="row">
-                    <div class="col-md-3">
+                <div class="row" data-tour="admin-school-settings">
+                    <div class="col-md-3" data-tour="admin-school-flags">
                         <div class="form-group ">
                             <inputField label="Precio de la Matricula" name="INSCRIPTION_AMOUNT" :currency="true" />
                         </div>
@@ -44,7 +49,7 @@
 
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-3" data-tour="admin-school-flags">
                         <div class="form-group ">
                             <inputField label="Precio de la Anualidad / Mes" name="ANNUITY" :currency="true"/>
                         </div>
@@ -63,7 +68,7 @@
                         <checkbox label="Firma Deportistas?" name="sign_player" disabled="disabled" v-tooltip.top="'Sí firma el acudiente y el deportista ó sólo el acudiente.'"/>
                     </div>
                 </div>
-                <div class="row text-center">
+                <div class="row text-center" data-tour="admin-school-actions">
                     <div class="col-md-4"></div>
                     <div class="col-md-4">
                         <button type="submit" class="btn btn-primary mt-3">Guardar</button>
@@ -75,13 +80,18 @@
         </template>
     </panel>
     <breadcrumb :parent="'Adminstración'" :current="'Escuela'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>
 import { Form } from 'vee-validate'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useFormSchool from '@/composables/admin/school/formSchool';
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from "@/composables/use-meta";
+import { updateSchoolTutorial } from '@/tutorials/admin'
 usePageTitle('Escuela')
 const { form, formData, schema, submit, reset } = useFormSchool()
+const tutorial = usePageTutorial(updateSchoolTutorial)
 
 // Swal.fire("SweetAlert2 is working!");
 </script>

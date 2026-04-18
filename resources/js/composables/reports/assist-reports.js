@@ -129,8 +129,8 @@ export default function useAssistReports() {
         pageLength: 10,
         processing: true,
         serverSide: true,
-        autoWidth: false,
-        scrollX: true,
+        // autoWidth: false,
+        // scrollX: true,
         searchDelay: 400,
         order,
         ajax: async (data, callback) => {
@@ -149,6 +149,7 @@ export default function useAssistReports() {
         },
         columns,
         columnDefs: [
+            { responsivePriority: 1, targets: columns.length - 1 },
             {
                 targets: '_all',
                 className: 'dt-head-center dt-body-center',

@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #header>
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3" data-tour="admin-evaluation-templates-actions">
                 <div>
                     <h3 class="mb-1">Plantillas de evaluación</h3>
                     <p class="text-muted mb-0">
@@ -13,6 +13,9 @@
                     <router-link :to="{ name: 'evaluation-templates.create' }" class="btn btn-primary btn-sm">
                         Nueva plantilla
                     </router-link>
+                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                        Guia
+                    </button>
                 </div>
             </div>
         </template>
@@ -21,7 +24,7 @@
             <div class="position-relative evaluation-templates-page">
                 <Loader :is-loading="isLoading" loading-text="Cargando plantillas..." />
 
-                <div class="surface-card card mb-4">
+                <div class="surface-card card mb-4" data-tour="admin-evaluation-templates-filters">
                     <div class="surface-card-body card-body">
                         <div class="row g-3 align-items-end">
                             <div class="col-12 col-lg-4">
@@ -91,7 +94,7 @@
                     </button>
                 </div>
 
-                <div class="surface-card card mb-4">
+                <div class="surface-card card mb-4" data-tour="admin-evaluation-templates-summary">
                     <div class="surface-card-body card-body compact-stats">
                         <div class="compact-stat-item">
                             <span class="compact-stat-label">Total filtrado</span>
@@ -113,7 +116,7 @@
                     </div>
                 </div>
 
-                <div class="surface-card card overflow-hidden">
+                <div class="surface-card card overflow-hidden" data-tour="admin-evaluation-templates-table">
                     <div class="surface-card-body card-body p-0">
                         <div v-if="templates.length" class="table-responsive">
                             <table class="table table-hover table-bordered align-middle mb-0">
@@ -256,12 +259,15 @@
     </panel>
 
     <breadcrumb :parent="'Administración'" :current="'Plantillas de evaluación'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Loader from '@/components/general/Loader.vue'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from '@/composables/use-meta'
 import api from '@/utils/axios'
 import {
@@ -272,11 +278,13 @@ import {
     statusVariantMap,
     toQueryObject,
 } from '@/pages/admin/evaluation-templates/utils'
+import { evaluationTemplatesIndexTutorial } from '@/tutorials/admin'
 
 usePageTitle('Plantillas de evaluación')
 
 const route = useRoute()
 const router = useRouter()
+const tutorial = usePageTutorial(evaluationTemplatesIndexTutorial)
 
 const isLoading = ref(false)
 const hasLoadedOptions = ref(false)

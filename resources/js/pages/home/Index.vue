@@ -23,18 +23,21 @@
                                     misma pagina.
                                 </p>
 
-                                <div class="d-flex flex-wrap gap-2">
+                                <div class="d-flex flex-wrap gap-2" data-tour="home-welcome">
                                     <router-link :to="{ name: preferredLink.routeName }" class="btn btn-primary">
                                         {{ preferredLink.cta }}
                                     </router-link>
                                     <router-link :to="{ name: 'kpi' }" class="btn btn-secondary">
                                         Ver indicadores
                                     </router-link>
+                                    <button type="button" class="btn btn-outline-primary" @click="tutorial.start()">
+                                        Guia
+                                    </button>
                                 </div>
                             </div>
 
                             <div class="col-lg-4">
-                                <div class="border rounded p-3 h-100">
+                                <div class="border rounded p-3 h-100" data-tour="home-context">
                                     <h5 class="mb-3">Contexto actual</h5>
                                     <dl class="row mb-0 small">
                                         <dt class="col-sm-5 text-muted fw-normal">Usuario</dt>
@@ -60,7 +63,7 @@
             </div>
 
             <div class="col-xl-8 col-lg-7 col-12">
-                <div class="panel br-6 h-100">
+                <div class="panel br-6 h-100" data-tour="home-modules">
                     <div class="panel-body">
                         <div class="mb-4">
                             <h4 class="mb-2">Modulos principales</h4>
@@ -112,7 +115,7 @@
             </div>
 
             <div class="col-xl-4 col-lg-5 col-12">
-                <div class="panel br-6 h-100">
+                <div class="panel br-6 h-100" data-tour="home-journey">
                     <div class="panel-body">
                         <div class="mb-4">
                             <h4 class="mb-2">Como se usa normalmente</h4>
@@ -145,7 +148,7 @@
             </div>
 
             <div class="col-xl-5 col-lg-6 col-12">
-                <div class="panel br-6 h-100">
+                <div class="panel br-6 h-100" data-tour="home-quick-links">
                     <div class="panel-body">
                         <div class="mb-4">
                             <h4 class="mb-2">Accesos rapidos</h4>
@@ -208,15 +211,21 @@
             </div>
         </div>
     </div>
+
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { useAuthUser } from '@/store/auth-user'
 import { useBackofficeAccess } from '@/composables/useBackofficeAccess'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { homeTutorial } from '@/tutorials/dashboard'
 
 const authUser = useAuthUser()
 const { access } = useBackofficeAccess()
+const tutorial = usePageTutorial(homeTutorial)
 
 const canPlayers = access.players
 const canInscriptions = access.inscriptions

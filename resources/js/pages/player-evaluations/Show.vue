@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #header>
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3" data-tour="player-evaluations-show-header">
                 <div class="d-flex align-items-center gap-3">
                     <img
                         :src="evaluation?.inscription?.player?.photo_url || '/img/user.webp'"
@@ -47,6 +47,9 @@
                     >
                         Eliminar
                     </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                        Guia
+                    </button>
                 </div>
             </div>
         </template>
@@ -63,7 +66,7 @@
                 </div>
 
                 <template v-if="evaluation">
-                    <div class="row g-3 mb-4">
+                    <div class="row g-3 mb-4" data-tour="player-evaluations-show-summary">
                         <div class="col-12 col-md-6 col-xl-3">
                             <div class="surface-card card stat-card">
                                 <span class="stat-label">Jugador</span>
@@ -140,7 +143,7 @@
                         </div>
                     </div>
 
-                    <div v-for="(scores, dimension) in scoresByDimension" :key="dimension" class="surface-card card overflow-hidden mb-4">
+                    <div v-for="(scores, dimension) in scoresByDimension" :key="dimension" class="surface-card card overflow-hidden mb-4" data-tour="player-evaluations-show-dimensions">
                         <div class="surface-card-header card-header d-flex flex-column flex-lg-row justify-content-between gap-3">
                             <div>
                                 <div class="section-label mb-2">Dimensión</div>
@@ -192,7 +195,7 @@
                         </div>
                     </div>
 
-                    <div class="row g-4">
+                    <div class="row g-4" data-tour="player-evaluations-show-conclusions">
                         <div class="col-12 col-xl-6">
                             <div class="surface-card card h-100">
                                 <div class="surface-card-header card-header">
@@ -237,13 +240,16 @@
     </panel>
 
     <breadcrumb :parent="'Plataforma'" :current="'Detalle de evaluación'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Loader from '@/components/general/Loader.vue'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import {
     defaultEvaluationTypeOptions,
     defaultStatusOptions,
@@ -253,9 +259,11 @@ import {
     groupScoresByDimension,
     labelFromOptions,
 } from '@/pages/player-evaluations/utils'
+import { playerEvaluationsShowTutorial } from '@/tutorials/playerEvaluations'
 
 const route = useRoute()
 const router = useRouter()
+const tutorial = usePageTutorial(playerEvaluationsShowTutorial)
 
 const isLoading = ref(true)
 const globalError = ref('')

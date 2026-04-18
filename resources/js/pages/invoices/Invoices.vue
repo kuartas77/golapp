@@ -1,8 +1,13 @@
 <template>
     <panel>
         <template #body>
+            <div class="d-flex justify-content-end mb-3">
+                <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                    Guia
+                </button>
+            </div>
 
-            <div class="row ">
+            <div class="row " data-tour="invoices-index-filters">
                 <div class="col-md-2">
                     <div class="form-group">
                         <select class="form-select form-select-sm" id="filterStatus" >
@@ -32,7 +37,8 @@
                 </div>
             </div>
 
-            <DatatableTemplate :options="options" :id="'invoives_table'" ref="invoives_table" @click="onClickRow">
+            <div data-tour="invoices-index-table">
+                <DatatableTemplate :options="options" :id="'invoives_table'" ref="invoives_table" @click="onClickRow">
                 <template #thead>
                     <thead>
                         <tr>
@@ -59,19 +65,23 @@
                         </tr>
                     </tfoot>
                 </template>
-            </DatatableTemplate>
+                </DatatableTemplate>
+            </div>
 
         </template>
 
     </panel>
 
     <breadcrumb :parent="'Plataforma'" :current="'Facturas'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 
 </template>
 
 <script setup>
 import { ref, computed, onMounted, reactive, watch } from 'vue'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useInvoicesList from '@/composables/invoices/invoicesList'
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import dayjs from '@/utils/dayjs';
@@ -80,6 +90,7 @@ import { Spanish } from "flatpickr/dist/l10n/es.js"
 import flatPickr from 'vue-flatpickr-component';
 import 'flatpickr/dist/flatpickr.css';
 import "@/assets/sass/forms/custom-flatpickr.css";
+import { invoicesIndexTutorial } from '@/tutorials/invoices'
 
 const flatpickrConfig = {
     wrap: true,
@@ -92,6 +103,7 @@ const flatpickrConfig = {
 const { options, invoives_table, onClickRow, reloadTable } = useInvoicesList()
 
 const router = useRouter()
+const tutorial = usePageTutorial(invoicesIndexTutorial)
 
 // Estado reactivo
 const filterDate = ref('')

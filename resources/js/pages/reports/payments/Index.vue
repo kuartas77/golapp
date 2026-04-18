@@ -10,7 +10,7 @@
 
                         <template v-else>
                         <div class="row g-4 align-items-start">
-                            <div class="col-lg-5">
+                            <div class="col-lg-5" data-tour="payment-report-intro">
                                 <h4 class="mb-2">Informe de pagos</h4>
                                 <p class="text-muted mb-3">
                                     Solicita el consolidado por año o por año y grupo y recíbelo por correo cuando esté listo.
@@ -22,7 +22,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-lg-7">
+                            <div class="col-lg-7" data-tour="payment-report-filters">
                                 <div v-if="loadError" class="alert alert-danger">
                                     {{ loadError }}
                                 </div>
@@ -48,7 +48,7 @@
                                             placeholder="Todos los grupos" />
                                     </div>
 
-                                    <div class="col-md-3">
+                                    <div class="col-md-3" data-tour="payment-report-action">
                                         <button
                                             type="button"
                                             class="btn btn-primary w-100"
@@ -74,6 +74,11 @@
                                         </button>
                                     </div>
                                 </div>
+                                <div class="d-flex justify-content-end mt-3">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                                        Guia
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         </template>
@@ -84,6 +89,7 @@
     </div>
 
     <breadcrumb :parent="'Informes'" :current="'Mensualidades'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 
 <script>
@@ -93,7 +99,10 @@ export default {
 </script>
 
 <script setup>
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import usePaymentReport from '@/composables/reports/payment-report'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { paymentReportTutorial } from '@/tutorials/reports'
 
 const {
     form,
@@ -104,4 +113,5 @@ const {
     sendByEmail,
     years,
 } = usePaymentReport()
+const tutorial = usePageTutorial(paymentReportTutorial)
 </script>

@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #header>
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3" data-tour="top-players-actions">
                 <div>
                     <h3 class="mb-1">Jugadores destacados</h3>
                     <p class="text-muted mb-0">
@@ -15,6 +15,9 @@
                     <button type="button" class="btn btn-secondary btn-sm" @click="loadTopPlayers">
                         Recargar
                     </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                        Guia
+                    </button>
                 </div>
             </div>
         </template>
@@ -24,7 +27,7 @@
                 <Loader :is-loading="isLoading" loading-text="Cargando destacados..." />
 
                 <div class="row g-3 mb-4">
-                    <div class="col-12 col-xl-4">
+                    <div class="col-12 col-xl-4" data-tour="top-players-spotlight">
                         <div class="surface-card accent-card h-100">
                             <div class="surface-card-body">
                                 <div class="section-label mb-2">Jugador foco</div>
@@ -80,7 +83,7 @@
                     </button>
                 </div>
 
-                <div class="surface-card overflow-hidden mb-4">
+                <div class="surface-card overflow-hidden mb-4" data-tour="top-players-scorers">
                     <div class="surface-card-header">
                         <div class="section-label mb-2">Tabla principal</div>
                         <h5 class="mb-1">Máximos goleadores</h5>
@@ -140,7 +143,7 @@
                     </div>
                 </div>
 
-                <div class="row g-4 mb-4">
+                <div class="row g-4 mb-4" data-tour="top-players-creation">
                     <div class="col-12 col-xl-6">
                         <div class="surface-card h-100">
                             <div class="surface-card-header">
@@ -234,7 +237,7 @@
                     </div>
                 </div>
 
-                <div class="surface-card">
+                <div class="surface-card" data-tour="top-players-rated">
                     <div class="surface-card-header">
                         <div class="section-label mb-2">Evaluación técnica</div>
                         <h5 class="mb-1">Mejor calificados</h5>
@@ -283,11 +286,15 @@
     </panel>
 
     <breadcrumb :parent="'Plataforma'" :current="'Jugadores destacados'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 
 <script setup>
 import Loader from '@/components/general/Loader.vue'
 import { useTopPlayers } from '@/composables/player/playerStats'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { topPlayersTutorial } from '@/tutorials/playerStats'
 
 const {
     formatDate,
@@ -305,6 +312,7 @@ const {
     loadTopPlayers,
     ratingVariant,
 } = useTopPlayers()
+const tutorial = usePageTutorial(topPlayersTutorial)
 </script>
 
 <style scoped>

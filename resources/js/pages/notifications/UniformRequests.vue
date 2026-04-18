@@ -1,13 +1,18 @@
 <template>
     <panel>
         <template #body>
+            <div class="d-flex justify-content-end mb-3">
+                <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                    Guia
+                </button>
+            </div>
             <p>Podrás encontrar las solicitudes pendientes de uniformes generadas desde la App GOLAPPLINK.</p>
             <span class="text-muted d-block mb-3">
                 Al dar click en crear una factura las solicitudes pendientes se agregarán a esta, sin importar la
                 solicitud seleccionada del estudiante y se aprobará si está incluida en la factura.
             </span>
 
-            <div class="row mb-3">
+            <div class="row mb-3" data-tour="uniform-requests-filter">
                 <div class="col-md-4 col-lg-3">
                     <label class="form-label" for="uniformRequestTypeFilter">Tipo</label>
                     <select id="uniformRequestTypeFilter" class="form-select form-select-sm">
@@ -23,7 +28,7 @@
                 </div>
             </div>
 
-            <div class="table-responsive-md">
+            <div class="table-responsive-md" data-tour="uniform-requests-table">
                 <DatatableTemplate :options="options" id="uniform_requests_table" ref="uniformRequestsTable">
                     <template #thead>
                         <thead>
@@ -46,18 +51,23 @@
     </panel>
 
     <breadcrumb :parent="'Facturación'" :current="'Solicitudes de Uniformes'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 
 <script setup>
 import { onMounted, useTemplateRef } from 'vue'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
 import dayjs from '@/utils/dayjs'
 import configLanguaje from '@/utils/datatableUtils'
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from '@/composables/use-meta'
+import { uniformRequestsTutorial } from '@/tutorials/notifications'
 
 usePageTitle('Solicitudes de Uniformes')
 
 const uniformRequestsTable = useTemplateRef('uniformRequestsTable')
+const tutorial = usePageTutorial(uniformRequestsTutorial)
 
 const typeLabels = {
     UNIFORM: 'Uniforme',

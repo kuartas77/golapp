@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #header>
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3" data-tour="player-evaluations-comparison-actions">
                 <div>
                     <h3 class="mb-1">Comparativo de evaluaciones</h3>
                     <p class="text-muted mb-0">
@@ -22,6 +22,9 @@
                     >
                         Exportar PDF
                     </a>
+                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                        Guia
+                    </button>
                 </div>
             </div>
         </template>
@@ -30,7 +33,7 @@
             <div class="position-relative comparison-page">
                 <Loader :is-loading="isLoading" loading-text="Cargando comparativo..." />
 
-                <div class="surface-card card mb-4">
+                <div class="surface-card card mb-4" data-tour="player-evaluations-comparison-filters">
                     <div class="surface-card-body card-body">
                         <div class="row g-3 align-items-end">
                             <div class="col-12 col-lg-5">
@@ -119,7 +122,7 @@
                         </div>
                     </div>
 
-                    <div class="surface-card card mb-4">
+                    <div class="surface-card card mb-4" data-tour="player-evaluations-comparison-overall">
                         <div class="surface-card-header card-header d-flex flex-column flex-lg-row justify-content-between gap-3">
                             <div>
                                 <div class="section-label mb-2">Resultado general</div>
@@ -149,7 +152,7 @@
                         </div>
                     </div>
 
-                    <div class="surface-card card overflow-hidden mb-4">
+                    <div class="surface-card card overflow-hidden mb-4" data-tour="player-evaluations-comparison-dimensions">
                         <div class="surface-card-header card-header">
                             <div class="section-label mb-2">Dimensiones</div>
                             <h5 class="mb-1">Comparativo por dimensión</h5>
@@ -186,7 +189,7 @@
                         </div>
                     </div>
 
-                    <div class="surface-card card overflow-hidden mb-4">
+                    <div class="surface-card card overflow-hidden mb-4" data-tour="player-evaluations-comparison-criteria">
                         <div class="surface-card-header card-header">
                             <div class="section-label mb-2">Criterios</div>
                             <h5 class="mb-1">Detalle por criterio</h5>
@@ -293,13 +296,16 @@
     </panel>
 
     <breadcrumb :parent="'Plataforma'" :current="'Comparativo de evaluaciones'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Loader from '@/components/general/Loader.vue'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import {
     buildPdfUrl,
     formatScore,
@@ -308,9 +314,11 @@ import {
     trendLabelMap,
     trendVariantMap,
 } from '@/pages/player-evaluations/utils'
+import { playerEvaluationsComparisonTutorial } from '@/tutorials/playerEvaluations'
 
 const route = useRoute()
 const router = useRouter()
+const tutorial = usePageTutorial(playerEvaluationsComparisonTutorial)
 
 const isLoading = ref(true)
 const comparison = ref(null)

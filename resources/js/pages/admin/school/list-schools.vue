@@ -8,23 +8,31 @@
                         Administra el listado general y ajusta qué módulos del backoffice están disponibles por escuela.
                     </p>
                 </div>
-                <div class="small text-muted">
-                    Los permisos de escuela restringen acceso; no reemplazan los roles de usuario.
+                <div class="d-flex flex-column align-items-lg-end gap-2">
+                    <div class="small text-muted">
+                        Los permisos de escuela restringen acceso; no reemplazan los roles de usuario.
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                        Guia
+                    </button>
                 </div>
             </div>
         </template>
         <template #body>
-            <DatatableTemplate :options="options" :id="'schools_table'" ref="table">
+            <div data-tour="admin-schools-table">
+                <DatatableTemplate :options="options" :id="'schools_table'" ref="table">
                 <template #actions="props">
                     <button
                         type="button"
                         class="btn btn-outline-primary btn-sm"
+                        data-tour="admin-schools-permissions"
                         @click="openPermissions(props.rowData)"
                     >
                         Permisos
                     </button>
                 </template>
-            </DatatableTemplate>
+                </DatatableTemplate>
+            </div>
         </template>
     </panel>
 
@@ -134,16 +142,21 @@
     </div>
 
     <breadcrumb :parent="'Adminstración'" :current="'Escuelas'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
 import useSchoolList from '@/composables/admin/school/schoolList'
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from "@/composables/use-meta";
+import { schoolsListTutorial } from '@/tutorials/admin'
 
 usePageTitle('Escuelas')
 
 const { table, options } = useSchoolList()
+const tutorial = usePageTutorial(schoolsListTutorial)
 
 const modalError = ref('')
 const selectedSchool = ref(null)

@@ -23,7 +23,7 @@
 
 
 
-                <Wizard v-model="step" :options="wizardOptions(validate)" @finish="handleSubmit(onSubmit)">
+                <Wizard v-model="step" :options="wizardOptions(validate)" @finish="handleSubmit(onSubmit)" data-tour="player-detail-wizard">
 
                     <template #info>
                         <h6 class="d-flex block-helper justify-content-center">Los campos con <span
@@ -31,7 +31,7 @@
                     </template>
 
                     <Step title="Información personal">
-                        <fieldset class="col-md-12 p-3">
+                        <fieldset class="col-md-12 p-3" data-tour="player-detail-personal">
                             <legend>Personal</legend>
                             <div class="row col-md-12">
                                 <div class="col-md-3 text-center">
@@ -113,7 +113,7 @@
                     </Step>
 
                     <Step title="Información general">
-                        <fieldset class="col-md-12 p-3">
+                        <fieldset class="col-md-12 p-3" data-tour="player-detail-general">
                             <legend>General</legend>
                             <div class="row col-md-12">
                                 <div class="col-md-3">
@@ -184,7 +184,7 @@
                     </Step>
 
                     <Step title="Información familiar">
-                        <fieldset class="col-md-12 p-3" v-for="value, key in parients" :key="`${value}_${key}`">
+                        <fieldset class="col-md-12 p-3" v-for="value, key in parients" :key="`${value}_${key}`" data-tour="player-detail-family">
                             <legend>
                                 Parentesco:
                                 <Field :name="`relationship_${key}`"  v-slot="{ field, errorMessage, meta }">
@@ -226,16 +226,28 @@
         </template>
     </panel>
     <breadcrumb :parent="'Plataforma'" :current="currentTextPlayer" />
+    <div class="d-flex justify-content-end mt-3">
+        <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+            Guia
+        </button>
+    </div>
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>
 import { Form, Field } from 'vee-validate'
 import flatPickr from 'vue-flatpickr-component';
 import Loader from '@/components/general/Loader';
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import 'vue3-form-wizard/dist/style.css'
 import 'flatpickr/dist/flatpickr.css';
 import "@/assets/sass/forms/custom-flatpickr.css";
 import usePlayerDetail from '@/composables/player/playerDetail'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { playerDetailTutorial } from '@/tutorials/players'
 
 const { globalError, onSubmit, wizardOptions, currentTextPlayer, step, initialValues, flatpickrConfig, settings, schema, degrees, parients, loadingText, isLoading, formErrorSummary, hasGeneralErrors, goToStep } = usePlayerDetail()
+const tutorial = usePageTutorial(playerDetailTutorial, {
+    goToStep,
+})
 
 </script>

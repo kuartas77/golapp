@@ -1,9 +1,14 @@
 <template>
     <panel>
         <template #body>
-            <p>Podrás encontrar todos los comprobantes de pago subidos desde la App GOLAPPLINK.</p>
+            <div class="d-flex justify-content-end mb-3">
+                <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                    Guia
+                </button>
+            </div>
+            <p data-tour="payment-requests-intro">Podrás encontrar todos los comprobantes de pago subidos desde la App GOLAPPLINK.</p>
 
-            <div class="table-responsive-md">
+            <div class="table-responsive-md" data-tour="payment-requests-table">
                 <DatatableTemplate :options="options" id="payment_requests_table" ref="paymentRequestsTable"
                     @click="handleTableClick">
                     <template #thead>
@@ -28,6 +33,7 @@
     </panel>
 
     <breadcrumb :parent="'Facturación'" :current="'Comprobantes de Pago'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 
     <div ref="imageModalElement" class="modal fade" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -47,16 +53,20 @@
 
 <script setup>
 import { onMounted, ref, useTemplateRef } from 'vue'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
 import dayjs from '@/utils/dayjs'
 import configLanguaje from '@/utils/datatableUtils'
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from '@/composables/use-meta'
+import { paymentRequestsTutorial } from '@/tutorials/notifications'
 
 usePageTitle('Comprobantes de Pago')
 
 const paymentRequestsTable = useTemplateRef('paymentRequestsTable')
 const imageModalElement = ref(null)
 const selectedImage = ref({ url: '', title: '' })
+const tutorial = usePageTutorial(paymentRequestsTutorial)
 
 let imageModalInstance = null
 

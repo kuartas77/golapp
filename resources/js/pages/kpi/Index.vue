@@ -2,22 +2,39 @@
 
     <div class="layout-px-spacing ">
         <div class="row layout-top-spacing">
+            <div class="col-12">
+                <div class="panel br-6" data-tour="kpi-toolbar">
+                    <div class="panel-body d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                        <div>
+                            <h4 class="mb-1">Indicadores del backoffice</h4>
+                            <p class="text-muted mb-0">
+                                Este tablero resume pagos, recaudo y asistencia para lectura ejecutiva.
+                            </p>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                            Guia
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row layout-top-spacing">
             <div class="layout-spacing col-xl-6 col-lg-12 col-sm-12">
-                <div class="panel br-6">
+                <div class="panel br-6" data-tour="kpi-payment-groups">
                     <div class="panel-body">
                         <apexchart v-if="options_1" height="300" type="bar" :options="options_1" :series="series_1" />
                     </div>
                 </div>
             </div>
             <div class="layout-spacing col-xl-6 col-lg-12 col-sm-12">
-                <div class="panel br-6">
+                <div class="panel br-6" data-tour="kpi-collection">
                     <div class="panel-body">
                         <apexchart v-if="options_2" height="300" type="line" :options="options_2" :series="series_2" />
                     </div>
                 </div>
             </div>
             <div class="layout-spacing col-xl-3 col-lg-12 col-sm-12">
-                <div class="panel br-6">
+                <div class="panel br-6" data-tour="kpi-attendance">
                     <div class="panel-body">
                         <apexchart v-if="options_3" height="220" type="radialBar" :options="options_3"
                             :series="series_3" />
@@ -27,6 +44,8 @@
         </div>
     </div>
 
+    <PageTutorialOverlay :tutorial="tutorial" />
+
 </template>
 <script setup>
 import "@/assets/sass/widgets/widgets.scss";
@@ -34,9 +53,13 @@ import { computed, ref, onMounted } from "vue";
 import apexchart from "vue3-apexcharts";
 import { useAppState } from '@/store/app-state'
 import api from "@/utils/axios";
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { kpiTutorial } from '@/tutorials/dashboard'
 
 const appState = useAppState()
 const is_dark = appState.is_dark_mode;
+const tutorial = usePageTutorial(kpiTutorial)
 
 const options_1 = ref({
     // chart: { stacked: true, toolbar: { show: false } },

@@ -1,10 +1,15 @@
 <template>
     <div class="layout-px-spacing">
         <div class="row layout-top-spacing">
+            <div class="col-12 d-flex justify-content-end mb-3">
+                <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                    Guia
+                </button>
+            </div>
 
             <div class="col-md-8">
                 <!-- Información de la factura -->
-                <div class="card mb-4">
+                <div class="card mb-4" data-tour="invoice-show-summary">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
                             <i class="fa fa-file-invoice"></i> Factura #{{ invoice.invoice_number }}
@@ -99,7 +104,7 @@
                 <!-- Payment request TODO: -->
 
                 <!-- Historial de pagos -->
-                <div v-if="invoice.payments?.length > 0" class="card">
+                <div v-if="invoice.payments?.length > 0" class="card" data-tour="invoice-show-history">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="fa fa-history"></i> Historial de Pagos</h5>
                     </div>
@@ -137,7 +142,7 @@
 
             <!-- Panel de pagos -->
             <div class="col-md-4">
-                <div class="card mb-4">
+                <div class="card mb-4" data-tour="invoice-show-payment-form">
                     <div class="card-header ">
                         <h5 class="mb-0"><i class="fa fa-money-bill-wave"></i> Registrar Pago</h5>
                     </div>
@@ -227,7 +232,7 @@
                                     </div> -->
                                 </template>
 
-                                <div class="btn-group">
+                                <div class="btn-group" data-tour="invoice-show-actions">
 
                                     <button type="submit" class="btn btn-success btn-block" v-if="unpaidItems.length > 0"
                                         :disabled="paymentLoading || calculatedAmount <= 0 || payment.paid_items.length === 0">
@@ -254,10 +259,14 @@
 
         </div>
     </div>
+
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 
 <script setup>
 import { ref, computed, onMounted, reactive, watch } from 'vue'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import dayjs from '@/utils/dayjs';
@@ -265,6 +274,7 @@ import { Spanish } from "flatpickr/dist/l10n/es.js"
 import flatPickr from 'vue-flatpickr-component';
 import 'flatpickr/dist/flatpickr.css';
 import "@/assets/sass/forms/custom-flatpickr.css";
+import { invoiceShowTutorial } from '@/tutorials/invoices'
 
 const flatpickrConfig = {
     wrap: true,
@@ -276,6 +286,7 @@ const flatpickrConfig = {
 const route = useRoute()
 const router = useRouter()
 const invoiceId = route.params.id
+const tutorial = usePageTutorial(invoiceShowTutorial)
 
 // Estado reactivo
 const invoice = ref({ items: [], payments: [] })

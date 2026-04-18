@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #header>
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3" data-tour="admin-evaluation-template-editor-actions">
                 <div>
                     <h3 class="mb-1">
                         {{ isEditMode ? `Plantilla #${route.params.id}` : 'Nueva plantilla de evaluación' }}
@@ -24,6 +24,9 @@
                     >
                         {{ isDuplicating ? 'Duplicando...' : 'Duplicar versión' }}
                     </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                        Guia
+                    </button>
                 </div>
             </div>
         </template>
@@ -45,7 +48,7 @@
                         pero para cambiar criterios debes duplicar una nueva versión.
                     </div>
 
-                    <div class="surface-card card mb-4">
+                    <div class="surface-card card mb-4" data-tour="admin-evaluation-template-editor-config">
                         <div class="surface-card-header card-header">
                             <div class="section-label mb-2">Configuración</div>
                             <h5 class="mb-1">Configuración general</h5>
@@ -116,7 +119,7 @@
                         </div>
                     </div>
 
-                    <div class="surface-card card mb-4">
+                    <div class="surface-card card mb-4" data-tour="admin-evaluation-template-editor-criteria">
                         <div class="surface-card-header card-header d-flex flex-column flex-lg-row justify-content-between gap-3">
                             <div>
                                 <div class="section-label mb-2">Criterios</div>
@@ -285,7 +288,7 @@
                         </div>
                     </div>
 
-                    <div class="d-flex flex-wrap justify-content-between gap-3">
+                    <div class="d-flex flex-wrap justify-content-between gap-3" data-tour="admin-evaluation-template-editor-actions-footer">
                         <div class="text-muted small">
                             {{ templateState.is_in_use ? 'Plantilla bloqueada por histórico de uso.' : 'Puedes guardar cambios sobre esta plantilla.' }}
                         </div>
@@ -310,12 +313,15 @@
     </panel>
 
     <breadcrumb :parent="'Administración'" :current="isEditMode ? 'Editar plantilla' : 'Nueva plantilla'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Loader from '@/components/general/Loader.vue'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from '@/composables/use-meta'
 import api from '@/utils/axios'
 import {
@@ -325,9 +331,11 @@ import {
     getValidationMessage,
     normalizeCriterionPayload,
 } from '@/pages/admin/evaluation-templates/utils'
+import { evaluationTemplateEditorTutorial } from '@/tutorials/admin'
 
 const route = useRoute()
 const router = useRouter()
+const tutorial = usePageTutorial(evaluationTemplateEditorTutorial)
 
 const isLoading = ref(false)
 const isSubmitting = ref(false)

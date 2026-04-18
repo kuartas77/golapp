@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #header>
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3" data-tour="player-evaluations-editor-actions">
                 <div>
                     <h3 class="mb-1">
                         {{ isEditMode ? `Editar evaluación #${route.params.id}` : 'Nueva evaluación' }}
@@ -24,6 +24,9 @@
                     >
                         Ver detalle
                     </router-link>
+                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                        Guia
+                    </button>
                 </div>
             </div>
         </template>
@@ -40,7 +43,7 @@
                 </div>
 
                 <template v-if="!isEditMode && !formReady">
-                    <div class="surface-card card selection-card mb-4">
+                    <div class="surface-card card selection-card mb-4" data-tour="player-evaluations-editor-selection">
                         <div class="surface-card-header card-header">
                             <div class="section-label mb-2">Configuración inicial</div>
                             <h5 class="mb-1">Selecciona el contexto de la evaluación</h5>
@@ -91,7 +94,7 @@
                                 </div>
                             </div>
 
-                            <div class="row g-3 mt-1">
+                            <div class="row g-3 mt-1" data-tour="player-evaluations-editor-selection-help">
                                 <div class="col-12 col-xl-4">
                                     <div class="selection-tip">
                                         <strong>Inscripción</strong>
@@ -112,7 +115,7 @@
                                 </div>
                             </div>
 
-                            <div class="d-flex flex-wrap gap-2 mt-4">
+                            <div class="d-flex flex-wrap gap-2 mt-4" data-tour="player-evaluations-editor-selection-actions">
                                 <button type="button" class="btn btn-primary" @click="submitSetup">
                                     Continuar al formulario
                                 </button>
@@ -126,7 +129,7 @@
 
                 <template v-else-if="formReady">
                     <div class="editor-workspace">
-                        <div class="row g-3 mb-4 editor-summary-row">
+                        <div class="row g-3 mb-4 editor-summary-row" data-tour="player-evaluations-editor-summary">
                         <div class="col-12 col-md-6 col-xl-3">
                             <div class="surface-card card stat-card editor-summary-card">
                                 <span class="stat-label">Jugador</span>
@@ -168,7 +171,7 @@
                         Esta evaluación está cerrada. Puedes revisar el contenido, pero no modificarlo.
                     </div>
 
-                    <div class="surface-card card mb-4">
+                    <div class="surface-card card mb-4" data-tour="player-evaluations-editor-config">
                         <div class="surface-card-header card-header">
                             <div class="section-label mb-2">Configuración</div>
                             <h5 class="mb-1">Estado del registro</h5>
@@ -218,7 +221,7 @@
                         </div>
                     </div>
 
-                    <div class="surface-card card mb-4">
+                    <div class="surface-card card mb-4" data-tour="player-evaluations-editor-progress">
                         <div class="surface-card-header card-header">
                             <div class="section-label mb-2">Preview</div>
                             <h5 class="mb-1">Lectura del progreso</h5>
@@ -269,7 +272,7 @@
                         </div>
                     </div>
 
-                    <div class="dimensions-toolbar mb-3">
+                    <div class="dimensions-toolbar mb-3" data-tour="player-evaluations-editor-dimensions">
                         <div>
                             <div class="section-label mb-2">Dimensiones</div>
                             <h5 class="mb-1">Evaluación por bloques</h5>
@@ -415,7 +418,7 @@
                         </div>
                     </div>
 
-                    <div class="row g-4 mb-4">
+                    <div class="row g-4 mb-4" data-tour="player-evaluations-editor-comments">
                         <div class="col-12 col-xl-6">
                             <div class="surface-card card h-100">
                                 <div class="surface-card-header card-header">
@@ -477,7 +480,7 @@
                         </div>
                     </div>
 
-                    <div class="d-flex flex-wrap justify-content-between gap-3">
+                    <div class="d-flex flex-wrap justify-content-between gap-3" data-tour="player-evaluations-editor-actions">
                         <div class="d-flex flex-wrap gap-2">
                             <button
                                 v-if="!isEditMode"
@@ -510,13 +513,16 @@
     </panel>
 
     <breadcrumb :parent="'Plataforma'" :current="isEditMode ? 'Editar evaluación' : 'Nueva evaluación'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Loader from '@/components/general/Loader.vue'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import {
     criterionHasValue,
     datetimeLocalValue,
@@ -528,6 +534,7 @@ import {
     numberOrNull,
     toQueryObject,
 } from '@/pages/player-evaluations/utils'
+import { playerEvaluationsEditorTutorial } from '@/tutorials/playerEvaluations'
 
 const route = useRoute()
 const router = useRouter()
@@ -574,6 +581,10 @@ const scoreForm = reactive({})
 const expandedDimensions = ref([])
 
 const isEditMode = computed(() => Boolean(route.params.id))
+const tutorial = usePageTutorial(playerEvaluationsEditorTutorial, {
+    formReady,
+    isEditMode,
+})
 const isReadOnly = computed(() => Boolean(loadedEvaluation.value?.is_closed))
 
 const dimensionEntries = computed(() => Object.entries(formContext.criteria_by_dimension || {}))

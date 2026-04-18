@@ -6,14 +6,17 @@
                 Las notificaciones se mostrarán en GOLAPPLINK sólo hasta después de 8 días de haber sido creadas.
             </span>
 
-            <div class="d-flex justify-content-end mb-3">
+            <div class="d-flex justify-content-end mb-3 gap-2" data-tour="topic-notifications-actions">
                 <button type="button" class="btn btn-info" @click="openCreateModal">
                     <i class="fa fa-plus me-1" aria-hidden="true"></i>
                     Crear Notificación
                 </button>
+                <button type="button" class="btn btn-outline-primary" @click="tutorial.start()">
+                    Guia
+                </button>
             </div>
 
-            <div class="table-responsive-md">
+            <div class="table-responsive-md" data-tour="topic-notifications-table">
                 <DatatableTemplate :options="options" id="topic_notifications_table" ref="notificationsTable">
                     <template #thead>
                         <thead>
@@ -33,6 +36,7 @@
     </panel>
 
     <breadcrumb :parent="'Plataforma'" :current="'Notificaciones'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 
     <div ref="modalElement" class="modal fade" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -143,10 +147,13 @@
 
 <script setup>
 import { onMounted, reactive, ref, useTemplateRef } from 'vue'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
 import dayjs from '@/utils/dayjs'
 import configLanguaje from '@/utils/datatableUtils'
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from '@/composables/use-meta'
+import { topicNotificationsTutorial } from '@/tutorials/notifications'
 
 usePageTitle('Notificaciones')
 
@@ -154,6 +161,7 @@ const notificationsTable = useTemplateRef('notificationsTable')
 const modalElement = ref(null)
 const validationErrors = ref({})
 const submitting = ref(false)
+const tutorial = usePageTutorial(topicNotificationsTutorial)
 
 let modalInstance = null
 

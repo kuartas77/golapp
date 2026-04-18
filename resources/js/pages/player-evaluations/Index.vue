@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #header>
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3" data-tour="player-evaluations-index-actions">
                 <div>
                     <h3 class="mb-1">Evaluaciones de jugadores</h3>
                     <p class="text-muted mb-0">
@@ -16,6 +16,9 @@
                     <router-link :to="{ name: 'player-evaluations.create' }" class="btn btn-primary btn-sm">
                         Nueva evaluación
                     </router-link>
+                    <button type="button" class="btn btn-outline-primary btn-sm" @click="tutorial.start()">
+                        Guia
+                    </button>
                 </div>
             </div>
         </template>
@@ -24,7 +27,7 @@
             <div class="position-relative evaluations-index">
                 <Loader :is-loading="isLoading" loading-text="Cargando evaluaciones..." />
 
-                <div class="surface-card card mb-4">
+                <div class="surface-card card mb-4" data-tour="player-evaluations-index-filters">
                     <div class="surface-card-body card-body">
                         <div class="row g-3 align-items-end">
                             <div class="col-12 col-lg-4">
@@ -118,7 +121,7 @@
                     </button>
                 </div>
 
-                <div class="surface-card card mb-4">
+                <div class="surface-card card mb-4" data-tour="player-evaluations-index-summary">
                     <div class="surface-card-body card-body compact-stats">
                         <div class="compact-stat-item">
                             <span class="compact-stat-label">Total registrado</span>
@@ -151,7 +154,7 @@
                     </div>
                 </div>
 
-                <div class="surface-card card overflow-hidden">
+                <div class="surface-card card overflow-hidden" data-tour="player-evaluations-index-table">
 
                     <div class="surface-card-body card-body p-0">
                         <div v-if="evaluations.length" class="table-responsive">
@@ -301,13 +304,16 @@
     </panel>
 
     <breadcrumb :parent="'Plataforma'" :current="'Evaluaciones'" />
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Loader from '@/components/general/Loader.vue'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
+import { usePageTutorial } from '@/composables/usePageTutorial'
 import {
     defaultEvaluationTypeOptions,
     defaultStatusOptions,
@@ -318,9 +324,11 @@ import {
     statusVariantMap,
     toQueryObject,
 } from '@/pages/player-evaluations/utils'
+import { playerEvaluationsIndexTutorial } from '@/tutorials/playerEvaluations'
 
 const route = useRoute()
 const router = useRouter()
+const tutorial = usePageTutorial(playerEvaluationsIndexTutorial)
 
 const isLoading = ref(true)
 const hasLoadedOnce = ref(false)
