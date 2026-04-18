@@ -123,7 +123,10 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
             Route::post('users/activate/{id}', [UserController::class, 'activate'])->name('users.activate');
         });
 
-        Route::resource("invoice-items-custom", InvoiceCustomItemController::class)->except(['create']);
+        Route::middleware('school.permission:school.module.billing')->group(function () {
+            // UpdateSchool.vue consume el CRUD equivalente desde /api/v2/admin/invoice-items-custom.
+            Route::resource("invoice-items-custom", InvoiceCustomItemController::class)->except(['create']);
+        });
 
     });
 

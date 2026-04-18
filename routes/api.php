@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\Admin\InscriptionController;
+use App\Http\Controllers\API\Admin\InvoiceCustomItemController as AdminInvoiceCustomItemController;
 use App\Http\Controllers\API\Admin\RegisterController;
 use App\Http\Controllers\API\Admin\SchoolController;
 use App\Http\Controllers\API\Admin\UsersController;
@@ -92,6 +93,10 @@ Route::prefix('v2')->group(function(){
             Route::middleware('school.permission:school.module.school_profile')->group(function () {
                 Route::get('school', [SchoolsController::class, 'index']);
                 Route::put('school/{school}', [SchoolsController::class, 'update']);
+            });
+
+            Route::middleware('school.permission:school.module.billing')->name('api.')->group(function () {
+                Route::apiResource('invoice-items-custom', AdminInvoiceCustomItemController::class);
             });
 
             Route::middleware('school.permission:school.module.user_management')->group(function () {

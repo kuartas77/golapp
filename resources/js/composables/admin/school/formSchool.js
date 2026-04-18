@@ -6,6 +6,7 @@ export default function useFormSchool() {
     const form = ref(null)
     const { proxy } = getCurrentInstance()
     const globalError = ref(null)
+    const uniformRequestTypes = ref({})
 
     const formData = ref({
         id: '',
@@ -49,6 +50,7 @@ export default function useFormSchool() {
 
     onMounted(async () => {
         const response = await api.get('/api/v2/admin/school')
+        uniformRequestTypes.value = response.data.uniform_request_types ?? {}
         let data = {
             id: response.data.id,
             slug: response.data.slug,
@@ -70,6 +72,7 @@ export default function useFormSchool() {
             ANNUITY: Number(response.data.settings.ANNUITY),
         }
 
+        formData.value = data
         form.value.resetForm()
         form.value.setValues(data)
     });
@@ -127,5 +130,5 @@ export default function useFormSchool() {
         form.value.resetForm()
     }
 
-    return { form, formData, schema, submit, reset }
+    return { form, formData, schema, submit, reset, uniformRequestTypes }
 }
