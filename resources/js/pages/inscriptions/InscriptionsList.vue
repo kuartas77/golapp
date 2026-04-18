@@ -4,7 +4,6 @@
             <div class="d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3 mb-3">
                 <div class="row g-3 align-items-end flex-grow-1 m-0">
                     <div class="col-sm-6 col-md-4 col-lg-3 px-0 pe-sm-3" data-tour="inscription-year-filter">
-                        <label for="inscription_year" class="form-label fw-semibold">Año</label>
                         <select id="inscription_year" v-model="selectedYear" class="form-select form-select-sm">
                             <option
                                 v-for="yearOption in yearOptions"
