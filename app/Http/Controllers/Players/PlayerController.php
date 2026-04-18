@@ -78,6 +78,7 @@ class PlayerController extends Controller
     {
         abort_unless(isAdmin() || isSchool(), 404);
         $player = Player::with('people')->where('unique_code', $uniqueCode)->where('school_id', getSchool(auth()->user())->id)->first();
+        $player->school_tutor_platform = (bool) getSchool(auth()->user())->tutor_platform;
 
         return response()->json($player);
     }

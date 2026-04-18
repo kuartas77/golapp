@@ -8,13 +8,12 @@ import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { useRoute, useRouter } from 'vue-router'
 
 export default function usePlayerDetail() {
-    const defaultParients = [0, 1]
+    const DEFAULT_GUARDIAN_RELATIONSHIP = '30'
     const transformEmptyToNull = (value, originalValue) => (originalValue === '' ? null : value)
     const nullableString = () => yup.string().nullable().transform(transformEmptyToNull)
     const requiredString = (message = 'Este campo es obligatorio.') => yup.string().required(message).transform(transformEmptyToNull)
     const requiredEmail = (requiredMessage = 'El correo electrónico es obligatorio.') =>
         yup.string().email('Ingresa un correo electrónico válido.').required(requiredMessage).transform(transformEmptyToNull)
-    const relationshipLabelByIndex = (index, label) => `${label} acudiente ${index + 1}`
 
     const personalSchemaShape = {
         photo: yup.mixed().nullable().transform(transformEmptyToNull),
@@ -45,24 +44,10 @@ export default function usePlayerDetail() {
 
     const familySchemaShape = {
         relationship_0: nullableString(),
-        names_0: nullableString(),
-        document_0: nullableString().when('names_0', {
-            is: (namesValue) => !namesValue || namesValue === null,
-            then: (schema) => schema.notRequired(),
-            otherwise: (schema) => schema.required('El documento del acudiente 1 es obligatorio.'),
-        }),
-        phone_0: nullableString(),
-        business_0: nullableString(),
-
-        relationship_1: nullableString(),
-        names_1: nullableString(),
-        document_1: nullableString().when('names_1', {
-            is: (namesValue) => !namesValue || namesValue === null,
-            then: (schema) => schema.notRequired(),
-            otherwise: (schema) => schema.required('El documento del acudiente 2 es obligatorio.'),
-        }),
-        phone_1: nullableString(),
-        business_1: nullableString(),
+        names_0: requiredString('Los nombres completos del acudiente son obligatorios.'),
+        document_0: requiredString('El documento del acudiente es obligatorio.'),
+        phone_0: requiredString('El WhatsApp o teléfono del acudiente es obligatorio.'),
+        business_0: requiredString('La ocupación del acudiente es obligatoria.'),
     }
 
     const formSteps = [
@@ -99,14 +84,12 @@ export default function usePlayerDetail() {
         },
         {
             title: 'Información familiar',
-            fields: defaultParients.reduce((accumulator, index) => ({
-                ...accumulator,
-                [`relationship_${index}`]: relationshipLabelByIndex(index, 'Parentesco'),
-                [`names_${index}`]: relationshipLabelByIndex(index, 'Nombres completos'),
-                [`document_${index}`]: relationshipLabelByIndex(index, 'Documento de identidad'),
-                [`phone_${index}`]: relationshipLabelByIndex(index, 'WhatsApp o teléfono'),
-                [`business_${index}`]: relationshipLabelByIndex(index, 'Ocupación'),
-            }), {}),
+            fields: {
+                names_0: 'Nombres completos del acudiente',
+                document_0: 'Documento de identidad del acudiente',
+                phone_0: 'WhatsApp o teléfono del acudiente',
+                business_0: 'Ocupación del acudiente',
+            },
         },
     ]
 
@@ -122,14 +105,13 @@ export default function usePlayerDetail() {
         return accumulator
     }, {})
 
-    const backendFieldAliases = defaultParients.reduce((accumulator, index) => {
-        accumulator[`people.${index}.relationship`] = `relationship_${index}`
-        accumulator[`people.${index}.names`] = `names_${index}`
-        accumulator[`people.${index}.identification_card`] = `document_${index}`
-        accumulator[`people.${index}.phone`] = `phone_${index}`
-        accumulator[`people.${index}.business`] = `business_${index}`
-        return accumulator
-    }, {})
+    const backendFieldAliases = {
+        'people.0.relationship': 'relationship_0',
+        'people.0.names': 'names_0',
+        'people.0.identification_card': 'document_0',
+        'people.0.phone': 'phone_0',
+        'people.0.business': 'business_0',
+    }
 
     const router = useRouter()
     // settings flatpick
@@ -145,8 +127,8 @@ export default function usePlayerDetail() {
     const settings = useSetting()
     const step = ref(0)
     const degrees = Array.from({ length: 11 }, (_, i) => i + 1)
-    const parients = ref([...defaultParients])
     const formPlayer = useTemplateRef('form-player')
+    const guardianPortalEnabled = ref(false)
     const isLoading = ref(false)
     const loadingText = ref('')
     const currentTextPlayer = ref('')
@@ -174,17 +156,11 @@ export default function usePlayerDetail() {
         student_insurance: null,
         medical_history: null,
 
-        relationship_0: null,
+        relationship_0: DEFAULT_GUARDIAN_RELATIONSHIP,
         names_0: null,
         document_0: null,
         phone_0: null,
         business_0: null,
-
-        relationship_1: null,
-        names_1: null,
-        document_1: null,
-        phone_1: null,
-        business_1: null,
     })
 
     const schemas = [
@@ -414,12 +390,14 @@ export default function usePlayerDetail() {
             clearErrorState()
             isLoading.value = true
             loadingText.value = 'Cargando información del deportista...'
+            guardianPortalEnabled.value = false
 
-            if (!settings.document_types.length || !settings.relationships.length || !settings.genders.length) {
+            if (!settings.document_types.length || !settings.genders.length) {
                 await settings.getSettings()
             }
 
             const response = await api.get(`/api/v2/players/${route.params.unique_code}/edit`)
+            guardianPortalEnabled.value = Boolean(response.data.school_tutor_platform)
 
             formPlayer.value?.setValues({
                 photo: response.data.photo_url,
@@ -443,20 +421,26 @@ export default function usePlayerDetail() {
                 jornada: response.data.jornada,
                 student_insurance: response.data.student_insurance,
                 medical_history: response.data.medical_history,
+                relationship_0: DEFAULT_GUARDIAN_RELATIONSHIP,
+                names_0: null,
+                document_0: null,
+                phone_0: null,
+                business_0: null,
             })
 
             if (Array.isArray(response.data.people) && response.data.people.length) {
-                const newElement = {}
+                const guardian = response.data.people.find((element) =>
+                    [1, '1', true, 'true'].includes(element.tutor)
+                )
+                    ?? response.data.people[0]
 
-                response.data.people.slice(0, defaultParients.length).forEach((element, index) => {
-                    newElement[`relationship_${index}`] = element.relationship
-                    newElement[`names_${index}`] = element.names
-                    newElement[`document_${index}`] = element.identification_card
-                    newElement[`phone_${index}`] = element.phone
-                    newElement[`business_${index}`] = element.business
+                formPlayer.value?.setValues({
+                    relationship_0: guardian?.relationship ?? DEFAULT_GUARDIAN_RELATIONSHIP,
+                    names_0: guardian?.names ?? null,
+                    document_0: guardian?.identification_card ?? null,
+                    phone_0: guardian?.phone ?? guardian?.mobile ?? null,
+                    business_0: guardian?.business ?? null,
                 })
-
-                formPlayer.value?.setValues(newElement)
             }
         } catch (error) {
             console.warn(error)
@@ -478,9 +462,9 @@ export default function usePlayerDetail() {
         settings,
         schema,
         degrees,
-        parients,
         loadingText,
         isLoading,
+        guardianPortalEnabled,
         globalError,
         formErrorSummary,
         hasGeneralErrors,

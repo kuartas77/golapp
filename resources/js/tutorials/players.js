@@ -57,8 +57,8 @@ export const playerDetailTutorial = {
         {
             id: 'player-detail-family',
             selector: '[data-tour="player-detail-family"]',
-            title: 'Registra el entorno familiar',
-            text: 'Este ultimo bloque sirve para dejar parentescos, telefonos y responsables del jugador.',
+            title: 'Actualiza al acudiente',
+            text: 'Este ultimo bloque concentra los datos del acudiente principal del jugador.',
             beforeEnter: async ({ context }) => {
                 goToPlayerStep(context, 2)
             },

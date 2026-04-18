@@ -189,36 +189,31 @@
                     </Step>
 
                     <Step title="Información familiar">
-                        <fieldset class="col-md-12 p-3" v-for="value, key in parients" :key="`${value}_${key}`" data-tour="player-detail-family">
-                            <legend>
-                                Parentesco:
-                                <Field :name="`relationship_${key}`"  v-slot="{ field, errorMessage, meta }">
-                                    <select v-bind="field" :id="`relationship_${key}`" class="form-select form-select-sm"
-                                        :class="{ 'is-invalid': !meta.valid && errorMessage }">
-                                        <option :value="key" v-for="value, key in settings.relationships">{{
-                                        value }}</option>
-                                    </select>
-                            </Field>
-                            </legend>
+                        <fieldset class="col-md-12 p-3" data-tour="player-detail-family">
+                            <legend>Acudiente</legend>
+                            <Field name="relationship_0" type="hidden" />
+                            <div v-if="guardianPortalEnabled" class="alert alert-info py-2 px-3 mb-3" role="alert">
+                                Esta persona quedará como acudiente principal y será quien ingrese al portal de acudientes.
+                            </div>
                             <div class="row col-md-12">
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <inputField label="Nombres completos" :name="`names_${key}`" />
+                                        <inputField label="Nombres completos" name="names_0" :is-required="true" />
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <inputField label="# Doc de identidad" :name="`document_${key}`" />
+                                        <inputField label="# Doc de identidad" name="document_0" :is-required="true" />
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <inputField label="# WhatsApp ó télefono" :name="`phone_${key}`" />
+                                        <inputField label="# WhatsApp o teléfono" name="phone_0" :is-required="true" />
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <inputField label="Ocupación" :name="`business_${key}`" />
+                                        <inputField label="Ocupación" name="business_0" :is-required="true" />
                                     </div>
                                 </div>
 
@@ -246,7 +241,7 @@ import usePlayerDetail from '@/composables/player/playerDetail'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { playerDetailTutorial } from '@/tutorials/players'
 
-const { globalError, onSubmit, wizardOptions, currentTextPlayer, step, initialValues, flatpickrConfig, settings, schema, degrees, parients, loadingText, isLoading, formErrorSummary, hasGeneralErrors, goToStep } = usePlayerDetail()
+const { globalError, onSubmit, wizardOptions, currentTextPlayer, step, initialValues, flatpickrConfig, settings, schema, degrees, loadingText, isLoading, guardianPortalEnabled, formErrorSummary, hasGeneralErrors, goToStep } = usePlayerDetail()
 const tutorial = usePageTutorial(playerDetailTutorial, {
     goToStep,
 })
