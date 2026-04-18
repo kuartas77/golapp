@@ -22,21 +22,21 @@
             <div class="layout-spacing col-xl-6 col-lg-12 col-sm-12">
                 <div class="panel br-6" data-tour="kpi-payment-groups">
                     <div class="panel-body">
-                        <apexchart v-if="options_1" height="300" type="bar" :options="options_1" :series="series_1" />
+                        <apexchart v-if="chartOneReady" height="300" type="bar" :options="options_1" :series="series_1" />
                     </div>
                 </div>
             </div>
             <div class="layout-spacing col-xl-6 col-lg-12 col-sm-12">
                 <div class="panel br-6" data-tour="kpi-collection">
                     <div class="panel-body">
-                        <apexchart v-if="options_2" height="300" type="line" :options="options_2" :series="series_2" />
+                        <apexchart v-if="chartTwoReady" height="300" type="line" :options="options_2" :series="series_2" />
                     </div>
                 </div>
             </div>
             <div class="layout-spacing col-xl-3 col-lg-12 col-sm-12">
                 <div class="panel br-6" data-tour="kpi-attendance">
                     <div class="panel-body">
-                        <apexchart v-if="options_3" height="220" type="radialBar" :options="options_3"
+                        <apexchart v-if="chartThreeReady" height="220" type="radialBar" :options="options_3"
                             :series="series_3" />
                     </div>
                 </div>
@@ -104,17 +104,17 @@ const options_2 = ref({
             tooltip: { enabled: true }
         },
         {
-            seriesName: 'Inscripción',
+            seriesName: 'Inscripciones',
             opposite: true,
             axisTicks: { show: true, },
             axisBorder: { show: true, color: '#00E396' },
             labels: { style: { colors: '#00E396', }, formatter: moneyFormat },
             title: {
-                text: "Inscripciónes", style: { color: '#00E396', }
+                text: "Inscripciones", style: { color: '#00E396', }
             },
         },
         {
-            seriesName: 'Porcentaje',
+            seriesName: '% de cumplimiento',
             opposite: true,
             axisTicks: { show: true, },
             axisBorder: { show: true, color: '#FEB019' },
@@ -182,58 +182,55 @@ const series_1 = ref([])
 const series_2 = ref([])
 const series_3 = ref([])
 
+const chartOneReady = computed(() => Array.isArray(series_1.value) && series_1.value.length > 0)
+const chartTwoReady = computed(() => Array.isArray(series_2.value) && series_2.value.length > 0)
+const chartThreeReady = computed(() => Array.isArray(series_3.value) && series_3.value.length > 0)
+
+const normalizeChartData = (value) => Array.isArray(value) ? value.filter((item) => item !== null && item !== undefined) : []
+
 
 const loadDataCharts = async () => {
+    try {
+        const response = await api.get('/api/v2/kpis')
 
-    const response = await api.get('/api/v2/kpis')
+        if (response?.data) {
+            const chartOne = response.data.payment_group_report
+            const chartTwo = response.data.amount_payment_group_report
+            const chartThree = response.data.assist_report
 
-    if (response?.data) {
-        const chartOne = response.data.payment_group_report
-        const chartTwo = response.data.amount_payment_group_report
-        const chartThree = response.data.assist_report
-
-        if (chartOne) {
-            options_1.value = {
-                ...options_1.value,
-                xaxis: {
-                    categories: chartOne.categories,
-                },
+            if (chartOne) {
+                series_1.value = normalizeChartData(chartOne.data)
+                options_1.value = {
+                    ...options_1.value,
+                    xaxis: {
+                        categories: normalizeChartData(chartOne.categories),
+                    },
+                }
             }
-            series_1.value = chartOne.data
-        }
-        if (chartTwo) {
-            options_2.value = {
-                ...options_2.value,
-                xaxis: {
-                    categories: chartTwo.categories,
-                },
+            if (chartTwo) {
+                series_2.value = normalizeChartData(chartTwo.data)
+                options_2.value = {
+                    ...options_2.value,
+                    xaxis: {
+                        categories: normalizeChartData(chartTwo.categories),
+                    },
+                }
             }
-            series_2.value = chartTwo.data
-        }
-        if (chartThree) {
-            options_3.value = {
-                ...options_3.value,
-                labels: chartThree.categories,
+            if (chartThree) {
+                series_3.value = normalizeChartData(chartThree.data)
+                options_3.value = {
+                    ...options_3.value,
+                    labels: normalizeChartData(chartThree.categories),
+                }
             }
-            series_3.value = chartThree.data
         }
-
+    } catch (error) {
+        console.error('Error cargando los KPI', error)
     }
-
 }
 
 
-onMounted(async () => {
+onMounted(() => {
     loadDataCharts()
 })
-
-
-//Radial
-const series_8 = ref([135, 0, 21, 6, 0]);
-//Radial
-const options_8 = computed(() => {
-    return {
-
-    };
-});
 </script>

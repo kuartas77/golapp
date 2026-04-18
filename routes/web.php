@@ -33,6 +33,7 @@ Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->w
 
 Route::middleware(['auth', 'verified_school'])->group(function () {
 
+    // El dashboard SPA renderiza resources/js/pages/kpi/Index.vue y consume sus datos desde GET /api/v2/kpis.
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/birthdays', [HomeController::class, 'birthDays'])->name('birthDays');
 
