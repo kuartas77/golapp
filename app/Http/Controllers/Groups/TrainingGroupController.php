@@ -178,7 +178,10 @@ class TrainingGroupController extends Controller
 
     public function getClassDays(Request $request)
     {
-        $group = TrainingGroup::findOrFail($request->training_group_id);
+        $group = TrainingGroup::query()
+            ->schoolId()
+            ->when(isInstructor(), fn($query) => $query->byInstructor())
+            ->findOrFail($request->training_group_id);
 
         $classDays = TrainingGroupRepository::getClassDays($group, $request->month);
 

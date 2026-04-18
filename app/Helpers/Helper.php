@@ -12,8 +12,10 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 use Carbon\CarbonPeriod;
 use Carbon\Carbon;
 use App\Service\StopWatch;
+use App\Models\CompetitionGroup;
 use App\Models\School;
 use App\Models\Payment;
+use App\Models\TrainingGroup;
 use App\Models\User;
 
 if (!function_exists('getPay')) {
@@ -256,6 +258,98 @@ if (!function_exists('getSchool')) {
         }
 
         return $data;
+    }
+}
+
+if (!function_exists('instructorTrainingGroupIds')) {
+    function instructorTrainingGroupIds(?int $year = null): Collection
+    {
+        if (!isInstructor()) {
+            return collect();
+        }
+
+        return TrainingGroup::query()
+            ->schoolId()
+            ->byInstructor($year)
+            ->pluck('training_groups.id');
+    }
+}
+
+if (!function_exists('instructorCompetitionGroupIds')) {
+    function instructorCompetitionGroupIds(): Collection
+    {
+        if (!isInstructor()) {
+            return collect();
+        }
+
+        return CompetitionGroup::query()
+            ->schoolId()
+            ->byInstructor()
+            ->pluck('competition_groups.id');
+    }
+}
+
+if (!function_exists('applyInstructorTrainingGroupFilter')) {
+    function applyInstructorTrainingGroupFilter($query, string $column = 'training_group_id', ?int $year = null)
+    {
+        if (!isInstructor()) {
+            return $query;
+        }
+
+        $groupIds = instructorTrainingGroupIds($year)->all();
+
+        return $query->whereIn($column, empty($groupIds) ? [-1] : $groupIds);
+    }
+}
+
+if (!function_exists('applyInstructorCompetitionGroupFilter')) {
+    function applyInstructorCompetitionGroupFilter($query, string $column = 'competition_group_id')
+    {
+        if (!isInstructor()) {
+            return $query;
+        }
+
+        $groupIds = instructorCompetitionGroupIds()->all();
+
+        return $query->whereIn($column, empty($groupIds) ? [-1] : $groupIds);
+    }
+}
+
+if (!function_exists('instructorCanAccessTrainingGroup')) {
+    function instructorCanAccessTrainingGroup($groupId, ?int $year = null): bool
+    {
+        if (!isInstructor()) {
+            return true;
+        }
+
+        if (blank($groupId)) {
+            return false;
+        }
+
+        return TrainingGroup::query()
+            ->schoolId()
+            ->byInstructor($year)
+            ->whereKey($groupId)
+            ->exists();
+    }
+}
+
+if (!function_exists('instructorCanAccessCompetitionGroup')) {
+    function instructorCanAccessCompetitionGroup($groupId): bool
+    {
+        if (!isInstructor()) {
+            return true;
+        }
+
+        if (blank($groupId)) {
+            return false;
+        }
+
+        return CompetitionGroup::query()
+            ->schoolId()
+            ->byInstructor()
+            ->whereKey($groupId)
+            ->exists();
     }
 }
 

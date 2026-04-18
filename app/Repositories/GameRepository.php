@@ -29,11 +29,15 @@ class GameRepository
 
     public function getDatatable()
     {
-        return Game::query()->schoolId()
+        $query = Game::query()->schoolId()
             ->select(['games.*', 'tournaments.name AS tournament_name', 'competition_groups.name AS competition_group_name'])
             ->join('tournaments', 'tournaments.id', '=', 'games.tournament_id')
             ->join('competition_groups', 'competition_groups.id', '=', 'games.competition_group_id')
             ->whereYear('games.created_at', request('year', now()->year));
+
+        applyInstructorCompetitionGroupFilter($query, 'games.competition_group_id');
+
+        return $query;
     }
 
     /**
@@ -42,7 +46,10 @@ class GameRepository
     public function getInformationToMatch(?Game $game = null): object
     {
         if (is_null($game)) {
-            $competitionGroup = CompetitionGroup::query()->findOrFail(request('competition_group'));
+            $competitionGroup = CompetitionGroup::query()
+                ->schoolId()
+                ->when(isInstructor(), fn ($query) => $query->byInstructor())
+                ->findOrFail(request('competition_group'));
             return $this->makeMatch($competitionGroup);
         }
 
@@ -214,16 +221,18 @@ class GameRepository
      */
     public function makePDF($matchId)
     {
-        $match = $this->game->query()->with([
-            'tournament' => fn($query) => $query->withTrashed(),
-            'competitionGroup' => fn($query) => $query->with([
-                'professor' => fn($query) => $query->withTrashed()
-            ])->withTrashed(),
-            'skillsControls' => fn($query) => $query->with([
-                'inscription' => fn($query) => $query->with('player')->withTrashed()
-            ])->withTrashed()
-
-        ])->findOrFail($matchId);
+        $match = $this->game->query()
+            ->schoolId()
+            ->when(isInstructor(), fn ($query) => $query->whereHas('competitionGroup', fn ($groupQuery) => $groupQuery->byInstructor()))
+            ->with([
+                'tournament' => fn($query) => $query->withTrashed(),
+                'competitionGroup' => fn($query) => $query->with([
+                    'professor' => fn($query) => $query->withTrashed()
+                ])->withTrashed(),
+                'skillsControls' => fn($query) => $query->with([
+                    'inscription' => fn($query) => $query->with('player')->withTrashed()
+                ])->withTrashed()
+            ])->findOrFail($matchId);
 
 
         $data['school'] = getSchool(auth()->user());
@@ -238,9 +247,13 @@ class GameRepository
 
     public function exportMatchDetail($competitionGroupId)
     {
-        $competitionGroup = CompetitionGroup::find($competitionGroupId)->load([
-            'inscriptions' => fn($q) => $q->where('year', now()->year)->with('player')
-        ]);
+        $competitionGroup = CompetitionGroup::query()
+            ->schoolId()
+            ->when(isInstructor(), fn ($query) => $query->byInstructor())
+            ->findOrFail($competitionGroupId)
+            ->load([
+                'inscriptions' => fn($q) => $q->where('year', now()->year)->with('player')
+            ]);
 
         return $competitionGroup->inscriptions;
     }

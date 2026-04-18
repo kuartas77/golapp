@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -80,6 +81,11 @@ class CompetitionGroup extends Model
     public function professor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id')->withTrashed();
+    }
+
+    public function scopeByInstructor(Builder $query, ?int $userId = null): void
+    {
+        $query->where('competition_groups.user_id', $userId ?: auth()->id());
     }
 
     public function matches(): HasMany

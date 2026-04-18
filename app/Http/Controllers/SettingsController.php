@@ -41,8 +41,11 @@ class SettingsController extends Controller
         });
 
         $firstGroup = TrainingGroup::orderBy('id')->firstWhere('school_id', $school_id);
-        $allGroups = $training_groups;
-        $allGroups->prepend($firstGroup);
+        $allGroups = collect($training_groups->all());
+
+        if (!isInstructor() && $firstGroup && !$allGroups->contains('id', $firstGroup->id)) {
+            $allGroups->prepend($firstGroup);
+        }
 
         $categories = Cache::remember(
             "KEY_CATEGORIES_SELECT_{$school_id}",
@@ -71,7 +74,7 @@ class SettingsController extends Controller
         $optionsPayment = Cache::remember("KEY_PAYMENTS_SELECT_{$school_id}", now()->addYear(), fn() => config('variables.KEY_PAYMENTS_SELECT'));
 
         $competition_groups = Cache::remember(
-            "KEY_COMPETITION_GROUPS_{$school_id}",
+            "KEY_COMPETITION_GROUPS_{$school_id}.{$user_id}",
             now()->addMinutes(5),
             fn() =>
             $this->competitionGroupRepository->getListGroupFullName()

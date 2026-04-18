@@ -53,6 +53,11 @@ class AssistController extends Controller
      */
     public function show(Assist $assist): JsonResponse
     {
+        abort_if(
+            isInstructor() && !instructorCanAccessTrainingGroup($assist->training_group_id, (int) $assist->year),
+            404
+        );
+
         $assist->load(['player']);
 
         $action = request()->query('action');
@@ -92,6 +97,10 @@ class AssistController extends Controller
     public function update(AsistUpdateRequest $request, Assist $assist): JsonResponse
     {
         abort_unless($request->ajax(), 404);
+        abort_if(
+            isInstructor() && !instructorCanAccessTrainingGroup($assist->training_group_id, (int) $assist->year),
+            404
+        );
 
         return response()->json($this->repository->update($assist, $request->validated()));
     }

@@ -254,7 +254,7 @@ class TrainingGroup extends Model
         return $this->belongsToMany(User::class)->withPivot('assigned_year');
     }
 
-    public function ScopeByInstructor(Builder $builder, $year = null): void
+    public function scopeByInstructor(Builder $builder, $year = null): void
     {
         $builder->whereRelation('instructors', 'training_group_user.user_id', auth()->id())
             ->whereRelation('instructors', 'assigned_year', $year ?: now()->year);

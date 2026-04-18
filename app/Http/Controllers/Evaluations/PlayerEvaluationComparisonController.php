@@ -30,8 +30,7 @@ class PlayerEvaluationComparisonController extends Controller
                 'period_b_id' => ['required', 'integer', 'exists:evaluation_periods,id', 'different:period_a_id'],
             ])->validate();
 
-            $inscription = Inscription::query()
-                ->where('school_id', $schoolId)
+            $inscription = $this->scopedInscriptionsQuery($schoolId)
                 ->with(['player', 'trainingGroup'])
                 ->findOrFail($validated['inscription_id']);
 
@@ -45,8 +44,7 @@ class PlayerEvaluationComparisonController extends Controller
         return response()->json([
             'comparison' => $comparison,
             'filters' => [
-                'inscriptions' => Inscription::query()
-                    ->where('school_id', $schoolId)
+                'inscriptions' => $this->scopedInscriptionsQuery($schoolId)
                     ->with(['player', 'trainingGroup'])
                     ->latest('id')
                     ->get()
@@ -94,8 +92,7 @@ class PlayerEvaluationComparisonController extends Controller
 
     public function pdf(ComparePlayerEvaluationsRequest $request)
     {
-        $inscription = Inscription::query()
-            ->where('school_id', $this->currentSchoolId())
+        $inscription = $this->scopedInscriptionsQuery($this->currentSchoolId())
             ->with(['player', 'trainingGroup'])
             ->findOrFail($request->inscription_id);
 
@@ -109,5 +106,25 @@ class PlayerEvaluationComparisonController extends Controller
     private function currentSchoolId(): int
     {
         return (int) getSchool(auth()->user())->id;
+    }
+
+    private function scopedInscriptionsQuery(int $schoolId)
+    {
+        $query = Inscription::query()
+            ->where('school_id', $schoolId)
+            ->where('year', now()->year);
+
+        return $this->scopeInscriptions($query, $schoolId);
+    }
+
+    private function scopeInscriptions($query, int $schoolId)
+    {
+        $query->where('school_id', $schoolId);
+
+        if (isInstructor()) {
+            $query->whereHas('trainingGroup', fn ($groupQuery) => $groupQuery->byInstructor());
+        }
+
+        return $query;
     }
 }

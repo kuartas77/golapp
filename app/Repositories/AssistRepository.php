@@ -38,6 +38,7 @@ class AssistRepository
         $params['month'] = getMonthNumber($params['month']);
 
         $trainingGroup = TrainingGroup::query()->schoolId()
+            ->when(isInstructor(), fn($query) => $query->byInstructor($params['year']))
             ->when($deleted, fn($q) => $q->onlyTrashedRelations())->findOrFail($params['training_group_id']);
 
         $assists = $this->assist->schoolId()
@@ -67,13 +68,17 @@ class AssistRepository
             $training_group_id = TrainingGroup::query()->orderBy('id')
                 ->firstWhere('school_id', $school_id)->id;
 
-            if ($training_group_id == $dataAssist['training_group_id']) {
+            $trainingGroup = TrainingGroup::query()
+                ->schoolId()
+                ->when(isInstructor(), fn($query) => $query->byInstructor($dataAssist['year']))
+                ->findOrFail($dataAssist['training_group_id']);
+
+            if ($training_group_id == $trainingGroup->id) {
                 return $table;
             }
 
-            $trainingGroup = TrainingGroup::query()->schoolId()->find($dataAssist['training_group_id']);
             $inscriptionIds = Inscription::query()->schoolId()
-                ->where('training_group_id', $dataAssist['training_group_id'])
+                ->where('training_group_id', $trainingGroup->id)
                 ->where('year', $dataAssist['year'])->pluck('id');
 
 

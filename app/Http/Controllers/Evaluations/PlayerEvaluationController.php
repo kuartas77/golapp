@@ -45,6 +45,9 @@ class PlayerEvaluationController extends Controller
 
         $evaluations = PlayerEvaluation::query()
             ->where('school_id', $this->currentSchoolId())
+            ->when(isInstructor(), function ($query) {
+                $query->whereHas('inscription.trainingGroup', fn ($groupQuery) => $groupQuery->byInstructor());
+            })
             ->with([
                 'inscription.player',
                 'inscription.trainingGroup',
@@ -98,7 +101,12 @@ class PlayerEvaluationController extends Controller
             'filters' => [
                 'players' => Player::query()
                     ->where('school_id', $schoolId)
-                    ->whereHas('inscription', operator: '=', count: 1)
+                    ->whereHas('inscription', function ($query) use ($schoolId) {
+                        $query->where('school_id', $schoolId)
+                            ->where('year', now()->year);
+
+                        applyInstructorTrainingGroupFilter($query);
+                    }, '=', 1)
                     ->orderBy('names')
                     ->orderBy('last_names')
                     ->get()
@@ -111,6 +119,7 @@ class PlayerEvaluationController extends Controller
                 'training_groups' => TrainingGroup::query()
                     ->where('school_id', $schoolId)
                     ->where('year_active', now()->year)
+                    ->when(isInstructor(), fn ($query) => $query->byInstructor())
                     ->orderBy('name')
                     ->get(['id', 'name'])
                     ->map(fn (TrainingGroup $group) => [
@@ -135,10 +144,10 @@ class PlayerEvaluationController extends Controller
 
     public function create(CreatePlayerEvaluationsRequest $request)
     {
-        $inscription = Inscription::query()
+        $inscription = $this->scopedInscriptionsQuery($this->currentSchoolId())
             ->with(['player', 'trainingGroup'])
-            ->where('school_id', $this->currentSchoolId())
-            ->findOrFail($request->inscription_id);
+            ->whereKey($request->inscription_id)
+            ->firstOrFail();
 
         $period = EvaluationPeriod::query()
             ->where('school_id', $this->currentSchoolId())
@@ -169,10 +178,10 @@ class PlayerEvaluationController extends Controller
         $data = $request->validated();
         $data['scores'] = $this->normalizeScores($data['scores'] ?? []);
 
-        $inscription = Inscription::query()
+        $inscription = $this->scopedInscriptionsQuery($this->currentSchoolId())
             ->with(['player', 'trainingGroup'])
-            ->where('school_id', $this->currentSchoolId())
-            ->findOrFail($data['inscription_id']);
+            ->whereKey($data['inscription_id'])
+            ->firstOrFail();
 
         $evaluation = $this->crudService->create(
             inscription: $inscription,
@@ -316,9 +325,26 @@ class PlayerEvaluationController extends Controller
 
     private function scopedEvaluation(PlayerEvaluation $playerEvaluation): PlayerEvaluation
     {
-        abort_unless((int) $playerEvaluation->school_id === $this->currentSchoolId(), 404);
+        $query = PlayerEvaluation::query()
+            ->whereKey($playerEvaluation->id)
+            ->where('school_id', $this->currentSchoolId());
+
+        if (isInstructor()) {
+            $query->whereHas('inscription.trainingGroup', fn ($groupQuery) => $groupQuery->byInstructor());
+        }
+
+        abort_unless($query->exists(), 404);
 
         return $playerEvaluation;
+    }
+
+    private function scopedInscriptionsQuery(int $schoolId)
+    {
+        return Inscription::query()
+            ->where('school_id', $schoolId)
+            ->when(isInstructor(), function ($query) {
+                $query->whereHas('trainingGroup', fn ($groupQuery) => $groupQuery->byInstructor());
+            });
     }
 
     private function playerEvaluationIndexUrl(): string
@@ -344,8 +370,7 @@ class PlayerEvaluationController extends Controller
 
     private function inscriptionOptions(int $schoolId)
     {
-        return Inscription::query()
-            ->where('school_id', $schoolId)
+        return $this->scopedInscriptionsQuery($schoolId)
             ->with(['player', 'trainingGroup'])
             ->where('year', now()->year)
             ->latest('id')
@@ -374,10 +399,13 @@ class PlayerEvaluationController extends Controller
         $trainingGroupId = null;
 
         if ($inscriptionId) {
-            $trainingGroupId = Inscription::query()
-                ->where('school_id', $schoolId)
+            $trainingGroupId = $this->scopedInscriptionsQuery($schoolId)
                 ->whereKey($inscriptionId)
                 ->value('training_group_id');
+
+            if (!$trainingGroupId) {
+                return collect();
+            }
         }
 
         return EvaluationTemplate::query()

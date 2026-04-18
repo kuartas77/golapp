@@ -27,12 +27,19 @@ class CompetitionGroupRepository
 
     public function listGroupEnabled()
     {
-        return $this->competitionGroup->query()->schoolId()->with('tournament', 'professor');
+        return $this->competitionGroup->query()
+            ->schoolId()
+            ->when(isInstructor(), fn($query) => $query->byInstructor())
+            ->with('tournament', 'professor');
     }
 
     public function listGroupDisabled()
     {
-        return $this->competitionGroup->query()->schoolId()->onlyTrashedRelations()->get();
+        return $this->competitionGroup->query()
+            ->schoolId()
+            ->when(isInstructor(), fn($query) => $query->byInstructor())
+            ->onlyTrashedRelations()
+            ->get();
     }
 
     public function createOrUpdateTeam(array $dataGroup, bool $create = true, ?CompetitionGroup $competitionGroup = null): Model
@@ -60,13 +67,20 @@ class CompetitionGroupRepository
 
     public function getListGroupFullName(): Collection
     {
-        return $this->competitionGroup->query()->schoolId()->with('tournament', 'professor')
+        return $this->competitionGroup->query()
+            ->schoolId()
+            ->when(isInstructor(), fn($query) => $query->byInstructor())
+            ->with('tournament', 'professor')
             ->orderBy('name', 'ASC')->get();
     }
 
     public function getGroupsYear($year = null): Collection
     {
-        $groups = $this->competitionGroup->query()->schoolId()->with('professor', 'tournament')->orderBy('name', 'ASC');
+        $groups = $this->competitionGroup->query()
+            ->schoolId()
+            ->when(isInstructor(), fn($query) => $query->byInstructor())
+            ->with('professor', 'tournament')
+            ->orderBy('name', 'ASC');
         if ($year) {
             $groups->where('year', $year);
         }

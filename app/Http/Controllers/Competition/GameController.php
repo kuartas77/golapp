@@ -38,6 +38,8 @@ class GameController extends Controller
 
     public function store(CompetitionStoreRequest $request): JsonResponse
     {
+        abort_if(!instructorCanAccessCompetitionGroup($request->input('competition_group_id')), 404);
+
         $response = [];
         $response['success'] = $this->repository->createMatchSkill($request);
         return response()->json($response);
@@ -45,13 +47,16 @@ class GameController extends Controller
 
     public function show($id): JsonResponse
     {
-        $match = Game::query()->find($id);
+        $match = $id && (int) $id > 0 ? $this->accessibleMatch((int) $id) : null;
         $information = $this->repository->getInformationToMatch($match);
         return response()->json($information);
     }
 
     public function update(CompetitionRequest $request, Game $match): JsonResponse
     {
+        abort_if(!instructorCanAccessCompetitionGroup($request->input('competition_group_id')), 404);
+        $match = $this->accessibleMatch($match->id);
+
         $response = [];
         $response['success'] = $this->repository->updateMatchSkill($request, $match);
         return response()->json($response);
@@ -59,8 +64,18 @@ class GameController extends Controller
 
     public function destroy(Game $match): JsonResponse
     {
+        $match = $this->accessibleMatch($match->id);
+
         $response = [];
         $response['success'] = $match->forceDelete() ?? false;
         return response()->json($response);
+    }
+
+    private function accessibleMatch(int $id): Game
+    {
+        return Game::query()
+            ->schoolId()
+            ->when(isInstructor(), fn ($query) => $query->whereHas('competitionGroup', fn ($groupQuery) => $groupQuery->byInstructor()))
+            ->findOrFail($id);
     }
 }

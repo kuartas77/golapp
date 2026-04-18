@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\TrainingGroup;
 use App\Service\ReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -17,12 +18,25 @@ class DashboardController extends Controller
     {
 
         $schoolId = getSchool(auth()->user())->id;
+        $userId = auth()->id();
+        $cacheKey = isInstructor()
+            ? 'statistics.school.' . $schoolId . '.user.' . $userId
+            : 'statistics.school.' . $schoolId;
 
-        $response = Cache::remember('statistics.school.' . $schoolId, now()->addMinutes(3), function () use ($schoolId) {
+        $response = Cache::remember($cacheKey, now()->addMinutes(3), function () use ($schoolId) {
+            $allowedGroupNames = isInstructor()
+                ? TrainingGroup::query()->schoolId()->byInstructor()->pluck('name')
+                : collect();
 
             // mensualidades x grupo
             $paymentByGroup = ReportService::paymentByGroupReport(year: now()->year, schoolId: $schoolId);
             $assistReport = ReportService::assistsPercentagesReport(year: now()->year, month: now()->month, schoolId: $schoolId);
+
+            if (isInstructor()) {
+                $paymentByGroup = $paymentByGroup->whereIn('grupo', $allowedGroupNames)->values();
+                $assistReport = $assistReport->whereIn('grupo', $allowedGroupNames)->values();
+            }
+
             // $monthlyReport = ReportService::monthlyReport(year:now()->year, schoolId: $schoolId);
             // $generalReport = ReportService::generalReport(year:now()->year, schoolId: $schoolId);
 
