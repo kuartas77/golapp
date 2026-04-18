@@ -4,15 +4,12 @@ namespace App\Console\Commands;
 
 use App\Models\Inscription;
 use App\Models\Player;
-use App\Traits\ErrorTrait;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
 class UpdateCategoryPlayers extends Command
 {
-    use ErrorTrait;
-
     protected $signature = 'check:categories';
 
     protected $description = 'check category players.';
@@ -41,7 +38,7 @@ class UpdateCategoryPlayers extends Command
                 });
             });
         } catch (\Throwable $th) {
-            $this->logError(__CLASS__, $th);
+            report($th);
         } finally {
             return 1;
         }

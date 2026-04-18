@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Routing\ResponseFactory;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 
@@ -27,6 +26,8 @@ class FileController extends Controller
                 'Cache-Control' => 'public, no-transform, max-age=31536000'
             ]);
         } catch (\Exception $e) {
+            report($e);
+
             return response(null, 404);
         }
     }

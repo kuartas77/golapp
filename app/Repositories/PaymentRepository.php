@@ -8,7 +8,6 @@ use App\Models\Inscription;
 use App\Models\Payment;
 use App\Service\PaymentAmountResolver;
 use App\Service\ReportService;
-use App\Traits\ErrorTrait;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
@@ -19,8 +18,6 @@ use Throwable;
 
 class PaymentRepository
 {
-    use ErrorTrait;
-
     public function __construct(
         private Payment $payment,
         private PaymentAmountResolver $paymentAmountResolver
@@ -206,7 +203,7 @@ class PaymentRepository
             DB::commit();
         } catch (Throwable $throwable) {
             DB::rollBack();
-            $this->logError('PaymentRepository@setPay', $throwable);
+            report($throwable);
             $isPay = false;
         }
 

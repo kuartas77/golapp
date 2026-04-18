@@ -4,14 +4,11 @@ namespace App\Service\Assist;
 
 use App\Models\Assist;
 use App\Models\TrainingGroup;
-use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
 
 class AssistExportService
 {
     use PDFTrait;
-    use ErrorTrait;
-
     /**
      * @param $params
      * @param $deleted

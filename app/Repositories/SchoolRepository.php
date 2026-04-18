@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Models\School;
-use App\Traits\ErrorTrait;
 use App\Traits\UploadFile;
 use Exception;
 use Illuminate\Foundation\Http\FormRequest;
@@ -15,7 +14,6 @@ use Illuminate\Support\Facades\Session;
 
 class SchoolRepository
 {
-    use ErrorTrait;
     use UploadFile;
 
     private School $school;
@@ -46,7 +44,7 @@ class SchoolRepository
 
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError("SchoolRepository create", $exception);
+            report($exception);
         }
 
         return $school;

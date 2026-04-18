@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Inscriptions\Jobs;
 
-use App\Traits\ErrorTrait;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
@@ -19,8 +18,6 @@ class DeleteDocuments implements ShouldQueue
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
-    use ErrorTrait;
-
     /**
      * Create a new job instance.
      *
@@ -41,7 +38,7 @@ class DeleteDocuments implements ShouldQueue
             Storage::disk('public')->deleteDirectory($this->folder.DIRECTORY_SEPARATOR.$this->uniqueCode);
 
         } catch (\Throwable $throwable) {
-            $this->logError(__FUNCTION__, $throwable);
+            report($throwable);
         }
     }
 }

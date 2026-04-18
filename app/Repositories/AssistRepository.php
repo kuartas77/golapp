@@ -10,7 +10,6 @@ use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Database\Eloquent\Builder;
 use Exception;
 use App\Traits\PDFTrait;
-use App\Traits\ErrorTrait;
 use App\Service\Assist\AssistService;
 use App\Models\TrainingGroup;
 use App\Models\Inscription;
@@ -20,8 +19,6 @@ use App\Dto\AssistDTO;
 class AssistRepository
 {
     use PDFTrait;
-    use ErrorTrait;
-
     protected AssistService $service;
 
     public function __construct(protected Assist $assist)
@@ -91,7 +88,7 @@ class AssistRepository
             // $table = $this->service->generateTable($assistsQuery, $trainingGroup, $dataAssist);
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError("AssistRepository create", $exception);
+            report($exception);
         }
 
         return $table;
@@ -137,7 +134,7 @@ class AssistRepository
             return true;
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError("AssistRepository store", $exception);
+            report($exception);
             return false;
         }
     }
@@ -165,7 +162,7 @@ class AssistRepository
             return $updated;
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError("AssistRepository update", $exception);
+            report($exception);
             return false;
         }
     }

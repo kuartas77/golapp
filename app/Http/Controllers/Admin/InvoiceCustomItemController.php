@@ -30,17 +30,10 @@ class InvoiceCustomItemController extends Controller
             $invoiceCustomItem->save();
             Alert::success(env('APP_NAME'), 'Creado correctamente');
         } catch (\Throwable $th) {
-            //throw $th;
-            logger('guardando itemcustom', [
-                "error" => $th->getMessage(),
-                "line" => $th->getLine(),
-                "file" => $th->getFile(),
-                "code" => $th->getCode(),
-            ]);
-
-            if($th->getCode() == '23000') {
+            if ((string) $th->getCode() === '23000') {
                 $error = 'Un item de este tipo ya se encuentra registrado';
-            }else {
+            } else {
+                report($th);
                 $error = $th->getMessage();
             }
 
@@ -68,17 +61,10 @@ class InvoiceCustomItemController extends Controller
             $invoiceCustomItem->save();
             Alert::success(env('APP_NAME'), 'Modificado correctamente');
         } catch (\Throwable $th) {
-            //throw $th;
-            logger('ACTUALIZANDO itemcustom', [
-                "error" => $th->getMessage(),
-                "line" => $th->getLine(),
-                "file" => $th->getFile(),
-                "code" => $th->getCode(),
-            ]);
-
-                        if($th->getCode() == '23000') {
+            if ((string) $th->getCode() === '23000') {
                 $error = 'Un item de este tipo ya se encuentra registrado';
-            }else {
+            } else {
+                report($th);
                 $error = $th->getMessage();
             }
 

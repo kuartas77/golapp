@@ -3,9 +3,9 @@
 namespace App\Service\FCM;
 
 use Kreait\Firebase\Factory;
+use Kreait\Firebase\Exception\MessagingException;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
-use Kreait\Firebase\Exception\MessagingException;
 
 class FirebaseTopicNotificationService
 {
@@ -48,7 +48,7 @@ class FirebaseTopicNotificationService
             ];
 
         } catch (MessagingException $e) {
-            logger()->error('Firebase Topic Notification Error: ' . $e->getMessage());
+            report($e);
 
             return [
                 'success' => false,
@@ -90,7 +90,7 @@ class FirebaseTopicNotificationService
             ];
 
         } catch (MessagingException $e) {
-            logger()->error('Firebase Topic Notification Error: ' . $e->getMessage());
+            report($e);
 
             return [
                 'success' => false,
@@ -140,7 +140,7 @@ class FirebaseTopicNotificationService
             ];
 
         } catch (MessagingException $e) {
-            logger()->error('Firebase Condition Notification Error: ' . $e->getMessage());
+            report($e);
 
             return [
                 'success' => false,
@@ -170,7 +170,7 @@ class FirebaseTopicNotificationService
             ];
 
         } catch (MessagingException $e) {
-            logger()->error('Firebase Subscribe Error: ' . $e->getMessage());
+            report($e);
 
             return [
                 'success' => false,
@@ -199,7 +199,7 @@ class FirebaseTopicNotificationService
             ];
 
         } catch (MessagingException $e) {
-            logger()->error('Firebase Unsubscribe Error: ' . $e->getMessage());
+            report($e);
 
             return [
                 'success' => false,

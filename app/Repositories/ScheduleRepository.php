@@ -6,7 +6,6 @@ namespace App\Repositories;
 
 
 use App\Models\Schedule;
-use App\Traits\ErrorTrait;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,8 +15,6 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class ScheduleRepository
 {
-    use ErrorTrait;
-
     private Schedule $schedule;
 
     public function __construct(Schedule $schedule)
@@ -46,7 +43,7 @@ class ScheduleRepository
             Alert::success(env('APP_NAME'), __('messages.schedule_create_success'));
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError("ScheduleRepository store", $exception);
+            report($exception);
             Alert::error(env('APP_NAME'), __('messages.ins_create_failure'));
         }
     }
@@ -66,7 +63,7 @@ class ScheduleRepository
             Alert::success(env('APP_NAME'), __('messages.schedule_create_success'));
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError("ScheduleRepository updateDay", $exception);
+            report($exception);
             Alert::error(env('APP_NAME'), __('messages.ins_create_failure'));
         }
     }

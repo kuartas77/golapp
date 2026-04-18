@@ -6,15 +6,12 @@ use App\Models\Inscription;
 use App\Models\Payment;
 use App\Models\School;
 use App\Models\TrainingGroup;
-use App\Traits\ErrorTrait;
 use Illuminate\Support\Facades\DB;
 use Jenssegers\Date\Date;
 use Throwable;
 
 class SharedService
 {
-    use ErrorTrait;
-
     public function __construct(private PaymentAmountResolver $paymentAmountResolver)
     {
     }
@@ -103,7 +100,7 @@ class SharedService
 
         } catch (Throwable $th) {
             DB::rollBack(2);
-            $this->logError(__METHOD__, $th);
+            report($th);
         }
 
     }
@@ -192,7 +189,7 @@ class SharedService
 
         } catch (Throwable $th) {
             DB::rollBack();
-            $this->logError(__METHOD__, $th);
+            report($th);
             return false;
         }
     }

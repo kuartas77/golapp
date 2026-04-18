@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Reports;
 
 use App\Models\Payment;
-use App\Traits\ErrorTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\TrainingGroup;
@@ -15,8 +14,6 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class ReportPaymentController extends Controller
 {
-    use ErrorTrait;
-
     public function index(Request $request)
     {
         return view('theme');
@@ -79,7 +76,7 @@ class ReportPaymentController extends Controller
             Alert::info("El Archivo será enviado al correo electronico.");
 
         } catch (\Throwable $th) {
-            $this->logError("ReportPaymentController@report", $th);
+            report($th);
 
             if ($request->expectsJson()) {
                 return response()->json([

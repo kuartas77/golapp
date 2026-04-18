@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Console\Command;
-use App\Traits\ErrorTrait;
 use App\Repositories\InscriptionRepository;
 use App\Models\User;
 use App\Models\School;
@@ -12,8 +11,6 @@ use App\Mail\PreinscriptionsProvitional;
 
 class VerifyInscriptionStatus extends Command
 {
-    use ErrorTrait;
-
     /**
      * The name and signature of the console command.
      *

@@ -10,7 +10,6 @@ use App\Models\CompetitionGroup;
 use App\Models\Game;
 use App\Models\Master;
 use App\Models\SkillsControl;
-use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
 use Exception;
 use Illuminate\Foundation\Http\FormRequest;
@@ -21,8 +20,6 @@ use Mpdf\MpdfException;
 class GameRepository
 {
     use PDFTrait;
-    use ErrorTrait;
-
     private Game $game;
 
     public function __construct(Game $game)
@@ -145,7 +142,7 @@ class GameRepository
             $result = $game->wasRecentlyCreated;
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError(__METHOD__, $exception);
+            report($exception);
             $result = false;
         }
 
@@ -204,7 +201,7 @@ class GameRepository
             $result = true;
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError(__METHOD__, $exception);
+            report($exception);
             $result = false;
         }
 

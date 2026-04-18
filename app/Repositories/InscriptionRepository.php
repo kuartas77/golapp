@@ -8,7 +8,6 @@ use App\Models\Inscription;
 use App\Models\TrainingGroup;
 use App\Notifications\InscriptionNotification;
 use App\Repositories\PeopleRepository;
-use App\Traits\ErrorTrait;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -18,8 +17,6 @@ use Throwable;
 
 class InscriptionRepository
 {
-    use ErrorTrait;
-
     public function __construct(private Inscription $inscription, private PeopleRepository $peopleRepository)
     {
     }
@@ -71,7 +68,7 @@ class InscriptionRepository
 
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError(__METHOD__, $exception);
+            report($exception);
         }
 
         return $result;
@@ -116,7 +113,7 @@ class InscriptionRepository
 
         } catch (\Throwable $throwable) {
             DB::rollBack();
-            $this->logError(__METHOD__, $throwable);
+            report($throwable);
             $result = false;
         }
 
@@ -216,7 +213,7 @@ class InscriptionRepository
             return true;
         } catch (Throwable $throwable) {
             DB::rollBack();
-            $this->logError("InscriptionRepository disable", $throwable);
+            report($throwable);
             return false;
         }
     }
@@ -283,7 +280,7 @@ class InscriptionRepository
             DB::commit();
         } catch (Throwable $throwable) {
             DB::rollBack();
-            $this->logError(__METHOD__, $throwable);
+            report($throwable);
         }
     }
 

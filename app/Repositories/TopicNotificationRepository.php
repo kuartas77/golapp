@@ -4,13 +4,10 @@ namespace App\Repositories;
 
 use App\Models\TopicNotification;
 use App\Service\Notification\TopicService;
-use App\Traits\ErrorTrait;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class TopicNotificationRepository
 {
-    use ErrorTrait;
-
     public function getPlayerNotifications()
     {
         $player = request()->user();

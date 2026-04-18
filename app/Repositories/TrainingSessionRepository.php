@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Traits\ErrorTrait;
 use App\Models\TrainingSession;
 use Illuminate\Support\Facades\DB;
 
 class TrainingSessionRepository
 {
-    use ErrorTrait;
-
     public function __construct(protected TrainingSession $trainingSession)
     {
     }
@@ -41,7 +38,7 @@ class TrainingSessionRepository
             DB::commit();
         } catch (\Throwable $throwable) {
             DB::rollBack();
-            $this->logError('TrainingSessionRepository@store', $throwable);
+            report($throwable);
             $trainingSession = null;
         }
 
@@ -70,7 +67,7 @@ class TrainingSessionRepository
             $success = true;
         } catch (\Throwable $throwable) {
             DB::rollBack();
-            $this->logError('TrainingSessionRepository@update', $throwable);
+            report($throwable);
             $success = false;
         }
 

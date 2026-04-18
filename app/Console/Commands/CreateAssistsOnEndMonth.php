@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\Assist;
 use App\Models\School;
-use App\Traits\ErrorTrait;
 use App\Models\Inscription;
 use App\Models\TrainingGroup;
 use Illuminate\Console\Command;
@@ -16,7 +15,6 @@ use Illuminate\Database\Eloquent\Builder;
 
 class CreateAssistsOnEndMonth extends Command
 {
-    use ErrorTrait;
     /**
      * The name and signature of the console command.
      *
@@ -84,7 +82,7 @@ class CreateAssistsOnEndMonth extends Command
             }
         } catch (\Throwable $th) {
             DB::rollBack();
-            $this->logError(__FUNCTION__, $th);
+            report($th);
         }
 
         return 0;

@@ -3,7 +3,6 @@
 namespace App\Service\Player;
 
 use App\Models\Player;
-use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -11,8 +10,6 @@ use Illuminate\Database\Eloquent\Collection;
 class PlayerExportService
 {
     use PDFTrait;
-    use ErrorTrait;
-
     /**
      * @throws MpdfException
      */

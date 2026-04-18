@@ -9,15 +9,12 @@ use App\Models\CompetitionGroupInscription;
 use App\Models\Inscription;
 use App\Models\TournamentPayout;
 use App\Service\Payment\TournamentPayoutService;
-use App\Traits\ErrorTrait;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 class TournamentPayoutsRepository
 {
-    use ErrorTrait;
-
     protected TournamentPayoutService $service;
 
     public function __construct(private TournamentPayout $tournamentPayout)
@@ -130,7 +127,7 @@ class TournamentPayoutsRepository
 
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError("TournamentPayoutsRepository@create", $exception);
+            report($exception);
         }
 
         return $response;
@@ -145,7 +142,7 @@ class TournamentPayoutsRepository
             return $updated;
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError("TournamentPayoutsRepository@update", $exception);
+            report($exception);
             return false;
         }
     }

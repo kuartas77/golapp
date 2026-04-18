@@ -6,7 +6,6 @@ use Exception;
 use Carbon\Carbon;
 use App\Models\People;
 use App\Models\Player;
-use App\Traits\ErrorTrait;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -20,8 +19,6 @@ use Maatwebsite\Excel\Concerns\WithChunkReading;
 
 class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, WithChunkReading, WithBatchInserts
 {
-    use ErrorTrait;
-
     public function __construct(private int $school_id, private PlayerRepository $playerRepository)
     {
         //
@@ -60,7 +57,7 @@ class ImportPlayers implements ToCollection, WithValidation, WithHeadingRow, Wit
 
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError("PlayerRepository@createPlayer", $exception);
+            report($exception);
         }
     }
 

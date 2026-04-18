@@ -12,15 +12,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Exception;
-use App\Traits\ErrorTrait;
 use App\Models\Inscription;
 use App\Models\CompetitionGroupInscription;
 use App\Models\CompetitionGroup;
 
 class CompetitionGroupRepository
 {
-    use ErrorTrait;
-
     private CompetitionGroup $competitionGroup;
 
     public function __construct(CompetitionGroup $competitionGroup)
@@ -56,7 +53,7 @@ class CompetitionGroupRepository
             return $competitionGroup;
         } catch (Throwable $throwable) {
             DB::rollBack();
-            $this->logError("CompetitionGroupRepository@createOrUpdateTeam", $throwable);
+            report($throwable);
             return $this->competitionGroup;
         }
     }
@@ -131,7 +128,7 @@ class CompetitionGroupRepository
 
         } catch (Throwable $throwable) {
             DB::rollBack();
-            $this->logError("CompetitionGroupRepository@assignInscriptionGroup", $throwable);
+            report($throwable);
             $response = $throwable->getCode();
         }
 

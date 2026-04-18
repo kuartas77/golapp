@@ -4,13 +4,10 @@ namespace App\Service\TrainigSession;
 
 use App\Models\TrainingSession;
 use App\Traits\PDFTrait;
-use App\Traits\ErrorTrait;
 
 class TrainingSessionExportService
 {
     use PDFTrait;
-    use ErrorTrait;
-
     public function exportSessionPDF(int $id, bool $stream = true)
     {
         $trainingSession = TrainingSession::with(['user', 'training_group', 'tasks'])->schoolId()->findOrFail($id);

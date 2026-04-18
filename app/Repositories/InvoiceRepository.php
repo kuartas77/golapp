@@ -11,7 +11,6 @@ use App\Models\Payment;
 use App\Models\PaymentReceived;
 use App\Models\PaymentRequest;
 use App\Models\UniformRequest;
-use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
 use App\Traits\UploadFile;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,7 +19,6 @@ use Illuminate\Support\Str;
 
 class InvoiceRepository
 {
-    use ErrorTrait;
     use UploadFile;
     use PDFTrait;
 
@@ -152,7 +150,7 @@ class InvoiceRepository
                 return $invoice->id;
             });
         } catch (\Throwable $th) {
-            $this->logError('InvoiceRepository@storeInvoice', $th);
+            report($th);
             return null;
         }
     }

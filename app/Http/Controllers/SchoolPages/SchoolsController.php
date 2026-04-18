@@ -6,13 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\SchoolUpdateRequest;
 use App\Models\School;
 use App\Service\API\RegisterService;
-use App\Traits\ErrorTrait;
 use Illuminate\Http\Request;
 
 class SchoolsController extends Controller
 {
-    use ErrorTrait;
-
     public function index(Request $request, School $school)
     {
         $school = getSchool(auth()->user());

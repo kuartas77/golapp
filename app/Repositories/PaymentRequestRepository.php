@@ -4,13 +4,11 @@ namespace App\Repositories;
 
 use App\Models\Invoice;
 use App\Models\PaymentRequest;
-use App\Traits\ErrorTrait;
 use App\Traits\UploadFile;
 use Illuminate\Support\Facades\DB;
 
 class PaymentRequestRepository
 {
-    use ErrorTrait;
     use UploadFile;
 
     public function createPaymentRequest(array $validated): ?Invoice
@@ -43,7 +41,7 @@ class PaymentRequestRepository
 
         } catch (\Throwable $th) {
             DB::rollBack();
-            $this->logError('InvoiceRepository@createPaymentRequest', $th);
+            report($th);
         }
 
         return $invoice;

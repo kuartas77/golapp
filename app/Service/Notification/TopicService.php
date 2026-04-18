@@ -6,15 +6,12 @@ use App\Models\CompetitionGroup;
 use App\Models\Player;
 use App\Models\TrainingGroup;
 use App\Models\User;
-use App\Traits\ErrorTrait;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class TopicService
 {
-    use ErrorTrait;
-
     public static function generatePlayerTopics(Player $player): array
     {
         $player->loadMissing(['schoolData', 'inscription.trainingGroup', 'inscription.competitionGroup']);

@@ -6,15 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Assist;
 use App\Models\TrainingGroup;
 use App\Service\Assist\AttendanceReportService;
-use App\Traits\ErrorTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class ReportAssistsController extends Controller
 {
-    use ErrorTrait;
-
     public function index(Request $request)
     {
         return view('theme');
@@ -75,7 +72,7 @@ class ReportAssistsController extends Controller
 
 
         } catch (\Throwable $th) {
-            $this->logError("ReportAssistsController@report", $th);
+            report($th);
             Alert::error(env('APP_NAME'), __('messages.error_general'));
         }
     }

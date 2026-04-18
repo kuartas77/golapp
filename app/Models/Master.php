@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Traits\ErrorTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -15,8 +14,6 @@ use Throwable;
 class Master extends Model
 {
     use HasFactory;
-    use ErrorTrait;
-
     protected $table = "master";
 
     protected $fillable = [
@@ -72,7 +69,7 @@ class Master extends Model
             DB::commit();
         } catch (Throwable $throwable) {
             DB::rollBack();
-            (new Master())->logError(__METHOD__, $throwable);
+            report($throwable);
         }
     }
 

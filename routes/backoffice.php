@@ -50,6 +50,8 @@ Route::middleware(['auth', 'role:super-admin'])->group(function () {
                         'url' => asset('img/user.png')
                     ]);
         } catch (\Exception $e) {
+            report($e);
+
             return response()->json([
                 'uploaded' => false,
                 'error' => [

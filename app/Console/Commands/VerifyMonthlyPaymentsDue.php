@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Console\Command;
-use App\Traits\ErrorTrait;
 use App\Repositories\PaymentRepository;
 use App\Models\User;
 use App\Models\School;
@@ -13,8 +12,6 @@ use App\Mail\DuePayments;
 
 class VerifyMonthlyPaymentsDue extends Command
 {
-    use ErrorTrait;
-
     protected $signature = 'payments:monthly';
 
     protected $description = 'Send notification to administrators about payments due on the last day of month';

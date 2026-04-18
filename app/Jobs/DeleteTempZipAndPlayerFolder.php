@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Traits\ErrorTrait;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -13,8 +12,6 @@ use Illuminate\Support\Facades\Storage;
 class DeleteTempZipAndPlayerFolder implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-    use ErrorTrait;
-
     /**
      * Ruta RELATIVA en el disk local. Ej: tmp/zips/ABC_uuid.zip
      */
@@ -32,7 +29,7 @@ class DeleteTempZipAndPlayerFolder implements ShouldQueue
 
             Storage::disk('local')->deleteDirectory($this->playerFolder);
 
-        }, fn(\Exception $e) => $this->logError('Eliminando archivos '. $this->relativePath, $e));
+        }, fn(\Exception $e) => report($e));
 
 
 

@@ -9,7 +9,6 @@ use App\Repositories\GameRepository;
 use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
 use App\Repositories\PlayerRepository;
-use App\Traits\ErrorTrait;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
@@ -17,8 +16,6 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class ImportController extends Controller
 {
-    use ErrorTrait;
-
     public function __construct(
         private InscriptionRepository $inscriptionRepository,
         private AssistRepository      $assistRepository,
@@ -61,7 +58,7 @@ class ImportController extends Controller
             Alert::success(env('APP_NAME'), __('messages.player_created'));
 
         } catch (Throwable $th) {
-            $this->logError('importPlayers', $th);
+            report($th);
             Alert::error(env('APP_NAME'), __('messages.error_general'));
         }
 

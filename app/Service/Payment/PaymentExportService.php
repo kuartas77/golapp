@@ -5,15 +5,12 @@ namespace App\Service\Payment;
 use App\Models\CompetitionGroup;
 use App\Models\Tournament;
 use App\Models\TrainingGroup;
-use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
 use stdClass;
 
 class PaymentExportService
 {
     use PDFTrait;
-    use ErrorTrait;
-
     public function paymentsPdfByGroup($payments, $request, bool $stream)
     {
         if ($request->training_group_id != 0) {

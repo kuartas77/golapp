@@ -15,7 +15,6 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Database\Eloquent\Model;
 use Exception;
 use Carbon\Carbon;
-use App\Traits\ErrorTrait;
 use App\Models\TrainingGroup;
 
 /**
@@ -23,8 +22,6 @@ use App\Models\TrainingGroup;
  */
 class TrainingGroupRepository
 {
-    use ErrorTrait;
-
     private TrainingGroup $trainingGroup;
 
     public function __construct(TrainingGroup $trainingGroup)
@@ -78,7 +75,7 @@ class TrainingGroupRepository
             return $trainingGroup;
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError("TrainingGroupRepository setTrainingGroup", $exception);
+            report($exception);
             return null;
         }
     }
@@ -123,7 +120,7 @@ class TrainingGroupRepository
             return $trainingGroup;
         } catch (Exception $exception) {
             DB::rollBack();
-            $this->logError("TrainingGroupRepository setTrainingGroup", $exception);
+            report($exception);
             return null;
         }
     }

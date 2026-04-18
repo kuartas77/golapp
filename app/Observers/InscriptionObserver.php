@@ -4,12 +4,9 @@ namespace App\Observers;
 
 use App\Models\Inscription;
 use App\Service\SharedService;
-use App\Traits\ErrorTrait;
 
 class InscriptionObserver
 {
-    use ErrorTrait;
-
     public function __construct(private SharedService $sharedService)
     {
 

@@ -6,15 +6,12 @@ use App\Models\Inscription;
 use App\Models\TopicNotification;
 use App\Notifications\FirebaseTopicNotification;
 use App\Repositories\TopicNotificationRepository;
-use App\Traits\ErrorTrait;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
 class TopicNotificationStoreService
 {
-    use ErrorTrait;
-
     public function __construct(private TopicNotificationRepository $repository)
     {
         //
@@ -58,7 +55,7 @@ class TopicNotificationStoreService
 
 
         } catch (\Throwable $th) {
-            $this->logError('TopicNotificationStoreService@store', $th);
+            report($th);
         } finally {
             unset($playerIds, $topics);
         }

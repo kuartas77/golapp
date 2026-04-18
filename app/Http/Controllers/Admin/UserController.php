@@ -7,7 +7,6 @@ use App\Http\Requests\User\UserStore;
 use App\Http\Requests\User\UserUpdate;
 use App\Models\User;
 use App\Repositories\UserRepository;
-use App\Traits\ErrorTrait;
 use Exception;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
@@ -21,8 +20,6 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class UserController extends Controller
 {
-    use ErrorTrait;
-
     private UserRepository $repository;
 
     public function __construct(UserRepository $repository)
@@ -145,7 +142,7 @@ class UserController extends Controller
             }
 
         } catch (Throwable $th) {
-            $this->logError("MatchRepository updateMatchSkill", $th);
+            report($th);
         }
 
         Alert::success(config('app.name'), __('messages.user_disabled'));
@@ -172,7 +169,7 @@ class UserController extends Controller
             }
 
         } catch (Throwable $th) {
-            $this->logError("MatchRepository updateMatchSkill", $th);
+            report($th);
         }
 
         return back();

@@ -7,7 +7,6 @@ use App\Models\SchoolUser;
 use App\Models\SettingValue;
 use App\Models\User;
 use App\Notifications\RegisterNotification;
-use App\Traits\ErrorTrait;
 use App\Traits\UploadFile;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
@@ -20,7 +19,6 @@ use Throwable;
 
 class RegisterService
 {
-    use ErrorTrait;
     use UploadFile;
 
     /**
@@ -76,7 +74,7 @@ class RegisterService
 
         } catch (Throwable $th) {
             DB::rollBack();
-            $this->logError("RegisterController@register", $th);
+            report($th);
             $response->error = $th->getMessage();
         }
 
@@ -134,7 +132,7 @@ class RegisterService
 
         } catch (Throwable $th) {
             DB::rollBack();
-            $this->logError('SchoolsController@update', $th);
+            report($th);
             $success = false;
         }
 

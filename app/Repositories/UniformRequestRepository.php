@@ -3,13 +3,10 @@
 namespace App\Repositories;
 
 use App\Models\UniformRequest;
-use App\Traits\ErrorTrait;
 use Illuminate\Support\Facades\DB;
 
 class UniformRequestRepository
 {
-    use ErrorTrait;
-
     public function uniformRequestPlayer()
     {
         $player = request()->user();
@@ -63,7 +60,7 @@ class UniformRequestRepository
             $model = $uniformRequest;
         } catch (\Throwable $th) {
             DB::rollBack();
-            $this->logError('UniformRequestRepository@store', $th);
+            report($th);
             $model = [];
         }
 
@@ -84,7 +81,7 @@ class UniformRequestRepository
             $uniformRequest->save();
             DB::commit();
         } catch (\Throwable $th) {
-            $this->logError('UniformRequestRepository@store', $th);
+            report($th);
             DB::rollBack();
             $success = false;
         }
