@@ -1,10 +1,7 @@
 import { defineStore } from "pinia";
 import api from "@/utils/axios";
 
-export const USER_CONTEXT_REFRESH_INTERVAL_MS = 60 * 1000;
-
 let syncUserPromise = null;
-let lastUserSyncAt = 0;
 
 export const useAuthUser = defineStore('auth-user', {
     state: () => ({
@@ -27,24 +24,16 @@ export const useAuthUser = defineStore('auth-user', {
         },
         clearState() {
             this.$reset()
-            lastUserSyncAt = 0
         },
         markContextStale() {
-            lastUserSyncAt = 0
-        },
-        shouldRefreshContext(force = false) {
-            if (force || !this.initialized || lastUserSyncAt === 0) {
-                return true
-            }
-
-            return (Date.now() - lastUserSyncAt) >= USER_CONTEXT_REFRESH_INTERVAL_MS
+            this.initialized = false
         },
         async init(options = {}) {
             const force = Boolean(options?.force)
             const silent = Boolean(options?.silent)
             const preserveStateOnError = Boolean(options?.preserveStateOnError)
 
-            if (!this.shouldRefreshContext(force)) {
+            if (!force && this.initialized) {
                 return this.isAuthenticated
             }
 
@@ -53,20 +42,14 @@ export const useAuthUser = defineStore('auth-user', {
             }
 
             syncUserPromise = (async () => {
-                let didSyncUserContext = false
-
                 try {
                     await this.getUser({ silent, preserveStateOnError })
-                    didSyncUserContext = true
                 } catch {
                     if (!preserveStateOnError) {
                         this.resetAuthContext()
                     }
                 } finally {
                     this.initialized = true
-                    if (didSyncUserContext) {
-                        lastUserSyncAt = Date.now()
-                    }
                     syncUserPromise = null
                 }
 
@@ -94,10 +77,12 @@ export const useAuthUser = defineStore('auth-user', {
                 this.roles = data.data.roles
                 this.permissions = data.data.permissions || []
                 this.schoolPermissions = data.data.school_permissions || {}
-                lastUserSyncAt = Date.now()
                 return this.user
-            } catch {
-                if (!options?.preserveStateOnError) {
+            } catch (error) {
+                const status = error.response?.status
+                const shouldPreserveState = Boolean(options?.preserveStateOnError) && ![401, 419].includes(status)
+
+                if (!shouldPreserveState) {
                     this.resetAuthContext()
                 }
                 throw new Error('Unable to fetch authenticated user context')
@@ -115,7 +100,6 @@ export const useAuthUser = defineStore('auth-user', {
             finally {
                 this.resetAuthContext()
                 this.initialized = true
-                lastUserSyncAt = 0
             }
         },
         can(permission) {
