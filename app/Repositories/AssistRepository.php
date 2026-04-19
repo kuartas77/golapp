@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Database\Eloquent\Builder;
 use Exception;
+use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
 use App\Service\Assist\AssistService;
 use App\Models\TrainingGroup;
@@ -18,6 +19,7 @@ use App\Dto\AssistDTO;
 
 class AssistRepository
 {
+    use ErrorTrait;
     use PDFTrait;
     protected AssistService $service;
 
@@ -93,7 +95,10 @@ class AssistRepository
             // $table = $this->service->generateTable($assistsQuery, $trainingGroup, $dataAssist);
         } catch (Exception $exception) {
             DB::rollBack();
-            report($exception);
+            $this->logError('AssistRepository create failed', $exception, [
+                'training_group_id' => $dataAssist['training_group_id'] ?? null,
+                'month' => $dataAssist['month'] ?? null,
+            ]);
         }
 
         return $table;
@@ -139,7 +144,11 @@ class AssistRepository
             return true;
         } catch (Exception $exception) {
             DB::rollBack();
-            report($exception);
+            $this->logError('AssistRepository upsert failed', $exception, [
+                'inscription_id' => $assistDto->inscription_id,
+                'training_group_id' => $assistDto->training_group_id,
+                'column' => $assistDto->column,
+            ]);
             return false;
         }
     }
@@ -167,7 +176,9 @@ class AssistRepository
             return $updated;
         } catch (Exception $exception) {
             DB::rollBack();
-            report($exception);
+            $this->logError('AssistRepository update failed', $exception, [
+                'assist_id' => $assist->id ?? null,
+            ]);
             return false;
         }
     }

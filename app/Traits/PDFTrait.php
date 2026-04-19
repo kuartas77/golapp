@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Storage;
 use Mpdf\Mpdf;
 use Mpdf\MpdfException;
 use Mpdf\Output\Destination;
-use Symfony\Component\HttpFoundation\Response;
 
 trait PDFTrait
 {
@@ -85,7 +84,12 @@ trait PDFTrait
      */
     public function download(string $filename = 'document.pdf')
     {
-        return $this->mpdf->Output($filename, Destination::DOWNLOAD);
+        $content = $this->mpdf->Output(null, Destination::STRING_RETURN);
+
+        return response($content, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . str_replace('"', '', $filename) . '"',
+        ]);
     }
 
     /**
@@ -95,7 +99,12 @@ trait PDFTrait
      */
     public function stream(string $filename = 'document.pdf')
     {
-        return $this->mpdf->Output($filename, Destination::INLINE);
+        $content = $this->mpdf->Output(null, Destination::STRING_RETURN);
+
+        return response($content, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . str_replace('"', '', $filename) . '"',
+        ]);
     }
 
     /**

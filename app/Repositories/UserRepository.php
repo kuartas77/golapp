@@ -7,6 +7,7 @@ namespace App\Repositories;
 use App\Models\SchoolUser;
 use App\Models\User;
 use App\Notifications\RegisterNotification;
+use App\Traits\ErrorTrait;
 use Exception;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Cache;
@@ -15,6 +16,8 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class UserRepository
 {
+    use ErrorTrait;
+
     private User $user;
 
     public function __construct(User $user)
@@ -62,7 +65,10 @@ class UserRepository
             return $user;
         } catch (Exception $exception) {
             DB::rollBack();
-            report($exception);
+            $this->logError('UserRepository create failed', $exception, [
+                'email' => $formRequest->input('email'),
+                'school_id' => $school->id ?? null,
+            ]);
             Alert::error(__('messages.error'));
             return $this->user;
         }
@@ -82,7 +88,10 @@ class UserRepository
 
         } catch (Exception $exception) {
             DB::rollBack();
-            report($exception);
+            $this->logError('UserRepository update failed', $exception, [
+                'user_id' => $user->id,
+                'email' => $formRequest->input('email'),
+            ]);
             Alert::error(__('messages.error'));
         }
     }

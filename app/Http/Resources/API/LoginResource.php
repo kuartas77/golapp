@@ -9,6 +9,8 @@ use JsonSerializable;
 
 class LoginResource extends JsonResource
 {
+    public static $wrap = null;
+
     /**
      * Transform the resource into an array.
      *
@@ -20,7 +22,6 @@ class LoginResource extends JsonResource
         $date = now()->addWeeks(2);
         $accessToken = $this->createToken('access_token', array_merge($this->abilities, ['auth']), now()->addWeeks(2));
         $refreshToken = $this->createToken('refresh_token', ['refresh'], now()->addWeeks(3));
-        parent::wrap(null);
         return [
             'token_type' => 'Bearer',
             'access_token' => $accessToken->plainTextToken,

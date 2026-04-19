@@ -10,6 +10,7 @@ use App\Models\CompetitionGroup;
 use App\Models\Game;
 use App\Models\Master;
 use App\Models\SkillsControl;
+use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
 use Exception;
 use Illuminate\Foundation\Http\FormRequest;
@@ -19,6 +20,7 @@ use Mpdf\MpdfException;
 
 class GameRepository
 {
+    use ErrorTrait;
     use PDFTrait;
     private Game $game;
 
@@ -149,7 +151,7 @@ class GameRepository
             $result = $game->wasRecentlyCreated;
         } catch (Exception $exception) {
             DB::rollBack();
-            report($exception);
+            $this->logError('GameRepository createMatchSkill failed', $exception);
             $result = false;
         }
 
@@ -208,7 +210,7 @@ class GameRepository
             $result = true;
         } catch (Exception $exception) {
             DB::rollBack();
-            report($exception);
+            $this->logError('GameRepository updateMatchSkill failed', $exception);
             $result = false;
         }
 

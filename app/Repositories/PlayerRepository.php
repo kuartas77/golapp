@@ -9,6 +9,7 @@ use Exception;
 use Carbon\Carbon;
 use App\Models\Master;
 use App\Models\Player;
+use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
 use App\Traits\UploadFile;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +25,7 @@ use Illuminate\Support\Facades\Hash;
 
 class PlayerRepository
 {
+    use ErrorTrait;
     use PDFTrait;
     use UploadFile;
 
@@ -83,7 +85,11 @@ class PlayerRepository
             $result = true;
         } catch (Exception $exception) {
             DB::rollBack();
-            report($exception);
+            $this->logError('PlayerRepository createPlayer failed', $exception, [
+                'school_id' => $school_id ?? null,
+                'unique_code' => $dataPlayer['unique_code'] ?? null,
+                'email' => $dataPlayer['email'] ?? null,
+            ]);
             Cache::forget('KEY_LAST_UNIQUE_CODE.' . $school_id);
             $result = false;
         }
@@ -140,7 +146,10 @@ class PlayerRepository
             return $save;
         } catch (Exception $exception) {
             DB::rollBack();
-            report($exception);
+            $this->logError('PlayerRepository updatePlayer failed', $exception, [
+                'player_id' => $player->id,
+                'unique_code' => $player->unique_code,
+            ]);
             return false;
         }
     }
@@ -163,7 +172,10 @@ class PlayerRepository
             return $save;
         } catch (\Exception $exception) {
             DB::rollBack();
-            report($exception);
+            $this->logError('PlayerRepository updatePlayerPortal failed', $exception, [
+                'player_id' => $player->id,
+                'unique_code' => $player->unique_code,
+            ]);
             return false;
         }
     }

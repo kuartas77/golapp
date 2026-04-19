@@ -10,6 +10,8 @@ use JsonSerializable;
 
 class LoginPlayerResource extends JsonResource
 {
+    public static $wrap = null;
+
     /**
      * Transform the resource into an array.
      *
@@ -21,7 +23,6 @@ class LoginPlayerResource extends JsonResource
         $date = now()->addDays(7);
         $accessToken = $this->createToken('access_token', array_merge($this->abilities, ['auth']), $date);
         $refreshToken = $this->createToken('refresh_token', ['refresh'], $date->copy()->addDay());
-        parent::wrap(null);
 
         $loadRelations = $this->relationLoaded('schoolData') && $this->relationLoaded('inscription');
 

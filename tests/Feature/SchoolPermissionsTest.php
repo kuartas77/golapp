@@ -190,7 +190,8 @@ final class SchoolPermissionsTest extends TestCase
 
         $this->actingAs($this->user)
             ->get(route('export.training_sessions.pdf', ['id' => $trainingSession->id]))
-            ->assertOk();
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
     }
 
     public function testInfoCampusEndpointIsAvailableWithoutSchoolProfilePermissionAndForInstructors(): void

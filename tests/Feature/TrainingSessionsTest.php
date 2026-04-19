@@ -31,7 +31,10 @@ final class TrainingSessionsTest extends TestCase
             ->assertOk();
 
         $this->assertContains($existingSession->id, collect($listResponse->json('data'))->pluck('id')->all());
-        $this->assertSame($this->user->name, $listResponse->json('data.0.creator_name'));
+        $this->assertSame(
+            $this->user->name,
+            html_entity_decode((string) $listResponse->json('data.0.creator_name'), ENT_QUOTES | ENT_HTML5)
+        );
         $this->assertSame(3, $listResponse->json('data.0.tasks_count'));
         $this->assertNotEmpty($listResponse->json('data.0.training_group_name'));
 
@@ -101,7 +104,8 @@ final class TrainingSessionsTest extends TestCase
 
         $this->actingAs($this->user)
             ->get(route('export.training_sessions.pdf', ['id' => $createdId]))
-            ->assertOk();
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
     }
 
     public function testSuperAdminCanManageTrainingSessionsForSelectedSchool(): void
@@ -155,7 +159,8 @@ final class TrainingSessionsTest extends TestCase
         $this->withSession(['admin.selected_school' => $secondarySchool->id])
             ->actingAs($superAdmin)
             ->get(route('export.training_sessions.pdf', ['id' => $createdId]))
-            ->assertOk();
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
     }
 
     public function testInstructorOnlyAccessesAssignedTrainingGroupSessions(): void

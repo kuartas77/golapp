@@ -55,6 +55,9 @@ final class PlayersTest extends TestCase
     {
         Notification::fake();
         Mail::fake();
+        $this->createUser([
+            'email' => sprintf('player-errors-%s@example.com', uniqid()),
+        ], ['super-admin']);
 
         $dataPlayer = $this->dataPlayer();
         unset($dataPlayer['people']);

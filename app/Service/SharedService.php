@@ -6,12 +6,15 @@ use App\Models\Inscription;
 use App\Models\Payment;
 use App\Models\School;
 use App\Models\TrainingGroup;
+use App\Traits\ErrorTrait;
 use Illuminate\Support\Facades\DB;
 use Jenssegers\Date\Date;
 use Throwable;
 
 class SharedService
 {
+    use ErrorTrait;
+
     public function __construct(private PaymentAmountResolver $paymentAmountResolver)
     {
     }
@@ -189,7 +192,9 @@ class SharedService
 
         } catch (Throwable $th) {
             DB::rollBack();
-            report($th);
+            $this->logError('SharedService assignTrainingGroup failed', $th, [
+                'inscription_id' => $inscription_id,
+            ]);
             return false;
         }
     }
