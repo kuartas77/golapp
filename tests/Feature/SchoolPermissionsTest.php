@@ -31,10 +31,11 @@ final class SchoolPermissionsTest extends TestCase
         $school = School::factory()->create();
 
         $permissions = $school->fresh()->getResolvedSchoolPermissions();
+        $catalog = School::permissionCatalog();
 
         $this->assertTrue($permissions['school.module.players']);
         $this->assertSame(
-            (bool) data_get(School::permissionCatalog(), 'school.module.training_sessions.default', false),
+            (bool) ($catalog['school.module.training_sessions']['default'] ?? false),
             $permissions['school.module.training_sessions']
         );
         $this->assertTrue($permissions['school.module.billing']);

@@ -97,7 +97,7 @@ const options = {
     deferRender: true,
     ajax: async (data, callback) => {
         try {
-            const response = await api.get('/uniform-request/invoices', { params: data })
+            const response = await api.get('/api/v2/notifications/uniform-requests', { params: data })
             callback({
                 data: response.data.data,
                 recordsTotal: response.data.recordsTotal,

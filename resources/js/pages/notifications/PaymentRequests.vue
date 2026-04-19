@@ -83,7 +83,7 @@ const options = {
     deferRender: true,
     ajax: async (data, callback) => {
         try {
-            const response = await api.get('/payment-request/invoices', { params: data })
+            const response = await api.get('/api/v2/notifications/payment-requests', { params: data })
             callback({
                 data: response.data.data,
                 recordsTotal: response.data.recordsTotal,
@@ -223,7 +223,7 @@ const markAsPaid = async (invoiceId, paymentRequestId) => {
         return
     }
 
-    await api.put(`/invoice/${invoiceId}/payment-request/${paymentRequestId}`)
+    await api.put(`/api/v2/notifications/invoice/${invoiceId}/payment-request/${paymentRequestId}`)
 
     await Swal.fire({
         title: window.__APP_CONFIG__?.appName ?? 'GOLAPP',

@@ -20,7 +20,7 @@ return [
             'label' => 'Evaluaciones',
             'description' => 'Permite acceder al módulo de evaluaciones de jugadores.',
             'group' => 'Operación deportiva',
-            'default' => false,
+            'default' => true,
         ],
         'school.module.attendances' => [
             'label' => 'Asistencias',
@@ -32,7 +32,7 @@ return [
             'label' => 'Sesiones de entrenamiento',
             'description' => 'Permite acceder al módulo de sesiones de entrenamiento.',
             'group' => 'Operación deportiva',
-            'default' => false,
+            'default' => true,
         ],
         'school.module.matches' => [
             'label' => 'Competencias',

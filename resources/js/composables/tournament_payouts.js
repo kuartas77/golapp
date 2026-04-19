@@ -1,5 +1,5 @@
-import axios from 'axios';
 import {ref} from 'vue';
+import api from '@/utils/axios'
 
 export default function usePayouts() {
     const rows = ref([])
@@ -9,38 +9,48 @@ export default function usePayouts() {
     const pays = ref([])
 
     const fetchRows = async () => {
-        let response = await axios.get('/api/v2/schools')
+        let response = await api.get('/api/v2/schools')
         rows.value = response.data.data
         paginationMeta.value = response.data.meta
     }
 
     const loadTournaments = async () => {
-        let response = await axios.get('/autocomplete/tournaments')
+        let response = await api.get('/api/v2/autocomplete/tournaments')
         tournaments.value = response.data.data
     }
 
     const loadGroups = async (tournament_id) => {
-        let response = await axios.get(`/autocomplete/competition_groups?tournament_id=${tournament_id}`)
+        let response = await api.get('/api/v2/autocomplete/competition_groups', {
+            params: {
+                tournament_id,
+            },
+        })
         groups.value = response.data.data
     }
 
 
     const getPays = async ({competition_group_id, tournament_id, unique_code}) => {
         pays.value = []
-        let response = await axios.get(`/v1/tournamentpayout?tournament_id=${tournament_id}&competition_group_id=${competition_group_id}&unique_code=${unique_code}&dataRaw=true`)
+        let response = await api.get('/api/v2/tournament-payouts', {
+            params: {
+                tournament_id,
+                competition_group_id,
+                unique_code,
+                dataRaw: true,
+            },
+        })
         pays.value = response.data.data
         return pays
     }
 
     const sendPay = async (payment) => {
-        payment._method = "PUT"
         payment.status = payment.selected
-        let response = await axios.post(`/tournamentpayout/${payment.id}`, payment)
+        let response = await api.put(`/api/v2/tournament-payouts/${payment.id}`, payment)
         return response.data.data ?? response.data.error
     }
 
     const createPayments = async (payload) => {
-        let response = await axios.post(`/tournamentpayout`, payload)
+        let response = await api.post('/api/v2/tournament-payouts', payload)
         return response.data.data
     }
 

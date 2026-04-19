@@ -385,7 +385,7 @@ class PlayerEvaluationController extends Controller
                     'training_group_name' => $inscription->trainingGroup?->name,
                     'label' => sprintf(
                         '#%s - %s%s',
-                        $inscription->unique_code,
+                        $inscription->id,
                         $this->playerName($inscription->player),
                         $inscription->trainingGroup?->name ? ' - ' . $inscription->trainingGroup->name : ''
                     ),

@@ -62,6 +62,10 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::middleware('school.permission:school.module.players')->group(function () {
         Route::resource("players", PlayerController::class);
     });
+    // El composable Vue resources/js/composables/tournament_payouts.js consume ahora:
+    // GET /api/v2/autocomplete/tournaments,
+    // GET /api/v2/autocomplete/competition_groups y
+    // GET|POST|PUT /api/v2/tournament-payouts.
     Route::resource("tournamentpayout", TournamentPayoutsController::class)->only(['index', 'store', 'update']);
 
     // La SPA equivalente vive en resources/js/router/index.js y consume su CRUD/listado desde routes/api.php:
@@ -224,6 +228,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     });
 
     // Las vistas SPA equivalentes viven en resources/js/router/index.js y usan metadata desde routes/api.php.
+    // El envio por correo ahora tambien vive en POST /api/v2/reports/payments.
     Route::middleware('school.permission:school.module.reports')->prefix('reports')->name('reports.')->group(function () {
         Route::get('assists', [ReportAssistsController::class, 'index'])->name('assists');
         Route::get('payments', [ReportPaymentController::class, 'index'])->name('payments');
@@ -260,12 +265,17 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     ])->group(function(){
         // Las vistas SPA equivalentes viven en resources/js/router/index.js.
         // El header Vue consume el resumen desde GET /api/v2/notifications/header-summary.
+        // PaymentRequests.vue y UniformRequests.vue consumen ahora:
+        // GET /api/v2/notifications/payment-requests,
+        // GET /api/v2/notifications/uniform-requests y
+        // PUT /api/v2/notifications/invoice/{invoice}/payment-request/{paymentRequest}.
         Route::put('invoice/{invoice}/payment-request/{paymentRequest}', [InvoiceController::class, 'update']);
         Route::get('payment-request/invoices', [PaymentRequestController::class, 'index'])->name('payment-request.index');
         Route::get('uniform-request/invoices', [UniformRequestsController::class, 'index'])->name('uniform-request.index');
     });
 
     Route::middleware('school.permission:school.feature.system_notify')->group(function () {
+        // TopicNotifications.vue consume ahora /api/v2/notifications/topics y /api/v2/notifications/topics/options.
         Route::get('notifications/options', [TopicNotificationsController::class, 'options'])->name('notification.options');
         Route::get('notifications', [TopicNotificationsController::class, 'index'])->name('notification.index');
         Route::post('notifications', [TopicNotificationsController::class, 'store'])->name('notification.store');
@@ -316,6 +326,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified_school'])->prefix('v1')->group(function () {
+    // Compatibilidad legacy: el flujo Vue equivalente consume GET /api/v2/tournament-payouts.
     Route::get('tournamentpayout', [TournamentPayoutsController::class, 'searchRaw']);
 
     Route::prefix('groups')->group(function () {

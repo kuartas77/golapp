@@ -68,7 +68,7 @@ export default function usePaymentReport() {
                 payload.training_group_id = form.training_group_id
             }
 
-            const response = await api.post('/reports/payments', payload)
+            const response = await api.post('/api/v2/reports/payments', payload)
             showMessage(response.data?.message || 'El archivo será enviado al correo electrónico registrado.')
         } catch (error) {
             const message = error.response?.data?.message || 'No fue posible generar el informe.'

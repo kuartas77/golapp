@@ -55,7 +55,7 @@ class TopicNotificationsController extends Controller
 
     public function store(NotificationStoreRequest $request, TopicNotificationStoreService $service)
     {
-        $service->store($request->validate());
+        $service->store($request->validated());
 
         if ($request->expectsJson()) {
             return response()->json(['success' => true]);

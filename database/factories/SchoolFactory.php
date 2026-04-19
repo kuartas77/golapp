@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\School;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -23,7 +24,8 @@ class SchoolFactory extends Factory
             'email' => $this->faker->unique()->safeEmail(),
             'is_enable' => 1,
             'logo' => $this->faker->name(),
-            'slug' => Str::slug($name)
+            'slug' => Str::slug($name),
+            'school_permissions' => School::defaultSchoolPermissions(),
         ];
     }
 }

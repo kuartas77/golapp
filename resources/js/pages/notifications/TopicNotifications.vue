@@ -197,7 +197,7 @@ const options = {
     deferRender: true,
     ajax: async (data, callback) => {
         try {
-            const response = await api.get('/notifications', { params: data })
+            const response = await api.get('/api/v2/notifications/topics', { params: data })
             callback({
                 data: response.data.data,
                 recordsTotal: response.data.recordsTotal,
@@ -269,7 +269,7 @@ const reloadTable = () => {
 const getError = (field) => validationErrors.value?.[field]?.[0] ?? ''
 
 const loadOptions = async () => {
-    const response = await api.get('/notifications/options')
+    const response = await api.get('/api/v2/notifications/topics/options')
 
     optionGroups.categories = response.data.categories ?? []
     optionGroups.training_groups = response.data.training_groups ?? []
@@ -286,7 +286,7 @@ const submitForm = async () => {
     submitting.value = true
 
     try {
-        await api.post('/notifications', {
+        await api.post('/api/v2/notifications/topics', {
             notification_type: form.notification_type,
             categories: form.categories,
             training_groups: form.training_groups,

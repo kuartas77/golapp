@@ -31,7 +31,11 @@ use App\Http\Controllers\Inscription\InscriptionController as WebInscriptions;
 use App\Http\Controllers\Invoices\InvoiceController;
 use App\Http\Controllers\Invoices\ItemInvoicesController;
 use App\Http\Controllers\MasterController;
+use App\Http\Controllers\Notifications\PaymentRequestController;
+use App\Http\Controllers\Notifications\TopicNotificationsController;
+use App\Http\Controllers\Notifications\UniformRequestsController;
 use App\Http\Controllers\Payments\PaymentController;
+use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\Portal\InscriptionsController as PortalInscription;
@@ -175,6 +179,15 @@ Route::prefix('v2')->group(function(){
             'school.permission:school.feature.system_notify',
         ])->prefix('notifications')->group(function () {
             Route::get('header-summary', [HeaderNotificationsController::class, 'index']);
+            Route::get('payment-requests', [PaymentRequestController::class, 'index']);
+            Route::get('uniform-requests', [UniformRequestsController::class, 'index']);
+            Route::put('invoice/{invoice}/payment-request/{paymentRequest}', [InvoiceController::class, 'update']);
+        });
+
+        Route::middleware('school.permission:school.feature.system_notify')->prefix('notifications/topics')->group(function () {
+            Route::get('', [TopicNotificationsController::class, 'index']);
+            Route::get('options', [TopicNotificationsController::class, 'options']);
+            Route::post('', [TopicNotificationsController::class, 'store']);
         });
 
         Route::get('/player-stats', [PlayerStatsController::class, 'index']);
@@ -226,9 +239,14 @@ Route::prefix('v2')->group(function(){
             Route::get('list_code_unique', [MasterController::class, 'listUniqueCode']);
             Route::get('search_unique_code', [MasterController::class, 'searchUniqueCode']);
             // Route::get('list_code_unique_inscription', [MasterController::class, 'listUniqueCodeWithInscription'])->name('autocomplete.list_code_unique_inscription');
-            // Route::get('competition_groups', [MasterController::class, 'competitionGroupsByTournament'])->name('autocomplete.competition_groups');
+            Route::get('competition_groups', [MasterController::class, 'competitionGroupsByTournament']);
+            Route::get('tournaments', [MasterController::class, 'tournamentsBySchool']);
+        });
 
-            // Route::get('tournaments', [MasterController::class, 'tournamentsBySchool'])->name('autocomplete.tournaments');
+        Route::prefix('tournament-payouts')->group(function () {
+            Route::get('', [TournamentPayoutsController::class, 'searchRaw']);
+            Route::post('', [TournamentPayoutsController::class, 'store']);
+            Route::put('{tournamentpayout}', [TournamentPayoutsController::class, 'update']);
         });
 
         Route::middleware('school.permission:school.module.billing')->prefix('invoices')->group(function () {
@@ -258,6 +276,7 @@ Route::prefix('v2')->group(function(){
         Route::middleware('school.permission:school.module.reports')->prefix('reports')->name('reports.')->group(function () {
             Route::get('assists', [ReportAssistsController::class, 'metadata'])->name('assists.metadata');
             Route::get('payments', [ReportPaymentController::class, 'metadata'])->name('payments.metadata');
+            Route::post('payments', [ReportPaymentController::class, 'report'])->name('payments.report');
             Route::get('attendance/monthly-by-player', [ReportAssistsController::class, 'monthlyByPlayer'])->name('assists.monthly-by-player');
             Route::get('attendance/monthly-by-group', [ReportAssistsController::class, 'monthlyByGroup'])->name('assists.monthly-by-group');
             Route::get('attendance/annual-consolidated', [ReportAssistsController::class, 'annualConsolidated'])->name('assists.annual-consolidated');

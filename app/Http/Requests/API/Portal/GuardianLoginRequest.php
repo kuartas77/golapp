@@ -36,7 +36,7 @@ class GuardianLoginRequest extends FormRequest
 
     private function shouldValidateRecaptcha(): bool
     {
-        return !app()->environment('local')
+        return !app()->environment(['local', 'testing'])
             && filled(config('recaptchav3.sitekey'))
             && filled(config('recaptchav3.secret'));
     }
