@@ -624,6 +624,7 @@ const globalError = ref('');
 const submitting = ref(false);
 const appName = window.__APP_CONFIG__?.appName ?? 'Golapp';
 const recaptcha = useReCaptcha();
+const appConfig = window.__APP_CONFIG__ ?? {};
 const autocomplete = ref({
     school: [],
     place_birth: [],
@@ -1085,6 +1086,10 @@ const executeRecaptcha = async () => {
         return '';
     }
 
+    if (!appConfig.recaptchaSiteKey) {
+        return null;
+    }
+
     if (!recaptcha?.executeRecaptcha || !recaptcha?.recaptchaLoaded) {
         throw new Error('No pudimos validar el captcha. Recarga la página e inténtalo nuevamente.');
     }
@@ -1195,7 +1200,7 @@ const submitForm = handleSubmit(async (submittedValues) => {
         await window.Swal.fire({
             icon: 'success',
             title: appName,
-            text: 'Se ha creado la inscripción correctamente, se enviará al correo de notificación el contrato y el código del deportista.',
+            text: 'Se ha creado la inscripción correctamente, se enviará al correo de notificación la información necesaria.',
         });
 
         window.location.reload();

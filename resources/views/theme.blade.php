@@ -12,10 +12,19 @@
           content="Ayuda a tu escuela de futbol a mejorar deportivamente con nuestra herramienta, la cual te facilitará muchos procesos, asistencias, entrenamientos, pagos entre otros">
     <link rel="icon" type="image/png" href="/img/ballon.webp"/>
 
+    @php
+        $isPortalRequest = request()->is('portal') || request()->is('portal/*');
+        $recaptchaSiteKey = $isPortalRequest
+            && filled(config('recaptchav3.sitekey'))
+            && filled(config('recaptchav3.secret'))
+            ? config('recaptchav3.sitekey')
+            : null;
+    @endphp
+
     <script>
         window.__APP_CONFIG__ = @json([
             'appName' => config('app.name'),
-            'recaptchaSiteKey' => config('recaptchav3.sitekey'),
+            'recaptchaSiteKey' => $recaptchaSiteKey,
         ]);
     </script>
 

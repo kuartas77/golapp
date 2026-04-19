@@ -107,9 +107,9 @@ async function registerPlugins(app, pinia, head, appConfig) {
         const { VueReCaptcha } = await import('vue-recaptcha-v3');
 
         app.use(VueReCaptcha, {
-            siteKey: import.meta.env.VITE_RECAPTCHAV3_SITEKEY,
+            siteKey: appConfig.recaptchaSiteKey,
             loaderOptions: {
-                autoHideBadge: true
+                autoHideBadge: false
             }
         });
     }

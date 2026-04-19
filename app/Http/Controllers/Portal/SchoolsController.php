@@ -95,7 +95,9 @@ class SchoolsController extends Controller
                 'jornada' => Cache::remember('KEY_JORNADA_TYPES', now()->addYear(), fn() => config('variables.KEY_JORNADA')),
             ],
             'recaptcha' => [
-                'enabled' => !app()->environment('local') && filled(config('recaptchav3.sitekey')),
+                'enabled' => !app()->environment('local')
+                    && filled(config('recaptchav3.sitekey'))
+                    && filled(config('recaptchav3.secret')),
                 'action' => 'inscriptions',
             ],
         ]);

@@ -18,7 +18,6 @@ class InscriptionRegisterRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'g-recaptcha-response' => 'required|recaptchav3:inscriptions,0.5',
             // Step 1
             'names' => ['required', 'string', 'max:50'],
             'last_names' => ['required', 'string', 'max:50'],
@@ -81,8 +80,8 @@ class InscriptionRegisterRequest extends FormRequest
             ],
         ];
 
-        if (env('APP_ENV', null) == 'local') {
-            unset($rules['g-recaptcha-response']);
+        if ($this->shouldValidateRecaptcha()) {
+            $rules['g-recaptcha-response'] = 'required|recaptchav3:inscriptions,0.5';
         }
 
         return $rules;
@@ -97,5 +96,12 @@ class InscriptionRegisterRequest extends FormRequest
             'tutor_email' => filled($this->tutor_email) ? mb_strtolower(trim((string) $this->tutor_email)) : null,
         ]);
 
+    }
+
+    private function shouldValidateRecaptcha(): bool
+    {
+        return !app()->environment('local')
+            && filled(config('recaptchav3.sitekey'))
+            && filled(config('recaptchav3.secret'));
     }
 }

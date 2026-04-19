@@ -114,12 +114,15 @@
 <script setup>
 import { computed, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useReCaptcha } from 'vue-recaptcha-v3';
 import { usePageTitle } from '@/composables/use-meta';
 import { useGuardianAuth } from '@/store/guardian-auth';
 
 const route = useRoute();
 const router = useRouter();
 const guardianStore = useGuardianAuth();
+const recaptcha = useReCaptcha();
+const appConfig = window.__APP_CONFIG__ ?? {};
 
 const mode = ref('login');
 const loading = ref(false);
@@ -151,6 +154,7 @@ const firstErrorMessage = (error) => {
 
     return error.response?.data?.message
         ?? Object.values(normalizedErrors)[0]
+        ?? error.message
         ?? 'No fue posible procesar la solicitud en este momento.';
 };
 
@@ -160,6 +164,20 @@ const setMode = (nextMode) => {
     fieldErrors.value = {};
 };
 
+const executeRecaptcha = async () => {
+    if (!appConfig.recaptchaSiteKey) {
+        return null;
+    }
+
+    if (!recaptcha?.executeRecaptcha || !recaptcha?.recaptchaLoaded) {
+        throw new Error('No pudimos validar el captcha. Recarga la página e inténtalo nuevamente.');
+    }
+
+    await recaptcha.recaptchaLoaded();
+
+    return recaptcha.executeRecaptcha('guardian_login');
+};
+
 const submitLogin = async () => {
     loading.value = true;
     errorMessage.value = '';
@@ -167,9 +185,12 @@ const submitLogin = async () => {
     fieldErrors.value = {};
 
     try {
+        const recaptchaToken = await executeRecaptcha();
+
         await guardianStore.login({
             email: loginForm.email,
             password: loginForm.password,
+            'g-recaptcha-response': recaptchaToken,
         });
 
         const redirect = typeof route.query.redirect === 'string'
