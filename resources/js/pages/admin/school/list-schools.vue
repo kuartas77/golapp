@@ -168,6 +168,7 @@ import useSchoolList from '@/composables/admin/school/schoolList'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from "@/composables/use-meta";
 import { useRouter } from 'vue-router'
+import { useAuthUser } from '@/store/auth-user'
 import { schoolsListTutorial } from '@/tutorials/admin'
 
 usePageTitle('Escuelas')
@@ -175,6 +176,7 @@ usePageTitle('Escuelas')
 const { table, options } = useSchoolList()
 const tutorial = usePageTutorial(schoolsListTutorial)
 const router = useRouter()
+const auth = useAuthUser()
 
 const modalError = ref('')
 const selectedSchool = ref(null)
@@ -268,6 +270,7 @@ const savePermissions = async () => {
             permissions: permissionForm.value,
         })
 
+        await auth.init({ force: true, silent: true, preserveStateOnError: true })
         showMessage('Permisos de escuela actualizados correctamente.')
         reloadTable()
         closeModal()

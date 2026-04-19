@@ -167,7 +167,9 @@ const fetchSummary = async ({ force = false } = {}) => {
     errorMessage.value = ''
 
     try {
-        const response = await api.get('/api/v2/notifications/header-summary')
+        const response = await api.get('/api/v2/notifications/header-summary', {
+            skipGlobalLoader: true,
+        })
         summary.value = {
             payment_requests: Number(response.data?.payment_requests ?? 0),
             uniform_requests: Number(response.data?.uniform_requests ?? 0),

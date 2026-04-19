@@ -2,6 +2,7 @@ import axios from "axios";
 import { useAuthUser } from '@/store/auth-user'
 import { useGuardianAuth } from '@/store/guardian-auth'
 import { useAppState } from '@/store/app-state'
+import { canAccessRoute } from '@/utils/routeAccess'
 import router from "@/router";
 
 // Crear instancia
@@ -152,36 +153,18 @@ api.interceptors.response.use(
                 }
             }
         }
+
+        if (status === 403 && !skipAuthRedirect && !isGuardianArea && !isPublicPortal) {
+            auth.markContextStale()
+            await auth.init({ force: true, silent: true, preserveStateOnError: true })
+
+            if (auth.isAuthenticated && !canAccessRoute(router.currentRoute.value, auth)) {
+                await router.push({ name: 'dashboard' })
+            }
+        }
+
         return Promise.reject(error);
     }
 );
 
 export default api;
-
-// export default {
-//     // Facturas
-//     getInvoices(params) {
-//         return apiClient.get('/invoices', { params })
-//     },
-
-//     getInvoice(id) {
-//         return apiClient.get(`/invoices/${id}`)
-//     },
-
-//     createInvoice(data) {
-//         return apiClient.post('/invoices', data)
-//     },
-
-//     deleteInvoice(id) {
-//         return apiClient.delete(`/invoices/${id}`)
-//     },
-
-//     addPayment(invoiceId, data) {
-//         return apiClient.post(`/invoices/${invoiceId}/payment`, data)
-//     },
-
-//     // Datos de inscripción
-//     getInscriptionData(inscriptionId) {
-//         return apiClient.get(`/inscriptions/${inscriptionId}/invoice-data`)
-//     }
-// }

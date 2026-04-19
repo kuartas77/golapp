@@ -1,6 +1,11 @@
 import { defineStore } from "pinia";
 import api from "@/utils/axios";
 
+export const USER_CONTEXT_REFRESH_INTERVAL_MS = 60 * 1000;
+
+let syncUserPromise = null;
+let lastUserSyncAt = 0;
+
 export const useAuthUser = defineStore('auth-user', {
     state: () => ({
         user: null,
@@ -14,25 +19,67 @@ export const useAuthUser = defineStore('auth-user', {
         hasSystemNotify: state => Boolean(state.schoolPermissions?.['school.feature.system_notify']),
     },
     actions: {
+        resetAuthContext() {
+            this.user = null
+            this.roles = []
+            this.permissions = []
+            this.schoolPermissions = {}
+        },
         clearState() {
             this.$reset()
+            lastUserSyncAt = 0
         },
-        async init() {
-            if (this.initialized && this.user?.system_notify !== undefined) return this.isAuthenticated;
-            try {
-                await this.getUser();
-            } catch {
-                this.user = null;
-            } finally {
-                this.initialized = true;
+        markContextStale() {
+            lastUserSyncAt = 0
+        },
+        shouldRefreshContext(force = false) {
+            if (force || !this.initialized || lastUserSyncAt === 0) {
+                return true
             }
 
-            return this.isAuthenticated;
+            return (Date.now() - lastUserSyncAt) >= USER_CONTEXT_REFRESH_INTERVAL_MS
         },
-        async getUser() {
+        async init(options = {}) {
+            const force = Boolean(options?.force)
+            const silent = Boolean(options?.silent)
+            const preserveStateOnError = Boolean(options?.preserveStateOnError)
+
+            if (!this.shouldRefreshContext(force)) {
+                return this.isAuthenticated
+            }
+
+            if (syncUserPromise) {
+                return syncUserPromise
+            }
+
+            syncUserPromise = (async () => {
+                let didSyncUserContext = false
+
+                try {
+                    await this.getUser({ silent, preserveStateOnError })
+                    didSyncUserContext = true
+                } catch {
+                    if (!preserveStateOnError) {
+                        this.resetAuthContext()
+                    }
+                } finally {
+                    this.initialized = true
+                    if (didSyncUserContext) {
+                        lastUserSyncAt = Date.now()
+                    }
+                    syncUserPromise = null
+                }
+
+                return this.isAuthenticated
+            })()
+
+            return syncUserPromise
+        },
+        async getUser(options = {}) {
             try {
                 const { data } = await api.get("/api/v2/user", {
                     skipAuthRedirect: true,
+                    skipGlobalLoader: Boolean(options?.silent),
                 });
                 this.user = {
                     id: data.data.id,
@@ -47,11 +94,13 @@ export const useAuthUser = defineStore('auth-user', {
                 this.roles = data.data.roles
                 this.permissions = data.data.permissions || []
                 this.schoolPermissions = data.data.school_permissions || {}
+                lastUserSyncAt = Date.now()
+                return this.user
             } catch {
-                this.user = null;
-                this.roles = []
-                this.permissions = []
-                this.schoolPermissions = {}
+                if (!options?.preserveStateOnError) {
+                    this.resetAuthContext()
+                }
+                throw new Error('Unable to fetch authenticated user context')
             }
         },
         async login(credentials) {
@@ -64,11 +113,9 @@ export const useAuthUser = defineStore('auth-user', {
                 await api.post("/api/v2/logout");
             } catch {}
             finally {
-                this.user = null;
-                this.roles = []
-                this.permissions = []
-                this.schoolPermissions = {}
+                this.resetAuthContext()
                 this.initialized = true
+                lastUserSyncAt = 0
             }
         },
         can(permission) {

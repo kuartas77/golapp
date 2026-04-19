@@ -3,6 +3,7 @@ import { useAuthUser } from '@/store/auth-user'
 import { useGuardianAuth } from '@/store/guardian-auth'
 import { useAppState } from '@/store/app-state'
 import { SCHOOL_PERMISSION_KEYS } from '@/config/school-permissions'
+import { canAccessRoute } from '@/utils/routeAccess'
 import { h } from 'vue'
 
 const routes = [
@@ -85,6 +86,7 @@ const routes = [
             {
                 path: 'training-sessions',
                 name: 'training-sessions',
+                meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.trainingSessions] },
                 component: () => import('@/pages/training-sessions/Index.vue')
             },
 
@@ -278,40 +280,8 @@ router.beforeEach(async (to, from, next) => {
         return
     }
 
-    const userRoles = userStore.roles || [];
-
-    for (const routeRecord of to.matched) {
-        const requiredRoles = routeRecord.meta?.requiresRole || [];
-        if (requiredRoles.length > 0) {
-            const hasRole = requiredRoles.some((role) => userRoles.includes(role));
-            if (!hasRole) {
-                return next({ name: 'dashboard' });
-            }
-        }
-
-        const requiredRolesAll = routeRecord.meta?.requiresRoleAll || [];
-        if (requiredRolesAll.length > 0) {
-            const hasAllRoles = requiredRolesAll.every((role) => userRoles.includes(role));
-            if (!hasAllRoles) {
-                return next({ name: 'dashboard' });
-            }
-        }
-
-        const requiredSchoolPermissions = routeRecord.meta?.requiresSchoolPermission || [];
-        if (requiredSchoolPermissions.length > 0) {
-            const hasAnySchoolPermission = requiredSchoolPermissions.some((permission) => userStore.hasSchoolPermission(permission));
-            if (!hasAnySchoolPermission) {
-                return next({ name: 'dashboard' });
-            }
-        }
-
-        const requiredSchoolPermissionsAll = routeRecord.meta?.requiresSchoolPermissionAll || [];
-        if (requiredSchoolPermissionsAll.length > 0) {
-            const hasAllSchoolPermissions = requiredSchoolPermissionsAll.every((permission) => userStore.hasSchoolPermission(permission));
-            if (!hasAllSchoolPermissions) {
-                return next({ name: 'dashboard' });
-            }
-        }
+    if (!canAccessRoute(to, userStore)) {
+        return next({ name: 'dashboard' });
     }
 
     return next();

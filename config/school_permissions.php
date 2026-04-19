@@ -20,13 +20,19 @@ return [
             'label' => 'Evaluaciones',
             'description' => 'Permite acceder al módulo de evaluaciones de jugadores.',
             'group' => 'Operación deportiva',
-            'default' => true,
+            'default' => false,
         ],
         'school.module.attendances' => [
             'label' => 'Asistencias',
             'description' => 'Permite acceder al módulo de asistencias.',
             'group' => 'Operación deportiva',
             'default' => true,
+        ],
+        'school.module.training_sessions' => [
+            'label' => 'Sesiones de entrenamiento',
+            'description' => 'Permite acceder al módulo de sesiones de entrenamiento.',
+            'group' => 'Operación deportiva',
+            'default' => false,
         ],
         'school.module.matches' => [
             'label' => 'Competencias',

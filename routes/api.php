@@ -164,7 +164,7 @@ Route::prefix('v2')->group(function(){
             Route::apiResource("matches", GameController::class)->except(['index','edit','create']);
         });
 
-        Route::prefix('training-sessions')->group(function () {
+        Route::middleware('school.permission:school.module.training_sessions')->prefix('training-sessions')->group(function () {
             Route::post('', [ApiTrainingSessionsController::class, 'store']);
             Route::get('{trainingSession}', [ApiTrainingSessionsController::class, 'show']);
             Route::put('{trainingSession}', [ApiTrainingSessionsController::class, 'update']);
@@ -202,7 +202,9 @@ Route::prefix('v2')->group(function(){
                 Route::get('players_enabled', [DataTableController::class, 'enabledPlayers']);
             });
 
-            Route::get('training_sessions_enabled', [DataTableController::class, 'trainingSessions']);
+            Route::middleware('school.permission:school.module.training_sessions')->group(function () {
+                Route::get('training_sessions_enabled', [DataTableController::class, 'trainingSessions']);
+            });
             Route::middleware('school.permission:school.module.user_management')->group(function () {
                 Route::get('users_enabled', [DataTableController::class, 'enabledUsers']);
             });

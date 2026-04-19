@@ -13,9 +13,9 @@
                                 </p>
                                 <p class="text-muted mb-3">
                                     La idea de esta pantalla es darte una vista general de lo que hace el sistema:
-                                    registrar deportistas, controlar inscripciones, hacer seguimiento a asistencias,
-                                    gestionar competencias y, cuando aplica, apoyar procesos de cobro, facturacion y
-                                    configuracion de la escuela.
+                                    registrar deportistas, controlar inscripciones, planear sesiones de
+                                    entrenamiento, hacer seguimiento a asistencias, gestionar competencias y, cuando
+                                    aplica, apoyar procesos de cobro, facturacion y configuracion de la escuela.
                                 </p>
                                 <p class="text-muted mb-4">
                                     Segun tu perfil, tienes acceso a {{ moduleCountLabel.toLowerCase() }} y puedes
@@ -63,149 +63,154 @@
                 </div>
             </div>
 
-            <div class="col-xl-8 col-lg-7 col-12">
-                <div class="panel br-6 h-100" data-tour="home-modules">
-                    <div class="panel-body">
-                        <div class="mb-4">
-                            <h4 class="mb-2">Modulos principales</h4>
-                            <p class="text-muted mb-0">
-                                Estos son los espacios de trabajo que estructuran el funcionamiento general de la
-                                plataforma.
-                            </p>
-                        </div>
+            <div class="col-12">
+                <div class="row g-4">
+                    <div class="col-xl-7 col-lg-7 col-12">
+                        <div class="panel br-6" data-tour="home-modules">
+                            <div class="panel-body">
+                                <div class="mb-4">
+                                    <h4 class="mb-2">Modulos principales</h4>
+                                    <p class="text-muted mb-0">
+                                        Estos son los espacios de trabajo que estructuran el funcionamiento general de
+                                        la plataforma.
+                                    </p>
+                                </div>
 
-                        <div v-if="featureCards.length" class="list-group list-group-flush">
-                            <div
-                                v-for="feature in featureCards"
-                                :key="feature.title"
-                                class="list-group-item px-0 py-3 bg-transparent"
-                            >
-                                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap p-3">
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex align-items-center gap-2 mb-2">
-                                            <h5 class="mb-0">{{ feature.kicker }}</h5>
-                                            <small class="text-muted">{{ feature.short }}</small>
-                                        </div>
-                                        <p class="mb-2"><strong>{{ feature.title }}</strong></p>
-                                        <p class="text-muted mb-3">{{ feature.description }}</p>
-
-                                        <ul class="ps-3 mb-0 small text-muted">
-                                            <li v-for="point in feature.points" :key="point" class="mb-1">
-                                                {{ point }}
-                                            </li>
-                                        </ul>
-                                    </div>
-
-                                    <router-link
-                                        :to="{ name: feature.routeName }"
-                                        class="btn btn-primary btn-sm"
+                                <div v-if="featureCards.length" class="list-group list-group-flush">
+                                    <div
+                                        v-for="feature in featureCards"
+                                        :key="feature.title"
+                                        class="list-group-item px-0 py-3 bg-transparent"
                                     >
-                                        {{ feature.cta }}
-                                    </router-link>
-                                </div>
-                            </div>
-                        </div>
-                        <div v-else class="border rounded p-4">
-                            <h5 class="mb-2">Sin módulos habilitados</h5>
-                            <p class="text-muted mb-0">
-                                Esta escuela no tiene módulos activos para tu perfil en este momento. Puedes seguir consultando el dashboard y los indicadores generales.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap p-3">
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex align-items-center gap-2 mb-2">
+                                                    <h5 class="mb-0">{{ feature.kicker }}</h5>
+                                                    <small class="text-muted">{{ feature.short }}</small>
+                                                </div>
+                                                <p class="mb-2"><strong>{{ feature.title }}</strong></p>
+                                                <p class="text-muted mb-3">{{ feature.description }}</p>
 
-            <div class="col-xl-4 col-lg-5 col-12">
-                <div class="panel br-6 h-100" data-tour="home-journey">
-                    <div class="panel-body">
-                        <div class="mb-4">
-                            <h4 class="mb-2">Como se usa normalmente</h4>
-                            <p class="text-muted mb-0">
-                                Un recorrido sugerido para entender el flujo general dentro del sistema.
-                            </p>
-                        </div>
+                                                <ul class="ps-3 mb-0 small text-muted">
+                                                    <li v-for="point in feature.points" :key="point" class="mb-1">
+                                                        {{ point }}
+                                                    </li>
+                                                </ul>
+                                            </div>
 
-                        <ol class="list-group list-group-numbered">
-                            <li
-                                v-for="step in journeySteps"
-                                :key="step.step"
-                                class="list-group-item bg-transparent"
-                            >
-                                <div class="ms-2">
-                                    <div class="fw-semibold mb-1">{{ step.title }}</div>
-                                    <small class="text-muted">{{ step.description }}</small>
-                                </div>
-                            </li>
-                        </ol>
-
-                        <div class="mt-4 border rounded p-3">
-                            <h6 class="mb-2">Lectura rapida</h6>
-                            <p class="text-muted mb-0">
-                                {{ workflowSummary }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-5 col-lg-6 col-12">
-                <div class="panel br-6 h-100" data-tour="home-quick-links">
-                    <div class="panel-body">
-                        <div class="mb-4">
-                            <h4 class="mb-2">Accesos rapidos</h4>
-                            <p class="text-muted mb-0">
-                                Enlaces directos a los modulos que suelen consultarse con mayor frecuencia.
-                            </p>
-                        </div>
-
-                        <div class="list-group">
-                            <router-link
-                                v-for="link in quickLinks"
-                                :key="link.title"
-                                :to="{ name: link.routeName }"
-                                class="list-group-item list-group-item-action"
-                            >
-                                <div class="d-flex justify-content-between align-items-start gap-3">
-                                    <div>
-                                        <div class="fw-semibold">{{ link.title }}</div>
-                                        <small class="text-muted">{{ link.description }}</small>
+                                            <router-link
+                                                :to="{ name: feature.routeName }"
+                                                class="btn btn-primary btn-sm"
+                                            >
+                                                {{ feature.cta }}
+                                            </router-link>
+                                        </div>
                                     </div>
-                                    <small class="text-muted">{{ link.badge }}</small>
                                 </div>
-                            </router-link>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-7 col-lg-6 col-12">
-                <div class="panel br-6 h-100">
-                    <div class="panel-body">
-                        <div class="mb-4">
-                            <h4 class="mb-2">Que aporta la plataforma</h4>
-                            <p class="text-muted mb-0">
-                                Mas que almacenar informacion, GolApp ayuda a mantener ordenado el proceso para que los
-                                datos sirvan de apoyo en la operacion diaria.
-                            </p>
-                        </div>
-
-                        <div class="row g-3 mb-4">
-                            <div v-for="benefit in benefits" :key="benefit.title" class="col-md-4">
-                                <div class="border rounded p-3 h-100">
-                                    <h6 class="mb-2">{{ benefit.title }}</h6>
-                                    <p class="text-muted mb-0">{{ benefit.description }}</p>
+                                <div v-else class="border rounded p-4">
+                                    <h5 class="mb-2">Sin modulos habilitados</h5>
+                                    <p class="text-muted mb-0">
+                                        Esta escuela no tiene modulos activos para tu perfil en este momento. Puedes seguir consultando el dashboard y los indicadores generales.
+                                    </p>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="border rounded p-4">
-                            <h5 class="mb-2">Siguiente paso recomendado</h5>
-                            <p class="text-muted mb-3">
-                                {{ recommendationText }}
-                            </p>
-                            <router-link :to="{ name: preferredLink.routeName }" class="btn btn-primary">
-                                {{ preferredLink.cta }}
-                            </router-link>
+                    <div class="col-xl-5 col-lg-5 col-12">
+                        <div class="d-flex flex-column gap-4">
+                            <div class="panel br-6" data-tour="home-journey">
+                                <div class="panel-body">
+                                    <div class="mb-4">
+                                        <h4 class="mb-2">Como se usa normalmente</h4>
+                                        <p class="text-muted mb-0">
+                                            Un recorrido sugerido para entender el flujo general dentro del sistema.
+                                        </p>
+                                    </div>
+
+                                    <ol class="list-group list-group-numbered">
+                                        <li
+                                            v-for="step in journeySteps"
+                                            :key="step.step"
+                                            class="list-group-item bg-transparent"
+                                        >
+                                            <div class="ms-2">
+                                                <div class="fw-semibold mb-1">{{ step.title }}</div>
+                                                <small class="text-muted">{{ step.description }}</small>
+                                            </div>
+                                        </li>
+                                    </ol>
+
+                                    <div class="mt-4 border rounded p-3" data-tour="home-quick-links">
+                                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3 flex-wrap">
+                                            <div>
+                                                <h6 class="mb-1">Accesos rapidos</h6>
+                                                <p class="text-muted mb-0 small">
+                                                    Enlaces directos a los modulos que suelen consultarse con mayor frecuencia.
+                                                </p>
+                                            </div>
+                                            <small class="text-muted">{{ quickLinks.length }} disponibles</small>
+                                        </div>
+
+                                        <div class="list-group list-group-flush">
+                                            <router-link
+                                                v-for="link in quickLinks"
+                                                :key="link.title"
+                                                :to="{ name: link.routeName }"
+                                                class="list-group-item list-group-item-action px-0 py-3 bg-transparent"
+                                            >
+                                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                                    <div>
+                                                        <div class="fw-semibold">{{ link.title }}</div>
+                                                        <small class="text-muted">{{ link.description }}</small>
+                                                    </div>
+                                                    <small class="text-muted">{{ link.badge }}</small>
+                                                </div>
+                                            </router-link>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-4 border rounded p-3">
+                                        <h6 class="mb-2">Lectura rapida</h6>
+                                        <p class="text-muted mb-0">
+                                            {{ workflowSummary }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="panel br-6">
+                                <div class="panel-body">
+                                    <div class="mb-4">
+                                        <h4 class="mb-2">Que aporta la plataforma</h4>
+                                        <p class="text-muted mb-0">
+                                            Mas que almacenar informacion, GolApp ayuda a mantener ordenado el proceso
+                                            para que los datos sirvan de apoyo en la operacion diaria.
+                                        </p>
+                                    </div>
+
+                                    <div class="list-group list-group-flush mb-4">
+                                        <div
+                                            v-for="benefit in benefits"
+                                            :key="benefit.title"
+                                            class="list-group-item px-0 py-3 bg-transparent"
+                                        >
+                                            <h6 class="mb-2">{{ benefit.title }}</h6>
+                                            <p class="text-muted mb-0">{{ benefit.description }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="border rounded p-4">
+                                        <h5 class="mb-2">Siguiente paso recomendado</h5>
+                                        <p class="text-muted mb-3">
+                                            {{ recommendationText }}
+                                        </p>
+                                        <router-link :to="{ name: preferredLink.routeName }" class="btn btn-primary">
+                                            {{ preferredLink.cta }}
+                                        </router-link>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -232,6 +237,7 @@ const canPlayers = access.players
 const canInscriptions = access.inscriptions
 const canEvaluations = access.evaluations
 const canAttendances = access.attendances
+const canTrainingSessions = access.trainingSessions
 const canMatches = access.matches
 const canPayments = access.payments
 const canReports = access.reports
@@ -277,7 +283,7 @@ const focusLabel = computed(() => {
         return 'Gestion deportiva y administrativa'
     }
 
-    if (canEvaluations.value || canAttendances.value || canMatches.value) {
+    if (canEvaluations.value || canAttendances.value || canTrainingSessions.value || canMatches.value) {
         return 'Seguimiento deportivo'
     }
 
@@ -308,15 +314,15 @@ const featureDefinitions = [
         cta: 'Ver inscripciones',
     },
     {
-        key: 'evaluations',
-        isAvailable: () => canEvaluations.value,
-        short: 'EV',
-        kicker: 'Evaluaciones',
-        title: 'Documenta avances y comparativos por jugador',
-        description: 'Permite registrar evaluaciones, revisar periodos y comparar resultados para apoyar el seguimiento deportivo.',
-        points: ['Evaluaciones por periodo', 'Comparativos historicos', 'Soporte al proceso formativo'],
-        routeName: 'player-evaluations.index',
-        cta: 'Ir a evaluaciones',
+        key: 'trainingSessions',
+        isAvailable: () => canTrainingSessions.value,
+        short: 'SE',
+        kicker: 'Sesiones',
+        title: 'Planifica sesiones y estructura ejercicios por paso',
+        description: 'Organiza el contenido de cada entrenamiento para dejar visible el objetivo, el orden de trabajo y su historico.',
+        points: ['Planeacion por grupo y periodo', 'Ejercicios organizados por pasos', 'Historico listo para consulta y edicion'],
+        routeName: 'training-sessions',
+        cta: 'Ir a sesiones',
     },
     {
         key: 'attendances',
@@ -328,6 +334,17 @@ const featureDefinitions = [
         points: ['Control operativo por jornada', 'Apoyo al seguimiento mensual', 'Mejor lectura del proceso deportivo'],
         routeName: 'attendances',
         cta: 'Revisar asistencias',
+    },
+    {
+        key: 'evaluations',
+        isAvailable: () => canEvaluations.value,
+        short: 'EV',
+        kicker: 'Evaluaciones',
+        title: 'Documenta avances y comparativos por jugador',
+        description: 'Permite registrar evaluaciones, revisar periodos y comparar resultados para apoyar el seguimiento deportivo.',
+        points: ['Evaluaciones por periodo', 'Comparativos historicos', 'Soporte al proceso formativo'],
+        routeName: 'player-evaluations.index',
+        cta: 'Ir a evaluaciones',
     },
     {
         key: 'matches',
@@ -439,6 +456,13 @@ const journeySteps = computed(() => {
         })
     }
 
+    if (canTrainingSessions.value) {
+        steps.push({
+            title: 'Preparar sesiones de entrenamiento',
+            description: 'La planeacion por periodos y ejercicios te ayuda a dar continuidad metodologica al trabajo del grupo.',
+        })
+    }
+
     if (canAttendances.value || canEvaluations.value || canMatches.value) {
         steps.push({
             title: 'Hacer seguimiento al proceso diario',
@@ -474,8 +498,8 @@ const workflowSummary = computed(() => {
         return 'La plataforma conecta el seguimiento deportivo con la gestion administrativa para que la escuela trabaje con una sola fuente de informacion.'
     }
 
-    if (canEvaluations.value || canAttendances.value || canMatches.value) {
-        return 'La plataforma te permite concentrarte en el seguimiento deportivo con una estructura clara de consulta y control.'
+    if (canTrainingSessions.value || canEvaluations.value || canAttendances.value || canMatches.value) {
+        return 'La plataforma te permite planear sesiones y concentrarte en el seguimiento deportivo con una estructura clara de consulta y control.'
     }
 
     return 'La plataforma organiza la operacion disponible en un solo lugar para que el equipo trabaje con contexto compartido.'
@@ -495,17 +519,23 @@ const quickLinks = computed(() => {
             routeName: 'inscriptions',
             badge: 'Proceso',
         },
-        canEvaluations.value && {
-            title: 'Evaluaciones',
-            description: 'Consulta comparativos y periodos de seguimiento.',
-            routeName: 'player-evaluations.index',
-            badge: 'Seguimiento',
+        canTrainingSessions.value && {
+            title: 'Sesiones de entrenamiento',
+            description: 'Planea ejercicios, consulta el historico y ajusta el trabajo por grupo.',
+            routeName: 'training-sessions',
+            badge: 'Planeacion',
         },
         canAttendances.value && {
             title: 'Asistencias',
             description: 'Control diario del compromiso de entrenamiento.',
             routeName: 'attendances',
             badge: 'Control',
+        },
+        canEvaluations.value && {
+            title: 'Evaluaciones',
+            description: 'Consulta comparativos y periodos de seguimiento.',
+            routeName: 'player-evaluations.index',
+            badge: 'Seguimiento',
         },
         canMatches.value && {
             title: 'Competencias',
@@ -578,6 +608,7 @@ const preferredLink = computed(() => {
         canPayments.value && { routeName: 'payments', cta: 'Ir a mensualidades' },
         canPlayers.value && { routeName: 'players', cta: 'Ir a deportistas' },
         canInscriptions.value && { routeName: 'inscriptions', cta: 'Ir a inscripciones' },
+        canTrainingSessions.value && { routeName: 'training-sessions', cta: 'Ir a sesiones de entrenamiento' },
         canEvaluations.value && { routeName: 'player-evaluations.index', cta: 'Ir a evaluaciones' },
         canAttendances.value && { routeName: 'attendances', cta: 'Ir a asistencias' },
         canMatches.value && { routeName: 'matches', cta: 'Ir a competencias' },

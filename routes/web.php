@@ -64,9 +64,13 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     });
     Route::resource("tournamentpayout", TournamentPayoutsController::class)->only(['index', 'store', 'update']);
 
-    // La SPA equivalente vive en resources/js/router/index.js y consume su CRUD/listado desde routes/api.php.
-    Route::get('training-sessions', [AppController::class, 'index'])->name('training-sessions.index');
-    Route::redirect('training-sessions/create', 'training-sessions');
+    // La SPA equivalente vive en resources/js/router/index.js y consume su CRUD/listado desde routes/api.php:
+    // GET /api/v2/training-sessions/{trainingSession}, POST|PUT /api/v2/training-sessions y
+    // GET /api/v2/datatables/training_sessions_enabled.
+    Route::middleware('school.permission:school.module.training_sessions')->group(function () {
+        Route::get('training-sessions', [AppController::class, 'index'])->name('training-sessions.index');
+        Route::redirect('training-sessions/create', 'training-sessions');
+    });
 
     Route::prefix('import')->group(function(){
         Route::middleware('school.permission:school.module.matches')->group(function () {
@@ -153,7 +157,9 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::middleware('school.permission:school.module.players')->group(function () {
             Route::get('players_enabled', [DataTableController::class, 'enabledPlayers'])->name('players.enabled');
         });
-        Route::get('training_sessions_enabled', [DataTableController::class, 'trainingSessions'])->name('training_sessions.enabled');
+        Route::middleware('school.permission:school.module.training_sessions')->group(function () {
+            Route::get('training_sessions_enabled', [DataTableController::class, 'trainingSessions'])->name('training_sessions.enabled');
+        });
         Route::middleware('school.permission:school.module.user_management')->group(function () {
             Route::get('users_enabled', [DataTableController::class, 'enabledUsers'])->name('users_enabled');
         });
@@ -190,7 +196,9 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
         Route::get('tournament/payouts/excel', [ExportController::class, 'exportTournamentPayoutsExcel'])->name('tournaments.payouts.excel');
         Route::get('tournament/payouts/pdf', [ExportController::class, 'exportTournamentPayoutsPDF'])->name('tournaments.payouts.pdf');
-        Route::get('training_sessions/pdf/{id}', [ExportController::class, 'exportTrainingSession'])->name('training_sessions.pdf');
+        Route::middleware('school.permission:school.module.training_sessions')->group(function () {
+            Route::get('training_sessions/pdf/{id}', [ExportController::class, 'exportTrainingSession'])->name('training_sessions.pdf');
+        });
         Route::middleware('school.permission:school.module.billing')->group(function () {
             Route::get('items/invoices', [ExportController::class, 'exportPendingItemsInvoices'])->name('items.invoices');
         });

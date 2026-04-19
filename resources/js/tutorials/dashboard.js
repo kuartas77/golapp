@@ -22,13 +22,13 @@ export const homeTutorial = {
             id: 'home-journey',
             selector: '[data-tour="home-journey"]',
             title: 'Sigue el flujo sugerido',
-            text: 'Si alguien es nuevo en la plataforma, este recorrido ayuda a entender el orden habitual de trabajo.',
+            text: 'Si alguien es nuevo en la plataforma, este panel resume el recorrido sugerido y concentra el flujo habitual de trabajo.',
         },
         {
             id: 'home-quick-links',
             selector: '[data-tour="home-quick-links"]',
             title: 'Usa los accesos rapidos',
-            text: 'Desde aqui puedes entrar directo a los procesos que mas se consultan en la operacion diaria.',
+            text: 'Debajo del recorrido sugerido tienes entradas directas a los procesos que mas se consultan en la operacion diaria.',
         },
     ],
 }

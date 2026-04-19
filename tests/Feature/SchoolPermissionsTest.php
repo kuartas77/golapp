@@ -9,6 +9,7 @@ use App\Models\Player;
 use App\Models\School;
 use App\Models\SchoolUser;
 use App\Models\TrainingGroup;
+use App\Models\TrainingSession;
 use App\Models\User;
 use App\Repositories\InvoiceRepository;
 use App\Service\Notification\TopicNotificationStoreService;
@@ -32,6 +33,10 @@ final class SchoolPermissionsTest extends TestCase
         $permissions = $school->fresh()->getResolvedSchoolPermissions();
 
         $this->assertTrue($permissions['school.module.players']);
+        $this->assertSame(
+            (bool) data_get(School::permissionCatalog(), 'school.module.training_sessions.default', false),
+            $permissions['school.module.training_sessions']
+        );
         $this->assertTrue($permissions['school.module.billing']);
         $this->assertFalse($permissions['school.feature.system_notify']);
     }
@@ -79,6 +84,44 @@ final class SchoolPermissionsTest extends TestCase
             ->assertJsonPath('data.school_id', $secondarySchool->id);
     }
 
+    public function testUserEndpointReflectsUpdatedPermissionsForSchoolAndInstructorUsers(): void
+    {
+        $school = School::findOrFail($this->school['id']);
+        $instructor = $this->createSchoolScopedUser(
+            $school->id,
+            ['instructor'],
+            sprintf('instructor-permissions-%s@example.com', uniqid())
+        );
+
+        $schoolUserResponse = $this->actingAs($this->user)
+            ->getJson('/api/v2/user')
+            ->assertOk();
+
+        $this->assertTrue($schoolUserResponse->json('data.school_permissions.school.module.players') ?? $schoolUserResponse->json('data.school_permissions')['school.module.players']);
+
+        $instructorResponse = $this->actingAs($instructor)
+            ->getJson('/api/v2/user')
+            ->assertOk();
+
+        $this->assertTrue($instructorResponse->json('data.school_permissions.school.module.players') ?? $instructorResponse->json('data.school_permissions')['school.module.players']);
+
+        $this->setSchoolPermissions($school, [
+            'school.module.players' => false,
+        ]);
+
+        $updatedSchoolUserResponse = $this->actingAs($this->user)
+            ->getJson('/api/v2/user')
+            ->assertOk();
+
+        $this->assertFalse($updatedSchoolUserResponse->json('data.school_permissions.school.module.players') ?? $updatedSchoolUserResponse->json('data.school_permissions')['school.module.players']);
+
+        $updatedInstructorResponse = $this->actingAs($instructor)
+            ->getJson('/api/v2/user')
+            ->assertOk();
+
+        $this->assertFalse($updatedInstructorResponse->json('data.school_permissions.school.module.players') ?? $updatedInstructorResponse->json('data.school_permissions')['school.module.players']);
+    }
+
     public function testSchoolPermissionMiddlewareBlocksAndAllowsAdminUsersEndpoint(): void
     {
         $school = School::findOrFail($this->school['id']);
@@ -97,6 +140,55 @@ final class SchoolPermissionsTest extends TestCase
 
         $this->actingAs($this->user)
             ->getJson('/api/v2/admin/users')
+            ->assertOk();
+    }
+
+    public function testTrainingSessionsSchoolPermissionBlocksAndAllowsModuleEndpoints(): void
+    {
+        $school = School::findOrFail($this->school['id']);
+        $trainingGroup = TrainingGroup::query()
+            ->where('school_id', $school->id)
+            ->firstOrFail();
+        $trainingSession = $this->createTrainingSession($school, $trainingGroup);
+
+        $this->setSchoolPermissions($school, [
+            'school.module.training_sessions' => false,
+        ]);
+
+        $this->actingAs($this->user)
+            ->get('/training-sessions')
+            ->assertForbidden();
+
+        $this->actingAs($this->user)
+            ->getJson('/api/v2/datatables/training_sessions_enabled?draw=1&start=0&length=10')
+            ->assertForbidden();
+
+        $this->actingAs($this->user)
+            ->getJson("/api/v2/training-sessions/{$trainingSession->id}")
+            ->assertForbidden();
+
+        $this->actingAs($this->user)
+            ->get(route('export.training_sessions.pdf', ['id' => $trainingSession->id]))
+            ->assertForbidden();
+
+        $this->setSchoolPermissions($school, [
+            'school.module.training_sessions' => true,
+        ]);
+
+        $this->actingAs($this->user)
+            ->get('/training-sessions')
+            ->assertOk();
+
+        $this->actingAs($this->user)
+            ->getJson('/api/v2/datatables/training_sessions_enabled?draw=1&start=0&length=10')
+            ->assertOk();
+
+        $this->actingAs($this->user)
+            ->getJson("/api/v2/training-sessions/{$trainingSession->id}")
+            ->assertOk();
+
+        $this->actingAs($this->user)
+            ->get(route('export.training_sessions.pdf', ['id' => $trainingSession->id]))
             ->assertOk();
     }
 
@@ -289,5 +381,27 @@ final class SchoolPermissionsTest extends TestCase
         ]);
 
         return [$player, $inscription];
+    }
+
+    private function createTrainingSession(School $school, TrainingGroup $trainingGroup): TrainingSession
+    {
+        return TrainingSession::query()->create([
+            'school_id' => $school->id,
+            'user_id' => $this->user->id,
+            'training_group_id' => $trainingGroup->id,
+            'year' => now()->year,
+            'period' => '1',
+            'session' => '1',
+            'date' => now()->format('Y-m-d'),
+            'hour' => '02:00 PM',
+            'training_ground' => 'Cancha principal',
+            'material' => 'Conos',
+            'warm_up' => 'Activación',
+            'back_to_calm' => '5',
+            'players' => '18',
+            'absences' => 'Sin ausencias',
+            'incidents' => 'Sin incidentes',
+            'feedback' => 'Sesión positiva',
+        ]);
     }
 }

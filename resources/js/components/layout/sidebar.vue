@@ -162,7 +162,7 @@
                         </div>
                     </router-link>
                 </li>
-                <li class="menu">
+                <li v-if="canTrainingSessions" class="menu">
                     <router-link :to="{ name: 'training-sessions' }" class="dropdown-toggle" @click="toggleMobileMenu">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -339,6 +339,7 @@ const canPlayers = access.players
 const canInscriptions = access.inscriptions
 const canEvaluations = access.evaluations
 const canAttendances = access.attendances
+const canTrainingSessions = access.trainingSessions
 const canMatches = access.matches
 const canPayments = access.payments
 const canReports = access.reports
