@@ -1,13 +1,20 @@
 <template>
-    <div v-if="isLoading" class="loading-overlay">
+    <div
+        v-if="isLoading"
+        class="loading-overlay"
+        :class="{ 'loading-overlay--fullscreen': fullscreen }"
+        role="status"
+        aria-live="polite"
+    >
         <div class="spinner"></div>
-        <p class="loading-text">{{ loadingText }}</p>
+        <p v-if="loadingText" class="loading-text">{{ loadingText }}</p>
     </div>
 </template>
 <script setup>
 const props = defineProps({
     isLoading: { type: Boolean, default: true },
-    loadingText: { type: String, default: '' }
+    loadingText: { type: String, default: '' },
+    fullscreen: { type: Boolean, default: false }
 })
 </script>
 <style lang="scss">
@@ -23,6 +30,12 @@ const props = defineProps({
     z-index: 20;
     border-radius: 10px;
     text-align: center;
+}
+
+.loading-overlay--fullscreen {
+    position: fixed;
+    z-index: 2000;
+    border-radius: 0;
 }
 
 .spinner {

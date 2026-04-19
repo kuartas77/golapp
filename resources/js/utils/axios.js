@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useAuthUser } from '@/store/auth-user'
 import { useGuardianAuth } from '@/store/guardian-auth'
+import { useAppState } from '@/store/app-state'
 import router from "@/router";
 
 // Crear instancia
@@ -20,11 +21,14 @@ const api = axios.create({
 
 let csrfRefreshPromise = null
 
+const shouldTrackGlobalLoader = (config) => Boolean(config) && !Boolean(config.skipGlobalLoader)
+
 const refreshCsrfCookie = async () => {
     if (!csrfRefreshPromise) {
         csrfRefreshPromise = api.get('/sanctum/csrf-cookie', {
             skipAuthRedirect: true,
             skipCsrfRetry: true,
+            skipGlobalLoader: true,
         }).finally(() => {
             csrfRefreshPromise = null
         })
@@ -36,6 +40,12 @@ const refreshCsrfCookie = async () => {
 // Interceptor de request (antes de enviar la petición)
 api.interceptors.request.use(
     async (config) => {
+        const appState = useAppState()
+
+        if (shouldTrackGlobalLoader(config)) {
+            appState.startGlobalLoading()
+        }
+
         if (config.headers) {
             if (typeof config.headers.delete === 'function') {
                 config.headers.delete('X-CSRF-TOKEN')
@@ -58,16 +68,31 @@ api.interceptors.request.use(
         return config;
     },
     (error) => {
+        const appState = useAppState()
+
+        if (shouldTrackGlobalLoader(error.config)) {
+            appState.stopGlobalLoading()
+        }
+
         return Promise.reject(error);
     }
 );
 
 // Interceptor de response (cuando llega la respuesta)
 api.interceptors.response.use(
-    response => response,
+    (response) => {
+        const appState = useAppState()
+
+        if (shouldTrackGlobalLoader(response.config)) {
+            appState.stopGlobalLoading()
+        }
+
+        return response
+    },
     async (error) => {
         const auth = useAuthUser()
         const guardianAuth = useGuardianAuth()
+        const appState = useAppState()
 
         const status = error.response?.status
         const originalRequest = error.config ?? {}
@@ -77,6 +102,10 @@ api.interceptors.response.use(
         const currentPath = String(currentRoute.path ?? '')
         const isGuardianArea = currentPath.startsWith('/portal/acudientes')
         const isPublicPortal = currentPath.startsWith('/portal') && !isGuardianArea
+
+        if (shouldTrackGlobalLoader(error.config)) {
+            appState.stopGlobalLoading()
+        }
 
         if (
             status === 419

@@ -6,6 +6,7 @@ export const useAppState = defineStore('app-state', {
         current_layout: "app",
         is_show_sidebar: true,
         is_show_search: false,
+        global_loading_count: 0,
         is_dark_mode: false,
         dark_mode: "light",
         locale: null,
@@ -17,11 +18,21 @@ export const useAppState = defineStore('app-state', {
         ],
     }),
     getters: {
-        layout: (state) => state.current_layout
+        layout: (state) => state.current_layout,
+        isGlobalLoading: (state) => state.global_loading_count > 0,
     },
     actions: {
         setLayout (payload) {
             this.current_layout = payload
+        },
+        startGlobalLoading () {
+            this.global_loading_count += 1
+        },
+        stopGlobalLoading () {
+            this.global_loading_count = Math.max(0, this.global_loading_count - 1)
+        },
+        resetGlobalLoading () {
+            this.global_loading_count = 0
         },
         toggleSideBar (value) {
             this.is_show_sidebar = value

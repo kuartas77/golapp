@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, RouterView } from 'vue-router';
 import { useAuthUser } from '@/store/auth-user'
 import { useGuardianAuth } from '@/store/guardian-auth'
+import { useAppState } from '@/store/app-state'
 import { SCHOOL_PERMISSION_KEYS } from '@/config/school-permissions'
 import { h } from 'vue'
 
@@ -238,7 +239,10 @@ const router = new createRouter({
 router.beforeEach(async (to, from, next) => {
     const userStore = useAuthUser();
     const guardianStore = useGuardianAuth();
+    const appState = useAppState();
     const isGuardianRoute = to.matched.some(r => r.meta.guardianArea);
+
+    appState.startGlobalLoading();
 
     if (isGuardianRoute) {
         const requiresGuardian = to.matched.some(r => r.meta.requiresGuardian);
@@ -306,6 +310,18 @@ router.beforeEach(async (to, from, next) => {
     }
 
     return next();
+});
+
+router.afterEach(() => {
+    const appState = useAppState();
+
+    appState.stopGlobalLoading();
+});
+
+router.onError(() => {
+    const appState = useAppState();
+
+    appState.stopGlobalLoading();
 });
 
 export default router;
