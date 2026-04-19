@@ -69,26 +69,7 @@ function resolveVendorChunk(id) {
         return 'ui';
     }
 
-    if (
-        id.includes('/flatpickr/') ||
-        id.includes('/vue-flatpickr-component/') ||
-        id.includes('/vee-validate/') ||
-        id.includes('/yup/')
-    ) {
-        return 'forms';
-    }
-
-    if (
-        id.includes('/vue/') ||
-        id.includes('/vue-router/') ||
-        id.includes('/pinia/') ||
-        id.includes('/vue-i18n/') ||
-        id.includes('/@vueuse/')
-    ) {
-        return 'vue-core';
-    }
-
-    return 'vendor';
+    return undefined;
 }
 
 export default defineConfig(({ mode }) => ({
@@ -125,17 +106,12 @@ export default defineConfig(({ mode }) => ({
             'vue-flatpickr-component',
             'vue-sweetalert2',
             'vue3-perfect-scrollbar',
+            'apexcharts',
+            'vue3-apexcharts',
         ],
     },
-    server: {
-        cors: {
-            origin: [
-                'http://golapp.local',
-            ],
-        },
-    },
     build: {
-        chunkSizeWarningLimit: 700,
+        chunkSizeWarningLimit: 710,
         sourcemap: mode !== 'production',
         reportCompressedSize: false,
         rollupOptions: {
