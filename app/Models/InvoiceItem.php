@@ -51,11 +51,16 @@ class InvoiceItem extends Model
         });
 
         static::saved(function ($item) {
-            $item->invoice->updateTotals();
+            self::refreshInvoiceTotals($item);
         });
 
         static::deleted(function ($item) {
-            $item->invoice->updateTotals();
+            self::refreshInvoiceTotals($item);
         });
+    }
+
+    private static function refreshInvoiceTotals(self $item): void
+    {
+        Invoice::query()->find($item->invoice_id)?->updateTotals();
     }
 }

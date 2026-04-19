@@ -70,6 +70,8 @@ class School extends Model
         'settings'
     ];
 
+    protected $with = ['settingsValues'];
+
     protected static function booted()
     {
         self::creating(function (self $school) {
@@ -292,12 +294,28 @@ class School extends Model
             ]
         );
 
-        foreach (SettingValue::settingsDefault($this->id) as $setting) {
-            $this->settingsValues()->updateOrCreate(
-                ['setting_key' => $setting['setting_key']],
-                ['value' => $setting['value']]
-            );
+        $defaultSettings = collect(SettingValue::settingsDefault($this->id));
+        $existingSettings = SettingValue::query()
+            ->where('school_id', $this->id)
+            ->whereIn('setting_key', $defaultSettings->pluck('setting_key')->all())
+            ->get()
+            ->keyBy('setting_key');
+
+        foreach ($defaultSettings as $setting) {
+            $existingSetting = $existingSettings->get($setting['setting_key']);
+
+            if ($existingSetting) {
+                if ((string) $existingSetting->value !== (string) $setting['value']) {
+                    $existingSetting->forceFill(['value' => $setting['value']])->save();
+                }
+
+                continue;
+            }
+
+            SettingValue::query()->create($setting);
         }
+
+        $this->load('settingsValues');
     }
 
     public function schedules(): HasMany

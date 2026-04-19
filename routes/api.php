@@ -15,6 +15,7 @@ use App\Http\Controllers\API\Portal\GuardianAuthController;
 use App\Http\Controllers\API\Portal\GuardianEvaluationController;
 use App\Http\Controllers\API\Portal\GuardianPlayerController;
 use App\Http\Controllers\API\Portal\GuardianProfileController;
+use App\Http\Controllers\API\TrainingSessionsController as ApiTrainingSessionsController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Assists\AssistController;
 use App\Http\Controllers\BackOffice\SchoolController as BackOfficeShoolController;
@@ -90,6 +91,10 @@ Route::prefix('v2')->group(function(){
 
         Route::get('user', [UserController::class, 'user']);
 
+        Route::prefix('admin')->group(function () {
+            Route::get('info_campus', [BackOfficeShoolController::class, 'infoCampus']);
+        });
+
         Route::prefix('admin')->middleware(['role:super-admin|school'])->group(function (){
             Route::middleware('school.permission:school.module.school_profile')->group(function () {
                 Route::get('school', [SchoolsController::class, 'index']);
@@ -112,7 +117,6 @@ Route::prefix('v2')->group(function(){
                 Route::apiResource('competition_groups', CompetitionGroupController::class, ['only' => ['show', 'store', 'update']]);
             });
 
-            Route::get('info_campus', [BackOfficeShoolController::class, 'infoCampus']);
             Route::post('change_school', [BackOfficeShoolController::class, 'choose']);
 
             Route::middleware(['role:super-admin'])->group(function () {
@@ -158,6 +162,12 @@ Route::prefix('v2')->group(function(){
 
         Route::middleware('school.permission:school.module.matches')->group(function () {
             Route::apiResource("matches", GameController::class)->except(['index','edit','create']);
+        });
+
+        Route::prefix('training-sessions')->group(function () {
+            Route::post('', [ApiTrainingSessionsController::class, 'store']);
+            Route::get('{trainingSession}', [ApiTrainingSessionsController::class, 'show']);
+            Route::put('{trainingSession}', [ApiTrainingSessionsController::class, 'update']);
         });
 
         Route::middleware([

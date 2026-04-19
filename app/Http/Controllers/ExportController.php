@@ -12,6 +12,7 @@ use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
 use App\Repositories\InvoiceRepository;
 use App\Repositories\PaymentRepository;
+use App\Repositories\TrainingSessionRepository;
 use App\Repositories\TournamentPayoutsRepository;
 use App\Service\Assist\AssistExportService;
 use App\Service\Payment\PaymentExportService;
@@ -129,8 +130,10 @@ class ExportController extends Controller
         return Excel::download(new MatchDetailExport($competition_group), "Control de competencia {$date}.xlsx");
     }
 
-    public function exportTrainingSession(Request $request, int $id, TrainingSessionExportService $trainingSessionExportService,)
+    public function exportTrainingSession(int $id, TrainingSessionExportService $trainingSessionExportService, TrainingSessionRepository $trainingSessionRepository)
     {
+        $trainingSessionRepository->findAccessibleOrFail($id);
+
         return $trainingSessionExportService->exportSessionPDF($id);
     }
 

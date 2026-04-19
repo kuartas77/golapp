@@ -33,6 +33,7 @@ final class CreateContractAction implements IContractPassable
         $this->school = $passable->getSchool();
 
         $this->player = $passable->getPlayer();
+        $this->player->loadMissing('people');
 
         $this->tutor = $passable->getTutor();
 
@@ -118,7 +119,6 @@ final class CreateContractAction implements IContractPassable
 
     private function setParametersPdf(int $documentOption): array
     {
-        $this->player->load(['people']);
         $people = $this->player->people;
 
         $variables = [];

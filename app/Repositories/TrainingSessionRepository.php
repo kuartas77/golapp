@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Models\TrainingGroup;
 use App\Models\TrainingSession;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class TrainingSessionRepository
@@ -13,9 +16,69 @@ class TrainingSessionRepository
     {
     }
 
-    public function list()
+    private function accessibleBaseQuery(): Builder
     {
-        return $this->trainingSession->query()->whereHas('training_group')->with(['school', 'user', 'training_group'])->withCount(['tasks'])->schoolId()->get();
+        return $this->trainingSession->query()
+            ->select('training_sessions.*')
+            ->whereHas('training_group')
+            ->schoolId()
+            ->when(isInstructor(), function (Builder $query): void {
+                $query->whereExists(function ($subQuery): void {
+                    $subQuery->selectRaw('1')
+                        ->from('training_group_user')
+                        ->whereColumn('training_group_user.training_group_id', 'training_sessions.training_group_id')
+                        ->where('training_group_user.user_id', auth()->id())
+                        ->whereColumn('training_group_user.assigned_year', 'training_sessions.year');
+                });
+            });
+    }
+
+    public function accessibleQuery(): Builder
+    {
+        return $this->accessibleBaseQuery()
+            ->with([
+                'school',
+                'user:id,name',
+                'training_group:id,name,category,days,schedules',
+            ])
+            ->withCount(['tasks']);
+    }
+
+    public function datatableQuery(): Builder
+    {
+        return $this->accessibleQuery()
+            ->leftJoin('users', 'users.id', '=', 'training_sessions.user_id')
+            ->leftJoin('training_groups', 'training_groups.id', '=', 'training_sessions.training_group_id')
+            ->addSelect([
+                'users.name as creator_name_sort',
+                'training_groups.name as training_group_name_sort',
+            ]);
+    }
+
+    public function list(): Collection
+    {
+        return $this->accessibleQuery()->get();
+    }
+
+    public function findAccessibleOrFail(int $id): TrainingSession
+    {
+        return $this->accessibleQuery()
+            ->with(['school','tasks' => fn ($query) => $query->orderBy('task_number')])
+            ->findOrFail($id);
+    }
+
+    public function findAccessibleForMutationOrFail(int $id): TrainingSession
+    {
+        return $this->accessibleBaseQuery()->findOrFail($id);
+    }
+
+    public function trainingGroupIsAccessible(int $trainingGroupId, int $year): bool
+    {
+        return TrainingGroup::query()
+            ->schoolId()
+            ->whereKey($trainingGroupId)
+            ->when(isInstructor(), fn (Builder $query) => $query->byInstructor($year))
+            ->exists();
     }
 
     public function store(array $payload): ?TrainingSession
@@ -76,28 +139,56 @@ class TrainingSessionRepository
 
     private function makeTraininSession(TrainingSession $trainingSession, array $payload): TrainingSession
     {
-        $trainingSession->school_id = $payload["school_id"];
-        $trainingSession->user_id = $payload["user_id"];
-        $trainingSession->training_group_id = $payload["training_group_id"];
-        $trainingSession->year = $payload["year"];
-        $trainingSession->period = $payload["period"];
-        $trainingSession->session = $payload["session"];
-        $trainingSession->date = $payload["date"];
-        $trainingSession->hour = $payload["hour"];
-        $trainingSession->training_ground = $payload["training_ground"];
-        $trainingSession->material = $payload["material"];
-        $trainingSession->back_to_calm = $payload["back_to_calm"];
-        $trainingSession->players = $payload["players"];
-        $trainingSession->absences = $payload["absences"];
-        $trainingSession->incidents = $payload["incidents"];
-        $trainingSession->feedback = $payload["feedback"];
-        $trainingSession->warm_up = $payload["warm_up"];
+        foreach ([
+            'school_id',
+            'user_id',
+            'training_group_id',
+            'year',
+            'period',
+            'session',
+            'date',
+            'hour',
+            'training_ground',
+            'material',
+            'back_to_calm',
+            'players',
+            'absences',
+            'incidents',
+            'feedback',
+            'warm_up',
+            'coaches',
+        ] as $attribute) {
+            if (array_key_exists($attribute, $payload)) {
+                $trainingSession->{$attribute} = $payload[$attribute];
+            }
+        }
 
         return $trainingSession;
     }
 
     private function makeTask(array $payload): array
     {
+        if (isset($payload['tasks']) && is_array($payload['tasks'])) {
+            return collect($payload['tasks'])
+                ->map(function (array $task, int $index): array {
+                    return [
+                        'task_number' => $task['task_number'] ?? ($index + 1),
+                        'task_name' => $task['task_name'] ?? null,
+                        'general_objective' => $task['general_objective'] ?? null,
+                        'specific_goal' => $task['specific_goal'] ?? null,
+                        'content_one' => $task['content_one'] ?? null,
+                        'content_two' => $task['content_two'] ?? null,
+                        'content_three' => $task['content_three'] ?? null,
+                        'ts' => $task['ts'] ?? null,
+                        'sr' => $task['sr'] ?? null,
+                        'tt' => $task['tt'] ?? null,
+                        'observations' => $task['observations'] ?? null,
+                    ];
+                })
+                ->values()
+                ->all();
+        }
+
         $tasks = [];
         $keys = array_keys($payload['task_number']);
 

@@ -4,6 +4,7 @@ namespace App\Service\Evaluations;
 
 use App\Models\Evaluations\PlayerEvaluation;
 use App\Models\Inscription;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -15,8 +16,11 @@ class PlayerEvaluationComparisonService
 
     public function compare(Inscription $inscription, int $periodAId, int $periodBId): array
     {
-        $evaluationA = $this->findEvaluation($inscription->id, $periodAId);
-        $evaluationB = $this->findEvaluation($inscription->id, $periodBId);
+        $inscription->loadMissing(['player', 'trainingGroup']);
+
+        $evaluations = $this->findEvaluations($inscription->id, [$periodAId, $periodBId]);
+        $evaluationA = $this->resolveEvaluation($evaluations, $periodAId);
+        $evaluationB = $this->resolveEvaluation($evaluations, $periodBId);
 
         $dimensionScoresA = $this->calculator->calculateDimensionScores($evaluationA);
         $dimensionScoresB = $this->calculator->calculateDimensionScores($evaluationB);
@@ -68,20 +72,24 @@ class PlayerEvaluationComparisonService
         ];
     }
 
-    private function findEvaluation(int $inscriptionId, int $periodId): PlayerEvaluation
+    private function findEvaluations(int $inscriptionId, array $periodIds): Collection
     {
-        $evaluation = PlayerEvaluation::query()
+        return PlayerEvaluation::query()
             ->with([
                 'period',
                 'template',
                 'evaluator',
-                'scores.criterion',
-                'inscription.player',
-                'inscription.trainingGroup',
+                'scores',
             ])
             ->where('inscription_id', $inscriptionId)
-            ->where('evaluation_period_id', $periodId)
-            ->first();
+            ->whereIn('evaluation_period_id', array_values(array_unique($periodIds)))
+            ->get()
+            ->keyBy('evaluation_period_id');
+    }
+
+    private function resolveEvaluation(Collection $evaluations, int $periodId): PlayerEvaluation
+    {
+        $evaluation = $evaluations->get($periodId);
 
         if (!$evaluation) {
             throw ValidationException::withMessages([

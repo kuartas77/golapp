@@ -166,30 +166,20 @@ class DataTableController extends Controller
 
     public function trainingSessions(Request $request)
     {
-        // abort_unless($request->ajax(), 403);
-
-
-
-        return datatables()->collection($this->trainingSessionRepository->list())
-        ->addColumn('creator', fn($model) => $model->user->name)
-        ->addColumn('group', fn($model) => $model->training_group->full_group)
-        ->addColumn('training_ground', '{{$training_ground}}')
-        ->addColumn('period', '{{$period}}')
-        ->addColumn('session', '{{$session}}')
-        ->addColumn('tasks', fn($model) => $model->tasks_count)
-        ->addColumn('date', fn($model) => Carbon::parse($model->date)->format('Y-m-d'))
-        ->addColumn('hour', '{{$hour}}')
-        ->addColumn('created_at', fn($model) => $model->created_at->format('Y-m-d'))
-        ->addColumn('buttons', function($model){
-            $editRoute = route('training-sessions.show', [$model->id]);
-            $updateRoute = route('training-sessions.update', [$model->id]);
-            $exportPdfURL = route('export.training_sessions.pdf', [$model->id]);
-            return '<div class="btn-group">'
-            .'<a href="'.$exportPdfURL.'" target="_blank" class="btn btn-info btn-xs"><i class="fas fa-print" aria-hidden="true"></i></a>'
-            .'<a href="javascript:void(0)" data-toggle="modal" data-target-custom="#modal_training_sessions" data-backdrop="static" data-keyboard="false" data-edit="'.$editRoute.'" data-update="'.$updateRoute.'" class="btn btn-warning btn-xs edit_session" title="Modificar Sesion"><i class="fas fa-pencil-alt"></i></a>'
-            .'</div>';
-        })
-        ->escapeColumns([])
-        ->toJson();
+        return datatables()->eloquent($this->trainingSessionRepository->datatableQuery())
+            ->filterColumn('creator_name', function ($query, $keyword) {
+                $query->where('users.name', 'like', "%{$keyword}%");
+            })
+            ->filterColumn('training_group_name', function ($query, $keyword) {
+                $query->where('training_groups.name', 'like', "%{$keyword}%");
+            })
+            ->orderColumn('creator_name', 'users.name $1')
+            ->orderColumn('training_group_name', 'training_groups.name $1')
+            ->addColumn('creator_name', fn ($model) => $model->user?->name ?? '')
+            ->addColumn('training_group_name', fn ($model) => $model->training_group?->full_group ?? '')
+            ->editColumn('date', fn ($model) => Carbon::parse($model->date)->format('Y-m-d'))
+            ->editColumn('created_at', fn ($model) => $model->created_at?->format('Y-m-d'))
+            ->addColumn('export_pdf_url', fn ($model) => route('export.training_sessions.pdf', [$model->id]))
+            ->toJson();
     }
 }

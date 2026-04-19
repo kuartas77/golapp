@@ -82,6 +82,11 @@ const routes = [
                 meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.attendances] },
                 component: () => import('@/pages/attendances/attendance-list.vue')
             },
+            {
+                path: 'training-sessions',
+                name: 'training-sessions',
+                component: () => import('@/pages/training-sessions/Index.vue')
+            },
 
             {
                 path: 'mensualidades',

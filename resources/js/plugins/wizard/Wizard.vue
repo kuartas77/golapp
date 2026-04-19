@@ -89,7 +89,7 @@ export const stepsOrientation = { horizontal: 0, vertical: 1 }
 export const transitionEffect = { none: 0, fade: 1, slide: 2, slideLeft: 3 }
 </script>
 <script setup>
-import { reactive, shallowRef, computed, onMounted, useSlots, watch } from 'vue'
+import { Fragment, computed, onMounted, reactive, shallowRef, useSlots, watch } from 'vue'
 import Step from './Step.vue'
 
 const defaultOptions = {
@@ -166,11 +166,32 @@ const state = reactive({
     stepCount: 0
 })
 
+function extractStepNodes(nodes = []) {
+    return nodes.flatMap((node) => {
+        if (!node) {
+            return []
+        }
+
+        if (Array.isArray(node)) {
+            return extractStepNodes(node)
+        }
+
+        if (node.type === Fragment) {
+            return extractStepNodes(Array.isArray(node.children) ? node.children : [])
+        }
+
+        if (node.type && (node.type === Step || node.type.name === 'Step')) {
+            return [node]
+        }
+
+        return []
+    })
+}
+
 /* Initialize steps from slots */
 onMounted(() => {
     const raw = slots.default ? slots.default() : []
-    stepList.value = raw
-        .filter(vnode => vnode.type && (vnode.type === Step || (vnode.type.name && vnode.type.name === 'Step')))
+    stepList.value = extractStepNodes(raw)
         .map(vnode => {
             return {
                 title: vnode.props?.title || 'Step',

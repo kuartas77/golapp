@@ -65,7 +65,11 @@ class PaymentAmountResolver
 
     public function monthlyAmountForPayment(Payment $payment): int
     {
-        $payment->loadMissing(['inscription.school.settingsValues', 'school.settingsValues']);
+        if ($payment->inscription_id) {
+            $payment->loadMissing('inscription.school.settingsValues');
+        } else {
+            $payment->loadMissing('school.settingsValues');
+        }
 
         if ($payment->inscription) {
             return $this->monthlyAmountForInscription($payment->inscription);

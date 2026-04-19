@@ -100,6 +100,31 @@ final class SchoolPermissionsTest extends TestCase
             ->assertOk();
     }
 
+    public function testInfoCampusEndpointIsAvailableWithoutSchoolProfilePermissionAndForInstructors(): void
+    {
+        $school = School::findOrFail($this->school['id']);
+
+        $this->setSchoolPermissions($school, [
+            'school.module.school_profile' => false,
+        ]);
+
+        $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/api/v2/admin/info_campus')
+            ->assertOk()
+            ->assertJsonPath('is_school', true)
+            ->assertJsonPath('school_selected', $school->name);
+
+        $instructor = $this->createSchoolScopedUser($school->id, ['instructor'], sprintf('instructor-campus-%s@example.com', uniqid()));
+
+        $this->actingAs($instructor)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/api/v2/admin/info_campus')
+            ->assertOk()
+            ->assertJsonPath('is_school', true)
+            ->assertJsonPath('school_selected', $school->name);
+    }
+
     public function testSuperAdminCanFetchAndUpdateSchoolPermissions(): void
     {
         $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
@@ -221,10 +246,19 @@ final class SchoolPermissionsTest extends TestCase
 
     private function createSuperAdminForSchool(int $schoolId): User
     {
+        return $this->createSchoolScopedUser(
+            $schoolId,
+            ['super-admin'],
+            sprintf('superadmin-%s@example.com', uniqid())
+        );
+    }
+
+    private function createSchoolScopedUser(int $schoolId, array $roles, string $email): User
+    {
         $user = $this->createUser([
-            'email' => sprintf('superadmin-%s@example.com', uniqid()),
+            'email' => $email,
             'school_id' => $schoolId,
-        ], ['super-admin']);
+        ], $roles);
 
         SchoolUser::query()->create([
             'user_id' => $user->id,

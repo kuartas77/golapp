@@ -21,7 +21,6 @@ use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\Reports\AttendanceReportExportController;
 use App\Http\Controllers\Reports\ReportAssistsController;
 use App\Http\Controllers\Reports\ReportPaymentController;
-use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/{any}', [AppController::class, 'index'])->where('any', '.*');
@@ -65,7 +64,9 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     });
     Route::resource("tournamentpayout", TournamentPayoutsController::class)->only(['index', 'store', 'update']);
 
-    Route::resource("training-sessions", TrainingSessionsController::class)->only(['index', 'create', 'store', 'update', 'show']);
+    // La SPA equivalente vive en resources/js/router/index.js y consume su CRUD/listado desde routes/api.php.
+    Route::get('training-sessions', [AppController::class, 'index'])->name('training-sessions.index');
+    Route::redirect('training-sessions/create', 'training-sessions');
 
     Route::prefix('import')->group(function(){
         Route::middleware('school.permission:school.module.matches')->group(function () {

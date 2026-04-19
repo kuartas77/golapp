@@ -127,9 +127,9 @@ class InvoiceRepository
                     'notes' => $validated['notes'],
                 ]);
 
+                $items = [];
                 foreach ($validated['items'] as $itemData) {
-
-                    $item = [
+                    $items[] = [
                         'type' => $itemData['type'],
                         'description' => $itemData['description'] ?? null,
                         'quantity' => $itemData['quantity'],
@@ -140,12 +140,18 @@ class InvoiceRepository
                         'uniform_request_id' => $itemData['uniform_request_id'] ?? null,
                     ];
 
-                    $invoice->items()->create($item);
-
-                    if (isset($item['uniform_request_id'])) {
-                        UniformRequest::where('id', $item['uniform_request_id'])->update(['status' => 'APPROVED']);
+                    if (!empty($itemData['uniform_request_id'])) {
+                        UniformRequest::where('id', $itemData['uniform_request_id'])->update(['status' => 'APPROVED']);
                     }
                 }
+
+                InvoiceItem::withoutEvents(function () use ($invoice, $items): void {
+                    foreach ($items as $item) {
+                        $invoice->items()->create($item);
+                    }
+                });
+
+                $invoice->updateTotals();
 
                 return $invoice->id;
             });
@@ -175,11 +181,19 @@ class InvoiceRepository
 
         // Si el usuario seleccionó ítems específicos para marcar como pagados
         if ($request->has('paid_items')) {
-            foreach ($request->validated('paid_items') as $itemId) {
-                $item = $invoice->items()->find($itemId);
-                if ($item) {
-                    $item->update(['is_paid' => true, 'payment_received_id' => $paymentReceived->id]);
-                }
+            $paidItemIds = collect($request->validated('paid_items'))
+                ->filter()
+                ->map(static fn ($itemId) => (int) $itemId)
+                ->unique()
+                ->values();
+
+            if ($paidItemIds->isNotEmpty()) {
+                $invoice->items()
+                    ->whereIn('id', $paidItemIds->all())
+                    ->update([
+                        'is_paid' => true,
+                        'payment_received_id' => $paymentReceived->id,
+                    ]);
             }
 
             // Si hay ítems de meses marcados como pagados, actualizar la tabla payments original

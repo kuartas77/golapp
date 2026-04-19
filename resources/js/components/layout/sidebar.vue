@@ -162,6 +162,22 @@
                         </div>
                     </router-link>
                 </li>
+                <li class="menu">
+                    <router-link :to="{ name: 'training-sessions' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-clipboard">
+                                <path d="M9 2H15A2 2 0 0 1 17 4V6H7V4A2 2 0 0 1 9 2z"></path>
+                                <path d="M9 2V4H15V2"></path>
+                                <path d="M9 12H15"></path>
+                                <path d="M9 16H13"></path>
+                                <rect x="5" y="4" width="14" height="18" rx="2" ry="2"></rect>
+                            </svg>
+                            <span>S. Entrenamiento</span>
+                        </div>
+                    </router-link>
+                </li>
                 <li v-if="canMatches" class="menu">
                     <router-link :to="{ name: 'matches' }" class="dropdown-toggle" @click="toggleMobileMenu">
                         <div class="">

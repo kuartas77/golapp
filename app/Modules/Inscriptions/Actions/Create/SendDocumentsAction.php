@@ -33,6 +33,7 @@ final class SendDocumentsAction implements IContractPassable
         $this->player = $passable->getPlayer();
 
         $this->inscription = $passable->getInscription();
+        $this->inscription->loadMissing('school');
 
         $this->paths = $passable->getPaths();
 

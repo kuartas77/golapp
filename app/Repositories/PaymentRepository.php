@@ -369,6 +369,12 @@ class PaymentRepository
 
     private function paymentDefaults(?Payment $payment = null): array
     {
+        if ($payment?->inscription_id) {
+            $payment->loadMissing('inscription.school.settingsValues');
+        } elseif ($payment) {
+            $payment->loadMissing('school.settingsValues');
+        }
+
         $school = getSchool(auth()->user());
 
         return [
@@ -382,7 +388,10 @@ class PaymentRepository
 
     private function decoratePayments(Collection $payments): Collection
     {
-        $payments->loadMissing(['inscription.school.settingsValues']);
+        $payments->loadMissing([
+            'inscription.school.settingsValues',
+            'school.settingsValues',
+        ]);
 
         return $payments->map(function (Payment $payment) {
             $payment->setAttribute(
