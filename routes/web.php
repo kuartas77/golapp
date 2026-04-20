@@ -18,7 +18,9 @@ use App\Http\Controllers\Notifications\PaymentRequestController;
 use App\Http\Controllers\Notifications\TopicNotificationsController;
 use App\Http\Controllers\Notifications\UniformRequestsController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
+use App\Http\Controllers\Reports\AttendancePaymentReportExportController;
 use App\Http\Controllers\Reports\AttendanceReportExportController;
+use App\Http\Controllers\Reports\ReportAttendancePaymentController;
 use App\Http\Controllers\Reports\ReportAssistsController;
 use App\Http\Controllers\Reports\ReportPaymentController;
 use Illuminate\Support\Facades\Route;
@@ -212,6 +214,11 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
             ->whereIn('report', ['monthly-player', 'monthly-group', 'annual-consolidated'])
             ->whereIn('format', ['xlsx', 'pdf'])
             ->name('assist.export');
+
+            Route::get('attendance-payment/{report}/{format}', [AttendancePaymentReportExportController::class, 'download'])
+                ->whereIn('report', ['monthly-group', 'monthly-player'])
+                ->whereIn('format', ['xlsx', 'pdf'])
+                ->name('attendance-payment.export');
         });
     });
 
@@ -232,6 +239,11 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::middleware('school.permission:school.module.reports')->prefix('reports')->name('reports.')->group(function () {
         Route::get('assists', [ReportAssistsController::class, 'index'])->name('assists');
         Route::get('payments', [ReportPaymentController::class, 'index'])->name('payments');
+        // La vista SPA equivalente vive en resources/js/router/index.js y consume:
+        // GET /api/v2/reports/attendance-payment,
+        // GET /api/v2/reports/attendance-payment/monthly-by-group y
+        // GET /api/v2/reports/attendance-payment/monthly-by-player.
+        Route::get('attendance-payment', [ReportAttendancePaymentController::class, 'index'])->name('attendance-payment');
         Route::post('payments', [ReportPaymentController::class, 'report'])->name('payments.report');
     });
 

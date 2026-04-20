@@ -16,7 +16,9 @@ class AuthControllerSPA extends Controller
             return response()->json(['message' => 'Credenciales incorrectas'], 401);
         }
 
-        $request->session()->regenerate();
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
 
         return response()->json(['message' => 'Autenticado']);
     }
@@ -24,8 +26,11 @@ class AuthControllerSPA extends Controller
     public function logout(Request $request)
     {
         Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         return response()->json(['message' => 'Logout exitoso']);
     }

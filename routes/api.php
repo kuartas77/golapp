@@ -36,6 +36,7 @@ use App\Http\Controllers\Notifications\TopicNotificationsController;
 use App\Http\Controllers\Notifications\UniformRequestsController;
 use App\Http\Controllers\Payments\PaymentController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
+use App\Http\Controllers\Reports\ReportAttendancePaymentController;
 use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\Portal\InscriptionsController as PortalInscription;
@@ -277,6 +278,9 @@ Route::prefix('v2')->group(function(){
             Route::get('assists', [ReportAssistsController::class, 'metadata'])->name('assists.metadata');
             Route::get('payments', [ReportPaymentController::class, 'metadata'])->name('payments.metadata');
             Route::post('payments', [ReportPaymentController::class, 'report'])->name('payments.report');
+            Route::get('attendance-payment', [ReportAttendancePaymentController::class, 'metadata'])->name('attendance-payment.metadata');
+            Route::get('attendance-payment/monthly-by-group', [ReportAttendancePaymentController::class, 'monthlyByGroup'])->name('attendance-payment.monthly-by-group');
+            Route::get('attendance-payment/monthly-by-player', [ReportAttendancePaymentController::class, 'monthlyByPlayer'])->name('attendance-payment.monthly-by-player');
             Route::get('attendance/monthly-by-player', [ReportAssistsController::class, 'monthlyByPlayer'])->name('assists.monthly-by-player');
             Route::get('attendance/monthly-by-group', [ReportAssistsController::class, 'monthlyByGroup'])->name('assists.monthly-by-group');
             Route::get('attendance/annual-consolidated', [ReportAssistsController::class, 'annualConsolidated'])->name('assists.annual-consolidated');

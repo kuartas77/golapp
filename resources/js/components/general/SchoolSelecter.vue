@@ -11,9 +11,9 @@
             </svg>
             <span class="ms-2">{{ schoolSelected }}</span>
         </a>
-        <a v-else href="javascript:;" class="d-flex align-items-center">
+        <span v-else class="d-flex align-items-center">
             <span class="ms-2">{{ schoolSelected }}</span>
-        </a>
+        </span>
     </div>
 </template>
 <script setup>

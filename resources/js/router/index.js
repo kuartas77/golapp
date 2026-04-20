@@ -222,6 +222,11 @@ const routes = [
                         name: 'reports.payments',
                         component: () => import('@/pages/reports/payments/Index.vue')
                     },
+                    {
+                        path: 'mensualidades-asistencias',
+                        name: 'reports.attendance-payment',
+                        component: () => import('@/pages/reports/attendance-payment/Index.vue')
+                    },
                 ]
             },
         ]
