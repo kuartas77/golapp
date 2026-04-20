@@ -2,9 +2,11 @@ name: Repository to cPanel
 on:
   push:
     branches: [ template ]
-jobs:
-  env:
+
+env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
   FTP-Deploy-Action:
     name: FTP-Deploy-Action
     runs-on: ubuntu-latest
