@@ -3,16 +3,24 @@ on:
   push:
     branches: [ template ]
 jobs:
-  FTP-Deploy-Action:
-    name: FTP-Deploy-Action
+  web-deploy:
+    name: 🎉 Deploy
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
-    - name: FTP-Deploy-Action
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      with:
+      - name: 🚚 Get latest code
+      - uses: actions/checkout@v4
+      - name: Use Node.js 24
+      - uses: actions/setup-node@v2
+      - with:
+        node-version: '24'
+
+      - name: 🔨 Build Project
+        run: |
+          npm install
+          npm run build
+      - name: 📂 Sync files
+      - uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+      - with:
         server: ${{ secrets.FTP_TEST_SERVER }}
         username: ${{ secrets.FTP_TEST_USERNAME }}
         password: ${{ secrets.FTP_TEST_PASSWORD }}
