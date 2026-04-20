@@ -3,6 +3,8 @@ on:
   push:
     branches: [ template ]
 jobs:
+  env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   FTP-Deploy-Action:
     name: FTP-Deploy-Action
     runs-on: ubuntu-latest
