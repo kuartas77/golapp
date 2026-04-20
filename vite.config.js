@@ -110,6 +110,14 @@ export default defineConfig(({ mode }) => ({
             'vue3-apexcharts',
         ],
     },
+    server: {
+        cors: {
+            origin: [
+                'http://golapp.local',
+                'https://app.golapp.com.co',
+            ],
+        },
+    },
     build: {
         chunkSizeWarningLimit: 710,
         sourcemap: mode !== 'production',

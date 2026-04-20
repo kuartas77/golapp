@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
 
 class HttpRedirect
 {
@@ -18,7 +17,7 @@ class HttpRedirect
      */
     public function handle(Request $request, Closure $next)
     {
-        if (!$request->secure() && App::environment(['production'])) {
+        if (!$request->secure() && (bool) config('app.force_https')) {
             return redirect()->secure($request->getRequestUri(), 301);
         }
 
