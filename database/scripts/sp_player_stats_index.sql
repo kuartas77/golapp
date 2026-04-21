@@ -5,9 +5,9 @@ DELIMITER $$
 CREATE PROCEDURE sp_player_stats(
     IN p_school_id BIGINT,
     IN p_year INT,
-    IN p_position VARCHAR(255),
+    IN p_position VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     IN p_player_id BIGINT,
-    IN p_category VARCHAR(255),
+    IN p_category VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     IN p_limit_rows INT
 )
 BEGIN
@@ -74,10 +74,10 @@ BEGIN
               AND sc2.position IS NOT NULL
               AND (p_year IS NULL OR i2.year = p_year)
               AND (
-                p_category IS NULL
-                OR p_category = ''
-                OR i2.category COLLATE utf8mb4_unicode_ci = p_category COLLATE utf8mb4_unicode_ci
-            )
+                    p_category IS NULL
+                    OR p_category = ''
+                    OR i2.category COLLATE utf8mb4_unicode_ci = p_category
+                  )
             GROUP BY sc2.position
             ORDER BY COUNT(*) DESC, sc2.position ASC
             LIMIT 1
@@ -114,16 +114,16 @@ BEGIN
       AND sc.school_id = p_school_id
       AND (p_year IS NULL OR i.year = p_year)
       AND (p_player_id IS NULL OR i.player_id = p_player_id)
-        AND (
+      AND (
             p_position IS NULL
             OR p_position = ''
-            OR sc.position COLLATE utf8mb4_unicode_ci = p_position COLLATE utf8mb4_unicode_ci
-        )
-        AND (
+            OR sc.position COLLATE utf8mb4_unicode_ci = p_position
+          )
+      AND (
             p_category IS NULL
             OR p_category = ''
-            OR i.category COLLATE utf8mb4_unicode_ci = p_category COLLATE utf8mb4_unicode_ci
-        )
+            OR i.category COLLATE utf8mb4_unicode_ci = p_category
+          )
 
     GROUP BY
         i.player_id,

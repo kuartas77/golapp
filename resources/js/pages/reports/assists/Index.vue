@@ -75,7 +75,7 @@
                                     </div>
                                 </div>
 
-                                <div class="table-responsive">
+                                <div class="table-responsive-sm">
                                     <DatatableTemplate
                                         id="monthly-player-report-table"
                                         ref="monthlyPlayerTable"
@@ -147,7 +147,7 @@
                                     </div>
                                 </div>
 
-                                <div class="table-responsive">
+                                <div class="table-responsive-sm">
                                     <DatatableTemplate
                                         id="monthly-group-report-table"
                                         ref="monthlyGroupTable"
@@ -211,7 +211,7 @@
                                     </div>
                                 </div>
 
-                                <div class="table-responsive mt-4">
+                                <div class="table-responsive-sm mt-4">
                                     <DatatableTemplate
                                         id="annual-consolidated-report-table"
                                         ref="annualConsolidatedTable"
