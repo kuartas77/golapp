@@ -1,4 +1,5 @@
 name: Repository to cPanel
+
 on:
   push:
     branches: [ template ]
@@ -10,24 +11,28 @@ jobs:
   FTP-Deploy-Action:
     name: FTP-Deploy-Action
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
-    - name: Use Node.js 24
-      uses: actions/setup-node@v2
-      with:
-        node-version: '24'
+      - name: Use Node.js 24
+        uses: actions/setup-node@v2
+        with:
+          node-version: '24'
 
-    - name: 🔨 Build Project
-      run: |
-        npm install
-        npm run build
+      - name: 🔨 Build Project
+        run: |
+          npm install
+          npm run build
 
-    - name: FTP-Deploy-Action
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.6
-      with:
-        server: ${{ secrets.FTP_TEST_SERVER }}
-        username: ${{ secrets.FTP_TEST_USERNAME }}
-        password: ${{ secrets.FTP_TEST_PASSWORD }}
+      - name: FTP-Deploy-Action
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: ${{ secrets.FTP_TEST_SERVER }}
+          username: ${{ secrets.FTP_TEST_USERNAME }}
+          password: ${{ secrets.FTP_TEST_PASSWORD }}
+          local-dir: ./public/build/
+          server-dir: /public/build/
+          dangerous-clean-slate: true
