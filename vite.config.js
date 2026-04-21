@@ -113,7 +113,8 @@ export default defineConfig(({ mode }) => ({
     server: {
         cors: {
             origin: [
-                mode !== 'production' ? 'http://golapp.local':'https://app.golapp.com.co',
+                'http://golapp.local',
+                'https://app.golapp.com.co',
             ],
         },
     },
