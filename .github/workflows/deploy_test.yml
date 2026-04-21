@@ -27,7 +27,23 @@ jobs:
           npm install
           npm run build
 
-      - name: FTP-Deploy-Action
+      - name: Deploy full project except build
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: ${{ secrets.FTP_TEST_SERVER }}
+          username: ${{ secrets.FTP_TEST_USERNAME }}
+          password: ${{ secrets.FTP_TEST_PASSWORD }}
+          local-dir: ./
+          server-dir: /
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            .github/**
+            public/build/**
+            public/build
+
+      - name: Deploy build folder clean
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
           server: ${{ secrets.FTP_TEST_SERVER }}
