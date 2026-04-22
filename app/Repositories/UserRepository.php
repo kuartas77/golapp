@@ -40,7 +40,9 @@ class UserRepository
         try {
             DB::beginTransaction();
             $school = getSchool(auth()->user());
-            $user = $this->user->query()->create($formRequest->validated() + ['school_id' => $school->id]);
+            $password = $formRequest->password ?? randomPassword();
+            $attributes = $formRequest->validated() + ['school_id' => $school->id, 'password' => $password];
+            $user = $this->user->query()->create($attributes);
             $user->syncRoles([$formRequest->input('rol_id')]);
             $user->profile()->create();
 
@@ -49,7 +51,7 @@ class UserRepository
             $schoolUser->school_id = $school->id;
             $schoolUser->save();
 
-            $user->notify(new RegisterNotification($user, ($formRequest->password ?? randomPassword())));
+            $user->notify(new RegisterNotification($user, $password));
             DB::commit();
             Cache::forget('KEY_USERS_' . $school->id);
 
