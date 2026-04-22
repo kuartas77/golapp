@@ -29,7 +29,7 @@ class PaymentExportService
         $data['group'] = $group;
         $data['selected_status'] = (int) $request->input('status', -1);
 
-        // return view()->file(resource_path("templates/pdf/payments/payments.blade.php"), $data)->render();
+        // return view()->file(resource_path("views/templates/pdf/payments/payments.blade.php"), $data)->render();
 
         $filename = "Pagos.pdf";
         $this->setConfigurationMpdf(['format' => 'A4-L']);
