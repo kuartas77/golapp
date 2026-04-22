@@ -21,3 +21,5 @@ package-lock.json
 /.phpunit.cache
 /public/contracts
 /public/build
+AGENTS.md
+.codex
