@@ -33,6 +33,7 @@
 <table class="table-full detail detail-lines">
     <thead>
     <tr class="tr-tit">
+            <th class="text-center">#</th>
             <th class="text-center">Año</th>
             <th class="text-center">Nombres</th>
             <th class="text-center">Categoria</th>
@@ -54,6 +55,7 @@
     <tbody>
         @foreach($payments as $payment)
         <tr>
+            <td class="text-center">&nbsp;{{$loop->iteration}}</td>
             <td class="text-center">&nbsp;{{$payment->year}}</td>
             <td>
                 &nbsp;<small>{{ $payment->unique_code }}</small>&nbsp;<small>{{ $payment->inscription->player->full_names }}</small>

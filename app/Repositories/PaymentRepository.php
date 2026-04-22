@@ -131,6 +131,7 @@ class PaymentRepository
         $unique_code = data_get($params, 'unique_code');
         $training_group_id = data_get($params, 'training_group_id', 0);
         $paymentStatus = data_get($params, 'status', null);
+        $paymentStatus = $paymentStatus === 'null' ? null : $paymentStatus;
 
         $query = $this->payment->where('school_id', $school_id)
         ->when($raw,
@@ -147,7 +148,7 @@ class PaymentRepository
             ->when($unique_code, fn($q) => $q->where('unique_code', $unique_code))
             ->when($training_group_id != 0, fn($q) => $q->where('training_group_id', $training_group_id))
             ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', $year)->where('category', $category)->withTrashed()))
-            ->when($paymentStatus != null, fn($q)=> $q->ByPaymentStatus($paymentStatus))
+            ->when($paymentStatus !== null, fn($q) => $q->ByPaymentStatus($paymentStatus))
             ->orderByRaw("CAST(SUBSTRING_INDEX(category, '-', -1) AS UNSIGNED) ASC");
 
         return $query;
@@ -161,6 +162,7 @@ class PaymentRepository
         $unique_code = data_get($params, 'unique_code');
         $training_group_id = data_get($params, 'training_group_id', 0);
         $paymentStatus = data_get($params, 'status', null);
+        $paymentStatus = $paymentStatus === 'null' ? null : $paymentStatus;
 
         return $this->payment->addSelect([
             'category' => Inscription::query()->select('category')->whereColumn('inscriptions.id', 'inscription_id')->where('year', $year)->take(1)
@@ -170,7 +172,7 @@ class PaymentRepository
         ->when($unique_code, fn($q) => $q->where('unique_code', $unique_code))
         ->when($training_group_id != 0, fn($q) => $q->where('training_group_id', $training_group_id))
         ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', $year)->where('category', $category)->withTrashed()))
-        ->when($paymentStatus != null, fn($q)=> $q->ByPaymentStatus($paymentStatus))
+        ->when($paymentStatus !== null, fn($q) => $q->ByPaymentStatus($paymentStatus))
         ->withTrashed()
         ->orderBy('inscription_id', 'asc');
     }
