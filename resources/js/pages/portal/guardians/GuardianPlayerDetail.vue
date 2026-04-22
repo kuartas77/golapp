@@ -31,6 +31,14 @@
                                         Volver
                                     </router-link>
                                     <button
+                                        v-if="player?.unique_code"
+                                        type="button"
+                                        class="btn btn-outline-primary"
+                                        @click="showAttendanceQr = true"
+                                    >
+                                        Ver QR
+                                    </button>
+                                    <button
                                         v-if="currentInscription?.report_url"
                                         type="button"
                                         class="btn btn-primary"
@@ -517,11 +525,21 @@
             </div>
         </div>
     </section>
+
+    <AttendanceQrModal
+        v-if="player?.unique_code"
+        v-model="showAttendanceQr"
+        :unique-code="player.unique_code"
+        title="QR de asistencia"
+        subtitle="Este QR lleva al instructor al formulario rápido del backoffice."
+        :logo-file="player.school_data.logo_file"
+    />
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import AttendanceQrModal from '@/components/attendances/AttendanceQrModal.vue';
 import Loader from '@/components/general/Loader.vue';
 import api from '@/utils/axios';
 import { usePageTitle } from '@/composables/use-meta';
@@ -542,6 +560,7 @@ const activePaymentId = ref(null);
 const activeAttendanceId = ref(null);
 const player = ref(null);
 const comparison = ref(null);
+const showAttendanceQr = ref(false);
 
 const form = reactive({
     names: '',

@@ -53,6 +53,8 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
     Route::middleware('school.permission:school.module.attendances')->group(function () {
         Route::resource("assists", AssistController::class)->except(['create','edit', 'destroy']);
+        // El flujo SPA de asistencia QR vive en resources/js/pages/attendances/qr/*
+        // y consume GET /api/v2/attendance-qr/{unique_code} y POST /api/v2/attendance-qr/{assist}/take.
     });
 
     // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.

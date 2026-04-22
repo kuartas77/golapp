@@ -47,38 +47,52 @@ class CreateAssistsOnEndMonth extends Command
     public function handle(): int
     {
         try {
-            $dataAssist = [];
             $currentDate = $this->option('date') ? Carbon::parse($this->option('date')): now();
 
-            if ($currentDate->isLastOfMonth()) {
-
-                $dataAssist['year'] = $currentDate->year;
-                $dataAssist['month'] = $currentDate->addDay()->month;
-
-                $schools = School::query()->where('is_enable', true)->get();
-
-                foreach ($schools as $school) {
-                    $groupsQuery = TrainingGroup::query()->whereHas('inscriptions', fn($q) => $q->where('school_id', $school->id)->where('year', $dataAssist['year']));
-
-                    $groupsQuery->chunkById(2, function ($groups) use ($dataAssist, $school) {
-                        foreach ($groups as $group) {
-
-                            $dataAssist['training_group_id'] = $group->id;
-
-                            $inscriptionIds = $this->getInscriptionsByGroup($dataAssist, $school->id);
-
-                            $assistsQuery = $this->getAssistQuery($dataAssist, $school->id);
-
-                            DB::beginTransaction();
-
-                            AssistRepository::createAssistBulk($inscriptionIds, $assistsQuery, $dataAssist, $school->id);
-
-                            DB::commit();
-                        }
-                    });
-                }
-            } else {
+            if (!$currentDate->isLastOfMonth()) {
                 logger(__CLASS__, [$currentDate->format('Y-m-d H:i:s')]);
+                return 0;
+            }
+
+            $targetDate = $currentDate->copy()->addDay();
+            $dataAssist = [
+                'year' => $targetDate->year,
+                'month' => $targetDate->month,
+            ];
+            $inscriptionYear = $targetDate->year;
+
+            $schools = School::query()->where('is_enable', true)->get();
+
+            foreach ($schools as $school) {
+                $groupsQuery = TrainingGroup::query()
+                    ->where('school_id', $school->id)
+                    ->whereHas('inscriptions', fn ($query) => $query
+                        ->where('school_id', $school->id)
+                        ->where('year', $inscriptionYear)
+                    );
+
+                $groupsQuery->chunkById(50, function ($groups) use ($dataAssist, $school, $inscriptionYear) {
+                    foreach ($groups as $group) {
+                        $groupAssistData = [
+                            ...$dataAssist,
+                            'training_group_id' => $group->id,
+                        ];
+
+                        $inscriptionIds = $this->getInscriptionsByGroup($groupAssistData, $school->id, $inscriptionYear);
+
+                        if ($inscriptionIds->isEmpty()) {
+                            continue;
+                        }
+
+                        $assistsQuery = $this->getAssistQuery($groupAssistData, $school->id);
+
+                        DB::beginTransaction();
+
+                        AssistRepository::createAssistBulk($inscriptionIds, $assistsQuery, $groupAssistData, $school->id);
+
+                        DB::commit();
+                    }
+                });
             }
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -88,11 +102,11 @@ class CreateAssistsOnEndMonth extends Command
         return 0;
     }
 
-    private function getInscriptionsByGroup(array $params, int $school_id): Collection
+    private function getInscriptionsByGroup(array $params, int $school_id, int $inscriptionYear): Collection
     {
         return Inscription::query()
             ->where('training_group_id', $params['training_group_id'])
-            ->where('year', $params['year'])
+            ->where('year', $inscriptionYear)
             ->where('school_id', $school_id)
             ->pluck('id');
     }

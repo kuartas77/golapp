@@ -79,9 +79,13 @@ const routes = [
             },
             {
                 path: 'asistencias',
-                name: 'attendances',
                 meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.attendances] },
-                component: () => import('@/pages/attendances/attendance-list.vue')
+                component: { render: () => h(RouterView) },
+                children: [
+                    { path: '', name: 'attendances', component: () => import('@/pages/attendances/attendance-list.vue') },
+                    { path: 'qr', name: 'attendances-qr', component: () => import('@/pages/attendances/qr/AttendanceQrLanding.vue') },
+                    { path: 'qr/:unique_code', name: 'attendances-qr-detail', component: () => import('@/pages/attendances/qr/AttendanceQrDetail.vue') },
+                ]
             },
             {
                 path: 'training-sessions',

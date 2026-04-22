@@ -5,6 +5,7 @@ use App\Http\Controllers\API\Admin\InvoiceCustomItemController as AdminInvoiceCu
 use App\Http\Controllers\API\Admin\RegisterController;
 use App\Http\Controllers\API\Admin\SchoolController;
 use App\Http\Controllers\API\Admin\UsersController;
+use App\Http\Controllers\API\AttendanceQrController;
 use App\Http\Controllers\API\AuthControllerSPA;
 use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\Instructor\AssistsController;
@@ -159,6 +160,14 @@ Route::prefix('v2')->group(function(){
 
         Route::middleware('school.permission:school.module.attendances')->group(function () {
             Route::apiResource("assists", AssistController::class)->except(['create','edit', 'destroy']);
+        });
+
+        Route::middleware([
+            'school.permission:school.module.attendances',
+            'role:super-admin|school|instructor',
+        ])->group(function () {
+            Route::get('attendance-qr/{unique_code}', [AttendanceQrController::class, 'show']);
+            Route::post('attendance-qr/{assist}/take', [AttendanceQrController::class, 'take']);
         });
 
         Route::middleware('school.permission:school.module.inscriptions')->group(function () {

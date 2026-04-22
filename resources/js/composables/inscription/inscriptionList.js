@@ -1,5 +1,5 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
+import { computed, nextTick, ref, useTemplateRef } from 'vue';
 import api from '@/utils/axios'
 import { useRouter } from 'vue-router'
 
@@ -7,12 +7,9 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
     const router = useRouter()
     const inscription_table = useTemplateRef('inscription_table')
     const selectedInscriptionId = ref(null)
+    const selectedAttendanceQrCode = ref(null)
     const disableUrlSelected = ref(null)
     const currentYear = new Date().getFullYear()
-    let selectGroupsElement = null
-    let selectCategoriesElement = null
-    let handleGroupsChange = null
-    let handleCategoriesChange = null
     const canManageSelectedYear = computed(() => {
         const year = Number(selectedYear?.value ?? currentYear)
 
@@ -102,6 +99,23 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
 
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
+                            <button
+                                class="dropdown-item"
+                                data-item-id="${row.unique_code}"
+                                data-type="attendance-qr"
+                                title="Ver QR de asistencia"
+                                type="button"
+                            >
+                                <i
+                                    data-item-id="${row.unique_code}"
+                                    class="fa-solid fa-qrcode fa-width-auto me-2"
+                                    data-type="attendance-qr"
+                                ></i>
+                                QR asistencia
+                            </button>
+                        </li>
+
+                        <li>
                             <a
                                 class="dropdown-item"
                                 href="${row.url_impression}"
@@ -154,11 +168,37 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         columns: columns
     };
 
-    const reloadTable = () => {
-        if (inscription_table.value) {
-            const dt = inscription_table.value.table.dt
-            dt.ajax.reload(null, false)
+    const getDataTable = () => inscription_table.value?.table?.dt ?? null
+
+    const reloadTable = async () => {
+        await nextTick()
+
+        const dt = getDataTable()
+        const tableNode = typeof dt?.table === 'function' ? dt.table().node() : null
+
+        if (!dt || !tableNode?.isConnected) {
+            return
         }
+
+        dt.ajax.reload(null, false)
+    }
+
+    const applyColumnFilter = (columnIndex, value = '') => {
+        const dt = getDataTable()
+
+        if (!dt) {
+            return
+        }
+
+        dt.column(columnIndex).search(value).draw()
+    }
+
+    const onGroupFilterChange = (event) => {
+        applyColumnFilter(2, event?.target?.value ?? '')
+    }
+
+    const onCategoryFilterChange = (event) => {
+        applyColumnFilter(3, event?.target?.value ?? '')
     }
 
     const resolveRouteFromClick = (e) => {
@@ -171,6 +211,9 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         switch (type) {
             case 'edit':
                 selectedInscriptionId.value = Number(itemId)
+                break;
+            case 'attendance-qr':
+                selectedAttendanceQrCode.value = String(itemId)
                 break;
             case 'invoice':
                 router.push({ name: 'invoices.create', params: { inscription: itemId } })
@@ -188,6 +231,12 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
     const onCancelModal = () => {
         selectedInscriptionId.value = null
         disableUrlSelected.value = null
+    }
+
+    const onAttendanceQrModalToggle = (isOpen) => {
+        if (!isOpen) {
+            selectedAttendanceQrCode.value = null
+        }
     }
 
     const onSuccessModal = () => {
@@ -230,39 +279,17 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         });
     }
 
-    onMounted(async () => {
-        await nextTick()
-
-        if (inscription_table.value) {
-            const dt = inscription_table.value.table.dt
-
-            selectGroupsElement = document.querySelector('thead select[placeholder="Grupos"]')
-            if (selectGroupsElement) {
-                handleGroupsChange = function () {
-                    return dt.column(2).search(this.value).draw()
-                }
-                selectGroupsElement.addEventListener('change', handleGroupsChange)
-            }
-
-            selectCategoriesElement = document.querySelector('thead select[placeholder="Categorias"]')
-            if (selectCategoriesElement) {
-                handleCategoriesChange = function () {
-                    return dt.column(3).search(this.value).draw()
-                }
-                selectCategoriesElement.addEventListener('change', handleCategoriesChange)
-            }
-        }
-    })
-
-    onBeforeUnmount(() => {
-        if (selectGroupsElement && handleGroupsChange) {
-            selectGroupsElement.removeEventListener('change', handleGroupsChange)
-        }
-
-        if (selectCategoriesElement && handleCategoriesChange) {
-            selectCategoriesElement.removeEventListener('change', handleCategoriesChange)
-        }
-    })
-
-    return { options, inscription_table, reloadTable, selectedInscriptionId, resolveRouteFromClick, onCancelModal, onSuccessModal };
+    return {
+        options,
+        inscription_table,
+        reloadTable,
+        selectedInscriptionId,
+        selectedAttendanceQrCode,
+        onGroupFilterChange,
+        onCategoryFilterChange,
+        resolveRouteFromClick,
+        onAttendanceQrModalToggle,
+        onCancelModal,
+        onSuccessModal,
+    };
 }

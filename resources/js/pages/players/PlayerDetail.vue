@@ -28,10 +28,16 @@
                                 class="text-danger">&ensp;(*)&ensp;</span> son requeridos.</h6>
 
                         <div class="d-flex justify-content-end ">
-                            <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
-                                <i class="fa-regular fa-circle-question me-2"></i>
-                                Guia
-                            </button>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-primary btn-sm" @click="showAttendanceQr = true">
+                                    <i class="fa-solid fa-qrcode me-2"></i>
+                                    QR asistencia
+                                </button>
+                                <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                                    <i class="fa-regular fa-circle-question me-2"></i>
+                                    Guia
+                                </button>
+                            </div>
                         </div>
                     </template>
 
@@ -228,12 +234,21 @@
     <breadcrumb :parent="'Plataforma'" :current="currentTextPlayer" />
 
     <PageTutorialOverlay :tutorial="tutorial" />
+    <AttendanceQrModal
+        v-model="showAttendanceQr"
+        :unique-code="playerUniqueCode"
+        title="QR de asistencia"
+        subtitle="Úsalo para compartir o descargar el acceso rápido del deportista."
+    />
 </template>
 <script setup>
+import { computed, ref } from 'vue'
 import { Form, Field } from 'vee-validate'
+import { useRoute } from 'vue-router'
 import flatPickr from 'vue-flatpickr-component';
 import Loader from '@/components/general/Loader';
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import AttendanceQrModal from '@/components/attendances/AttendanceQrModal.vue'
 import 'vue3-form-wizard/dist/style.css'
 import 'flatpickr/dist/flatpickr.css';
 import "@/assets/sass/forms/custom-flatpickr.css";
@@ -241,6 +256,9 @@ import usePlayerDetail from '@/composables/player/playerDetail'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { playerDetailTutorial } from '@/tutorials/players'
 
+const route = useRoute()
+const showAttendanceQr = ref(false)
+const playerUniqueCode = computed(() => String(route.params.unique_code || ''))
 const { globalError, onSubmit, wizardOptions, currentTextPlayer, step, initialValues, flatpickrConfig, settings, schema, degrees, loadingText, isLoading, guardianPortalEnabled, formErrorSummary, hasGeneralErrors, goToStep } = usePlayerDetail()
 const tutorial = usePageTutorial(playerDetailTutorial, {
     goToStep,

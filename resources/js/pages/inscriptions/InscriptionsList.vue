@@ -42,8 +42,36 @@
                             <tr>
                                 <th></th>
                                 <th>Código</th>
-                                <th id="select_groups"></th>
-                                <th id="select_categories"></th>
+                                <th>
+                                    <select
+                                        id="groups"
+                                        name="groups"
+                                        class="form-select form-select-sm form-select-custom"
+                                        data-tour="inscription-group-filter"
+                                        @change="onGroupFilterChange"
+                                        @click.stop
+                                    >
+                                        <option value="">Grupos...</option>
+                                        <option v-for="group in settings.all_groups" :value="group.id" :key="group.id">
+                                            {{ group.name }}
+                                        </option>
+                                    </select>
+                                </th>
+                                <th>
+                                    <select
+                                        id="categories"
+                                        name="categories"
+                                        class="form-select form-select-sm form-select-custom"
+                                        data-tour="inscription-category-filter"
+                                        @change="onCategoryFilterChange"
+                                        @click.stop
+                                    >
+                                        <option value="">Categorias...</option>
+                                        <option v-for="category in settings.categories" :value="category.category" :key="category.category">
+                                            {{ category.category }}
+                                        </option>
+                                    </select>
+                                </th>
                                 <th>Genero</th>
                                 <th>Nombres</th>
                                 <th>Cert. Médico</th>
@@ -57,48 +85,28 @@
         </template>
     </panel>
 
-    <teleport defer to="#select_groups">
-        <select
-            placeholder="Grupos"
-            id="groups"
-            name="groups"
-            class="form-select form-select-sm form-select-custom"
-            data-tour="inscription-group-filter"
-        >
-            <option value="">Grupos...</option>
-            <option v-for="group in settings.all_groups" :value="group.id" :key="group.id">{{ group.name }}
-            </option>
-        </select>
-    </teleport>
-
-    <teleport defer to="#select_categories">
-        <select
-            placeholder="Categorias"
-            id="categories"
-            name="categories"
-            class="form-select form-select-sm form-select-custom"
-            data-tour="inscription-category-filter"
-        >
-            <option value="">Categorias...</option>
-            <option v-for="category in settings.categories" :value="category.category" :key="category.category">
-                {{ category.category }}
-            </option>
-        </select>
-    </teleport>
-
     <ModalInscription :inscription_id="selectedInscriptionId" @success="onSuccessModal" @cancel="onCancelModal"/>
+    <AttendanceQrModal
+        v-if="selectedAttendanceQrCode"
+        :model-value="Boolean(selectedAttendanceQrCode)"
+        :unique-code="selectedAttendanceQrCode"
+        title="QR de asistencia"
+        subtitle="Compártelo o descárgalo para la toma rápida desde el celular."
+        @update:model-value="onAttendanceQrModalToggle"
+    />
     <PageTutorialOverlay :tutorial="tutorial" />
 
     <breadcrumb :parent="'Plataforma'" :current="'Inscripciones'" />
 </template>
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useSetting } from '@/store/settings-store';
 import { useAuthUser } from '@/store/auth-user';
 import useInscriptionConfig from '@/composables/inscription/inscriptionList';
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue';
+import AttendanceQrModal from '@/components/attendances/AttendanceQrModal.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial';
 import { usePageTitle } from "@/composables/use-meta";
 import { inscriptionsTutorial } from '@/tutorials/inscriptions';
@@ -115,7 +123,19 @@ const yearOptions = computed(() => settings.inscription_years || [])
 const canExportInscriptions = computed(() => auth.hasAnyRole(['super-admin', 'school']))
 const selectedYear = ref(String(route.query.inscription_year || currentYear))
 const exportExcelUrl = computed(() => `/export/inscriptions/excel?inscription_year=${encodeURIComponent(selectedYear.value || currentYear)}`)
-const { inscription_table, options, reloadTable, selectedInscriptionId, resolveRouteFromClick, onCancelModal, onSuccessModal } = useInscriptionConfig(selectedYear, canExportInscriptions)
+const {
+    inscription_table,
+    options,
+    reloadTable,
+    selectedInscriptionId,
+    selectedAttendanceQrCode,
+    onGroupFilterChange,
+    onCategoryFilterChange,
+    resolveRouteFromClick,
+    onAttendanceQrModalToggle,
+    onCancelModal,
+    onSuccessModal,
+} = useInscriptionConfig(selectedYear, canExportInscriptions)
 const tutorial = usePageTutorial(inscriptionsTutorial, {
     canExportInscriptions,
 })
@@ -147,27 +167,31 @@ watch(yearOptions, () => {
     }
 }, { immediate: true })
 
-watch(() => route.query.inscription_year, (value) => {
-    if (!value) {
+watch(() => route.query.inscription_year, async (value) => {
+    const year = value ? String(value) : resolveDefaultYear()
+
+    if (selectedYear.value !== year) {
+        selectedYear.value = year
+        await nextTick()
+    }
+
+    reloadTable()
+}, { flush: 'post' })
+
+watch(selectedYear, async (year) => {
+    const normalizedYear = String(year)
+
+    if (String(route.query.inscription_year || '') === normalizedYear) {
         return
     }
 
-    const year = String(value)
-    if (selectedYear.value !== year) {
-        selectedYear.value = year
-    }
-})
-
-watch(selectedYear, (year) => {
-    router.replace({
+    await router.replace({
         name: 'inscriptions',
         query: {
             ...route.query,
-            inscription_year: String(year),
+            inscription_year: normalizedYear,
         },
     })
-
-    reloadTable()
 })
 
 onMounted(async () => {
