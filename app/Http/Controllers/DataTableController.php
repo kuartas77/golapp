@@ -165,11 +165,14 @@ class DataTableController extends Controller
         ->addColumn('buttons', function($model){
             $editRoute = route('training-sessions.show', [$model->id]);
             $updateRoute = route('training-sessions.update', [$model->id]);
+            $deleteRoute = route('training-sessions.update', [$model->id]);
             $exportPdfURL = route('export.training_sessions.pdf', [$model->id]);
-            return '<div class="btn-group">'
+            return '<form method="POST" action="'.$deleteRoute.'" accept-charset="UTF-8"><input name="_method" type="hidden" value="DELETE"><input name="_token" type="hidden" value="'.csrf_token().'">'
+            .'<div class="btn-group">'
             .'<a href="'.$exportPdfURL.'" target="_blank" class="btn btn-info btn-xs"><i class="fas fa-print" aria-hidden="true"></i></a>'
             .'<a href="javascript:void(0)" data-toggle="modal" data-target-custom="#modal_training_sessions" data-backdrop="static" data-keyboard="false" data-edit="'.$editRoute.'" data-update="'.$updateRoute.'" class="btn btn-warning btn-xs edit_session" title="Modificar Sesion"><i class="fas fa-pencil-alt"></i></a>'
-            .'</div>';
+            .'<button class="btn btn-danger btn-xs disable-sesion" title="Eliminar sesion"><i class="fas fa-trash-alt"></i></button>'
+            .'</div></form>';
         })
         ->escapeColumns([])
         ->toJson();

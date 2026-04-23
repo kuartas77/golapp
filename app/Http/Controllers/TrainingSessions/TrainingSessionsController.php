@@ -63,4 +63,11 @@ class TrainingSessionsController extends Controller
         Alert::error(env('APP_NAME'), __('messages.error_general'));
         return back()->withInput($request->input());
     }
+
+    public function destroy(TrainingSession $trainingSession)
+    {
+        $this->repository->delete($trainingSession);
+        Alert::success(env('APP_NAME'), __('Eliminado'));
+        return back();
+    }
 }
