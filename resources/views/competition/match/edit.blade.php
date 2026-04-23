@@ -50,8 +50,8 @@
         const urlAutoComplete = "{{route('autocomplete.fields')}}";
         const positions = @json($positions);
     </script>
-    <script src="{{asset('js/matches_functions.js')}}"></script>
-    <script src="{{asset('js/matches_form.js')}}"></script>
+    <script src="{{asset('js/matches_functions.js?id=111')}}"></script>
+    <script src="{{asset('js/matches_form.js?id=111')}}"></script>
     <script>
         $(document).ready(() => {
             $("#accept_add").on('click', () => {
