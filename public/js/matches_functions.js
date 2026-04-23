@@ -46,6 +46,54 @@ const selectRedCards = () => {
     return "<option value='0'>0</option><option value='1'>1</option>";
 }
 
+const escapeMatchHtml = (value) => {
+    return $('<div>').text(value ?? '').html();
+}
+
+const buildMemberContactLine = (player) => {
+    let contacts = [];
+
+    if (player.phones) {
+        contacts.push('Tel: ' + escapeMatchHtml(player.phones));
+    }
+
+    if (player.mobile) {
+        contacts.push('Cel: ' + escapeMatchHtml(player.mobile));
+    }
+
+    if (contacts.length === 0) {
+        return '';
+    }
+
+    return "<small class='text-muted match-player-contact'>" + contacts.join(' | ') + "</small>";
+}
+
+const buildMemberIdentityCell = ({player, count, inscriptionId, includeIdField = false}) => {
+    let hiddenFields = '';
+
+    if (includeIdField) {
+        hiddenFields += "<input name='ids[" + count + "]' type='hidden' value=''>";
+    }
+
+    hiddenFields += "<input name='inscriptions_id[" + count + "]' type='hidden' value='" + escapeMatchHtml(inscriptionId) + "' class='inscriptions'>";
+
+    return "<td class='match-player-cell'>" +
+        hiddenFields +
+        "<div class='match-player-meta'>" +
+        "<img class='match-player-avatar' src='" + escapeMatchHtml(player.photo_url) + "' alt='" + escapeMatchHtml(player.full_names) + "'>" +
+        "<div>" +
+        "<span class='match-player-name'>" + escapeMatchHtml(player.full_names) + "</span>" +
+        "<span class='match-player-code'>" + escapeMatchHtml(player.unique_code) + "</span>" +
+        buildMemberContactLine(player) +
+        "</div>" +
+        "</div>" +
+        "</td>";
+}
+
+const updateMembersCount = () => {
+    $('#members_count').text($('#body_members tr').length);
+}
+
 const alertSwalError = () => {
     Swal.fire('Atención!',
         'El Deportista ya hace parte del equipo ó no se encontro.',
