@@ -51,8 +51,8 @@
         const urlAutoComplete = "{{route('autocomplete.fields')}}";
         const urlUploadFile = "{{route('import.match', [$information->id])}}";
     </script>
-    <script src="{{asset('js/matches_functions.js&id=1111')}}"></script>
-    <script src="{{asset('js/matches_form.js&id=1111')}}"></script>
+    <script src="{{asset('js/matches_functions.js?id=1111')}}"></script>
+    <script src="{{asset('js/matches_form.js?id=1111')}}"></script>
     <script>
         $(document).ready(() => {
             $("#accept_add").on('click', () => {
