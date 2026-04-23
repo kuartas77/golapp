@@ -125,4 +125,9 @@ class TrainingSessionRepository
         }
         return $tasks;
     }
+
+    public function delete(TrainingSession $trainingSession)
+    {
+        $trainingSession->delete();
+    }
 }
