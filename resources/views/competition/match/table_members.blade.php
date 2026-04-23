@@ -1,25 +1,25 @@
-<div class="col-sm-12">
-    <div class="table-responsive-md">
-        <div class="table-responsive-md">
-            <table class="table table-bordered table-condensed" width="100%">
+<div>
+    <div class="match-table-wrapper">
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm match-table" width="100%">
                 <thead>
-                    <tr>
-                        <th style="width: 10%;">Deportista</th>
-                        <th style="width: 8%;">AST</th>
-                        <th style="width: 8%;">Titular</th>
-                        <th style="width: 8%;">Jugó aprox</th>
-                        <th style="width: 12%;">Posición</th>
-                        <th style="width: 6%">Goles</th>
-                        <th style="width: 6%">AST Gol</th>
-                        <th style="width: 6%">Atajadas </th>
-                        <th style="width: 6%">Amarillas</th>
-                        <th style="width: 6%">Rojas</th>
-                        <th style="width: 6%;">CAL</th>
-                        <th style="width: 20%;">Observación</th>
-                    </tr>
+                <tr>
+                    <th class="match-player-cell">Deportista</th>
+                    <th class="match-metric-cell">Asist.</th>
+                    <th class="match-metric-cell">Tit.</th>
+                    <th class="match-metric-cell">Min.</th>
+                    <th class="match-position-cell">Pos.</th>
+                    <th class="match-metric-cell">Goles</th>
+                    <th class="match-metric-cell">Ast. gol</th>
+                    <th class="match-metric-cell">Ataj.</th>
+                    <th class="match-metric-cell">TA</th>
+                    <th class="match-metric-cell">TR</th>
+                    <th class="match-metric-cell">Calif.</th>
+                    <!-- <th class="match-observation-cell">Obs.</th> -->
+                </tr>
                 </thead>
                 <tbody id="body_members">
-                    {!! $information->rows !!}
+                {!! $information->rows !!}
                 </tbody>
             </table>
         </div>

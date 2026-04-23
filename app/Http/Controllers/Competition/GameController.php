@@ -82,6 +82,7 @@ class GameController extends Controller
      */
     public function edit(Game $match)
     {
+        $match = $this->repository->findSchoolMatch((int) $match->id);
         view()->share('information', $this->repository->getInformationToMatch($match));
         return view('competition.match.edit');
     }
@@ -93,6 +94,7 @@ class GameController extends Controller
      */
     public function update(CompetitionRequest $request, Game $match)
     {
+        $match = $this->repository->findSchoolMatch((int) $match->id);
         $matchData = $request->only([
             'tournament_id', 'competition_group_id', 'date', 'hour', 'num_match',
             'place', 'rival_name', 'final_score', 'general_concept', 'school_id'
@@ -117,6 +119,7 @@ class GameController extends Controller
      */
     public function destroy(Game $match)
     {
+        $match = $this->repository->findSchoolMatch((int) $match->id);
         if ($match->forceDelete()) {
             Alert::success(env('APP_NAME'), __("messages.match_deleted"));
             return redirect(route('matches.index'));

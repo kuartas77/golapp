@@ -69,6 +69,18 @@ class Game extends Model
         return Str::limit($this->attributes['general_concept'], 100, '...');
     }
 
+    public function getFinalScoreArrayAttribute(): ?object
+    {
+        if (is_null($this->final_score)) {
+            return null;
+        }
+
+        return (object) [
+            'soccer' => data_get($this->final_score, 'soccer', data_get($this->final_score, 'local')),
+            'rival' => data_get($this->final_score, 'rival', data_get($this->final_score, 'visitor')),
+        ];
+    }
+
     public function getUrlDestroyAttribute()
     {
         return route('matches.destroy', [$this->attributes['id']]);
