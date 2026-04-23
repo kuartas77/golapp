@@ -50,6 +50,8 @@
                     '<td><select class="form-control form-control-sm select" name="played_approx[' + count + ']">' + selectMinutes() + '</select></td>' +
                     '<td><select class="form-control form-control-sm select" name="position[' + count + ']" required>' + selectPositions() + '</select></td>' +
                     '<td><select class="form-control form-control-sm select" name="goals[' + count + ']">' + selectGoals() + '</select></td>' +
+                    '<td><select class="form-control form-control-sm select" name="goal_assists[' + count + ']">' + selectGoals() + '</select></td>' +
+                    '<td><select class="form-control form-control-sm select" name="goal_saves[' + count + ']">' + selectGoals() + '</select></td>' +
                     '<td><select class="form-control form-control-sm select" name="yellow_cards[' + count + ']">' + selectYellowCards() + '</select></td>' +
                     '<td><select class="form-control form-control-sm select" name="red_cards[' + count + ']">' + selectRedCards() + '</select></td>' +
                     '<td><select class="form-control form-control-sm select" name="qualification[' + count + ']" required>' + selectScore() + '</select></td>' +

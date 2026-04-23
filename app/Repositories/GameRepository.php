@@ -58,6 +58,11 @@ class GameRepository
         return $this->makeMatchEdit($game);
     }
 
+    public function findSchoolMatch(int $id): Game
+    {
+        return $this->game->query()->schoolId()->findOrFail($id);
+    }
+
     /**
      * @param $competitionGroup
      */
