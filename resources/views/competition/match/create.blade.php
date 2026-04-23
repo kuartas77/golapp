@@ -1,20 +1,42 @@
 @extends('layouts.app')
+@section('css')
+    @include('competition.match.styles')
+@endsection
 @section('content')
     <x-bread-crumb title="Control De Competencia" :option="0"/>
-    <x-row-card col-inside="12" >
-        {{html()->form('post', route('matches.store'))->attributes(['id'=>'form_matches','class'=>'form-horizontal'])->open()}}
-            <div class="form-body">
-                @include('competition.match.fields')
+    {{html()->form('post', route('matches.store'))->attributes(['id'=>'form_matches','class'=>'form-horizontal'])->open()}}
+        <div class="row match-layout">
+            <div class="col-lg-4 col-xl-3 mb-3">
+                <div class="card m-b-0 match-sidebar-card match-sticky-card">
+                    <div class="card-body match-card-body">
+                        @include('competition.match.fields')
 
-                @include('competition.match.table_members')
+                        <div class="match-save-bar" id="button_save">
+                            <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info">
+                                Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="form-actions m-t-0 text-center" id="button_save">
-                <button type="submit" class="btn waves-effect waves-light btn-rounded btn-info">
-                    Guardar
-                </button>
+
+            <div class="col-lg-8 col-xl-9">
+                <div class="card m-b-0 match-players-card">
+                    <div class="card-body match-card-body">
+                        <div class="match-table-toolbar">
+                            <div>
+                                <h4 class="match-table-title">Jugadores</h4>
+                                <small class="text-muted">Registra asistencia, minutos y rendimiento del partido.</small>
+                            </div>
+                            <span class="match-table-count">Total <strong id="members_count">{{ $information->count }}</strong></span>
+                        </div>
+
+                        @include('competition.match.table_members')
+                    </div>
+                </div>
             </div>
-        {{ html()->form()->close() }}
-    </x-row-card >
+        </div>
+    {{ html()->form()->close() }}
 @endsection
 @section('modals')
     @include('modals.add_member_match')
@@ -29,36 +51,32 @@
         const urlAutoComplete = "{{route('autocomplete.fields')}}";
         const urlUploadFile = "{{route('import.match', [$information->id])}}";
     </script>
-    <script src="{{asset('js/matches_functions.js')}}"></script>
-    <script src="{{asset('js/matches_form.js')}}"></script>
+    <script src="{{asset('js/matches_functions.js&id=1111')}}"></script>
+    <script src="{{asset('js/matches_form.js&id=1111')}}"></script>
     <script>
         $(document).ready(() => {
             $("#accept_add").on('click', () => {
                 let member = '<tr>' +
-                    '<td style="display: flex;">' +
-                    '<input name="inscriptions_id[' + count + ']" type="hidden" value="' + member_add.id + '" class="inscriptions">' +
-                    '<img class="media-object img-rounded" src="' + member_add.player.photo_url + '" width="60" height="60">' +
-                    '<p>' +
-                    member_add.player.full_names + '<br>' +
-                    'Teléfono: <small>' + member_add.player.phones + '</small><br>' +
-                    'Celular: <small>' + member_add.player.mobile + '</small><br>' +
-                    'Código: <strong>' + member_add.player.unique_code + '</strong><br>' +
-                    '</p>' +
-                    '</td>' +
-                    '<td><select class="form-control form-control-sm select" name="assistance[' + count + ']">' + selectOptions() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="titular[' + count + ']">' + selectOptions() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="played_approx[' + count + ']">' + selectMinutes() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="position[' + count + ']">' + selectPositions() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="goals[' + count + ']">' + selectGoals() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="goal_assists[' + count + ']">' + selectGoals() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="goal_saves[' + count + ']">' + selectGoals() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="yellow_cards[' + count + ']">' + selectYellowCards() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="red_cards[' + count + ']">' + selectRedCards() + '</select></td>' +
-                    '<td><select class="form-control form-control-sm select" name="qualification[' + count + ']">' + selectScore() + '</select></td>' +
-                    '<td><textarea class="form-control form-control-sm" name="observation[' + count + ']" cols="30" rows="3"></textarea></td>' +
+                    buildMemberIdentityCell({
+                        player: member_add.player,
+                        count,
+                        inscriptionId: member_add.id
+                    }) +
+                    '<td class="match-metric-cell"><select class="form-control form-control-sm select" name="assistance[' + count + ']">' + selectOptions() + '</select></td>' +
+                    '<td class="match-metric-cell"><select class="form-control form-control-sm select" name="titular[' + count + ']">' + selectOptions() + '</select></td>' +
+                    '<td class="match-metric-cell"><select class="form-control form-control-sm select" name="played_approx[' + count + ']">' + selectMinutes() + '</select></td>' +
+                    '<td class="match-position-cell"><select class="form-control form-control-sm select" name="position[' + count + ']">' + selectPositions() + '</select></td>' +
+                    '<td class="match-metric-cell"><select class="form-control form-control-sm select" name="goals[' + count + ']">' + selectGoals() + '</select></td>' +
+                    '<td class="match-metric-cell"><select class="form-control form-control-sm select" name="goal_assists[' + count + ']">' + selectGoals() + '</select></td>' +
+                    '<td class="match-metric-cell"><select class="form-control form-control-sm select" name="goal_saves[' + count + ']">' + selectGoals() + '</select></td>' +
+                    '<td class="match-metric-cell"><select class="form-control form-control-sm select" name="yellow_cards[' + count + ']">' + selectYellowCards() + '</select></td>' +
+                    '<td class="match-metric-cell"><select class="form-control form-control-sm select" name="red_cards[' + count + ']">' + selectRedCards() + '</select></td>' +
+                    '<td class="match-metric-cell"><select class="form-control form-control-sm select" name="qualification[' + count + ']">' + selectScore() + '</select></td>' +
+                    '<td class="match-observation-cell"><textarea class="form-control form-control-sm match-observation-field" name="observation[' + count + ']" cols="30" rows="2"></textarea></td>' +
                     '</tr>';
                 $('#body_members').prepend(member);
                 count++;
+                updateMembersCount();
                 cancelAddMember();
                 $("#modal_search_member").modal('hide');
             });
@@ -81,12 +99,15 @@
                         success : function(data) {
                             $('#body_members').empty().prepend(data.rows);
                             count = data.count
+                            updateMembersCount()
                             $('#file-upload').val(null)
                         }
                     });
                 }
 
             });
+
+            updateMembersCount();
         });
     </script>
 @endsection
