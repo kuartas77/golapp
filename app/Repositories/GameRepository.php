@@ -41,11 +41,16 @@ class GameRepository
     public function getInformationToMatch(?Game $game = null): object
     {
         if (is_null($game)) {
-            $competitionGroup = CompetitionGroup::query()->findOrFail(request('competition_group'));
+            $competitionGroup = CompetitionGroup::query()->schoolId()->findOrFail(request('competition_group'));
             return $this->makeMatch($competitionGroup);
         }
 
         return $this->makeMatchEdit($game);
+    }
+
+    public function findSchoolMatch(int $id): Game
+    {
+        return $this->game->query()->schoolId()->findOrFail($id);
     }
 
     /**
