@@ -122,7 +122,9 @@ class SettingsController extends Controller
         $school = getSchool(auth()->user());
         $school_id = $school->id;
 
-        $users = Cache::remember("KEY_USERS_{$school_id}", now()->addMinute(), function() use($school){
+        $users = Cache::remember("KEY_USERS_{$school_id}",
+            now()->addMinute(),
+            function() use($school){
             return $school->users()->get(['users.id', 'users.name'])->map(fn($user) => ['id'=>$user->id, 'name'=>$user->name]);
         });
 
@@ -130,7 +132,10 @@ class SettingsController extends Controller
             now()->addMinute(),
             fn() => Schedule::query()->schoolId()->get(['schedule']))->map(fn($item) => ['id'=>$item->schedule, 'name'=>$item->schedule]);
 
-        $tournaments = Cache::remember("KEY_TOURNAMENT_{$school_id}", now()->addMinutes(10), fn() => Tournament::orderBy('name')->schoolId()->get(['name', 'id']))->map(fn($item) => ['id'=>$item->id, 'name'=>$item->name]);
+        $tournaments = Cache::remember("KEY_TOURNAMENT_{$school_id}",
+            now()->addMinutes(2),
+            fn() => Tournament::orderBy('name')->schoolId()->get(['name', 'id'])->map(fn($item) => ['id'=>$item->id, 'name'=>$item->name])
+        );
 
         $year_active = Cache::remember("KEY_YEARS_{$school_id}", now()->addDay(), function () {
             $now = now();

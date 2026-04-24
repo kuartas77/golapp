@@ -258,7 +258,7 @@ router.beforeEach(async (to, from, next) => {
     const appState = useAppState();
     const isGuardianRoute = to.matched.some(r => r.meta.guardianArea);
 
-    appState.startGlobalLoading();
+    appState.startNavigationLoading();
 
     if (isGuardianRoute) {
         const requiresGuardian = to.matched.some(r => r.meta.requiresGuardian);
@@ -303,13 +303,13 @@ router.beforeEach(async (to, from, next) => {
 router.afterEach(() => {
     const appState = useAppState();
 
-    appState.stopGlobalLoading();
+    appState.resetNavigationLoading();
 });
 
 router.onError(() => {
     const appState = useAppState();
 
-    appState.stopGlobalLoading();
+    appState.resetNavigationLoading();
 });
 
 export default router;

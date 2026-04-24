@@ -1,36 +1,36 @@
 <template>
     <section class="coachboard-page">
         <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
-            <div>
+            <div >
                 <div class="small text-muted text-uppercase fw-semibold mb-2">Pizarra táctica</div>
                 <h2 class="h4 mb-2">Construcción de alineación inicial</h2>
-                <p class="text-muted mb-0 coachboard-copy">
+                <!-- <p class="text-muted mb-0 coachboard-copy">
                     Ajusta el sistema, arrastra jugadores al campo y reorganiza posiciones para preparar la formación.
-                </p>
+                </p> -->
             </div>
 
             <div class="row g-2 coachboard-metrics">
                 <div class="col-sm-4 col-12">
                     <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body py-3">
-                            <div class="small text-muted text-uppercase fw-semibold mb-1">Sistema</div>
-                            <div class="fs-4 fw-bold">{{ currentFormation }}</div>
+                        <div class="card-body ">
+                            <div class="small text-muted text-uppercase fw-semibold ">Formación</div>
+                            <div class="fs-6 fw-bold">{{ currentFormation }}</div>
                         </div>
                     </div>
                 </div>
                 <div class="col-sm-4 col-12">
                     <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body py-3">
-                            <div class="small text-muted text-uppercase fw-semibold mb-1">Titulares</div>
-                            <div class="fs-4 fw-bold">{{ startersCount }}/{{ currentModality }}</div>
+                        <div class="card-body ">
+                            <div class="small text-muted text-uppercase fw-semibold ">Titulares</div>
+                            <div class="fs-6 fw-bold">{{ startersCount }}/{{ currentModality }}</div>
                         </div>
                     </div>
                 </div>
                 <div class="col-sm-4 col-12">
                     <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body py-3">
-                            <div class="small text-muted text-uppercase fw-semibold mb-1">Disponibles</div>
-                            <div class="fs-4 fw-bold">{{ availablePlayers.length }}</div>
+                        <div class="card-body ">
+                            <div class="small text-muted text-uppercase fw-semibold ">Disponibles</div>
+                            <div class="fs-6 fw-bold">{{ availablePlayers.length }}</div>
                         </div>
                     </div>
                 </div>
@@ -38,7 +38,7 @@
         </div>
 
         <div class="row g-3 align-items-start">
-            <div class="col-xl-7 col-lg-7 col-12">
+            <div class="col-xl-12 col-lg-12 col-12">
                 <Field
                     :formation="currentFormation"
                     :formations-map="currentFormationsMap"
@@ -53,20 +53,20 @@
                 />
             </div>
 
-            <div class="col-xl-5 col-lg-5 col-12">
+            <div class="col-xl-12 col-lg-12 col-12">
                 <div class="row g-3">
                     <div class="col-12">
-                    <TacticalSelector
-                        :formation="currentFormation"
-                        :modality="currentModality"
-                        :custom-formations="customFormations"
-                        @change-formation="handleFormationChange"
-                        @add-formation="handleAddFormation"
-                    />
+                        <PlayerList :players="availablePlayers" />
                     </div>
 
                     <div class="col-12">
-                    <PlayerList :players="availablePlayers" />
+                        <TacticalSelector
+                            :formation="currentFormation"
+                            :modality="currentModality"
+                            :custom-formations="customFormations"
+                            @change-formation="handleFormationChange"
+                            @add-formation="handleAddFormation"
+                        />
                     </div>
                 </div>
             </div>

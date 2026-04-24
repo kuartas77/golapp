@@ -4,12 +4,12 @@
             <div>
                 <div class="section-kicker">Visualizador táctico</div>
                 <h3 class="field-title">Cancha interactiva</h3>
-                <p class="field-copy">
+                <small class="field-copy">
                     Arrastra jugadores desde la plantilla, reajusta posiciones en el campo y guarda la alineación como imagen.
-                </p>
+                </small>
             </div>
 
-            <div class="field-stats">
+            <!-- <div class="field-stats">
                 <article class="stat-chip">
                     <span>Formación</span>
                     <strong>{{ formation }}</strong>
@@ -22,7 +22,7 @@
                     <span>Libres</span>
                     <strong>{{ openSlots }}</strong>
                 </article>
-            </div>
+            </div> -->
         </header>
 
         <div class="field-toolbar no-print">
@@ -185,7 +185,7 @@ defineExpose({
 
 .stat-chip strong {
     color: #173e2b;
-    font-size: 1.15rem;
+    font-size: 1rem;
     font-weight: 800;
 }
 

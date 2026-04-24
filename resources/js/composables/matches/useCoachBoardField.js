@@ -21,6 +21,11 @@ import { computed, onMounted, ref, watch } from 'vue'
  * - `emit('update-positions')`: expone el snapshot táctico completo para guardado.
  */
 export default function useCoachBoardField(props, emit) {
+    const PLAYER_NODE_RADIUS = 36
+    const PLAYER_NODE_HOVER_RADIUS = 40
+    const PLAYER_IMAGE_RADIUS = 31
+    const PLAYER_LABEL_OFFSET_Y = 44
+
     /* --------------------------------------------------------------------- */
     /* Estado principal del canvas                                           */
     /* --------------------------------------------------------------------- */
@@ -646,7 +651,7 @@ export default function useCoachBoardField(props, emit) {
     }
 
     function drawPositionNode(position, palette, isHovered) {
-        const radius = isHovered ? 34 : 30
+        const radius = isHovered ? PLAYER_NODE_HOVER_RADIUS : PLAYER_NODE_RADIUS
 
         ctx.save()
         ctx.shadowColor = palette.glow
@@ -712,10 +717,16 @@ export default function useCoachBoardField(props, emit) {
                     try {
                         ctx.save()
                         ctx.beginPath()
-                        ctx.arc(position.x, position.y, 25, 0, Math.PI * 2)
+                        ctx.arc(position.x, position.y, PLAYER_IMAGE_RADIUS, 0, Math.PI * 2)
                         ctx.closePath()
                         ctx.clip()
-                        ctx.drawImage(position.assigned.imgObj, position.x - 25, position.y - 25, 50, 50)
+                        ctx.drawImage(
+                            position.assigned.imgObj,
+                            position.x - PLAYER_IMAGE_RADIUS,
+                            position.y - PLAYER_IMAGE_RADIUS,
+                            PLAYER_IMAGE_RADIUS * 2,
+                            PLAYER_IMAGE_RADIUS * 2
+                        )
                         ctx.restore()
                     } catch (error) {
                         console.error('Error dibujando imagen:', error)
@@ -778,7 +789,7 @@ export default function useCoachBoardField(props, emit) {
         const totalWidth = Math.max(textWidth + padding * 2, roleText ? roleWidth + 24 : 90)
         const totalHeight = roleText ? 42 : 28
         const badgeX = x - totalWidth / 2
-        const badgeY = y + 38
+        const badgeY = y + PLAYER_LABEL_OFFSET_Y
 
         ctx.save()
         ctx.shadowColor = 'rgba(0, 0, 0, 0.28)'
@@ -813,7 +824,7 @@ export default function useCoachBoardField(props, emit) {
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)'
         ctx.lineWidth = 1.5
         ctx.beginPath()
-        ctx.moveTo(x, y + 30)
+        ctx.moveTo(x, y + PLAYER_NODE_RADIUS)
         ctx.lineTo(x, badgeY)
         ctx.stroke()
     }

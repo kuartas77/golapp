@@ -6,24 +6,24 @@
                     <div class="small text-muted text-uppercase fw-semibold mb-1">Plantilla disponible</div>
                     <h3 class="h5 mb-0">Jugadores listos para arrastrar</h3>
                 </div>
-                <span class="badge rounded-pill text-bg-dark px-3 py-2">{{ players.length }}</span>
+                <span class="badge rounded-pill text-muted px-3 py-2">{{ players.length }}</span>
             </div>
 
             <p class="text-muted small mb-3">
                 Arrastra cada jugador al campo para asignarlo a una posición. Doble clic sobre un titular para regresarlo.
             </p>
 
-            <div class="row g-2 player-list">
-                <div v-for="p in players" :key="p.id" class="col-xl-6 col-md-6 col-12">
+            <div class="row g-1 player-list">
+                <div v-for="p in players" :key="p.id" class="col-xl-3 col-md-3 col-12">
                     <div
-                        class="player-card h-100 border rounded-3 p-2 d-flex align-items-center gap-2"
+                        class="player-card h-100 border rounded-3 p-2 d-flex align-items-center gap-1"
                         draggable="true"
                         @dragstart="onDragStart($event, p)"
                     >
                         <img :src="p.img" :alt="p.name" width="56" height="56" class="player-avatar" />
                         <div class="min-w-0">
                             <div class="small fw-semibold text-break">{{ p.name }}</div>
-                            <div class="text-muted player-hint">Arrastrar al campo</div>
+                            <small class="text-muted player-hint">Arrastrar al campo</small>
                         </div>
                     </div>
                 </div>
@@ -73,7 +73,7 @@ function onDragStart(e, player) {
 }
 
 .player-hint {
-    font-size: 0.8rem;
+    font-size: 0.6rem;
 }
 
 .player-list:active {

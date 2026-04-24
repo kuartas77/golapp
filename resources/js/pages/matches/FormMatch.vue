@@ -3,168 +3,205 @@
         @submit="handleSubmit">
 
         <div class="layout-px-spacing">
-            <div class="account-settings-container layout-top-spacing">
+            <div class="layout-top-spacing">
+                <div class="match-page-shell position-relative">
+                    <Loader :is-loading="isLoading" />
 
-                <div class="account-content">
-                    <div class="panel">
-                        <div class="panel-body">
-                            <Loader :is-loading="isLoading" />
-                            <div class="d-flex justify-content-end mb-3 no-print" data-tour="match-form-header">
-                                <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
-                                    <i class="fa-regular fa-circle-question me-2"></i>
-                                    Guia
-                                </button>
-                            </div>
+                    <div class="row g-3 match-layout">
+                        <div class="col-12 col-lg-4 col-xl-3 no-print">
+                            <div class="card match-sidebar-card match-sticky-card h-100">
+                                <div class="card-body match-card-body">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3"
+                                        data-tour="match-form-header">
+                                        <div>
+                                            <h4 class="match-sidebar-title">{{ sidebarTitle }}</h4>
+                                            <p class="match-sidebar-subtitle">{{ sidebarSubtitle }}</p>
+                                        </div>
 
-                            <div class="row col-md-12 no-print" data-tour="match-form-general">
-
-                                <div class="col-md-12 col-sm-12 col-lg-3 col-xl-3">
-                                    <div class="form-group">
-                                        <label for="competition_group" class="form-label">Grupo Competencia</label>
-                                        <Field name="competition_group" as="input" id="competition_group" readonly
-                                            class="form-control-plaintext">
-                                        </Field>
+                                        <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                                            <i class="fa-regular fa-circle-question me-2"></i>
+                                            Guia
+                                        </button>
                                     </div>
-                                </div>
 
-                                <div class="col-md-12 col-sm-12 col-lg-3 col-xl-3">
-                                    <div class="form-group">
-                                        <label for="professor" class="form-label">Director Técnico</label>
-                                        <Field name="professor" as="input" id="professor" readonly
-                                            class="form-control-plaintext">
-                                        </Field>
+                                    <div v-if="globalError" class="alert alert-danger py-2 px-3 small mb-3">
+                                        {{ globalError }}
                                     </div>
-                                </div>
 
-                                <div class="col-md-12 col-sm-12 col-lg-3 col-xl-3">
-                                    <div class="form-group">
-                                        <label for="tournament_id" class="form-label">Torneo<span
-                                                class="text-danger">&nbsp;(*)</span></label>
-                                        <Field name="tournament_id" v-slot="{ field, errorMessage, meta }">
-                                            <select id="tournament_id"
-                                            v-bind="field"
-                                            class="form-select form-select-sm"
-                                            :class="{ 'is-invalid': meta.touched && errorMessage }">
-                                                <option :value="item.value" v-for="item in settingsGroup.tournaments"
-                                                    :key="item.value">
-                                                    {{ item.label }}
-                                                </option>
-                                            </select>
-                                        </Field>
-                                        <ErrorMessage name="tournament_id" class="invalid-feedback d-block" />
-                                    </div>
-                                </div>
+                                    <div class="match-form-block" data-tour="match-form-general">
+                                        <div class="match-form-heading">
+                                            <h5 class="match-form-title">Detalles generales</h5>
+                                            <p class="match-form-subtitle">
+                                                Datos base del encuentro y del grupo de competencia.
+                                            </p>
+                                        </div>
 
-                                <div class="col-md-12 col-sm-12 col-lg-3 col-xl-3">
-                                    <div class="form-group">
-                                        <inputField label="Lugar" name="place" :is-required="true" />
-                                    </div>
-                                </div>
-                                <div class="col-md-12 col-sm-12 col-lg-3 col-xl-3">
-                                    <div class="form-group">
-                                        <inputField label="Encuentro #" name="num_match" :is-required="true" />
-                                    </div>
-                                </div>
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <label for="competition_group" class="form-label">Grupo Competencia</label>
+                                                    <Field name="competition_group" as="input" id="competition_group"
+                                                        readonly class="form-control-plaintext match-plaintext-field">
+                                                    </Field>
+                                                </div>
+                                            </div>
 
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <label for="professor" class="form-label">Director Técnico</label>
+                                                    <Field name="professor" as="input" id="professor" readonly
+                                                        class="form-control-plaintext match-plaintext-field">
+                                                    </Field>
+                                                </div>
+                                            </div>
 
-                                <div class="col-md-12 col-sm-12 col-lg-3 col-xl-3">
-                                    <div class="form-group">
-                                        <label for="date" class="form-label">Fecha<span
-                                                class="text-danger">&nbsp;(*)</span></label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
-                                            <Field name="date" v-slot="{ field, errorMessage, meta }" id="date">
-                                                <flat-pickr v-bind="field" v-model="field.value"
-                                                    :config="flatpickrConfigDate"
-                                                    class="form-control form-control-sm flatpickr" id="date"
-                                                    :class="{ 'is-invalid': meta.touched && errorMessage }" />
-                                            </Field>
-                                            <ErrorMessage name="date" class="invalid-feedback d-block" />
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <label for="tournament_id" class="form-label">Torneo<span
+                                                            class="text-danger">&nbsp;(*)</span></label>
+                                                    <Field name="tournament_id" v-slot="{ field, errorMessage, meta }">
+                                                        <select id="tournament_id" v-bind="field"
+                                                            class="form-select form-select-sm"
+                                                            :class="{ 'is-invalid': meta.touched && errorMessage }">
+                                                            <option :value="item.value"
+                                                                v-for="item in settingsGroup.tournaments" :key="item.value">
+                                                                {{ item.label }}
+                                                            </option>
+                                                        </select>
+                                                    </Field>
+                                                    <ErrorMessage name="tournament_id"
+                                                        class="invalid-feedback d-block" />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <inputField label="Lugar" name="place" :is-required="true" />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <inputField label="Encuentro #" name="num_match" :is-required="true" />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <label for="date" class="form-label">Fecha<span
+                                                            class="text-danger">&nbsp;(*)</span></label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                                                        <Field name="date" v-slot="{ field, errorMessage, meta }" id="date">
+                                                            <flat-pickr v-bind="field" v-model="field.value"
+                                                                :config="flatpickrConfigDate"
+                                                                class="form-control form-control-sm flatpickr" id="date"
+                                                                :class="{ 'is-invalid': meta.touched && errorMessage }" />
+                                                        </Field>
+                                                    </div>
+                                                    <ErrorMessage name="date" class="invalid-feedback d-block" />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <label for="hour" class="form-label">Hora<span
+                                                            class="text-danger">&nbsp;(*)</span></label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                                                        <Field name="hour" v-slot="{ field, errorMessage, meta }" id="hour">
+                                                            <flat-pickr v-bind="field" v-model="field.value"
+                                                                :config="flatpickrConfigHour"
+                                                                class="form-control form-control-sm flatpickr" id="hour"
+                                                                :class="{ 'is-invalid': meta.touched && errorMessage }" />
+                                                        </Field>
+                                                    </div>
+                                                    <ErrorMessage name="hour" class="invalid-feedback d-block" />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <inputField label="Equipo Rival" name="rival_name"
+                                                        :is-required="true" />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="col-md-12 col-sm-12 col-lg-3 col-xl-3">
-                                    <div class="form-group">
-                                        <label for="hour" class="form-label">Hora<span
-                                                class="text-danger">&nbsp;(*)</span></label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="fas fa-clock"></i></span>
-                                            <Field name="hour" v-slot="{ field, errorMessage, meta }" id="hour">
-                                                <flat-pickr v-bind="field" v-model="field.value"
-                                                    :config="flatpickrConfigHour"
-                                                    class="form-control form-control-sm flatpickr" id="hour"
-                                                    :class="{ 'is-invalid': meta.touched && errorMessage }" />
-                                            </Field>
-                                            <ErrorMessage name="hour" class="invalid-feedback d-block" />
+
+                                    <div v-if="isEdition" class="match-form-block" data-tour="match-form-result">
+                                        <div class="match-form-heading">
+                                            <h5 class="match-form-title">Resultado final</h5>
+                                            <p class="match-form-subtitle">
+                                                Carga el formato y completa el balance general del partido.
+                                            </p>
                                         </div>
-                                    </div>
-                                </div>
 
-                                <div class="col-md-12 col-sm-12 col-lg-3 col-xl-3">
-                                    <div class="form-group">
-                                        <inputField label="Equipo Rival" name="rival_name" :is-required="true" />
-                                    </div>
-                                </div>
-
-                                <template v-if="isEdition">
-
-                                    <h6 class="text-center" data-tour="match-form-result">Resultado Final</h6>
-                                    <div class="col-md-12 col-sm-12 col-lg-4 col-xl-4">
-                                        <div class="form-group" v-if="isEdition">
-                                            <label for="file_upload" class="form-label small">Cargar formato</label>
+                                        <div class="form-group">
+                                            <label for="file_upload" class="form-label">Cargar formato</label>
                                             <input type="file" id="file_upload" name="details"
                                                 class="form-control form-control-sm" @change="uploadFileFormat"
                                                 accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-                                            <small class="text-muted">Se debe cargar el mismo formato descargado y los
-                                                datos se mostrarán
-                                                en el listado de estadísticas por deportista.</small>
+                                            <small class="text-muted d-block mt-2">
+                                                Se debe cargar el mismo formato descargado y los datos se mostrarán en el
+                                                listado de estadísticas por deportista.
+                                            </small>
                                         </div>
-                                    </div>
 
-                                    <div class="col-md-12 col-sm-12 col-lg-2 col-xl-2">
-                                        <div class="form-group">
-                                            <label for="final_score_school" class="form-label small">Escuela</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="far fa-futbol"></i></span>
-                                                <inputField name="final_score_school" :is-required="true"
-                                                    id="final_score_school" />
+                                        <div class="match-score-strip">
+                                            <div class="match-score-side">
+                                                <label for="final_score_school" class="form-label">Escuela</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="far fa-futbol"></i></span>
+                                                    <inputField name="final_score_school" :is-required="true"
+                                                        id="final_score_school" />
+                                                </div>
+                                            </div>
+
+                                            <div class="match-score-divider">vs</div>
+
+                                            <div class="match-score-side">
+                                                <label for="final_score_rival" class="form-label">Rival</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="far fa-futbol"></i></span>
+                                                    <inputField name="final_score_rival" :is-required="true"
+                                                        id="final_score_rival" />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div class="col-md-12 col-sm-12 col-lg-2 col-xl-2">
-                                        <div class="form-group">
-                                            <label for="final_score_rival" class="form-label small">Rival</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="far fa-futbol"></i></span>
-                                                <inputField name="final_score_rival" :is-required="true"
-                                                    id="final_score_rival" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-12 col-sm-12 col-lg-4 col-xl-4"></div>
-
-                                    <div class="col-md-12">
-                                        <div class="form-group">
+                                        <div class="form-group mt-3">
                                             <label for="general_concept" class="form-label">Concepto General</label>
                                             <Field name="general_concept" as="textarea" id="general_concept"
-                                                class="form-control form-control-sm" rows="2"
+                                                class="form-control form-control-sm" rows="3"
                                                 placeholder="Concepto General" />
                                             <ErrorMessage name="general_concept" class="invalid-feedback d-block" />
                                         </div>
                                     </div>
 
-                                </template>
-
+                                </div>
                             </div>
+                        </div>
 
-                            <template v-if="isEdition">
+                        <div class="col-12 col-lg-8 col-xl-9">
+                            <div class="card match-players-card h-100">
+                                <div class="card-body match-card-body">
+                                    <template v-if="isEdition">
 
-                                <div class="table-responsive no-print" data-tour="match-form-stats">
-                                    <h6 class="text-center">Estadisticas por deportista</h6>
-                                    <small class="text-muted text-center"></small>
-                                    <table class="table table-bordered table-sm dataTable align-middle ">
+                                        <div class="match-table-toolbar no-print" data-tour="match-form-stats">
+                                            <div>
+                                                <h4 class="match-table-title">Jugadores</h4>
+                                                <small class="text-muted">
+                                                    Actualiza minutos, desempeño y observaciones del partido.
+                                                </small>
+                                            </div>
+                                            <span class="match-table-count">
+                                                Total <strong>{{ skills_controls.length }}</strong>
+                                            </span>
+                                        </div>
+
+                                        <div class="match-table-wrapper table-responsive no-print">
+                                            <table class="table table-bordered table-sm dataTable align-middle match-table">
                                         <thead>
                                             <tr>
                                                 <th class="dt-head-center" style="width: 15%;">deportista</th>
@@ -198,144 +235,53 @@
                                                     v-tooltip.top="'Calificación'">
                                                     ⭐ CAL
                                                 </th>
-                                                <th class="dt-head-center" style="width: 15%;" v-tooltip.top="''">
-                                                    observación</th>
+                                                <!-- <th class="dt-head-center" style="width: 15%;" v-tooltip.top="''">
+                                                    observación</th> -->
                                             </tr>
                                         </thead>
                                         <tbody>
 
                                             <template v-if="skills_controls.length">
-                                                <tr v-for="(skill_control, index) in skills_controls">
-                                                    <td>
-                                                        <div class="media d-md-flex d-block text-sm-start text-center">
-                                                            <div class="media-aside align-self-start avatar avatar-sm me-1">
-                                                                <img :src="skill_control.player.photo_url" alt="avatar"
-                                                                    class="player-avatar" />
-                                                            </div>
-                                                            <div class="media-body">
-                                                                <div class="d-xl-flex d-block justify-content-between">
-                                                                    <div>
-                                                                        <small>{{ skill_control.player.full_names
-                                                                        }}</small>
-                                                                        <p>{{ skill_control.player.unique_code }}</p>
-                                                                    </div>
-                                                                </div>
+                                                <tr v-for="(skill_control, index) in skills_controls"
+                                                    :key="skill_control.id ?? skill_control.player?.id ?? index">
+                                                    <td class="match-player-cell">
+                                                        <div class="match-player-meta">
+                                                            <img :src="skill_control.player.photo_url" alt="avatar"
+                                                                class="player-avatar match-player-avatar" />
+                                                            <div>
+                                                                <span class="match-player-name">
+                                                                    {{ skill_control.player.full_names }}
+                                                                </span>
+                                                                <span class="match-player-code">
+                                                                    {{ skill_control.player.unique_code }}
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td>
+                                                    <td class="match-metric-cell">
                                                         <checkbox :name="`skill_controls[${index}].assistance`"
                                                             return-value-type="number" />
                                                     </td>
-                                                    <td>
+                                                    <td class="match-metric-cell">
                                                         <checkbox :name="`skill_controls[${index}].titular`"
                                                             return-value-type="number" />
                                                     </td>
-                                                    <td>
+                                                    <td class="match-metric-cell">
                                                         <Field :name="`skill_controls[${index}].played_approx`"
                                                             v-slot="{ field, errorMessage, meta }">
                                                             <select v-bind="field"
                                                                 :id="`skill_controls[${index}].played_approx`"
                                                                 class="form-select form-select-sm"
                                                                 :class="{ 'is-invalid': meta.touched && errorMessage }">
-                                                                <option value="0">0 MIN</option>
-                                                                <option value="1">1 MIN</option>
-                                                                <option value="2">2 MIN</option>
-                                                                <option value="3">3 MIN</option>
-                                                                <option value="4">4 MIN</option>
-                                                                <option value="5">5 MIN</option>
-                                                                <option value="6">6 MIN</option>
-                                                                <option value="7">7 MIN</option>
-                                                                <option value="8">8 MIN</option>
-                                                                <option value="9">9 MIN</option>
-                                                                <option value="10">10 MIN</option>
-                                                                <option value="11">11 MIN</option>
-                                                                <option value="12">12 MIN</option>
-                                                                <option value="13">13 MIN</option>
-                                                                <option value="14">14 MIN</option>
-                                                                <option value="15">15 MIN</option>
-                                                                <option value="16">16 MIN</option>
-                                                                <option value="17">17 MIN</option>
-                                                                <option value="18">18 MIN</option>
-                                                                <option value="19">19 MIN</option>
-                                                                <option value="20">20 MIN</option>
-                                                                <option value="21">21 MIN</option>
-                                                                <option value="22">22 MIN</option>
-                                                                <option value="23">23 MIN</option>
-                                                                <option value="24">24 MIN</option>
-                                                                <option value="25">25 MIN</option>
-                                                                <option value="26">26 MIN</option>
-                                                                <option value="27">27 MIN</option>
-                                                                <option value="28">28 MIN</option>
-                                                                <option value="29">29 MIN</option>
-                                                                <option value="30">30 MIN</option>
-                                                                <option value="31">31 MIN</option>
-                                                                <option value="32">32 MIN</option>
-                                                                <option value="33">33 MIN</option>
-                                                                <option value="34">34 MIN</option>
-                                                                <option value="35">35 MIN</option>
-                                                                <option value="36">36 MIN</option>
-                                                                <option value="37">37 MIN</option>
-                                                                <option value="38">38 MIN</option>
-                                                                <option value="39">39 MIN</option>
-                                                                <option value="40">40 MIN</option>
-                                                                <option value="41">41 MIN</option>
-                                                                <option value="42">42 MIN</option>
-                                                                <option value="43">43 MIN</option>
-                                                                <option value="44">44 MIN</option>
-                                                                <option value="45">45 MIN</option>
-                                                                <option value="46">46 MIN</option>
-                                                                <option value="47">47 MIN</option>
-                                                                <option value="48">48 MIN</option>
-                                                                <option value="49">49 MIN</option>
-                                                                <option value="50">50 MIN</option>
-                                                                <option value="51">51 MIN</option>
-                                                                <option value="52">52 MIN</option>
-                                                                <option value="53">53 MIN</option>
-                                                                <option value="54">54 MIN</option>
-                                                                <option value="55">55 MIN</option>
-                                                                <option value="56">56 MIN</option>
-                                                                <option value="57">57 MIN</option>
-                                                                <option value="58">58 MIN</option>
-                                                                <option value="59">59 MIN</option>
-                                                                <option value="60">60 MIN</option>
-                                                                <option value="61">61 MIN</option>
-                                                                <option value="62">62 MIN</option>
-                                                                <option value="63">63 MIN</option>
-                                                                <option value="64">64 MIN</option>
-                                                                <option value="65">65 MIN</option>
-                                                                <option value="66">66 MIN</option>
-                                                                <option value="67">67 MIN</option>
-                                                                <option value="68">68 MIN</option>
-                                                                <option value="69">69 MIN</option>
-                                                                <option value="70">70 MIN</option>
-                                                                <option value="71">71 MIN</option>
-                                                                <option value="72">72 MIN</option>
-                                                                <option value="73">73 MIN</option>
-                                                                <option value="74">74 MIN</option>
-                                                                <option value="75">75 MIN</option>
-                                                                <option value="76">76 MIN</option>
-                                                                <option value="77">77 MIN</option>
-                                                                <option value="78">78 MIN</option>
-                                                                <option value="79">79 MIN</option>
-                                                                <option value="80">80 MIN</option>
-                                                                <option value="81">81 MIN</option>
-                                                                <option value="82">82 MIN</option>
-                                                                <option value="83">83 MIN</option>
-                                                                <option value="84">84 MIN</option>
-                                                                <option value="85">85 MIN</option>
-                                                                <option value="86">86 MIN</option>
-                                                                <option value="87">87 MIN</option>
-                                                                <option value="88">88 MIN</option>
-                                                                <option value="89">89 MIN</option>
-                                                                <option value="90">90 MIN</option>
+                                                                <option :value="ind" v-for="(num, ind) in 91" :key="`${ind}_${index}`">{{ ind }} MIN</option>
+
                                                             </select>
                                                         </Field>
 
                                                         <ErrorMessage :name="`skill_controls[${index}].played_approx`"
                                                             class="invalid-feedback d-block" />
                                                     </td>
-                                                    <td>
+                                                    <td class="match-position-cell">
 
                                                         <Field :name="`skill_controls[${index}].position`"
                                                             v-slot="{ field, errorMessage, meta }">
@@ -391,7 +337,7 @@
 
 
                                                     </td>
-                                                    <td>
+                                                    <td class="match-metric-cell">
                                                         <Field :name="`skill_controls[${index}].goals`" as="select"
                                                             :id="`skill_controls[${index}].goals`"
                                                             class="form-select form-select-sm">
@@ -411,7 +357,7 @@
                                                         <ErrorMessage :name="`skill_controls[${index}].goals`"
                                                             class="invalid-feedback d-block" />
                                                     </td>
-                                                    <td>
+                                                    <td class="match-metric-cell">
                                                         <Field :name="`skill_controls[${index}].goal_assists`" as="select"
                                                             :id="`skill_controls[${index}].goal_assists`"
                                                             class="form-select form-select-sm">
@@ -431,7 +377,7 @@
                                                         <ErrorMessage :name="`skill_controls[${index}].goal_assists`"
                                                             class="invalid-feedback d-block" />
                                                     </td>
-                                                    <td>
+                                                    <td class="match-metric-cell">
                                                         <Field :name="`skill_controls[${index}].goal_saves`" as="select"
                                                             :id="`skill_controls[${index}].goal_saves`"
                                                             class="form-select form-select-sm">
@@ -451,7 +397,7 @@
                                                         <ErrorMessage :name="`skill_controls[${index}].goal_saves`"
                                                             class="invalid-feedback d-block" />
                                                     </td>
-                                                    <td>
+                                                    <td class="match-metric-cell">
                                                         <Field :name="`skill_controls[${index}].yellow_cards`" as="select"
                                                             :id="`skill_controls[${index}].yellow_cards`"
                                                             class="form-select form-select-sm">
@@ -464,7 +410,7 @@
                                                             class="invalid-feedback d-block" />
 
                                                     </td>
-                                                    <td>
+                                                    <td class="match-metric-cell">
                                                         <Field :name="`skill_controls[${index}].red_cards`" as="select"
                                                             :id="`skill_controls[${index}].red_cards`"
                                                             class="form-select form-select-sm">
@@ -476,7 +422,7 @@
                                                             class="invalid-feedback d-block" />
 
                                                     </td>
-                                                    <td>
+                                                    <td class="match-metric-cell">
                                                         <Field :name="`skill_controls[${index}].qualification`" as="select"
                                                             :id="`skill_controls[${index}].qualification`"
                                                             class="form-select form-select-sm">
@@ -492,18 +438,19 @@
                                                             class="invalid-feedback d-block" />
 
                                                     </td>
-                                                    <td>
+                                                    <!-- <td class="match-observation-cell">
                                                         <Field :name="`skill_controls[${index}].general_concept`"
                                                             :id="`skill_controls[${index}].general_concept`" as="textarea"
-                                                            class="form-control form-control-sm" rows="2" />
+                                                            class="form-control form-control-sm match-observation-field"
+                                                            rows="2" />
                                                         <ErrorMessage :name="`skill_controls[${index}].general_concept`"
                                                             class="invalid-feedback d-block" />
-                                                    </td>
+                                                    </td> -->
                                                 </tr>
                                             </template>
                                             <template v-else>
                                                 <tr>
-                                                    <td colspan="10" class="dt-body-center">
+                                                    <td colspan="12" class="dt-body-center">
                                                         El grupo no cuenta con integrantes
                                                     </td>
                                                 </tr>
@@ -511,30 +458,45 @@
 
                                         </tbody>
                                     </table>
+                                        </div>
+
+                                    </template>
+                                    <template v-else>
+                                        <!-- <div class="match-table-toolbar no-print" data-tour="match-form-board">
+                                            <div>
+                                                <h4 class="match-table-title">Coachboard</h4>
+                                                <small class="text-muted">
+                                                    Organiza titulares y posiciones en la pizarra táctica.
+                                                </small>
+                                            </div>
+                                            <span class="match-table-count">
+                                                Plantilla <strong>{{ skills_controls.length }}</strong>
+                                            </span>
+                                        </div> -->
+
+                                        <div class="match-board-wrapper no-print">
+                                            <CoachBoard ref="coach_board" :initialPlayers="skills_controls" />
+                                        </div>
+                                    </template>
                                 </div>
-
-                            </template>
-                            <template v-else>
-                                <div data-tour="match-form-board">
-                                    <CoachBoard ref="coach_board" :initialPlayers="skills_controls" ></CoachBoard>
-                                </div>
-                            </template>
-
-
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="account-settings-footer mt-2 no-print" data-tour="match-form-actions">
-                    <div class="as-footer-container">
+                    <div class="account-settings-footer mt-2 no-print" data-tour="match-form-actions">
+                        <div class="as-footer-container">
+                            <template v-if="urlExportFormat && isEdition">
+                                <a :href="urlExportFormat" class="btn btn-info"
+                                    v-tooltip.top="'Sólo datos de los deportistas, llenalo y lo podras cargar'">
+                                    Descargar formato
+                                </a>
+                            </template>
 
-                        <template v-if="urlExportFormat">
-                            <a :href="urlExportFormat" class="btn btn-info"
-                                v-tooltip.top="'Sólo datos de los deportistas, llenalo y lo podras cargar'">Descargar
-                                formato</a>
-                        </template>
-
-                        <button type="submit" class="btn btn-info" :disabled="!skills_controls.length">Guardar</button>
+                            <button type="submit" class="btn btn-info"
+                                :disabled="!skills_controls.length || isLoading">
+                                {{ submitLabel }}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -559,7 +521,7 @@ import { usePageTitle } from "@/composables/use-meta"
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { ErrorMessage, Field, Form } from "vee-validate"
 import * as yup from 'yup'
-import { getCurrentInstance, useTemplateRef, onMounted, ref } from "vue"
+import { computed, getCurrentInstance, useTemplateRef, onMounted, ref } from "vue"
 import { useRoute } from "vue-router"
 import { useSettingGroups } from '@/store/settings-store'
 import { matchFormTutorial } from '@/tutorials/matches'
@@ -579,7 +541,13 @@ const coachBoard = useTemplateRef('coach_board')
 const isLoading = ref(true)
 const urlExportFormat = ref(null)
 const skills_controls = ref([])
-const players = ref([])
+const sidebarTitle = computed(() => props.isEdition ? 'Información del partido' : 'Nuevo partido')
+const sidebarSubtitle = computed(() => (
+    props.isEdition
+        ? 'Actualiza la información general y el resultado final desde este panel.'
+        : 'Completa la información general y organiza la alineación desde el coachboard.'
+))
+const submitLabel = computed(() => props.isEdition ? 'Guardar cambios' : 'Guardar')
 // settings flatpick
 const flatpickrConfigDate = {
     locale: Spanish,
@@ -642,13 +610,13 @@ const onLoadData = async () => {
         }
 
         isLoading.value = true
+        globalError.value = null
 
 
         const response = await api.get(url, { params: dataParams })
         if (response.status === 200 && response.data) {
             const match = response.data
             skills_controls.value = match.skills_controls
-            players.value = match.skills_controls.map(item => item.player)
 
             urlExportFormat.value = match.competition_group.url_format_match
             // urlExportFormat.value = match.id ? null : match.competition_group.url_format_match
@@ -702,6 +670,7 @@ const mergeCoachBoardPayload = (skillControls, lineupPayload) => {
 const handleSubmit = async (values, actions) => {
     try {
         isLoading.value = true
+        globalError.value = null
 
         const mergedSkillControls = props.isEdition
             ? (values.skill_controls ?? skills_controls.value)
@@ -741,6 +710,7 @@ const uploadFileFormat = async (e) => {
     if (!props.isEdition) {
         return
     }
+    globalError.value = null
     const file = e.target.files[0];
     const formData = new FormData();
     formData.append('file', file, file.name)
@@ -765,9 +735,251 @@ onMounted(() => {
 
 </script>
 <style lang="scss" scoped>
-.scroll-container {
-    min-height: 70vh;
-    max-height: 70vh;
+.match-page-shell {
+    min-height: 18rem;
+}
+
+.match-layout {
+    align-items: flex-start;
+}
+
+.match-sidebar-card,
+.match-players-card {
+    border: 1px solid rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.08);
+    border-radius: 1rem;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+}
+
+.match-sticky-card {
+    position: sticky;
+    top: 90px;
+}
+
+.match-card-body {
+    padding: 1.25rem;
+}
+
+.match-sidebar-title {
+    margin-bottom: 0.25rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.match-sidebar-subtitle {
+    margin-bottom: 0;
+    max-width: 32ch;
+    line-height: 1.45;
+}
+
+.match-form-block {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border: 1px solid rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.12);
+    border-radius: 0.9rem;
+}
+
+.match-form-block:last-of-type {
+    margin-bottom: 0;
+}
+
+.match-form-heading {
+    margin-bottom: 1rem;
+}
+
+.match-form-title {
+    margin-bottom: 0.2rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.match-form-subtitle {
+    margin-bottom: 0;
+
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.match-form-block .form-group:last-child {
+    margin-bottom: 0;
+}
+
+.match-form-block .form-label {
+    margin-bottom: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.match-form-block :deep(.form-control),
+.match-form-block :deep(.form-select),
+.match-form-block :deep(.input-group-text) {
+    border-color: rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.12);
+}
+
+.match-form-block :deep(.input-group-text) {
+    color: inherit;
+}
+
+.match-plaintext-field {
+    padding: 0.55rem 0.75rem;
+    border: 1px solid rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.12);
+    border-radius: 0.75rem;
+    color: inherit;
+    line-height: 1.3;
+}
+
+.match-score-strip {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.match-score-side {
+    flex: 1 1 0;
+}
+
+.match-score-divider {
+    flex: 0 0 auto;
+    padding-top: 2rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color, rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.7));
+}
+
+.match-table-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.match-table-title {
+    margin-bottom: 0.2rem;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.match-table-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.08);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.match-table-wrapper {
+    border: 1px solid rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.12);
+    border-radius: 0.9rem;
     overflow: auto;
+}
+
+.match-table {
+    min-width: 1120px;
+    margin-bottom: 0;
+}
+
+.match-table thead th {
+    border-top: 0;
+    white-space: nowrap;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    background: rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.05);
+}
+
+.match-table td {
+    padding: 0.5rem 0.4rem;
+    vertical-align: middle;
+}
+
+.match-player-cell {
+    min-width: 240px;
+}
+
+.match-player-meta {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-width: 220px;
+}
+
+.match-player-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 0.75rem;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.match-player-name {
+    display: block;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.match-player-code {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 0.35rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.06);
+    font-size: 0.72rem;
+    line-height: 1.2;
+}
+
+.match-metric-cell {
+    min-width: 82px;
+}
+
+.match-position-cell {
+    min-width: 150px;
+}
+
+.match-observation-cell {
+    min-width: 200px;
+}
+
+.match-observation-field {
+    min-width: 190px;
+    resize: vertical;
+}
+
+.match-table :deep(.form-control-sm),
+.match-table :deep(.form-select-sm) {
+    min-width: 72px;
+}
+
+.match-board-wrapper {
+    padding-top: 0.25rem;
+}
+
+@media (max-width: 1199.98px) {
+    .match-sticky-card {
+        position: static;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .match-card-body {
+        padding: 1rem;
+    }
+
+    .match-score-strip {
+        flex-wrap: wrap;
+    }
+
+    .match-score-divider {
+        width: 100%;
+        padding-top: 0;
+        text-align: center;
+    }
 }
 </style>
