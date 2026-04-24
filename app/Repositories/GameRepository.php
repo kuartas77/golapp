@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Http\Requests\CompetitionRequest;
+use App\Http\Requests\CompetitionUpdateRequest;
 use App\Http\Requests\CompetitionStoreRequest;
 use App\Models\CompetitionGroup;
 use App\Models\Game;
@@ -186,10 +186,10 @@ class GameRepository
     }
 
     /**
-     * @param CompetitionRequest $request
+     * @param CompetitionUpdateRequest $request
      * @param Game $game
      */
-    public function updateMatchSkill(CompetitionRequest $request, Game $game): bool
+    public function updateMatchSkill(CompetitionUpdateRequest $request, Game $game): bool
     {
         $result = false;
         try {

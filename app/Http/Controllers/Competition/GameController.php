@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Competition;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CompetitionRequest;
+use App\Http\Requests\CompetitionUpdateRequest;
 use App\Http\Requests\CompetitionStoreRequest;
 use App\Models\Game;
 use App\Repositories\GameRepository;
@@ -52,7 +52,7 @@ class GameController extends Controller
         return response()->json($information);
     }
 
-    public function update(CompetitionRequest $request, Game $match): JsonResponse
+    public function update(CompetitionUpdateRequest $request, Game $match): JsonResponse
     {
         abort_if(!instructorCanAccessCompetitionGroup($request->input('competition_group_id')), 404);
         $match = $this->accessibleMatch($match->id);

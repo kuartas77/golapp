@@ -95,12 +95,12 @@ class PlayerStatsService
     {
         return config('app.key_positions', [
             'Portero' => 'Portero',
-            'Defensa(Central)' => 'Defensa(Central)',
-            'Defensa(Derecho)(Izquierdo)' => 'Defensa(Derecho)(Izquierdo)',
-            'Volante(Central)' => 'Volante(Central)',
-            'Volante(Primera linea)' => 'Volante(Primera linea)',
-            'Volante(Segunda linea)' => 'Volante(Segunda linea)',
-            'Volante(Extremo)' => 'Volante(Extremo)',
+            'Defensa (Central)' => 'Defensa (Central)',
+            'Defensa (Derecho)(Izquierdo)' => 'Defensa (Derecho)(Izquierdo)',
+            'Volante (Central)' => 'Volante (Central)',
+            'Volante (Primera linea)' => 'Volante (Primera linea)',
+            'Volante (Segunda linea)' => 'Volante (Segunda linea)',
+            'Volante (Extremo)' => 'Volante (Extremo)',
             'Delantero' => 'Delantero',
         ]);
     }

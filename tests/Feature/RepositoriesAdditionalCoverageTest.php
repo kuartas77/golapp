@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Dto\AssistDTO;
-use App\Http\Requests\CompetitionRequest;
+use App\Http\Requests\CompetitionUpdateRequest;
 use App\Http\Requests\CompetitionStoreRequest;
 use App\Models\Assist;
 use App\Models\CompetitionGroup;
@@ -1706,9 +1706,9 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         };
     }
 
-    private function makeCompetitionUpdateRequest(array $data): CompetitionRequest
+    private function makeCompetitionUpdateRequest(array $data): CompetitionUpdateRequest
     {
-        return new class ($data) extends CompetitionRequest
+        return new class ($data) extends CompetitionUpdateRequest
         {
             public function __construct(private array $payload)
             {

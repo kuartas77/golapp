@@ -292,44 +292,44 @@
                                                                 :class="{ 'is-invalid': meta.touched && errorMessage }">
                                                                 <option value="">Selecciona...</option>
                                                                 <option value="Portero">Portero</option>
-                                                                <option value="Defensa(Central)">Defensa(Central)</option>
-                                                                <option value="Defensa(Derecho)(Izquierdo)">
-                                                                    Defensa(Derecho)(Izquierdo)</option>
-                                                                <option value="Defensa(Izquierdo)">Defensa(Izquierdo)
+                                                                <option value="Defensa (Central)">Defensa (Central)</option>
+                                                                <option value="Defensa (Derecho)(Izquierdo)">
+                                                                    Defensa (Derecho)(Izquierdo)</option>
+                                                                <option value="Defensa (Izquierdo)">Defensa (Izquierdo)
                                                                 </option>
-                                                                <option value="Defensa(Derecho)">Defensa(Derecho)</option>
+                                                                <option value="Defensa (Derecho)">Defensa (Derecho)</option>
                                                                 <option value="Defensa">Defensa</option>
-                                                                <option value="Volante(Defensivo Izquierdo)">
-                                                                    Volante(Defensivo Izquierdo)</option>
-                                                                <option value="Volante(Defensivo Derecho)">Volante(Defensivo
+                                                                <option value="Volante (Defensivo Izquierdo)">
+                                                                    Volante (Defensivo Izquierdo)</option>
+                                                                <option value="Volante (Defensivo Derecho)">Volante (Defensivo
                                                                     Derecho)</option>
-                                                                <option value="Volante(Defensivo Central)">Volante(Defensivo
+                                                                <option value="Volante (Defensivo Central)">Volante (Defensivo
                                                                     Central)</option>
-                                                                <option value="Volante(Ofensivo Izquierdo)">Volante(Ofensivo
+                                                                <option value="Volante (Ofensivo Izquierdo)">Volante (Ofensivo
                                                                     Izquierdo)</option>
-                                                                <option value="Volante(Ofensivo Derecho)">Volante(Ofensivo
+                                                                <option value="Volante (Ofensivo Derecho)">Volante (Ofensivo
                                                                     Derecho)</option>
-                                                                <option value="Volante(Ofensivo Central)">Volante(Ofensivo
+                                                                <option value="Volante (Ofensivo Central)">Volante (Ofensivo
                                                                     Central)</option>
-                                                                <option value="Volante(Extremo Izquierdo)">Volante(Extremo
+                                                                <option value="Volante (Extremo Izquierdo)">Volante (Extremo
                                                                     Izquierdo)</option>
-                                                                <option value="Volante(Extremo Derecho)">Volante(Extremo
+                                                                <option value="Volante (Extremo Derecho)">Volante (Extremo
                                                                     Derecho)</option>
-                                                                <option value="Volante(Primera línea)">Volante(Primera
+                                                                <option value="Volante (Primera línea)">Volante (Primera
                                                                     línea)</option>
-                                                                <option value="Volante(Segunda línea)">Volante(Segunda
+                                                                <option value="Volante (Segunda línea)">Volante (Segunda
                                                                     línea)</option>
-                                                                <option value="Volante(Primera linea)">Volante(Primera
+                                                                <option value="Volante (Primera linea)">Volante (Primera
                                                                     linea)</option>
-                                                                <option value="Volante(Segunda linea)">Volante(Segunda
+                                                                <option value="Volante (Segunda linea)">Volante (Segunda
                                                                     linea)</option>
-                                                                <option value="Volante(Extremo)">Volante(Extremo)</option>
-                                                                <option value="Volante(Central)">Volante(Central)</option>
-                                                                <option value="Delantero(Izquierdo)">Delantero(Izquierdo)
+                                                                <option value="Volante (Extremo)">Volante (Extremo)</option>
+                                                                <option value="Volante (Central)">Volante (Central)</option>
+                                                                <option value="Delantero (Izquierdo)">Delantero (Izquierdo)
                                                                 </option>
-                                                                <option value="Delantero(Derecho)">Delantero(Derecho)
+                                                                <option value="Delantero (Derecho)">Delantero (Derecho)
                                                                 </option>
-                                                                <option value="Delantero(Central)">Delantero(Central)
+                                                                <option value="Delantero (Central)">Delantero (Central)
                                                                 </option>
                                                                 <option value="Delantero">Delantero</option>
                                                             </select>
