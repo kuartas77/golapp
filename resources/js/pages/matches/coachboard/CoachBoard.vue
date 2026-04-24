@@ -38,16 +38,22 @@
         </div>
 
         <div class="row g-3 align-items-start">
-            <div class="col-xl-12 col-lg-12 col-12">
+            <div ref="fieldSection" class="col-xl-12 col-lg-12 col-12">
                 <Field
                     :formation="currentFormation"
                     :formations-map="currentFormationsMap"
+                    :modality="currentModality"
+                    :custom-formations="customFormations"
                     :players-field="playersField"
                     :available-players="availablePlayers"
                     :player-count="currentModality"
+                    :selected-player="selectedAvailablePlayer"
                     :include-goalkeeper="true"
                     @assign-player="handleAssignPlayer"
                     @unassign-player="handleUnassignPlayer"
+                    @change-formation="handleFormationChange"
+                    @add-formation="handleAddFormation"
+                    @clear-selected-player="clearSelectedPlayer"
                     @reset-lineup="handleResetLineup"
                     @update-positions="handleUpdatePositions"
                 />
@@ -56,16 +62,11 @@
             <div class="col-xl-12 col-lg-12 col-12">
                 <div class="row g-3">
                     <div class="col-12">
-                        <PlayerList :players="availablePlayers" />
-                    </div>
-
-                    <div class="col-12">
-                        <TacticalSelector
-                            :formation="currentFormation"
-                            :modality="currentModality"
-                            :custom-formations="customFormations"
-                            @change-formation="handleFormationChange"
-                            @add-formation="handleAddFormation"
+                        <PlayerList
+                            :players="availablePlayers"
+                            :selected-player-id="selectedAvailablePlayerId"
+                            @dragstart="handlePlayerDragStart"
+                            @select-player="handleSelectPlayer"
                         />
                     </div>
                 </div>
@@ -76,7 +77,6 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import TacticalSelector from './TacticalSelector.vue'
 import PlayerList from './PlayerList.vue'
 import Field from './Field.vue'
 import { baseFormationsMap } from './utils/formations.js'
@@ -93,10 +93,15 @@ const currentModality = ref(11)
 const playersField = ref([])
 const customFormations = ref({})
 const availablePlayers = ref([])
+const selectedAvailablePlayerId = ref(null)
 const latestPositionsSnapshot = ref({ positions: {} })
 const hasLineupInteraction = ref(false)
+const fieldSection = ref(null)
 const startersCount = computed(() => playersField.value.length)
 const allPlayers = computed(() => props.initialPlayers.map(normalizePlayer))
+const selectedAvailablePlayer = computed(() =>
+    availablePlayers.value.find(player => player.id === selectedAvailablePlayerId.value) || null
+)
 // Formaciones actuales para Field.vue (solo de la modalidad actual)
 const currentFormationsMap = computed(() => {
     const base = baseFormationsMap[currentModality.value] || {}
@@ -124,6 +129,12 @@ watch(() => props.initialPlayers, () => {
     const assignedIds = new Set(playersField.value.map(player => player.id))
     availablePlayers.value = allPlayers.value.filter(player => !assignedIds.has(player.id))
 }, { deep: true, immediate: true })
+
+watch(selectedAvailablePlayer, (player) => {
+    if (!player && selectedAvailablePlayerId.value !== null) {
+        selectedAvailablePlayerId.value = null
+    }
+})
 
 
 // Guardar cuando cambien las formaciones personalizadas
@@ -172,6 +183,10 @@ function handleAssignPlayer({ player }) {
     if (!playersField.value.find(p => p.id === player.id)) {
         playersField.value.push(player)
     }
+
+    if (selectedAvailablePlayerId.value === player.id) {
+        clearSelectedPlayer()
+    }
 }
 
 function handleUnassignPlayer({ player }) {
@@ -187,6 +202,35 @@ function handleResetLineup() {
     hasLineupInteraction.value = true
     playersField.value = []
     availablePlayers.value = [...allPlayers.value]
+    clearSelectedPlayer()
+}
+
+function clearSelectedPlayer() {
+    selectedAvailablePlayerId.value = null
+}
+
+function focusFieldForMobile() {
+    if (typeof window === 'undefined' || window.innerWidth >= 992) return
+
+    const fieldCanvasWrapper = fieldSection.value?.querySelector('.selector-item--grow')
+
+    ;(fieldCanvasWrapper || fieldSection.value)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+    })
+}
+
+function handleSelectPlayer(player) {
+    const nextId = selectedAvailablePlayerId.value === player.id ? null : player.id
+    selectedAvailablePlayerId.value = nextId
+
+    if (nextId) {
+        focusFieldForMobile()
+    }
+}
+
+function handlePlayerDragStart() {
+    clearSelectedPlayer()
 }
 
 function formatLineupPosition(position) {

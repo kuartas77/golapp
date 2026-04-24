@@ -1,46 +1,38 @@
 import { computed, onMounted, ref, watch } from 'vue'
 
 /**
- * Centraliza toda la lógica de la cancha táctica:
- * - Inicialización y redibujado del canvas.
- * - Distribución de posiciones según la formación activa.
- * - Drag and drop entre plantilla disponible y la cancha.
- * - Reubicación de titulares dentro del canvas.
- * - Exportación de la cancha como PNG con formato tipo convocatoria.
+ * Centraliza la lógica táctica del coachboard.
  *
- * El objetivo es dejar `Field.vue` como una capa de presentación y mantener
- * la lógica especializada del canvas en una unidad reutilizable y documentada.
- *
- * Contrato esperado:
- * - `props.formation`: formación activa en formato `4-4-2`, `4-3-3`, etc.
- * - `props.formationsMap`: mapa de formaciones base y personalizadas.
- * - `props.availablePlayers`: lista que se usa para construir la convocatoria exportada.
- * - `emit('assign-player')`: informa al padre qué jugador entró a la cancha.
- * - `emit('unassign-player')`: informa al padre qué jugador salió de la cancha.
- * - `emit('reset-lineup')`: pide al padre restaurar toda la plantilla disponible.
- * - `emit('update-positions')`: expone el snapshot táctico completo para guardado.
+ * Esta versión mantiene el contrato público del componente, pero usa SVG para
+ * la superficie interactiva. El canvas queda como un detalle interno solo para
+ * la exportación PNG, lo que nos permite probar una implementación declarativa
+ * sin cambiar el flujo del padre.
  */
 export default function useCoachBoardField(props, emit) {
     const PLAYER_NODE_RADIUS = 36
     const PLAYER_NODE_HOVER_RADIUS = 40
     const PLAYER_IMAGE_RADIUS = 31
     const PLAYER_LABEL_OFFSET_Y = 44
+    const DEFAULT_FIELD_WIDTH = 900
+    const DEFAULT_FIELD_HEIGHT = 1400
+    const DEFAULT_STATUS = 'Arrastra jugadores al campo o mueve un titular dentro de la cancha.'
 
-    /* --------------------------------------------------------------------- */
-    /* Estado principal del canvas                                           */
-    /* --------------------------------------------------------------------- */
     const canvas = ref(null)
-    const canvasWidth = ref(0)
-    const canvasHeight = ref(0)
+    const canvasWidth = ref(DEFAULT_FIELD_WIDTH)
+    const canvasHeight = ref(DEFAULT_FIELD_HEIGHT)
     const hoveredKey = ref(null)
-    const canvasStatus = ref('Arrastra jugadores al campo o mueve un titular dentro de la cancha.')
+    const canvasStatus = ref(DEFAULT_STATUS)
     const positions = ref({})
 
-    let ctx = null
-    let dragging = false
-    let dragKey = null
+    const isDragging = ref(false)
+    const dragKey = ref(null)
+    const clipPathPrefix = `coachboard-slot-${Math.random().toString(36).slice(2, 8)}`
+
+    let dragPointerId = null
     let dragOffsetX = 0
     let dragOffsetY = 0
+    let suppressNextClick = false
+    let lastSelectionHint = ''
 
     const fieldImg = new Image()
     fieldImg.src = '/img/field-vertical.webp'
@@ -51,8 +43,10 @@ export default function useCoachBoardField(props, emit) {
 
     const openSlots = computed(() => Math.max(props.playerCount - assignedCount.value, 0))
 
+    const fieldViewBox = computed(() => `0 0 ${canvasWidth.value} ${canvasHeight.value}`)
+
     /**
-     * Genera las claves tácticas disponibles en el canvas.
+     * Genera las claves tácticas disponibles en la cancha.
      * `GK` se reserva para el portero y el resto se construye como `P1..Pn`.
      */
     const posKeys = computed(() => {
@@ -69,20 +63,41 @@ export default function useCoachBoardField(props, emit) {
         return keys
     })
 
-    watch([posKeys], () => {
+    const renderedPositions = computed(() =>
+        posKeys.value.map((key) => {
+            const position = positions.value[key] || { x: 0, y: 0, assigned: null, key }
+            const palette = getMarkerPalette(position.type)
+            const shortName = position.assigned?.name ? truncateDisplayText(position.assigned.name, 14, 12) : ''
+            const roleText = position.specificRole && position.specificRole !== 'Jugador' ? position.specificRole : ''
+            const badgeWidth = estimateBadgeWidth(shortName, roleText)
+            const badgeHeight = roleText ? 42 : 28
+
+            return {
+                ...position,
+                key,
+                palette,
+                isHovered: hoveredKey.value === key || dragKey.value === key,
+                clipId: `${clipPathPrefix}-${key}`,
+                fallbackLabel: truncateDisplayText(position.specificRole || key, 10, 8),
+                playerShortName: shortName,
+                roleText,
+                badgeWidth,
+                badgeHeight,
+                badgeX: (position.x || 0) - badgeWidth / 2,
+                badgeY: (position.y || 0) + PLAYER_LABEL_OFFSET_Y
+            }
+        })
+    )
+
+    watch(posKeys, () => {
         initializePositions()
     }, { immediate: true })
 
     fieldImg.onload = () => {
-        canvasWidth.value = fieldImg.naturalWidth
-        canvasHeight.value = fieldImg.naturalHeight
-
-        if (canvas.value) {
-            canvas.value.width = canvasWidth.value
-            canvas.value.height = canvasHeight.value
-            applyFormation(props.formation)
-            drawField()
-        }
+        canvasWidth.value = fieldImg.naturalWidth || DEFAULT_FIELD_WIDTH
+        canvasHeight.value = fieldImg.naturalHeight || DEFAULT_FIELD_HEIGHT
+        initializePositions()
+        applyFormation(props.formation)
     }
 
     /* --------------------------------------------------------------------- */
@@ -91,7 +106,7 @@ export default function useCoachBoardField(props, emit) {
     function initializePositions() {
         const newPositions = {}
         posKeys.value.forEach((key) => {
-            newPositions[key] = positions.value[key] || { x: 0, y: 0, assigned: null }
+            newPositions[key] = positions.value[key] || { x: 0, y: 0, assigned: null, key }
         })
         positions.value = newPositions
     }
@@ -108,8 +123,8 @@ export default function useCoachBoardField(props, emit) {
     }
 
     /**
-     * Traduce una posición técnica en el canvas a un rol legible para el usuario
-     * y para el payload que luego se guarda en el partido.
+     * Traduce una posición técnica a un rol legible para el usuario y para el
+     * payload que luego se guarda en el partido.
      */
     function getSpecificRole(position) {
         const { type, line, x } = position
@@ -131,7 +146,7 @@ export default function useCoachBoardField(props, emit) {
             return 'Defensa'
         }
 
-        if (type.includes('mid')) {
+        if (type?.includes('mid')) {
             const isWide = Math.abs(x - canvasCenterX) > canvasWidth.value * 0.25
             const isLeftWide = x < canvasCenterX - 100
             const isRightWide = x > canvasCenterX + 100
@@ -283,7 +298,6 @@ export default function useCoachBoardField(props, emit) {
 
         updateSpecificRoles()
         emit('update-positions', getPositionsSnapshot())
-        drawField()
     }
 
     function getLineTypes(lineCount) {
@@ -372,7 +386,11 @@ export default function useCoachBoardField(props, emit) {
     }
 
     function toCanvasPoint(event) {
-        const rect = canvas.value.getBoundingClientRect()
+        const rect = canvas.value?.getBoundingClientRect()
+        if (!rect || !rect.width || !rect.height) {
+            return { x: 0, y: 0 }
+        }
+
         const scaleX = canvasWidth.value / rect.width
         const scaleY = canvasHeight.value / rect.height
 
@@ -380,6 +398,95 @@ export default function useCoachBoardField(props, emit) {
             x: (event.clientX - rect.left) * scaleX,
             y: (event.clientY - rect.top) * scaleY
         }
+    }
+
+    function getAssignedBadgeMetrics(position) {
+        const shortName = truncateDisplayText(position?.assigned?.name || '', 14, 12)
+        const roleText = position?.specificRole && position.specificRole !== 'Jugador' ? position.specificRole : ''
+        const badgeWidth = estimateBadgeWidth(shortName, roleText)
+        const badgeHeight = roleText ? 42 : 28
+
+        return {
+            badgeWidth,
+            badgeHeight,
+            badgeX: position.x - badgeWidth / 2,
+            badgeY: position.y + PLAYER_LABEL_OFFSET_Y
+        }
+    }
+
+    function isPointInsideRect(x, y, rect, padding = 0) {
+        return (
+            x >= rect.badgeX - padding &&
+            x <= rect.badgeX + rect.badgeWidth + padding &&
+            y >= rect.badgeY - padding &&
+            y <= rect.badgeY + rect.badgeHeight + padding
+        )
+    }
+
+    function isPointNearConnector(x, y, position, badgeMetrics) {
+        const topY = position.y + PLAYER_NODE_RADIUS
+        const bottomY = badgeMetrics.badgeY
+
+        return (
+            x >= position.x - 12 &&
+            x <= position.x + 12 &&
+            y >= topY &&
+            y <= bottomY + 4
+        )
+    }
+
+    function isPointInsideAssignedHitArea(position, x, y) {
+        if (!position?.assigned) return false
+
+        const distance = Math.hypot(position.x - x, position.y - y)
+        if (distance <= PLAYER_NODE_RADIUS + 4) {
+            return true
+        }
+
+        const badgeMetrics = getAssignedBadgeMetrics(position)
+        return isPointInsideRect(x, y, badgeMetrics, 14) || isPointNearConnector(x, y, position, badgeMetrics)
+    }
+
+    function findAssignedPositionAtPoint(x, y) {
+        for (const key of [...posKeys.value].reverse()) {
+            const position = positions.value[key]
+            if (isPointInsideAssignedHitArea(position, x, y)) {
+                return key
+            }
+        }
+
+        return null
+    }
+
+    function resolveInteractivePosition(x, y, radius = 40) {
+        return findAssignedPositionAtPoint(x, y) || findNearestPosition(x, y, radius)
+    }
+
+    function getSelectionHint(player) {
+        if (!player?.name) return DEFAULT_STATUS
+        return `${player.name} listo para ubicarse. Toca una posición disponible o arrástralo desde la plantilla.`
+    }
+
+    function updateHoverStatus(posKey) {
+        hoveredKey.value = posKey
+
+        if (posKey && positions.value[posKey]?.assigned) {
+            const position = positions.value[posKey]
+            canvasStatus.value = `${position.assigned.name} | ${position.specificRole || posKey}`
+            return
+        }
+
+        if (posKey) {
+            canvasStatus.value = `${positions.value[posKey]?.specificRole || posKey} disponible para asignación.`
+            return
+        }
+
+        if (props.selectedPlayer) {
+            canvasStatus.value = lastSelectionHint || getSelectionHint(props.selectedPlayer)
+            return
+        }
+
+        canvasStatus.value = DEFAULT_STATUS
     }
 
     /**
@@ -424,14 +531,12 @@ export default function useCoachBoardField(props, emit) {
                     img.onload = () => {
                         if (positions.value[posKey]?.assigned?.id === clone.id) {
                             positions.value[posKey].assigned.imgObj = img
-                            drawField()
                         }
                     }
                     img.onerror = () => {
                         console.warn('No se pudo cargar la imagen:', clone.img)
                         if (positions.value[posKey]?.assigned?.id === clone.id) {
                             positions.value[posKey].assigned.imgObj = null
-                            drawField()
                         }
                     }
                     img.src = clone.img
@@ -444,7 +549,6 @@ export default function useCoachBoardField(props, emit) {
         positions.value[posKey].assigned = clone
         emit('assign-player', { player: clone, posKey })
         emit('update-positions', getPositionsSnapshot())
-        drawField()
     }
 
     function findPlayerPosition(playerId) {
@@ -458,7 +562,7 @@ export default function useCoachBoardField(props, emit) {
     }
 
     function onDrop(event) {
-        const raw = event.dataTransfer.getData('application/json')
+        const raw = event.dataTransfer?.getData('application/json')
         if (!raw) return
 
         try {
@@ -469,6 +573,7 @@ export default function useCoachBoardField(props, emit) {
             if (nearest) {
                 assignPlayerToPos(player, nearest)
                 canvasStatus.value = `${player.name} asignado a ${positions.value[nearest].specificRole || nearest}.`
+                hoveredKey.value = nearest
             } else {
                 canvasStatus.value = 'Suelta el jugador cerca de un punto táctico para asignarlo.'
             }
@@ -484,26 +589,27 @@ export default function useCoachBoardField(props, emit) {
             if (props.includeGoalkeeper && key === 'GK') continue
 
             const position = positions.value[key]
-            if (position.assigned && Math.hypot(position.x - x, position.y - y) <= 24) {
-                dragging = true
-                dragKey = key
+            if (isPointInsideAssignedHitArea(position, x, y)) {
+                isDragging.value = true
+                dragKey.value = key
                 hoveredKey.value = key
                 dragOffsetX = x - position.x
                 dragOffsetY = y - position.y
                 canvasStatus.value = `Moviendo a ${position.assigned.name}.`
-                return
+                return true
             }
         }
+
+        return false
     }
 
     function onDrag(event) {
-        if (!dragging || !dragKey) return
-        if (props.includeGoalkeeper && dragKey === 'GK') return
+        if (!isDragging.value || !dragKey.value) return
+        if (props.includeGoalkeeper && dragKey.value === 'GK') return
 
         const { x, y } = toCanvasPoint(event)
-        positions.value[dragKey].x = x - dragOffsetX
-        positions.value[dragKey].y = y - dragOffsetY
-        drawField()
+        positions.value[dragKey.value].x = x - dragOffsetX
+        positions.value[dragKey.value].y = y - dragOffsetY
     }
 
     function releaseAssignedPlayer(posKey, statusMessage = null) {
@@ -518,88 +624,116 @@ export default function useCoachBoardField(props, emit) {
             canvasStatus.value = statusMessage
         }
 
-        drawField()
         return true
     }
 
     function endDrag(event = null) {
-        if (dragging && dragKey) {
+        if (isDragging.value && dragKey.value) {
+            suppressNextClick = true
+            const activeKey = dragKey.value
             const droppedInPlayerList = event?.clientX != null && event?.clientY != null
                 ? document.elementFromPoint(event.clientX, event.clientY)?.closest('.player-panel, .player-list')
                 : null
 
             if (droppedInPlayerList) {
-                const playerName = positions.value[dragKey].assigned?.name
-                releaseAssignedPlayer(dragKey, `${playerName} regresó a la plantilla disponible.`)
-                dragging = false
-                dragKey = null
+                const playerName = positions.value[activeKey].assigned?.name
+                releaseAssignedPlayer(activeKey, `${playerName} regresó a la plantilla disponible.`)
+                isDragging.value = false
+                dragKey.value = null
                 hoveredKey.value = null
                 return
             }
 
-            positions.value[dragKey].specificRole = getSpecificRole(positions.value[dragKey])
-            const playerName = positions.value[dragKey].assigned?.name
+            positions.value[activeKey].specificRole = getSpecificRole(positions.value[activeKey])
+            const playerName = positions.value[activeKey].assigned?.name
             emit('update-positions', getPositionsSnapshot())
 
             if (playerName) {
-                canvasStatus.value = `${playerName} reubicado en ${positions.value[dragKey].specificRole}.`
+                canvasStatus.value = `${playerName} reubicado en ${positions.value[activeKey].specificRole}.`
             }
         }
 
-        dragging = false
-        dragKey = null
+        isDragging.value = false
+        dragKey.value = null
     }
 
     function onCanvasPointerDown(event) {
         if (!canvas.value) return
-        canvas.value.setPointerCapture?.(event.pointerId)
-        startDrag(event)
+
+        if (startDrag(event)) {
+            dragPointerId = event.pointerId
+            canvas.value.setPointerCapture?.(event.pointerId)
+        }
     }
 
     function onCanvasPointerMove(event) {
         if (!canvas.value) return
 
         const { x, y } = toCanvasPoint(event)
-        if (dragging) {
+        if (isDragging.value) {
             onDrag(event)
             return
         }
 
-        const nearest = findNearestPosition(x, y, 36)
-        hoveredKey.value = nearest
-
-        if (nearest && positions.value[nearest]?.assigned) {
-            const position = positions.value[nearest]
-            canvasStatus.value = `${position.assigned.name} | ${position.specificRole || nearest}`
-        } else if (nearest) {
-            canvasStatus.value = `${positions.value[nearest]?.specificRole || nearest} disponible para asignación.`
-        } else {
-            canvasStatus.value = 'Arrastra jugadores al campo o mueve un titular dentro de la cancha.'
-        }
-
-        drawField()
+        const nearest = resolveInteractivePosition(x, y, 36)
+        updateHoverStatus(nearest)
     }
 
     function onCanvasPointerUp(event) {
-        if (dragging) {
+        if (isDragging.value) {
             endDrag(event)
         }
-        canvas.value?.releasePointerCapture?.(event.pointerId)
+
+        if (dragPointerId != null) {
+            canvas.value?.releasePointerCapture?.(dragPointerId)
+            dragPointerId = null
+        } else if (event?.pointerId != null) {
+            canvas.value?.releasePointerCapture?.(event.pointerId)
+        }
+    }
+
+    function onCanvasPointerLeave() {
+        if (isDragging.value) return
+        updateHoverStatus(null)
+    }
+
+    function onCanvasClick(event) {
+        if (suppressNextClick) {
+            suppressNextClick = false
+            return
+        }
+
+        if (!props.selectedPlayer) return
+
+        const { x, y } = toCanvasPoint(event)
+        const target = resolveInteractivePosition(x, y, 54)
+
+        if (!target) {
+            lastSelectionHint = `Acerca ${props.selectedPlayer.name} a un punto táctico o toca una posición disponible.`
+            canvasStatus.value = lastSelectionHint
+            return
+        }
+
+        assignPlayerToPos(props.selectedPlayer, target)
+        hoveredKey.value = target
+        canvasStatus.value = `${props.selectedPlayer.name} asignado a ${positions.value[target].specificRole || target}.`
+        emit('clear-selected-player')
     }
 
     function onDblClick(event) {
         const { x, y } = toCanvasPoint(event)
-        const nearest = findNearestPosition(x, y, 50)
+        const nearest = resolveInteractivePosition(x, y, 50)
         if (!nearest) return
 
         const previous = positions.value[nearest].assigned
         if (previous) {
+            hoveredKey.value = nearest
             releaseAssignedPlayer(nearest, `${previous.name} regresó a la lista de disponibles.`)
         }
     }
 
     /* --------------------------------------------------------------------- */
-    /* Render del canvas                                                     */
+    /* Ayudas visuales para SVG y exportación                                */
     /* --------------------------------------------------------------------- */
     function getMarkerPalette(type) {
         switch (type) {
@@ -632,201 +766,130 @@ export default function useCoachBoardField(props, emit) {
         }
     }
 
-    function drawBackgroundOverlay() {
-        ctx.save()
-
-        const topShade = ctx.createLinearGradient(0, 0, 0, canvasHeight.value * 0.25)
-        topShade.addColorStop(0, 'rgba(0, 0, 0, 0.22)')
-        topShade.addColorStop(1, 'rgba(0, 0, 0, 0)')
-        ctx.fillStyle = topShade
-        ctx.fillRect(0, 0, canvasWidth.value, canvasHeight.value * 0.25)
-
-        const bottomShade = ctx.createLinearGradient(0, canvasHeight.value, 0, canvasHeight.value * 0.76)
-        bottomShade.addColorStop(0, 'rgba(0, 0, 0, 0.26)')
-        bottomShade.addColorStop(1, 'rgba(0, 0, 0, 0)')
-        ctx.fillStyle = bottomShade
-        ctx.fillRect(0, canvasHeight.value * 0.76, canvasWidth.value, canvasHeight.value * 0.24)
-
-        ctx.restore()
+    function truncateDisplayText(text, threshold = 10, visible = 8) {
+        if (!text) return ''
+        if (text.length <= threshold) return text
+        return `${text.substring(0, visible)}…`
     }
 
-    function drawPositionNode(position, palette, isHovered) {
+    function estimateBadgeWidth(shortName, roleText) {
+        const shortNameWidth = shortName ? shortName.length * 7.4 + 24 : 90
+        const roleWidth = roleText ? roleText.length * 5.9 + 24 : 0
+        return Math.max(90, shortNameWidth, roleWidth)
+    }
+
+    function drawBackgroundOverlay(targetCtx) {
+        targetCtx.save()
+
+        const topShade = targetCtx.createLinearGradient(0, 0, 0, canvasHeight.value * 0.25)
+        topShade.addColorStop(0, 'rgba(0, 0, 0, 0.22)')
+        topShade.addColorStop(1, 'rgba(0, 0, 0, 0)')
+        targetCtx.fillStyle = topShade
+        targetCtx.fillRect(0, 0, canvasWidth.value, canvasHeight.value * 0.25)
+
+        const bottomShade = targetCtx.createLinearGradient(0, canvasHeight.value, 0, canvasHeight.value * 0.76)
+        bottomShade.addColorStop(0, 'rgba(0, 0, 0, 0.26)')
+        bottomShade.addColorStop(1, 'rgba(0, 0, 0, 0)')
+        targetCtx.fillStyle = bottomShade
+        targetCtx.fillRect(0, canvasHeight.value * 0.76, canvasWidth.value, canvasHeight.value * 0.24)
+
+        targetCtx.restore()
+    }
+
+    function drawPositionNode(targetCtx, position, palette, isHovered = false) {
         const radius = isHovered ? PLAYER_NODE_HOVER_RADIUS : PLAYER_NODE_RADIUS
 
-        ctx.save()
-        ctx.shadowColor = palette.glow
-        ctx.shadowBlur = isHovered ? 26 : 16
-        ctx.shadowOffsetX = 0
-        ctx.shadowOffsetY = 8
+        targetCtx.save()
+        targetCtx.shadowColor = palette.glow
+        targetCtx.shadowBlur = isHovered ? 26 : 16
+        targetCtx.shadowOffsetX = 0
+        targetCtx.shadowOffsetY = 8
 
-        const gradient = ctx.createRadialGradient(position.x - 8, position.y - 10, 8, position.x, position.y, radius)
+        const gradient = targetCtx.createRadialGradient(position.x - 8, position.y - 10, 8, position.x, position.y, radius)
         gradient.addColorStop(0, '#ffffff')
         gradient.addColorStop(0.2, palette.fill)
         gradient.addColorStop(1, palette.stroke)
 
-        ctx.beginPath()
-        ctx.fillStyle = gradient
-        ctx.strokeStyle = '#ffffff'
-        ctx.lineWidth = isHovered ? 3 : 2
-        ctx.arc(position.x, position.y, radius, 0, Math.PI * 2)
-        ctx.fill()
-        ctx.stroke()
-        ctx.restore()
+        targetCtx.beginPath()
+        targetCtx.fillStyle = gradient
+        targetCtx.strokeStyle = '#ffffff'
+        targetCtx.lineWidth = isHovered ? 3 : 2
+        targetCtx.arc(position.x, position.y, radius, 0, Math.PI * 2)
+        targetCtx.fill()
+        targetCtx.stroke()
+        targetCtx.restore()
 
         if (isHovered) {
-            ctx.save()
-            ctx.beginPath()
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)'
-            ctx.lineWidth = 2
-            ctx.arc(position.x, position.y, radius + 7, 0, Math.PI * 2)
-            ctx.stroke()
-            ctx.restore()
+            targetCtx.save()
+            targetCtx.beginPath()
+            targetCtx.strokeStyle = 'rgba(255, 255, 255, 0.75)'
+            targetCtx.lineWidth = 2
+            targetCtx.arc(position.x, position.y, radius + 7, 0, Math.PI * 2)
+            targetCtx.stroke()
+            targetCtx.restore()
         }
     }
 
-    /**
-     * Redibuja la cancha completa en cada cambio visual relevante:
-     * formación, hover, drag, asignación y carga de fotos.
-     */
-    function drawField() {
-        if (!canvas.value) return
-        if (!ctx) ctx = canvas.value.getContext('2d')
-        if (!ctx) return
-
-        ctx.imageSmoothingEnabled = true
-        ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value)
-
-        if (fieldImg.complete) {
-            ctx.drawImage(fieldImg, 0, 0, canvasWidth.value, canvasHeight.value)
-        } else {
-            ctx.fillStyle = '#47a447'
-            ctx.fillRect(0, 0, canvasWidth.value, canvasHeight.value)
-        }
-
-        drawBackgroundOverlay()
-
-        for (const key of posKeys.value) {
-            const position = positions.value[key]
-            const palette = getMarkerPalette(position.type)
-            const isHovered = hoveredKey.value === key || dragKey === key
-
-            drawPositionNode(position, palette, isHovered)
-
-            if (position.assigned) {
-                if (position.assigned.imgObj && position.assigned.imgObj instanceof Image && position.assigned.imgObj.complete) {
-                    try {
-                        ctx.save()
-                        ctx.beginPath()
-                        ctx.arc(position.x, position.y, PLAYER_IMAGE_RADIUS, 0, Math.PI * 2)
-                        ctx.closePath()
-                        ctx.clip()
-                        ctx.drawImage(
-                            position.assigned.imgObj,
-                            position.x - PLAYER_IMAGE_RADIUS,
-                            position.y - PLAYER_IMAGE_RADIUS,
-                            PLAYER_IMAGE_RADIUS * 2,
-                            PLAYER_IMAGE_RADIUS * 2
-                        )
-                        ctx.restore()
-                    } catch (error) {
-                        console.error('Error dibujando imagen:', error)
-                        drawDefaultMarker(position.x, position.y, position.assigned.name)
-                    }
-                } else if (position.assigned.img) {
-                    if (!position.assigned.imgLoading) {
-                        position.assigned.imgLoading = true
-                        const img = new Image()
-                        img.onload = () => {
-                            position.assigned.imgObj = img
-                            position.assigned.imgLoading = false
-                            drawField()
-                        }
-                        img.onerror = () => {
-                            console.error('Error cargando imagen:', position.assigned.img)
-                            position.assigned.imgLoading = false
-                            position.assigned.imgObj = null
-                            drawField()
-                        }
-                        img.src = position.assigned.img
-                    }
-                    drawDefaultMarker(position.x, position.y, position.assigned.name)
-                } else {
-                    drawDefaultMarker(position.x, position.y, position.assigned.name)
-                }
-
-                drawPlayerName(position.x, position.y, position.assigned.name, position.specificRole)
-            } else {
-                drawDefaultMarker(position.x, position.y, position.specificRole || key)
-            }
-        }
+    function drawDefaultMarker(targetCtx, x, y, label) {
+        targetCtx.fillStyle = '#0b1d17'
+        targetCtx.font = '700 13px "Trebuchet MS", Arial, sans-serif'
+        targetCtx.textAlign = 'center'
+        targetCtx.textBaseline = 'middle'
+        targetCtx.fillText(truncateDisplayText(label || '', 10, 8), x, y)
     }
 
-    function drawDefaultMarker(x, y, label) {
-        ctx.fillStyle = '#0b1d17'
-        ctx.font = '700 13px "Trebuchet MS", Arial, sans-serif'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-
-        let shortLabel = label
-        if (label.length > 10) {
-            shortLabel = label.substring(0, 8) + '…'
-        }
-
-        ctx.fillText(shortLabel, x, y)
-    }
-
-    function drawPlayerName(x, y, name, specificRole = null) {
-        const shortText = name.length > 14 ? name.substring(0, 12) + '…' : name
+    function drawPlayerName(targetCtx, x, y, name, specificRole = null) {
+        const shortText = truncateDisplayText(name || '', 14, 12)
         const roleText = specificRole && specificRole !== 'Jugador' ? specificRole : ''
 
-        ctx.font = '700 13px "Trebuchet MS", Arial, sans-serif'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
+        targetCtx.font = '700 13px "Trebuchet MS", Arial, sans-serif'
+        targetCtx.textAlign = 'center'
+        targetCtx.textBaseline = 'middle'
 
-        const textWidth = ctx.measureText(shortText).width
-        const roleWidth = roleText ? ctx.measureText(roleText).width : 0
+        const textWidth = targetCtx.measureText(shortText).width
+        const roleWidth = roleText ? targetCtx.measureText(roleText).width : 0
         const padding = 12
         const totalWidth = Math.max(textWidth + padding * 2, roleText ? roleWidth + 24 : 90)
         const totalHeight = roleText ? 42 : 28
         const badgeX = x - totalWidth / 2
         const badgeY = y + PLAYER_LABEL_OFFSET_Y
 
-        ctx.save()
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.28)'
-        ctx.shadowBlur = 10
-        ctx.shadowOffsetX = 0
-        ctx.shadowOffsetY = 4
+        targetCtx.save()
+        targetCtx.shadowColor = 'rgba(0, 0, 0, 0.28)'
+        targetCtx.shadowBlur = 10
+        targetCtx.shadowOffsetX = 0
+        targetCtx.shadowOffsetY = 4
 
-        const gradient = ctx.createLinearGradient(badgeX, badgeY, badgeX, badgeY + totalHeight)
+        const gradient = targetCtx.createLinearGradient(badgeX, badgeY, badgeX, badgeY + totalHeight)
         gradient.addColorStop(0, 'rgba(12, 28, 22, 0.9)')
         gradient.addColorStop(1, 'rgba(7, 18, 14, 0.94)')
 
-        roundRect(ctx, badgeX, badgeY, totalWidth, totalHeight, 15)
-        ctx.fillStyle = gradient
-        ctx.fill()
-        ctx.restore()
+        roundRect(targetCtx, badgeX, badgeY, totalWidth, totalHeight, 15)
+        targetCtx.fillStyle = gradient
+        targetCtx.fill()
+        targetCtx.restore()
 
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)'
-        ctx.lineWidth = 1.6
-        roundRect(ctx, badgeX, badgeY, totalWidth, totalHeight, 15)
-        ctx.stroke()
+        targetCtx.strokeStyle = 'rgba(255, 255, 255, 0.7)'
+        targetCtx.lineWidth = 1.6
+        roundRect(targetCtx, badgeX, badgeY, totalWidth, totalHeight, 15)
+        targetCtx.stroke()
 
-        ctx.fillStyle = 'white'
-        ctx.font = '700 13px "Trebuchet MS", Arial, sans-serif'
-        ctx.fillText(shortText, x, badgeY + (roleText ? 13 : totalHeight / 2))
+        targetCtx.fillStyle = 'white'
+        targetCtx.font = '700 13px "Trebuchet MS", Arial, sans-serif'
+        targetCtx.fillText(shortText, x, badgeY + (roleText ? 13 : totalHeight / 2))
 
         if (roleText) {
-            ctx.fillStyle = 'rgba(194, 231, 212, 0.9)'
-            ctx.font = '600 10px "Trebuchet MS", Arial, sans-serif'
-            ctx.fillText(roleText, x, badgeY + 29)
+            targetCtx.fillStyle = 'rgba(194, 231, 212, 0.9)'
+            targetCtx.font = '600 10px "Trebuchet MS", Arial, sans-serif'
+            targetCtx.fillText(roleText, x, badgeY + 29)
         }
 
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)'
-        ctx.lineWidth = 1.5
-        ctx.beginPath()
-        ctx.moveTo(x, y + PLAYER_NODE_RADIUS)
-        ctx.lineTo(x, badgeY)
-        ctx.stroke()
+        targetCtx.strokeStyle = 'rgba(255, 255, 255, 0.8)'
+        targetCtx.lineWidth = 1.5
+        targetCtx.beginPath()
+        targetCtx.moveTo(x, y + PLAYER_NODE_RADIUS)
+        targetCtx.lineTo(x, badgeY)
+        targetCtx.stroke()
     }
 
     function roundRect(targetCtx, x, y, width, height, radius) {
@@ -841,6 +904,65 @@ export default function useCoachBoardField(props, emit) {
         targetCtx.lineTo(x, y + radius)
         targetCtx.quadraticCurveTo(x, y, x + radius, y)
         targetCtx.closePath()
+    }
+
+    function buildFieldCanvas() {
+        const fieldCanvas = document.createElement('canvas')
+        fieldCanvas.width = canvasWidth.value
+        fieldCanvas.height = canvasHeight.value
+
+        const targetCtx = fieldCanvas.getContext('2d')
+        if (!targetCtx) return null
+
+        targetCtx.imageSmoothingEnabled = true
+        targetCtx.clearRect(0, 0, canvasWidth.value, canvasHeight.value)
+
+        if (fieldImg.complete) {
+            targetCtx.drawImage(fieldImg, 0, 0, canvasWidth.value, canvasHeight.value)
+        } else {
+            targetCtx.fillStyle = '#47a447'
+            targetCtx.fillRect(0, 0, canvasWidth.value, canvasHeight.value)
+        }
+
+        drawBackgroundOverlay(targetCtx)
+
+        for (const key of posKeys.value) {
+            const position = positions.value[key]
+            const palette = getMarkerPalette(position.type)
+
+            drawPositionNode(targetCtx, position, palette, false)
+
+            if (position.assigned) {
+                if (position.assigned.imgObj && position.assigned.imgObj instanceof Image && position.assigned.imgObj.complete) {
+                    try {
+                        targetCtx.save()
+                        targetCtx.beginPath()
+                        targetCtx.arc(position.x, position.y, PLAYER_IMAGE_RADIUS, 0, Math.PI * 2)
+                        targetCtx.closePath()
+                        targetCtx.clip()
+                        targetCtx.drawImage(
+                            position.assigned.imgObj,
+                            position.x - PLAYER_IMAGE_RADIUS,
+                            position.y - PLAYER_IMAGE_RADIUS,
+                            PLAYER_IMAGE_RADIUS * 2,
+                            PLAYER_IMAGE_RADIUS * 2
+                        )
+                        targetCtx.restore()
+                    } catch (error) {
+                        console.error('Error dibujando imagen:', error)
+                        drawDefaultMarker(targetCtx, position.x, position.y, position.assigned.name)
+                    }
+                } else {
+                    drawDefaultMarker(targetCtx, position.x, position.y, position.assigned.name)
+                }
+
+                drawPlayerName(targetCtx, position.x, position.y, position.assigned.name, position.specificRole)
+            } else {
+                drawDefaultMarker(targetCtx, position.x, position.y, position.specificRole || key)
+            }
+        }
+
+        return fieldCanvas
     }
 
     /* --------------------------------------------------------------------- */
@@ -898,12 +1020,9 @@ export default function useCoachBoardField(props, emit) {
         applyFormation(props.formation)
         hoveredKey.value = null
         canvasStatus.value = 'Cancha reiniciada a la distribución base.'
-        drawField()
     }
 
     function getCanvasImage(format = 'png', quality = 0.9) {
-        if (!canvas.value) return null
-
         const exportCanvas = buildExportCanvas()
         if (!exportCanvas) return null
 
@@ -921,7 +1040,8 @@ export default function useCoachBoardField(props, emit) {
      * Así la imagen descargada sirve tanto para táctica como para compartirla.
      */
     function buildExportCanvas() {
-        if (!canvas.value) return null
+        const fieldCanvas = buildFieldCanvas()
+        if (!fieldCanvas) return null
 
         const roster = [...props.availablePlayers]
             .filter(player => player?.name)
@@ -948,7 +1068,7 @@ export default function useCoachBoardField(props, emit) {
         if (!exportCtx) return null
 
         exportCtx.imageSmoothingEnabled = true
-        exportCtx.drawImage(canvas.value, 0, 0)
+        exportCtx.drawImage(fieldCanvas, 0, 0)
 
         const sectionY = baseHeight + sectionGap
         const sectionHeight = exportCanvas.height - sectionY
@@ -1070,36 +1190,51 @@ export default function useCoachBoardField(props, emit) {
         applyFormation(props.formation)
     })
 
-    onMounted(() => {
-        if (!canvas.value) return
+    watch(() => props.selectedPlayer, (player) => {
+        if (player) {
+            lastSelectionHint = getSelectionHint(player)
+            canvasStatus.value = lastSelectionHint
+            return
+        }
 
-        ctx = canvas.value.getContext('2d')
+        if (!isDragging.value && canvasStatus.value === lastSelectionHint) {
+            canvasStatus.value = DEFAULT_STATUS
+        }
+    })
+
+    onMounted(() => {
         if (fieldImg.complete) {
-            canvas.value.width = fieldImg.naturalWidth
-            canvas.value.height = fieldImg.naturalHeight
-            canvasWidth.value = fieldImg.naturalWidth
-            canvasHeight.value = fieldImg.naturalHeight
+            canvasWidth.value = fieldImg.naturalWidth || DEFAULT_FIELD_WIDTH
+            canvasHeight.value = fieldImg.naturalHeight || DEFAULT_FIELD_HEIGHT
+            initializePositions()
             applyFormation(props.formation)
-            drawField()
         }
     })
 
     /**
      * API pública que consume `Field.vue`:
      * - refs/estado para el template.
-     * - handlers de interacción del canvas.
+     * - handlers de interacción del SVG.
      * - métodos expuestos al padre mediante `defineExpose`.
      */
     return {
         canvas,
+        canvasWidth,
+        canvasHeight,
         canvasStatus,
         assignedCount,
         openSlots,
+        clipPathPrefix,
+        fieldViewBox,
+        fieldImageSrc: fieldImg.src,
+        renderedPositions,
         applyFormation,
         getCanvasImage,
+        onCanvasClick,
         onCanvasPointerDown,
         onCanvasPointerMove,
         onCanvasPointerUp,
+        onCanvasPointerLeave,
         onDblClick,
         onDrop,
         resetToDefault,
