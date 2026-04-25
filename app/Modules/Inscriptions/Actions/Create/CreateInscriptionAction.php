@@ -44,6 +44,10 @@ final class CreateInscriptionAction implements IContractPassable
             'year' => $this->attributes['year'],
             'school_id' => $this->school->id
         ], $this->attributes);
+
+        if($this->inscription->trashed()){
+            $this->inscription->restore();
+        }
     }
 
     private function setAttributes(Passable $passable): array
