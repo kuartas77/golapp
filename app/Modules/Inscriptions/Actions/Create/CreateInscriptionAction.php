@@ -75,7 +75,8 @@ final class CreateInscriptionAction implements IContractPassable
             'period_three' => null,
             'period_four' => null,
             'pre_inscription' => true,
-            'school_id' => $this->school->id
+            'school_id' => $this->school->id,
+            'delete_at' => null,
         ];
     }
 }
