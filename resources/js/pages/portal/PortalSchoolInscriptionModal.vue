@@ -1212,15 +1212,16 @@ const submitForm = handleSubmit(async (submittedValues) => {
         );
 
         if (Object.keys(fieldErrors).length > 0) {
-            setErrors(fieldErrors);
-
             const firstInvalidStep = steps.value.findIndex((step) =>
                 step.fields.some((field) => Boolean(fieldErrors[field]))
             );
 
             if (firstInvalidStep >= 0) {
                 currentStep.value = firstInvalidStep;
+                await nextTick();
             }
+
+            setErrors(fieldErrors);
         }
 
         globalError.value = response?.data?.message || error.message || 'Algo salió mal, no hemos podido procesar la información en este momento.';

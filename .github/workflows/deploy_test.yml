@@ -18,14 +18,19 @@ jobs:
           fetch-depth: 2
 
       - name: Use Node.js 24
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: 'pnpm'
 
-      - name: 🔨 Build Project
+      - name: Enable pnpm
+        run: corepack enable
+
+      - name: 🔨 Test and build project
         run: |
-          npm install
-          npm run build
+          pnpm install --frozen-lockfile
+          pnpm run test:vue
+          pnpm run build
 
       - name: Deploy full project except build
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
