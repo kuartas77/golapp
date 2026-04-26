@@ -35,7 +35,7 @@ const props = defineProps({
 	name: { type: String, required: true },
 	label: { type: String, default: "Selecciona un archivo" },
 	accept: { type: String, default: "image/png, image/jpeg, image/webp" },
-	defaultPreview: { type: String, default: "http://golapp.local/img/ball-dark.webp" },
+	defaultPreview: { type: String, default: "/img/ball-dark.webp" },
 });
 
 const { value, meta, errorMessage, handleChange, setValue } = useField(props.name);
