@@ -3,6 +3,35 @@ import api from "@/utils/axios";
 
 const toArray = (value) => Array.isArray(value) ? value : []
 const mapOptions = (value, mapper) => toArray(value).map(mapper)
+const normalizeOptionList = (value) => {
+    if (Array.isArray(value)) {
+        return value.map((item, index) => {
+            if (item && typeof item === 'object' && !Array.isArray(item)) {
+                const optionValue = item.value ?? item.id ?? index
+                const optionLabel = item.label ?? item.name ?? optionValue
+
+                return {
+                    value: String(optionValue),
+                    label: String(optionLabel),
+                }
+            }
+
+            return {
+                value: String(item),
+                label: String(item),
+            }
+        })
+    }
+
+    return Object.entries(value ?? {}).map(([optionValue, optionLabel]) => ({
+        value: String(optionValue),
+        label: String(optionLabel),
+    }))
+}
+const optionListToMap = (value) => normalizeOptionList(value).reduce((accumulator, option) => {
+    accumulator[String(option.value)] = option.label
+    return accumulator
+}, {})
 
 export const useSetting = defineStore('settings-store', {
     persist: true,
@@ -24,7 +53,18 @@ export const useSetting = defineStore('settings-store', {
         type_assistance: [],
         type_payments: [],
     }),
-    getters: {},
+    getters: {
+        genderOptions: (state) => normalizeOptionList(state.genders),
+        bloodTypeOptions: (state) => normalizeOptionList(state.blood_types),
+        averageOptions: (state) => normalizeOptionList(state.averages),
+        dominantProfileOptions: (state) => normalizeOptionList(state.dominant_profile),
+        relationshipOptions: (state) => normalizeOptionList(state.relationships),
+        documentTypeOptions: (state) => normalizeOptionList(state.document_types),
+        jornadaOptions: (state) => normalizeOptionList(state.jornada),
+        assistanceTypeOptions: (state) => normalizeOptionList(state.type_assistance),
+        paymentTypeOptions: (state) => normalizeOptionList(state.type_payments),
+        paymentTypeLabels: (state) => optionListToMap(state.type_payments),
+    },
     actions: {
         clearState() {
             this.$reset()
@@ -36,19 +76,19 @@ export const useSetting = defineStore('settings-store', {
             this.all_groups = toArray(data.all_t_groups)
             this.groups = toArray(data.t_groups)
             this.categories = toArray(data.categories)
-            this.genders = toArray(data.genders)
+            this.genders = normalizeOptionList(data.genders)
             this.positions = toArray(data.positions)
-            this.blood_types = toArray(data.blood_types)
-            this.averages = toArray(data.averages)
-            this.dominant_profile = toArray(data.dominant_profile)
-            this.relationships = toArray(data.relationships)
+            this.blood_types = normalizeOptionList(data.blood_types)
+            this.averages = normalizeOptionList(data.averages)
+            this.dominant_profile = normalizeOptionList(data.dominant_profile)
+            this.relationships = normalizeOptionList(data.relationships)
             this.competition_groups = toArray(data.competition_groups)
             this.inscription_years = mapOptions(data.inscription_years, (i) => ({ value: i.id, label: i.year }))
-            this.document_types = toArray(data.document_types)
-            this.jornada = toArray(data.jornada)
+            this.document_types = normalizeOptionList(data.document_types)
+            this.jornada = normalizeOptionList(data.jornada)
             this.schools = toArray(data.schools)
-            this.type_assistance = toArray(data.type_assistance)
-            this.type_payments = toArray(data.type_payments)
+            this.type_assistance = normalizeOptionList(data.type_assistance)
+            this.type_payments = normalizeOptionList(data.type_payments)
         }
     }
 

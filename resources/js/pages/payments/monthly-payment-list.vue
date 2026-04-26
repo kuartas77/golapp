@@ -175,8 +175,8 @@
                                                 :name="`select_${field}_${payPlayer.id}`" autocomplete="off"
                                                 @change="handleSelectChange(payPlayer, field)"
                                                 class="form-select form-select-sm">
-                                                <option v-for="(type, index) in type_payments" :value="index">{{ type }}
-                                                </option>
+                                                <option v-for="type in type_payments" :key="type.value"
+                                                    :value="type.value">{{ type.label }}</option>
                                             </select>
                                             <CurrencyInput class="form-control form-control-sm"
                                                 v-model="payPlayer[`${field}_amount`]"
@@ -200,7 +200,7 @@
 
                                     <template v-else>
                                         <span :class="`badge payments-c-${payPlayer[field]}`">
-                                            {{ type_payments[payPlayer[field]] }}
+                                            {{ paymentTypeLabels[String(payPlayer[field])] }}
                                         </span>
                                         <br />
                                         <small class="text-muted">
@@ -276,6 +276,7 @@ const {
     years,
     categories,
     type_payments,
+    paymentTypeLabels,
     typesNoEditables,
     paymentFields,
     totalsFooter,

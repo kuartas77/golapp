@@ -80,8 +80,8 @@
                                         <Field name="document_type" v-slot="{ field, errorMessage, meta }">
                                             <select v-bind="field" id="document_type" class="form-select form-select-sm"
                                                 :class="{ 'is-invalid': !meta.valid && errorMessage }">
-                                                <option :value="key" v-for="value, key in settings.document_types"
-                                                    :key="value">{{ value }}</option>
+                                                <option v-for="option in settings.documentTypeOptions"
+                                                    :key="option.value" :value="option.value">{{ option.label }}</option>
                                             </select>
                                         </Field>
                                     </div>
@@ -101,8 +101,8 @@
                                         <Field name="gender" v-slot="{ field, errorMessage, meta }">
                                             <select v-bind="field" id="gender" class="form-select form-select-sm"
                                                 :class="{ 'is-invalid': !meta.valid && errorMessage }">
-                                                <option :value="key" v-for="value, key in settings.genders"
-                                                    :key="value">{{ value }}</option>
+                                                <option v-for="option in settings.genderOptions"
+                                                    :key="option.value" :value="option.value">{{ option.label }}</option>
                                             </select>
                                         </Field>
                                     </div>
@@ -112,9 +112,8 @@
                                         <Field name="rh" v-slot="{ field, errorMessage, meta }">
                                             <select v-bind="field" id="rh" class="form-select form-select-sm"
                                                 :class="{ 'is-invalid': !meta.valid && errorMessage }">
-                                                <option :value="key" v-for="value, key in settings.blood_types"
-                                                    :key="value">{{ value }}
-                                                </option>
+                                                <option v-for="option in settings.bloodTypeOptions"
+                                                    :key="option.value" :value="option.value">{{ option.label }}</option>
                                             </select>
                                         </Field>
                                     </div>
@@ -170,8 +169,8 @@
                                         <Field name="jornada"  v-slot="{ field, errorMessage, meta }">
                                             <select v-bind="field" id="jornada" class="form-select form-select-sm"
                                                 :class="{ 'is-invalid': !meta.valid && errorMessage }">
-                                                <option :value="value" v-for="value in ['Mañana', 'Tarde']" :key="value">{{
-                                                value }}</option>
+                                                <option v-for="option in settings.jornadaOptions"
+                                                    :key="option.value" :value="option.value">{{ option.label }}</option>
                                             </select>
                                         </Field>
                                     </div>

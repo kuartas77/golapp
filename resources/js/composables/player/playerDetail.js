@@ -392,7 +392,7 @@ export default function usePlayerDetail() {
             loadingText.value = 'Cargando información del deportista...'
             guardianPortalEnabled.value = false
 
-            if (!settings.document_types.length || !settings.genders.length) {
+            if (!settings.documentTypeOptions.length || !settings.genderOptions.length) {
                 await settings.getSettings()
             }
 

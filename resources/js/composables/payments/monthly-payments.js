@@ -3,7 +3,7 @@ import cloneDeep from "lodash.clonedeep";
 import { useSetting } from '@/store/settings-store';
 import { usePageTitle } from "@/composables/use-meta";
 import api from "@/utils/axios";
-import { getCurrentInstance, onMounted, ref, toRaw, watch } from "vue";
+import { computed, getCurrentInstance, onMounted, ref, toRaw, watch } from "vue";
 import * as yup from 'yup';
 
 
@@ -16,7 +16,8 @@ export default function useMonthlyPayments() {
     const defaultYear = years.find((year) => Number(year.value) === currentDate.getFullYear())?.value
         ?? years[years.length - 1]?.value
         ?? currentDate.getFullYear()
-    const type_payments = settings.type_payments
+    const type_payments = computed(() => settings.paymentTypeOptions)
+    const paymentTypeLabels = computed(() => settings.paymentTypeLabels)
     const selected_group = ref(null)
     const groupPayments = ref([])
     const globalError = ref(null)
@@ -386,6 +387,7 @@ export default function useMonthlyPayments() {
         years,
         categories,
         type_payments,
+        paymentTypeLabels,
         typesNoEditables,
         paymentFields,
         totalsFooter,
