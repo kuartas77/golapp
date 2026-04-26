@@ -3,6 +3,7 @@
 
     <title>Control de competencia</title>
     <link rel="stylesheet" href="{{ asset('css/dompdf.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/dompdf-overrides.css') }}">
     <style type="text/css">
         .texto{
             font-size: 10px;

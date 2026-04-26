@@ -8,6 +8,7 @@ use App\Models\Player;
 use App\Service\Player\PlayerExportService;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
+use Mpdf\MpdfException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PlayerExportController extends Controller
@@ -26,7 +27,7 @@ class PlayerExportController extends Controller
 
     public function exportInscription(PlayerExportService $playerExportService, $player_id, $inscription_id, $year = null, $quarter = '')
     {
-        $playerExportService->makePDFInscriptionDetail($player_id, $inscription_id, $year, $quarter);
+        return $playerExportService->makePDFInscriptionDetail($player_id, $inscription_id, $year, $quarter);
     }
 
     /**

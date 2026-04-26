@@ -4,6 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>{{ $school->name }} Deportista {{$player->unique_code}}</title>
     <link rel="stylesheet" href="{{ public_path('css/dompdf.css') }}" media="all">
+    <link rel="stylesheet" href="{{ public_path('css/dompdf-overrides.css') }}" media="all">
 </head>
 <body>
     <table class="table-full title">
@@ -14,7 +15,7 @@
             <td class="text-center school-title" width="60%">{{ $school->name }}<br>FICHA DEL DEPORTISTA
             </td>
             <td class="text-right" width="20%">
-                <img src="{{ $player->photo_local }}" width="70" height="70">
+                <img src="{{ $player->photo_pdf_local }}" width="70" height="70">
             </td>
         </tr>
         <tr class="tr-tit">

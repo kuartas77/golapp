@@ -198,3 +198,10 @@ onMounted(async () => {
     await settings.getSettings()
 })
 </script>
+
+<style scoped>
+[data-tour="inscriptions-table"] :deep(.inscription-actions-menu.show) {
+    inset: auto 0 auto auto !important;
+    transform: none !important;
+}
+</style>

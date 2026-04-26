@@ -4,6 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>INCIDENCIAS {{$professor->name}}</title>
     <link rel="stylesheet" href="{{ asset('css/dompdf.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/dompdf-overrides.css') }}">
     <style type="text/css">
         .texto {
             font-size: 9.5px;

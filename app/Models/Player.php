@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Concerns\ResolvesLocalAssetPath;
 use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,7 @@ use Laravel\Sanctum\HasApiTokens;
 class Player extends Authenticatable
 {
     use HasApiTokens;
+    use ResolvesLocalAssetPath;
     use SoftDeletes;
     use GeneralScopes;
     use HasFactory;
@@ -148,6 +150,15 @@ class Player extends Authenticatable
         }
 
         return url('img/user.webp');
+    }
+
+    public function getPhotoPdfLocalAttribute(): string
+    {
+        return $this->resolveLocalAssetPath($this->attributes['photo'] ?? null, [
+            public_path('img/user.png'),
+            public_path('img/user.webp'),
+            public_path('img/not-found.png'),
+        ]);
     }
 
     public function routeNotificationForMail($notification): array

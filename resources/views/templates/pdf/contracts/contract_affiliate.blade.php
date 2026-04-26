@@ -5,6 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA</title>
     <link rel="stylesheet" href="{{ public_path('css/dompdf.css') }}">
+    <link rel="stylesheet" href="{{ public_path('css/dompdf-overrides.css') }}">
 </head>
 
 <body>

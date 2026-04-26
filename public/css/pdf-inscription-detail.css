@@ -1,0 +1,161 @@
+@page {
+  margin: 12mm 10mm 14mm;
+}
+
+body.pdf-inscription-detail {
+  font-size: 10px;
+  color: #243b53;
+}
+
+.pdf-inscription-detail .pdf-hero {
+  border: 1px solid #cbd2d9;
+  background: #f8fafc;
+}
+
+.pdf-inscription-detail .pdf-hero td {
+  border: none;
+  padding: 10px 12px;
+  vertical-align: middle;
+}
+
+.pdf-inscription-detail .brand-logo {
+  width: 70px;
+  height: 70px;
+}
+
+.pdf-inscription-detail .player-photo {
+  width: 70px;
+  height: 70px;
+  padding: 4px;
+  border: 1px solid #cbd2d9;
+  background: #ffffff;
+}
+
+.pdf-inscription-detail .hero-photo-caption {
+  margin-top: 6px;
+  font-size: 9px;
+  font-weight: bold;
+  color: #102a43;
+}
+
+.pdf-inscription-detail .eyebrow {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 8px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #7b8794;
+}
+
+.pdf-inscription-detail .hero-title {
+  margin: 0 0 4px;
+  font-size: 18px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: #102a43;
+}
+
+.pdf-inscription-detail .hero-subtitle {
+  font-size: 10px;
+  color: #52606d;
+}
+
+.pdf-inscription-detail .hero-meta {
+  margin-top: 10px;
+}
+
+.pdf-inscription-detail .hero-meta td {
+  padding: 0 8px 0 0;
+  border: none;
+}
+
+.pdf-inscription-detail .meta-card {
+  padding: 6px 8px;
+  border: 1px solid #d9e2ec;
+  background: #ffffff;
+}
+
+.pdf-inscription-detail .meta-label,
+.pdf-inscription-detail .info-label,
+.pdf-inscription-detail .metric-label {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 7.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #7b8794;
+}
+
+.pdf-inscription-detail .meta-value {
+  display: block;
+  font-size: 11px;
+  font-weight: bold;
+  color: #102a43;
+}
+
+.pdf-inscription-detail .pdf-section {
+  margin-bottom: 12px;
+}
+
+.pdf-inscription-detail .section-heading th {
+  padding: 8px 10px !important;
+  background: #dfe7f1;
+  color: #102a43;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.pdf-inscription-detail .subsection-heading th,
+.pdf-inscription-detail .subsection-heading td {
+  padding: 7px 8px !important;
+  background: #f1f5f9;
+  color: #334e68;
+  font-size: 9px;
+  font-weight: bold;
+}
+
+.pdf-inscription-detail .info-value,
+.pdf-inscription-detail .wide-note {
+  display: block;
+  font-size: 10px;
+  font-weight: bold;
+  color: #102a43;
+}
+
+.pdf-inscription-detail .metric-cell,
+.pdf-inscription-detail .payment-cell,
+.pdf-inscription-detail .observation-cell {
+  padding: 8px 10px !important;
+}
+
+.pdf-inscription-detail .metric-value {
+  display: block;
+  font-size: 12px;
+  font-weight: bold;
+  color: #102a43;
+}
+
+.pdf-inscription-detail .legend-table td {
+  padding: 6px 8px !important;
+  font-size: 9px;
+}
+
+.pdf-inscription-detail .legend-table strong {
+  display: block;
+}
+
+.pdf-inscription-detail .observation-date {
+  font-weight: bold;
+  color: #102a43;
+}
+
+.pdf-inscription-detail .muted-note {
+  color: #7b8794;
+  font-size: 9px;
+}
+
+.pdf-inscription-detail .text-uppercase {
+  text-transform: uppercase;
+}

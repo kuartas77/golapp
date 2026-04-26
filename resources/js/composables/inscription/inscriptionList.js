@@ -87,17 +87,18 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
                     : ''
 
                 return `
-                <div class="dropdown">
+                <div class="dropdown inscription-actions-dropdown">
                     <button
                         class="btn btn-sm btn-primary dropdown-toggle"
                         type="button"
                         data-bs-toggle="dropdown"
+                        data-bs-display="static"
                         aria-expanded="false"
                     >
                         Acciones
                     </button>
 
-                    <ul class="dropdown-menu dropdown-menu-end">
+                    <ul class="dropdown-menu dropdown-menu-end inscription-actions-menu">
                         <li>
                             <button
                                 class="dropdown-item"

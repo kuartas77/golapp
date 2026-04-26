@@ -1,0 +1,68 @@
+body {
+  color: #1f2937;
+  line-height: 1.4;
+}
+
+img {
+  max-width: 100%;
+}
+
+.table-full {
+  margin: 0 0 12px;
+}
+
+.title td {
+  padding: 6px 8px;
+  vertical-align: middle;
+}
+
+.detail td,
+.detail th {
+  padding: 2px 8px;
+  vertical-align: top;
+}
+
+.detail-lines td,
+.detail-lines th {
+  border: 1px solid #3d3d3d;
+}
+
+tr.tr-tit,
+tr.tr-tit > td,
+tr.tr-tit > th {
+  background: #e8edf3;
+  color: #102a43;
+}
+
+.table-encabezado td {
+  vertical-align: middle;
+}
+
+.school-title {
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 1.25;
+}
+
+.small td,
+.small th {
+  font-size: 8px;
+}
+
+.text-muted {
+  color: #7b8794;
+}
+
+.error {
+  color: #b42318;
+  font-weight: bold;
+}
+
+.success {
+  color: #067647;
+  font-weight: bold;
+}
+
+.no-break {
+  page-break-inside: avoid;
+}

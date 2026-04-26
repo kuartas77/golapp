@@ -6,6 +6,7 @@ use App\Models\Player;
 use App\Traits\PDFTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
+use Mpdf\MpdfException;
 
 class PlayerExportService
 {
@@ -58,6 +59,9 @@ class PlayerExportService
         $data['observations_skills'] = $observations_skills;
         $data['optionAssist'] = config('variables.KEY_ASSIST_LETTER');
         $filename = "Deportista {$player->unique_code}.pdf";
+
+        // return view()->file(resource_path("views/templates/pdf/inscription_detail.blade.php"), $data)->render();
+
         $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'inscription_detail.blade.php');
         return $stream ? $this->stream($filename) : $this->output($filename);

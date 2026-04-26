@@ -5,6 +5,7 @@
 
     <title>Deportista {{$player->unique_code}}</title>
     <link rel="stylesheet" href="{{ asset('css/dompdf.css') }}" media="all">
+    <link rel="stylesheet" href="{{ asset('css/dompdf-overrides.css') }}" media="all">
 </head>
 <body>
 <table class="table-encabezado" style="margin:10px auto 0;" border="0">

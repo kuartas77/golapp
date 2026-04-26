@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Reporte de evaluación</title>
         <link rel="stylesheet" href="{{ public_path('css/dompdf.css') }}">
+        <link rel="stylesheet" href="{{ public_path('css/dompdf-overrides.css') }}">
     <style>
         body {
             font-family: sans-serif;

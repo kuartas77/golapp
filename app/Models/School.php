@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Concerns\ResolvesLocalAssetPath;
 use App\Observers\SchoolObserver;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +27,7 @@ use Illuminate\Support\Facades\Storage;
 class School extends Model
 {
     use HasFactory;
+    use ResolvesLocalAssetPath;
     use SoftDeletes;
 
     public const KEY_SCHOOL_CACHE = 'school_';
@@ -183,11 +185,11 @@ class School extends Model
 
     public function getLogoLocalAttribute(): string
     {
-        if (!empty($this->attributes['logo']) && Storage::disk('public')->exists($this->attributes['logo'])) {
-            return storage_path('app/public/' . $this->attributes['logo']);
-        }
-
-        return storage_path('standard/ballon.webp');
+        return $this->resolveLocalAssetPath($this->attributes['logo'] ?? null, [
+            storage_path('standard/ballon.webp'),
+            public_path('img/ballon.webp'),
+            public_path('img/not-found.png'),
+        ]);
     }
 
     public function users(): HasManyThrough
