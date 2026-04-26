@@ -179,7 +179,7 @@
             label.empty().html('Seleccionada.')
         }else{
             label.empty().html("Seleccionar...")
-            $('#player-img').attr('src', 'http://golapp.local/img/user.png');
+            $('#player-img').attr('src', '/img/user.png');
         }
     }
 
