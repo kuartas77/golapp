@@ -115,8 +115,13 @@
                 </div>
             </div>
 
-            <div class="table-responsive" :class="groupPayments.length ? 'scroll-container' : ''" data-tour="monthly-payments-table">
-                <table class="table table-bordered table-sm dataTable align-middle text-center" ref="payments_table">
+            <div
+                ref="scrollContainer"
+                class="table-responsive"
+                :class="groupPayments.length ? 'scroll-container' : ''"
+                data-tour="monthly-payments-table"
+            >
+                <table class="table table-bordered table-sm dataTable align-middle text-center">
                     <thead class="">
                         <tr>
                             <th class="dt-head-center dt-body-center">Nombre</th>
@@ -166,7 +171,13 @@
                                     </div>
                                 </td>
 
-                                <td class="dt-head-center dt-body-center" v-for="field in paymentFields" :key="field">
+                                <td
+                                    class="dt-head-center dt-body-center"
+                                    v-for="field in paymentFields"
+                                    :key="field"
+                                    :data-payment-id="payPlayer.id"
+                                    :data-payment-field="field"
+                                >
 
                                     <template
                                         v-if="editingCell?.payPlayer === payPlayer && editingCell?.field === field && !typesNoEditables.some((e) => e === payPlayer[field])">
@@ -247,6 +258,7 @@ export default {
 }
 </script>
 <script setup>
+import { nextTick, ref, watch } from 'vue'
 import CurrencyInput from '@/components/general/CurrencyInput';
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useMonthlyPayments from '@/composables/payments/monthly-payments';
@@ -283,4 +295,80 @@ const {
     totalByType
 } = useMonthlyPayments()
 const tutorial = usePageTutorial(monthlyPaymentsTutorial)
+
+const scrollContainer = ref(null)
+
+const waitForAnimationFrame = () => new Promise((resolve) => requestAnimationFrame(resolve))
+
+const findEditingCellElement = (cell = editingCell.value) => {
+    if (!cell?.payPlayer?.id || !cell?.field || !scrollContainer.value) {
+        return null
+    }
+
+    return scrollContainer.value.querySelector(
+        `[data-payment-id="${cell.payPlayer.id}"][data-payment-field="${cell.field}"]`
+    )
+}
+
+const keepEditingCellVisible = (cellElement) => {
+    if (!scrollContainer.value || !cellElement) {
+        return
+    }
+
+    const containerRect = scrollContainer.value.getBoundingClientRect()
+    const cellRect = cellElement.getBoundingClientRect()
+    const tableHeadHeight = scrollContainer.value.querySelector('thead')?.getBoundingClientRect().height || 0
+    const tableFootHeight = scrollContainer.value.querySelector('tfoot')?.getBoundingClientRect().height || 0
+    const verticalPadding = 12
+    const horizontalPadding = 16
+
+    const visibleTop = containerRect.top + tableHeadHeight + verticalPadding
+    const visibleBottom = containerRect.bottom - tableFootHeight - verticalPadding
+    const visibleLeft = containerRect.left + horizontalPadding
+    const visibleRight = containerRect.right - horizontalPadding
+
+    if (cellRect.top < visibleTop) {
+        scrollContainer.value.scrollTop -= visibleTop - cellRect.top
+    } else if (cellRect.bottom > visibleBottom) {
+        scrollContainer.value.scrollTop += cellRect.bottom - visibleBottom
+    }
+
+    if (cellRect.left < visibleLeft) {
+        scrollContainer.value.scrollLeft -= visibleLeft - cellRect.left
+    } else if (cellRect.right > visibleRight) {
+        scrollContainer.value.scrollLeft += cellRect.right - visibleRight
+    }
+}
+
+const focusEditingControl = (cellElement) => {
+    const control = cellElement?.querySelector('select, input')
+    if (!control) {
+        return
+    }
+
+    try {
+        control.focus({ preventScroll: true })
+    } catch {
+        control.focus()
+    }
+}
+
+watch(editingCell, async (cell) => {
+    if (!cell) {
+        return
+    }
+
+    await nextTick()
+    await waitForAnimationFrame()
+
+    const cellElement = findEditingCellElement(cell)
+    if (!cellElement) {
+        return
+    }
+
+    keepEditingCellVisible(cellElement)
+    focusEditingControl(cellElement)
+    await nextTick()
+    keepEditingCellVisible(cellElement)
+})
 </script>
