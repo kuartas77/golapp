@@ -2,7 +2,7 @@
     <div class="modal fade" id="composeModalInscription" tabindex="-1" role="dialog" aria-labelledby="modalInscription"
         aria-hidden="false" aria-modal="true">
         <div class="modal-dialog modal-lg" role="document">
-            <Form ref="form" :validation-schema="schema" @submit="submit" :initial-values="initialData">
+            <Form ref="form" :validation-schema="schema" @submit="submit" :initial-values="initialData" v-slot="{ isSubmitting }">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="modalInscription">{{ isEditing ? 'Modificar inscripción' : 'Inscripción' }}</h5>
@@ -10,6 +10,9 @@
                             class="btn-close" @click="onCancel"></button>
                     </div>
                     <div class="modal-body">
+                        <div v-if="globalError" class="alert alert-danger" role="alert">
+                            {{ globalError }}
+                        </div>
                         <div class="row col-12 ">
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
@@ -127,7 +130,7 @@
                                                     type="checkbox"
                                                     class="custom-control-input"
                                                     :checked="Boolean(value)"
-                                                    @change="(event) => { handleChange(event); onPreInscriptionChange(event.target.checked) }"
+                                                    @change="(event) => onPreInscriptionInput(event, handleChange)"
                                                 />
                                                 <label class="custom-control-label" for="pre_inscription">
                                                     Marcar como preinscripción
@@ -139,13 +142,16 @@
                                 <small class="form-text text-muted">
                                     Marca esta opción solo si la inscripción aún está pendiente de documentación.
                                 </small>
+                                <ErrorMessage name="pre_inscription" class="custom-error" as="div" />
                             </div>
 
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="onCancel">Cerrar</button>
-                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <button type="button" class="btn" :disabled="isSubmitting" @click="onCancel">Cerrar</button>
+                        <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                            {{ isSubmitting ? 'Guardando...' : 'Guardar' }}
+                        </button>
                     </div>
                 </div>
             </Form>
@@ -365,6 +371,7 @@ const loadPlayerByUniqueCode = async (uniqueCode) => {
 
 const submit = async (values, actions) => {
     try {
+        globalError.value = null
         let response = null
         const data = { ...values }
 
@@ -409,6 +416,13 @@ const onTrainingGroupChange = (value) => {
 
 const onPreInscriptionChange = (value) => {
     currentPreInscription.value = Boolean(value)
+}
+
+const onPreInscriptionInput = (event, handleChange) => {
+    const checked = Boolean(event?.target?.checked)
+
+    handleChange(checked)
+    onPreInscriptionChange(checked)
 }
 
 const listenerClickOutSide = (event) => {

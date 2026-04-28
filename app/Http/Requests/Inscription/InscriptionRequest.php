@@ -50,6 +50,7 @@ class InscriptionRequest extends FormRequest
             'period_three' => ['nullable'],
             'period_four' => ['nullable'],
             'scholarship' => ['nullable', 'boolean'],
+            'pre_inscription' => ['nullable', 'boolean'],
             'brother_payment' => ['nullable', 'boolean'],
         ];
     }

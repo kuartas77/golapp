@@ -42,8 +42,7 @@ class InscriptionRepository
     {
         $result = false;
         try {
-
-            $requestData['training_group_id'] = $this->getTrainingGroupId($requestData);
+            $this->prepareTrainingGroupData($requestData);
             $requestData['deleted_at'] = null;
 
             DB::beginTransaction();
@@ -74,17 +73,18 @@ class InscriptionRepository
         return $result;
     }
 
-    public function getTrainingGroupId(array &$requestData): mixed
+    private function prepareTrainingGroupData(array &$requestData): void
     {
         $trainingGroup = TrainingGroup::query()
             ->orderBy('id')
             ->firstWhere('school_id', $requestData['school_id']);
 
         throw_if(is_null($trainingGroup), Exception::class, 'Training group not found for school');
-        $requestData['training_group_id'] = isset($requestData['training_group_id']) ? $requestData['training_group_id'] : $trainingGroup->id;
-        $requestData['pre_inscription'] = $requestData['training_group_id'] == $trainingGroup->id;
+        $trainingGroupId = isset($requestData['training_group_id']) ? $requestData['training_group_id'] : $trainingGroup->id;
 
-        return isset($requestData['training_group_id']) ? $requestData['training_group_id'] : $trainingGroup->id;
+        $requestData['training_group_id'] = $trainingGroupId;
+        $requestData['pre_inscription'] = (bool) data_get($requestData, 'pre_inscription', false)
+            || (string) $trainingGroupId === (string) $trainingGroup->id;
     }
 
     private function setCompetitionGroupIds($inscription, $requestData): void
@@ -98,7 +98,7 @@ class InscriptionRepository
     {
         $result = false;
         try {
-            $requestData['training_group_id'] = $this->getTrainingGroupId($requestData);
+            $this->prepareTrainingGroupData($requestData);
             $requestData['deleted_at'] = null;
             $requestData['unique_code'] = $inscription->unique_code;
             $requestData['start_date'] = $inscription->start_date;

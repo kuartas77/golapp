@@ -13,6 +13,7 @@ use App\Models\Payment;
 use App\Models\Player;
 use App\Models\School;
 use App\Models\Setting;
+use App\Models\TrainingGroup;
 use App\Models\Tournament;
 use Mockery\MockInterface;
 use Illuminate\Support\Facades\Bus;
@@ -86,6 +87,39 @@ final class InscriptionsTest extends TestCase
         $this->assertTrue((bool) $inscription->brother_payment);
         $this->assertSame(Payment::$debt, (int) $payment->{$monthField});
         $this->assertSame(65000, (int) $payment->{"{$monthField}_amount"});
+    }
+
+    public function testCreateInscriptionAllowsManualPreInscriptionOutsideProvisionalGroup(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $now = Carbon::now();
+        $player = Player::factory()->create();
+        $trainingGroup = TrainingGroup::query()->create([
+            'school_id' => $this->school['id'],
+            'name' => 'Grupo definitivo',
+            'year' => $now->year,
+            'category' => 'Todas las categorías',
+            'days' => 'Lunes',
+            'schedules' => '10:00AM - 11:00AM',
+        ]);
+
+        $this->actingAs($this->user);
+
+        $this->post(route('inscriptions.store'), [
+            'unique_code' => $player->unique_code,
+            'player_id' => $player->id,
+            'start_date' => $now->format('Y-m-d'),
+            'training_group_id' => $trainingGroup->id,
+            'pre_inscription' => true,
+        ])->assertStatus(200);
+
+        $this->assertDatabaseHas('inscriptions', [
+            'player_id' => $player->id,
+            'training_group_id' => $trainingGroup->id,
+            'pre_inscription' => true,
+        ]);
     }
 
     public function testCreateInscriptionError(): void
@@ -238,6 +272,50 @@ final class InscriptionsTest extends TestCase
         $this->assertDatabaseMissing('competition_group_inscription', [
             'competition_group_id' => $competitionGroup->id,
             'inscription_id' => $inscription->id,
+        ]);
+    }
+
+    public function testUpdateInscriptionAllowsManualPreInscriptionOutsideProvisionalGroup(): void
+    {
+        $now = Carbon::now();
+
+        $player = Player::factory()->create();
+        $trainingGroup = TrainingGroup::query()->create([
+            'school_id' => $this->school['id'],
+            'name' => 'Grupo definitivo',
+            'year' => $now->year,
+            'category' => 'Todas las categorías',
+            'days' => 'Lunes',
+            'schedules' => '10:00AM - 11:00AM',
+        ]);
+
+        $inscription = Inscription::factory()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => $now->year,
+            'training_group_id' => $trainingGroup->id,
+            'competition_group_id' => null,
+            'start_date' => $now->format('Y-m-d'),
+            'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+            'school_id' => $this->school['id'],
+            'pre_inscription' => false,
+        ]);
+
+        $this->actingAs($this->user);
+
+        $this->post(route('inscriptions.update', [$inscription->id]), [
+            'unique_code' => $player->unique_code,
+            'player_id' => $player->id,
+            'start_date' => $now->format('Y-m-d'),
+            'training_group_id' => $trainingGroup->id,
+            'pre_inscription' => true,
+            '_method' => 'PATCH',
+        ])->assertStatus(200);
+
+        $this->assertDatabaseHas('inscriptions', [
+            'id' => $inscription->id,
+            'training_group_id' => $trainingGroup->id,
+            'pre_inscription' => true,
         ]);
     }
 
