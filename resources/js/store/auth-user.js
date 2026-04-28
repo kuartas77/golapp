@@ -93,6 +93,12 @@ export const useAuthUser = defineStore('auth-user', {
             await this.getUser()
             this.initialized = true;
         },
+        async forgotPassword(email) {
+            return api.post('/api/v2/forgot-password', { email })
+        },
+        async resetPassword(payload) {
+            return api.post('/api/v2/reset-password', payload)
+        },
         async logout() {
             try {
                 await api.post("/api/v2/logout");

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Notifications\UserPasswordResetNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -102,5 +103,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(TrainingGroup::class)->withPivot('assigned_year');
     }
 
-
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new UserPasswordResetNotification($this, $token));
+    }
 }

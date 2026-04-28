@@ -82,6 +82,8 @@ Route::middleware(['auth:sanctum'])->group(function(){
 Route::prefix('v2')->group(function(){
 
     Route::post('login', [AuthControllerSPA::class, 'login']);
+    Route::post('forgot-password', [AuthControllerSPA::class, 'forgotPassword']);
+    Route::post('reset-password', [AuthControllerSPA::class, 'resetPassword']);
 
     Route::middleware(['auth:sanctum'])->group(function(){
 

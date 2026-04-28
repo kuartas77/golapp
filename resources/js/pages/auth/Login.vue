@@ -13,13 +13,17 @@
                             <Form ref="form" :validation-schema="schema" @submit="handleLogin"
                                 :initial-values="formData" class="text-start">
                                 <div class="form">
+                                    <div v-if="successMessage" class="alert alert-success" role="alert">
+                                        {{ successMessage }}
+                                    </div>
+
                                     <div id="username-field" class="field-wrapper input">
-                                        <label for="username">Usuario</label>
+                                        <label for="email">Correo</label>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" class="feather feather-user">
-                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                            <circle cx="12" cy="7" r="4"></circle>
+                                            stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail">
+                                            <path d="M4 4h16v16H4z"></path>
+                                            <path d="m22 6-10 7L2 6"></path>
                                         </svg>
                                         <inputField type="text" name="email" />
                                     </div>
@@ -27,7 +31,7 @@
                                     <div id="password-field" class="field-wrapper input mb-2">
                                         <div class="d-flex justify-content-between">
                                             <label for="password">Contraseña</label>
-                                            <router-link to="/auth/pass-recovery-boxed" class="forgot-pass-link">Recuperar?</router-link>
+                                            <router-link :to="{ name: 'forgot-password' }" class="forgot-pass-link">Recuperar contraseña</router-link>
                                         </div>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -67,8 +71,15 @@
 import "@/assets/sass/authentication/auth-boxed.scss";
 import useFormLogin from '@/composables/auth/formLogin'
 import { Form } from 'vee-validate'
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 
+const route = useRoute()
 const { form, formData, schema, handleLogin, pwd_type, globalError } = useFormLogin()
+const successMessage = computed(() => route.query.reset === '1'
+    ? 'La contraseña fue actualizada correctamente. Ya puedes ingresar.'
+    : ''
+)
 
 const set_pwd_type = () => {
     if (pwd_type.value === "password") {

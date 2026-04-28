@@ -18,7 +18,7 @@ export default function useFormLogin() {
     useMeta({ title: "Ingresar" })
 
     const formData = ref({
-        email: '',
+        email: typeof route.query.email === 'string' ? route.query.email : '',
         password: ''
     });
 

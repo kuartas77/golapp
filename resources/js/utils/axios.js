@@ -148,7 +148,7 @@ api.interceptors.response.use(
             if (!isPublicPortal) {
                 auth.clearState()
 
-                if (router.currentRoute.value.name !== 'login') {
+                if (!['login', 'forgot-password', 'reset-password'].includes(String(router.currentRoute.value.name ?? ''))) {
                     await router.push({ name: 'login' })
                 }
             }

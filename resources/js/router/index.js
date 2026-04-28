@@ -30,11 +30,13 @@ const routes = [
         ]
     },
     {
-        path: '/login',
+        path: '/ingreso',
         component: () => import('@/layouts/auth-layout.vue'),
         meta: { guest: true },
         children: [
             { path: '', name: 'login', component: () => import('@/pages/auth/Login.vue') },
+            { path: 'recuperar-contrasena', name: 'forgot-password', component: () => import('@/pages/auth/ForgotPassword.vue') },
+            { path: 'restablecer-contrasena', name: 'reset-password', component: () => import('@/pages/auth/ResetPassword.vue') },
         ]
     },
     {
