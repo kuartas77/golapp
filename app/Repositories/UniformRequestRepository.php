@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Models\Player;
 use App\Models\UniformRequest;
 use App\Traits\ErrorTrait;
 use Illuminate\Support\Facades\DB;
@@ -94,6 +95,16 @@ class UniformRequestRepository
             $success = false;
         }
         return $success;
+    }
+
+    public function findPlayerRequestOrFail(int $uniformRequestId): UniformRequest
+    {
+        /** @var Player $player */
+        $player = request()->user();
+
+        return $player->uniform_requests()
+            ->whereKey($uniformRequestId)
+            ->firstOrFail();
     }
 
 }

@@ -7,11 +7,8 @@ use App\Http\Requests\API\Notification\UniformFormRequest;
 use App\Http\Resources\API\Notification\UniformRequest\UniformRequestCollection;
 use App\Http\Resources\API\Notification\UniformRequest\UniformRequestResource;
 use App\Http\Resources\API\Notification\UniformRequest\UniformRequestStatistcsResource;
-use App\Models\UniformRequest as ModelsUniformRequest;
 use App\Repositories\UniformRequestRepository;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class UniformRequestController extends Controller
 {
@@ -37,14 +34,14 @@ class UniformRequestController extends Controller
         return new UniformRequestResource($uniformRequest);
     }
 
-    public function show(ModelsUniformRequest $uniformRequest): UniformRequestResource
+    public function show(int $uniformRequest): UniformRequestResource
     {
-        return new UniformRequestResource($uniformRequest);
+        return new UniformRequestResource($this->repository->findPlayerRequestOrFail($uniformRequest));
     }
 
-    public function cancel(ModelsUniformRequest $uniformRequest): JsonResponse
+    public function cancel(int $uniformRequest): JsonResponse
     {
-        $success = $this->repository->cancel($uniformRequest);
+        $success = $this->repository->cancel($this->repository->findPlayerRequestOrFail($uniformRequest));
         return response()->json(['success' => $success]);
     }
 }

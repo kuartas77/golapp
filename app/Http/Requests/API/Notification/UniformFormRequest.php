@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\API\Notification;
 
+use App\Models\Player;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Str;
 
 class UniformFormRequest extends FormRequest
 {
@@ -14,7 +14,7 @@ class UniformFormRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user() instanceof Player;
     }
 
     /**
@@ -26,7 +26,7 @@ class UniformFormRequest extends FormRequest
     {
         return [
             'type' => ['required', 'string'],
-            'quantity' => ['required', 'numeric'],
+            'quantity' => ['required', 'integer', 'min:1'],
             'size' => ['required', 'string'],
             'additional_notes' => ['nullable', 'string'],
         ];

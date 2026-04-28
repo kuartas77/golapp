@@ -4,7 +4,9 @@ namespace App\Repositories;
 
 use App\Models\Invoice;
 use App\Models\PaymentRequest;
+use App\Models\Player;
 use App\Traits\UploadFile;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 
 class PaymentRequestRepository
@@ -17,14 +19,23 @@ class PaymentRequestRepository
         try {
             DB::beginTransaction();
 
+            /** @var Player $player */
             $player = request()->user();
-            $player->load('schoolData');
+            $player->loadMissing(['schoolData', 'inscription']);
             $school = $player->schoolData;
+            $invoice = $player->inscription?->invoices()
+                ->whereKey($validated['invoice_id'])
+                ->whereIn('status', ['pending', 'partial'])
+                ->first();
+
+            if (!$invoice) {
+                throw new ModelNotFoundException();
+            }
 
             $paymentRequest = new PaymentRequest();
             $paymentRequest->school_id = $player->school_id;
             $paymentRequest->player_id = $player->id;
-            $paymentRequest->invoice_id = $validated['invoice_id'];
+            $paymentRequest->invoice_id = $invoice->id;
             $paymentRequest->amount = $validated['amount'];
             $paymentRequest->description = $validated['description'];
             $paymentRequest->reference_number = $validated['reference_number'];
@@ -39,12 +50,20 @@ class PaymentRequestRepository
 
             $invoice = $paymentRequest->invoice;
 
+        } catch (ModelNotFoundException $exception) {
+            DB::rollBack();
+            throw $exception;
         } catch (\Throwable $th) {
             DB::rollBack();
             report($th);
         }
 
         return $invoice;
+    }
+
+    public function findForCurrentSchoolOrFail(int $paymentRequestId): PaymentRequest
+    {
+        return PaymentRequest::query()->schoolId()->findOrFail($paymentRequestId);
     }
 
     public function getPaymentRequestsQuery()

@@ -34,7 +34,8 @@ class PlayerStatsController extends Controller
 
     public function playerDetail(int $id): JsonResponse
     {
-        $payload = $this->playerStatsService->getPlayerDetailPayload($id);
+        $school = getSchool(auth()->user());
+        $payload = $this->playerStatsService->getPlayerDetailPayload($id, $school->id);
 
         if (!$payload) {
             return response()->json([

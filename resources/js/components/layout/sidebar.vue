@@ -43,7 +43,7 @@
                                 </router-link>
                             </li>
                         </Can>
-                        <li>
+                        <li v-if="canPlayers && canMatches">
                             <router-link :to="{ name: 'player-stats.index' }" @click="toggleMobileMenu">
                                 Estadísticas Jugador
                             </router-link>

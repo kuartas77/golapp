@@ -64,9 +64,9 @@ class PlayerStatsService
         ];
     }
 
-    public function getPlayerDetailPayload(int $playerId): ?array
+    public function getPlayerDetailPayload(int $playerId, int $schoolId): ?array
     {
-        $playerStats = $this->findPlayerStats($playerId);
+        $playerStats = $this->findPlayerStats($playerId, $schoolId);
 
         if (!$playerStats) {
             return null;
@@ -76,8 +76,8 @@ class PlayerStatsService
 
         return [
             'player' => $playerStats,
-            'positions_history' => $this->getPositionsHistory($playerId),
-            'recent_matches' => $this->getRecentMatches($playerId),
+            'positions_history' => $this->getPositionsHistory($playerId, $schoolId),
+            'recent_matches' => $this->getRecentMatches($playerId, $schoolId),
         ];
     }
 
@@ -240,7 +240,7 @@ class PlayerStatsService
             ->where('sc.school_id', $schoolId);
     }
 
-    private function findPlayerStats(int $playerId): ?object
+    private function findPlayerStats(int $playerId, int $schoolId): ?object
     {
         return DB::table('skills_control as sc')
             ->selectRaw("
@@ -291,13 +291,14 @@ class PlayerStatsService
             ->join('inscriptions as i', 'sc.inscription_id', '=', 'i.id')
             ->join('players as p', 'i.player_id', '=', 'p.id')
             ->where('i.player_id', $playerId)
+            ->where('i.school_id', $schoolId)
             ->whereNull('sc.deleted_at')
             ->where('sc.assistance', 1)
             ->groupBy('i.player_id', 'p.names', 'p.last_names', 'p.photo', 'p.date_birth')
             ->first();
     }
 
-    private function getPositionsHistory(int $playerId)
+    private function getPositionsHistory(int $playerId, int $schoolId)
     {
         return DB::table('skills_control as sc')
             ->selectRaw("
@@ -307,6 +308,7 @@ class PlayerStatsService
             ")
             ->join('inscriptions as i', 'sc.inscription_id', '=', 'i.id')
             ->where('i.player_id', $playerId)
+            ->where('i.school_id', $schoolId)
             ->whereNull('sc.deleted_at')
             ->where('sc.assistance', 1)
             ->whereNotNull('sc.position')
@@ -315,7 +317,7 @@ class PlayerStatsService
             ->get();
     }
 
-    private function getRecentMatches(int $playerId)
+    private function getRecentMatches(int $playerId, int $schoolId)
     {
         return DB::table('skills_control as sc')
             ->select([
@@ -339,6 +341,7 @@ class PlayerStatsService
             ->join('games as g', 'sc.game_id', '=', 'g.id')
             ->join('inscriptions as i', 'sc.inscription_id', '=', 'i.id')
             ->where('i.player_id', $playerId)
+            ->where('i.school_id', $schoolId)
             ->whereNull('sc.deleted_at')
             ->where('sc.assistance', 1)
             ->orderBy('g.date', 'DESC')

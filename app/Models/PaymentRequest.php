@@ -46,7 +46,7 @@ class PaymentRequest extends Model
     public function getUrlImageAttribute(): ?string
     {
         if (!empty($this->attributes['image']) && Storage::disk('public')->exists($this->attributes['image'])) {
-            return route('images', $this->attributes['image']);
+            return route('notifications.payment-requests.proof', ['paymentRequest' => $this->getKey()]);
         }
 
         return url('img/not-found.png');

@@ -10,9 +10,11 @@ use App\Models\InvoiceItem;
 use App\Models\Payment;
 use App\Models\PaymentReceived;
 use App\Models\PaymentRequest;
+use App\Models\Player;
 use App\Models\UniformRequest;
 use App\Traits\PDFTrait;
 use App\Traits\UploadFile;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -34,6 +36,25 @@ class InvoiceRepository
         $player = request()->user();
         $player->load(['inscription.invoices.items']);
         return data_get($player->inscription, 'invoices', collect());
+    }
+
+    public function findPlayerInvoiceOrFail(int $invoiceId): Invoice
+    {
+        /** @var Player $player */
+        $player = request()->user();
+        $player->loadMissing('inscription');
+
+        $inscriptionId = $player->inscription?->id;
+
+        if (!$inscriptionId) {
+            throw new ModelNotFoundException();
+        }
+
+        return Invoice::query()
+            ->with('items')
+            ->whereKey($invoiceId)
+            ->where('inscription_id', $inscriptionId)
+            ->firstOrFail();
     }
 
     public function query(): Builder
@@ -163,7 +184,7 @@ class InvoiceRepository
 
     public function addPayment(InvoiceAddPaymentRequest $request, $invoiceId)
     {
-        $invoice = Invoice::findOrFail($invoiceId);
+        $invoice = Invoice::query()->schoolId()->findOrFail($invoiceId);
 
         $paymentReceived = PaymentReceived::query()->create([
             'invoice_id' => $invoiceId,
@@ -172,7 +193,7 @@ class InvoiceRepository
             'reference' => $request->validated('reference'),
             'payment_date' => $request->validated('payment_date'),
             'notes' => $request->validated('notes'),
-            'school_id' => $request->validated('school_id'),
+            'school_id' => $invoice->school_id,
             'created_by' => auth()->id(),
         ]);
 
@@ -203,8 +224,11 @@ class InvoiceRepository
 
     public function addPaymentButton($invoiceId, $paymentRequestId)
     {
-        $invoice = Invoice::findOrFail($invoiceId);
-        $paymentRequest = PaymentRequest::findOrFail($paymentRequestId);
+        $invoice = Invoice::query()->schoolId()->findOrFail($invoiceId);
+        $paymentRequest = PaymentRequest::query()
+            ->schoolId()
+            ->where('invoice_id', $invoice->id)
+            ->findOrFail($paymentRequestId);
 
         $paymentReceived = PaymentReceived::query()->create([
             'invoice_id' => $invoiceId,

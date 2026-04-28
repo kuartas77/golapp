@@ -7,7 +7,6 @@ use App\Http\Requests\API\Notification\PaymentInvoiceRequest;
 use App\Http\Resources\API\Notification\Invoices\InvoiceCollection;
 use App\Http\Resources\API\Notification\Invoices\InvoiceResource;
 use App\Http\Resources\API\Notification\Invoices\InvoiceStatistcsResource;
-use App\Models\Invoice;
 use App\Repositories\InvoiceRepository;
 use App\Repositories\PaymentRequestRepository;
 use Illuminate\Http\JsonResponse;
@@ -29,14 +28,21 @@ class InvoiceController extends Controller
         return new InvoiceStatistcsResource($this->invoice_repository->statisticsPlayer());
     }
 
-    public function payment(PaymentInvoiceRequest $request): InvoiceResource
+    public function payment(PaymentInvoiceRequest $request): InvoiceResource|JsonResponse
     {
         $invoice = $this->payment_request_repository->createPaymentRequest($request->validated());
+
+        if (!$invoice) {
+            return response()->json([
+                'message' => 'No fue posible registrar el comprobante de pago.',
+            ], 500);
+        }
+
         return new InvoiceResource($invoice);
     }
 
-    public function show(Invoice $invoice): InvoiceResource
+    public function show(int $invoice): InvoiceResource
     {
-        return new InvoiceResource($invoice->load('items'));
+        return new InvoiceResource($this->invoice_repository->findPlayerInvoiceOrFail($invoice));
     }
 }

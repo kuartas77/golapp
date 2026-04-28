@@ -69,13 +69,15 @@ Route::middleware(['auth:sanctum'])->group(function(){
         Route::post('attendances/upsert', [AssistsController::class, 'upsert']);
     });
 
-    Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum'])->name('v1.')->group(function (){
-
-        Route::post('register', [RegisterController::class, 'register']);
-        Route::apiResource('users', UsersController::class);
-        Route::apiResource('inscriptions', InscriptionController::class);
-        Route::apiResource('schools', SchoolController::class);
-    });
+    // Legacy API admin surface disabled during security review.
+    // Keep the block here for traceability until we confirm why these routes still exist.
+    // Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum'])->name('v1.')->group(function (){
+    //
+    //     Route::post('register', [RegisterController::class, 'register']);
+    //     Route::apiResource('users', UsersController::class);
+    //     Route::apiResource('inscriptions', InscriptionController::class);
+    //     Route::apiResource('schools', SchoolController::class);
+    // });
 });
 
 
@@ -192,6 +194,7 @@ Route::prefix('v2')->group(function(){
         ])->prefix('notifications')->group(function () {
             Route::get('header-summary', [HeaderNotificationsController::class, 'index']);
             Route::get('payment-requests', [PaymentRequestController::class, 'index']);
+            Route::get('payment-requests/{paymentRequest}/proof', [PaymentRequestController::class, 'proof'])->name('notifications.payment-requests.proof');
             Route::get('uniform-requests', [UniformRequestsController::class, 'index']);
             Route::put('invoice/{invoice}/payment-request/{paymentRequest}', [InvoiceController::class, 'update']);
         });
@@ -202,9 +205,11 @@ Route::prefix('v2')->group(function(){
             Route::post('', [TopicNotificationsController::class, 'store']);
         });
 
-        Route::get('/player-stats', [PlayerStatsController::class, 'index']);
-        Route::get('/top-players', [PlayerStatsController::class, 'topPlayers']);
-        Route::get('/player/{id}/detail', [PlayerStatsController::class, 'playerDetail']);
+        Route::middleware('school.permission:school.module.players')->group(function () {
+            Route::get('/player-stats', [PlayerStatsController::class, 'index']);
+            Route::get('/top-players', [PlayerStatsController::class, 'topPlayers']);
+            Route::get('/player/{id}/detail', [PlayerStatsController::class, 'playerDetail']);
+        });
 
         Route::prefix('datatables')->group(function () {
             Route::middleware('school.permission:school.module.inscriptions')->group(function () {

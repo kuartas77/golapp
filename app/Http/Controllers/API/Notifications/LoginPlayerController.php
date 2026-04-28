@@ -22,7 +22,6 @@ class LoginPlayerController extends Controller
      */
     public function login(Request $request)
     {
-        logger("try-login-player-1", $request->all());
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
@@ -34,12 +33,11 @@ class LoginPlayerController extends Controller
             ->whereHas('inscription')->first();
 
         if(!$player || !Hash::check($request->input('password'), $player->password)) {
-            logger("try-login-player-2", ['no-player']);
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
-        logger("try-login-player-3", $request->all());
+
         return $this->generateResponse($player);
     }
 

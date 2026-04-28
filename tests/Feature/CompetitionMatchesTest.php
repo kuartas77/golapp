@@ -36,11 +36,9 @@ final class CompetitionMatchesTest extends TestCase
             $otherUser->id
         );
 
-        $this->actingAs($this->user);
-
-        $response = $this->get(route('matches.create', ['competition_group' => $otherCompetitionGroup->id]));
-
-        $response->assertNotFound();
+        $this->actingAs($this->user)
+            ->getJson("/api/v2/matches/0?competition_group={$otherCompetitionGroup->id}")
+            ->assertNotFound();
     }
 
     public function testEditUpdateAndDestroyReturn404ForMatchFromAnotherSchool(): void
@@ -51,16 +49,20 @@ final class CompetitionMatchesTest extends TestCase
         [$inscription] = $this->createInscriptionAndPayment();
         $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
 
-        $this->actingAs($this->user);
+        $this->actingAs($this->user)
+            ->getJson("/api/v2/matches/{$otherMatch->id}")
+            ->assertNotFound();
 
-        $this->get(route('matches.edit', [$otherMatch->id]))->assertNotFound();
+        $this->actingAs($this->user)
+            ->putJson(
+                "/api/v2/matches/{$otherMatch->id}",
+                $this->validMatchPayload($competitionGroup->tournament, $competitionGroup, $inscription, true, $otherMatch->id)
+            )
+            ->assertNotFound();
 
-        $this->put(
-            route('matches.update', [$otherMatch->id]),
-            $this->validMatchPayload($competitionGroup->tournament, $competitionGroup, $inscription) + ['ids' => ['']]
-        )->assertNotFound();
-
-        $this->delete(route('matches.destroy', [$otherMatch->id]))->assertNotFound();
+        $this->actingAs($this->user)
+            ->deleteJson("/api/v2/matches/{$otherMatch->id}")
+            ->assertNotFound();
     }
 
     public function testStoreCreatesSkillsControlWithGoalAssistAndGoalSavesDefaults(): void
@@ -68,14 +70,13 @@ final class CompetitionMatchesTest extends TestCase
         [$inscription] = $this->createInscriptionAndPayment();
         $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
 
-        $this->actingAs($this->user);
-
-        $response = $this->post(
-            route('matches.store'),
-            $this->validMatchPayload($competitionGroup->tournament, $competitionGroup, $inscription)
-        );
-
-        $response->assertRedirect(route('matches.index'));
+        $this->actingAs($this->user)
+            ->postJson(
+                '/api/v2/matches',
+                $this->validMatchPayload($competitionGroup->tournament, $competitionGroup, $inscription)
+            )
+            ->assertOk()
+            ->assertJsonPath('success', true);
 
         $match = Game::query()->latest('id')->firstOrFail();
 
@@ -123,58 +124,47 @@ final class CompetitionMatchesTest extends TestCase
         $this->assertSame('2', $legacyFormatMatch->final_score_array->rival);
     }
 
-    private function validMatchPayload(Tournament $tournament, CompetitionGroup $competitionGroup, Inscription $inscription): array
+    private function validMatchPayload(
+        Tournament $tournament,
+        CompetitionGroup $competitionGroup,
+        Inscription $inscription,
+        bool $isUpdate = false,
+        ?int $gameId = null
+    ): array
     {
+        $skillControl = [
+            'id' => null,
+            'inscription_id' => (string) $inscription->id,
+            'assistance' => '1',
+            'titular' => '1',
+            'played_approx' => '30',
+            'position' => 'MID',
+            'goals' => '1',
+            'goal_assists' => '0',
+            'goal_saves' => '0',
+            'yellow_cards' => '0',
+            'red_cards' => '0',
+            'qualification' => '4',
+            'observation' => 'Ingreso desde test',
+        ];
+
+        if ($isUpdate) {
+            $skillControl['game_id'] = (string) ($gameId ?? 0);
+        }
+
         return [
-            'name' => $competitionGroup->full_name,
             'competition_group_id' => (string) $competitionGroup->id,
             'tournament_id' => (string) $tournament->id,
-            'user_id' => $this->user->name,
             'num_match' => '1',
             'place' => 'Cancha Principal',
             'date' => now()->toDateString(),
             'hour' => '08:00 AM',
             'rival_name' => 'Rival Test',
-            'final_score' => [
-                'soccer' => '1',
-                'rival' => '0',
-            ],
+            'final_score_school' => '1',
+            'final_score_rival' => '0',
             'general_concept' => 'Buen partido',
-            'inscriptions_id' => [
-                0 => (string) $inscription->id,
-            ],
-            'assistance' => [
-                0 => '1',
-            ],
-            'titular' => [
-                0 => '1',
-            ],
-            'played_approx' => [
-                0 => '30',
-            ],
-            'position' => [
-                0 => 'MID',
-            ],
-            'goals' => [
-                0 => '1',
-            ],
-            'goal_assists' => [
-                0 => '0',
-            ],
-            'goal_saves' => [
-                0 => '0',
-            ],
-            'yellow_cards' => [
-                0 => '0',
-            ],
-            'red_cards' => [
-                0 => '0',
-            ],
-            'qualification' => [
-                0 => '4',
-            ],
-            'observation' => [
-                0 => 'Ingreso desde test',
+            'skill_controls' => [
+                $skillControl,
             ],
         ];
     }

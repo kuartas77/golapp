@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\API\Notification;
 
+use App\Models\Player;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 
@@ -14,7 +15,7 @@ class PaymentInvoiceRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user() instanceof Player;
     }
 
     /**
@@ -25,13 +26,13 @@ class PaymentInvoiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'string'],
-            'invoice_id' => ['required', 'string'],
+            'id' => ['required', 'integer'],
+            'invoice_id' => ['required', 'integer'],
             'amount' => ['required', 'numeric'],
             'description' => ['nullable', 'string'],
             'reference_number' => ['nullable', 'string'],
             'payment_method' => ['required', 'string'],
-            'image' => ['required'],
+            'image' => ['required', 'file', 'mimetypes:image/jpeg,image/png,image/webp'],
         ];
     }
 
