@@ -254,6 +254,20 @@
                             </div>
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
+                                    <label>Fecha de Emisión *</label>
+                                    <input
+                                        type="date"
+                                        class="form-control @error('issue_date') is-invalid @enderror"
+                                        name="issue_date"
+                                        value="{{ old('issue_date', $invoice->issue_date->format('Y-m-d')) }}"
+                                        required>
+                                    @error('issue_date')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                <div class="form-group">
                                     <label>Fecha del Pago *</label>
                                     <input type="date" class="form-control" name="payment_date"
                                         value="{{ date('Y-m-d') }}" required>

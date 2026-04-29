@@ -11,6 +11,7 @@ use App\Models\CompetitionGroupInscription;
 use App\Models\Game;
 use App\Models\Inscription;
 use App\Models\Invoice;
+use App\Models\PaymentReceived;
 use App\Models\Payment;
 use App\Models\Player;
 use App\Models\PlayerTopicNotification;
@@ -196,14 +197,12 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ]);
         $this->assertTrue($repository->upsert($skipDto));
 
-        DB::table('assists')->insert([
+        $this->assertDatabaseHas('assists', [
             'training_group_id' => $trainingGroup->id,
             'inscription_id' => $inscription->id,
             'year' => now()->year,
             'month' => '1',
             'school_id' => $this->school['id'],
-            'created_at' => now(),
-            'updated_at' => now(),
         ]);
 
         $updateDto = AssistDTO::fromArray([
@@ -436,6 +435,72 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         $itemsQuery = $repository->getAllItems();
         $this->assertInstanceOf(Builder::class, $itemsQuery);
+    }
+
+    public function testInvoicePaymentRegistrationUpdatesIssueDate(): void
+    {
+        $this->actingAs($this->user);
+        [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
+
+        Schema::disableForeignKeyConstraints();
+
+        try {
+            $invoice = Invoice::query()->create([
+                'invoice_number' => 'FAC-PAY-' . now()->format('YmdHis'),
+                'inscription_id' => $inscription->id,
+                'training_group_id' => $trainingGroup->id,
+                'year' => now()->year,
+                'student_name' => $inscription->player->full_names,
+                'total_amount' => 0,
+                'paid_amount' => 0,
+                'issue_date' => '2026-04-01',
+                'due_date' => now()->addWeek()->toDateString(),
+                'status' => 'pending',
+                'school_id' => $this->school['id'],
+                'created_by' => $this->user->id,
+            ]);
+
+            $item = $invoice->items()->create([
+                'type' => 'monthly',
+                'description' => 'Mensualidad Enero',
+                'quantity' => 1,
+                'unit_price' => 50000,
+                'month' => 'january',
+                'payment_id' => $payment->id,
+                'is_paid' => false,
+                'payment_received_id' => 0,
+            ]);
+
+            $response = $this->from(route('invoices.show', $invoice->id))
+                ->post(route('invoices.addPayment', $invoice->id), [
+                    'amount' => '50000',
+                    'payment_method' => 'cash',
+                    'issue_date' => '2026-04-15',
+                    'payment_date' => '2026-04-20',
+                    'reference' => 'REF-50000',
+                    'notes' => 'Pago de prueba',
+                    'paid_items' => [$item->id],
+                ]);
+
+            $response->assertRedirect(route('invoices.show', $invoice->id));
+
+            $invoice->refresh();
+            $item->refresh();
+            $payment->refresh();
+
+            $paymentReceived = PaymentReceived::query()->firstWhere('invoice_id', $invoice->id);
+
+            $this->assertNotNull($paymentReceived);
+            $this->assertSame('2026-04-15', $invoice->issue_date->toDateString());
+            $this->assertSame('2026-04-20', $paymentReceived->payment_date->toDateString());
+            $this->assertSame('paid', $invoice->status);
+            $this->assertSame('50000.00', $invoice->paid_amount);
+            $this->assertTrue($item->is_paid);
+            $this->assertSame($paymentReceived->id, $item->payment_received_id);
+            $this->assertSame('1', (string) $payment->january);
+        } finally {
+            Schema::enableForeignKeyConstraints();
+        }
     }
 
     public function testGameRepositoryDatatableAndExportMatchDetail(): void
@@ -1310,22 +1375,22 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $createResult = $createRepository->create(['training_group_id' => 1]);
         $this->assertSame([], $createResult);
 
-        $assist = Assist::query()->create([
-            'training_group_id' => TrainingGroup::query()->where('school_id', $this->school['id'])->firstOrFail()->id,
-            'inscription_id' => Inscription::query()->create([
-                'school_id' => $this->school['id'],
-                'player_id' => $this->createTestPlayer()->id,
-                'unique_code' => 'RC-ERR-' . fake()->unique()->numberBetween(1000, 9999),
-                'year' => now()->year,
-                'start_date' => now()->startOfYear()->format('Y-m-d'),
-                'category' => '2010-2011',
-                'training_group_id' => TrainingGroup::query()->where('school_id', $this->school['id'])->firstOrFail()->id,
-                'competition_group_id' => null,
-            ])->id,
-            'year' => now()->year,
-            'month' => '1',
+        $trainingGroup = TrainingGroup::query()->where('school_id', $this->school['id'])->firstOrFail();
+        $inscription = Inscription::query()->create([
             'school_id' => $this->school['id'],
+            'player_id' => $this->createTestPlayer()->id,
+            'unique_code' => 'RC-ERR-' . fake()->unique()->numberBetween(1000, 9999),
+            'year' => now()->year,
+            'start_date' => now()->startOfYear()->format('Y-m-d'),
+            'category' => '2010-2011',
+            'training_group_id' => $trainingGroup->id,
+            'competition_group_id' => null,
         ]);
+        $assist = $inscription->assistance()
+            ->where('training_group_id', $trainingGroup->id)
+            ->where('year', now()->year)
+            ->where('month', '1')
+            ->firstOrFail();
 
         $upsertRepository = Mockery::mock(AssistRepository::class, [new Assist()])->makePartial();
         $upsertRepository->shouldReceive('logError')->once();

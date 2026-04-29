@@ -56,7 +56,7 @@ final class ServicesCoverageTest extends TestCase
         $trainingGroup = $this->createTrainingGroup('Assists API Group');
         $inscription = $this->createInscription($this->makePlayer(), $trainingGroup);
 
-        Assist::query()->create([
+        $this->assertDatabaseHas('assists', [
             'training_group_id' => $trainingGroup->id,
             'inscription_id' => $inscription->id,
             'year' => now()->year,
@@ -138,7 +138,7 @@ final class ServicesCoverageTest extends TestCase
         $this->actingAs($this->user);
         $group = $this->createTrainingGroup('Assist Service Group');
         $inscription = $this->createInscription($this->makePlayer(), $group);
-        Assist::query()->create([
+        $this->assertDatabaseHas('assists', [
             'training_group_id' => $group->id,
             'inscription_id' => $inscription->id,
             'year' => now()->year,
@@ -199,6 +199,11 @@ final class ServicesCoverageTest extends TestCase
             public function __construct(public int $training_group_id)
             {
             }
+
+            public function input(string $key, $default = null)
+            {
+                return $default;
+            }
         };
         $this->assertSame('streamed', $streamMock->paymentsPdfByGroup(collect(), $requestStream, true));
 
@@ -210,6 +215,11 @@ final class ServicesCoverageTest extends TestCase
         {
             public function __construct(public int $training_group_id)
             {
+            }
+
+            public function input(string $key, $default = null)
+            {
+                return $default;
             }
         };
         $this->assertSame('output', $outputMock->paymentsPdfByGroup(collect(), $requestOutput, false));
@@ -260,7 +270,7 @@ final class ServicesCoverageTest extends TestCase
 
         $enabledPlayer = $this->makePlayer();
         $inscription = $this->createInscription($enabledPlayer, $group);
-        Assist::query()->create([
+        $this->assertDatabaseHas('assists', [
             'training_group_id' => $group->id,
             'inscription_id' => $inscription->id,
             'year' => now()->year,
