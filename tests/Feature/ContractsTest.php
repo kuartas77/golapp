@@ -69,6 +69,7 @@ final class ContractsTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.code', 'inscription')
             ->assertJsonPath('data.configured', true)
+            ->assertJsonPath('data.preview_url', route('api.v2.admin.contracts.preview', ['contractTypeCode' => 'inscription']))
             ->assertJsonPath('data.template.name', 'Contrato portal');
 
         $contract = Contract::query()
@@ -90,6 +91,24 @@ final class ContractsTest extends TestCase
 
         $this->assertSame($secondarySchool->id, $indexResponse->json('school.id'));
         $this->assertContains('[PLAYER_FULLNAMES]', $indexResponse->json('types.0.template.used_parameters'));
+    }
+
+    public function testAdminContractsIndexOnlyReturnsPreviewUrlForConfiguredTemplates(): void
+    {
+        $school = School::query()->findOrFail($this->school['id']);
+        $this->createConfiguredContract($school, 'inscription');
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/v2/admin/contracts')
+            ->assertOk();
+
+        $types = collect($response->json('types'))->keyBy('code');
+
+        $this->assertSame(
+            route('api.v2.admin.contracts.preview', ['contractTypeCode' => 'inscription']),
+            $types->get('inscription')['preview_url']
+        );
+        $this->assertNull($types->get('affiliate')['preview_url']);
     }
 
     public function testPortalSchoolDataOnlyReturnsConfiguredContracts(): void
@@ -155,6 +174,23 @@ final class ContractsTest extends TestCase
 
         $this->get(route('portal.school.contract.show', [$school->slug, 'affiliate']))
             ->assertNotFound();
+    }
+
+    public function testAdminContractPreviewStreamsConfiguredTemplateEvenWhenPortalFlowIsInactive(): void
+    {
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->forceFill([
+            'create_contract' => false,
+            'is_enable' => false,
+        ])->save();
+        School::forgetCachedSchool($school->id);
+
+        $this->createConfiguredContract($school, 'inscription');
+
+        $this->actingAs($this->user)
+            ->get('/api/v2/admin/contracts/inscription/preview')
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
     }
 
     public function testCreateContractActionOnlyGeneratesConfiguredContracts(): void

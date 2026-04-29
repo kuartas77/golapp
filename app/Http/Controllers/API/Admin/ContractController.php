@@ -7,10 +7,14 @@ namespace App\Http\Controllers\API\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\Admin\UpsertContractTemplateRequest;
 use App\Service\Contracts\ContractTemplateService;
+use App\Traits\PDFTrait;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class ContractController extends Controller
 {
+    use PDFTrait;
+
     public function __construct(
         private readonly ContractTemplateService $contractTemplateService
     ) {
@@ -36,5 +40,24 @@ class ContractController extends Controller
             'message' => 'Contrato guardado correctamente.',
             'data' => $this->contractTemplateService->editorTypePayload($school, $contractTypeCode),
         ]);
+    }
+
+    public function preview(string $contractTypeCode)
+    {
+        $school = getSchool(auth()->user());
+
+        $data = $this->contractTemplateService->renderForSchool(
+            $school,
+            $contractTypeCode,
+            $this->contractTemplateService->buildPreviewVariables($school)
+        );
+
+        abort_if($data === null, Response::HTTP_NOT_FOUND, 'La plantilla solicitada no esta disponible.');
+
+        $this->setWatermarkSize($this->contractTemplateService->watermarkSize());
+        $this->setConfigurationMpdf($this->contractTemplateService->pdfConfiguration());
+        $this->createPDF($data, $this->contractTemplateService->pdfViewForCode($contractTypeCode), false);
+
+        return $this->stream($this->contractTemplateService->fileLabelForCode($contractTypeCode) . '.pdf');
     }
 }

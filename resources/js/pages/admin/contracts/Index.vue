@@ -108,6 +108,15 @@
                                     </div>
 
                                     <div class="d-flex flex-wrap gap-2 align-self-start">
+                                        <a
+                                            v-if="selectedType.preview_url"
+                                            :href="selectedType.preview_url"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="btn btn-outline-secondary btn-sm"
+                                        >
+                                            Ver PDF de ejemplo
+                                        </a>
                                         <span class="theme-chip" :class="selectedType.configured ? 'is-success' : 'is-warning'">
                                             {{ selectedType.configured ? 'Plantilla lista' : 'Falta completar contenido' }}
                                         </span>
@@ -118,6 +127,10 @@
                                 </div>
 
                                 <div class="surface-card-body card-body">
+                                    <p v-if="selectedType.preview_url" class="text-muted small mb-4">
+                                        La vista previa usa datos de ejemplo y refleja la ultima version guardada.
+                                    </p>
+
                                     <div class="row g-3 mb-4">
                                         <div class="col-12 col-lg-7">
                                             <label class="form-label">Nombre</label>

@@ -66,12 +66,16 @@ class ContractTemplateService
         $type = $this->resolveType($code);
         $contracts ??= $this->contractsForSchool($school);
         $contract = $contracts->firstWhere('contract_type_id', $type['contract_type_id']);
+        $isConfigured = $this->isConfiguredContract($contract);
 
         return [
             'code' => $type['code'],
             'label' => $type['label'],
             'description' => $type['description'] ?? '',
-            'configured' => $this->isConfiguredContract($contract),
+            'configured' => $isConfigured,
+            'preview_url' => $isConfigured
+                ? route('api.v2.admin.contracts.preview', ['contractTypeCode' => $type['code']])
+                : null,
             'portal' => [
                 'requires_acceptance' => (bool) data_get($type, 'portal.requires_acceptance', false),
                 'requires_tutor_signature' => (bool) data_get($type, 'portal.requires_tutor_signature', false),
