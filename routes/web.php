@@ -208,7 +208,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
             Route::get('training_sessions/pdf/{id}', [ExportController::class, 'exportTrainingSession'])->name('training_sessions.pdf');
         });
         Route::middleware('school.permission:school.module.billing')->group(function () {
-            Route::get('items/invoices', [ExportController::class, 'exportPendingItemsInvoices'])->name('items.invoices');
+            Route::get('items/invoices', [ItemInvoicesController::class, 'exportPending'])->name('items.invoices');
         });
 
         Route::middleware('school.permission:school.module.reports')->group(function () {
@@ -270,7 +270,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::delete('invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
         Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'addPayment'])->name('invoices.addPayment');
         Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
-        Route::get('items/invoices', [ItemInvoicesController::class, 'index'])->name('items.invoices.index');
+        Route::redirect('items/invoices', '/facturas/items')->name('items.invoices.index');
     });
 
     Route::middleware([

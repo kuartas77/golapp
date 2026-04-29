@@ -151,22 +151,12 @@ final class CreateContractAction implements IContractPassable
         $variables['CATEGORY']          = (string) $this->player->category;
 
         $tutor = $people->firstWhere('tutor', true);
-        $mother = $people->whereIn('relationship', ['15', '16'])->first();
-        $dad = $people->whereIn('relationship', ['20', '21'])->first();
 
         $variables['TUTOR_NAME']        = data_get($tutor, 'names', '');
         $variables['TUTOR_DOC']         = data_get($tutor, 'identification_card', '');
         $variables['SIGN_TUTOR']        = isset($this->paths['sign_tutor']) ? Storage::disk('local')->path($this->paths['sign_tutor']) : '';
         $variables['TUTOR_MAIL']        = data_get($tutor, 'email', '');
         $variables['TUTOR_PHONE']        = data_get($tutor, 'mobile', '');
-
-        $variables['MOTHER_NAMES']      = data_get($mother, 'names', '');
-        $variables['MOTHER_MOBILE']     = data_get($mother, 'mobile', '');
-        $variables['MOTHER_EMAIL']      = data_get($mother, 'email', '');
-
-        $variables['DAD_NAMES']         = data_get($dad, 'names', '');
-        $variables['DAD_MOBILE']        = data_get($dad, 'mobile', '');
-        $variables['DAD_EMAIL']         = data_get($dad, 'email', '');
 
         return $this->getContract($documentOption, $variables);
     }

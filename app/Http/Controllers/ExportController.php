@@ -10,10 +10,9 @@ use App\Repositories\AssistRepository;
 use App\Repositories\GameRepository;
 use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
-use App\Repositories\InvoiceRepository;
 use App\Repositories\PaymentRepository;
-use App\Repositories\TrainingSessionRepository;
 use App\Repositories\TournamentPayoutsRepository;
+use App\Repositories\TrainingSessionRepository;
 use App\Service\Assist\AssistExportService;
 use App\Service\Payment\PaymentExportService;
 use App\Service\TrainigSession\TrainingSessionExportService;
@@ -24,44 +23,31 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ExportController extends Controller
 {
-
     public function __construct(
-        private InscriptionRepository       $inscriptionRepository,
-        private AssistRepository            $assistRepository,
-        private IncidentRepository          $incidentRepository,
-        private GameRepository              $gameRepository,
-        private PaymentRepository           $paymentRepository,
-        private TournamentPayoutsRepository $tournamentPayoutsRepository,
-        private InvoiceRepository $invoiceRepository
-    )
-    {
-    }
+        private InscriptionRepository $inscriptionRepository,
+        private AssistRepository $assistRepository,
+        private IncidentRepository $incidentRepository,
+        private GameRepository $gameRepository,
+        private PaymentRepository $paymentRepository,
+        private TournamentPayoutsRepository $tournamentPayoutsRepository
+    ) {}
 
-
-    /**
-     * @param $trainingGroupId
-     * @param $year
-     * @param $month
-     * @param bool $deleted
-     * @return BinaryFileResponse
-     */
     public function exportAssistsExcel($trainingGroupId, $year, $month, bool $deleted = false): BinaryFileResponse
     {
         $params = [
             'training_group_id' => $trainingGroupId,
             'year' => $year,
-            'month' => $month
+            'month' => $month,
         ];
         $date = now()->timestamp;
+
         return Excel::download(new AssistExport($params, $deleted), "Asistencias {$date}.xlsx");
     }
 
     /**
-     * @param $trainingGroupId
-     * @param $year
-     * @param $month
-     * @param bool $deleted
+     * @param  bool  $deleted
      * @return mixed
+     *
      * @throws MpdfException
      */
     public function exportAssistsPDF(AssistExportService $assistExportService, $trainingGroupId, $year, $month, $deleted = false)
@@ -69,19 +55,17 @@ class ExportController extends Controller
         $params = [
             'training_group_id' => $trainingGroupId,
             'year' => $year,
-            'month' => $month
+            'month' => $month,
         ];
+
         return $assistExportService->generatePDF($params, $deleted);
     }
 
-    /**
-     * @param Request $request
-     * @return BinaryFileResponse
-     */
     public function exportPaymentsExcel(Request $request): BinaryFileResponse
     {
         $date = now()->timestamp;
         $request->merge(['school_id' => getSchool(auth()->user())->id]);
+
         return Excel::download(new PaymentsExport($request->all(), $request->input('deleted', false)), "Pagos {$date}.xlsx");
     }
 
@@ -89,6 +73,7 @@ class ExportController extends Controller
     {
         $request->merge(['school_id' => getSchool(auth()->user())->id]);
         $payments = $this->paymentRepository->filterSelect($request->all(), false)->get();
+
         return $paymentExportService->paymentsPdfByGroup($payments, $request, true);
     }
 
@@ -96,6 +81,7 @@ class ExportController extends Controller
     {
         $date = now()->timestamp;
         $requestArray = $request->only(['tournament_id', 'competition_group_id', 'year', 'unique_code']);
+
         return Excel::download(new TournamentPayoutsExport($requestArray, $request->input('deleted', false)), "Pagos {$date}.xlsx");
     }
 
@@ -103,9 +89,9 @@ class ExportController extends Controller
     {
         $requestArray = $request->only(['tournament_id', 'competition_group_id', 'year', 'unique_code']);
         $payments = $this->tournamentPayoutsRepository->filterSelect($requestArray, false);
+
         return $paymentExportService->tournamentPayoutsPdfByGroup($payments->get(), $requestArray, true);
     }
-
 
     public function exportMatchPDF($match)
     {
@@ -119,14 +105,15 @@ class ExportController extends Controller
 
         view()->share('incidents', $incidents);
         view()->share('professor', $professor);
-        //return view('exports.incidents_pdf');
-        //$pdf = PDF::loadView('exports.incidents_pdf');
-        //return $pdf->stream("Incidencias");
+        // return view('exports.incidents_pdf');
+        // $pdf = PDF::loadView('exports.incidents_pdf');
+        // return $pdf->stream("Incidencias");
     }
 
     public function exportMatchDetail($competition_group)
     {
         $date = now()->timestamp;
+
         return Excel::download(new MatchDetailExport($competition_group), "Control de competencia {$date}.xlsx");
     }
 
@@ -135,10 +122,5 @@ class ExportController extends Controller
         $trainingSessionRepository->findAccessibleOrFail($id);
 
         return $trainingSessionExportService->exportSessionPDF($id);
-    }
-
-    public function exportPendingItemsInvoices()
-    {
-        return $this->invoiceRepository->exportPendingItems();
     }
 }

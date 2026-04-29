@@ -185,6 +185,7 @@ const routes = [
                 component: { render: () => h(RouterView) },
                 children: [
                     { path: '', name: 'invoices.index', component: () => import('@/pages/invoices/Invoices.vue') },
+                    { path: 'items', name: 'invoices.items.index', component: () => import('@/pages/invoices/InvoiceItems.vue') },
                     {
                         path: 'comprobantes-pago',
                         name: 'payment-requests.index',

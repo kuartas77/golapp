@@ -275,6 +275,7 @@ Route::prefix('v2')->group(function(){
             Route::post('{invoice}/payment', [InvoiceController::class, 'addPayment']);
             Route::get('{invoice}/print', [InvoiceController::class, 'print']);
             Route::get('items/invoices', [ItemInvoicesController::class, 'index']);
+            Route::get('items/invoices/export-pending', [ItemInvoicesController::class, 'exportPending']);
         });
 
         Route::middleware('school.permission:school.module.evaluations')->prefix('player-evaluations')->group(function () {

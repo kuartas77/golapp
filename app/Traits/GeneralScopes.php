@@ -8,7 +8,7 @@ trait GeneralScopes
 {
     public function scopeSchoolId(Builder $query): void
     {
-        $query->where($this->table.'.school_id', getSchool(auth()->user())->id);
+        $query->where($this->getTable().'.school_id', getSchool(auth()->user())->id);
     }
 
     public function scopeTrainingTeam(Builder $query, $training_team_id = null): void
@@ -22,13 +22,13 @@ trait GeneralScopes
     {
         $now = now();
         $query->when(
-            ($now->month <> 12),
+            ($now->month != 12),
             fn ($query) => $query->where('year', $now->year),
             fn ($query) => $query->where(fn ($q) => $q->where('year', $now->year)->orWhere('year', $now->addYear()->year))
         );
     }
 
-    public function scopeInscriptionYear(Builder $query, int|null $year): void
+    public function scopeInscriptionYear(Builder $query, ?int $year): void
     {
         $query->where('year', $year ? $year : now()->year);
     }
