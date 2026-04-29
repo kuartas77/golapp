@@ -4,11 +4,17 @@ namespace App\Http\Controllers\Portal;
 
 use App\Models\School;
 use App\Http\Controllers\Controller;
+use App\Service\Contracts\ContractTemplateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 
 class SchoolsController extends Controller
 {
+    public function __construct(
+        private readonly ContractTemplateService $contractTemplateService
+    ) {
+    }
+
     public function index()
     {
         return view('portal.schools.index');
@@ -52,6 +58,10 @@ class SchoolsController extends Controller
     {
         abort_unless($school->is_enable, 404, 'La escuela está deshabilitada');
 
+        $availableContracts = $school->create_contract
+            ? $this->contractTemplateService->availablePortalContracts($school)
+            : [];
+
         return $this->responseJson([
             'school' => [
                 'id' => $school->id,
@@ -84,8 +94,7 @@ class SchoolsController extends Controller
                 'defaultUserPhoto' => asset('img/user.png'),
             ],
             'contracts' => [
-                'affiliate' => asset('contracts/' . $school->slug . '/CAFICODEPOR.pdf'),
-                'inscription' => asset('contracts/' . $school->slug . '/COINSCRIP.pdf'),
+                'available' => $availableContracts,
             ],
             'options' => [
                 'genders' => Cache::remember('KEY_GENDERS', now()->addYear(), fn() => config('variables.KEY_GENDERS')),

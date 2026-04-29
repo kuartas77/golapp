@@ -9,6 +9,7 @@ export const SCHOOL_PERMISSION_KEYS = {
     reports: 'school.module.reports',
     billing: 'school.module.billing',
     schoolProfile: 'school.module.school_profile',
+    contracts: 'school.module.contracts',
     userManagement: 'school.module.user_management',
     trainingGroups: 'school.module.training_groups',
     competitionGroups: 'school.module.competition_groups',

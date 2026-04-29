@@ -64,6 +64,12 @@ return [
             'group' => 'Administración',
             'default' => true,
         ],
+        'school.module.contracts' => [
+            'label' => 'Contratos',
+            'description' => 'Permite administrar las plantillas de contratos de la escuela.',
+            'group' => 'Administración',
+            'default' => true,
+        ],
         'school.module.user_management' => [
             'label' => 'Usuarios',
             'description' => 'Permite administrar usuarios de la escuela.',

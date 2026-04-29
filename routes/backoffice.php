@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\BackOffice\ContractsController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\DataTableController;
@@ -9,6 +8,7 @@ use App\Http\Controllers\BackOffice\SettingValueController;
 use App\Http\Controllers\BackOffice\SchoolInfoController;
 use App\Http\Controllers\BackOffice\SchoolController;
 use App\Http\Controllers\BackOffice\ManualEmailController;
+use Illuminate\Http\RedirectResponse;
 
 Route::middleware(['auth', 'role:super-admin|school'])->group(function () {
 
@@ -27,7 +27,11 @@ Route::middleware(['auth', 'role:super-admin'])->group(function () {
         Route::resource("settings", SettingValueController::class);
         Route::resource("users", UserController::class);
 
-        Route::resource("contracts", ContractsController::class)->except(['destroy']);
+        Route::prefix('contracts')->name('contracts.')->group(function () {
+            Route::get('', fn (): RedirectResponse => redirect('/administracion/contratos'))->name('index');
+            Route::get('create', fn (): RedirectResponse => redirect('/administracion/contratos'))->name('create');
+            Route::get('{contract}/edit', fn (): RedirectResponse => redirect('/administracion/contratos'))->name('edit');
+        });
 
         Route::prefix('datatables')->name('datatables.')->group(function () {
             // Route::get('enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');

@@ -160,6 +160,13 @@ const activeTab = ref('inscriptions');
 const pageData = ref(null);
 
 const school = computed(() => pageData.value?.school ?? null);
+const availableContracts = computed(() => pageData.value?.contracts?.available ?? []);
+const requiresTutorSignature = computed(() => (
+    availableContracts.value.some((contract) => contract.requires_tutor_signature)
+));
+const requiresPlayerSignature = computed(() => (
+    availableContracts.value.some((contract) => contract.requires_player_signature)
+));
 
 const registrationChecklist = computed(() => {
     if (!school.value) {
@@ -168,13 +175,22 @@ const registrationChecklist = computed(() => {
 
     const items = [];
 
-    if (school.value.create_contract) {
+    if (school.value.create_contract && availableContracts.value.length > 0) {
         items.push(
-            school.value.sign_player
+            requiresPlayerSignature.value
                 ? 'Se solicitará la firma del acudiente y del deportista.'
-                : 'Se solicitará la firma del acudiente.'
+                : requiresTutorSignature.value
+                    ? 'Se solicitará la firma del acudiente.'
+                    : 'Se revisará la aceptación de los documentos configurados.'
         );
-        items.push('Debes aceptar los términos y condiciones de inscripción.');
+
+        if (availableContracts.value.some((contract) => contract.requires_acceptance)) {
+            items.push(
+                availableContracts.value.length > 1
+                    ? 'Debes aceptar los términos y condiciones de cada documento disponible.'
+                    : 'Debes aceptar los términos y condiciones del documento disponible.'
+            );
+        }
     }
 
     items.push('Foto tipo documento del deportista (opcional).');

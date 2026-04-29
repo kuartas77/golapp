@@ -43,7 +43,7 @@ class InscriptionNotification extends Notification implements ShouldQueue
      */
     public function toMail($notifiable): MailMessage
     {
-        $sendContracts = !is_null($this->pathContracts);
+        $sendContracts = !empty($this->pathContracts);
 
         $mailMessage = (new MailMessage)
             ->subject("{$this->inscription->school->name} Notificación de inscripción.")

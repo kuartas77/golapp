@@ -53,8 +53,26 @@ const defaultProps = {
         defaultUserPhoto: '/img/default-user.png',
     },
     contracts: {
-        affiliate: '/contracts/affiliate.pdf',
-        inscription: '/contracts/inscription.pdf',
+        available: [
+            {
+                code: 'inscription',
+                label: 'Contrato de inscripción',
+                url: '/contracts/inscription.pdf',
+                acceptance_field: 'contrato_insc',
+                requires_acceptance: true,
+                requires_tutor_signature: true,
+                requires_player_signature: false,
+            },
+            {
+                code: 'affiliate',
+                label: 'Contrato de afiliación y corresponsabilidad deportiva',
+                url: '/contracts/affiliate.pdf',
+                acceptance_field: 'contrato_aff',
+                requires_acceptance: true,
+                requires_tutor_signature: true,
+                requires_player_signature: true,
+            },
+        ],
     },
     options: {
         genders: {
@@ -349,6 +367,58 @@ describe('PortalSchoolInscriptionModal', () => {
         expect(stepTitles).toHaveLength(5);
         expect(stepTitles.join(' ')).toContain('T y C');
         expect(stepTitles.join(' ')).toContain('Documentos');
+    });
+
+    it('solo exige el contrato de inscripcion cuando affiliate no esta disponible', async () => {
+        const { wrapper } = await mountModal({
+            school: {
+                create_contract: true,
+                send_documents: false,
+                sign_player: true,
+            },
+            contracts: {
+                available: [
+                    {
+                        code: 'inscription',
+                        label: 'Contrato de inscripción',
+                        url: '/contracts/inscription.pdf',
+                        acceptance_field: 'contrato_insc',
+                        requires_acceptance: true,
+                        requires_tutor_signature: true,
+                        requires_player_signature: false,
+                    },
+                ],
+            },
+        });
+
+        const stepTitles = wrapper.findAll('.steps li').map((step) => step.text());
+
+        expect(stepTitles.join(' ')).toContain('T y C');
+        await setWizardStep(wrapper, 3);
+        expect(wrapper.find('input[name="contrato_insc"]').exists()).toBe(true);
+        expect(wrapper.find('input[name="contrato_aff"]').exists()).toBe(false);
+        expect(wrapper.text()).not.toContain('Firma del Deportista');
+    });
+
+    it('acepta opciones de selects en formato array desde backend', async () => {
+        const { wrapper } = await mountModal({
+            options: {
+                genders: [{ value: 'M', label: 'Masculino' }],
+                documentTypes: [{ value: 'TI', label: 'Tarjeta de identidad' }],
+                bloodTypes: [{ value: 'O+', label: 'O+' }],
+                relationships: [{ value: 'mother', label: 'Madre' }],
+                jornada: [{ value: 'morning', label: 'Mañana' }],
+            },
+        });
+
+        expect(wrapper.find('option[value="TI"]').text()).toBe('Tarjeta de identidad');
+        expect(wrapper.find('option[value="M"]').text()).toBe('Masculino');
+
+        await setFieldValue(wrapper, 'document_type', 'TI');
+        await setFieldValue(wrapper, 'gender', 'M');
+
+        expect(wrapper.get('select[name="document_type"]').element.value).toBe('TI');
+        expect(wrapper.get('select[name="gender"]').element.value).toBe('M');
     });
 
     it('restaura datos guardados y persiste solo campos serializables', async () => {

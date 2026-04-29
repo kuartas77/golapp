@@ -383,12 +383,12 @@
                             </Step>
 
                             <Step v-if="hasTermsStep" title="T y C">
-                                <h6 v-if="school.create_contract || school.sign_player" class="d-flex block-helper justify-content-center">
+                                <h6 v-if="requiresTutorSignature || requiresPlayerSignature" class="d-flex block-helper justify-content-center">
                                     <strong>Desliza con el mouse de tu ordenador o si estás en dispositivo móvil firma en el área indicada.</strong>
                                 </h6>
 
                                 <div class="row">
-                                    <fieldset class="col-md-6 p-2">
+                                    <fieldset v-if="requiresTutorSignature" class="col-md-6 p-2">
                                         <legend>
                                             Firma Del Acudiente
                                             <span class="text-danger">&nbsp;(*)</span>
@@ -409,7 +409,7 @@
                                         </h6>
                                     </fieldset>
 
-                                    <fieldset v-if="school.sign_player" class="col-md-6 p-2">
+                                    <fieldset v-if="requiresPlayerSignature" class="col-md-6 p-2">
                                         <legend>
                                             Firma del Deportista
                                             <span class="text-danger">&nbsp;(*)</span>
@@ -421,7 +421,7 @@
                                                     name="signatureAlumno"
                                                     label="Firma del deportista"
                                                     help=""
-                                                    :required="school.sign_player"
+                                                    :required="requiresPlayerSignature"
                                                 />
                                             </div>
                                         </div>
@@ -431,14 +431,18 @@
                                     </fieldset>
 
                                     <fieldset class="col-md-12 p-2">
-                                        <div v-if="school.sign_player" class="row">
+                                        <div
+                                            v-for="contract in acceptanceContracts"
+                                            :key="contract.code"
+                                            class="row"
+                                        >
                                             <div class="check col">
                                                 <div class="form-group">
                                                     <div class="custom-control custom-checkbox checkbox-primary">
-                                                        <Field name="contrato_aff" v-slot="{ field, value, handleChange }">
+                                                        <Field :name="contract.acceptance_field" v-slot="{ field, value, handleChange }">
                                                             <input
                                                                 v-bind="field"
-                                                                id="contrato_aff"
+                                                                :id="contract.acceptance_field"
                                                                 type="checkbox"
                                                                 value="true"
                                                                 class="custom-control-input"
@@ -446,36 +450,11 @@
                                                                 @change="handleChange($event.target.checked)"
                                                             >
                                                         </Field>
-                                                        <label for="contrato_aff" class="custom-control-label checkboxsizeletter">
+                                                        <label :for="contract.acceptance_field" class="custom-control-label checkboxsizeletter">
                                                             (<span class="text-danger">*</span>) Acepta los términos y condiciones del
-                                                            <a target="_blank" :href="contracts.affiliate">CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA</a>
+                                                            <a target="_blank" :href="contract.url">{{ contract.label }}</a>
                                                         </label>
-                                                        <ErrorMessage name="contrato_aff" class="custom-error d-block" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="row">
-                                            <div class="check col">
-                                                <div class="form-group">
-                                                    <div class="custom-control custom-checkbox checkbox-primary">
-                                                        <Field name="contrato_insc" v-slot="{ field, value, handleChange }">
-                                                            <input
-                                                                v-bind="field"
-                                                                id="contrato_insc"
-                                                                type="checkbox"
-                                                                value="true"
-                                                                class="custom-control-input"
-                                                                :checked="Boolean(value)"
-                                                                @change="handleChange($event.target.checked)"
-                                                            >
-                                                        </Field>
-                                                        <label for="contrato_insc" class="custom-control-label checkboxsizeletter">
-                                                            (<span class="text-danger">*</span>) Acepta los términos y condiciones del
-                                                            <a target="_blank" :href="contracts.inscription">CONTRATO DE INSCRIPCIÓN</a>
-                                                        </label>
-                                                        <ErrorMessage name="contrato_insc" class="custom-error d-block" />
+                                                        <ErrorMessage :name="contract.acceptance_field" class="custom-error d-block" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -614,9 +593,28 @@ const props = defineProps({
     },
 });
 
-const CHECKBOX_FIELDS = ['contrato_aff', 'contrato_insc'];
 const FILE_FIELDS = ['photo', 'player_document', 'medical_certificate', 'tutor_document', 'payment_receipt'];
 const SIGNATURE_FIELDS = ['signatureTutor', 'signatureAlumno'];
+const LEGACY_CONTRACTS = {
+    inscription: {
+        code: 'inscription',
+        label: 'Contrato de inscripción',
+        url: '',
+        acceptance_field: 'contrato_insc',
+        requires_acceptance: true,
+        requires_tutor_signature: true,
+        requires_player_signature: false,
+    },
+    affiliate: {
+        code: 'affiliate',
+        label: 'Contrato de afiliación y corresponsabilidad deportiva',
+        url: '',
+        acceptance_field: 'contrato_aff',
+        requires_acceptance: true,
+        requires_tutor_signature: true,
+        requires_player_signature: true,
+    },
+};
 
 const modalRef = ref(null);
 const currentStep = ref(0);
@@ -685,10 +683,31 @@ const normalizeDate = (value) => {
     return match ? match[1] : '';
 };
 
-const toOptions = (options) => Object.entries(options ?? {}).map(([value, label]) => ({
-    value: String(value),
-    label: String(label),
-}));
+const toOptions = (options) => {
+    if (Array.isArray(options)) {
+        return options.map((item, index) => {
+            if (item && typeof item === 'object' && !Array.isArray(item)) {
+                const optionValue = item.value ?? item.id ?? index;
+                const optionLabel = item.label ?? item.name ?? optionValue;
+
+                return {
+                    value: String(optionValue),
+                    label: String(optionLabel),
+                };
+            }
+
+            return {
+                value: String(item),
+                label: String(item),
+            };
+        });
+    }
+
+    return Object.entries(options ?? {}).map(([value, label]) => ({
+        value: String(value),
+        label: String(label),
+    }));
+};
 
 const today = new Date();
 const minBirthDateValue = new Date(today.getFullYear() - 20, today.getMonth(), today.getDate());
@@ -744,6 +763,51 @@ const photoFieldSchema = yup
         return value.size <= props.fileSizeMb * 1024 * 1024;
     });
 
+const availableContracts = computed(() => {
+    if (Array.isArray(props.contracts?.available)) {
+        return props.contracts.available
+            .filter((contract) => Boolean(contract?.code) && Boolean(contract?.url))
+            .map((contract) => ({
+                ...(LEGACY_CONTRACTS[contract.code] ?? {}),
+                ...contract,
+            }))
+    }
+
+    return Object.entries(LEGACY_CONTRACTS)
+        .flatMap(([code, contract]) => (
+            props.contracts?.[code]
+                ? [{ ...contract, url: props.contracts[code] }]
+                : []
+        ))
+})
+
+const acceptanceContracts = computed(() => (
+    availableContracts.value.filter((contract) => contract.requires_acceptance && contract.acceptance_field)
+))
+
+const checkboxFields = computed(() => (
+    acceptanceContracts.value
+        .map((contract) => contract.acceptance_field)
+        .filter(Boolean)
+))
+
+const requiresTutorSignature = computed(() => (
+    availableContracts.value.some((contract) => contract.requires_tutor_signature)
+))
+
+const requiresPlayerSignature = computed(() => (
+    availableContracts.value.some((contract) => contract.requires_player_signature)
+))
+
+const acceptanceRules = Object.fromEntries(
+    acceptanceContracts.value.map((contract) => [
+        contract.acceptance_field,
+        props.school.create_contract
+            ? yup.boolean().oneOf([true], `Debes aceptar ${contract.label.toLowerCase()}.`)
+            : yup.boolean(),
+    ])
+)
+
 const schema = yup.object({
     year: yup.string().required(),
     photo: photoFieldSchema,
@@ -794,18 +858,13 @@ const schema = yup.object({
     tutor_position_held: yup.string().trim().required('Ingresa el cargo del acudiente.').max(50),
     tutor_email: yup.string().trim().required('Ingresa el correo del acudiente.').email('Ingresa un correo válido.').max(50),
 
-    signatureTutor: props.school.create_contract
+    signatureTutor: props.school.create_contract && requiresTutorSignature.value
         ? yup.string().required('Ingresa la firma del acudiente para continuar.')
         : yup.string().nullable(),
-    signatureAlumno: props.school.create_contract && props.school.sign_player
+    signatureAlumno: props.school.create_contract && requiresPlayerSignature.value
         ? yup.string().required('Ingresa la firma del deportista para continuar.')
         : yup.string().nullable(),
-    contrato_aff: props.school.create_contract && props.school.sign_player
-        ? yup.boolean().oneOf([true], 'Debes aceptar el contrato de afiliación y corresponsabilidad deportiva.')
-        : yup.boolean(),
-    contrato_insc: props.school.create_contract
-        ? yup.boolean().oneOf([true], 'Debes aceptar el contrato de inscripción.')
-        : yup.boolean(),
+    ...acceptanceRules,
 
     player_document: props.school.send_documents
         ? fileFieldSchema('El documento de identidad del deportista', true)
@@ -858,8 +917,7 @@ const defaultValues = () => ({
 
     signatureTutor: '',
     signatureAlumno: '',
-    contrato_aff: false,
-    contrato_insc: false,
+    ...Object.fromEntries(checkboxFields.value.map((field) => [field, false])),
 
     player_document: null,
     medical_certificate: null,
@@ -881,7 +939,7 @@ const {
     keepValuesOnUnmount: true,
 });
 
-const hasTermsStep = computed(() => Boolean(props.school.create_contract));
+const hasTermsStep = computed(() => Boolean(props.school.create_contract) && availableContracts.value.length > 0);
 const hasDocumentsStep = computed(() => Boolean(props.school.send_documents));
 
 const genderOptions = computed(() => toOptions(props.options.genders));
@@ -944,10 +1002,14 @@ const steps = computed(() => {
     ];
 
     if (hasTermsStep.value) {
-        const termFields = ['signatureTutor', 'contrato_insc'];
+        const termFields = [...checkboxFields.value];
 
-        if (props.school.sign_player) {
-            termFields.push('signatureAlumno', 'contrato_aff');
+        if (requiresTutorSignature.value) {
+            termFields.unshift('signatureTutor');
+        }
+
+        if (requiresPlayerSignature.value) {
+            termFields.push('signatureAlumno');
         }
 
         baseSteps.push({
@@ -1110,7 +1172,7 @@ const buildFormData = (payload, recaptchaToken) => {
             return;
         }
 
-        if (CHECKBOX_FIELDS.includes(key)) {
+        if (checkboxFields.value.includes(key)) {
             if (value) {
                 formData.append(key, '1');
             }

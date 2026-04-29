@@ -321,6 +321,10 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('plantillas-evaluacion/{any}', [AppController::class, 'index'])->where('any', '.*');
     });
 
+    Route::prefix('administracion')->middleware(['role:super-admin|school', 'school.permission:school.module.contracts'])->group(function () {
+        Route::get('contratos', [AppController::class, 'index']);
+    });
+
     // Route::prefix('')->group(function () {
     //     Route::get(
     //         'evaluations/inscriptions/{inscription}/compare',

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\Admin\InscriptionController;
+use App\Http\Controllers\API\Admin\ContractController as AdminContractController;
 use App\Http\Controllers\API\Admin\InvoiceCustomItemController as AdminInvoiceCustomItemController;
 use App\Http\Controllers\API\Admin\RegisterController;
 use App\Http\Controllers\API\Admin\SchoolController;
@@ -41,6 +42,7 @@ use App\Http\Controllers\Reports\ReportAttendancePaymentController;
 use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\Portal\InscriptionsController as PortalInscription;
+use App\Http\Controllers\Portal\ContractController as PortalContract;
 use App\Http\Controllers\Portal\SchoolsController as PortalSchool;
 use App\Http\Controllers\Reports\ReportAssistsController;
 use App\Http\Controllers\Reports\ReportPaymentController;
@@ -109,6 +111,11 @@ Route::prefix('v2')->group(function(){
             Route::middleware('school.permission:school.module.school_profile')->group(function () {
                 Route::get('school', [SchoolsController::class, 'index']);
                 Route::put('school/{school}', [SchoolsController::class, 'update']);
+            });
+
+            Route::middleware('school.permission:school.module.contracts')->prefix('contracts')->group(function () {
+                Route::get('', [AdminContractController::class, 'index']);
+                Route::put('{contractTypeCode}', [AdminContractController::class, 'update']);
             });
 
             Route::middleware('school.permission:school.module.billing')->name('api.')->group(function () {
@@ -310,6 +317,7 @@ Route::prefix('v2')->group(function(){
 
         Route::get('escuelas/data', [PortalSchool::class, 'indexData'])->name('school.index.data');
         Route::get('escuelas/{school}/data', [PortalSchool::class, 'showData'])->name('school.show.data');
+        Route::get('escuelas/{school}/contracts/{contractTypeCode}', [PortalContract::class, 'show'])->name('school.contract.show');
 
 
         Route::post('{school}/inscripcion', [PortalInscription::class, 'store'])->name('school.inscription.store');

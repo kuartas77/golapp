@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Portal;
 
 use App\Models\School;
+use App\Service\Contracts\ContractTemplateService;
 use App\Rules\UniqueGuardianEmail;
 use Closure;
 use Jenssegers\Date\Date;
@@ -84,6 +85,25 @@ class InscriptionRegisterRequest extends FormRequest
             $rules['g-recaptcha-response'] = 'required|recaptchav3:inscriptions,0.5';
         }
 
+        $school = $this->input('school_data');
+        $contractTemplateService = app(ContractTemplateService::class);
+
+        if ($school instanceof School && $school->create_contract) {
+            $availableContracts = $contractTemplateService->availablePortalContracts($school);
+
+            foreach ($contractTemplateService->acceptanceFields($availableContracts) as $field) {
+                $rules[$field] = ['accepted'];
+            }
+
+            if ($contractTemplateService->requiresTutorSignature($availableContracts)) {
+                $rules['signatureTutor'] = ['required', 'string'];
+            }
+
+            if ($contractTemplateService->requiresPlayerSignature($availableContracts)) {
+                $rules['signatureAlumno'] = ['required', 'string'];
+            }
+        }
+
         return $rules;
     }
 
@@ -95,7 +115,6 @@ class InscriptionRegisterRequest extends FormRequest
             'tutor_doc' => $this->tutor_num_doc,
             'tutor_email' => filled($this->tutor_email) ? mb_strtolower(trim((string) $this->tutor_email)) : null,
         ]);
-
     }
 
     private function shouldValidateRecaptcha(): bool

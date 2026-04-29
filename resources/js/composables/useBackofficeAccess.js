@@ -41,6 +41,11 @@ export const backofficeAccessRequirements = {
         anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.schoolProfile],
     },
+    contracts: {
+        roles: ['super-admin', 'school'],
+        anyRole: true,
+        schoolPermissions: [SCHOOL_PERMISSION_KEYS.contracts],
+    },
     userManagement: {
         roles: ['super-admin', 'school'],
         anyRole: true,

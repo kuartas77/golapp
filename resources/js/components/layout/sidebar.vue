@@ -99,6 +99,9 @@
                         <li v-if="canSchoolProfile">
                             <router-link :to="{ name: 'school' }" @click="toggleMobileMenu">Escuela</router-link>
                         </li>
+                        <li v-if="canContracts">
+                            <router-link :to="{ name: 'contracts' }" @click="toggleMobileMenu">Contratos</router-link>
+                        </li>
                         <li v-if="canUserManagement">
                             <router-link :to="{ name: 'users' }" @click="toggleMobileMenu">Usuarios</router-link>
                         </li>
@@ -370,6 +373,7 @@ const canPayments = access.payments
 const canReports = access.reports
 const canBilling = access.billing
 const canSchoolProfile = access.schoolProfile
+const canContracts = access.contracts
 const canUserManagement = access.userManagement
 const canTrainingGroups = access.trainingGroups
 const canCompetitionGroups = access.competitionGroups
@@ -381,6 +385,7 @@ const canEvaluationTemplates = access.evaluationTemplates
 const showAdministrationMenu = computed(() => (
     canEvaluationTemplates.value
     || canSchoolProfile.value
+    || canContracts.value
     || canUserManagement.value
     || canTrainingGroups.value
     || canCompetitionGroups.value

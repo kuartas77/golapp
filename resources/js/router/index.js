@@ -127,6 +127,12 @@ const routes = [
                         meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.schoolProfile] }
                     },
                     {
+                        path: 'contratos',
+                        name: 'contracts',
+                        component: () => import('@/pages/admin/contracts/Index.vue'),
+                        meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.contracts] }
+                    },
+                    {
                         path: 'usuarios',
                         name: 'users',
                         component: () => import('@/pages/admin/users/UsersList.vue'),
