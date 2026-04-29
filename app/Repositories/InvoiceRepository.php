@@ -159,24 +159,26 @@ class InvoiceRepository
     public function addPayment(InvoiceAddPaymentRequest $request, $invoiceId)
     {
         $invoice = Invoice::findOrFail($invoiceId);
+        $validated = $request->validated();
 
-        $paymentReceived = PaymentReceived::query()->create([
-            'invoice_id' => $invoiceId,
-            'amount' => $request->validated('amount'),
-            'payment_method' => $request->validated('payment_method'),
-            'reference' => $request->validated('reference'),
-            'payment_date' => $request->validated('payment_date'),
-            'notes' => $request->validated('notes'),
-            'school_id' => $request->validated('school_id'),
-            'created_by' => auth()->id(),
-        ]);
+        DB::transaction(function () use ($invoice, $invoiceId, $validated) {
+            $invoice->issue_date = $validated['issue_date'];
 
-        // Actualizar totales de la factura
-        $invoice->updateTotals();
+            $paymentReceived = PaymentReceived::query()->create([
+                'invoice_id' => $invoiceId,
+                'amount' => $validated['amount'],
+                'payment_method' => $validated['payment_method'],
+                'reference' => $validated['reference'],
+                'payment_date' => $validated['payment_date'],
+                'notes' => $validated['notes'],
+                'school_id' => $validated['school_id'],
+                'created_by' => auth()->id(),
+            ]);
 
-        // Si el usuario seleccionó ítems específicos para marcar como pagados
-        if ($request->has('paid_items')) {
-            foreach ($request->validated('paid_items') as $itemId) {
+            // Actualizar totales de la factura y persistir la fecha de emisión editada.
+            $invoice->updateTotals();
+
+            foreach ($validated['paid_items'] as $itemId) {
                 $item = $invoice->items()->find($itemId);
                 if ($item) {
                     $item->update(['is_paid' => true, 'payment_received_id' => $paymentReceived->id]);
@@ -185,7 +187,7 @@ class InvoiceRepository
 
             // Si hay ítems de meses marcados como pagados, actualizar la tabla payments original
             $invoice->markMonthsAsPaid();
-        }
+        });
     }
 
     public function addPaymentButton($invoiceId, $paymentRequestId)
