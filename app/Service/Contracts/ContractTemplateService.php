@@ -74,7 +74,7 @@ class ContractTemplateService
             'description' => $type['description'] ?? '',
             'configured' => $isConfigured,
             'preview_url' => $isConfigured
-                ? route('api.v2.admin.contracts.preview', ['contractTypeCode' => $type['code']])
+                ? route('admin.contracts.preview', ['contractTypeCode' => $type['code']])
                 : null,
             'portal' => [
                 'requires_acceptance' => (bool) data_get($type, 'portal.requires_acceptance', false),

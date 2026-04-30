@@ -111,11 +111,11 @@ export const useSettingGroups = defineStore('settings-groups-store', {
             const response = await api.get('api/v2/settings/groups')
             const data = response?.data ?? {}
 
-            this.users = mapOptions(data.users, (i) => ({ value: i.id, label: i.name }))
-            this.year_active = toArray(data.year_active)
-            this.schedules = mapOptions(data.schedules, (i) => ({ value: i.id, label: i.name }))
-            this.categories = mapOptions(data.categories, (i) => ({ value: i.id, label: i.name }))
-            this.tournaments = mapOptions(data.tournaments, (i) => ({ value: i.id, label: i.name }))
+            this.users = normalizeOptionList(data.users)
+            this.year_active = normalizeOptionList(data.year_active).map((option) => option.value)
+            this.schedules = normalizeOptionList(data.schedules)
+            this.categories = normalizeOptionList(data.categories)
+            this.tournaments = normalizeOptionList(data.tournaments)
         }
     }
 

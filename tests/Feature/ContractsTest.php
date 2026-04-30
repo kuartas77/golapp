@@ -69,7 +69,7 @@ final class ContractsTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.code', 'inscription')
             ->assertJsonPath('data.configured', true)
-            ->assertJsonPath('data.preview_url', route('api.v2.admin.contracts.preview', ['contractTypeCode' => 'inscription']))
+            ->assertJsonPath('data.preview_url', route('admin.contracts.preview', ['contractTypeCode' => 'inscription']))
             ->assertJsonPath('data.template.name', 'Contrato portal');
 
         $contract = Contract::query()
@@ -105,7 +105,7 @@ final class ContractsTest extends TestCase
         $types = collect($response->json('types'))->keyBy('code');
 
         $this->assertSame(
-            route('api.v2.admin.contracts.preview', ['contractTypeCode' => 'inscription']),
+            route('admin.contracts.preview', ['contractTypeCode' => 'inscription']),
             $types->get('inscription')['preview_url']
         );
         $this->assertNull($types->get('affiliate')['preview_url']);
@@ -181,14 +181,14 @@ final class ContractsTest extends TestCase
         $school = School::query()->findOrFail($this->school['id']);
         $school->forceFill([
             'create_contract' => false,
-            'is_enable' => false,
+            'is_enable' => true,
         ])->save();
         School::forgetCachedSchool($school->id);
 
         $this->createConfiguredContract($school, 'inscription');
 
         $this->actingAs($this->user)
-            ->get('/api/v2/admin/contracts/inscription/preview')
+            ->get('/administracion/contratos/inscription/preview')
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
     }

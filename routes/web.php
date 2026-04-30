@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\Admin\ContractController as AdminContractController;
 use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
 use App\Http\Controllers\{Competition\GameController, Payments\PaymentController, Schedule\SchedulesController, SchoolPages\SchoolsController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
@@ -323,6 +324,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
     Route::prefix('administracion')->middleware(['role:super-admin|school', 'school.permission:school.module.contracts'])->group(function () {
         Route::get('contratos', [AppController::class, 'index']);
+        Route::get('contratos/{contractTypeCode}/preview', [AdminContractController::class, 'preview'])->name('admin.contracts.preview');
     });
 
     // Route::prefix('')->group(function () {

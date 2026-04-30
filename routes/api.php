@@ -115,7 +115,6 @@ Route::prefix('v2')->group(function(){
 
             Route::middleware('school.permission:school.module.contracts')->prefix('contracts')->group(function () {
                 Route::get('', [AdminContractController::class, 'index']);
-                Route::get('{contractTypeCode}/preview', [AdminContractController::class, 'preview'])->name('api.v2.admin.contracts.preview');
                 Route::put('{contractTypeCode}', [AdminContractController::class, 'update']);
             });
 

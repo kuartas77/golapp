@@ -75,7 +75,10 @@ class CompetitionGroupController extends Controller
      */
     public function show(CompetitionGroup $competitionGroup): JsonResponse
     {
-        return $this->responseJson($competitionGroup);
+        return $this->responseJson($competitionGroup->load([
+            'tournament:id,name',
+            'professor:id,name',
+        ]));
     }
 
     /**
@@ -86,7 +89,10 @@ class CompetitionGroupController extends Controller
      */
     public function edit(CompetitionGroup $competitionGroup): JsonResponse
     {
-        return $this->responseJson($competitionGroup);
+        return $this->responseJson($competitionGroup->load([
+            'tournament:id,name',
+            'professor:id,name',
+        ]));
     }
 
     /**

@@ -130,7 +130,9 @@ class TrainingGroupRepository
      */
     public function getTrainingGroup(TrainingGroup $trainingGroup): Model
     {
-        $trainingGroup->load(['instructors']);
+        $trainingGroup->load([
+            'instructors' => fn ($query) => $query->withTrashed(),
+        ]);
 
         $years = collect();
         $trainingGroup->year == null ?: $years->push($trainingGroup->year);

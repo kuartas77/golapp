@@ -64,7 +64,7 @@
                                         <Field name="schedules" v-slot="{ field, handleChange, handleBlur }">
                                             <label for="schedules">Horario(s)</label><span class="text-danger">*</span>
                                             <CustomMultiSelect v-bind="field" :buttons="true"
-                                                :options="settingsGroup.schedules" @change="handleChange"
+                                                :options="scheduleOptions" @change="handleChange"
                                                 @blur="handleBlur" id="schedules" />
                                             <ErrorMessage name="schedules" class="custom-error" />
                                         </Field>
@@ -78,7 +78,7 @@
                                             <label for="user_id">Instructor(es)</label><span
                                                 class="text-danger">*</span>
                                             <CustomMultiSelect v-bind="field" :buttons="true"
-                                                :options="settingsGroup.users" @change="handleChange" @blur="handleBlur"
+                                                :options="userOptions" @change="handleChange" @blur="handleBlur"
                                                 id="user_id" />
                                             <ErrorMessage name="user_id" class="custom-error" />
                                         </Field>
@@ -89,7 +89,7 @@
                                         <Field name="years" v-slot="{ field, handleChange, handleBlur }">
                                             <label for="years">Categoria(s)</label><span class="text-danger">*</span>
                                             <CustomMultiSelect v-bind="field" :buttons="true"
-                                                :options="settingsGroup.categories" @change="handleChange"
+                                                :options="categoryOptions" @change="handleChange"
                                                 @blur="handleBlur" id="years" />
                                             <ErrorMessage name="years" class="custom-error" />
                                         </Field>
@@ -115,7 +115,7 @@ export default {
 }
 </script>
 <script setup>
-import { getCurrentInstance, useTemplateRef, ref, onMounted, watch } from "vue";
+import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { ErrorMessage, Field, Form } from "vee-validate";
 import * as yup from "yup";
 import api from "@/utils/axios";
@@ -146,16 +146,75 @@ const daysOptions = ref([
 
 const form = useTemplateRef("form");
 const composeModalTrainigG = ref(null);
-const initialData = ref({
+const modalElement = ref(null);
+const selectedScheduleOptions = ref([]);
+const selectedUserOptions = ref([]);
+const selectedCategoryOptions = ref([]);
+const currentYear = String(new Date().getFullYear());
+
+const buildDefaultValues = () => ({
     id: null,
     name: null,
     stage: "",
-    year_active: null,
+    year_active: currentYear,
     days: [],
     schedules: [],
     user_id: [],
     years: [],
 });
+const initialData = ref(buildDefaultValues());
+
+const normalizeOption = (value, label = value) => ({
+    value: String(value),
+    label: String(label ?? value),
+});
+
+const mergeOptionLists = (...optionLists) => {
+    const mergedOptions = new Map();
+
+    optionLists
+        .flat()
+        .filter((option) => option?.value !== undefined && option?.value !== null && option?.value !== "")
+        .forEach((option) => {
+            const normalized = normalizeOption(
+                option.value ?? option.id,
+                option.label ?? option.name ?? option.text ?? option.value ?? option.id
+            );
+
+            mergedOptions.set(normalized.value, normalized);
+        });
+
+    return Array.from(mergedOptions.values());
+};
+
+const resolveSelectedOptions = (options, values) => {
+    const normalizedValues = values.map((option) =>
+        normalizeOption(
+            option.value ?? option.id ?? option,
+            option.label ?? option.name ?? option.text ?? option.value ?? option.id ?? option
+        )
+    );
+    const mergedOptions = mergeOptionLists(options, normalizedValues);
+
+    return normalizedValues
+        .map((option) => mergedOptions.find((item) => item.value === option.value) ?? option);
+};
+
+const scheduleOptions = computed(() => mergeOptionLists(settingsGroup.schedules, selectedScheduleOptions.value));
+const userOptions = computed(() => mergeOptionLists(settingsGroup.users, selectedUserOptions.value));
+const categoryOptions = computed(() => mergeOptionLists(settingsGroup.categories, selectedCategoryOptions.value));
+
+const clearSelectedOptions = () => {
+    selectedScheduleOptions.value = [];
+    selectedUserOptions.value = [];
+    selectedCategoryOptions.value = [];
+};
+
+const resetFormState = () => {
+    globalError.value = null;
+    clearSelectedOptions();
+    form.value?.resetForm({ values: buildDefaultValues() });
+};
 
 const schema = yup.object().shape({
     name: yup.string().required(),
@@ -198,6 +257,10 @@ const submit = async (values, actions) => {
         if (response.data.success === true) {
             const message = props.id ? 'Modifiado correctamente' : 'Guardado correctamente';
             showMessage(message);
+            emit("update");
+            modalHidden();
+            composeModalTrainigG.value?.hide();
+            resetFormState();
         }
         if (response.data.success === false) {
             showMessage('Algo salió mal', 'error');
@@ -208,22 +271,19 @@ const submit = async (values, actions) => {
             actions.setErrors,
             (msg) => (globalError.value = msg)
         );
-    } finally {
-        emit("update");
-        modalHidden();
-        composeModalTrainigG.value.hide();
-        form.value.resetForm();
     }
 };
 
 const onCancel = async () => {
-    form.value.resetForm();
+    resetFormState();
     modalHidden();
-    composeModalTrainigG.value.hide();
+    composeModalTrainigG.value?.hide();
     emit("cancel");
 };
 
 const onLoadData = async () => {
+    await settingsGroup.getGroupSettings();
+
     const response = await api.get(`${url}/${props.id}`);
 
     if (response.data?.data) {
@@ -244,19 +304,26 @@ const onLoadData = async () => {
             return;
         }
 
+        const selectedCategories = Array.isArray(years) && years.length
+            ? years
+            : (category ?? []);
+
+        selectedScheduleOptions.value = (explode_schedules ?? []).map((schedule) => normalizeOption(schedule));
+        selectedUserOptions.value = (instructors ?? []).map((instructor) => normalizeOption(instructor.id, instructor.name));
+        selectedCategoryOptions.value = selectedCategories.map((item) => normalizeOption(item));
+
         const data = {
             id: id,
             name: name,
             stage: stage,
-            year_active: year_active,
-            days: explode_days.map((i) => ({ value: i, label: i })),
-            schedules: explode_schedules.map((i) => ({ value: i, label: i })),
-            user_id: instructors.map((i) => ({ value: i.id, label: i.name })),
-            years: category.map((i) => ({ value: i, label: i })),
+            year_active: String(year_active ?? currentYear),
+            days: resolveSelectedOptions(daysOptions.value, explode_days ?? []),
+            schedules: resolveSelectedOptions(scheduleOptions.value, explode_schedules ?? []),
+            user_id: resolveSelectedOptions(userOptions.value, instructors ?? []),
+            years: resolveSelectedOptions(categoryOptions.value, selectedCategories),
         };
 
-        form.value.resetForm();
-        form.value.setValues(data);
+        form.value.resetForm({ values: data });
 
         composeModalTrainigG.value.show();
     }
@@ -271,16 +338,29 @@ watch(
     }
 );
 
+const handleModalShow = () => {
+    if (props.id === null) {
+        resetFormState();
+    }
+};
+
 onMounted(() => {
     settingsGroup.getGroupSettings();
+    modalElement.value = document.getElementById("composeModalTrainigG");
+
+    modalElement.value?.addEventListener("show.bs.modal", handleModalShow);
 
     composeModalTrainigG.value = new window.bootstrap.Modal(
-        document.getElementById("composeModalTrainigG"),
+        modalElement.value,
         {
             backdrop: "static", // Prevents closing the modal by clicking outside
             keyboard: false, // Disables closing the modal with the escape key
             focus: false, // Focuses the modal when initialized (default is true)
         }
     );
+});
+
+onBeforeUnmount(() => {
+    modalElement.value?.removeEventListener("show.bs.modal", handleModalShow);
 });
 </script>
