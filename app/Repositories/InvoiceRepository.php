@@ -186,6 +186,8 @@ class InvoiceRepository
     {
         $invoice = Invoice::query()->schoolId()->findOrFail($invoiceId);
 
+        $invoice->issue_date = $request->validated('issue_date');
+
         $paymentReceived = PaymentReceived::query()->create([
             'invoice_id' => $invoiceId,
             'amount' => $request->validated('amount'),

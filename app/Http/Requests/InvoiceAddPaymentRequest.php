@@ -16,6 +16,7 @@ class InvoiceAddPaymentRequest extends FormRequest
         return [
             'amount' => 'required|numeric|min:0',
             'payment_method' => 'required|in:cash,card,transfer,check,other',
+            'issue_date' => 'required|date',
             'payment_date' => 'required|date',
             'reference' => 'nullable|string|max:100',
             'notes' => 'nullable|string|max:100',

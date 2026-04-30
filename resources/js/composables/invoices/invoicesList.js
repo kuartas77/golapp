@@ -1,5 +1,5 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { useTemplateRef, onMounted } from 'vue';
+import { ref, useTemplateRef, onMounted } from 'vue';
 import api from '@/utils/axios'
 import { usePageTitle } from "@/composables/use-meta";
 import { useRouter } from 'vue-router'
@@ -121,6 +121,15 @@ export default function useInvoicesList() {
         }
     }
 
+    const filterDate = ref('')
+
+    const clearDate = () => {
+        console.log(filterDate.value)
+      if (filterDate.value) {
+        filterDate.value = ''
+      }
+    };
+
     onMounted(() => {
         usePageTitle('Facturas')
 
@@ -132,14 +141,14 @@ export default function useInvoicesList() {
                     return dt.column(5).search(this.value).draw()
                 });
             }
-            const filterDate = document.getElementById('filterDate');
-            if (filterDate) {
-                filterDate.addEventListener('change', function () {
+            const filterDateEle = document.getElementById('filterDate');
+            if (filterDateEle) {
+                filterDateEle.addEventListener('change', function () {
                     return dt.column(6).search(this.value).draw()
                 });
             }
         }
     })
 
-    return { options, invoives_table, onClickRow, reloadTable }
+    return { options, invoives_table, filterDate, clearDate, onClickRow, reloadTable }
 }

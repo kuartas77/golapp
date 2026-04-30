@@ -1,12 +1,6 @@
 <template>
     <div class="layout-px-spacing">
         <div class="row layout-top-spacing">
-            <div class="col-12 d-flex justify-content-end mb-3">
-                <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
-                    <i class="fa-regular fa-circle-question me-2"></i>
-                    Guia
-                </button>
-            </div>
 
             <div class="col-md-8">
                 <!-- Información de la factura -->
@@ -31,7 +25,7 @@
                                 <h5>Detalles de Factura</h5>
                                 <p><strong>Fecha Emisión:</strong> {{ formatDate(invoice.issue_date) }}</p>
                                 <p><strong>Fecha Vencimiento:</strong> {{ formatDate(invoice.due_date) }}</p>
-                                <p><strong>Creada por:</strong> {{ invoice.creator?.name || 'N/A' }}</p>
+                                <p><strong>Creada por:</strong> {{ invoice.creator?.name || 'Sistema' }}</p>
                             </div>
                         </div>
 
@@ -132,7 +126,7 @@
                                         </td>
                                         <td>{{ payment.reference || 'N/A' }}</td>
                                         <td class="text-right">{{ moneyFormat(payment.amount) }}</td>
-                                        <td>{{ payment.creator?.name || 'N/A' }}</td>
+                                        <td>{{ payment.creator?.name || 'Sistema' }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -144,8 +138,12 @@
             <!-- Panel de pagos -->
             <div class="col-md-4">
                 <div class="card mb-4" data-tour="invoice-show-payment-form">
-                    <div class="card-header ">
+                    <div class="card-header d-flex justify-content-md-between">
                         <h5 class="mb-0"><i class="fa fa-money-bill-wave"></i> Registrar Pago</h5>
+                        <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                            <i class="fa-regular fa-circle-question me-2"></i>
+                            Guia
+                        </button>
                     </div>
                     <div class="card-body col-md-12">
                         <form @submit.prevent="submitPayment">
@@ -220,9 +218,27 @@
                                     </div>
                                     <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                         <div class="form-group">
+                                            <label>Fecha de Emisión <span class="text-danger">&nbsp;(*)</span></label>
+                                            <flat-pickr
+                                                :config="flatpickrConfig"
+                                                class="form-control form-control-sm flatpickr"
+                                                id="invoiceIssueDate"
+                                                v-model="payment.issue_date"
+                                                required
+                                                v-tooltip.top="'Puedes cambiar la fecha de emisión de la factura'"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                        <div class="form-group">
                                             <label>Fecha del Pago <span class="text-danger">&nbsp;(*)</span></label>
-                                            <flat-pickr :config="flatpickrConfig" class="form-control form-control-sm flatpickr"
-                                            id="filterDate" v-model="payment.payment_date" required></flat-pickr>
+                                            <flat-pickr
+                                                :config="flatpickrConfig"
+                                                class="form-control form-control-sm flatpickr"
+                                                id="invoicePaymentDate"
+                                                v-model="payment.payment_date"
+                                                required
+                                            />
                                         </div>
                                     </div>
                                     <!-- <div class="col-md-12">
@@ -288,6 +304,7 @@ const route = useRoute()
 const router = useRouter()
 const invoiceId = route.params.id
 const tutorial = usePageTutorial(invoiceShowTutorial)
+const todayDate = dayjs().format('YYYY-MM-DD')
 
 // Estado reactivo
 const invoice = ref({ items: [], payments: [] })
@@ -300,7 +317,8 @@ const payment = reactive({
     amount: 0,
     payment_method: 'cash',
     reference: '',
-    payment_date: new Date().toISOString().split('T')[0],
+    issue_date: todayDate,
+    payment_date: todayDate,
     notes: '',
     paid_items: []
 })
@@ -335,6 +353,8 @@ const loadInvoice = async () => {
         // Resetear items seleccionados y monto
         payment.paid_items = []
         payment.amount = 0
+        payment.issue_date = toPickerDate(invoice.value.issue_date)
+        payment.payment_date = todayDate
 
     } catch (error) {
         console.error('Error al cargar factura:', error)
@@ -372,6 +392,7 @@ const submitPayment = async () => {
         const response = await axios.post(`/api/v2/invoices/${invoiceId}/payment`, {
             amount: payment.amount,
             payment_method: payment.payment_method,
+            issue_date: payment.issue_date,
             reference: payment.reference,
             payment_date: payment.payment_date,
             notes: payment.notes,
@@ -399,7 +420,8 @@ const resetPaymentForm = () => {
     payment.reference = ''
     payment.notes = ''
     payment.paid_items = []
-    payment.payment_date = new Date().toISOString().split('T')[0]
+    payment.issue_date = toPickerDate(invoice.value.issue_date)
+    payment.payment_date = todayDate
 }
 
 const canDeleteInvoice = (invoice) => {
@@ -430,7 +452,15 @@ const confirmDelete = async () => {
 
 // Métodos de utilidad
 const formatDate = (dateString) => {
-    return dayjs(dateString).format('YYYY-M-D')
+    return dayjs(dateString).format('YYYY-MM-DD')
+}
+
+const toPickerDate = (dateValue) => {
+    if (!dateValue) {
+        return todayDate
+    }
+
+    return dayjs(dateValue).format('YYYY-MM-DD')
 }
 
 const getStatusClass = (status) => {

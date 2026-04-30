@@ -20,17 +20,6 @@
             text-align: center;
         }
 
-        .mb-10 {
-            margin-bottom: 10px;
-        }
-
-        .mb-15 {
-            margin-bottom: 15px;
-        }
-
-        .mb-20 {
-            margin-bottom: 20px;
-        }
 
         .box {
             border: 1px solid #d9d9d9;
@@ -52,7 +41,7 @@
         }
 
         th, td {
-            border: 1px solid #d9d9d9;
+            border: 1px solid #000000;
             padding: 6px;
             vertical-align: top;
         }

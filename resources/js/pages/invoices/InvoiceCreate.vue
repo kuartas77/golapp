@@ -1,244 +1,207 @@
 <template>
     <div class="layout-px-spacing">
         <div class="row layout-top-spacing">
-            <div class="row">
-                <div class="col-md-3"></div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center" data-tour="invoice-create-header">
-                            <h4><i class="fa fa-file-invoice"></i> Crear Factura</h4>
-                            <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
-                                <i class="fa-regular fa-circle-question me-2"></i>
-                                Guia
-                            </button>
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap"
+                        data-tour="invoice-create-header">
+                        <div class="mb-2 mb-md-0">
+                            <h4 class="mb-1"><i class="fa fa-file-invoice"></i> Crear Factura</h4>
+                            <small class="text-muted">
+                                Revisa el contexto, selecciona los conceptos y confirma el total antes de guardar.
+                            </small>
                         </div>
+                        <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                            <i class="fa-regular fa-circle-question me-2"></i>
+                            Guia
+                        </button>
+                    </div>
 
-                        <div class="card-body">
-                            <!-- Información del estudiante -->
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <h5>Información del Estudiante</h5>
-                                    <p v-if="inscription"><strong>Nombre:</strong> {{ inscription.player.full_names }}
-                                    </p>
-                                    <p v-if="inscription"><strong>Grupo:</strong> {{ inscription.training_group.name }}
-                                    </p>
-                                    <p><strong>Año:</strong> {{ currentYear }}</p>
-                                </div>
-                                <div class="col-md-6 text-right">
-                                    <h5>Factura #</h5>
-                                    <p class="text-muted">Se generará automáticamente</p>
-                                </div>
-                            </div>
+                    <div class="card-body">
+                        <form @submit.prevent="confirmCreate">
+                            <input type="hidden" name="inscription_id" :value="inscriptionId">
+                            <input type="hidden" name="training_group_id" :value="inscription?.training_group_id">
+                            <input type="hidden" name="year" :value="currentYear">
+                            <input type="hidden" name="student_name" :value="inscription?.player?.full_names">
 
-                            <!-- Formulario -->
-                            <form @submit.prevent="confirmCreate">
-                                <input type="hidden" name="inscription_id" :value="inscriptionId">
-                                <input type="hidden" name="training_group_id" :value="inscription?.training_group_id">
-                                <input type="hidden" name="year" :value="currentYear">
-                                <input type="hidden" name="student_name" :value="inscription?.player?.full_names">
-
-                                <!-- Sección de meses pendientes -->
-                                <div v-if="pendingMonths.length" class="card mb-4" data-tour="invoice-create-months">
-                                    <div class="card-header">
-                                        <h6 class="mb-0">
-                                            <i class="fa fa-calendar-alt"></i> Mensualidades Pendientes
-                                        </h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-bordered">
-                                                <thead class="thead-light">
-                                                    <tr>
-                                                        <th width="5%" class="text-center">
-                                                            <div
-                                                                class="custom-control custom-checkbox checkbox-primary">
-                                                                <input id="month-include-all" type="checkbox"
-                                                                    checked="true" class="custom-control-input"
-                                                                    v-model="selectAllMonts">
-                                                                <label class="custom-control-label"
-                                                                    for="month-include-all"></label>
-                                                            </div>
-                                                        </th>
-                                                        <th width="25%">Descripción</th>
-                                                        <th width="15%">Cantidad</th>
-                                                        <th width="20%">Precio Unitario</th>
-                                                        <th width="20%">Total</th>
-                                                        <th width="7%"></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="(month, index) in pendingMonths" :key="month.month"
-                                                        :class="{ 'table-secondary': !month.include }">
-                                                        <td class="text-center">
-                                                            <div
-                                                                class="custom-control custom-checkbox checkbox-primary">
-                                                                <input :id="`month-include-${index}`"
-                                                                    v-model="month.include" type="checkbox"
-                                                                    class="custom-control-input">
-                                                                <label class="custom-control-label"
-                                                                    :for="`month-include-${index}`"></label>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <input type="text" class="form-control form-control-sm"
-                                                                :value="month.name" readonly>
-                                                            <input type="hidden" :name="`items[${index}][month]`"
-                                                                :value="month.month">
-                                                            <input type="hidden" :name="`items[${index}][payment_id]`"
-                                                                :value="month.payment_id">
-                                                        </td>
-                                                        <td>
-                                                            <input type="number" class="form-control form-control-sm"
-                                                                v-model="month.quantity" min="1" :disabled="true"
-                                                                @input="calculateMonthTotal(month)">
-                                                        </td>
-                                                        <td>
-                                                            <CurrencyInput class="form-control form-control-sm"
-                                                                v-model="month.unit_price" autocomplete="off"
-                                                                :disabled="!month.include"
-                                                                @input="calculateItemTotal(month)" />
-                                                        </td>
-                                                        <td>
-                                                            <CurrencyInput class="form-control form-control-sm"
-                                                                v-model="month.total" autocomplete="off" readonly />
-                                                        </td>
-                                                        <td></td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                            <div class="row">
+                                <div class="col-lg-8">
+                                    <div v-if="pendingMonths.length" class="card mb-4" data-tour="invoice-create-months">
+                                        <div class="card-header">
+                                            <h6 class="mb-1">
+                                                <i class="fa fa-calendar-alt"></i> Mensualidades Pendientes
+                                            </h6>
+                                            <small class="text-muted">
+                                                {{ includedPendingMonthsCount }} de {{ pendingMonths.length }}
+                                                seleccionadas para esta factura.
+                                            </small>
                                         </div>
-                                    </div>
-                                </div>
-
-                                <!-- Sección de ítems adicionales -->
-                                <div class="card mb-4" data-tour="invoice-create-items">
-                                    <div class="card-header">
-                                        <h6 class="mb-0">
-                                            <i class="fa fa-plus-circle"></i> Ítems Adicionales
-                                        </h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-bordered">
-                                                <thead class="thead-light">
-                                                    <tr>
-                                                        <th width="5%" class="text-center">
-                                                            <div
-                                                                class="custom-control custom-checkbox checkbox-primary">
-                                                                <input id="item-include-all" type="checkbox"
-                                                                    checked="true" class="custom-control-input"
-                                                                    v-model="selectAllAdditionalItems">
-                                                                <label class="custom-control-label"
-                                                                    for="item-include-all"></label>
-                                                            </div>
-                                                        </th>
-                                                        <th width="25%">Descripción</th>
-                                                        <th width="15%">Cantidad</th>
-                                                        <th width="20%">Precio Unitario</th>
-                                                        <th width="20%">Total</th>
-                                                        <th width="5%"></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="(item, index) in additionalItems" :key="index"
-                                                        :class="{ 'table-secondary': !item.include }">
-                                                        <td class="text-center">
-                                                            <div
-                                                                class="custom-control custom-checkbox checkbox-primary">
-                                                                <input :id="`item-include-${index}`"
-                                                                    v-model="item.include" type="checkbox"
-                                                                    class="custom-control-input">
-                                                                <label class="custom-control-label"
-                                                                    :for="`item-include-${index}`"></label>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <input type="text" class="form-control form-control-sm"
-                                                                v-model="item.description" :disabled="!item.include"
-                                                                required>
-                                                        </td>
-                                                        <td>
-                                                            <input type="number" class="form-control form-control-sm"
-                                                                v-model="item.quantity" min="1"
-                                                                :disabled="!item.include"
-                                                                @input="calculateItemTotal(item)">
-                                                        </td>
-                                                        <td>
-                                                            <CurrencyInput class="form-control form-control-sm"
-                                                                v-model="item.unit_price" autocomplete="off"
-                                                                :disabled="!item.include"
-                                                                @input="calculateItemTotal(item)" />
-                                                        </td>
-                                                        <td>
-                                                            <CurrencyInput class="form-control form-control-sm"
-                                                                v-model="item.total" autocomplete="off" readonly />
-                                                        </td>
-
-                                                        <td class="text-center">
-                                                            <button type="button" class="btn btn-sm btn-danger"
-                                                                @click="removeAdditionalItem(index)">
-                                                                <i class="fa fa-trash"></i>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <button type="button" class="btn btn-sm btn-success" @click="addAdditionalItem">
-                                            <i class="fa fa-plus"></i> Agregar Ítem
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Información de la factura -->
-                                <div class="card mb-4" data-tour="invoice-create-billing">
-                                    <div class="card-header">
-                                        <h5 class="mb-0"><i class="fa fa-info-circle"></i> Información de Factura</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Fecha de Vencimiento</label>
-                                                    <input type="date" class="form-control form-control-sm"
-                                                        v-model="dueDate" required>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Notas</label>
-                                                    <textarea class="form-control form-control-sm" v-model="notes"
-                                                        rows="3"></textarea>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Totales -->
-                                <div class="card mb-4" data-tour="invoice-create-total">
-                                    <div class="card-header">
-                                        <h5 class="mb-0"><i class="fa fa-calculator"></i> Totales</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-6 offset-md-6">
-                                                <table class="table table-sm table-borderless">
-                                                    <tbody>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered">
+                                                    <thead class="thead-light">
                                                         <tr>
-                                                            <th class="text-right">
-                                                                <h6>Subtotal:</h6>
+                                                            <th width="5%" class="text-center">
+                                                                <div
+                                                                    class="custom-control custom-checkbox checkbox-primary">
+                                                                    <input id="month-include-all" type="checkbox"
+                                                                        checked="true" class="custom-control-input"
+                                                                        v-model="selectAllMonts">
+                                                                    <label class="custom-control-label"
+                                                                        for="month-include-all"></label>
+                                                                </div>
                                                             </th>
-                                                            <td width="150" class="text-right">
-                                                                <h6>{{ moneyFormat(subtotal) }}</h6>
+                                                            <th width="25%">Descripción</th>
+                                                            <th width="15%">Cantidad</th>
+                                                            <th width="20%">Precio Unitario</th>
+                                                            <th width="20%">Total</th>
+                                                            <th width="7%"></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr v-for="(month, index) in pendingMonths" :key="month.month"
+                                                            :class="{ 'table-secondary': !month.include }">
+                                                            <td class="text-center">
+                                                                <div
+                                                                    class="custom-control custom-checkbox checkbox-primary">
+                                                                    <input :id="`month-include-${index}`"
+                                                                        v-model="month.include" type="checkbox"
+                                                                        class="custom-control-input">
+                                                                    <label class="custom-control-label"
+                                                                        :for="`month-include-${index}`"></label>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" class="form-control form-control-sm"
+                                                                    :value="month.name" readonly>
+                                                                <input type="hidden" :name="`items[${index}][month]`"
+                                                                    :value="month.month">
+                                                                <input type="hidden"
+                                                                    :name="`items[${index}][payment_id]`"
+                                                                    :value="month.payment_id">
+                                                            </td>
+                                                            <td>
+                                                                <input type="number" class="form-control form-control-sm"
+                                                                    v-model="month.quantity" min="1" :disabled="true"
+                                                                    @input="calculateMonthTotal(month)">
+                                                            </td>
+                                                            <td>
+                                                                <CurrencyInput class="form-control form-control-sm"
+                                                                    v-model="month.unit_price" autocomplete="off"
+                                                                    :disabled="!month.include"
+                                                                    @input="calculateItemTotal(month)" />
+                                                            </td>
+                                                            <td>
+                                                                <CurrencyInput class="form-control form-control-sm"
+                                                                    v-model="month.total" autocomplete="off" readonly />
+                                                            </td>
+                                                            <td></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div v-else class="card mb-4" data-tour="invoice-create-months">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">
+                                                <i class="fa fa-calendar-alt"></i> Mensualidades Pendientes
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="alert alert-success mb-0">
+                                                <i class="fa fa-check-circle"></i>
+                                                No hay mensualidades pendientes para este deportista.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card mb-4" data-tour="invoice-create-items">
+                                        <div
+                                            class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                                            <div class="mb-2 mb-md-0">
+                                                <h6 class="mb-1">
+                                                    <i class="fa fa-plus-circle"></i> Ítems Adicionales
+                                                </h6>
+                                                <small class="text-muted">
+                                                    {{ includedAdditionalItemsCount }} de {{ additionalItems.length }}
+                                                    activos entre uniformes y otros conceptos.
+                                                </small>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-success"
+                                                @click="addAdditionalItem">
+                                                <i class="fa fa-plus"></i> Agregar Ítem
+                                            </button>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered">
+                                                    <thead class="thead-light">
+                                                        <tr>
+                                                            <th width="5%" class="text-center">
+                                                                <div
+                                                                    class="custom-control custom-checkbox checkbox-primary">
+                                                                    <input id="item-include-all" type="checkbox"
+                                                                        checked="true" class="custom-control-input"
+                                                                        v-model="selectAllAdditionalItems">
+                                                                    <label class="custom-control-label"
+                                                                        for="item-include-all"></label>
+                                                                </div>
+                                                            </th>
+                                                            <th width="25%">Descripción</th>
+                                                            <th width="15%">Cantidad</th>
+                                                            <th width="20%">Precio Unitario</th>
+                                                            <th width="20%">Total</th>
+                                                            <th width="5%"></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr v-if="!additionalItems.length">
+                                                            <td colspan="6" class="text-center text-muted py-4">
+                                                                No hay ítems adicionales por ahora. Usa
+                                                                <strong>Agregar Ítem</strong> para sumar un concepto.
                                                             </td>
                                                         </tr>
-                                                        <tr>
-                                                            <th class="text-right">
-                                                                <h6>Total Factura:</h6>
-                                                            </th>
-                                                            <td class="text-right">
-                                                                <h4>{{ moneyFormat(total) }}</h4>
+                                                        <tr v-for="(item, index) in additionalItems" :key="index"
+                                                            :class="{ 'table-secondary': !item.include }">
+                                                            <td class="text-center">
+                                                                <div
+                                                                    class="custom-control custom-checkbox checkbox-primary">
+                                                                    <input :id="`item-include-${index}`"
+                                                                        v-model="item.include" type="checkbox"
+                                                                        class="custom-control-input">
+                                                                    <label class="custom-control-label"
+                                                                        :for="`item-include-${index}`"></label>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" class="form-control form-control-sm"
+                                                                    v-model="item.description"
+                                                                    :disabled="!item.include" required>
+                                                            </td>
+                                                            <td>
+                                                                <input type="number" class="form-control form-control-sm"
+                                                                    v-model="item.quantity" min="1"
+                                                                    :disabled="!item.include"
+                                                                    @input="calculateItemTotal(item)">
+                                                            </td>
+                                                            <td>
+                                                                <CurrencyInput class="form-control form-control-sm"
+                                                                    v-model="item.unit_price" autocomplete="off"
+                                                                    :disabled="!item.include"
+                                                                    @input="calculateItemTotal(item)" />
+                                                            </td>
+                                                            <td>
+                                                                <CurrencyInput class="form-control-plaintext"
+                                                                    v-model="item.total" autocomplete="off" readonly disabled />
+                                                            </td>
+
+                                                            <td class="text-center">
+                                                                <button type="button" class="btn btn-sm btn-danger"
+                                                                    @click="removeAdditionalItem(index)">
+                                                                    <i class="fa fa-trash"></i>
+                                                                </button>
                                                             </td>
                                                         </tr>
                                                     </tbody>
@@ -248,22 +211,124 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group text-right" data-tour="invoice-create-actions">
-                                    <button type="button" class="btn btn-secondary me-1" @click="cancel">
-                                        <i class="fa fa-times"></i> Cancelar
-                                    </button>
-                                    <button type="submit" class="btn btn-primary me-1"
-                                        :disabled="loading || total == 0">
-                                        <span v-if="loading" class="spinner-border spinner-border-sm"></span>
-                                        <i v-else class="fa fa-save"></i>
-                                        {{ loading ? 'Guardando...' : 'Guardar Factura' }}
-                                    </button>
+                                <div class="col-lg-4">
+                                    <div class="card mb-4">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start flex-wrap">
+                                                <div class="mb-3">
+                                                    <h5 class="mb-1">Resumen</h5>
+                                                    <small class="text-muted">
+                                                        La numeración se generará automáticamente al guardar.
+                                                    </small>
+                                                </div>
+                                                <span class="badge badge-info">Nueva</span>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-12 mb-3">
+                                                    <small class="text-muted d-block">Estudiante</small>
+                                                    <div class="font-weight-bold">
+                                                        {{ inscription?.player?.full_names || 'Cargando...' }}
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6 mb-3">
+                                                    <small class="text-muted d-block">Grupo</small>
+                                                    <div class="font-weight-bold">
+                                                        {{ inscription?.training_group?.name || 'Cargando...' }}
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6 mb-3 text-sm-right">
+                                                    <small class="text-muted d-block">Año</small>
+                                                    <div class="font-weight-bold">{{ currentYear }}</div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <small class="text-muted d-block">Mensualidades</small>
+                                                    <div>{{ includedPendingMonthsCount }} seleccionadas</div>
+                                                </div>
+                                                <div class="col-sm-6 text-sm-right">
+                                                    <small class="text-muted d-block">Ítems extra</small>
+                                                    <div>{{ includedAdditionalItemsCount }} seleccionados</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card mb-4" data-tour="invoice-create-billing">
+                                        <div class="card-header">
+                                            <h5 class="mb-0"><i class="fa fa-info-circle"></i> Información de Factura
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="form-group mb-3">
+                                                <label>Fecha de Vencimiento</label>
+                                                <flat-pickr
+                                                    :config="flatpickrConfig"
+                                                    class="form-control form-control-sm flatpickr"
+                                                    id="invoiceIssueDate"
+                                                    v-model="dueDate"
+                                                    required
+                                                />
+                                            </div>
+                                            <div class="form-group mb-0">
+                                                <label>Notas</label>
+                                                <textarea class="form-control form-control-sm" v-model="notes"
+                                                    rows="4"
+                                                    placeholder="Agrega observaciones internas o detalles para la factura."></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card mb-4" data-tour="invoice-create-total">
+                                        <div class="card-header">
+                                            <h5 class="mb-0"><i class="fa fa-calculator"></i> Totales</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="text-muted">Conceptos activos</span>
+                                                <strong>{{ selectedItemsCount }}</strong>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="text-muted">Subtotal</span>
+                                                <strong>{{ moneyFormat(subtotal) }}</strong>
+                                            </div>
+                                            <hr>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0">Total Factura</h6>
+                                                <h4 class="mb-0">{{ moneyFormat(total) }}</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card" data-tour="invoice-create-actions">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-sm-6 mb-2">
+                                                    <button type="button" class="btn btn-secondary btn-block"
+                                                        @click="cancel">
+                                                        <i class="fa fa-times"></i> Cancelar
+                                                    </button>
+                                                </div>
+                                                <div class="col-sm-6 mb-2">
+                                                    <button type="submit" class="btn btn-primary btn-block"
+                                                        :disabled="loading || total == 0">
+                                                        <span v-if="loading"
+                                                            class="spinner-border spinner-border-sm"></span>
+                                                        <i v-else class="fa fa-save"></i>
+                                                        {{ loading ? 'Guardando...' : 'Guardar Factura' }}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted d-block">
+                                                Selecciona al menos un concepto con total mayor a cero para habilitar
+                                                el guardado.
+                                            </small>
+                                        </div>
+                                    </div>
                                 </div>
-                            </form>
-                        </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
-                <div class="col-md-3"></div>
             </div>
         </div>
     </div>
@@ -277,6 +342,11 @@ import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
+import dayjs from '@/utils/dayjs';
+import { Spanish } from "flatpickr/dist/l10n/es.js"
+import flatPickr from 'vue-flatpickr-component';
+import 'flatpickr/dist/flatpickr.css';
+import "@/assets/sass/forms/custom-flatpickr.css";
 import CurrencyInput from '@/components/general/CurrencyInput';
 import { invoiceCreateTutorial } from '@/tutorials/invoices'
 
@@ -285,11 +355,17 @@ const router = useRouter()
 const inscriptionId = route.params.inscription
 const tutorial = usePageTutorial(invoiceCreateTutorial)
 
+const flatpickrConfig = {
+    wrap: true,
+    locale: Spanish,
+}
+
 // Estado reactivo
 const inscription = ref(null)
 const pendingMonths = ref([])
 const additionalItems = ref([])
-const dueDate = ref('')
+//Establecer fecha de vencimiento por defecto (15 días)
+const dueDate = ref(dayjs().add(15, 'day').format('YYYY-MM-DD'))
 const notes = ref('')
 const loading = ref(false)
 const selectAllMonts = ref(true)
@@ -320,6 +396,18 @@ const subtotal = computed(() => {
 
 const total = computed(() => {
     return subtotal.value
+})
+
+const includedPendingMonthsCount = computed(() => {
+    return pendingMonths.value.filter(month => month.include).length
+})
+
+const includedAdditionalItemsCount = computed(() => {
+    return additionalItems.value.filter(item => item.include).length
+})
+
+const selectedItemsCount = computed(() => {
+    return includedPendingMonthsCount.value + includedAdditionalItemsCount.value
 })
 
 // Métodos
@@ -363,12 +451,6 @@ const loadData = async () => {
 
 
         additionalItems.value = [...uniformRequest, ...customItems]
-
-        // Establecer fecha de vencimiento por defecto (15 días)
-        const today = new Date()
-        const due = new Date(today)
-        due.setDate(today.getDate() + 15)
-        dueDate.value = due.toISOString().split('T')[0]
 
     } catch (error) {
         console.error('Error al cargar datos:', error)

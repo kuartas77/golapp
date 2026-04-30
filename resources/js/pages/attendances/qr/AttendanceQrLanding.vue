@@ -1,7 +1,7 @@
 <template>
     <div class="attendance-qr-page">
         <section class="attendance-qr-page__shell">
-            <div class="attendance-qr-page__hero card border-0 shadow-sm overflow-hidden">
+            <div class="card border-0 shadow-sm overflow-hidden">
                 <div class="card-body p-4 p-lg-5">
                     <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
                         <div>
@@ -37,8 +37,8 @@
 
                         <div class="col-12">
                             <div class="attendance-qr-page__tips">
-                                <span class="badge text-bg-light border">Mobile-first</span>
-                                <span class="badge text-bg-light border">Requiere login</span>
+                                <!-- <span class="badge text-bg-light border">Mobile-first</span> -->
+                                <span class="badge text-bg-light border">Requiere ingreso</span>
                                 <span class="badge text-bg-light border">Mes actual</span>
                             </div>
                         </div>
@@ -102,12 +102,6 @@ const openQrAttendance = async () => {
     max-width: 56rem;
     margin: 0 auto;
     padding: 0 1rem;
-}
-
-.attendance-qr-page__hero {
-    background:
-        linear-gradient(135deg, rgba(13, 110, 253, 0.12), rgba(25, 135, 84, 0.1)),
-        var(--bs-body-bg, #ffffff);
 }
 
 .attendance-qr-page__eyebrow {
