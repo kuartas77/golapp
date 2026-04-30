@@ -70,7 +70,7 @@ export const useSetting = defineStore('settings-store', {
             this.$reset()
         },
         async getSettings()  {
-            const response = await api.get('api/v2/settings/general')
+            const response = await api.get('/api/v2/settings/general')
             const data = response?.data ?? {}
 
             this.all_groups = toArray(data.all_t_groups)
@@ -108,7 +108,7 @@ export const useSettingGroups = defineStore('settings-groups-store', {
             this.$reset()
         },
         async getGroupSettings()  {
-            const response = await api.get('api/v2/settings/groups')
+            const response = await api.get('/api/v2/settings/groups')
             const data = response?.data ?? {}
 
             this.users = normalizeOptionList(data.users)
