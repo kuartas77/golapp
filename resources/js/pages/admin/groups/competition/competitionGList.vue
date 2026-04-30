@@ -3,11 +3,14 @@
         <template #lateral/>
         <template #header>
             <div class="row">
-                <div class="col-md-auto" data-tour="admin-competition-groups-actions">
+                <div class="col-md-auto d-flex gap-2 flex-wrap" data-tour="admin-competition-groups-actions">
                     <a data-bs-toggle="modal" data-bs-target="#composeModalCompetitionG"
                         class="btn btn-block btn-primary" href="javascript:void(0);">
                         Crear Grupo
                     </a>
+                    <router-link :to="{ name: 'competition-groups-admin' }" class="btn btn-info">
+                        Administrar Grupos
+                    </router-link>
                 </div>
                 <div class="col-md-8">
                     <p>Estos grupos cómo su nombre lo dice se crean para poder gestionar las competencias y así obtener los datos de las estadísticos de los deportistas.</p>

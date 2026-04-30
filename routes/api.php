@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\Admin\InscriptionController;
 use App\Http\Controllers\API\Admin\ContractController as AdminContractController;
+use App\Http\Controllers\API\Admin\GroupAssignmentController;
 use App\Http\Controllers\API\Admin\InvoiceCustomItemController as AdminInvoiceCustomItemController;
 use App\Http\Controllers\API\Admin\RegisterController;
 use App\Http\Controllers\API\Admin\SchoolController;
@@ -128,10 +129,14 @@ Route::prefix('v2')->group(function(){
 
             Route::middleware('school.permission:school.module.training_groups')->group(function () {
                 Route::apiResource('training_groups', TrainingGroupController::class, ['only' => ['show', 'store', 'update']]);
+                Route::get('training-groups/board', [GroupAssignmentController::class, 'trainingBoard']);
+                Route::post('training-groups/move', [GroupAssignmentController::class, 'moveTraining']);
             });
 
             Route::middleware('school.permission:school.module.competition_groups')->group(function () {
                 Route::apiResource('competition_groups', CompetitionGroupController::class, ['only' => ['show', 'store', 'update']]);
+                Route::get('competition-groups/board', [GroupAssignmentController::class, 'competitionBoard']);
+                Route::post('competition-groups/move', [GroupAssignmentController::class, 'moveCompetition']);
             });
 
             Route::post('change_school', [BackOfficeShoolController::class, 'choose']);

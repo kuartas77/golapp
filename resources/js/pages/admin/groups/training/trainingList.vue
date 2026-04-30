@@ -2,11 +2,14 @@
     <panel>
         <template #header>
             <div class="row">
-                <div class="col-md-auto" data-tour="admin-training-groups-actions">
+                <div class="col-md-auto d-flex gap-2 flex-wrap" data-tour="admin-training-groups-actions">
                     <a data-bs-toggle="modal" data-bs-target="#composeModalTrainigG" id="btn-compose-user"
                         class="btn btn-block btn-primary" href="javascript:void(0);">
                         Crear Grupo
                     </a>
+                    <router-link :to="{ name: 'training-groups-admin' }" class="btn btn-info">
+                        Administrar Grupos
+                    </router-link>
                 </div>
                 <div class="col-md-8">
                     <p>Grupos de entrenamiento, son parte fundamental del sistema, ya que con ellos se pueden buscar las inscripciones, pagos y asistencias.</p>

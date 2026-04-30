@@ -90,7 +90,7 @@ const initEditor = async () => {
         'code',
         'table',
         'lists',
-        'image',
+        // 'image',
         'wordcount',
         'searchreplace',
     ]

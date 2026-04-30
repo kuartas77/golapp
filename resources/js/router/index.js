@@ -157,6 +157,12 @@ const routes = [
                         meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.competitionGroups] }
                     },
                     {
+                        path: 'g-competencia/admin',
+                        name: 'competition-groups-admin',
+                        component: () => import('@/pages/admin/groups/competition/AdminCompetitionGroup.vue'),
+                        meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.competitionGroups] }
+                    },
+                    {
                         path: 'plantillas-evaluacion',
                         name: 'evaluation-templates.index',
                         component: () => import('@/pages/admin/evaluation-templates/Index.vue'),

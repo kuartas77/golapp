@@ -61,22 +61,24 @@ export const trainingGroupsTutorial = {
     ],
 }
 
-export const adminTrainingGroupTutorial = {
+export const groupAssignmentBoardTutorial = {
     steps: [
         {
-            id: 'admin-training-board-pool',
-            selector: '[data-tour="admin-training-board-pool"]',
+            id: 'group-assignment-source',
+            selector: '[data-tour="group-assignment-source"]',
             title: 'Ubica los elementos disponibles',
             text: 'Este panel concentra los elementos que puedes mover dentro del tablero de organizacion.',
         },
         {
-            id: 'admin-training-board-target',
-            selector: '[data-tour="admin-training-board-target"]',
+            id: 'group-assignment-destination',
+            selector: '[data-tour="group-assignment-destination"]',
             title: 'Reorganiza con arrastrar y soltar',
             text: 'En esta zona mueves los elementos para administrar la distribucion del grupo.',
         },
     ],
 }
+
+export const adminTrainingGroupTutorial = groupAssignmentBoardTutorial
 
 export const competitionGroupsTutorial = {
     steps: [
