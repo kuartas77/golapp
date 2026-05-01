@@ -12,7 +12,7 @@ use App\Models\School;
 
 trait UploadFile
 {
-    public function saveFile(FormRequest $request, $field)
+    public function saveFile(FormRequest $request, $field, bool $resize = true)
     {
         $path = null;
 
@@ -33,13 +33,17 @@ trait UploadFile
                     break;
             }
 
-            $img = Image::make($file)->resize(200, 200)->orientate();
+            $img = Image::make($file);
+            if($resize) {
+                $img->resize(200, 200)->orientate();
+            }
+
             Storage::disk('public')->put($path, (string)$img->encode('jpg', 75), 'public');
         }
         return $path;
     }
 
-    public function uploadFile(UploadedFile $file, string $schoolFolder, string $field = 'players'): ?string
+    public function uploadFile(UploadedFile $file, string $schoolFolder, string $field = 'players', bool $resize = true): ?string
     {
         $path = null;
 
@@ -47,13 +51,17 @@ trait UploadFile
 
         $path = $file->hashName("{$schoolFolder}/{$folder}");
 
-        $img = Image::make($file)->resize(200, 200);
+        $img = Image::make($file);
+        if($resize) {
+            $img->resize(200, 200);
+        }
+
         Storage::disk('public')->put($path, (string)$img->encode(), 'public');
 
         return $path;
     }
 
-    private function uploadSignImage($data, $folder = 'player')
+    private function uploadSignImage($data, $folder = 'player', bool $resize = true)
     {
         $path = null;
         $encoded_image = explode(",", $data)[1];
@@ -74,7 +82,10 @@ trait UploadFile
 
         $path = $file->hashName($folder);
 
-        $img = Image::make($file)->resize(200, 200);
+        $img = Image::make($file);
+        if($resize) {
+            $img->resize(200, 200)->orientate();
+        }
 
         Storage::disk('local')->put($path, (string)$img->encode(), 'public');
 

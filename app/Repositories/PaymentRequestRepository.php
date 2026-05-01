@@ -41,7 +41,7 @@ class PaymentRequestRepository
             $paymentRequest->reference_number = $validated['reference_number'];
             $paymentRequest->payment_method = $validated['payment_method'];
 
-            $paymentRequest->image = $this->uploadFile($validated['image'], $school->slug, 'invoice_receipts');
+            $paymentRequest->image = $this->uploadFile($validated['image'], $school->slug, 'invoice_receipts', false);
 
             $paymentRequest->save();
             DB::commit();
