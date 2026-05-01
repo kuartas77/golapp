@@ -59,7 +59,7 @@ class GroupAssignmentService
             : null;
 
         $groups = $this->competitionGroupRepository->getGroupsYear();
-        $sourceItems = $this->competitionSourceItems();
+        $sourceItems = $this->competitionSourceItems($selectedGroup);
 
         return [
             'selectors' => [
@@ -169,12 +169,16 @@ class GroupAssignmentService
         return $this->sortItems($items);
     }
 
-    private function competitionSourceItems(): Collection
+    private function competitionSourceItems(?CompetitionGroup $selectedGroup): Collection
     {
         $items = Inscription::query()
             ->schoolId()
             ->with('player')
             ->where('year', now()->year)
+            ->when($selectedGroup, fn ($query) => $query->whereDoesntHave(
+                'competitionGroup',
+                fn ($competitionQuery) => $competitionQuery->where('competition_groups.id', $selectedGroup->id)
+            ))
             ->get();
 
         return $this->sortItems($items);

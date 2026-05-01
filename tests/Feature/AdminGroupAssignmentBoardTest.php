@@ -67,7 +67,7 @@ final class AdminGroupAssignmentBoardTest extends TestCase
         $this->assertSame($destinationGroup->id, $inscription->fresh()->training_group_id);
     }
 
-    public function testCompetitionBoardReturnsGlobalPoolAndSelectedGroupMembers(): void
+    public function testCompetitionBoardReturnsAvailablePoolAndSelectedGroupMembers(): void
     {
         $this->actingAs($this->user);
 
@@ -86,8 +86,9 @@ final class AdminGroupAssignmentBoardTest extends TestCase
         ))->assertOk();
 
         $this->assertCount(3, $response->json('data.selectors.groups'));
-        $response->assertJsonPath('data.panels.source.count', 2);
+        $response->assertJsonPath('data.panels.source.count', 1);
         $response->assertJsonPath('data.panels.destination.count', 1);
+        $response->assertJsonPath('data.panels.source.items.0.full_names', $poolInscription->player->full_names);
         $response->assertJsonPath('data.panels.destination.items.0.full_names', $selectedInscription->player->full_names);
         $response->assertJsonFragment([
             'value' => (string) $sameYearGroup->id,

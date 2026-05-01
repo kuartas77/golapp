@@ -266,33 +266,33 @@ const {
 } = useGroupAssignmentBoard(props.mode)
 
 const sourceTitle = computed(() => (
-    isTraining.value ? 'Grupo de origen' : 'Deportistas'
+    isTraining ? 'Deportistas grupo de origen' : 'Deportistas disponibles'
 ))
 
 const sourceSubtitle = computed(() => (
-    isTraining.value
-        ? (sourcePanel.value.group_label || 'Selecciona un grupo de origen para ver sus integrantes.')
-        : 'Deportistas del año actual.'
+    isTraining
+        ? 'Selecciona un grupo de origen para ver sus integrantes.'
+        : 'Deportistas del año actual disponibles para asignar al grupo seleccionado.'
 ))
 
 const destinationTitle = computed(() => (
-    isTraining.value ? 'Grupo de destino' : 'Grupo seleccionado'
+    isTraining ? 'Deportistas grupo de destino' : 'Grupo seleccionado'
 ))
 
 const destinationSubtitle = computed(() => (
-    isTraining.value
-        ? (destinationPanel.value.group_label || 'Selecciona un grupo de destino para recibir integrantes.')
+    isTraining
+        ? 'Selecciona un grupo de destino para recibir integrantes.'
         : selectedDestinationLabel.value
 ))
 
 const sourceEmptyMessage = computed(() => (
-    isTraining.value
+    isTraining
         ? 'No hay integrantes para este grupo de origen.'
         : 'No hay deportistas disponibles para mostrar.'
 ))
 
 const destinationEmptyMessage = computed(() => (
-    isTraining.value
+    isTraining
         ? 'No hay integrantes en este grupo de destino.'
         : 'Este grupo no tiene integrantes asignados.'
 ))

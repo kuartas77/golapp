@@ -85,6 +85,8 @@ describe('GroupAssignmentBoard', () => {
         expect(wrapper.find('#origin_group_id').exists()).toBe(true);
         expect(wrapper.find('#destination_group_id').exists()).toBe(true);
         expect(wrapper.find('#competition_group_id').exists()).toBe(false);
+        expect(wrapper.text()).toContain('Deportistas grupo de origen');
+        expect(wrapper.text()).toContain('Deportistas grupo de destino');
         expect(wrapper.text()).toContain('Juan Perez');
         expect(wrapper.findAll('input[placeholder="Buscar..."]')).toHaveLength(0);
     });
@@ -141,7 +143,7 @@ describe('GroupAssignmentBoard', () => {
         expect(wrapper.find('#competition_group_id').exists()).toBe(true);
         expect(wrapper.find('#origin_group_id').exists()).toBe(false);
         expect(wrapper.findAll('input[placeholder="Buscar..."]')).toHaveLength(2);
-        expect(wrapper.text()).toContain('Deportistas del año actual.');
+        expect(wrapper.text()).toContain('Deportistas disponibles');
         expect(wrapper.text()).toContain('Equipo Azul (SUB-13)');
         expect(wrapper.text()).toContain('David Ruiz');
     });
