@@ -52,7 +52,7 @@
 
                             <div v-if="classDays.length" class="row text-center mt-3" data-tour="attendance-classdays">
                                 <div class="col-12">
-                                    <h5>Selecciona Día de Entrenamiento:</h5>
+                                    <span>Selecciona día de entrenamiento:</span>
                                     <template v-for="classDay in classDays" :key="classDay.id">
                                         <button
                                             class="badge outline-badge-info btn btn-sm m-1"

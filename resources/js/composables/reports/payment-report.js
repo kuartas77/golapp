@@ -1,9 +1,24 @@
 import { onMounted, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { usePageTitle } from '@/composables/use-meta'
 import api from '@/utils/axios'
 
+const parseQueryNumber = (value) => {
+    const normalizedValue = Array.isArray(value) ? value[0] : value
+
+    if (normalizedValue === null || normalizedValue === undefined || normalizedValue === '') {
+        return null
+    }
+
+    const parsed = Number(normalizedValue)
+
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null
+}
+
 export default function usePaymentReport() {
     usePageTitle('Informe de pagos')
+
+    const route = useRoute()
 
     const isLoading = ref(false)
     const isSubmitting = ref(false)
@@ -90,7 +105,8 @@ export default function usePaymentReport() {
     )
 
     onMounted(async () => {
-        await loadOptions()
+        form.training_group_id = parseQueryNumber(route.query.training_group_id)
+        await loadOptions(parseQueryNumber(route.query.year))
         hasBootstrapped.value = true
     })
 

@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\API\Admin\InscriptionController;
 use App\Http\Controllers\API\Admin\ContractController as AdminContractController;
 use App\Http\Controllers\API\Admin\GroupAssignmentController;
+use App\Http\Controllers\API\Admin\InscriptionController;
 use App\Http\Controllers\API\Admin\InvoiceCustomItemController as AdminInvoiceCustomItemController;
 use App\Http\Controllers\API\Admin\RegisterController;
 use App\Http\Controllers\API\Admin\SchoolController;
@@ -39,13 +39,13 @@ use App\Http\Controllers\Notifications\TopicNotificationsController;
 use App\Http\Controllers\Notifications\UniformRequestsController;
 use App\Http\Controllers\Payments\PaymentController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
-use App\Http\Controllers\Reports\ReportAttendancePaymentController;
 use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\PlayerStatsController;
-use App\Http\Controllers\Portal\InscriptionsController as PortalInscription;
 use App\Http\Controllers\Portal\ContractController as PortalContract;
+use App\Http\Controllers\Portal\InscriptionsController as PortalInscription;
 use App\Http\Controllers\Portal\SchoolsController as PortalSchool;
 use App\Http\Controllers\Reports\ReportAssistsController;
+use App\Http\Controllers\Reports\ReportAttendancePaymentController;
 use App\Http\Controllers\Reports\ReportPaymentController;
 use App\Http\Controllers\SchoolPages\SchoolsController;
 use App\Http\Controllers\SettingsController;
@@ -53,7 +53,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('login', [LoginController::class, 'login']);
 
-Route::middleware(['auth:sanctum'])->group(function(){
+Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('logout', [LoginController::class, 'logout']);
     Route::post('refresh-token', [LoginController::class, 'refresh'])->name('api.refresh');
@@ -63,7 +63,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
     Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*']);
 
-    Route::prefix('instructor')->name('instructor.')->middleware(['auth:sanctum'])->group(function (){
+    Route::prefix('instructor')->name('instructor.')->middleware(['auth:sanctum'])->group(function () {
 
         Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);
 
@@ -83,24 +83,23 @@ Route::middleware(['auth:sanctum'])->group(function(){
     // });
 });
 
-
-Route::prefix('v2')->group(function(){
+Route::prefix('v2')->group(function () {
 
     Route::post('login', [AuthControllerSPA::class, 'login']);
     Route::post('forgot-password', [AuthControllerSPA::class, 'forgotPassword']);
     Route::post('reset-password', [AuthControllerSPA::class, 'resetPassword']);
 
-    Route::middleware(['auth:sanctum'])->group(function(){
+    Route::middleware(['auth:sanctum'])->group(function () {
 
         Route::post('logout', [AuthControllerSPA::class, 'logout']);
 
-        Route::prefix('settings')->group(function(){
+        Route::prefix('settings')->group(function () {
             Route::get('general', [SettingsController::class, 'index']);
             Route::get('groups', [SettingsController::class, 'configGroups']);
         });
 
         Route::get('dashboard', [DashboardController::class, 'index']);
-        Route::get('kpis', [DashboardController::class, 'kpis'])->middleware('role:super-admin|school');
+        Route::get('kpis', [DashboardController::class, 'kpis'])->middleware('role:super-admin|school|instructor');
 
         Route::get('user', [UserController::class, 'user']);
 
@@ -108,7 +107,7 @@ Route::prefix('v2')->group(function(){
             Route::get('info_campus', [BackOfficeShoolController::class, 'infoCampus']);
         });
 
-        Route::prefix('admin')->middleware(['role:super-admin|school'])->group(function (){
+        Route::prefix('admin')->middleware(['role:super-admin|school'])->group(function () {
             Route::middleware('school.permission:school.module.school_profile')->group(function () {
                 Route::get('school', [SchoolsController::class, 'index']);
                 Route::put('school/{school}', [SchoolsController::class, 'update']);
@@ -164,21 +163,21 @@ Route::prefix('v2')->group(function(){
         });
 
         Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);
-        Route::get("training_group/classdays", [TrainingGroupController::class, 'getClassDays']);
+        Route::get('training_group/classdays', [TrainingGroupController::class, 'getClassDays']);
 
         Route::middleware([
             'role:super-admin|school',
             'school.permission:school.module.players',
         ])->group(function () {
-            Route::apiResource("players", PlayerController::class, ['only' => ['edit','show', 'update']]);
+            Route::apiResource('players', PlayerController::class, ['only' => ['edit', 'show', 'update']]);
         });
 
         Route::middleware('school.permission:school.module.payments')->group(function () {
-            Route::apiResource("payments", PaymentController::class)->only(['index','update', 'show']);
+            Route::apiResource('payments', PaymentController::class)->only(['index', 'update', 'show']);
         });
 
         Route::middleware('school.permission:school.module.attendances')->group(function () {
-            Route::apiResource("assists", AssistController::class)->except(['create','edit', 'destroy']);
+            Route::apiResource('assists', AssistController::class)->except(['create', 'edit', 'destroy']);
         });
 
         Route::middleware([
@@ -193,11 +192,11 @@ Route::prefix('v2')->group(function(){
             'role:super-admin|school',
             'school.permission:school.module.inscriptions',
         ])->group(function () {
-            Route::resource("inscriptions", WebInscriptions::class)->except(['index','create','show']);
+            Route::resource('inscriptions', WebInscriptions::class)->except(['index', 'create', 'show']);
         });
 
         Route::middleware('school.permission:school.module.matches')->group(function () {
-            Route::apiResource("matches", GameController::class)->except(['index','edit','create']);
+            Route::apiResource('matches', GameController::class)->except(['index', 'edit', 'create']);
         });
 
         Route::middleware('school.permission:school.module.training_sessions')->prefix('training-sessions')->group(function () {
@@ -270,7 +269,7 @@ Route::prefix('v2')->group(function(){
                 Route::get('matches', [DataTableController::class, 'matches']);
             });
 
-            Route::middleware(['role:super-admin'])->group(function (){
+            Route::middleware(['role:super-admin'])->group(function () {
                 Route::get('schools', [DataTableController::class, 'schools']);
                 Route::get('schools_info', [DataTableController::class, 'schoolsInfo']);
             });
@@ -333,12 +332,11 @@ Route::prefix('v2')->group(function(){
 
     });
 
-    Route::prefix('portal')->name('portal.')->group(function(){
+    Route::prefix('portal')->name('portal.')->group(function () {
 
         Route::get('escuelas/data', [PortalSchool::class, 'indexData'])->name('school.index.data');
         Route::get('escuelas/{school}/data', [PortalSchool::class, 'showData'])->name('school.show.data');
         Route::get('escuelas/{school}/contracts/{contractTypeCode}', [PortalContract::class, 'show'])->name('school.contract.show');
-
 
         Route::post('{school}/inscripcion', [PortalInscription::class, 'store'])->name('school.inscription.store');
 

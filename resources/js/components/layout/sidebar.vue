@@ -36,7 +36,7 @@
                                 Inicio
                             </router-link>
                         </li>
-                        <Can :roles="['super-admin', 'school']" any-role>
+                        <Can :roles="['super-admin', 'school', 'instructor']" any-role>
                             <li>
                                 <router-link :to="{ name: 'kpi' }" @click="toggleMobileMenu">
                                     KPI

@@ -1,4 +1,5 @@
 import { computed, onMounted, reactive, ref, useTemplateRef, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import configLanguaje from '@/utils/datatableUtils'
 import { usePageTitle } from '@/composables/use-meta'
 import api from '@/utils/axios'
@@ -31,6 +32,18 @@ const normalizeOptions = (options) => {
     return []
 }
 
+const parseQueryNumber = (value) => {
+    const normalizedValue = Array.isArray(value) ? value[0] : value
+
+    if (normalizedValue === null || normalizedValue === undefined || normalizedValue === '') {
+        return null
+    }
+
+    const parsed = Number(normalizedValue)
+
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null
+}
+
 const buildExportUrl = (reportKey, format, filters) => {
     const query = new URLSearchParams(normalizeFilters(filters)).toString()
     const baseUrl = `/export/attendance-payment/${reportKey}/${format}`
@@ -40,6 +53,8 @@ const buildExportUrl = (reportKey, format, filters) => {
 
 export default function useAttendancePaymentReport() {
     usePageTitle('Mensualidades vs asistencias')
+
+    const route = useRoute()
 
     const summaryTable = useTemplateRef('summaryTable')
     const playerTable = useTemplateRef('playerTable')
@@ -201,7 +216,12 @@ export default function useAttendancePaymentReport() {
     )
 
     onMounted(async () => {
-        await loadMetadata()
+        filters.training_group_id = parseQueryNumber(route.query.training_group_id)
+
+        await loadMetadata({
+            year: parseQueryNumber(route.query.year),
+            month: parseQueryNumber(route.query.month),
+        })
         hasBootstrapped.value = true
     })
 

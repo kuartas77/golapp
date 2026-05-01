@@ -195,7 +195,7 @@ const canTrainingGroups = access.trainingGroups
 const canCompetitionGroups = access.competitionGroups
 const canTopicNotifications = access.topicNotifications
 
-const canKpi = computed(() => authUser.hasAnyRole(['super-admin', 'school']))
+const canKpi = computed(() => authUser.hasAnyRole(['super-admin', 'school', 'instructor']))
 
 const userName = computed(() => {
     const fullName = authUser.user?.name || 'Equipo'

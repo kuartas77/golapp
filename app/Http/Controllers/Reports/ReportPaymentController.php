@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Reports;
 
-use App\Models\Payment;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use App\Models\TrainingGroup;
 use App\Exports\PaymentsExport;
 use App\Http\Controllers\Controller;
-use Illuminate\Filesystem\Filesystem;
 use App\Jobs\NotifyUserOfCompletedExport;
+use App\Models\Payment;
+use App\Models\TrainingGroup;
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class ReportPaymentController extends Controller
@@ -53,8 +53,8 @@ class ReportPaymentController extends Controller
             $groupName = ' ';
             $request->merge(['school_id' => getSchool(auth()->user())->id]);
 
-            if($request->filled('training_group_id') && $request->training_group_id != 0){
-                $groupName = TrainingGroup::find($request->training_group_id)->full_group;
+            if ($request->filled('training_group_id') && $request->training_group_id != 0) {
+                $groupName = TrainingGroup::find($request->training_group_id)?->name;
                 $groupName = " grupo {$groupName} ";
             }
 
@@ -73,7 +73,7 @@ class ReportPaymentController extends Controller
                 ], 202);
             }
 
-            Alert::info("El Archivo será enviado al correo electronico.");
+            Alert::info('El Archivo será enviado al correo electronico.');
 
         } catch (\Throwable $th) {
             report($th);
@@ -98,7 +98,7 @@ class ReportPaymentController extends Controller
             ->get()
             ->map(fn ($group) => [
                 'value' => $group->id,
-                'label' => $group->full_schedule_group,
+                'label' => $group->name,
             ])
             ->values();
     }

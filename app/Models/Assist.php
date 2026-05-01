@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Observers\AssistObserver;
 use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,9 +19,9 @@ use Illuminate\Support\Facades\DB;
  */
 class Assist extends Model
 {
-    use SoftDeletes;
     use GeneralScopes;
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'assists';
 
@@ -61,13 +62,18 @@ class Assist extends Model
     protected $appends = [];
 
     protected $casts = [
-        'observations' => 'object'
+        'observations' => 'object',
     ];
+
+    protected static function booted(): void
+    {
+        self::observe(AssistObserver::class);
+    }
 
     public function scopeOnlyTrashedRelations($query)
     {
         return $query->with([
-            'inscription' => fn($query) => $query->withTrashed()
+            'inscription' => fn ($query) => $query->withTrashed(),
         ])->withTrashed();
     }
 
@@ -101,7 +107,7 @@ class Assist extends Model
     {
         return route('historic.assists.group', [
             'training_group_id' => $this->attributes['training_group_id'],
-            'year' => $this->attributes['year']
+            'year' => $this->attributes['year'],
         ]);
     }
 
@@ -113,11 +119,12 @@ class Assist extends Model
             ->get()->implode('month', ', ');
     }
 
-    public function getMonthAttribute():string
+    public function getMonthAttribute(): string
     {
         $value = $this->attributes['month'];
         $months = config('variables.KEY_MONTHS_INDEX');
         $months[] = config('variables.KEY_MONTHS');
+
         return $months[$value];
     }
 }

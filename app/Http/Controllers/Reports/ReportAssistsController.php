@@ -58,18 +58,12 @@ class ReportAssistsController extends Controller
             $year = $request->input('year');
             $groupName = ' ';
 
-            if($request->filled('training_group_id')){
-                $groupName = TrainingGroup::find($request->training_group_id)->full_group;
+            if ($request->filled('training_group_id')) {
+                $groupName = TrainingGroup::find($request->training_group_id)?->name;
                 $groupName = " grupo {$groupName} ";
             }
 
             $filename = "Asistencias del año {$year}{$groupName}{$date}.xlsx";
-
-
-
-
-
-
 
         } catch (\Throwable $th) {
             report($th);
@@ -89,7 +83,7 @@ class ReportAssistsController extends Controller
             ->filterColumn('training_group_name', function ($query, $keyword) {
                 $query->where('tg.name', 'like', "%{$keyword}%");
             })
-            ->editColumn('porcentaje_asistencia', fn ($row) => number_format((float) $row->porcentaje_asistencia, 2) . '%')
+            ->editColumn('porcentaje_asistencia', fn ($row) => number_format((float) $row->porcentaje_asistencia, 2).'%')
             ->toJson();
     }
 
@@ -102,7 +96,7 @@ class ReportAssistsController extends Controller
             ->filterColumn('training_group_name', function ($query, $keyword) {
                 $query->where('tg.name', 'like', "%{$keyword}%");
             })
-            ->editColumn('porcentaje_asistencia', fn ($row) => number_format((float) $row->porcentaje_asistencia, 2) . '%')
+            ->editColumn('porcentaje_asistencia', fn ($row) => number_format((float) $row->porcentaje_asistencia, 2).'%')
             ->toJson();
     }
 
@@ -118,7 +112,7 @@ class ReportAssistsController extends Controller
             ->filterColumn('training_group_name', function ($query, $keyword) {
                 $query->where('tg.name', 'like', "%{$keyword}%");
             })
-            ->editColumn('porcentaje_asistencia', fn ($row) => number_format((float) $row->porcentaje_asistencia, 2) . '%')
+            ->editColumn('porcentaje_asistencia', fn ($row) => number_format((float) $row->porcentaje_asistencia, 2).'%')
             ->toJson();
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Observers\PaymentObserver;
 use App\Traits\GeneralScopes;
 use App\Traits\PaymentTrait;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,10 +16,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Payment extends Model
 {
-    use SoftDeletes;
     use GeneralScopes;
     use HasFactory;
     use PaymentTrait;
+    use SoftDeletes;
 
     public const FIELD_AMOUNT_MAP = [
         'enrollment' => 'enrollment_amount',
@@ -40,7 +41,7 @@ class Payment extends Model
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
     ];
 
-    protected $table = "payments";
+    protected $table = 'payments';
 
     protected $casts = [
         'enrollment' => 'integer',
@@ -103,24 +104,43 @@ class Payment extends Model
         'november_amount',
         'december_amount',
         'school_id',
-        'deleted_at'
+        'deleted_at',
     ];
 
-    static $pending = 0;
-    static $paid = 1;
-    static $debt = 2;
-    static $paid_ = 3;
-    static $disability = 4;
-    static $temporary_retirement = 5;
-    static $permanent_retirement = 6;
-    static $other = 7;
-    static $scholarship_recipient = 8;
-    static $paid_cash = 9;
-    static $paid_deposit = 10;
-    static $annuity_payment_deposit = 11;
-    static $annuity_payment_cash = 12;
-    static $payment_agreement = 13;
-    static $no_application = 14;
+    public static $pending = 0;
+
+    public static $paid = 1;
+
+    public static $debt = 2;
+
+    public static $paid_ = 3;
+
+    public static $disability = 4;
+
+    public static $temporary_retirement = 5;
+
+    public static $permanent_retirement = 6;
+
+    public static $other = 7;
+
+    public static $scholarship_recipient = 8;
+
+    public static $paid_cash = 9;
+
+    public static $paid_deposit = 10;
+
+    public static $annuity_payment_deposit = 11;
+
+    public static $annuity_payment_cash = 12;
+
+    public static $payment_agreement = 13;
+
+    public static $no_application = 14;
+
+    protected static function booted(): void
+    {
+        self::observe(PaymentObserver::class);
+    }
 
     public static function paymentFields(): array
     {
@@ -156,25 +176,25 @@ class Payment extends Model
     {
         return route('historic.payments.group', [
             'training_group_id' => $this->attributes['training_group_id'],
-            'year' => $this->attributes['year']
+            'year' => $this->attributes['year'],
         ]);
     }
 
     public function scopeByPaymentStatus(Builder $query, $status = null): void
     {
-        $query->where(function($q) use($status){
+        $query->where(function ($q) use ($status) {
             $q->where('january', $status)
-            ->orWhere('february', $status)
-            ->orWhere('march', $status)
-            ->orWhere('april', $status)
-            ->orWhere('may', $status)
-            ->orWhere('june', $status)
-            ->orWhere('july', $status)
-            ->orWhere('august', $status)
-            ->orWhere('september', $status)
-            ->orWhere('october', $status)
-            ->orWhere('november', $status)
-            ->orWhere('december', $status);
+                ->orWhere('february', $status)
+                ->orWhere('march', $status)
+                ->orWhere('april', $status)
+                ->orWhere('may', $status)
+                ->orWhere('june', $status)
+                ->orWhere('july', $status)
+                ->orWhere('august', $status)
+                ->orWhere('september', $status)
+                ->orWhere('october', $status)
+                ->orWhere('november', $status)
+                ->orWhere('december', $status);
         });
     }
 }

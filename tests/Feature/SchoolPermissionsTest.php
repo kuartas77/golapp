@@ -26,7 +26,7 @@ final class SchoolPermissionsTest extends TestCase
         $this->withoutVite();
     }
 
-    public function testNewSchoolsReceiveDefaultSchoolPermissions(): void
+    public function test_new_schools_receive_default_school_permissions(): void
     {
         $school = School::factory()->create();
 
@@ -42,7 +42,7 @@ final class SchoolPermissionsTest extends TestCase
         $this->assertFalse($permissions['school.feature.system_notify']);
     }
 
-    public function testUserEndpointReturnsSelectedSchoolPermissionsAndMergedPermissionsForSuperAdmin(): void
+    public function test_user_endpoint_returns_selected_school_permissions_and_merged_permissions_for_super_admin(): void
     {
         $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
         $secondarySchool = School::findOrFail($this->createSchool([
@@ -70,7 +70,7 @@ final class SchoolPermissionsTest extends TestCase
         $this->assertNotContains('school.module.players', $payload['permissions']);
     }
 
-    public function testUserEndpointAcceptsSelectedSchoolStoredAsStringInSession(): void
+    public function test_user_endpoint_accepts_selected_school_stored_as_string_in_session(): void
     {
         $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
         $secondarySchool = School::findOrFail($this->createSchool([
@@ -85,7 +85,7 @@ final class SchoolPermissionsTest extends TestCase
             ->assertJsonPath('data.school_id', $secondarySchool->id);
     }
 
-    public function testUserEndpointReflectsUpdatedPermissionsForSchoolAndInstructorUsers(): void
+    public function test_user_endpoint_reflects_updated_permissions_for_school_and_instructor_users(): void
     {
         $school = School::findOrFail($this->school['id']);
         $instructor = $this->createSchoolScopedUser(
@@ -123,7 +123,7 @@ final class SchoolPermissionsTest extends TestCase
         $this->assertFalse($updatedInstructorResponse->json('data.school_permissions.school.module.players') ?? $updatedInstructorResponse->json('data.school_permissions')['school.module.players']);
     }
 
-    public function testSchoolPermissionMiddlewareBlocksAndAllowsAdminUsersEndpoint(): void
+    public function test_school_permission_middleware_blocks_and_allows_admin_users_endpoint(): void
     {
         $school = School::findOrFail($this->school['id']);
 
@@ -144,7 +144,7 @@ final class SchoolPermissionsTest extends TestCase
             ->assertOk();
     }
 
-    public function testTrainingSessionsSchoolPermissionBlocksAndAllowsModuleEndpoints(): void
+    public function test_training_sessions_school_permission_blocks_and_allows_module_endpoints(): void
     {
         $school = School::findOrFail($this->school['id']);
         $trainingGroup = TrainingGroup::query()
@@ -194,7 +194,7 @@ final class SchoolPermissionsTest extends TestCase
             ->assertHeader('content-type', 'application/pdf');
     }
 
-    public function testInfoCampusEndpointIsAvailableWithoutSchoolProfilePermissionAndForInstructors(): void
+    public function test_info_campus_endpoint_is_available_without_school_profile_permission_and_for_instructors(): void
     {
         $school = School::findOrFail($this->school['id']);
 
@@ -219,7 +219,7 @@ final class SchoolPermissionsTest extends TestCase
             ->assertJsonPath('school_selected', $school->name);
     }
 
-    public function testInstructorCannotAccessPlayersInscriptionsOrKpisEvenWhenSchoolPermissionsAreEnabled(): void
+    public function test_instructor_can_access_kpis_but_still_cannot_access_players_or_inscriptions_even_when_school_permissions_are_enabled(): void
     {
         $school = School::findOrFail($this->school['id']);
         $instructor = $this->createSchoolScopedUser(
@@ -237,7 +237,7 @@ final class SchoolPermissionsTest extends TestCase
 
         $this->actingAs($instructor)
             ->getJson('/api/v2/kpis')
-            ->assertForbidden();
+            ->assertOk();
 
         $this->actingAs($instructor)
             ->getJson("/api/v2/players/{$player->unique_code}")
@@ -264,7 +264,7 @@ final class SchoolPermissionsTest extends TestCase
             ->assertForbidden();
     }
 
-    public function testSuperAdminCanFetchAndUpdateSchoolPermissions(): void
+    public function test_super_admin_can_fetch_and_update_school_permissions(): void
     {
         $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
         $school = School::findOrFail($this->school['id']);
@@ -293,7 +293,7 @@ final class SchoolPermissionsTest extends TestCase
         $this->assertFalse($school->fresh()->hasSchoolPermission('school.module.players'));
     }
 
-    public function testSystemNotifySchoolPermissionBlocksAndAllowsNotificationOptions(): void
+    public function test_system_notify_school_permission_blocks_and_allows_notification_options(): void
     {
         $school = School::findOrFail($this->school['id']);
 
@@ -314,7 +314,7 @@ final class SchoolPermissionsTest extends TestCase
             ->assertOk();
     }
 
-    public function testCreateInvoicesCommandOnlyProcessesSchoolsWithSystemNotifyEnabled(): void
+    public function test_create_invoices_command_only_processes_schools_with_system_notify_enabled(): void
     {
         $enabledSchool = School::findOrFail($this->school['id']);
         $disabledSchool = School::findOrFail($this->createSchool([
@@ -415,7 +415,7 @@ final class SchoolPermissionsTest extends TestCase
 
         $player = Player::factory()->create([
             'school_id' => $school->id,
-            'unique_code' => strtoupper(substr($school->slug, 0, 6)) . random_int(100, 999),
+            'unique_code' => strtoupper(substr($school->slug, 0, 6)).random_int(100, 999),
         ]);
 
         $inscription = Inscription::factory()->create([

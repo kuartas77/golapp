@@ -62,7 +62,7 @@ class ReportAttendancePaymentController extends Controller
             ->filterColumn('training_group_name', function ($query, $keyword) {
                 $query->where('tg.name', 'like', "%{$keyword}%");
             })
-            ->editColumn('flagged_percentage', fn ($row) => number_format((float) $row->flagged_percentage, 2) . '%')
+            ->editColumn('flagged_percentage', fn ($row) => number_format((float) $row->flagged_percentage, 2).'%')
             ->toJson();
     }
 
@@ -119,19 +119,9 @@ class ReportAttendancePaymentController extends Controller
             ->where('v.year', $year)
             ->where('v.month', $month)
             ->where('tg.name', '!=', 'Provisional')
-            ->selectRaw('DISTINCT tg.id as value, tg.name, tg.category, tg.days, tg.schedules')
+            ->selectRaw('DISTINCT tg.id as value, tg.name as label')
             ->orderBy('tg.name')
             ->get()
-            ->map(fn ($group) => [
-                'value' => $group->value,
-                'label' => trim(sprintf(
-                    '%s - (%s) %s %s',
-                    $group->name,
-                    $group->category,
-                    $group->days,
-                    $group->schedules
-                )),
-            ])
             ->values();
     }
 }

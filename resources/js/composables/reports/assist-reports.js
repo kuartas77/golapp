@@ -1,4 +1,5 @@
 import { computed, onMounted, reactive, ref, useTemplateRef } from 'vue'
+import { useRoute } from 'vue-router'
 import configLanguaje from '@/utils/datatableUtils'
 import { usePageTitle } from '@/composables/use-meta'
 import api from '@/utils/axios'
@@ -32,6 +33,18 @@ const normalizeOptions = (options) => {
     return []
 }
 
+const parseQueryNumber = (value) => {
+    const normalizedValue = Array.isArray(value) ? value[0] : value
+
+    if (normalizedValue === null || normalizedValue === undefined || normalizedValue === '') {
+        return null
+    }
+
+    const parsed = Number(normalizedValue)
+
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null
+}
+
 const buildExportUrl = (reportKey, format, filters) => {
     const query = new URLSearchParams(normalizeFilters(filters)).toString()
     return query
@@ -42,6 +55,7 @@ const buildExportUrl = (reportKey, format, filters) => {
 export default function useAssistReports() {
     usePageTitle('Reportes de asistencia')
 
+    const route = useRoute()
     const settings = useSetting()
 
     const monthlyPlayerTable = useTemplateRef('monthlyPlayerTable')
@@ -76,7 +90,7 @@ export default function useAssistReports() {
             .filter((group) => group.name !== 'Provisional')
             .map((group) => ({
                 value: group.id,
-                label: group.full_group ?? group.full_schedule_group ?? group.name,
+                label: group.name,
             }))
     )
 
@@ -208,7 +222,7 @@ export default function useAssistReports() {
         buildExportUrl('annual-consolidated', 'pdf', annualConsolidatedFilters)
     )
 
-    const loadMetadata = async () => {
+    const loadMetadata = async (initialFilters = {}) => {
         isLoading.value = true
         loadError.value = null
 
@@ -222,16 +236,30 @@ export default function useAssistReports() {
             years.value = normalizeOptions(response.data.years)
             months.value = normalizeOptions(response.data.months)
 
-            const defaultYear = response.data.defaultYear ?? years.value[years.value.length - 1]?.value ?? null
-            const defaultMonth = response.data.defaultMonth ?? months.value[0]?.value ?? null
+            const defaultYear = initialFilters.year
+                ?? response.data.defaultYear
+                ?? years.value[years.value.length - 1]?.value
+                ?? null
+            const defaultMonth = initialFilters.month
+                ?? response.data.defaultMonth
+                ?? months.value[0]?.value
+                ?? null
+            const selectedGroupId = groupOptions.value.some(
+                (group) => group.value === initialFilters.training_group_id
+            )
+                ? initialFilters.training_group_id
+                : null
 
             monthlyPlayerFilters.year = defaultYear
             monthlyPlayerFilters.month = defaultMonth
+            monthlyPlayerFilters.training_group_id = selectedGroupId
 
             monthlyGroupFilters.year = defaultYear
             monthlyGroupFilters.month = defaultMonth
+            monthlyGroupFilters.training_group_id = selectedGroupId
 
             annualConsolidatedFilters.year = defaultYear
+            annualConsolidatedFilters.training_group_id = selectedGroupId
 
             isReady.value = true
         } catch (error) {
@@ -242,7 +270,11 @@ export default function useAssistReports() {
     }
 
     onMounted(() => {
-        loadMetadata()
+        loadMetadata({
+            year: parseQueryNumber(route.query.year),
+            month: parseQueryNumber(route.query.month),
+            training_group_id: parseQueryNumber(route.query.training_group_id),
+        })
     })
 
     return {

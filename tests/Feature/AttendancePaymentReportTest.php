@@ -22,7 +22,7 @@ final class AttendancePaymentReportTest extends TestCase
         $this->createReportingViews();
     }
 
-    public function testAttendancePaymentReportServiceFlagsExpectedStatusesOnly(): void
+    public function test_attendance_payment_report_service_flags_expected_statuses_only(): void
     {
         $this->actingAs($this->user);
 
@@ -99,7 +99,7 @@ final class AttendancePaymentReportTest extends TestCase
         $this->assertSame(44.44, (float) $summary->flagged_percentage);
     }
 
-    public function testAttendancePaymentReportApiReturnsMetadataAndDatatablePayloads(): void
+    public function test_attendance_payment_report_api_returns_metadata_and_datatable_payloads(): void
     {
         $this->actingAs($this->user);
 
@@ -119,6 +119,7 @@ final class AttendancePaymentReportTest extends TestCase
         $this->assertNotEmpty($metadata->json('years'));
         $this->assertNotEmpty($metadata->json('months'));
         $this->assertNotEmpty($metadata->json('groups'));
+        $this->assertSame('Cruce API', $metadata->json('groups.0.label'));
 
         $groupResponse = $this->getJson('/api/v2/reports/attendance-payment/monthly-by-group?draw=1&start=0&length=10&year=2026&month=4')
             ->assertOk();
@@ -228,7 +229,7 @@ final class AttendancePaymentReportTest extends TestCase
         DB::statement('DROP VIEW IF EXISTS vw_attendance_payment_report_detail');
         DB::statement('DROP VIEW IF EXISTS vw_attendance_monthly_report_detail');
 
-        DB::statement("
+        DB::statement('
             CREATE VIEW vw_attendance_monthly_report_detail AS
             SELECT
                 a.school_id,
@@ -298,7 +299,7 @@ final class AttendancePaymentReportTest extends TestCase
                 a.inscription_id,
                 a.year,
                 a.month
-        ");
+        ');
 
         DB::statement("
             CREATE VIEW vw_attendance_payment_report_detail AS
