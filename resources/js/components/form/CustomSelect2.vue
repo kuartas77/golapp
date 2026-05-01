@@ -268,8 +268,7 @@ watch(innerValue, (val) => {
 .btn-clear {
     position: absolute;
     right: 1.75rem;
-    top: 30%;
-    //   z-index: 2;
+    top: 22%;
 }
 
 .btn-clear:hover {
