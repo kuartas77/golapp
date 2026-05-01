@@ -589,9 +589,9 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
     public function testStoreInvoicePersistsItemTotalsAndKeepsPendingStatus(): void
     {
-        if (DB::getDriverName() === 'sqlite') {
-            $this->markTestSkipped('SQLite invoice_items schema differs from the runtime MySQL table for payment_received_id.');
-        }
+        // if (DB::getDriverName() === 'sqlite') {
+        //     $this->markTestSkipped('SQLite invoice_items schema differs from the runtime MySQL table for payment_received_id.');
+        // }
 
         $this->actingAs($this->user);
         [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
