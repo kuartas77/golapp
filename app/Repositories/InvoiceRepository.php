@@ -150,11 +150,15 @@ class InvoiceRepository
 
                 $items = [];
                 foreach ($validated['items'] as $itemData) {
+                    $quantity = (int) $itemData['quantity'];
+                    $unitPrice = (float) $itemData['unit_price'];
+
                     $items[] = [
                         'type' => $itemData['type'],
                         'description' => $itemData['description'] ?? null,
-                        'quantity' => $itemData['quantity'],
-                        'unit_price' => $itemData['unit_price'],
+                        'quantity' => $quantity,
+                        'unit_price' => $unitPrice,
+                        'total' => round($quantity * $unitPrice, 2),
                         'month' => $itemData['month'] ?? null,
                         'payment_id' => $itemData['payment_id'] ?? null,
                         'is_paid' => false,

@@ -82,18 +82,16 @@
                                                             </td>
                                                             <td>
                                                                 <input type="number" class="form-control form-control-sm"
-                                                                    v-model="month.quantity" min="1" :disabled="true"
-                                                                    @input="calculateMonthTotal(month)">
+                                                                    v-model="month.quantity" min="1" :disabled="true">
                                                             </td>
                                                             <td>
                                                                 <CurrencyInput class="form-control form-control-sm"
                                                                     v-model="month.unit_price" autocomplete="off"
-                                                                    :disabled="!month.include"
-                                                                    @input="calculateItemTotal(month)" />
+                                                                    :disabled="!month.include" />
                                                             </td>
                                                             <td>
-                                                                <CurrencyInput class="form-control form-control-sm"
-                                                                    v-model="month.total" autocomplete="off" readonly />
+                                                                <CurrencyInput class="form-control-plaintext"
+                                                                    :modelValue="getLineTotal(month)" autocomplete="off" readonly />
                                                             </td>
                                                             <td></td>
                                                         </tr>
@@ -183,18 +181,16 @@
                                                             <td>
                                                                 <input type="number" class="form-control form-control-sm"
                                                                     v-model="item.quantity" min="1"
-                                                                    :disabled="!item.include"
-                                                                    @input="calculateItemTotal(item)">
+                                                                    :disabled="!item.include">
                                                             </td>
                                                             <td>
                                                                 <CurrencyInput class="form-control form-control-sm"
                                                                     v-model="item.unit_price" autocomplete="off"
-                                                                    :disabled="!item.include"
-                                                                    @input="calculateItemTotal(item)" />
+                                                                    :disabled="!item.include" />
                                                             </td>
                                                             <td>
                                                                 <CurrencyInput class="form-control-plaintext"
-                                                                    v-model="item.total" autocomplete="off" readonly disabled />
+                                                                    :modelValue="getLineTotal(item)" autocomplete="off" readonly disabled />
                                                             </td>
 
                                                             <td class="text-center">
@@ -373,6 +369,22 @@ const selectAllAdditionalItems = ref(true)
 // Fecha actual
 const currentYear = new Date().getFullYear()
 
+const normalizeQuantity = (value) => {
+    const quantity = Math.trunc(Number(value))
+
+    return Number.isFinite(quantity) && quantity > 0 ? quantity : 0
+}
+
+const normalizeUnitPrice = (value) => {
+    const unitPrice = Math.trunc(Number(value))
+
+    return Number.isFinite(unitPrice) && unitPrice >= 0 ? unitPrice : 0
+}
+
+const getLineTotal = (line) => {
+    return normalizeQuantity(line?.quantity) * normalizeUnitPrice(line?.unit_price)
+}
+
 // Calcular totales
 const subtotal = computed(() => {
     let total = 0
@@ -380,14 +392,14 @@ const subtotal = computed(() => {
     // Sumar meses pendientes incluidos
     pendingMonths.value.forEach(month => {
         if (month.include) {
-            total += month.total
+            total += getLineTotal(month)
         }
     })
 
     // Sumar ítems adicionales
     additionalItems.value.forEach(item => {
         if (item.include) {
-            total += item.total
+            total += getLineTotal(item)
         }
     })
 
@@ -424,8 +436,7 @@ const loadData = async () => {
             include: true,
             description: month.name,
             quantity: 1,
-            unit_price: month.amount,
-            total: month.amount
+            unit_price: normalizeUnitPrice(month.amount)
         }))
 
         const uniformRequest = response.data.pendingUniformRequests.map(item => ({
@@ -433,8 +444,7 @@ const loadData = async () => {
             include: true,
             description: item.description,
             quantity: 1,
-            unit_price: Math.trunc(item.unit_price),
-            total: Math.trunc(item.unit_price),
+            unit_price: normalizeUnitPrice(item.unit_price),
             type: 'additional',
             uniform_request_id: item.uniform_request_id
         }))
@@ -444,8 +454,7 @@ const loadData = async () => {
             include: true,
             description: item.name,
             quantity: 1,
-            unit_price: Math.trunc(item.unit_price),
-            total: Math.trunc(item.unit_price),
+            unit_price: normalizeUnitPrice(item.unit_price),
             type: 'additional'
         }))
 
@@ -472,18 +481,6 @@ watch(selectAllAdditionalItems, (checked) => {
     })
 })
 
-const calculateMonthTotal = (month) => {
-    if (month.include) {
-        month.total = month.quantity * month.unit_price
-    }
-}
-
-const calculateItemTotal = (item) => {
-    if (item.include) {
-        item.total = item.quantity * item.unit_price
-    }
-}
-
 const addAdditionalItem = () => {
     additionalItems.value.push({
         include: false,
@@ -491,7 +488,6 @@ const addAdditionalItem = () => {
         description: '',
         quantity: 1,
         unit_price: 0,
-        total: 0,
         uniform_request_id: null,
         month: null,
         payment_id: null
@@ -539,8 +535,8 @@ const submitInvoice = async () => {
                 data.items.push({
                     type: 'monthly',
                     description: month.description,
-                    quantity: month.quantity,
-                    unit_price: month.unit_price,
+                    quantity: normalizeQuantity(month.quantity),
+                    unit_price: normalizeUnitPrice(month.unit_price),
                     month: month.month,
                     payment_id: month.payment_id,
                     uniform_request_id: null
@@ -554,8 +550,8 @@ const submitInvoice = async () => {
                 data.items.push({
                     type: item.type,
                     description: item.description,
-                    quantity: item.quantity,
-                    unit_price: item.unit_price,
+                    quantity: normalizeQuantity(item.quantity),
+                    unit_price: normalizeUnitPrice(item.unit_price),
                     month: null,
                     payment_id: null,
                     uniform_request_id: item?.uniform_request_id

@@ -587,6 +587,65 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         }
     }
 
+    public function testStoreInvoicePersistsItemTotalsAndKeepsPendingStatus(): void
+    {
+        if (DB::getDriverName() === 'sqlite') {
+            $this->markTestSkipped('SQLite invoice_items schema differs from the runtime MySQL table for payment_received_id.');
+        }
+
+        $this->actingAs($this->user);
+        [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
+
+        Schema::disableForeignKeyConstraints();
+
+        try {
+            $invoiceId = app(InvoiceRepository::class)->storeInvoice([
+                'inscription_id' => $inscription->id,
+                'training_group_id' => $trainingGroup->id,
+                'year' => now()->year,
+                'student_name' => $inscription->player->full_names,
+                'due_date' => now()->addWeek()->toDateString(),
+                'notes' => 'Factura creada en prueba',
+                'school_id' => $this->school['id'],
+                'items' => [
+                    [
+                        'type' => 'monthly',
+                        'description' => 'Mensualidad Enero',
+                        'quantity' => 1,
+                        'unit_price' => 2000,
+                        'month' => 'january',
+                        'payment_id' => $payment->id,
+                        'uniform_request_id' => null,
+                    ],
+                    [
+                        'type' => 'additional',
+                        'description' => 'Canillera',
+                        'quantity' => 2,
+                        'unit_price' => 1500,
+                        'month' => null,
+                        'payment_id' => null,
+                        'uniform_request_id' => null,
+                    ],
+                ],
+            ]);
+        } finally {
+            Schema::enableForeignKeyConstraints();
+        }
+
+        $this->assertIsInt($invoiceId);
+
+        $invoice = Invoice::query()
+            ->with('items')
+            ->findOrFail($invoiceId);
+
+        $this->assertSame('5000.00', $invoice->total_amount);
+        $this->assertSame('0.00', $invoice->paid_amount);
+        $this->assertSame('pending', $invoice->status);
+        $this->assertCount(2, $invoice->items);
+        $this->assertSame('2000.00', $invoice->items[0]->total);
+        $this->assertSame('3000.00', $invoice->items[1]->total);
+    }
+
     public function testGameRepositoryDatatableAndExportMatchDetail(): void
     {
         $this->actingAs($this->user);
