@@ -102,6 +102,7 @@ final class KpiDashboardTest extends TestCase
             ['Asistencias', 'Excusas', 'Ausencias', 'Retiros', 'Incapacidades'],
             $response->json('attendance_mix_report.categories')
         );
+        $this->assertTrue($response->json('permissions.can_view_monetary_values'));
         $this->assertSame(12, count($response->json('monthly_trend_report.categories')));
         $this->assertNotEmpty($response->json('rankings.compliance'));
         $this->assertStringContainsString('/informes/asistencias?', $response->json('report_links.assists'));
@@ -147,10 +148,19 @@ final class KpiDashboardTest extends TestCase
         $this->actingAs($instructor)
             ->getJson("/api/v2/kpis?year={$year}&month={$month}")
             ->assertOk()
+            ->assertJsonPath('permissions.can_view_monetary_values', false)
             ->assertJsonPath('payment_group_report.categories.0', $groupA->name)
             ->assertJsonCount(1, 'payment_group_report.categories')
             ->assertJsonCount(1, 'group_options')
             ->assertJsonPath('group_options.0.value', $groupA->id)
+            ->assertJsonCount(4, 'summary_cards')
+            ->assertJsonMissing(['key' => 'monthly_revenue'])
+            ->assertJsonMissing(['key' => 'enrollment_revenue'])
+            ->assertJsonPath('amount_payment_group_report.mode', 'compliance_only')
+            ->assertJsonPath('amount_payment_group_report.data.0.name', '% de cumplimiento')
+            ->assertJsonPath('monthly_trend_report.mode', 'payments_only')
+            ->assertJsonPath('monthly_trend_report.data.0.name', 'Pagos')
+            ->assertJsonPath('report_links.payments', null)
             ->assertJsonMissing(['label' => $groupB->name]);
     }
 

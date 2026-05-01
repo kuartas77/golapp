@@ -56,7 +56,7 @@ import KpiIndex from '@/pages/kpi/Index.vue'
 
 const wrappers = []
 
-const createPayload = () => ({
+const createPayload = (overrides = {}) => ({
     filters: {
         years: [{ value: 2026, label: '2026' }],
         months: [{ value: 4, label: 'Abril' }, { value: 5, label: 'Mayo' }],
@@ -111,11 +111,15 @@ const createPayload = () => ({
         payments: '/informes/pagos?year=2026&training_group_id=10',
         attendance_payment: '/informes/mensualidades-asistencias?year=2026&month=4&training_group_id=10',
     },
+    permissions: {
+        can_view_monetary_values: true,
+    },
+    ...overrides,
 })
 
-const mountPage = async () => {
+const mountPage = async (payload = createPayload()) => {
     apiMock.get.mockResolvedValue({
-        data: createPayload(),
+        data: payload,
     })
 
     const wrapper = mount(KpiIndex, {
@@ -200,5 +204,51 @@ describe('KPI dashboard page', () => {
                 month: 5,
             },
         })
+    })
+
+    it('hides monetary KPI cards when the payload disables monetary access', async () => {
+        const wrapper = await mountPage(createPayload({
+            summary_cards: [
+                {
+                    key: 'payment_compliance',
+                    label: '% cumplimiento global',
+                    value: 75,
+                    format: 'percentage',
+                    helper: 'Acumulado del año',
+                },
+                {
+                    key: 'attendance_percentage',
+                    label: '% asistencia del mes',
+                    value: 75,
+                    format: 'percentage',
+                    helper: 'Mes seleccionado',
+                },
+            ],
+            amount_payment_group_report: {
+                categories: ['Halcones'],
+                data: [{ type: 'bar', name: '% de cumplimiento', data: [75] }],
+                mode: 'compliance_only',
+            },
+            monthly_trend_report: {
+                categories: ['Ene', 'Feb', 'Mar', 'Abr'],
+                data: [{ type: 'line', name: 'Pagos', data: [0, 0, 1, 2] }],
+                mode: 'payments_only',
+            },
+            report_links: {
+                assists: '/informes/asistencias?year=2026&month=4&training_group_id=10',
+                payments: null,
+                attendance_payment: '/informes/mensualidades-asistencias?year=2026&month=4&training_group_id=10',
+            },
+            permissions: {
+                can_view_monetary_values: false,
+            },
+        }))
+
+        const state = wrapper.vm.$.setupState
+
+        expect(state.canViewMonetaryValues).toBe(false)
+        expect(wrapper.text()).toContain('% cumplimiento global')
+        expect(wrapper.text()).not.toContain('Recaudo mensualidades')
+        expect(wrapper.text()).not.toContain('Recaudo inscripciones')
     })
 })

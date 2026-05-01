@@ -123,59 +123,98 @@ class KpiDashboardService
         ?int $selectedGroupId,
         Collection $groupOptions
     ): array {
+        $canViewMonetaryValues = ! $this->isInstructor($user);
         $groupCatalog = $groupOptions->keyBy('value');
         $paymentMetrics = $this->buildPaymentMetrics($schoolId, $year, $selectedGroupId, $groupCatalog);
         $attendanceMetrics = $this->buildAttendanceMetrics($schoolId, $year, $month, $selectedGroupId, $groupCatalog);
         $flaggedMetrics = $this->buildFlaggedMetrics($schoolId, $year, $month, $selectedGroupId, $groupCatalog);
 
-        return [
-            'summary_cards' => [
-                [
-                    'key' => 'monthly_revenue',
-                    'label' => 'Recaudo mensualidades',
-                    'value' => $paymentMetrics['summary']['total_raised'],
-                    'format' => 'currency',
-                    'helper' => 'Acumulado del año',
-                ],
-                [
-                    'key' => 'enrollment_revenue',
-                    'label' => 'Recaudo inscripciones',
-                    'value' => $paymentMetrics['summary']['total_enrollment'],
-                    'format' => 'currency',
-                    'helper' => 'Acumulado del año',
-                ],
-                [
-                    'key' => 'payment_compliance',
-                    'label' => '% cumplimiento global',
-                    'value' => $paymentMetrics['summary']['total_compliance_percentage'],
-                    'format' => 'percentage',
-                    'helper' => 'Acumulado del año',
-                ],
-                [
-                    'key' => 'payments_debt',
-                    'label' => 'Mensualidades con deuda',
-                    'value' => $paymentMetrics['summary']['monthly_payments_debt'],
-                    'format' => 'number',
-                    'helper' => 'Registros del año',
-                ],
-                [
-                    'key' => 'attendance_percentage',
-                    'label' => '% asistencia del mes',
-                    'value' => $attendanceMetrics['summary']['percentage_attendance'],
-                    'format' => 'percentage',
-                    'helper' => 'Mes seleccionado',
-                ],
-                [
-                    'key' => 'flagged_players',
-                    'label' => 'Jugadores observados pago vs asistencia',
-                    'value' => $flaggedMetrics['summary']['flagged_players'],
-                    'format' => 'number',
-                    'helper' => 'Mes seleccionado',
-                ],
+        $summaryCards = collect([
+            [
+                'key' => 'monthly_revenue',
+                'label' => 'Recaudo mensualidades',
+                'value' => $paymentMetrics['summary']['total_raised'],
+                'format' => 'currency',
+                'helper' => 'Acumulado del año',
             ],
+            [
+                'key' => 'enrollment_revenue',
+                'label' => 'Recaudo inscripciones',
+                'value' => $paymentMetrics['summary']['total_enrollment'],
+                'format' => 'currency',
+                'helper' => 'Acumulado del año',
+            ],
+            [
+                'key' => 'payment_compliance',
+                'label' => '% cumplimiento global',
+                'value' => $paymentMetrics['summary']['total_compliance_percentage'],
+                'format' => 'percentage',
+                'helper' => 'Acumulado del año',
+            ],
+            [
+                'key' => 'payments_debt',
+                'label' => 'Mensualidades con deuda',
+                'value' => $paymentMetrics['summary']['monthly_payments_debt'],
+                'format' => 'number',
+                'helper' => 'Registros del año',
+            ],
+            [
+                'key' => 'attendance_percentage',
+                'label' => '% asistencia del mes',
+                'value' => $attendanceMetrics['summary']['percentage_attendance'],
+                'format' => 'percentage',
+                'helper' => 'Mes seleccionado',
+            ],
+            [
+                'key' => 'flagged_players',
+                'label' => 'Jugadores observados pago vs asistencia',
+                'value' => $flaggedMetrics['summary']['flagged_players'],
+                'format' => 'number',
+                'helper' => 'Mes seleccionado',
+            ],
+        ])
+            ->when(
+                ! $canViewMonetaryValues,
+                fn (Collection $cards) => $cards->reject(
+                    fn (array $card) => in_array($card['key'], ['monthly_revenue', 'enrollment_revenue'], true)
+                )
+            )
+            ->values()
+            ->all();
+
+        $amountPaymentGroupReport = $canViewMonetaryValues
+            ? array_merge($paymentMetrics['amount_payment_group_report'], ['mode' => 'default'])
+            : [
+                'categories' => $paymentMetrics['group_rows']->pluck('label')->all(),
+                'data' => [
+                    [
+                        'type' => 'bar',
+                        'name' => '% de cumplimiento',
+                        'data' => $paymentMetrics['group_rows']->pluck('percentage_compliance')->all(),
+                    ],
+                ],
+                'mode' => 'compliance_only',
+            ];
+
+        $monthlyTrendReport = $canViewMonetaryValues
+            ? array_merge($paymentMetrics['monthly_trend_report'], ['mode' => 'default'])
+            : [
+                'categories' => $paymentMetrics['monthly_trend_report']['categories'],
+                'data' => [
+                    [
+                        'type' => 'line',
+                        'name' => 'Pagos',
+                        'data' => $paymentMetrics['monthly_trend_report']['data'][1]['data'] ?? [],
+                    ],
+                ],
+                'mode' => 'payments_only',
+            ];
+
+        return [
+            'summary_cards' => $summaryCards,
             'payment_group_report' => $paymentMetrics['payment_group_report'],
-            'amount_payment_group_report' => $paymentMetrics['amount_payment_group_report'],
-            'monthly_trend_report' => $paymentMetrics['monthly_trend_report'],
+            'amount_payment_group_report' => $amountPaymentGroupReport,
+            'monthly_trend_report' => $monthlyTrendReport,
             'attendance_mix_report' => $attendanceMetrics['attendance_mix_report'],
             'rankings' => [
                 'compliance' => $this->formatRanking(
@@ -199,9 +238,12 @@ class KpiDashboardService
                     'number'
                 ),
             ],
-            'report_links' => $this->buildReportLinks($year, $month, $selectedGroupId),
+            'report_links' => $this->buildReportLinks($year, $month, $selectedGroupId, $canViewMonetaryValues),
+            'permissions' => [
+                'can_view_monetary_values' => $canViewMonetaryValues,
+            ],
             'assist_report' => $attendanceMetrics['attendance_mix_report'],
-            'monthly_report' => $paymentMetrics['monthly_trend_report'],
+            'monthly_report' => $monthlyTrendReport,
         ];
     }
 
@@ -685,7 +727,7 @@ class KpiDashboardService
         ])->values()->all();
     }
 
-    private function buildReportLinks(int $year, int $month, ?int $groupId): array
+    private function buildReportLinks(int $year, int $month, ?int $groupId, bool $canViewMonetaryValues): array
     {
         $assistParams = ['year' => $year, 'month' => $month];
         $paymentParams = ['year' => $year];
@@ -699,7 +741,9 @@ class KpiDashboardService
 
         return [
             'assists' => '/informes/asistencias?'.http_build_query($assistParams),
-            'payments' => '/informes/pagos?'.http_build_query($paymentParams),
+            'payments' => $canViewMonetaryValues
+                ? '/informes/pagos?'.http_build_query($paymentParams)
+                : null,
             'attendance_payment' => '/informes/mensualidades-asistencias?'.http_build_query($attendancePaymentParams),
         ];
     }

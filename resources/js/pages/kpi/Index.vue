@@ -158,7 +158,7 @@
                         <div class="panel-body">
                             <apexchart
                                 v-if="showPaymentGroupChart"
-                                height="320"
+                                :height="paymentGroupChartHeight"
                                 type="bar"
                                 :options="paymentGroupOptions"
                                 :series="paymentGroupSeries" />
@@ -171,13 +171,39 @@
 
                 <div class="layout-spacing col-xl-6 col-lg-12 col-sm-12">
                     <div class="panel br-6 h-100" data-tour="kpi-collection">
-                        <div class="panel-body">
-                            <apexchart
-                                v-if="showAmountCollectionChart"
-                                height="320"
-                                type="line"
-                                :options="amountCollectionOptions"
-                                :series="amountCollectionSeries" />
+                        <div class="panel-body d-flex flex-column gap-4">
+                            <template v-if="showAmountCollectionChart">
+                                <apexchart
+                                    v-if="isComplianceOnlyCollectionChart"
+                                    :height="amountCollectionSingleChartHeight"
+                                    type="bar"
+                                    :options="amountCollectionComplianceOptions"
+                                    :series="amountCollectionSeries" />
+
+                                <template v-else-if="isCompactChartLayout">
+                                    <apexchart
+                                        :height="amountCollectionRevenueChartHeight"
+                                        type="bar"
+                                        :options="amountCollectionRevenueOptions"
+                                        :series="amountCollectionRevenueSeries" />
+
+                                    <div class="border-top pt-4">
+                                        <apexchart
+                                            :height="amountCollectionComplianceChartHeight"
+                                            type="bar"
+                                            :options="amountCollectionComplianceOptions"
+                                            :series="amountCollectionComplianceSeries" />
+                                    </div>
+                                </template>
+
+                                <apexchart
+                                    v-else
+                                    height="320"
+                                    type="line"
+                                    :options="amountCollectionOptions"
+                                    :series="amountCollectionSeries" />
+                            </template>
+
                             <div v-else class="py-5 text-center text-muted">
                                 No hay datos de recaudo para el período seleccionado.
                             </div>
@@ -190,7 +216,7 @@
                         <div class="panel-body">
                             <apexchart
                                 v-if="showMonthlyTrendChart"
-                                height="320"
+                                :height="monthlyTrendChartHeight"
                                 type="line"
                                 :options="monthlyTrendOptions"
                                 :series="monthlyTrendSeries" />
@@ -261,7 +287,7 @@ export default {
 </script>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import apexchart from 'vue3-apexcharts'
 
@@ -275,6 +301,7 @@ const {
     applyFilters,
     attendanceMixReport,
     canOpenReports,
+    canViewMonetaryValues,
     filters,
     groupOptions,
     hasActiveFilters,
@@ -300,6 +327,22 @@ const currencyFormatter = new Intl.NumberFormat('es-CO', {
 })
 
 const numberFormatter = new Intl.NumberFormat('es-CO')
+const compactNumberFormatter = new Intl.NumberFormat('es-CO', {
+    notation: 'compact',
+    compactDisplay: 'short',
+    maximumFractionDigits: 1,
+})
+const COMPACT_CHART_BREAKPOINT = 992
+
+const isCompactChartLayout = ref(false)
+
+const syncCompactChartLayout = () => {
+    if (typeof window === 'undefined') {
+        return
+    }
+
+    isCompactChartLayout.value = window.innerWidth < COMPACT_CHART_BREAKPOINT
+}
 
 const formatMetricValue = (value, format = 'number') => {
     const normalizedValue = Number(value ?? 0)
@@ -315,6 +358,13 @@ const formatMetricValue = (value, format = 'number') => {
     return numberFormatter.format(normalizedValue)
 }
 
+const formatCompactCurrency = (value) => `$${compactNumberFormatter.format(Number(value || 0))}`
+const abbreviateCategoryLabel = (label) => {
+    const normalizedLabel = String(label ?? '')
+
+    return normalizedLabel.length <= 4 ? normalizedLabel : normalizedLabel.slice(0, 3)
+}
+
 const hasMultiSeriesData = (series) => Array.isArray(series) && series.length > 0 && series.some((item) => Array.isArray(item.data))
 const hasSimpleSeriesData = (series) => Array.isArray(series) && series.some((value) => Number(value || 0) > 0)
 
@@ -327,10 +377,64 @@ const amountCollectionSeries = computed(() => amountPaymentGroupReport.value?.da
 const monthlyTrendSeries = computed(() => monthlyTrendReport.value?.data ?? [])
 const attendanceMixSeries = computed(() => attendanceMixReport.value?.data ?? [])
 
+const paymentGroupCategories = computed(() => paymentGroupReport.value?.categories ?? [])
+const amountCollectionCategories = computed(() => amountPaymentGroupReport.value?.categories ?? [])
+const amountCollectionMode = computed(() => amountPaymentGroupReport.value?.mode ?? 'default')
+const monthlyTrendCategories = computed(() => (
+    isCompactChartLayout.value
+        ? (monthlyTrendReport.value?.categories ?? []).map((label) => abbreviateCategoryLabel(label))
+        : (monthlyTrendReport.value?.categories ?? [])
+))
+const monthlyTrendMode = computed(() => monthlyTrendReport.value?.mode ?? 'default')
+
 const showPaymentGroupChart = computed(() => hasMultiSeriesData(paymentGroupSeries.value) && (paymentGroupReport.value?.categories?.length ?? 0) > 0)
 const showAmountCollectionChart = computed(() => hasMultiSeriesData(amountCollectionSeries.value) && (amountPaymentGroupReport.value?.categories?.length ?? 0) > 0)
 const showMonthlyTrendChart = computed(() => hasMultiSeriesData(monthlyTrendSeries.value) && (monthlyTrendReport.value?.categories?.length ?? 0) > 0)
 const showAttendanceMixChart = computed(() => hasSimpleSeriesData(attendanceMixSeries.value))
+const isComplianceOnlyCollectionChart = computed(() => amountCollectionMode.value === 'compliance_only')
+const isPaymentsOnlyTrendChart = computed(() => monthlyTrendMode.value === 'payments_only')
+
+const buildHorizontalChartHeight = (count, rowHeight = 72, minHeight = 320, maxHeight = 680) =>
+    Math.min(maxHeight, Math.max(minHeight, count * rowHeight))
+
+const paymentGroupChartHeight = computed(() => (
+    isCompactChartLayout.value
+        ? buildHorizontalChartHeight(paymentGroupCategories.value.length, 76, 340, 720)
+        : 320
+))
+
+const amountCollectionRevenueSeries = computed(() => (
+    amountCollectionSeries.value
+        .filter((series) => series.name !== '% de cumplimiento')
+        .map((series) => ({
+            ...series,
+            type: 'bar',
+        }))
+))
+
+const amountCollectionComplianceSeries = computed(() => {
+    const complianceSeries = amountCollectionSeries.value.find((series) => series.name === '% de cumplimiento')
+
+    return complianceSeries ? [{ ...complianceSeries, type: 'bar' }] : []
+})
+
+const amountCollectionRevenueChartHeight = computed(() => (
+    buildHorizontalChartHeight(amountCollectionCategories.value.length, 74, 300, 680)
+))
+
+const amountCollectionComplianceChartHeight = computed(() => (
+    buildHorizontalChartHeight(amountCollectionCategories.value.length, 66, 260, 620)
+))
+
+const amountCollectionSingleChartHeight = computed(() => (
+    isCompactChartLayout.value
+        ? buildHorizontalChartHeight(amountCollectionCategories.value.length, 66, 260, 620)
+        : 320
+))
+
+const monthlyTrendChartHeight = computed(() => (
+    isCompactChartLayout.value ? 360 : 320
+))
 
 const paymentGroupOptions = computed(() => ({
     chart: {
@@ -338,25 +442,57 @@ const paymentGroupOptions = computed(() => ({
         toolbar: { show: false },
         zoom: { enabled: false, allowMouseWheelZoom: false },
     },
-    responsive: [{ breakpoint: 480, options: { legend: { position: 'bottom', offsetX: -10, offsetY: 5 } } }],
-    title: { text: 'Mensualidades x grupo en el año', align: 'left' },
-    subtitle: { text: 'Contrasta pagos, deuda, becados y otros estados por grupo.', align: 'left' },
+    title: {
+        text: isCompactChartLayout.value ? 'Mensualidades por grupo' : 'Mensualidades x grupo en el año',
+        align: 'left',
+    },
+    subtitle: {
+        text: isCompactChartLayout.value
+            ? 'Vista compacta para priorizar lectura en pantallas estrechas.'
+            : 'Contrasta pagos, deuda, becados y otros estados por grupo.',
+        align: 'left',
+    },
     plotOptions: {
         bar: {
-            horizontal: false,
+            horizontal: isCompactChartLayout.value,
+            barHeight: isCompactChartLayout.value ? '58%' : undefined,
             dataLabels: {
                 total: {
-                    enabled: true,
+                    enabled: !isCompactChartLayout.value,
                     style: { fontSize: '13px', fontWeight: 900, color: '#8A8A8A' },
                 },
             },
         },
     },
     xaxis: {
-        categories: paymentGroupReport.value?.categories ?? [],
+        categories: paymentGroupCategories.value,
+        labels: {
+            rotate: isCompactChartLayout.value ? 0 : -35,
+            trim: true,
+            hideOverlappingLabels: true,
+        },
     },
+    yaxis: isCompactChartLayout.value
+        ? {
+            labels: {
+                maxWidth: 150,
+                trim: true,
+            },
+        }
+        : undefined,
     fill: { opacity: 1 },
-    legend: { position: 'top', horizontalAlign: 'center', offsetY: 0 },
+    legend: {
+        position: isCompactChartLayout.value ? 'bottom' : 'top',
+        horizontalAlign: 'center',
+        offsetY: 0,
+        fontSize: isCompactChartLayout.value ? '11px' : '12px',
+    },
+    grid: {
+        padding: {
+            left: isCompactChartLayout.value ? 12 : 0,
+            right: 8,
+        },
+    },
     tooltip: {},
     stroke: { width: 1 },
     colors: ['#00E396', '#FF4560', '#FEB019', '#546E7A'],
@@ -373,7 +509,12 @@ const amountCollectionOptions = computed(() => ({
     title: { text: 'Recaudo y cumplimiento por grupo', align: 'left' },
     subtitle: { text: 'Cruza recaudo de mensualidades, inscripciones y % de cumplimiento.', align: 'left' },
     xaxis: {
-        categories: amountPaymentGroupReport.value?.categories ?? [],
+        categories: amountCollectionCategories.value,
+        labels: {
+            rotate: -35,
+            trim: true,
+            hideOverlappingLabels: true,
+        },
     },
     yaxis: [
         {
@@ -404,37 +545,205 @@ const amountCollectionOptions = computed(() => ({
     legend: { position: 'top', horizontalAlign: 'center', offsetY: 0 },
 }))
 
+const amountCollectionRevenueOptions = computed(() => ({
+    chart: {
+        toolbar: { show: false },
+        zoom: { enabled: false, allowMouseWheelZoom: false },
+    },
+    plotOptions: {
+        bar: {
+            horizontal: true,
+            barHeight: '55%',
+        },
+    },
+    dataLabels: { enabled: false },
+    title: { text: 'Recaudo por grupo', align: 'left' },
+    subtitle: { text: 'Separamos los montos para que no compitan con el porcentaje.', align: 'left' },
+    xaxis: {
+        categories: amountCollectionCategories.value,
+        labels: {
+            formatter: (value) => currencyFormatter.format(Number(value || 0)),
+        },
+    },
+    yaxis: {
+        labels: {
+            maxWidth: 150,
+            trim: true,
+        },
+    },
+    legend: {
+        position: 'bottom',
+        horizontalAlign: 'center',
+        fontSize: '11px',
+    },
+    tooltip: {
+        y: {
+            formatter: (value) => currencyFormatter.format(Number(value || 0)),
+        },
+    },
+    grid: {
+        padding: {
+            left: 12,
+            right: 8,
+        },
+    },
+    colors: ['#008FFB', '#00E396'],
+}))
+
+const amountCollectionComplianceOptions = computed(() => ({
+    chart: {
+        toolbar: { show: false },
+        zoom: { enabled: false, allowMouseWheelZoom: false },
+    },
+    plotOptions: {
+        bar: {
+            horizontal: true,
+            barHeight: '45%',
+            distributed: true,
+        },
+    },
+    dataLabels: {
+        enabled: true,
+        formatter: (value) => `${Number(value || 0).toFixed(0)}%`,
+    },
+    title: {
+        text: canViewMonetaryValues.value ? '% cumplimiento por grupo' : 'Cumplimiento por grupo',
+        align: 'left',
+    },
+    subtitle: {
+        text: 'Lectura aislada del cumplimiento para que se entienda rápido.',
+        align: 'left',
+    },
+    xaxis: {
+        categories: amountCollectionCategories.value,
+        min: 0,
+        max: 100,
+        labels: {
+            formatter: (value) => `${Number(value || 0).toFixed(0)}%`,
+        },
+    },
+    yaxis: {
+        labels: {
+            maxWidth: 150,
+            trim: true,
+        },
+    },
+    legend: {
+        show: false,
+    },
+    tooltip: {
+        y: {
+            formatter: (value) => `${Number(value || 0).toFixed(2)}%`,
+        },
+    },
+    grid: {
+        padding: {
+            left: 12,
+            right: 8,
+        },
+    },
+    colors: ['#FEB019'],
+}))
+
 const monthlyTrendOptions = computed(() => ({
     chart: {
         toolbar: { show: false },
         zoom: { enabled: false, allowMouseWheelZoom: false },
     },
-    dataLabels: { enabled: false },
-    stroke: { width: [1, 4] },
-    title: { text: 'Tendencia mensual del año', align: 'left' },
-    subtitle: { text: 'Sigue la evolución del valor recaudado y los pagos efectivos a lo largo del año.', align: 'left' },
-    xaxis: {
-        categories: monthlyTrendReport.value?.categories ?? [],
-    },
-    yaxis: [
-        {
-            seriesName: 'Valor',
-            labels: {
-                formatter: (value) => currencyFormatter.format(Number(value || 0)),
-            },
-            title: { text: 'Valor' },
+    plotOptions: {
+        bar: {
+            columnWidth: isCompactChartLayout.value ? '36%' : '52%',
         },
-        {
-            seriesName: 'Pagos',
-            opposite: true,
+    },
+    dataLabels: { enabled: false },
+    stroke: {
+        width: isPaymentsOnlyTrendChart.value
+            ? [3]
+            : (isCompactChartLayout.value ? [1, 3] : [1, 4]),
+    },
+    markers: {
+        size: isCompactChartLayout.value ? 4 : 5,
+    },
+    title: {
+        text: isPaymentsOnlyTrendChart.value
+            ? 'Pagos efectivos del año'
+            : (isCompactChartLayout.value ? 'Tendencia mensual' : 'Tendencia mensual del año'),
+        align: 'left',
+    },
+    subtitle: {
+        text: isPaymentsOnlyTrendChart.value
+            ? 'Sigue la evolución de los pagos efectivos a lo largo del año.'
+            : (
+                isCompactChartLayout.value
+                    ? 'Meses abreviados para una lectura más clara en mobile.'
+                    : 'Sigue la evolución del valor recaudado y los pagos efectivos a lo largo del año.'
+            ),
+        align: 'left',
+    },
+    xaxis: {
+        categories: monthlyTrendCategories.value,
+        labels: {
+            rotate: 0,
+            trim: true,
+            hideOverlappingLabels: false,
+            style: {
+                fontSize: isCompactChartLayout.value ? '10px' : '12px',
+            },
+        },
+    },
+    yaxis: isPaymentsOnlyTrendChart.value
+        ? {
             labels: {
                 formatter: (value) => numberFormatter.format(Number(value || 0)),
             },
-            title: { text: 'Pagos' },
+            title: { text: isCompactChartLayout.value ? '' : 'Pagos' },
+        }
+        : [
+            {
+                seriesName: 'Valor',
+                labels: {
+                    formatter: (value) => (
+                        isCompactChartLayout.value
+                            ? formatCompactCurrency(value)
+                            : currencyFormatter.format(Number(value || 0))
+                    ),
+                },
+                title: { text: isCompactChartLayout.value ? '' : 'Valor' },
+            },
+            {
+                seriesName: 'Pagos',
+                opposite: true,
+                labels: {
+                    formatter: (value) => numberFormatter.format(Number(value || 0)),
+                },
+                title: { text: isCompactChartLayout.value ? '' : 'Pagos' },
+            },
+        ],
+    legend: {
+        position: isCompactChartLayout.value ? 'bottom' : 'top',
+        horizontalAlign: 'center',
+        fontSize: isCompactChartLayout.value ? '11px' : '12px',
+    },
+    grid: {
+        padding: {
+            left: 8,
+            right: 8,
         },
-    ],
-    legend: { position: 'top', horizontalAlign: 'center' },
-    tooltip: {},
+    },
+    tooltip: {
+        y: isPaymentsOnlyTrendChart.value
+            ? {
+                formatter: (value) => numberFormatter.format(Number(value || 0)),
+            }
+            : [
+                {
+                    formatter: (value) => currencyFormatter.format(Number(value || 0)),
+                },
+                {
+                    formatter: (value) => numberFormatter.format(Number(value || 0)),
+                },
+            ],
+    },
 }))
 
 const attendanceMixOptions = computed(() => ({
@@ -481,4 +790,13 @@ const rankingSections = computed(() => ([
         items: rankings.value?.flagged ?? [],
     },
 ]))
+
+onMounted(() => {
+    syncCompactChartLayout()
+    window.addEventListener('resize', syncCompactChartLayout)
+})
+
+onBeforeUnmount(() => {
+    window.removeEventListener('resize', syncCompactChartLayout)
+})
 </script>

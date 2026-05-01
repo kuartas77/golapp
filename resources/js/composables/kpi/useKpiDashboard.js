@@ -68,6 +68,7 @@ export default function useKpiDashboard() {
     const amountPaymentGroupReport = ref(null)
     const monthlyTrendReport = ref(null)
     const attendanceMixReport = ref(null)
+    const canViewMonetaryValues = ref(true)
     const rankings = ref({
         compliance: [],
         low_attendance: [],
@@ -101,6 +102,7 @@ export default function useKpiDashboard() {
         amountPaymentGroupReport.value = payload.amount_payment_group_report ?? null
         monthlyTrendReport.value = payload.monthly_trend_report ?? null
         attendanceMixReport.value = payload.attendance_mix_report ?? payload.assist_report ?? null
+        canViewMonetaryValues.value = payload.permissions?.can_view_monetary_values ?? true
         rankings.value = payload.rankings ?? {
             compliance: [],
             low_attendance: [],
@@ -187,6 +189,7 @@ export default function useKpiDashboard() {
         applyFilters,
         attendanceMixReport,
         canOpenReports,
+        canViewMonetaryValues,
         filters,
         groupOptions,
         hasActiveFilters,
