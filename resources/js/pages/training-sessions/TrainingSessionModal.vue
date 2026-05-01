@@ -43,7 +43,7 @@
                             </template>
 
                             <Step title="Información general">
-                                <fieldset class="col-md-12 p-2">
+                                <fieldset class="col-md-12 p-2 border rounded h-100">
                                     <div class="row col-md-12">
                                         <div class="col-md-6">
                                             <div class="form-group">
@@ -131,7 +131,7 @@
                             </Step>
 
                             <Step v-for="taskNumber in 3" :key="taskNumber" :title="`Ejercicio ${taskNumber}`">
-                                <fieldset class="col-md-12 p-2">
+                                <fieldset class="col-md-12 p-2 border rounded h-100">
                                     <Field :name="taskField(taskNumber - 1, 'task_number')" type="hidden" />
 
                                     <div class="row col-md-12">
@@ -242,7 +242,7 @@
                             </Step>
 
                             <Step title="Cierre">
-                                <fieldset class="col-md-12 p-2">
+                                <fieldset class="col-md-12 p-2 border rounded h-100">
                                     <div class="row col-md-12">
                                         <div class="col-md-6">
                                             <div class="form-group">

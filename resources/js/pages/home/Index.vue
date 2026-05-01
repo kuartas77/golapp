@@ -12,22 +12,20 @@
                                     informacion principal de su operacion deportiva, administrativa y de seguimiento.
                                 </p>
                                 <p class="text-muted mb-3">
-                                    La idea de esta pantalla es darte una vista general de lo que hace el sistema:
-                                    registrar deportistas, controlar inscripciones, planear sesiones de
-                                    entrenamiento, hacer seguimiento a asistencias, gestionar competencias y, cuando
-                                    aplica, apoyar procesos de cobro, facturacion y configuracion de la escuela.
+                                    El flujo recomendado es sencillo: primero organiza la base del proceso, luego haz
+                                    seguimiento al trabajo diario del grupo y, cuando aplique, cierra la gestion
+                                    administrativa desde los modulos habilitados para tu perfil.
                                 </p>
                                 <p class="text-muted mb-4">
-                                    Segun tu perfil, tienes acceso a {{ moduleCountLabel.toLowerCase() }} y puedes
-                                    entrar directamente a los procesos mas usados desde los accesos rapidos de esta
-                                    misma pagina.
+                                    En este inicio solo veras el contexto actual, el orden sugerido de trabajo y los
+                                    accesos directos a {{ moduleCountLabel.toLowerCase() }}.
                                 </p>
 
                                 <div class="d-flex flex-wrap gap-2" data-tour="home-welcome">
                                     <router-link :to="{ name: preferredLink.routeName }" class="btn btn-primary">
                                         {{ preferredLink.cta }}
                                     </router-link>
-                                    <router-link :to="{ name: 'kpi' }" class="btn btn-secondary">
+                                    <router-link v-if="canKpi" :to="{ name: 'kpi' }" class="btn btn-secondary">
                                         Ver indicadores
                                     </router-link>
                                     <button type="button" class="btn btn-info" @click="tutorial.start()">
@@ -68,39 +66,41 @@
                     <div class="col-xl-7 col-lg-7 col-12">
                         <div class="panel br-6" data-tour="home-modules">
                             <div class="panel-body">
-                                <div class="mb-4">
-                                    <h4 class="mb-2">Modulos principales</h4>
-                                    <p class="text-muted mb-0">
-                                        Estos son los espacios de trabajo que estructuran el funcionamiento general de
-                                        la plataforma.
-                                    </p>
+                                <div class="d-flex justify-content-between align-items-start gap-3 mb-4 flex-wrap">
+                                    <div>
+                                        <h4 class="mb-2">Modulos disponibles</h4>
+                                        <p class="text-muted mb-0">
+                                            Entradas directas a cada espacio habilitado. Usa el icono de ayuda para ver
+                                            una descripcion breve del modulo.
+                                        </p>
+                                    </div>
+                                    <span v-if="featureCards.length" class="badge border text-muted px-3 py-2">
+                                        {{ moduleCountLabel }}
+                                    </span>
                                 </div>
 
-                                <div v-if="featureCards.length" class="list-group list-group-flush">
+                                <div v-if="featureCards.length" class="row g-3">
                                     <div
                                         v-for="feature in featureCards"
-                                        :key="feature.title"
-                                        class="list-group-item px-0 py-3 bg-transparent"
+                                        :key="feature.key"
+                                        class="col-xl-6 col-md-6 col-12"
                                     >
-                                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap p-3">
-                                            <div class="flex-grow-1">
-                                                <div class="d-flex align-items-center gap-2 mb-2">
-                                                    <h5 class="mb-0">{{ feature.kicker }}</h5>
-                                                    <small class="text-muted">{{ feature.short }}</small>
-                                                </div>
-                                                <p class="mb-2"><strong>{{ feature.title }}</strong></p>
-                                                <p class="text-muted mb-3">{{ feature.description }}</p>
-
-                                                <ul class="ps-3 mb-0 small text-muted">
-                                                    <li v-for="point in feature.points" :key="point" class="mb-1">
-                                                        {{ point }}
-                                                    </li>
-                                                </ul>
+                                        <div class="border rounded p-3 h-100 d-flex flex-column justify-content-between">
+                                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                <h5 class="mb-0">{{ feature.kicker }}</h5>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-link btn-sm text-muted p-0 text-decoration-none"
+                                                    :aria-label="`Ver descripcion de ${feature.kicker}`"
+                                                    v-tooltip.top="feature.description"
+                                                >
+                                                    <i class="fa-regular fa-circle-question"></i>
+                                                </button>
                                             </div>
 
                                             <router-link
                                                 :to="{ name: feature.routeName }"
-                                                class="btn btn-primary btn-sm"
+                                                class="btn btn-outline-primary btn-sm mt-3 align-self-start"
                                             >
                                                 {{ feature.cta }}
                                             </router-link>
@@ -118,97 +118,44 @@
                     </div>
 
                     <div class="col-xl-5 col-lg-5 col-12">
-                        <div class="d-flex flex-column gap-4">
-                            <div class="panel br-6" data-tour="home-journey">
-                                <div class="panel-body">
-                                    <div class="mb-4">
-                                        <h4 class="mb-2">Como se usa normalmente</h4>
-                                        <p class="text-muted mb-0">
-                                            Un recorrido sugerido para entender el flujo general dentro del sistema.
-                                        </p>
-                                    </div>
-
-                                    <ol class="list-group list-group-numbered">
-                                        <li
-                                            v-for="step in journeySteps"
-                                            :key="step.step"
-                                            class="list-group-item bg-transparent"
-                                        >
-                                            <div class="ms-2">
-                                                <div class="fw-semibold mb-1">{{ step.title }}</div>
-                                                <small class="text-muted">{{ step.description }}</small>
-                                            </div>
-                                        </li>
-                                    </ol>
-
-                                    <div class="mt-4 border rounded p-3" data-tour="home-quick-links">
-                                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3 flex-wrap">
-                                            <div>
-                                                <h6 class="mb-1">Accesos rapidos</h6>
-                                                <p class="text-muted mb-0 small">
-                                                    Enlaces directos a los modulos que suelen consultarse con mayor frecuencia.
-                                                </p>
-                                            </div>
-                                            <small class="text-muted">{{ quickLinks.length }} disponibles</small>
-                                        </div>
-
-                                        <div class="list-group list-group-flush">
-                                            <router-link
-                                                v-for="link in quickLinks"
-                                                :key="link.title"
-                                                :to="{ name: link.routeName }"
-                                                class="list-group-item list-group-item-action px-0 py-3 bg-transparent"
-                                            >
-                                                <div class="d-flex justify-content-between align-items-start gap-3">
-                                                    <div>
-                                                        <div class="fw-semibold">{{ link.title }}</div>
-                                                        <small class="text-muted">{{ link.description }}</small>
-                                                    </div>
-                                                    <small class="text-muted">{{ link.badge }}</small>
-                                                </div>
-                                            </router-link>
-                                        </div>
-                                    </div>
-
-                                    <div class="mt-4 border rounded p-3">
-                                        <h6 class="mb-2">Lectura rapida</h6>
-                                        <p class="text-muted mb-0">
-                                            {{ workflowSummary }}
-                                        </p>
-                                    </div>
+                        <div class="panel br-6" data-tour="home-journey">
+                            <div class="panel-body">
+                                <div class="mb-4">
+                                    <h4 class="mb-2">Flujo recomendado</h4>
+                                    <p class="text-muted mb-0">
+                                        Este recorrido breve te ayuda a usar la plataforma con un orden claro desde el
+                                        primer ingreso.
+                                    </p>
                                 </div>
-                            </div>
 
-                            <div class="panel br-6">
-                                <div class="panel-body">
-                                    <div class="mb-4">
-                                        <h4 class="mb-2">Que aporta la plataforma</h4>
-                                        <p class="text-muted mb-0">
-                                            Mas que almacenar informacion, GolApp ayuda a mantener ordenado el proceso
-                                            para que los datos sirvan de apoyo en la operacion diaria.
-                                        </p>
-                                    </div>
-
-                                    <div class="list-group list-group-flush mb-4">
-                                        <div
-                                            v-for="benefit in benefits"
-                                            :key="benefit.title"
-                                            class="list-group-item px-0 py-3 bg-transparent"
-                                        >
-                                            <h6 class="mb-2">{{ benefit.title }}</h6>
-                                            <p class="text-muted mb-0">{{ benefit.description }}</p>
+                                <ol class="list-group list-group-numbered">
+                                    <li
+                                        v-for="step in journeySteps"
+                                        :key="step.step"
+                                        class="list-group-item bg-transparent"
+                                    >
+                                        <div class="ms-2">
+                                            <div class="fw-semibold mb-1">{{ step.title }}</div>
+                                            <small class="text-muted">{{ step.description }}</small>
                                         </div>
-                                    </div>
+                                    </li>
+                                </ol>
 
-                                    <div class="border rounded p-4">
-                                        <h5 class="mb-2">Siguiente paso recomendado</h5>
-                                        <p class="text-muted mb-3">
-                                            {{ recommendationText }}
-                                        </p>
-                                        <router-link :to="{ name: preferredLink.routeName }" class="btn btn-primary">
-                                            {{ preferredLink.cta }}
-                                        </router-link>
-                                    </div>
+                                <div class="mt-4 border rounded p-3">
+                                    <h6 class="mb-2">Lectura rapida</h6>
+                                    <p class="text-muted mb-0">
+                                        {{ workflowSummary }}
+                                    </p>
+                                </div>
+
+                                <div class="mt-4 border rounded p-4" data-tour="home-next-step">
+                                    <h5 class="mb-2">Siguiente paso recomendado</h5>
+                                    <p class="text-muted mb-3">
+                                        {{ recommendationText }}
+                                    </p>
+                                    <router-link :to="{ name: preferredLink.routeName }" class="btn btn-primary">
+                                        {{ preferredLink.cta }}
+                                    </router-link>
                                 </div>
                             </div>
                         </div>
@@ -247,6 +194,8 @@ const canUserManagement = access.userManagement
 const canTrainingGroups = access.trainingGroups
 const canCompetitionGroups = access.competitionGroups
 const canTopicNotifications = access.topicNotifications
+
+const canKpi = computed(() => authUser.hasAnyRole(['super-admin', 'school']))
 
 const userName = computed(() => {
     const fullName = authUser.user?.name || 'Equipo'
@@ -481,8 +430,10 @@ const journeySteps = computed(() => {
         return [
             {
                 step: '01',
-                title: 'Consultar indicadores generales',
-                description: 'Los KPI y el dashboard sirven como punto de partida mientras se habilitan modulos adicionales.',
+                title: canKpi.value ? 'Consultar indicadores generales' : 'Ubicar el contexto de trabajo',
+                description: canKpi.value
+                    ? 'Los KPI y el dashboard sirven como punto de partida mientras se habilitan modulos adicionales.'
+                    : 'El dashboard resume el contexto disponible mientras se habilitan modulos adicionales para tu perfil.',
             },
         ]
     }
@@ -504,100 +455,6 @@ const workflowSummary = computed(() => {
 
     return 'La plataforma organiza la operacion disponible en un solo lugar para que el equipo trabaje con contexto compartido.'
 })
-
-const quickLinks = computed(() => {
-    const links = [
-        canPlayers.value && {
-            title: 'Deportistas',
-            description: 'Consulta fichas, filtros y detalle individual.',
-            routeName: 'players',
-            badge: 'Consulta',
-        },
-        canInscriptions.value && {
-            title: 'Inscripciones',
-            description: 'Revisa el ingreso y la organizacion por categoria.',
-            routeName: 'inscriptions',
-            badge: 'Proceso',
-        },
-        canTrainingSessions.value && {
-            title: 'Sesiones de entrenamiento',
-            description: 'Planea ejercicios, consulta el historico y ajusta el trabajo por grupo.',
-            routeName: 'training-sessions',
-            badge: 'Planeacion',
-        },
-        canAttendances.value && {
-            title: 'Asistencias',
-            description: 'Control diario del compromiso de entrenamiento.',
-            routeName: 'attendances',
-            badge: 'Control',
-        },
-        canEvaluations.value && {
-            title: 'Evaluaciones',
-            description: 'Consulta comparativos y periodos de seguimiento.',
-            routeName: 'player-evaluations.index',
-            badge: 'Seguimiento',
-        },
-        canMatches.value && {
-            title: 'Competencias',
-            description: 'Gestion de encuentros y seguimiento deportivo.',
-            routeName: 'matches',
-            badge: 'Operacion',
-        },
-        {
-            title: 'KPI',
-            description: 'Visualiza informacion resumida para decisiones.',
-            routeName: 'kpi',
-            badge: 'Analitica',
-        },
-        canPayments.value && {
-            title: 'Mensualidades',
-            description: 'Seguimiento de pagos y cartera por deportista.',
-            routeName: 'payments',
-            badge: 'Finanzas',
-        },
-        (canSchoolProfile.value || canUserManagement.value || canTrainingGroups.value || canCompetitionGroups.value) && {
-            title: 'Administracion',
-            description: 'Usuarios, grupos y datos clave de la escuela.',
-            routeName: canSchoolProfile.value
-                ? 'school'
-                : canUserManagement.value
-                    ? 'users'
-                    : canTrainingGroups.value
-                        ? 'training-groups'
-                        : 'competition-groups',
-            badge: 'Configuracion',
-        },
-        canBilling.value && {
-            title: 'Facturacion',
-            description: 'Facturas y seguimiento documental de cobro.',
-            routeName: 'invoices.index',
-            badge: 'Cobro',
-        },
-        canTopicNotifications.value && {
-            title: 'Notificaciones',
-            description: 'Envios generales y gestion de solicitudes.',
-            routeName: 'topic-notifications.index',
-            badge: 'Comunicacion',
-        },
-    ].filter(Boolean)
-
-    return links
-})
-
-const benefits = computed(() => [
-    {
-        title: 'Informacion unificada',
-        description: 'Los datos del proceso quedan concentrados en un mismo entorno y son mas faciles de consultar.',
-    },
-    {
-        title: 'Orden operativo',
-        description: 'Cada modulo aporta estructura para que el trabajo diario sea mas claro y menos disperso.',
-    },
-    {
-        title: 'Mejor seguimiento',
-        description: 'La informacion organizada ayuda a revisar avances, pendientes y decisiones con mayor contexto.',
-    },
-])
 
 const recommendationText = computed(() => {
     return `Si quieres empezar por una tarea concreta, lo mas practico es entrar a ${preferredLink.value.cta.toLowerCase()} y continuar desde ahi con el flujo disponible para tu escuela.`
@@ -625,9 +482,16 @@ const preferredLink = computed(() => {
         return priority[0]
     }
 
+    if (canKpi.value) {
+        return {
+            routeName: 'kpi',
+            cta: 'Ver indicadores',
+        }
+    }
+
     return {
-        routeName: 'kpi',
-        cta: 'Ver indicadores',
+        routeName: 'dashboard',
+        cta: 'Ir al inicio',
     }
 })
 </script>

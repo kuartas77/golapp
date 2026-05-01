@@ -40,7 +40,10 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::get('/birthdays', [HomeController::class, 'birthDays'])->name('birthDays');
 
     // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
-    Route::middleware('school.permission:school.module.inscriptions')->group(function () {
+    Route::middleware([
+        'role:super-admin|school',
+        'school.permission:school.module.inscriptions',
+    ])->group(function () {
         Route::post('inscriptions/activate/{id}', [InscriptionController::class, 'activate'])->name('inscriptions.activate');
         Route::resource("inscriptions", InscriptionController::class)->except(['create','show']);
     });
@@ -64,7 +67,10 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     });
 
     // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
-    Route::middleware('school.permission:school.module.players')->group(function () {
+    Route::middleware([
+        'role:super-admin|school',
+        'school.permission:school.module.players',
+    ])->group(function () {
         Route::resource("players", PlayerController::class);
     });
     // El composable Vue resources/js/composables/tournament_payouts.js consume ahora:
@@ -85,7 +91,12 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::middleware('school.permission:school.module.matches')->group(function () {
             Route::post('matches/{match}', [ImportController::class, 'importMatchDetail'])->name('import.match');
         });
-        Route::post('players', [ImportController::class, 'importPlayers'])->name('import.players');
+        Route::middleware([
+            'role:super-admin|school',
+            'school.permission:school.module.players',
+        ])->group(function () {
+            Route::post('players', [ImportController::class, 'importPlayers'])->name('import.players');
+        });
     });
 
     Route::resource("profiles", ProfileController::class)->except(['index','create','store','destroy']);
@@ -145,7 +156,10 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     });
 
     Route::prefix('datatables')->group(function () {
-        Route::middleware('school.permission:school.module.inscriptions')->group(function () {
+        Route::middleware([
+            'role:super-admin|school',
+            'school.permission:school.module.inscriptions',
+        ])->group(function () {
             // La SPA de inscripciones usa los equivalentes en routes/api.php:
             // GET /api/v2/datatables/inscriptions_enabled y /api/v2/datatables/inscriptions_disabled.
             Route::get('inscriptions_enabled', [DataTableController::class, 'enabledInscriptions'])->name('inscriptions.enabled');
@@ -163,7 +177,10 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         });
 
         Route::get('schedules_enabled', [DataTableController::class, 'enabledSchedules'])->name('schedules.enabled');
-        Route::middleware('school.permission:school.module.players')->group(function () {
+        Route::middleware([
+            'role:super-admin|school',
+            'school.permission:school.module.players',
+        ])->group(function () {
             Route::get('players_enabled', [DataTableController::class, 'enabledPlayers'])->name('players.enabled');
         });
         Route::middleware('school.permission:school.module.training_sessions')->group(function () {
@@ -175,11 +192,17 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     });
 
     Route::prefix('export')->name('export.')->group(function () {
-        Route::middleware('school.permission:school.module.players')->group(function () {
+        Route::middleware([
+            'role:super-admin|school',
+            'school.permission:school.module.players',
+        ])->group(function () {
             Route::get('player/{player}/pdf', [PlayerExportController::class, 'exportPlayerPDF'])->name('player');
         });
 
-        Route::middleware('school.permission:school.module.inscriptions')->group(function () {
+        Route::middleware([
+            'role:super-admin|school',
+            'school.permission:school.module.inscriptions',
+        ])->group(function () {
             // La vista SPA resources/js/pages/inscriptions/InscriptionsList.vue mantiene estas rutas web
             // para exportaciones binarias y consume el listado por API desde routes/api.php.
             Route::get('inscription/{player_id}/{inscription_id}/{year?}/{quarter?}', [PlayerExportController::class, 'exportInscription'])->name('inscription');

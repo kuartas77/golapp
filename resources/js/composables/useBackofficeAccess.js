@@ -4,9 +4,13 @@ import { SCHOOL_PERMISSION_KEYS } from '@/config/school-permissions'
 
 export const backofficeAccessRequirements = {
     players: {
+        roles: ['super-admin', 'school'],
+        anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.players],
     },
     inscriptions: {
+        roles: ['super-admin', 'school'],
+        anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.inscriptions],
     },
     evaluations: {

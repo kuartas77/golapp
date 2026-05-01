@@ -100,7 +100,7 @@ Route::prefix('v2')->group(function(){
         });
 
         Route::get('dashboard', [DashboardController::class, 'index']);
-        Route::get('kpis', [DashboardController::class, 'kpis']);
+        Route::get('kpis', [DashboardController::class, 'kpis'])->middleware('role:super-admin|school');
 
         Route::get('user', [UserController::class, 'user']);
 
@@ -166,7 +166,10 @@ Route::prefix('v2')->group(function(){
         Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);
         Route::get("training_group/classdays", [TrainingGroupController::class, 'getClassDays']);
 
-        Route::middleware('school.permission:school.module.players')->group(function () {
+        Route::middleware([
+            'role:super-admin|school',
+            'school.permission:school.module.players',
+        ])->group(function () {
             Route::apiResource("players", PlayerController::class, ['only' => ['edit','show', 'update']]);
         });
 
@@ -186,7 +189,10 @@ Route::prefix('v2')->group(function(){
             Route::post('attendance-qr/{assist}/take', [AttendanceQrController::class, 'take']);
         });
 
-        Route::middleware('school.permission:school.module.inscriptions')->group(function () {
+        Route::middleware([
+            'role:super-admin|school',
+            'school.permission:school.module.inscriptions',
+        ])->group(function () {
             Route::resource("inscriptions", WebInscriptions::class)->except(['index','create','show']);
         });
 
@@ -217,14 +223,20 @@ Route::prefix('v2')->group(function(){
             Route::post('', [TopicNotificationsController::class, 'store']);
         });
 
-        Route::middleware('school.permission:school.module.players')->group(function () {
+        Route::middleware([
+            'role:super-admin|school',
+            'school.permission:school.module.players',
+        ])->group(function () {
             Route::get('/player-stats', [PlayerStatsController::class, 'index']);
             Route::get('/top-players', [PlayerStatsController::class, 'topPlayers']);
             Route::get('/player/{id}/detail', [PlayerStatsController::class, 'playerDetail']);
         });
 
         Route::prefix('datatables')->group(function () {
-            Route::middleware('school.permission:school.module.inscriptions')->group(function () {
+            Route::middleware([
+                'role:super-admin|school',
+                'school.permission:school.module.inscriptions',
+            ])->group(function () {
                 Route::get('inscriptions_enabled', [DataTableController::class, 'enabledInscriptions']);
                 Route::get('inscriptions_disabled', [DataTableController::class, 'disabledInscriptions']);
             });
@@ -240,7 +252,10 @@ Route::prefix('v2')->group(function(){
             });
 
             Route::get('schedules_enabled', [DataTableController::class, 'enabledSchedules']);
-            Route::middleware('school.permission:school.module.players')->group(function () {
+            Route::middleware([
+                'role:super-admin|school',
+                'school.permission:school.module.players',
+            ])->group(function () {
                 Route::get('players_enabled', [DataTableController::class, 'enabledPlayers']);
             });
 

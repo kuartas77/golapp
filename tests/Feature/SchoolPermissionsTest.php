@@ -219,6 +219,51 @@ final class SchoolPermissionsTest extends TestCase
             ->assertJsonPath('school_selected', $school->name);
     }
 
+    public function testInstructorCannotAccessPlayersInscriptionsOrKpisEvenWhenSchoolPermissionsAreEnabled(): void
+    {
+        $school = School::findOrFail($this->school['id']);
+        $instructor = $this->createSchoolScopedUser(
+            $school->id,
+            ['instructor'],
+            sprintf('instructor-restricted-%s@example.com', uniqid())
+        );
+
+        [$player, $inscription] = $this->createPlayerWithInscription($school);
+
+        $this->setSchoolPermissions($school, [
+            'school.module.players' => true,
+            'school.module.inscriptions' => true,
+        ]);
+
+        $this->actingAs($instructor)
+            ->getJson('/api/v2/kpis')
+            ->assertForbidden();
+
+        $this->actingAs($instructor)
+            ->getJson("/api/v2/players/{$player->unique_code}")
+            ->assertForbidden();
+
+        $this->actingAs($instructor)
+            ->getJson("/api/v2/inscriptions/{$inscription->id}/edit")
+            ->assertForbidden();
+
+        $this->actingAs($instructor)
+            ->getJson('/api/v2/datatables/players_enabled?draw=1&start=0&length=10')
+            ->assertForbidden();
+
+        $this->actingAs($instructor)
+            ->getJson('/api/v2/datatables/inscriptions_enabled?draw=1&start=0&length=10')
+            ->assertForbidden();
+
+        $this->actingAs($instructor)
+            ->get('/players')
+            ->assertForbidden();
+
+        $this->actingAs($instructor)
+            ->get('/inscriptions')
+            ->assertForbidden();
+    }
+
     public function testSuperAdminCanFetchAndUpdateSchoolPermissions(): void
     {
         $superAdmin = $this->createSuperAdminForSchool($this->school['id']);

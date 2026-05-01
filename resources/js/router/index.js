@@ -47,10 +47,10 @@ const routes = [
         children: [
             { path: '', redirect: '/inicio', name: 'redirect' },
             { path: 'inicio', name: 'dashboard', component: () => import('@/pages/home/Index.vue'), },
-            { path: 'kpi', name: 'kpi', component: () => import('@/pages/kpi/Index.vue'), },
-            { path: 'player-stats', name: 'player-stats.index', component: () => import('@/pages/player-stats/Ranking.vue'), meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] } },
-            { path: 'top-players', name: 'player-stats.top', component: () => import('@/pages/player-stats/TopPlayers.vue'), meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] } },
-            { path: 'player/:id/detail', name: 'player-stats.detail', component: () => import('@/pages/player-stats/Detail.vue'), meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] } },
+            { path: 'kpi', name: 'kpi', component: () => import('@/pages/kpi/Index.vue'), meta: { requiresRole: ['super-admin', 'school'] } },
+            { path: 'player-stats', name: 'player-stats.index', component: () => import('@/pages/player-stats/Ranking.vue'), meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] } },
+            { path: 'top-players', name: 'player-stats.top', component: () => import('@/pages/player-stats/TopPlayers.vue'), meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] } },
+            { path: 'player/:id/detail', name: 'player-stats.detail', component: () => import('@/pages/player-stats/Detail.vue'), meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] } },
             {
                 path: 'player-evaluations',
                 meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.evaluations] },
@@ -66,7 +66,7 @@ const routes = [
             { path: 'perfil/usuario', name: 'user-profile', component: () => import('@/pages/home/Index.vue'), },
             {
                 path: 'deportistas',
-                meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] },
+                meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] },
                 component: { render: () => h(RouterView) },
                 children: [
                     { path: '', name: 'players', component: () => import('@/pages/players/PlayersList.vue') },
@@ -76,7 +76,7 @@ const routes = [
             {
                 path: 'inscripciones',
                 name: 'inscriptions',
-                meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.inscriptions] },
+                meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.inscriptions] },
                 component: () => import('@/pages/inscriptions/InscriptionsList.vue')
             },
             {

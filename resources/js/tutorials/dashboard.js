@@ -4,7 +4,7 @@ export const homeTutorial = {
             id: 'home-welcome',
             selector: '[data-tour="home-welcome"]',
             title: 'Empieza desde el dashboard',
-            text: 'Esta tarjeta resume para que sirve GolApp y te deja saltar al modulo que mas uses.',
+            text: 'Esta tarjeta resume el flujo general de trabajo y te deja saltar al modulo que mas sentido tenga para tu jornada.',
         },
         {
             id: 'home-context',
@@ -15,20 +15,20 @@ export const homeTutorial = {
         {
             id: 'home-modules',
             selector: '[data-tour="home-modules"]',
-            title: 'Ubica los modulos principales',
-            text: 'Este bloque explica que hace cada modulo del backoffice y a donde te lleva.',
+            title: 'Revisa los modulos disponibles',
+            text: 'Aqui tienes accesos compactos a cada modulo habilitado y un tooltip breve para entender su funcion.',
         },
         {
             id: 'home-journey',
             selector: '[data-tour="home-journey"]',
-            title: 'Sigue el flujo sugerido',
-            text: 'Si alguien es nuevo en la plataforma, este panel resume el recorrido sugerido y concentra el flujo habitual de trabajo.',
+            title: 'Sigue el flujo recomendado',
+            text: 'Este panel concentra el recorrido sugerido para usar la plataforma con un orden claro desde el primer ingreso.',
         },
         {
-            id: 'home-quick-links',
-            selector: '[data-tour="home-quick-links"]',
-            title: 'Usa los accesos rapidos',
-            text: 'Debajo del recorrido sugerido tienes entradas directas a los procesos que mas se consultan en la operacion diaria.',
+            id: 'home-next-step',
+            selector: '[data-tour="home-next-step"]',
+            title: 'Continua con el siguiente paso',
+            text: 'Al final del recorrido veras la recomendacion mas directa para continuar segun los modulos disponibles para tu perfil.',
         },
     ],
 }
