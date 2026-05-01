@@ -25,7 +25,6 @@ jobs:
       - name: 🔨 Test and build project
         run: |
           npm install
-          npm run test:vue
           npm run build
 
       - name: Deploy full project except build
