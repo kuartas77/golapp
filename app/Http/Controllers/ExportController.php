@@ -72,7 +72,7 @@ class ExportController extends Controller
     public function exportPaymentsPDF(Request $request, PaymentExportService $paymentExportService)
     {
         $request->merge(['school_id' => getSchool(auth()->user())->id]);
-        $payments = $this->paymentRepository->filterSelect($request->all(), false)->get();
+        $payments = $this->paymentRepository->filterSelect($request->all(), $request->boolean('deleted'))->get();
 
         return $paymentExportService->paymentsPdfByGroup($payments, $request, true);
     }

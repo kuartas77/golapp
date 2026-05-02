@@ -7,6 +7,9 @@
         <input type="hidden" name="training_group_id" id="training_group_id" value="{{$trainingGroup->id}}">
         <div class="card-body">
             <h4 class="card-title text-themecolor m-t-5">{{$trainingGroup->full_schedule_group}}</h4>
+            <div class="alert alert-warning py-2" role="alert">
+                Si aparece la etiqueta <strong>Inscripción retirada</strong>, ese pago se muestra solo con fines históricos y no puede editarse desde esta vista.
+            </div>
             @include('payments.payment.table')
         </div>
     </x-row-card>

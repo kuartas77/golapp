@@ -75,7 +75,7 @@ class MasterController extends Controller
         abort_unless(($request->wantsJson() || $request->ajax()), 401);
 
         if ($request->filled('unique')) {
-            $response = $this->playerRepository->searchUniqueCode($request->only(['unique_code']));
+            $response = $this->playerRepository->searchUniqueCode($request->only(['unique_code', 'year']));
         } else {
             $response = $this->inscriptionRepository->searchInscriptionCompetition($request->only(['unique_code', 'competition_group_id']));
         }

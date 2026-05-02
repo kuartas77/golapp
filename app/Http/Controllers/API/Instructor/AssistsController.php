@@ -26,6 +26,19 @@ class AssistsController extends Controller
 
     public function upsert(AssistsUpdateRequest $request): JsonResponse
     {
-        return response()->json(['data' => $this->repository->upsert($request->toDto())]);
+        $assistDto = $request->toDto();
+
+        if ($this->repository->inscriptionBelongsToDeletedRecord($assistDto->inscription_id)) {
+            return response()->json([
+                'message' => AssistRepository::RETIRED_INSCRIPTION_MESSAGE,
+                'errors' => [
+                    'assist' => [AssistRepository::RETIRED_INSCRIPTION_MESSAGE],
+                ],
+            ], 422);
+        }
+
+        $updated = $this->repository->upsert($assistDto);
+
+        return response()->json(['data' => $updated]);
     }
 }

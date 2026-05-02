@@ -8,6 +8,7 @@ namespace App\Repositories;
 use Exception;
 use Carbon\Carbon;
 use App\Models\Master;
+use App\Models\Inscription;
 use App\Models\Player;
 use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
@@ -210,22 +211,78 @@ class PlayerRepository
 
     public function searchUniqueCode(array $fields)
     {
-        return $this->player->query()->schoolId()->whereDoesntHave('inscription')
+        $year = (int) data_get($fields, 'year', now()->year);
+        $player = $this->player->query()
+            ->schoolId()
             ->firstWhere('unique_code', $fields['unique_code']);
+
+        if (!$player) {
+            return null;
+        }
+
+        $hasActiveInscription = $player->inscriptions()
+            ->where('school_id', getSchool(auth()->user())->id)
+            ->where('year', $year)
+            ->exists();
+
+        if ($hasActiveInscription) {
+            return null;
+        }
+
+        $reactivationInscription = Inscription::onlyTrashed()
+            ->with('competitionGroup')
+            ->where('school_id', getSchool(auth()->user())->id)
+            ->where('player_id', $player->id)
+            ->where('year', $year)
+            ->latest('id')
+            ->first();
+
+        if ($reactivationInscription) {
+            $player->setAttribute('reactivation_inscription', [
+                'id' => $reactivationInscription->id,
+                'start_date' => optional($reactivationInscription->start_date)->format('Y-m-d'),
+                'training_group_id' => $reactivationInscription->training_group_id,
+                'competition_groups' => $reactivationInscription->competitionGroup
+                    ->pluck('id')
+                    ->map(fn ($groupId) => (string) $groupId)
+                    ->values()
+                    ->all(),
+                'scholarship' => (bool) $reactivationInscription->scholarship,
+                'brother_payment' => (bool) $reactivationInscription->brother_payment,
+                'pre_inscription' => (bool) $reactivationInscription->pre_inscription,
+                'photos' => (bool) $reactivationInscription->photos,
+                'copy_identification_document' => (bool) $reactivationInscription->copy_identification_document,
+                'eps_certificate' => (bool) $reactivationInscription->eps_certificate,
+                'medic_certificate' => (bool) $reactivationInscription->medic_certificate,
+                'study_certificate' => (bool) $reactivationInscription->study_certificate,
+            ]);
+        }
+
+        return $player;
     }
 
     public function getListPlayersNotInscription(bool $isTrashed = true)
     {
         $query = request()->input('query');
+        $year = (int) request()->input('year', now()->year);
+
         return $this->player->query()->where('unique_code', 'LIKE', '%' . $query )
             ->schoolId()
-            ->whereDoesntHave('inscription')
+            ->whereDoesntHave('inscriptions', fn ($inscriptionQuery) => $inscriptionQuery
+                ->where('school_id', getSchool(auth()->user())->id)
+                ->where('year', $year))
             ->pluck('unique_code');
     }
 
     public function getListPlayersWithInscription(bool $isTrashed = true)
     {
-        return $this->player->query()->schoolId()->whereHas('inscription', fn($q) => $q->where('year', now()->year))->pluck('unique_code');
+        $year = (int) request()->input('year', now()->year);
+
+        return $this->player->query()->schoolId()
+            ->whereHas('inscriptions', fn ($q) => $q
+                ->where('school_id', getSchool(auth()->user())->id)
+                ->where('year', $year))
+            ->pluck('unique_code');
     }
 
     public function birthdayToday(): Collection

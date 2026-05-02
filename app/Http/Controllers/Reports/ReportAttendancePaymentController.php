@@ -84,6 +84,9 @@ class ReportAttendancePaymentController extends Controller
             ->filterColumn('payment_status_label', function ($query, $keyword) {
                 $query->where('r.payment_status_label', 'like', "%{$keyword}%");
             })
+            ->filterColumn('inscription_status_label', function ($query, $keyword) {
+                $query->where('r.inscription_status_label', 'like', "%{$keyword}%");
+            })
             ->filterColumn('flag_reason', function ($query, $keyword) {
                 $query->where('r.flag_reason', 'like', "%{$keyword}%");
             })

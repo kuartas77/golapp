@@ -43,12 +43,12 @@ SELECT
     x.amount,
 
     CASE
-        WHEN x.status_code IN (1, 9, 10, 11, 12, 5, 6) THEN 1
+        WHEN x.status_code IN (1, 9, 10, 11, 12) THEN 1
         ELSE 0
     END AS sums_in_reports,
 
     CASE
-        WHEN x.status_code IN (1, 9, 10, 11, 12, 5, 6) THEN x.amount
+        WHEN x.status_code IN (1, 9, 10, 11, 12) THEN x.amount
         ELSE CAST(0 AS DECIMAL(10,2))
     END AS report_amount,
 
@@ -59,10 +59,20 @@ SELECT
 
     CASE
         WHEN x.deleted_at IS NOT NULL
-         AND x.status_code IN (1, 9, 10, 11, 12, 5, 6)
+         AND x.status_code IN (1, 9, 10, 11, 12)
         THEN x.amount
         ELSE CAST(0 AS DECIMAL(10,2))
     END AS deleted_record_report_amount,
+
+    CASE
+        WHEN i.deleted_at IS NOT NULL THEN 1
+        ELSE 0
+    END AS inscription_deleted,
+
+    CASE
+        WHEN i.deleted_at IS NOT NULL THEN 'Retirada'
+        ELSE 'Activa'
+    END AS inscription_status_label,
 
     x.created_at,
     x.updated_at,
@@ -135,4 +145,6 @@ FROM (
         UNION ALL SELECT 11, 'november', 'Noviembre'
         UNION ALL SELECT 12, 'december', 'Diciembre'
     ) m ON 1 = 1
-) x;
+) x
+LEFT JOIN inscriptions i
+    ON i.id = x.inscription_id;

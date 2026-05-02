@@ -38,7 +38,7 @@ BEGIN
                     END)
                     -
                     SUM(CASE
-                        WHEN v.is_monthly = 1 AND v.status_code IN (4,14,8) THEN 1
+                        WHEN v.is_monthly = 1 AND v.status_code IN (4,5,6,8,14) THEN 1
                         ELSE 0
                     END)
                 ),

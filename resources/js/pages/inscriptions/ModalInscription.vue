@@ -13,6 +13,9 @@
                         <div v-if="globalError" class="alert alert-danger" role="alert">
                             {{ globalError }}
                         </div>
+                        <div v-if="isReactivationMode" class="alert alert-warning py-2" role="alert">
+                            Se reactivará una inscripción retirada del año {{ selectedInscriptionYear }}. La fecha de inicio original se conservará y podrás ajustar los demás datos antes de guardar.
+                        </div>
                         <div class="row col-12 ">
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
@@ -28,7 +31,7 @@
                                     </Field>
 
                                     <small v-if="isEditing" class="form-text text-muted">El jugador no se puede modificar desde este formulario.</small>
-                                    <small v-else class="form-text text-muted">Buscará deportistas sin inscripción</small>
+                                    <small v-else class="form-text text-muted">Buscará deportistas sin inscripción activa en el año {{ selectedInscriptionYear }}.</small>
                                 </div>
                             </div>
 
@@ -44,14 +47,14 @@
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label for="start_date">Fecha de inicio</label><span class="text-danger">(*)</span>:
-                                    <Field v-if="isEditing" name="start_date" as="input" id="start_date" readonly
+                                    <Field v-if="isEditing || isReactivationMode" name="start_date" as="input" id="start_date" readonly
                                         class="form-control form-control-sm" />
                                     <Field v-else name="start_date" v-slot="{ field }" id="start_date">
                                         <flat-pickr v-bind="field" v-model="field.value" :config="flatpickrConfigDate"
                                             class="form-control form-control-sm flatpickr" id="start_date" />
                                     </Field>
                                     <ErrorMessage name="start_date" class="custom-error" />
-                                    <small v-if="isEditing" class="form-text text-muted">La fecha de inicio se conserva para evitar desajustes con pagos y asistencias.</small>
+                                    <small v-if="isEditing || isReactivationMode" class="form-text text-muted">La fecha de inicio se conserva para evitar desajustes con pagos y asistencias.</small>
                                 </div>
                             </div>
 
@@ -181,19 +184,20 @@ const props = defineProps({
         type: [Number, String],
         default: null,
     },
+    create_open: {
+        type: Boolean,
+        default: false,
+    },
+    selected_year: {
+        type: [Number, String],
+        default: null,
+    },
     unique_code: {
         type: String,
         default: null,
     },
 })
 const emit = defineEmits(["success", "cancel"]);
-
-// settings flatpick
-const flatpickrConfigDate = {
-    locale: Spanish,
-    minDate: dayjs().subtract(1, 'year').format('YYYY-M-D'),
-    maxDate: dayjs().format('YYYY-M-D'),
-}
 
 const { proxy } = getCurrentInstance();
 const globalError = ref(null);
@@ -202,8 +206,15 @@ const form = useTemplateRef("form");
 const composeModalInscription = ref(null);
 const currentTrainingGroupId = ref(null);
 const currentPreInscription = ref(false);
+const reactivationCandidate = ref(null);
 const editIdentifier = computed(() => props.inscription_id ?? props.unique_code);
 const isEditing = computed(() => editIdentifier.value !== null);
+const selectedInscriptionYear = computed(() => {
+    const year = Number(props.selected_year ?? dayjs().year())
+
+    return Number.isInteger(year) && year > 0 ? year : dayjs().year()
+});
+const isReactivationMode = computed(() => !isEditing.value && Boolean(reactivationCandidate.value?.id));
 const trainingGroups = computed(() => settings.groups.map((group) => ({ value: group.id, label: group.name })));
 const competitionGroups = computed(() => settings.competition_groups.map((group) => ({
     value: String(group.id),
@@ -249,12 +260,34 @@ const preInscriptionStatusMessage = computed(() => {
     return 'Con grupo definitivo y documentación validada, el deportista podrá aparecer en asistencias y pagos.'
 });
 
+const resolveDefaultStartDate = (year = selectedInscriptionYear.value) => {
+    const normalizedYear = Number(year)
+
+    if (normalizedYear === dayjs().year()) {
+        return dayjs().format('YYYY-M-D')
+    }
+
+    return dayjs(`${normalizedYear}-01-01`).format('YYYY-M-D')
+}
+
+const flatpickrConfigDate = computed(() => {
+    const year = selectedInscriptionYear.value
+
+    return {
+        locale: Spanish,
+        minDate: `${year}-01-01`,
+        maxDate: year === dayjs().year()
+            ? dayjs().format('YYYY-M-D')
+            : `${year}-12-31`,
+    }
+})
+
 const defaultValues = () => ({
     id: null,
     player_id: null,
     unique_code: null,
     player_name: null,
-    start_date: null,
+    start_date: resolveDefaultStartDate(),
     scholarship: false,
     brother_payment: false,
     training_group_id: null,
@@ -290,6 +323,7 @@ const resetFormState = () => {
     form.value?.resetForm({ values: defaultValues() })
     currentTrainingGroupId.value = null
     currentPreInscription.value = false
+    reactivationCandidate.value = null
     globalError.value = null
 }
 
@@ -307,8 +341,18 @@ const onCancel = () => {
 const search = async (query) => {
     if (!query) return [];
 
-    const response = await api.get('/api/v2/autocomplete/list_code_unique?trashed=true', { params: { query: query } })
+    const response = await api.get('/api/v2/autocomplete/list_code_unique?trashed=true', {
+        params: {
+            query,
+            year: selectedInscriptionYear.value,
+        },
+    })
     return response.data.data ?? []
+}
+
+const openCreateModal = () => {
+    resetFormState()
+    composeModalInscription.value?.show()
 }
 
 const loadInscriptionForEdit = async (inscriptionId) => {
@@ -347,25 +391,68 @@ const loadInscriptionForEdit = async (inscriptionId) => {
 
 const loadPlayerByUniqueCode = async (uniqueCode) => {
     if (!uniqueCode) {
+        reactivationCandidate.value = null
+        currentTrainingGroupId.value = null
+        currentPreInscription.value = false
+        form.value?.setValues({
+            ...defaultValues(),
+            unique_code: uniqueCode,
+        })
         return
     }
 
     try {
-        const response = await api.get('/api/v2/autocomplete/search_unique_code?unique=true', { params: { unique_code: uniqueCode } })
+        const response = await api.get('/api/v2/autocomplete/search_unique_code?unique=true', {
+            params: {
+                unique_code: uniqueCode,
+                year: selectedInscriptionYear.value,
+            },
+        })
         const data = response.data.data
 
         if (!data) {
-            showMessage("El Deportista ya tiene una inscripción.", 'warning')
+            reactivationCandidate.value = null
+            currentTrainingGroupId.value = null
+            currentPreInscription.value = false
+            form.value?.setValues({
+                ...defaultValues(),
+                unique_code: uniqueCode,
+            })
+            showMessage(`El deportista ya tiene una inscripción activa para ${selectedInscriptionYear.value}.`, 'warning')
             return
         }
 
+        const reactivationInscription = data.reactivation_inscription ?? null
+        reactivationCandidate.value = reactivationInscription
+
         form.value.setValues({
+            ...defaultValues(),
+            unique_code: uniqueCode,
             player_id: data.id,
             player_name: data.full_names,
-            start_date: dayjs().format('YYYY-M-D')
+            start_date: reactivationInscription?.start_date || resolveDefaultStartDate(),
+            scholarship: Boolean(reactivationInscription?.scholarship),
+            brother_payment: Boolean(reactivationInscription?.brother_payment),
+            training_group_id: reactivationInscription?.training_group_id ?? null,
+            competition_groups: reactivationInscription?.competition_groups ?? [],
+            photos: Boolean(reactivationInscription?.photos),
+            copy_identification_document: Boolean(reactivationInscription?.copy_identification_document),
+            eps_certificate: Boolean(reactivationInscription?.eps_certificate),
+            medic_certificate: Boolean(reactivationInscription?.medic_certificate),
+            study_certificate: Boolean(reactivationInscription?.study_certificate),
+            pre_inscription: Boolean(reactivationInscription?.pre_inscription),
         })
+        currentTrainingGroupId.value = reactivationInscription?.training_group_id ?? null
+        currentPreInscription.value = Boolean(reactivationInscription?.pre_inscription)
     } catch (error) {
-        showMessage("El Deportista ya tiene una inscripción ó no se encontró.", 'error')
+        reactivationCandidate.value = null
+        currentTrainingGroupId.value = null
+        currentPreInscription.value = false
+        form.value?.setValues({
+            ...defaultValues(),
+            unique_code: uniqueCode,
+        })
+        showMessage("El deportista no se encontró o no está disponible para el año seleccionado.", 'error')
     }
 }
 
@@ -387,7 +474,11 @@ const submit = async (values, actions) => {
             return
         }
 
-        const message = isEditing.value ? 'Modificado correctamente' : 'Guardado correctamente'
+        const message = isEditing.value
+            ? 'Modificado correctamente'
+            : response.data.reactivated
+                ? 'Inscripción reactivada correctamente'
+                : 'Guardado correctamente'
         showMessage(message)
         emit("success")
         closeModal()
@@ -402,6 +493,15 @@ watch(
     async (newValue) => {
         if (newValue !== null) {
             await loadInscriptionForEdit(newValue)
+        }
+    }
+)
+
+watch(
+    () => props.create_open,
+    (isOpen) => {
+        if (isOpen && !isEditing.value) {
+            openCreateModal()
         }
     }
 )

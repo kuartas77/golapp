@@ -98,7 +98,7 @@ class AttendanceQrController extends Controller
             ->schoolId()
             ->with([
                 'trainingGroup' => fn ($query) => $query->withTrashed(),
-                'inscription:id,player_id,unique_code,training_group_id,year',
+                'inscription:id,player_id,unique_code,training_group_id,year,deleted_at',
                 'inscription.player:id,names,last_names,unique_code',
             ])
             ->find($assist);
@@ -107,6 +107,12 @@ class AttendanceQrController extends Controller
             return response()->json([
                 'message' => 'No encontramos el registro de asistencia solicitado.',
             ], 404);
+        }
+
+        if ($assistModel->inscription?->trashed()) {
+            return response()->json([
+                'message' => 'La inscripción está retirada; reactívala antes de modificar pagos o asistencias.',
+            ], 422);
         }
 
         abort_if(

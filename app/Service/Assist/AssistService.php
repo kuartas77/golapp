@@ -11,7 +11,7 @@ class AssistService
     public function generateTable($assists, TrainingGroup $trainingGroup, array $params, bool $deleted = false): array
     {
         $group_name = $trainingGroup->full_schedule_group;
-        $assists = $assists->get();
+        $assists = $this->decorateAssists($assists->get());
 
         $classDays = classDays(
             $params['year'],
@@ -35,7 +35,7 @@ class AssistService
     public function generateData($assists, TrainingGroup $trainingGroup, array $params, bool $deleted = false): array
     {
         $group_name = $trainingGroup->full_schedule_group;
-        $assists = $assists->get();
+        $assists = $this->decorateAssists($assists->get());
 
         [$urlExportPDF, $urlExportExcel] = $this->makeLinks($params, $deleted);;
 
@@ -87,5 +87,18 @@ class AssistService
             route('export.pdf.assists', $params),
             route('export.assists', $params)
         ];
+    }
+
+    private function decorateAssists(Collection $assists): Collection
+    {
+        return $assists->map(function ($assist) {
+            $assist->setAttribute('inscription_deleted', (bool) $assist->inscription?->trashed());
+            $assist->setAttribute(
+                'inscription_status_label',
+                $assist->inscription?->trashed() ? 'Retirada' : 'Activa'
+            );
+
+            return $assist;
+        });
     }
 }

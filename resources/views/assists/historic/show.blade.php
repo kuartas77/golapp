@@ -17,6 +17,9 @@
                         </div>
                     </div>
                     <h6 class="card-subtitle text-themecolor m-b-0 m-t-0">{{$trainingGroup->full_schedule_group}}</h6>
+                    <div class="alert alert-warning py-2" role="alert">
+                        Si aparece la etiqueta <strong>Inscripción retirada</strong>, ese registro se muestra solo como historial y no admite cambios desde esta vista.
+                    </div>
                     @include('assists.assist.table')
                 </div>
             </div>

@@ -115,6 +115,10 @@
                 </div>
             </div>
 
+            <div v-if="retiredRowsCount" class="alert alert-warning py-2" role="alert">
+                Hay {{ retiredRowsCount }} fila(s) con inscripción retirada. Se muestran solo como referencia histórica y permanecen en solo lectura.
+            </div>
+
             <div
                 ref="scrollContainer"
                 class="table-responsive"
@@ -156,6 +160,9 @@
                                                 <div>
                                                     <small>
                                                         {{ payPlayer.player.full_names }}
+                                                        <span v-if="payPlayer.inscription_deleted" class="badge bg-warning text-dark ms-2">
+                                                            Inscripción retirada
+                                                        </span>
                                                     </small>
                                                     <p>
                                                         <small>
@@ -180,7 +187,7 @@
                                 >
 
                                     <template
-                                        v-if="editingCell?.payPlayer === payPlayer && editingCell?.field === field && !typesNoEditables.some((e) => e === payPlayer[field])">
+                                        v-if="editingCell?.payPlayer === payPlayer && editingCell?.field === field && canEditPaymentRow(payPlayer, field)">
                                         <div class="d-flex flex-column gap-1">
                                             <select v-model="payPlayer[field]" :id="`select_${field}_${payPlayer.id}`"
                                                 :name="`select_${field}_${payPlayer.id}`" autocomplete="off"
@@ -217,7 +224,7 @@
                                         <small class="text-muted">
                                             {{ moneyFormat(payPlayer[`${field}_amount`]) }}
                                         </small>
-                                        <span v-if="!typesNoEditables.some((e) => e === payPlayer[field])"
+                                        <span v-if="canEditPaymentRow(payPlayer, field)"
                                             class="badge badge-light btn btn-sm clickable"
                                             @click="editRow(payPlayer, field)">
                                             <i class="far fa-edit"></i>
@@ -289,8 +296,9 @@ const {
     categories,
     type_payments,
     paymentTypeLabels,
-    typesNoEditables,
+    canEditPaymentRow,
     paymentFields,
+    retiredRowsCount,
     totalsFooter,
     totalByType
 } = useMonthlyPayments()

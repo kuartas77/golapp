@@ -98,6 +98,7 @@ class AttendancePaymentReportExportController extends Controller
                 'Mes' => config("variables.KEY_MONTHS_INDEX.{$row->month}", $row->month),
                 'Asistencias' => $row->total_attendances,
                 'Sesiones registradas' => $row->total_sessions_registered,
+                'Estado inscripción' => $row->inscription_status_label,
                 'Estado mensualidad' => $row->payment_status_label,
                 'Motivo' => $row->flag_reason,
             ];

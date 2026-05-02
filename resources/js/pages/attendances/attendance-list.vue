@@ -89,6 +89,9 @@
                                 Clase: {{ `#${classDaySelected.index} | ${classDaySelected.day} ${classDaySelected.date}` }}
                             </h6>
                         </div>
+                        <div v-if="retiredRowsCount" class="alert alert-warning py-2" role="alert">
+                            Hay {{ retiredRowsCount }} registro(s) con inscripción retirada. Se muestran solo como historial y permanecen en solo lectura.
+                        </div>
                         <div class="row" data-tour="attendance-table">
                             <DataTable :options="options" :data="attendancesGroup" class="table table-bordered table-sm"
                                 id="attendance_table" ref="attendance_table">
@@ -112,6 +115,9 @@
                                                 <div>
                                                     <small>
                                                         {{ props.rowData.inscription.player.full_names }}
+                                                        <span v-if="props.rowData.inscription_deleted" class="badge bg-warning text-dark ms-2">
+                                                            Inscripción retirada
+                                                        </span>
                                                     </small>
                                                     <p>
                                                         <small>
@@ -131,7 +137,7 @@
                                     <select
                                         class="form-select form-select-sm"
                                         :value="props.rowData[classDaySelected.column] ?? ''"
-                                        :disabled="isLoading"
+                                        :disabled="isLoading || attendanceRowReadOnly(props.rowData)"
                                         :id="props.rowData.id"
                                         data-tour="attendance-status-select"
                                         @change="onChangeAttendance(props.rowData, $event.target.value)"
@@ -152,6 +158,7 @@
                                         type="button"
                                         class="badge badge-primary btn btn-sm m-1"
                                         data-tour="attendance-observation-button"
+                                        :disabled="attendanceRowReadOnly(props.rowData)"
                                         @click="onClickOpenModalObservation(props.rowData)"
                                     >
                                         Observación
@@ -204,7 +211,8 @@
                             </label>
                             <span class="bar"></span>
                             <textarea name="observations" id="single_observation" cols="30" rows="10"
-                                class="form-control form-control-sm" v-model="takeAttendance.observation"></textarea>
+                                class="form-control form-control-sm" v-model="takeAttendance.observation"
+                                :disabled="takeAttendance.inscription_deleted"></textarea>
                         </div>
                     </div>
                 </div>
@@ -213,7 +221,7 @@
                     <button type="button" class="btn" @click="onCancelModalObservation">
                         <i class="flaticon-cancel-12"></i> Cerrar
                     </button>
-                    <button type="button" class="btn btn-primary" @click="onSaveModalObservation">
+                    <button type="button" class="btn btn-primary" :disabled="takeAttendance.inscription_deleted" @click="onSaveModalObservation">
                         Guardar
                     </button>
                 </div>
@@ -257,9 +265,11 @@ const {
     classDaySelected,
     attendancesGroup,
     takeAttendance,
+    retiredRowsCount,
     optionsMonths,
     attendanceTypes,
     options,
+    attendanceRowReadOnly,
     handleSearchClassdays,
     clickClassDay,
     onChangeAttendance,

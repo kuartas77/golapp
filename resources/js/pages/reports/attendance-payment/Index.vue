@@ -110,6 +110,10 @@
                                     </div>
                                 </div>
 
+                                <div class="alert alert-warning py-2" role="alert">
+                                    Si una fila aparece con inscripción <strong>Retirada</strong>, el dato se muestra solo con fines históricos.
+                                </div>
+
                                 <div class="table-responsive-sm">
                                     <DatatableTemplate
                                         id="attendance-payment-player-table"

@@ -154,7 +154,7 @@ class Payment extends Model
 
     public function inscription(): BelongsTo
     {
-        return $this->belongsTo(Inscription::class, 'inscription_id', 'id');
+        return $this->belongsTo(Inscription::class, 'inscription_id', 'id')->withTrashed();
     }
 
     public function player(): HasOneThrough

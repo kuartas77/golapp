@@ -30,6 +30,8 @@ class AttendancePaymentReportService
                 r.has_attendance,
                 r.payment_status_code,
                 r.payment_status_label,
+                r.inscription_deleted,
+                r.inscription_status_label,
                 r.is_flagged,
                 r.flag_reason
             ")

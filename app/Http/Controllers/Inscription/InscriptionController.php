@@ -37,10 +37,13 @@ class InscriptionController extends Controller
     {
         abort_unless(isAdmin() || isSchool(), 401);
 
-        $inscription = $this->repository->createInscription(requestData: $request->validated());
+        $result = $this->repository->createInscription(requestData: $request->validated());
 
-        $this->response['success'] = $inscription;
-        $this->response['message'] = $inscription ? __('messages.ins_create_success') : __('messages.ins_create_failure');
+        $this->response['success'] = data_get($result, 'success', false);
+        $this->response['reactivated'] = data_get($result, 'reactivated', false);
+        $this->response['message'] = $this->response['success']
+            ? __('messages.ins_create_success')
+            : __('messages.ins_create_failure');
         return response()->json($this->response);
     }
 

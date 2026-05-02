@@ -5,25 +5,28 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Models\Inscription;
+use App\Models\Payment;
 use App\Models\TrainingGroup;
 use App\Notifications\InscriptionNotification;
-use App\Repositories\PeopleRepository;
+use App\Service\PaymentAmountResolver;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class InscriptionRepository
 {
-    public function __construct(private Inscription $inscription, private PeopleRepository $peopleRepository)
-    {
-    }
+    public function __construct(
+        private Inscription $inscription,
+        private PeopleRepository $peopleRepository,
+        private PaymentAmountResolver $paymentAmountResolver
+    ) {}
 
     /**
-     * @param $id
-     * @param false $trashed
+     * @param  false  $trashed
      */
     public function findById($id, bool $trashed = false): mixed
     {
@@ -36,22 +39,39 @@ class InscriptionRepository
     }
 
     /**
-     * @param bool $created
+     * @param  bool  $created
      */
-    public function createInscription(array $requestData): bool
+    public function createInscription(array $requestData): array
     {
-        $result = false;
+        $result = [
+            'success' => false,
+            'reactivated' => false,
+        ];
+
         try {
             $this->prepareTrainingGroupData($requestData);
             $requestData['deleted_at'] = null;
 
             DB::beginTransaction();
 
-            $inscription = $this->inscription->withTrashed()->updateOrCreate([
-                'unique_code' => $requestData['unique_code'],
-                'year' => $requestData['year'],
-                'school_id' => $requestData['school_id']
-            ], $requestData);
+            $existingInscription = $this->inscription->withTrashed()
+                ->where('unique_code', $requestData['unique_code'])
+                ->where('year', $requestData['year'])
+                ->where('school_id', $requestData['school_id'])
+                ->first();
+
+            if ($existingInscription && ! $existingInscription->trashed()) {
+                throw ValidationException::withMessages([
+                    'unique_code' => 'El deportista ya tiene una inscripción activa para el año seleccionado.',
+                ]);
+            }
+
+            if ($existingInscription?->trashed()) {
+                $inscription = $this->reactivateInscription($existingInscription, $requestData);
+                $result['reactivated'] = true;
+            } else {
+                $inscription = $this->inscription->create($requestData);
+            }
 
             $this->setCompetitionGroupIds($inscription, $requestData);
 
@@ -63,14 +83,36 @@ class InscriptionRepository
 
             DB::commit();
 
-            $result = true;
-
+            $result['success'] = true;
+        } catch (ValidationException $exception) {
+            DB::rollBack();
+            throw $exception;
         } catch (Exception $exception) {
             DB::rollBack();
             report($exception);
         }
 
         return $result;
+    }
+
+    private function reactivateInscription(Inscription $inscription, array $requestData): Inscription
+    {
+        $requestData['start_date'] = $inscription->start_date;
+        $requestData['unique_code'] = $inscription->unique_code;
+        $requestData['deleted_at'] = null;
+
+        $inscription->restore();
+        $inscription->fill($requestData)->save();
+
+        $this->restoreLegacyRelations($inscription);
+        $this->restoreRetiredPendingMonths($inscription);
+        $this->ensureReactivationBaseRecords($inscription);
+
+        return $inscription->fresh([
+            'player',
+            'school',
+            'competitionGroup',
+        ]);
     }
 
     private function prepareTrainingGroupData(array &$requestData): void
@@ -111,7 +153,7 @@ class InscriptionRepository
 
             DB::commit();
 
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             DB::rollBack();
             report($throwable);
             $result = false;
@@ -125,7 +167,7 @@ class InscriptionRepository
      */
     public function getInscriptionsEnabled(): Builder
     {
-        return Inscription::query()->select('inscriptions.*')->with(['player.people', 'trainingGroup' => fn($q) => $q->withTrashed()])
+        return Inscription::query()->select('inscriptions.*')->with(['player.people', 'trainingGroup' => fn ($q) => $q->withTrashed()])
             ->join('players', 'inscriptions.player_id', '=', 'players.id')
             ->inscriptionYear(request('inscription_year'))
             ->schoolId();
@@ -146,7 +188,7 @@ class InscriptionRepository
             ->where('unique_code', $fields['unique_code'])
             ->whereHas(
                 'competitionGroup',
-                fn($q)=> $q->where('competition_group_id', $fields['competition_group_id']), '<=', 0)
+                fn ($q) => $q->where('competition_group_id', $fields['competition_group_id']), '<=', 0)
             ->where('year', now()->year)
             ->schoolId()
             ->first();
@@ -164,13 +206,13 @@ class InscriptionRepository
             $inscription = (clone $query)->find((int) $id);
         }
 
-        if (!$inscription) {
+        if (! $inscription) {
             $inscription = $query
                 ->orderByDesc('id')
                 ->firstWhere('unique_code', (string) $id);
         }
 
-        if (!$inscription) {
+        if (! $inscription) {
             return null;
         }
 
@@ -188,33 +230,174 @@ class InscriptionRepository
             DB::beginTransaction();
             $inscription->load(['payments']);
 
-            foreach($inscription->payments as $payment) {
-                $payment->january = $payment->january == '0' ? '6':$payment->january;
-                $payment->february = $payment->february == '0' ? '6':$payment->february;
-                $payment->march = $payment->march == '0' ? '6':$payment->march;
-                $payment->april = $payment->april == '0' ? '6':$payment->april;
-                $payment->may = $payment->may == '0' ? '6':$payment->may;
-                $payment->june = $payment->june == '0' ? '6':$payment->june;
-                $payment->july = $payment->july == '0' ? '6':$payment->july;
-                $payment->august = $payment->august == '0' ? '6':$payment->august;
-                $payment->september = $payment->september == '0' ? '6':$payment->september;
-                $payment->october = $payment->october == '0' ? '6':$payment->october;
-                $payment->november = $payment->november == '0' ? '6':$payment->november;
-                $payment->december = $payment->december == '0' ? '6':$payment->december;
+            foreach ($inscription->payments as $payment) {
+                $this->markFuturePendingMonthsAsRetired($payment);
                 $payment->save();
             }
 
-            $inscription->payments()->delete();
-            $inscription->skillsControls()->delete();
-            $inscription->assistance()->delete();
-            $inscription->tournament_payouts()->delete();
             $inscription->delete();
             DB::commit();
+
             return true;
         } catch (Throwable $throwable) {
             DB::rollBack();
             report($throwable);
+
             return false;
+        }
+    }
+
+    private function restoreLegacyRelations(Inscription $inscription): void
+    {
+        $year = (int) Carbon::parse($inscription->start_date)->year;
+
+        $inscription->payments()
+            ->withTrashed()
+            ->where('year', $year)
+            ->update([
+                'deleted_at' => null,
+                'training_group_id' => $inscription->training_group_id,
+            ]);
+
+        $inscription->assistance()
+            ->withTrashed()
+            ->where('year', $year)
+            ->update([
+                'deleted_at' => null,
+                'training_group_id' => $inscription->training_group_id,
+            ]);
+
+        $inscription->skillsControls()
+            ->withTrashed()
+            ->update(['deleted_at' => null]);
+    }
+
+    private function ensureReactivationBaseRecords(Inscription $inscription): void
+    {
+        $startDate = Carbon::parse($inscription->start_date);
+        $year = (int) $startDate->year;
+        $month = (int) $startDate->month;
+
+        if (! $inscription->payments()->withTrashed()->where('year', $year)->exists()) {
+            $inscription->loadMissing('school.settingsValues');
+            $inscription->payments()->create($this->buildInitialPaymentData($inscription, $startDate));
+        }
+
+        if (! $inscription->assistance()->withTrashed()->where('year', $year)->where('month', $month)->exists()) {
+            $inscription->assistance()->create([
+                'training_group_id' => $inscription->training_group_id,
+                'year' => $year,
+                'month' => $month,
+                'school_id' => $inscription->school_id,
+            ]);
+        }
+    }
+
+    private function restoreRetiredPendingMonths(Inscription $inscription): void
+    {
+        $year = (int) Carbon::parse($inscription->start_date)->year;
+        $payments = $inscription->payments()->where('year', $year)->get();
+
+        foreach ($payments as $payment) {
+            $shouldSave = false;
+
+            foreach (config('variables.KEY_INDEX_MONTHS', []) as $field) {
+                if ((int) $payment->{$field} !== Payment::$permanent_retirement) {
+                    continue;
+                }
+
+                $payment->{$field} = (string) Payment::$pending;
+                $shouldSave = true;
+            }
+
+            if ($shouldSave) {
+                $payment->save();
+            }
+        }
+    }
+
+    private function buildInitialPaymentData(Inscription $inscription, Carbon $startDate): array
+    {
+        $paymentValue = $inscription->scholarship ? (string) Payment::$scholarship_recipient : (string) Payment::$pending;
+        $dataPayment = [
+            'inscription_id' => $inscription->id,
+            'year' => (int) $startDate->year,
+            'training_group_id' => $inscription->training_group_id,
+            'school_id' => $inscription->school_id,
+            'unique_code' => $inscription->unique_code,
+            'enrollment' => $paymentValue,
+            'january' => $paymentValue,
+            'february' => $paymentValue,
+            'march' => $paymentValue,
+            'april' => $paymentValue,
+            'may' => $paymentValue,
+            'june' => $paymentValue,
+            'july' => $paymentValue,
+            'august' => $paymentValue,
+            'september' => $paymentValue,
+            'october' => $paymentValue,
+            'november' => $paymentValue,
+            'december' => $paymentValue,
+        ];
+
+        if ((int) $startDate->month > 1) {
+            $this->checkMonthValue((int) $startDate->month, $paymentValue, $dataPayment);
+        }
+
+        if (! $inscription->scholarship) {
+            $this->debtMonth($inscription, (int) $startDate->month, $dataPayment);
+        }
+
+        return $dataPayment;
+    }
+
+    private function checkMonthValue(int $actualMonth, string $value, array &$dataPayment): void
+    {
+        foreach (range(1, $actualMonth) as $monthNumber) {
+            $field = config("variables.KEY_INDEX_MONTHS.{$monthNumber}");
+
+            if (! $field) {
+                continue;
+            }
+
+            $dataPayment[$field] = $actualMonth === $monthNumber
+                ? $value
+                : (string) Payment::$no_application;
+        }
+    }
+
+    private function debtMonth(Inscription $inscription, int $actualMonth, array &$dataPayment): void
+    {
+        $inscriptionAmount = data_get($inscription->school->settings, 'INSCRIPTION_AMOUNT', 70000);
+        $monthlyAmount = $this->paymentAmountResolver->monthlyAmountForInscription($inscription);
+        $monthField = config("variables.KEY_INDEX_MONTHS.{$actualMonth}");
+
+        $dataPayment['enrollment'] = (string) Payment::$debt;
+        $dataPayment['enrollment_amount'] = $inscriptionAmount;
+
+        if ($monthField) {
+            $dataPayment[$monthField] = (string) Payment::$debt;
+            $dataPayment["{$monthField}_amount"] = $monthlyAmount;
+        }
+    }
+
+    private function markFuturePendingMonthsAsRetired(Payment $payment): void
+    {
+        $paymentYear = (int) $payment->year;
+        $currentYear = (int) now()->year;
+        $currentMonth = (int) now()->month;
+
+        foreach (config('variables.KEY_INDEX_MONTHS', []) as $monthNumber => $field) {
+            if (
+                $paymentYear < $currentYear
+                || ($paymentYear === $currentYear && (int) $monthNumber <= $currentMonth)
+            ) {
+                continue;
+            }
+
+            if ((int) $payment->{$field} === Payment::$pending) {
+                $payment->{$field} = (string) Payment::$permanent_retirement;
+            }
         }
     }
 
@@ -267,13 +450,13 @@ class InscriptionRepository
                     'period_four' => $inscription->period_four,
                     'scholarship' => $inscription->scholarship,
                     'brother_payment' => $inscription->brother_payment,
-                    'training_group_id' => $trainingGroup->id
+                    'training_group_id' => $trainingGroup->id,
                 ];
 
                 $this->inscription->withTrashed()->updateOrCreate([
                     'unique_code' => $inscriptionData['unique_code'],
                     'year' => $inscriptionData['year'],
-                    'school_id' => $inscriptionData['school_id']
+                    'school_id' => $inscriptionData['school_id'],
                 ], $inscriptionData);
             }
 
@@ -290,14 +473,13 @@ class InscriptionRepository
             ->select([
                 'inscriptions.id',
                 'inscriptions.unique_code',
-                DB::raw("CONCAT(players.names, ' ', players.last_names) as names")
+                DB::raw("CONCAT(players.names, ' ', players.last_names) as names"),
             ])
             ->join('players', 'players.id', '=', 'inscriptions.player_id')
             ->where('inscriptions.year', now()->year)
             ->where('inscriptions.school_id', $schoolId)
             ->where(
-                fn($query) => $query->where('inscriptions.training_group_id', $trainingGroupId)
+                fn ($query) => $query->where('inscriptions.training_group_id', $trainingGroupId)
                     ->orWhere('inscriptions.pre_inscription', 1));
     }
-
 }

@@ -18,6 +18,8 @@ use Throwable;
 
 class PaymentRepository
 {
+    public const RETIRED_INSCRIPTION_MESSAGE = 'La inscripción está retirada; reactívala antes de modificar pagos o asistencias.';
+
     public function __construct(
         private Payment $payment,
         private PaymentAmountResolver $paymentAmountResolver
@@ -150,21 +152,27 @@ class PaymentRepository
         $training_group_id = data_get($params, 'training_group_id', 0);
         $paymentStatus = $this->normalizePaymentStatus(data_get($params, 'status'));
 
-        $query = $this->payment->where('school_id', $school_id)
-        ->when($raw,
-            fn($q) => $q->with(['player']),
-            fn($q) => $q->with(['inscription' => fn($query) => $query->with(['player'])->withTrashed()])->withTrashed()
-        );
+        $query = $this->payment->query()
+            ->where('school_id', $school_id)
+            ->with(['inscription' => fn ($query) => $query->with(['player'])->withTrashed()])
+            ->when($deleted, fn ($q) => $q->withTrashed(), fn ($q) => $q->whereNull('payments.deleted_at'));
 
         $query
             ->addSelect([
-                'category' => Inscription::query()->select('category')->whereColumn('inscriptions.id', 'inscription_id')->where('year', $year)->take(1)
+                'category' => Inscription::withTrashed()
+                    ->select('category')
+                    ->whereColumn('inscriptions.id', 'payments.inscription_id')
+                    ->where('year', $year)
+                    ->take(1)
             ])
             ->where('year', $year)
-            ->whereHas('player')
+            ->whereHas('inscription.player')
+            ->whereHas('inscription', fn ($inscriptionQuery) => $inscriptionQuery->where('year', $year))
             ->when($unique_code, fn($q) => $q->where('unique_code', $unique_code))
             ->when($training_group_id != 0, fn($q) => $q->where('training_group_id', $training_group_id))
-            ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', $year)->where('category', $category)->withTrashed()))
+            ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription
+                ->where('year', $year)
+                ->where('category', $category)))
             ->when($paymentStatus != null, fn($q)=> $q->ByPaymentStatus($paymentStatus))
             ->orderByRaw("CAST(SUBSTRING_INDEX(category, '-', -1) AS UNSIGNED) ASC");
 
@@ -180,23 +188,36 @@ class PaymentRepository
         $training_group_id = data_get($params, 'training_group_id', 0);
         $paymentStatus = $this->normalizePaymentStatus(data_get($params, 'status'));
 
-        return $this->payment->addSelect([
-            'category' => Inscription::query()->select('category')->whereColumn('inscriptions.id', 'inscription_id')->where('year', $year)->take(1)
-        ])
-        ->where('school_id', $school_id)
-        ->where('year', $year)
-        ->when($unique_code, fn($q) => $q->where('unique_code', $unique_code))
-        ->when($training_group_id != 0, fn($q) => $q->where('training_group_id', $training_group_id))
-        ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription->where('year', $year)->where('category', $category)->withTrashed()))
-        ->when($paymentStatus != null, fn($q)=> $q->ByPaymentStatus($paymentStatus))
-        ->withTrashed()
-        ->orderBy('inscription_id', 'asc');
+        return $this->payment->query()
+            ->addSelect([
+                'category' => Inscription::withTrashed()
+                    ->select('category')
+                    ->whereColumn('inscriptions.id', 'payments.inscription_id')
+                    ->where('year', $year)
+                    ->take(1)
+            ])
+            ->where('school_id', $school_id)
+            ->where('year', $year)
+            ->whereHas('inscription.player')
+            ->whereHas('inscription', fn ($inscriptionQuery) => $inscriptionQuery->where('year', $year))
+            ->when($unique_code, fn($q) => $q->where('unique_code', $unique_code))
+            ->when($training_group_id != 0, fn($q) => $q->where('training_group_id', $training_group_id))
+            ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription
+                ->where('year', $year)
+                ->where('category', $category)))
+            ->when($paymentStatus != null, fn($q)=> $q->ByPaymentStatus($paymentStatus))
+            ->when($deleted, fn ($q) => $q->withTrashed(), fn ($q) => $q->whereNull('payments.deleted_at'))
+            ->orderBy('inscription_id', 'asc');
     }
 
     public function setPay(array $values, Payment $payment): bool
     {
         $isPay = false;
         try {
+            if ($this->paymentBelongsToDeletedInscription($payment)) {
+                return false;
+            }
+
             DB::beginTransaction();
             $normalizedValues = $this->normalizePaymentUpdate($payment, $values);
             $isPay = $payment->fill($normalizedValues)->save();
@@ -389,18 +410,38 @@ class PaymentRepository
     private function decoratePayments(Collection $payments): Collection
     {
         $payments->loadMissing([
+            'inscription.player',
             'inscription.school.settingsValues',
             'school.settingsValues',
         ]);
 
         return $payments->map(function (Payment $payment) {
+            $inscription = $payment->inscription;
+            $player = $inscription?->player;
+
+            if ($player) {
+                $payment->setRelation('player', $player);
+            }
+
             $payment->setAttribute(
                 'default_monthly_amount',
                 $this->paymentAmountResolver->monthlyAmountForPayment($payment)
             );
+            $payment->setAttribute('inscription_deleted', (bool) $inscription?->trashed());
+            $payment->setAttribute(
+                'inscription_status_label',
+                $inscription?->trashed() ? 'Retirada' : 'Activa'
+            );
 
             return $payment;
         });
+    }
+
+    public function paymentBelongsToDeletedInscription(Payment $payment): bool
+    {
+        $payment->loadMissing('inscription');
+
+        return (bool) $payment->inscription?->trashed();
     }
 
     private function defaultAmountForField(string $field, array $defaults): int

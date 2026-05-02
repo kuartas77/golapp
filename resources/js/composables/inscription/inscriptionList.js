@@ -7,6 +7,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
     const router = useRouter()
     const inscription_table = useTemplateRef('inscription_table')
     const selectedInscriptionId = ref(null)
+    const isCreateModalOpen = ref(false)
     const selectedAttendanceQrCode = ref(null)
     const disableUrlSelected = ref(null)
     const currentYear = new Date().getFullYear()
@@ -211,6 +212,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         e.preventDefault()
         switch (type) {
             case 'edit':
+                isCreateModalOpen.value = false
                 selectedInscriptionId.value = Number(itemId)
                 break;
             case 'attendance-qr':
@@ -231,6 +233,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
 
     const onCancelModal = () => {
         selectedInscriptionId.value = null
+        isCreateModalOpen.value = false
         disableUrlSelected.value = null
     }
 
@@ -242,14 +245,20 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
 
     const onSuccessModal = () => {
         selectedInscriptionId.value = null
+        isCreateModalOpen.value = false
         disableUrlSelected.value = null
         reloadTable()
+    }
+
+    const triggerCreateModal = () => {
+        selectedInscriptionId.value = null
+        isCreateModalOpen.value = true
     }
 
     const confirmDisable = async () => {
         Swal.fire({
             title: "¿Retirar inscripción?",
-            text: "¡Despues de esto sí lo necesitas, sólo inscribelo de nuevo!",
+            text: "Se retirará la inscripción, pero el historial de pagos y asistencias se conservará. Si regresa este año, podrás reactivarla.",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#3085d6",
@@ -285,7 +294,9 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         inscription_table,
         reloadTable,
         selectedInscriptionId,
+        isCreateModalOpen,
         selectedAttendanceQrCode,
+        triggerCreateModal,
         onGroupFilterChange,
         onCategoryFilterChange,
         resolveRouteFromClick,

@@ -21,6 +21,7 @@ class AssistRepository
 {
     use ErrorTrait;
     use PDFTrait;
+    public const RETIRED_INSCRIPTION_MESSAGE = 'La inscripción está retirada; reactívala antes de modificar pagos o asistencias.';
     protected AssistService $service;
 
     public function __construct(protected Assist $assist)
@@ -44,7 +45,7 @@ class AssistRepository
             ->when($deleted, fn($q) => $q->onlyTrashedRelations())->findOrFail($params['training_group_id']);
 
         $assists = $this->assist->schoolId()
-            ->with('inscription:id,player_id,category', 'inscription.player:id,names,last_names,unique_code,category')
+            ->with('inscription:id,player_id,category,deleted_at', 'inscription.player:id,names,last_names,unique_code,category')
             ->when($deleted, fn($q) => $q->withTrashed())
             ->where([
                 ['training_group_id', $params['training_group_id']],
@@ -110,6 +111,15 @@ class AssistRepository
             if(is_null($assistDto->value)) {
                 return true;
             }
+
+            $inscription = Inscription::withTrashed()
+                ->schoolId()
+                ->find($assistDto->inscription_id);
+
+            if ($this->inscriptionIsDeleted($inscription)) {
+                return false;
+            }
+
             DB::beginTransaction();
 
             $assist = Assist::query()
@@ -121,6 +131,10 @@ class AssistRepository
                 ->first();
 
             if($assist) {
+                if ($this->assistBelongsToDeletedInscription($assist)) {
+                    DB::rollBack();
+                    return false;
+                }
 
                 $assist->{$assistDto->column} = $assistDto->value;
 
@@ -156,6 +170,9 @@ class AssistRepository
     public function update(Assist $assist, array $validated): bool
     {
         try {
+            if ($this->assistBelongsToDeletedInscription($assist)) {
+                return false;
+            }
 
             DB::beginTransaction();
             if ($assist->observations || (isset($validated['observations'], $validated['attendance_date']))) {
@@ -181,6 +198,27 @@ class AssistRepository
             ]);
             return false;
         }
+    }
+
+    public function assistBelongsToDeletedInscription(Assist $assist): bool
+    {
+        $assist->loadMissing('inscription');
+
+        return $this->inscriptionIsDeleted($assist->inscription);
+    }
+
+    public function inscriptionBelongsToDeletedRecord(int $inscriptionId): bool
+    {
+        $inscription = Inscription::withTrashed()
+            ->schoolId()
+            ->find($inscriptionId);
+
+        return $this->inscriptionIsDeleted($inscription);
+    }
+
+    private function inscriptionIsDeleted(?Inscription $inscription): bool
+    {
+        return (bool) $inscription?->trashed();
     }
 
     public static function createAssistBulk(SupportCollection $supportCollection, Builder $builder, array $dataAssist, int $school_id): void

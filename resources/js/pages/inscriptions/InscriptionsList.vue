@@ -24,6 +24,13 @@
                             Exportar Excel
                         </a>
                     </div>
+
+                    <div v-if="canManageSelectedYear" class="col-sm-auto px-0">
+                        <button type="button" class="btn btn-primary btn-sm" @click="triggerCreateModal">
+                            <i class="fa fa-plus me-2"></i>
+                            Nueva inscripción
+                        </button>
+                    </div>
                 </div>
 
                 <div class="d-flex justify-content-start justify-content-lg-end">
@@ -85,7 +92,12 @@
         </template>
     </panel>
 
-    <ModalInscription :inscription_id="selectedInscriptionId" @success="onSuccessModal" @cancel="onCancelModal"/>
+    <ModalInscription
+        :inscription_id="selectedInscriptionId"
+        :create_open="isCreateModalOpen"
+        :selected_year="selectedYear"
+        @success="onSuccessModal"
+        @cancel="onCancelModal"/>
     <AttendanceQrModal
         v-if="selectedAttendanceQrCode"
         :model-value="Boolean(selectedAttendanceQrCode)"
@@ -123,12 +135,15 @@ const yearOptions = computed(() => settings.inscription_years || [])
 const canExportInscriptions = computed(() => auth.hasAnyRole(['super-admin', 'school']))
 const selectedYear = ref(String(route.query.inscription_year || currentYear))
 const exportExcelUrl = computed(() => `/export/inscriptions/excel?inscription_year=${encodeURIComponent(selectedYear.value || currentYear)}`)
+const canManageSelectedYear = computed(() => canExportInscriptions.value && Number(selectedYear.value || currentYear) >= Number(currentYear))
 const {
     inscription_table,
     options,
     reloadTable,
     selectedInscriptionId,
+    isCreateModalOpen,
     selectedAttendanceQrCode,
+    triggerCreateModal,
     onGroupFilterChange,
     onCategoryFilterChange,
     resolveRouteFromClick,

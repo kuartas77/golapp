@@ -64,6 +64,7 @@ export default function useMonthlyPayments() {
         12: 'december',
     }
     const paymentFieldNames = Object.values(paymentFields)
+    const retiredRowsCount = computed(() => groupPayments.value.filter((payPlayer) => Boolean(payPlayer.inscription_deleted)).length)
 
     const handleSearch = async (values, actions) => {
         try {
@@ -111,9 +112,18 @@ export default function useMonthlyPayments() {
     }
 
     const editRow = (payPlayer, field) => {
+        if (payPlayer.inscription_deleted) {
+            showMessage('La inscripción está retirada; reactívala antes de modificar pagos.', 'warning')
+            return
+        }
+
         editingCell.value = { payPlayer, field }
         backupCell.value = cloneDeep(toRaw(payPlayer));
     };
+
+    const canEditPaymentRow = (payPlayer, field) => {
+        return !payPlayer.inscription_deleted && !typesNoEditables.some((type) => type === payPlayer[field])
+    }
 
     const cancelEdition = () => {
         if (!backupCell.value) {
@@ -389,7 +399,9 @@ export default function useMonthlyPayments() {
         type_payments,
         paymentTypeLabels,
         typesNoEditables,
+        canEditPaymentRow,
         paymentFields,
+        retiredRowsCount,
         totalsFooter,
         totalByType,
     }

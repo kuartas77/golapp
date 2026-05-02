@@ -38,9 +38,9 @@ switch($value){
         $class = '';
     break;
 }
-$class = ($deleted||$isdeleted) ? '': $class;
+$class = ($deleted||$isdeleted||($isInscriptionDeleted ?? false)) ? '': $class;
 @endphp
 {!! html()->select($mes,
     config('variables.KEY_PAYMENTS_SELECT'),
     $value)
-    ->attributes(['class' => "form-control form-control-sm payments $class", 'data-id' => $iteration, 'id' => "$mes$id", ($deleted || isInstructor() || $isdeleted) ? 'disabled' : ''])->placeholder('Selecciona...') !!}
+    ->attributes(['class' => "form-control form-control-sm payments $class", 'data-id' => $iteration, 'id' => "$mes$id", ($deleted || isInstructor() || $isdeleted || ($isInscriptionDeleted ?? false)) ? 'disabled' : ''])->placeholder('Selecciona...') !!}

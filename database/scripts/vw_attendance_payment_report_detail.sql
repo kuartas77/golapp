@@ -11,6 +11,14 @@ SELECT
     p.status_code AS payment_status_code,
     COALESCE(p.status_label, 'Sin registro') AS payment_status_label,
     CASE
+        WHEN i.deleted_at IS NOT NULL THEN 1
+        ELSE 0
+    END AS inscription_deleted,
+    CASE
+        WHEN i.deleted_at IS NOT NULL THEN 'Retirada'
+        ELSE 'Activa'
+    END AS inscription_status_label,
+    CASE
         WHEN a.total_attendances > 0 THEN 1
         ELSE 0
     END AS has_attendance,
@@ -29,6 +37,8 @@ SELECT
         ELSE NULL
     END AS flag_reason
 FROM vw_attendance_monthly_report_detail a
+LEFT JOIN inscriptions i
+    ON i.id = a.inscription_id
 LEFT JOIN vw_payments_report_detail p
     ON p.school_id = a.school_id
     AND p.training_group_id = a.training_group_id

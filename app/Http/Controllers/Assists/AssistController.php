@@ -102,6 +102,15 @@ class AssistController extends Controller
             404
         );
 
+        if ($this->repository->assistBelongsToDeletedInscription($assist)) {
+            return response()->json([
+                'message' => AssistRepository::RETIRED_INSCRIPTION_MESSAGE,
+                'errors' => [
+                    'assist' => [AssistRepository::RETIRED_INSCRIPTION_MESSAGE],
+                ],
+            ], 422);
+        }
+
         return response()->json($this->repository->update($assist, $request->validated()));
     }
 }

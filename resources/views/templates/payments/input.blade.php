@@ -4,4 +4,4 @@
     name="{{$mes}}_amount"
     value="{{$value}}"
     class="form-control form-control-sm payments_amount"
-    {{($deleted || isInstructor() || $isdeleted) ? 'disabled' : ''}}>
+    {{($deleted || isInstructor() || $isdeleted || ($isInscriptionDeleted ?? false)) ? 'disabled' : ''}}>

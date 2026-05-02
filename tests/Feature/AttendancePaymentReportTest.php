@@ -348,7 +348,15 @@ final class AttendancePaymentReportTest extends TestCase
                     WHEN x.payment_status_code = 3 THEN 'Asistió con mensualidad en abono'
                     WHEN x.payment_status_code = 13 THEN 'Asistió con acuerdo de pago'
                     ELSE NULL
-                END AS flag_reason
+                END AS flag_reason,
+                CASE
+                    WHEN i.deleted_at IS NOT NULL THEN 1
+                    ELSE 0
+                END AS inscription_deleted,
+                CASE
+                    WHEN i.deleted_at IS NOT NULL THEN 'Retirada'
+                    ELSE 'Activa'
+                END AS inscription_status_label
             FROM (
                 SELECT
                     a.school_id,
@@ -380,6 +388,8 @@ final class AttendancePaymentReportTest extends TestCase
                     AND p.year = a.year
                     AND p.deleted_at IS NULL
             ) x
+            LEFT JOIN inscriptions i
+                ON i.id = x.inscription_id
         ");
     }
 }

@@ -42,7 +42,7 @@ import ModalInscription from '@/pages/inscriptions/ModalInscription.vue';
 
 const wrappers = [];
 
-const mountModal = async (props = { inscription_id: null }) => {
+const mountModal = async (props = { inscription_id: null, create_open: false, selected_year: 2026 }) => {
     const bootstrapModal = {
         show: vi.fn(),
         hide: vi.fn(),
@@ -121,6 +121,8 @@ const mountModal = async (props = { inscription_id: null }) => {
     await flushPromises();
     await flushPromises();
 
+    wrapper.__bootstrapModal = bootstrapModal;
+
     return wrapper;
 };
 
@@ -151,5 +153,59 @@ describe('ModalInscription', () => {
         expect(handleChange).toHaveBeenNthCalledWith(1, true);
         expect(handleChange).toHaveBeenNthCalledWith(2, false);
         expect(currentPreInscription).toBe(false);
+    });
+
+    it('opens explicitly in create mode', async () => {
+        const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2027 });
+
+        await wrapper.setProps({ create_open: true });
+        await flushPromises();
+
+        expect(wrapper.__bootstrapModal.show).toHaveBeenCalled();
+        expect(wrapper.vm.$.setupState.isEditing).toBe(false);
+    });
+
+    it('marks the form as a reactivation when search_unique_code returns a retired inscription', async () => {
+        const wrapper = await mountModal({ inscription_id: null, create_open: true, selected_year: 2026 });
+
+        apiMock.get.mockImplementation((url) => {
+            if (url === '/api/v2/autocomplete/search_unique_code?unique=true') {
+                return Promise.resolve({
+                    data: {
+                        data: {
+                            id: 25,
+                            full_names: 'Jugador Reactivado',
+                            reactivation_inscription: {
+                                id: 7,
+                                start_date: '2026-02-01',
+                                training_group_id: 2,
+                                competition_groups: [],
+                                scholarship: true,
+                                brother_payment: true,
+                                pre_inscription: true,
+                                photos: true,
+                                copy_identification_document: true,
+                                eps_certificate: false,
+                                medic_certificate: true,
+                                study_certificate: false,
+                            },
+                        },
+                    },
+                });
+            }
+
+            if (url === '/api/v2/autocomplete/list_code_unique?trashed=true') {
+                return Promise.resolve({ data: { data: [] } });
+            }
+
+            return Promise.reject(new Error(`Unexpected GET ${url}`));
+        });
+
+        await wrapper.vm.$.setupState.onChangeCode('ABC123');
+        await flushPromises();
+
+        expect(wrapper.vm.$.setupState.isReactivationMode).toBe(true);
+        expect(wrapper.text()).toContain('Se reactivará una inscripción retirada');
+        expect(wrapper.find('#start_date').element.value).toBe('2026-02-01');
     });
 });

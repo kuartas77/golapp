@@ -58,7 +58,7 @@ class AssistExportService
             $assists = Assist::query()->schoolId()->with(['inscription.player'])->where([
                 'training_group_id' => $params['training_group_id'],
                 'month' => $params['month'], 'year' => $params['year']
-            ])->get();
+            ])->whereHas('inscription', fn ($query) => $query->whereNull('inscriptions.deleted_at'))->get();
         }
 
         $classDays = classDays(

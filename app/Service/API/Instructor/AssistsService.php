@@ -14,6 +14,7 @@ class AssistsService
             ->where('training_group_id', $params['training_group_id'])
             ->where('month', $params['month'])
             ->where('year', $params['year'])
+            ->whereHas('inscription', fn ($query) => $query->whereNull('inscriptions.deleted_at'))
             ->get();
     }
 }

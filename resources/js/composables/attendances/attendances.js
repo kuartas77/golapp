@@ -38,6 +38,7 @@ export default function useAttendances() {
     const classDaySelected = ref(null)
     const attendancesGroup = ref([])
     const takeAttendance = ref(null)
+    const retiredRowsCount = computed(() => attendancesGroup.value.filter((row) => Boolean(row.inscription_deleted)).length)
 
     const optionsMonths = [
         { value: 1, label: "Enero" },
@@ -113,6 +114,8 @@ export default function useAttendances() {
         ]
     }
 
+    const attendanceRowReadOnly = (row) => Boolean(row?.inscription_deleted)
+
     const buildAttendanceDate = () => {
         if (!classDaySelected.value) return null
 
@@ -126,6 +129,18 @@ export default function useAttendances() {
     const normalizeAttendanceValue = (value) => {
         if (value === '' || value === null || value === undefined) return null
         return Number(value)
+    }
+
+    const getAssistErrorMessage = (error) => {
+        const backendErrors = error.response?.data?.errors
+        if (backendErrors) {
+            const firstError = Object.values(backendErrors).flat()[0]
+            if (firstError) {
+                return firstError
+            }
+        }
+
+        return error.response?.data?.message || 'No fue posible actualizar la asistencia.'
     }
 
     const handleSearchClassdays = async (values, actions = null) => {
@@ -207,6 +222,11 @@ export default function useAttendances() {
     }
 
     const onChangeAttendance = async (row, selectedValue) => {
+        if (attendanceRowReadOnly(row)) {
+            showMessage('La inscripción está retirada; reactívala antes de modificar asistencias.', 'warning')
+            return
+        }
+
         const previousValue = row[classDaySelected.value.column]
         const normalizedValue = normalizeAttendanceValue(selectedValue)
 
@@ -230,11 +250,16 @@ export default function useAttendances() {
             }
         } catch (error) {
             row[classDaySelected.value.column] = previousValue
-            showMessage("Algo salió mal", 'error')
+            showMessage(getAssistErrorMessage(error), 'error')
         }
     }
 
     const onClickOpenModalObservation = async (row) => {
+        if (attendanceRowReadOnly(row)) {
+            showMessage('La inscripción está retirada; reactívala antes de modificar asistencias.', 'warning')
+            return
+        }
+
         try {
             isLoading.value = true
             takeAttendance.value = null
@@ -248,7 +273,10 @@ export default function useAttendances() {
             })
 
             if (response?.data) {
-                takeAttendance.value = response.data
+                takeAttendance.value = {
+                    ...response.data,
+                    inscription_deleted: Boolean(row.inscription_deleted),
+                }
                 composeModalObservation.value.show()
             } else {
                 showMessage("Algo salió mal", 'error')
@@ -268,6 +296,11 @@ export default function useAttendances() {
     }
 
     const onSaveModalObservation = async () => {
+        if (takeAttendance.value?.inscription_deleted) {
+            showMessage('La inscripción está retirada; reactívala antes de modificar asistencias.', 'warning')
+            return
+        }
+
         try {
             const data = {
                 _method: 'PUT',
@@ -286,7 +319,7 @@ export default function useAttendances() {
                 showMessage("Algo salió mal", 'error')
             }
         } catch (error) {
-            showMessage("Algo salió mal", 'error')
+            showMessage(getAssistErrorMessage(error), 'error')
         } finally {
             takeAttendance.value = null
             modalHidden()
@@ -323,9 +356,11 @@ export default function useAttendances() {
         classDaySelected,
         attendancesGroup,
         takeAttendance,
+        retiredRowsCount,
         optionsMonths,
         attendanceTypes,
         options,
+        attendanceRowReadOnly,
         handleSearchClassdays,
         clickClassDay,
         onChangeAttendance,

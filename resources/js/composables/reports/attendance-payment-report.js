@@ -91,6 +91,7 @@ export default function useAttendancePaymentReport() {
         { data: 'month', name: 'month', title: 'Mes' },
         { data: 'total_attendances', name: 'total_attendances', title: 'Asistencias' },
         { data: 'total_sessions_registered', name: 'total_sessions_registered', title: 'Sesiones registradas' },
+        { data: 'inscription_status_label', name: 'inscription_status_label', title: 'Inscripción' },
         // { data: 'payment_status_label', name: 'payment_status_label', title: 'Estado mensualidad' },
         { data: 'flag_reason', name: 'flag_reason', title: 'Motivo' },
     ]

@@ -77,13 +77,15 @@ class KpiDashboardService
 
     private function buildFilterMetadata(int $schoolId): array
     {
-        $paymentYears = Payment::withTrashed()
+        $paymentYears = Payment::query()
             ->where('school_id', $schoolId)
+            ->whereHas('inscription', fn ($query) => $query->whereNull('inscriptions.deleted_at'))
             ->distinct()
             ->pluck('year');
 
         $assistYears = Assist::query()
             ->where('school_id', $schoolId)
+            ->whereHas('inscription', fn ($query) => $query->whereNull('inscriptions.deleted_at'))
             ->distinct()
             ->pluck('year');
 
@@ -253,9 +255,10 @@ class KpiDashboardService
         ?int $selectedGroupId,
         Collection $groupCatalog
     ): array {
-        $payments = Payment::withTrashed()
+        $payments = Payment::query()
             ->where('school_id', $schoolId)
             ->where('year', $year)
+            ->whereHas('inscription', fn ($query) => $query->whereNull('inscriptions.deleted_at'))
             ->when(
                 $selectedGroupId,
                 fn ($query, $groupId) => $query->where('training_group_id', $groupId),
@@ -343,11 +346,22 @@ class KpiDashboardService
                     $groupRows[$groupId]['monthly_payments_scholarship']++;
                 }
 
-                if (in_array($status, [Payment::$disability, Payment::$no_application], true)) {
+                if (in_array($status, [
+                    Payment::$disability,
+                    Payment::$no_application,
+                    Payment::$temporary_retirement,
+                    Payment::$permanent_retirement,
+                ], true)) {
                     $groupRows[$groupId]['monthly_payments_others']++;
                 }
 
-                if (! in_array($status, [Payment::$disability, Payment::$no_application, Payment::$scholarship_recipient], true)) {
+                if (! in_array($status, [
+                    Payment::$disability,
+                    Payment::$no_application,
+                    Payment::$scholarship_recipient,
+                    Payment::$temporary_retirement,
+                    Payment::$permanent_retirement,
+                ], true)) {
                     $groupRows[$groupId]['compliance_denominator']++;
                     $summary['compliance_denominator']++;
                 }
@@ -475,6 +489,7 @@ class KpiDashboardService
             ->where('school_id', $schoolId)
             ->where('year', $year)
             ->where('month', $month)
+            ->whereHas('inscription', fn ($query) => $query->whereNull('inscriptions.deleted_at'))
             ->when(
                 $selectedGroupId,
                 fn ($query, $groupId) => $query->where('training_group_id', $groupId),
@@ -484,9 +499,10 @@ class KpiDashboardService
             )
             ->get();
 
-        $payments = Payment::withTrashed()
+        $payments = Payment::query()
             ->where('school_id', $schoolId)
             ->where('year', $year)
+            ->whereHas('inscription', fn ($query) => $query->whereNull('inscriptions.deleted_at'))
             ->when(
                 $selectedGroupId,
                 fn ($query, $groupId) => $query->where('training_group_id', $groupId),
@@ -574,6 +590,7 @@ class KpiDashboardService
             ->where('school_id', $schoolId)
             ->where('year', $year)
             ->where('month', $month)
+            ->whereHas('inscription', fn ($query) => $query->whereNull('inscriptions.deleted_at'))
             ->when(
                 $selectedGroupId,
                 fn ($query, $groupId) => $query->where('training_group_id', $groupId),
@@ -775,8 +792,6 @@ class KpiDashboardService
             Payment::$paid_deposit,
             Payment::$annuity_payment_deposit,
             Payment::$annuity_payment_cash,
-            Payment::$temporary_retirement,
-            Payment::$permanent_retirement,
         ], true);
     }
 

@@ -1,3 +1,6 @@
+@php
+    $inscriptionDeleted = (bool) optional($assist->inscription)->trashed();
+@endphp
 <tr>
     <input type='hidden' name='id' value="{{$assist->id}}">
     <td class="text-center">
@@ -7,6 +10,10 @@
             <img class='media-object img-rounded' src='{{$assist->inscription->player->photo_url}}' width='90' height='60'>
             <br>
             <small>{{$assist->inscription->player->full_names}}</small>
+            @if($inscriptionDeleted)
+                <br>
+                <small class="badge badge-warning">Inscripción retirada</small>
+            @endif
         </a>
     </td>
     @if(is_null($column))
@@ -18,11 +25,12 @@
                 'index' => $index ,
                 'value' => $assist->$column,
                 'column' => $column,
-                'deleted' => $deleted
+                'deleted' => $deleted,
+                'inscriptionDeleted' => $inscriptionDeleted,
             ])
         </td>
         <td class="text-center">
-            @if(!$deleted)
+            @if(!$deleted && !$inscriptionDeleted)
             <button type='button' class='btn btn-primary observation' data-toggle='modal' data-target='#modal_observation'
                 data-id="{{$assist->id}}">Observaciónes
             </button>
@@ -36,6 +44,7 @@
                 'value' => $assist->$column,
                 'column' => $column,
                 'deleted' => $deleted,
+                'inscriptionDeleted' => $inscriptionDeleted,
             ])
         </td>
         {{--<td class="text-center">
@@ -50,7 +59,7 @@
             ])
         </td>--}}
         <td class="text-center">
-            @if(!$deleted)
+            @if(!$deleted && !$inscriptionDeleted)
             @php
             $classDay = $classDays->firstWhere('column', $column)
             @endphp

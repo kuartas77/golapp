@@ -1,3 +1,6 @@
+@php
+    $inscriptionDeleted = (bool) optional($payment->inscription)->trashed();
+@endphp
 <tr>
     <td class="text-center">
         <small>{{$payment->year}}</small>
@@ -6,6 +9,10 @@
             <small>{{ $payment->unique_code }}</small>
             <br>
             <small>{{ $payment->inscription->player->full_names }}</small>
+            @if($inscriptionDeleted)
+                <br>
+                <small class="badge badge-warning">Inscripción retirada</small>
+            @endif
             <input type="hidden" name="id" value="{{$payment->id}}">
         </a>
     </td>
@@ -19,8 +26,8 @@
     @else
         @foreach($nameFields as $field)
         <td>
-            @include('templates.payments.input', ['mes' => $field, 'value' => checkValueEnrollment($payment, $field, $field === 'enrollment' ? $inscription_amount : $payment->default_monthly_amount), 'deleted' => $deleted, 'isdeleted' => isset($payment->deleted_at)])
-            @include('templates.payments.select', ['mes' => $field, 'value' => $payment->$field, 'deleted' => $deleted, 'id' => $payment->id , 'iteration' => $loop->iteration, 'isdeleted' => isset($payment->deleted_at)])
+            @include('templates.payments.input', ['mes' => $field, 'value' => checkValueEnrollment($payment, $field, $field === 'enrollment' ? $inscription_amount : $payment->default_monthly_amount), 'deleted' => $deleted, 'isdeleted' => isset($payment->deleted_at), 'isInscriptionDeleted' => $inscriptionDeleted])
+            @include('templates.payments.select', ['mes' => $field, 'value' => $payment->$field, 'deleted' => $deleted, 'id' => $payment->id , 'iteration' => $loop->iteration, 'isdeleted' => isset($payment->deleted_at), 'isInscriptionDeleted' => $inscriptionDeleted])
         </td>
         @endforeach
     @endif

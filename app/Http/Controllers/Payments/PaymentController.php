@@ -47,7 +47,19 @@ class PaymentController extends Controller
     public function show($id, Request $request)
     {
         abort_unless($request->ajax(), 401);
-        $payment = Payment::query()->with(['player'])->withTrashed()->whereHas('player')->find($id);
+        $payment = Payment::query()
+            ->with(['inscription.player'])
+            ->withTrashed()
+            ->whereHas('inscription.player')
+            ->find($id);
+
+        if ($payment?->inscription?->player) {
+            $payment->setRelation('player', $payment->inscription->player);
+        }
+
+        $payment?->setAttribute('inscription_deleted', (bool) $payment?->inscription?->trashed());
+        $payment?->setAttribute('inscription_status_label', $payment?->inscription?->trashed() ? 'Retirada' : 'Activa');
+
         return $this->responseJson($payment);
     }
 
@@ -60,16 +72,33 @@ class PaymentController extends Controller
     {
         abort_unless($request->ajax(), 401);
         $payment = Payment::withTrashed()->findOrFail($id);
+
+        if ($this->repository->paymentBelongsToDeletedInscription($payment)) {
+            return response()->json([
+                'message' => PaymentRepository::RETIRED_INSCRIPTION_MESSAGE,
+                'errors' => [
+                    'payment' => [PaymentRepository::RETIRED_INSCRIPTION_MESSAGE],
+                ],
+            ], 422);
+        }
+
         $isPay = $this->repository->setPay($request->validated(), $payment);
         if (!$isPay) {
             return $this->responseJson(false);
         }
 
         $payment = Payment::query()
-            ->with(['player'])
+            ->with(['inscription.player'])
             ->withTrashed()
-            ->whereHas('player')
+            ->whereHas('inscription.player')
             ->findOrFail($id);
+
+        if ($payment->inscription?->player) {
+            $payment->setRelation('player', $payment->inscription->player);
+        }
+
+        $payment->setAttribute('inscription_deleted', (bool) $payment->inscription?->trashed());
+        $payment->setAttribute('inscription_status_label', $payment->inscription?->trashed() ? 'Retirada' : 'Activa');
 
         return $this->responseJson($payment);
     }

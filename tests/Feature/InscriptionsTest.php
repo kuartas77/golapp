@@ -4,37 +4,32 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use Carbon\Carbon;
-use Tests\TestCase;
 use App\Mail\ErrorLog;
+use App\Models\Assist;
 use App\Models\CompetitionGroup;
 use App\Models\Inscription;
 use App\Models\Payment;
 use App\Models\Player;
 use App\Models\School;
 use App\Models\Setting;
-use App\Models\TrainingGroup;
 use App\Models\Tournament;
-use Mockery\MockInterface;
-use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Queue;
-use App\Repositories\InscriptionRepository;
-use Illuminate\Support\Facades\Notification;
+use App\Models\TrainingGroup;
 use App\Notifications\InscriptionNotification;
-use Symfony\Component\HttpFoundation\Response as HttpResponse;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
+use Tests\TestCase;
 
 final class InscriptionsTest extends TestCase
 {
-
-    public function testPlayerValidateForm(): void
+    public function test_player_validate_form(): void
     {
         $this->actingAs($this->user);
         $testResponse = $this->post(route('inscriptions.store'));
         $testResponse->assertStatus(302);
     }
 
-    public function testCreateInscription(): void
+    public function test_create_inscription(): void
     {
         Mail::fake();
         Notification::fake();
@@ -61,7 +56,7 @@ final class InscriptionsTest extends TestCase
         $this->assertDatabaseHas('inscriptions', ['player_id' => $player->id]);
     }
 
-    public function testCreateInscriptionWithBrotherPaymentUsesBrotherMonthlyAmount(): void
+    public function test_create_inscription_with_brother_payment_uses_brother_monthly_amount(): void
     {
         Mail::fake();
         Notification::fake();
@@ -89,7 +84,7 @@ final class InscriptionsTest extends TestCase
         $this->assertSame(65000, (int) $payment->{"{$monthField}_amount"});
     }
 
-    public function testCreateInscriptionAllowsManualPreInscriptionOutsideProvisionalGroup(): void
+    public function test_create_inscription_allows_manual_pre_inscription_outside_provisional_group(): void
     {
         Mail::fake();
         Notification::fake();
@@ -122,7 +117,7 @@ final class InscriptionsTest extends TestCase
         ]);
     }
 
-    public function testCreateInscriptionError(): void
+    public function test_create_inscription_error(): void
     {
         Mail::fake();
         Notification::fake();
@@ -150,7 +145,7 @@ final class InscriptionsTest extends TestCase
         $this->assertDatabaseEmpty('inscriptions');
     }
 
-    public function testUptadeInscription(): void
+    public function test_uptade_inscription(): void
     {
         Mail::fake();
         Notification::fake();
@@ -166,7 +161,7 @@ final class InscriptionsTest extends TestCase
             'competition_group_id' => null,
             'start_date' => $now->format('Y-m-d'),
             'category' => categoriesName(Carbon::parse($player->date_birth)->year),
-            'school_id' => $this->school['id']
+            'school_id' => $this->school['id'],
         ]);
 
         $dataInscription = [];
@@ -186,7 +181,7 @@ final class InscriptionsTest extends TestCase
         Mail::assertNotSent(ErrorLog::class);
     }
 
-    public function testUptadeInscriptionError(): void
+    public function test_uptade_inscription_error(): void
     {
         Mail::fake();
         Notification::fake();
@@ -202,7 +197,7 @@ final class InscriptionsTest extends TestCase
             'competition_group_id' => null,
             'start_date' => $now->format('Y-m-d'),
             'category' => categoriesName(Carbon::parse($player->date_birth)->year),
-            'school_id' => $this->school['id']
+            'school_id' => $this->school['id'],
         ]);
 
         $dataInscription = [];
@@ -225,7 +220,7 @@ final class InscriptionsTest extends TestCase
         ]);
     }
 
-    public function testUpdateInscriptionCanClearCompetitionGroups(): void
+    public function test_update_inscription_can_clear_competition_groups(): void
     {
         $now = Carbon::now();
 
@@ -238,7 +233,7 @@ final class InscriptionsTest extends TestCase
             'competition_group_id' => null,
             'start_date' => $now->format('Y-m-d'),
             'category' => categoriesName(Carbon::parse($player->date_birth)->year),
-            'school_id' => $this->school['id']
+            'school_id' => $this->school['id'],
         ]);
 
         $tournament = Tournament::query()->create([
@@ -275,7 +270,7 @@ final class InscriptionsTest extends TestCase
         ]);
     }
 
-    public function testUpdateInscriptionAllowsManualPreInscriptionOutsideProvisionalGroup(): void
+    public function test_update_inscription_allows_manual_pre_inscription_outside_provisional_group(): void
     {
         $now = Carbon::now();
 
@@ -319,7 +314,7 @@ final class InscriptionsTest extends TestCase
         ]);
     }
 
-    public function testUpdateInscriptionRecalculatesDebtMonthsWhenBrotherPaymentChanges(): void
+    public function test_update_inscription_recalculates_debt_months_when_brother_payment_changes(): void
     {
         Mail::fake();
         Notification::fake();
@@ -346,7 +341,7 @@ final class InscriptionsTest extends TestCase
         $monthField = config('variables.KEY_INDEX_MONTHS')[$now->month];
         $paidField = collect(config('variables.KEY_INDEX_MONTHS'))
             ->values()
-            ->first(fn(string $field) => $field !== $monthField);
+            ->first(fn (string $field) => $field !== $monthField);
 
         $payment->forceFill([
             $monthField => Payment::$debt,
@@ -375,34 +370,194 @@ final class InscriptionsTest extends TestCase
         $this->assertSame(50000, (int) $payment->{"{$paidField}_amount"});
     }
 
-    public function testDeleteInscription(): void
+    public function test_delete_inscription(): void
     {
         Mail::fake();
+        Carbon::setTestNow('2026-03-15 10:00:00');
 
-        $now = Carbon::now();
+        try {
+            $now = Carbon::now();
 
-        $player = Player::factory()->create();
-        $inscription = Inscription::factory()->create([
-            'player_id' => $player->id,
-            'unique_code' => $player->unique_code,
-            'year' => $now->year,
-            'training_group_id' => 1,
-            'competition_group_id' => null,
-            'start_date' => $now->format('Y-m-d'),
-            'category' => categoriesName(Carbon::parse($player->date_birth)->year),
-            'school_id' => $this->school['id']
-        ]);
+            $player = Player::factory()->create();
+            $inscription = Inscription::factory()->create([
+                'player_id' => $player->id,
+                'unique_code' => $player->unique_code,
+                'year' => $now->year,
+                'training_group_id' => 1,
+                'competition_group_id' => null,
+                'start_date' => $now->format('Y-m-d'),
+                'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+                'school_id' => $this->school['id'],
+            ]);
 
-        $this->actingAs($this->user);
+            $payment = Payment::query()->where('inscription_id', $inscription->id)->where('year', $now->year)->firstOrFail();
+            $assist = Assist::query()->where('inscription_id', $inscription->id)->where('year', $now->year)->where('month', $now->month)->firstOrFail();
+            $currentField = config('variables.KEY_INDEX_MONTHS')[$now->month];
+            $futureField = config('variables.KEY_INDEX_MONTHS')[$now->month + 1];
 
-        $testResponse = $this->post(route('inscriptions.destroy', [$inscription->id]), ['_method' => 'DELETE']);
-        $testResponse->assertStatus(200);
-        $testResponse->assertJsonPath('success', true);
+            $this->actingAs($this->user);
 
-        $this->assertSoftDeleted('inscriptions', ['id' => $inscription->id]);
+            $testResponse = $this->post(route('inscriptions.destroy', [$inscription->id]), ['_method' => 'DELETE']);
+            $testResponse->assertStatus(200);
+            $testResponse->assertJsonPath('success', true);
+
+            $payment->refresh();
+            $assist->refresh();
+
+            $this->assertSoftDeleted('inscriptions', ['id' => $inscription->id]);
+            $this->assertNull($payment->deleted_at);
+            $this->assertNull($assist->deleted_at);
+            $this->assertSame(Payment::$debt, (int) $payment->{$currentField});
+            $this->assertSame(Payment::$permanent_retirement, (int) $payment->{$futureField});
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
-    public function testGetEdit(): void
+    public function test_create_inscription_reactivates_soft_deleted_record_and_restores_legacy_relations(): void
+    {
+        Mail::fake();
+        Notification::fake();
+        Carbon::setTestNow('2026-03-15 10:00:00');
+
+        try {
+            $now = Carbon::now();
+            $player = Player::factory()->create();
+            $reactivatedGroup = TrainingGroup::query()->create([
+                'school_id' => $this->school['id'],
+                'name' => 'Grupo reactivado',
+                'year' => $now->year,
+                'category' => 'Todas las categorías',
+                'days' => 'Martes',
+                'schedules' => '10:00AM - 11:00AM',
+            ]);
+
+            $inscription = Inscription::factory()->create([
+                'player_id' => $player->id,
+                'unique_code' => $player->unique_code,
+                'year' => $now->year,
+                'training_group_id' => 1,
+                'competition_group_id' => null,
+                'start_date' => $now->format('Y-m-d'),
+                'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+                'school_id' => $this->school['id'],
+            ]);
+
+            $payment = Payment::query()->where('inscription_id', $inscription->id)->where('year', $now->year)->firstOrFail();
+            $assist = Assist::query()->where('inscription_id', $inscription->id)->where('year', $now->year)->where('month', $now->month)->firstOrFail();
+
+            $payment->delete();
+            $assist->delete();
+            $inscription->delete();
+
+            $this->actingAs($this->user);
+
+            $response = $this->postJson(route('inscriptions.store'), [
+                'unique_code' => $player->unique_code,
+                'player_id' => $player->id,
+                'start_date' => $now->copy()->addMonths(2)->format('Y-m-d'),
+                'training_group_id' => $reactivatedGroup->id,
+                'brother_payment' => true,
+                'photos' => true,
+            ]);
+
+            $response->assertOk();
+            $response->assertJsonPath('success', true);
+            $response->assertJsonPath('reactivated', true);
+
+            $reactivatedInscription = Inscription::withTrashed()->findOrFail($inscription->id);
+            $restoredPayment = Payment::withTrashed()->where('inscription_id', $inscription->id)->where('year', $now->year)->firstOrFail();
+            $restoredAssist = Assist::withTrashed()->where('inscription_id', $inscription->id)->where('year', $now->year)->where('month', $now->month)->firstOrFail();
+
+            $this->assertSame(1, Inscription::withTrashed()->where('player_id', $player->id)->where('year', $now->year)->count());
+            $this->assertNull($reactivatedInscription->deleted_at);
+            $this->assertSame($now->format('Y-m-d'), Carbon::parse($reactivatedInscription->start_date)->format('Y-m-d'));
+            $this->assertSame($reactivatedGroup->id, (int) $reactivatedInscription->training_group_id);
+            $this->assertTrue((bool) $reactivatedInscription->brother_payment);
+            $this->assertTrue((bool) $reactivatedInscription->photos);
+            $this->assertNull($restoredPayment->deleted_at);
+            $this->assertSame($reactivatedGroup->id, (int) $restoredPayment->training_group_id);
+            $this->assertNull($restoredAssist->deleted_at);
+            $this->assertSame($reactivatedGroup->id, (int) $restoredAssist->training_group_id);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_create_inscription_reactivates_retired_pending_months_back_to_pending(): void
+    {
+        Mail::fake();
+        Notification::fake();
+        Carbon::setTestNow('2026-03-15 10:00:00');
+
+        try {
+            $now = Carbon::now();
+            $player = Player::factory()->create();
+            $reactivatedGroup = TrainingGroup::query()->create([
+                'school_id' => $this->school['id'],
+                'name' => 'Grupo para retorno',
+                'year' => $now->year,
+                'category' => 'Todas las categorías',
+                'days' => 'Jueves',
+                'schedules' => '10:00AM - 11:00AM',
+            ]);
+
+            $inscription = Inscription::factory()->create([
+                'player_id' => $player->id,
+                'unique_code' => $player->unique_code,
+                'year' => $now->year,
+                'training_group_id' => 1,
+                'competition_group_id' => null,
+                'start_date' => $now->format('Y-m-d'),
+                'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+                'school_id' => $this->school['id'],
+            ]);
+
+            $payment = Payment::query()->where('inscription_id', $inscription->id)->where('year', $now->year)->firstOrFail();
+            $nextMonthField = config('variables.KEY_INDEX_MONTHS')[$now->month + 1];
+            $laterMonthField = config('variables.KEY_INDEX_MONTHS')[$now->month + 2];
+
+            $payment->forceFill([
+                $nextMonthField => Payment::$pending,
+                "{$nextMonthField}_amount" => 50000,
+                $laterMonthField => Payment::$paid,
+                "{$laterMonthField}_amount" => 50000,
+            ])->save();
+
+            $this->actingAs($this->user);
+
+            $this->post(route('inscriptions.destroy', [$inscription->id]), ['_method' => 'DELETE'])
+                ->assertOk()
+                ->assertJsonPath('success', true);
+
+            $payment->refresh();
+            $this->assertSame(Payment::$permanent_retirement, (int) $payment->{$nextMonthField});
+            $this->assertSame(Payment::$paid, (int) $payment->{$laterMonthField});
+            $this->assertSame(50000, (int) $payment->{"{$nextMonthField}_amount"});
+
+            $response = $this->postJson(route('inscriptions.store'), [
+                'unique_code' => $player->unique_code,
+                'player_id' => $player->id,
+                'start_date' => $now->copy()->addMonths(2)->format('Y-m-d'),
+                'training_group_id' => $reactivatedGroup->id,
+            ]);
+
+            $response->assertOk();
+            $response->assertJsonPath('success', true);
+            $response->assertJsonPath('reactivated', true);
+
+            $payment->refresh();
+
+            $this->assertSame(Payment::$pending, (int) $payment->{$nextMonthField});
+            $this->assertSame(50000, (int) $payment->{"{$nextMonthField}_amount"});
+            $this->assertSame(Payment::$paid, (int) $payment->{$laterMonthField});
+            $this->assertSame(50000, (int) $payment->{"{$laterMonthField}_amount"});
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_get_edit(): void
     {
         $now = Carbon::now();
 
@@ -415,7 +570,7 @@ final class InscriptionsTest extends TestCase
             'competition_group_id' => null,
             'start_date' => $now->format('Y-m-d'),
             'category' => categoriesName(Carbon::parse($player->date_birth)->year),
-            'school_id' => $this->school['id']
+            'school_id' => $this->school['id'],
         ]);
 
         $this->actingAs($this->user);
@@ -425,13 +580,13 @@ final class InscriptionsTest extends TestCase
         $testResponse->assertStatus(200);
 
         $testResponse->assertJsonStructure([
-            "id",
-            "player_id",
-            "competition_groups",
+            'id',
+            'player_id',
+            'competition_groups',
         ]);
     }
 
-    public function testGetEditById(): void
+    public function test_get_edit_by_id(): void
     {
         $now = Carbon::now();
 
@@ -444,7 +599,7 @@ final class InscriptionsTest extends TestCase
             'competition_group_id' => null,
             'start_date' => $now->format('Y-m-d'),
             'category' => categoriesName(Carbon::parse($player->date_birth)->year),
-            'school_id' => $this->school['id']
+            'school_id' => $this->school['id'],
         ]);
 
         $this->actingAs($this->user);
@@ -458,10 +613,10 @@ final class InscriptionsTest extends TestCase
             'brother_payment' => false,
         ]);
         $testResponse->assertJsonStructure([
-            "id",
-            "player_id",
-            "competition_groups",
-            "brother_payment",
+            'id',
+            'player_id',
+            'competition_groups',
+            'brother_payment',
         ]);
     }
 }

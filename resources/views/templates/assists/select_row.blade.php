@@ -21,4 +21,4 @@ switch($value){
         $colorClass = "";
 }
 @endphp
-{!! html()->select($column, $optionAssist, $value)->attributes(['class' => 'form-control form-control-sm assist '.$colorClass,  $deleted ? 'disabled' : '' ])->placeholder('Selecciona...') !!}
+{!! html()->select($column, $optionAssist, $value)->attributes(['class' => 'form-control form-control-sm assist '.$colorClass,  ($deleted || ($inscriptionDeleted ?? false)) ? 'disabled' : '' ])->placeholder('Selecciona...') !!}
