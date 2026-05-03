@@ -14,7 +14,7 @@
         <div class="wizard-content">
             <div class="modal-content">
                 <div class="modal-body">
-                    {{html()->modelForm(auth()->user(), 'put', route('portal.player.update', [auth()->user()->unique_code]))->attributes(['id' => 'form_update_player', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class' => 'validation-wizard wizard-circle'])->open()}}
+                    {{html()->modelForm($player, 'put', route('portal.player.update', [$player]))->attributes(['id' => 'form_update_player', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class' => 'validation-wizard wizard-circle'])->open()}}
 
                     @include('portal.inscriptions.fields.step_1')
                     @include('portal.inscriptions.fields.step_2')

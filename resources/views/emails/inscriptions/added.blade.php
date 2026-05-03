@@ -17,8 +17,8 @@
 @if($inscription->school->tutor_platform)
 @component('mail::panel')
 * Podras ingresar a nuestra plataforma y verificar, actualizar la información del Deportista.
-* Puedes Ingresar con el documento de identidad del deportista y su código único.
-    @component('mail::button', ['url' => route("portal.login.form")])
+* Si el correo del acudiente principal quedó registrado correctamente, recibirás un mensaje para definir tu contraseña y luego ingresar con ese correo.
+    @component('mail::button', ['url' => url('/portal/acudientes/login')])
         Plataforma
     @endcomponent
 @endcomponent

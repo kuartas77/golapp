@@ -1,6 +1,6 @@
 <div class="col-md-4">
     @php
-    $inscription = $player->inscriptions->first();
+    $inscription = $player->inscriptions->firstWhere('year', now()->year) ?? $player->inscriptions->first();
     @endphp
     @if($inscription)
     <div class="card m-b-1">

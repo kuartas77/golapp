@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Inscriptions\Actions\Create;
 
-use Illuminate\Support\Facades\Request;
 use Closure;
+use App\Models\People;
 use App\Repositories\PeopleRepository;
 use App\Models\Player;
-use App\Models\People;
 
 final class CreatePeoplePlayerAction implements IContractPassable
 {
@@ -24,11 +23,23 @@ final class CreatePeoplePlayerAction implements IContractPassable
 
         $passable->setTutor($this->attributes[0]);
 
+        $guardianAttributes = $this->attributes[0];
+        $existingGuardian = People::query()->firstWhere('identification_card', $guardianAttributes['identification_card']);
+
         $peopleRepository = app(PeopleRepository::class, ['model' => new People()]);
 
         $peopleIds = $peopleRepository->getPeopleIds($this->attributes);
 
         $this->player->people()->sync($peopleIds);
+        $guardian = People::query()->find($peopleIds->first());
+
+        if ($guardian) {
+            $passable->setGuardian($guardian);
+            $passable->setShouldInviteGuardian(
+                checkEmail($guardian->email)
+                && blank($existingGuardian?->password)
+            );
+        }
 
         $passable->setPlayer($this->player);
 

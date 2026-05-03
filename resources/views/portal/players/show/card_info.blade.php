@@ -80,7 +80,7 @@
                                 <div class="row">
                                     @foreach($player->people as $people)
                                         <div class="col-md-4">
-                                            <h5 class="text-center text-themecolor">{{$people->is_tutor ? '(Acudiente)' : ''}} {{\Illuminate\Support\Str::upper($people->relationship_name)}}</h5>
+                                            <h5 class="text-center text-themecolor">{{$people->tutor ? '(Acudiente)' : ''}} {{\Illuminate\Support\Str::upper($people->relationship_name)}}</h5>
                                             <ul class="small-list">
                                                 <li>Nombre: {{$people->names}}</li>
                                                 <li>Cédula: {{$people->identification_card}}</li>
@@ -108,7 +108,7 @@
             <div class="row no-gutters">
                 @foreach($player->inscriptions as $inscription)
 
-                <a class="btn btn-info m-1" href="{{route('portal.export.inscription', [$inscription->player_id, $inscription->id])}}" target="_blank" role="tab">Informe {{$inscription->year}}</a>
+                <a class="btn btn-info m-1" href="{{route('portal.export.inscription', [$player, $inscription->id])}}" target="_blank" role="tab">Informe {{$inscription->year}}</a>
 
                 @endforeach
             </div>

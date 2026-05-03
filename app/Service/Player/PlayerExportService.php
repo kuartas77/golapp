@@ -33,7 +33,7 @@ class PlayerExportService
             'schoolData',
             'inscriptions' => fn($q) => $q->where('id', $inscription_id)->with([
                 'trainingGroup',
-                'assistance' => fn($q) => $q->when($months, fn($q) => $q->whereIn('month', $months))->orderByRaw("MONTH(CONCAT('2000-', assists.month, '-01')) asc"),
+                'assistance' => fn($q) => $q->when($months, fn($q) => $q->whereIn('month', $months))->orderBy('month'),
                 'payments',
                 'skillsControls' => fn($q) => $q->when(($from && $to), fn($q) => $q->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to))
             ])

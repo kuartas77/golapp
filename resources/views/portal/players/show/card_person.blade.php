@@ -14,11 +14,11 @@
                 @endif
             </div>
             <hr>
-            <small class="text-themecolor p-t-10 db">Grupo de entrenamiento: <strong>{{$inscription->trainingGroup->full_schedule_group}}</strong></small>
+            <small class="text-themecolor p-t-10 db">Grupo de entrenamiento: <strong>{{ ($inscription && $inscription->trainingGroup) ? $inscription->trainingGroup->full_schedule_group : 'Sin grupo asignado' }}</strong></small>
             <small class="text-themecolor p-t-10 db">@lang('messages.identification_document') <strong>{{$player->identification_document}}</strong> </small>
             <small class="text-themecolor p-t-10 db">@lang('messages.rh') <strong>{{$player->rh}}</strong></small>
             <small class="text-themecolor p-t-10 db">@lang('messages.date_birth') <strong>{{$player->date_birth}}</strong></small>
-            <small class="text-themecolor p-t-10 db">@lang('messages.status') <strong>{{$player->has('inscription') ? 'Activo' : 'Inactivo'}}</strong></small>
+            <small class="text-themecolor p-t-10 db">@lang('messages.status') <strong>{{ $inscription ? 'Activo' : 'Inactivo' }}</strong></small>
 
             <hr>
             <div class="text-center">
