@@ -113,7 +113,7 @@ class Inscription extends Model
     {
         return $query->withTrashed()->with([
             'payments' => fn($query) => $query->withTrashed(),
-            'assistance' => fn($query) => $query->orderByRaw("MONTH(CONCAT('2000-', assists.month, '-01')) asc")->withTrashed(),
+            'assistance' => fn($query) => $query->orderBy('month')->withTrashed(),
             'skillsControls' => fn($query) => $query->withTrashed()
         ]);
     }

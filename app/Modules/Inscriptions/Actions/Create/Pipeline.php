@@ -11,6 +11,7 @@ use App\Modules\Inscriptions\Actions\Create\CreatePlayerAction;
 use App\Modules\Inscriptions\Actions\Create\CreatePeoplePlayerAction;
 use App\Modules\Inscriptions\Actions\Create\CreateInscriptionAction;
 use App\Modules\Inscriptions\Actions\Create\CreateContractAction;
+use App\Modules\Inscriptions\Actions\Create\InviteGuardianAction;
 
 final class Pipeline
 {
@@ -27,6 +28,7 @@ final class Pipeline
                 CreatePeoplePlayerAction::class,
                 CreateInscriptionAction::class,
                 CreateContractAction::class,
+                InviteGuardianAction::class,
                 SendDocumentsAction::class
             ])
             ->thenReturn();

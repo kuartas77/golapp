@@ -9,7 +9,7 @@ class PlayerPortalUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return auth('guardians')->check() || auth('players')->check();
     }
 
     public function rules(): array
@@ -25,6 +25,7 @@ class PlayerPortalUpdateRequest extends FormRequest
             'gender' => ['required', 'string', 'max:50'],
             'email' => ['nullable', 'string', 'email:rfc,dns'],
             'mobile' => ['nullable', 'string', 'max:50'],
+            'phones' => ['nullable', 'string', 'max:50'],
             'medical_history' => ['nullable', 'string', 'max:200'],
             'category' => ['required'],
 
@@ -43,9 +44,11 @@ class PlayerPortalUpdateRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $player = $this->route('player');
+
         $this->merge([
             'category' => categoriesName(Date::parse($this->date_birth)->year),
-            'school_id' => auth()->user()->school_id
+            'school_id' => $player?->school_id ?? auth('players')->user()?->school_id
         ]);
     }
 }

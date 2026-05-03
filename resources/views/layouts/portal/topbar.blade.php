@@ -1,7 +1,14 @@
 <header class="topbar">
+	@php
+		$portalGuardian = auth('guardians')->user();
+		$portalUser = $portalGuardian ?: auth('players')->user();
+		$portalHomeUrl = $portalGuardian ? route('portal.guardians.home') : route('portal.school.index');
+		$portalUserPhoto = data_get($portalUser, 'photo_url_public', asset('img/user.png'));
+		$portalUserName = data_get($portalUser, 'full_names', data_get($portalUser, 'names', 'Acudiente'));
+	@endphp
 	<nav class="navbar top-navbar navbar-expand-md navbar-light">
 		<div class="navbar-header">
-			<a class="navbar-brand" href="{{route('portal.school.index')}}">
+			<a class="navbar-brand" href="{{$portalHomeUrl}}">
 				<!-- Logo icon -->
 				<b>
 					<img src="{{asset('img/light.png')}}" alt="homepage" class="dark-logo" width="148" height="33">
@@ -26,41 +33,37 @@
 						href="javascript:void(0)"></a>
 				</li>
 
-				@guest
+				@guest('guardians')
 				<li class="nav-item">
 					<a class="nav-link waves-effect waves-ligth text-themecolor" href="{{route('login')}}">Ingreso Escuela</a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link waves-effect waves-ligth text-themecolor" href="{{route('portal.login.form')}}">Ingreso Acudiente/Deportista</a>
+					<a class="nav-link waves-effect waves-ligth text-themecolor" href="{{route('portal.login.form')}}">Ingreso Acudiente</a>
 				</li>
 				@endguest
 
 			</ul>
-			@auth
+			@auth('guardians')
 			<ul class="navbar-nav my-lg-0">
 
 				<li class="nav-item dropdown">
 					<a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href=""
 						data-toggle="dropdown" aria-haspopup="true"
-						aria-expanded="false"><img src="{{ auth()->user()->photo_url_public }}" alt="user"
+						aria-expanded="false"><img src="https://ui-avatars.com/api/?name={{ $portalUserName }}" alt="user"
 							class="profile-pic"></a>
 					<div class="dropdown-menu dropdown-menu-right scale-up">
 						<ul class="dropdown-user">
 							<li>
 								<div class="dw-user-box">
 									<div class="u-img">
-										<img src="{{ auth()->user()->photo_url_public }}" class="profile-pic" alt="user">
+										<img src="https://ui-avatars.com/api/?name={{ $portalUserName }}" class="profile-pic" alt="user">
 									</div>
 									<div class="u-text">
-										<h4>{{auth()->user()->full_names}}</h4>
+										<h4>{{ $portalUserName }}</h4>
 									</div>
 								</div>
 							</li>
 							<li role="separator" class="divider"></li>
-							@if(auth()->user()->profile)
-							<li><a href="{{route('profiles.show', [auth()->user()->profile->id])}}"><i class="fas fa-user"></i> {{ __('messages.Profile') }}</a></li>
-							<li role="separator" class="divider"></li>
-							@endif
 
 							<li>
 								<a href="{{ route('portal.logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
