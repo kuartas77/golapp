@@ -40,10 +40,12 @@ function resolveVendorChunk(id) {
     }
 
     if (
+        id.includes('/echarts/') ||
+        id.includes('/vue3-echarts/') ||
         id.includes('/apexcharts/') ||
         id.includes('/vue3-apexcharts/')
     ) {
-        return 'apexcharts';
+        return 'charts';
     }
 
     if (
@@ -64,9 +66,18 @@ function resolveVendorChunk(id) {
         id.includes('/bootstrap/') ||
         id.includes('/@popperjs/core/') ||
         id.includes('/perfect-scrollbar/') ||
-        id.includes('/vue3-perfect-scrollbar/')
+        id.includes('/vue3-perfect-scrollbar/') ||
+        id.includes('/flatpickr/') ||
+        id.includes('/vue-flatpickr-component/')
     ) {
         return 'ui';
+    }
+
+    if (
+        id.includes('/lodash/') ||
+        id.includes('/dayjs/')
+    ) {
+        return 'utils';
     }
 
     return undefined;
@@ -108,6 +119,9 @@ export default defineConfig(({ mode }) => ({
             'vue3-perfect-scrollbar',
             'apexcharts',
             'vue3-apexcharts',
+            'lodash-es',
+            'lodash.clonedeep',
+            'dayjs',
         ],
     },
     server: {
