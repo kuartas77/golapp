@@ -1,2 +1,34 @@
 User-agent: *
-Disallow:
+
+# Rutas administrativas
+Disallow: /admin/
+Disallow: /backoffice/
+Disallow: /administracion/
+
+# API
+Disallow: /api/
+Disallow: /v1/
+
+# Rutas internas SPA (requieren auth)
+Disallow: /home
+Disallow: /players
+Disallow: /inscriptions
+Disallow: /payments
+Disallow: /assists
+Disallow: /profiles
+Disallow: /datatables/
+Disallow: /export/
+Disallow: /historic/
+Disallow: /reports/
+Disallow: /invoices
+Disallow: /notifications/
+Disallow: /training-sessions
+
+# Imágenes dinámicas
+Disallow: /img/dynamic/
+
+# Autocomplete interno
+Disallow: /autocomplete/
+
+# Sitemap
+Sitemap: https://app.golapp.com.co/sitemap.xml
