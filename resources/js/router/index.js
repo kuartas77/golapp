@@ -52,7 +52,7 @@ const routes = [
             { path: 'top-players', name: 'player-stats.top', component: () => import('@/pages/player-stats/TopPlayers.vue'), meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] } },
             { path: 'player/:id/detail', name: 'player-stats.detail', component: () => import('@/pages/player-stats/Detail.vue'), meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] } },
             {
-                path: 'player-evaluations',
+                path: 'evaluaciones-deportistas',
                 meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.evaluations] },
                 component: { render: () => h(RouterView) },
                 children: [
@@ -90,7 +90,7 @@ const routes = [
                 ]
             },
             {
-                path: 'training-sessions',
+                path: 'sesiones-entrenamiento',
                 name: 'training-sessions',
                 meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.trainingSessions] },
                 component: () => import('@/pages/training-sessions/Index.vue')
@@ -151,6 +151,12 @@ const routes = [
                         meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.trainingGroups] }
                     },
                     {
+                        path: 'horarios',
+                        name: 'training-schedules',
+                        component: () => import('@/pages/admin/groups/training/SchedulesList.vue'),
+                        meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.trainingGroups] }
+                    },
+                    {
                         path: 'g-competencia',
                         name: 'competition-groups',
                         component: () => import('@/pages/admin/groups/competition/competitionGList.vue'),
@@ -160,6 +166,12 @@ const routes = [
                         path: 'g-competencia/admin',
                         name: 'competition-groups-admin',
                         component: () => import('@/pages/admin/groups/competition/AdminCompetitionGroup.vue'),
+                        meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.competitionGroups] }
+                    },
+                    {
+                        path: 'torneos',
+                        name: 'competition-tournaments',
+                        component: () => import('@/pages/admin/groups/competition/TournamentsList.vue'),
                         meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.competitionGroups] }
                     },
                     {

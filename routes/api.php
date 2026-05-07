@@ -5,7 +5,9 @@ use App\Http\Controllers\API\Admin\GroupAssignmentController;
 use App\Http\Controllers\API\Admin\InscriptionController;
 use App\Http\Controllers\API\Admin\InvoiceCustomItemController as AdminInvoiceCustomItemController;
 use App\Http\Controllers\API\Admin\RegisterController;
+use App\Http\Controllers\API\Admin\ScheduleController as AdminScheduleController;
 use App\Http\Controllers\API\Admin\SchoolController;
+use App\Http\Controllers\API\Admin\TournamentController as AdminTournamentController;
 use App\Http\Controllers\API\Admin\UsersController;
 use App\Http\Controllers\API\AttendanceQrController;
 use App\Http\Controllers\API\AuthControllerSPA;
@@ -128,12 +130,16 @@ Route::prefix('v2')->group(function () {
 
             Route::middleware('school.permission:school.module.training_groups')->group(function () {
                 Route::apiResource('training_groups', TrainingGroupController::class, ['only' => ['show', 'store', 'update']]);
+                Route::apiResource('schedules', AdminScheduleController::class, ['except' => ['create', 'edit']])
+                    ->names('admin.schedules');
                 Route::get('training-groups/board', [GroupAssignmentController::class, 'trainingBoard']);
                 Route::post('training-groups/move', [GroupAssignmentController::class, 'moveTraining']);
             });
 
             Route::middleware('school.permission:school.module.competition_groups')->group(function () {
                 Route::apiResource('competition_groups', CompetitionGroupController::class, ['only' => ['show', 'store', 'update']]);
+                Route::apiResource('tournaments', AdminTournamentController::class, ['except' => ['create', 'edit']])
+                    ->names('admin.tournaments');
                 Route::get('competition-groups/board', [GroupAssignmentController::class, 'competitionBoard']);
                 Route::post('competition-groups/move', [GroupAssignmentController::class, 'moveCompetition']);
             });
@@ -250,7 +256,9 @@ Route::prefix('v2')->group(function () {
                 Route::get('competition_groups_retired', [DataTableController::class, 'disabledCompetitionGroups']);
             });
 
-            Route::get('schedules_enabled', [DataTableController::class, 'enabledSchedules']);
+            Route::middleware('school.permission:school.module.training_groups')->group(function () {
+                Route::get('schedules_enabled', [DataTableController::class, 'enabledSchedules']);
+            });
             Route::middleware([
                 'role:super-admin|school',
                 'school.permission:school.module.players',

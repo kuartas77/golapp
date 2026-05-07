@@ -7,6 +7,9 @@
                         class="btn btn-block btn-primary" href="javascript:void(0);">
                         Crear Grupo
                     </a>
+                    <router-link :to="{ name: 'training-schedules' }" class="btn btn-outline-info">
+                        Horarios
+                    </router-link>
                     <router-link :to="{ name: 'training-groups-admin' }" class="btn btn-info">
                         Administrar Grupos
                     </router-link>

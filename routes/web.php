@@ -108,10 +108,16 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         });
 
         Route::resources([
-            'schedules' => SchedulesController::class,
             'incidents' => IncidentController::class,
-            'tournaments' => TournamentController::class,
         ]);
+
+        Route::middleware('school.permission:school.module.training_groups')->group(function () {
+            Route::resource('schedules', SchedulesController::class);
+        });
+
+        Route::middleware('school.permission:school.module.competition_groups')->group(function () {
+            Route::resource('tournaments', TournamentController::class);
+        });
 
         Route::middleware('school.permission:school.module.training_groups')->group(function () {
             Route::resource('training_groups', TrainingGroupController::class);
@@ -176,7 +182,9 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
             Route::get('competition_groups_retired', [DataTableController::class, 'disabledCompetitionGroups'])->name('competition_groups.retired');
         });
 
-        Route::get('schedules_enabled', [DataTableController::class, 'enabledSchedules'])->name('schedules.enabled');
+        Route::middleware('school.permission:school.module.training_groups')->group(function () {
+            Route::get('schedules_enabled', [DataTableController::class, 'enabledSchedules'])->name('schedules.enabled');
+        });
         Route::middleware([
             'role:super-admin|school',
             'school.permission:school.module.players',

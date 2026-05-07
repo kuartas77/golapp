@@ -8,6 +8,9 @@
                         class="btn btn-block btn-primary" href="javascript:void(0);">
                         Crear Grupo
                     </a>
+                    <router-link :to="{ name: 'competition-tournaments' }" class="btn btn-outline-info">
+                        Torneos
+                    </router-link>
                     <router-link :to="{ name: 'competition-groups-admin' }" class="btn btn-info">
                         Administrar Grupos
                     </router-link>

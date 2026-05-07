@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 class ScheduleRequest extends FormRequest
 {
@@ -24,6 +25,8 @@ class ScheduleRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'schedule_start' => ['required', 'string'],
+            'schedule_end' => ['required', 'string'],
             'schedule' => ['required', 'string'],
             'school_id' => ['required'],
         ];
@@ -31,9 +34,14 @@ class ScheduleRequest extends FormRequest
 
     protected function prepareForValidation()
     {
+        $scheduleStart = Str::upper((string) preg_replace('/\s+/', '', trim((string) $this->input('schedule_start'))));
+        $scheduleEnd = Str::upper((string) preg_replace('/\s+/', '', trim((string) $this->input('schedule_end'))));
+
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
-            'schedule' => sprintf("%s - %s", $this->schedule_start, $this->schedule_end)
+            'schedule_start' => $scheduleStart,
+            'schedule_end' => $scheduleEnd,
+            'schedule' => sprintf('%s - %s', $scheduleStart, $scheduleEnd),
         ]);
     }
 }

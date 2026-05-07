@@ -109,9 +109,19 @@
                             <router-link :to="{ name: 'training-groups' }" @click="toggleMobileMenu">G.
                                 Entrenamiento</router-link>
                         </li>
+                        <li v-if="canTrainingGroups">
+                            <router-link :to="{ name: 'training-schedules' }" @click="toggleMobileMenu">
+                                Horarios
+                            </router-link>
+                        </li>
                         <li v-if="canCompetitionGroups">
                             <router-link :to="{ name: 'competition-groups' }" @click="toggleMobileMenu">G.
                                 Competencia</router-link>
+                        </li>
+                        <li v-if="canCompetitionGroups">
+                            <router-link :to="{ name: 'competition-tournaments' }" @click="toggleMobileMenu">
+                                Torneos
+                            </router-link>
                         </li>
                     </ul>
                 </li>
