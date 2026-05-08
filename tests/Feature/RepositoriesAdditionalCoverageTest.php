@@ -1659,7 +1659,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         $topicId = DB::table('topic_notifications')->insertGetId([
             'school_id' => $this->school['id'],
-            'topic' => 'general-' . $this->school['id'],
+            'topics' => 'general-' . $this->school['id'],
             'type' => 'GENERAL',
             'priority' => 'NORMAL',
             'title' => 'Aviso',
@@ -1688,13 +1688,13 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'school_id' => $this->school['id'],
             'topic' => 'general-' . $this->school['id'],
         ]);
-        $this->assertStringContainsString('topic', $singleTopicQuery->toSql());
+        $this->assertStringContainsString('topics', $singleTopicQuery->toSql());
 
         $arrayTopicQuery = $repository->getNotificationByTopic([
             'school_id' => $this->school['id'],
             'topic' => ['general-' . $this->school['id'], 'team-' . $this->school['id']],
         ]);
-        $this->assertStringContainsString('in', strtolower($arrayTopicQuery->toSql()));
+        $this->assertStringContainsString('or', strtolower($arrayTopicQuery->toSql()));
 
         $topics = $repository->getTopics();
         $this->assertCount(4, $topics);

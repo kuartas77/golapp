@@ -31,11 +31,27 @@ class InvoiceRepository
         return $player->inscription->invoices;
     }
 
+    public function invoicesForPlayers($players)
+    {
+        $inscriptionIds = $players->pluck('inscription.id')->filter()->values();
+
+        return Invoice::query()
+            ->with(['items', 'inscription.player'])
+            ->whereIn('inscription_id', $inscriptionIds)
+            ->latest('id')
+            ->get();
+    }
+
     public function statisticsPlayer()
     {
         $player = request()->user();
         $player->load(['inscription.invoices.items']);
         return data_get($player->inscription, 'invoices', collect());
+    }
+
+    public function statisticsForPlayers($players)
+    {
+        return $this->invoicesForPlayers($players);
     }
 
     public function findPlayerInvoiceOrFail(int $invoiceId): Invoice
@@ -54,6 +70,21 @@ class InvoiceRepository
             ->with('items')
             ->whereKey($invoiceId)
             ->where('inscription_id', $inscriptionId)
+            ->firstOrFail();
+    }
+
+    public function findPlayersInvoiceOrFail($players, int $invoiceId): Invoice
+    {
+        $inscriptionIds = $players->pluck('inscription.id')->filter()->values();
+
+        if ($inscriptionIds->isEmpty()) {
+            throw new ModelNotFoundException();
+        }
+
+        return Invoice::query()
+            ->with(['items', 'inscription.player'])
+            ->whereKey($invoiceId)
+            ->whereIn('inscription_id', $inscriptionIds)
             ->firstOrFail();
     }
 

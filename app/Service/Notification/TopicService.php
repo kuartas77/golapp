@@ -16,14 +16,18 @@ class TopicService
     {
         $player->loadMissing(['schoolData', 'inscription.trainingGroup', 'inscription.competitionGroup']);
 
-        $team = $player->inscription->trainingGroup->name;
+        $team = $player->inscription?->trainingGroup?->name;
         $schoolSlug = $player->schoolData->slug;
         $topics = [];
         $topics[] = self::generateTopic('general', $schoolSlug);
-        $topics[] = self::generateTopic($player->category, $schoolSlug);
+        if (filled($player->category)) {
+            $topics[] = self::generateTopic($player->category, $schoolSlug);
+        }
         $topics[] = self::generateTopic($player->unique_code, $schoolSlug);
-        $topics[] = self::generateTopic($team, $schoolSlug);
-        foreach ($player->inscription->competitionGroup as $group) {
+        if (filled($team)) {
+            $topics[] = self::generateTopic($team, $schoolSlug);
+        }
+        foreach ($player->inscription?->competitionGroup ?? [] as $group) {
             $topics[] = self::generateTopic($group->name, $schoolSlug);
         }
 

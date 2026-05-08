@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('topic_notifications', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('school_id');
-            $table->string('topic');
+            $table->text('topics');
             $table->enum('type', ['REQUEST_UPDATE','PAYMENT_CONFIRMATION','SYSTEM_ALERT','REMINDER','GENERAL'])->default('GENERAL');
             $table->enum('priority', ['LOW','NORMAL','HIGH','URGENT'])->default('NORMAL');
             $table->string('title');

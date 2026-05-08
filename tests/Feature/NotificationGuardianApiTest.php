@@ -1,0 +1,332 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature;
+
+use App\Models\Inscription;
+use App\Models\Invoice;
+use App\Models\People;
+use App\Models\Player;
+use App\Models\School;
+use App\Models\TopicNotification;
+use App\Models\TrainingGroup;
+use App\Models\UniformRequest;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Laravel\Sanctum\Sanctum;
+use Tests\TestCase;
+
+final class NotificationGuardianApiTest extends TestCase
+{
+    public function testGuardianCanLoginAndReceiveMobileTokensWithPlayers(): void
+    {
+        [$guardian, $player] = $this->createGuardianScenario([
+            'email' => 'mobile.guardian@example.com',
+            'password' => 'secret-mobile',
+        ]);
+
+        $response = $this->postJson('/api/notify/v2/guardians/login', [
+            'email' => 'mobile.guardian@example.com',
+            'password' => 'secret-mobile',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonStructure([
+            'data' => [
+                'token_type',
+                'access_token',
+                'refresh_token',
+                'expires_at',
+                'guardian' => ['id', 'names', 'email'],
+                'players' => [['id', 'full_names', 'unique_code']],
+                'topics',
+            ],
+        ]);
+        $response->assertJsonPath('data.players.0.id', $player->id);
+        $this->assertContains($player->unique_code . '-' . $player->schoolData->slug, $response->json('data.topics'));
+        $this->assertNotNull($guardian->fresh()->last_login_at);
+    }
+
+    public function testGuardianMobileTokenRemainsValidAfterGlobalOneMinuteWindow(): void
+    {
+        $this->createGuardianScenario([
+            'email' => 'lasting.guardian@example.com',
+            'password' => 'secret-mobile',
+        ]);
+
+        $loginResponse = $this->postJson('/api/notify/v2/guardians/login', [
+            'email' => 'lasting.guardian@example.com',
+            'password' => 'secret-mobile',
+        ]);
+
+        $loginResponse->assertOk();
+
+        $this->travel(2)->minutes();
+
+        $this->withHeader('Authorization', 'Bearer ' . $loginResponse->json('data.access_token'))
+            ->getJson('/api/notify/v2/guardians/players')
+            ->assertOk()
+            ->assertJsonCount(1, 'data');
+    }
+
+    public function testGuardianAggregatedListsOnlyReturnOwnedPlayersAndIncludePlayerPayload(): void
+    {
+        [$guardian, $ownedPlayer, $ownedInscription, $school] = $this->createGuardianScenario();
+        [, $otherPlayer, $otherInscription] = $this->createGuardianScenario();
+
+        $ownedInvoice = $this->createInvoice($ownedInscription, $school);
+        $this->createInvoice($otherInscription, $otherPlayer->schoolData);
+
+        UniformRequest::query()->create([
+            'school_id' => $school->id,
+            'player_id' => $ownedPlayer->id,
+            'type' => 'UNIFORM',
+            'quantity' => 1,
+            'size' => 'M',
+            'additional_notes' => 'Own request',
+        ]);
+        UniformRequest::query()->create([
+            'school_id' => $otherPlayer->school_id,
+            'player_id' => $otherPlayer->id,
+            'type' => 'BALL',
+            'quantity' => 1,
+            'size' => 'U',
+            'additional_notes' => 'Other request',
+        ]);
+
+        $notification = TopicNotification::query()->create([
+            'school_id' => $school->id,
+            'topics' => 'general',
+            'title' => 'Entrenamiento',
+            'body' => 'Mensaje para el acudiente',
+            'type' => 'GENERAL',
+            'priority' => 'NORMAL',
+        ]);
+        $notification->players()->attach($ownedPlayer->id, [
+            'school_id' => $school->id,
+            'is_read' => false,
+        ]);
+
+        Sanctum::actingAs($guardian, ['auth', 'payment-index', 'request-index', 'notification-index']);
+
+        $this->getJson('/api/notify/v2/guardians/invoices')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $ownedInvoice->id)
+            ->assertJsonPath('data.0.player.id', $ownedPlayer->id)
+            ->assertJsonPath('data.0.player.unique_code', $ownedPlayer->unique_code);
+
+        $this->getJson('/api/notify/v2/guardians/requests')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.player.full_names', $ownedPlayer->full_names);
+
+        $this->getJson('/api/notify/v2/guardians/notifications')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.player.unique_code', $ownedPlayer->unique_code);
+    }
+
+    public function testGuardianCannotAccessOtherPlayerResources(): void
+    {
+        [$guardian] = $this->createGuardianScenario();
+        [, $otherPlayer, $otherInscription] = $this->createGuardianScenario();
+
+        $otherInvoice = $this->createInvoice($otherInscription, $otherPlayer->schoolData);
+        $otherRequest = UniformRequest::query()->create([
+            'school_id' => $otherPlayer->school_id,
+            'player_id' => $otherPlayer->id,
+            'type' => 'UNIFORM',
+            'quantity' => 1,
+            'size' => 'M',
+        ]);
+
+        Sanctum::actingAs($guardian, ['auth', 'payment-index', 'request-index']);
+
+        $this->getJson("/api/notify/v2/guardians/invoices/{$otherInvoice->id}")
+            ->assertNotFound();
+
+        $this->getJson("/api/notify/v2/guardians/requests/{$otherRequest->id}")
+            ->assertNotFound();
+    }
+
+    public function testGuardianCanCreateRequestForOwnedPlayerOnly(): void
+    {
+        [$guardian, $ownedPlayer] = $this->createGuardianScenario();
+        [, $otherPlayer] = $this->createGuardianScenario();
+
+        Sanctum::actingAs($guardian, ['auth', 'request-store']);
+
+        $this->postJson('/api/notify/v2/guardians/requests', [
+            'player_id' => $ownedPlayer->id,
+            'type' => 'UNIFORM',
+            'quantity' => 2,
+            'size' => 'M',
+            'additional_notes' => 'Para torneo',
+        ])->assertCreated()
+            ->assertJsonPath('data.player.id', $ownedPlayer->id);
+
+        $this->postJson('/api/notify/v2/guardians/requests', [
+            'player_id' => $otherPlayer->id,
+            'type' => 'UNIFORM',
+            'quantity' => 1,
+            'size' => 'S',
+        ])->assertNotFound();
+    }
+
+    public function testGuardianCanUploadPaymentProofForOwnedInvoiceOnly(): void
+    {
+        Storage::fake('public');
+
+        [$guardian, , $ownedInscription, $school] = $this->createGuardianScenario();
+        [, $otherPlayer, $otherInscription] = $this->createGuardianScenario();
+
+        $ownedInvoice = $this->createInvoice($ownedInscription, $school);
+        $otherInvoice = $this->createInvoice($otherInscription, $otherPlayer->schoolData);
+
+        Sanctum::actingAs($guardian, ['auth', 'payment-update']);
+
+        $this->postJson('/api/notify/v2/guardians/invoices/payment', [
+            'invoice_id' => $ownedInvoice->id,
+            'amount' => 50000,
+            'description' => 'Pago parcial',
+            'reference_number' => 'REF-1',
+            'payment_method' => 'transfer',
+            'image' => UploadedFile::fake()->image('proof.jpg'),
+        ])->assertOk()
+            ->assertJsonPath('data.id', $ownedInvoice->id);
+
+        $this->postJson('/api/notify/v2/guardians/invoices/payment', [
+            'invoice_id' => $otherInvoice->id,
+            'amount' => 50000,
+            'payment_method' => 'transfer',
+            'image' => UploadedFile::fake()->image('proof-other.jpg'),
+        ])->assertNotFound();
+    }
+
+    public function testGuardianMarksNotificationReadForOnlyTheSelectedPlayer(): void
+    {
+        [$guardian, $playerA, , $school] = $this->createGuardianScenario();
+        [$playerB] = $this->attachSecondPlayerToGuardian($guardian, $school);
+
+        $notification = TopicNotification::query()->create([
+            'school_id' => $school->id,
+            'topics' => 'general',
+            'title' => 'Recordatorio',
+            'body' => 'Pago pendiente',
+            'type' => 'REMINDER',
+            'priority' => 'NORMAL',
+        ]);
+        $notification->players()->attach($playerA->id, ['school_id' => $school->id, 'is_read' => false]);
+        $notification->players()->attach($playerB->id, ['school_id' => $school->id, 'is_read' => false]);
+
+        Sanctum::actingAs($guardian, ['auth', 'notification-index']);
+
+        $this->putJson('/api/notify/v2/guardians/notifications/read', [
+            'notification_id' => $notification->id,
+            'player_id' => $playerA->id,
+        ])->assertOk();
+
+        $this->assertDatabaseHas('player_topic_notification', [
+            'topic_notification_id' => $notification->id,
+            'player_id' => $playerA->id,
+            'is_read' => true,
+        ]);
+        $this->assertDatabaseHas('player_topic_notification', [
+            'topic_notification_id' => $notification->id,
+            'player_id' => $playerB->id,
+            'is_read' => false,
+        ]);
+    }
+
+    private function createGuardianScenario(array $guardianAttributes = []): array
+    {
+        $school = School::factory()->create([
+            'email' => fake()->unique()->safeEmail(),
+            'tutor_platform' => true,
+            'is_enable' => true,
+        ]);
+
+        $trainingGroup = $school->trainingGroups()->create([
+            'name' => 'Provisional',
+            'year' => now()->year,
+            'year_active' => now()->year,
+            'category' => 'Todas las categorias',
+            'days' => 'Grupo predeterminado',
+            'schedules' => '10:00AM - 11:00AM',
+        ]);
+
+        $player = Player::factory()->create([
+            'school_id' => $school->id,
+            'unique_code' => (string) fake()->unique()->numerify('##########'),
+            'identification_document' => (string) fake()->unique()->numerify('##########'),
+        ]);
+
+        $guardian = People::factory()->create(array_merge([
+            'tutor' => true,
+            'email' => fake()->unique()->safeEmail(),
+            'password' => 'secret-guardian',
+            'identification_card' => (string) fake()->unique()->numerify('##########'),
+        ], $guardianAttributes));
+
+        $player->people()->attach($guardian->id);
+
+        $inscription = Inscription::factory()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => now()->year,
+            'school_id' => $school->id,
+            'training_group_id' => $trainingGroup->id,
+            'competition_group_id' => null,
+            'category' => categoriesName((int) date('Y', strtotime($player->date_birth))),
+        ]);
+
+        return [$guardian, $player, $inscription, $school, $trainingGroup];
+    }
+
+    private function attachSecondPlayerToGuardian(People $guardian, School $school): array
+    {
+        $trainingGroup = TrainingGroup::query()
+            ->where('school_id', $school->id)
+            ->firstOrFail();
+
+        $player = Player::factory()->create([
+            'school_id' => $school->id,
+            'unique_code' => (string) fake()->unique()->numerify('##########'),
+            'identification_document' => (string) fake()->unique()->numerify('##########'),
+        ]);
+
+        $player->people()->attach($guardian->id);
+
+        $inscription = Inscription::factory()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => now()->year,
+            'school_id' => $school->id,
+            'training_group_id' => $trainingGroup->id,
+            'competition_group_id' => null,
+            'category' => categoriesName((int) date('Y', strtotime($player->date_birth))),
+        ]);
+
+        return [$player, $inscription];
+    }
+
+    private function createInvoice(Inscription $inscription, School $school): Invoice
+    {
+        return Invoice::query()->create([
+            'invoice_number' => 'INV-' . fake()->unique()->numerify('######'),
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $inscription->training_group_id,
+            'year' => now()->year,
+            'student_name' => $inscription->player->full_names,
+            'total_amount' => 100000,
+            'paid_amount' => 0,
+            'status' => 'pending',
+            'issue_date' => now()->toDateString(),
+            'due_date' => now()->addDays(5)->toDateString(),
+            'school_id' => $school->id,
+            'created_by' => $this->user->id,
+        ]);
+    }
+}

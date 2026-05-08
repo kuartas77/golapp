@@ -31,6 +31,11 @@ class TopicNotificationResource extends JsonResource
             'action_url' => null,
             'priority' => $this->priority,
             'created_at' => Carbon::parse($this->created_at)->getPreciseTimestamp(3),
+            'player' => $this->whenLoaded('notificationPlayer', fn () => [
+                'id' => $this->notificationPlayer->id,
+                'full_names' => $this->notificationPlayer->full_names,
+                'unique_code' => $this->notificationPlayer->unique_code,
+            ]),
         ];
     }
 }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Resources\API\Portal;
 
 use App\Models\Inscription;
-use App\Models\Player;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,7 +12,7 @@ class GuardianPlayerListResource extends JsonResource
 {
     public static $wrap = null;
 
-    /** @var Player */
+    /** @var \App\Models\Player */
     public $resource;
 
     public function toArray(Request $request): array

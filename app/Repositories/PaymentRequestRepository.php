@@ -61,6 +61,55 @@ class PaymentRequestRepository
         return $invoice;
     }
 
+    public function createGuardianPaymentRequest(array $validated, $players): ?Invoice
+    {
+        $invoice = null;
+
+        try {
+            DB::beginTransaction();
+
+            $playerIds = $players->pluck('id')->values();
+            $invoice = Invoice::query()
+                ->with(['inscription.player.schoolData'])
+                ->whereKey($validated['invoice_id'])
+                ->whereIn('status', ['pending', 'partial'])
+                ->whereHas('inscription', fn ($query) => $query->whereIn('player_id', $playerIds))
+                ->first();
+
+            if (!$invoice) {
+                throw new ModelNotFoundException();
+            }
+
+            /** @var Player $player */
+            $player = $invoice->inscription->player;
+            $school = $player->schoolData;
+
+            $paymentRequest = new PaymentRequest();
+            $paymentRequest->school_id = $player->school_id;
+            $paymentRequest->player_id = $player->id;
+            $paymentRequest->invoice_id = $invoice->id;
+            $paymentRequest->amount = $validated['amount'];
+            $paymentRequest->description = $validated['description'];
+            $paymentRequest->reference_number = $validated['reference_number'];
+            $paymentRequest->payment_method = $validated['payment_method'];
+            $paymentRequest->image = $this->uploadFile($validated['image'], $school->slug, 'invoice_receipts', false);
+            $paymentRequest->save();
+
+            DB::commit();
+
+            $paymentRequest->load('invoice.items', 'invoice.inscription.player');
+            $invoice = $paymentRequest->invoice;
+        } catch (ModelNotFoundException $exception) {
+            DB::rollBack();
+            throw $exception;
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            report($th);
+        }
+
+        return $invoice;
+    }
+
     public function findForCurrentSchoolOrFail(int $paymentRequestId): PaymentRequest
     {
         return PaymentRequest::query()->schoolId()->findOrFail($paymentRequestId);

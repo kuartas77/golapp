@@ -31,7 +31,16 @@ class InvoiceResource extends JsonResource
             'due_date' => Carbon::parse($this->due_date)->getPreciseTimestamp(3),
             'created_at' => Carbon::parse($this->created_at)->getPreciseTimestamp(3),
             'updated_at' => Carbon::parse($this->updated_at)->getPreciseTimestamp(3),
-            'items' => $this->whenLoaded('items', new ItemInvoiceCollection($this->items))
+            'items' => $this->whenLoaded('items', new ItemInvoiceCollection($this->items)),
+            'player' => $this->whenLoaded('inscription', function () {
+                $player = $this->inscription?->player;
+
+                return $player ? [
+                    'id' => $player->id,
+                    'full_names' => $player->full_names,
+                    'unique_code' => $player->unique_code,
+                ] : null;
+            }),
         ];
     }
 }

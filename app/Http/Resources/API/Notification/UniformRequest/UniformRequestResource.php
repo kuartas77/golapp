@@ -33,6 +33,11 @@ class UniformRequestResource extends JsonResource
             'updated_at' => Carbon::parse($this->updated_at)->getPreciseTimestamp(3),
             'rejected_at' => $rejectedAt,
             'rejection_reason' => $this->rejection_reason,
+            'player' => $this->whenLoaded('player', fn () => [
+                'id' => $this->player->id,
+                'full_names' => $this->player->full_names,
+                'unique_code' => $this->player->unique_code,
+            ]),
         ];
     }
 }

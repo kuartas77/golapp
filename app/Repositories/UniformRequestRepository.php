@@ -18,6 +18,15 @@ class UniformRequestRepository
         return $player->uniform_requests;
     }
 
+    public function uniformRequestsForPlayers($players)
+    {
+        return UniformRequest::query()
+            ->with('player')
+            ->whereIn('player_id', $players->pluck('id'))
+            ->latest('id')
+            ->get();
+    }
+
     public function queryTable()
     {
         $generalQuery = UniformRequest::query()
@@ -74,6 +83,36 @@ class UniformRequestRepository
         return $model;
     }
 
+    public function storeForPlayer(Player $player, array $validated): array|UniformRequest
+    {
+        $model = [];
+
+        try {
+            $uniformRequest = new UniformRequest();
+            $uniformRequest->school_id = $player->school_id;
+            $uniformRequest->player_id = $player->id;
+            $uniformRequest->type = $validated['type'];
+            $uniformRequest->quantity = $validated['quantity'];
+            $uniformRequest->size = $validated['size'];
+            $uniformRequest->additional_notes = $validated['additional_notes'];
+
+            DB::beginTransaction();
+            $uniformRequest->save();
+            DB::commit();
+
+            $model = $uniformRequest->load('player');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            $this->logError('UniformRequestRepository storeForPlayer failed', $th, [
+                'type' => $validated['type'] ?? null,
+                'player_id' => $player->id ?? null,
+            ]);
+            $model = [];
+        }
+
+        return $model;
+    }
+
     public function cancel(UniformRequest $uniformRequest): bool
     {
         $success = true;
@@ -104,6 +143,15 @@ class UniformRequestRepository
 
         return $player->uniform_requests()
             ->whereKey($uniformRequestId)
+            ->firstOrFail();
+    }
+
+    public function findPlayersRequestOrFail($players, int $uniformRequestId): UniformRequest
+    {
+        return UniformRequest::query()
+            ->with('player')
+            ->whereKey($uniformRequestId)
+            ->whereIn('player_id', $players->pluck('id'))
             ->firstOrFail();
     }
 
