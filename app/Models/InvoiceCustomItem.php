@@ -32,6 +32,11 @@ class InvoiceCustomItem extends Model
         return $this->belongsTo(School::class, 'school_id');
     }
 
+    public function inscriptionCustomCharges()
+    {
+        return $this->hasMany(InscriptionCustomCharge::class);
+    }
+
     public function getUrlShowAttribute(): string
     {
         return route('invoice-items-custom.show', [$this->attributes['id']]);

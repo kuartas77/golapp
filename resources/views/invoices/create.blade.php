@@ -128,8 +128,8 @@
                             </tr>
                         </thead>
                         <tbody id="additionalItemsBody">
-                            @if(count($customItems) > 0)
-                            @foreach($customItems as $customItem)
+                            @if(count($customCharges) > 0)
+                            @foreach($customCharges as $customCharge)
                             <tr class="item-row" data-index="{{$loop->index}}">
                                 <td class="text-center">
                                     <input
@@ -142,17 +142,18 @@
                                     <label for="custom_include_{{$loop->index}}" class="checkboxsizeletter"></label>
                                 </td>
                                 <td>
-                                    <input type="text" class="form-control form-control-sm item-description" name="items[{{$loop->index}}][description]" placeholder="Descripción del ítem" required="" value="{{$customItem->name}}">
+                                    <input type="text" class="form-control form-control-sm item-description" name="items[{{$loop->index}}][description]" placeholder="Descripción del ítem" required="" value="{{$customCharge->name}}">
                                 </td>
                                 <td>
                                     <input type="number" class="form-control form-control-sm item-quantity" name="items[{{$loop->index}}][quantity]" value="1" min="1" required="">
                                 </td>
                                 <td>
-                                    <input type="number" class="form-control form-control-sm item-unit-price" name="items[{{$loop->index}}][unit_price]" value="{{intval($customItem->unit_price)}}" step="1" min="1" required="">
+                                    <input type="number" class="form-control form-control-sm item-unit-price" name="items[{{$loop->index}}][unit_price]" value="{{intval($customCharge->value)}}" step="1" min="1" required="">
                                 </td>
                                 <td>
                                     <input type="number" class="form-control form-control-sm item-total" value="0" readonly="">
                                     <input type="hidden" name="items[{{$loop->index}}][type]" value="additional">
+                                    <input type="hidden" name="items[{{$loop->index}}][custom_charge_id]" value="{{$customCharge->id}}">
                                 </td>
                                 <td class="text-center">
                                     <button type="button" class="btn btn-sm btn-danger remove-item">

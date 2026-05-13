@@ -150,3 +150,71 @@
         </div>
     </div> -->
 </div>
+
+<div class="row col-12 mt-3" id="custom_charges_section">
+    <div class="col-12">
+        <h4 class="text-center text-uppercase"><strong>Cargos personalizados</strong></h4>
+        <small class="form-text text-muted">
+            Selecciona cargos del catálogo para esta inscripción. Se guardarán como pendientes y se facturarán cuando llegue su fecha de vencimiento.
+        </small>
+    </div>
+
+    <div class="col-md-4 col-sm-12">
+        <div class="form-group">
+            <label for="custom_charges_due_date">Fecha de vencimiento:</label>
+            <input id="custom_charges_due_date" type="date" class="form-control form-control-sm"
+                value="{{ now()->addDays(15)->toDateString() }}">
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div id="existing_custom_charges" class="alert alert-info py-2 d-none"></div>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered mb-0">
+                <thead class="thead-light">
+                    <tr>
+                        <th class="text-center" width="5%">Sel.</th>
+                        <th>Item</th>
+                        <th width="15%">Valor</th>
+                        <th width="5%">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($invoice_custom_items ?? [] as $chargeIndex => $customItem)
+                        <tr class="custom-charge-row" data-item-id="{{ $customItem->id }}" data-unit-price="{{ intval($customItem->unit_price) }}">
+                            <td class="text-center">
+                                <div class="checkbox mb-0">
+                                    <input type="checkbox" class="custom-charge-checkbox" id="custom_charge_{{ $customItem->id }}">
+                                    <label for="custom_charge_{{ $customItem->id }}" class="checkboxsizeletter"></label>
+                                </div>
+                            </td>
+                            <td>
+                                <label for="custom_charge_{{ $customItem->id }}" class="mb-0 custom-charge-label">
+                                    {{ $customItem->name }}
+                                </label>
+                            </td>
+                            <td>
+                                <input type="hidden" class="custom-charge-item-id" disabled
+                                    name="custom_charges[{{ $chargeIndex }}][invoice_custom_item_id]"
+                                    value="{{ $customItem->id }}">
+                                <input type="hidden" class="custom-charge-due-date" disabled
+                                    name="custom_charges[{{ $chargeIndex }}][due_date]"
+                                    value="{{ now()->addDays(15)->toDateString() }}">
+                                <input type="text" class="form-control form-control-sm custom-charge-value money" disabled
+                                    name="custom_charges[{{ $chargeIndex }}][value]"
+                                    value="{{ intval($customItem->unit_price) }}" inputmode="numeric">
+                            </td>
+                            <td>
+                                <span class="badge custom-charge-status">Disponible</span>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No hay cargos personalizados configurados.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

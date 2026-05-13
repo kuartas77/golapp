@@ -70,8 +70,33 @@
 
             $("#form_create").validate({
                 submitHandler: function (form) {
+                    prepareCustomChargesPayload();
                     $(form).ajaxSubmit(options);
                 }
+            });
+
+            $('#custom_charges_due_date').on('change', function() {
+                $('.custom-charge-row:not(.custom-charge-existing) .custom-charge-due-date').val($(this).val());
+            });
+
+            $(document).on('change', '.custom-charge-checkbox', function() {
+                const row = $(this).closest('.custom-charge-row');
+                toggleCustomChargeRow(row, $(this).is(':checked'));
+            });
+
+            $(document).on('click', '.custom-charge-row', function(event) {
+                if ($(event.target).is('input, label, select, button, a')) {
+                    return;
+                }
+
+                const row = $(this);
+                const checkbox = row.find('.custom-charge-checkbox');
+
+                if (checkbox.prop('disabled')) {
+                    return;
+                }
+
+                checkbox.prop('checked', !checkbox.prop('checked')).trigger('change');
             });
 
             $('#unique_code').on('change', function (e) {
@@ -96,5 +121,103 @@
                 });
             });
         });
+
+        function toggleCustomChargeRow(row, enabled) {
+            if (row.hasClass('custom-charge-existing')) {
+                enabled = false;
+            }
+
+            row.find('.custom-charge-item-id, .custom-charge-value, .custom-charge-due-date')
+                .prop('disabled', !enabled);
+            row.find('.custom-charge-value')
+                .prop('readonly', !enabled);
+            row.toggleClass('table-secondary', row.hasClass('custom-charge-existing'));
+        }
+
+        function prepareCustomChargesPayload() {
+            const dueDate = $('#custom_charges_due_date').val();
+            $('.custom-charge-row:not(.custom-charge-existing)').each(function(index) {
+                const row = $(this);
+                const enabled = row.find('.custom-charge-checkbox').is(':checked');
+
+                row.find('.custom-charge-item-id').attr('name', `custom_charges[${index}][invoice_custom_item_id]`);
+                row.find('.custom-charge-value').attr('name', `custom_charges[${index}][value]`);
+                row.find('.custom-charge-due-date')
+                    .attr('name', `custom_charges[${index}][due_date]`)
+                    .val(dueDate);
+
+                toggleCustomChargeRow(row, enabled);
+            });
+        }
+
+        function customChargeStatusLabel(status) {
+            const labels = {
+                pending: 'Pendiente',
+                due: 'Debe',
+                paid: 'Pagado',
+            };
+
+            return labels[status] || 'Disponible';
+        }
+
+        function setCustomChargeValue(row, value) {
+            const input = row.find('.custom-charge-value');
+
+            input.val(parseInt(value, 10) || 0);
+
+            if (input.inputmask) {
+                input.inputmask("pesos");
+            }
+        }
+
+        window.resetCustomCharges = function() {
+            $('#existing_custom_charges').addClass('d-none').empty();
+            $('#custom_charges_due_date').val(moment().add(15, 'days').format('YYYY-MM-DD'));
+            $('.custom-charge-row').removeClass('custom-charge-existing table-secondary');
+            $('.custom-charge-checkbox').prop('checked', false).prop('disabled', false);
+            $('.custom-charge-row').each(function() {
+                const row = $(this);
+                setCustomChargeValue(row, row.data('unit-price'));
+                row.find('.custom-charge-due-date').val($('#custom_charges_due_date').val());
+                row.find('.custom-charge-status')
+                    .text('Disponible')
+                    .removeClass('badge-warning badge-danger badge-success')
+                    .addClass('badge-secondary');
+                toggleCustomChargeRow(row, false);
+            });
+        }
+
+        window.renderExistingCustomCharges = function(charges) {
+            resetCustomCharges();
+
+            if (!Array.isArray(charges) || charges.length === 0) {
+                return;
+            }
+
+            const labels = charges.map((charge) => `${charge.name} (${charge.status === 'due' ? 'Debe' : 'Pendiente'})`).join(', ');
+            $('#existing_custom_charges')
+                .removeClass('d-none')
+                .html(`<strong>Cargos activos:</strong> ${labels}`);
+
+            charges.forEach((charge) => {
+                const row = $(`.custom-charge-row[data-item-id="${charge.invoice_custom_item_id}"]`);
+
+                if (!row.length) {
+                    return;
+                }
+
+                row.addClass('custom-charge-existing table-secondary');
+                row.find('.custom-charge-checkbox').prop('checked', true).prop('disabled', true);
+                setCustomChargeValue(row, charge.value);
+                row.find('.custom-charge-due-date').val(moment(charge.due_date).format('YYYY-MM-DD'));
+                row.find('.custom-charge-status')
+                    .text(customChargeStatusLabel(charge.status))
+                    .removeClass('badge-secondary badge-success')
+                    .addClass(charge.status === 'due' ? 'badge-danger' : 'badge-warning');
+                toggleCustomChargeRow(row, false);
+            });
+        }
+
+        resetCustomCharges();
     </script>
 @endpush

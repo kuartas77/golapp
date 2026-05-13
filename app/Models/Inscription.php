@@ -168,6 +168,11 @@ class Inscription extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function customCharges(): HasMany
+    {
+        return $this->hasMany(InscriptionCustomCharge::class);
+    }
+
     public function competitionGroup(): BelongsToMany
     {
         return $this->belongsToMany(CompetitionGroup::class)->using(CompetitionGroupInscription::class);

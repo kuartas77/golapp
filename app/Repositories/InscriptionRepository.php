@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Models\Inscription;
+use App\Models\InscriptionCustomCharge;
+use App\Models\InvoiceCustomItem;
 use App\Models\TrainingGroup;
 use App\Notifications\InscriptionNotification;
 use App\Repositories\PeopleRepository;
@@ -48,6 +50,8 @@ class InscriptionRepository
         try {
 
             $this->setTrainingGroupId($requestData);
+            $customCharges = $requestData['custom_charges'] ?? [];
+            unset($requestData['custom_charges']);
             $requestData['deleted_at'] = null;
 
             DB::beginTransaction();
@@ -59,6 +63,7 @@ class InscriptionRepository
             ], $requestData);
 
             $this->setCompetitionGroupIds($inscription, $requestData);
+            $this->createCustomCharges($inscription, $customCharges);
 
             $inscription->load(['player', 'school']);
 
@@ -102,6 +107,8 @@ class InscriptionRepository
         $result = false;
         try {
             $this->setTrainingGroupId($requestData);
+            $customCharges = $requestData['custom_charges'] ?? [];
+            unset($requestData['custom_charges']);
             $requestData['deleted_at'] = null;
             $requestData['unique_code'] = $inscription->unique_code;
             $requestData['start_date'] = $inscription->start_date;
@@ -111,6 +118,7 @@ class InscriptionRepository
             $this->setCompetitionGroupIds($inscription, $requestData);
 
             $result = $inscription->update($requestData);
+            $this->createCustomCharges($inscription->fresh(), $customCharges);
 
             DB::commit();
 
@@ -157,12 +165,65 @@ class InscriptionRepository
 
     public function searchInsUniqueCode($id)
     {
-        $inscription = Inscription::query()->with(['player', 'competitionGroup'])->schoolId()->orderBy('id', 'desc')->firstWhere('unique_code', $id);
+        $inscription = Inscription::query()
+            ->with([
+                'player',
+                'competitionGroup',
+                'customCharges' => fn ($query) => $query
+                    ->whereIn('status', [InscriptionCustomCharge::STATUS_PENDING, InscriptionCustomCharge::STATUS_DUE])
+                    ->orderBy('due_date')
+            ])
+            ->schoolId()
+            ->orderBy('id', 'desc')
+            ->firstWhere('unique_code', $id);
         if($inscription) {
             $inscription->setRelation('competitionGroup', $inscription->competitionGroup->pluck('id'));
             return $inscription;
         }
         return null;
+    }
+
+    private function createCustomCharges(Inscription $inscription, array $customCharges): void
+    {
+        if (empty($customCharges)) {
+            return;
+        }
+
+        $catalogItems = InvoiceCustomItem::query()
+            ->where('school_id', $inscription->school_id)
+            ->whereIn('id', collect($customCharges)->pluck('invoice_custom_item_id')->filter()->unique()->all())
+            ->get()
+            ->keyBy('id');
+
+        foreach ($customCharges as $chargeData) {
+            $catalogItem = $catalogItems->get((int) data_get($chargeData, 'invoice_custom_item_id'));
+
+            if (!$catalogItem) {
+                continue;
+            }
+
+            $alreadyExists = InscriptionCustomCharge::query()
+                ->where('school_id', $inscription->school_id)
+                ->where('inscription_id', $inscription->id)
+                ->where('invoice_custom_item_id', $catalogItem->id)
+                ->whereIn('status', [InscriptionCustomCharge::STATUS_PENDING, InscriptionCustomCharge::STATUS_DUE])
+                ->exists();
+
+            if ($alreadyExists) {
+                continue;
+            }
+
+            InscriptionCustomCharge::query()->create([
+                'school_id' => $inscription->school_id,
+                'inscription_id' => $inscription->id,
+                'player_id' => $inscription->player_id,
+                'invoice_custom_item_id' => $catalogItem->id,
+                'name' => $catalogItem->name,
+                'value' => data_get($chargeData, 'value', $catalogItem->unit_price),
+                'status' => InscriptionCustomCharge::STATUS_PENDING,
+                'due_date' => data_get($chargeData, 'due_date'),
+            ]);
+        }
     }
 
     public function disable(Inscription $inscription): void
