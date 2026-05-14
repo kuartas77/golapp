@@ -175,4 +175,23 @@ class Invoice extends Model
 
         $payment->save();
     }
+
+    public function markCustomChargesAsPaid(): void
+    {
+        $customChargeIds = $this->items()
+            ->where('is_paid', true)
+            ->whereNotNull('custom_charge_id')
+            ->pluck('custom_charge_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($customChargeIds->isEmpty()) {
+            return;
+        }
+
+        InscriptionCustomCharge::query()
+            ->whereIn('id', $customChargeIds)
+            ->update(['status' => InscriptionCustomCharge::STATUS_PAID]);
+    }
 }

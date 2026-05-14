@@ -12,7 +12,9 @@ use App\Models\CompetitionGroup;
 use App\Models\CompetitionGroupInscription;
 use App\Models\Game;
 use App\Models\Inscription;
+use App\Models\InscriptionCustomCharge;
 use App\Models\Invoice;
+use App\Models\InvoiceCustomItem;
 use App\Models\Payment;
 use App\Models\PaymentReceived;
 use App\Models\Player;
@@ -644,6 +646,92 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertCount(2, $invoice->items);
         $this->assertSame('2000.00', $invoice->items[0]->total);
         $this->assertSame('3000.00', $invoice->items[1]->total);
+    }
+
+    public function testStoreInvoiceLinksDueCustomChargeAndPaymentMarksOnlyPaidCharge(): void
+    {
+        $this->actingAs($this->user);
+        [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
+
+        $catalogItem = InvoiceCustomItem::query()->create([
+            'type' => 'OTHER',
+            'name' => 'Torneo interno',
+            'unit_price' => 25000,
+            'school_id' => $this->school['id'],
+        ]);
+
+        $charge = InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'player_id' => $inscription->player_id,
+            'invoice_custom_item_id' => $catalogItem->id,
+            'name' => $catalogItem->name,
+            'value' => 25000,
+            'status' => InscriptionCustomCharge::STATUS_DUE,
+            'due_date' => now()->subDay()->toDateString(),
+        ]);
+
+        $secondCharge = InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'player_id' => $inscription->player_id,
+            'invoice_custom_item_id' => $catalogItem->id,
+            'name' => 'Cargo no pagado',
+            'value' => 15000,
+            'status' => InscriptionCustomCharge::STATUS_DUE,
+            'due_date' => now()->subDay()->toDateString(),
+        ]);
+
+        Schema::disableForeignKeyConstraints();
+
+        try {
+            $invoiceId = app(InvoiceRepository::class)->storeInvoice([
+                'inscription_id' => $inscription->id,
+                'training_group_id' => $trainingGroup->id,
+                'year' => now()->year,
+                'student_name' => $inscription->player->full_names,
+                'due_date' => now()->addWeek()->toDateString(),
+                'notes' => 'Factura con cargo personalizado',
+                'school_id' => $this->school['id'],
+                'items' => [
+                    [
+                        'type' => 'additional',
+                        'description' => $charge->name,
+                        'quantity' => 1,
+                        'unit_price' => 25000,
+                        'month' => null,
+                        'payment_id' => null,
+                        'uniform_request_id' => null,
+                        'custom_charge_id' => $charge->id,
+                    ],
+                    [
+                        'type' => 'additional',
+                        'description' => $secondCharge->name,
+                        'quantity' => 1,
+                        'unit_price' => 15000,
+                        'month' => null,
+                        'payment_id' => null,
+                        'uniform_request_id' => null,
+                        'custom_charge_id' => $secondCharge->id,
+                    ],
+                ],
+            ]);
+        } finally {
+            Schema::enableForeignKeyConstraints();
+        }
+
+        $invoice = Invoice::query()->with('items')->findOrFail($invoiceId);
+        $paidItem = $invoice->items->firstWhere('custom_charge_id', $charge->id);
+
+        $this->assertNotNull($paidItem);
+        $this->assertSame($paidItem->id, $charge->fresh()->invoice_item_id);
+        $this->assertSame('due', $charge->fresh()->status);
+
+        $paidItem->update(['is_paid' => true]);
+        $invoice->markCustomChargesAsPaid();
+
+        $this->assertSame(InscriptionCustomCharge::STATUS_PAID, $charge->fresh()->status);
+        $this->assertSame(InscriptionCustomCharge::STATUS_DUE, $secondCharge->fresh()->status);
     }
 
     public function testGameRepositoryDatatableAndExportMatchDetail(): void

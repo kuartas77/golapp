@@ -6,6 +6,7 @@ use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class InvoiceCustomItem extends Model
 {
@@ -30,6 +31,11 @@ class InvoiceCustomItem extends Model
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class, 'school_id');
+    }
+
+    public function inscriptionCustomCharges(): HasMany
+    {
+        return $this->hasMany(InscriptionCustomCharge::class);
     }
 
     public function getUrlShowAttribute(): string

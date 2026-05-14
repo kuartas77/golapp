@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\Admin\ContractController as AdminContractController;
 use App\Http\Controllers\API\Admin\GroupAssignmentController;
 use App\Http\Controllers\API\Admin\InscriptionController;
+use App\Http\Controllers\API\Admin\InscriptionCustomChargeController;
 use App\Http\Controllers\API\Admin\InvoiceCustomItemController as AdminInvoiceCustomItemController;
 use App\Http\Controllers\API\Admin\RegisterController;
 use App\Http\Controllers\API\Admin\ScheduleController as AdminScheduleController;
@@ -122,6 +123,9 @@ Route::prefix('v2')->group(function () {
 
             Route::middleware('school.permission:school.module.billing')->name('api.')->group(function () {
                 Route::apiResource('invoice-items-custom', AdminInvoiceCustomItemController::class);
+                Route::get('inscription-custom-charges', [InscriptionCustomChargeController::class, 'index']);
+                Route::put('inscription-custom-charges/{charge}', [InscriptionCustomChargeController::class, 'update']);
+                Route::delete('inscription-custom-charges/{charge}', [InscriptionCustomChargeController::class, 'destroy']);
             });
 
             Route::middleware('school.permission:school.module.user_management')->group(function () {
@@ -198,6 +202,7 @@ Route::prefix('v2')->group(function () {
             'role:super-admin|school',
             'school.permission:school.module.inscriptions',
         ])->group(function () {
+            Route::get('inscriptions/{inscription}/custom-charges', [InscriptionCustomChargeController::class, 'byInscription']);
             Route::resource('inscriptions', WebInscriptions::class)->except(['index', 'create', 'show']);
         });
 

@@ -210,6 +210,7 @@ const routes = [
                 children: [
                     { path: '', name: 'invoices.index', component: () => import('@/pages/invoices/Invoices.vue') },
                     { path: 'items', name: 'invoices.items.index', component: () => import('@/pages/invoices/InvoiceItems.vue') },
+                    { path: 'cargos-personalizados', name: 'invoices.custom-charges.index', component: () => import('@/pages/invoices/InscriptionCustomCharges.vue') },
                     {
                         path: 'comprobantes-pago',
                         name: 'payment-requests.index',

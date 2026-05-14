@@ -27,6 +27,7 @@ class InvoiceStoreRequest extends FormRequest
             'items.*.month' => 'nullable|string',
             'items.*.payment_id' => 'nullable|exists:payments,id',
             'items.*.uniform_request_id' => 'nullable|exists:uniform_request,id',
+            'items.*.custom_charge_id' => 'nullable|exists:inscription_custom_charges,id',
             'notes' => 'nullable',
             'school_id' => 'required',
         ];

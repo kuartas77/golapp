@@ -149,6 +149,78 @@
                             </div>
 
                         </div>
+                        <div class="row col-12 mt-3">
+                            <div class="col-12">
+                                <div class="border rounded p-2">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                        <h6 class="text-uppercase text-muted mb-0">
+                                            <strong>Cargos personalizados</strong>
+                                        </h6>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <small class="text-muted">Vencimiento nuevos</small>
+                                            <flat-pickr
+                                                v-model="customChargesDueDate"
+                                                :config="flatpickrConfigDateIssue"
+                                                class="form-control form-control-sm custom-charge-date"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div v-if="customChargesLoading" class="text-center py-2">
+                                        <span class="spinner-border spinner-border-sm text-primary"></span>
+                                    </div>
+
+                                    <div v-else-if="customChargeRows.length" class="table-responsive">
+                                        <table class="table table-sm align-middle mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 36%">Cargo</th>
+                                                    <th style="width: 18%">Estado</th>
+                                                    <th style="width: 24%">Valor</th>
+                                                    <th style="width: 12%" class="text-center">Asignar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="charge in customChargeRows" :key="charge.rowKey">
+                                                    <td>
+                                                        <div class="fw-semibold">{{ charge.name }}</div>
+                                                        <small class="text-muted">
+                                                            Base {{ moneyFormat(Number(charge.unit_price || 0)) }}
+                                                        </small>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge" :class="customChargeStatusClass(charge.status)">
+                                                            {{ customChargeStatusLabel(charge.status) }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <CurrencyInput
+                                                            v-model="charge.value"
+                                                            class="form-control form-control-sm"
+                                                            :disabled="charge.disabled || !charge.selected"
+                                                            autocomplete="off"
+                                                        />
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            class="form-check-input"
+                                                            v-model="charge.selected"
+                                                            :disabled="charge.disabled"
+                                                            @change="onCustomChargeToggle(charge, $event)"
+                                                        >
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <small v-else class="text-muted d-block py-2">
+                                        No hay cargos personalizados configurados para esta escuela.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn" :disabled="isSubmitting" @click="onCancel">Cerrar</button>
@@ -178,6 +250,7 @@ import { ErrorMessage, Field, Form } from "vee-validate";
 import * as yup from "yup";
 import api from "@/utils/axios";
 import { useSetting } from "@/store/settings-store";
+import CurrencyInput from '@/components/general/CurrencyInput';
 
 const props = defineProps({
     inscription_id: {
@@ -207,6 +280,12 @@ const composeModalInscription = ref(null);
 const currentTrainingGroupId = ref(null);
 const currentPreInscription = ref(false);
 const reactivationCandidate = ref(null);
+const customChargeCatalog = ref([]);
+const existingCustomCharges = ref([]);
+const customChargeRows = ref([]);
+const customChargesLoading = ref(false);
+const customChargesDueDate = ref(dayjs().add(15, 'day').format('YYYY-MM-DD'));
+const customChargeRemovalIds = ref([]);
 const editIdentifier = computed(() => props.inscription_id ?? props.unique_code);
 const isEditing = computed(() => editIdentifier.value !== null);
 const selectedInscriptionYear = computed(() => {
@@ -282,6 +361,15 @@ const flatpickrConfigDate = computed(() => {
     }
 })
 
+const flatpickrConfigDateIssue = computed(() => {
+    const year = selectedInscriptionYear.value
+
+    return {
+        locale: Spanish,
+        minDate: `${year}-01-01`,
+    }
+})
+
 const defaultValues = () => ({
     id: null,
     player_id: null,
@@ -324,6 +412,10 @@ const resetFormState = () => {
     currentTrainingGroupId.value = null
     currentPreInscription.value = false
     reactivationCandidate.value = null
+    existingCustomCharges.value = []
+    customChargeRemovalIds.value = []
+    customChargesDueDate.value = dayjs().add(15, 'day').format('YYYY-MM-DD')
+    rebuildCustomChargeRows()
     globalError.value = null
 }
 
@@ -352,15 +444,19 @@ const search = async (query) => {
 
 const openCreateModal = () => {
     resetFormState()
+    loadCustomChargeData()
     composeModalInscription.value?.show()
 }
 
 const loadInscriptionForEdit = async (inscriptionId) => {
     try {
-        const resp = await api.get(`/api/v2/inscriptions/${inscriptionId}/edit`)
+        resetFormState()
+        const [resp] = await Promise.all([
+            api.get(`/api/v2/inscriptions/${inscriptionId}/edit`),
+            loadCustomChargeData(inscriptionId),
+        ])
         const data = resp.data
 
-        resetFormState()
         currentTrainingGroupId.value = data.training_group_id
         currentPreInscription.value = Boolean(data.pre_inscription)
         form.value.setValues({
@@ -388,6 +484,142 @@ const loadInscriptionForEdit = async (inscriptionId) => {
         emit("cancel")
     }
 }
+
+const loadCustomChargeCatalog = async () => {
+    if (customChargeCatalog.value.length) {
+        return
+    }
+
+    const { data } = await api.get('/api/v2/admin/invoice-items-custom')
+    customChargeCatalog.value = Array.isArray(data) ? data : data.data ?? []
+}
+
+const loadCustomChargeData = async (inscriptionId = null) => {
+    customChargesLoading.value = true
+
+    try {
+        await loadCustomChargeCatalog()
+
+        if (inscriptionId) {
+            const { data } = await api.get(`/api/v2/inscriptions/${inscriptionId}/custom-charges`)
+            existingCustomCharges.value = Array.isArray(data) ? data : data.data ?? []
+        } else {
+            existingCustomCharges.value = []
+        }
+
+        rebuildCustomChargeRows()
+    } catch (error) {
+        showMessage('No se pudieron cargar los cargos personalizados.', 'error')
+    } finally {
+        customChargesLoading.value = false
+    }
+}
+
+const rebuildCustomChargeRows = () => {
+    const activeByCatalogId = new Map()
+
+    existingCustomCharges.value.forEach((charge) => {
+        if (customChargeRemovalIds.value.includes(Number(charge.id))) {
+            return
+        }
+
+        if (['pending', 'due'].includes(charge.status) && charge.invoice_custom_item_id) {
+            activeByCatalogId.set(Number(charge.invoice_custom_item_id), charge)
+        }
+    })
+
+    const catalogRows = customChargeCatalog.value.map((item) => {
+        const existingCharge = activeByCatalogId.get(Number(item.id))
+
+        return existingCharge
+            ? mapExistingCharge(existingCharge, item)
+            : {
+                rowKey: `catalog-${item.id}`,
+                id: null,
+                invoice_custom_item_id: item.id,
+                name: item.name,
+                unit_price: Number(item.unit_price || 0),
+                value: Number(item.unit_price || 0),
+                status: 'available',
+                selected: false,
+                disabled: false,
+            }
+    })
+
+    const historicalRows = existingCustomCharges.value
+        .filter((charge) => !customChargeRemovalIds.value.includes(Number(charge.id)))
+        .filter((charge) => !['pending', 'due'].includes(charge.status) || !charge.invoice_custom_item_id)
+        .map((charge) => mapExistingCharge(charge))
+
+    customChargeRows.value = [...catalogRows, ...historicalRows]
+}
+
+const mapExistingCharge = (charge, catalogItem = null) => ({
+    rowKey: `charge-${charge.id}`,
+    id: charge.id,
+    invoice_custom_item_id: charge.invoice_custom_item_id,
+    name: charge.name,
+    unit_price: Number(catalogItem?.unit_price ?? charge.invoice_custom_item?.unit_price ?? charge.value ?? 0),
+    value: Number(charge.value || 0),
+    status: charge.status,
+    selected: true,
+    disabled: ['due', 'paid'].includes(charge.status) || Boolean(charge.invoice_item_id),
+})
+
+const onCustomChargeToggle = (charge, event) => {
+    const checked = Boolean(event?.target?.checked)
+
+    if (charge.status === 'due') {
+        charge.selected = true
+        return
+    }
+
+    if (!checked && charge.id && charge.status === 'pending') {
+        const chargeId = Number(charge.id)
+
+        if (!customChargeRemovalIds.value.includes(chargeId)) {
+            customChargeRemovalIds.value.push(chargeId)
+        }
+
+        const catalogItem = customChargeCatalog.value.find((item) => Number(item.id) === Number(charge.invoice_custom_item_id))
+        charge.rowKey = `catalog-${charge.invoice_custom_item_id}`
+        charge.id = null
+        charge.status = 'available'
+        charge.selected = false
+        charge.disabled = false
+        charge.value = Number(catalogItem?.unit_price ?? charge.unit_price ?? 0)
+        charge.unit_price = Number(catalogItem?.unit_price ?? charge.unit_price ?? 0)
+    }
+}
+
+const customChargeStatusLabel = (status) => ({
+    available: 'Disponible',
+    pending: 'Pendiente',
+    due: 'Debe',
+    paid: 'Pagado',
+}[status] ?? status)
+
+const customChargeStatusClass = (status) => ({
+    available: 'badge-light',
+    pending: 'badge-warning',
+    due: 'badge-danger',
+    paid: 'badge-success',
+}[status] ?? 'badge-light')
+
+const selectedCustomChargesPayload = () => [
+    ...customChargeRemovalIds.value.map((id) => ({
+        id,
+        _delete: true,
+    })),
+    ...customChargeRows.value
+        .filter((charge) => charge.selected && !charge.disabled)
+        .map((charge) => ({
+        id: charge.id,
+        invoice_custom_item_id: charge.invoice_custom_item_id,
+        value: Number(charge.value || 0),
+        due_date: customChargesDueDate.value,
+    })),
+]
 
 const loadPlayerByUniqueCode = async (uniqueCode) => {
     if (!uniqueCode) {
@@ -461,6 +693,8 @@ const submit = async (values, actions) => {
         globalError.value = null
         let response = null
         const data = { ...values }
+        data.custom_charges = selectedCustomChargesPayload()
+        data.custom_charges_due_date = customChargesDueDate.value
 
         if (isEditing.value) {
             data._method = 'PUT'
@@ -545,6 +779,8 @@ onMounted(async () => {
     modalElement.addEventListener('click', listenerClickOutSide)
 
     await settings.getSettings()
+    await loadCustomChargeCatalog()
+    rebuildCustomChargeRows()
 })
 
 onBeforeUnmount(() => {
@@ -552,3 +788,9 @@ onBeforeUnmount(() => {
     modalElement?.removeEventListener('click', listenerClickOutSide)
 })
 </script>
+
+<style scoped>
+.custom-charge-date {
+    width: 130px;
+}
+</style>

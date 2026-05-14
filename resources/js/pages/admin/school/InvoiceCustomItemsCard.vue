@@ -3,9 +3,9 @@
         <div class="card-body d-flex flex-column">
             <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                 <div>
-                    <h5 class="mb-1">Items personalizados de facturación</h5>
+                    <h5 class="mb-1">Catálogo de cargos para inscripciones</h5>
                     <p class="text-muted small mb-0">
-                        Se agregan por defecto a las facturas. Excepto en "Otro", sólo puede existir un item activo por tipo.
+                        Se asignan desde la inscripción y luego pasan a facturación cuando están en estado Debe. Excepto en "Otro", sólo puede existir un item activo por tipo.
                     </p>
                 </div>
 
@@ -26,7 +26,7 @@
 
             <div v-if="isLoading" class="py-5 text-center">
                 <div class="spinner-border text-primary mb-2" role="status"></div>
-                <p class="text-muted mb-0">Cargando items personalizados...</p>
+                <p class="text-muted mb-0">Cargando catálogo de cargos...</p>
             </div>
 
             <template v-else>
@@ -73,7 +73,7 @@
                 </div>
 
                 <div v-else class="border rounded-3 p-4 text-center text-muted h-100 d-flex align-items-center justify-content-center">
-                    Todavía no hay items personalizados para facturación.
+                    Todavía no hay cargos personalizados para asignar a inscripciones.
                 </div>
             </template>
         </div>
@@ -86,9 +86,9 @@
                     <div class="modal-header">
                         <div>
                             <h5 class="modal-title mb-0">
-                                {{ isEditMode ? 'Editar item personalizado' : 'Nuevo item personalizado' }}
+                                {{ isEditMode ? 'Editar cargo del catálogo' : 'Nuevo cargo del catálogo' }}
                             </h5>
-                            <small class="text-muted">Este item se agregará por defecto a nuevas facturas.</small>
+                            <small class="text-muted">Este cargo quedará disponible para asignarlo desde inscripciones.</small>
                         </div>
                         <button
                             type="button"
@@ -398,7 +398,7 @@ const submitForm = async () => {
 const confirmDelete = async (item) => {
     const result = await window.Swal.fire({
         title: '¿Eliminar item personalizado?',
-        text: `Se eliminará "${item.name}" del listado por defecto de facturación.`,
+        text: `Se eliminará "${item.name}" del catálogo asignable a inscripciones.`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Sí, eliminar',

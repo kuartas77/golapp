@@ -61,7 +61,7 @@ const mountPage = async () => {
             },
             pendingMonths: [],
             pendingUniformRequests: [],
-            customItems: [],
+            customCharges: [],
         },
     });
 

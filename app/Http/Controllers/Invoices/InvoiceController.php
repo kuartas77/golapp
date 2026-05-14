@@ -32,13 +32,13 @@ class InvoiceController extends Controller
 
         $settings = getSchool(auth()->user())->settings;
 
-        [$inscription, $pendingMonths, $pendingUniformRequests, $customItems] = $this->invoice_repository->createInvoice($inscriptionId);
+        [$inscription, $pendingMonths, $pendingUniformRequests, $customCharges] = $this->invoice_repository->createInvoice($inscriptionId);
 
         return response()->json([
             'inscription' => $inscription,
             'pendingMonths' => $pendingMonths,
             'pendingUniformRequests' => $pendingUniformRequests,
-            'customItems' => $customItems
+            'customCharges' => $customCharges,
         ]);
     }
 

@@ -4,8 +4,8 @@ namespace App\Repositories;
 
 use App\Http\Requests\InvoiceAddPaymentRequest;
 use App\Models\Inscription;
+use App\Models\InscriptionCustomCharge;
 use App\Models\Invoice;
-use App\Models\InvoiceCustomItem;
 use App\Models\InvoiceItem;
 use App\Models\Payment;
 use App\Models\PaymentReceived;
@@ -148,9 +148,10 @@ class InvoiceRepository
 
         [$inscription, $pendingMonths] = $this->makeInvoice($inscriptionId, $school);
 
-        [$pendingUniformRequests, $customItems] = $this->addUniformRequest($inscription->player_id);
+        $pendingUniformRequests = $this->addUniformRequest($inscription->player_id);
+        $customCharges = $this->customChargesForInvoice($inscription);
 
-        return [$inscription, $pendingMonths, $pendingUniformRequests, $customItems];
+        return [$inscription, $pendingMonths, $pendingUniformRequests, $customCharges];
     }
 
     public function storeInvoice(array $validated): ?Int
@@ -183,6 +184,18 @@ class InvoiceRepository
                 foreach ($validated['items'] as $itemData) {
                     $quantity = (int) $itemData['quantity'];
                     $unitPrice = (float) $itemData['unit_price'];
+                    $customChargeId = $itemData['custom_charge_id'] ?? null;
+
+                    if (! empty($customChargeId)) {
+                        InscriptionCustomCharge::query()
+                            ->whereKey($customChargeId)
+                            ->where('school_id', $validated['school_id'])
+                            ->where('inscription_id', $validated['inscription_id'])
+                            ->where('status', InscriptionCustomCharge::STATUS_DUE)
+                            ->whereNull('invoice_item_id')
+                            ->lockForUpdate()
+                            ->firstOrFail();
+                    }
 
                     $items[] = [
                         'type' => $itemData['type'],
@@ -194,6 +207,7 @@ class InvoiceRepository
                         'payment_id' => $itemData['payment_id'] ?? null,
                         'is_paid' => false,
                         'uniform_request_id' => $itemData['uniform_request_id'] ?? null,
+                        'custom_charge_id' => $customChargeId,
                     ];
 
                     if (!empty($itemData['uniform_request_id'])) {
@@ -203,7 +217,14 @@ class InvoiceRepository
 
                 InvoiceItem::withoutEvents(function () use ($invoice, $items): void {
                     foreach ($items as $item) {
-                        $invoice->items()->create($item);
+                        $invoiceItem = $invoice->items()->create($item);
+
+                        if (! empty($item['custom_charge_id'])) {
+                            InscriptionCustomCharge::query()
+                                ->whereKey($item['custom_charge_id'])
+                                ->whereNull('invoice_item_id')
+                                ->update(['invoice_item_id' => $invoiceItem->id]);
+                        }
                     }
                 });
 
@@ -256,6 +277,7 @@ class InvoiceRepository
 
             // Si hay ítems de meses marcados como pagados, actualizar la tabla payments original
             $invoice->markMonthsAsPaid();
+            $invoice->markCustomChargesAsPaid();
         }
     }
 
@@ -284,6 +306,7 @@ class InvoiceRepository
         $invoice->items()->update(['is_paid' => true, 'payment_received_id' => $paymentReceived->id]);
         // Si hay ítems de meses marcados como pagados, actualizar la tabla payments original
         $invoice->markMonthsAsPaid();
+        $invoice->markCustomChargesAsPaid();
     }
 
     public function getAllItems()
@@ -316,12 +339,6 @@ class InvoiceRepository
             DB::raw('ici.id as custom_id'),
         ])
         ->get();
-
-        $custonIds = $uniformRequests->pluck('custom_id')->filter();
-
-        $customItems = InvoiceCustomItem::query()
-            ->when($custonIds->isNotEmpty(), fn($q) => $q->whereNotIn('id', $custonIds))
-            ->schoolId()->get();
 
         $uniformRequestsOthers = UniformRequest::query()
             ->where('player_id', $playerId)
@@ -358,7 +375,24 @@ class InvoiceRepository
             }
         }
 
-        return [$pendingUniformRequests, $customItems];
+        return $pendingUniformRequests;
+    }
+
+    private function customChargesForInvoice(Inscription $inscription)
+    {
+        return $inscription->customCharges()
+            ->where('status', InscriptionCustomCharge::STATUS_DUE)
+            ->whereNull('invoice_item_id')
+            ->get()
+            ->map(fn (InscriptionCustomCharge $charge) => [
+                'id' => $charge->id,
+                'description' => $charge->name,
+                'quantity' => 1,
+                'unit_price' => (float) $charge->value,
+                'status' => $charge->status,
+                'due_date' => optional($charge->due_date)->toDateString(),
+                'custom_charge_id' => $charge->id,
+            ]);
     }
 
     public function exportPendingItems(bool $stream = true)

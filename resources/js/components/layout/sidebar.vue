@@ -287,6 +287,11 @@
                                     Items Facturas
                                 </router-link>
                             </li>
+                            <li>
+                                <router-link :to="{ name: 'invoices.custom-charges.index' }" @click="toggleMobileMenu">
+                                    Cargos Personalizados
+                                </router-link>
+                            </li>
                             <li v-if="canPaymentRequests">
                                 <router-link :to="{ name: 'payment-requests.index' }" @click="toggleMobileMenu">
                                     Comprobantes de Pago

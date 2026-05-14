@@ -202,6 +202,11 @@ class Inscription extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function customCharges(): HasMany
+    {
+        return $this->hasMany(InscriptionCustomCharge::class);
+    }
+
     public function playerEvaluations(): HasMany
     {
         return $this->hasMany(PlayerEvaluation::class);

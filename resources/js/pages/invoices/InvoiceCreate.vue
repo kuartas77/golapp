@@ -124,7 +124,7 @@
                                                 </h6>
                                                 <small class="text-muted">
                                                     {{ includedAdditionalItemsCount }} de {{ additionalItems.length }}
-                                                    activos entre uniformes y otros conceptos.
+                                                    activos entre uniformes y cargos vencidos.
                                                 </small>
                                             </div>
                                             <button type="button" class="btn btn-sm btn-success"
@@ -449,17 +449,18 @@ const loadData = async () => {
             uniform_request_id: item.uniform_request_id
         }))
 
-        const customItems = response.data.customItems.map(item => ({
+        const customCharges = (response.data.customCharges ?? []).map(item => ({
             ...item,
             include: true,
-            description: item.name,
+            description: item.description,
             quantity: 1,
             unit_price: normalizeUnitPrice(item.unit_price),
-            type: 'additional'
+            type: 'additional',
+            custom_charge_id: item.custom_charge_id
         }))
 
 
-        additionalItems.value = [...uniformRequest, ...customItems]
+        additionalItems.value = [...uniformRequest, ...customCharges]
 
     } catch (error) {
         console.error('Error al cargar datos:', error)
@@ -488,9 +489,10 @@ const addAdditionalItem = () => {
         description: '',
         quantity: 1,
         unit_price: 0,
-        uniform_request_id: null,
-        month: null,
-        payment_id: null
+            uniform_request_id: null,
+            custom_charge_id: null,
+            month: null,
+            payment_id: null
     })
 }
 
@@ -554,7 +556,8 @@ const submitInvoice = async () => {
                     unit_price: normalizeUnitPrice(item.unit_price),
                     month: null,
                     payment_id: null,
-                    uniform_request_id: item?.uniform_request_id
+                    uniform_request_id: item?.uniform_request_id,
+                    custom_charge_id: item?.custom_charge_id
                 })
             }
         })

@@ -52,6 +52,12 @@ class InscriptionUpdateRequest extends FormRequest
             'scholarship' => ['nullable', 'boolean'],
             'pre_inscription' => ['nullable', 'boolean'],
             'brother_payment' => ['nullable', 'boolean'],
+            'custom_charges' => ['nullable', 'array'],
+            'custom_charges.*.id' => ['nullable', 'integer', 'exists:inscription_custom_charges,id'],
+            'custom_charges.*.invoice_custom_item_id' => ['nullable', 'integer', 'exists:invoice_custom_items,id'],
+            'custom_charges.*.value' => ['nullable', 'numeric', 'min:0'],
+            'custom_charges.*.due_date' => ['nullable', 'date'],
+            'custom_charges.*._delete' => ['nullable', 'boolean'],
         ];
     }
 
@@ -83,6 +89,22 @@ class InscriptionUpdateRequest extends FormRequest
             'competition_groups' => array_filter($this->input('competition_groups', [])),
             'training_group_id' => $this->filled('training_group_id') ? $this->training_group_id : null,
             'pre_inscription' => $this->input('pre_inscription', false),
+            'custom_charges' => $this->normalizeCustomCharges(),
         ]);
+    }
+
+    private function normalizeCustomCharges(): array
+    {
+        return collect($this->input('custom_charges', []))
+            ->filter(fn ($charge) => is_array($charge))
+            ->map(function (array $charge): array {
+                $charge['value'] = preg_replace('/[^0-9]/', '', (string) ($charge['value'] ?? 0));
+                $charge['due_date'] = $charge['due_date'] ?? $this->input('custom_charges_due_date');
+                $charge['_delete'] = (bool) ($charge['_delete'] ?? false);
+
+                return $charge;
+            })
+            ->values()
+            ->all();
     }
 }
