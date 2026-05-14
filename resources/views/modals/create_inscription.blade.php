@@ -1,5 +1,5 @@
 <div class="modal" id="create_inscription" data-keyboard="false" data-backdrop="static">
-    <div class="modal-dialog modal-xl mw-100 w-75">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <form action="{{route('inscriptions.store')}}" id="form_create" class="form-material m-t-0" method="POST">
                 @csrf
@@ -123,30 +123,36 @@
         });
 
         function toggleCustomChargeRow(row, enabled) {
-            if (row.hasClass('custom-charge-existing')) {
+            if (row.hasClass('custom-charge-locked')) {
                 enabled = false;
             }
 
             row.find('.custom-charge-item-id, .custom-charge-value, .custom-charge-due-date')
                 .prop('disabled', !enabled);
             row.find('.custom-charge-value')
-                .prop('readonly', !enabled);
+                .prop('readonly', row.hasClass('custom-charge-existing') || !enabled);
             row.toggleClass('table-secondary', row.hasClass('custom-charge-existing'));
         }
 
         function prepareCustomChargesPayload() {
             const dueDate = $('#custom_charges_due_date').val();
-            $('.custom-charge-row:not(.custom-charge-existing)').each(function(index) {
+            let index = 0;
+
+            $('.custom-charge-row').each(function() {
                 const row = $(this);
-                const enabled = row.find('.custom-charge-checkbox').is(':checked');
+                const enabled = row.find('.custom-charge-checkbox').is(':checked') && !row.hasClass('custom-charge-locked');
 
                 row.find('.custom-charge-item-id').attr('name', `custom_charges[${index}][invoice_custom_item_id]`);
                 row.find('.custom-charge-value').attr('name', `custom_charges[${index}][value]`);
                 row.find('.custom-charge-due-date')
                     .attr('name', `custom_charges[${index}][due_date]`)
-                    .val(dueDate);
+                    .val(row.hasClass('custom-charge-existing') ? row.find('.custom-charge-due-date').val() : dueDate);
 
                 toggleCustomChargeRow(row, enabled);
+
+                if (enabled) {
+                    index++;
+                }
             });
         }
 
@@ -173,7 +179,7 @@
         window.resetCustomCharges = function() {
             $('#existing_custom_charges').addClass('d-none').empty();
             $('#custom_charges_due_date').val(moment().add(15, 'days').format('YYYY-MM-DD'));
-            $('.custom-charge-row').removeClass('custom-charge-existing table-secondary');
+            $('.custom-charge-row').removeClass('custom-charge-existing custom-charge-locked table-secondary');
             $('.custom-charge-checkbox').prop('checked', false).prop('disabled', false);
             $('.custom-charge-row').each(function() {
                 const row = $(this);
@@ -207,7 +213,10 @@
                 }
 
                 row.addClass('custom-charge-existing table-secondary');
-                row.find('.custom-charge-checkbox').prop('checked', true).prop('disabled', true);
+                row.toggleClass('custom-charge-locked', charge.status !== 'pending' || Boolean(charge.invoice_item_id));
+                row.find('.custom-charge-checkbox')
+                    .prop('checked', true)
+                    .prop('disabled', row.hasClass('custom-charge-locked'));
                 setCustomChargeValue(row, charge.value);
                 row.find('.custom-charge-due-date').val(moment(charge.due_date).format('YYYY-MM-DD'));
                 row.find('.custom-charge-status')

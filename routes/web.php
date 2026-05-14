@@ -166,6 +166,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::get('items/invoices', [ItemInvoicesController::class, 'index'])->name('items.invoices.index');
     Route::get('inscription-custom-charges', [InscriptionCustomChargeController::class, 'index'])->name('inscription-custom-charges.index');
     Route::put('inscription-custom-charges/{charge}', [InscriptionCustomChargeController::class, 'update'])->name('inscription-custom-charges.update');
+    Route::delete('inscription-custom-charges/{charge}', [InscriptionCustomChargeController::class, 'destroy'])->name('inscription-custom-charges.destroy');
 
     Route::get('/player-stats', [PlayerStatsController::class, 'index'])->name('player.stats');
     Route::get('/top-players', [PlayerStatsController::class, 'topPlayers'])->name('players.top');

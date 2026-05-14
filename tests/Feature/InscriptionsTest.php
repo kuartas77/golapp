@@ -219,6 +219,260 @@ final class InscriptionsTest extends TestCase
         $this->assertSame(InscriptionCustomCharge::STATUS_PENDING, $futureCharge->fresh()->status);
     }
 
+    public function testUpdateInscriptionRemovesUncheckedPendingCustomCharge(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $now = Carbon::now();
+        $player = Player::factory()->create();
+        $inscription = Inscription::factory()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => $now->year,
+            'training_group_id' => 1,
+            'competition_group_id' => null,
+            'start_date' => $now->format('Y-m-d'),
+            'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+            'school_id' => $this->school['id'],
+        ]);
+        $customItem = InvoiceCustomItem::query()->create([
+            'type' => 'OTHER',
+            'name' => 'Seguro anual',
+            'unit_price' => 75000,
+            'school_id' => $this->school['id'],
+        ]);
+        $charge = InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'player_id' => $player->id,
+            'invoice_custom_item_id' => $customItem->id,
+            'name' => 'Seguro anual',
+            'value' => 75000,
+            'status' => InscriptionCustomCharge::STATUS_PENDING,
+            'due_date' => $now->copy()->addDay()->format('Y-m-d'),
+        ]);
+
+        $this->actingAs($this->user);
+
+        $this->post(route('inscriptions.update', [$inscription->id]), [
+            '_method' => 'PATCH',
+            'unique_code' => $player->unique_code,
+            'player_id' => $player->id,
+            'start_date' => $now->format('Y-m-d'),
+        ])->assertStatus(200);
+
+        $this->assertDatabaseMissing('inscription_custom_charges', ['id' => $charge->id]);
+    }
+
+    public function testUpdateInscriptionDoesNotRemoveUncheckedDueCustomCharge(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $now = Carbon::now();
+        $player = Player::factory()->create();
+        $inscription = Inscription::factory()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => $now->year,
+            'training_group_id' => 1,
+            'competition_group_id' => null,
+            'start_date' => $now->format('Y-m-d'),
+            'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+            'school_id' => $this->school['id'],
+        ]);
+        $customItem = InvoiceCustomItem::query()->create([
+            'type' => 'OTHER',
+            'name' => 'Seguro anual',
+            'unit_price' => 75000,
+            'school_id' => $this->school['id'],
+        ]);
+        $charge = InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'player_id' => $player->id,
+            'invoice_custom_item_id' => $customItem->id,
+            'name' => 'Seguro anual',
+            'value' => 75000,
+            'status' => InscriptionCustomCharge::STATUS_DUE,
+            'due_date' => $now->copy()->subDay()->format('Y-m-d'),
+        ]);
+
+        $this->actingAs($this->user);
+
+        $this->post(route('inscriptions.update', [$inscription->id]), [
+            '_method' => 'PATCH',
+            'unique_code' => $player->unique_code,
+            'player_id' => $player->id,
+            'start_date' => $now->format('Y-m-d'),
+        ])->assertStatus(200);
+
+        $this->assertDatabaseHas('inscription_custom_charges', [
+            'id' => $charge->id,
+            'status' => InscriptionCustomCharge::STATUS_DUE,
+        ]);
+    }
+
+    public function testInscriptionCustomChargeListAllowsDeletingOnlyUnbilledPendingOrDueCharges(): void
+    {
+        $now = Carbon::now();
+        $player = Player::factory()->create();
+        $inscription = Inscription::factory()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => $now->year,
+            'training_group_id' => 1,
+            'competition_group_id' => null,
+            'start_date' => $now->format('Y-m-d'),
+            'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+            'school_id' => $this->school['id'],
+        ]);
+        $pendingCharge = InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'player_id' => $player->id,
+            'name' => 'Pendiente',
+            'value' => 10000,
+            'status' => InscriptionCustomCharge::STATUS_PENDING,
+            'due_date' => $now->copy()->addDay()->format('Y-m-d'),
+        ]);
+        $dueCharge = InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'player_id' => $player->id,
+            'name' => 'Debe',
+            'value' => 10000,
+            'status' => InscriptionCustomCharge::STATUS_DUE,
+            'due_date' => $now->copy()->subDay()->format('Y-m-d'),
+        ]);
+        $paidCharge = InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'player_id' => $player->id,
+            'name' => 'Pagado',
+            'value' => 10000,
+            'status' => InscriptionCustomCharge::STATUS_PAID,
+            'due_date' => $now->format('Y-m-d'),
+        ]);
+        $invoice = Invoice::query()->create([
+            'invoice_number' => 'TEST-' . uniqid(),
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $inscription->training_group_id,
+            'year' => $now->year,
+            'student_name' => $player->full_names,
+            'issue_date' => $now->format('Y-m-d'),
+            'due_date' => $now->copy()->addDay()->format('Y-m-d'),
+            'school_id' => $this->school['id'],
+            'created_by' => $this->user->id,
+        ]);
+        $invoiceItem = $invoice->items()->create([
+            'type' => 'additional',
+            'description' => 'Facturado',
+            'quantity' => 1,
+            'unit_price' => 10000,
+        ]);
+        $billedDueCharge = InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'player_id' => $player->id,
+            'invoice_item_id' => $invoiceItem->id,
+            'name' => 'Debe facturado',
+            'value' => 10000,
+            'status' => InscriptionCustomCharge::STATUS_DUE,
+            'due_date' => $now->copy()->subDay()->format('Y-m-d'),
+        ]);
+
+        $this->actingAs($this->user);
+
+        $this->delete(route('inscription-custom-charges.destroy', [$pendingCharge->id]))->assertOk();
+        $this->delete(route('inscription-custom-charges.destroy', [$dueCharge->id]))->assertOk();
+        $this->delete(route('inscription-custom-charges.destroy', [$paidCharge->id]))->assertStatus(422);
+        $this->delete(route('inscription-custom-charges.destroy', [$billedDueCharge->id]))->assertStatus(422);
+
+        $this->assertDatabaseMissing('inscription_custom_charges', ['id' => $pendingCharge->id]);
+        $this->assertDatabaseMissing('inscription_custom_charges', ['id' => $dueCharge->id]);
+        $this->assertDatabaseHas('inscription_custom_charges', ['id' => $paidCharge->id]);
+        $this->assertDatabaseHas('inscription_custom_charges', ['id' => $billedDueCharge->id]);
+    }
+
+    public function testInscriptionCustomChargesListShowsCurrentYearAndPreviousDueCharges(): void
+    {
+        $now = Carbon::now();
+        $currentPlayer = Player::factory()->create();
+        $previousDuePlayer = Player::factory()->create();
+        $previousPendingPlayer = Player::factory()->create();
+        $currentInscription = Inscription::factory()->create([
+            'player_id' => $currentPlayer->id,
+            'unique_code' => $currentPlayer->unique_code,
+            'year' => $now->year,
+            'training_group_id' => 1,
+            'competition_group_id' => null,
+            'start_date' => $now->format('Y-m-d'),
+            'category' => categoriesName(Carbon::parse($currentPlayer->date_birth)->year),
+            'school_id' => $this->school['id'],
+        ]);
+        $previousDueInscription = Inscription::factory()->create([
+            'player_id' => $previousDuePlayer->id,
+            'unique_code' => $previousDuePlayer->unique_code,
+            'year' => $now->year - 1,
+            'training_group_id' => 1,
+            'competition_group_id' => null,
+            'start_date' => $now->copy()->subYear()->format('Y-m-d'),
+            'category' => categoriesName(Carbon::parse($previousDuePlayer->date_birth)->year),
+            'school_id' => $this->school['id'],
+        ]);
+        $previousPendingInscription = Inscription::factory()->create([
+            'player_id' => $previousPendingPlayer->id,
+            'unique_code' => $previousPendingPlayer->unique_code,
+            'year' => $now->year - 1,
+            'training_group_id' => 1,
+            'competition_group_id' => null,
+            'start_date' => $now->copy()->subYear()->format('Y-m-d'),
+            'category' => categoriesName(Carbon::parse($previousPendingPlayer->date_birth)->year),
+            'school_id' => $this->school['id'],
+        ]);
+
+        InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $currentInscription->id,
+            'player_id' => $currentPlayer->id,
+            'name' => 'Actual pendiente visible',
+            'value' => 10000,
+            'status' => InscriptionCustomCharge::STATUS_PENDING,
+            'due_date' => $now->format('Y-m-d'),
+        ]);
+        InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $previousDueInscription->id,
+            'player_id' => $previousDuePlayer->id,
+            'name' => 'Anterior debe visible',
+            'value' => 10000,
+            'status' => InscriptionCustomCharge::STATUS_DUE,
+            'due_date' => $now->copy()->subYear()->format('Y-m-d'),
+        ]);
+        InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $previousPendingInscription->id,
+            'player_id' => $previousPendingPlayer->id,
+            'name' => 'Anterior pendiente oculto',
+            'value' => 10000,
+            'status' => InscriptionCustomCharge::STATUS_PENDING,
+            'due_date' => $now->copy()->subYear()->format('Y-m-d'),
+        ]);
+
+        $this->actingAs($this->user);
+
+        $response = $this->getJson(route('inscription-custom-charges.index'), [
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
+
+        $response->assertOk();
+        $response->assertSee('Actual pendiente visible');
+        $response->assertSee('Anterior debe visible');
+        $response->assertDontSee('Anterior pendiente oculto');
+    }
+
     public function testCreateInscriptionError(): void
     {
         Mail::fake();

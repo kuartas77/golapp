@@ -157,14 +157,26 @@
                     orderable: false,
                     searchable: false,
                     className: 'dt-body-center',
-                    render: row => `
-                        <button type="button" class="btn btn-xs btn-warning edit-charge"
+                    render: row => {
+                        const canDelete = ['pending', 'due'].includes(row.status) && !row.invoice_item_id;
+
+                        return `
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-xs btn-warning edit-charge"
                             data-id="${row.id}"
                             data-value="${row.value}"
                             data-status="${row.status}"
                             data-due-date="${moment(row.due_date).format('YYYY-MM-DD')}">
-                            <i class="fas fa-pencil-alt"></i>
-                        </button>`
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                            ${canDelete ? `
+                                <button type="button" class="btn btn-xs btn-danger delete-charge"
+                                    data-id="${row.id}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            ` : ''}
+                        </div>`;
+                    }
                 }
             ]
         });
@@ -208,6 +220,39 @@
                 complete: () => {
                     saveButton.prop('disabled', false);
                 }
+            });
+        });
+
+        $('#chargesTable tbody').on('click', '.delete-charge', function() {
+            const chargeId = $(this).data('id');
+
+            Swal.fire({
+                title: '¿Eliminar cargo?',
+                text: 'Sólo se eliminará si está pendiente o en debe sin factura.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Eliminar',
+                cancelButtonText: 'Cancelar',
+            }).then((result) => {
+                if (!result.value) {
+                    return;
+                }
+
+                $.ajax({
+                    url: `${chargesUrl}/${chargeId}`,
+                    method: 'POST',
+                    data: {
+                        _method: 'DELETE',
+                        _token: "{{ csrf_token() }}",
+                    },
+                    success: (response) => {
+                        Swal.fire('Listo', response.message, 'success');
+                        table.clearPipeline().draw(false);
+                    },
+                    error: (xhr) => {
+                        Swal.fire('Error', xhr.responseJSON?.message || 'No fue posible eliminar el cargo.', 'error');
+                    }
+                });
             });
         });
     });

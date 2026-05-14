@@ -1,5 +1,5 @@
 <h4 class="text-center w-auto text-uppercase"><strong>Información del deportista</strong></h4>
-<div class="row col-12 ">
+<div class="row">
 
     <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
         <div class="form-group">
@@ -58,7 +58,7 @@
     </div>
 </div>
 
-<div class="row col-12">
+<div class="row">
     <div class="col-6">
         <h4 class="text-center text-uppercase"><strong>Documentos</strong></h4>
 
@@ -151,7 +151,7 @@
     </div> -->
 </div>
 
-<div class="row col-12 mt-3" id="custom_charges_section">
+<div class="row mt-3" id="custom_charges_section">
     <div class="col-12">
         <h4 class="text-center text-uppercase"><strong>Cargos personalizados</strong></h4>
         <small class="form-text text-muted">
@@ -165,10 +165,10 @@
             <input id="custom_charges_due_date" type="date" class="form-control form-control-sm"
                 value="{{ now()->addDays(15)->toDateString() }}">
         </div>
+        <div id="existing_custom_charges" class="alert alert-info py-2 d-none"></div>
     </div>
 
-    <div class="col-12">
-        <div id="existing_custom_charges" class="alert alert-info py-2 d-none"></div>
+    <div class="col-md-8 col-sm-12">
         <div class="table-responsive">
             <table class="table table-sm table-bordered mb-0">
                 <thead class="thead-light">

@@ -63,7 +63,7 @@ class InscriptionRepository
             ], $requestData);
 
             $this->setCompetitionGroupIds($inscription, $requestData);
-            $this->createCustomCharges($inscription, $customCharges);
+            $this->syncCustomCharges($inscription, $customCharges);
 
             $inscription->load(['player', 'school']);
 
@@ -118,7 +118,7 @@ class InscriptionRepository
             $this->setCompetitionGroupIds($inscription, $requestData);
 
             $result = $inscription->update($requestData);
-            $this->createCustomCharges($inscription->fresh(), $customCharges);
+            $this->syncCustomCharges($inscription->fresh(), $customCharges);
 
             DB::commit();
 
@@ -183,15 +183,33 @@ class InscriptionRepository
         return null;
     }
 
-    private function createCustomCharges(Inscription $inscription, array $customCharges): void
+    private function syncCustomCharges(Inscription $inscription, array $customCharges): void
     {
-        if (empty($customCharges)) {
+        $selectedItemIds = collect($customCharges)
+            ->pluck('invoice_custom_item_id')
+            ->filter()
+            ->map(fn ($itemId) => (int) $itemId)
+            ->unique()
+            ->values();
+
+        InscriptionCustomCharge::query()
+            ->where('school_id', $inscription->school_id)
+            ->where('inscription_id', $inscription->id)
+            ->where('status', InscriptionCustomCharge::STATUS_PENDING)
+            ->whereNull('invoice_item_id')
+            ->when(
+                $selectedItemIds->isNotEmpty(),
+                fn ($query) => $query->whereNotIn('invoice_custom_item_id', $selectedItemIds->all())
+            )
+            ->delete();
+
+        if ($selectedItemIds->isEmpty()) {
             return;
         }
 
         $catalogItems = InvoiceCustomItem::query()
             ->where('school_id', $inscription->school_id)
-            ->whereIn('id', collect($customCharges)->pluck('invoice_custom_item_id')->filter()->unique()->all())
+            ->whereIn('id', $selectedItemIds->all())
             ->get()
             ->keyBy('id');
 
