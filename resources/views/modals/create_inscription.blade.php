@@ -1,5 +1,5 @@
 <div class="modal" id="create_inscription" data-keyboard="false" data-backdrop="static">
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <form action="{{route('inscriptions.store')}}" id="form_create" class="form-material m-t-0" method="POST">
                 @csrf
@@ -7,7 +7,7 @@
                     <h4 class="modal-title" id="modal_title text-uppercase"><strong>Nueva Inscripción</strong></h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 </div>
-                <div class="modal-body m-l-20 m-r-20">
+                <div class="modal-body m-l-5 m-r-5">
 
                     @include('inscription.fields')
 

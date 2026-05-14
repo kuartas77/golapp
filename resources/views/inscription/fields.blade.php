@@ -1,7 +1,7 @@
 <h4 class="text-center w-auto text-uppercase"><strong>Información del deportista</strong></h4>
-<div class="row">
+<div class="row col-12">
 
-    <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
+    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
         <div class="form-group">
             <label for="unique_code">Código unico:</label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
@@ -12,7 +12,7 @@
         </div>
     </div>
 
-    <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
+    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
         <div class="form-group">
             <label for="member_name">Nombre:</label>(<span class="text-danger">*</span>)
             <input id="member_name" name="member_name" type="text"
@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
+    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
         <div class="form-group">
             <label for="start_date">Fecha de inicio:</label>(<span class="text-danger">*</span>)
             <span class="bar"></span>
@@ -31,23 +31,7 @@
         </div>
     </div>
 
-    <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
-        <div class="form-group">
-            <label for="training_group_id">Grupo de entrenamiento:</label>
-            {{ html()->select('training_group_id', $training_groups, null)->attributes(['class' => 'form-control form-control-sm select2', 'id'=>'training_group_id'])->placeholder('Selecciona...') }}
-            <small
-                class="form-text text-muted">{{__('messages.provicional_group_info')}}</small>
-        </div>
-    </div>
-
-    <div class="col-md-4 col-sm-4 col-lg-4 col-xs-12">
-        <div class="form-group">
-            <label for="competition_groups">Grupo de competencia:</label>
-            {{ html()->multiselect('competition_groups[]', $competition_groups, null)->attributes(['class' => 'form-control form-control-sm select2', 'id'=>'competition_groups'])->placeholder('Selecciona...') }}
-        </div>
-    </div>
-
-    <div class="check col-md-4 col-sm-4 col-lg-4 col-xs-12">
+    <div class="check col-md-6 col-sm-6 col-lg-6 col-xs-12">
         <small class="form-text text-muted mt-4">{!! __('messages.becado_text') !!}</small>
         <div class="form-group">
             <div class="checkbox">
@@ -56,9 +40,26 @@
             </div>
         </div>
     </div>
+
+    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+        <div class="form-group">
+            <label for="training_group_id">Grupo de entrenamiento:</label>
+            {{ html()->select('training_group_id', $training_groups, null)->attributes(['class' => 'form-control form-control-sm select2', 'id'=>'training_group_id'])->placeholder('Selecciona...') }}
+            <small
+                class="form-text text-muted">{{__('messages.provicional_group_info')}}</small>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+        <div class="form-group">
+            <label for="competition_groups">Grupo de competencia:</label>
+            {{ html()->multiselect('competition_groups[]', $competition_groups, null)->attributes(['class' => 'form-control form-control-sm select2', 'id'=>'competition_groups'])->placeholder('Selecciona...') }}
+        </div>
+    </div>
+
 </div>
 
-<div class="row">
+<div class="row col-12">
     <div class="col-6">
         <h4 class="text-center text-uppercase"><strong>Documentos</strong></h4>
 
@@ -96,14 +97,7 @@
     </div>
 
     <div class="col-6">
-        <h4 class="text-center text-uppercase">
-            <strong>
-                Grupo provisional (principal), <span class="text-warning">ESTE SÓLO SE UTILIZARÁ PARA LAS INSCRIPCIONES NUEVAS Y/O PREINSCRIPCIONES, no tendrá asistencias ni pagos.</span>
-            </strong>
-        </h4>
-
-        <br>
-        <h4 class="text-center text-uppercase"><strong>Pre-Inscripción</strong></h4>
+        <h5 class="text-center text-uppercase"><strong>Pre-Inscripción</strong></h5>
         <small class="form-text text-muted">Al ser marcado cómo <span class="text-warning">"PREINSCRIPCIÓN"</span>, este <span class="text-danger">Deportista no aparecerá en el listado de asistencias ni pagos</span>, verifica la documentación y desmarcalo.</small>
         <div class="check col">
             <div class="form-group">
@@ -115,60 +109,35 @@
         </div>
     </div>
 
-    <!-- <div class="col-6">
-        <h4 class="text-center text-uppercase"><strong>Productos</strong></h4>
-
-        <div class="check col">
-            <div class="form-group">
-                <div class="checkbox">
-                    <input type="checkbox" name="overalls" id="overalls" value="1">
-                    <label for="overalls" class="checkboxsizeletter">Peto</label>
-                </div>
-                <div class="checkbox">
-                    <input type="checkbox" name="presentation_uniform" id="presentation_uniform"
-                        value="1">
-                    <label for="presentation_uniform" class="checkboxsizeletter">Uniforme De Presentación</label>
-                </div>
-                <div class="checkbox">
-                    <input type="checkbox" name="competition_uniform" id="competition_uniform"
-                        value="1">
-                    <label for="competition_uniform" class="checkboxsizeletter">Uniforme De Competencia</label>
-                </div>
-                <div class="checkbox">
-                    <input type="checkbox" name="tournament_pay" id="tournament_pay" value="1">
-                    <label for="tournament_pay" class="checkboxsizeletter">Pagó Inscripción Torneo 1</label>
-                </div>
-                <div class="checkbox">
-                    <input type="checkbox" name="ball" id="ball" value="1">
-                    <label for="ball" class="checkboxsizeletter">Pagó Inscripción Torneo 2</label>
-                </div>
-                <div class="checkbox">
-                    <input type="checkbox" name="bag" id="bag" value="1">
-                    <label for="bag" class="checkboxsizeletter">Pagó Inscripción Torneo 3</label>
-                </div>
-            </div>
-        </div>
-    </div> -->
 </div>
 
+@if($invoice_custom_items->isNotEmpty())
 <div class="row mt-3" id="custom_charges_section">
     <div class="col-12">
-        <h4 class="text-center text-uppercase"><strong>Cargos personalizados</strong></h4>
+        <h5 class="text-center text-uppercase"><strong>Cargos personalizados</strong></h5>
         <small class="form-text text-muted">
             Selecciona cargos del catálogo para esta inscripción. Se guardarán como pendientes y se facturarán cuando llegue su fecha de vencimiento.
         </small>
     </div>
 
-    <div class="col-md-4 col-sm-12">
-        <div class="form-group">
-            <label for="custom_charges_due_date">Fecha de vencimiento:</label>
-            <input id="custom_charges_due_date" type="date" class="form-control form-control-sm"
-                value="{{ now()->addDays(15)->toDateString() }}">
-        </div>
-        <div id="existing_custom_charges" class="alert alert-info py-2 d-none"></div>
-    </div>
+    <div class="col-sm-12">
+        <div class="row">
 
-    <div class="col-md-8 col-sm-12">
+            <div class="col-md-6 col-sm-12">
+                <div class="form-group">
+                    <label for="custom_charges_due_date">Fecha de vencimiento:</label>
+                    <input id="custom_charges_due_date" type="date" class="form-control form-control-sm"
+                        value="{{ now()->addDays(15)->toDateString() }}">
+                    <small class="form-text text-muted">Aplica para los items nuevos seleccionados.</small>
+                </div>
+            </div>
+
+            <!-- <div class="col-md-6 col-sm-12">
+                <div id="existing_custom_charges" class="alert alert-info py-2 d-none"></div>
+            </div> -->
+
+        </div>
+
         <div class="table-responsive">
             <table class="table table-sm table-bordered mb-0">
                 <thead class="thead-light">
@@ -218,3 +187,4 @@
         </div>
     </div>
 </div>
+@endif
