@@ -19,7 +19,22 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
 
     const columns = [
         { data: 'player.photo_url', width: '1%', render: '#photo', searchable: false, orderable: false },
-        { data: 'unique_code', name:'inscriptions.unique_code', searchable: true },
+        {
+            data: 'unique_code',
+            name: 'inscriptions.unique_code',
+            searchable: true,
+            render: (data, type, row) => `
+                <button
+                    type="button"
+                    class="btn btn-link btn-sm p-0 fw-semibold text-decoration-none"
+                    data-item-id="${row.id}"
+                    data-type="summary"
+                    title="Ver resumen de inscripción"
+                >
+                    ${data}
+                </button>
+            `,
+        },
         { data: 'training_group.name', name: 'inscriptions.training_group_id', orderable: false, searchable: true },
         { data: 'player.category', name: 'inscriptions.category', orderable: false, searchable: true },
         { data: 'player.gender', name: 'player.gender', orderable: false, searchable: false },
@@ -211,6 +226,9 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         }
         e.preventDefault()
         switch (type) {
+            case 'summary':
+                router.push({ name: 'inscriptions.summary', params: { id: itemId } })
+                break;
             case 'edit':
                 isCreateModalOpen.value = false
                 selectedInscriptionId.value = Number(itemId)

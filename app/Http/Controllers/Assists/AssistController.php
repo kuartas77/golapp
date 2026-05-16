@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Assists;
 
-
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AsistUpdateRequest;
 use App\Models\Assist;
@@ -22,24 +21,18 @@ class AssistController extends Controller
         $this->repository = $repository;
     }
 
-    /**
-     * @param Request $request
-     * @return Application|Factory|View|JsonResponse
-     */
     public function index(Request $request): Application|Factory|View|JsonResponse
     {
         if ($request->ajax()) {
             $search = $this->repository->search(params: $request->only(['training_group_id', 'year', 'month', 'column']), raw: $request->filled('dataRaw'));
+
             return response()->json($search);
         }
+
         // return view('assists.assist.index');
         return view('assists.assist.single.index');
     }
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function store(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 404);
@@ -47,14 +40,10 @@ class AssistController extends Controller
         return response()->json($this->repository->create($request->only(['training_group_id', 'year', 'month'])));
     }
 
-    /**
-     * @param Assist $assist
-     * @return JsonResponse
-     */
     public function show(Assist $assist): JsonResponse
     {
         abort_if(
-            isInstructor() && !instructorCanAccessTrainingGroup($assist->training_group_id, (int) $assist->year),
+            isInstructor() && ! instructorCanAccessTrainingGroup($assist->training_group_id, (int) $assist->year),
             404
         );
 
@@ -67,14 +56,14 @@ class AssistController extends Controller
             $observations = '';
             if (is_object($assist->observations)) {
                 foreach ($assist->observations as $date => $observation) {
-                    $observations .= $date . ': ' . $observation . PHP_EOL;
+                    $observations .= $date.': '.$observation.PHP_EOL;
                 }
             }
 
             return response()->json([
                 'id' => $assist->id,
                 'player_name' => $assist->player->full_names,
-                'observations' => $observations
+                'observations' => $observations,
             ]);
         } else {
             $column = request()->query('column');
@@ -84,21 +73,19 @@ class AssistController extends Controller
                 'id' => $assist->id,
                 'player_name' => $assist->player->full_names,
                 'value' => data_get($assist, $column),
-                'observation' => data_get($assist, "observations.{$date}", '')
+                'observation' => data_get($assist, "observations.{$date}", ''),
             ]);
         }
     }
 
     /**
-     * @param Request $request
-     * @param Assist $assist
-     * @return JsonResponse
+     * @param  Request  $request
      */
     public function update(AsistUpdateRequest $request, Assist $assist): JsonResponse
     {
         abort_unless($request->ajax(), 404);
         abort_if(
-            isInstructor() && !instructorCanAccessTrainingGroup($assist->training_group_id, (int) $assist->year),
+            isInstructor() && ! instructorCanAccessTrainingGroup($assist->training_group_id, (int) $assist->year),
             404
         );
 
@@ -107,6 +94,17 @@ class AssistController extends Controller
                 'message' => AssistRepository::RETIRED_INSCRIPTION_MESSAGE,
                 'errors' => [
                     'assist' => [AssistRepository::RETIRED_INSCRIPTION_MESSAGE],
+                ],
+            ], 422);
+        }
+
+        if ((int) $assist->year !== (int) now()->year) {
+            $message = 'Las asistencias de años anteriores son de sólo lectura.';
+
+            return response()->json([
+                'message' => $message,
+                'errors' => [
+                    'assist' => [$message],
                 ],
             ], 422);
         }

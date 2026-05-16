@@ -4,6 +4,7 @@ use App\Http\Controllers\API\Admin\ContractController as AdminContractController
 use App\Http\Controllers\API\Admin\GroupAssignmentController;
 use App\Http\Controllers\API\Admin\InscriptionController;
 use App\Http\Controllers\API\Admin\InscriptionCustomChargeController;
+use App\Http\Controllers\API\Admin\InscriptionSummaryController;
 use App\Http\Controllers\API\Admin\InvoiceCustomItemController as AdminInvoiceCustomItemController;
 use App\Http\Controllers\API\Admin\RegisterController;
 use App\Http\Controllers\API\Admin\ScheduleController as AdminScheduleController;
@@ -202,6 +203,7 @@ Route::prefix('v2')->group(function () {
             'role:super-admin|school',
             'school.permission:school.module.inscriptions',
         ])->group(function () {
+            Route::get('inscriptions/{inscription}/summary', [InscriptionSummaryController::class, 'show']);
             Route::get('inscriptions/{inscription}/custom-charges', [InscriptionCustomChargeController::class, 'byInscription']);
             Route::resource('inscriptions', WebInscriptions::class)->except(['index', 'create', 'show']);
         });

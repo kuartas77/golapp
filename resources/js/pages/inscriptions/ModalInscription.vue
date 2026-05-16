@@ -19,7 +19,7 @@
                         <div class="row col-12 ">
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
-                                    <label for="unique_code">Jugador</label><span class="text-danger">(*)</span>:
+                                    <label for="unique_code">Código único</label><span class="text-danger">(*)</span>:
                                     <Field v-if="isEditing" name="unique_code" as="input" id="unique_code" readonly
                                         class="form-control form-control-sm" />
                                     <Field v-else name="unique_code" v-slot="{ field }">

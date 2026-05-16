@@ -75,9 +75,12 @@ const routes = [
             },
             {
                 path: 'inscripciones',
-                name: 'inscriptions',
                 meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.inscriptions] },
-                component: () => import('@/pages/inscriptions/InscriptionsList.vue')
+                component: { render: () => h(RouterView) },
+                children: [
+                    { path: '', name: 'inscriptions', component: () => import('@/pages/inscriptions/InscriptionsList.vue') },
+                    { path: ':id/resumen', name: 'inscriptions.summary', component: () => import('@/pages/inscriptions/InscriptionSummary.vue') },
+                ]
             },
             {
                 path: 'asistencias',

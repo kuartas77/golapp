@@ -25,7 +25,6 @@ class PaymentController extends Controller
     }
 
     /**
-     * @param Request $request
      * @return array|Application|Factory|View
      */
     public function index(Request $request)
@@ -33,6 +32,7 @@ class PaymentController extends Controller
         view()->share('enabledPaymentOld', true);
         if ($request->ajax()) {
             $request->merge(['school_id' => getSchool(auth()->user())->id]);
+
             return $this->repository->filter($request, false, $request->filled('dataRaw'));
         }
 
@@ -64,9 +64,8 @@ class PaymentController extends Controller
     }
 
     /**
-     * @param Request $request
-     * @param Payment $payment
-     * @return JsonResponse
+     * @param  Request  $request
+     * @param  Payment  $payment
      */
     public function update(SetPaymentRequest $request, $id): JsonResponse
     {
@@ -82,8 +81,20 @@ class PaymentController extends Controller
             ], 422);
         }
 
+        $payment->loadMissing('inscription');
+        if ((int) $payment->inscription?->year !== (int) now()->year) {
+            $message = 'Las mensualidades de años anteriores son de sólo lectura.';
+
+            return response()->json([
+                'message' => $message,
+                'errors' => [
+                    'payment' => [$message],
+                ],
+            ], 422);
+        }
+
         $isPay = $this->repository->setPay($request->validated(), $payment);
-        if (!$isPay) {
+        if (! $isPay) {
             return $this->responseJson(false);
         }
 
@@ -106,6 +117,7 @@ class PaymentController extends Controller
     public function paymentStatuses(Request $request)
     {
         $payments = $this->repository->paymentsByStatus($request->only(['status']));
+
         return view('payments.status.index', compact('payments'));
     }
 }

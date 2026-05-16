@@ -192,17 +192,17 @@
                                             <select v-model="payPlayer[field]" :id="`select_${field}_${payPlayer.id}`"
                                                 :name="`select_${field}_${payPlayer.id}`" autocomplete="off"
                                                 @change="handleSelectChange(payPlayer, field)"
-                                                class="form-select form-select-sm">
+                                                class="form-select form-select-sm mb-1">
                                                 <option v-for="type in type_payments" :key="type.value"
                                                     :value="type.value">{{ type.label }}</option>
                                             </select>
-                                            <CurrencyInput class="form-control form-control-sm"
+                                            <CurrencyInput class="form-control form-control-sm mb-1"
                                                 v-model="payPlayer[`${field}_amount`]"
                                                 :id="`input_${field}_${payPlayer.id}`"
                                                 :name="`input_${field}_${payPlayer.id}`" autocomplete="off"
                                                 placeholder="Monto" />
 
-                                            <div class="d-flex justify-content-between">
+                                            <div class="d-flex justify-content-center gap-1">
                                                 <span class="badge badge-success clickable" @click="saveField"
                                                     title="Guardar">
                                                     <i class="far fa-check-square fa-lg"></i>
