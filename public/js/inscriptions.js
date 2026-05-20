@@ -178,6 +178,8 @@ const columnDefs = [
 
 $(document).ready(function () {
 
+    $('.money').inputmask("pesos");
+
     const active_table = $('#active_table').DataTable({
         "lengthMenu": [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
         "order": [[2, "desc"]],
@@ -234,6 +236,10 @@ $(document).ready(function () {
             $("#form_create #competition_groups").val(response.competition_group ?? []).trigger('change');
             $("#form_create #pre_inscription").val(response.pre_inscription);
 
+            if (typeof renderExistingCustomCharges === 'function') {
+                renderExistingCustomCharges(response.custom_charges || []);
+            }
+
             $("#form_create #photos").prop('checked', response.photos == 1 );
             $("#form_create #copy_identification_document").prop('checked', response.copy_identification_document == 1 );
             $("#form_create #eps_certificate").prop('checked', response.eps_certificate == 1 );
@@ -267,6 +273,9 @@ $(document).ready(function () {
         form.clearForm();
         $("#form_create #training_group_id").val('').trigger('change');
         $("#form_create #competition_groups").val([]).trigger('change');
+        if (typeof resetCustomCharges === 'function') {
+            resetCustomCharges();
+        }
         $("#btn_add_inscription").attr('disabled', true);
     });
 

@@ -56,11 +56,12 @@
     </ul>
 </li>
 
-<li class="{{ Request::is('*invoices*') ? 'active' : '' }}">
+<li class="{{ Request::is('*invoices*') || Request::is('inscription-custom-charges*') ? 'active' : '' }}">
     <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><i class="fas fa-dollar-sign"></i><span class="hide-menu"> Facturación</span></a>
     <ul aria-expanded="false" class="collapse">
         <li><a href="{{route('invoices.index')}}">Facturas</a></li>
         <li><a href="{{route('items.invoices.index')}}">Items Facturas</a></li>
+        <li><a href="{{route('inscription-custom-charges.index')}}">Cargos personalizados</a></li>
         @if(filter_var($settings->get('SYSTEM_NOTIFY'), FILTER_VALIDATE_BOOLEAN))
         <li><a href="{{route('payment-request.index')}}">Comprobantes de Pago</a></li>
         <li><a href="{{route('uniform-request.index')}}">Solicitudes de Uniformes</a></li>

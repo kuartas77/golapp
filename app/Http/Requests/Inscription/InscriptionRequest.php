@@ -50,6 +50,10 @@ class InscriptionRequest extends FormRequest
             'period_three' => ['nullable'],
             'period_four' => ['nullable'],
             'scholarship' => ['nullable', 'boolean'],
+            'custom_charges' => ['nullable', 'array'],
+            'custom_charges.*.invoice_custom_item_id' => ['required_with:custom_charges', 'numeric', 'exists:invoice_custom_items,id'],
+            'custom_charges.*.value' => ['nullable', 'numeric', 'min:0'],
+            'custom_charges.*.due_date' => ['required_with:custom_charges', 'date'],
         ];
     }
 
@@ -60,6 +64,8 @@ class InscriptionRequest extends FormRequest
     {
         $dateBirth = optional(Player::find($this->player_id))->date_birth;
         $startDate = Date::parse($this->start_date);
+        $customCharges = $this->normalizeCustomCharges($this->input('custom_charges', []));
+
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
             'year' => $startDate->year,
@@ -80,8 +86,19 @@ class InscriptionRequest extends FormRequest
             'training_group_id' => $this->filled('training_group_id') ? $this->training_group_id : null,
             'competition_groups' => array_filter($this->input('competition_groups', [])),
             'pre_inscription' => $this->input('pre_inscription', false),
+            'custom_charges' => $customCharges,
         ]);
     }
 
+    private function normalizeCustomCharges(array $customCharges): array
+    {
+        return array_values(array_filter(array_map(function (array $charge): array {
+            if (array_key_exists('value', $charge) && $charge['value'] !== null && $charge['value'] !== '') {
+                $charge['value'] = preg_replace('/\D/', '', (string) $charge['value']);
+            }
+
+            return $charge;
+        }, $customCharges), fn ($charge) => !empty($charge['invoice_custom_item_id'])));
+    }
 
 }

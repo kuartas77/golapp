@@ -8,6 +8,7 @@ use Closure;
 use App\Models\School;
 use App\Traits\Commons;
 use App\Models\Inscription;
+use App\Models\InvoiceCustomItem;
 use App\Models\TrainingGroup;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\View\View;
@@ -86,6 +87,11 @@ class InscriptionCreateComposer
                 return TrainingGroup::schoolId()->select(['id', 'name'])->where('year_active', now()->year)->get();
             });
 
+            $invoice_custom_items = InvoiceCustomItem::query()
+                ->where('school_id', $school_id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'unit_price']);
+
             $document_types = Cache::remember('KEY_DOCUMENT_TYPES', now()->addYear(), fn() => config('variables.KEY_DOCUMENT_TYPES'));
 
             $jornada = Cache::remember('KEY_JORNADA_TYPES', now()->addYear(), fn() => config('variables.KEY_JORNADA'));
@@ -117,6 +123,7 @@ class InscriptionCreateComposer
             $view->with('dominant_profile', $dominant_profile);
             $view->with('inscription_years', $inscription_years);
             $view->with('competition_groups', $competition_groups);
+            $view->with('invoice_custom_items', $invoice_custom_items);
             $view->with('training_groups_arr', $training_groups_arr);
             $view->with('provitional_group', $provitionalGroup);
         }

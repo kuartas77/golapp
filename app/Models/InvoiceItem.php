@@ -42,6 +42,11 @@ class InvoiceItem extends Model
         return $this->belongsTo(PaymentReceived::class, 'payment_received_id');
     }
 
+    public function inscriptionCustomCharge()
+    {
+        return $this->hasOne(InscriptionCustomCharge::class);
+    }
+
     protected static function boot()
     {
         parent::boot();

@@ -10,6 +10,7 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\Groups\{CompetitionGroupController, InscriptionCGroupController, InscriptionTGroupController, TrainingGroupController};
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Invoices\InvoiceController;
+use App\Http\Controllers\Invoices\InscriptionCustomChargeController;
 use App\Http\Controllers\Invoices\ItemInvoicesController;
 use App\Http\Controllers\Notifications\PaymentRequestController;
 use App\Http\Controllers\Notifications\TopicNotificationsController;
@@ -163,6 +164,9 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'addPayment'])->name('invoices.addPayment');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
     Route::get('items/invoices', [ItemInvoicesController::class, 'index'])->name('items.invoices.index');
+    Route::get('inscription-custom-charges', [InscriptionCustomChargeController::class, 'index'])->name('inscription-custom-charges.index');
+    Route::put('inscription-custom-charges/{charge}', [InscriptionCustomChargeController::class, 'update'])->name('inscription-custom-charges.update');
+    Route::delete('inscription-custom-charges/{charge}', [InscriptionCustomChargeController::class, 'destroy'])->name('inscription-custom-charges.destroy');
 
     Route::get('/player-stats', [PlayerStatsController::class, 'index'])->name('player.stats');
     Route::get('/top-players', [PlayerStatsController::class, 'topPlayers'])->name('players.top');
