@@ -15,6 +15,7 @@ class ItemInvoicesController extends Controller
         return datatables()->eloquent($this->invoiceRepository->getAllItems())
             ->filterColumn('is_paid', fn ($query, $keyword) => $query->where('invoice_items.is_paid', $keyword))
             ->filterColumn('created_at', fn ($query, $keyword) => $query->whereDate('invoice_items.created_at', $keyword))
+            ->filterColumn('payment_method', fn($query, $keyword) => $query->where('payment_method', $keyword))
             ->toJson();
     }
 
