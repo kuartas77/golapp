@@ -353,6 +353,11 @@
                                 </router-link>
                             </li>
                             <li>
+                                <router-link :to="{ name: 'reports.debtors' }" @click="toggleMobileMenu">
+                                    Deudores
+                                </router-link>
+                            </li>
+                            <li>
                                 <router-link :to="{ name: 'reports.attendance-payment' }" @click="toggleMobileMenu">
                                     Mensualidades vs Asistencias
                                 </router-link>

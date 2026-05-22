@@ -23,6 +23,7 @@ use App\Http\Controllers\Reports\AttendancePaymentReportExportController;
 use App\Http\Controllers\Reports\AttendanceReportExportController;
 use App\Http\Controllers\Reports\ReportAttendancePaymentController;
 use App\Http\Controllers\Reports\ReportAssistsController;
+use App\Http\Controllers\Reports\ReportDebtorController;
 use App\Http\Controllers\Reports\ReportPaymentController;
 use Illuminate\Support\Facades\Route;
 
@@ -273,6 +274,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::middleware('school.permission:school.module.reports')->prefix('reports')->name('reports.')->group(function () {
         Route::get('assists', [ReportAssistsController::class, 'index'])->name('assists');
         Route::get('payments', [ReportPaymentController::class, 'index'])->name('payments');
+        Route::get('debtors', [ReportDebtorController::class, 'index'])->name('debtors');
         // La vista SPA equivalente vive en resources/js/router/index.js y consume:
         // GET /api/v2/reports/attendance-payment,
         // GET /api/v2/reports/attendance-payment/monthly-by-group y
