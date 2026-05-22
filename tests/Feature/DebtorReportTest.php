@@ -31,7 +31,7 @@ final class DebtorReportTest extends TestCase
             'march_amount' => 50000,
         ]);
 
-        Invoice::query()->create([
+        $invoice = Invoice::query()->create([
             'invoice_number' => 'FAC-DEBT-001',
             'inscription_id' => $inscription->id,
             'training_group_id' => $group->id,
@@ -46,7 +46,15 @@ final class DebtorReportTest extends TestCase
             'created_by' => $this->user->id,
         ]);
 
-        Invoice::query()->create([
+        $invoice->items()->create([
+            'type' => 'additional',
+            'description' => 'Uniforme',
+            'quantity' => 1,
+            'unit_price' => 75000,
+            'is_paid' => false,
+        ]);
+
+        $paidInvoice = Invoice::query()->create([
             'invoice_number' => 'FAC-DEBT-PAID',
             'inscription_id' => $inscription->id,
             'training_group_id' => $group->id,
@@ -61,15 +69,31 @@ final class DebtorReportTest extends TestCase
             'created_by' => $this->user->id,
         ]);
 
+        $paidInvoice->items()->create([
+            'type' => 'additional',
+            'description' => 'No debe salir',
+            'quantity' => 1,
+            'unit_price' => 70000,
+            'is_paid' => true,
+        ]);
+        $paidInvoice->forceFill([
+            'total_amount' => 70000,
+            'paid_amount' => 70000,
+            'status' => 'paid',
+        ])->save();
+
         $rows = app(DebtorReportService::class)->rows([
             'school_id' => $this->school['id'],
             'year' => 2026,
         ]);
 
-        $this->assertCount(1, $rows);
+        $this->assertCount(2, $rows);
         $this->assertSame(50000.0, $rows->first()['monthly_debt']);
-        $this->assertSame(75000.0, $rows->first()['invoice_debt']);
-        $this->assertSame(125000.0, $rows->first()['total_debt']);
+        $this->assertSame('Enero', $rows->first()['monthly_debt_label']);
+        $this->assertSame(50000.0, $rows->first()['total_debt']);
+        $this->assertSame('FAC-DEBT-001 - Item: Uniforme', $rows->last()['item_debt_label']);
+        $this->assertSame(75000.0, $rows->last()['item_debt']);
+        $this->assertSame(75000.0, $rows->last()['total_debt']);
     }
 
     public function testDebtorReportDoesNotDuplicateMonthlyDebtAlreadyInPendingInvoice(): void
@@ -116,7 +140,9 @@ final class DebtorReportTest extends TestCase
 
         $this->assertCount(1, $rows);
         $this->assertSame(0.0, $rows->first()['monthly_debt']);
-        $this->assertSame(60000.0, $rows->first()['invoice_debt']);
+        $this->assertSame('', $rows->first()['monthly_debt_label']);
+        $this->assertSame('FAC-DEBT-002 - Mensualidad: Enero', $rows->first()['item_debt_label']);
+        $this->assertSame(60000.0, $rows->first()['item_debt']);
         $this->assertSame(60000.0, $rows->first()['total_debt']);
     }
 

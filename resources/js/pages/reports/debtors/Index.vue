@@ -37,7 +37,7 @@
                                                 placeholder="Selecciona un año" />
                                         </div>
 
-                                        <div class="col-md-5">
+                                        <div class="col-md-4">
                                             <label class="form-label" for="debtor-report-group">Grupo de entrenamiento</label>
                                             <CustomSelect2
                                                 id="debtor-report-group"
@@ -47,7 +47,20 @@
                                                 placeholder="Todos los grupos" />
                                         </div>
 
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
+                                            <div class="form-check mb-md-2">
+                                                <input
+                                                    id="debtor-report-total"
+                                                    v-model="form.show_total_debt"
+                                                    class="form-check-input"
+                                                    type="checkbox">
+                                                <label class="form-check-label" for="debtor-report-total">
+                                                    Mostrar total
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2">
                                             <button
                                                 type="button"
                                                 class="btn btn-primary w-100"

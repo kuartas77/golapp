@@ -29,6 +29,7 @@ export default function useDebtorReport() {
     const form = reactive({
         year: null,
         training_group_id: null,
+        show_total_debt: false,
     })
 
     const exportUrl = computed(() => {
@@ -42,6 +43,10 @@ export default function useDebtorReport() {
 
         if (form.training_group_id) {
             params.set('training_group_id', String(form.training_group_id))
+        }
+
+        if (form.show_total_debt) {
+            params.set('show_total_debt', '1')
         }
 
         return `/api/v2/reports/debtors/pdf?${params.toString()}`
