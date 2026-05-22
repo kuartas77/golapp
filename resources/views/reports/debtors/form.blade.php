@@ -17,7 +17,17 @@
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-2">
+            <div class="form-group mt-4">
+                <input type="hidden" name="show_total_debt" value="0">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="show_total_debt" id="show_total_debt" value="1">
+                    <label class="form-check-label" for="show_total_debt">Mostrar total deuda</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
             <button class="btn waves-effect waves-light btn-rounded btn-info mt-4" id="busqueda">Exportar PDF</button>
         </div>
     </div>
