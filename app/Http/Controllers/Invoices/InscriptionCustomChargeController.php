@@ -27,7 +27,7 @@ class InscriptionCustomChargeController extends Controller
     public function update(Request $request, InscriptionCustomCharge $charge): JsonResponse
     {
         abort_unless(isAdmin() || isSchool(), 401);
-        abort_unless($charge->school_id === getSchool(auth()->user())->id, 404);
+        abort_unless($charge->school_id == getSchool(auth()->user())->id, 404);
 
         $data = $request->validate([
             'value' => ['required', 'numeric', 'min:0'],
@@ -46,7 +46,7 @@ class InscriptionCustomChargeController extends Controller
     public function destroy(InscriptionCustomCharge $charge): JsonResponse
     {
         abort_unless(isAdmin() || isSchool(), 401);
-        abort_unless($charge->school_id === getSchool(auth()->user())->id, 404);
+        abort_unless($charge->school_id == getSchool(auth()->user())->id, 404);
 
         abort_if(
             $charge->invoice_item_id !== null
