@@ -4,10 +4,12 @@ namespace App\Service\Reports;
 
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\InscriptionCustomCharge;
 use App\Models\Payment;
 use App\Models\TrainingGroup;
 use App\Traits\PDFTrait;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Carbon;
 
 class DebtorReportService
 {
@@ -25,8 +27,17 @@ class DebtorReportService
             ->distinct()
             ->pluck('year');
 
+        $customChargeYears = InscriptionCustomCharge::query()
+            ->where('school_id', $schoolId)
+            ->where('status', InscriptionCustomCharge::STATUS_DUE)
+            ->whereNull('invoice_item_id')
+            ->whereNotNull('due_date')
+            ->pluck('due_date')
+            ->map(fn ($date) => Carbon::parse($date)->year);
+
         return $paymentYears
             ->merge($invoiceYears)
+            ->merge($customChargeYears)
             ->push(now()->year)
             ->map(fn ($year) => (int) $year)
             ->unique()
@@ -46,8 +57,16 @@ class DebtorReportService
             ->where('year', $year)
             ->pluck('training_group_id');
 
+        $customChargeGroupIds = InscriptionCustomCharge::query()
+            ->where('inscription_custom_charges.school_id', $schoolId)
+            ->where('inscription_custom_charges.status', InscriptionCustomCharge::STATUS_DUE)
+            ->whereNull('inscription_custom_charges.invoice_item_id')
+            ->whereYear('inscription_custom_charges.due_date', $year)
+            ->join('inscriptions', 'inscription_custom_charges.inscription_id', '=', 'inscriptions.id')
+            ->pluck('inscriptions.training_group_id');
+
         return TrainingGroup::query()
-            ->whereIn('id', $paymentGroupIds->merge($invoiceGroupIds)->filter()->unique()->values())
+            ->whereIn('id', $paymentGroupIds->merge($invoiceGroupIds)->merge($customChargeGroupIds)->filter()->unique()->values())
             ->schoolId()
             ->orderBy('name')
             ->get()
@@ -79,12 +98,10 @@ class DebtorReportService
                 }
 
                 $row = $this->baseRowFromPayment($payment);
-                $row['monthly_debt'] = $monthlyDebt['amount'];
-                $row['monthly_debt_label'] = $monthlyDebt['label'];
-                $row['total_debt'] = $monthlyDebt['amount'];
-                $row['row_type'] = 'monthly';
+                $row = $rows->get($row['inscription_id'], $row);
+                $row = $this->appendDebt($row, $monthlyDebt['label'], $monthlyDebt['amount']);
 
-                $rows->push($row);
+                $rows->put($row['inscription_id'], $row);
             });
 
         $this->invoiceItemsQuery($schoolId, $year, $trainingGroupId)
@@ -97,20 +114,37 @@ class DebtorReportService
                 }
 
                 $row = $this->baseRowFromInvoiceItem($item);
-                $row['item_debt'] = $itemDebt;
-                $row['item_debt_label'] = $this->itemLabel($item);
-                $row['total_debt'] = $itemDebt;
-                $row['row_type'] = 'item';
+                $row = $rows->get($row['inscription_id'], $row);
+                $row = $this->appendDebt($row, $this->itemLabel($item), $itemDebt);
 
-                $rows->push($row);
+                $rows->put($row['inscription_id'], $row);
+            });
+
+        $this->customChargesQuery($schoolId, $year, $trainingGroupId)
+            ->get()
+            ->each(function (InscriptionCustomCharge $charge) use ($rows) {
+                $chargeDebt = (float) $charge->value;
+
+                if ($chargeDebt <= 0) {
+                    return;
+                }
+
+                $row = $this->baseRowFromCustomCharge($charge);
+                $row = $rows->get($row['inscription_id'], $row);
+                $row = $this->appendDebt($row, $this->customChargeLabel($charge), $chargeDebt);
+
+                // if($row['inscription_id'] == '1384') {
+
+                //     dd($row);
+                // }
+
+                $rows->put($row['inscription_id'], $row);
             });
 
         return $rows
             ->filter(fn ($row) => $row['total_debt'] > 0)
             ->sortBy([
                 ['student_name', 'asc'],
-                ['row_type', 'desc'],
-                ['item_debt_label', 'asc'],
             ])
             ->values();
     }
@@ -162,6 +196,19 @@ class DebtorReportService
                     ->when($trainingGroupId !== 0, fn ($query) => $query->where('training_group_id', $trainingGroupId));
             })
             ->with(['invoice.inscription.player', 'invoice.trainingGroup']);
+    }
+
+    private function customChargesQuery(int $schoolId, int $year, int $trainingGroupId)
+    {
+        return InscriptionCustomCharge::query()
+            ->where('school_id', $schoolId)
+            ->where('status', InscriptionCustomCharge::STATUS_DUE)
+            ->whereNull('invoice_item_id')
+            ->whereYear('due_date', $year)
+            ->whereHas('inscription', function ($query) use ($trainingGroupId) {
+                $query->when($trainingGroupId !== 0, fn ($query) => $query->where('training_group_id', $trainingGroupId));
+            })
+            ->with(['inscription.player', 'inscription.trainingGroup', 'invoiceCustomItem']);
     }
 
     private function invoicedMonthlyKeys(int $schoolId, int $year, int $trainingGroupId): Collection
@@ -243,6 +290,22 @@ class DebtorReportService
         );
     }
 
+    private function baseRowFromCustomCharge(InscriptionCustomCharge $charge): array
+    {
+        $inscription = $charge->inscription;
+        $player = $inscription?->player;
+        $group = $inscription?->trainingGroup;
+
+        return $this->baseRow(
+            (int) $charge->inscription_id,
+            $player?->id,
+            $player?->unique_code ?? $inscription?->unique_code ?? '',
+            $player?->full_names ?? $charge->name,
+            $inscription?->category,
+            $group?->full_group ?? $group?->name
+        );
+    }
+
     private function baseRow(int $inscriptionId, ?int $playerId, string $uniqueCode, string $studentName, ?string $category, ?string $trainingGroup): array
     {
         return [
@@ -252,13 +315,23 @@ class DebtorReportService
             'student_name' => $studentName,
             'category' => $category ?? '',
             'training_group' => $trainingGroup ?? '',
-            'monthly_debt' => 0.0,
-            'monthly_debt_label' => '',
-            'item_debt' => 0.0,
-            'item_debt_label' => '',
+            'debt_items' => [],
+            'debt_label' => '',
             'total_debt' => 0.0,
-            'row_type' => '',
         ];
+    }
+
+    private function appendDebt(array $row, string $label, float $amount): array
+    {
+        $row['debt_items'][] = [
+            'label' => $label,
+            'amount' => $amount,
+        ];
+
+        $row['debt_label'] = collect($row['debt_items'])->pluck('label')->implode(", ");
+        $row['total_debt'] += $amount;
+
+        return $row;
     }
 
     private function monthLabel(string $field): string
@@ -282,6 +355,11 @@ class DebtorReportService
         $description = trim((string) $item->description);
 
         return trim("{$invoiceNumber} - {$type}: {$description}", ' -:');
+    }
+
+    private function customChargeLabel(InscriptionCustomCharge $charge): string
+    {
+        return trim((string) ($charge->name ?: $charge->invoiceCustomItem?->name));
     }
 
     private function selectedGroupLabel(array $filters): string
