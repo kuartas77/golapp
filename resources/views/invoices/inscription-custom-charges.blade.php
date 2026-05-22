@@ -9,11 +9,10 @@
             <thead class="thead-light">
                 <tr>
                     <th>Deportista</th>
-                    <th>Inscripción</th>
+                    <th>Código</th>
                     <th>Catálogo</th>
-                    <th>Nombre</th>
-                    <th>Valor</th>
-                    <th>Estado</th>
+                    <th class="text-right">Valor</th>
+                    <th class="text-center">Estado</th>
                     <th>Vencimiento</th>
                     <th>Factura</th>
                     <th>Acciones</th>
@@ -83,6 +82,27 @@
         return String(value || '').replace(/\D/g, '');
     }
 
+    function searchInputs() {
+        let player = this.api().columns(0);
+        $("<input type='search' class='' placeholder='Deportista' />")
+            .appendTo($(player.header()).empty())
+            .on('keyup search', function () {
+                if (player.search() !== this.value) {
+                    player.search(this.value)
+                        .draw();
+                }
+            });
+        let code = this.api().columns(1);
+        $("<input type='search' class='' placeholder='Código' />")
+            .appendTo($(code.header()).empty())
+            .on('keyup search', function () {
+                if (code.search() !== this.value) {
+                    code.search(this.value)
+                        .draw();
+                }
+            });
+    }
+
     $(document).ready(function() {
 
         $('.money').inputmask("pesos");
@@ -94,6 +114,7 @@
             processing: true,
             serverSide: true,
             deferRender: true,
+            initComplete: searchInputs,
             ajax: $.fn.dataTable.pipeline({
                 url: chargesUrl,
                 pages: 5
@@ -103,14 +124,14 @@
                     data: 'player.full_names',
                     name: 'player.full_names',
                     orderable: false,
-                    searchable: false,
+                    searchable: true,
                     defaultContent: ''
                 },
                 {
                     data: 'inscription.unique_code',
                     name: 'inscription.unique_code',
                     orderable: false,
-                    searchable: false,
+                    searchable: true,
                     defaultContent: ''
                 },
                 {
@@ -119,11 +140,6 @@
                     orderable: false,
                     searchable: false,
                     defaultContent: 'Sin catálogo'
-                },
-                {
-                    data: 'name',
-                    name: 'name',
-                    orderable: false
                 },
                 {
                     data: 'value',
