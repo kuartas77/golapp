@@ -76,6 +76,7 @@ class InscriptionCustomChargeController extends Controller
             ->with(['inscription', 'player', 'invoiceCustomItem', 'invoiceItem.invoice'])
             ->join('players', 'players.id', 'player_id')
             ->where('inscription_custom_charges.school_id', getSchool(auth()->user())->id)
+            // ->whereIn('status', [InscriptionCustomCharge::STATUS_DUE, InscriptionCustomCharge::STATUS_PENDING])
             ->where(function ($query) {
                 $query
                     ->whereHas('inscription', fn ($inscriptionQuery) => $inscriptionQuery->where('year', now()->year))
