@@ -211,7 +211,7 @@ final class DebtorReportTest extends TestCase
         ]);
 
         $this->assertCount(1, $rows);
-        $this->assertSame(['Sin factura - Item: Guayos'], collect($rows->first()['debt_items'])->pluck('label')->all());
+        $this->assertSame(['Guayos'], collect($rows->first()['debt_items'])->pluck('label')->all());
         $this->assertSame(90000.0, $rows->first()['total_debt']);
     }
 
