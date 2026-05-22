@@ -143,9 +143,7 @@ class DebtorReportService
 
         return $rows
             ->filter(fn ($row) => $row['total_debt'] > 0)
-            ->sortBy([
-                ['student_name', 'asc'],
-            ])
+            ->sortBy('category', SORT_NATURAL)
             ->values();
     }
 
