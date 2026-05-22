@@ -27,7 +27,6 @@ class CreateInvoices extends Command
         $currentDate = now();
 
         School::query()
-            ->where('id', 9)
             ->with(['settingsValues'])
             ->withWhereHas('inscriptions', fn($q) => $q->select(['id', 'player_id', 'school_id'])->where('year', now()->year))
             ->where('is_enable',  true)
