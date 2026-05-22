@@ -93,6 +93,7 @@
     <ul aria-expanded="false" class="collapse">
         <li><a href="{{route('reports.assists')}}">Asistencias</a></li>
         <li><a href="{{route('reports.payments')}}">Mensualidades</a></li>
+        <li><a href="{{route('reports.debtors')}}">Deudores</a></li>
     </ul>
 </li>
 

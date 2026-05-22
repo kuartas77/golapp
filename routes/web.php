@@ -18,6 +18,7 @@ use App\Http\Controllers\Notifications\UniformRequestsController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\Reports\AttendanceReportExportController;
+use App\Http\Controllers\Reports\ReportDebtorController;
 use App\Http\Controllers\Reports\ReportAssistsController;
 use App\Http\Controllers\Reports\ReportPaymentController;
 use App\Http\Controllers\TrainingSessions\TrainingSessionsController;
@@ -111,6 +112,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
         Route::get('payments/excel', [ExportController::class, 'exportPaymentsExcel'])->name('payments.excel');
         Route::get('payments/pdf', [ExportController::class, 'exportPaymentsPDF'])->name('payments.pdf');
+        Route::get('debtors/pdf', [ReportDebtorController::class, 'pdf'])->name('debtors.pdf');
         Route::get('assists/excel/{training_group_id}/{year}/{month}/{deleted?}', [ExportController::class, 'exportAssistsExcel'])->name('assists');
         Route::get('matches/create/{competition_group}/format', [ExportController::class, 'exportMatchDetail'])->name('match_detail');
         Route::get('tournament/payouts/excel', [ExportController::class, 'exportTournamentPayoutsExcel'])->name('tournaments.payouts.excel');
@@ -142,6 +144,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
         Route::get('payments', [ReportPaymentController::class, 'index'])->name('payments');
         Route::post('payments', [ReportPaymentController::class, 'report'])->name('payments.report');
+        Route::get('debtors', [ReportDebtorController::class, 'index'])->name('debtors');
     });
 
     Route::prefix('autocomplete')->group(function () {
