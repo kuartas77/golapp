@@ -16,6 +16,13 @@ class InscriptionCustomChargeController extends Controller
             return datatables()->of($this->query())
                 ->filterColumn('status', fn ($query, $keyword) => $query->where('inscription_custom_charges.status', $keyword))
                 ->filterColumn('due_date', fn ($query, $keyword) => $query->whereDate('inscription_custom_charges.due_date', $keyword))
+                ->filterColumn('player.full_names', function($query, $keyword) {
+                    $sql = "CONCAT(players.names, ' ', players.last_names) like ?";
+                    $query->whereRaw($sql, ["%{$keyword}%"]);
+                })
+                ->filterColumn('inscription.unique_code', function($query, $keyword) {
+                    $query->whereRaw('players.unique_code like ?', ["%{$keyword}%"]);
+                })
                 ->toJson();
         }
 
@@ -67,6 +74,7 @@ class InscriptionCustomChargeController extends Controller
         return InscriptionCustomCharge::query()
             ->select('inscription_custom_charges.*')
             ->with(['inscription', 'player', 'invoiceCustomItem', 'invoiceItem.invoice'])
+            ->join('players', 'players.id', 'player_id')
             ->where('inscription_custom_charges.school_id', getSchool(auth()->user())->id)
             ->where(function ($query) {
                 $query
