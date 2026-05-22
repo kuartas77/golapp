@@ -43,15 +43,15 @@ class InvoiceController extends Controller
 
     public function store(InvoiceStoreRequest $request)
     {
-        $invoiceId = $this->invoice_repository->storeInvoice($request->validated());
+        $invoice = $this->invoice_repository->storeInvoice($request->validated());
 
-        if (is_null($invoiceId)) {
+        if (is_null($invoice['id'])) {
             Alert::error(env('APP_NAME'), 'Factura no creada.');
             return redirect()->route('invoices.index');
         }
 
         Alert::success(env('APP_NAME'), 'Factura creada exitosamente.');
-        return redirect()->route('invoices.show', $invoiceId);
+        return redirect()->route('invoices.show', $invoice['id']);
     }
 
     public function show($id)

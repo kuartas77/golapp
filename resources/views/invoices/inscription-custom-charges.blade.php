@@ -174,9 +174,9 @@
                     searchable: false,
                     className: 'dt-body-center',
                     render: row => {
-                        const canDelete = ['pending', 'due'].includes(row.status) && !row.invoice_item_id;
+                        const canEditDelete = ['pending', 'due'].includes(row.status) && !row.invoice_item_id;
 
-                        return `
+                        return canEditDelete ? `
                         <div class="btn-group btn-group-sm">
                             <button type="button" class="btn btn-xs btn-warning edit-charge"
                             data-id="${row.id}"
@@ -185,13 +185,11 @@
                             data-due-date="${moment(row.due_date).format('YYYY-MM-DD')}">
                                 <i class="fas fa-pencil-alt"></i>
                             </button>
-                            ${canDelete ? `
-                                <button type="button" class="btn btn-xs btn-danger delete-charge"
-                                    data-id="${row.id}">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            ` : ''}
-                        </div>`;
+                            <button type="button" class="btn btn-xs btn-danger delete-charge"
+                                data-id="${row.id}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>` : '';
                     }
                 }
             ]
