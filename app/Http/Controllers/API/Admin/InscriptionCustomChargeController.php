@@ -13,21 +13,41 @@ class InscriptionCustomChargeController extends Controller
     public function index(): JsonResponse
     {
         $currentYear = now()->year;
+        $schoolId = getSchool(auth()->user())->id;
 
-        $charges = InscriptionCustomCharge::query()
+        $query = InscriptionCustomCharge::query()
+            ->select('inscription_custom_charges.*')
             ->with(['inscription.player', 'invoiceCustomItem', 'invoiceItem.invoice'])
-            ->schoolId()
+            ->leftJoin('inscriptions', 'inscriptions.id', '=', 'inscription_custom_charges.inscription_id')
+            ->leftJoin('players', 'players.id', '=', 'inscriptions.player_id')
+            ->leftJoin('invoice_items', 'invoice_items.id', '=', 'inscription_custom_charges.invoice_item_id')
+            ->leftJoin('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
+            ->where('inscription_custom_charges.school_id', $schoolId)
             ->where(function ($query) use ($currentYear): void {
-                $query->whereHas('inscription', fn ($query) => $query->where('year', $currentYear))
+                $query->where('inscriptions.year', $currentYear)
                     ->orWhere(function ($query) use ($currentYear): void {
-                        $query->where('status', InscriptionCustomCharge::STATUS_DUE)
-                            ->whereHas('inscription', fn ($query) => $query->where('year', '<', $currentYear));
+                        $query->where('inscription_custom_charges.status', InscriptionCustomCharge::STATUS_DUE)
+                            ->where('inscriptions.year', '<', $currentYear);
                     });
             })
-            ->latest('id')
-            ->get();
+            ->latest('inscription_custom_charges.id');
 
-        return response()->json($charges);
+        return datatables()->eloquent($query)
+            ->filterColumn('player_name', function ($query, $keyword): void {
+                $query->where(function ($query) use ($keyword): void {
+                    $query->where('players.names', 'like', "%{$keyword}%")
+                        ->orWhere('players.last_names', 'like', "%{$keyword}%")
+                        ->orWhere('players.unique_code', 'like', "%{$keyword}%");
+                });
+            })
+            ->filterColumn('invoice_number', fn ($query, $keyword) => $query->where('invoices.invoice_number', 'like', "%{$keyword}%"))
+            ->filterColumn('name', fn ($query, $keyword) => $query->where('inscription_custom_charges.name', 'like', "%{$keyword}%"))
+            ->orderColumn('player_name', function ($query, $order): void {
+                $query->orderBy('players.last_names', $order)
+                    ->orderBy('players.names', $order);
+            })
+            ->orderColumn('invoice_number', 'invoices.invoice_number $1')
+            ->toJson();
     }
 
     public function byInscription(Inscription $inscription): JsonResponse

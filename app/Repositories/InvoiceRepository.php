@@ -11,11 +11,12 @@ use App\Models\Payment;
 use App\Models\PaymentReceived;
 use App\Models\PaymentRequest;
 use App\Models\Player;
+use App\Models\School;
 use App\Models\UniformRequest;
 use App\Traits\PDFTrait;
 use App\Traits\UploadFile;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -94,7 +95,7 @@ class InvoiceRepository
             ->schoolId();
     }
 
-    public function makeInvoice($inscriptionId, $school)
+    public function makeInvoice(int $inscriptionId, School $school)
     {
         $inscription = Inscription::with(['player', 'trainingGroup'])
             ->where('school_id', $school->id)
@@ -124,9 +125,6 @@ class InvoiceRepository
                 'november' => 'Noviembre',
                 'december' => 'Diciembre'
             ];
-        }
-
-        if ($payment) {
             foreach ($months as $key => $name) {
                 if (in_array($payment->{$key}, [2])) { //2 = debe
                     $pendingMonths[] = [
@@ -142,32 +140,46 @@ class InvoiceRepository
         return [$inscription, $pendingMonths];
     }
 
-    public function createInvoice($inscriptionId)
+    public function createInvoice(int  $inscriptionId)
     {
         $school = getSchool(auth()->user());
 
         [$inscription, $pendingMonths] = $this->makeInvoice($inscriptionId, $school);
 
-        $pendingUniformRequests = $this->addUniformRequest($inscription->player_id);
+        $pendingUniformRequests = $this->addUniformRequest($inscription->player_id, $school->id);
         $customCharges = $this->customChargesForInvoice($inscription);
 
         return [$inscription, $pendingMonths, $pendingUniformRequests, $customCharges];
     }
 
-    public function storeInvoice(array $validated): ?Int
+    public function storeInvoice(array $validated): array
     {
         try {
             return DB::transaction(function () use ($validated) {
-                // Generar número de factura único
+                $idempotencyKey = $validated['idempotency_key'] ?? null;
+
+                if ($idempotencyKey) {
+                    $existingInvoiceId = Invoice::query()
+                        ->where('idempotency_key', $idempotencyKey)
+                        ->value('id');
+
+                    if ($existingInvoiceId) {
+                        return [
+                            'id' => $existingInvoiceId,
+                            'created' => false,
+                        ];
+                    }
+                }
+
                 $invoiceNumber = 'FAC-' . strtoupper(Str::random(6)) . '-' . date('Ymd');
 
-                // Verificar que no exista
                 while (Invoice::where('invoice_number', $invoiceNumber)->exists()) {
                     $invoiceNumber = 'FAC-' . strtoupper(Str::random(6)) . '-' . date('Ymd');
                 }
 
                 $invoice = Invoice::create([
                     'invoice_number' => $invoiceNumber,
+                    'idempotency_key' => $idempotencyKey,
                     'inscription_id' => $validated['inscription_id'],
                     'training_group_id' => $validated['training_group_id'],
                     'year' => $validated['year'],
@@ -175,66 +187,69 @@ class InvoiceRepository
                     'issue_date' => now()->toDateString(),
                     'due_date' => $validated['due_date'],
                     'status' => 'pending',
-                    'school_id' =>  $validated['school_id'],
+                    'school_id' => $validated['school_id'],
                     'created_by' => auth()->id(),
-                    'notes' => $validated['notes'],
+                    'notes' => $validated['notes'] ?? null,
                 ]);
 
-                $items = [];
                 foreach ($validated['items'] as $itemData) {
-                    $quantity = (int) $itemData['quantity'];
-                    $unitPrice = (float) $itemData['unit_price'];
-                    $customChargeId = $itemData['custom_charge_id'] ?? null;
-
-                    if (! empty($customChargeId)) {
-                        InscriptionCustomCharge::query()
-                            ->whereKey($customChargeId)
-                            ->where('school_id', $validated['school_id'])
-                            ->where('inscription_id', $validated['inscription_id'])
-                            ->where('status', InscriptionCustomCharge::STATUS_DUE)
-                            ->whereNull('invoice_item_id')
-                            ->lockForUpdate()
-                            ->firstOrFail();
-                    }
-
-                    $items[] = [
+                    $item = [
                         'type' => $itemData['type'],
                         'description' => $itemData['description'] ?? null,
-                        'quantity' => $quantity,
-                        'unit_price' => $unitPrice,
-                        'total' => round($quantity * $unitPrice, 2),
+                        'quantity' => $itemData['quantity'],
+                        'unit_price' => $itemData['unit_price'],
                         'month' => $itemData['month'] ?? null,
                         'payment_id' => $itemData['payment_id'] ?? null,
                         'is_paid' => false,
                         'uniform_request_id' => $itemData['uniform_request_id'] ?? null,
-                        'custom_charge_id' => $customChargeId,
                     ];
 
+                    $invoiceItem = $invoice->items()->create($item);
+
+                    if (!empty($itemData['custom_charge_id'])) {
+                        $updatedCharge = InscriptionCustomCharge::query()
+                            ->where('school_id', $invoice->school_id)
+                            ->where('inscription_id', $invoice->inscription_id)
+                            ->where('status', InscriptionCustomCharge::STATUS_DUE)
+                            ->whereNull('invoice_item_id')
+                            ->whereKey($itemData['custom_charge_id'])
+                            ->update([
+                                'invoice_item_id' => $invoiceItem->id,
+                            ]);
+
+                        throw_if(
+                            $updatedCharge === 0,
+                            \RuntimeException::class,
+                            'Custom charge not available for invoice.'
+                        );
+                    }
+
                     if (!empty($itemData['uniform_request_id'])) {
-                        UniformRequest::where('id', $itemData['uniform_request_id'])->update(['status' => 'APPROVED']);
+                        $updatedUniform = UniformRequest::query()
+                            ->whereKey($itemData['uniform_request_id'])
+                            ->update([
+                                'status' => 'APPROVED',
+                            ]);
+
+                        throw_if(
+                            $updatedUniform === 0,
+                            \RuntimeException::class,
+                            'Uniform request not available for invoice.'
+                        );
                     }
                 }
 
-                InvoiceItem::withoutEvents(function () use ($invoice, $items): void {
-                    foreach ($items as $item) {
-                        $invoiceItem = $invoice->items()->create($item);
-
-                        if (! empty($item['custom_charge_id'])) {
-                            InscriptionCustomCharge::query()
-                                ->whereKey($item['custom_charge_id'])
-                                ->whereNull('invoice_item_id')
-                                ->update(['invoice_item_id' => $invoiceItem->id]);
-                        }
-                    }
-                });
-
-                $invoice->updateTotals();
-
-                return $invoice->id;
+                return [
+                    'id' => $invoice->id,
+                    'created' => true,
+                ];
             });
         } catch (\Throwable $th) {
-            report($th);
-            return null;
+            report( $th);
+            return [
+                'id' => null,
+                'created' => false,
+            ];
         }
     }
 
@@ -316,7 +331,7 @@ class InvoiceRepository
             ->leftJoin('payments_received', 'invoice_items.payment_received_id', 'payments_received.id');
     }
 
-    private function addUniformRequest($playerId)
+    public function addUniformRequest(int $playerId, int $schoolId)
     {
         $uniformRequests = UniformRequest::query()
         ->leftJoin('invoice_custom_items as ici', function ($join) {
@@ -331,7 +346,7 @@ class InvoiceRepository
         ->where('uniform_request.player_id', $playerId)
         ->where('uniform_request.status', 'PENDING')
         ->where('uniform_request.type', '!=', 'OTHER') // si quieres excluir OTHER del cálculo
-        ->schoolId()
+        ->where('uniform_request.school_id', $schoolId)
         ->select([
             'uniform_request.*',
             DB::raw('COALESCE(ici.unit_price, 0) as unit_price'),
@@ -409,5 +424,34 @@ class InvoiceRepository
         $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'items-invoices.blade.php');
         return $stream ? $this->stream($filename) : $this->output($filename);
+    }
+
+    public function buildAutoInvoiceIdempotencyKey(array $invoiceData, $currentDate): string
+    {
+        $items = collect($invoiceData['items'])
+            ->map(function ($item) {
+                return [
+                    'type' => $item['type'] ?? null,
+                    'month' => $item['month'] ?? null,
+                    'payment_id' => $item['payment_id'] ?? null,
+                    'uniform_request_id' => $item['uniform_request_id'] ?? null,
+                    'custom_charge_id' => $item['custom_charge_id'] ?? null,
+                    'quantity' => (int) ($item['quantity'] ?? 1),
+                    'unit_price' => number_format((float) ($item['unit_price'] ?? 0), 2, '.', ''),
+                ];
+            })
+            ->sortBy(fn ($item) => json_encode($item))
+            ->values()
+            ->all();
+
+        return hash('sha256', json_encode([
+            'source' => 'automatic_invoice',
+            'school_id' => (int) $invoiceData['school_id'],
+            'inscription_id' => (int) $invoiceData['inscription_id'],
+            'training_group_id' => (int) $invoiceData['training_group_id'],
+            'year' => (int) $invoiceData['year'],
+            'period' => $currentDate->format('Y-m'),
+            'items' => $items,
+        ]));
     }
 }

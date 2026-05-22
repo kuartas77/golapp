@@ -8,75 +8,40 @@
                             <h4 class="mb-1"><i class="fa fa-receipt"></i> Cargos Personalizados</h4>
                             <small class="text-muted">Cargos asignados a inscripciones antes de facturarse.</small>
                         </div>
-                        <button type="button" class="btn btn-outline-primary btn-sm" :disabled="loading" @click="fetchCharges">
+                        <button type="button" class="btn btn-outline-primary btn-sm" @click="reloadTable">
                             <i class="fa fa-sync"></i> Actualizar
                         </button>
                     </div>
 
                     <div class="card-body">
-                        <div v-if="loading" class="text-center py-5">
-                            <span class="spinner-border text-primary"></span>
-                        </div>
-
-                        <div v-else class="table-responsive">
-                            <table class="table table-sm table-hover align-middle mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Jugador</th>
-                                        <th>Año</th>
-                                        <th>Cargo</th>
-                                        <th>Valor</th>
-                                        <th>Estado</th>
-                                        <th>Vence</th>
-                                        <th>Factura</th>
-                                        <th class="text-end">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-if="!charges.length">
-                                        <td colspan="8" class="text-center text-muted py-4">
-                                            No hay cargos personalizados asignados.
-                                        </td>
-                                    </tr>
-                                    <tr v-for="charge in charges" :key="charge.id">
-                                        <td>{{ charge.inscription?.player?.full_names || 'N/D' }}</td>
-                                        <td>{{ charge.inscription?.year || 'N/D' }}</td>
-                                        <td>
-                                            <div class="fw-semibold">{{ charge.name }}</div>
-                                            <small class="text-muted">{{ charge.invoice_custom_item?.name || 'Snapshot histórico' }}</small>
-                                        </td>
-                                        <td>{{ moneyFormat(Number(charge.value || 0)) }}</td>
-                                        <td>
-                                            <span class="badge" :class="statusClass(charge.status)">
-                                                {{ statusLabel(charge.status) }}
-                                            </span>
-                                        </td>
-                                        <td>{{ formatDate(charge.due_date) }}</td>
-                                        <td>{{ charge.invoice_item?.invoice?.invoice_number || 'Sin facturar' }}</td>
-                                        <td class="text-end">
-                                            <div class="d-inline-flex gap-2">
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-outline-primary btn-sm"
-                                                    :disabled="charge.status === 'paid' || deletingId === charge.id"
-                                                    @click="openEditModal(charge)"
-                                                >
-                                                    Editar
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-outline-danger btn-sm"
-                                                    :disabled="!canDeleteCharge(charge) || deletingId === charge.id"
-                                                    @click="confirmDelete(charge)"
-                                                >
-                                                    <span v-if="deletingId === charge.id" class="spinner-border spinner-border-sm me-1"></span>
-                                                    Eliminar
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="table-responsive-sm">
+                            <DatatableTemplate
+                                id="custom-charges-table"
+                                ref="custom_charges_table"
+                                :options="options"
+                            >
+                                <template #actions="props">
+                                    <div class="d-inline-flex gap-2">
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-primary btn-sm"
+                                            :disabled="props.rowData.status === 'paid' || deletingId === props.rowData.id"
+                                            @click="openEditModal(props.rowData)"
+                                        >
+                                            Editar
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-danger btn-sm"
+                                            :disabled="!canDeleteCharge(props.rowData) || deletingId === props.rowData.id"
+                                            @click="confirmDelete(props.rowData)"
+                                        >
+                                            <span v-if="deletingId === props.rowData.id" class="spinner-border spinner-border-sm me-1"></span>
+                                            Eliminar
+                                        </button>
+                                    </div>
+                                </template>
+                            </DatatableTemplate>
                         </div>
                     </div>
                 </div>
@@ -150,17 +115,18 @@
 import { onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import api from '@/utils/axios'
 import CurrencyInput from '@/components/general/CurrencyInput'
+import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import useInscriptionCustomChargesList from '@/composables/invoices/inscriptionCustomChargesList'
 import flatPickr from 'vue-flatpickr-component'
 import { Spanish } from 'flatpickr/dist/l10n/es.js'
 import 'flatpickr/dist/flatpickr.css'
 import '@/assets/sass/forms/custom-flatpickr.css'
 
-const charges = ref([])
-const loading = ref(false)
 const saving = ref(false)
 const deletingId = ref(null)
 const modalElement = ref(null)
 const formMessage = ref('')
+const { options, reloadTable } = useInscriptionCustomChargesList()
 
 const form = reactive({
     id: null,
@@ -174,40 +140,6 @@ let modalInstance = null
 
 const flatpickrConfig = {
     locale: Spanish,
-}
-
-const statusLabel = (status) => ({
-    pending: 'Pendiente',
-    due: 'Debe',
-    paid: 'Pagado',
-}[status] ?? status)
-
-const statusClass = (status) => ({
-    pending: 'badge-warning',
-    due: 'badge-danger',
-    paid: 'badge-success',
-}[status] ?? 'badge-light')
-
-const formatDate = (value) => {
-    if (!value) {
-        return 'N/D'
-    }
-
-    const parsedDate = new Date(value)
-    return Number.isNaN(parsedDate.getTime()) ? 'N/D' : parsedDate.toLocaleDateString('es-CO')
-}
-
-const fetchCharges = async () => {
-    loading.value = true
-
-    try {
-        const { data } = await api.get('/api/v2/admin/inscription-custom-charges')
-        charges.value = Array.isArray(data) ? data : data.data ?? []
-    } catch (error) {
-        showMessage(error.response?.data?.message || 'No fue posible cargar los cargos personalizados.', 'error')
-    } finally {
-        loading.value = false
-    }
 }
 
 const openEditModal = (charge) => {
@@ -246,8 +178,8 @@ const confirmDelete = async (charge) => {
 
     try {
         const { data } = await api.delete(`/api/v2/admin/inscription-custom-charges/${charge.id}`)
-        charges.value = charges.value.filter((currentCharge) => currentCharge.id !== charge.id)
         showMessage(data.message || 'Cargo personalizado eliminado correctamente.')
+        reloadTable()
     } catch (error) {
         showMessage(error.response?.data?.message || 'No fue posible eliminar el cargo personalizado.', 'error')
     } finally {
@@ -268,7 +200,7 @@ const submitForm = async () => {
 
         showMessage(data.message || 'Cargo personalizado actualizado correctamente.')
         closeModal()
-        await fetchCharges()
+        reloadTable()
     } catch (error) {
         formMessage.value = error.response?.data?.message || 'No fue posible actualizar el cargo personalizado.'
     } finally {
@@ -283,8 +215,6 @@ onMounted(() => {
             keyboard: false,
         })
     }
-
-    fetchCharges()
 })
 
 onBeforeUnmount(() => {

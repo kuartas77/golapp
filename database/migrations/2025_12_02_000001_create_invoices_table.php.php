@@ -28,6 +28,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->foreignId('school_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->string('idempotency_key', 64)->nullable()->unique();
             $table->timestamps();
             $table->softDeletes();
         });
