@@ -4,9 +4,11 @@ namespace App\Service\Reports;
 
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\InscriptionCustomCharge;
 use App\Models\Payment;
 use App\Models\TrainingGroup;
 use App\Traits\PDFTrait;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class DebtorReportService
@@ -25,8 +27,17 @@ class DebtorReportService
             ->distinct()
             ->pluck('year');
 
+        $customChargeYears = InscriptionCustomCharge::query()
+            ->where('school_id', $schoolId)
+            ->where('status', InscriptionCustomCharge::STATUS_DUE)
+            ->whereNull('invoice_item_id')
+            ->whereNotNull('due_date')
+            ->pluck('due_date')
+            ->map(fn ($date) => Carbon::parse($date)->year);
+
         return $paymentYears
             ->merge($invoiceYears)
+            ->merge($customChargeYears)
             ->push(now()->year)
             ->map(fn ($year) => (int) $year)
             ->unique()
@@ -46,8 +57,16 @@ class DebtorReportService
             ->where('year', $year)
             ->pluck('training_group_id');
 
+        $customChargeGroupIds = InscriptionCustomCharge::query()
+            ->where('inscription_custom_charges.school_id', $schoolId)
+            ->where('inscription_custom_charges.status', InscriptionCustomCharge::STATUS_DUE)
+            ->whereNull('inscription_custom_charges.invoice_item_id')
+            ->whereYear('inscription_custom_charges.due_date', $year)
+            ->join('inscriptions', 'inscription_custom_charges.inscription_id', '=', 'inscriptions.id')
+            ->pluck('inscriptions.training_group_id');
+
         return TrainingGroup::query()
-            ->whereIn('id', $paymentGroupIds->merge($invoiceGroupIds)->filter()->unique()->values())
+            ->whereIn('id', $paymentGroupIds->merge($invoiceGroupIds)->merge($customChargeGroupIds)->filter()->unique()->values())
             ->schoolId()
             ->orderBy('name')
             ->get()
@@ -100,6 +119,24 @@ class DebtorReportService
                 $row['item_debt'] = $itemDebt;
                 $row['item_debt_label'] = $this->itemLabel($item);
                 $row['total_debt'] = $itemDebt;
+                $row['row_type'] = 'item';
+
+                $rows->push($row);
+            });
+
+        $this->customChargesQuery($schoolId, $year, $trainingGroupId)
+            ->get()
+            ->each(function (InscriptionCustomCharge $charge) use ($rows) {
+                $chargeDebt = (float) $charge->value;
+
+                if ($chargeDebt <= 0) {
+                    return;
+                }
+
+                $row = $this->baseRowFromCustomCharge($charge);
+                $row['item_debt'] = $chargeDebt;
+                $row['item_debt_label'] = $this->customChargeLabel($charge);
+                $row['total_debt'] = $chargeDebt;
                 $row['row_type'] = 'item';
 
                 $rows->push($row);
@@ -162,6 +199,19 @@ class DebtorReportService
                     ->when($trainingGroupId !== 0, fn ($query) => $query->where('training_group_id', $trainingGroupId));
             })
             ->with(['invoice.inscription.player', 'invoice.trainingGroup']);
+    }
+
+    private function customChargesQuery(int $schoolId, int $year, int $trainingGroupId)
+    {
+        return InscriptionCustomCharge::query()
+            ->where('school_id', $schoolId)
+            ->where('status', InscriptionCustomCharge::STATUS_DUE)
+            ->whereNull('invoice_item_id')
+            ->whereYear('due_date', $year)
+            ->whereHas('inscription', function ($query) use ($trainingGroupId) {
+                $query->when($trainingGroupId !== 0, fn ($query) => $query->where('training_group_id', $trainingGroupId));
+            })
+            ->with(['inscription.player', 'inscription.trainingGroup', 'invoiceCustomItem']);
     }
 
     private function invoicedMonthlyKeys(int $schoolId, int $year, int $trainingGroupId): Collection
@@ -243,6 +293,22 @@ class DebtorReportService
         );
     }
 
+    private function baseRowFromCustomCharge(InscriptionCustomCharge $charge): array
+    {
+        $inscription = $charge->inscription;
+        $player = $inscription?->player;
+        $group = $inscription?->trainingGroup;
+
+        return $this->baseRow(
+            (int) $charge->inscription_id,
+            $player?->id,
+            $player?->unique_code ?? $inscription?->unique_code ?? '',
+            $player?->full_names ?? $charge->name,
+            $inscription?->category,
+            $group?->full_group ?? $group?->name
+        );
+    }
+
     private function baseRow(int $inscriptionId, ?int $playerId, string $uniqueCode, string $studentName, ?string $category, ?string $trainingGroup): array
     {
         return [
@@ -282,6 +348,13 @@ class DebtorReportService
         $description = trim((string) $item->description);
 
         return trim("{$invoiceNumber} - {$type}: {$description}", ' -:');
+    }
+
+    private function customChargeLabel(InscriptionCustomCharge $charge): string
+    {
+        $name = trim((string) ($charge->name ?: $charge->invoiceCustomItem?->name));
+
+        return trim("Sin factura - Item: {$name}", ' -:');
     }
 
     private function selectedGroupLabel(array $filters): string

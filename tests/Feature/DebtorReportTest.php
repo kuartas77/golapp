@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\CompetitionGroup;
 use App\Models\Inscription;
+use App\Models\InscriptionCustomCharge;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Player;
@@ -178,6 +179,45 @@ final class DebtorReportTest extends TestCase
 
         $this->assertCount(1, $rows);
         $this->assertSame('1003', $rows->first()['unique_code']);
+    }
+
+    public function testDebtorReportIncludesDueCustomChargesThatAreNotInvoiced(): void
+    {
+        $this->actingAs($this->user);
+        $group = $this->defaultTrainingGroup();
+        $inscription = $this->createInscriptionForReport($group, '1005', 'Noa', 'Vargas');
+
+        $this->resetPayment($this->paymentForInscription($inscription));
+
+        InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'player_id' => $inscription->player_id,
+            'name' => 'Guayos',
+            'value' => 90000,
+            'status' => InscriptionCustomCharge::STATUS_DUE,
+            'due_date' => '2026-03-15',
+        ]);
+
+        InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'player_id' => $inscription->player_id,
+            'name' => 'Pendiente',
+            'value' => 30000,
+            'status' => InscriptionCustomCharge::STATUS_PENDING,
+            'due_date' => '2026-03-15',
+        ]);
+
+        $rows = app(DebtorReportService::class)->rows([
+            'school_id' => $this->school['id'],
+            'year' => 2026,
+        ]);
+
+        $this->assertCount(1, $rows);
+        $this->assertSame('Sin factura - Item: Guayos', $rows->first()['item_debt_label']);
+        $this->assertSame(90000.0, $rows->first()['item_debt']);
+        $this->assertSame(90000.0, $rows->first()['total_debt']);
     }
 
     private function defaultTrainingGroup(): TrainingGroup
