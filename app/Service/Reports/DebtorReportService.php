@@ -99,7 +99,7 @@ class DebtorReportService
 
                 $row = $this->baseRowFromPayment($payment);
                 $row = $rows->get($row['inscription_id'], $row);
-                $row = $this->appendDebt($row, 'Mensualidades: Debe '.$monthlyDebt['label'], $monthlyDebt['amount']);
+                $row = $this->appendDebt($row, $monthlyDebt['label'], $monthlyDebt['amount']);
 
                 $rows->put($row['inscription_id'], $row);
             });
@@ -132,6 +132,11 @@ class DebtorReportService
                 $row = $this->baseRowFromCustomCharge($charge);
                 $row = $rows->get($row['inscription_id'], $row);
                 $row = $this->appendDebt($row, $this->customChargeLabel($charge), $chargeDebt);
+
+                // if($row['inscription_id'] == '1384') {
+
+                //     dd($row);
+                // }
 
                 $rows->put($row['inscription_id'], $row);
             });
@@ -322,7 +327,8 @@ class DebtorReportService
             'label' => $label,
             'amount' => $amount,
         ];
-        $row['debt_label'] = collect($row['debt_items'])->pluck('label')->implode("\n");
+
+        $row['debt_label'] = collect($row['debt_items'])->pluck('label')->implode(", ");
         $row['total_debt'] += $amount;
 
         return $row;
