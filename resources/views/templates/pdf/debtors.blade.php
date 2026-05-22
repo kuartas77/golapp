@@ -29,10 +29,11 @@
             <th class="text-center">Código</th>
             <th>Deportista</th>
             <th>Categoría</th>
-            <th>Grupo</th>
-            <th class="text-right">Mensualidades</th>
-            <th class="text-right">Facturas</th>
-            <th class="text-right">Total Deuda</th>
+            <th>Mensualidades</th>
+            <th>Item</th>
+            @if($showTotalDebt)
+                <th class="text-right">Total Deuda</th>
+            @endif
         </tr>
     </thead>
     <tbody>
@@ -42,21 +43,22 @@
                 <td class="text-center">&nbsp;{{ $row['unique_code'] }}&nbsp;</td>
                 <td>&nbsp;{{ $row['student_name'] }}&nbsp;</td>
                 <td>&nbsp;{{ $row['category'] }}&nbsp;</td>
-                <td>&nbsp;{{ $row['training_group'] }}&nbsp;</td>
-                <td class="text-right">&nbsp;{{ number_format($row['monthly_debt'], 0, ',', '.') }}&nbsp;</td>
-                <td class="text-right">&nbsp;{{ number_format($row['invoice_debt'], 0, ',', '.') }}&nbsp;</td>
-                <td class="text-right">&nbsp;{{ number_format($row['total_debt'], 0, ',', '.') }}&nbsp;</td>
+                <td>&nbsp;{{ $row['monthly_debt_label'] ? 'Debe: '.$row['monthly_debt_label'] : '--' }}&nbsp;</td>
+                <td>&nbsp;{{ $row['item_debt_label'] ?: '--' }}&nbsp;</td>
+                @if($showTotalDebt)
+                    <td class="text-right">&nbsp;{{ number_format($row['total_debt'], 0, ',', '.') }}&nbsp;</td>
+                @endif
             </tr>
         @empty
             <tr>
-                <td colspan="8" class="text-center">&nbsp;No se encontraron deudores para los filtros seleccionados.&nbsp;</td>
+                <td colspan="{{ $showTotalDebt ? 7 : 6 }}" class="text-center">&nbsp;No se encontraron deudores para los filtros seleccionados.&nbsp;</td>
             </tr>
         @endforelse
-        <tr>
-            <th colspan="5" class="text-right">Totales:</th>
-            <th class="text-right">&nbsp;{{ number_format($rows->sum('monthly_debt'), 0, ',', '.') }}&nbsp;</th>
-            <th class="text-right">&nbsp;{{ number_format($rows->sum('invoice_debt'), 0, ',', '.') }}&nbsp;</th>
-            <th class="text-right">&nbsp;{{ number_format($rows->sum('total_debt'), 0, ',', '.') }}&nbsp;</th>
-        </tr>
+        @if($showTotalDebt)
+            <tr>
+                <th colspan="6" class="text-right">Total deuda:</th>
+                <th class="text-right">&nbsp;{{ number_format($rows->sum('total_debt'), 0, ',', '.') }}&nbsp;</th>
+            </tr>
+        @endif
     </tbody>
 </table>

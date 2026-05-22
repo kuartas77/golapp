@@ -74,40 +74,43 @@ class DebtorReportService
             ->each(function (Payment $payment) use ($rows, $invoicedMonthlyKeys) {
                 $monthlyDebt = $this->monthlyDebtForPayment($payment, $invoicedMonthlyKeys);
 
-                if ($monthlyDebt <= 0) {
+                if ($monthlyDebt['amount'] <= 0) {
                     return;
                 }
 
                 $row = $this->baseRowFromPayment($payment);
-                $row['monthly_debt'] = $monthlyDebt;
-                $row['total_debt'] = $monthlyDebt;
+                $row['monthly_debt'] = $monthlyDebt['amount'];
+                $row['monthly_debt_label'] = $monthlyDebt['label'];
+                $row['total_debt'] = $monthlyDebt['amount'];
+                $row['row_type'] = 'monthly';
 
-                $rows->put($row['inscription_id'], $row);
+                $rows->push($row);
             });
 
-        $this->invoicesQuery($schoolId, $year, $trainingGroupId)
+        $this->invoiceItemsQuery($schoolId, $year, $trainingGroupId)
             ->get()
-            ->each(function (Invoice $invoice) use ($rows) {
-                $invoiceDebt = (float) $invoice->total_amount - (float) $invoice->paid_amount;
+            ->each(function (InvoiceItem $item) use ($rows) {
+                $itemDebt = (float) $item->total;
 
-                if ($invoiceDebt <= 0) {
+                if ($itemDebt <= 0) {
                     return;
                 }
 
-                $key = $invoice->inscription_id;
-                $row = $rows->get($key, $this->baseRowFromInvoice($invoice));
+                $row = $this->baseRowFromInvoiceItem($item);
+                $row['item_debt'] = $itemDebt;
+                $row['item_debt_label'] = $this->itemLabel($item);
+                $row['total_debt'] = $itemDebt;
+                $row['row_type'] = 'item';
 
-                $row['invoice_debt'] += $invoiceDebt;
-                $row['total_debt'] = $row['monthly_debt'] + $row['invoice_debt'];
-
-                $rows->put($key, $row);
+                $rows->push($row);
             });
 
         return $rows
             ->filter(fn ($row) => $row['total_debt'] > 0)
             ->sortBy([
-                ['training_group', 'asc'],
                 ['student_name', 'asc'],
+                ['row_type', 'desc'],
+                ['item_debt_label', 'asc'],
             ])
             ->values();
     }
@@ -124,6 +127,7 @@ class DebtorReportService
             'date' => $date,
             'year' => (int) data_get($filters, 'year', now()->year),
             'group' => $this->selectedGroupLabel($filters),
+            'showTotalDebt' => filter_var(data_get($filters, 'show_total_debt', false), FILTER_VALIDATE_BOOLEAN),
         ];
 
         $filename = "Deudores {$date}.pdf";
@@ -146,15 +150,18 @@ class DebtorReportService
             ->withTrashed();
     }
 
-    private function invoicesQuery(int $schoolId, int $year, int $trainingGroupId)
+    private function invoiceItemsQuery(int $schoolId, int $year, int $trainingGroupId)
     {
-        return Invoice::query()
-            ->where('school_id', $schoolId)
-            ->where('year', $year)
-            ->whereIn('status', ['pending', 'partial'])
-            ->whereRaw('total_amount > paid_amount')
-            ->when($trainingGroupId !== 0, fn ($query) => $query->where('training_group_id', $trainingGroupId))
-            ->with(['inscription.player', 'trainingGroup']);
+        return InvoiceItem::query()
+            ->where('is_paid', false)
+            ->whereHas('invoice', function ($query) use ($schoolId, $year, $trainingGroupId) {
+                $query->where('school_id', $schoolId)
+                    ->where('year', $year)
+                    ->whereIn('status', ['pending', 'partial'])
+                    ->whereRaw('total_amount > paid_amount')
+                    ->when($trainingGroupId !== 0, fn ($query) => $query->where('training_group_id', $trainingGroupId));
+            })
+            ->with(['invoice.inscription.player', 'invoice.trainingGroup']);
     }
 
     private function invoicedMonthlyKeys(int $schoolId, int $year, int $trainingGroupId): Collection
@@ -173,21 +180,29 @@ class DebtorReportService
             ->mapWithKeys(fn ($item) => [$this->monthlyKey((int) $item->payment_id, (string) $item->month) => true]);
     }
 
-    private function monthlyDebtForPayment(Payment $payment, Collection $invoicedMonthlyKeys): float
+    private function monthlyDebtForPayment(Payment $payment, Collection $invoicedMonthlyKeys): array
     {
-        return collect(Payment::paymentFields())->sum(function (string $field) use ($payment, $invoicedMonthlyKeys) {
+        $months = collect(Payment::paymentFields())->map(function (string $field) use ($payment, $invoicedMonthlyKeys) {
             if ((int) $payment->{$field} !== Payment::$debt) {
-                return 0;
+                return null;
             }
 
             if ($invoicedMonthlyKeys->has($this->monthlyKey((int) $payment->id, $field))) {
-                return 0;
+                return null;
             }
 
             $amountField = Payment::amountFieldFor($field);
 
-            return (float) ($amountField ? $payment->{$amountField} : 0);
-        });
+            return [
+                'label' => $this->monthLabel($field),
+                'amount' => (float) ($amountField ? $payment->{$amountField} : 0),
+            ];
+        })->filter()->values();
+
+        return [
+            'amount' => (float) $months->sum('amount'),
+            'label' => $months->pluck('label')->implode(', '),
+        ];
     }
 
     private function monthlyKey(int $paymentId, string $month): string
@@ -211,8 +226,9 @@ class DebtorReportService
         );
     }
 
-    private function baseRowFromInvoice(Invoice $invoice): array
+    private function baseRowFromInvoiceItem(InvoiceItem $item): array
     {
+        $invoice = $item->invoice;
         $inscription = $invoice->inscription;
         $player = $inscription?->player;
         $group = $invoice->trainingGroup;
@@ -237,9 +253,35 @@ class DebtorReportService
             'category' => $category ?? '',
             'training_group' => $trainingGroup ?? '',
             'monthly_debt' => 0.0,
-            'invoice_debt' => 0.0,
+            'monthly_debt_label' => '',
+            'item_debt' => 0.0,
+            'item_debt_label' => '',
             'total_debt' => 0.0,
+            'row_type' => '',
         ];
+    }
+
+    private function monthLabel(string $field): string
+    {
+        if ($field === 'enrollment') {
+            return 'Matrícula';
+        }
+
+        return config("variables.KEY_INDEX_MONTHS_LABEL.{$field}", ucfirst($field));
+    }
+
+    private function itemLabel(InvoiceItem $item): string
+    {
+        $type = match ($item->type) {
+            'monthly' => 'Mensualidad',
+            'enrollment' => 'Matrícula',
+            default => 'Item',
+        };
+
+        $invoiceNumber = $item->invoice?->invoice_number;
+        $description = trim((string) $item->description);
+
+        return trim("{$invoiceNumber} - {$type}: {$description}", ' -:');
     }
 
     private function selectedGroupLabel(array $filters): string
