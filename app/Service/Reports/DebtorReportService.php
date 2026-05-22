@@ -98,12 +98,10 @@ class DebtorReportService
                 }
 
                 $row = $this->baseRowFromPayment($payment);
-                $row['monthly_debt'] = $monthlyDebt['amount'];
-                $row['monthly_debt_label'] = $monthlyDebt['label'];
-                $row['total_debt'] = $monthlyDebt['amount'];
-                $row['row_type'] = 'monthly';
+                $row = $rows->get($row['inscription_id'], $row);
+                $row = $this->appendDebt($row, 'Mensualidades: Debe '.$monthlyDebt['label'], $monthlyDebt['amount']);
 
-                $rows->push($row);
+                $rows->put($row['inscription_id'], $row);
             });
 
         $this->invoiceItemsQuery($schoolId, $year, $trainingGroupId)
@@ -116,12 +114,10 @@ class DebtorReportService
                 }
 
                 $row = $this->baseRowFromInvoiceItem($item);
-                $row['item_debt'] = $itemDebt;
-                $row['item_debt_label'] = $this->itemLabel($item);
-                $row['total_debt'] = $itemDebt;
-                $row['row_type'] = 'item';
+                $row = $rows->get($row['inscription_id'], $row);
+                $row = $this->appendDebt($row, $this->itemLabel($item), $itemDebt);
 
-                $rows->push($row);
+                $rows->put($row['inscription_id'], $row);
             });
 
         $this->customChargesQuery($schoolId, $year, $trainingGroupId)
@@ -134,20 +130,16 @@ class DebtorReportService
                 }
 
                 $row = $this->baseRowFromCustomCharge($charge);
-                $row['item_debt'] = $chargeDebt;
-                $row['item_debt_label'] = $this->customChargeLabel($charge);
-                $row['total_debt'] = $chargeDebt;
-                $row['row_type'] = 'item';
+                $row = $rows->get($row['inscription_id'], $row);
+                $row = $this->appendDebt($row, $this->customChargeLabel($charge), $chargeDebt);
 
-                $rows->push($row);
+                $rows->put($row['inscription_id'], $row);
             });
 
         return $rows
             ->filter(fn ($row) => $row['total_debt'] > 0)
             ->sortBy([
                 ['student_name', 'asc'],
-                ['row_type', 'desc'],
-                ['item_debt_label', 'asc'],
             ])
             ->values();
     }
@@ -318,13 +310,22 @@ class DebtorReportService
             'student_name' => $studentName,
             'category' => $category ?? '',
             'training_group' => $trainingGroup ?? '',
-            'monthly_debt' => 0.0,
-            'monthly_debt_label' => '',
-            'item_debt' => 0.0,
-            'item_debt_label' => '',
+            'debt_items' => [],
+            'debt_label' => '',
             'total_debt' => 0.0,
-            'row_type' => '',
         ];
+    }
+
+    private function appendDebt(array $row, string $label, float $amount): array
+    {
+        $row['debt_items'][] = [
+            'label' => $label,
+            'amount' => $amount,
+        ];
+        $row['debt_label'] = collect($row['debt_items'])->pluck('label')->implode("\n");
+        $row['total_debt'] += $amount;
+
+        return $row;
     }
 
     private function monthLabel(string $field): string

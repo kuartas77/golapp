@@ -88,13 +88,12 @@ final class DebtorReportTest extends TestCase
             'year' => 2026,
         ]);
 
-        $this->assertCount(2, $rows);
-        $this->assertSame(50000.0, $rows->first()['monthly_debt']);
-        $this->assertSame('Enero', $rows->first()['monthly_debt_label']);
-        $this->assertSame(50000.0, $rows->first()['total_debt']);
-        $this->assertSame('FAC-DEBT-001 - Item: Uniforme', $rows->last()['item_debt_label']);
-        $this->assertSame(75000.0, $rows->last()['item_debt']);
-        $this->assertSame(75000.0, $rows->last()['total_debt']);
+        $this->assertCount(1, $rows);
+        $this->assertSame(125000.0, $rows->first()['total_debt']);
+        $this->assertSame([
+            'Mensualidades: Debe Enero',
+            'FAC-DEBT-001 - Item: Uniforme',
+        ], collect($rows->first()['debt_items'])->pluck('label')->all());
     }
 
     public function testDebtorReportDoesNotDuplicateMonthlyDebtAlreadyInPendingInvoice(): void
@@ -140,10 +139,7 @@ final class DebtorReportTest extends TestCase
         ]);
 
         $this->assertCount(1, $rows);
-        $this->assertSame(0.0, $rows->first()['monthly_debt']);
-        $this->assertSame('', $rows->first()['monthly_debt_label']);
-        $this->assertSame('FAC-DEBT-002 - Mensualidad: Enero', $rows->first()['item_debt_label']);
-        $this->assertSame(60000.0, $rows->first()['item_debt']);
+        $this->assertSame(['FAC-DEBT-002 - Mensualidad: Enero'], collect($rows->first()['debt_items'])->pluck('label')->all());
         $this->assertSame(60000.0, $rows->first()['total_debt']);
     }
 
@@ -215,8 +211,7 @@ final class DebtorReportTest extends TestCase
         ]);
 
         $this->assertCount(1, $rows);
-        $this->assertSame('Sin factura - Item: Guayos', $rows->first()['item_debt_label']);
-        $this->assertSame(90000.0, $rows->first()['item_debt']);
+        $this->assertSame(['Sin factura - Item: Guayos'], collect($rows->first()['debt_items'])->pluck('label')->all());
         $this->assertSame(90000.0, $rows->first()['total_debt']);
     }
 
