@@ -352,9 +352,7 @@ class DebtorReportService
 
     private function customChargeLabel(InscriptionCustomCharge $charge): string
     {
-        $name = trim((string) ($charge->name ?: $charge->invoiceCustomItem?->name));
-
-        return trim("Sin factura - Item: {$name}", ' -:');
+        return trim((string) ($charge->name ?: $charge->invoiceCustomItem?->name));
     }
 
     private function selectedGroupLabel(array $filters): string
