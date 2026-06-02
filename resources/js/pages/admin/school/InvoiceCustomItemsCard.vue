@@ -30,46 +30,87 @@
             </div>
 
             <template v-else>
-                <div v-if="items.length" class="table-responsive">
-                    <table class="table table-sm align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th>Precio</th>
-                                <th class="text-end">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="item in items" :key="item.id">
-                                <td>
-                                    <div class="fw-semibold">{{ item.name }}</div>
-                                    <small class="text-muted">{{ resolveTypeLabel(item.type) }}</small>
-                                </td>
-                                <td>{{ moneyFormat(Number(item.unit_price)) }}</td>
-                                <td class="text-end">
-                                    <div class="d-inline-flex gap-2">
-                                        <button
-                                            type="button"
-                                            class="btn btn-outline-primary btn-sm"
-                                            :disabled="isDeletingId === item.id"
-                                            @click="openEditModal(item)"
-                                        >
-                                            Editar
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="btn btn-outline-danger btn-sm"
-                                            :disabled="isDeletingId === item.id"
-                                            @click="confirmDelete(item)"
-                                        >
-                                            <span v-if="isDeletingId === item.id" class="spinner-border spinner-border-sm me-1" role="status"></span>
-                                            Eliminar
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div v-if="items.length">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-2">
+                        <small class="text-muted">
+                            Mostrando {{ pageStart }} a {{ pageEnd }} de {{ items.length }} cargos.
+                        </small>
+                        <div class="d-flex align-items-center gap-2">
+                            <small class="text-muted">Filas</small>
+                            <select v-model.number="perPage" class="form-select form-select-sm invoice-custom-items-page-size">
+                                <option :value="5">5</option>
+                                <option :value="10">10</option>
+                                <option :value="15">15</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Precio</th>
+                                    <th class="text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in paginatedItems" :key="item.id">
+                                    <td>
+                                        <div class="fw-semibold">{{ item.name }}</div>
+                                        <small class="text-muted">{{ resolveTypeLabel(item.type) }}</small>
+                                    </td>
+                                    <td>{{ moneyFormat(Number(item.unit_price)) }}</td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-2">
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-primary btn-sm"
+                                                :disabled="isDeletingId === item.id"
+                                                @click="openEditModal(item)"
+                                            >
+                                                Editar
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-danger btn-sm"
+                                                :disabled="isDeletingId === item.id"
+                                                @click="confirmDelete(item)"
+                                            >
+                                                <span v-if="isDeletingId === item.id" class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                                Eliminar
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <nav v-if="lastPage > 1" class="mt-3" aria-label="Paginación de cargos para inscripciones">
+                        <ul class="pagination pagination-sm justify-content-end mb-0">
+                            <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                                <button type="button" class="page-link" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
+                                    Anterior
+                                </button>
+                            </li>
+                            <li
+                                v-for="page in visiblePages"
+                                :key="page"
+                                class="page-item"
+                                :class="{ active: page === currentPage }"
+                            >
+                                <button type="button" class="page-link" @click="goToPage(page)">
+                                    {{ page }}
+                                </button>
+                            </li>
+                            <li class="page-item" :class="{ disabled: currentPage === lastPage }">
+                                <button type="button" class="page-link" :disabled="currentPage === lastPage" @click="goToPage(currentPage + 1)">
+                                    Siguiente
+                                </button>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
 
                 <div v-else class="border rounded-3 p-4 text-center text-muted h-100 d-flex align-items-center justify-content-center">
@@ -183,7 +224,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import api from '@/utils/axios'
 
 const props = defineProps({
@@ -194,6 +235,8 @@ const props = defineProps({
 })
 
 const items = ref([])
+const currentPage = ref(1)
+const perPage = ref(10)
 const isLoading = ref(true)
 const listError = ref('')
 const isSaving = ref(false)
@@ -226,6 +269,27 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('es-CO', {
 const isEditMode = computed(() => editingItemId.value !== null)
 const itemTypeOptions = computed(() => Object.entries(props.itemTypes ?? {}))
 const isReadonlyName = computed(() => form.item_type !== '' && form.item_type !== 'OTHER')
+const lastPage = computed(() => Math.max(1, Math.ceil(items.value.length / perPage.value)))
+const pageStart = computed(() => items.value.length ? ((currentPage.value - 1) * perPage.value) + 1 : 0)
+const pageEnd = computed(() => Math.min(currentPage.value * perPage.value, items.value.length))
+const paginatedItems = computed(() => items.value.slice(pageStart.value - 1, pageEnd.value))
+const visiblePages = computed(() => {
+    const windowSize = 5
+    let start = Math.max(1, currentPage.value - Math.floor(windowSize / 2))
+    let end = Math.min(lastPage.value, start + windowSize - 1)
+
+    start = Math.max(1, end - windowSize + 1)
+
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index)
+})
+
+const goToPage = (page) => {
+    currentPage.value = Math.min(Math.max(1, page), lastPage.value)
+}
+
+watch(perPage, () => {
+    goToPage(1)
+})
 
 const resetErrors = () => {
     formMessage.value = ''
@@ -272,6 +336,7 @@ const fetchItems = async () => {
     try {
         const { data } = await api.get('/api/v2/admin/invoice-items-custom')
         items.value = Array.isArray(data) ? data : data.data ?? []
+        goToPage(currentPage.value)
     } catch (error) {
         listError.value = error.response?.data?.message || 'No fue posible cargar los items personalizados.'
     } finally {
@@ -414,6 +479,7 @@ const confirmDelete = async (item) => {
     try {
         await api.delete(`/api/v2/admin/invoice-items-custom/${item.id}`)
         items.value = items.value.filter((currentItem) => currentItem.id !== item.id)
+        goToPage(currentPage.value)
         showMessage('Item personalizado eliminado correctamente.')
     } catch (error) {
         showMessage(error.response?.data?.message || 'No fue posible eliminar el item personalizado.', 'error')
@@ -451,5 +517,9 @@ onBeforeUnmount(() => {
 
 .invoice-custom-items-card td:first-child {
     min-width: 220px;
+}
+
+.invoice-custom-items-page-size {
+    width: 78px;
 }
 </style>
