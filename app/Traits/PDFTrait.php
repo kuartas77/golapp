@@ -30,7 +30,7 @@ trait PDFTrait
     ];
 
     protected $configWatermarkSize = [
-        80, 80
+        40, 40
     ];
 
     /**
@@ -104,14 +104,16 @@ trait PDFTrait
      * @param array $data
      * @throws MpdfException
      */
-    protected function createPDF(array $data, string $template, $showFooter = true)
+    protected function createPDF(array $data, string $template, $showFooter = true, $mark = true)
     {
         $this->mpdf = new Mpdf($this->configDefault);
 
         if ($data['school']) {
             $this->mpdf->SetAuthor($data['school']->name);
-            $this->mpdf->SetWatermarkImage($data['school']->logo_local, -1, $this->configWatermarkSize);
-            $this->mpdf->showWatermarkImage = true;
+            if($mark) {
+                $this->mpdf->SetWatermarkImage($data['school']->logo_local, -1, $this->configWatermarkSize);
+                $this->mpdf->showWatermarkImage = $mark;
+            }
         }
         $this->mpdf->SetCreator('GOLAPP');
         $this->mpdf->WriteHTML(view()->file($this->getTemplate($template), $data));

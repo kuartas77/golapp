@@ -43,7 +43,9 @@
                 <td>&nbsp;{{ $row['student_name'] }}&nbsp;</td>
                 <td>&nbsp;{{ $row['category'] }}&nbsp;</td>
                 <td>
-                    <div>&nbsp;{{ $row['debt_label'] }}&nbsp;</div>
+                    @foreach($row['debt_items'] as $item)
+                    <div>&nbsp;{{ $item['label'] }}&nbsp; ({{ number_format($item['amount'], 0, ',', '.') }})&nbsp;</div>
+                    @endforeach
                 </td>
                 @if($showTotalDebt)
                     <td class="text-right">&nbsp;{{ number_format($row['total_debt'], 0, ',', '.') }}&nbsp;</td>

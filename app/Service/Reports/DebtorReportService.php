@@ -133,11 +133,6 @@ class DebtorReportService
                 $row = $rows->get($row['inscription_id'], $row);
                 $row = $this->appendDebt($row, $this->customChargeLabel($charge), $chargeDebt);
 
-                // if($row['inscription_id'] == '1384') {
-
-                //     dd($row);
-                // }
-
                 $rows->put($row['inscription_id'], $row);
             });
 
@@ -153,6 +148,8 @@ class DebtorReportService
         $rows = $this->rows($filters + ['school_id' => $school->id]);
         $date = now()->format('d-m-Y H:i:s');
 
+
+
         $data = [
             'school' => $school,
             'rows' => $rows,
@@ -164,7 +161,7 @@ class DebtorReportService
 
         $filename = "Deudores {$date}.pdf";
         $this->setConfigurationMpdf(['format' => 'A4-L']);
-        $this->createPDF($data, 'debtors.blade.php');
+        $this->createPDF($data, 'debtors.blade.php', mark: false);
 
         return $stream ? $this->stream($filename) : $this->output($filename);
     }
@@ -176,10 +173,9 @@ class DebtorReportService
             ->where('year', $year)
             ->when($trainingGroupId !== 0, fn ($query) => $query->where('training_group_id', $trainingGroupId))
             ->with([
-                'inscription' => fn ($query) => $query->with(['player', 'trainingGroup'])->withTrashed(),
+                'inscription' => fn ($query) => $query->with(['player', 'trainingGroup']),
                 'training_group',
-            ])
-            ->withTrashed();
+            ]);
     }
 
     private function invoiceItemsQuery(int $schoolId, int $year, int $trainingGroupId)
