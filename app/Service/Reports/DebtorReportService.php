@@ -150,6 +150,8 @@ class DebtorReportService
         $rows = $this->rows($filters + ['school_id' => $school->id]);
         $date = now()->format('d-m-Y H:i:s');
 
+
+
         $data = [
             'school' => $school,
             'rows' => $rows,
