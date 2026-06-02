@@ -29,7 +29,7 @@ trait PDFTrait
     ];
 
     protected $configWatermarkSize = [
-        80, 80
+        40, 40
     ];
 
     /**
