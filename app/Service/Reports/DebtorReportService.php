@@ -133,11 +133,6 @@ class DebtorReportService
                 $row = $rows->get($row['inscription_id'], $row);
                 $row = $this->appendDebt($row, $this->customChargeLabel($charge), $chargeDebt);
 
-                // if($row['inscription_id'] == '1384') {
-
-                //     dd($row);
-                // }
-
                 $rows->put($row['inscription_id'], $row);
             });
 
@@ -152,6 +147,8 @@ class DebtorReportService
         $school = getSchool(auth()->user());
         $rows = $this->rows($filters + ['school_id' => $school->id]);
         $date = now()->format('d-m-Y H:i:s');
+
+
 
         $data = [
             'school' => $school,
