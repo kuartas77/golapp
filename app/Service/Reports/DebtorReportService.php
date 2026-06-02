@@ -348,7 +348,8 @@ class DebtorReportService
         $invoiceNumber = $item->invoice?->invoice_number;
         $description = trim((string) $item->description);
 
-        return trim("{$invoiceNumber} - {$type}: {$description}", ' -:');
+        return trim("{$type}: {$description}", ' -:');
+        // return trim("{$invoiceNumber} - {$type}: {$description}", ' -:');
     }
 
     private function customChargeLabel(InscriptionCustomCharge $charge): string
