@@ -65,10 +65,19 @@
                             </div>
 
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
-                                <small class="form-text text-muted mt-4">
-                                    Usa la tarifa especial configurada en la escuela para mensualidades de hermano.
-                                </small>
-                                <checkbox label="¿ Mensualidad hermano ?" name="brother_payment" />
+                                <div class="form-group">
+                                    <label for="monthly_payment_type">Tarifa mensual:</label>
+                                    <Field name="monthly_payment_type" v-slot="{ field, handleChange }">
+                                        <CustomSelect2
+                                            id="monthly_payment_type"
+                                            :options="monthlyPaymentOptions"
+                                            :modelValue="field.value"
+                                            :clearable="false"
+                                            @update:modelValue="handleChange"
+                                        />
+                                    </Field>
+                                    <ErrorMessage name="monthly_payment_type" class="custom-error" />
+                                </div>
                             </div>
 
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
@@ -295,6 +304,13 @@ const selectedInscriptionYear = computed(() => {
 });
 const isReactivationMode = computed(() => !isEditing.value && Boolean(reactivationCandidate.value?.id));
 const trainingGroups = computed(() => settings.groups.map((group) => ({ value: group.id, label: group.name })));
+const monthlyPaymentOptions = [
+    { value: 'MONTHLY_PAYMENT', label: 'Mensualidad por defecto' },
+    { value: 'BROTHER_MONTHLY_PAYMENT', label: 'Mensualidad hermano' },
+    { value: 'MONTHLY_PAYMENT_OPTION_1', label: 'Mensualidad opción 1' },
+    { value: 'MONTHLY_PAYMENT_OPTION_2', label: 'Mensualidad opción 2' },
+    { value: 'MONTHLY_PAYMENT_OPTION_3', label: 'Mensualidad opción 3' },
+];
 const competitionGroups = computed(() => settings.competition_groups.map((group) => ({
     value: String(group.id),
     label: group.full_name_group ?? group.full_name ?? group.name ?? String(group.id),
@@ -370,6 +386,16 @@ const flatpickrConfigDateIssue = computed(() => {
     }
 })
 
+const resolveMonthlyPaymentType = (type, brotherPayment = false) => {
+    const validType = monthlyPaymentOptions.some((option) => option.value === type)
+
+    if (validType) {
+        return type
+    }
+
+    return brotherPayment ? 'BROTHER_MONTHLY_PAYMENT' : 'MONTHLY_PAYMENT'
+}
+
 const defaultValues = () => ({
     id: null,
     player_id: null,
@@ -378,6 +404,7 @@ const defaultValues = () => ({
     start_date: resolveDefaultStartDate(),
     scholarship: false,
     brother_payment: false,
+    monthly_payment_type: 'MONTHLY_PAYMENT',
     training_group_id: null,
     competition_groups: [],
     photos: false,
@@ -397,6 +424,7 @@ const schema = yup.object().shape({
     start_date: yup.date().required('La Fecha de inicio es requerida'),
     scholarship: yup.boolean().default(false),
     brother_payment: yup.boolean().default(false),
+    monthly_payment_type: yup.string().oneOf(monthlyPaymentOptions.map((option) => option.value)).default('MONTHLY_PAYMENT'),
     training_group_id: yup.mixed().nullable(),
     competition_groups: yup.array().default([]),
     photos: yup.boolean().default(false),
@@ -468,6 +496,7 @@ const loadInscriptionForEdit = async (inscriptionId) => {
             start_date: data.start_date,
             scholarship: Boolean(data.scholarship),
             brother_payment: Boolean(data.brother_payment),
+            monthly_payment_type: resolveMonthlyPaymentType(data.monthly_payment_type, data.brother_payment),
             training_group_id: data.training_group_id,
             competition_groups: data.competition_groups ?? [],
             photos: Boolean(data.photos),
@@ -665,6 +694,7 @@ const loadPlayerByUniqueCode = async (uniqueCode) => {
             start_date: reactivationInscription?.start_date || resolveDefaultStartDate(),
             scholarship: Boolean(reactivationInscription?.scholarship),
             brother_payment: Boolean(reactivationInscription?.brother_payment),
+            monthly_payment_type: resolveMonthlyPaymentType(reactivationInscription?.monthly_payment_type, reactivationInscription?.brother_payment),
             training_group_id: reactivationInscription?.training_group_id ?? null,
             competition_groups: reactivationInscription?.competition_groups ?? [],
             photos: Boolean(reactivationInscription?.photos),

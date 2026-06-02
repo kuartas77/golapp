@@ -34,6 +34,9 @@ class SchoolUpdateRequest extends FormRequest
             'INSCRIPTION_AMOUNT' => ['required', 'string'],
             'MONTHLY_PAYMENT' => ['required', 'string'],
             'BROTHER_MONTHLY_PAYMENT' => ['required', 'string'],
+            'MONTHLY_PAYMENT_OPTION_1' => ['required', 'string'],
+            'MONTHLY_PAYMENT_OPTION_2' => ['required', 'string'],
+            'MONTHLY_PAYMENT_OPTION_3' => ['required', 'string'],
             'ANNUITY' => ['required', 'string'],
         ];
     }
@@ -45,6 +48,9 @@ class SchoolUpdateRequest extends FormRequest
             'INSCRIPTION_AMOUNT' => $this->cleanString($this->INSCRIPTION_AMOUNT),
             'MONTHLY_PAYMENT' => $this->cleanString($this->MONTHLY_PAYMENT),
             'BROTHER_MONTHLY_PAYMENT' => $this->cleanString($this->BROTHER_MONTHLY_PAYMENT),
+            'MONTHLY_PAYMENT_OPTION_1' => $this->cleanString($this->MONTHLY_PAYMENT_OPTION_1),
+            'MONTHLY_PAYMENT_OPTION_2' => $this->cleanString($this->MONTHLY_PAYMENT_OPTION_2),
+            'MONTHLY_PAYMENT_OPTION_3' => $this->cleanString($this->MONTHLY_PAYMENT_OPTION_3),
             'ANNUITY' => $this->cleanString($this->ANNUITY),
             'logo' => $this->hasFile('logo') ? $this->logo : null,
         ]);

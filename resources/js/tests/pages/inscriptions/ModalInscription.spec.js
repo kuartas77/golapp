@@ -59,6 +59,10 @@ const mountModal = async (props = { inscription_id: null, create_open: false, se
     window.bootstrap = globalThis.bootstrap;
 
     apiMock.get.mockImplementation((url) => {
+        if (url === '/api/v2/admin/invoice-items-custom') {
+            return Promise.resolve({ data: [] });
+        }
+
         if (url === '/api/v2/inscriptions/1/edit') {
             return Promise.resolve({
                 data: {
@@ -71,6 +75,8 @@ const mountModal = async (props = { inscription_id: null, create_open: false, se
                     start_date: '2026-04-10',
                     scholarship: false,
                     brother_payment: false,
+                    monthly_payment_type: 'MONTHLY_PAYMENT_OPTION_1',
+                    monthly_payment_amount: 55000,
                     training_group_id: 2,
                     competition_groups: [],
                     photos: false,
@@ -182,6 +188,8 @@ describe('ModalInscription', () => {
                                 competition_groups: [],
                                 scholarship: true,
                                 brother_payment: true,
+                                monthly_payment_type: null,
+                                monthly_payment_amount: null,
                                 pre_inscription: true,
                                 photos: true,
                                 copy_identification_document: true,
@@ -192,6 +200,10 @@ describe('ModalInscription', () => {
                         },
                     },
                 });
+            }
+
+            if (url === '/api/v2/admin/invoice-items-custom') {
+                return Promise.resolve({ data: [] });
             }
 
             if (url === '/api/v2/autocomplete/list_code_unique?trashed=true') {
@@ -207,5 +219,44 @@ describe('ModalInscription', () => {
         expect(wrapper.vm.$.setupState.isReactivationMode).toBe(true);
         expect(wrapper.text()).toContain('Se reactivará una inscripción retirada');
         expect(wrapper.find('#start_date').element.value).toBe('2026-02-01');
+        expect(wrapper.vm.$.setupState.form.values.monthly_payment_type).toBe('BROTHER_MONTHLY_PAYMENT');
+    });
+
+    it('loads the monthly payment type when editing', async () => {
+        const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
+
+        await wrapper.setProps({ inscription_id: 1 });
+        await flushPromises();
+        await flushPromises();
+
+        expect(wrapper.vm.$.setupState.form.values.monthly_payment_type).toBe('MONTHLY_PAYMENT_OPTION_1');
+    });
+
+    it('submits the selected monthly payment type', async () => {
+        const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
+        const actions = { setErrors: vi.fn() };
+
+        await wrapper.vm.$.setupState.submit({
+            id: null,
+            player_id: 25,
+            unique_code: 'ABC123',
+            player_name: 'Jugador Demo',
+            start_date: '2026-04-10',
+            scholarship: false,
+            brother_payment: false,
+            monthly_payment_type: 'MONTHLY_PAYMENT_OPTION_2',
+            training_group_id: 2,
+            competition_groups: [],
+            photos: false,
+            copy_identification_document: false,
+            eps_certificate: false,
+            medic_certificate: false,
+            study_certificate: false,
+            pre_inscription: false,
+        }, actions);
+
+        expect(apiMock.post).toHaveBeenCalledWith('/api/v2/inscriptions', expect.objectContaining({
+            monthly_payment_type: 'MONTHLY_PAYMENT_OPTION_2',
+        }));
     });
 });

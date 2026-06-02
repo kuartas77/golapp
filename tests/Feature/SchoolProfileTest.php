@@ -25,6 +25,9 @@ final class SchoolProfileTest extends TestCase
                 'INSCRIPTION_AMOUNT' => '70000',
                 'MONTHLY_PAYMENT' => '50000',
                 'BROTHER_MONTHLY_PAYMENT' => '65000',
+                'MONTHLY_PAYMENT_OPTION_1' => '55000',
+                'MONTHLY_PAYMENT_OPTION_2' => '60000',
+                'MONTHLY_PAYMENT_OPTION_3' => '70000',
                 'ANNUITY' => '48333',
             ])
             ->assertOk()
@@ -36,9 +39,24 @@ final class SchoolProfileTest extends TestCase
             'value' => '65000',
         ]);
 
+        foreach ([
+            Setting::MONTHLY_PAYMENT_OPTION_1 => '55000',
+            Setting::MONTHLY_PAYMENT_OPTION_2 => '60000',
+            Setting::MONTHLY_PAYMENT_OPTION_3 => '70000',
+        ] as $setting => $value) {
+            $this->assertDatabaseHas('setting_values', [
+                'school_id' => $school->id,
+                'setting_key' => $setting,
+                'value' => $value,
+            ]);
+        }
+
         $this->actingAs($this->user)
             ->getJson('/api/v2/admin/school')
             ->assertOk()
-            ->assertJsonPath('settings.BROTHER_MONTHLY_PAYMENT', '65000');
+            ->assertJsonPath('settings.BROTHER_MONTHLY_PAYMENT', '65000')
+            ->assertJsonPath('settings.MONTHLY_PAYMENT_OPTION_1', '55000')
+            ->assertJsonPath('settings.MONTHLY_PAYMENT_OPTION_2', '60000')
+            ->assertJsonPath('settings.MONTHLY_PAYMENT_OPTION_3', '70000');
     }
 }

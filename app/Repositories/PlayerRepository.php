@@ -249,6 +249,8 @@ class PlayerRepository
                     ->all(),
                 'scholarship' => (bool) $reactivationInscription->scholarship,
                 'brother_payment' => (bool) $reactivationInscription->brother_payment,
+                'monthly_payment_type' => $reactivationInscription->monthly_payment_type,
+                'monthly_payment_amount' => $reactivationInscription->monthly_payment_amount,
                 'pre_inscription' => (bool) $reactivationInscription->pre_inscription,
                 'photos' => (bool) $reactivationInscription->photos,
                 'copy_identification_document' => (bool) $reactivationInscription->copy_identification_document,

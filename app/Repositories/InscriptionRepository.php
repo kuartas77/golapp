@@ -8,6 +8,8 @@ use App\Models\Inscription;
 use App\Models\InscriptionCustomCharge;
 use App\Models\InvoiceCustomItem;
 use App\Models\Payment;
+use App\Models\School;
+use App\Models\Setting;
 use App\Models\TrainingGroup;
 use App\Notifications\InscriptionNotification;
 use App\Service\PaymentAmountResolver;
@@ -52,6 +54,7 @@ class InscriptionRepository
 
         try {
             $this->prepareTrainingGroupData($requestData);
+            $this->prepareMonthlyPaymentData($requestData);
             $customCharges = $requestData['custom_charges'] ?? [];
             unset($requestData['custom_charges'], $requestData['custom_charges_due_date']);
             $requestData['deleted_at'] = null;
@@ -134,6 +137,23 @@ class InscriptionRepository
             || (string) $trainingGroupId === (string) $trainingGroup->id;
     }
 
+    private function prepareMonthlyPaymentData(array &$requestData): void
+    {
+        $school = School::query()
+            ->with('settingsValues')
+            ->findOrFail($requestData['school_id']);
+
+        $type = $this->paymentAmountResolver->normalizeMonthlyPaymentType(
+            data_get($requestData, 'monthly_payment_type'),
+            (bool) data_get($requestData, 'brother_payment', false)
+        );
+
+        $requestData['monthly_payment_type'] = $type;
+        $requestData['monthly_payment_amount'] = $this->paymentAmountResolver
+            ->monthlyAmountForSchoolByType($school, $type);
+        $requestData['brother_payment'] = $type === Setting::BROTHER_MONTHLY_PAYMENT;
+    }
+
     private function setCompetitionGroupIds($inscription, $requestData): void
     {
         $competitionGroupIds = data_get($requestData, 'competition_groups', []);
@@ -146,6 +166,7 @@ class InscriptionRepository
         $result = false;
         try {
             $this->prepareTrainingGroupData($requestData);
+            $this->prepareMonthlyPaymentData($requestData);
             $customCharges = $requestData['custom_charges'] ?? [];
             unset($requestData['custom_charges'], $requestData['custom_charges_due_date']);
             $requestData['deleted_at'] = null;
@@ -548,6 +569,8 @@ class InscriptionRepository
                     'period_four' => $inscription->period_four,
                     'scholarship' => $inscription->scholarship,
                     'brother_payment' => $inscription->brother_payment,
+                    'monthly_payment_type' => $inscription->monthly_payment_type,
+                    'monthly_payment_amount' => $inscription->monthly_payment_amount,
                     'training_group_id' => $trainingGroup->id,
                 ];
 

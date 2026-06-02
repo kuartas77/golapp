@@ -3,7 +3,9 @@
 namespace App\Http\Requests\Inscription;
 
 use App\Models\Player;
+use App\Models\Setting;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Jenssegers\Date\Date;
 
 class InscriptionRequest extends FormRequest
@@ -52,6 +54,7 @@ class InscriptionRequest extends FormRequest
             'scholarship' => ['nullable', 'boolean'],
             'pre_inscription' => ['nullable', 'boolean'],
             'brother_payment' => ['nullable', 'boolean'],
+            'monthly_payment_type' => ['nullable', 'string', Rule::in(Setting::monthlyPaymentTypes())],
             'custom_charges' => ['nullable', 'array'],
             'custom_charges.*.id' => ['nullable', 'integer', 'exists:inscription_custom_charges,id'],
             'custom_charges.*.invoice_custom_item_id' => ['nullable', 'integer', 'exists:invoice_custom_items,id'],
@@ -68,6 +71,8 @@ class InscriptionRequest extends FormRequest
     {
         $dateBirth = optional(Player::find($this->player_id))->date_birth;
         $startDate = Date::parse($this->start_date);
+        $monthlyPaymentType = $this->resolveMonthlyPaymentType();
+
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
             'year' => $startDate->year,
@@ -85,7 +90,8 @@ class InscriptionRequest extends FormRequest
             'competition_uniform' => $this->input('competition_uniform', false),
             'tournament_pay' => $this->input('tournament_pay', false),
             'scholarship' => $this->input('scholarship', false),
-            'brother_payment' => $this->input('brother_payment', false),
+            'monthly_payment_type' => $monthlyPaymentType,
+            'brother_payment' => $monthlyPaymentType === Setting::BROTHER_MONTHLY_PAYMENT,
             'training_group_id' => $this->filled('training_group_id') ? $this->training_group_id : null,
             'competition_groups' => array_filter($this->input('competition_groups', [])),
             'pre_inscription' => $this->input('pre_inscription', false),
@@ -106,6 +112,19 @@ class InscriptionRequest extends FormRequest
             })
             ->values()
             ->all();
+    }
+
+    private function resolveMonthlyPaymentType(): string
+    {
+        $type = $this->input('monthly_payment_type');
+
+        if (in_array($type, Setting::monthlyPaymentTypes(), true)) {
+            return $type;
+        }
+
+        return $this->boolean('brother_payment')
+            ? Setting::BROTHER_MONTHLY_PAYMENT
+            : Setting::MONTHLY_PAYMENT;
     }
 
 }

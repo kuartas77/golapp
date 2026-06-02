@@ -80,13 +80,16 @@ class Inscription extends Model
         'deleted_at',
         'pre_inscription',
         'brother_payment',
+        'monthly_payment_type',
+        'monthly_payment_amount',
     ];
 
     protected $casts = [
         'start_date' => "datetime:Y-m-d",
         'created_at' => "datetime:Y-m-d",
         'pre_inscription' => 'boolean',
-        'brother_payment' => 'boolean'
+        'brother_payment' => 'boolean',
+        'monthly_payment_amount' => 'integer',
     ];
 
     public static $documentFields = [

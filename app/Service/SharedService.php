@@ -94,7 +94,10 @@ class SharedService
                     $this->enableSkillControl($inscription);
                 }
 
-                if ($inscription->wasChanged('brother_payment')) {
+                if ($inscription->wasChanged('brother_payment')
+                    || $inscription->wasChanged('monthly_payment_type')
+                    || $inscription->wasChanged('monthly_payment_amount')
+                ) {
                     $this->refreshDebtMonthAmounts($inscription, $start_date->year);
                 }
             }

@@ -64,9 +64,18 @@
                                         <div class="form-group">
                                             <inputField label="Precio Mensualidad Hermano" name="BROTHER_MONTHLY_PAYMENT" :currency="true" />
                                         </div>
+                                        <div class="form-group">
+                                            <inputField label="Mensualidad opción 1" name="MONTHLY_PAYMENT_OPTION_1" :currency="true" />
+                                        </div>
                                     </div>
 
                                     <div class="col-md-6">
+                                        <div class="form-group">
+                                            <inputField label="Mensualidad opción 2" name="MONTHLY_PAYMENT_OPTION_2" :currency="true" />
+                                        </div>
+                                        <div class="form-group">
+                                            <inputField label="Mensualidad opción 3" name="MONTHLY_PAYMENT_OPTION_3" :currency="true" />
+                                        </div>
                                         <div class="form-group">
                                             <inputField label="Precio de la Anualidad / Mes" name="ANNUITY" :currency="true" />
                                         </div>

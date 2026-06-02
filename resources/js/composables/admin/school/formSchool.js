@@ -26,6 +26,9 @@ export default function useFormSchool() {
         INSCRIPTION_AMOUNT: 0,
         MONTHLY_PAYMENT: 0,
         BROTHER_MONTHLY_PAYMENT: 0,
+        MONTHLY_PAYMENT_OPTION_1: 0,
+        MONTHLY_PAYMENT_OPTION_2: 0,
+        MONTHLY_PAYMENT_OPTION_3: 0,
         ANNUITY: 0,
     })
 
@@ -39,6 +42,9 @@ export default function useFormSchool() {
         INSCRIPTION_AMOUNT: yup.string().required(),
         MONTHLY_PAYMENT: yup.string().required(),
         BROTHER_MONTHLY_PAYMENT: yup.string().required(),
+        MONTHLY_PAYMENT_OPTION_1: yup.string().required(),
+        MONTHLY_PAYMENT_OPTION_2: yup.string().required(),
+        MONTHLY_PAYMENT_OPTION_3: yup.string().required(),
         ANNUITY: yup.string().required(),
         logo: yup.mixed(),
         // create_contract: yup.boolean().oneOf([true]),
@@ -69,6 +75,9 @@ export default function useFormSchool() {
             INSCRIPTION_AMOUNT: Number(response.data.settings.INSCRIPTION_AMOUNT),
             MONTHLY_PAYMENT: Number(response.data.settings.MONTHLY_PAYMENT),
             BROTHER_MONTHLY_PAYMENT: Number(response.data.settings.BROTHER_MONTHLY_PAYMENT ?? response.data.settings.MONTHLY_PAYMENT ?? 0),
+            MONTHLY_PAYMENT_OPTION_1: Number(response.data.settings.MONTHLY_PAYMENT_OPTION_1 ?? response.data.settings.MONTHLY_PAYMENT ?? 0),
+            MONTHLY_PAYMENT_OPTION_2: Number(response.data.settings.MONTHLY_PAYMENT_OPTION_2 ?? response.data.settings.MONTHLY_PAYMENT ?? 0),
+            MONTHLY_PAYMENT_OPTION_3: Number(response.data.settings.MONTHLY_PAYMENT_OPTION_3 ?? response.data.settings.MONTHLY_PAYMENT ?? 0),
             ANNUITY: Number(response.data.settings.ANNUITY),
         }
 

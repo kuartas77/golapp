@@ -30,6 +30,12 @@ class Setting extends Model
 
     public const BROTHER_MONTHLY_PAYMENT = 'BROTHER_MONTHLY_PAYMENT';
 
+    public const MONTHLY_PAYMENT_OPTION_1 = 'MONTHLY_PAYMENT_OPTION_1';
+
+    public const MONTHLY_PAYMENT_OPTION_2 = 'MONTHLY_PAYMENT_OPTION_2';
+
+    public const MONTHLY_PAYMENT_OPTION_3 = 'MONTHLY_PAYMENT_OPTION_3';
+
     public const NOTIFY_PAYMENT_DAY = 'NOTIFY_PAYMENT_DAY';
 
     public const ANNUITY = 'ANNUITY';
@@ -43,6 +49,17 @@ class Setting extends Model
     protected $fillable = [
         'key', 'public'
     ];
+
+    public static function monthlyPaymentTypes(): array
+    {
+        return [
+            self::MONTHLY_PAYMENT,
+            self::BROTHER_MONTHLY_PAYMENT,
+            self::MONTHLY_PAYMENT_OPTION_1,
+            self::MONTHLY_PAYMENT_OPTION_2,
+            self::MONTHLY_PAYMENT_OPTION_3,
+        ];
+    }
 
     public function settingsValues(): HasMany
     {

@@ -5,6 +5,7 @@ namespace App\Service\API;
 use App\Models\School;
 use App\Models\SchoolUser;
 use App\Models\SettingValue;
+use App\Models\Setting;
 use App\Models\User;
 use App\Notifications\RegisterNotification;
 use App\Traits\UploadFile;
@@ -103,8 +104,6 @@ class RegisterService
             $settings = SettingValue::query()->where('school_id', $school->id)->get();
             $notify_payment_day = $settings->firstWhere('setting_key', 'NOTIFY_PAYMENT_DAY');
             $inscription_amount = $settings->firstWhere('setting_key', 'INSCRIPTION_AMOUNT');
-            $monthly_payment = $settings->firstWhere('setting_key', 'MONTHLY_PAYMENT');
-            $brother_monthly_payment = $settings->firstWhere('setting_key', 'BROTHER_MONTHLY_PAYMENT');
             $annuity = $settings->firstWhere('setting_key', 'ANNUITY');
 
             if($notify_payment_day && $request->has('NOTIFY_PAYMENT_DAY')) {
@@ -113,11 +112,12 @@ class RegisterService
             if($inscription_amount && $request->has('INSCRIPTION_AMOUNT')) {
                 $inscription_amount->update(['value' => $request->INSCRIPTION_AMOUNT]);
             }
-            if($monthly_payment && $request->has('MONTHLY_PAYMENT')) {
-                $monthly_payment->update(['value' => $request->MONTHLY_PAYMENT]);
-            }
-            if($brother_monthly_payment && $request->has('BROTHER_MONTHLY_PAYMENT')) {
-                $brother_monthly_payment->update(['value' => $request->BROTHER_MONTHLY_PAYMENT]);
+            foreach (Setting::monthlyPaymentTypes() as $monthlyPaymentType) {
+                $setting = $settings->firstWhere('setting_key', $monthlyPaymentType);
+
+                if($setting && $request->has($monthlyPaymentType)) {
+                    $setting->update(['value' => $request->input($monthlyPaymentType)]);
+                }
             }
             if($annuity && $request->has('ANNUITY')) {
                 $annuity->update(['value' => $request->ANNUITY]);

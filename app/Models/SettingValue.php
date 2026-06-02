@@ -60,6 +60,21 @@ class SettingValue extends Model
                 'value' => 50000
             ],
             [
+                'setting_key' => Setting::MONTHLY_PAYMENT_OPTION_1,
+                'school_id' => $school_id,
+                'value' => 50000
+            ],
+            [
+                'setting_key' => Setting::MONTHLY_PAYMENT_OPTION_2,
+                'school_id' => $school_id,
+                'value' => 50000
+            ],
+            [
+                'setting_key' => Setting::MONTHLY_PAYMENT_OPTION_3,
+                'school_id' => $school_id,
+                'value' => 50000
+            ],
+            [
                 'setting_key' => Setting::NOTIFY_PAYMENT_DAY,
                 'school_id' => $school_id,
                 'value' => 16

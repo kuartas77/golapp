@@ -43,6 +43,25 @@ class PaymentAmountResolver
         return $this->normalizeAmountValue($brotherAmount);
     }
 
+    public function monthlyAmountForSchoolByType(School $school, ?string $type): int
+    {
+        if (! in_array($type, Setting::monthlyPaymentTypes(), true)) {
+            return $this->monthlyAmountForSchool($school);
+        }
+
+        if ($type === Setting::BROTHER_MONTHLY_PAYMENT) {
+            return $this->brotherMonthlyAmountForSchool($school);
+        }
+
+        $amount = $this->settingValue($school, $type);
+
+        if ($amount === null || $amount === '') {
+            return $this->monthlyAmountForSchool($school);
+        }
+
+        return $this->normalizeAmountValue($amount);
+    }
+
     public function annuityAmountForSchool(School $school): int
     {
         return $this->normalizeAmountValue(
@@ -58,9 +77,26 @@ class PaymentAmountResolver
             return self::DEFAULT_MONTHLY_PAYMENT;
         }
 
+        if ($inscription->monthly_payment_amount !== null && $inscription->monthly_payment_amount !== '') {
+            return $this->normalizeAmountValue($inscription->monthly_payment_amount);
+        }
+
+        if ($inscription->monthly_payment_type) {
+            return $this->monthlyAmountForSchoolByType($inscription->school, $inscription->monthly_payment_type);
+        }
+
         return $inscription->brother_payment
             ? $this->brotherMonthlyAmountForSchool($inscription->school)
             : $this->monthlyAmountForSchool($inscription->school);
+    }
+
+    public function normalizeMonthlyPaymentType(?string $type, bool $brotherPayment = false): string
+    {
+        if (in_array($type, Setting::monthlyPaymentTypes(), true)) {
+            return $type;
+        }
+
+        return $brotherPayment ? Setting::BROTHER_MONTHLY_PAYMENT : Setting::MONTHLY_PAYMENT;
     }
 
     public function monthlyAmountForPayment(Payment $payment): int

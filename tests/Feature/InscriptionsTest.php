@@ -53,7 +53,11 @@ final class InscriptionsTest extends TestCase
         $testResponse->assertStatus(200);
         Mail::assertNotSent(ErrorLog::class);
         Notification::assertSentTo($player, InscriptionNotification::class);
-        $this->assertDatabaseHas('inscriptions', ['player_id' => $player->id]);
+        $this->assertDatabaseHas('inscriptions', [
+            'player_id' => $player->id,
+            'monthly_payment_type' => Setting::MONTHLY_PAYMENT,
+            'monthly_payment_amount' => 50000,
+        ]);
     }
 
     public function test_create_inscription_with_brother_payment_uses_brother_monthly_amount(): void
@@ -73,6 +77,36 @@ final class InscriptionsTest extends TestCase
             'unique_code' => $player->unique_code,
             'player_id' => $player->id,
             'start_date' => $now->format('Y-m-d'),
+            'monthly_payment_type' => Setting::BROTHER_MONTHLY_PAYMENT,
+        ])->assertStatus(200);
+
+        $inscription = Inscription::query()->where('player_id', $player->id)->latest('id')->firstOrFail();
+        $payment = Payment::query()->where('inscription_id', $inscription->id)->firstOrFail();
+
+        $this->assertTrue((bool) $inscription->brother_payment);
+        $this->assertSame(Setting::BROTHER_MONTHLY_PAYMENT, $inscription->monthly_payment_type);
+        $this->assertSame(65000, (int) $inscription->monthly_payment_amount);
+        $this->assertSame(Payment::$debt, (int) $payment->{$monthField});
+        $this->assertSame(65000, (int) $payment->{"{$monthField}_amount"});
+    }
+
+    public function test_create_inscription_with_legacy_brother_payment_payload_uses_brother_monthly_amount(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $now = Carbon::now();
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->settingsValues()->where('setting_key', Setting::BROTHER_MONTHLY_PAYMENT)->update(['value' => '64000']);
+        $player = Player::factory()->create();
+        $monthField = config('variables.KEY_INDEX_MONTHS')[$now->month];
+
+        $this->actingAs($this->user);
+
+        $this->post(route('inscriptions.store'), [
+            'unique_code' => $player->unique_code,
+            'player_id' => $player->id,
+            'start_date' => $now->format('Y-m-d'),
             'brother_payment' => true,
         ])->assertStatus(200);
 
@@ -80,8 +114,49 @@ final class InscriptionsTest extends TestCase
         $payment = Payment::query()->where('inscription_id', $inscription->id)->firstOrFail();
 
         $this->assertTrue((bool) $inscription->brother_payment);
-        $this->assertSame(Payment::$debt, (int) $payment->{$monthField});
-        $this->assertSame(65000, (int) $payment->{"{$monthField}_amount"});
+        $this->assertSame(Setting::BROTHER_MONTHLY_PAYMENT, $inscription->monthly_payment_type);
+        $this->assertSame(64000, (int) $inscription->monthly_payment_amount);
+        $this->assertSame(64000, (int) $payment->{"{$monthField}_amount"});
+    }
+
+    public function test_create_inscription_with_extra_monthly_payment_options_uses_selected_snapshot(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $now = Carbon::now();
+        $school = School::query()->findOrFail($this->school['id']);
+        $monthField = config('variables.KEY_INDEX_MONTHS')[$now->month];
+        $types = [
+            Setting::MONTHLY_PAYMENT_OPTION_1 => 55000,
+            Setting::MONTHLY_PAYMENT_OPTION_2 => 60000,
+            Setting::MONTHLY_PAYMENT_OPTION_3 => 70000,
+        ];
+
+        foreach ($types as $type => $amount) {
+            $school->settingsValues()->where('setting_key', $type)->update(['value' => (string) $amount]);
+        }
+
+        $this->actingAs($this->user);
+
+        foreach ($types as $type => $amount) {
+            $player = Player::factory()->create();
+
+            $this->post(route('inscriptions.store'), [
+                'unique_code' => $player->unique_code,
+                'player_id' => $player->id,
+                'start_date' => $now->format('Y-m-d'),
+                'monthly_payment_type' => $type,
+            ])->assertStatus(200);
+
+            $inscription = Inscription::query()->where('player_id', $player->id)->latest('id')->firstOrFail();
+            $payment = Payment::query()->where('inscription_id', $inscription->id)->firstOrFail();
+
+            $this->assertFalse((bool) $inscription->brother_payment);
+            $this->assertSame($type, $inscription->monthly_payment_type);
+            $this->assertSame($amount, (int) $inscription->monthly_payment_amount);
+            $this->assertSame($amount, (int) $payment->{"{$monthField}_amount"});
+        }
     }
 
     public function test_create_inscription_allows_manual_pre_inscription_outside_provisional_group(): void
@@ -314,7 +389,7 @@ final class InscriptionsTest extends TestCase
         ]);
     }
 
-    public function test_update_inscription_recalculates_debt_months_when_brother_payment_changes(): void
+    public function test_update_inscription_recalculates_debt_months_when_monthly_payment_type_changes(): void
     {
         Mail::fake();
         Notification::fake();
@@ -322,7 +397,7 @@ final class InscriptionsTest extends TestCase
         $now = Carbon::now();
         $school = School::query()->findOrFail($this->school['id']);
         $school->settingsValues()->where('setting_key', Setting::MONTHLY_PAYMENT)->update(['value' => '50000']);
-        $school->settingsValues()->where('setting_key', Setting::BROTHER_MONTHLY_PAYMENT)->update(['value' => '65000']);
+        $school->settingsValues()->where('setting_key', Setting::MONTHLY_PAYMENT_OPTION_1)->update(['value' => '62000']);
 
         $player = Player::factory()->create();
         $inscription = Inscription::factory()->create([
@@ -335,6 +410,8 @@ final class InscriptionsTest extends TestCase
             'category' => categoriesName(Carbon::parse($player->date_birth)->year),
             'school_id' => $this->school['id'],
             'brother_payment' => false,
+            'monthly_payment_type' => Setting::MONTHLY_PAYMENT,
+            'monthly_payment_amount' => 50000,
         ]);
 
         $payment = Payment::query()->where('inscription_id', $inscription->id)->firstOrFail();
@@ -356,7 +433,7 @@ final class InscriptionsTest extends TestCase
             'unique_code' => $player->unique_code,
             'player_id' => $player->id,
             'start_date' => $now->format('Y-m-d'),
-            'brother_payment' => true,
+            'monthly_payment_type' => Setting::MONTHLY_PAYMENT_OPTION_1,
             '_method' => 'PATCH',
         ])->assertStatus(200);
 
@@ -364,10 +441,54 @@ final class InscriptionsTest extends TestCase
 
         $this->assertDatabaseHas('inscriptions', [
             'id' => $inscription->id,
-            'brother_payment' => true,
+            'brother_payment' => false,
+            'monthly_payment_type' => Setting::MONTHLY_PAYMENT_OPTION_1,
+            'monthly_payment_amount' => 62000,
         ]);
-        $this->assertSame(65000, (int) $payment->{"{$monthField}_amount"});
+        $this->assertSame(62000, (int) $payment->{"{$monthField}_amount"});
         $this->assertSame(50000, (int) $payment->{"{$paidField}_amount"});
+    }
+
+    public function test_update_inscription_from_brother_to_extra_option_clears_brother_payment(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $now = Carbon::now();
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->settingsValues()->where('setting_key', Setting::BROTHER_MONTHLY_PAYMENT)->update(['value' => '65000']);
+        $school->settingsValues()->where('setting_key', Setting::MONTHLY_PAYMENT_OPTION_2)->update(['value' => '72000']);
+
+        $player = Player::factory()->create();
+        $inscription = Inscription::factory()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => $now->year,
+            'training_group_id' => 1,
+            'competition_group_id' => null,
+            'start_date' => $now->format('Y-m-d'),
+            'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+            'school_id' => $this->school['id'],
+            'brother_payment' => true,
+            'monthly_payment_type' => Setting::BROTHER_MONTHLY_PAYMENT,
+            'monthly_payment_amount' => 65000,
+        ]);
+
+        $this->actingAs($this->user);
+
+        $this->post(route('inscriptions.update', [$inscription->id]), [
+            'unique_code' => $player->unique_code,
+            'player_id' => $player->id,
+            'start_date' => $now->format('Y-m-d'),
+            'monthly_payment_type' => Setting::MONTHLY_PAYMENT_OPTION_2,
+            '_method' => 'PATCH',
+        ])->assertStatus(200);
+
+        $inscription->refresh();
+
+        $this->assertFalse((bool) $inscription->brother_payment);
+        $this->assertSame(Setting::MONTHLY_PAYMENT_OPTION_2, $inscription->monthly_payment_type);
+        $this->assertSame(72000, (int) $inscription->monthly_payment_amount);
     }
 
     public function test_delete_inscription(): void
@@ -611,12 +732,15 @@ final class InscriptionsTest extends TestCase
             'id' => $inscription->id,
             'player_id' => $player->id,
             'brother_payment' => false,
+            'monthly_payment_type' => Setting::MONTHLY_PAYMENT,
         ]);
         $testResponse->assertJsonStructure([
             'id',
             'player_id',
             'competition_groups',
             'brother_payment',
+            'monthly_payment_type',
+            'monthly_payment_amount',
         ]);
     }
 }
