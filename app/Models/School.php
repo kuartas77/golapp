@@ -55,6 +55,7 @@ class School extends Model
         'school_permissions',
         'short_name',
         'email_info',
+        'auto_invoice'
     ];
 
     protected $casts = [
@@ -65,6 +66,7 @@ class School extends Model
         'sign_player' => 'bool',
         'inscriptions_enabled' => 'bool',
         'school_permissions' => 'array',
+        'auto_invoice' => 'bool',
     ];
 
     protected $appends = [

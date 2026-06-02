@@ -161,7 +161,7 @@ class DebtorReportService
 
         $filename = "Deudores {$date}.pdf";
         $this->setConfigurationMpdf(['format' => 'A4-L']);
-        $this->createPDF($data, 'debtors.blade.php');
+        $this->createPDF($data, 'debtors.blade.php', mark: false);
 
         return $stream ? $this->stream($filename) : $this->output($filename);
     }
@@ -173,10 +173,9 @@ class DebtorReportService
             ->where('year', $year)
             ->when($trainingGroupId !== 0, fn ($query) => $query->where('training_group_id', $trainingGroupId))
             ->with([
-                'inscription' => fn ($query) => $query->with(['player', 'trainingGroup'])->withTrashed(),
+                'inscription' => fn ($query) => $query->with(['player', 'trainingGroup']),
                 'training_group',
-            ])
-            ->withTrashed();
+            ]);
     }
 
     private function invoiceItemsQuery(int $schoolId, int $year, int $trainingGroupId)

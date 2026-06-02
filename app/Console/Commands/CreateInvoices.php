@@ -31,6 +31,7 @@ class CreateInvoices extends Command
             ->with(['settingsValues'])
             ->withWhereHas('inscriptions', fn($q) => $q->select(['id', 'player_id', 'school_id'])->where('year', now()->year))
             ->where('is_enable',  true)
+            ->where('auto_invoice',  true)
             ->chunkById(10, function ($schools) use ($currentDate) {
 
                 foreach ($schools as $school) {
