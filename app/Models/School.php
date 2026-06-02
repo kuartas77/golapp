@@ -47,6 +47,7 @@ class School extends Model
         'inscriptions_enabled',
         'short_name',
         'email_info',
+        'auto_invoice'
     ];
 
     protected $casts = [
@@ -56,6 +57,7 @@ class School extends Model
         'tutor_platform' => 'bool',
         'sign_player' => 'bool',
         'inscriptions_enabled' => 'bool',
+        'auto_invoice' => 'bool',
     ];
 
     protected $appends = [
