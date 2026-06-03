@@ -12,8 +12,7 @@
                 </button>
             </div>
             <div data-tour="matches-list-table">
-                <DatatableTemplate :id="'matches_table'" :options="options" ref="matches_table" class="table-hover">
-                </DatatableTemplate>
+                <DatatableTemplate :id="'matches_table'" :options="options" ref="matches_table" class="table-hover"/>
             </div>
         </template>
     </panel>
