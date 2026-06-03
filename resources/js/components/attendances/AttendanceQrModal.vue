@@ -31,14 +31,16 @@
                                     :width="240"
                                     :height="240"
                                     :qr-options="{ errorCorrectionLevel: 'H' }"
-                                    :image="schoolLogo"
-                                    :image-options="{
-                                        hideBackgroundDots: true,
-                                        imageSize: 0.26,
-                                        margin: 4,
-                                        crossOrigin: 'anonymous',
+                                    :dots-options="{ color: '#111827', type: 'square',
+                                        gradient: {
+                                            type: 'linear',
+                                            rotation: 0,
+                                            colorStops: [
+                                                { offset: 0, color: '#0e1726' },
+                                                { offset: 1, color: '#0e1726' },
+                                            ],
+                                        },
                                     }"
-                                    :dots-options="{ color: '#111827', type: 'square' }"
                                     :background-options="{ color: '#ffffff' }"
                                     :corners-square-options="{ color: '#111827', type: 'extra-rounded' }"
                                     :corners-dot-options="{ color: '#111827', type: 'dot' }"

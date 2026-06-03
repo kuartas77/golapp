@@ -246,14 +246,14 @@
                                                     :key="skill_control.id ?? skill_control.player?.id ?? index">
                                                     <td class="match-player-cell">
                                                         <div class="match-player-meta">
-                                                            <img :src="skill_control.player.photo_url" alt="avatar"
+                                                            <img :src="skill_control.player?.photo_url || '/img/user.webp'" alt="avatar"
                                                                 class="player-avatar match-player-avatar" />
                                                             <div>
                                                                 <span class="match-player-name">
-                                                                    {{ skill_control.player.full_names }}
+                                                                    {{ skill_control.player?.full_names || 'Jugador sin datos' }}
                                                                 </span>
                                                                 <span class="match-player-code">
-                                                                    {{ skill_control.player.unique_code }}
+                                                                    {{ skill_control.player?.unique_code || 'Sin código' }}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -705,6 +705,37 @@ const handleSubmit = async (values, actions) => {
     }
 }
 
+const getSkillControlKey = (skillControl) => {
+    return skillControl?.inscription_id
+        ?? skillControl?.inscription?.id
+        ?? skillControl?.player?.id
+        ?? skillControl?.inscription?.player?.id
+        ?? skillControl?.player?.unique_code
+        ?? skillControl?.inscription?.player?.unique_code
+}
+
+const normalizeImportedSkillControls = (importedSkillControls) => {
+    const currentSkillControlsByKey = new Map(
+        skills_controls.value.map((skillControl) => [getSkillControlKey(skillControl), skillControl])
+    )
+
+    return importedSkillControls.map((skillControl) => {
+        const currentSkillControl = currentSkillControlsByKey.get(getSkillControlKey(skillControl)) ?? {}
+        const player = skillControl.player
+            ?? skillControl.inscription?.player
+            ?? currentSkillControl.player
+            ?? currentSkillControl.inscription?.player
+            ?? null
+
+        return {
+            ...currentSkillControl,
+            ...skillControl,
+            player,
+            inscription_id: skillControl.inscription_id ?? skillControl.inscription?.id ?? currentSkillControl.inscription_id,
+        }
+    })
+}
+
 const uploadFileFormat = async (e) => {
 
     if (!props.isEdition) {
@@ -717,8 +748,8 @@ const uploadFileFormat = async (e) => {
     api.post(`/import/matches/${route.params.id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
         .then(resp => {
             if (resp.data.success) {
-                skills_controls.value = resp.data.skills_controls
-                formMatches.value?.setFieldValue?.('skill_controls', resp.data.skills_controls)
+                skills_controls.value = normalizeImportedSkillControls(resp.data.skills_controls ?? [])
+                formMatches.value?.setFieldValue?.('skill_controls', skills_controls.value)
                 showMessage('Se cargaron los datos correctamente.')
             } else {
                 showMessage('Algo salió mal.', 'error')

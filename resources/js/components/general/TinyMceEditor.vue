@@ -105,7 +105,7 @@ const initEditor = async () => {
         branding: false,
         min_height: props.minHeight,
         plugins: plugins.join(' '),
-        toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | indent outdent | bullist numlist | code | table image',
+        toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | indent outdent | bullist numlist | code | table',
         language: 'es_MX',
         content_css: ['/css/dompdf.css', '/css/dompdf-overrides.css'],
         entity_encoding: 'raw',

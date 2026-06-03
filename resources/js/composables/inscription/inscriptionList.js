@@ -26,7 +26,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
             render: (data, type, row) => `
                 <button
                     type="button"
-                    class="btn btn-link btn-sm p-0 fw-semibold text-decoration-none"
+                    class="btn btn-link btn-sm p-0 fw-semibold text-decoration-none p-1"
                     data-item-id="${row.id}"
                     data-type="summary"
                     title="Ver resumen de inscripción"
