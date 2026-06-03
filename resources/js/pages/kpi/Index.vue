@@ -563,6 +563,10 @@ const amountCollectionRevenueOptions = computed(() => ({
         categories: amountCollectionCategories.value,
         labels: {
             formatter: (value) => currencyFormatter.format(Number(value || 0)),
+            rotate: -45, // Set the degree of rotation (e.g., -45, 90, 45)
+            rotateAlways: false, // Set to true to force rotation, even if text fits
+            trim: true, // Appends ... if the label overflows
+            hideOverlappingLabels: true // Hides labels to prevent congestion
         },
     },
     yaxis: {
@@ -620,6 +624,10 @@ const amountCollectionComplianceOptions = computed(() => ({
         max: 100,
         labels: {
             formatter: (value) => `${Number(value || 0).toFixed(0)}%`,
+            rotate: -45, // Set the degree of rotation (e.g., -45, 90, 45)
+            rotateAlways: false, // Set to true to force rotation, even if text fits
+            trim: true, // Appends ... if the label overflows
+            hideOverlappingLabels: true // Hides labels to prevent congestion
         },
     },
     yaxis: {
