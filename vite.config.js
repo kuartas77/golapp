@@ -129,6 +129,7 @@ export default defineConfig(({ mode }) => ({
             origin: [
                 'http://golapp.local',
                 'https://app.golapp.com.co',
+                'https://app2.golapp.com.co',
                 'https://test.golapp.com.co',
             ],
         },
