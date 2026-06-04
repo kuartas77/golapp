@@ -59,8 +59,7 @@ function selectSchool() {
                 auth.clearState()
                 settings.clearState()
                 window.location.reload()
-            } catch (error) {
-                console.log(error)
+            } catch {
                 Swal.fire({
                     icon: 'error',
                     title: 'No fue posible cambiar la escuela',
@@ -77,7 +76,7 @@ const getInfoCampus = async () => {
         isSchool.value = is_school
         schoolOptions.value = Object.fromEntries(schools.map(item => [item.id, item.name])),
             schoolSelected.value = school_selected
-    }).catch(console.log)
+    }).catch(() => {})
 }
 
 onMounted(async () => {

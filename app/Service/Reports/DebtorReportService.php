@@ -244,7 +244,7 @@ class DebtorReportService
 
         return [
             'amount' => (float) $months->sum('amount'),
-            'label' => $months->pluck('label')->implode(', '),
+            'label' => 'Mensualidades: Debe '.$months->pluck('label')->implode(', '),
         ];
     }
 
@@ -349,8 +349,7 @@ class DebtorReportService
         $invoiceNumber = $item->invoice?->invoice_number;
         $description = trim((string) $item->description);
 
-        return trim("{$type}: {$description}", ' -:');
-        // return trim("{$invoiceNumber} - {$type}: {$description}", ' -:');
+        return trim("{$invoiceNumber} - {$type}: {$description}", ' -:');
     }
 
     private function customChargeLabel(InscriptionCustomCharge $charge): string

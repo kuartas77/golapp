@@ -337,7 +337,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/utils/axios'
 import dayjs from '@/utils/dayjs';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import flatPickr from 'vue-flatpickr-component';
@@ -426,7 +426,7 @@ const selectedItemsCount = computed(() => {
 const loadData = async () => {
     try {
         loading.value = true
-        const response = await axios.get(`/api/v2/invoices/create/${inscriptionId}`)
+        const response = await api.get(`/api/v2/invoices/create/${inscriptionId}`)
 
         inscription.value = response.data.inscription
 
@@ -563,7 +563,7 @@ const submitInvoice = async () => {
         })
 
         // Enviar a la API
-        const response = await axios.post('/api/v2/invoices', data)
+        const response = await api.post('/api/v2/invoices', data)
 
         // Redirigir a la vista de la factura creada
         router.push({ name: 'invoices.show', params: { id: response.data.id } })

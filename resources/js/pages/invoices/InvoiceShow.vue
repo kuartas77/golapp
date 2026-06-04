@@ -285,7 +285,7 @@ import { ref, computed, onMounted, reactive, watch } from 'vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/utils/axios'
 import dayjs from '@/utils/dayjs';
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import flatPickr from 'vue-flatpickr-component';
@@ -347,7 +347,7 @@ const calculatedAmount = computed(() => {
 const loadInvoice = async () => {
     try {
         loading.value = true
-        const response = await axios.get(`/api/v2/invoices/${invoiceId}`)
+        const response = await api.get(`/api/v2/invoices/${invoiceId}`)
         invoice.value = response.data
 
         // Resetear items seleccionados y monto
@@ -389,7 +389,7 @@ const submitPayment = async () => {
     try {
         paymentLoading.value = true
 
-        const response = await axios.post(`/api/v2/invoices/${invoiceId}/payment`, {
+        const response = await api.post(`/api/v2/invoices/${invoiceId}/payment`, {
             amount: payment.amount,
             payment_method: payment.payment_method,
             issue_date: payment.issue_date,
@@ -440,7 +440,7 @@ const confirmDelete = async () => {
     }).then(async(result) => {
         if (result.isConfirmed) {
             try {
-                await axios.delete(`/api/v2/invoices/${invoiceId}`)
+                await api.delete(`/api/v2/invoices/${invoiceId}`)
                 router.push('/facturas')
             } catch (error) {
                 console.error('Error al eliminar factura:', error)

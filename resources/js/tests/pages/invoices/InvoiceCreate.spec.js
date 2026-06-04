@@ -13,7 +13,7 @@ const { axiosMock, routerPushMock, tutorialMock } = vi.hoisted(() => ({
     },
 }));
 
-vi.mock('axios', () => ({
+vi.mock('@/utils/axios', () => ({
     default: axiosMock,
 }));
 

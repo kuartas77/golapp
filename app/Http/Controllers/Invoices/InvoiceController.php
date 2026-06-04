@@ -80,10 +80,19 @@ class InvoiceController extends Controller
 
     public function destroy($id)
     {
-        $invoice = Invoice::findOrFail($id);
+        $invoice = Invoice::query()
+            ->schoolId()
+            ->findOrFail($id);
+
+        abort_unless(in_array($invoice->status, ['pending', 'partial'], true), 422, 'Solo se pueden eliminar facturas pendientes o parciales.');
+
         $invoice->delete();
 
         Alert::success(env('APP_NAME'), 'Factura eliminada exitosamente.');
+
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true]);
+        }
 
         return redirect()->route('invoices.index');
     }
@@ -91,6 +100,7 @@ class InvoiceController extends Controller
     public function print($id)
     {
         $invoice = Invoice::with(['school', 'items', 'payments.creator', 'inscription.player.people', 'trainingGroup', 'creator'])
+            ->schoolId()
             ->firstWhere('invoice_number', $id);
 
 

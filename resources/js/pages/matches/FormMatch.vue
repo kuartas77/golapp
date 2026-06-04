@@ -637,8 +637,7 @@ const onLoadData = async () => {
                 skill_controls: match.skills_controls
             })
         }
-    } catch (error) {
-        console.log(error)
+    } catch {
         showMessage('Algo salió mal.', 'error')
     } finally {
         isLoading.value = false

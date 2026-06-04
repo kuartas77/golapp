@@ -601,7 +601,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         Schema::disableForeignKeyConstraints();
 
         try {
-            $invoiceId = app(InvoiceRepository::class)->storeInvoice([
+            $result = app(InvoiceRepository::class)->storeInvoice([
                 'inscription_id' => $inscription->id,
                 'training_group_id' => $trainingGroup->id,
                 'year' => now()->year,
@@ -634,11 +634,12 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             Schema::enableForeignKeyConstraints();
         }
 
-        $this->assertIsInt($invoiceId);
+        $this->assertTrue($result['created']);
+        $this->assertIsInt($result['id']);
 
         $invoice = Invoice::query()
             ->with('items')
-            ->findOrFail($invoiceId);
+            ->findOrFail($result['id']);
 
         $this->assertSame('5000.00', $invoice->total_amount);
         $this->assertSame('0.00', $invoice->paid_amount);
@@ -685,7 +686,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         Schema::disableForeignKeyConstraints();
 
         try {
-            $invoiceId = app(InvoiceRepository::class)->storeInvoice([
+            $result = app(InvoiceRepository::class)->storeInvoice([
                 'inscription_id' => $inscription->id,
                 'training_group_id' => $trainingGroup->id,
                 'year' => now()->year,
@@ -720,7 +721,9 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             Schema::enableForeignKeyConstraints();
         }
 
-        $invoice = Invoice::query()->with('items')->findOrFail($invoiceId);
+        $this->assertTrue($result['created']);
+
+        $invoice = Invoice::query()->with('items')->findOrFail($result['id']);
         $paidItem = $invoice->items->firstWhere('custom_charge_id', $charge->id);
 
         $this->assertNotNull($paidItem);

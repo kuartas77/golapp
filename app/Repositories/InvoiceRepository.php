@@ -202,6 +202,7 @@ class InvoiceRepository
                         'payment_id' => $itemData['payment_id'] ?? null,
                         'is_paid' => false,
                         'uniform_request_id' => $itemData['uniform_request_id'] ?? null,
+                        'custom_charge_id' => $itemData['custom_charge_id'] ?? null,
                     ];
 
                     $invoiceItem = $invoice->items()->create($item);

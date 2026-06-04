@@ -34,6 +34,10 @@ class CreateInvoices extends Command
             ->chunkById(10, function ($schools) use ($currentDate) {
 
                 foreach ($schools as $school) {
+                    if (!$school->hasSchoolPermission('school.feature.system_notify')) {
+                        continue;
+                    }
+
                     $topics = [];
                     $playerIds = [];
 
@@ -51,7 +55,7 @@ class CreateInvoices extends Command
                             ->orderBy('due_date')
                             ->get();
 
-                        if (empty($pendingMonths) && empty($pendingUniformRequests) && $customCharges->isNotEmpty()) {
+                        if (empty($pendingMonths) && empty($pendingUniformRequests) && $customCharges->isEmpty()) {
                             continue;
                         }
 
@@ -83,13 +87,13 @@ class CreateInvoices extends Command
 
                         $result = $this->repository->storeInvoice($invoiceData);
 
-                        if (filter_var($school->settings->get('SYSTEM_NOTIFY'), FILTER_VALIDATE_BOOLEAN) && $result['created'] === true) {
+                        if ($school->hasSchoolPermission('school.feature.system_notify') && $result['created'] === true) {
                             $topics[] = TopicService::generateTopic($inscription->unique_code, $school->slug);
                             $playerIds[] = $inscription->player_id;
                         }
                     }
 
-                    if (filter_var($school->settings->get('SYSTEM_NOTIFY'), FILTER_VALIDATE_BOOLEAN) && !empty($topics) && !empty($playerIds)) {
+                    if ($school->hasSchoolPermission('school.feature.system_notify') && !empty($topics) && !empty($playerIds)) {
                         $data = [
                             'school_id' => $school->id,
                             'notification_title' => 'Nueva factura de mensualidad',

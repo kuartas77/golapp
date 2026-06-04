@@ -124,7 +124,6 @@ export default function useInvoicesList() {
     const filterDate = ref('')
 
     const clearDate = () => {
-        console.log(filterDate.value)
       if (filterDate.value) {
         filterDate.value = ''
       }

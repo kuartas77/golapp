@@ -49,6 +49,6 @@ class VerificationController extends Controller
      */
     protected function verified(Request $request)
     {
-        dd($request->user());
+        return redirect($this->redirectPath());
     }
 }

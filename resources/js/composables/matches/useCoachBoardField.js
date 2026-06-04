@@ -348,7 +348,6 @@ export default function useCoachBoardField(props, emit) {
             }
         }
 
-        console.log(`Formación ajustada automáticamente: ${scheme.join('-')}`)
         return scheme
     }
 

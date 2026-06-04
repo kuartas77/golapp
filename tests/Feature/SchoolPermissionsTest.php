@@ -322,6 +322,9 @@ final class SchoolPermissionsTest extends TestCase
             'slug' => 'disabled-school',
         ])['id']);
 
+        $enabledSchool->forceFill(['auto_invoice' => true])->save();
+        $disabledSchool->forceFill(['auto_invoice' => true])->save();
+
         $this->setSchoolPermissions($enabledSchool, [
             'school.feature.system_notify' => true,
         ]);
@@ -349,6 +352,11 @@ final class SchoolPermissionsTest extends TestCase
                     ]],
                 ]);
 
+            $mock->shouldReceive('addUniformRequest')
+                ->once()
+                ->with($enabledInscription->player_id, $enabledSchool->id)
+                ->andReturn([]);
+
             $mock->shouldReceive('storeInvoice')
                 ->once()
                 ->with(Mockery::on(function (array $payload) use ($enabledSchool, $enabledInscription) {
@@ -356,7 +364,14 @@ final class SchoolPermissionsTest extends TestCase
                         && $payload['inscription_id'] === $enabledInscription->id
                         && count($payload['items']) === 1;
                 }))
-                ->andReturn(123);
+                ->andReturn([
+                    'id' => 123,
+                    'created' => true,
+                ]);
+
+            $mock->shouldReceive('buildAutoInvoiceIdempotencyKey')
+                ->once()
+                ->andReturn('test-auto-invoice-key');
         });
 
         $this->mock(TopicNotificationStoreService::class, function (MockInterface $mock) use ($enabledSchool, $enabledPlayer) {

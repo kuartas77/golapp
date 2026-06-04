@@ -52,6 +52,46 @@ final class InvoiceItemsTest extends TestCase
             ->assertJsonPath('data.0.invoice.invoice_number', $fixture['invoice']->invoice_number);
     }
 
+    public function test_invoice_delete_is_scoped_to_authenticated_school(): void
+    {
+        $otherSchool = School::query()->findOrFail($this->createSchool([
+            'email' => 'invoice-other-school@example.test',
+            'slug' => 'invoice-other-school',
+        ])['id']);
+        $invoice = $this->createInvoiceForSchool($otherSchool);
+
+        $this->actingAs($this->user)
+            ->deleteJson("/api/v2/invoices/{$invoice->id}")
+            ->assertNotFound();
+
+        $this->assertNotSoftDeleted($invoice);
+    }
+
+    public function test_invoice_print_is_scoped_to_authenticated_school(): void
+    {
+        $otherSchool = School::query()->findOrFail($this->createSchool([
+            'email' => 'invoice-print-other-school@example.test',
+            'slug' => 'invoice-print-other-school',
+        ])['id']);
+        $invoice = $this->createInvoiceForSchool($otherSchool);
+
+        $this->actingAs($this->user)
+            ->get("/api/v2/invoices/{$invoice->invoice_number}/print")
+            ->assertNotFound();
+    }
+
+    public function test_paid_invoice_cannot_be_deleted(): void
+    {
+        $school = School::query()->findOrFail($this->school['id']);
+        $invoice = $this->createInvoiceForSchool($school, status: 'paid');
+
+        $this->actingAs($this->user)
+            ->deleteJson("/api/v2/invoices/{$invoice->id}")
+            ->assertStatus(422);
+
+        $this->assertNotSoftDeleted($invoice);
+    }
+
     private function createInvoiceItemFixture(): array
     {
         $school = School::query()->findOrFail($this->school['id']);
@@ -137,5 +177,57 @@ final class InvoiceItemsTest extends TestCase
         $item = InvoiceItem::query()->firstOrFail();
 
         return compact('invoice', 'item');
+    }
+
+    private function createInvoiceForSchool(School $school, string $status = 'pending'): Invoice
+    {
+        $trainingGroup = $school->trainingGroups()->firstOrFail();
+        $player = Player::factory()->create([
+            'school_id' => $school->id,
+            'email' => sprintf('invoice-%s@example.test', uniqid()),
+        ]);
+
+        $inscription = Inscription::withoutEvents(fn () => Inscription::query()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => now()->year,
+            'training_group_id' => $trainingGroup->id,
+            'competition_group_id' => null,
+            'start_date' => now()->toDateString(),
+            'category' => 'Sub 10',
+            'photos' => false,
+            'scholarship' => false,
+            'copy_identification_document' => false,
+            'eps_certificate' => false,
+            'medic_certificate' => false,
+            'study_certificate' => false,
+            'overalls' => false,
+            'ball' => false,
+            'bag' => false,
+            'presentation_uniform' => false,
+            'competition_uniform' => false,
+            'tournament_pay' => false,
+            'period_one' => null,
+            'period_two' => null,
+            'period_three' => null,
+            'period_four' => null,
+            'school_id' => $school->id,
+        ]));
+
+        return Invoice::query()->create([
+            'invoice_number' => sprintf('FAC-SCOPE-%s', strtoupper(uniqid())),
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $trainingGroup->id,
+            'year' => now()->year,
+            'student_name' => $player->full_names,
+            'issue_date' => now()->toDateString(),
+            'due_date' => now()->addWeek()->toDateString(),
+            'total_amount' => 50000,
+            'paid_amount' => $status === 'paid' ? 50000 : 0,
+            'status' => $status,
+            'school_id' => $school->id,
+            'created_by' => $this->user->id,
+            'notes' => 'Factura de scope',
+        ]);
     }
 }
