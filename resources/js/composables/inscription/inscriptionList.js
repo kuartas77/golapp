@@ -3,7 +3,7 @@ import { computed, nextTick, ref, useTemplateRef } from 'vue';
 import api from '@/utils/axios'
 import { useRouter } from 'vue-router'
 
-export default function useInscriptionConfig(selectedYear, canManageInscriptions, onDataChanged = null) {
+export default function useInscriptionConfig(selectedYear, canManageInscriptions, onDataChanged = null, canCreateInvoice = null) {
     const router = useRouter()
     const inscription_table = useTemplateRef('inscription_table')
     const selectedInscriptionId = ref(null)
@@ -15,6 +15,11 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         const year = Number(selectedYear?.value ?? currentYear)
 
         return Boolean(canManageInscriptions?.value) && year >= currentYear
+    })
+    const canShowCreateInvoice = computed(() => {
+        return canCreateInvoice === null
+            ? canManageSelectedYear.value
+            : Boolean(canCreateInvoice?.value)
     })
 
     const columns = [
@@ -45,7 +50,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
             data: 'id',
             title: 'Acciones',
             render: (data, type, row, meta) => {
-                const manageActions = canManageSelectedYear.value
+                const createInvoiceAction = canShowCreateInvoice.value
                     ? `
                         <li>
                             <button
@@ -63,7 +68,11 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
                                 Crear factura
                             </button>
                         </li>
-
+                    `
+                    : ''
+                const manageActions = canManageSelectedYear.value
+                    ? `
+                        ${createInvoiceAction}
                         <li>
                             <button
                                 class="dropdown-item"

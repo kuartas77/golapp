@@ -143,6 +143,7 @@ import { usePageTutorial } from '@/composables/usePageTutorial';
 import { usePageTitle } from "@/composables/use-meta";
 import { inscriptionsTutorial } from '@/tutorials/inscriptions';
 import ModalInscription from './ModalInscription.vue';
+import { SCHOOL_PERMISSION_KEYS } from '@/config/school-permissions';
 
 usePageTitle('Inscripciones')
 
@@ -156,6 +157,7 @@ const canExportInscriptions = computed(() => auth.hasAnyRole(['super-admin', 'sc
 const selectedYear = ref(String(route.query.inscription_year || currentYear))
 const exportExcelUrl = computed(() => `/export/inscriptions/excel?inscription_year=${encodeURIComponent(selectedYear.value || currentYear)}`)
 const canManageSelectedYear = computed(() => canExportInscriptions.value && Number(selectedYear.value || currentYear) >= Number(currentYear))
+const canCreateInvoice = computed(() => canManageSelectedYear.value && auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.billing))
 const inscriptionLimit = ref({
     year: Number(selectedYear.value || currentYear),
     current: 0,
@@ -203,7 +205,7 @@ const {
     onAttendanceQrModalToggle,
     onCancelModal,
     onSuccessModal,
-} = useInscriptionConfig(selectedYear, canExportInscriptions, loadLimitSummary)
+} = useInscriptionConfig(selectedYear, canExportInscriptions, loadLimitSummary, canCreateInvoice)
 const tutorial = usePageTutorial(inscriptionsTutorial, {
     canExportInscriptions,
 })
