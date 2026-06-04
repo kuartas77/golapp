@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\Inscription;
+use App\Models\Player;
+use App\Models\School;
+use App\Models\Setting;
 use Tests\TestCase;
 
 final class PortalSchoolsTest extends TestCase
@@ -56,6 +60,49 @@ final class PortalSchoolsTest extends TestCase
         $response->assertJsonValidationErrors(['school_data']);
         $this->assertDatabaseCount('players', 0);
         $this->assertDatabaseCount('inscriptions', 0);
+    }
+
+    public function testPortalInscriptionStoreIsBlockedWhenSchoolReachedYearLimit(): void
+    {
+        config([
+            'recaptchav3.sitekey' => null,
+            'recaptchav3.secret' => null,
+        ]);
+
+        $schoolData = $this->createSchool([
+            'name' => 'Escuela Cupo Portal',
+            'slug' => 'escuela-cupo-portal',
+            'email' => 'cupo-portal@example.com',
+            'is_enable' => true,
+            'inscriptions_enabled' => true,
+        ]);
+        $school = School::query()->findOrFail($schoolData['id']);
+        $school->settingsValues()
+            ->where('setting_key', Setting::MAX_INSCRIPTIONS)
+            ->update(['value' => '1']);
+
+        $existingPlayer = Player::factory()->create([
+            'school_id' => $school->id,
+        ]);
+        Inscription::factory()->create([
+            'player_id' => $existingPlayer->id,
+            'unique_code' => $existingPlayer->unique_code,
+            'school_id' => $school->id,
+            'year' => now()->year,
+            'competition_group_id' => null,
+        ]);
+
+        $response = $this->postJson(
+            route('portal.school.inscription.store', [$school->slug]),
+            $this->portalInscriptionPayload($school->slug)
+        );
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['max_inscriptions']);
+        $this->assertDatabaseMissing('players', [
+            'identification_document' => '1002003004',
+            'school_id' => $school->id,
+        ]);
     }
 
     private function portalInscriptionPayload(string $schoolSlug): array

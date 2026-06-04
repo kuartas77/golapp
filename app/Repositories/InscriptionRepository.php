@@ -12,6 +12,7 @@ use App\Models\School;
 use App\Models\Setting;
 use App\Models\TrainingGroup;
 use App\Notifications\InscriptionNotification;
+use App\Service\InscriptionLimitService;
 use App\Service\PaymentAmountResolver;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
@@ -26,7 +27,8 @@ class InscriptionRepository
     public function __construct(
         private Inscription $inscription,
         private PeopleRepository $peopleRepository,
-        private PaymentAmountResolver $paymentAmountResolver
+        private PaymentAmountResolver $paymentAmountResolver,
+        private InscriptionLimitService $inscriptionLimitService
     ) {}
 
     /**
@@ -72,6 +74,11 @@ class InscriptionRepository
                     'unique_code' => 'El deportista ya tiene una inscripción activa para el año seleccionado.',
                 ]);
             }
+
+            $this->inscriptionLimitService->assertCanCreate(
+                School::query()->with('settingsValues')->findOrFail($requestData['school_id']),
+                (int) $requestData['year']
+            );
 
             if ($existingInscription?->trashed()) {
                 $inscription = $this->reactivateInscription($existingInscription, $requestData);

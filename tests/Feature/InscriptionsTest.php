@@ -60,6 +60,74 @@ final class InscriptionsTest extends TestCase
         ]);
     }
 
+    public function test_inscription_limit_summary_reports_current_and_remaining_slots(): void
+    {
+        $year = now()->year;
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->settingsValues()
+            ->where('setting_key', Setting::MAX_INSCRIPTIONS)
+            ->update(['value' => '3']);
+
+        Player::factory()->count(2)->create()->each(function (Player $player) use ($year, $school): void {
+            Inscription::factory()->create([
+                'player_id' => $player->id,
+                'unique_code' => $player->unique_code,
+                'year' => $year,
+                'school_id' => $school->id,
+                'competition_group_id' => null,
+            ]);
+        });
+
+        $this->actingAs($this->user)
+            ->getJson("/api/v2/inscriptions/limit-summary?year={$year}")
+            ->assertOk()
+            ->assertJson([
+                'year' => $year,
+                'current' => 2,
+                'limit' => 3,
+                'remaining' => 1,
+                'is_full' => false,
+            ]);
+    }
+
+    public function test_create_inscription_is_blocked_when_school_reaches_year_limit(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $now = Carbon::now();
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->settingsValues()
+            ->where('setting_key', Setting::MAX_INSCRIPTIONS)
+            ->update(['value' => '1']);
+
+        $existingPlayer = Player::factory()->create();
+        Inscription::factory()->create([
+            'player_id' => $existingPlayer->id,
+            'unique_code' => $existingPlayer->unique_code,
+            'year' => $now->year,
+            'school_id' => $school->id,
+            'competition_group_id' => null,
+        ]);
+
+        $player = Player::factory()->create();
+
+        $this->actingAs($this->user)
+            ->postJson(route('inscriptions.store'), [
+                'unique_code' => $player->unique_code,
+                'player_id' => $player->id,
+                'start_date' => $now->format('Y-m-d'),
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['max_inscriptions']);
+
+        $this->assertDatabaseMissing('inscriptions', [
+            'player_id' => $player->id,
+            'school_id' => $school->id,
+            'year' => $now->year,
+        ]);
+    }
+
     public function test_create_inscription_with_brother_payment_uses_brother_monthly_amount(): void
     {
         Mail::fake();

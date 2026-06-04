@@ -3,7 +3,7 @@ import { computed, nextTick, ref, useTemplateRef } from 'vue';
 import api from '@/utils/axios'
 import { useRouter } from 'vue-router'
 
-export default function useInscriptionConfig(selectedYear, canManageInscriptions) {
+export default function useInscriptionConfig(selectedYear, canManageInscriptions, onDataChanged = null) {
     const router = useRouter()
     const inscription_table = useTemplateRef('inscription_table')
     const selectedInscriptionId = ref(null)
@@ -266,6 +266,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         isCreateModalOpen.value = false
         disableUrlSelected.value = null
         reloadTable()
+        onDataChanged?.()
     }
 
     const triggerCreateModal = () => {
@@ -288,6 +289,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
                     .then(() => {
                         disableUrlSelected.value = null
                         reloadTable()
+                        onDataChanged?.()
                         Swal.fire({
                             title: "Inscripción retirada",
                             text: "La inscripción fue eliminada exitosamente.",

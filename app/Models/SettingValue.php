@@ -42,7 +42,7 @@ class SettingValue extends Model
             [
                 'setting_key' => Setting::MAX_INSCRIPTIONS,
                 'school_id' => $school_id,
-                'value' => 20
+                'value' => 200
             ],
             [
                 'setting_key' => Setting::INSCRIPTION_AMOUNT,

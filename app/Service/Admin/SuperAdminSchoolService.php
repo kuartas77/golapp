@@ -10,6 +10,7 @@ use App\Models\Setting;
 use App\Models\SettingValue;
 use App\Models\User;
 use App\Notifications\RegisterNotification;
+use App\Service\InscriptionLimitService;
 use App\Traits\UploadFile;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Arr;
@@ -51,6 +52,11 @@ class SuperAdminSchoolService
                 'is_enable' => $school->is_enable,
                 'logo_file' => $school->logo_file,
                 'is_campus' => !empty($this->campusIdsForForm($school)),
+                'max_inscriptions' => (int) data_get(
+                    $school,
+                    'settings.' . Setting::MAX_INSCRIPTIONS,
+                    InscriptionLimitService::DEFAULT_LIMIT
+                ),
             ],
             'multiple_schools' => $this->campusIdsForForm($school),
             ...$this->options($school),
@@ -79,6 +85,10 @@ class SuperAdminSchoolService
                 $request->boolean('is_campus'),
                 $request->input('multiple_schools', [])
             );
+            $this->syncMaxInscriptions($school, (int) $request->input(
+                'max_inscriptions',
+                InscriptionLimitService::DEFAULT_LIMIT
+            ));
 
             if ($shouldNotify && $password !== null) {
                 $user->notify(new RegisterNotification($user, $password));
@@ -104,6 +114,9 @@ class SuperAdminSchoolService
                 $request->boolean('is_campus'),
                 $request->input('multiple_schools', [])
             );
+            if ($request->has('max_inscriptions')) {
+                $this->syncMaxInscriptions($school, (int) $request->input('max_inscriptions'));
+            }
 
             $this->flushCaches([$school->id]);
 
@@ -254,6 +267,24 @@ class SuperAdminSchoolService
         Setting::query()->firstOrCreate(
             ['key' => Setting::MULTIPLE_SCHOOLS],
             ['public' => false]
+        );
+    }
+
+    private function syncMaxInscriptions(School $school, int $limit): void
+    {
+        Setting::query()->firstOrCreate(
+            ['key' => Setting::MAX_INSCRIPTIONS],
+            ['public' => false]
+        );
+
+        SettingValue::query()->updateOrCreate(
+            [
+                'school_id' => $school->id,
+                'setting_key' => Setting::MAX_INSCRIPTIONS,
+            ],
+            [
+                'value' => (string) max(0, $limit),
+            ]
         );
     }
 

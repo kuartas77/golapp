@@ -32,6 +32,7 @@ class SuperAdminSchoolUpdateRequest extends FormRequest
             'email' => ['required', 'email', Rule::in([$school->email])],
             'is_enable' => ['required', 'boolean'],
             'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp'],
+            'max_inscriptions' => ['nullable', 'integer', 'min:0'],
             'is_campus' => ['nullable', 'boolean'],
             'multiple_schools' => array_values(array_filter([
                 $isCampus ? 'required' : 'nullable',

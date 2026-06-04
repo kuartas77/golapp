@@ -77,9 +77,67 @@ final class SuperAdminSchoolsTest extends TestCase
             'setting_key' => Setting::MONTHLY_PAYMENT,
             'value' => '50000',
         ]);
+        $this->assertDatabaseHas('setting_values', [
+            'school_id' => $school->id,
+            'setting_key' => Setting::MAX_INSCRIPTIONS,
+            'value' => '200',
+        ]);
 
         Notification::assertSentTo($user, RegisterNotification::class);
         $response->assertJsonPath('school.slug', $school->slug);
+    }
+
+    public function testSuperAdminCanConfigureSchoolMaxInscriptions(): void
+    {
+        Notification::fake();
+
+        $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
+
+        $this->actingAs($superAdmin)
+            ->withHeader('Accept', 'application/json')
+            ->post('/api/v2/admin/schools', [
+                'name' => 'Escuela Cupo Test',
+                'agent' => 'Administradora Cupo',
+                'address' => 'Calle 456',
+                'phone' => '3001112233',
+                'email' => 'cupo-school@example.com',
+                'is_enable' => '1',
+                'is_campus' => false,
+                'max_inscriptions' => 75,
+            ])
+            ->assertCreated()
+            ->assertJsonPath('success', true);
+
+        $school = School::query()->firstWhere('slug', 'escuela-cupo-test');
+
+        $this->assertNotNull($school);
+        $this->assertDatabaseHas('setting_values', [
+            'school_id' => $school->id,
+            'setting_key' => Setting::MAX_INSCRIPTIONS,
+            'value' => '75',
+        ]);
+
+        $this->actingAs($superAdmin)
+            ->withHeader('Accept', 'application/json')
+            ->post("/api/v2/admin/schools/{$school->slug}", [
+                '_method' => 'PUT',
+                'name' => $school->name,
+                'agent' => 'Administradora Actualizada',
+                'address' => 'Calle 789',
+                'phone' => '3004445566',
+                'email' => $school->email,
+                'is_enable' => '1',
+                'is_campus' => false,
+                'max_inscriptions' => 125,
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('setting_values', [
+            'school_id' => $school->id,
+            'setting_key' => Setting::MAX_INSCRIPTIONS,
+            'value' => '125',
+        ]);
     }
 
     public function testSchoolDefaultsAreIdempotentWhenConfigDefaultRunsAgain(): void
@@ -88,6 +146,10 @@ final class SuperAdminSchoolsTest extends TestCase
             'email' => 'observer-idempotent@example.com',
             'slug' => 'observer-idempotent',
         ]);
+
+        $school->settingsValues()
+            ->where('setting_key', Setting::MAX_INSCRIPTIONS)
+            ->update(['value' => '85']);
 
         $school->configDefault();
         $school->refresh();
@@ -101,6 +163,9 @@ final class SuperAdminSchoolsTest extends TestCase
                 collect(SettingValue::settingsDefault($school->id))->pluck('setting_key')->all()
             )->count()
         );
+        $this->assertSame('85', (string) $school->settingsValues()
+            ->where('setting_key', Setting::MAX_INSCRIPTIONS)
+            ->value('value'));
     }
 
     public function testSuperAdminCanCreateCampusSchoolAndSyncMultipleSchoolsGroup(): void

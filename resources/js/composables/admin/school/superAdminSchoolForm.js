@@ -10,6 +10,7 @@ const defaultValues = () => ({
     agent: '',
     email: '',
     is_enable: '0',
+    max_inscriptions: 200,
     logo: null,
     is_campus: false,
     multiple_schools: [],
@@ -47,6 +48,7 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
         agent: yup.string().required(),
         email: yup.string().email().required(),
         is_enable: yup.string().required().oneOf(['0', '1']),
+        max_inscriptions: yup.number().integer().min(0).required(),
         logo: yup.mixed().nullable(),
         is_campus: yup.boolean().default(false),
         multiple_schools: yup.array()
@@ -73,6 +75,7 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
         agent: payload.agent ?? '',
         email: payload.email ?? '',
         is_enable: payload.is_enable ? '1' : '0',
+        max_inscriptions: Number(payload.max_inscriptions ?? 200),
         logo: payload.logo_file ?? null,
         is_campus: Boolean(payload.is_campus),
         multiple_schools: Array.isArray(payload.multiple_schools) ? payload.multiple_schools : [],

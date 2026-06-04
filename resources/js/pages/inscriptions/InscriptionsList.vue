@@ -26,7 +26,12 @@
                     </div>
 
                     <div v-if="canManageSelectedYear" class="col-sm-auto px-0">
-                        <button type="button" class="btn btn-primary btn-sm" @click="triggerCreateModal">
+                        <button
+                            type="button"
+                            class="btn btn-primary btn-sm"
+                            :disabled="inscriptionLimit.is_full"
+                            @click="triggerCreateModal"
+                        >
                             <i class="fa fa-plus me-2"></i>
                             Nueva inscripción
                         </button>
@@ -39,6 +44,20 @@
                         Guia
                     </button>
                 </div>
+            </div>
+
+            <div class="inscription-limit-banner mb-3" :class="{ 'is-full': inscriptionLimit.is_full }">
+                <div>
+                    <strong>
+                        Inscripciones {{ inscriptionLimit.current }} / {{ inscriptionLimit.limit }}
+                    </strong>
+                    <span class="text-muted ms-2">
+                        Año {{ inscriptionLimit.year || selectedYear }}
+                    </span>
+                </div>
+                <span class="badge" :class="inscriptionLimit.is_full ? 'bg-danger' : 'bg-success'">
+                    {{ inscriptionLimit.is_full ? 'Cupo completo' : `Disponibles ${inscriptionLimit.remaining}` }}
+                </span>
             </div>
 
             <div data-tour="inscriptions-table">
@@ -117,6 +136,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useSetting } from '@/store/settings-store';
 import { useAuthUser } from '@/store/auth-user';
 import useInscriptionConfig from '@/composables/inscription/inscriptionList';
+import api from '@/utils/axios';
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue';
 import AttendanceQrModal from '@/components/attendances/AttendanceQrModal.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial';
@@ -136,6 +156,39 @@ const canExportInscriptions = computed(() => auth.hasAnyRole(['super-admin', 'sc
 const selectedYear = ref(String(route.query.inscription_year || currentYear))
 const exportExcelUrl = computed(() => `/export/inscriptions/excel?inscription_year=${encodeURIComponent(selectedYear.value || currentYear)}`)
 const canManageSelectedYear = computed(() => canExportInscriptions.value && Number(selectedYear.value || currentYear) >= Number(currentYear))
+const inscriptionLimit = ref({
+    year: Number(selectedYear.value || currentYear),
+    current: 0,
+    limit: 200,
+    remaining: 200,
+    is_full: false,
+})
+
+const loadLimitSummary = async () => {
+    try {
+        const { data } = await api.get('/api/v2/inscriptions/limit-summary', {
+            params: {
+                year: selectedYear.value || currentYear,
+            },
+        })
+
+        inscriptionLimit.value = {
+            year: Number(data.year ?? selectedYear.value ?? currentYear),
+            current: Number(data.current ?? 0),
+            limit: Number(data.limit ?? 200),
+            remaining: Number(data.remaining ?? 0),
+            is_full: Boolean(data.is_full),
+        }
+    } catch (error) {
+        inscriptionLimit.value = {
+            year: Number(selectedYear.value || currentYear),
+            current: 0,
+            limit: 200,
+            remaining: 200,
+            is_full: false,
+        }
+    }
+}
 const {
     inscription_table,
     options,
@@ -150,7 +203,7 @@ const {
     onAttendanceQrModalToggle,
     onCancelModal,
     onSuccessModal,
-} = useInscriptionConfig(selectedYear, canExportInscriptions)
+} = useInscriptionConfig(selectedYear, canExportInscriptions, loadLimitSummary)
 const tutorial = usePageTutorial(inscriptionsTutorial, {
     canExportInscriptions,
 })
@@ -191,6 +244,7 @@ watch(() => route.query.inscription_year, async (value) => {
     }
 
     reloadTable()
+    loadLimitSummary()
 }, { flush: 'post' })
 
 watch(selectedYear, async (year) => {
@@ -211,12 +265,40 @@ watch(selectedYear, async (year) => {
 
 onMounted(async () => {
     await settings.getSettings()
+    await loadLimitSummary()
 })
 </script>
 
 <style scoped>
+[data-tour="inscriptions-table"] {
+    min-width: 0;
+}
+
 [data-tour="inscriptions-table"] :deep(.inscription-actions-menu.show) {
     inset: auto 0 auto auto !important;
     transform: none !important;
+}
+
+.inscription-limit-banner {
+    align-items: center;
+    background: #f4fbf7;
+    border: 1px solid #bde7cd;
+    border-radius: 8px;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 12px 16px;
+}
+
+.inscription-limit-banner.is-full {
+    background: #fff5f5;
+    border-color: #f3b8b8;
+}
+
+@media (max-width: 575.98px) {
+    .inscription-limit-banner {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 }
 </style>

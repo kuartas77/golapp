@@ -37,6 +37,7 @@ class SuperAdminSchoolStoreRequest extends FormRequest
             ])),
             'is_enable' => ['required', 'boolean'],
             'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp'],
+            'max_inscriptions' => ['nullable', 'integer', 'min:0'],
             'is_campus' => ['nullable', 'boolean'],
             'multiple_schools' => array_values(array_filter([
                 $isCampus ? 'required' : 'nullable',
@@ -51,6 +52,7 @@ class SuperAdminSchoolStoreRequest extends FormRequest
     {
         $this->merge([
             'slug' => Str::slug((string) $this->input('name')),
+            'max_inscriptions' => $this->input('max_inscriptions', 200),
             'is_campus' => $this->boolean('is_campus'),
             'multiple_schools' => array_values(array_filter(
                 Arr::wrap($this->input('multiple_schools', [])),

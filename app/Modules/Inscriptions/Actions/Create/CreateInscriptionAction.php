@@ -10,6 +10,7 @@ use App\Models\TrainingGroup;
 use App\Models\School;
 use App\Models\Player;
 use App\Models\Inscription;
+use App\Service\InscriptionLimitService;
 use Carbon\Carbon;
 
 final class CreateInscriptionAction implements IContractPassable
@@ -21,6 +22,10 @@ final class CreateInscriptionAction implements IContractPassable
     private Inscription $inscription;
 
     private array $attributes;
+
+    public function __construct(private InscriptionLimitService $inscriptionLimitService)
+    {
+    }
 
     public function handle(Passable $passable, Closure $next)
     {
@@ -39,6 +44,19 @@ final class CreateInscriptionAction implements IContractPassable
 
     private function upsertInscription(): void
     {
+        $existingInscription = Inscription::query()->withTrashed()->firstWhere([
+            'unique_code' => $this->attributes['unique_code'],
+            'year' => $this->attributes['year'],
+            'school_id' => $this->school->id
+        ]);
+
+        if (! $existingInscription || $existingInscription->trashed()) {
+            $this->inscriptionLimitService->assertCanCreate(
+                $this->school,
+                (int) $this->attributes['year']
+            );
+        }
+
         $this->inscription = Inscription::query()->withTrashed()->updateOrCreate([
             'unique_code' => $this->attributes['unique_code'],
             'year' => $this->attributes['year'],

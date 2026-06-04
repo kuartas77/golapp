@@ -309,10 +309,6 @@ class School extends Model
             $existingSetting = $existingSettings->get($setting['setting_key']);
 
             if ($existingSetting) {
-                if ((string) $existingSetting->value !== (string) $setting['value']) {
-                    $existingSetting->forceFill(['value' => $setting['value']])->save();
-                }
-
                 continue;
             }
 

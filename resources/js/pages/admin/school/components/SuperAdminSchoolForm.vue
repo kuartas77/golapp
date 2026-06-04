@@ -98,6 +98,17 @@
                                     <ErrorMessage name="is_enable" class="custom-error" as="div" />
                                 </div>
                             </div>
+
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <inputField
+                                        label="Límite de inscripciones por año"
+                                        name="max_inscriptions"
+                                        type="number"
+                                        :is-required="true"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
