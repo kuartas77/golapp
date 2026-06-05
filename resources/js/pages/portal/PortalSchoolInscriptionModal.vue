@@ -683,6 +683,8 @@ const normalizeDate = (value) => {
     return match ? match[1] : '';
 };
 
+const hasAutocompleteValue = (value) => value !== null && value !== undefined && String(value).trim() !== '';
+
 const toOptions = (options) => {
     if (Array.isArray(options)) {
         return options.map((item, index) => {
@@ -1326,28 +1328,30 @@ const populatePlayerData = (player) => {
     }
 
     const fieldsToPopulate = {
-        names: player.names ?? '',
-        last_names: player.last_names ?? '',
+        names: player.names,
+        last_names: player.last_names,
         date_birth: normalizeDate(player.date_birth),
-        place_birth: player.place_birth ?? '',
+        place_birth: player.place_birth,
         document_type: player.document_type ? String(player.document_type) : '',
         gender: player.gender ? String(player.gender) : '',
         email: normalizeEmail(player.email),
-        mobile: player.mobile ?? '',
-        medical_history: player.medical_history ?? '',
-        address: player.address ?? '',
-        municipality: player.municipality ?? '',
-        neighborhood: player.neighborhood ?? '',
+        mobile: player.mobile,
+        medical_history: player.medical_history,
+        address: player.address,
+        municipality: player.municipality,
+        neighborhood: player.neighborhood,
         rh: player.rh ? String(player.rh) : '',
-        eps: player.eps ?? '',
-        student_insurance: player.student_insurance ?? 'Sura',
-        school: player.school ?? '',
+        eps: player.eps,
+        student_insurance: player.student_insurance,
+        school: player.school,
         degree: player.degree !== null && player.degree !== undefined ? String(player.degree) : '',
         jornada: player.jornada ? String(player.jornada) : '',
     };
 
     Object.entries(fieldsToPopulate).forEach(([field, value]) => {
-        setFieldValue(field, value);
+        if (hasAutocompleteValue(value)) {
+            setFieldValue(field, value);
+        }
     });
 };
 
@@ -1390,7 +1394,7 @@ const lookupDocument = async (documentNumber) => {
             return;
         }
 
-        populatePlayerData(response.data?.data ?? {});
+        populatePlayerData(response.data?.data);
     } catch (error) {
         //
     }

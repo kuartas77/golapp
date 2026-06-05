@@ -507,6 +507,48 @@ describe('PortalSchoolInscriptionModal', () => {
         expect(wrapper.get('input[name="email"]').element.value).toBe('juan@mail.com');
     });
 
+    it('conserva los datos escritos cuando la consulta del documento no encuentra deportista', async () => {
+        vi.useFakeTimers();
+
+        const getImplementation = (props) => (url) => {
+            if (url === props.endpoints.autocomplete) {
+                return Promise.resolve(buildAutocompleteResponse());
+            }
+
+            if (url === props.endpoints.searchDoc) {
+                return Promise.resolve({ data: { data: {} } });
+            }
+
+            return Promise.resolve({ data: { data: {} } });
+        };
+
+        const { wrapper } = await mountModal({}, {
+            getImplementation: getImplementation(buildProps()),
+        });
+
+        await setFieldValue(wrapper, 'names', 'Maria');
+        await setFieldValue(wrapper, 'last_names', 'Lopez');
+        await setFieldValue(wrapper, 'document_type', 'TI');
+        await setFieldValue(wrapper, 'date_birth', '2011-02-03');
+        await setFieldValue(wrapper, 'place_birth', 'Medellin');
+        await setFieldValue(wrapper, 'gender', 'F');
+        await setFieldValue(wrapper, 'email', 'MARIA@MAIL.COM');
+        await setFieldValue(wrapper, 'mobile', '3005556677');
+        await setFieldValue(wrapper, 'identification_document', '87654321');
+
+        vi.advanceTimersByTime(450);
+        await flushPromises();
+
+        expect(wrapper.get('input[name="names"]').element.value).toBe('Maria');
+        expect(wrapper.get('input[name="last_names"]').element.value).toBe('Lopez');
+        expect(wrapper.get('select[name="document_type"]').element.value).toBe('TI');
+        expect(wrapper.get('input[name="date_birth"]').element.value).toBe('2011-02-03');
+        expect(wrapper.get('input[name="place_birth"]').element.value).toBe('Medellin');
+        expect(wrapper.get('select[name="gender"]').element.value).toBe('F');
+        expect(wrapper.get('input[name="email"]').element.value).toBe('maria@mail.com');
+        expect(wrapper.get('input[name="mobile"]').element.value).toBe('3005556677');
+    });
+
     it('envía la inscripción con el payload normalizado cuando el wizard finaliza bien', async () => {
         swalFireMock.mockResolvedValue({ isConfirmed: true });
 
