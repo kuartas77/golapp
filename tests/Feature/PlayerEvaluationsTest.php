@@ -88,6 +88,79 @@ final class PlayerEvaluationsTest extends TestCase
             ]);
     }
 
+    public function testPlayerEvaluationsDatatableEndpointSupportsSearchAndExactFilters(): void
+    {
+        $fixture = $this->createEvaluationFixture();
+
+        $this->actingAs($this->user);
+
+        $this->getJson('/api/v2/datatables/player_evaluations', [
+            'X-Requested-With' => 'XMLHttpRequest',
+        ])
+            ->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'id',
+                        'player_id',
+                        'player_name',
+                        'player_code',
+                        'player_photo_url',
+                        'training_group_id',
+                        'training_group_name',
+                        'period_name',
+                        'template_name',
+                        'evaluation_type',
+                        'evaluation_type_label',
+                        'status',
+                        'status_label',
+                        'overall_score',
+                        'evaluated_at',
+                        'is_closed',
+                        'urls' => ['show', 'edit', 'pdf'],
+                    ],
+                ],
+                'recordsTotal',
+                'recordsFiltered',
+            ])
+            ->assertJsonPath('recordsTotal', 2)
+            ->assertJsonPath('recordsFiltered', 2)
+            ->assertJsonFragment([
+                'player_name' => $fixture['player']->full_names,
+                'player_code' => $fixture['player']->unique_code,
+                'training_group_name' => $fixture['group']->name,
+            ]);
+
+        foreach ([
+            $fixture['player']->full_names,
+            $fixture['player']->unique_code,
+            $fixture['group']->name,
+            'Completada',
+            'Periódica',
+        ] as $keyword) {
+            $this->getJson('/api/v2/datatables/player_evaluations?'.http_build_query([
+                'search' => ['value' => $keyword],
+            ]), [
+                'X-Requested-With' => 'XMLHttpRequest',
+            ])
+                ->assertOk()
+                ->assertJsonPath('recordsFiltered', 2);
+        }
+
+        $this->getJson('/api/v2/datatables/player_evaluations?'.http_build_query([
+            'player_id' => $fixture['player']->id,
+            'training_group_id' => $fixture['group']->id,
+            'evaluation_period_id' => $fixture['periodA']->id,
+            'status' => 'completed',
+            'evaluation_type' => 'periodic',
+        ]), [
+            'X-Requested-With' => 'XMLHttpRequest',
+        ])
+            ->assertOk()
+            ->assertJsonPath('recordsFiltered', 1)
+            ->assertJsonPath('data.0.id', $fixture['evaluation']->id);
+    }
+
     public function testPlayerEvaluationsCreateAndComparisonEndpointsReturnExpectedPayloads(): void
     {
         $fixture = $this->createEvaluationFixture();

@@ -55,6 +55,20 @@ $muted-opacity: 0.75;
         overflow: hidden;
     }
 
+    .surface-card.overflow-visible {
+        overflow: visible;
+        position: relative;
+        z-index: 5;
+    }
+
+    .surface-card.overflow-visible .surface-card-body {
+        overflow: visible;
+    }
+
+    .surface-card.overflow-visible :deep(.dropdown-menu.show) {
+        z-index: 1055;
+    }
+
     .surface-card-body,
     .surface-card-header {
         padding: $surface-padding;

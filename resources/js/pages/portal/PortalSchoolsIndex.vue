@@ -80,7 +80,7 @@ const fetchSchools = async () => {
     errorMessage.value = '';
 
     try {
-        const response = await api.get('api/v2/portal/escuelas/data');
+        const response = await api.get('/api/v2/portal/escuelas/data');
         schools.value = response.data?.data?.schools ?? [];
     } catch (error) {
         errorMessage.value = error.response?.data?.message || 'No pudimos cargar el listado de escuelas.';

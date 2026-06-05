@@ -44,7 +44,7 @@
                 </div>
 
                 <template v-if="!isEditMode && !formReady">
-                    <div class="surface-card card selection-card mb-4" data-tour="player-evaluations-editor-selection">
+                    <div class="surface-card card overflow-visible selection-card mb-4" data-tour="player-evaluations-editor-selection">
                         <div class="surface-card-header card-header">
                             <div class="section-label mb-2">Configuración inicial</div>
                             <h5 class="mb-1">Selecciona el contexto de la evaluación</h5>
@@ -57,16 +57,13 @@
                             <div class="row g-3 align-items-end">
                                 <div class="col-12 col-lg-5">
                                     <label class="form-label">Inscripción</label>
-                                    <select v-model="setup.inscription_id" class="form-select form-select-sm" @change="handleInscriptionChange">
-                                        <option value="">Selecciona una inscripción</option>
-                                        <option
-                                            v-for="inscription in selectionOptions.inscriptions"
-                                            :key="inscription.id"
-                                            :value="String(inscription.id)"
-                                        >
-                                            {{ inscription.label }}
-                                        </option>
-                                    </select>
+                                    <CustomSelect2
+                                        v-model="setup.inscription_id"
+                                        :options="inscriptionOptions"
+                                        placeholder="Selecciona una inscripción"
+                                        search-placeholder="Buscar inscripción..."
+                                        @change="handleInscriptionChange"
+                                    />
                                 </div>
 
                                 <div class="col-12 col-md-6 col-lg-3">
@@ -552,6 +549,17 @@ const selectionOptions = reactive({
     templates: [],
 })
 
+const inscriptionOptions = computed(() => (
+    selectionOptions.inscriptions.map((inscription) => ({
+        value: String(inscription.id),
+        label: inscription.label,
+        meta: [
+            inscription.player_name,
+            inscription.training_group_name,
+        ].filter(Boolean).join(' '),
+    }))
+))
+
 const statusOptions = ref([...defaultStatusOptions])
 const evaluationTypeOptions = ref([...defaultEvaluationTypeOptions])
 
@@ -871,6 +879,10 @@ async function loadEditor() {
 }
 
 async function handleInscriptionChange() {
+    if (isLoading.value && setup.evaluation_template_id) {
+        return
+    }
+
     setup.evaluation_template_id = ''
 
     try {

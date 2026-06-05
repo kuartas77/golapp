@@ -218,7 +218,7 @@ const fetchSchool = async (slug) => {
     pageData.value = null;
 
     try {
-        const response = await api.get(`api/v2/portal/escuelas/${encodeURIComponent(slug)}/data`);
+        const response = await api.get(`/api/v2/portal/escuelas/${encodeURIComponent(slug)}/data`);
         pageData.value = response.data?.data ?? null;
 
         if (!pageData.value?.school) {

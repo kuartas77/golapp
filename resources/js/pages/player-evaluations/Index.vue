@@ -28,47 +28,34 @@
             <div class="position-relative evaluations-index">
                 <Loader :is-loading="isLoading" loading-text="Cargando evaluaciones..." />
 
-                <div class="surface-card card mb-4" data-tour="player-evaluations-index-filters">
-                    <div class="surface-card-body card-body">
+                <div class="card mb-4" data-tour="player-evaluations-index-filters">
+                    <div class="card-body">
                         <div class="row g-3 align-items-end">
-                            <div class="col-12 col-lg-4">
-                                <label class="form-label">Buscar</label>
-                                <input
-                                    v-model.trim="filters.search"
-                                    type="text"
-                                    class="form-control form-control-sm"
-                                    placeholder="Jugador, código o grupo"
-                                    @keyup.enter="applyFilters"
-                                >
-                            </div>
-
-                            <div class="col-12 col-md-6 col-lg-2">
+                            <div class="col-12 col-md-6 col-xl-3">
                                 <label class="form-label">Jugador</label>
-                                <select v-model="filters.player_id" class="form-select form-select-sm">
-                                    <option value="">Todos</option>
-                                    <option v-for="player in filterOptions.players" :key="player.id" :value="String(player.id)">
-                                        {{ player.name }}
-                                    </option>
-                                </select>
+                                <CustomSelect2
+                                    v-model="filters.player_id"
+                                    :options="playerOptions"
+                                    placeholder="Todos"
+                                    search-placeholder="Buscar jugador..."
+                                    @change="reloadTable"
+                                />
                             </div>
 
-                            <div class="col-12 col-md-6 col-lg-2">
+                            <div class="col-12 col-md-6 col-xl-3">
                                 <label class="form-label">Grupo</label>
-                                <select v-model="filters.training_group_id" class="form-select form-select-sm">
-                                    <option value="">Todos</option>
-                                    <option
-                                        v-for="group in filterOptions.training_groups"
-                                        :key="group.id"
-                                        :value="String(group.id)"
-                                    >
-                                        {{ group.name }}
-                                    </option>
-                                </select>
+                                <CustomSelect2
+                                    v-model="filters.training_group_id"
+                                    :options="trainingGroupOptions"
+                                    placeholder="Todos"
+                                    search-placeholder="Buscar grupo..."
+                                    @change="reloadTable"
+                                />
                             </div>
 
-                            <div class="col-12 col-md-4 col-lg-2">
+                            <div class="col-12 col-md-4 col-xl-2">
                                 <label class="form-label">Período</label>
-                                <select v-model="filters.evaluation_period_id" class="form-select form-select-sm">
+                                <select v-model="filters.evaluation_period_id" class="form-select form-select-sm" @change="reloadTable">
                                     <option value="">Todos</option>
                                     <option v-for="period in filterOptions.periods" :key="period.id" :value="String(period.id)">
                                         {{ period.name }}
@@ -76,9 +63,9 @@
                                 </select>
                             </div>
 
-                            <div class="col-12 col-md-4 col-lg-1">
+                            <div class="col-12 col-md-4 col-xl-2">
                                 <label class="form-label">Estado</label>
-                                <select v-model="filters.status" class="form-select form-select-sm">
+                                <select v-model="filters.status" class="form-select form-select-sm" @change="reloadTable">
                                     <option value="">Todos</option>
                                     <option v-for="status in filterOptions.statuses" :key="status.value" :value="status.value">
                                         {{ status.label }}
@@ -86,9 +73,9 @@
                                 </select>
                             </div>
 
-                            <div class="col-12 col-md-4 col-lg-1">
+                            <div class="col-12 col-md-4 col-xl-2">
                                 <label class="form-label">Tipo</label>
-                                <select v-model="filters.evaluation_type" class="form-select form-select-sm">
+                                <select v-model="filters.evaluation_type" class="form-select form-select-sm" @change="reloadTable">
                                     <option value="">Todos</option>
                                     <option
                                         v-for="type in filterOptions.evaluation_types"
@@ -102,13 +89,10 @@
                         </div>
 
                         <div class="d-flex flex-wrap gap-2 mt-3">
-                            <button type="button" class="btn btn-primary btn-sm" @click="applyFilters">
-                                Aplicar filtros
-                            </button>
                             <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters">
                                 Limpiar
                             </button>
-                            <button type="button" class="btn btn-secondary btn-sm" @click="reload">
+                            <button type="button" class="btn btn-secondary btn-sm" @click="reloadTable">
                                 Recargar
                             </button>
                         </div>
@@ -117,49 +101,20 @@
 
                 <div v-if="globalError" class="alert alert-danger d-flex flex-column flex-md-row justify-content-between gap-3">
                     <span>{{ globalError }}</span>
-                    <button type="button" class="btn btn-sm btn-danger align-self-start" @click="reload">
+                    <button type="button" class="btn btn-sm btn-danger align-self-start" @click="reloadTable">
                         Reintentar
                     </button>
                 </div>
 
-                <div class="surface-card card mb-4" data-tour="player-evaluations-index-summary">
-                    <div class="surface-card-body card-body compact-stats">
-                        <div class="compact-stat-item">
-                            <span class="compact-stat-label">Total registrado</span>
-                            <strong class="compact-stat-value">{{ pagination.total }}</strong>
-                            <span class="text-muted">evaluaciones filtradas</span>
-                        </div>
-
-                        <div class="compact-stat-item">
-                            <span class="compact-stat-label">Página actual</span>
-                            <strong class="compact-stat-value">{{ pagination.current_page }}</strong>
-                            <span class="text-muted">de {{ pagination.last_page || 1 }}</span>
-                        </div>
-
-                        <div class="compact-stat-item">
-                            <span class="compact-stat-label">Rango visible</span>
-                            <strong class="compact-stat-value">
-                                {{ pagination.from || 0 }} - {{ pagination.to || 0 }}
-                            </strong>
-                            <span class="text-muted">resultados en esta página</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="surface-card card mb-4">
-                    <div class="surface-card-body card-body compact-stats">
-                        <h5 class="mb-1">Seguimiento por jugador y período</h5>
-                        <p class="text-muted mb-0">
-                            Navega entre borradores, evaluaciones completadas y reportes cerrados.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="surface-card card overflow-hidden" data-tour="player-evaluations-index-table">
-
-                    <div class="surface-card-body card-body p-0">
-                        <div v-if="evaluations.length" class="table-responsive">
-                            <table class="table table-bordered table-hover align-middle mb-0">
+                <div class="card" data-tour="player-evaluations-index-table">
+                    <div class="card-body p-1">
+                        <DatatableTemplate
+                            id="player_evaluations_table"
+                            ref="evaluationTable"
+                            :options="options"
+                            @click="resolveRouteFromClick"
+                        >
+                            <template #thead>
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -169,135 +124,13 @@
                                         <th>Plantilla</th>
                                         <th>Tipo</th>
                                         <th>Estado</th>
-                                        <th class="text-center">Nota</th>
+                                        <th>Nota</th>
                                         <th>Fecha</th>
-                                        <th class="text-end">Acciones</th>
+                                        <th></th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr v-for="evaluation in evaluations" :key="evaluation.id">
-                                        <td class="fw-semibold">#{{ evaluation.id }}</td>
-                                        <td>
-                                            <div class="d-flex align-items-center gap-3">
-                                                <img
-                                                    :src="evaluation.inscription?.player?.photo_url || '/img/user.webp'"
-                                                    :alt="evaluation.inscription?.player?.name || 'Jugador'"
-                                                    class="player-avatar"
-                                                >
-                                                <div>
-                                                    <router-link
-                                                        :to="{ name: 'player-evaluations.show', params: { id: evaluation.id } }"
-                                                        class="fw-semibold text-decoration-none"
-                                                    >
-                                                        {{ evaluation.inscription?.player?.name || '—' }}
-                                                    </router-link>
-                                                    <div class="small text-muted">
-                                                        {{ evaluation.inscription?.player?.unique_code || 'Sin código' }}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>{{ evaluation.inscription?.training_group?.name || '—' }}</td>
-                                        <td>{{ evaluation.evaluation_period?.name || '—' }}</td>
-                                        <td>{{ evaluation.template?.name || '—' }}</td>
-                                        <td>
-                                            <span class="theme-chip">
-                                                {{ labelFromOptions(filterOptions.evaluation_types, evaluation.evaluation_type) }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge text-uppercase" :class="`badge-${statusVariant(evaluation.status)}`">
-                                                {{ labelFromOptions(filterOptions.statuses, evaluation.status, evaluation.status || '—') }}
-                                            </span>
-                                        </td>
-                                        <td class="text-center fw-semibold">
-                                            {{ formatScore(evaluation.overall_score) }}
-                                        </td>
-                                        <td>{{ formatDateTime(evaluation.evaluated_at) }}</td>
-                                        <td>
-                                            <div class="d-flex flex-wrap justify-content-end gap-2">
-                                                <router-link
-                                                    :to="{ name: 'player-evaluations.show', params: { id: evaluation.id } }"
-                                                    class="btn btn-primary btn-sm"
-                                                >
-                                                    Ver
-                                                </router-link>
-                                                <router-link
-                                                    v-if="!evaluation.is_closed"
-                                                    :to="{ name: 'player-evaluations.edit', params: { id: evaluation.id } }"
-                                                    class="btn btn-warning btn-sm"
-                                                >
-                                                    Editar
-                                                </router-link>
-                                                <a
-                                                    :href="evaluation.urls?.pdf"
-                                                    class="btn btn-dark btn-sm"
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                >
-                                                    PDF
-                                                </a>
-                                                <button
-                                                    v-if="!evaluation.is_closed"
-                                                    type="button"
-                                                    class="btn btn-danger btn-sm"
-                                                    @click="confirmDelete(evaluation)"
-                                                >
-                                                    Eliminar
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div v-else-if="!isLoading" class="empty-state">
-                            <h5 class="mb-2">No hay evaluaciones para mostrar</h5>
-                            <p class="text-muted mb-0">
-                                Ajusta los filtros o crea una nueva evaluación para empezar.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div
-                    v-if="pagination.last_page > 1"
-                    class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-4"
-                >
-                    <p class="text-muted mb-0">
-                        Mostrando {{ pagination.from || 0 }} a {{ pagination.to || 0 }} de {{ pagination.total }} registros.
-                    </p>
-
-                    <div class="d-flex flex-wrap gap-2">
-                        <button
-                            type="button"
-                            class="btn btn-secondary btn-sm"
-                            :disabled="pagination.current_page <= 1"
-                            @click="goToPage(pagination.current_page - 1)"
-                        >
-                            Anterior
-                        </button>
-
-                        <button
-                            v-for="page in visiblePages"
-                            :key="page"
-                            type="button"
-                            class="btn btn-sm"
-                            :class="page === pagination.current_page ? 'btn-primary' : 'btn-secondary'"
-                            @click="goToPage(page)"
-                        >
-                            {{ page }}
-                        </button>
-
-                        <button
-                            type="button"
-                            class="btn btn-secondary btn-sm"
-                            :disabled="pagination.current_page >= pagination.last_page"
-                            @click="goToPage(pagination.current_page + 1)"
-                        >
-                            Siguiente
-                        </button>
+                            </template>
+                        </DatatableTemplate>
                     </div>
                 </div>
             </div>
@@ -309,11 +142,13 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import Loader from '@/components/general/Loader.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
+import configLanguaje from '@/utils/datatableUtils'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import {
     defaultEvaluationTypeOptions,
@@ -321,20 +156,17 @@ import {
     formatDateTime,
     formatScore,
     getValidationMessage,
-    labelFromOptions,
     statusVariantMap,
     toQueryObject,
 } from '@/pages/player-evaluations/utils'
 import { playerEvaluationsIndexTutorial } from '@/tutorials/playerEvaluations'
 
-const route = useRoute()
 const router = useRouter()
 const tutorial = usePageTutorial(playerEvaluationsIndexTutorial)
 
 const isLoading = ref(true)
-const hasLoadedOnce = ref(false)
 const globalError = ref('')
-const evaluations = ref([])
+const evaluationTable = ref(null)
 
 const filterOptions = reactive({
     players: [],
@@ -345,7 +177,6 @@ const filterOptions = reactive({
 })
 
 const filters = reactive({
-    search: '',
     player_id: '',
     training_group_id: '',
     evaluation_period_id: '',
@@ -353,130 +184,240 @@ const filters = reactive({
     evaluation_type: '',
 })
 
-const pagination = reactive({
-    current_page: 1,
-    last_page: 1,
-    total: 0,
-    from: 0,
-    to: 0,
-})
+const playerOptions = computed(() => (
+    filterOptions.players.map((player) => ({
+        value: String(player.id),
+        label: player.name,
+        meta: player.unique_code || '',
+    }))
+))
 
-const visiblePages = computed(() => {
-    const pages = []
-    const windowSize = 5
-    let start = Math.max(1, pagination.current_page - Math.floor(windowSize / 2))
-    let end = Math.min(pagination.last_page, start + windowSize - 1)
-
-    if ((end - start + 1) < windowSize) {
-        start = Math.max(1, end - windowSize + 1)
-    }
-
-    for (let page = start; page <= end; page += 1) {
-        pages.push(page)
-    }
-
-    return pages
-})
+const trainingGroupOptions = computed(() => (
+    filterOptions.training_groups.map((group) => ({
+        value: String(group.id),
+        label: group.name,
+    }))
+))
 
 function statusVariant(status) {
     return statusVariantMap[status] || 'secondary'
 }
 
-function syncFiltersFromRoute() {
-    filters.search = String(route.query.search || '')
-    filters.player_id = String(route.query.player_id || '')
-    filters.training_group_id = String(route.query.training_group_id || '')
-    filters.evaluation_period_id = String(route.query.evaluation_period_id || '')
-    filters.status = String(route.query.status || '')
-    filters.evaluation_type = String(route.query.evaluation_type || '')
-    pagination.current_page = Number(route.query.page || 1)
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+}
+
+function renderPlayer(data, type, row) {
+    const playerName = escapeHtml(data || 'Jugador sin nombre')
+    const playerCode = escapeHtml(row.player_code || 'Sin código')
+    const photoUrl = escapeHtml(row.player_photo_url || '/img/user.webp')
+
+    return `
+        <div class="d-flex align-items-center gap-3">
+            <img src="${photoUrl}" alt="${playerName}" class="player-avatar">
+            <div>
+                <button
+                    type="button"
+                    class="btn btn-link btn-sm p-0 fw-semibold text-decoration-none text-start"
+                    data-item-id="${row.id}"
+                    data-type="show"
+                    title="Ver evaluación"
+                >
+                    ${playerName}
+                </button>
+                <div class="small text-muted">${playerCode}</div>
+            </div>
+        </div>
+    `
+}
+
+function renderStatus(data, type, row) {
+    return `
+        <span class="badge text-uppercase badge-${statusVariant(row.status)}">
+            ${escapeHtml(data || row.status || '—')}
+        </span>
+    `
+}
+
+function renderType(data) {
+    return `<span class="theme-chip">${escapeHtml(data || '—')}</span>`
+}
+
+function renderScore(data) {
+    return `<span class="fw-semibold">${escapeHtml(formatScore(data))}</span>`
+}
+
+function renderDate(data) {
+    return escapeHtml(formatDateTime(data))
+}
+
+function renderActions(data, type, row) {
+    const editAction = row.is_closed ? '' : `
+        <li>
+            <button
+                class="dropdown-item"
+                data-item-id="${row.id}"
+                data-type="edit"
+                type="button"
+            >
+                <i class="fa fa-edit fa-width-auto me-2" data-item-id="${row.id}" data-type="edit"></i>
+                Editar
+            </button>
+        </li>
+    `
+
+    const deleteAction = row.is_closed ? '' : `
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <button
+                class="dropdown-item text-danger"
+                data-item-id="${row.id}"
+                data-type="delete"
+                type="button"
+            >
+                <i class="fa fa-trash fa-width-auto me-2" data-item-id="${row.id}" data-type="delete"></i>
+                Eliminar
+            </button>
+        </li>
+    `
+
+    return `
+        <div class="dropdown player-evaluation-actions-dropdown">
+            <button
+                class="btn btn-sm btn-primary dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                data-bs-display="static"
+                aria-expanded="false"
+            >
+                Acciones
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <button
+                        class="dropdown-item"
+                        data-item-id="${row.id}"
+                        data-type="show"
+                        type="button"
+                    >
+                        <i class="fa fa-eye fa-width-auto me-2" data-item-id="${row.id}" data-type="show"></i>
+                        Ver
+                    </button>
+                </li>
+                ${editAction}
+                <li>
+                    <a class="dropdown-item" href="${escapeHtml(row.urls?.pdf || '#')}" target="_blank" rel="noopener noreferrer">
+                        <i class="fa-solid fa-file-pdf fa-width-auto me-2"></i>
+                        PDF
+                    </a>
+                </li>
+                ${deleteAction}
+            </ul>
+        </div>
+    `
+}
+
+const columns = [
+    { data: 'id', name: 'player_evaluations.id', width: '1%', className: 'dt-head-center dt-body-center' },
+    { data: 'player_name', name: 'player_name', render: renderPlayer },
+    { data: 'training_group_name', name: 'training_group_name' },
+    { data: 'period_name', name: 'period_name' },
+    { data: 'template_name', name: 'template_name' },
+    { data: 'evaluation_type_label', name: 'evaluation_type_label', render: renderType },
+    { data: 'status_label', name: 'status_label', render: renderStatus },
+    { data: 'overall_score', name: 'player_evaluations.overall_score', render: renderScore, className: 'dt-head-center dt-body-center' },
+    { data: 'evaluated_at', name: 'player_evaluations.evaluated_at', render: renderDate },
+    { data: 'id', title: 'Acciones', render: renderActions, searchable: false, orderable: false, className: 'dt-head-center dt-body-center' },
+]
+
+const options = {
+    ...configLanguaje,
+    lengthMenu: [[10, 20, 30, 50, 100], [10, 20, 30, 50, 100]],
+    columnDefs: [
+        { responsivePriority: 1, targets: columns.length - 1 },
+        { responsivePriority: 2, targets: 1 },
+        { targets: [0, 5, 6, 7, 8, 9], className: 'dt-head-center dt-body-center' },
+        { targets: [1], width: '28%' },
+    ],
+    serverSide: true,
+    processing: true,
+    order: [[0, 'desc']],
+    ajax: async (data, callback) => {
+        try {
+            globalError.value = ''
+            const response = await api.get('/api/v2/datatables/player_evaluations', {
+                params: {
+                    ...data,
+                    ...toQueryObject(filters),
+                },
+            })
+
+            callback(response.data)
+        } catch (error) {
+            globalError.value = getValidationMessage(error, 'No fue posible cargar el listado de evaluaciones.')
+            callback({
+                data: [],
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                draw: data.draw,
+            })
+        }
+    },
+    columns,
+}
+
+function getDataTable() {
+    return evaluationTable.value?.table?.dt ?? null
+}
+
+function reloadTable() {
+    const dt = getDataTable()
+
+    if (!dt) {
+        return
+    }
+
+    dt.ajax.reload(null, false)
+}
+
+function resetFilters() {
+    filters.player_id = ''
+    filters.training_group_id = ''
+    filters.evaluation_period_id = ''
+    filters.status = ''
+    filters.evaluation_type = ''
+    reloadTable()
 }
 
 async function loadOptions() {
-    const { data } = await api.get('/api/v2/player-evaluations/options')
-    filterOptions.players = data.filters?.players || []
-    filterOptions.training_groups = data.filters?.training_groups || []
-    filterOptions.periods = data.filters?.periods || []
-    filterOptions.statuses = data.filters?.statuses?.length ? data.filters.statuses : [...defaultStatusOptions]
-    filterOptions.evaluation_types = data.filters?.evaluation_types?.length
-        ? data.filters.evaluation_types
-        : [...defaultEvaluationTypeOptions]
-}
-
-async function loadEvaluations() {
-    const { data } = await api.get('/api/v2/player-evaluations', {
-        params: {
-            ...toQueryObject(filters),
-            page: pagination.current_page,
-        },
-    })
-
-    evaluations.value = data.data || []
-    pagination.current_page = data.meta?.current_page || 1
-    pagination.last_page = data.meta?.last_page || 1
-    pagination.total = data.meta?.total || 0
-    pagination.from = data.meta?.from || 0
-    pagination.to = data.meta?.to || 0
-}
-
-async function loadPage() {
     isLoading.value = true
     globalError.value = ''
-    syncFiltersFromRoute()
 
     try {
-        const requests = [loadEvaluations()]
-
-        if (!hasLoadedOnce.value) {
-            requests.unshift(loadOptions())
-        }
-
-        await Promise.all(requests)
-        hasLoadedOnce.value = true
+        const { data } = await api.get('/api/v2/player-evaluations/options')
+        filterOptions.players = data.filters?.players || []
+        filterOptions.training_groups = data.filters?.training_groups || []
+        filterOptions.periods = data.filters?.periods || []
+        filterOptions.statuses = data.filters?.statuses?.length ? data.filters.statuses : [...defaultStatusOptions]
+        filterOptions.evaluation_types = data.filters?.evaluation_types?.length
+            ? data.filters.evaluation_types
+            : [...defaultEvaluationTypeOptions]
     } catch (error) {
-        globalError.value = getValidationMessage(error, 'No fue posible cargar el módulo de evaluaciones.')
+        globalError.value = getValidationMessage(error, 'No fue posible cargar los filtros de evaluaciones.')
     } finally {
         isLoading.value = false
     }
 }
 
-function applyFilters() {
-    router.replace({
-        name: 'player-evaluations.index',
-        query: {
-            ...toQueryObject(filters),
-            page: 1,
-        },
-    })
-}
-
-function resetFilters() {
-    router.replace({
-        name: 'player-evaluations.index',
-    })
-}
-
-function reload() {
-    loadPage()
-}
-
-function goToPage(page) {
-    if (page < 1 || page > pagination.last_page || page === pagination.current_page) {
-        return
-    }
-
-    router.replace({
-        name: 'player-evaluations.index',
-        query: {
-            ...toQueryObject(filters),
-            page,
-        },
-    })
-}
-
-async function confirmDelete(evaluation) {
+async function confirmDelete(evaluationId) {
     const result = await Swal.fire({
-        title: `Eliminar evaluación #${evaluation.id}`,
+        title: `Eliminar evaluación #${evaluationId}`,
         text: 'Esta acción no se puede deshacer.',
         icon: 'warning',
         showCancelButton: true,
@@ -488,27 +429,42 @@ async function confirmDelete(evaluation) {
     }
 
     try {
-        await api.delete(`/api/v2/player-evaluations/${evaluation.id}`)
+        await api.delete(`/api/v2/player-evaluations/${evaluationId}`)
         showMessage('Evaluación eliminada correctamente.')
-
-        if (evaluations.value.length === 1 && pagination.current_page > 1) {
-            goToPage(pagination.current_page - 1)
-            return
-        }
-
-        await loadPage()
+        reloadTable()
     } catch (error) {
         showMessage(getValidationMessage(error, 'No se pudo eliminar la evaluación.'), 'error')
     }
 }
 
-watch(
-    () => route.fullPath,
-    () => {
-        loadPage()
-    },
-    { immediate: true }
-)
+function resolveRouteFromClick(event) {
+    const type = event.target.dataset.type
+    const itemId = event.target.dataset.itemId
+
+    if (!itemId || !type) {
+        return
+    }
+
+    event.preventDefault()
+
+    switch (type) {
+        case 'show':
+            router.push({ name: 'player-evaluations.show', params: { id: itemId } })
+            break
+        case 'edit':
+            router.push({ name: 'player-evaluations.edit', params: { id: itemId } })
+            break
+        case 'delete':
+            confirmDelete(itemId)
+            break
+        default:
+            break
+    }
+}
+
+onMounted(() => {
+    loadOptions()
+})
 </script>
 
 <style scoped lang="scss">
@@ -516,65 +472,9 @@ watch(
 
 @include shared.page-shared-styles;
 
-.compact-stats {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.75rem 1.25rem;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-}
-
-.compact-stat-item {
-    display: inline-flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-}
-
-.compact-stat-item + .compact-stat-item::before {
-    content: '';
-    width: 1px;
-    height: 1rem;
-    margin-right: 0.2rem;
-    background: rgba(127, 127, 127, 0.2);
-}
-
-.compact-stat-label {
-    font-size: 0.82rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: inherit;
-    opacity: 0.75;
-}
-
-.compact-stat-value {
-    font-size: 1rem;
-    line-height: 1.2;
-}
-
 .theme-chip {
     font-size: 0.8rem;
     font-weight: 600;
     opacity: 0.75;
-}
-
-.empty-state {
-    padding: 3rem 1.5rem;
-    text-align: center;
-}
-
-@media (max-width: 767px) {
-    .compact-stats {
-        gap: 0.6rem 0.9rem;
-    }
-
-    .compact-stat-item {
-        width: 100%;
-    }
-
-    .compact-stat-item + .compact-stat-item::before {
-        display: none;
-    }
 }
 </style>

@@ -34,21 +34,17 @@
             <div class="position-relative comparison-page">
                 <Loader :is-loading="isLoading" loading-text="Cargando comparativo..." />
 
-                <div class="surface-card card mb-4" data-tour="player-evaluations-comparison-filters">
+                <div class="surface-card card overflow-visible mb-4" data-tour="player-evaluations-comparison-filters">
                     <div class="surface-card-body card-body">
                         <div class="row g-3 align-items-end">
                             <div class="col-12 col-lg-5">
                                 <label class="form-label">Inscripción</label>
-                                <select v-model="filters.inscription_id" class="form-select">
-                                    <option value="">Selecciona una inscripción</option>
-                                    <option
-                                        v-for="inscription in filterOptions.inscriptions"
-                                        :key="inscription.id"
-                                        :value="String(inscription.id)"
-                                    >
-                                        {{ inscription.label }}
-                                    </option>
-                                </select>
+                                <CustomSelect2
+                                    v-model="filters.inscription_id"
+                                    :options="inscriptionOptions"
+                                    placeholder="Selecciona una inscripción"
+                                    search-placeholder="Buscar inscripción..."
+                                />
                             </div>
 
                             <div class="col-12 col-md-6 col-lg-3">
@@ -329,6 +325,17 @@ const filterOptions = reactive({
     inscriptions: [],
     periods: [],
 })
+
+const inscriptionOptions = computed(() => (
+    filterOptions.inscriptions.map((inscription) => ({
+        value: String(inscription.id),
+        label: inscription.label,
+        meta: [
+            inscription.player_name,
+            inscription.training_group_name,
+        ].filter(Boolean).join(' '),
+    }))
+))
 
 const filters = reactive({
     inscription_id: '',
