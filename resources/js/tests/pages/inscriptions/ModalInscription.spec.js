@@ -232,6 +232,20 @@ describe('ModalInscription', () => {
         expect(wrapper.vm.$.setupState.form.values.monthly_payment_type).toBe('MONTHLY_PAYMENT_OPTION_1');
     });
 
+    it('normalizes the training group id so the select can show its label when editing', async () => {
+        const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
+
+        await wrapper.setProps({ inscription_id: 1 });
+        await flushPromises();
+        await flushPromises();
+
+        expect(wrapper.vm.$.setupState.trainingGroups).toContainEqual({
+            value: '2',
+            label: 'Grupo definitivo',
+        });
+        expect(wrapper.vm.$.setupState.form.values.training_group_id).toBe('2');
+    });
+
     it('submits the selected monthly payment type', async () => {
         const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
         const actions = { setErrors: vi.fn() };

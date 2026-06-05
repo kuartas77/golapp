@@ -303,7 +303,10 @@ const selectedInscriptionYear = computed(() => {
     return Number.isInteger(year) && year > 0 ? year : dayjs().year()
 });
 const isReactivationMode = computed(() => !isEditing.value && Boolean(reactivationCandidate.value?.id));
-const trainingGroups = computed(() => settings.groups.map((group) => ({ value: group.id, label: group.name })));
+const trainingGroups = computed(() => settings.groups.map((group) => ({
+    value: String(group.value ?? group.id),
+    label: group.label ?? group.name ?? group.full_group ?? String(group.value ?? group.id),
+})));
 const monthlyPaymentOptions = [
     { value: 'MONTHLY_PAYMENT', label: 'Mensualidad por defecto' },
     { value: 'BROTHER_MONTHLY_PAYMENT', label: 'Mensualidad hermano' },
@@ -396,6 +399,8 @@ const resolveMonthlyPaymentType = (type, brotherPayment = false) => {
     return brotherPayment ? 'BROTHER_MONTHLY_PAYMENT' : 'MONTHLY_PAYMENT'
 }
 
+const normalizeTrainingGroupId = (value) => [null, '', undefined].includes(value) ? null : String(value)
+
 const defaultValues = () => ({
     id: null,
     player_id: null,
@@ -485,7 +490,9 @@ const loadInscriptionForEdit = async (inscriptionId) => {
         ])
         const data = resp.data
 
-        currentTrainingGroupId.value = data.training_group_id
+        const trainingGroupId = normalizeTrainingGroupId(data.training_group_id)
+
+        currentTrainingGroupId.value = trainingGroupId
         currentPreInscription.value = Boolean(data.pre_inscription)
         form.value.setValues({
             ...defaultValues(),
@@ -497,7 +504,7 @@ const loadInscriptionForEdit = async (inscriptionId) => {
             scholarship: Boolean(data.scholarship),
             brother_payment: Boolean(data.brother_payment),
             monthly_payment_type: resolveMonthlyPaymentType(data.monthly_payment_type, data.brother_payment),
-            training_group_id: data.training_group_id,
+            training_group_id: trainingGroupId,
             competition_groups: data.competition_groups ?? [],
             photos: Boolean(data.photos),
             copy_identification_document: Boolean(data.copy_identification_document),
@@ -695,7 +702,7 @@ const loadPlayerByUniqueCode = async (uniqueCode) => {
             scholarship: Boolean(reactivationInscription?.scholarship),
             brother_payment: Boolean(reactivationInscription?.brother_payment),
             monthly_payment_type: resolveMonthlyPaymentType(reactivationInscription?.monthly_payment_type, reactivationInscription?.brother_payment),
-            training_group_id: reactivationInscription?.training_group_id ?? null,
+            training_group_id: normalizeTrainingGroupId(reactivationInscription?.training_group_id),
             competition_groups: reactivationInscription?.competition_groups ?? [],
             photos: Boolean(reactivationInscription?.photos),
             copy_identification_document: Boolean(reactivationInscription?.copy_identification_document),
@@ -704,7 +711,7 @@ const loadPlayerByUniqueCode = async (uniqueCode) => {
             study_certificate: Boolean(reactivationInscription?.study_certificate),
             pre_inscription: Boolean(reactivationInscription?.pre_inscription),
         })
-        currentTrainingGroupId.value = reactivationInscription?.training_group_id ?? null
+        currentTrainingGroupId.value = normalizeTrainingGroupId(reactivationInscription?.training_group_id)
         currentPreInscription.value = Boolean(reactivationInscription?.pre_inscription)
     } catch (error) {
         reactivationCandidate.value = null
