@@ -92,17 +92,26 @@
                         <div v-if="retiredRowsCount" class="alert alert-warning py-2" role="alert">
                             Hay {{ retiredRowsCount }} registro(s) con inscripción retirada. Se muestran solo como historial y permanecen en solo lectura.
                         </div>
+                        <div
+                            v-if="canBulkMarkAttendance"
+                            class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3"
+                        >
+                            <span class="text-muted">
+                                {{ eligibleAttendanceRowsCount }} deportista(s) activo(s) para esta clase.
+                            </span>
+                            <button
+                                type="button"
+                                class="btn btn-success btn-sm"
+                                :disabled="isLoading || isBulkUpdating"
+                                @click="markAttendanceForAllLoaded"
+                            >
+                                <i class="fa-solid fa-check-double me-2"></i>
+                                Marcar asistencia a todos
+                            </button>
+                        </div>
                         <div class="row" data-tour="attendance-table">
-                            <DataTable :options="options" :data="attendancesGroup" class="table table-bordered table-sm"
+                            <DataTable :options="options" :data="filteredAttendancesGroup" class="table table-bordered table-sm"
                                 id="attendance_table" ref="attendance_table">
-
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>Asistencia</th>
-                                        <th>Observación</th>
-                                    </tr>
-                                </thead>
 
                                 <template #player-photo="props">
                                     <div class="media d-md-flex d-block text-sm-start text-center">
@@ -254,6 +263,7 @@ const form = useTemplateRef('form')
 const {
     attendance_table,
     isLoading,
+    isBulkUpdating,
     groups,
     schema,
     formData,
@@ -264,14 +274,18 @@ const {
     classDays,
     classDaySelected,
     attendancesGroup,
+    filteredAttendancesGroup,
     takeAttendance,
     retiredRowsCount,
+    eligibleAttendanceRowsCount,
+    canBulkMarkAttendance,
     optionsMonths,
     attendanceTypes,
     options,
     attendanceRowReadOnly,
     handleSearchClassdays,
     clickClassDay,
+    markAttendanceForAllLoaded,
     onChangeAttendance,
     onClickOpenModalObservation,
     onCancelModalObservation,

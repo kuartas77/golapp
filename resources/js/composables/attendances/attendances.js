@@ -2,7 +2,7 @@ import configLanguaje from '@/utils/datatableUtils'
 import { useSetting } from '@/store/settings-store'
 import { usePageTitle } from "@/composables/use-meta"
 import api from "@/utils/axios"
-import { computed, getCurrentInstance, useTemplateRef, onMounted, ref } from "vue"
+import { computed, getCurrentInstance, useTemplateRef, nextTick, onMounted, ref } from "vue"
 import * as yup from 'yup'
 
 export default function useAttendances() {
@@ -10,6 +10,7 @@ export default function useAttendances() {
 
     const composeModalObservation = ref(null)
     const isLoading = ref(false)
+    const isBulkUpdating = ref(false)
     const settings = useSetting()
     const attendance_table = useTemplateRef('attendance_table')
 
@@ -37,8 +38,12 @@ export default function useAttendances() {
     const classDays = ref([])
     const classDaySelected = ref(null)
     const attendancesGroup = ref([])
+    const playerSearchTerm = ref('')
     const takeAttendance = ref(null)
     const retiredRowsCount = computed(() => attendancesGroup.value.filter((row) => Boolean(row.inscription_deleted)).length)
+    const eligibleAttendanceRows = computed(() => attendancesGroup.value.filter((row) => ! attendanceRowReadOnly(row)))
+    const eligibleAttendanceRowsCount = computed(() => eligibleAttendanceRows.value.length)
+    const canBulkMarkAttendance = computed(() => Boolean(classDaySelected.value) && eligibleAttendanceRowsCount.value > 0)
 
     const optionsMonths = [
         { value: 1, label: "Enero" },
@@ -62,6 +67,30 @@ export default function useAttendances() {
         4: "Retiro",
         5: "Incapacidad",
     }
+
+    const buildPlayerSearchText = (row) => [
+        row?.inscription?.player?.full_names,
+        row?.inscription?.player?.unique_code,
+        row?.inscription?.player?.category,
+    ].filter(Boolean).join(' ')
+    const filteredAttendancesGroup = computed(() => {
+        const searchTerm = playerSearchTerm.value.trim().toLocaleLowerCase()
+
+        if (! searchTerm) {
+            return attendancesGroup.value
+        }
+
+        return attendancesGroup.value.filter((row) => buildPlayerSearchText(row).toLocaleLowerCase().includes(searchTerm))
+    })
+    const playerSearchTitle = `
+        <input
+            type="search"
+            class="form-control form-control-sm"
+            placeholder="Buscar deportista"
+            aria-label="Buscar deportista"
+            data-attendance-player-search="true"
+        />
+    `
 
     const options = {
         ...configLanguaje,
@@ -91,10 +120,10 @@ export default function useAttendances() {
         ajax: null,
         columns: [
             {
-                data: 'inscription',
-                title: 'Deportista',
+                data: buildPlayerSearchText,
+                title: playerSearchTitle,
                 render: '#player-photo',
-                searchable: false,
+                searchable: true,
                 with: '50%'
             },
             {
@@ -115,6 +144,21 @@ export default function useAttendances() {
     }
 
     const attendanceRowReadOnly = (row) => Boolean(row?.inscription_deleted)
+
+    const applyPlayerSearch = (searchValue) => {
+        playerSearchTerm.value = searchValue?.target ? searchValue.target.value : (searchValue ?? '')
+    }
+
+    const bindPlayerSearchInput = () => {
+        const searchInput = document.querySelector('#attendance_table thead input[data-attendance-player-search="true"]')
+
+        if (! searchInput) {
+            return
+        }
+
+        searchInput.oninput = (event) => applyPlayerSearch(event)
+        searchInput.onclick = (event) => event.stopPropagation()
+    }
 
     const buildAttendanceDate = () => {
         if (!classDaySelected.value) return null
@@ -148,6 +192,7 @@ export default function useAttendances() {
             classDaySelected.value = null
             isLoading.value = true
             attendancesGroup.value = []
+            playerSearchTerm.value = ''
             export_pdf.value = null
             export_excel.value = null
             modelGroup.value = settings.groups.find((group) => String(group.id) === String(values.training_group_id)) ?? null
@@ -180,6 +225,7 @@ export default function useAttendances() {
         try {
             isLoading.value = true
             attendancesGroup.value = []
+            playerSearchTerm.value = ''
             classDaySelected.value = classDay
 
             const params = {
@@ -195,6 +241,8 @@ export default function useAttendances() {
                 attendancesGroup.value = response.data.rows
                 export_pdf.value = response.data.url_print
                 export_excel.value = response.data.url_print_excel
+                await nextTick()
+                bindPlayerSearchInput()
 
                 if (response.data.rows.length === 0) {
                     showMessage("No se encontraron resultados para el grupo en este mes.", 'warning')
@@ -252,6 +300,70 @@ export default function useAttendances() {
             row[classDaySelected.value.column] = previousValue
             showMessage(getAssistErrorMessage(error), 'error')
         }
+    }
+
+    const markAttendanceForAllLoaded = async () => {
+        if (! classDaySelected.value) {
+            showMessage('Selecciona una clase antes de marcar asistencia masiva.', 'warning')
+            return
+        }
+
+        const rows = eligibleAttendanceRows.value
+
+        if (! rows.length) {
+            showMessage('No hay deportistas activos para marcar asistencia.', 'warning')
+            return
+        }
+
+        const column = classDaySelected.value.column
+        let updatedRows = 0
+        let failedRows = 0
+
+        isBulkUpdating.value = true
+
+        try {
+            await Promise.all(rows.map(async (row) => {
+                const previousValue = row[column]
+
+                row[column] = 1
+
+                try {
+                    const data = {
+                        _method: 'PUT',
+                        id: row.id,
+                    }
+
+                    data[column] = 1
+
+                    const response = await api.post(`/api/v2/assists/${row.id}`, data)
+
+                    if (response?.data) {
+                        updatedRows += 1
+                        return
+                    }
+
+                    failedRows += 1
+                    row[column] = previousValue
+                } catch (error) {
+                    failedRows += 1
+                    row[column] = previousValue
+                }
+            }))
+        } finally {
+            isBulkUpdating.value = false
+        }
+
+        if (failedRows > 0 && updatedRows > 0) {
+            showMessage(`Se marcaron ${updatedRows} asistencia(s). ${failedRows} registro(s) no se pudieron guardar.`, 'warning')
+            return
+        }
+
+        if (failedRows > 0) {
+            showMessage('No fue posible marcar la asistencia masiva.', 'error')
+            return
+        }
+
+        showMessage(`Asistencia marcada para ${updatedRows} deportista(s).`)
     }
 
     const onClickOpenModalObservation = async (row) => {
@@ -330,21 +442,14 @@ export default function useAttendances() {
     onMounted(async () => {
         await settings.getSettings()
         initModals()
-
-        // if (attendance_table.value) {
-        //     let dt = attendance_table.value.dt;
-        //     const searchPlayer = document.querySelector('thead input[placeholder="Deportista"]');
-        //     if (searchPlayer) {
-        //         searchPlayer.addEventListener('input', function () {
-        //             return dt.column(1).search(this.value).draw()
-        //         });
-        //     }
-        // }
+        await nextTick()
+        bindPlayerSearchInput()
     })
 
     return {
         attendance_table,
         isLoading,
+        isBulkUpdating,
         groups,
         schema,
         formData,
@@ -355,14 +460,19 @@ export default function useAttendances() {
         classDays,
         classDaySelected,
         attendancesGroup,
+        filteredAttendancesGroup,
         takeAttendance,
         retiredRowsCount,
+        eligibleAttendanceRowsCount,
+        canBulkMarkAttendance,
         optionsMonths,
         attendanceTypes,
         options,
         attendanceRowReadOnly,
+        applyPlayerSearch,
         handleSearchClassdays,
         clickClassDay,
+        markAttendanceForAllLoaded,
         onChangeAttendance,
         onClickOpenModalObservation,
         onCancelModalObservation,
