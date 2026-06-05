@@ -158,7 +158,7 @@
                             </div>
 
                         </div>
-                        <div class="row col-12 mt-3">
+                        <div v-if="canManageCustomCharges" class="row col-12 mt-3">
                             <div class="col-12">
                                 <div class="border rounded p-2">
                                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
@@ -259,6 +259,8 @@ import { ErrorMessage, Field, Form } from "vee-validate";
 import * as yup from "yup";
 import api from "@/utils/axios";
 import { useSetting } from "@/store/settings-store";
+import { useAuthUser } from '@/store/auth-user'
+import { SCHOOL_PERMISSION_KEYS } from '@/config/school-permissions'
 import CurrencyInput from '@/components/general/CurrencyInput';
 
 const props = defineProps({
@@ -284,6 +286,7 @@ const emit = defineEmits(["success", "cancel"]);
 const { proxy } = getCurrentInstance();
 const globalError = ref(null);
 const settings = useSetting();
+const auth = useAuthUser();
 const form = useTemplateRef("form");
 const composeModalInscription = ref(null);
 const currentTrainingGroupId = ref(null);
@@ -297,6 +300,7 @@ const customChargesDueDate = ref(dayjs().add(15, 'day').format('YYYY-MM-DD'));
 const customChargeRemovalIds = ref([]);
 const editIdentifier = computed(() => props.inscription_id ?? props.unique_code);
 const isEditing = computed(() => editIdentifier.value !== null);
+const canManageCustomCharges = computed(() => auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.billing));
 const selectedInscriptionYear = computed(() => {
     const year = Number(props.selected_year ?? dayjs().year())
 
@@ -522,6 +526,10 @@ const loadInscriptionForEdit = async (inscriptionId) => {
 }
 
 const loadCustomChargeCatalog = async () => {
+    if (!canManageCustomCharges.value) {
+        return
+    }
+
     if (customChargeCatalog.value.length) {
         return
     }
@@ -531,6 +539,13 @@ const loadCustomChargeCatalog = async () => {
 }
 
 const loadCustomChargeData = async (inscriptionId = null) => {
+    if (!canManageCustomCharges.value) {
+        existingCustomCharges.value = []
+        customChargeRows.value = []
+        customChargesLoading.value = false
+        return
+    }
+
     customChargesLoading.value = true
 
     try {
@@ -730,8 +745,11 @@ const submit = async (values, actions) => {
         globalError.value = null
         let response = null
         const data = { ...values }
-        data.custom_charges = selectedCustomChargesPayload()
-        data.custom_charges_due_date = customChargesDueDate.value
+
+        if (canManageCustomCharges.value) {
+            data.custom_charges = selectedCustomChargesPayload()
+            data.custom_charges_due_date = customChargesDueDate.value
+        }
 
         if (isEditing.value) {
             data._method = 'PUT'

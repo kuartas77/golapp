@@ -1,7 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { apiMock, settingsStore } = vi.hoisted(() => ({
+const { apiMock, settingsStore, authStore } = vi.hoisted(() => ({
     apiMock: {
         get: vi.fn(),
         post: vi.fn(),
@@ -26,6 +26,9 @@ const { apiMock, settingsStore } = vi.hoisted(() => ({
         ],
         getSettings: vi.fn().mockResolvedValue(undefined),
     },
+    authStore: {
+        hasSchoolPermission: vi.fn(),
+    },
 }));
 
 vi.mock('axios', () => ({
@@ -38,11 +41,20 @@ vi.mock('@/store/settings-store', () => ({
     useSetting: () => settingsStore,
 }));
 
+vi.mock('@/store/auth-user', () => ({
+    useAuthUser: () => authStore,
+}));
+
 import ModalInscription from '@/pages/inscriptions/ModalInscription.vue';
 
 const wrappers = [];
 
-const mountModal = async (props = { inscription_id: null, create_open: false, selected_year: 2026 }) => {
+const mountModal = async (
+    props = { inscription_id: null, create_open: false, selected_year: 2026 },
+    options = {},
+) => {
+    authStore.hasSchoolPermission.mockReturnValue(options.hasBillingPermission ?? true);
+
     const bootstrapModal = {
         show: vi.fn(),
         hide: vi.fn(),
@@ -136,6 +148,7 @@ describe('ModalInscription', () => {
     beforeEach(() => {
         apiMock.get.mockReset();
         apiMock.post.mockReset();
+        authStore.hasSchoolPermission.mockReset();
         settingsStore.getSettings.mockClear();
     });
 
@@ -169,6 +182,42 @@ describe('ModalInscription', () => {
 
         expect(wrapper.__bootstrapModal.show).toHaveBeenCalled();
         expect(wrapper.vm.$.setupState.isEditing).toBe(false);
+    });
+
+    it('hides custom charges when billing is disabled', async () => {
+        const wrapper = await mountModal(
+            { inscription_id: null, create_open: false, selected_year: 2026 },
+            { hasBillingPermission: false },
+        );
+
+        await wrapper.setProps({ create_open: true });
+        await flushPromises();
+
+        expect(wrapper.text()).not.toContain('Cargos personalizados');
+        expect(apiMock.get).not.toHaveBeenCalledWith('/api/v2/admin/invoice-items-custom');
+
+        await wrapper.vm.$.setupState.submit({
+            id: null,
+            player_id: 25,
+            unique_code: 'ABC123',
+            player_name: 'Jugador Demo',
+            start_date: '2026-04-10',
+            scholarship: false,
+            brother_payment: false,
+            monthly_payment_type: 'MONTHLY_PAYMENT_OPTION_2',
+            training_group_id: 2,
+            competition_groups: [],
+            photos: false,
+            copy_identification_document: false,
+            eps_certificate: false,
+            medic_certificate: false,
+            study_certificate: false,
+            pre_inscription: false,
+        }, { setErrors: vi.fn() });
+
+        expect(apiMock.post).toHaveBeenCalledWith('/api/v2/inscriptions', expect.not.objectContaining({
+            custom_charges: expect.anything(),
+        }));
     });
 
     it('marks the form as a reactivation when search_unique_code returns a retired inscription', async () => {
