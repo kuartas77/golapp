@@ -8,6 +8,7 @@ export const SCHOOL_PERMISSION_KEYS = {
     payments: 'school.module.payments',
     reports: 'school.module.reports',
     billing: 'school.module.billing',
+    inventory: 'school.module.inventory',
     schoolProfile: 'school.module.school_profile',
     contracts: 'school.module.contracts',
     userManagement: 'school.module.user_management',

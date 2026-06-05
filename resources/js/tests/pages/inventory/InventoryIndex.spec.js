@@ -1,0 +1,123 @@
+import { mount } from '@vue/test-utils'
+import { defineComponent } from 'vue'
+import { describe, expect, it, vi } from 'vitest'
+
+const { axiosMock, productReloadMock, movementReloadMock } = vi.hoisted(() => ({
+    axiosMock: {
+        get: vi.fn(),
+        post: vi.fn(),
+        put: vi.fn(),
+    },
+    productReloadMock: vi.fn(),
+    movementReloadMock: vi.fn(),
+}))
+
+vi.mock('@/utils/axios', () => ({
+    default: axiosMock,
+}))
+
+vi.mock('@/composables/use-meta', () => ({
+    usePageTitle: vi.fn(),
+}))
+
+import InventoryIndex from '@/pages/inventory/InventoryIndex.vue'
+
+const DatatableTemplateStub = defineComponent({
+    props: ['id', 'options'],
+    setup(props, { expose }) {
+        expose({
+            table: {
+                dt: {
+                    ajax: {
+                        reload: props.id === 'inventory_movements_table'
+                            ? movementReloadMock
+                            : productReloadMock,
+                    },
+                },
+            },
+        })
+
+        return {}
+    },
+    template: '<table />',
+})
+
+function mountPage() {
+    vi.stubGlobal('moneyFormat', (value) => `$${value}`)
+    vi.stubGlobal('showMessage', vi.fn())
+
+    return mount(InventoryIndex, {
+        global: {
+            stubs: {
+                panel: { template: '<section><slot name="body" /></section>' },
+                breadcrumb: { template: '<div />' },
+                DatatableTemplate: DatatableTemplateStub,
+                CurrencyInput: {
+                    props: ['modelValue'],
+                    emits: ['update:modelValue'],
+                    template: '<input :value="modelValue" @input="$emit(`update:modelValue`, Number($event.target.value))" />',
+                },
+            },
+        },
+    })
+}
+
+describe('InventoryIndex', () => {
+    beforeEach(() => {
+        axiosMock.get.mockReset()
+        axiosMock.post.mockReset()
+        axiosMock.put.mockReset()
+        productReloadMock.mockReset()
+        movementReloadMock.mockReset()
+    })
+
+    it('validates movement quantity before posting', async () => {
+        const wrapper = mountPage()
+        const state = wrapper.vm.$.setupState
+
+        state.movementForm.type = 'exit'
+        state.movementForm.quantity = 0
+        state.movementForm.movement_date = '2026-06-05'
+
+        await state.saveMovement()
+
+        expect(axiosMock.post).not.toHaveBeenCalled()
+        expect(state.formErrors.quantity).toBe('La cantidad debe ser mayor a cero.')
+        wrapper.unmount()
+        vi.unstubAllGlobals()
+    })
+
+    it('reloads the movement table after creating a product', async () => {
+        axiosMock.post.mockResolvedValue({ data: { data: { id: 10 } } })
+        const wrapper = mountPage()
+        const state = wrapper.vm.$.setupState
+
+        state.productForm.name = 'Camiseta'
+        state.productForm.unit_price = 75000
+        state.productForm.stock_quantity = 10
+        state.productForm.minimum_stock = 2
+        state.productForm.is_active = true
+
+        await state.saveProduct()
+
+        expect(axiosMock.post).toHaveBeenCalledWith('/api/v2/inventory/products', expect.objectContaining({
+            name: 'Camiseta',
+            stock_quantity: 10,
+        }))
+        expect(productReloadMock).toHaveBeenCalledWith(null, false)
+        expect(movementReloadMock).toHaveBeenCalledWith(null, false)
+        wrapper.unmount()
+        vi.unstubAllGlobals()
+    })
+
+    it('reloads movement table when opening the movement tab', () => {
+        const wrapper = mountPage()
+        const state = wrapper.vm.$.setupState
+
+        state.setActiveTab('movements')
+
+        expect(movementReloadMock).toHaveBeenCalledWith(null, false)
+        wrapper.unmount()
+        vi.unstubAllGlobals()
+    })
+})

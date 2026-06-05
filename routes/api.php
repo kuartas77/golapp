@@ -38,6 +38,7 @@ use App\Http\Controllers\Groups\TrainingGroupController;
 use App\Http\Controllers\Inscription\InscriptionController as WebInscriptions;
 use App\Http\Controllers\Invoices\InvoiceController;
 use App\Http\Controllers\Invoices\ItemInvoicesController;
+use App\Http\Controllers\Inventory\InventoryProductController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\Notifications\PaymentRequestController;
 use App\Http\Controllers\Notifications\TopicNotificationsController;
@@ -282,6 +283,13 @@ Route::prefix('v2')->group(function () {
             Route::middleware('school.permission:school.module.evaluations')->group(function () {
                 Route::get('player_evaluations', [DataTableController::class, 'playerEvaluations']);
             });
+            Route::middleware([
+                'role:super-admin|school',
+                'school.permission:school.module.inventory',
+            ])->group(function () {
+                Route::get('inventory_products', [DataTableController::class, 'inventoryProducts']);
+                Route::get('inventory_movements', [DataTableController::class, 'inventoryMovements']);
+            });
             Route::middleware('school.permission:school.module.user_management')->group(function () {
                 Route::get('users_enabled', [DataTableController::class, 'enabledUsers']);
             });
@@ -336,6 +344,17 @@ Route::prefix('v2')->group(function () {
             Route::put('{playerEvaluation}', [PlayerEvaluationController::class, 'update']);
             Route::patch('{playerEvaluation}', [PlayerEvaluationController::class, 'update']);
             Route::delete('{playerEvaluation}', [PlayerEvaluationController::class, 'destroy']);
+        });
+
+        Route::middleware([
+            'role:super-admin|school',
+            'school.permission:school.module.inventory',
+        ])->prefix('inventory')->group(function () {
+            Route::get('products', [InventoryProductController::class, 'index']);
+            Route::post('products', [InventoryProductController::class, 'store']);
+            Route::get('products/{product}', [InventoryProductController::class, 'show']);
+            Route::put('products/{product}', [InventoryProductController::class, 'update']);
+            Route::post('products/{product}/movements', [InventoryProductController::class, 'movement']);
         });
 
         Route::middleware('school.permission:school.module.reports')->prefix('reports')->name('reports.')->group(function () {

@@ -360,6 +360,11 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('contratos/{contractTypeCode}/preview', [AdminContractController::class, 'preview'])->name('admin.contracts.preview');
     });
 
+    Route::prefix('inventario')->middleware(['role:super-admin|school', 'school.permission:school.module.inventory'])->group(function () {
+        Route::get('', [AppController::class, 'index'])->name('inventory.index');
+        Route::get('{any}', [AppController::class, 'index'])->where('any', '.*');
+    });
+
     // Route::prefix('')->group(function () {
     //     Route::get(
     //         'evaluations/inscriptions/{inscription}/compare',

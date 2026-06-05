@@ -231,6 +231,18 @@ const routes = [
                 ]
             },
             {
+                path: '/inventario',
+                meta: {
+                    requiresRole: ['super-admin', 'school'],
+                    requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.inventory],
+                },
+                component: { render: () => h(RouterView) },
+                children: [
+                    { path: '', name: 'inventory.index', component: () => import('@/pages/inventory/InventoryIndex.vue') },
+                    { path: 'movimientos', name: 'inventory.movements', component: () => import('@/pages/inventory/InventoryIndex.vue'), props: { initialTab: 'movements' } },
+                ]
+            },
+            {
                 path: 'notificaciones',
                 name: 'topic-notifications.index',
                 meta: {

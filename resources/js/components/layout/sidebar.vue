@@ -304,6 +304,43 @@
                             </li>
                         </ul>
                     </li>
+                    <li v-if="canInventory" class="menu">
+                        <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#inventory"
+                            aria-controls="inventory" :aria-expanded="isInventoryRoute ? 'true' : 'false'"
+                            :data-active="isInventoryRoute ? 'true' : null"
+                            :class="{active: isInventoryRoute}">
+                            <div class="">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="feather feather-box">
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                                </svg>
+                                <span>Inventario</span>
+                            </div>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="feather feather-chevron-right">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </div>
+                        </a>
+                        <ul id="inventory" class="collapse submenu list-unstyled" :class="{ show: isInventoryRoute }"
+                            data-bs-parent="#sidebar">
+                            <li>
+                                <router-link :to="{ name: 'inventory.index' }" @click="toggleMobileMenu">
+                                    Productos
+                                </router-link>
+                            </li>
+                            <li>
+                                <router-link :to="{ name: 'inventory.movements' }" @click="toggleMobileMenu">
+                                    Movimientos
+                                </router-link>
+                            </li>
+                        </ul>
+                    </li>
                     <li v-if="canTopicNotifications" class="menu">
                         <router-link :to="{ name: 'topic-notifications.index' }" class="dropdown-toggle"
                             @click="toggleMobileMenu">
@@ -392,6 +429,7 @@ const canMatches = access.matches
 const canPayments = access.payments
 const canReports = access.reports
 const canBilling = access.billing
+const canInventory = access.inventory
 const canSchoolProfile = access.schoolProfile
 const canContracts = access.contracts
 const canUserManagement = access.userManagement
@@ -423,6 +461,7 @@ const isDashboardRoute = computed(() => dashboardRouteNames.has(route.name));
 const isAdministrationRoute = computed(() => route.path.startsWith('/administracion'));
 const isReportsRoute = computed(() => route.path.startsWith('/informes'));
 const isBillingRoute = computed(() => route.path.startsWith('/facturas'));
+const isInventoryRoute = computed(() => route.path.startsWith('/inventario'));
 
 const toggleMobileMenu = () => {
     if (window.innerWidth < 991) {

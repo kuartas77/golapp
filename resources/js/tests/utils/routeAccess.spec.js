@@ -54,4 +54,26 @@ describe('canAccessRoute', () => {
 
         expect(canAccessRoute(route, auth)).toBe(true)
     })
+
+    it('blocks instructors from the inventory route even when inventory permission is enabled', () => {
+        const route = {
+            matched: [
+                {
+                    meta: {
+                        requiresRole: ['super-admin', 'school'],
+                        requiresSchoolPermission: ['school.module.inventory'],
+                    },
+                },
+            ],
+        }
+
+        const auth = makeAuth({
+            roles: ['instructor'],
+            schoolPermissions: {
+                'school.module.inventory': true,
+            },
+        })
+
+        expect(canAccessRoute(route, auth)).toBe(false)
+    })
 })

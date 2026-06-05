@@ -58,6 +58,12 @@ return [
             'group' => 'Finanzas',
             'default' => true,
         ],
+        'school.module.inventory' => [
+            'label' => 'Inventario',
+            'description' => 'Permite administrar productos, stock y movimientos de inventario.',
+            'group' => 'Finanzas',
+            'default' => true,
+        ],
         'school.module.school_profile' => [
             'label' => 'Escuela',
             'description' => 'Permite administrar la información principal de la escuela.',
