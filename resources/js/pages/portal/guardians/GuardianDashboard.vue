@@ -7,7 +7,7 @@
                 <div class="card border-0 shadow-sm guardian-dashboard__hero">
                     <div class="card-body p-4 p-lg-5">
                         <p class="text-uppercase fw-semibold small mb-2">Portal de acudientes</p>
-                        <h1 class="h2 mb-3">Mis jugadores vigentes</h1>
+                        <span class="h1 mb-3">Mis jugadores vigentes</span>
                         <p class="text-muted mb-0">
                             {{ guardianStore.user?.names ?? 'Acudiente' }}, aquí puedes consultar la información de los deportistas con inscripción activa en el año actual.
                         </p>

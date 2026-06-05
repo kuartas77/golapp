@@ -191,6 +191,7 @@ Route::prefix('v2')->group(function () {
         });
 
         Route::middleware('school.permission:school.module.attendances')->group(function () {
+            Route::post('assists/bulk-update', [AssistController::class, 'bulkUpdate']);
             Route::apiResource('assists', AssistController::class)->except(['create', 'edit', 'destroy']);
         });
 

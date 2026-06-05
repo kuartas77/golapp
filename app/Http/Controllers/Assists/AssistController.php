@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Assists;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AssistBulkUpdateRequest;
 use App\Http\Requests\AsistUpdateRequest;
 use App\Models\Assist;
 use App\Repositories\AssistRepository;
@@ -38,6 +39,33 @@ class AssistController extends Controller
         abort_unless($request->ajax(), 404);
 
         return response()->json($this->repository->create($request->only(['training_group_id', 'year', 'month'])));
+    }
+
+    public function bulkUpdate(AssistBulkUpdateRequest $request): JsonResponse
+    {
+        abort_unless($request->ajax(), 404);
+
+        $validated = $request->validated();
+
+        abort_if(
+            isInstructor() && ! instructorCanAccessTrainingGroup((int) $validated['training_group_id'], (int) $validated['year']),
+            404
+        );
+
+        if ((int) $validated['year'] !== (int) now()->year) {
+            $message = 'Las asistencias de años anteriores son de sólo lectura.';
+
+            return response()->json([
+                'message' => $message,
+                'errors' => [
+                    'assist' => [$message],
+                ],
+            ], 422);
+        }
+
+        return response()->json([
+            'data' => $this->repository->bulkUpdate($validated),
+        ]);
     }
 
     public function show(Assist $assist): JsonResponse

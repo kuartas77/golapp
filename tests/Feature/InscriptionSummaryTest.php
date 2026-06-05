@@ -112,6 +112,58 @@ final class InscriptionSummaryTest extends TestCase
             ->assertJsonPath('errors.assist.0', 'Las asistencias de años anteriores son de sólo lectura.');
     }
 
+    public function test_bulk_attendance_update_marks_only_active_loaded_assists(): void
+    {
+        $year = now()->year;
+        $group = $this->createTrainingGroup((int) $this->school['id'], $year);
+        $activeAssistOne = $this->createAssistForGroup($group, $year, 'BULK-ACTIVE-1');
+        $activeAssistTwo = $this->createAssistForGroup($group, $year, 'BULK-ACTIVE-2');
+        $retiredAssist = $this->createAssistForGroup($group, $year, 'BULK-RETIRED', true);
+
+        $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->postJson('/api/v2/assists/bulk-update', [
+                'assist_ids' => [
+                    $activeAssistOne->id,
+                    $activeAssistTwo->id,
+                    $retiredAssist->id,
+                ],
+                'training_group_id' => $group->id,
+                'month' => 1,
+                'year' => $year,
+                'column' => 'assistance_one',
+                'value' => 1,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.requested_count', 3)
+            ->assertJsonPath('data.updated_count', 2)
+            ->assertJsonPath('data.skipped_count', 1);
+
+        $this->assertSame(1, (int) $activeAssistOne->fresh()->assistance_one);
+        $this->assertSame(1, (int) $activeAssistTwo->fresh()->assistance_one);
+        $this->assertSame(2, (int) $retiredAssist->fresh()->assistance_one);
+    }
+
+    public function test_previous_year_bulk_attendance_update_is_blocked(): void
+    {
+        [, , , $assist] = $this->createSummaryFixture(now()->subYear()->year);
+
+        $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->postJson('/api/v2/assists/bulk-update', [
+                'assist_ids' => [$assist->id],
+                'training_group_id' => $assist->training_group_id,
+                'month' => 1,
+                'year' => $assist->year,
+                'column' => 'assistance_one',
+                'value' => 1,
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('errors.assist.0', 'Las asistencias de años anteriores son de sólo lectura.');
+
+        $this->assertSame(2, (int) $assist->fresh()->assistance_one);
+    }
+
     private function createSummaryFixture(int $year, ?Player $player = null): array
     {
         $group = $this->createTrainingGroup((int) $this->school['id'], $year);
@@ -162,6 +214,45 @@ final class InscriptionSummaryTest extends TestCase
         ]);
 
         return [$player, $inscription, $payment, $assist];
+    }
+
+    private function createAssistForGroup(TrainingGroup $group, int $year, string $uniqueCode, bool $retired = false): Assist
+    {
+        $player = Player::factory()->create([
+            'school_id' => $this->school['id'],
+            'unique_code' => sprintf('%s-%s', $uniqueCode, uniqid()),
+        ]);
+
+        $inscription = Inscription::factory()->create([
+            'school_id' => $this->school['id'],
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'training_group_id' => $group->id,
+            'competition_group_id' => null,
+            'year' => $year,
+            'start_date' => "{$year}-01-10",
+            'category' => 'Sub 10',
+        ]);
+
+        $assist = Assist::query()->updateOrCreate([
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $group->id,
+            'year' => $year,
+            'month' => 1,
+        ], [
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $group->id,
+            'year' => $year,
+            'month' => 1,
+            'assistance_one' => 2,
+        ]);
+
+        if ($retired) {
+            $inscription->delete();
+        }
+
+        return $assist;
     }
 
     private function createTrainingGroup(int $schoolId, int $year): TrainingGroup

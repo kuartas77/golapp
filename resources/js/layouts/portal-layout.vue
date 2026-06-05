@@ -8,9 +8,6 @@
                 </a>
 
                 <nav class="portal-public__nav">
-                    <a class="btn btn-outline-primary">
-                        Escuelas
-                    </a>
                     <router-link :to="{ name: 'guardian-login' }" class="btn btn-outline-primary">
                         Ingreso Acudiente
                     </router-link>

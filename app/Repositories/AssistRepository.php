@@ -200,6 +200,64 @@ class AssistRepository
         }
     }
 
+    public function bulkUpdate(array $validated): array
+    {
+        $assistIds = collect($validated['assist_ids'])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        try {
+            DB::beginTransaction();
+
+            $eligibleAssistIds = Assist::query()
+                ->schoolId()
+                ->whereIn('id', $assistIds)
+                ->where('training_group_id', $validated['training_group_id'])
+                ->where('month', $validated['month'])
+                ->where('year', $validated['year'])
+                ->where('school_id', $validated['school_id'])
+                ->whereHas('inscription', fn ($query) => $query->whereNull('deleted_at'))
+                ->pluck('id');
+
+            $updatedCount = 0;
+
+            if ($eligibleAssistIds->isNotEmpty()) {
+                $updatedCount = Assist::query()
+                    ->schoolId()
+                    ->whereIn('id', $eligibleAssistIds)
+                    ->update([
+                        $validated['column'] => $validated['value'],
+                    ]);
+            }
+
+            DB::commit();
+
+            Cache::delete("statistics.groups.user." . auth()->user()->id);
+
+            return [
+                'requested_count' => $assistIds->count(),
+                'updated_count' => (int) $updatedCount,
+                'skipped_count' => $assistIds->count() - (int) $updatedCount,
+                'updated_ids' => $eligibleAssistIds->map(fn ($id) => (int) $id)->values()->all(),
+            ];
+        } catch (Exception $exception) {
+            DB::rollBack();
+            $this->logError('AssistRepository bulkUpdate failed', $exception, [
+                'training_group_id' => $validated['training_group_id'] ?? null,
+                'month' => $validated['month'] ?? null,
+                'column' => $validated['column'] ?? null,
+            ]);
+
+            return [
+                'requested_count' => $assistIds->count(),
+                'updated_count' => 0,
+                'skipped_count' => $assistIds->count(),
+                'updated_ids' => [],
+            ];
+        }
+    }
+
     public function assistBelongsToDeletedInscription(Assist $assist): bool
     {
         $assist->loadMissing('inscription');

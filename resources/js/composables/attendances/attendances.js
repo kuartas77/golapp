@@ -316,39 +316,42 @@ export default function useAttendances() {
         }
 
         const column = classDaySelected.value.column
+        const previousValues = new Map(rows.map((row) => [row.id, row[column]]))
         let updatedRows = 0
         let failedRows = 0
 
         isBulkUpdating.value = true
 
         try {
-            await Promise.all(rows.map(async (row) => {
-                const previousValue = row[column]
-
+            rows.forEach((row) => {
                 row[column] = 1
+            })
 
-                try {
-                    const data = {
-                        _method: 'PUT',
-                        id: row.id,
-                    }
+            const response = await api.post('/api/v2/assists/bulk-update', {
+                assist_ids: rows.map((row) => row.id),
+                training_group_id: classDaySelected.value.group_id,
+                month: classDaySelected.value.month,
+                year: classDaySelected.value.year,
+                column,
+                value: 1,
+            })
 
-                    data[column] = 1
+            const result = response?.data?.data
+            const updatedIds = new Set((result?.updated_ids ?? []).map((id) => Number(id)))
 
-                    const response = await api.post(`/api/v2/assists/${row.id}`, data)
+            updatedRows = Number(result?.updated_count ?? 0)
+            failedRows = rows.length - updatedRows
 
-                    if (response?.data) {
-                        updatedRows += 1
-                        return
-                    }
-
-                    failedRows += 1
-                    row[column] = previousValue
-                } catch (error) {
-                    failedRows += 1
-                    row[column] = previousValue
+            rows.forEach((row) => {
+                if (! updatedIds.has(Number(row.id))) {
+                    row[column] = previousValues.get(row.id)
                 }
-            }))
+            })
+        } catch (error) {
+            failedRows = rows.length
+            rows.forEach((row) => {
+                row[column] = previousValues.get(row.id)
+            })
         } finally {
             isBulkUpdating.value = false
         }

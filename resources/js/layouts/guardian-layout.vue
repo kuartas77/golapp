@@ -16,10 +16,10 @@
                     <nav class="guardian-portal__nav">
 
                         <template v-if="guardianStore.isAuthenticated">
-                            <router-link :to="{ name: 'guardian-dashboard' }" class="btn btn-outline-primary">
+                            <router-link :to="{ name: 'guardian-dashboard' }" class="btn btn-primary">
                                 Mis jugadores
                             </router-link>
-                            <router-link :to="{ name: 'guardian-profile' }" class="btn btn-outline-primary">
+                            <router-link :to="{ name: 'guardian-profile' }" class="btn btn-secondary">
                                 Mi perfil
                             </router-link>
                             <button type="button" class="btn btn-primary" @click="handleLogout">

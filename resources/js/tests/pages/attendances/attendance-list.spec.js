@@ -161,27 +161,37 @@ describe('attendance-list composable', () => {
 
         wrapper.vm.classDaySelected = {
             column: 'assistance_one',
+            group_id: 10,
+            month: 1,
+            year: 2026,
         }
         wrapper.vm.attendancesGroup = [
             activeRow({ id: 1, assistance_one: 2 }),
             activeRow({ id: 2, assistance_one: null }),
             activeRow({ id: 3, assistance_one: null, inscription_deleted: true }),
         ]
-        apiMock.post.mockResolvedValue({ data: true })
+        apiMock.post.mockResolvedValue({
+            data: {
+                data: {
+                    requested_count: 2,
+                    updated_count: 2,
+                    skipped_count: 0,
+                    updated_ids: [1, 2],
+                },
+            },
+        })
 
         await nextTick()
         await wrapper.vm.markAttendanceForAllLoaded()
 
-        expect(apiMock.post).toHaveBeenCalledTimes(2)
-        expect(apiMock.post).toHaveBeenNthCalledWith(1, '/api/v2/assists/1', {
-            _method: 'PUT',
-            id: 1,
-            assistance_one: 1,
-        })
-        expect(apiMock.post).toHaveBeenNthCalledWith(2, '/api/v2/assists/2', {
-            _method: 'PUT',
-            id: 2,
-            assistance_one: 1,
+        expect(apiMock.post).toHaveBeenCalledTimes(1)
+        expect(apiMock.post).toHaveBeenCalledWith('/api/v2/assists/bulk-update', {
+            assist_ids: [1, 2],
+            training_group_id: 10,
+            month: 1,
+            year: 2026,
+            column: 'assistance_one',
+            value: 1,
         })
         expect(wrapper.vm.attendancesGroup[0].assistance_one).toBe(1)
         expect(wrapper.vm.attendancesGroup[1].assistance_one).toBe(1)
@@ -195,23 +205,29 @@ describe('attendance-list composable', () => {
 
         wrapper.vm.classDaySelected = {
             column: 'assistance_one',
+            group_id: 10,
+            month: 1,
+            year: 2026,
         }
         wrapper.vm.attendancesGroup = [
             activeRow({ id: 1, assistance_one: 2 }),
             activeRow({ id: 2, assistance_one: 3 }),
         ]
-        apiMock.post.mockImplementation((url) => {
-            if (url === '/api/v2/assists/2') {
-                return Promise.reject(new Error('No guardó'))
-            }
-
-            return Promise.resolve({ data: true })
+        apiMock.post.mockResolvedValue({
+            data: {
+                data: {
+                    requested_count: 2,
+                    updated_count: 1,
+                    skipped_count: 1,
+                    updated_ids: [1],
+                },
+            },
         })
 
         await nextTick()
         await wrapper.vm.markAttendanceForAllLoaded()
 
-        expect(apiMock.post).toHaveBeenCalledTimes(2)
+        expect(apiMock.post).toHaveBeenCalledTimes(1)
         expect(wrapper.vm.attendancesGroup[0].assistance_one).toBe(1)
         expect(wrapper.vm.attendancesGroup[1].assistance_one).toBe(3)
         expect(showMessage).toHaveBeenCalledWith(

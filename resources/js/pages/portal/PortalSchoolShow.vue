@@ -37,7 +37,7 @@
             <div class="col-12 col-lg-8">
                 <div class="card shadow-sm h-100">
                     <div class="card-header bg-transparent pb-0">
-                        <ul class="nav nav-tabs card-header-tabs">
+                        <ul class="nav nav-tabs mb-0 card-header-tabs">
                             <li class="nav-item">
                                 <button
                                     type="button"

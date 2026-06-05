@@ -9,14 +9,14 @@
         <div v-else-if="player" class="row g-4">
             <div class="col-12">
                 <div class="card border-0 shadow-sm overflow-hidden">
-                    <div class="card-body p-4 p-lg-5 guardian-player-detail__hero">
+                    <div class="card-body p-2 p-lg-3 guardian-player-detail__hero">
                         <div class="row align-items-center g-4">
                             <div class="col-12 col-lg">
                                 <div class="d-flex align-items-center gap-3 flex-wrap">
                                     <img :src="playerDisplayPhotoUrl" :alt="player.full_names" class="guardian-player-detail__photo">
                                     <div>
                                         <p class="text-uppercase fw-semibold small mb-2">Jugador vigente</p>
-                                        <h1 class="h2 mb-1">{{ player.full_names }}</h1>
+                                        <span class="h2 mb-1">{{ player.full_names }}</span>
                                         <p class="mb-0">
                                             {{ player.school_data?.name || 'Escuela' }}
                                             <span v-if="currentInscription?.training_group?.name">· {{ currentInscription.training_group.name }}</span>
@@ -33,7 +33,7 @@
                                     <button
                                         v-if="player?.unique_code"
                                         type="button"
-                                        class="btn btn-outline-primary"
+                                        class="btn btn-outline-secondary"
                                         @click="showAttendanceQr = true"
                                     >
                                         Ver QR
@@ -41,10 +41,10 @@
                                     <button
                                         v-if="currentInscription?.report_url"
                                         type="button"
-                                        class="btn btn-primary"
+                                        class="btn btn-secondary"
                                         @click="openUrl(currentInscription.report_url)"
                                     >
-                                        Descargar inscripción
+                                        Descargar inscripción PDF
                                     </button>
                                 </div>
                             </div>
@@ -290,7 +290,7 @@
                 <div class="d-flex flex-column gap-4">
                     <div class="card border-0 shadow-sm">
                         <div class="card-body">
-                            <h2 class="h4 mb-3">Resumen actual</h2>
+                            <h2 class="h4 mb-3">Resumen deportivo actual</h2>
                             <div class="row g-3">
                                 <div class="col-6" v-for="item in statsEntries" :key="item.key">
                                     <div class="guardian-player-detail__stat">
@@ -322,202 +322,225 @@
                         </div>
                     </div>
 
-                    <div class="card border-0 shadow-sm" v-if="currentInscription?.payments?.length">
+                    <div class="card border-0 shadow-sm" v-if="currentInscription">
                         <div class="card-body">
-                            <h2 class="h4 mb-3">Pagos</h2>
-
-                            <div
-                                v-if="currentInscription.payments.length > 1"
-                                class="guardian-player-detail__payment-tabs mb-4"
-                                role="tablist"
-                                aria-label="Años de pagos"
-                            >
-                                <button
-                                    v-for="payment in currentInscription.payments"
-                                    :key="`payment-tab-${payment.id}`"
-                                    type="button"
-                                    class="guardian-player-detail__payment-tab"
-                                    :class="{ 'guardian-player-detail__payment-tab--active': payment.id === activePaymentId }"
-                                    @click="activePaymentId = payment.id"
-                                >
-                                    Año {{ payment.year }}
-                                </button>
+                            <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
+                                <div>
+                                    <h2 class="h4 mb-1">Actividad</h2>
+                                    <p class="text-muted mb-0">Consulta pagos, asistencias y evaluaciones del año actual.</p>
+                                </div>
                             </div>
 
-                            <div v-if="activePayment" class="guardian-player-detail__payment-panel">
-                                <div class="d-flex justify-content-between gap-2 flex-wrap mb-3">
-                                    <strong>Año {{ activePayment.year }}</strong>
-                                    <span class="badge guardian-player-detail__badge guardian-player-detail__badge--secondary">
-                                        {{ paidMonthsCount(activePayment) }} mes(es) al día
-                                    </span>
-                                </div>
-
-                                <div class="row g-2">
-                                    <div
-                                        v-for="month in activePayment.months"
-                                        :key="`${activePayment.id}-${month.field}`"
-                                        class="col-12 col-sm-6"
+                            <ul class="nav nav-tabs guardian-player-detail__main-tabs mb-4" role="tablist" aria-label="Actividad del deportista">
+                                <li v-for="tab in activityTabs" :key="tab.key" class="nav-item" role="presentation">
+                                    <button
+                                        type="button"
+                                        class="nav-link"
+                                        :class="{ active: activeActivityTab === tab.key }"
+                                        role="tab"
+                                        :aria-selected="activeActivityTab === tab.key"
+                                        @click="activeActivityTab = tab.key"
                                     >
-                                        <div
-                                            class="guardian-player-detail__payment-month"
-                                            :class="paymentMonthClass(month.value)"
-                                        >
-                                            <span>{{ month.label }}</span>
-                                            <strong>{{ month.display }}</strong>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                        {{ tab.label }}
+                                        <span class="badge rounded-pill guardian-player-detail__badge guardian-player-detail__badge--neutral ms-1">
+                                            {{ tab.count }}
+                                        </span>
+                                    </button>
+                                </li>
+                            </ul>
 
-                    <div class="card border-0 shadow-sm" v-if="currentInscription?.attendance?.length">
-                        <div class="card-body">
-                            <h2 class="h4 mb-3">Asistencias</h2>
-
-                            <div class="guardian-player-detail__attendance-tabs mb-4" role="tablist" aria-label="Meses de asistencia">
-                                <button
-                                    v-for="assist in currentInscription.attendance"
-                                    :key="`tab-${assist.id}`"
-                                    type="button"
-                                    class="guardian-player-detail__attendance-tab"
-                                    :class="{ 'guardian-player-detail__attendance-tab--active': assist.id === activeAttendanceId }"
-                                    @click="activeAttendanceId = assist.id"
+                            <div v-show="activeActivityTab === 'payments'">
+                                <div
+                                    v-if="currentInscription.payments?.length > 1"
+                                    class="guardian-player-detail__payment-tabs mb-4"
+                                    role="tablist"
+                                    aria-label="Años de pagos"
                                 >
-                                    <span class="guardian-player-detail__attendance-tab-title">
-                                        {{ assist.month }} {{ assist.year }}
-                                    </span>
-                                    <span class="badge guardian-player-detail__badge guardian-player-detail__badge--primary">
-                                        {{ assist.percentage }}
-                                    </span>
-                                </button>
-                            </div>
-
-                            <div v-if="activeAttendance" class="guardian-player-detail__attendance-panel">
-                                <div class="d-flex justify-content-between gap-2 flex-wrap mb-3">
-                                    <strong>{{ activeAttendance.month }} {{ activeAttendance.year }}</strong>
-                                    <span class="badge guardian-player-detail__badge guardian-player-detail__badge--primary">
-                                        {{ activeAttendance.percentage }}
-                                    </span>
-                                </div>
-
-                                <div class="d-flex flex-wrap gap-2">
-                                    <span
-                                        v-for="register in activeAttendance.registers"
-                                        :key="`${activeAttendance.id}-${register.class_number}`"
-                                        class="badge rounded-pill guardian-player-detail__badge"
-                                        :class="attendanceBadgeClass(register.status)"
-                                        v-html="`${register.date} : ${register.label || 'Sin registro'}`"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card border-0 shadow-sm" v-if="currentInscription?.evaluations?.length">
-                        <div class="card-body">
-                            <h2 class="h4 mb-3">Evaluaciones</h2>
-                            <div v-for="evaluation in currentInscription.evaluations" :key="evaluation.id" class="mb-3 pb-3 border-bottom">
-                                <div class="d-flex justify-content-between gap-2 flex-wrap">
-                                    <div>
-                                        <strong>{{ evaluation.period?.name || 'Período' }}</strong>
-                                        <div class="text-muted small">
-                                            {{ evaluation.evaluation_type || 'Evaluación' }}
-                                            <span v-if="evaluation.overall_score !== null">· Puntaje {{ evaluation.overall_score }}</span>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" @click="openUrl(evaluation.pdf_url)">
-                                        Descargar PDF
+                                    <button
+                                        v-for="payment in currentInscription.payments"
+                                        :key="`payment-tab-${payment.id}`"
+                                        type="button"
+                                        class="guardian-player-detail__payment-tab"
+                                        :class="{ 'guardian-player-detail__payment-tab--active': payment.id === activePaymentId }"
+                                        @click="activePaymentId = payment.id"
+                                    >
+                                        Año {{ payment.year }}
                                     </button>
                                 </div>
+
+                                <div v-if="activePayment" class="guardian-player-detail__payment-panel">
+                                    <div class="d-flex justify-content-between gap-2 flex-wrap mb-3">
+                                        <strong>Año {{ activePayment.year }}</strong>
+                                        <span class="badge guardian-player-detail__badge guardian-player-detail__badge--secondary">
+                                            {{ paidMonthsCount(activePayment) }} mes(es) al día
+                                        </span>
+                                    </div>
+
+                                    <div class="row g-2">
+                                        <div
+                                            v-for="month in activePayment.months"
+                                            :key="`${activePayment.id}-${month.field}`"
+                                            class="col-12 col-sm-6"
+                                        >
+                                            <div
+                                                class="guardian-player-detail__payment-month"
+                                                :class="paymentMonthClass(month.value)"
+                                            >
+                                                <span>{{ month.label }}</span>
+                                                <strong>{{ month.display }}</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p v-else class="text-muted mb-0">No hay pagos registrados para esta inscripción.</p>
                             </div>
 
-                            <div class="border-top pt-3">
-                                <h3 class="h5 mb-3">Comparar períodos</h3>
-
-                                <div v-if="currentInscription.comparison_periods.length < 2" class="text-muted mb-0">
-                                    Se necesitan al menos dos evaluaciones para realizar el comparativo.
+                            <div v-show="activeActivityTab === 'attendance'">
+                                <div v-if="currentInscription.attendance?.length" class="guardian-player-detail__attendance-tabs mb-4" role="tablist" aria-label="Meses de asistencia">
+                                    <button
+                                        v-for="assist in currentInscription.attendance"
+                                        :key="`tab-${assist.id}`"
+                                        type="button"
+                                        class="guardian-player-detail__attendance-tab"
+                                        :class="{ 'guardian-player-detail__attendance-tab--active': assist.id === activeAttendanceId }"
+                                        @click="activeAttendanceId = assist.id"
+                                    >
+                                        <span class="guardian-player-detail__attendance-tab-title">
+                                            {{ assist.month }} {{ assist.year }}
+                                        </span>
+                                        <span class="badge guardian-player-detail__badge guardian-player-detail__badge--primary">
+                                            {{ assist.percentage }}
+                                        </span>
+                                    </button>
                                 </div>
 
-                                <template v-else>
-                                    <div class="row g-3 align-items-end">
-                                        <div class="col-12 col-md-5">
-                                            <label class="form-label">Período A</label>
-                                            <select v-model="comparisonForm.period_a_id" class="form-select form-select-sm">
-                                                <option value="">Selecciona...</option>
-                                                <option v-for="period in currentInscription.comparison_periods" :key="`a-${period.id}`" :value="String(period.id)">
-                                                    {{ period.name }}
-                                                </option>
-                                            </select>
-                                        </div>
-                                        <div class="col-12 col-md-5">
-                                            <label class="form-label">Período B</label>
-                                            <select v-model="comparisonForm.period_b_id" class="form-select form-select-sm">
-                                                <option value="">Selecciona...</option>
-                                                <option v-for="period in currentInscription.comparison_periods" :key="`b-${period.id}`" :value="String(period.id)">
-                                                    {{ period.name }}
-                                                </option>
-                                            </select>
-                                        </div>
-                                        <div class="col-12 col-md-2 d-grid">
-                                            <button type="button" class="btn btn-primary" :disabled="comparisonLoading" @click="loadComparison">
-                                                {{ comparisonLoading ? '...' : 'Comparar' }}
+                                <div v-if="activeAttendance" class="guardian-player-detail__attendance-panel">
+                                    <div class="d-flex justify-content-between gap-2 flex-wrap mb-3">
+                                        <strong>{{ activeAttendance.month }} {{ activeAttendance.year }}</strong>
+                                        <span class="badge guardian-player-detail__badge guardian-player-detail__badge--primary">
+                                            {{ activeAttendance.percentage }}
+                                        </span>
+                                    </div>
+
+                                    <div class="d-flex flex-wrap gap-3">
+                                        <span
+                                            v-for="register in activeAttendance.registers"
+                                            :key="`${activeAttendance.id}-${register.class_number}`"
+                                            class="badge rounded-pill guardian-player-detail__badge"
+                                            :class="attendanceBadgeClass(register.status)"
+                                            v-html="`${register.class_number} | ${register.date} : ${register.label || 'Sin registro'}`"
+                                        />
+                                    </div>
+                                </div>
+                                <p v-else class="text-muted mb-0">No hay asistencias registradas para esta inscripción.</p>
+                            </div>
+
+                            <div v-show="activeActivityTab === 'evaluations'">
+                                <template v-if="currentInscription.evaluations?.length">
+                                    <div v-for="evaluation in currentInscription.evaluations" :key="evaluation.id" class="mb-3 pb-3 border-bottom">
+                                        <div class="d-flex justify-content-between gap-2 flex-wrap">
+                                            <div>
+                                                <strong>{{ evaluation.period?.name || 'Período' }}</strong>
+                                                <div class="text-muted small">
+                                                    {{ evaluation.evaluation_type || 'Evaluación' }}
+                                                    <span v-if="evaluation.overall_score !== null">· Puntaje {{ evaluation.overall_score }}</span>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-primary btn-sm" @click="openUrl(evaluation.pdf_url)">
+                                                Descargar PDF
                                             </button>
                                         </div>
                                     </div>
 
-                                    <div v-if="comparisonError" class="alert alert-danger mt-3 mb-0" role="alert">
-                                        {{ comparisonError }}
-                                    </div>
+                                    <div class="border-top pt-3">
+                                        <h3 class="h5 mb-3">Comparar períodos</h3>
 
-                                    <div v-if="comparison" class="mt-4">
-                                        <div class="card bg-light border-0 mb-3">
-                                            <div class="card-body">
-                                                <div class="d-flex justify-content-between gap-2 flex-wrap">
-                                                    <div>
-                                                        <div class="small text-muted">{{ comparison.period_a?.period_name }}</div>
-                                                        <strong>{{ displayScore(comparison.overall?.period_a_score) }}</strong>
-                                                    </div>
-                                                    <div class="text-center">
-                                                        <div class="small text-muted">Variación</div>
-                                                            <span class="badge rounded-pill guardian-player-detail__badge" :class="trendBadgeClass(comparison.overall?.trend)">
-                                                                {{ displayDelta(comparison.overall?.delta) }}
-                                                            </span>
-                                                    </div>
-                                                    <div class="text-end">
-                                                        <div class="small text-muted">{{ comparison.period_b?.period_name }}</div>
-                                                        <strong>{{ displayScore(comparison.overall?.period_b_score) }}</strong>
-                                                    </div>
+                                        <div v-if="currentInscription.comparison_periods.length < 2" class="text-muted mb-0">
+                                            Se necesitan al menos dos evaluaciones para realizar el comparativo.
+                                        </div>
+
+                                        <template v-else>
+                                            <div class="row g-3 align-items-end">
+                                                <div class="col-12 col-md-5">
+                                                    <label class="form-label">Período A</label>
+                                                    <select v-model="comparisonForm.period_a_id" class="form-select form-select-sm">
+                                                        <option value="">Selecciona...</option>
+                                                        <option v-for="period in currentInscription.comparison_periods" :key="`a-${period.id}`" :value="String(period.id)">
+                                                            {{ period.name }}
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-12 col-md-5">
+                                                    <label class="form-label">Período B</label>
+                                                    <select v-model="comparisonForm.period_b_id" class="form-select form-select-sm">
+                                                        <option value="">Selecciona...</option>
+                                                        <option v-for="period in currentInscription.comparison_periods" :key="`b-${period.id}`" :value="String(period.id)">
+                                                            {{ period.name }}
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-12 col-md-2 d-grid">
+                                                    <button type="button" class="btn btn-primary" :disabled="comparisonLoading" @click="loadComparison">
+                                                        {{ comparisonLoading ? '...' : 'Comparar' }}
+                                                    </button>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <div v-if="comparison.dimensions?.length" class="table-responsive">
-                                            <table class="table table-sm align-middle">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Dimensión</th>
-                                                        <th>{{ comparison.period_a?.period_code || 'A' }}</th>
-                                                        <th>{{ comparison.period_b?.period_code || 'B' }}</th>
-                                                        <th>Variación</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="dimension in comparison.dimensions" :key="dimension.dimension">
-                                                        <td>{{ dimension.dimension }}</td>
-                                                        <td>{{ displayScore(dimension.period_a_score) }}</td>
-                                                        <td>{{ displayScore(dimension.period_b_score) }}</td>
-                                                        <td>
-                                                            <span class="badge rounded-pill guardian-player-detail__badge" :class="trendBadgeClass(dimension.trend)">
-                                                                {{ displayDelta(dimension.delta) }}
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                            <div v-if="comparisonError" class="alert alert-danger mt-3 mb-0" role="alert">
+                                                {{ comparisonError }}
+                                            </div>
+
+                                            <div v-if="comparison" class="mt-4">
+                                                <div class="card bg-light border-0 mb-3">
+                                                    <div class="card-body">
+                                                        <div class="d-flex justify-content-between gap-2 flex-wrap">
+                                                            <div>
+                                                                <div class="small text-muted">{{ comparison.period_a?.period_name }}</div>
+                                                                <strong>{{ displayScore(comparison.overall?.period_a_score) }}</strong>
+                                                            </div>
+                                                            <div class="text-center">
+                                                                <div class="small text-muted">Variación</div>
+                                                                    <span class="badge rounded-pill guardian-player-detail__badge" :class="trendBadgeClass(comparison.overall?.trend)">
+                                                                        {{ displayDelta(comparison.overall?.delta) }}
+                                                                    </span>
+                                                            </div>
+                                                            <div class="text-end">
+                                                                <div class="small text-muted">{{ comparison.period_b?.period_name }}</div>
+                                                                <strong>{{ displayScore(comparison.overall?.period_b_score) }}</strong>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div v-if="comparison.dimensions?.length" class="table-responsive">
+                                                    <table class="table table-sm align-middle">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Dimensión</th>
+                                                                <th>{{ comparison.period_a?.period_code || 'A' }}</th>
+                                                                <th>{{ comparison.period_b?.period_code || 'B' }}</th>
+                                                                <th>Variación</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr v-for="dimension in comparison.dimensions" :key="dimension.dimension">
+                                                                <td>{{ dimension.dimension }}</td>
+                                                                <td>{{ displayScore(dimension.period_a_score) }}</td>
+                                                                <td>{{ displayScore(dimension.period_b_score) }}</td>
+                                                                <td>
+                                                                    <span class="badge rounded-pill guardian-player-detail__badge" :class="trendBadgeClass(dimension.trend)">
+                                                                        {{ displayDelta(dimension.delta) }}
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </div>
                                 </template>
+                                <p v-else class="text-muted mb-0">No hay evaluaciones registradas para esta inscripción.</p>
                             </div>
                         </div>
                     </div>
@@ -556,6 +579,7 @@ const photoInput = ref(null);
 const photoFile = ref(null);
 const photoPreviewUrl = ref('');
 const rotatingPhoto = ref(false);
+const activeActivityTab = ref('payments');
 const activePaymentId = ref(null);
 const activeAttendanceId = ref(null);
 const player = ref(null);
@@ -626,6 +650,23 @@ const historicalInscriptions = computed(() => player.value?.historical_inscripti
 const playerDisplayPhotoUrl = computed(() => photoPreviewUrl.value || player.value?.photo_url || '/img/user.webp');
 const hasSelectedPhoto = computed(() => photoFile.value instanceof File);
 const selectedPhotoName = computed(() => photoFile.value?.name ?? '');
+const activityTabs = computed(() => [
+    {
+        key: 'payments',
+        label: 'Pagos',
+        count: currentInscription.value?.payments?.length ?? 0,
+    },
+    {
+        key: 'attendance',
+        label: 'Asistencias',
+        count: currentInscription.value?.attendance?.length ?? 0,
+    },
+    {
+        key: 'evaluations',
+        label: 'Evaluaciones',
+        count: currentInscription.value?.evaluations?.length ?? 0,
+    },
+]);
 const activePayment = computed(() => {
     const payments = currentInscription.value?.payments ?? [];
 
@@ -1107,6 +1148,24 @@ onBeforeUnmount(revokePhotoPreview);
 
 .guardian-player-detail__photo-editor-body {
     flex: 1 1 auto;
+}
+
+.guardian-player-detail__main-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.guardian-player-detail__main-tabs .nav-link {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    color: var(--guardian-player-detail-text-muted);
+}
+
+.guardian-player-detail__main-tabs .nav-link.active {
+    color: var(--guardian-player-detail-primary-strong);
+    font-weight: 700;
 }
 
 .guardian-player-detail__attendance-tabs {
