@@ -54,8 +54,18 @@ class SchoolsController extends Controller
         ]);
     }
 
-    public function showData(School $school): JsonResponse
+    public function showData(string $slug): JsonResponse
     {
+        abort_unless(
+            preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $slug) === 1,
+            404,
+            'No se encontró la escuela'
+        );
+
+        $school = School::query()->firstWhere('slug', $slug);
+
+        abort_unless($school, 404, 'No se encontró la escuela');
+
         abort_unless($school->is_enable, 404, 'La escuela está deshabilitada');
 
         $availableContracts = $school->create_contract
