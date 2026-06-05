@@ -244,7 +244,7 @@ class DebtorReportService
 
         return [
             'amount' => (float) $months->sum('amount'),
-            'label' => 'Mensualidades: Debe '.$months->pluck('label')->implode(', '),
+            'label' => $months->pluck('label')->implode(', '),
         ];
     }
 
