@@ -148,7 +148,7 @@ final class ContractsTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.code', 'custom_policy')
             ->assertJsonPath('data.configured', true)
-            ->assertJsonPath('data.preview_url', null);
+            ->assertJsonPath('data.preview_url', route('admin.contracts.preview', ['contractTypeCode' => 'custom_policy']));
 
         $this->assertDatabaseHas('contracts', [
             'school_id' => $school->id,
@@ -156,6 +156,11 @@ final class ContractsTest extends TestCase
             'name' => 'Politica portal',
             'parameters' => 'SCHOOL_NAME,TUTOR_DOC_EXP,DATE',
         ]);
+
+        $this->actingAs($this->user)
+            ->get(route('admin.contracts.preview', ['contractTypeCode' => 'custom_policy']))
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
 
         $portalResponse = $this->getJson("/api/v2/portal/escuelas/{$school->slug}/data")
             ->assertOk();

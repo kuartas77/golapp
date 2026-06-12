@@ -131,7 +131,7 @@ class ContractTemplateService
     {
         $contract = $contracts->firstWhere('contract_type_id', $type['contract_type_id']);
         $isConfigured = $this->isConfiguredContract($contract);
-        $previewUrl = $isConfigured && filled($type['pdf_view'] ?? null)
+        $previewUrl = $isConfigured && filled($this->pdfViewForType($type))
             ? route('admin.contracts.preview', ['contractTypeCode' => $type['code']])
             : null;
 
@@ -220,6 +220,19 @@ class ContractTemplateService
     public function renderForSchool(School $school, string $code, array $variables): ?array
     {
         $type = $this->resolveType($code);
+
+        return $this->renderContractForType($school, $type, $variables);
+    }
+
+    public function renderAdminForSchool(School $school, string $code, array $variables): ?array
+    {
+        $type = $this->resolveAdminType($code);
+
+        return $this->renderContractForType($school, $type, $variables);
+    }
+
+    private function renderContractForType(School $school, array $type, array $variables): ?array
+    {
         $contract = Contract::query()
             ->where('school_id', $school->id)
             ->firstWhere('contract_type_id', $type['contract_type_id']);
@@ -334,12 +347,22 @@ class ContractTemplateService
 
     public function pdfViewForCode(string $code): string
     {
-        return $this->resolveType($code)['pdf_view'];
+        return $this->pdfViewForType($this->resolveType($code));
+    }
+
+    public function adminPdfViewForCode(string $code): string
+    {
+        return $this->pdfViewForType($this->resolveAdminType($code));
     }
 
     public function fileLabelForCode(string $code): string
     {
         return $this->resolveType($code)['file_label'];
+    }
+
+    public function adminFileLabelForCode(string $code): string
+    {
+        return $this->resolveAdminType($code)['file_label'];
     }
 
     public function pdfConfiguration(): array
@@ -437,7 +460,7 @@ class ContractTemplateService
             'label' => $contractType->name,
             'description' => 'Plantilla personalizada',
             'file_label' => $contractType->name,
-            'pdf_view' => null,
+            'pdf_view' => 'contracts/contract_inscription.blade.php',
             'acceptance_field' => null,
             'portal' => [
                 'requires_acceptance' => false,
@@ -464,6 +487,11 @@ class ContractTemplateService
             ->orderByRaw('CASE WHEN code = ? THEN 0 ELSE 1 END', [$type['db_code']])
             ->orderBy('id')
             ->first();
+    }
+
+    private function pdfViewForType(array $type): string
+    {
+        return $type['pdf_view'] ?? 'contracts/contract_inscription.blade.php';
     }
 
     private function replaceParameters(Contract $contract, array $variables): array

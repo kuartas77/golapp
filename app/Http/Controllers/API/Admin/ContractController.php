@@ -46,7 +46,7 @@ class ContractController extends Controller
     {
         $school = getSchool(auth()->user());
 
-        $data = $this->contractTemplateService->renderForSchool(
+        $data = $this->contractTemplateService->renderAdminForSchool(
             $school,
             $contractTypeCode,
             $this->contractTemplateService->buildPreviewVariables($school)
@@ -56,8 +56,8 @@ class ContractController extends Controller
 
         $this->setWatermarkSize($this->contractTemplateService->watermarkSize());
         $this->setConfigurationMpdf($this->contractTemplateService->pdfConfiguration());
-        $this->createPDF($data, $this->contractTemplateService->pdfViewForCode($contractTypeCode), false);
+        $this->createPDF($data, $this->contractTemplateService->adminPdfViewForCode($contractTypeCode), false);
 
-        return $this->stream($this->contractTemplateService->fileLabelForCode($contractTypeCode) . '.pdf');
+        return $this->stream($this->contractTemplateService->adminFileLabelForCode($contractTypeCode) . '.pdf');
     }
 }

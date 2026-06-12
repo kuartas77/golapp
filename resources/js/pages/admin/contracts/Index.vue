@@ -117,6 +117,14 @@
                                         >
                                             Ver PDF de ejemplo
                                         </a>
+                                        <button
+                                            v-else
+                                            type="button"
+                                            class="btn btn-outline-secondary btn-sm"
+                                            disabled
+                                        >
+                                            Ver PDF de ejemplo
+                                        </button>
                                         <span class="theme-chip" :class="selectedType.configured ? 'is-success' : 'is-warning'">
                                             {{ selectedType.configured ? 'Plantilla lista' : 'Falta completar contenido' }}
                                         </span>
@@ -127,8 +135,10 @@
                                 </div>
 
                                 <div class="surface-card-body card-body">
-                                    <p v-if="selectedType.preview_url" class="text-muted small mb-4">
-                                        La vista previa usa datos de ejemplo y refleja la ultima version guardada.
+                                    <p class="text-muted small mb-4">
+                                        {{ selectedType.preview_url
+                                            ? 'La vista previa usa datos de ejemplo y refleja la ultima version guardada.'
+                                            : 'Guarda la plantilla para habilitar el PDF de ejemplo.' }}
                                     </p>
 
                                     <div class="row g-3 mb-4">
