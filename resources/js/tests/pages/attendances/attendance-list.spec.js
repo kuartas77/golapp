@@ -155,6 +155,15 @@ describe('attendance-list composable', () => {
         expect(wrapper.vm.options.columns[0].title).toContain('Buscar deportista')
     })
 
+    it('treats string zero retired flags as editable active rows', async () => {
+        const wrapper = mountComposable()
+        await flushPromises()
+
+        expect(wrapper.vm.attendanceRowReadOnly(activeRow({ inscription_deleted: '0' }))).toBe(false)
+        expect(wrapper.vm.attendanceRowReadOnly(activeRow({ inscription_deleted: 'false' }))).toBe(false)
+        expect(wrapper.vm.attendanceRowReadOnly(activeRow({ inscription_deleted: '1' }))).toBe(true)
+    })
+
     it('marks attendance for all loaded active rows and skips retired rows', async () => {
         const wrapper = mountComposable()
         await flushPromises()

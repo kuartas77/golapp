@@ -143,7 +143,9 @@ export default function useAttendances() {
         ]
     }
 
-    const attendanceRowReadOnly = (row) => Boolean(row?.inscription_deleted)
+    const isTruthyFlag = (value) => value === true || value === 1 || value === '1'
+
+    const attendanceRowReadOnly = (row) => isTruthyFlag(row?.inscription_deleted)
 
     const applyPlayerSearch = (searchValue) => {
         playerSearchTerm.value = searchValue?.target ? searchValue.target.value : (searchValue ?? '')
@@ -390,7 +392,7 @@ export default function useAttendances() {
             if (response?.data) {
                 takeAttendance.value = {
                     ...response.data,
-                    inscription_deleted: Boolean(row.inscription_deleted),
+                    inscription_deleted: attendanceRowReadOnly(row),
                 }
                 composeModalObservation.value.show()
             } else {

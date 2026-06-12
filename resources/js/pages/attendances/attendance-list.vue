@@ -146,7 +146,7 @@
                                     <select
                                         class="form-select form-select-sm"
                                         :value="props.rowData[classDaySelected.column] ?? ''"
-                                        :disabled="isLoading || attendanceRowReadOnly(props.rowData)"
+                                        :disabled="attendanceRowReadOnly(props.rowData)"
                                         :id="props.rowData.id"
                                         data-tour="attendance-status-select"
                                         @change="onChangeAttendance(props.rowData, $event.target.value)"
