@@ -381,7 +381,7 @@ class ContractTemplateService
 
     public function watermarkSize(): array
     {
-        return [80, 80];
+        return [40, 40];
     }
 
     public function requiresTutorSignature(array $contracts): bool

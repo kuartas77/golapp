@@ -24,6 +24,13 @@ const { apiMock, settingsStore, authStore } = vi.hoisted(() => ({
             { id: 1, name: 'Provisional' },
             { id: 2, name: 'Grupo definitivo' },
         ],
+        settings: {
+            MONTHLY_PAYMENT: 50000,
+            BROTHER_MONTHLY_PAYMENT: 40000,
+            MONTHLY_PAYMENT_OPTION_1: 55000,
+            MONTHLY_PAYMENT_OPTION_2: 0,
+            MONTHLY_PAYMENT_OPTION_3: 65000,
+        },
         getSettings: vi.fn().mockResolvedValue(undefined),
     },
     authStore: {
@@ -279,6 +286,17 @@ describe('ModalInscription', () => {
         await flushPromises();
 
         expect(wrapper.vm.$.setupState.form.values.monthly_payment_type).toBe('MONTHLY_PAYMENT_OPTION_1');
+    });
+
+    it('shows configured monthly payment amounts and hides zero-value options', async () => {
+        const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
+
+        expect(wrapper.vm.$.setupState.monthlyPaymentOptions).toEqual([
+            { value: 'MONTHLY_PAYMENT', label: 'Mensualidad por defecto - $ 50.000' },
+            { value: 'BROTHER_MONTHLY_PAYMENT', label: 'Mensualidad hermano - $ 40.000' },
+            { value: 'MONTHLY_PAYMENT_OPTION_1', label: 'Mensualidad opción 1 - $ 55.000' },
+            { value: 'MONTHLY_PAYMENT_OPTION_3', label: 'Mensualidad opción 3 - $ 65.000' },
+        ]);
     });
 
     it('normalizes the training group id so the select can show its label when editing', async () => {

@@ -311,13 +311,29 @@ const trainingGroups = computed(() => settings.groups.map((group) => ({
     value: String(group.value ?? group.id),
     label: group.label ?? group.name ?? group.full_group ?? String(group.value ?? group.id),
 })));
-const monthlyPaymentOptions = [
+const monthlyPaymentDefinitions = [
     { value: 'MONTHLY_PAYMENT', label: 'Mensualidad por defecto' },
     { value: 'BROTHER_MONTHLY_PAYMENT', label: 'Mensualidad hermano' },
     { value: 'MONTHLY_PAYMENT_OPTION_1', label: 'Mensualidad opción 1' },
     { value: 'MONTHLY_PAYMENT_OPTION_2', label: 'Mensualidad opción 2' },
     { value: 'MONTHLY_PAYMENT_OPTION_3', label: 'Mensualidad opción 3' },
 ];
+const moneyFormatter = new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+});
+const monthlyPaymentOptions = computed(() => monthlyPaymentDefinitions
+    .map((option) => ({
+        ...option,
+        amount: Number(settings.settings?.[option.value] ?? 0),
+    }))
+    .filter((option) => option.amount > 0)
+    .map((option) => ({
+        value: option.value,
+        label: `${option.label} - ${moneyFormatter.format(option.amount)}`,
+    })));
 const competitionGroups = computed(() => settings.competition_groups.map((group) => ({
     value: String(group.id),
     label: group.full_name_group ?? group.full_name ?? group.name ?? String(group.id),
@@ -394,13 +410,22 @@ const flatpickrConfigDateIssue = computed(() => {
 })
 
 const resolveMonthlyPaymentType = (type, brotherPayment = false) => {
-    const validType = monthlyPaymentOptions.some((option) => option.value === type)
+    const options = monthlyPaymentOptions.value
+    const validType = options.some((option) => option.value === type)
 
     if (validType) {
         return type
     }
 
-    return brotherPayment ? 'BROTHER_MONTHLY_PAYMENT' : 'MONTHLY_PAYMENT'
+    if (brotherPayment && options.some((option) => option.value === 'BROTHER_MONTHLY_PAYMENT')) {
+        return 'BROTHER_MONTHLY_PAYMENT'
+    }
+
+    if (options.some((option) => option.value === 'MONTHLY_PAYMENT')) {
+        return 'MONTHLY_PAYMENT'
+    }
+
+    return options[0]?.value ?? null
 }
 
 const normalizeTrainingGroupId = (value) => [null, '', undefined].includes(value) ? null : String(value)
@@ -413,7 +438,7 @@ const defaultValues = () => ({
     start_date: resolveDefaultStartDate(),
     scholarship: false,
     brother_payment: false,
-    monthly_payment_type: 'MONTHLY_PAYMENT',
+    monthly_payment_type: resolveMonthlyPaymentType(),
     training_group_id: null,
     competition_groups: [],
     photos: false,
@@ -433,7 +458,7 @@ const schema = yup.object().shape({
     start_date: yup.date().required('La Fecha de inicio es requerida'),
     scholarship: yup.boolean().default(false),
     brother_payment: yup.boolean().default(false),
-    monthly_payment_type: yup.string().oneOf(monthlyPaymentOptions.map((option) => option.value)).default('MONTHLY_PAYMENT'),
+    monthly_payment_type: yup.string().nullable().oneOf(monthlyPaymentDefinitions.map((option) => option.value)).default('MONTHLY_PAYMENT'),
     training_group_id: yup.mixed().nullable(),
     competition_groups: yup.array().default([]),
     photos: yup.boolean().default(false),

@@ -52,6 +52,7 @@ export const useSetting = defineStore('settings-store', {
         schools: [],
         type_assistance: [],
         type_payments: [],
+        settings: {},
     }),
     getters: {
         genderOptions: (state) => normalizeOptionList(state.genders),
@@ -89,6 +90,7 @@ export const useSetting = defineStore('settings-store', {
             this.schools = toArray(data.schools)
             this.type_assistance = normalizeOptionList(data.type_assistance)
             this.type_payments = normalizeOptionList(data.type_payments)
+            this.settings = data.settings ?? {}
         }
     }
 

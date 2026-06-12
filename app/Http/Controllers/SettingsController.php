@@ -38,7 +38,8 @@ class SettingsController extends Controller
 
     public function index()
     {
-        $school_id = getSchool(auth()->user())->id;
+        $school = getSchool(auth()->user());
+        $school_id = $school->id;
         $user_id = auth()->id();
 
         $training_groups = Cache::remember("KEY_TRAINING_GROUPS_{$school_id}.{$user_id}", now()->addMinutes(5), function () {
@@ -120,6 +121,7 @@ class SettingsController extends Controller
             'schools' => $schools,
             'type_assistance' => $optionsAssist,
             'type_payments' => $optionsPayment,
+            'settings' => $school->settings,
         ]);
     }
 
