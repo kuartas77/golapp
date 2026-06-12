@@ -45,6 +45,7 @@ class PeopleRepository
                 'tutor' => $person['tutor'],
                 'relationship' => $person['relationship'],
                 'phone' => ($person['phone'] ?? null),
+                'document_expedition_place' => ($person['document_expedition_place'] ?? null),
                 'email' => ($person['email'] ?? null),
                 'mobile' => ($person['mobile'] ?? null),
                 'profession' => ($person['profession'] ?? null),

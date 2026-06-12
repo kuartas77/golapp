@@ -24,18 +24,76 @@ class ContractTemplateService
         return array_keys($this->supportedTypes());
     }
 
+    public function adminTypes(): Collection
+    {
+        $configuredTypes = collect($this->supportedTypes())
+            ->map(fn (array $type, string $code) => [
+                'code' => $code,
+                ...$this->resolveConfiguredType($code, $type),
+            ]);
+
+        $configuredDatabaseCodes = $configuredTypes
+            ->pluck('contract_type.code')
+            ->filter()
+            ->all();
+
+        $configuredDatabaseIds = $configuredTypes
+            ->pluck('contract_type_id')
+            ->filter()
+            ->all();
+
+        $genericTypes = ContractType::query()
+            ->whereNotIn('id', $configuredDatabaseIds)
+            ->when($configuredDatabaseCodes !== [], fn ($query) => $query->whereNotIn('code', $configuredDatabaseCodes))
+            ->orderBy('name')
+            ->get()
+            ->map(fn (ContractType $contractType) => $this->genericTypePayload($contractType));
+
+        return $configuredTypes
+            ->values()
+            ->concat($genericTypes)
+            ->values();
+    }
+
     public function resolveType(string $code): array
     {
         $type = $this->supportedTypes()[$code] ?? null;
 
         abort_if($type === null, 404, 'El tipo de contrato no esta disponible.');
 
-        $contractType = $this->resolveContractTypeModel($code);
+        return [
+            'code' => $code,
+            ...$this->resolveConfiguredType($code, $type),
+        ];
+    }
+
+    public function resolveAdminType(string $code): array
+    {
+        $type = $this->supportedTypes()[$code] ?? null;
+
+        if ($type !== null) {
+            return [
+                'code' => $code,
+                ...$this->resolveConfiguredType($code, $type),
+            ];
+        }
+
+        $contractType = ContractType::query()
+            ->where('code', $code)
+            ->first();
+
+        abort_if($contractType === null, 404, 'El tipo de contrato no existe en la configuracion actual.');
+
+        return $this->genericTypePayload($contractType);
+    }
+
+    private function resolveConfiguredType(string $code, array $type): array
+    {
+        $contractType = $this->resolveContractTypeModel($type);
 
         abort_if($contractType === null, 404, 'El tipo de contrato no existe en la configuracion actual.');
 
         return [
-            'code' => $code,
             'contract_type_id' => $contractType->id,
             'contract_type' => $contractType,
             ...$type,
@@ -54,8 +112,8 @@ class ContractTemplateService
                 'create_contract' => (bool) $school->create_contract,
                 'sign_player' => (bool) $school->sign_player,
             ],
-            'types' => collect($this->supportedTypeCodes())
-                ->map(fn (string $code) => $this->editorTypePayload($school, $code, $contracts))
+            'types' => $this->adminTypes()
+                ->map(fn (array $type) => $this->editorTypePayloadFromType($type, $contracts))
                 ->values()
                 ->all(),
         ];
@@ -63,19 +121,26 @@ class ContractTemplateService
 
     public function editorTypePayload(School $school, string $code, ?EloquentCollection $contracts = null): array
     {
-        $type = $this->resolveType($code);
+        $type = $this->resolveAdminType($code);
         $contracts ??= $this->contractsForSchool($school);
+
+        return $this->editorTypePayloadFromType($type, $contracts);
+    }
+
+    private function editorTypePayloadFromType(array $type, EloquentCollection $contracts): array
+    {
         $contract = $contracts->firstWhere('contract_type_id', $type['contract_type_id']);
         $isConfigured = $this->isConfiguredContract($contract);
+        $previewUrl = $isConfigured && filled($type['pdf_view'] ?? null)
+            ? route('admin.contracts.preview', ['contractTypeCode' => $type['code']])
+            : null;
 
         return [
             'code' => $type['code'],
             'label' => $type['label'],
             'description' => $type['description'] ?? '',
             'configured' => $isConfigured,
-            'preview_url' => $isConfigured
-                ? route('admin.contracts.preview', ['contractTypeCode' => $type['code']])
-                : null,
+            'preview_url' => $previewUrl,
             'portal' => [
                 'requires_acceptance' => (bool) data_get($type, 'portal.requires_acceptance', false),
                 'requires_tutor_signature' => (bool) data_get($type, 'portal.requires_tutor_signature', false),
@@ -98,7 +163,7 @@ class ContractTemplateService
 
     public function upsertSchoolContract(School $school, string $code, array $attributes): Contract
     {
-        $type = $this->resolveType($code);
+        $type = $this->resolveAdminType($code);
         $usedParameters = $this->extractUsedParameters([
             $attributes['header'] ?? '',
             $attributes['body'] ?? '',
@@ -204,6 +269,7 @@ class ContractTemplateService
 
         $variables['TUTOR_NAME'] = data_get($tutor, 'names', '');
         $variables['TUTOR_DOC'] = data_get($tutor, 'identification_card', '');
+        $variables['TUTOR_DOC_EXP'] = data_get($tutor, 'document_expedition_place', '');
         $variables['TUTOR_MAIL'] = data_get($tutor, 'email', '');
         $variables['TUTOR_PHONE'] = data_get($tutor, 'mobile', '');
         $variables['SIGN_TUTOR'] = isset($paths['sign_tutor']) ? $this->localPath($paths['sign_tutor']) : $this->fallbackSignaturePath($school);
@@ -236,6 +302,7 @@ class ContractTemplateService
             'CATEGORY' => '2012',
             'TUTOR_NAME' => 'ACUDIENTE DE PRUEBA',
             'TUTOR_DOC' => '1020304050',
+            'TUTOR_DOC_EXP' => 'MEDELLIN',
             'SIGN_TUTOR' => $this->fallbackSignaturePath($school),
             'TUTOR_MAIL' => 'acudiente@example.com',
             'TUTOR_PHONE' => '3000000000',
@@ -361,14 +428,27 @@ class ContractTemplateService
             ->get();
     }
 
-    private function resolveContractTypeModel(string $code): ?ContractType
+    private function genericTypePayload(ContractType $contractType): array
     {
-        $type = $this->supportedTypes()[$code] ?? null;
+        return [
+            'code' => $contractType->code,
+            'contract_type_id' => $contractType->id,
+            'contract_type' => $contractType,
+            'label' => $contractType->name,
+            'description' => 'Plantilla personalizada',
+            'file_label' => $contractType->name,
+            'pdf_view' => null,
+            'acceptance_field' => null,
+            'portal' => [
+                'requires_acceptance' => false,
+                'requires_tutor_signature' => false,
+                'requires_player_signature' => false,
+            ],
+        ];
+    }
 
-        if ($type === null) {
-            return null;
-        }
-
+    private function resolveContractTypeModel(array $type): ?ContractType
+    {
         return ContractType::query()
             ->where(function ($query) use ($type) {
                 $query->where('code', $type['db_code']);

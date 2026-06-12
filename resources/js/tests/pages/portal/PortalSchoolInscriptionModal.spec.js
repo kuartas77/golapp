@@ -234,6 +234,7 @@ const fillGeneralStep = async (wrapper) => {
 const fillFamilyStep = async (wrapper) => {
     await setFieldValue(wrapper, 'tutor_name', 'Acudiente Demo');
     await setFieldValue(wrapper, 'tutor_num_doc', '90123456');
+    await setFieldValue(wrapper, 'tutor_doc_exp', 'Bogota');
     await setFieldValue(wrapper, 'tutor_relationship', 'mother');
     await setFieldValue(wrapper, 'tutor_phone', '3009876543');
     await setFieldValue(wrapper, 'tutor_work', 'Empresa Demo');
@@ -421,6 +422,31 @@ describe('PortalSchoolInscriptionModal', () => {
         expect(wrapper.get('select[name="gender"]').element.value).toBe('M');
     });
 
+    it('muestra y exige el lugar de expedición del documento del acudiente', async () => {
+        const { wrapper } = await mountModal();
+
+        await fillPlayerStep(wrapper);
+        await setWizardStep(wrapper, 1);
+        await fillGeneralStep(wrapper);
+        await setWizardStep(wrapper, 2);
+
+        expect(wrapper.find('input[name="tutor_doc_exp"]').exists()).toBe(true);
+
+        await setFieldValue(wrapper, 'tutor_name', 'Acudiente Demo');
+        await setFieldValue(wrapper, 'tutor_num_doc', '90123456');
+        await setFieldValue(wrapper, 'tutor_relationship', 'mother');
+        await setFieldValue(wrapper, 'tutor_phone', '3009876543');
+        await setFieldValue(wrapper, 'tutor_work', 'Empresa Demo');
+        await setFieldValue(wrapper, 'tutor_position_held', 'Coordinadora');
+        await setFieldValue(wrapper, 'tutor_email', 'ACUDIENTE@EXAMPLE.COM');
+
+        const wizardOptions = wrapper.getComponent({ name: 'Wizard' }).props('options');
+
+        expect(await wizardOptions.onFinishing()).toBe(false);
+        await flushPromises();
+        expect(wrapper.text()).toContain('Ingresa el lugar de expedición del documento del acudiente.');
+    });
+
     it('restaura datos guardados y persiste solo campos serializables', async () => {
         vi.useFakeTimers();
 
@@ -574,6 +600,7 @@ describe('PortalSchoolInscriptionModal', () => {
         expect(formData).toBeInstanceOf(FormData);
         expect(formData.get('email')).toBe('jugador@example.com');
         expect(formData.get('tutor_email')).toBe('acudiente@example.com');
+        expect(formData.get('tutor_doc_exp')).toBe('Bogota');
         expect(formData.get('year')).toBe(String(props.year));
         expect(formData.get('contrato_insc')).toBeNull();
         expect(formData.get('g-recaptcha-response')).toBeNull();

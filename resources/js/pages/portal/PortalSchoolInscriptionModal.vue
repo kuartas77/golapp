@@ -318,6 +318,14 @@
                                             </div>
 
                                             <div class="col-md-4">
+                                                <InputField
+                                                    name="tutor_doc_exp"
+                                                    label="Lugar de expedición del documento"
+                                                    :is-required="true"
+                                                />
+                                            </div>
+
+                                            <div class="col-md-4">
 
                                                     <label for="tutor_relationship">
                                                         Parentesco
@@ -854,6 +862,7 @@ const schema = yup.object({
 
     tutor_name: yup.string().trim().required('Ingresa los nombres del acudiente.').max(50),
     tutor_num_doc: yup.string().trim().required('Ingresa el numero de documento del acudiente.').max(50),
+    tutor_doc_exp: yup.string().trim().required('Ingresa el lugar de expedición del documento del acudiente.').max(100),
     tutor_relationship: yup.string().trim().required('Selecciona el parentesco del acudiente.').max(50),
     tutor_phone: yup.string().trim().required('Ingresa el teléfono del acudiente.').max(50),
     tutor_work: yup.string().trim().required('Ingresa la empresa del acudiente.').max(50),
@@ -911,6 +920,7 @@ const defaultValues = () => ({
 
     tutor_name: '',
     tutor_num_doc: '',
+    tutor_doc_exp: '',
     tutor_relationship: '',
     tutor_phone: '',
     tutor_work: '',
@@ -994,6 +1004,7 @@ const steps = computed(() => {
             fields: [
                 'tutor_name',
                 'tutor_num_doc',
+                'tutor_doc_exp',
                 'tutor_relationship',
                 'tutor_phone',
                 'tutor_work',

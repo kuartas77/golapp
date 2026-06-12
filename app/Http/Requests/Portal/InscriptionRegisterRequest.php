@@ -44,6 +44,7 @@ class InscriptionRegisterRequest extends FormRequest
             // Step 3
             'tutor_name' => ['required', 'string', 'max:50'],
             'tutor_doc' => ['required', 'string', 'max:50'],
+            'tutor_doc_exp' => ['required', 'string', 'max:100'],
             'tutor_relationship' => ['required', 'string', 'max:50'],
             'tutor_phone' => ['required', 'string', 'max:50'],
             'tutor_work' => ['required', 'string', 'max:50'],

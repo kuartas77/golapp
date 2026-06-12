@@ -46,6 +46,7 @@ final class CreatePeoplePlayerAction implements IContractPassable
         return [
             'names' => $passable->getPropertyFromData('tutor_name'),
             'identification_card' => $passable->getPropertyFromData('tutor_doc'),
+            'document_expedition_place' => $passable->getPropertyFromData('tutor_doc_exp'),
             'tutor' => true,
             'relationship' => $passable->getPropertyFromData('tutor_relationship'),
             'phone' => null,

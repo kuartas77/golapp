@@ -127,6 +127,11 @@ return [
             'description' => 'Numero de documento del acudiente principal.',
             'example' => '[TUTOR_DOC]',
         ],
+        'TUTOR_DOC_EXP' => [
+            'label' => 'Lugar de expedicion del documento del acudiente',
+            'description' => 'Ciudad o municipio donde fue expedido el documento del acudiente principal.',
+            'example' => '[TUTOR_DOC_EXP]',
+        ],
         'SIGN_TUTOR' => [
             'label' => 'Firma del acudiente',
             'description' => 'Ruta local de la firma capturada del acudiente.',

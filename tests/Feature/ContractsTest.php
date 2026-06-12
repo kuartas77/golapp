@@ -111,6 +111,58 @@ final class ContractsTest extends TestCase
         $this->assertNull($types->get('affiliate')['preview_url']);
     }
 
+    public function testAdminContractsIncludesAndStoresGenericDatabaseTypesWithoutPublishingThemToPortal(): void
+    {
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->forceFill([
+            'create_contract' => true,
+            'is_enable' => true,
+            'inscriptions_enabled' => true,
+        ])->save();
+        School::forgetCachedSchool($school->id);
+
+        $customType = new ContractType();
+        $customType->code = 'custom_policy';
+        $customType->name = 'Politica personalizada';
+        $customType->save();
+
+        $indexResponse = $this->actingAs($this->user)
+            ->getJson('/api/v2/admin/contracts')
+            ->assertOk();
+
+        $types = collect($indexResponse->json('types'))->keyBy('code');
+
+        $this->assertTrue($types->has('custom_policy'));
+        $this->assertSame('Politica personalizada', $types->get('custom_policy')['label']);
+        $this->assertSame('Plantilla personalizada', $types->get('custom_policy')['description']);
+        $this->assertFalse($types->get('custom_policy')['portal']['requires_acceptance']);
+        $this->assertNull($types->get('custom_policy')['preview_url']);
+
+        $this->actingAs($this->user)
+            ->putJson('/api/v2/admin/contracts/custom_policy', [
+                'name' => 'Politica portal',
+                'header' => '<p>[SCHOOL_NAME]</p>',
+                'body' => '<p>[TUTOR_DOC_EXP]</p>',
+                'footer' => '<p>[DATE]</p>',
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.code', 'custom_policy')
+            ->assertJsonPath('data.configured', true)
+            ->assertJsonPath('data.preview_url', null);
+
+        $this->assertDatabaseHas('contracts', [
+            'school_id' => $school->id,
+            'contract_type_id' => $customType->id,
+            'name' => 'Politica portal',
+            'parameters' => 'SCHOOL_NAME,TUTOR_DOC_EXP,DATE',
+        ]);
+
+        $portalResponse = $this->getJson("/api/v2/portal/escuelas/{$school->slug}/data")
+            ->assertOk();
+
+        $this->assertSame([], $portalResponse->json('data.contracts.available'));
+    }
+
     public function testPortalSchoolDataOnlyReturnsConfiguredContracts(): void
     {
         $school = School::query()->findOrFail($this->school['id']);
@@ -244,6 +296,71 @@ final class ContractsTest extends TestCase
         Storage::disk('local')->assertExists($contractPath);
     }
 
+    public function testTutorDocumentExpeditionPlaceholderAndVariablesAreAvailable(): void
+    {
+        $school = School::query()->findOrFail($this->school['id']);
+        $player = Player::factory()->create([
+            'school_id' => $school->id,
+        ]);
+        $tutor = People::factory()->create([
+            'tutor' => true,
+            'document_expedition_place' => 'Cali',
+        ]);
+        $player->people()->attach($tutor->id);
+
+        $service = app(\App\Service\Contracts\ContractTemplateService::class);
+        $placeholders = collect($service->placeholderCatalog('inscription'))->keyBy('key');
+
+        $this->assertTrue($placeholders->has('TUTOR_DOC_EXP'));
+        $this->assertSame('[TUTOR_DOC_EXP]', $placeholders->get('TUTOR_DOC_EXP')['token']);
+
+        $variables = $service->buildPlayerVariables($school, $player);
+        $previewVariables = $service->buildPreviewVariables($school);
+
+        $this->assertSame('Cali', $variables['TUTOR_DOC_EXP']);
+        $this->assertSame('MEDELLIN', $previewVariables['TUTOR_DOC_EXP']);
+    }
+
+    public function testPortalInscriptionRequiresAndStoresTutorDocumentExpeditionPlace(): void
+    {
+        config([
+            'recaptchav3.sitekey' => null,
+            'recaptchav3.secret' => null,
+        ]);
+
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->forceFill([
+            'create_contract' => false,
+            'is_enable' => true,
+            'inscriptions_enabled' => true,
+        ])->save();
+        School::forgetCachedSchool($school->id);
+
+        $missingResponse = $this->postJson(
+            route('portal.school.inscription.store', [$school->slug]),
+            array_diff_key($this->portalInscriptionPayload(), ['tutor_doc_exp' => true])
+        );
+
+        $missingResponse->assertStatus(422);
+        $missingResponse->assertJsonValidationErrors(['tutor_doc_exp']);
+
+        $this->postJson(
+            route('portal.school.inscription.store', [$school->slug]),
+            $this->portalInscriptionPayload([
+                'identification_document' => '1002003999',
+                'email' => 'jugador.exp@example.com',
+                'tutor_num_doc' => '900800799',
+                'tutor_email' => 'acudiente.exp@example.com',
+                'tutor_doc_exp' => 'Bogota',
+            ])
+        )->assertOk();
+
+        $this->assertDatabaseHas('peoples', [
+            'identification_card' => '900800799',
+            'document_expedition_place' => 'Bogota',
+        ]);
+    }
+
     private function ensureContractTypes(): void
     {
         $definitions = [
@@ -309,9 +426,9 @@ final class ContractsTest extends TestCase
         return $user;
     }
 
-    private function portalInscriptionPayload(): array
+    private function portalInscriptionPayload(array $overrides = []): array
     {
-        return [
+        return array_merge([
             'names' => 'Jugador',
             'last_names' => 'Prueba',
             'date_birth' => '2014-05-11',
@@ -333,13 +450,14 @@ final class ContractsTest extends TestCase
             'student_insurance' => 'Seguro escolar',
             'tutor_name' => 'Acudiente Prueba',
             'tutor_num_doc' => '900800700',
+            'tutor_doc_exp' => 'Medellin',
             'tutor_relationship' => 'Madre',
             'tutor_phone' => '3009876543',
             'tutor_work' => 'Empresa Demo',
             'tutor_position_held' => 'Analista',
             'tutor_email' => 'acudiente.prueba@example.com',
             'year' => now()->format('Y'),
-        ];
+        ], $overrides);
     }
 
 }

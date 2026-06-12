@@ -43,6 +43,7 @@ class People extends Authenticatable
         'phone',
         'mobile',
         'identification_card',
+        'document_expedition_place',
         'neighborhood',
         'email',
         'profession',
