@@ -27,6 +27,8 @@ class GuardianPasswordResetNotification extends Notification implements ShouldQu
 
     public function toMail($notifiable): MailMessage
     {
+        $schoolNames = $this->schoolNames();
+
         $resetUrl = url('/portal/acudientes/restablecer') . '?' . http_build_query([
             'token' => $this->token,
             'email' => $this->guardian->email,
@@ -44,7 +46,19 @@ class GuardianPasswordResetNotification extends Notification implements ShouldQu
             ->subject($subject)
             ->greeting("Hola {$this->guardian->names},")
             ->line($line)
+            ->when($schoolNames !== '', fn (MailMessage $message) => $message->line("Escuela: {$schoolNames}"))
             ->action($this->isInvitation ? 'Definir contraseña' : 'Restablecer contraseña', $resetUrl)
             ->line('Si no reconoces esta solicitud, puedes ignorar este mensaje.');
+    }
+
+    private function schoolNames(): string
+    {
+        $this->guardian->loadMissing('players.schoolData');
+
+        return $this->guardian->players
+            ->pluck('schoolData.name')
+            ->filter()
+            ->unique()
+            ->implode(', ');
     }
 }

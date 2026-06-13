@@ -253,6 +253,17 @@ final class PortalGuardiansTest extends TestCase
         $this->assertNotNull($guardian->fresh()->invited_at);
     }
 
+    public function testGuardianAccessEmailShowsSchoolName(): void
+    {
+        [$guardian, , , $school] = $this->createGuardianScenario([
+            'email' => 'school-access.guardian@example.com',
+        ]);
+
+        $mail = (new GuardianPasswordResetNotification($guardian, 'test-token', true))->toMail($guardian);
+
+        $this->assertContains("Escuela: {$school->name}", $mail->introLines);
+    }
+
     private function createGuardianScenario(
         array $guardianAttributes = [],
         ?int $inscriptionYear = null,

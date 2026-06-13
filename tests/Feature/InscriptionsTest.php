@@ -60,6 +60,13 @@ final class InscriptionsTest extends TestCase
         ]);
     }
 
+    public function test_inscription_email_shows_school_name_to_guardian(): void
+    {
+        $template = file_get_contents(resource_path('views/emails/inscriptions/added.blade.php'));
+
+        $this->assertStringContainsString('* Escuela: {{ $inscription->school->name }}', $template);
+    }
+
     public function test_inscription_limit_summary_reports_current_and_remaining_slots(): void
     {
         $year = now()->year;

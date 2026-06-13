@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Inscription;
+use App\Models\People;
 use App\Models\Player;
 use App\Models\School;
 use App\Models\Setting;
@@ -105,6 +106,81 @@ final class PortalSchoolsTest extends TestCase
         ]);
     }
 
+    public function testPortalAllowsRegisteringTwoPlayersWithTheSameGuardian(): void
+    {
+        config([
+            'recaptchav3.sitekey' => null,
+            'recaptchav3.secret' => null,
+        ]);
+
+        $schoolData = $this->createSchool([
+            'name' => 'Escuela Acudiente Compartido',
+            'slug' => 'escuela-acudiente-compartido',
+            'email' => 'acudiente-compartido@example.com',
+            'is_enable' => true,
+            'inscriptions_enabled' => true,
+        ]);
+        $school = School::query()->findOrFail($schoolData['id']);
+
+        $this->postJson(
+            route('portal.school.inscription.store', [$school->slug]),
+            $this->portalInscriptionPayload($school->slug)
+        )->assertOk();
+
+        $this->postJson(
+            route('portal.school.inscription.store', [$school->slug]),
+            array_merge($this->portalInscriptionPayload($school->slug), [
+                'names' => 'Segundo',
+                'last_names' => 'Deportista',
+                'identification_document' => '1002003005',
+                'email' => 'segundo.deportista@example.com',
+            ])
+        )->assertOk();
+
+        $guardian = People::query()
+            ->where('identification_card', '900800700')
+            ->where('email', 'acudiente.prueba@example.com')
+            ->firstOrFail();
+
+        $this->assertSame(2, $guardian->players()->count());
+    }
+
+    public function testPortalRejectsGuardianEmailRegisteredWithAnotherDocument(): void
+    {
+        config([
+            'recaptchav3.sitekey' => null,
+            'recaptchav3.secret' => null,
+        ]);
+
+        $schoolData = $this->createSchool([
+            'name' => 'Escuela Correo Acudiente',
+            'slug' => 'escuela-correo-acudiente',
+            'email' => 'correo-acudiente@example.com',
+            'is_enable' => true,
+            'inscriptions_enabled' => true,
+        ]);
+        $school = School::query()->findOrFail($schoolData['id']);
+
+        $this->postJson(
+            route('portal.school.inscription.store', [$school->slug]),
+            $this->portalInscriptionPayload($school->slug)
+        )->assertOk();
+
+        $response = $this->postJson(
+            route('portal.school.inscription.store', [$school->slug]),
+            array_merge($this->portalInscriptionPayload($school->slug), [
+                'names' => 'Otro',
+                'last_names' => 'Acudido',
+                'identification_document' => '1002003006',
+                'email' => 'otro.acudido@example.com',
+                'tutor_num_doc' => '900800701',
+            ])
+        );
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['tutor_email']);
+    }
+
     private function portalInscriptionPayload(string $schoolSlug): array
     {
         return [
@@ -129,6 +205,7 @@ final class PortalSchoolsTest extends TestCase
             'student_insurance' => 'Seguro escolar',
             'tutor_name' => 'Acudiente Prueba',
             'tutor_num_doc' => '900800700',
+            'tutor_doc_exp' => 'Medellin',
             'tutor_relationship' => 'Madre',
             'tutor_phone' => '3009876543',
             'tutor_work' => 'Empresa Demo',

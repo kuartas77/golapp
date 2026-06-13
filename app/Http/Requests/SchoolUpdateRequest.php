@@ -38,12 +38,17 @@ class SchoolUpdateRequest extends FormRequest
             'MONTHLY_PAYMENT_OPTION_2' => ['required', 'string'],
             'MONTHLY_PAYMENT_OPTION_3' => ['required', 'string'],
             'ANNUITY' => ['required', 'string'],
+            'create_contract' => ['nullable', 'boolean'],
+            'send_documents' => ['nullable', 'boolean'],
+            'tutor_platform' => ['nullable', 'boolean'],
+            'sign_player' => ['nullable', 'boolean'],
+            'inscriptions_enabled' => ['nullable', 'boolean'],
         ];
     }
 
     protected function prepareForValidation()
     {
-        $this->merge([
+        $data = [
             'NOTIFY_PAYMENT_DAY' => $this->cleanString($this->NOTIFY_PAYMENT_DAY),
             'INSCRIPTION_AMOUNT' => $this->cleanString($this->INSCRIPTION_AMOUNT),
             'MONTHLY_PAYMENT' => $this->cleanString($this->MONTHLY_PAYMENT),
@@ -53,7 +58,21 @@ class SchoolUpdateRequest extends FormRequest
             'MONTHLY_PAYMENT_OPTION_3' => $this->cleanString($this->MONTHLY_PAYMENT_OPTION_3),
             'ANNUITY' => $this->cleanString($this->ANNUITY),
             'logo' => $this->hasFile('logo') ? $this->logo : null,
-        ]);
+        ];
+
+        foreach ([
+            'create_contract',
+            'send_documents',
+            'tutor_platform',
+            'sign_player',
+            'inscriptions_enabled',
+        ] as $field) {
+            if ($this->has($field)) {
+                $data[$field] = $this->boolean($field);
+            }
+        }
+
+        $this->merge($data);
     }
 
     private function cleanString($value)

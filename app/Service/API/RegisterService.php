@@ -89,6 +89,18 @@ class RegisterService
         try {
 
             $validated = $request->only(['name', 'email', 'agent', 'address', 'phone']);
+            foreach ([
+                'create_contract',
+                'send_documents',
+                'tutor_platform',
+                'sign_player',
+                'inscriptions_enabled',
+            ] as $field) {
+                if ($request->has($field)) {
+                    $validated[$field] = $request->boolean($field);
+                }
+            }
+
             if ($request->hasFile('logo')) {
                 $request->merge(['school_id' => $school->id]);
                 $validated['logo'] = $this->saveFile($request, 'logo');

@@ -2,6 +2,7 @@
 # Notificación de Inscripción {{ $inscription->school->name }}
 
 @component('mail::panel')
+* Escuela: {{ $inscription->school->name }}
 * Nombres: {{ $inscription->player->full_names }}
 * Fecha De Inicio: {{ $inscription->start_date->format('Y-m-d') }}
 * Codigo único: {{ $inscription->unique_code }}
