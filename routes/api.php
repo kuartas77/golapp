@@ -18,6 +18,7 @@ use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\Instructor\AssistsController;
 use App\Http\Controllers\API\Instructor\GroupsController;
 use App\Http\Controllers\API\LoginController;
+use App\Http\Controllers\API\MethodologyRecordController;
 use App\Http\Controllers\API\Notifications\HeaderNotificationsController;
 use App\Http\Controllers\API\Portal\GuardianAuthController;
 use App\Http\Controllers\API\Portal\GuardianEvaluationController;
@@ -221,6 +222,13 @@ Route::prefix('v2')->group(function () {
             Route::post('', [ApiTrainingSessionsController::class, 'store']);
             Route::get('{trainingSession}', [ApiTrainingSessionsController::class, 'show']);
             Route::put('{trainingSession}', [ApiTrainingSessionsController::class, 'update']);
+        });
+
+        Route::middleware('school.permission:school.module.methodology')->prefix('methodology-records')->group(function () {
+            Route::get('', [MethodologyRecordController::class, 'index']);
+            Route::post('', [MethodologyRecordController::class, 'store']);
+            Route::get('{methodologyRecord}', [MethodologyRecordController::class, 'show']);
+            Route::put('{methodologyRecord}', [MethodologyRecordController::class, 'update']);
         });
 
         Route::middleware([

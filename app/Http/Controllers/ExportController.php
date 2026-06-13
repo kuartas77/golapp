@@ -12,8 +12,10 @@ use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
 use App\Repositories\PaymentRepository;
 use App\Repositories\TournamentPayoutsRepository;
+use App\Repositories\MethodologyRecordRepository;
 use App\Repositories\TrainingSessionRepository;
 use App\Service\Assist\AssistExportService;
+use App\Service\Methodology\MethodologyRecordExportService;
 use App\Service\Payment\PaymentExportService;
 use App\Service\TrainigSession\TrainingSessionExportService;
 use Illuminate\Http\Request;
@@ -122,5 +124,12 @@ class ExportController extends Controller
         $trainingSessionRepository->findAccessibleOrFail($id);
 
         return $trainingSessionExportService->exportSessionPDF($id);
+    }
+
+    public function exportMethodologyRecord(int $id, MethodologyRecordExportService $exportService, MethodologyRecordRepository $repository)
+    {
+        $record = $repository->findAccessibleOrFail($id);
+
+        return $exportService->export($record);
     }
 }

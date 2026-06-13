@@ -88,6 +88,11 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::redirect('training-sessions/create', 'training-sessions');
     });
 
+    Route::middleware('school.permission:school.module.methodology')->group(function () {
+        Route::get('metodologia', [AppController::class, 'index'])->name('methodology.index');
+        Route::get('metodologia/pdf/{id}', [ExportController::class, 'exportMethodologyRecord'])->name('methodology.records.pdf');
+    });
+
     Route::prefix('import')->group(function(){
         Route::middleware('school.permission:school.module.matches')->group(function () {
             Route::post('matches/{match}', [ImportController::class, 'importMatchDetail'])->name('import.match');

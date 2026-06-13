@@ -35,4 +35,15 @@ describe('hasBackofficeAccess', () => {
 
         expect(hasBackofficeAccess(auth, backofficeAccessRequirements.inventory)).toBe(false)
     })
+
+    it('allows instructors with methodology permission to see the methodology menu entry', () => {
+        const auth = makeAuth({
+            roles: ['instructor'],
+            schoolPermissions: {
+                'school.module.methodology': true,
+            },
+        })
+
+        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.methodology)).toBe(true)
+    })
 })

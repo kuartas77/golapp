@@ -206,6 +206,19 @@
                         </div>
                     </router-link>
                 </li>
+                <li v-if="canMethodology" class="menu">
+                    <router-link :to="{ name: 'methodology.index' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-edit-3">
+                                <path d="M12 20h9"></path>
+                                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                            </svg>
+                            <span>Metodología</span>
+                        </div>
+                    </router-link>
+                </li>
                 <li v-if="canMatches" class="menu">
                     <router-link :to="{ name: 'matches' }" class="dropdown-toggle" @click="toggleMobileMenu">
                         <div class="">
@@ -425,6 +438,7 @@ const canInscriptions = access.inscriptions
 const canEvaluations = access.evaluations
 const canAttendances = access.attendances
 const canTrainingSessions = access.trainingSessions
+const canMethodology = access.methodology
 const canMatches = access.matches
 const canPayments = access.payments
 const canReports = access.reports

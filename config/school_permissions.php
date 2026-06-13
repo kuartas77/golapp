@@ -34,6 +34,12 @@ return [
             'group' => 'Operación deportiva',
             'default' => true,
         ],
+        'school.module.methodology' => [
+            'label' => 'Metodología',
+            'description' => 'Permite gestionar formatos metodológicos, planificaciones e informes.',
+            'group' => 'Operación deportiva',
+            'default' => true,
+        ],
         'school.module.matches' => [
             'label' => 'Competencias',
             'description' => 'Permite acceder al módulo de competencias y partidos.',

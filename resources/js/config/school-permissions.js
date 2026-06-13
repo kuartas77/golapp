@@ -4,6 +4,7 @@ export const SCHOOL_PERMISSION_KEYS = {
     evaluations: 'school.module.evaluations',
     attendances: 'school.module.attendances',
     trainingSessions: 'school.module.training_sessions',
+    methodology: 'school.module.methodology',
     matches: 'school.module.matches',
     payments: 'school.module.payments',
     reports: 'school.module.reports',

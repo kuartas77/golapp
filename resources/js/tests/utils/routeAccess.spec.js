@@ -76,4 +76,25 @@ describe('canAccessRoute', () => {
 
         expect(canAccessRoute(route, auth)).toBe(false)
     })
+
+    it('allows instructors into methodology when the school permission is enabled', () => {
+        const route = {
+            matched: [
+                {
+                    meta: {
+                        requiresSchoolPermission: ['school.module.methodology'],
+                    },
+                },
+            ],
+        }
+
+        const auth = makeAuth({
+            roles: ['instructor'],
+            schoolPermissions: {
+                'school.module.methodology': true,
+            },
+        })
+
+        expect(canAccessRoute(route, auth)).toBe(true)
+    })
 })
