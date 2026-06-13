@@ -108,7 +108,7 @@
             <td class="field-label">Grupo</td>
             <td>{{ $record->trainingGroup?->name ?? 'Sin grupo' }}</td>
             <td class="field-label">Fecha</td>
-            <td>{{ $record->updated_at?->format('Y-m-d') ?? $record->created_at?->format('Y-m-d') }}</td>
+            <td>{{ $record->created_at?->format('Y-m-d') }}</td>
         </tr>
     </table>
 

@@ -27,6 +27,7 @@ describe('methodology form definitions', () => {
             material: '',
             observations: '',
         }))
+        expect(createBlankFields(METHODOLOGY_TYPES.planning)).not.toHaveProperty('date')
 
         expect(createBlankDiagrams()).toEqual({
             initial_phase: [],

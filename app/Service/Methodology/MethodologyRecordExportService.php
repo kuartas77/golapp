@@ -102,7 +102,6 @@ class MethodologyRecordExportService
                     'title' => 'Encabezado',
                     'fields' => [
                         ['key' => 'category', 'label' => 'Categoría'],
-                        ['key' => 'date', 'label' => 'Fecha'],
                         ['key' => 'coach', 'label' => 'Entrenador'],
                         ['key' => 'session', 'label' => 'Sesión'],
                         ['key' => 'objective', 'label' => 'Objetivo'],

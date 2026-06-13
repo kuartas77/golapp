@@ -44,7 +44,7 @@
                             <th>Título</th>
                             <th>Creado por</th>
                             <th>Grupo</th>
-                            <th>Actualizado</th>
+                            <th>Creado</th>
                             <th class="text-center">Opciones</th>
                         </tr>
                     </thead>
@@ -53,7 +53,7 @@
                             <td>{{ record.title }}</td>
                             <td>{{ record.creator_name || 'Sin creador' }}</td>
                             <td>{{ record.training_group_name || 'Sin grupo' }}</td>
-                            <td>{{ record.updated_at || record.created_at }}</td>
+                            <td>{{ record.created_at }}</td>
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-1">
                                     <a
