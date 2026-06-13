@@ -70,7 +70,7 @@ class TrainingGroupRepository
 
             DB::commit();
 
-            Cache::forget('KEY_TRAINING_GROUPS_' . $formRequest->input('school_id'));
+            $this->clearTrainingGroupCache((int) $formRequest->input('school_id'));
 
             return $trainingGroup;
         } catch (Exception $exception) {
@@ -115,7 +115,7 @@ class TrainingGroupRepository
 
             DB::commit();
 
-            Cache::forget('KEY_TRAINING_GROUPS_' . $formRequest->input('school_id'));
+            $this->clearTrainingGroupCache((int) $formRequest->input('school_id'));
 
             return $trainingGroup;
         } catch (Exception $exception) {
@@ -123,6 +123,28 @@ class TrainingGroupRepository
             report($exception);
             return null;
         }
+    }
+
+    private function clearTrainingGroupCache(int $schoolId): void
+    {
+        Cache::forget("KEY_TRAINING_GROUPS_{$schoolId}");
+        Cache::forget("KEY_TRAINING_GROUPS_ARR_{$schoolId}");
+
+        $userIds = DB::table('users')
+            ->where('school_id', $schoolId)
+            ->pluck('id');
+
+        if (Schema::hasTable('schools_user')) {
+            $userIds = $userIds->merge(
+                DB::table('schools_user')
+                    ->where('school_id', $schoolId)
+                    ->pluck('user_id')
+            );
+        }
+
+        $userIds = $userIds->unique();
+
+        $userIds->each(fn ($userId) => Cache::forget("KEY_TRAINING_GROUPS_{$schoolId}.{$userId}"));
     }
 
     /**

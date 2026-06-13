@@ -16,13 +16,13 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * @property string name
- * @property string agent
- * @property string address
- * @property string phone
- * @property string email
- * @property bool is_enable
- * @property string logo
+ * @property string $name
+ * @property string $agent
+ * @property string $address
+ * @property string $phone
+ * @property string $email
+ * @property bool $is_enable
+ * @property string $logo
  */
 class School extends Model
 {

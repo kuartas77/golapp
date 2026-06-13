@@ -1,89 +1,92 @@
 <template>
-    <panel>
-        <template #header>
-            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                <div>
-                    <h5 class="mb-1">Horarios</h5>
-                    <p class="mb-0 text-muted">
-                        Se usan para poblar el selector múltiple de los grupos de entrenamiento.
-                    </p>
-                </div>
+    <div class="layout-px-spacing training-schedules-page">
+        <div class="row layout-top-spacing justify-content-center">
+            <div class="col-xl-7 col-lg-8 col-md-10 col-12 layout-spacing">
+                <div class="panel training-schedules-panel">
+                    <div class="panel-heading">
+                        <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                            <div>
+                                <h5 class="mb-1">Horarios</h5>
+                                <small class="text-muted">
+                                    Selector múltiple de los grupos de entrenamiento.
+                                </small>
+                            </div>
 
-                <div class="d-flex gap-2 flex-wrap">
-                    <router-link :to="{ name: 'training-groups' }" class="btn btn-outline-secondary">
-                        Volver a grupos
-                    </router-link>
-                    <button type="button" class="btn btn-primary" :disabled="isSaving" @click="openCreateModal">
-                        Agregar horario
-                    </button>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <router-link :to="{ name: 'training-groups' }" class="btn btn-outline-secondary btn-sm">
+                                    Volver
+                                </router-link>
+                                <button
+                                    type="button"
+                                    class="btn btn-primary btn-sm"
+                                    :disabled="isSaving"
+                                    @click="openCreateModal"
+                                >
+                                    Agregar horario
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-body">
+                        <div v-if="listError" class="alert alert-danger py-2" role="alert">
+                            {{ listError }}
+                        </div>
+
+                        <div v-if="isLoading" class="py-4 text-center">
+                            <div class="spinner-border text-primary mb-2" role="status"></div>
+                            <p class="text-muted mb-0">Cargando horarios...</p>
+                        </div>
+
+                        <template v-else>
+                            <div class="table-responsive-md schedules-table">
+                                <DatatableTemplate
+                                    id="training_schedules_table"
+                                    :options="tableOptions"
+                                    :data="items"
+                                >
+                                    <template #thead>
+                                        <thead class="align-middle">
+                                            <tr>
+                                                <th>Horario</th>
+                                                <th class="text-end">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                    </template>
+
+                                    <template #actions="props">
+                                        <div class="d-inline-flex gap-2">
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-primary btn-sm"
+                                                :disabled="isDeletingId === props.rowData.id"
+                                                @click="openEditModal(props.rowData)"
+                                            >
+                                                Editar
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-danger btn-sm"
+                                                :disabled="isDeletingId === props.rowData.id"
+                                                @click="confirmDelete(props.rowData)"
+                                            >
+                                                <span
+                                                    v-if="isDeletingId === props.rowData.id"
+                                                    class="spinner-border spinner-border-sm me-1"
+                                                    role="status"
+                                                ></span>
+                                                Eliminar
+                                            </button>
+                                        </div>
+                                    </template>
+                                </DatatableTemplate>
+                            </div>
+                        </template>
+                    </div>
                 </div>
             </div>
-        </template>
-
-        <template #body>
-            <div v-if="listError" class="alert alert-danger py-2" role="alert">
-                {{ listError }}
-            </div>
-
-            <div v-if="isLoading" class="py-5 text-center">
-                <div class="spinner-border text-primary mb-2" role="status"></div>
-                <p class="text-muted mb-0">Cargando horarios...</p>
-            </div>
-
-            <template v-else>
-                <div v-if="items.length" class="table-responsive">
-                    <table class="table table-sm align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Horario</th>
-                                <th class="text-end">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="item in items" :key="item.id">
-                                <td>
-                                    <div class="fw-semibold">{{ item.schedule }}</div>
-                                    <small class="text-muted">{{ item.schedule_start }} a {{ item.schedule_end }}</small>
-                                </td>
-                                <td class="text-end">
-                                    <div class="d-inline-flex gap-2">
-                                        <button
-                                            type="button"
-                                            class="btn btn-outline-primary btn-sm"
-                                            :disabled="isDeletingId === item.id"
-                                            @click="openEditModal(item)"
-                                        >
-                                            Editar
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="btn btn-outline-danger btn-sm"
-                                            :disabled="isDeletingId === item.id"
-                                            @click="confirmDelete(item)"
-                                        >
-                                            <span
-                                                v-if="isDeletingId === item.id"
-                                                class="spinner-border spinner-border-sm me-1"
-                                                role="status"
-                                            ></span>
-                                            Eliminar
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div
-                    v-else
-                    class="border rounded-3 p-4 text-center text-muted d-flex align-items-center justify-content-center"
-                >
-                    Todavía no hay horarios configurados para esta escuela.
-                </div>
-            </template>
-        </template>
-    </panel>
+        </div>
+    </div>
 
     <div ref="modalElement" id="modal-schedule" class="modal fade" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -186,7 +189,9 @@ import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref, useTempl
 import { ErrorMessage, Field, Form } from 'vee-validate'
 import flatPickr from 'vue-flatpickr-component'
 import * as yup from 'yup'
+import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import api from '@/utils/axios'
+import configLanguaje from '@/utils/datatableUtils'
 import { usePageTitle } from '@/composables/use-meta'
 
 const items = ref([])
@@ -226,6 +231,90 @@ const buildDefaultFormValues = () => ({
     schedule_start: '',
     schedule_end: '',
 })
+
+const escapeHtml = (value) => String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;')
+
+const timeToMinutes = (value) => {
+    const match = String(value ?? '').trim().match(/^(\d{1,2}):([0-5]\d)\s*(AM|PM)$/i)
+
+    if (!match) {
+        return Number.MAX_SAFE_INTEGER
+    }
+
+    const hour = Number(match[1])
+    const minutes = Number(match[2])
+    const meridiem = match[3].toUpperCase()
+    const hour24 = meridiem === 'AM'
+        ? (hour === 12 ? 0 : hour)
+        : (hour === 12 ? 12 : hour + 12)
+
+    return (hour24 * 60) + minutes
+}
+
+const scheduleSortValue = (row) => {
+    const start = timeToMinutes(row?.schedule_start)
+    const end = timeToMinutes(row?.schedule_end)
+
+    return (start * 1440) + end
+}
+
+const scheduleLabel = (row) => {
+    if (row?.schedule) {
+        return row.schedule
+    }
+
+    return [row?.schedule_start, row?.schedule_end].filter(Boolean).join(' a ')
+}
+
+const renderSchedule = (data, type, row) => {
+    if (type === 'sort' || type === 'type') {
+        return scheduleSortValue(row)
+    }
+
+    if (type === 'filter') {
+        return scheduleLabel(row)
+    }
+
+    return `<span class="fw-semibold">${escapeHtml(scheduleLabel(row))}</span>`
+}
+
+const tableOptions = computed(() => ({
+    ...configLanguaje,
+    dom: 'litp',
+    lengthMenu: [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
+    pageLength: 10,
+    order: [[0, 'asc']],
+    deferRender: true,
+    language: {
+        ...configLanguaje.language,
+        sEmptyTable: 'Todavía no hay horarios configurados para esta escuela.',
+        sZeroRecords: 'No se encontraron horarios con ese filtro',
+    },
+    columns: [
+        {
+            data: 'schedule',
+            title: 'Horario',
+            render: renderSchedule,
+        },
+        {
+            data: 'id',
+            title: 'Acciones',
+            searchable: false,
+            orderable: false,
+            render: '#actions',
+        },
+    ],
+    columnDefs: [
+        { responsivePriority: 1, targets: 0 },
+        { responsivePriority: 2, targets: 1 },
+        { targets: 1, className: 'dt-head-right dt-body-right', width: '1%' },
+    ],
+}))
 
 const resetFormState = (values = buildDefaultFormValues()) => {
     globalError.value = ''
@@ -345,3 +434,27 @@ onBeforeUnmount(() => {
     modalInstance?.hide()
 })
 </script>
+
+<style scoped>
+.training-schedules-panel .panel-heading {
+    padding: 16px 18px 10px;
+}
+
+.training-schedules-panel .panel-body {
+    padding: 14px 18px 18px;
+}
+
+.schedules-table :deep(.dataTables_wrapper .row:first-child) {
+    row-gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.schedules-table :deep(table.dataTable) {
+    margin-bottom: 0.5rem !important;
+}
+
+.schedules-table :deep(table.dataTable td),
+.schedules-table :deep(table.dataTable th) {
+    padding: 0.55rem 0.75rem;
+}
+</style>

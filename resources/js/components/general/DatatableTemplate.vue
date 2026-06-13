@@ -1,5 +1,5 @@
 <template>
-    <DataTable :options="options" class="table table-bordered table-sm" :id="id" ref="table">
+    <DataTable :options="options" :data="data" class="table table-bordered table-sm" :id="id" ref="table">
 
         <slot name="thead"></slot>
 
@@ -87,7 +87,20 @@ export default {
 import dayjs from "@/utils/dayjs";
 import DataTable from '@/plugins/datatables';
 import { useTemplateRef } from 'vue';
-const props = defineProps(['options', 'id'])
+defineProps({
+    options: {
+        type: Object,
+        required: true,
+    },
+    id: {
+        type: String,
+        required: true,
+    },
+    data: {
+        type: Array,
+        default: undefined,
+    },
+})
 
 const table = useTemplateRef('table')
 defineExpose({

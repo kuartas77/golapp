@@ -54,7 +54,11 @@
                                         <Field name="days" v-slot="{ field, handleChange, handleBlur }">
                                             <label for="days">Días</label><span class="text-danger">*</span>
                                             <CustomMultiSelect v-bind="field" :buttons="true" :options="daysOptions"
-                                                @change="handleChange" @blur="handleBlur" id="days" />
+                                                :max-selections="maxTrainingDays" @change="handleChange"
+                                                @blur="handleBlur" id="days" />
+                                            <small class="text-muted d-block mt-1">
+                                                Puedes seleccionar máximo {{ maxTrainingDays }} días.
+                                            </small>
                                             <ErrorMessage name="days" class="custom-error" />
                                         </Field>
                                     </div>
@@ -151,6 +155,7 @@ const selectedScheduleOptions = ref([]);
 const selectedUserOptions = ref([]);
 const selectedCategoryOptions = ref([]);
 const currentYear = String(new Date().getFullYear());
+const maxTrainingDays = 5;
 
 const buildDefaultValues = () => ({
     id: null,
@@ -223,7 +228,7 @@ const schema = yup.object().shape({
     days: yup
         .array()
         .min(1, "Selecciona al menos un día")
-        .max(3, "No puedes seleccionar más de 3 días")
+        .max(maxTrainingDays, `No puedes seleccionar más de ${maxTrainingDays} días`)
         .required(),
     schedules: yup.array().min(1, "Selecciona al menos un horario").required(),
     user_id: yup.array().min(1, "Selecciona al menos un instructor").required(),

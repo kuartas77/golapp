@@ -36,6 +36,7 @@ vi.mock('@/store/settings-store', () => ({
 
 import ModalCompetitionGroup from '@/pages/admin/groups/competition/ModalCompetitionGroup.vue';
 import ModalTrainingGroup from '@/pages/admin/groups/training/ModalTrainingGroup.vue';
+import MultiSelect from '@/components/form/MultiSelect.vue';
 
 const wrappers = [];
 
@@ -75,8 +76,8 @@ const mountModal = async (component, props = { id: null }) => {
                 },
                 CustomMultiSelect: {
                     name: 'CustomMultiSelect',
-                    props: ['id', 'modelValue', 'options'],
-                    template: '<div class="custom-multiselect-stub" :data-select-id="id">{{ JSON.stringify({ modelValue, options }) }}</div>',
+                    props: ['id', 'modelValue', 'options', 'maxSelections'],
+                    template: '<div class="custom-multiselect-stub" :data-select-id="id">{{ JSON.stringify({ modelValue, options, maxSelections }) }}</div>',
                 },
             },
         },
@@ -115,6 +116,44 @@ describe('Admin group modals', () => {
         const wrapper = await mountModal(ModalTrainingGroup);
 
         expect(wrapper.get('select#year_active').element.value).toBe(currentYear);
+    });
+
+    it('allows up to five days in training groups', async () => {
+        const currentYear = String(new Date().getFullYear());
+        settingsStore.year_active = [currentYear];
+
+        const wrapper = await mountModal(ModalTrainingGroup);
+
+        expect(wrapper.get('[data-select-id="days"]').text()).toContain('"maxSelections":5');
+        expect(wrapper.text()).toContain('Puedes seleccionar máximo 5 días.');
+    });
+
+    it('stops multiselect additions when the configured maximum is reached', async () => {
+        const wrapper = mount(MultiSelect, {
+            props: {
+                id: 'limited-days',
+                buttons: true,
+                maxSelections: 2,
+                options: [
+                    { value: 'Lunes', label: 'Lunes' },
+                    { value: 'Martes', label: 'Martes' },
+                    { value: 'Miércoles', label: 'Miércoles' },
+                ],
+            },
+        });
+
+        wrappers.push(wrapper);
+
+        await wrapper.findAll('li.ms-elem-selectable')[0].trigger('click');
+        await wrapper.findAll('li.ms-elem-selectable')[0].trigger('click');
+        await wrapper.findAll('li.ms-elem-selectable')[0].trigger('click');
+
+        const updates = wrapper.emitted('update:modelValue');
+        const lastUpdate = updates.at(-1)[0];
+
+        expect(lastUpdate).toHaveLength(2);
+        expect(wrapper.findAll('li.ms-elem-selection')).toHaveLength(2);
+        expect(wrapper.find('li.ms-elem-selectable').classes()).toContain('disabled');
     });
 
     it('rebuilds legacy training group categories and selected labels on edit', async () => {

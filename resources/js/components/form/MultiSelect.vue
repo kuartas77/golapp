@@ -11,6 +11,7 @@
             @click="setActive('available')">
             <ul class="ms-list flex-grow-1">
                 <li v-for="option in sortedAvailable" :key="option.value" class="ms-elem-selectable"
+                    :class="{ disabled: isMaxSelectionReached }"
                     @click.stop="addSelection(option)">
                     {{ option.label }}
                 </li>
@@ -18,7 +19,7 @@
 
             <div v-if="buttons" class="ms-buttons text-center p-2">
                 <button type="button" class="btn btn-primary btn-sm" @click.stop="addAll"
-                    :disabled="sortedAvailable.length === 0" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                    :disabled="sortedAvailable.length === 0 || isMaxSelectionReached" data-bs-toggle="tooltip" data-bs-placement="bottom"
                     title="Agregar todos!">
                     >>
                 </button>
@@ -68,6 +69,10 @@ const props = defineProps({
     buttons: {
         type: Boolean,
         default: false
+    },
+    maxSelections: {
+        type: Number,
+        default: null
     }
 })
 const emit = defineEmits(['update:modelValue', 'update:value'])
@@ -87,6 +92,10 @@ const sortedSelected = computed(() =>
     [...selectedOptions.value].sort((a, b) => a.value - b.value)
 )
 
+const isMaxSelectionReached = computed(() =>
+    Number.isInteger(props.maxSelections) && selectedOptions.value.length >= props.maxSelections
+)
+
 const selectedValues = computed({
     get: () => selectedOptions.value.map(opt => opt.value),
     set: (values) => {
@@ -101,6 +110,10 @@ function emitUpdates() {
 }
 
 function addSelection(item) {
+    if (isMaxSelectionReached.value) {
+        return
+    }
+
     selectedOptions.value = [...selectedOptions.value, item]
     emitUpdates()
 }
@@ -111,7 +124,16 @@ function removeSelection(item) {
 }
 
 function addAll() {
-    selectedOptions.value = [...props.options]
+    if (props.maxSelections === null) {
+        selectedOptions.value = [...props.options]
+        emitUpdates()
+        return
+    }
+
+    const remainingSlots = props.maxSelections - selectedOptions.value.length
+    const optionsToAdd = availableOptions.value.slice(0, Math.max(remainingSlots, 0))
+
+    selectedOptions.value = [...selectedOptions.value, ...optionsToAdd]
     emitUpdates()
 }
 
@@ -171,6 +193,11 @@ watch(() => props.value, (val) => {
     flex-grow: 1;
     overflow-y: auto;
     min-height: 200px;
+}
+
+.ms-elem-selectable.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
 }
 
 /* En pantallas muy pequeñas, conserva lado a lado pero ajusta tamaños */

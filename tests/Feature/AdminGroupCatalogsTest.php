@@ -7,6 +7,9 @@ namespace Tests\Feature;
 use App\Models\Schedule;
 use App\Models\School;
 use App\Models\Tournament;
+use App\Models\TrainingGroup;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 final class AdminGroupCatalogsTest extends TestCase
@@ -136,6 +139,91 @@ final class AdminGroupCatalogsTest extends TestCase
         $this->assertSoftDeleted('schedules', [
             'id' => $currentSchedule->id,
         ]);
+    }
+
+    public function test_training_group_accepts_five_days_and_rejects_six_days(): void
+    {
+        $basePayload = [
+            'name' => 'Grupo Cinco Dias',
+            'stage' => 'Cancha Norte',
+            'users_id' => [$this->user->id],
+            'categories' => ['SUB-12'],
+            'schedules' => ['07:00AM - 08:00AM'],
+            'year_active' => now()->year,
+        ];
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/training_groups', $basePayload + [
+                'days' => ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'],
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('training_groups', [
+            'name' => 'Grupo Cinco Dias',
+            'school_id' => $this->school['id'],
+        ]);
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/training_groups', $basePayload + [
+                'name' => 'Grupo Seis Dias',
+                'days' => ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('days');
+    }
+
+    public function test_training_group_creation_clears_school_group_cache_keys(): void
+    {
+        $schoolId = $this->school['id'];
+        $userId = $this->user->id;
+
+        Cache::put("KEY_TRAINING_GROUPS_{$schoolId}", 'stale-list');
+        Cache::put("KEY_TRAINING_GROUPS_ARR_{$schoolId}", 'stale-array');
+        Cache::put("KEY_TRAINING_GROUPS_{$schoolId}.{$userId}", 'stale-settings-list');
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/training_groups', [
+                'name' => 'Grupo Limpia Cache',
+                'stage' => 'Cancha Norte',
+                'users_id' => [$this->user->id],
+                'categories' => ['SUB-12'],
+                'schedules' => ['07:00AM - 08:00AM'],
+                'days' => ['Lunes', 'Miércoles'],
+                'year_active' => now()->year,
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertFalse(Cache::has("KEY_TRAINING_GROUPS_{$schoolId}"));
+        $this->assertFalse(Cache::has("KEY_TRAINING_GROUPS_ARR_{$schoolId}"));
+        $this->assertFalse(Cache::has("KEY_TRAINING_GROUPS_{$schoolId}.{$userId}"));
+    }
+
+    public function test_attendance_classdays_reflect_five_training_days(): void
+    {
+        Carbon::setTestNow(Carbon::create(2026, 4, 1));
+
+        try {
+            $group = TrainingGroup::query()->create([
+                'name' => 'Grupo Asistencia Cinco Dias',
+                'year' => 2026,
+                'category' => ['SUB-12'],
+                'days' => ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'],
+                'schedules' => ['07:00AM - 08:00AM'],
+                'school_id' => $this->school['id'],
+                'year_active' => 2026,
+            ]);
+
+            $response = $this->actingAs($this->user)
+                ->getJson("/api/v2/training_group/classdays?training_group_id={$group->id}&month=4")
+                ->assertOk();
+
+            $this->assertCount(22, $response->json());
+            $this->assertSame('assistance_twenty_two', $response->json('21.column'));
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function test_tournament_catalog_reactivates_a_soft_deleted_record_in_the_same_school(): void

@@ -28,7 +28,7 @@ class TrainingGroupRequest extends FormRequest
             'name' => ['required'],
             'stage' => ['nullable'],
             'categories' => ['nullable'],
-            'days' => ['required', 'array'],
+            'days' => ['required', 'array', 'max:5'],
             'schedules' => ['required', 'array'],
             'school_id' => ['required'],
             'year_active' => ['required'],

@@ -307,10 +307,6 @@ const selectedInscriptionYear = computed(() => {
     return Number.isInteger(year) && year > 0 ? year : dayjs().year()
 });
 const isReactivationMode = computed(() => !isEditing.value && Boolean(reactivationCandidate.value?.id));
-const trainingGroups = computed(() => settings.groups.map((group) => ({
-    value: String(group.value ?? group.id),
-    label: group.label ?? group.name ?? group.full_group ?? String(group.value ?? group.id),
-})));
 const monthlyPaymentDefinitions = [
     { value: 'MONTHLY_PAYMENT', label: 'Mensualidad por defecto' },
     { value: 'BROTHER_MONTHLY_PAYMENT', label: 'Mensualidad hermano' },
@@ -339,13 +335,23 @@ const competitionGroups = computed(() => settings.competition_groups.map((group)
     label: group.full_name_group ?? group.full_name ?? group.name ?? String(group.id),
 })));
 const provisionalTrainingGroup = computed(() => settings.all_groups?.[0] ?? null);
+const isProvisionalTrainingGroup = (trainingGroupId) => (
+    provisionalTrainingGroup.value
+    && String(trainingGroupId) === String(provisionalTrainingGroup.value.id)
+)
+const trainingGroups = computed(() => settings.groups
+    .filter((group) => !isProvisionalTrainingGroup(group.value ?? group.id))
+    .map((group) => ({
+        value: String(group.value ?? group.id),
+        label: group.label ?? group.name ?? group.full_group ?? String(group.value ?? group.id),
+    })));
 const hasTrainingGroupSelected = computed(() => ![null, '', undefined].includes(currentTrainingGroupId.value));
 const preInscriptionAutoReason = computed(() => {
     if (!hasTrainingGroupSelected.value) {
         return 'empty'
     }
 
-    if (provisionalTrainingGroup.value && String(currentTrainingGroupId.value) === String(provisionalTrainingGroup.value.id)) {
+    if (isProvisionalTrainingGroup(currentTrainingGroupId.value)) {
         return 'provisional'
     }
 
@@ -429,6 +435,12 @@ const resolveMonthlyPaymentType = (type, brotherPayment = false) => {
 }
 
 const normalizeTrainingGroupId = (value) => [null, '', undefined].includes(value) ? null : String(value)
+
+const normalizeVisibleTrainingGroupId = (value) => {
+    const trainingGroupId = normalizeTrainingGroupId(value)
+
+    return isProvisionalTrainingGroup(trainingGroupId) ? null : trainingGroupId
+}
 
 const defaultValues = () => ({
     id: null,
@@ -520,6 +532,7 @@ const loadInscriptionForEdit = async (inscriptionId) => {
         const data = resp.data
 
         const trainingGroupId = normalizeTrainingGroupId(data.training_group_id)
+        const visibleTrainingGroupId = normalizeVisibleTrainingGroupId(trainingGroupId)
 
         currentTrainingGroupId.value = trainingGroupId
         currentPreInscription.value = Boolean(data.pre_inscription)
@@ -533,7 +546,7 @@ const loadInscriptionForEdit = async (inscriptionId) => {
             scholarship: Boolean(data.scholarship),
             brother_payment: Boolean(data.brother_payment),
             monthly_payment_type: resolveMonthlyPaymentType(data.monthly_payment_type, data.brother_payment),
-            training_group_id: trainingGroupId,
+            training_group_id: visibleTrainingGroupId,
             competition_groups: data.competition_groups ?? [],
             photos: Boolean(data.photos),
             copy_identification_document: Boolean(data.copy_identification_document),
@@ -742,7 +755,7 @@ const loadPlayerByUniqueCode = async (uniqueCode) => {
             scholarship: Boolean(reactivationInscription?.scholarship),
             brother_payment: Boolean(reactivationInscription?.brother_payment),
             monthly_payment_type: resolveMonthlyPaymentType(reactivationInscription?.monthly_payment_type, reactivationInscription?.brother_payment),
-            training_group_id: normalizeTrainingGroupId(reactivationInscription?.training_group_id),
+            training_group_id: normalizeVisibleTrainingGroupId(reactivationInscription?.training_group_id),
             competition_groups: reactivationInscription?.competition_groups ?? [],
             photos: Boolean(reactivationInscription?.photos),
             copy_identification_document: Boolean(reactivationInscription?.copy_identification_document),

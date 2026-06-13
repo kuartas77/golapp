@@ -108,6 +108,32 @@ const mountModal = async (
             });
         }
 
+        if (url === '/api/v2/inscriptions/3/edit') {
+            return Promise.resolve({
+                data: {
+                    id: 3,
+                    player_id: 25,
+                    unique_code: 'PROV123',
+                    player: {
+                        full_names: 'Jugador Provisional',
+                    },
+                    start_date: '2026-04-10',
+                    scholarship: false,
+                    brother_payment: false,
+                    monthly_payment_type: 'MONTHLY_PAYMENT',
+                    monthly_payment_amount: 50000,
+                    training_group_id: 1,
+                    competition_groups: [],
+                    photos: false,
+                    copy_identification_document: false,
+                    eps_certificate: false,
+                    medic_certificate: false,
+                    study_certificate: false,
+                    pre_inscription: true,
+                },
+            });
+        }
+
         return Promise.reject(new Error(`Unexpected GET ${url}`));
     });
 
@@ -128,7 +154,7 @@ const mountModal = async (
                 },
                 CustomSelect2: {
                     props: ['id', 'modelValue', 'options', 'multiple'],
-                    template: '<select :id="id"></select>',
+                    template: '<div class="custom-select2-stub" :id="id" :data-select-id="id">{{ JSON.stringify({ modelValue, options, multiple }) }}</div>',
                 },
                 TypeAhead: {
                     props: ['modelValue'],
@@ -310,7 +336,24 @@ describe('ModalInscription', () => {
             value: '2',
             label: 'Grupo definitivo',
         });
+        expect(wrapper.vm.$.setupState.trainingGroups).not.toContainEqual({
+            value: '1',
+            label: 'Provisional',
+        });
         expect(wrapper.vm.$.setupState.form.values.training_group_id).toBe('2');
+    });
+
+    it('hides provisional training group instead of showing its id when editing', async () => {
+        const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
+
+        await wrapper.setProps({ inscription_id: 3 });
+        await flushPromises();
+        await flushPromises();
+
+        expect(wrapper.vm.$.setupState.currentTrainingGroupId).toBe('1');
+        expect(wrapper.vm.$.setupState.form.values.training_group_id).toBeNull();
+        expect(wrapper.get('[data-select-id="training_group_id"]').text()).toContain('"modelValue":null');
+        expect(wrapper.get('[data-select-id="training_group_id"]').text()).not.toContain('Provisional');
     });
 
     it('submits the selected monthly payment type', async () => {
