@@ -289,6 +289,9 @@ Route::prefix('v2')->group(function () {
             Route::middleware('school.permission:school.module.training_sessions')->group(function () {
                 Route::get('training_sessions_enabled', [DataTableController::class, 'trainingSessions']);
             });
+            Route::middleware('school.permission:school.module.methodology')->group(function () {
+                Route::get('methodology_records', [DataTableController::class, 'methodologyRecords']);
+            });
             Route::middleware('school.permission:school.module.evaluations')->group(function () {
                 Route::get('player_evaluations', [DataTableController::class, 'playerEvaluations']);
             });

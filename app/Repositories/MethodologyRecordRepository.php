@@ -13,9 +13,18 @@ class MethodologyRecordRepository
     public function query(): Builder
     {
         return MethodologyRecord::query()
+            ->select('methodology_records.*')
             ->schoolId()
             ->with(['user:id,name', 'trainingGroup:id,name,category'])
             ->when(isInstructor(), fn (Builder $query) => $query->where('user_id', auth()->id()));
+    }
+
+    public function datatableQuery(?string $type = null): Builder
+    {
+        return $this->query()
+            ->leftJoin('users', 'users.id', '=', 'methodology_records.user_id')
+            ->leftJoin('training_groups', 'training_groups.id', '=', 'methodology_records.training_group_id')
+            ->when($type, fn (Builder $query) => $query->where('methodology_records.type', $type));
     }
 
     public function list(?string $type = null): Collection

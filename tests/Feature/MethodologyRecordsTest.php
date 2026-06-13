@@ -48,6 +48,14 @@ final class MethodologyRecordsTest extends TestCase
             ->assertJsonPath('data.0.id', $recordId);
 
         $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/api/v2/datatables/methodology_records?draw=1&start=0&length=10&type=planning')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $recordId)
+            ->assertJsonPath('data.0.creator_name', $this->user->name)
+            ->assertJsonPath('data.0.export_pdf_url', route('methodology.records.pdf', ['id' => $recordId]));
+
+        $this->actingAs($this->user)
             ->getJson("/api/v2/methodology-records/{$recordId}")
             ->assertOk()
             ->assertJsonPath('data.fields.objective', 'Mejorar pase')
@@ -115,6 +123,16 @@ final class MethodologyRecordsTest extends TestCase
 
         $this->assertContains($ownRecord->id, $ids);
         $this->assertNotContains($blockedRecord->id, $ids);
+
+        $datatableResponse = $this->actingAs($instructorA)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/api/v2/datatables/methodology_records?draw=1&start=0&length=10&type=planning')
+            ->assertOk();
+
+        $datatableIds = collect($datatableResponse->json('data'))->pluck('id')->all();
+
+        $this->assertContains($ownRecord->id, $datatableIds);
+        $this->assertNotContains($blockedRecord->id, $datatableIds);
 
         $this->actingAs($instructorA)
             ->getJson("/api/v2/methodology-records/{$ownRecord->id}")

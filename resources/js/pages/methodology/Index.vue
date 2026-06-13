@@ -29,50 +29,32 @@
                 </li>
             </ul>
 
-            <div v-if="isLoading" class="text-center py-4">
-                Cargando registros...
-            </div>
-
-            <div v-else-if="records.length === 0" class="methodology-empty">
-                No hay registros para {{ activeTab.label.toLowerCase() }}.
-            </div>
-
-            <div v-else class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Creado por</th>
-                            <th>Grupo</th>
-                            <th>Creado</th>
-                            <th class="text-center">Opciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="record in records" :key="record.id">
-                            <td>{{ record.title }}</td>
-                            <td>{{ record.creator_name || 'Sin creador' }}</td>
-                            <td>{{ record.training_group_name || 'Sin grupo' }}</td>
-                            <td>{{ record.created_at }}</td>
-                            <td class="text-center">
-                                <div class="d-flex justify-content-center gap-1">
-                                    <a
-                                        :href="record.export_pdf_url"
-                                        target="_blank"
-                                        class="btn btn-info btn-sm"
-                                        title="Exportar PDF"
-                                    >
-                                        <i class="fa-solid fa-file-pdf fa-width-auto me-2" aria-hidden="true"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-warning btn-sm" title="Editar" @click="openEdit(record.id)">
-                                        <i class="fa fa-edit fa-width-auto me-2" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <DatatableTemplate
+                ref="table"
+                id="methodology-records-table"
+                :options="options"
+            >
+                <template #actions="props">
+                    <div class="d-flex justify-content-center gap-1">
+                        <a
+                            :href="props.rowData.export_pdf_url"
+                            target="_blank"
+                            class="btn btn-info btn-sm"
+                            title="Exportar PDF"
+                        >
+                            <i class="fa-solid fa-file-pdf fa-width-auto me-2" aria-hidden="true"></i>
+                        </a>
+                        <button
+                            type="button"
+                            class="btn btn-warning btn-sm"
+                            title="Editar"
+                            @click="openEdit(props.rowData.id)"
+                        >
+                            <i class="fa fa-edit fa-width-auto me-2" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </template>
+            </DatatableTemplate>
         </template>
     </panel>
 
@@ -416,9 +398,11 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, useTemplateRef } from 'vue'
+import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import { usePageTitle } from '@/composables/use-meta'
 import api from '@/utils/axios'
+import configLanguaje from '@/utils/datatableUtils'
 import SoccerFieldDiagramEditor from './SoccerFieldDiagramEditor.vue'
 import {
     METHODOLOGY_TYPES,
@@ -433,10 +417,9 @@ usePageTitle('Metodología')
 
 const modalRef = ref(null)
 const modalInstance = ref(null)
+const table = useTemplateRef('table')
 const activeType = ref(METHODOLOGY_TYPES.planning)
-const records = ref([])
 const groupOptions = ref([])
-const isLoading = ref(false)
 const isSaving = ref(false)
 const selectedId = ref(null)
 const formError = ref('')
@@ -462,6 +445,59 @@ const isPlanning = computed(() => activeType.value === METHODOLOGY_TYPES.plannin
 const isCharacterization = computed(() => activeType.value === METHODOLOGY_TYPES.characterizationSheet)
 const isMonthlyReport = computed(() => activeType.value === METHODOLOGY_TYPES.monthlyReport)
 const isCategoryMonthlyReport = computed(() => activeType.value === METHODOLOGY_TYPES.categoryMonthlyReport)
+
+const emptyDataTableResponse = (draw = 0) => ({
+    draw,
+    data: [],
+    recordsTotal: 0,
+    recordsFiltered: 0,
+})
+
+const columns = [
+    { data: 'title', title: 'Título', name: 'title' },
+    { data: 'creator_name', title: 'Creado por', name: 'creator_name' },
+    { data: 'training_group_name', title: 'Grupo', name: 'training_group_name' },
+    { data: 'created_at', title: 'Creado', name: 'created_at' },
+    { data: 'id', title: 'Opciones', searchable: false, orderable: false, render: '#actions' },
+]
+
+const options = {
+    ...configLanguaje,
+    lengthMenu: [[10, 20, 30, 50, 100], [10, 20, 30, 50, 100]],
+    pageLength: 10,
+    processing: true,
+    serverSide: true,
+    deferRender: true,
+    searchDelay: 400,
+    order: [[3, 'desc']],
+    ajax: async (data, callback) => {
+        try {
+            const response = await api.get('/api/v2/datatables/methodology_records', {
+                params: {
+                    ...data,
+                    type: activeType.value,
+                },
+            })
+
+            callback({
+                draw: data.draw,
+                data: response.data.data ?? [],
+                recordsTotal: response.data.recordsTotal ?? 0,
+                recordsFiltered: response.data.recordsFiltered ?? 0,
+            })
+        } catch {
+            callback(emptyDataTableResponse(data.draw))
+        }
+    },
+    columns,
+    columnDefs: [
+        { responsivePriority: 1, targets: columns.length - 1 },
+        {
+            targets: '_all',
+            className: 'dt-head-center dt-body-center',
+        },
+    ],
+}
 
 const closingFields = computed(() => (
     methodologyFieldGroups[METHODOLOGY_TYPES.planning]
@@ -586,19 +622,6 @@ function resetForm(record = null) {
     }
 }
 
-async function loadRecords() {
-    isLoading.value = true
-
-    try {
-        const response = await api.get('/api/v2/methodology-records', {
-            params: { type: activeType.value },
-        })
-        records.value = response.data.data ?? []
-    } finally {
-        isLoading.value = false
-    }
-}
-
 async function loadGroups() {
     try {
         const response = await api.get('/api/v2/training_groups')
@@ -615,7 +638,8 @@ async function selectType(type) {
     activeType.value = type
     selectedId.value = null
     resetForm()
-    await loadRecords()
+    await nextTick()
+    reloadTable(true)
 }
 
 async function openCreate() {
@@ -670,7 +694,7 @@ async function saveRecord() {
         }
 
         closeModal()
-        await loadRecords()
+        reloadTable()
     } catch (error) {
         const errors = error.response?.data?.errors
         formError.value = errors
@@ -688,8 +712,16 @@ onMounted(async () => {
     })
 
     resetForm()
-    await Promise.all([loadGroups(), loadRecords()])
+    await loadGroups()
 })
+
+function reloadTable(resetPaging = false) {
+    const dt = table.value?.table?.dt
+
+    if (dt) {
+        dt.ajax.reload(null, resetPaging)
+    }
+}
 </script>
 
 <style scoped>
