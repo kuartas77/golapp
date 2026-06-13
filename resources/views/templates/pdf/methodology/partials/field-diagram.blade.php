@@ -21,6 +21,8 @@
             $x = $number(data_get($item, 'x'), 50);
             $y = $number(data_get($item, 'y'), 32);
             $label = (string) data_get($item, 'label', '');
+            $rotation = is_numeric(data_get($item, 'rotation')) ? fmod((float) data_get($item, 'rotation'), 360) : 0;
+            $rotation = $rotation < 0 ? $rotation + 360 : $rotation;
         @endphp
 
         @if($type === 'cone')
@@ -28,8 +30,13 @@
         @elseif($type === 'ball')
             <circle cx="{{ $x }}" cy="{{ $y }}" r="2.2" fill="#111827" />
         @elseif($type === 'arrow')
-            <line x1="{{ $x - 5 }}" y1="{{ $y + 3 }}" x2="{{ $x + 5 }}" y2="{{ $y - 3 }}" stroke="#b91c1c" stroke-width="1.1" stroke-linecap="round" />
-            <path d="M {{ $x + 5 }} {{ $y - 3 }} L {{ $x + 1.5 }} {{ $y - 3.2 }} L {{ $x + 3.2 }} {{ $y + 0.1 }} Z" fill="#b91c1c" />
+            <g transform="rotate({{ $rotation }} {{ $x }} {{ $y }})">
+                <line x1="{{ $x - 4 }}" y1="{{ $y + 2.4 }}" x2="{{ $x + 3.15 }}" y2="{{ $y - 1.9 }}" stroke="#b91c1c" stroke-width="1.1" stroke-linecap="round" />
+                <path d="M {{ $x + 4.6 }} {{ $y - 2.75 }} L {{ $x + 1.85 }} {{ $y - 2.95 }} L {{ $x + 3.15 }} {{ $y - 0.75 }} Z" fill="#b91c1c" />
+            </g>
+        @elseif($type === 'xmark')
+            <line x1="{{ $x - 2.4 }}" y1="{{ $y - 2.4 }}" x2="{{ $x + 2.4 }}" y2="{{ $y + 2.4 }}" stroke="#111827" stroke-width="1.05" stroke-linecap="round" />
+            <line x1="{{ $x + 2.4 }}" y1="{{ $y - 2.4 }}" x2="{{ $x - 2.4 }}" y2="{{ $y + 2.4 }}" stroke="#111827" stroke-width="1.05" stroke-linecap="round" />
         @elseif($type === 'text')
             <text x="{{ $x }}" y="{{ $y }}" fill="#111827" font-size="4" font-weight="700" dominant-baseline="middle" text-anchor="middle">{{ $label !== '' ? $label : 'Texto' }}</text>
         @else

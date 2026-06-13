@@ -22,6 +22,18 @@
             <input :value="selectedItem.label" type="text" class="form-control form-control-sm" @input="updateSelectedLabel">
         </label>
 
+        <div v-if="selectedItem?.type === 'arrow'" class="field-arrow-controls" aria-label="Orientación de flecha">
+            <span>Orientación</span>
+            <button type="button" class="btn btn-outline-secondary btn-sm" @click="rotateSelectedArrow(-45)">
+                <i class="fa fa-rotate-left fa-width-auto" aria-hidden="true"></i>
+                <span>Izquierda</span>
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" @click="rotateSelectedArrow(45)">
+                <i class="fa fa-rotate-right fa-width-auto" aria-hidden="true"></i>
+                <span>Derecha</span>
+            </button>
+        </div>
+
         <svg
             ref="svgRef"
             class="soccer-field"
@@ -55,9 +67,13 @@
                 <circle v-if="item.type === 'player'" :cx="item.x" :cy="item.y" r="2.8" class="player" />
                 <path v-else-if="item.type === 'cone'" :d="conePath(item)" class="cone" />
                 <circle v-else-if="item.type === 'ball'" :cx="item.x" :cy="item.y" r="2.2" class="ball" />
-                <g v-else-if="item.type === 'arrow'">
-                    <line :x1="item.x - 5" :y1="item.y + 3" :x2="item.x + 5" :y2="item.y - 3" class="arrow-line" />
+                <g v-else-if="item.type === 'arrow'" :transform="arrowTransform(item)">
+                    <line :x1="item.x - 4" :y1="item.y + 2.4" :x2="item.x + 3.15" :y2="item.y - 1.9" class="arrow-line" />
                     <path :d="arrowHeadPath(item)" class="arrow-head" />
+                </g>
+                <g v-else-if="item.type === 'xmark'">
+                    <line :x1="item.x - 2.4" :y1="item.y - 2.4" :x2="item.x + 2.4" :y2="item.y + 2.4" class="xmark-line" />
+                    <line :x1="item.x + 2.4" :y1="item.y - 2.4" :x2="item.x - 2.4" :y2="item.y + 2.4" class="xmark-line" />
                 </g>
                 <text v-else :x="item.x" :y="item.y" class="field-label">{{ item.label || 'Texto' }}</text>
             </g>
@@ -86,6 +102,7 @@ const tools = [
     { type: 'cone', label: 'Cono', icon: 'fa fa-warning fa-width-auto' },
     { type: 'ball', label: 'Balón', icon: 'fa fa-circle fa-width-auto' },
     { type: 'arrow', label: 'Flecha', icon: 'fa fa-arrow-right fa-width-auto' },
+    { type: 'xmark', label: 'X', icon: 'fa fa-xmark fa-width-auto' },
     { type: 'text', label: 'Texto', icon: 'fa fa-font fa-width-auto' },
 ]
 
@@ -107,6 +124,7 @@ function addItem(type) {
         x: 50,
         y: 32,
         label: type === 'text' ? 'Texto' : '',
+        ...(type === 'arrow' ? { rotation: 0 } : {}),
     }
 
     items.value = [...items.value, item]
@@ -123,6 +141,19 @@ function updateSelectedLabel(event) {
         ? { ...item, label: event.target.value }
         : item
     )
+}
+
+function rotateSelectedArrow(delta) {
+    items.value = items.value.map((item) => {
+        if (item.id !== selectedId.value || item.type !== 'arrow') {
+            return item
+        }
+
+        return {
+            ...item,
+            rotation: normalizeRotation(Number(item.rotation ?? 0) + delta),
+        }
+    })
 }
 
 function startDrag(item, event) {
@@ -158,7 +189,15 @@ function conePath(item) {
 }
 
 function arrowHeadPath(item) {
-    return `M ${item.x + 5} ${item.y - 3} L ${item.x + 1.5} ${item.y - 3.2} L ${item.x + 3.2} ${item.y + 0.1} Z`
+    return `M ${item.x + 4.6} ${item.y - 2.75} L ${item.x + 1.85} ${item.y - 2.95} L ${item.x + 3.15} ${item.y - 0.75} Z`
+}
+
+function arrowTransform(item) {
+    return `rotate(${normalizeRotation(Number(item.rotation ?? 0))} ${item.x} ${item.y})`
+}
+
+function normalizeRotation(rotation) {
+    return ((rotation % 360) + 360) % 360
 }
 </script>
 
@@ -184,6 +223,21 @@ function arrowHeadPath(item) {
     max-width: 280px;
     font-size: 0.8125rem;
     font-weight: 600;
+}
+
+.field-arrow-controls {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.field-arrow-controls .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
 }
 
 .soccer-field {
@@ -223,6 +277,7 @@ function arrowHeadPath(item) {
 .field-item.selected .cone,
 .field-item.selected .ball,
 .field-item.selected .arrow-line,
+.field-item.selected .xmark-line,
 .field-item.selected .field-label {
     filter: drop-shadow(0 0 1.8px #111827);
 }
@@ -247,6 +302,12 @@ function arrowHeadPath(item) {
 
 .arrow-head {
     fill: #b91c1c;
+}
+
+.xmark-line {
+    stroke: #111827;
+    stroke-linecap: round;
+    stroke-width: 1.05;
 }
 
 .field-label {

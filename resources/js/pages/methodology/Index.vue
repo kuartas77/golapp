@@ -262,6 +262,53 @@
                         </div>
                     </section>
 
+                    <section v-if="isPlanning" class="methodology-section">
+                        <h6>Formato de planificación</h6>
+                        <div class="planning-form">
+                            <div class="characterization-grid planning-header-grid">
+                                <template v-for="field in planningHeaderFields" :key="field.key">
+                                    <label :for="`field-${field.key}`">{{ field.label }}</label>
+                                    <input
+                                        :id="`field-${field.key}`"
+                                        v-model="form.fields[field.key]"
+                                        type="text"
+                                        class="form-control"
+                                    >
+                                </template>
+                                <label for="field-objective">Objetivo</label>
+                                <textarea
+                                    id="field-objective"
+                                    v-model="form.fields.objective"
+                                    class="form-control"
+                                    rows="3"
+                                ></textarea>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-bordered align-middle methodology-inline-table planning-structures-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Estructura preferente</th>
+                                            <th>Descripción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="field in planningStructureFields" :key="field.key">
+                                            <td>{{ field.label }}</td>
+                                            <td>
+                                                <textarea
+                                                    v-model="form.fields[field.key]"
+                                                    class="form-control"
+                                                    rows="3"
+                                                ></textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
                     <section v-for="group in fieldGroups" :key="group.title" class="methodology-section">
                         <h6>{{ group.title }}</h6>
                         <div class="row g-3">
@@ -293,13 +340,13 @@
                         <h6>Fases de planificación</h6>
                         <div class="planning-phase-list">
                             <div v-for="phase in planningFieldPhaseSections" :key="phase.key" class="planning-phase-row">
+                                <div class="planning-phase-title">{{ phase.label }}</div>
                                 <div class="planning-phase-field">
-                                    <h6>{{ phase.label }}</h6>
                                     <SoccerFieldDiagramEditor v-model="form.diagrams[phase.key]" />
                                 </div>
                                 <div class="planning-phase-fields">
-                                    <div class="form-group">
-                                        <label class="form-label" :for="`field-${phase.timeKey}`">Tiempo</label>
+                                    <div class="planning-cell-grid planning-time-grid">
+                                        <label :for="`field-${phase.timeKey}`">Tiempo</label>
                                         <input
                                             :id="`field-${phase.timeKey}`"
                                             v-model="form.fields[phase.timeKey]"
@@ -307,8 +354,8 @@
                                             class="form-control"
                                         >
                                     </div>
-                                    <div class="form-group">
-                                        <label class="form-label" :for="`field-${phase.dosageKey}`">Dosificación</label>
+                                    <div class="planning-cell-grid">
+                                        <label :for="`field-${phase.dosageKey}`">Dosificación</label>
                                         <textarea
                                             :id="`field-${phase.dosageKey}`"
                                             v-model="form.fields[phase.dosageKey]"
@@ -316,8 +363,8 @@
                                             rows="4"
                                         ></textarea>
                                     </div>
-                                    <div class="form-group">
-                                        <label class="form-label" :for="`field-${phase.descriptionKey}`">Descripción</label>
+                                    <div class="planning-cell-grid">
+                                        <label :for="`field-${phase.descriptionKey}`">Descripción</label>
                                         <textarea
                                             :id="`field-${phase.descriptionKey}`"
                                             v-model="form.fields[phase.descriptionKey]"
@@ -328,10 +375,10 @@
                                 </div>
                             </div>
                             <div class="planning-final-phase-row">
-                                <h6>Fase final</h6>
-                                <div class="row g-3">
-                                    <div class="col-md-3">
-                                        <label class="form-label" for="field-final_phase_time">Tiempo</label>
+                                <div class="planning-phase-title">Fase final</div>
+                                <div class="planning-final-fields">
+                                    <div class="planning-cell-grid planning-time-grid">
+                                        <label for="field-final_phase_time">Tiempo</label>
                                         <input
                                             id="field-final_phase_time"
                                             v-model="form.fields.final_phase_time"
@@ -339,8 +386,8 @@
                                             class="form-control"
                                         >
                                     </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label" for="field-final_phase_dosage">Dosificación</label>
+                                    <div class="planning-cell-grid">
+                                        <label for="field-final_phase_dosage">Dosificación</label>
                                         <textarea
                                             id="field-final_phase_dosage"
                                             v-model="form.fields.final_phase_dosage"
@@ -348,8 +395,8 @@
                                             rows="4"
                                         ></textarea>
                                     </div>
-                                    <div class="col-md-5">
-                                        <label class="form-label" for="field-final_phase_description">Descripción</label>
+                                    <div class="planning-cell-grid">
+                                        <label for="field-final_phase_description">Descripción</label>
                                         <textarea
                                             id="field-final_phase_description"
                                             v-model="form.fields.final_phase_description"
@@ -364,13 +411,9 @@
 
                     <section v-if="isPlanning" class="methodology-section">
                         <h6>Cierre</h6>
-                        <div class="row g-3">
-                            <div
-                                v-for="field in closingFields"
-                                :key="field.key"
-                                class="col-md-6"
-                            >
-                                <label class="form-label" :for="`field-${field.key}`">{{ field.label }}</label>
+                        <div class="planning-closing-grid">
+                            <div v-for="field in closingFields" :key="field.key" class="planning-closing-cell">
+                                <label :for="`field-${field.key}`">{{ field.label }}</label>
                                 <textarea
                                     :id="`field-${field.key}`"
                                     v-model="form.fields[field.key]"
@@ -435,16 +478,29 @@ const activeTab = computed(() => getTabByType(activeType.value))
 const fieldGroups = computed(() => {
     const groups = methodologyFieldGroups[activeType.value] ?? []
 
-    if (!isPlanning.value) {
-        return isCharacterization.value || isCategoryMonthlyReport.value || isMonthlyReport.value ? [] : groups
+    if (isPlanning.value) {
+        return []
     }
 
-    return groups.filter((group) => !['Fases', 'Cierre'].includes(group.title))
+    return isCharacterization.value || isCategoryMonthlyReport.value || isMonthlyReport.value ? [] : groups
 })
 const isPlanning = computed(() => activeType.value === METHODOLOGY_TYPES.planning)
 const isCharacterization = computed(() => activeType.value === METHODOLOGY_TYPES.characterizationSheet)
 const isMonthlyReport = computed(() => activeType.value === METHODOLOGY_TYPES.monthlyReport)
 const isCategoryMonthlyReport = computed(() => activeType.value === METHODOLOGY_TYPES.categoryMonthlyReport)
+
+const planningHeaderFields = [
+    { key: 'category', label: 'Categoría' },
+    { key: 'coach', label: 'Entrenador' },
+    { key: 'session', label: 'Sesión' },
+]
+
+const planningStructureFields = [
+    { key: 'coordinative', label: 'Coordinativa' },
+    { key: 'cognitive', label: 'Cognitiva' },
+    { key: 'conditional', label: 'Condicional' },
+    { key: 'emotional_volitional', label: 'Emotivo-volitiva' },
+]
 
 const emptyDataTableResponse = (draw = 0) => ({
     draw,
@@ -740,10 +796,32 @@ function reloadTable(resetPaging = false) {
 }
 
 .methodology-section > h6,
-.planning-phase-field > h6 {
+.planning-phase-title {
     font-size: 0.95rem;
     font-weight: 700;
     margin-bottom: 0.75rem;
+}
+
+.planning-form {
+    display: grid;
+    gap: 1rem;
+}
+
+.planning-header-grid {
+    grid-template-columns: 150px 1fr 150px 1fr;
+}
+
+.planning-header-grid label[for="field-objective"] {
+    grid-column: 1;
+}
+
+.planning-header-grid textarea#field-objective {
+    grid-column: 2 / -1;
+}
+
+.planning-structures-table th:first-child,
+.planning-structures-table td:first-child {
+    width: 220px;
 }
 
 .planning-phase-list {
@@ -755,26 +833,82 @@ function reloadTable(resetPaging = false) {
     border: 1px solid #e2e8f0;
     border-radius: 6px;
     display: grid;
-    gap: 1rem;
     grid-template-columns: minmax(300px, 0.95fr) minmax(280px, 1.05fr);
-    padding: 1rem;
+    overflow: hidden;
 }
 
 .planning-final-phase-row {
     border: 1px solid #e2e8f0;
     border-radius: 6px;
-    padding: 1rem;
+    overflow: hidden;
 }
 
-.planning-final-phase-row > h6 {
-    font-size: 0.95rem;
+.planning-phase-title {
+    background: #d9dee7;
+    border-bottom: 1px solid #e2e8f0;
+    grid-column: 1 / -1;
     font-weight: 700;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0;
+    padding: 0.6rem 0.75rem;
+    text-align: center;
+}
+
+.planning-phase-field {
+    border-right: 1px solid #e2e8f0;
+    padding: 0.75rem;
 }
 
 .planning-phase-fields {
     display: grid;
-    gap: 0.85rem;
+    grid-template-rows: auto 1fr 1.4fr;
+}
+
+.planning-final-fields {
+    display: grid;
+    grid-template-columns: minmax(160px, 0.5fr) minmax(240px, 1fr) minmax(260px, 1.2fr);
+}
+
+.planning-cell-grid {
+    display: grid;
+    grid-template-rows: auto 1fr;
+}
+
+.planning-cell-grid label,
+.planning-closing-cell label {
+    background: #d9dee7;
+    border-bottom: 1px solid #d8dee8;
+    font-weight: 700;
+    padding: 0.55rem;
+    text-align: center;
+}
+
+.planning-phase-fields .planning-cell-grid:not(:last-child) {
+    border-bottom: 1px solid #d8dee8;
+}
+
+.planning-final-fields .planning-cell-grid:not(:last-child),
+.planning-closing-cell:not(:last-child) {
+    border-right: 1px solid #d8dee8;
+}
+
+.planning-cell-grid .form-control,
+.planning-closing-cell .form-control {
+    border: 0;
+    border-radius: 0;
+}
+
+.planning-time-grid .form-control {
+    min-height: 44px;
+}
+
+.planning-closing-grid {
+    border: 1px solid #d8dee8;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.planning-closing-cell textarea {
+    min-height: 110px;
 }
 
 .characterization-form {
@@ -866,10 +1000,29 @@ function reloadTable(resetPaging = false) {
         grid-template-columns: 1fr;
     }
 
+    .planning-final-fields,
+    .planning-closing-grid,
+    .planning-header-grid,
     .characterization-grid.two-cols,
     .characterization-grid.objective-grid,
     .characterization-grid.signature-grid {
         grid-template-columns: 1fr;
+    }
+
+    .planning-header-grid label[for="field-objective"],
+    .planning-header-grid textarea#field-objective {
+        grid-column: auto;
+    }
+
+    .planning-phase-field,
+    .planning-final-fields .planning-cell-grid:not(:last-child),
+    .planning-closing-cell:not(:last-child) {
+        border-right: 0;
+    }
+
+    .planning-final-fields .planning-cell-grid:not(:last-child),
+    .planning-closing-cell:not(:last-child) {
+        border-bottom: 1px solid #d8dee8;
     }
 }
 </style>

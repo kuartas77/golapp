@@ -57,6 +57,49 @@ describe('SoccerFieldDiagramEditor', () => {
 
         expect(latestModelValue(wrapper)).toEqual([])
     })
+
+    it('adds x marks and rotates arrows', async () => {
+        const wrapper = mount(SoccerFieldDiagramEditor, {
+            props: {
+                modelValue: [],
+            },
+        })
+
+        await wrapper.findAll('button').find((button) => button.text().trim() === 'X').trigger('click')
+        let value = latestModelValue(wrapper)
+
+        expect(value).toHaveLength(1)
+        expect(value[0]).toEqual(expect.objectContaining({
+            type: 'xmark',
+            x: 50,
+            y: 32,
+        }))
+
+        await wrapper.setProps({ modelValue: value })
+        await wrapper.findAll('button').find((button) => button.text().includes('Flecha')).trigger('click')
+        value = latestModelValue(wrapper)
+
+        expect(value[1]).toEqual(expect.objectContaining({
+            type: 'arrow',
+            rotation: 0,
+        }))
+
+        await wrapper.setProps({ modelValue: value })
+        await wrapper.findAll('button').find((button) => button.text().includes('Derecha')).trigger('click')
+        value = latestModelValue(wrapper)
+
+        expect(value[1]).toEqual(expect.objectContaining({
+            rotation: 45,
+        }))
+
+        await wrapper.setProps({ modelValue: value })
+        await wrapper.findAll('button').find((button) => button.text().includes('Izquierda')).trigger('click')
+        value = latestModelValue(wrapper)
+
+        expect(value[1]).toEqual(expect.objectContaining({
+            rotation: 0,
+        }))
+    })
 })
 
 function makePointerEvent(name, values = {}) {
