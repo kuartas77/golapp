@@ -1,3 +1,11 @@
+@php
+    $availablePortalContracts = $school->create_contract
+        ? app(\App\Service\Contracts\ContractTemplateService::class)->availablePortalContracts($school)
+        : [];
+    $requiresTutorSignature = collect($availablePortalContracts)->contains(fn ($contract) => (bool) ($contract['requires_tutor_signature'] ?? false));
+    $requiresPlayerSignature = collect($availablePortalContracts)->contains(fn ($contract) => (bool) ($contract['requires_player_signature'] ?? false));
+@endphp
+
 <div class="modal" id="modal_inscription">
     <div class="modal-dialog modal-xl mw-80 w-100">
         <div class="wizard-content">
@@ -8,7 +16,7 @@
                     @include('portal.inscriptions.fields.step_1')
                     @include('portal.inscriptions.fields.step_2')
                     @include('portal.inscriptions.fields.step_3')
-                    @includeWhen($school->create_contract, 'portal.inscriptions.fields.step_4')
+                    @includeWhen($school->create_contract && count($availablePortalContracts) > 0, 'portal.inscriptions.fields.step_4')
                     @includeWhen($school->send_documents, 'portal.inscriptions.fields.step_5')
                     {{ html()->form()->close() }}
                 </div>
@@ -74,8 +82,11 @@
             tutor_document: {required: true, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
             payment_receipt: {required: false, extension: "png|jpeg|jpg|pdf", filesize: fileSize},
 
-            contrato_aff: {required: true},
-            contrato_insc: {required: true},
+            @foreach($availablePortalContracts as $contract)
+            @if(!empty($contract['acceptance_field']) && ($contract['requires_acceptance'] ?? false))
+            {{ $contract['acceptance_field'] }}: {required: true},
+            @endif
+            @endforeach
         },
     });
 
@@ -214,20 +225,23 @@
     const tutorCanvas = document.getElementById("firma_tutor");
     const playerCanvas = document.getElementById("firma_alumno");
 
-    const signaturePadTutor = (school.create_contract && tutorCanvas)
+    const requiresTutorSignature = @json($requiresTutorSignature);
+    const requiresPlayerSignature = @json($requiresPlayerSignature);
+
+    const signaturePadTutor = (requiresTutorSignature && tutorCanvas)
         ? new SignaturePad(tutorCanvas)
         : null;
 
-    const signaturePadPlayer = (school.sign_player && playerCanvas)
+    const signaturePadPlayer = (requiresPlayerSignature && playerCanvas)
         ? new SignaturePad(playerCanvas)
         : null;
 
     function tutorSignatureRequiredAndMissing() {
-        return school.create_contract && (!signaturePadTutor || signaturePadTutor.isEmpty());
+        return requiresTutorSignature && (!signaturePadTutor || signaturePadTutor.isEmpty());
     }
 
     function playerSignatureRequiredAndMissing() {
-        return school.sign_player && (!signaturePadPlayer || signaturePadPlayer.isEmpty());
+        return requiresPlayerSignature && (!signaturePadPlayer || signaturePadPlayer.isEmpty());
     }
 
     // ----------------------------
@@ -259,11 +273,11 @@
             }
         });
 
-        if (school.create_contract && signaturePadTutor) {
+        if (requiresTutorSignature && signaturePadTutor) {
             data.append("signatureTutor", signaturePadTutor.toDataURL("image/png"));
         }
 
-        if (school.sign_player && signaturePadPlayer) {
+        if (requiresPlayerSignature && signaturePadPlayer) {
             data.append("signatureAlumno", signaturePadPlayer.toDataURL("image/png"));
         }
 

@@ -163,6 +163,35 @@
                     </div>
                 </div>
 
+                <div class="border rounded-3 p-3 p-lg-4 mt-4">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
+                        <div>
+                            <h5 class="mb-1">Opciones de plataforma</h5>
+                            <p class="text-muted mb-0">
+                                Controla qué funciones quedan activas para el portal público, tutores, contratos y documentos.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6 col-xl">
+                            <checkbox label="Inscripciones habilitadas" name="inscriptions_enabled" v-tooltip.top="'Habilita las inscripciones por medio del enlace.'" />
+                        </div>
+                        <div class="col-md-6 col-xl">
+                            <checkbox label="Plataforma Tutores?" name="tutor_platform" v-tooltip.top="'Permite el ingreso de los acudientes a la plataforma, sólo podrá ver información del deportista.'" />
+                        </div>
+                        <div class="col-md-6 col-xl">
+                            <checkbox label="Firma Deportistas?" name="sign_player" v-tooltip.top="'Sí firma el acudiente y el deportista ó sólo el acudiente.'" />
+                        </div>
+                        <div class="col-md-6 col-xl">
+                            <checkbox label="Creación de contratos?" name="create_contract" v-tooltip.top="'Se requiere el formato del contrato.'" />
+                        </div>
+                        <div class="col-md-6 col-xl">
+                            <checkbox label="Envio documentos?" name="send_documents" v-tooltip.top="'Los documentos que adjuntan en la inscripción serán enviados al correo de la escuela.'" />
+                        </div>
+                    </div>
+                </div>
+
                 <div class="d-flex flex-column flex-md-row justify-content-end gap-2 mt-4">
                     <button type="button" class="btn btn-outline-secondary" :disabled="isSaving" @click="onCancel">
                         Cancelar

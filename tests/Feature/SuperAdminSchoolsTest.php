@@ -140,6 +140,79 @@ final class SuperAdminSchoolsTest extends TestCase
         ]);
     }
 
+    public function testSuperAdminCanConfigurePlatformOptions(): void
+    {
+        Notification::fake();
+
+        $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
+
+        $this->actingAs($superAdmin)
+            ->withHeader('Accept', 'application/json')
+            ->post('/api/v2/admin/schools', [
+                'name' => 'Escuela Plataforma Test',
+                'agent' => 'Administradora Plataforma',
+                'address' => 'Calle 654',
+                'phone' => '3009876543',
+                'email' => 'platform-school@example.com',
+                'is_enable' => '1',
+                'is_campus' => false,
+                'inscriptions_enabled' => '1',
+                'tutor_platform' => '1',
+                'sign_player' => '1',
+                'create_contract' => '1',
+                'send_documents' => '1',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('success', true);
+
+        $school = School::query()->firstWhere('slug', 'escuela-plataforma-test');
+
+        $this->assertNotNull($school);
+        $this->assertTrue($school->inscriptions_enabled);
+        $this->assertTrue($school->tutor_platform);
+        $this->assertTrue($school->sign_player);
+        $this->assertTrue($school->create_contract);
+        $this->assertTrue($school->send_documents);
+
+        $response = $this->actingAs($superAdmin)
+            ->getJson("/api/v2/admin/schools/{$school->slug}")
+            ->assertOk();
+
+        $response->assertJsonPath('school.inscriptions_enabled', true)
+            ->assertJsonPath('school.tutor_platform', true)
+            ->assertJsonPath('school.sign_player', true)
+            ->assertJsonPath('school.create_contract', true)
+            ->assertJsonPath('school.send_documents', true);
+
+        $this->actingAs($superAdmin)
+            ->withHeader('Accept', 'application/json')
+            ->post("/api/v2/admin/schools/{$school->slug}", [
+                '_method' => 'PUT',
+                'name' => $school->name,
+                'agent' => $school->agent,
+                'address' => $school->address,
+                'phone' => $school->phone,
+                'email' => $school->email,
+                'is_enable' => '1',
+                'is_campus' => false,
+                'inscriptions_enabled' => '0',
+                'tutor_platform' => '0',
+                'sign_player' => '0',
+                'create_contract' => '0',
+                'send_documents' => '0',
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $school->refresh();
+
+        $this->assertFalse($school->inscriptions_enabled);
+        $this->assertFalse($school->tutor_platform);
+        $this->assertFalse($school->sign_player);
+        $this->assertFalse($school->create_contract);
+        $this->assertFalse($school->send_documents);
+    }
+
     public function testSchoolDefaultsAreIdempotentWhenConfigDefaultRunsAgain(): void
     {
         $school = School::factory()->create([

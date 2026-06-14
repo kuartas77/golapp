@@ -135,21 +135,26 @@ class TrainingGroup extends Model
 
     private function nameGroup(bool $full = false): string
     {
+        $categories = implode(',', $this->category);
+
         if ($this->name !== 'Provisional') {
 
             // $optional = ($this->year_active ?? implode(', ', $this->explode_days));
 
-            $var = sprintf('%s - (%s) ', $this->name, implode(',', $this->category) );
+            $var = filled($categories)
+                ? sprintf('%s - (%s)', $this->name, $categories)
+                : (string) $this->name;
 
             if ($full) {
-                $var .= sprintf('%s %s', $this->days, $this->schedules);
+                $var .= sprintf(' %s %s', $this->days, $this->schedules);
             }
-        }else{
-            $var = sprintf('%s (%s)', $this->name, implode(',', $this->category));
+        } else {
+            $var = filled($categories)
+                ? sprintf('%s (%s)', $this->name, $categories)
+                : (string) $this->name;
         }
+
         return trim($var);
-
-
     }
 
     public function getFullScheduleGroupAttribute(): string
@@ -195,7 +200,10 @@ class TrainingGroup extends Model
 
     public function getCategoryAttribute()
     {
-        return explode(',', ($this->attributes['category'] ?? ''));
+        return collect(explode(',', ($this->attributes['category'] ?? '')))
+            ->filter(fn ($category) => filled($category))
+            ->values()
+            ->all();
     }
 
     public function getExplodeDaysAttribute()

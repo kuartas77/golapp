@@ -14,6 +14,11 @@ const defaultValues = () => ({
     logo: null,
     is_campus: false,
     multiple_schools: [],
+    inscriptions_enabled: false,
+    tutor_platform: false,
+    sign_player: false,
+    create_contract: false,
+    send_documents: false,
 })
 
 export default function useSuperAdminSchoolForm(mode = 'create') {
@@ -51,6 +56,11 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
         max_inscriptions: yup.number().integer().min(0).required(),
         logo: yup.mixed().nullable(),
         is_campus: yup.boolean().default(false),
+        inscriptions_enabled: yup.boolean().default(false),
+        tutor_platform: yup.boolean().default(false),
+        sign_player: yup.boolean().default(false),
+        create_contract: yup.boolean().default(false),
+        send_documents: yup.boolean().default(false),
         multiple_schools: yup.array()
             .of(yup.number().integer())
             .when('is_campus', {
@@ -79,6 +89,11 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
         logo: payload.logo_file ?? null,
         is_campus: Boolean(payload.is_campus),
         multiple_schools: Array.isArray(payload.multiple_schools) ? payload.multiple_schools : [],
+        inscriptions_enabled: Boolean(payload.inscriptions_enabled),
+        tutor_platform: Boolean(payload.tutor_platform),
+        sign_player: Boolean(payload.sign_player),
+        create_contract: Boolean(payload.create_contract),
+        send_documents: Boolean(payload.send_documents),
     })
 
     const loadCreateOptions = async () => {

@@ -116,13 +116,13 @@
                                     <checkbox label="Plataforma Tutores?" name="tutor_platform" v-tooltip.top="'Permite el ingreso de los acudientes a la plataforma, sólo podrá ver información del deportista.'" />
                                 </div>
                                 <div class="col-md-6 col-xl">
-                                    <checkbox label="Firma Deportistas?" name="sign_player" disabled="disabled" v-tooltip.top="'Sí firma el acudiente y el deportista ó sólo el acudiente.'" />
+                                    <checkbox label="Firma Deportistas?" name="sign_player" v-tooltip.top="'Sí firma el acudiente y el deportista ó sólo el acudiente.'" />
                                 </div>
                                 <div class="col-md-6 col-xl">
-                                    <checkbox label="Creación de contratos?" name="create_contract" disabled="disabled" v-tooltip.top="'Se requiere el formato del contrato.'" />
+                                    <checkbox label="Creación de contratos?" name="create_contract" v-tooltip.top="'Se requiere el formato del contrato.'" />
                                 </div>
                                 <div class="col-md-6 col-xl">
-                                    <checkbox label="Envio documentos?" name="send_documents" disabled="disabled" v-tooltip.top="'Los documentos que adjuntan en la inscripción serán enviados al correo de la escuela.'" />
+                                    <checkbox label="Envio documentos?" name="send_documents" v-tooltip.top="'Los documentos que adjuntan en la inscripción serán enviados al correo de la escuela.'" />
                                 </div>
                             </div>
                         </div>

@@ -1,16 +1,16 @@
 <h6>T y C</h6>
 <section>
 
-    @if($school->create_contract || $school->sign_player)
+    @if($requiresTutorSignature || $requiresPlayerSignature)
     <h6 class="row block-helper justify-content-center "><strong>Desliza con el mouse de su ordenador o si esta en dispositivo movil con su tactil firme en el area indicada.</strong></h6>
-    @elseif(!$school->create_contract && !$school->sign_player)
+    @elseif(count($availablePortalContracts) === 0)
     <h6 class="row block-helper justify-content-center ">Por el momento no hay terminos y condiciones que aceptar.</h6>
     @else
     <h6 class="row block-helper justify-content-center">Los campos con (<span class="text-danger">*</span>) son requeridos.</h6>
     @endif
     <div class="row">
 
-        <fieldset class="col-md-6 {{ !$school->create_contract ? 'hidden' : ''}} p-2" >
+        <fieldset class="col-md-6 {{ !$requiresTutorSignature ? 'hidden' : ''}} p-2" >
             <legend>Firma Del Acudiente (<span class="text-danger">*</span>):</legend>
             <h6 class="row block-helper justify-content-center ">Firma de la persona que va a figurar en el <strong>&nbsp;CONTRATO&nbsp;</strong></h6>
             <div class="row">
@@ -30,7 +30,7 @@
 
         </fieldset>
 
-        <fieldset class="col-md-6 {{ !$school->sign_player ? 'hidden' : ''}} p-2 ">
+        <fieldset class="col-md-6 {{ !$requiresPlayerSignature ? 'hidden' : ''}} p-2 ">
             <legend>Firma del Deportista (<span class="text-danger">*</span>):</legend>
             <h6 class="row block-helper justify-content-center ">Firma del <strong>&nbsp;Deportista&nbsp;</strong> que hará parte de {{$school->name}}</h6>
             <div class="row">
@@ -49,36 +49,23 @@
             </div>
         </fieldset>
 
-        <fieldset class="col-md-12 p-2 {{ (!$school->create_contract && !$school->sign_player) ? 'hidden' : ''}}">
-            @if($school->sign_player)
+        <fieldset class="col-md-12 p-2 {{ count($availablePortalContracts) === 0 ? 'hidden' : ''}}">
+            @foreach($availablePortalContracts as $contract)
+            @continue(empty($contract['acceptance_field']) || !($contract['requires_acceptance'] ?? false))
             <div class="row">
                 <div class="check col">
                     <div class="form-group">
                         <div class="checkbox">
-                            <input type="checkbox" name="contrato_aff" id="contrato_aff" value="1" {{ !$school->sign_player ? 'disabled' : ''}}>
-                            <label for="contrato_aff" class="checkboxsizeletter">(<span class="text-danger">*</span>) Acepta los terminos y condiciones del
-                                <a target="_blank" href="{{asset('contracts/'.$school->slug.'/CAFICODEPOR.pdf')}}">CONTRATO DE AFILIACIÓN Y CORRESPONSABILIDAD DEPORTIVA</a>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @endif
-            @if($school->create_contract)
-            <div class="row">
-                <div class="check col">
-                    <div class="form-group">
-                        <div class="checkbox">
-                            <input type="checkbox" name="contrato_insc" id="contrato_insc" value="1" {{ !$school->create_contract ? 'disabled' : ''}}>
-                            <label for="contrato_insc" class="checkboxsizeletter">
+                            <input type="checkbox" name="{{ $contract['acceptance_field'] }}" id="{{ $contract['acceptance_field'] }}" value="1">
+                            <label for="{{ $contract['acceptance_field'] }}" class="checkboxsizeletter">
                                 (<span class="text-danger">*</span>) Acepta los terminos y condiciones del
-                                <a target="_blank" href="{{asset('contracts/'.$school->slug.'/COINSCRIP.pdf')}}">CONTRATO DE INSCRIPCIÓN</a>
+                                <a target="_blank" href="{{ $contract['url'] }}">{{ $contract['label'] }}</a>
                             </label>
                         </div>
                     </div>
                 </div>
             </div>
-            @endif
+            @endforeach
         </fieldset>
     </div>
 </section>

@@ -66,8 +66,13 @@ const mountModal = async (component, props = { id: null }) => {
             },
             stubs: {
                 inputField: {
-                    props: ['name', 'label'],
-                    template: '<input :name="name" :aria-label="label" />',
+                    props: ['name', 'label', 'isRequired'],
+                    template: `
+                        <div>
+                            <label :for="name">{{ label }}<span v-if="isRequired" class="text-danger"> (*)</span></label>
+                            <input :id="name" :name="name" :aria-label="label" />
+                        </div>
+                    `,
                 },
                 CustomSelect2: {
                     name: 'CustomSelect2',
@@ -126,6 +131,43 @@ describe('Admin group modals', () => {
 
         expect(wrapper.get('[data-select-id="days"]').text()).toContain('"maxSelections":5');
         expect(wrapper.text()).toContain('Puedes seleccionar máximo 5 días.');
+    });
+
+    it('shows training group scenario copy and keeps categories optional', async () => {
+        const currentYear = String(new Date().getFullYear());
+        settingsStore.year_active = [currentYear];
+
+        const wrapper = await mountModal(ModalTrainingGroup);
+
+        expect(wrapper.find('input[aria-label="Escenario"]').exists()).toBe(true);
+        expect(wrapper.find('input[aria-label="Lugar de entrenamiento"]').exists()).toBe(false);
+        expect(wrapper.find('label[for="years"] + span.text-danger').exists()).toBe(false);
+    });
+
+    it('submits training groups without selected categories', async () => {
+        const currentYear = String(new Date().getFullYear());
+        settingsStore.year_active = [currentYear];
+        apiMock.post.mockResolvedValue({ data: { success: true } });
+
+        const wrapper = await mountModal(ModalTrainingGroup);
+
+        await wrapper.vm.$.setupState.submit({
+            name: 'Grupo Libre',
+            stage: '',
+            year_active: currentYear,
+            days: [{ value: 'Lunes', label: 'Lunes' }],
+            schedules: [{ value: '08:00 AM - 09:00 AM', label: '08:00 AM - 09:00 AM' }],
+            user_id: [{ value: '7', label: 'Instructor Principal' }],
+            years: [],
+        }, {
+            setErrors: vi.fn(),
+        });
+        await flushPromises();
+
+        expect(apiMock.post).toHaveBeenCalledWith('/api/v2/admin/training_groups', expect.objectContaining({
+            categories: [],
+            stage: '',
+        }));
     });
 
     it('stops multiselect additions when the configured maximum is reached', async () => {

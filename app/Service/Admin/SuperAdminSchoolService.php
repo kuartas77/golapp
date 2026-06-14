@@ -51,6 +51,11 @@ class SuperAdminSchoolService
                 'email' => $school->email,
                 'is_enable' => $school->is_enable,
                 'logo_file' => $school->logo_file,
+                'create_contract' => $school->create_contract,
+                'send_documents' => $school->send_documents,
+                'tutor_platform' => $school->tutor_platform,
+                'sign_player' => $school->sign_player,
+                'inscriptions_enabled' => $school->inscriptions_enabled,
                 'is_campus' => !empty($this->campusIdsForForm($school)),
                 'max_inscriptions' => (int) data_get(
                     $school,
@@ -134,6 +139,11 @@ class SuperAdminSchoolService
             'phone',
             'email',
             'is_enable',
+            'create_contract',
+            'send_documents',
+            'tutor_platform',
+            'sign_player',
+            'inscriptions_enabled',
         ]);
 
         if ($request->hasFile('logo')) {

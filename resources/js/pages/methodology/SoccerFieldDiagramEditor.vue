@@ -72,8 +72,8 @@
                     <path :d="arrowHeadPath(item)" class="arrow-head" />
                 </g>
                 <g v-else-if="item.type === 'xmark'">
-                    <line :x1="item.x - 2.4" :y1="item.y - 2.4" :x2="item.x + 2.4" :y2="item.y + 2.4" class="xmark-line" />
-                    <line :x1="item.x + 2.4" :y1="item.y - 2.4" :x2="item.x - 2.4" :y2="item.y + 2.4" class="xmark-line" />
+                    <line :x1="item.x - 1.2" :y1="item.y - 1.2" :x2="item.x + 1.2" :y2="item.y + 1.2" class="xmark-line" />
+                    <line :x1="item.x + 1.2" :y1="item.y - 1.2" :x2="item.x - 1.2" :y2="item.y + 1.2" class="xmark-line" />
                 </g>
                 <text v-else :x="item.x" :y="item.y" class="field-label">{{ item.label || 'Texto' }}</text>
             </g>
@@ -189,7 +189,7 @@ function conePath(item) {
 }
 
 function arrowHeadPath(item) {
-    return `M ${item.x + 4.6} ${item.y - 2.75} L ${item.x + 1.85} ${item.y - 2.95} L ${item.x + 3.15} ${item.y - 0.75} Z`
+    return `M ${item.x + 4.6} ${item.y - 2.75} L ${item.x + 1.85} ${item.y - 2.95} L ${item.x + 3.15} ${item.y - 0.55} Z`
 }
 
 function arrowTransform(item) {

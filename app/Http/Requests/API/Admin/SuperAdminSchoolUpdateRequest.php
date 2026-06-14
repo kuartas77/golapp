@@ -34,6 +34,11 @@ class SuperAdminSchoolUpdateRequest extends FormRequest
             'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp'],
             'max_inscriptions' => ['nullable', 'integer', 'min:0'],
             'is_campus' => ['nullable', 'boolean'],
+            'create_contract' => ['nullable', 'boolean'],
+            'send_documents' => ['nullable', 'boolean'],
+            'tutor_platform' => ['nullable', 'boolean'],
+            'sign_player' => ['nullable', 'boolean'],
+            'inscriptions_enabled' => ['nullable', 'boolean'],
             'multiple_schools' => array_values(array_filter([
                 $isCampus ? 'required' : 'nullable',
                 'array',
@@ -53,5 +58,26 @@ class SuperAdminSchoolUpdateRequest extends FormRequest
                 static fn ($value) => $value !== null && $value !== ''
             )),
         ]);
+
+        $this->merge($this->booleanPlatformOptions());
+    }
+
+    private function booleanPlatformOptions(): array
+    {
+        $data = [];
+
+        foreach ([
+            'create_contract',
+            'send_documents',
+            'tutor_platform',
+            'sign_player',
+            'inscriptions_enabled',
+        ] as $field) {
+            if ($this->has($field)) {
+                $data[$field] = $this->boolean($field);
+            }
+        }
+
+        return $data;
     }
 }

@@ -179,17 +179,22 @@ final class ContractsTest extends TestCase
         School::forgetCachedSchool($school->id);
 
         $this->createConfiguredContract($school, 'inscription');
+        $this->createConfiguredContract($school, 'image_rights');
 
         $response = $this->getJson("/api/v2/portal/escuelas/{$school->slug}/data")
             ->assertOk();
 
         $availableContracts = $response->json('data.contracts.available');
 
-        $this->assertCount(1, $availableContracts);
+        $this->assertCount(2, $availableContracts);
         $this->assertSame('inscription', $availableContracts[0]['code']);
         $this->assertTrue($availableContracts[0]['requires_tutor_signature']);
         $this->assertFalse($availableContracts[0]['requires_player_signature']);
         $this->assertSame('contrato_insc', $availableContracts[0]['acceptance_field']);
+        $this->assertSame('image_rights', $availableContracts[1]['code']);
+        $this->assertSame('contrato_image_rights', $availableContracts[1]['acceptance_field']);
+        $this->assertTrue($availableContracts[1]['requires_tutor_signature']);
+        $this->assertFalse($availableContracts[1]['requires_player_signature']);
     }
 
     public function testPortalInscriptionValidationOnlyRequiresAvailableContractFields(): void
@@ -371,6 +376,7 @@ final class ContractsTest extends TestCase
         $definitions = [
             'contract' => 'Contrato',
             'affiliate' => 'Afiliacion',
+            'image_rights' => 'AUTORIZACION USO DE IMAGEN',
         ];
 
         foreach ($definitions as $code => $name) {

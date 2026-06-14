@@ -20,7 +20,7 @@
 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <inputField label="Lugar de entrenamiento" name="stage" />
+                                        <inputField label="Escenario" name="stage" />
                                     </div>
                                 </div>
                             </div>
@@ -91,7 +91,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <Field name="years" v-slot="{ field, handleChange, handleBlur }">
-                                            <label for="years">Categoria(s)</label><span class="text-danger">*</span>
+                                            <label for="years">Categoria(s)</label>
                                             <CustomMultiSelect v-bind="field" :buttons="true"
                                                 :options="categoryOptions" @change="handleChange"
                                                 @blur="handleBlur" id="years" />
@@ -234,9 +234,8 @@ const schema = yup.object().shape({
     user_id: yup.array().min(1, "Selecciona al menos un instructor").required(),
     years: yup
         .array()
-        .min(1, "Selecciona al menos una categoría")
         .max(12, "No puedes seleccionar más de 12 categorías")
-        .required(),
+        .default([]),
 });
 
 const submit = async (values, actions) => {
