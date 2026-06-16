@@ -29,7 +29,7 @@
                 {{ globalError }}
             </div>
 
-            <div v-show="activeTab === 'products'" class="table-responsive-md" @click="handleProductsTableClick">
+            <div v-show="activeTab === 'products'" class="table-responsive-md">
                 <DatatableTemplate id="inventory_products_table" ref="productsTable" :options="productOptions">
                     <template #thead>
                         <thead class="align-middle">
@@ -44,6 +44,24 @@
                                 <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
+                    </template>
+                    <template #actions="props">
+                        <div class="d-inline-flex gap-2">
+                            <button
+                                type="button"
+                                class="btn btn-outline-primary btn-sm"
+                                @click="openEditProduct(props.rowData.id)"
+                            >
+                                Editar
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-outline-info btn-sm"
+                                @click="openMovementForm(props.rowData.id)"
+                            >
+                                Movimiento
+                            </button>
+                        </div>
                     </template>
                 </DatatableTemplate>
             </div>
@@ -328,15 +346,6 @@ function renderStatus(data) {
     return data ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-secondary">Inactivo</span>'
 }
 
-function renderProductActions(id) {
-    return `
-        <div class="d-inline-flex gap-2">
-            <button type="button" class="btn btn-outline-primary btn-sm" data-action="edit-product" data-id="${id}">Editar</button>
-            <button type="button" class="btn btn-outline-info btn-sm" data-action="move-product" data-id="${id}">Movimiento</button>
-        </div>
-    `
-}
-
 function renderType(data) {
     const labels = {
         entry: ['Entrada', 'badge-success'],
@@ -355,7 +364,7 @@ const productColumns = [
     { data: 'stock_quantity', name: 'stock_quantity', searchable: false, render: renderStock, className: 'dt-head-center dt-body-center' },
     { data: 'minimum_stock', name: 'minimum_stock', searchable: false, className: 'dt-head-center dt-body-center' },
     { data: 'is_active', name: 'is_active', orderable: false, render: renderStatus, className: 'dt-head-center dt-body-center' },
-    { data: 'id', searchable: false, orderable: false, render: renderProductActions, className: 'dt-head-center dt-body-center' },
+    { data: 'id', searchable: false, orderable: false, render: '#actions', className: 'dt-head-center dt-body-center' },
 ]
 
 const productOptions = {
@@ -567,19 +576,6 @@ function validateMovementForm() {
     }
 
     return !hasErrors
-}
-
-function handleProductsTableClick(event) {
-    const button = event.target.closest('[data-action]')
-    if (!button) return
-    event.preventDefault()
-    const id = button.dataset.id
-    if (button.dataset.action === 'edit-product') {
-        openEditProduct(id)
-    }
-    if (button.dataset.action === 'move-product') {
-        openMovementForm(id)
-    }
 }
 
 </script>

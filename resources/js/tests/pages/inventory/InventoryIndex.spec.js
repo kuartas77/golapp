@@ -120,4 +120,32 @@ describe('InventoryIndex', () => {
         wrapper.unmount()
         vi.unstubAllGlobals()
     })
+
+    it('opens the edit modal with product data', async () => {
+        axiosMock.get.mockResolvedValue({
+            data: {
+                data: {
+                    id: 7,
+                    name: 'Balón profesional',
+                    sku: 'BAL-001',
+                    category: 'Implementos',
+                    description: 'Balón número 5',
+                    unit_price: '120000.00',
+                    stock_quantity: 4,
+                    minimum_stock: 1,
+                    is_active: true,
+                },
+            },
+        })
+        const wrapper = mountPage()
+        const state = wrapper.vm.$.setupState
+
+        await state.openEditProduct(7)
+
+        expect(axiosMock.get).toHaveBeenCalledWith('/api/v2/inventory/products/7')
+        expect(state.productForm.name).toBe('Balón profesional')
+        expect(wrapper.text()).toContain('Editar producto')
+        wrapper.unmount()
+        vi.unstubAllGlobals()
+    })
 })
