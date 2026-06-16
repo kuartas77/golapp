@@ -36,10 +36,11 @@ use App\Http\Controllers\Evaluations\PlayerEvaluationController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\Groups\CompetitionGroupController;
 use App\Http\Controllers\Groups\TrainingGroupController;
+use App\Http\Controllers\ImportController;
 use App\Http\Controllers\Inscription\InscriptionController as WebInscriptions;
+use App\Http\Controllers\Inventory\InventoryProductController;
 use App\Http\Controllers\Invoices\InvoiceController;
 use App\Http\Controllers\Invoices\ItemInvoicesController;
-use App\Http\Controllers\Inventory\InventoryProductController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\Notifications\PaymentRequestController;
 use App\Http\Controllers\Notifications\TopicNotificationsController;
@@ -184,6 +185,7 @@ Route::prefix('v2')->group(function () {
             'role:super-admin|school',
             'school.permission:school.module.players',
         ])->group(function () {
+            Route::post('import/players', [ImportController::class, 'importPlayers']);
             Route::apiResource('players', PlayerController::class, ['only' => ['edit', 'show', 'update']]);
         });
 

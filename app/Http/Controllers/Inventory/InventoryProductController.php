@@ -91,6 +91,6 @@ class InventoryProductController extends Controller
 
     private function authorizeSchoolProduct(InventoryProduct $product): void
     {
-        abort_unless($product->school_id === getSchool(auth()->user())->id, 404);
+        abort_unless((int) $product->school_id === (int) getSchool(auth()->user())->id, 404);
     }
 }

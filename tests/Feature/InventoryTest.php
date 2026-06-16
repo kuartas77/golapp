@@ -78,6 +78,11 @@ final class InventoryTest extends TestCase
         $this->assertFalse(collect($response->json('data'))->contains('id', $otherProduct->id));
 
         $this->actingAs($this->user)
+            ->getJson("/api/v2/inventory/products/{$ownProduct->id}")
+            ->assertOk()
+            ->assertJsonPath('data.id', $ownProduct->id);
+
+        $this->actingAs($this->user)
             ->getJson("/api/v2/inventory/products/{$otherProduct->id}")
             ->assertNotFound();
     }
