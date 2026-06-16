@@ -107,12 +107,15 @@ const routes = [
 
             {
                 path: 'mensualidades',
-                name: 'payments',
                 meta: {
                     requiresRole: ['super-admin', 'school'],
                     requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.payments],
                 },
-                component: () => import('@/pages/payments/monthly-payment-list.vue')
+                component: { render: () => h(RouterView) },
+                children: [
+                    { path: '', name: 'payments', component: () => import('@/pages/payments/monthly-payment-list.vue') },
+                    { path: 'recibos', name: 'payments.receipts', component: () => import('@/pages/payments/MonthlyPaymentReceipts.vue') },
+                ]
             },
             {
                 path: 'control-competencias',

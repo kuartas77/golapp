@@ -18,6 +18,7 @@ use App\Http\Controllers\Invoices\ItemInvoicesController;
 use App\Http\Controllers\Notifications\PaymentRequestController;
 use App\Http\Controllers\Notifications\TopicNotificationsController;
 use App\Http\Controllers\Notifications\UniformRequestsController;
+use App\Http\Controllers\Payments\MonthlyPaymentReceiptController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\Reports\AttendancePaymentReportExportController;
 use App\Http\Controllers\Reports\AttendanceReportExportController;
@@ -52,6 +53,8 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
     Route::middleware('school.permission:school.module.payments')->group(function () {
         Route::resource("payments", PaymentController::class)->only(['index','update', 'show']);
+        Route::get('payments/{payment}/monthly-receipts/{month}', [MonthlyPaymentReceiptController::class, 'show'])
+            ->name('payments.monthly-receipts.show');
         Route::get('statuses/payments', [PaymentController::class, 'paymentStatuses'])->name('payments.status');
     });
 

@@ -45,6 +45,7 @@ use App\Http\Controllers\MasterController;
 use App\Http\Controllers\Notifications\PaymentRequestController;
 use App\Http\Controllers\Notifications\TopicNotificationsController;
 use App\Http\Controllers\Notifications\UniformRequestsController;
+use App\Http\Controllers\Payments\MonthlyPaymentReceiptController;
 use App\Http\Controllers\Payments\PaymentController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\Players\PlayerController;
@@ -190,6 +191,8 @@ Route::prefix('v2')->group(function () {
         });
 
         Route::middleware('school.permission:school.module.payments')->group(function () {
+            Route::get('payments/monthly-receipts', [MonthlyPaymentReceiptController::class, 'index'])
+                ->name('api.payments.monthly-receipts.index');
             Route::apiResource('payments', PaymentController::class)->only(['index', 'update', 'show']);
         });
 

@@ -79,6 +79,10 @@
                         </div>
 
                         <div class="col-12 mt-1">
+                            <router-link :to="{ name: 'payments.receipts' }"
+                                class="btn btn-primary btn-sm me-1">
+                                <i class="far fa-file-pdf me-1"></i>Recibos
+                            </router-link>
                             <a v-if="export_pdf" :href="export_pdf" target="_blank"
                                 class="badge badge-info btn btn-sm me-1" @click="exportFile($event)">
                                 <i class="far fa-file-pdf fa-lg"></i>PDF

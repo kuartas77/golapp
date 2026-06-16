@@ -1,5 +1,5 @@
 <template>
-    <DataTable :options="options" :data="data" class="table table-bordered table-sm" :id="id" ref="table">
+    <DataTable :options="resolvedOptions" :data="data" class="table table-bordered table-sm" :id="id" ref="table">
 
         <slot name="thead"></slot>
 
@@ -85,9 +85,9 @@ export default {
 </script>
 <script setup>
 import dayjs from "@/utils/dayjs";
-import DataTable from '@/plugins/datatables';
-import { useTemplateRef } from 'vue';
-defineProps({
+import DataTable, { dataTablePipeline } from '@/plugins/datatables';
+import { computed, useTemplateRef } from 'vue';
+const props = defineProps({
     options: {
         type: Object,
         required: true,
@@ -100,6 +100,22 @@ defineProps({
         type: Array,
         default: undefined,
     },
+})
+
+const resolvedOptions = computed(() => {
+    const options = props.options
+
+    if (!options?.pipeline || typeof options.ajax !== 'function') {
+        return options
+    }
+
+    const pipelineOptions = typeof options.pipeline === 'object' ? options.pipeline : {}
+    const { pipeline, ...dataTableOptions } = options
+
+    return {
+        ...dataTableOptions,
+        ajax: dataTablePipeline(options.ajax, pipelineOptions),
+    }
 })
 
 const table = useTemplateRef('table')
