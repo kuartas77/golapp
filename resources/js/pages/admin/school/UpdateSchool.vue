@@ -71,17 +71,17 @@
                                 </div>
                                 <div class="col-md-6 col-xl-4">
                                     <div class="form-group">
-                                        <inputField label="Mensualidad opción 1" name="MONTHLY_PAYMENT_OPTION_1" :currency="true" />
+                                        <inputField label="Mensualidad 5 dias" name="MONTHLY_PAYMENT_OPTION_1" :currency="true" />
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-xl-4">
                                     <div class="form-group">
-                                        <inputField label="Mensualidad opción 2" name="MONTHLY_PAYMENT_OPTION_2" :currency="true" />
+                                        <inputField label="Mensualidad 4 dias" name="MONTHLY_PAYMENT_OPTION_2" :currency="true" />
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-xl-4">
                                     <div class="form-group">
-                                        <inputField label="Mensualidad opción 3" name="MONTHLY_PAYMENT_OPTION_3" :currency="true" />
+                                        <inputField label="Mensualidad 3 dias" name="MONTHLY_PAYMENT_OPTION_3" :currency="true" />
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-xl-4">

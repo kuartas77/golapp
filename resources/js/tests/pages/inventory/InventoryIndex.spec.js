@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { defineComponent } from 'vue'
+import { defineComponent, nextTick } from 'vue'
 import { describe, expect, it, vi } from 'vitest'
 
 const { axiosMock, productReloadMock, movementReloadMock } = vi.hoisted(() => ({
@@ -145,6 +145,40 @@ describe('InventoryIndex', () => {
         expect(axiosMock.get).toHaveBeenCalledWith('/api/v2/inventory/products/7')
         expect(state.productForm.name).toBe('Balón profesional')
         expect(wrapper.text()).toContain('Editar producto')
+        wrapper.unmount()
+        vi.unstubAllGlobals()
+    })
+
+    it('shows product stock in movement modal and blocks exits above available stock', async () => {
+        axiosMock.get.mockResolvedValue({
+            data: {
+                data: {
+                    id: 8,
+                    name: 'Camiseta',
+                    unit_price: '60000.00',
+                    stock_quantity: 3,
+                    minimum_stock: 1,
+                },
+            },
+        })
+        const wrapper = mountPage()
+        const state = wrapper.vm.$.setupState
+
+        await state.openMovementForm(8)
+        state.movementForm.type = 'exit'
+        await nextTick()
+
+        expect(wrapper.text()).toContain('Stock actual')
+        expect(wrapper.text()).toContain('Disponible salida')
+        expect(wrapper.text()).toContain('Puedes registrar una salida máxima de 3 unidades.')
+
+        state.movementForm.type = 'exit'
+        state.movementForm.quantity = 4
+
+        await state.saveMovement()
+
+        expect(axiosMock.post).not.toHaveBeenCalled()
+        expect(state.formErrors.quantity).toBe('La salida no puede superar el stock disponible (3).')
         wrapper.unmount()
         vi.unstubAllGlobals()
     })

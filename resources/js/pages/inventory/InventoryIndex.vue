@@ -184,6 +184,28 @@
                     <div class="modal-body">
                         <div v-if="formMessage" class="alert alert-danger" role="alert">{{ formMessage }}</div>
                         <div class="row g-3">
+                            <div class="col-12">
+                                <div class="border rounded p-3 bg-light">
+                                    <div class="row g-3 align-items-center">
+                                        <div class="col-md-3">
+                                            <small class="text-muted d-block">Stock actual</small>
+                                            <strong class="h5 mb-0">{{ selectedStock }}</strong>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-muted d-block">Stock mínimo</small>
+                                            <strong class="h5 mb-0">{{ selectedMinimumStock }}</strong>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-muted d-block">Disponible salida</small>
+                                            <strong class="h5 mb-0">{{ exitAvailableStock }}</strong>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-muted d-block">Quedaría en</small>
+                                            <strong class="h5 mb-0" :class="{ 'text-danger': projectedStock < 0 }">{{ projectedStock }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="inventory-movement-type">Tipo</label>
                                 <select id="inventory-movement-type" v-model="movementForm.type" class="form-select" :class="{ 'is-invalid': formErrors.type }">
@@ -200,8 +222,11 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="inventory-movement-quantity">{{ movementForm.type === 'adjustment' ? 'Stock final' : 'Cantidad' }}</label>
-                                <input id="inventory-movement-quantity" v-model.number="movementForm.quantity" type="number" min="0" step="1" class="form-control" :class="{ 'is-invalid': formErrors.quantity }">
+                                <input id="inventory-movement-quantity" v-model.number="movementForm.quantity" type="number" min="0" :max="movementForm.type === 'exit' ? exitAvailableStock : null" step="1" class="form-control" :class="{ 'is-invalid': formErrors.quantity }">
                                 <div v-if="formErrors.quantity" class="invalid-feedback">{{ formErrors.quantity }}</div>
+                                <small v-if="movementForm.type === 'exit'" class="text-muted">
+                                    Puedes registrar una salida máxima de {{ exitAvailableStock }} unidades.
+                                </small>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="inventory-movement-price">Precio snapshot</label>
@@ -237,7 +262,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, useTemplateRef, watch } from 'vue'
+import { computed, reactive, ref, useTemplateRef, watch } from 'vue'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import CurrencyInput from '@/components/general/CurrencyInput'
 import api from '@/utils/axios'
@@ -284,6 +309,23 @@ const emptyMovementForm = () => ({
 
 const productForm = reactive(emptyProductForm())
 const movementForm = reactive(emptyMovementForm())
+
+const selectedStock = computed(() => Number(selectedProduct.value?.stock_quantity || 0))
+const selectedMinimumStock = computed(() => Number(selectedProduct.value?.minimum_stock || 0))
+const exitAvailableStock = computed(() => Math.max(selectedStock.value, 0))
+const projectedStock = computed(() => {
+    const quantity = Number(movementForm.quantity || 0)
+
+    if (movementForm.type === 'entry') {
+        return selectedStock.value + quantity
+    }
+
+    if (movementForm.type === 'exit') {
+        return selectedStock.value - quantity
+    }
+
+    return quantity
+})
 
 watch(() => props.initialTab, (tab) => {
     setActiveTab(tab === 'movements' ? 'movements' : 'products')
@@ -564,6 +606,10 @@ function validateMovementForm() {
         formErrors.quantity = movementForm.type === 'adjustment'
             ? 'El stock final no puede ser negativo.'
             : 'La cantidad debe ser mayor a cero.'
+    }
+
+    if (movementForm.type === 'exit' && Number(movementForm.quantity) > exitAvailableStock.value) {
+        formErrors.quantity = `La salida no puede superar el stock disponible (${exitAvailableStock.value}).`
     }
 
     if (!movementForm.movement_date) {

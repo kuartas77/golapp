@@ -310,9 +310,9 @@ const isReactivationMode = computed(() => !isEditing.value && Boolean(reactivati
 const monthlyPaymentDefinitions = [
     { value: 'MONTHLY_PAYMENT', label: 'Mensualidad por defecto' },
     { value: 'BROTHER_MONTHLY_PAYMENT', label: 'Mensualidad hermano' },
-    { value: 'MONTHLY_PAYMENT_OPTION_1', label: 'Mensualidad opción 1' },
-    { value: 'MONTHLY_PAYMENT_OPTION_2', label: 'Mensualidad opción 2' },
-    { value: 'MONTHLY_PAYMENT_OPTION_3', label: 'Mensualidad opción 3' },
+    { value: 'MONTHLY_PAYMENT_OPTION_1', label: 'Mensualidad 5 dias' },
+    { value: 'MONTHLY_PAYMENT_OPTION_2', label: 'Mensualidad 4 dias' },
+    { value: 'MONTHLY_PAYMENT_OPTION_3', label: 'Mensualidad 3 dias' },
 ];
 const moneyFormatter = new Intl.NumberFormat('es-CO', {
     style: 'currency',
