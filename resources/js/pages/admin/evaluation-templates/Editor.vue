@@ -313,7 +313,7 @@
         </template>
     </panel>
 
-    <breadcrumb :parent="'Administración'" :current="isEditMode ? 'Editar plantilla' : 'Nueva plantilla'" />
+    <breadcrumb :parent="'Configuración'" :current="isEditMode ? 'Editar plantilla' : 'Nueva plantilla'" />
     <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 

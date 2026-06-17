@@ -259,7 +259,7 @@
         </template>
     </panel>
 
-    <breadcrumb :parent="'Administración'" :current="'Plantillas de evaluación'" />
+    <breadcrumb :parent="'Configuración'" :current="'Plantillas de evaluación'" />
     <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 

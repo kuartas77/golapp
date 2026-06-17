@@ -70,6 +70,12 @@ return [
             'group' => 'Finanzas',
             'default' => true,
         ],
+        'school.module.school_outings' => [
+            'label' => 'Salidas',
+            'description' => 'Permite planear salidas y controlar aportes internos por deportista.',
+            'group' => 'Finanzas',
+            'default' => true,
+        ],
         'school.module.school_profile' => [
             'label' => 'Escuela',
             'description' => 'Permite administrar la información principal de la escuela.',

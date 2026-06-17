@@ -179,7 +179,7 @@
         </div>
     </div>
 
-    <breadcrumb :parent="'Administración'" :current="'Horarios'" />
+    <breadcrumb :parent="'Configuración'" :current="'Horarios'" />
 </template>
 
 <script setup>

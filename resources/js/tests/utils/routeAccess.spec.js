@@ -77,6 +77,34 @@ describe('canAccessRoute', () => {
         expect(canAccessRoute(route, auth)).toBe(false)
     })
 
+    it('requires a school role and the school outings permission for outings routes', () => {
+        const route = {
+            matched: [
+                {
+                    meta: {
+                        requiresRole: ['super-admin', 'school'],
+                        requiresSchoolPermission: ['school.module.school_outings'],
+                    },
+                },
+            ],
+        }
+
+        expect(canAccessRoute(route, makeAuth({
+            roles: ['school'],
+            schoolPermissions: { 'school.module.school_outings': true },
+        }))).toBe(true)
+
+        expect(canAccessRoute(route, makeAuth({
+            roles: ['school'],
+            schoolPermissions: { 'school.module.school_outings': false },
+        }))).toBe(false)
+
+        expect(canAccessRoute(route, makeAuth({
+            roles: ['instructor'],
+            schoolPermissions: { 'school.module.school_outings': true },
+        }))).toBe(false)
+    })
+
     it('allows instructors into methodology when the school permission is enabled', () => {
         const route = {
             matched: [

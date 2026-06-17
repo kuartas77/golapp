@@ -348,7 +348,7 @@ const featureDefinitions = [
             || canCompetitionGroups.value
         ),
         short: 'AD',
-        kicker: 'Administracion',
+        kicker: 'Configuracion',
         title: 'Configura la escuela, usuarios y grupos',
         description: 'Ajusta la estructura operativa para que la plataforma refleje tu realidad organizacional.',
         points: ['Usuarios y permisos', 'Grupos de entrenamiento y competencia', 'Datos base de la escuela'],
@@ -359,7 +359,7 @@ const featureDefinitions = [
                 : canTrainingGroups.value
                     ? 'training-groups'
                     : 'competition-groups'),
-        cta: 'Ir a administracion',
+        cta: 'Ir a configuracion',
     },
     {
         key: 'notifications',
@@ -471,7 +471,7 @@ const preferredLink = computed(() => {
         canMatches.value && { routeName: 'matches', cta: 'Ir a competencias' },
         canBilling.value && { routeName: 'invoices.index', cta: 'Ir a facturacion' },
         canReports.value && { routeName: 'reports.assists', cta: 'Ir a informes' },
-        canSchoolProfile.value && { routeName: 'school', cta: 'Ir a administracion' },
+        canSchoolProfile.value && { routeName: 'school', cta: 'Ir a configuracion' },
         canUserManagement.value && { routeName: 'users', cta: 'Ir a usuarios' },
         canTrainingGroups.value && { routeName: 'training-groups', cta: 'Ir a grupos' },
         canCompetitionGroups.value && { routeName: 'competition-groups', cta: 'Ir a grupos de competencia' },

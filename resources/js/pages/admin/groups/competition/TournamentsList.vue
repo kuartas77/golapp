@@ -146,7 +146,7 @@
         </div>
     </div>
 
-    <breadcrumb :parent="'Administración'" :current="'Torneos'" />
+    <breadcrumb :parent="'Configuración'" :current="'Torneos'" />
 </template>
 
 <script setup>

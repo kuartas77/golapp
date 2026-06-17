@@ -51,11 +51,11 @@
                     </ul>
                 </li>
 
-                <li v-if="showAdministrationMenu" class="menu">
-                    <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#apps" aria-controls="apps"
-                        :aria-expanded="isAdministrationRoute ? 'true' : 'false'"
-                        :data-active="isAdministrationRoute ? 'true' : null"
-                        :class="{active: isAdministrationRoute}">
+                <li v-if="showConfigurationMenu" class="menu">
+                    <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#configuration"
+                        aria-controls="configuration" :aria-expanded="isConfigurationRoute ? 'true' : 'false'"
+                        :data-active="isConfigurationRoute ? 'true' : null"
+                        :class="{active: isConfigurationRoute}">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -71,7 +71,7 @@
                                 <line x1="1" y1="9" x2="4" y2="9"></line>
                                 <line x1="1" y1="14" x2="4" y2="14"></line>
                             </svg>
-                            <span>Administración</span>
+                            <span>Configuración</span>
                         </div>
                         <div>
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -81,7 +81,7 @@
                             </svg>
                         </div>
                     </a>
-                    <ul id="apps" class="collapse submenu list-unstyled" :class="{ show: isAdministrationRoute }"
+                    <ul id="configuration" class="collapse submenu list-unstyled" :class="{ show: isConfigurationRoute }"
                         data-bs-parent="#sidebar">
                         <li v-if="canEvaluationTemplates">
                             <router-link :to="{ name: 'schools' }" @click="toggleMobileMenu">Listado
@@ -159,98 +159,6 @@
                         </router-link>
                     </li>
                 </Can>
-
-                <li v-if="canAttendances" class="menu">
-                    <router-link :to="{ name: 'attendances' }" class="dropdown-toggle" @click="toggleMobileMenu">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-user-check">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="8.5" cy="7" r="4"></circle>
-                                <polyline points="17 11 19 13 23 9"></polyline>
-                            </svg>
-
-                            <span>Asistencias</span>
-                        </div>
-                    </router-link>
-                </li>
-                <li v-if="canAttendances" class="menu">
-                    <router-link :to="{ name: 'attendances-qr' }" class="dropdown-toggle" @click="toggleMobileMenu">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-maximize-2">
-                                <polyline points="15 3 21 3 21 9"></polyline>
-                                <polyline points="9 21 3 21 3 15"></polyline>
-                                <line x1="21" y1="3" x2="14" y2="10"></line>
-                                <line x1="3" y1="21" x2="10" y2="14"></line>
-                            </svg>
-                            <span>Asistencia QR</span>
-                        </div>
-                    </router-link>
-                </li>
-                <li v-if="canTrainingSessions" class="menu">
-                    <router-link :to="{ name: 'training-sessions' }" class="dropdown-toggle" @click="toggleMobileMenu">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-clipboard">
-                                <path d="M9 2H15A2 2 0 0 1 17 4V6H7V4A2 2 0 0 1 9 2z"></path>
-                                <path d="M9 2V4H15V2"></path>
-                                <path d="M9 12H15"></path>
-                                <path d="M9 16H13"></path>
-                                <rect x="5" y="4" width="14" height="18" rx="2" ry="2"></rect>
-                            </svg>
-                            <span>S. Entrenamiento</span>
-                        </div>
-                    </router-link>
-                </li>
-                <li v-if="canMethodology" class="menu">
-                    <router-link :to="{ name: 'methodology.index' }" class="dropdown-toggle" @click="toggleMobileMenu">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-edit-3">
-                                <path d="M12 20h9"></path>
-                                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
-                            </svg>
-                            <span>Metodología</span>
-                        </div>
-                    </router-link>
-                </li>
-                <li v-if="canMatches" class="menu">
-                    <router-link :to="{ name: 'matches' }" class="dropdown-toggle" @click="toggleMobileMenu">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-linecap="round"
-                                stroke-linejoin="round" stroke-width="2" class="main-grid-item-icon">
-                                <circle cx="12" cy="12" r="10" />
-                                <circle cx="12" cy="12" r="6" />
-                                <circle cx="12" cy="12" r="2" />
-                            </svg>
-
-                            <span>Competencias</span>
-                        </div>
-                    </router-link>
-                </li>
-
-                <li v-if="canEvaluations" class="menu">
-                    <router-link :to="{ name: 'player-evaluations.index' }" class="dropdown-toggle" @click="toggleMobileMenu">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-clipboard">
-                                <path d="M9 2H15A2 2 0 0 1 17 4V6H7V4A2 2 0 0 1 9 2z"></path>
-                                <path d="M9 2V4H15V2"></path>
-                                <path d="M9 12H15"></path>
-                                <path d="M9 16H13"></path>
-                                <rect x="5" y="4" width="14" height="18" rx="2" ry="2"></rect>
-                            </svg>
-                            <span>Evaluaciones</span>
-                        </div>
-                    </router-link>
-                </li>
 
                 <Can :roles="['super-admin', 'school']" any-role>
                     <li v-if="canPayments" class="menu">
@@ -354,6 +262,20 @@
                             </li>
                         </ul>
                     </li>
+                    <li v-if="canSchoolOutings" class="menu">
+                        <router-link :to="{ name: 'school-outings.index' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                            <div class="">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="feather feather-map">
+                                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                                    <line x1="8" y1="2" x2="8" y2="18"></line>
+                                    <line x1="16" y1="6" x2="16" y2="22"></line>
+                                </svg>
+                                <span>Salidas</span>
+                            </div>
+                        </router-link>
+                    </li>
                     <li v-if="canTopicNotifications" class="menu">
                         <router-link :to="{ name: 'topic-notifications.index' }" class="dropdown-toggle"
                             @click="toggleMobileMenu">
@@ -421,6 +343,102 @@
                     </li>
                 </Can>
 
+                <li v-if="showInstructorModulesDivider" class="sidebar-section-divider">
+                    <span>Módulos Instructor</span>
+                </li>
+
+                <li v-if="canAttendances" class="menu">
+                    <router-link :to="{ name: 'attendances' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-user-check">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="8.5" cy="7" r="4"></circle>
+                                <polyline points="17 11 19 13 23 9"></polyline>
+                            </svg>
+
+                            <span>Asistencias</span>
+                        </div>
+                    </router-link>
+                </li>
+                <li v-if="showAttendanceQrMenu && canAttendances" class="menu">
+                    <router-link :to="{ name: 'attendances-qr' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-maximize-2">
+                                <polyline points="15 3 21 3 21 9"></polyline>
+                                <polyline points="9 21 3 21 3 15"></polyline>
+                                <line x1="21" y1="3" x2="14" y2="10"></line>
+                                <line x1="3" y1="21" x2="10" y2="14"></line>
+                            </svg>
+                            <span>Asistencia QR</span>
+                        </div>
+                    </router-link>
+                </li>
+                <li v-if="canTrainingSessions" class="menu">
+                    <router-link :to="{ name: 'training-sessions' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-clipboard">
+                                <path d="M9 2H15A2 2 0 0 1 17 4V6H7V4A2 2 0 0 1 9 2z"></path>
+                                <path d="M9 2V4H15V2"></path>
+                                <path d="M9 12H15"></path>
+                                <path d="M9 16H13"></path>
+                                <rect x="5" y="4" width="14" height="18" rx="2" ry="2"></rect>
+                            </svg>
+                            <span>S. Entrenamiento</span>
+                        </div>
+                    </router-link>
+                </li>
+                <li v-if="canMethodology" class="menu">
+                    <router-link :to="{ name: 'methodology.index' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-edit-3">
+                                <path d="M12 20h9"></path>
+                                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                            </svg>
+                            <span>Metodología</span>
+                        </div>
+                    </router-link>
+                </li>
+                <li v-if="canMatches" class="menu">
+                    <router-link :to="{ name: 'matches' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-linecap="round"
+                                stroke-linejoin="round" stroke-width="2" class="main-grid-item-icon">
+                                <circle cx="12" cy="12" r="10" />
+                                <circle cx="12" cy="12" r="6" />
+                                <circle cx="12" cy="12" r="2" />
+                            </svg>
+
+                            <span>Competencias</span>
+                        </div>
+                    </router-link>
+                </li>
+
+                <li v-if="canEvaluations" class="menu">
+                    <router-link :to="{ name: 'player-evaluations.index' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-clipboard">
+                                <path d="M9 2H15A2 2 0 0 1 17 4V6H7V4A2 2 0 0 1 9 2z"></path>
+                                <path d="M9 2V4H15V2"></path>
+                                <path d="M9 12H15"></path>
+                                <path d="M9 16H13"></path>
+                                <rect x="5" y="4" width="14" height="18" rx="2" ry="2"></rect>
+                            </svg>
+                            <span>Evaluaciones</span>
+                        </div>
+                    </router-link>
+                </li>
+
             </perfect-scrollbar>
         </nav>
     </div>
@@ -449,6 +467,7 @@ const canPayments = access.payments
 const canReports = access.reports
 const canBilling = access.billing
 const canInventory = access.inventory
+const canSchoolOutings = access.schoolOutings
 const canSchoolProfile = access.schoolProfile
 const canContracts = access.contracts
 const canUserManagement = access.userManagement
@@ -459,13 +478,23 @@ const canPaymentRequests = access.paymentRequests
 const canUniformRequests = access.uniformRequests
 const canEvaluationTemplates = access.evaluationTemplates
 
-const showAdministrationMenu = computed(() => (
+const showAttendanceQrMenu = false
+
+const showConfigurationMenu = computed(() => (
     canEvaluationTemplates.value
     || canSchoolProfile.value
     || canContracts.value
     || canUserManagement.value
     || canTrainingGroups.value
     || canCompetitionGroups.value
+))
+
+const showInstructorModulesDivider = computed(() => (
+    canAttendances.value
+    || canTrainingSessions.value
+    || canMethodology.value
+    || canMatches.value
+    || canEvaluations.value
 ))
 
 const dashboardRouteNames = new Set([
@@ -477,7 +506,10 @@ const dashboardRouteNames = new Set([
 ]);
 
 const isDashboardRoute = computed(() => dashboardRouteNames.has(route.name));
-const isAdministrationRoute = computed(() => route.path.startsWith('/administracion'));
+const isConfigurationRoute = computed(() => (
+    route.path.startsWith('/configuracion')
+    || route.path.startsWith('/administracion')
+));
 const isReportsRoute = computed(() => route.path.startsWith('/informes'));
 const isBillingRoute = computed(() => route.path.startsWith('/facturas'));
 const isInventoryRoute = computed(() => route.path.startsWith('/inventario'));

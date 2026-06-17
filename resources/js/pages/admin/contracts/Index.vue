@@ -280,7 +280,7 @@
         </template>
     </panel>
 
-    <breadcrumb :parent="'Administración'" :current="'Contratos'" />
+    <breadcrumb :parent="'Configuración'" :current="'Contratos'" />
 </template>
 
 <script setup>

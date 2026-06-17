@@ -28,9 +28,9 @@ Route::middleware(['auth', 'role:super-admin'])->group(function () {
         Route::resource("users", UserController::class);
 
         Route::prefix('contracts')->name('contracts.')->group(function () {
-            Route::get('', fn (): RedirectResponse => redirect('/administracion/contratos'))->name('index');
-            Route::get('create', fn (): RedirectResponse => redirect('/administracion/contratos'))->name('create');
-            Route::get('{contract}/edit', fn (): RedirectResponse => redirect('/administracion/contratos'))->name('edit');
+            Route::get('', fn (): RedirectResponse => redirect('/configuracion/contratos'))->name('index');
+            Route::get('create', fn (): RedirectResponse => redirect('/configuracion/contratos'))->name('create');
+            Route::get('{contract}/edit', fn (): RedirectResponse => redirect('/configuracion/contratos'))->name('edit');
         });
 
         Route::prefix('datatables')->name('datatables.')->group(function () {

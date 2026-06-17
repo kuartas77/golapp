@@ -366,7 +366,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         // Route::get('/{playerEvaluation}', [AppController::class, 'index'])->name('show');
     });
 
-    Route::prefix('administracion')->middleware(['role:super-admin'])->group(function () {
+    Route::prefix('configuracion')->middleware(['role:super-admin'])->group(function () {
         // Las vistas SPA de plantillas de evaluacion ya viven en el router de Vue.
         // Sus datos y escrituras se atienden desde routes/api.php.
         Route::get('plantillas-evaluacion', [AppController::class, 'index']);
@@ -374,9 +374,20 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('plantillas-evaluacion/{any}', [AppController::class, 'index'])->where('any', '.*');
     });
 
-    Route::prefix('administracion')->middleware(['role:super-admin|school', 'school.permission:school.module.contracts'])->group(function () {
+    Route::prefix('configuracion')->middleware(['role:super-admin|school', 'school.permission:school.module.contracts'])->group(function () {
         Route::get('contratos', [AppController::class, 'index']);
         Route::get('contratos/{contractTypeCode}/preview', [AdminContractController::class, 'preview'])->name('admin.contracts.preview');
+    });
+
+    Route::prefix('administracion')->middleware(['role:super-admin'])->group(function () {
+        Route::redirect('plantillas-evaluacion', '/configuracion/plantillas-evaluacion');
+        Route::redirect('plantillas-evaluacion/crear', '/configuracion/plantillas-evaluacion/crear');
+        Route::redirect('plantillas-evaluacion/{any}', '/configuracion/plantillas-evaluacion/{any}')->where('any', '.*');
+    });
+
+    Route::prefix('administracion')->middleware(['role:super-admin|school', 'school.permission:school.module.contracts'])->group(function () {
+        Route::redirect('contratos', '/configuracion/contratos');
+        Route::redirect('contratos/{contractTypeCode}/preview', '/configuracion/contratos/{contractTypeCode}/preview');
     });
 
     Route::prefix('inventario')->middleware(['role:super-admin|school', 'school.permission:school.module.inventory'])->group(function () {

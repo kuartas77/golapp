@@ -990,6 +990,17 @@ body.dark {
                 }
             }
 
+            li.sidebar-section-divider {
+                &:before,
+                &:after {
+                    background: #3b3f5c;
+                }
+
+                span {
+                    color: #888ea8;
+                }
+            }
+
             ul.submenu > li a {
                 color: #888ea8;
             }

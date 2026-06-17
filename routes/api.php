@@ -59,6 +59,7 @@ use App\Http\Controllers\Reports\ReportDebtorController;
 use App\Http\Controllers\Reports\ReportInstructorActivityController;
 use App\Http\Controllers\Reports\ReportPaymentController;
 use App\Http\Controllers\SchoolPages\SchoolsController;
+use App\Http\Controllers\SchoolOutings\SchoolOutingController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -195,6 +196,24 @@ Route::prefix('v2')->group(function () {
             Route::get('payments/monthly-receipts', [MonthlyPaymentReceiptController::class, 'index'])
                 ->name('api.payments.monthly-receipts.index');
             Route::apiResource('payments', PaymentController::class)->only(['index', 'update', 'show']);
+        });
+
+        Route::middleware([
+            'role:super-admin|school',
+            'school.permission:school.module.school_outings',
+        ])->prefix('school-outings')->group(function () {
+            Route::get('', [SchoolOutingController::class, 'index']);
+            Route::post('', [SchoolOutingController::class, 'store']);
+            Route::get('{outing}', [SchoolOutingController::class, 'show']);
+            Route::put('{outing}', [SchoolOutingController::class, 'update']);
+            Route::patch('{outing}/status', [SchoolOutingController::class, 'updateStatus']);
+            Route::get('{outing}/eligible-inscriptions', [SchoolOutingController::class, 'eligibleInscriptions']);
+            Route::post('{outing}/participants', [SchoolOutingController::class, 'addParticipants']);
+            Route::delete('{outing}/participants/{participant}', [SchoolOutingController::class, 'removeParticipant']);
+            Route::post('{outing}/activities', [SchoolOutingController::class, 'storeActivity']);
+            Route::put('{outing}/activities/{activity}', [SchoolOutingController::class, 'updateActivity']);
+            Route::delete('{outing}/activities/{activity}', [SchoolOutingController::class, 'destroyActivity']);
+            Route::post('{outing}/contributions', [SchoolOutingController::class, 'storeContribution']);
         });
 
         Route::middleware('school.permission:school.module.attendances')->group(function () {

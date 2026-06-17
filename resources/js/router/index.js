@@ -128,8 +128,9 @@ const routes = [
                 ]
             },
             {
-                path: '/administracion',
+                path: '/configuracion',
                 name: 'admin',
+                alias: '/administracion',
                 meta: { requiresRole: ['super-admin', 'school'] },
                 children: [
                     {
@@ -249,6 +250,18 @@ const routes = [
                 children: [
                     { path: '', name: 'inventory.index', component: () => import('@/pages/inventory/InventoryIndex.vue') },
                     { path: 'movimientos', name: 'inventory.movements', component: () => import('@/pages/inventory/InventoryIndex.vue'), props: { initialTab: 'movements' } },
+                ]
+            },
+            {
+                path: '/salidas',
+                meta: {
+                    requiresRole: ['super-admin', 'school'],
+                    requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.schoolOutings],
+                },
+                component: { render: () => h(RouterView) },
+                children: [
+                    { path: '', name: 'school-outings.index', component: () => import('@/pages/school-outings/Index.vue') },
+                    { path: ':id', name: 'school-outings.show', component: () => import('@/pages/school-outings/Show.vue') },
                 ]
             },
             {
