@@ -39,6 +39,8 @@ class InventoryProductController extends Controller
             $this->movementService->record($product, [
                 'type' => 'adjustment',
                 'quantity' => $initialStock,
+                'entry_price_snapshot' => $product->entry_price,
+                'sale_price_snapshot' => $product->unit_price,
                 'price_snapshot' => $product->unit_price,
                 'reason' => 'Stock inicial',
                 'notes' => null,

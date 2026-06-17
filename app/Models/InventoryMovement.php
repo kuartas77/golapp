@@ -26,6 +26,8 @@ class InventoryMovement extends Model
         'user_id',
         'type',
         'quantity',
+        'entry_price_snapshot',
+        'sale_price_snapshot',
         'price_snapshot',
         'stock_before',
         'stock_after',
@@ -36,10 +38,16 @@ class InventoryMovement extends Model
 
     protected $casts = [
         'quantity' => 'integer',
+        'entry_price_snapshot' => 'decimal:2',
+        'sale_price_snapshot' => 'decimal:2',
         'price_snapshot' => 'decimal:2',
         'stock_before' => 'integer',
         'stock_after' => 'integer',
         'movement_date' => 'date:Y-m-d',
+    ];
+
+    protected $appends = [
+        'profit_margin',
     ];
 
     public function product(): BelongsTo
@@ -50,5 +58,14 @@ class InventoryMovement extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getProfitMarginAttribute(): float
+    {
+        if ($this->type !== self::TYPE_EXIT) {
+            return 0.0;
+        }
+
+        return ((float) $this->sale_price_snapshot - (float) $this->entry_price_snapshot) * (int) $this->quantity;
     }
 }

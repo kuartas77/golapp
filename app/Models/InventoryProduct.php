@@ -23,6 +23,7 @@ class InventoryProduct extends Model
         'sku',
         'category',
         'description',
+        'entry_price',
         'unit_price',
         'stock_quantity',
         'minimum_stock',
@@ -31,6 +32,7 @@ class InventoryProduct extends Model
 
     protected $casts = [
         'unit_price' => 'decimal:2',
+        'entry_price' => 'decimal:2',
         'stock_quantity' => 'integer',
         'minimum_stock' => 'integer',
         'is_active' => 'boolean',

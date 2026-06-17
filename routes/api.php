@@ -56,6 +56,7 @@ use App\Http\Controllers\Portal\SchoolsController as PortalSchool;
 use App\Http\Controllers\Reports\ReportAssistsController;
 use App\Http\Controllers\Reports\ReportAttendancePaymentController;
 use App\Http\Controllers\Reports\ReportDebtorController;
+use App\Http\Controllers\Reports\ReportInstructorActivityController;
 use App\Http\Controllers\Reports\ReportPaymentController;
 use App\Http\Controllers\SchoolPages\SchoolsController;
 use App\Http\Controllers\SettingsController;
@@ -380,6 +381,12 @@ Route::prefix('v2')->group(function () {
             Route::post('payments', [ReportPaymentController::class, 'report'])->name('payments.report');
             Route::get('debtors', [ReportDebtorController::class, 'metadata'])->name('debtors.metadata');
             Route::get('debtors/pdf', [ReportDebtorController::class, 'pdf'])->name('debtors.pdf');
+            Route::middleware('role:super-admin|school')->prefix('instructors')->group(function () {
+                Route::get('activity/metadata', [ReportInstructorActivityController::class, 'metadata'])
+                    ->name('instructors.activity.metadata');
+                Route::get('activity', [ReportInstructorActivityController::class, 'activity'])
+                    ->name('instructors.activity');
+            });
             Route::get('attendance-payment', [ReportAttendancePaymentController::class, 'metadata'])->name('attendance-payment.metadata');
             Route::get('attendance-payment/monthly-by-group', [ReportAttendancePaymentController::class, 'monthlyByGroup'])->name('attendance-payment.monthly-by-group');
             Route::get('attendance-payment/monthly-by-player', [ReportAttendancePaymentController::class, 'monthlyByPlayer'])->name('attendance-payment.monthly-by-player');

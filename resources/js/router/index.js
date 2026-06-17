@@ -274,6 +274,11 @@ const routes = [
                         component: () => import('@/pages/reports/assists/Index.vue')
                     },
                     {
+                        path: 'actividad-instructores',
+                        name: 'reports.instructor-activity',
+                        component: () => import('@/pages/reports/instructors/Index.vue')
+                    },
+                    {
                         path: 'pagos',
                         name: 'reports.payments',
                         component: () => import('@/pages/reports/payments/Index.vue')

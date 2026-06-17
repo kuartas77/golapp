@@ -20,6 +20,8 @@ class InventoryMovementFactory extends Factory
             'user_id' => 1,
             'type' => InventoryMovement::TYPE_ENTRY,
             'quantity' => $quantity,
+            'entry_price_snapshot' => 30000,
+            'sale_price_snapshot' => 50000,
             'price_snapshot' => $this->faker->numberBetween(10000, 90000),
             'stock_before' => $stockBefore,
             'stock_after' => $stockBefore + $quantity,

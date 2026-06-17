@@ -32,6 +32,7 @@ class InventoryProductRequest extends FormRequest
             ],
             'category' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'entry_price' => ['required', 'numeric', 'min:0'],
             'unit_price' => ['required', 'numeric', 'min:0'],
             'stock_quantity' => ['nullable', 'integer', 'min:0'],
             'minimum_stock' => ['required', 'integer', 'min:0'],
@@ -43,6 +44,7 @@ class InventoryProductRequest extends FormRequest
     {
         $this->merge([
             'sku' => blank($this->input('sku')) ? null : trim((string) $this->input('sku')),
+            'entry_price' => $this->normalizeNumber($this->input('entry_price')),
             'unit_price' => $this->normalizeNumber($this->input('unit_price')),
             'stock_quantity' => $this->input('stock_quantity', 0),
             'minimum_stock' => $this->input('minimum_stock', 0),

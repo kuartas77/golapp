@@ -93,6 +93,7 @@ describe('InventoryIndex', () => {
         const state = wrapper.vm.$.setupState
 
         state.productForm.name = 'Camiseta'
+        state.productForm.entry_price = 35000
         state.productForm.unit_price = 75000
         state.productForm.stock_quantity = 10
         state.productForm.minimum_stock = 2
@@ -102,6 +103,8 @@ describe('InventoryIndex', () => {
 
         expect(axiosMock.post).toHaveBeenCalledWith('/api/v2/inventory/products', expect.objectContaining({
             name: 'Camiseta',
+            entry_price: 35000,
+            unit_price: 75000,
             stock_quantity: 10,
         }))
         expect(productReloadMock).toHaveBeenCalledWith(null, false)
@@ -130,6 +133,7 @@ describe('InventoryIndex', () => {
                     sku: 'BAL-001',
                     category: 'Implementos',
                     description: 'Balón número 5',
+                    entry_price: '70000.00',
                     unit_price: '120000.00',
                     stock_quantity: 4,
                     minimum_stock: 1,
@@ -144,6 +148,8 @@ describe('InventoryIndex', () => {
 
         expect(axiosMock.get).toHaveBeenCalledWith('/api/v2/inventory/products/7')
         expect(state.productForm.name).toBe('Balón profesional')
+        expect(state.productForm.entry_price).toBe(70000)
+        expect(state.productForm.unit_price).toBe(120000)
         expect(wrapper.text()).toContain('Editar producto')
         wrapper.unmount()
         vi.unstubAllGlobals()
@@ -155,6 +161,7 @@ describe('InventoryIndex', () => {
                 data: {
                     id: 8,
                     name: 'Camiseta',
+                    entry_price: '35000.00',
                     unit_price: '60000.00',
                     stock_quantity: 3,
                     minimum_stock: 1,
@@ -170,6 +177,10 @@ describe('InventoryIndex', () => {
 
         expect(wrapper.text()).toContain('Stock actual')
         expect(wrapper.text()).toContain('Disponible salida')
+        expect(wrapper.text()).toContain('Precio entrada')
+        expect(wrapper.text()).toContain('Precio venta')
+        expect(wrapper.text()).toContain('Margen estimado de esta salida')
+        expect(wrapper.text()).toContain('$25000')
         expect(wrapper.text()).toContain('Puedes registrar una salida máxima de 3 unidades.')
 
         state.movementForm.type = 'exit'
@@ -179,6 +190,46 @@ describe('InventoryIndex', () => {
 
         expect(axiosMock.post).not.toHaveBeenCalled()
         expect(state.formErrors.quantity).toBe('La salida no puede superar el stock disponible (3).')
+        wrapper.unmount()
+        vi.unstubAllGlobals()
+    })
+
+    it('calculates movement financial totals only from exits', () => {
+        const wrapper = mountPage()
+        const state = wrapper.vm.$.setupState
+        const footers = Array.from({ length: 12 }, () => ({ innerHTML: '' }))
+        const tableApi = {
+            rows: vi.fn(() => ({
+                data: () => ({
+                    toArray: () => [
+                        {
+                            type: 'adjustment',
+                            quantity: 100,
+                            entry_price_snapshot: 45000,
+                            sale_price_snapshot: 50000,
+                            profit_margin: 0,
+                        },
+                        {
+                            type: 'exit',
+                            quantity: 10,
+                            entry_price_snapshot: 45000,
+                            sale_price_snapshot: 50000,
+                            profit_margin: 50000,
+                        },
+                    ],
+                }),
+            })),
+            column: vi.fn(index => ({
+                footer: () => footers[index],
+            })),
+        }
+
+        state.movementOptions.footerCallback.call({ api: () => tableApi })
+
+        expect(footers[4].innerHTML).toBe('110')
+        expect(footers[5].innerHTML).toBe('$450000')
+        expect(footers[6].innerHTML).toBe('$500000')
+        expect(footers[7].innerHTML).toBe('$50000')
         wrapper.unmount()
         vi.unstubAllGlobals()
     })

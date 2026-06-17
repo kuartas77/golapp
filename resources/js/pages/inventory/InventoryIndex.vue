@@ -37,7 +37,8 @@
                                 <th>Producto</th>
                                 <th>SKU</th>
                                 <th>Categoría</th>
-                                <th class="text-end">Precio</th>
+                                <th class="text-end">Precio entrada</th>
+                                <th class="text-end">Precio venta</th>
                                 <th class="text-center">Stock</th>
                                 <th class="text-center">Mínimo</th>
                                 <th class="text-center">Estado</th>
@@ -76,7 +77,9 @@
                                 <th>SKU</th>
                                 <th class="text-center">Tipo</th>
                                 <th class="text-center">Cantidad</th>
-                                <th class="text-end">Precio</th>
+                                <th class="text-end">Entrada</th>
+                                <th class="text-end">Venta</th>
+                                <th class="text-end">Margen</th>
                                 <th class="text-center">Antes</th>
                                 <th class="text-center">Después</th>
                                 <th>Usuario</th>
@@ -90,6 +93,8 @@
                                 <th></th>
                                 <th></th>
                                 <th class="text-center"></th>
+                                <th class="text-end"></th>
+                                <th class="text-end"></th>
                                 <th class="text-end"></th>
                                 <th></th>
                                 <th></th>
@@ -130,7 +135,12 @@
                                 <div v-if="formErrors.category" class="invalid-feedback">{{ formErrors.category }}</div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label" for="inventory-product-price">Precio</label>
+                                <label class="form-label" for="inventory-product-entry-price">Precio entrada</label>
+                                <CurrencyInput id="inventory-product-entry-price" v-model="productForm.entry_price" class="form-control" :class="{ 'is-invalid': formErrors.entry_price }" />
+                                <div v-if="formErrors.entry_price" class="invalid-feedback d-block">{{ formErrors.entry_price }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="inventory-product-price">Precio venta</label>
                                 <CurrencyInput id="inventory-product-price" v-model="productForm.unit_price" class="form-control" :class="{ 'is-invalid': formErrors.unit_price }" />
                                 <div v-if="formErrors.unit_price" class="invalid-feedback d-block">{{ formErrors.unit_price }}</div>
                             </div>
@@ -187,22 +197,34 @@
                             <div class="col-12">
                                 <div class="border rounded p-3 bg-light">
                                     <div class="row g-3 align-items-center">
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <small class="text-muted d-block">Stock actual</small>
                                             <strong class="h5 mb-0">{{ selectedStock }}</strong>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <small class="text-muted d-block">Stock mínimo</small>
                                             <strong class="h5 mb-0">{{ selectedMinimumStock }}</strong>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <small class="text-muted d-block">Disponible salida</small>
                                             <strong class="h5 mb-0">{{ exitAvailableStock }}</strong>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <small class="text-muted d-block">Quedaría en</small>
                                             <strong class="h5 mb-0" :class="{ 'text-danger': projectedStock < 0 }">{{ projectedStock }}</strong>
                                         </div>
+                                        <div class="col-md-2">
+                                            <small class="text-muted d-block">Precio entrada</small>
+                                            <strong class="h6 mb-0">{{ money(selectedEntryPrice) }}</strong>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <small class="text-muted d-block">Precio venta</small>
+                                            <strong class="h6 mb-0">{{ money(selectedSalePrice) }}</strong>
+                                        </div>
+                                    </div>
+                                    <div v-if="movementForm.type === 'exit'" class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center">
+                                        <span class="text-muted">Margen estimado de esta salida</span>
+                                        <strong :class="{ 'text-danger': projectedMargin < 0, 'text-success': projectedMargin > 0 }">{{ money(projectedMargin) }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -227,11 +249,6 @@
                                 <small v-if="movementForm.type === 'exit'" class="text-muted">
                                     Puedes registrar una salida máxima de {{ exitAvailableStock }} unidades.
                                 </small>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="inventory-movement-price">Precio snapshot</label>
-                                <CurrencyInput id="inventory-movement-price" v-model="movementForm.price_snapshot" class="form-control" :class="{ 'is-invalid': formErrors.price_snapshot }" />
-                                <div v-if="formErrors.price_snapshot" class="invalid-feedback d-block">{{ formErrors.price_snapshot }}</div>
                             </div>
                             <div class="col-12">
                                 <label class="form-label" for="inventory-movement-reason">Motivo</label>
@@ -292,6 +309,7 @@ const emptyProductForm = () => ({
     sku: '',
     category: '',
     description: '',
+    entry_price: 0,
     unit_price: 0,
     stock_quantity: 0,
     minimum_stock: 0,
@@ -312,6 +330,8 @@ const movementForm = reactive(emptyMovementForm())
 
 const selectedStock = computed(() => Number(selectedProduct.value?.stock_quantity || 0))
 const selectedMinimumStock = computed(() => Number(selectedProduct.value?.minimum_stock || 0))
+const selectedEntryPrice = computed(() => Number(selectedProduct.value?.entry_price || 0))
+const selectedSalePrice = computed(() => Number(selectedProduct.value?.unit_price || 0))
 const exitAvailableStock = computed(() => Math.max(selectedStock.value, 0))
 const projectedStock = computed(() => {
     const quantity = Number(movementForm.quantity || 0)
@@ -325,6 +345,13 @@ const projectedStock = computed(() => {
     }
 
     return quantity
+})
+const projectedMargin = computed(() => {
+    if (movementForm.type !== 'exit') {
+        return 0
+    }
+
+    return (selectedSalePrice.value - selectedEntryPrice.value) * Number(movementForm.quantity || 0)
 })
 
 watch(() => props.initialTab, (tab) => {
@@ -402,6 +429,7 @@ const productColumns = [
     { data: 'name', name: 'name', orderable: false },
     { data: 'sku', name: 'sku', orderable: false, render: data => data || '<span class="text-muted">-</span>' },
     { data: 'category', name: 'category', orderable: false, render: data => data || '<span class="text-muted">-</span>' },
+    { data: 'entry_price', name: 'entry_price', searchable: false, render: data => money(data), className: 'dt-body-right' },
     { data: 'unit_price', name: 'unit_price', searchable: false, render: data => money(data), className: 'dt-body-right' },
     { data: 'stock_quantity', name: 'stock_quantity', searchable: false, render: renderStock, className: 'dt-head-center dt-body-center' },
     { data: 'minimum_stock', name: 'minimum_stock', searchable: false, className: 'dt-head-center dt-body-center' },
@@ -431,7 +459,7 @@ const productOptions = {
         createTextFilter(tableApi.column(0), 'Producto')
         createTextFilter(tableApi.column(1), 'SKU')
         createTextFilter(tableApi.column(2), 'Categoría')
-        createSelectFilter(tableApi.column(6), [
+        createSelectFilter(tableApi.column(7), [
             { value: '', label: 'Estado' },
             { value: '1', label: 'Activo' },
             { value: '0', label: 'Inactivo' },
@@ -445,7 +473,9 @@ const movementColumns = [
     { data: 'product_sku', name: 'product_sku', render: data => data || '<span class="text-muted">-</span>' },
     { data: 'type', name: 'type', orderable: false, render: renderType, className: 'dt-head-center dt-body-center' },
     { data: 'quantity', name: 'quantity', searchable: false, className: 'dt-head-center dt-body-center' },
-    { data: 'price_snapshot', name: 'price_snapshot', searchable: false, render: data => money(data), className: 'dt-body-right' },
+    { data: 'entry_price_snapshot', name: 'entry_price_snapshot', searchable: false, render: data => money(data), className: 'dt-body-right' },
+    { data: 'sale_price_snapshot', name: 'sale_price_snapshot', searchable: false, render: data => money(data), className: 'dt-body-right' },
+    { data: 'profit_margin', name: 'profit_margin', searchable: false, render: data => money(data), className: 'dt-body-right' },
     { data: 'stock_before', name: 'stock_before', searchable: false, className: 'dt-head-center dt-body-center' },
     { data: 'stock_after', name: 'stock_after', searchable: false, className: 'dt-head-center dt-body-center' },
     { data: 'user_name', name: 'user_name', orderable: false },
@@ -479,15 +509,20 @@ const movementOptions = {
             { value: 'exit', label: 'Salida' },
             { value: 'adjustment', label: 'Ajuste' },
         ])
-        createTextFilter(tableApi.column(8), 'Usuario')
+        createTextFilter(tableApi.column(10), 'Usuario')
     },
     footerCallback: function () {
         const tableApi = this.api()
         const currentRows = tableApi.rows({ page: 'current' }).data().toArray()
+        const exitRows = currentRows.filter(row => row.type === 'exit')
         const quantityTotal = currentRows.reduce((sum, row) => sum + (Number(row.quantity) || 0), 0)
-        const valueTotal = currentRows.reduce((sum, row) => sum + ((Number(row.quantity) || 0) * (Number(row.price_snapshot) || 0)), 0)
+        const entryTotal = exitRows.reduce((sum, row) => sum + ((Number(row.quantity) || 0) * (Number(row.entry_price_snapshot) || 0)), 0)
+        const saleTotal = exitRows.reduce((sum, row) => sum + ((Number(row.quantity) || 0) * (Number(row.sale_price_snapshot) || 0)), 0)
+        const marginTotal = exitRows.reduce((sum, row) => sum + (Number(row.profit_margin) || 0), 0)
         tableApi.column(4).footer().innerHTML = String(quantityTotal)
-        tableApi.column(5).footer().innerHTML = money(valueTotal)
+        tableApi.column(5).footer().innerHTML = money(entryTotal)
+        tableApi.column(6).footer().innerHTML = money(saleTotal)
+        tableApi.column(7).footer().innerHTML = money(marginTotal)
     },
 }
 
@@ -511,6 +546,7 @@ function assignProductForm(product = emptyProductForm()) {
     Object.assign(productForm, {
         ...emptyProductForm(),
         ...product,
+        entry_price: Number(product.entry_price || 0),
         unit_price: Number(product.unit_price || 0),
         stock_quantity: Number(product.stock_quantity || 0),
         minimum_stock: Number(product.minimum_stock || 0),
@@ -567,7 +603,7 @@ async function saveProduct() {
             await api.post('/api/v2/inventory/products', payload)
         }
         showMessage('Producto guardado correctamente')
-        closeProductForm()
+        showProductModal.value = false
         reloadProducts()
         reloadMovements()
     } catch (error) {
@@ -586,7 +622,8 @@ async function saveMovement() {
     try {
         await api.post(`/api/v2/inventory/products/${selectedProduct.value.id}/movements`, { ...movementForm })
         showMessage('Movimiento registrado correctamente')
-        closeMovementForm()
+        showMovementModal.value = false
+        selectedProduct.value = null
         reloadProducts()
         reloadMovements()
     } catch (error) {

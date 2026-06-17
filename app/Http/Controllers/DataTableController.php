@@ -376,6 +376,7 @@ class DataTableController extends Controller
             ->addColumn('product_name', fn (InventoryMovement $movement) => $movement->product?->name ?? '')
             ->addColumn('product_sku', fn (InventoryMovement $movement) => $movement->product?->sku ?? '')
             ->addColumn('user_name', fn (InventoryMovement $movement) => $movement->user?->name ?? '')
+            ->addColumn('profit_margin', fn (InventoryMovement $movement) => $movement->profit_margin)
             ->toJson();
     }
 

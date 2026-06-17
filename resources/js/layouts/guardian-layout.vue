@@ -1,5 +1,5 @@
 <template>
-    <div class="guardian-portal">
+    <div class="guardian-portal portal-light-surface">
         <header class="guardian-portal__topbar">
             <div class="container guardian-portal__topbar-inner">
                 <a class="guardian-portal__brand" aria-label="Logo GOLAPP">
@@ -140,28 +140,97 @@ const handleLogout = async () => {
 
 :global(.dark) .guardian-portal .logo-light-mode,
 :global(body.dark) .guardian-portal .logo-light-mode {
-    display: none;
+    display: inline-block;
 }
 
 :global(.dark) .guardian-portal .logo-dark-mode,
 :global(body.dark) .guardian-portal .logo-dark-mode {
-    display: block;
+    display: none;
 }
 
 :global(.dark) .guardian-portal__topbar,
 :global(body.dark) .guardian-portal__topbar {
-    background: rgba(14, 23, 38, 0.84);
-    border-bottom-color: rgba(136, 142, 168, 0.18);
+    background: rgba(255, 255, 255, 0.82);
+    border-bottom-color: rgba(59, 63, 92, 0.12);
 }
 
 :global(.dark) .guardian-portal__welcome,
 :global(body.dark) .guardian-portal__welcome {
-    color: #f5f7ff;
+    color: #0f1c46;
 }
 
 :global(.dark) .guardian-portal__welcome-label,
 :global(body.dark) .guardian-portal__welcome-label {
-    color: #b9c2db;
+    color: #5f6b85;
+}
+
+:global(.dark) .portal-light-surface,
+:global(body.dark) .portal-light-surface {
+    color: #3b3f5c;
+    background:
+        radial-gradient(circle at top left, rgba(15, 28, 70, 0.12), transparent 35%),
+        linear-gradient(180deg, #f7f9fd 0%, #eef3fb 100%);
+}
+
+:global(.dark) .portal-light-surface :is(h1, h2, h3, h4, h5, h6),
+:global(body.dark) .portal-light-surface :is(h1, h2, h3, h4, h5, h6) {
+    color: #3b3f5c;
+}
+
+:global(.dark) .portal-light-surface .card,
+:global(body.dark) .portal-light-surface .card,
+:global(.dark) .portal-light-surface .modal-content,
+:global(body.dark) .portal-light-surface .modal-content,
+:global(.dark) .portal-light-surface .list-group-item,
+:global(body.dark) .portal-light-surface .list-group-item {
+    color: #3b3f5c;
+    background: #ffffff;
+    border-color: rgba(59, 63, 92, 0.12);
+}
+
+:global(.dark) .portal-light-surface .text-muted,
+:global(body.dark) .portal-light-surface .text-muted {
+    color: #888ea8 !important;
+}
+
+:global(.dark) .portal-light-surface .form-control,
+:global(body.dark) .portal-light-surface .form-control,
+:global(.dark) .portal-light-surface .form-select,
+:global(body.dark) .portal-light-surface .form-select {
+    color: #3b3f5c;
+    background-color: #ffffff;
+    border-color: #e0e6ed;
+}
+
+:global(.dark) .portal-light-surface label,
+:global(body.dark) .portal-light-surface label,
+:global(.dark) .portal-light-surface .form-label,
+:global(body.dark) .portal-light-surface .form-label {
+    color: #3b3f5c;
+}
+
+:global(.dark) .portal-light-surface .form-control:disabled,
+:global(body.dark) .portal-light-surface .form-control:disabled,
+:global(.dark) .portal-light-surface .form-control[readonly],
+:global(body.dark) .portal-light-surface .form-control[readonly] {
+    color: #6c757d;
+    background-color: #f8f9fa !important;
+}
+
+:global(.dark) .portal-light-surface .modal-header,
+:global(body.dark) .portal-light-surface .modal-header,
+:global(.dark) .portal-light-surface .modal-footer,
+:global(body.dark) .portal-light-surface .modal-footer,
+:global(.dark) .portal-light-surface .nav-tabs,
+:global(body.dark) .portal-light-surface .nav-tabs {
+    border-color: #e0e6ed !important;
+}
+
+:global(.dark) .portal-light-surface .nav-tabs .nav-link.active,
+:global(body.dark) .portal-light-surface .nav-tabs .nav-link.active {
+    color: #4361ee;
+    background-color: #ffffff;
+    border-color: #e0e6ed #e0e6ed #ffffff;
 }
 
 @media (max-width: 767.98px) {

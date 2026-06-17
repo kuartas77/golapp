@@ -17,6 +17,7 @@ class InventoryProductFactory extends Factory
             'sku' => strtoupper($this->faker->bothify('SKU-####')),
             'category' => 'Uniformes',
             'description' => $this->faker->sentence(),
+            'entry_price' => $this->faker->numberBetween(5000, 50000),
             'unit_price' => $this->faker->numberBetween(10000, 90000),
             'stock_quantity' => $this->faker->numberBetween(0, 30),
             'minimum_stock' => 5,

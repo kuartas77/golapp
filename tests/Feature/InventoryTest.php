@@ -95,12 +95,14 @@ final class InventoryTest extends TestCase
                 'sku' => 'CAM-001',
                 'category' => 'Uniformes',
                 'description' => 'Camiseta principal',
+                'entry_price' => 35000,
                 'unit_price' => 75000,
                 'stock_quantity' => 10,
                 'minimum_stock' => 3,
                 'is_active' => true,
             ])
             ->assertCreated()
+            ->assertJsonPath('data.entry_price', '35000.00')
             ->assertJsonPath('data.stock_quantity', 10);
 
         $productId = $response->json('data.id');
@@ -109,6 +111,8 @@ final class InventoryTest extends TestCase
             'inventory_product_id' => $productId,
             'type' => InventoryMovement::TYPE_ADJUSTMENT,
             'quantity' => 10,
+            'entry_price_snapshot' => '35000.00',
+            'sale_price_snapshot' => '75000.00',
             'stock_before' => 0,
             'stock_after' => 10,
             'reason' => 'Stock inicial',
@@ -120,6 +124,7 @@ final class InventoryTest extends TestCase
                 'sku' => 'CAM-002',
                 'category' => 'Uniformes',
                 'description' => 'Camiseta actualizada',
+                'entry_price' => 41000,
                 'unit_price' => 82000,
                 'stock_quantity' => 999,
                 'minimum_stock' => 4,
@@ -127,6 +132,7 @@ final class InventoryTest extends TestCase
             ])
             ->assertOk()
             ->assertJsonPath('data.name', 'Camiseta visitante')
+            ->assertJsonPath('data.entry_price', '41000.00')
             ->assertJsonPath('data.stock_quantity', 10);
     }
 
@@ -134,6 +140,7 @@ final class InventoryTest extends TestCase
     {
         $product = InventoryProduct::factory()->create([
             'school_id' => $this->school['id'],
+            'entry_price' => 30000,
             'unit_price' => 50000,
             'stock_quantity' => 5,
             'minimum_stock' => 2,
@@ -143,13 +150,15 @@ final class InventoryTest extends TestCase
             ->postJson("/api/v2/inventory/products/{$product->id}/movements", [
                 'type' => InventoryMovement::TYPE_ENTRY,
                 'quantity' => 3,
-                'price_snapshot' => 45000,
                 'reason' => 'Compra',
                 'movement_date' => '2026-06-05',
             ])
             ->assertCreated()
             ->assertJsonPath('data.stock_before', 5)
-            ->assertJsonPath('data.stock_after', 8);
+            ->assertJsonPath('data.stock_after', 8)
+            ->assertJsonPath('data.entry_price_snapshot', '30000.00')
+            ->assertJsonPath('data.sale_price_snapshot', '50000.00')
+            ->assertJsonPath('data.profit_margin', 0);
 
         $this->assertSame(8, $product->fresh()->stock_quantity);
 
@@ -157,13 +166,15 @@ final class InventoryTest extends TestCase
             ->postJson("/api/v2/inventory/products/{$product->id}/movements", [
                 'type' => InventoryMovement::TYPE_EXIT,
                 'quantity' => 6,
-                'price_snapshot' => 50000,
                 'reason' => 'Entrega',
                 'movement_date' => '2026-06-05',
             ])
             ->assertCreated()
             ->assertJsonPath('data.stock_before', 8)
-            ->assertJsonPath('data.stock_after', 2);
+            ->assertJsonPath('data.stock_after', 2)
+            ->assertJsonPath('data.entry_price_snapshot', '30000.00')
+            ->assertJsonPath('data.sale_price_snapshot', '50000.00')
+            ->assertJsonPath('data.profit_margin', 120000);
 
         $this->actingAs($this->user)
             ->postJson("/api/v2/inventory/products/{$product->id}/movements", [
@@ -198,8 +209,10 @@ final class InventoryTest extends TestCase
             'school_id' => $this->school['id'],
             'inventory_product_id' => $ownProduct->id,
             'user_id' => $this->user->id,
-            'type' => InventoryMovement::TYPE_ENTRY,
+            'type' => InventoryMovement::TYPE_EXIT,
             'quantity' => 4,
+            'entry_price_snapshot' => 30000,
+            'sale_price_snapshot' => 50000,
             'stock_before' => 0,
             'stock_after' => 4,
         ]);
@@ -218,6 +231,7 @@ final class InventoryTest extends TestCase
             ->assertOk();
 
         $this->assertSame('Guayos', $movementsResponse->json('data.0.product_name'));
+        $this->assertSame(80000, $movementsResponse->json('data.0.profit_margin'));
     }
 
     private function setInventoryPermission(School $school, bool $enabled): void

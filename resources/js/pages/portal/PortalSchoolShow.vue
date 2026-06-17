@@ -12,9 +12,9 @@
             </div>
         </div>
 
-        <div v-else-if="school" class="row g-4">
+        <div v-else-if="school" class="row g-4 align-items-start">
             <div class="col-12 col-lg-4">
-                <aside class="card shadow-sm h-100">
+                <aside class="card shadow-sm">
                     <div class="card-body text-center">
                         <img :src="school.logo_file" :alt="school.name" class="portal-school-show__logo">
                         <h1 class="h3 mb-4">{{ school.name }}</h1>
@@ -35,7 +35,7 @@
             </div>
 
             <div class="col-12 col-lg-8">
-                <div class="card shadow-sm h-100">
+                <div class="card shadow-sm">
                     <div class="card-header bg-transparent pb-0">
                         <ul class="nav nav-tabs mb-0 card-header-tabs">
                             <li class="nav-item">

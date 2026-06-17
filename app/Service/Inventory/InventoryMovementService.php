@@ -41,6 +41,8 @@ class InventoryMovementService
                 'user_id' => auth()->id(),
                 'type' => $data['type'],
                 'quantity' => $quantity,
+                'entry_price_snapshot' => $data['entry_price_snapshot'] ?? $lockedProduct->entry_price,
+                'sale_price_snapshot' => $data['sale_price_snapshot'] ?? $lockedProduct->unit_price,
                 'price_snapshot' => $data['price_snapshot'] ?? $lockedProduct->unit_price,
                 'stock_before' => $stockBefore,
                 'stock_after' => $stockAfter,

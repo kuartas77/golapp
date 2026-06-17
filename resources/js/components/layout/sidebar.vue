@@ -398,6 +398,11 @@
                                 </router-link>
                             </li>
                             <li>
+                                <router-link :to="{ name: 'reports.instructor-activity' }" @click="toggleMobileMenu">
+                                    Actividad de instructores
+                                </router-link>
+                            </li>
+                            <li>
                                 <router-link :to="{ name: 'reports.payments' }" @click="toggleMobileMenu">
                                     Mensualidades
                                 </router-link>
