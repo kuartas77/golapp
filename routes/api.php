@@ -10,6 +10,7 @@ use App\Http\Controllers\API\Admin\InvoiceCustomItemController as AdminInvoiceCu
 use App\Http\Controllers\API\Admin\RegisterController;
 use App\Http\Controllers\API\Admin\ScheduleController as AdminScheduleController;
 use App\Http\Controllers\API\Admin\SchoolController;
+use App\Http\Controllers\API\Admin\SchoolDataExportController;
 use App\Http\Controllers\API\Admin\TournamentController as AdminTournamentController;
 use App\Http\Controllers\API\Admin\UsersController;
 use App\Http\Controllers\API\AttendanceQrController;
@@ -163,6 +164,10 @@ Route::prefix('v2')->group(function () {
                 Route::get('schools/options', [SchoolController::class, 'options']);
                 Route::get('schools/{school}/permissions', [SchoolController::class, 'permissions']);
                 Route::put('schools/{school}/permissions', [SchoolController::class, 'updatePermissions']);
+                Route::get('schools/{school}/data-exports', [SchoolDataExportController::class, 'index']);
+                Route::post('schools/{school}/data-exports', [SchoolDataExportController::class, 'store']);
+                Route::get('schools/{school}/data-exports/{dataExport}', [SchoolDataExportController::class, 'show']);
+                Route::get('schools/{school}/data-exports/{dataExport}/download', [SchoolDataExportController::class, 'download']);
                 Route::get('schools/{school}', [SchoolController::class, 'show']);
                 Route::post('schools', [SchoolController::class, 'store']);
                 Route::put('schools/{school}', [SchoolController::class, 'update']);

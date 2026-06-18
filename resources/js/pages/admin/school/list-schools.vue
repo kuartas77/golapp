@@ -44,6 +44,13 @@
                         >
                             Permisos
                         </button>
+                        <button
+                            type="button"
+                            class="btn btn-outline-success btn-sm"
+                            @click="openDataExports(props.rowData)"
+                        >
+                            Exportar datos
+                        </button>
                     </div>
                 </template>
                 </DatatableTemplate>
@@ -156,6 +163,121 @@
         </div>
     </div>
 
+    <div
+        class="modal fade"
+        id="schoolDataExportsModal"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="schoolDataExportsModalLabel"
+        aria-hidden="true"
+    >
+        <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title" id="schoolDataExportsModalLabel">
+                            Exportación masiva de datos
+                        </h5>
+                        <small v-if="selectedExportSchool" class="text-muted">
+                            {{ selectedExportSchool.name }}
+                        </small>
+                    </div>
+                    <button
+                        type="button"
+                        class="btn-close"
+                        aria-label="Close"
+                        :disabled="isRequestingExport"
+                        @click="closeDataExportsModal"
+                    ></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        Este paquete contiene información personal completa de la escuela. Descárgalo y compártelo solo por canales autorizados.
+                    </div>
+
+                    <div v-if="isLoadingExports" class="py-5 text-center">
+                        <div class="spinner-border text-primary mb-3" role="status"></div>
+                        <p class="text-muted mb-0">Cargando historial de exportaciones...</p>
+                    </div>
+
+                    <template v-else>
+                        <div v-if="exportsError" class="alert alert-danger">
+                            {{ exportsError }}
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Historial reciente</h6>
+                            <button
+                                type="button"
+                                class="btn btn-primary btn-sm"
+                                :disabled="isRequestingExport || !selectedExportSchool"
+                                @click="requestDataExport"
+                            >
+                                {{ isRequestingExport ? 'Solicitando...' : 'Nueva exportación' }}
+                            </button>
+                        </div>
+
+                        <div v-if="dataExports.length === 0" class="text-center text-muted border rounded py-4">
+                            No hay exportaciones solicitadas para esta escuela.
+                        </div>
+
+                        <div v-else class="table-responsive">
+                            <table class="table table-sm align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Estado</th>
+                                        <th>Solicitada</th>
+                                        <th>Solicitante</th>
+                                        <th>Tamaño</th>
+                                        <th>Vence</th>
+                                        <th class="text-end">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="item in dataExports" :key="item.id">
+                                        <td>
+                                            <span class="badge" :class="statusClass(item.status)">
+                                                {{ statusLabel(item.status) }}
+                                            </span>
+                                            <div v-if="item.error_message" class="small text-danger mt-1">
+                                                {{ item.error_message }}
+                                            </div>
+                                        </td>
+                                        <td>{{ formatDateTime(item.created_at) }}</td>
+                                        <td>{{ item.requested_by?.name || 'Sistema' }}</td>
+                                        <td>{{ item.size_label || '-' }}</td>
+                                        <td>{{ formatDateTime(item.expires_at) }}</td>
+                                        <td class="text-end">
+                                            <a
+                                                v-if="item.download_url"
+                                                :href="item.download_url"
+                                                class="btn btn-success btn-sm"
+                                                target="_blank"
+                                                rel="noopener"
+                                            >
+                                                Descargar
+                                            </a>
+                                            <span v-else class="text-muted small">
+                                                No disponible
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" :disabled="isRequestingExport" @click="closeDataExportsModal">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <breadcrumb :parent="'Adminstración'" :current="'Escuelas'" />
     <PageTutorialOverlay :tutorial="tutorial" />
 </template>
@@ -185,6 +307,12 @@ const permissionForm = ref({})
 const isModalLoading = ref(false)
 const isSavingPermissions = ref(false)
 const permissionsModal = ref(null)
+const dataExportsModal = ref(null)
+const selectedExportSchool = ref(null)
+const dataExports = ref([])
+const isLoadingExports = ref(false)
+const isRequestingExport = ref(false)
+const exportsError = ref('')
 
 const groupedCatalog = computed(() => {
     const groups = {}
@@ -224,6 +352,10 @@ const resetModalState = () => {
 
 const closeModal = () => {
     permissionsModal.value?.hide()
+}
+
+const closeDataExportsModal = () => {
+    dataExportsModal.value?.hide()
 }
 
 const goToEdit = (school) => {
@@ -282,14 +414,107 @@ const savePermissions = async () => {
     }
 }
 
+const resetDataExportsState = () => {
+    selectedExportSchool.value = null
+    dataExports.value = []
+    exportsError.value = ''
+    isLoadingExports.value = false
+    isRequestingExport.value = false
+}
+
+const loadDataExports = async () => {
+    if (!selectedExportSchool.value) {
+        return
+    }
+
+    exportsError.value = ''
+    isLoadingExports.value = true
+
+    try {
+        const { data } = await api.get(`/api/v2/admin/schools/${selectedExportSchool.value.slug}/data-exports`)
+        dataExports.value = data.data || []
+    } catch (error) {
+        exportsError.value = error.response?.data?.message || 'No fue posible cargar el historial de exportaciones.'
+        showMessage(exportsError.value, 'error')
+    } finally {
+        isLoadingExports.value = false
+    }
+}
+
+const openDataExports = async (school) => {
+    selectedExportSchool.value = {
+        id: school.id,
+        name: school.name,
+        slug: school.slug,
+    }
+    dataExportsModal.value?.show()
+    await loadDataExports()
+}
+
+const requestDataExport = async () => {
+    if (!selectedExportSchool.value) {
+        return
+    }
+
+    isRequestingExport.value = true
+    exportsError.value = ''
+
+    try {
+        await api.post(`/api/v2/admin/schools/${selectedExportSchool.value.slug}/data-exports`)
+        showMessage('La exportación fue solicitada. El archivo aparecerá cuando termine el procesamiento.')
+        await loadDataExports()
+    } catch (error) {
+        exportsError.value = error.response?.data?.message || 'No fue posible solicitar la exportación.'
+        showMessage(exportsError.value, 'error')
+    } finally {
+        isRequestingExport.value = false
+    }
+}
+
+const statusLabel = (status) => ({
+    pending: 'Pendiente',
+    processing: 'Procesando',
+    ready: 'Listo',
+    failed: 'Fallido',
+    expired: 'Expirado',
+}[status] || status)
+
+const statusClass = (status) => ({
+    pending: 'bg-secondary',
+    processing: 'bg-info',
+    ready: 'bg-success',
+    failed: 'bg-danger',
+    expired: 'bg-dark',
+}[status] || 'bg-secondary')
+
+const formatDateTime = (value) => {
+    if (!value) {
+        return '-'
+    }
+
+    return new Intl.DateTimeFormat('es-CO', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    }).format(new Date(value))
+}
+
 onMounted(() => {
-    const element = document.getElementById('schoolPermissionsModal')
-    permissionsModal.value = new window.bootstrap.Modal(element, {
+    const permissionsElement = document.getElementById('schoolPermissionsModal')
+    permissionsModal.value = new window.bootstrap.Modal(permissionsElement, {
         backdrop: 'static',
         keyboard: false,
         focus: false,
     })
 
-    element?.addEventListener('hidden.bs.modal', resetModalState)
+    permissionsElement?.addEventListener('hidden.bs.modal', resetModalState)
+
+    const exportsElement = document.getElementById('schoolDataExportsModal')
+    dataExportsModal.value = new window.bootstrap.Modal(exportsElement, {
+        backdrop: 'static',
+        keyboard: false,
+        focus: false,
+    })
+
+    exportsElement?.addEventListener('hidden.bs.modal', resetDataExportsState)
 })
 </script>
