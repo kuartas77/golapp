@@ -59,6 +59,7 @@ final class SchoolProfileTest extends TestCase
             ->putJson("/api/v2/admin/school/{$school->slug}", $this->schoolProfilePayload($school, [
                 'tutor_platform' => 'true',
                 'inscriptions_enabled' => 'true',
+                'send_monthly_payment_receipts' => 'true',
             ]))
             ->assertOk()
             ->assertJsonPath('success', true);
@@ -67,18 +68,21 @@ final class SchoolProfileTest extends TestCase
             'id' => $school->id,
             'tutor_platform' => true,
             'inscriptions_enabled' => true,
+            'send_monthly_payment_receipts' => true,
         ]);
 
         $this->actingAs($this->user)
             ->getJson('/api/v2/admin/school')
             ->assertOk()
             ->assertJsonPath('tutor_platform', true)
-            ->assertJsonPath('inscriptions_enabled', true);
+            ->assertJsonPath('inscriptions_enabled', true)
+            ->assertJsonPath('send_monthly_payment_receipts', true);
 
         $this->actingAs($this->user)
             ->putJson("/api/v2/admin/school/{$school->slug}", $this->schoolProfilePayload($school, [
                 'tutor_platform' => 'false',
                 'inscriptions_enabled' => 'false',
+                'send_monthly_payment_receipts' => 'false',
             ]))
             ->assertOk()
             ->assertJsonPath('success', true);
@@ -87,13 +91,15 @@ final class SchoolProfileTest extends TestCase
             'id' => $school->id,
             'tutor_platform' => false,
             'inscriptions_enabled' => false,
+            'send_monthly_payment_receipts' => false,
         ]);
 
         $this->actingAs($this->user)
             ->getJson('/api/v2/admin/school')
             ->assertOk()
             ->assertJsonPath('tutor_platform', false)
-            ->assertJsonPath('inscriptions_enabled', false);
+            ->assertJsonPath('inscriptions_enabled', false)
+            ->assertJsonPath('send_monthly_payment_receipts', false);
     }
 
     private function schoolProfilePayload(School $school, array $overrides = []): array

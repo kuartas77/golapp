@@ -6,7 +6,9 @@ namespace App\Repositories;
 
 use App\Models\Inscription;
 use App\Models\Payment;
+use App\Notifications\MonthlyPaymentReceiptNotification;
 use App\Service\PaymentAmountResolver;
+use App\Service\Payment\MonthlyPaymentReceiptService;
 use App\Service\ReportService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
@@ -60,6 +62,7 @@ class PaymentRepository
     {
         $payments = $this->decoratePayments($payments);
         $school = getSchool(auth()->user());
+        $school->loadMissing('settingsValues');
         $inscription_amount = $this->paymentAmountResolver->inscriptionAmountForSchool($school);
         $monthly_payment = $this->paymentAmountResolver->monthlyAmountForSchool($school);
         $annuity = $this->paymentAmountResolver->annuityAmountForSchool($school);
@@ -81,6 +84,7 @@ class PaymentRepository
         $payments = $this->decoratePayments($payments);
         $payments->setAppends(['check_payments']);
         $school = getSchool(auth()->user());
+        $school->loadMissing('settingsValues');
         $inscription_amount = $this->paymentAmountResolver->inscriptionAmountForSchool($school);
         $monthly_payment = $this->paymentAmountResolver->monthlyAmountForSchool($school);
         $annuity = $this->paymentAmountResolver->annuityAmountForSchool($school);
@@ -220,7 +224,13 @@ class PaymentRepository
 
             DB::beginTransaction();
             $normalizedValues = $this->normalizePaymentUpdate($payment, $values);
+            $previousStatuses = $this->monthlyStatuses($payment);
             $isPay = $payment->fill($normalizedValues)->save();
+
+            if ($isPay) {
+                $this->notifyMonthlyReceiptPayments($payment, $normalizedValues, $previousStatuses);
+            }
+
             DB::commit();
         } catch (Throwable $throwable) {
             DB::rollBack();
@@ -240,6 +250,52 @@ class PaymentRepository
         }
 
         return $this->normalizeFullUpdate($values, $payment);
+    }
+
+    private function monthlyStatuses(Payment $payment): array
+    {
+        return collect(Payment::paymentFields())
+            ->reject(fn (string $field) => $field === 'enrollment')
+            ->mapWithKeys(fn (string $field) => [$field => (int) $payment->{$field}])
+            ->all();
+    }
+
+    private function notifyMonthlyReceiptPayments(Payment $payment, array $normalizedValues, array $previousStatuses): void
+    {
+        $payment->loadMissing(['school', 'inscription.player.people']);
+
+        if (! $payment->school?->send_monthly_payment_receipts) {
+            return;
+        }
+
+        $guardian = $payment->inscription?->player?->people
+            ->first(fn ($person) => (int) $person->tutor === 1 && filter_var($person->email, FILTER_VALIDATE_EMAIL));
+
+        if (! $guardian) {
+            return;
+        }
+
+        foreach ($previousStatuses as $field => $previousStatus) {
+            if (! array_key_exists($field, $normalizedValues)) {
+                continue;
+            }
+
+            $currentStatus = (int) $payment->{$field};
+
+            if ($this->isPaidStatus($previousStatus) || ! $this->isPaidStatus($currentStatus)) {
+                continue;
+            }
+            logger('aaaaaa', [
+                $normalizedValues,
+                $previousStatus,
+            ]);
+            $guardian->notify(new MonthlyPaymentReceiptNotification($payment, $field, $payment->school));
+        }
+    }
+
+    private function isPaidStatus(int $status): bool
+    {
+        return in_array($status, MonthlyPaymentReceiptService::paidStatuses(), true);
     }
 
     private function normalizeColumnUpdate(Payment $payment, string $column, array $values): array
@@ -397,6 +453,7 @@ class PaymentRepository
         }
 
         $school = getSchool(auth()->user());
+        $school->loadMissing('settingsValues');
 
         return [
             'inscription' => $this->paymentAmountResolver->inscriptionAmountForSchool($school),

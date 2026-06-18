@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Inscription;
+use App\Models\People;
 use App\Models\Payment;
 use App\Models\Player;
 use App\Models\TrainingGroup;
+use App\Notifications\MonthlyPaymentReceiptNotification;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 final class MonthlyPaymentReceiptsTest extends TestCase
@@ -264,6 +267,108 @@ final class MonthlyPaymentReceiptsTest extends TestCase
             ->assertJsonPath('data.count', 0);
     }
 
+    public function test_it_emails_monthly_receipt_to_tutor_when_enabled_and_month_becomes_paid(): void
+    {
+        Notification::fake();
+        $this->actingAs($this->user);
+        $this->enableMonthlyReceiptEmails();
+        [$inscription, $payment] = $this->createReceiptFixture([
+            'january' => Payment::$debt,
+            'january_amount' => 50000,
+        ]);
+        $guardian = $this->attachTutor($inscription);
+
+        $this->putPaymentColumn($payment, 'january', Payment::$paid_cash, 50000)
+            ->assertOk();
+
+        Notification::assertSentTo($guardian, MonthlyPaymentReceiptNotification::class);
+    }
+
+    public function test_monthly_receipt_notification_attaches_pdf_receipt(): void
+    {
+        $this->actingAs($this->user);
+        [$inscription, $payment] = $this->createReceiptFixture([
+            'january' => Payment::$paid_cash,
+            'january_amount' => 50000,
+        ]);
+        $guardian = $this->attachTutor($inscription);
+
+        $message = (new MonthlyPaymentReceiptNotification($payment, 'january', getSchool($this->user)))
+            ->toMail($guardian);
+
+        $this->assertCount(1, $message->rawAttachments);
+        $this->assertSame('application/pdf', $message->rawAttachments[0]['options']['mime']);
+        $this->assertStringStartsWith('%PDF', $message->rawAttachments[0]['data']);
+        $this->assertStringContainsString('Recibo mensualidad', $message->rawAttachments[0]['name']);
+    }
+
+    public function test_it_does_not_email_monthly_receipt_when_school_flag_is_disabled(): void
+    {
+        Notification::fake();
+        $this->actingAs($this->user);
+        [$inscription, $payment] = $this->createReceiptFixture([
+            'january' => Payment::$debt,
+            'january_amount' => 50000,
+        ]);
+        $guardian = $this->attachTutor($inscription);
+
+        $this->putPaymentColumn($payment, 'january', Payment::$paid_cash, 50000)
+            ->assertOk();
+
+        Notification::assertNotSentTo($guardian, MonthlyPaymentReceiptNotification::class);
+    }
+
+    public function test_it_does_not_email_monthly_receipt_when_paid_month_is_saved_again(): void
+    {
+        Notification::fake();
+        $this->actingAs($this->user);
+        $this->enableMonthlyReceiptEmails();
+        [$inscription, $payment] = $this->createReceiptFixture([
+            'january' => Payment::$paid_cash,
+            'january_amount' => 50000,
+        ]);
+        $guardian = $this->attachTutor($inscription);
+
+        $this->putPaymentColumn($payment, 'january', Payment::$paid_deposit, 60000)
+            ->assertOk();
+
+        Notification::assertNotSentTo($guardian, MonthlyPaymentReceiptNotification::class);
+    }
+
+    public function test_it_saves_paid_month_without_email_when_tutor_email_is_missing(): void
+    {
+        Notification::fake();
+        $this->actingAs($this->user);
+        $this->enableMonthlyReceiptEmails();
+        [, $payment] = $this->createReceiptFixture([
+            'january' => Payment::$debt,
+            'january_amount' => 50000,
+        ]);
+
+        $this->putPaymentColumn($payment, 'january', Payment::$paid_cash, 50000)
+            ->assertOk()
+            ->assertJsonPath('data.january', Payment::$paid_cash);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_it_does_not_email_monthly_receipt_for_enrollment_payment(): void
+    {
+        Notification::fake();
+        $this->actingAs($this->user);
+        $this->enableMonthlyReceiptEmails();
+        [$inscription, $payment] = $this->createReceiptFixture([
+            'enrollment' => Payment::$debt,
+            'enrollment_amount' => 70000,
+        ]);
+        $guardian = $this->attachTutor($inscription);
+
+        $this->putPaymentColumn($payment, 'enrollment', Payment::$paid_cash, 70000)
+            ->assertOk();
+
+        Notification::assertNotSentTo($guardian, MonthlyPaymentReceiptNotification::class);
+    }
+
     private function createReceiptFixture(array $overrides = []): array
     {
         $schoolId = (int) ($overrides['school_id'] ?? $this->school['id']);
@@ -365,5 +470,33 @@ final class MonthlyPaymentReceiptsTest extends TestCase
         ], $paymentOverrides));
 
         return [$inscription, $payment, $group];
+    }
+
+    private function enableMonthlyReceiptEmails(): void
+    {
+        getSchool($this->user)->forceFill(['send_monthly_payment_receipts' => true])->save();
+    }
+
+    private function attachTutor(Inscription $inscription, array $overrides = []): People
+    {
+        $guardian = People::factory()->create(array_merge([
+            'tutor' => true,
+            'email' => 'acudiente-recibo@example.com',
+        ], $overrides));
+
+        $inscription->player->people()->attach($guardian->id);
+
+        return $guardian;
+    }
+
+    private function putPaymentColumn(Payment $payment, string $field, int $status, int $amount)
+    {
+        return $this
+            ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+            ->put("/payments/{$payment->id}", [
+                'column' => $field,
+                $field => (string) $status,
+                Payment::amountFieldFor($field) => (string) $amount,
+            ]);
     }
 }

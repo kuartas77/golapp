@@ -27,7 +27,7 @@ class SharedService
     public function paymentAssist(Inscription $inscription)
     {
         try {
-            $inscription->load('school.settingsValues');
+            $inscription->loadMissing('school.settingsValues');
             $school = $inscription->school;
             DB::beginTransaction();
 

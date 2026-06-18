@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Service\Payment;
 
 use App\Models\Payment;
+use App\Models\School;
 use App\Traits\PDFTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Mpdf\Output\Destination;
 
 class MonthlyPaymentReceiptService
 {
@@ -79,36 +81,20 @@ class MonthlyPaymentReceiptService
     public function streamReceipt(Payment $payment, string $month)
     {
         $payment = $this->resolveReceiptablePayment($payment, $month);
-        $amountField = Payment::amountFieldFor($month);
-
-        $data = [
-            'school' => getSchool(auth()->user()),
-            'payment' => $payment,
-            'player' => $payment->inscription->player,
-            'month_field' => $month,
-            'month_label' => $this->monthLabel($month),
-            'amount' => (int) $payment->{$amountField},
-            'status_label' => $this->statusLabel((int) $payment->{$month}),
-            'issued_at' => now(),
-        ];
-
-        $filename = sprintf(
-            'Recibo mensualidad %s %s %s.pdf',
-            Str::slug((string) $payment->unique_code),
-            $month,
-            $payment->year
-        );
-
-        $this->setConfigurationMpdf([
-            'format' => 'A6',
-            'margin_left' => 6,
-            'margin_right' => 6,
-            'margin_top' => 6,
-            'margin_bottom' => 6,
-        ]);
-        $this->createPDF($data, 'payments/monthly-receipt.blade.php', false, false);
+        $filename = $this->prepareMonthlyReceiptPdf($payment, $month, getSchool(auth()->user()));
 
         return $this->stream($filename);
+    }
+
+    public function receiptPdfAttachment(Payment $payment, string $month, ?School $school = null): array
+    {
+        $filename = $this->prepareMonthlyReceiptPdf($payment, $month, $school);
+
+        return [
+            'filename' => $filename,
+            'content' => $this->getMpdf()->Output(null, Destination::STRING_RETURN),
+            'mime' => 'application/pdf',
+        ];
     }
 
     public function resolveReceiptablePayment(Payment $payment, string $month): Payment
@@ -207,6 +193,44 @@ class MonthlyPaymentReceiptService
         ]);
     }
 
+    private function prepareMonthlyReceiptPdf(Payment $payment, string $month, ?School $school = null): string
+    {
+        abort_unless($this->isMonthlyField($month), 404);
+
+        $payment->loadMissing(['inscription.player', 'training_group', 'school']);
+        $school ??= $payment->school;
+        $amountField = Payment::amountFieldFor($month);
+
+        $data = [
+            'school' => $school,
+            'payment' => $payment,
+            'player' => $payment->inscription->player,
+            'month_field' => $month,
+            'month_label' => $this->monthLabel($month),
+            'amount' => (int) $payment->{$amountField},
+            'status_label' => $this->statusLabel((int) $payment->{$month}),
+            'issued_at' => now(),
+        ];
+
+        $filename = sprintf(
+            'Recibo mensualidad %s %s %s.pdf',
+            Str::slug((string) $payment->unique_code),
+            $month,
+            $payment->year
+        );
+
+        $this->setConfigurationMpdf([
+            'format' => 'A6',
+            'margin_left' => 6,
+            'margin_right' => 6,
+            'margin_top' => 6,
+            'margin_bottom' => 6,
+        ]);
+        $this->createPDF($data, 'payments/monthly-receipt.blade.php', false, true);
+
+        return $filename;
+    }
+
     private function isMonthlyField(string $field): bool
     {
         return in_array($field, self::MONTH_FIELDS, true);
@@ -227,7 +251,7 @@ class MonthlyPaymentReceiptService
         return in_array($status, self::paidStatuses(), true);
     }
 
-    private static function paidStatuses(): array
+    public static function paidStatuses(): array
     {
         return [
             Payment::$paid,

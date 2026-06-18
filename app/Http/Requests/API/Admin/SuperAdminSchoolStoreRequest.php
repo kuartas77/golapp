@@ -41,6 +41,7 @@ class SuperAdminSchoolStoreRequest extends FormRequest
             'is_campus' => ['nullable', 'boolean'],
             'create_contract' => ['nullable', 'boolean'],
             'send_documents' => ['nullable', 'boolean'],
+            'send_monthly_payment_receipts' => ['nullable', 'boolean'],
             'tutor_platform' => ['nullable', 'boolean'],
             'sign_player' => ['nullable', 'boolean'],
             'inscriptions_enabled' => ['nullable', 'boolean'],
@@ -75,6 +76,7 @@ class SuperAdminSchoolStoreRequest extends FormRequest
         foreach ([
             'create_contract',
             'send_documents',
+            'send_monthly_payment_receipts',
             'tutor_platform',
             'sign_player',
             'inscriptions_enabled',

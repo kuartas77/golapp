@@ -266,7 +266,12 @@ class SchoolOutingController extends Controller
 
         return response()->json([
             'message' => 'Abono registrado correctamente.',
-            'data' => $contribution->load(['participant.player', 'activity']),
+            'data' => $contribution->load([
+                'participant' => fn ($query) => $query
+                    ->with('player')
+                    ->withSum('contributions', 'amount'),
+                'activity',
+            ]),
             'outing' => $this->loadOuting($outing),
         ], Response::HTTP_CREATED);
     }
@@ -281,7 +286,12 @@ class SchoolOutingController extends Controller
                     ->withSum('contributions', 'amount')
                     ->orderBy('id'),
                 'contributions' => fn ($query) => $query
-                    ->with(['participant.player:id,names,last_names,unique_code,school_id', 'activity:id,name'])
+                    ->with([
+                        'participant' => fn ($participantQuery) => $participantQuery
+                            ->with('player:id,names,last_names,unique_code,school_id')
+                            ->withSum('contributions', 'amount'),
+                        'activity:id,name',
+                    ])
                     ->latest('contribution_date')
                     ->latest('id'),
             ])

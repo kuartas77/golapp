@@ -13,7 +13,7 @@ class SchoolsController extends Controller
     public function index(Request $request, School $school)
     {
         $school = getSchool(auth()->user());
-        $school->load(['settingsValues']);
+        $school->loadMissing(['settingsValues']);
         $school->uniform_request_types = config('variables.UNIFORM_REQUESTS_TYPES');
 
         return response()->json($school);

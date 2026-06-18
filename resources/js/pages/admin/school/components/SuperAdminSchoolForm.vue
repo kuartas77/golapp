@@ -189,6 +189,9 @@
                         <div class="col-md-6 col-xl">
                             <checkbox label="Envio documentos?" name="send_documents" v-tooltip.top="'Los documentos que adjuntan en la inscripción serán enviados al correo de la escuela.'" />
                         </div>
+                        <div class="col-md-6 col-xl">
+                            <checkbox label="Enviar recibos de mensualidad?" name="send_monthly_payment_receipts" v-tooltip.top="'Envía al acudiente tutor el recibo PDF cuando una mensualidad cambia a pagada.'" />
+                        </div>
                     </div>
                 </div>
 

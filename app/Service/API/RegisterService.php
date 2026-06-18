@@ -4,7 +4,6 @@ namespace App\Service\API;
 
 use App\Models\School;
 use App\Models\SchoolUser;
-use App\Models\SettingValue;
 use App\Models\Setting;
 use App\Models\User;
 use App\Notifications\RegisterNotification;
@@ -92,6 +91,7 @@ class RegisterService
             foreach ([
                 'create_contract',
                 'send_documents',
+                'send_monthly_payment_receipts',
                 'tutor_platform',
                 'sign_player',
                 'inscriptions_enabled',
@@ -113,7 +113,7 @@ class RegisterService
 
             $school->fill($validated)->save();
 
-            $settings = SettingValue::query()->where('school_id', $school->id)->get();
+            $settings = $school->loadMissing('settingsValues')->settingsValues;
             $notify_payment_day = $settings->firstWhere('setting_key', 'NOTIFY_PAYMENT_DAY');
             $inscription_amount = $settings->firstWhere('setting_key', 'INSCRIPTION_AMOUNT');
             $annuity = $settings->firstWhere('setting_key', 'ANNUITY');
@@ -137,7 +137,7 @@ class RegisterService
 
             DB::commit();
 
-            $school->refresh()->load(['settingsValues']);
+            $school->refresh();
 
             School::forgetCachedSchool($school->id);
             Cache::forget('admin.schools');

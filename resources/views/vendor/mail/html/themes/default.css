@@ -71,6 +71,9 @@ p.sub {
 }
 
 img {
+    border: 0;
+    display: block;
+    height: auto;
     max-width: 100%;
 }
 
