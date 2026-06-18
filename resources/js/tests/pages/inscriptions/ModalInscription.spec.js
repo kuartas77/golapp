@@ -320,8 +320,8 @@ describe('ModalInscription', () => {
         expect(wrapper.vm.$.setupState.monthlyPaymentOptions).toEqual([
             { value: 'MONTHLY_PAYMENT', label: 'Mensualidad por defecto - $ 50.000' },
             { value: 'BROTHER_MONTHLY_PAYMENT', label: 'Mensualidad hermano - $ 40.000' },
-            { value: 'MONTHLY_PAYMENT_OPTION_1', label: 'Mensualidad opción 1 - $ 55.000' },
-            { value: 'MONTHLY_PAYMENT_OPTION_3', label: 'Mensualidad opción 3 - $ 65.000' },
+            { value: 'MONTHLY_PAYMENT_OPTION_1', label: 'Mensualidad 5 dias - $ 55.000' },
+            { value: 'MONTHLY_PAYMENT_OPTION_3', label: 'Mensualidad 3 dias - $ 65.000' },
         ]);
     });
 

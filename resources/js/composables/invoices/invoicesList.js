@@ -53,6 +53,7 @@ export default function useInvoicesList() {
             { targets: [7],  width: '1%' }
         ],
         serverSide: true,
+        pipeline: { pages: 5 },
         processing: true,
         order: [[6, 'desc']],
         ajax: async (data, callback, settings) => {
@@ -117,6 +118,7 @@ export default function useInvoicesList() {
     const reloadTable = () => {
         if (invoives_table.value) {
             let dt = invoives_table.value.table.dt;
+            dt.clearPipeline()
             dt.ajax.reload(null, false)
         }
     }

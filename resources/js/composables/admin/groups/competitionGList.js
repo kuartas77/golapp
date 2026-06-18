@@ -31,6 +31,7 @@ export default function useCompetitionGList() {
         ],
         // scrollX: true,
         serverSide: true,
+        pipeline: { pages: 5 },
         processing: true,
         order: [[0, 'desc']],
         ajax: async (data, callback, settings) => {
@@ -62,6 +63,7 @@ export default function useCompetitionGList() {
         selectedId.value = null
         if (table.value) {
             let dt = table.value.table.dt;
+            dt.clearPipeline()
             dt.ajax.reload(null, false)
         }
     }

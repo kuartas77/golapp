@@ -102,6 +102,7 @@ export default function useAttendancePaymentReport() {
         pageLength: 10,
         processing: true,
         serverSide: true,
+        pipeline: { pages: 5 },
         searchDelay: 400,
         order,
         ajax: async (data, callback) => {
@@ -143,6 +144,7 @@ export default function useAttendancePaymentReport() {
         const dt = tableRef.value?.table?.dt
 
         if (dt) {
+            dt.clearPipeline()
             dt.ajax.reload(null, false)
         }
     }

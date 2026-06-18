@@ -466,15 +466,21 @@ class PaymentRepository
 
     private function decoratePayments(Collection $payments): Collection
     {
-        $payments->loadMissing([
-            'inscription.player',
-            'inscription.school.settingsValues',
-            'school.settingsValues',
-        ]);
+        $payments->loadMissing('inscription.player');
+        $school = getSchool(auth()->user());
+        $school->loadMissing('settingsValues');
 
-        return $payments->map(function (Payment $payment) {
+        return $payments->map(function (Payment $payment) use ($school) {
             $inscription = $payment->inscription;
             $player = $inscription?->player;
+
+            if ((int) $payment->school_id === (int) $school->id) {
+                $payment->setRelation('school', $school);
+            }
+
+            if ($inscription && (int) $inscription->school_id === (int) $school->id) {
+                $inscription->setRelation('school', $school);
+            }
 
             if ($player) {
                 $payment->setRelation('player', $player);

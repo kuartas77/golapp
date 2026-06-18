@@ -441,6 +441,7 @@ const productOptions = {
     ...configLanguaje,
     dom: 'litp',
     serverSide: true,
+    pipeline: { pages: 5 },
     processing: true,
     order: [[0, 'asc']],
     ajax: async (data, callback) => {
@@ -486,6 +487,7 @@ const movementOptions = {
     ...configLanguaje,
     dom: 'litp',
     serverSide: true,
+    pipeline: { pages: 5 },
     processing: true,
     order: [[0, 'desc']],
     ajax: async (data, callback) => {

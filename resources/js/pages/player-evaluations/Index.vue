@@ -346,6 +346,7 @@ const options = {
         { targets: [1], width: '28%' },
     ],
     serverSide: true,
+    pipeline: { pages: 5 },
     processing: true,
     order: [[0, 'desc']],
     ajax: async (data, callback) => {
@@ -383,6 +384,7 @@ function reloadTable() {
         return
     }
 
+    dt.clearPipeline()
     dt.ajax.reload(null, false)
 }
 

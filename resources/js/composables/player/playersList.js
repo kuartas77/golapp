@@ -53,6 +53,7 @@ export default function usePlayerList() {
         ],
         // scrollX: true,
         serverSide: true,
+        pipeline: { pages: 5 },
         processing: true,
         order: [[1, 'desc']],
         ajax: async (data, callback, settings) => {
@@ -87,6 +88,7 @@ export default function usePlayerList() {
         clearLoadError()
 
         if (table.value?.table?.dt) {
+            table.value.table.dt.clearPipeline()
             table.value.table.dt.ajax.reload(null, false)
         }
     }

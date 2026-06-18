@@ -119,6 +119,7 @@ export default function useInscriptionCustomChargesList() {
         pageLength: 10,
         processing: true,
         serverSide: true,
+        pipeline: { pages: 5 },
         deferRender: true,
         searchDelay: 400,
         order: [[7, 'desc']],
@@ -150,6 +151,7 @@ export default function useInscriptionCustomChargesList() {
         const dt = table.value?.table?.dt
 
         if (dt) {
+            dt.clearPipeline()
             dt.ajax.reload(null, false)
         }
     }

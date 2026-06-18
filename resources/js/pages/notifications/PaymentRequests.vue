@@ -80,6 +80,7 @@ const options = {
     order: [[0, 'desc']],
     processing: true,
     serverSide: true,
+    pipeline: { pages: 5 },
     deferRender: true,
     ajax: async (data, callback) => {
         try {
@@ -195,6 +196,7 @@ const reloadTable = () => {
     const dt = paymentRequestsTable.value?.table?.dt
 
     if (dt) {
+        dt.clearPipeline()
         dt.ajax.reload(null, false)
     }
 }

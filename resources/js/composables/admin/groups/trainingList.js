@@ -30,6 +30,7 @@ export default function useTrainingList() {
         ],
         // scrollX: true,
         serverSide: true,
+        pipeline: { pages: 5 },
         processing: true,
         order: [[0, 'desc']],
         ajax: async (data, callback, settings) => {
@@ -61,6 +62,7 @@ export default function useTrainingList() {
         selectedId.value = null
         if (table.value) {
             let dt = table.value.table.dt;
+            dt.clearPipeline()
             dt.ajax.reload(null, false)
         }
     }

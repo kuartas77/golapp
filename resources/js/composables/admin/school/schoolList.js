@@ -41,6 +41,7 @@ export default function useSchoolList() {
         ],
         // scrollX: true,
         serverSide: true,
+        pipeline: { pages: 5 },
         processing: true,
         order: [[6, 'desc']],
         ajax: ajaxConfig,

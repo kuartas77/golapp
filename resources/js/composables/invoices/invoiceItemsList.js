@@ -169,6 +169,7 @@ export default function useInvoiceItemsList() {
         lengthMenu: [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
         order: [[0, 'desc']],
         serverSide: true,
+        pipeline: { pages: 5 },
         processing: true,
         deferRender: true,
         ajax: async (data, callback) => {

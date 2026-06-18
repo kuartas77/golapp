@@ -337,6 +337,7 @@ const totalPermissionsCount = computed(() => permissionCatalog.value.length)
 const reloadTable = () => {
     const dataTable = table.value?.table?.dt
     if (dataTable) {
+        dataTable.clearPipeline()
         dataTable.ajax.reload(null, false)
     }
 }

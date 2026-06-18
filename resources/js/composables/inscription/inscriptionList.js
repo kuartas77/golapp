@@ -172,6 +172,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
             { targets: [0, 1, 2, 3], className: 'dt-head-center dt-body-center' },
         ],
         serverSide: true,
+        pipeline: { pages: 5 },
         processing: true,
         order: [[1, 'desc']],
         ajax: async (data, callback, settings) => {
@@ -206,6 +207,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
             return
         }
 
+        dt.clearPipeline()
         dt.ajax.reload(null, false)
     }
 
@@ -216,7 +218,8 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
             return
         }
 
-        dt.column(columnIndex).search(value).draw()
+        dt.column(columnIndex).search(value)
+        dt.clearPipeline().draw()
     }
 
     const onGroupFilterChange = (event) => {

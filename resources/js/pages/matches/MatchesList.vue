@@ -71,6 +71,7 @@ const options = {
         // bottomEnd: { paging: { buttons: 4 } }
     },
     serverSide: true,
+    pipeline: { pages: 5 },
     processing: true,
     order: [[2, 'desc']],
     columns: columns,

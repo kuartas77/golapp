@@ -143,6 +143,7 @@ export default function useAssistReports() {
         pageLength: 10,
         processing: true,
         serverSide: true,
+        pipeline: { pages: 5 },
         // autoWidth: false,
         // scrollX: true,
         searchDelay: 400,
@@ -193,6 +194,7 @@ export default function useAssistReports() {
         const dt = tableRef.value?.table?.dt
 
         if (dt) {
+            dt.clearPipeline()
             dt.ajax.reload(null, false)
         }
     }

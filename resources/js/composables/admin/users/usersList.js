@@ -29,6 +29,7 @@ export default function useUsersList() {
         ],
         // scrollX: true,
         serverSide: true,
+        pipeline: { pages: 5 },
         processing: true,
         order: [[2, 'desc']],
         ajax: async (data, callback, settings) => {
@@ -82,6 +83,7 @@ export default function useUsersList() {
 
             if (table.value) {
                 let dt = table.value.table.dt;
+                dt.clearPipeline()
                 dt.ajax.reload(null, false)
             }
 

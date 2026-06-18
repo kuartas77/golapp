@@ -534,6 +534,7 @@ const options = {
     pageLength: 10,
     processing: true,
     serverSide: true,
+    pipeline: { pages: 5 },
     deferRender: true,
     searchDelay: 400,
     order: [[3, 'desc']],
@@ -792,6 +793,7 @@ function reloadTable(resetPaging = false) {
     const dt = table.value?.table?.dt
 
     if (dt) {
+        dt.clearPipeline()
         dt.ajax.reload(null, resetPaging)
     }
 }
