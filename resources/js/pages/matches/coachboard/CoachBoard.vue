@@ -113,6 +113,10 @@ const currentFormationsMap = computed(() => {
     }
 })
 
+const initialFieldPlayers = computed(() =>
+    allPlayers.value.filter(player => Number(player.titular) === 1)
+)
+
 // Cargar formaciones personalizadas desde localStorage
 onMounted(() => {
     const saved = localStorage.getItem('custom-formations')
@@ -126,6 +130,10 @@ onMounted(() => {
 })
 
 watch(() => props.initialPlayers, () => {
+    if (!hasLineupInteraction.value) {
+        playersField.value = [...initialFieldPlayers.value]
+    }
+
     const assignedIds = new Set(playersField.value.map(player => player.id))
     availablePlayers.value = allPlayers.value.filter(player => !assignedIds.has(player.id))
 }, { deep: true, immediate: true })
@@ -239,8 +247,6 @@ function formatLineupPosition(position) {
     return position
         .replace(/\(/g, ' (')
         .replace(/\s+/g, ' ')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
         .trim()
 }
 
@@ -277,10 +283,10 @@ function getSkillControlsPayload() {
     })
 }
 
-function handleUpdatePositions(snapshot) {
+function handleUpdatePositions(snapshot, options = {}) {
     latestPositionsSnapshot.value = snapshot
 
-    if (playersField.value.length > 0) {
+    if (!options.fromFormation && playersField.value.length > 0) {
         hasLineupInteraction.value = true
     }
 }

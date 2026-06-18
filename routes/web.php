@@ -235,6 +235,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::middleware('school.permission:school.module.matches')->group(function () {
             Route::get('matches/pdf/{match}', [ExportController::class, 'exportMatchPDF'])->name('pdf.match');
             Route::get('matches/create/{competition_group}/format', [ExportController::class, 'exportMatchDetail'])->name('match_detail');
+            Route::get('matches/{match}/format', [ExportController::class, 'exportMatchDetailFromMatch'])->name('match_detail.edit');
         });
 
         Route::get('incidents/pdf/{slug_name}', [ExportController::class, 'exportIncidentsPDF'])->name('pdf.incidents');

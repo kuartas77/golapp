@@ -119,7 +119,7 @@ return [
         'Volante (Segunda linea)' => 'Volante (Segunda linea)',
         'Volante (Extremo)' => 'Volante (Extremo)',
         'Volante (Central)' => 'Volante (Central)',
-        'Delantero (Izquierdo)' => 'Delantero(Izquierdo)',
+        'Delantero (Izquierdo)' => 'Delantero (Izquierdo)',
         'Delantero (Derecho)' => 'Delantero (Derecho)',
         'Delantero (Central)' => 'Delantero (Central)',
         'Delantero' => 'Delantero',

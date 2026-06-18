@@ -119,6 +119,13 @@ class ExportController extends Controller
         return Excel::download(new MatchDetailExport($competition_group), "Control de competencia {$date}.xlsx");
     }
 
+    public function exportMatchDetailFromMatch($match)
+    {
+        $date = now()->timestamp;
+
+        return Excel::download(new MatchDetailExport(match: $match), "Control de competencia {$date}.xlsx");
+    }
+
     public function exportTrainingSession(int $id, TrainingSessionExportService $trainingSessionExportService, TrainingSessionRepository $trainingSessionRepository)
     {
         $trainingSessionRepository->findAccessibleOrFail($id);

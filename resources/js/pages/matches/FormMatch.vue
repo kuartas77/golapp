@@ -291,47 +291,12 @@
                                                                 class="form-select form-select-sm"
                                                                 :class="{ 'is-invalid': meta.touched && errorMessage }">
                                                                 <option value="">Selecciona...</option>
-                                                                <option value="Portero">Portero</option>
-                                                                <option value="Defensa (Central)">Defensa (Central)</option>
-                                                                <option value="Defensa (Derecho)(Izquierdo)">
-                                                                    Defensa (Derecho)(Izquierdo)</option>
-                                                                <option value="Defensa (Izquierdo)">Defensa (Izquierdo)
+                                                                <option
+                                                                    v-for="position in positionOptions"
+                                                                    :key="position.value"
+                                                                    :value="position.value">
+                                                                    {{ position.label }}
                                                                 </option>
-                                                                <option value="Defensa (Derecho)">Defensa (Derecho)</option>
-                                                                <option value="Defensa">Defensa</option>
-                                                                <option value="Volante (Defensivo Izquierdo)">
-                                                                    Volante (Defensivo Izquierdo)</option>
-                                                                <option value="Volante (Defensivo Derecho)">Volante (Defensivo
-                                                                    Derecho)</option>
-                                                                <option value="Volante (Defensivo Central)">Volante (Defensivo
-                                                                    Central)</option>
-                                                                <option value="Volante (Ofensivo Izquierdo)">Volante (Ofensivo
-                                                                    Izquierdo)</option>
-                                                                <option value="Volante (Ofensivo Derecho)">Volante (Ofensivo
-                                                                    Derecho)</option>
-                                                                <option value="Volante (Ofensivo Central)">Volante (Ofensivo
-                                                                    Central)</option>
-                                                                <option value="Volante (Extremo Izquierdo)">Volante (Extremo
-                                                                    Izquierdo)</option>
-                                                                <option value="Volante (Extremo Derecho)">Volante (Extremo
-                                                                    Derecho)</option>
-                                                                <option value="Volante (Primera línea)">Volante (Primera
-                                                                    línea)</option>
-                                                                <option value="Volante (Segunda línea)">Volante (Segunda
-                                                                    línea)</option>
-                                                                <option value="Volante (Primera linea)">Volante (Primera
-                                                                    linea)</option>
-                                                                <option value="Volante (Segunda linea)">Volante (Segunda
-                                                                    linea)</option>
-                                                                <option value="Volante (Extremo)">Volante (Extremo)</option>
-                                                                <option value="Volante (Central)">Volante (Central)</option>
-                                                                <option value="Delantero (Izquierdo)">Delantero (Izquierdo)
-                                                                </option>
-                                                                <option value="Delantero (Derecho)">Delantero (Derecho)
-                                                                </option>
-                                                                <option value="Delantero (Central)">Delantero (Central)
-                                                                </option>
-                                                                <option value="Delantero">Delantero</option>
                                                             </select>
                                                         </Field>
 
@@ -522,8 +487,8 @@ import { usePageTutorial } from '@/composables/usePageTutorial'
 import { ErrorMessage, Field, Form } from "vee-validate"
 import * as yup from 'yup'
 import { computed, getCurrentInstance, useTemplateRef, onMounted, ref } from "vue"
-import { useRoute } from "vue-router"
-import { useSettingGroups } from '@/store/settings-store'
+import { useRoute, useRouter } from "vue-router"
+import { useSetting, useSettingGroups } from '@/store/settings-store'
 import { matchFormTutorial } from '@/tutorials/matches'
 
 const props = defineProps({ isEdition: { type: Boolean, default: false } })
@@ -531,6 +496,8 @@ const props = defineProps({ isEdition: { type: Boolean, default: false } })
 const { proxy } = getCurrentInstance()
 const globalError = ref(null)
 const route = useRoute()
+const router = useRouter()
+const settings = useSetting()
 const settingsGroup = useSettingGroups()
 const currentTitlePage = ref("")
 const formMatches = useTemplateRef('form_matches')
@@ -548,6 +515,22 @@ const sidebarSubtitle = computed(() => (
         : 'Completa la información general y organiza la alineación desde el coachboard.'
 ))
 const submitLabel = computed(() => props.isEdition ? 'Guardar cambios' : 'Guardar')
+const positionOptions = computed(() => (settings.positions ?? []).map((position) => {
+    if (position && typeof position === 'object') {
+        const value = position.value ?? position.id ?? position.name ?? ''
+        const label = position.label ?? position.name ?? value
+
+        return {
+            value: String(value),
+            label: String(label),
+        }
+    }
+
+    return {
+        value: String(position),
+        label: String(position),
+    }
+}))
 // settings flatpick
 const flatpickrConfigDate = {
     locale: Spanish,
@@ -618,8 +601,9 @@ const onLoadData = async () => {
             const match = response.data
             skills_controls.value = match.skills_controls
 
-            urlExportFormat.value = match.competition_group.url_format_match
-            // urlExportFormat.value = match.id ? null : match.competition_group.url_format_match
+            urlExportFormat.value = match.id
+                ? `/export/matches/${match.id}/format`
+                : match.competition_group.url_format_match
             formMatches.value.setValues({
                 id: match.id,
                 competition_group_id: match.competition_group.id,
@@ -671,12 +655,14 @@ const handleSubmit = async (values, actions) => {
         isLoading.value = true
         globalError.value = null
 
-        const mergedSkillControls = props.isEdition
-            ? (values.skill_controls ?? skills_controls.value)
-            : mergeCoachBoardPayload(
-                values.skill_controls ?? skills_controls.value,
+        const baseSkillControls = values.skill_controls ?? skills_controls.value
+        const shouldMergeCoachBoard = !props.isEdition || coachBoard.value?.hasLineupInteraction?.()
+        const mergedSkillControls = shouldMergeCoachBoard
+            ? mergeCoachBoardPayload(
+                baseSkillControls,
                 coachBoard.value?.getSkillControlsPayload?.() || []
             )
+            : baseSkillControls
 
         skills_controls.value = mergedSkillControls
 
@@ -694,6 +680,13 @@ const handleSubmit = async (values, actions) => {
 
         if (response.data.success) {
             showMessage('Guardado correctamente.')
+
+            if (!props.isEdition && response.data.match_id) {
+                await router.replace({
+                    name: 'matches-edit',
+                    params: { id: response.data.match_id }
+                })
+            }
         }
 
     } catch (error) {
@@ -758,6 +751,7 @@ const uploadFileFormat = async (e) => {
 
 onMounted(() => {
     onLoadData()
+    settings.getSettings()
     settingsGroup.getGroupSettings()
     currentTitlePage.value = props.isEdition ? `Competencia ${route.params.id}` : 'Crear Competencia';
     usePageTitle(currentTitlePage);

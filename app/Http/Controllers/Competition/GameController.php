@@ -40,8 +40,11 @@ class GameController extends Controller
     {
         abort_if(!instructorCanAccessCompetitionGroup($request->input('competition_group_id')), 404);
 
+        $match = $this->repository->createMatchSkillAndReturn($request);
+
         $response = [];
-        $response['success'] = $this->repository->createMatchSkill($request);
+        $response['success'] = (bool) $match;
+        $response['match_id'] = $match?->id;
         return response()->json($response);
     }
 

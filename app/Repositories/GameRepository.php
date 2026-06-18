@@ -135,7 +135,12 @@ class GameRepository
      */
     public function createMatchSkill(CompetitionStoreRequest $request): bool
     {
-        $result = false;
+        return (bool) $this->createMatchSkillAndReturn($request);
+    }
+
+    public function createMatchSkillAndReturn(CompetitionStoreRequest $request): ?Game
+    {
+        $result = null;
         try {
             [$matchData, $skillsData] = $this->getDataFromRequest($request);
 
@@ -153,11 +158,11 @@ class GameRepository
             $game->skillsControls()->saveMany($skillControls);
 
             DB::commit();
-            $result = $game->wasRecentlyCreated;
+            $result = $game->wasRecentlyCreated ? $game : null;
         } catch (Exception $exception) {
             DB::rollBack();
             $this->logError('GameRepository createMatchSkill failed', $exception);
-            $result = false;
+            $result = null;
         }
 
         return $result;
@@ -263,6 +268,23 @@ class GameRepository
             ]);
 
         return $competitionGroup->inscriptions;
+    }
+
+    public function exportMatchDetailFromMatch($matchId)
+    {
+        $match = $this->game->query()
+            ->schoolId()
+            ->when(isInstructor(), fn ($query) => $query->whereHas('competitionGroup', fn ($groupQuery) => $groupQuery->byInstructor()))
+            ->with([
+                'skillsControls' => fn($query) => $query
+                    ->with([
+                        'inscription' => fn($inscriptionQuery) => $inscriptionQuery->with('player')
+                    ])
+                    ->orderBy('id')
+            ])
+            ->findOrFail($matchId);
+
+        return $match->skillsControls;
     }
 
     public function loadDataFromFile($skillControls): array

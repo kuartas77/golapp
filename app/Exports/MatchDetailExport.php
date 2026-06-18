@@ -23,15 +23,19 @@ class MatchDetailExport implements ShouldQueue, FromView, WithTitle, WithStyles 
     use Exportable;
 
     private $competition_group;
+    private $match;
 
-    public function __construct($competition_group)
+    public function __construct($competition_group = null, $match = null)
     {
         $this->competition_group = $competition_group;
+        $this->match = $match;
     }
 
     public function view(): View
     {
-        $inscriptions = app(GameRepository::class)->exportMatchDetail($this->competition_group);
+        $inscriptions = $this->match
+            ? app(GameRepository::class)->exportMatchDetailFromMatch($this->match)
+            : app(GameRepository::class)->exportMatchDetail($this->competition_group);
 
         return view('exports.match_excel', [
             'inscriptions' => $inscriptions,

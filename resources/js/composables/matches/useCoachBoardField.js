@@ -93,6 +93,10 @@ export default function useCoachBoardField(props, emit) {
         initializePositions()
     }, { immediate: true })
 
+    watch(() => props.playersField, () => {
+        syncAssignedPlayersFromProps()
+    }, { deep: true })
+
     fieldImg.onload = () => {
         canvasWidth.value = fieldImg.naturalWidth || DEFAULT_FIELD_WIDTH
         canvasHeight.value = fieldImg.naturalHeight || DEFAULT_FIELD_HEIGHT
@@ -196,6 +200,50 @@ export default function useCoachBoardField(props, emit) {
         }
     }
 
+    function normalizePlayerForPosition(playerObj, positionRole = null) {
+        const playerData = playerObj.player || playerObj
+
+        return {
+            ...playerObj,
+            player: playerData,
+            id: playerData.id ?? playerObj.id ?? playerObj.inscription_id,
+            inscription_id: playerObj.inscription_id ?? null,
+            unique_code: playerData.unique_code ?? playerObj.unique_code ?? null,
+            name: playerObj.name || playerData.full_names || `${playerData.last_names || ''} ${playerData.names || ''}`.trim(),
+            img: playerObj.img || playerData.photo_url_public || playerData.photo_url || playerData.photo_local || null,
+            imgLoading: false,
+            imgObj: playerObj.imgObj ?? null,
+            position: positionRole
+        }
+    }
+
+    function syncAssignedPlayersFromProps() {
+        const incomingPlayers = (props.playersField || [])
+            .map(player => normalizePlayerForPosition(player))
+            .filter(player => player.id !== undefined && player.id !== null)
+        const incomingIds = new Set(incomingPlayers.map(player => player.id))
+
+        for (const key of posKeys.value) {
+            const assigned = positions.value[key]?.assigned
+
+            if (assigned && !incomingIds.has(assigned.id)) {
+                positions.value[key].assigned = null
+            }
+        }
+
+        incomingPlayers.forEach((player) => {
+            if (findPlayerPosition(player.id)) return
+
+            const openKey = posKeys.value.find(key => !positions.value[key]?.assigned)
+            if (!openKey) return
+
+            positions.value[openKey].assigned = normalizePlayerForPosition(
+                player,
+                positions.value[openKey]?.specificRole || null
+            )
+        })
+    }
+
     /**
      * Aplica la formación actual y reparte las posiciones con una perspectiva
      * adaptada a la imagen vertical del campo.
@@ -297,7 +345,8 @@ export default function useCoachBoardField(props, emit) {
         }
 
         updateSpecificRoles()
-        emit('update-positions', getPositionsSnapshot())
+        syncAssignedPlayersFromProps()
+        emit('update-positions', getPositionsSnapshot(), { fromFormation: true })
     }
 
     function getLineTypes(lineCount) {
@@ -508,18 +557,7 @@ export default function useCoachBoardField(props, emit) {
             emit('unassign-player', { player: previous, posKey })
         }
 
-        const playerData = playerObj.player || playerObj
-        const clone = {
-            ...playerObj,
-            player: playerData,
-            id: playerData.id ?? playerObj.id ?? playerObj.inscription_id,
-            inscription_id: playerObj.inscription_id ?? null,
-            unique_code: playerData.unique_code ?? playerObj.unique_code ?? null,
-            name: playerObj.name || playerData.full_names || `${playerData.last_names || ''} ${playerData.names || ''}`.trim(),
-            img: playerObj.img || playerData.photo_url_public || playerData.photo_url || playerData.photo_local || null,
-            imgLoading: false,
-            position: positionRole
-        }
+        const clone = normalizePlayerForPosition(playerObj, positionRole)
 
         if (clone.img && typeof clone.img === 'string' && clone.img.trim() !== '') {
             clone.imgObj = null
