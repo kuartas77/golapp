@@ -3,7 +3,7 @@
     $number = fn ($value, $default = 50) => is_numeric($value) ? max(0, min(100, (float) $value)) : $default;
 @endphp
 
-<svg xmlns="http://www.w3.org/2000/svg" width="255" height="164" viewBox="0 0 100 64">
+<svg xmlns="http://www.w3.org/2000/svg" width="190" height="122" viewBox="0 0 100 64">
     <rect x="1" y="1" width="98" height="62" rx="1.5" fill="#ecf8ef" stroke="#39765b" stroke-width="0.45" />
     <line x1="50" y1="1" x2="50" y2="63" stroke="#39765b" stroke-width="0.45" />
     <circle cx="50" cy="32" r="9" fill="none" stroke="#39765b" stroke-width="0.45" />

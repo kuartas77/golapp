@@ -5,13 +5,13 @@
                 v-for="tool in tools"
                 :key="tool.type"
                 type="button"
-                class="btn btn-outline-primary btn-sm"
+                class="btn btn-primary btn-sm"
                 @click="addItem(tool.type)"
             >
                 <i :class="tool.icon" aria-hidden="true"></i>
                 <span>{{ tool.label }}</span>
             </button>
-            <button type="button" class="btn btn-outline-danger btn-sm" :disabled="!selectedId" @click="removeSelected">
+            <button type="button" class="btn btn-danger btn-sm" :disabled="!selectedId" @click="removeSelected">
                 <i class="fa fa-trash fa-width-auto" aria-hidden="true"></i>
                 <span>Eliminar</span>
             </button>
@@ -24,11 +24,11 @@
 
         <div v-if="selectedItem?.type === 'arrow'" class="field-arrow-controls" aria-label="Orientación de flecha">
             <span>Orientación</span>
-            <button type="button" class="btn btn-outline-secondary btn-sm" @click="rotateSelectedArrow(-45)">
+            <button type="button" class="btn btn-secondary btn-sm" @click="rotateSelectedArrow(-45)">
                 <i class="fa fa-rotate-left fa-width-auto" aria-hidden="true"></i>
                 <span>Izquierda</span>
             </button>
-            <button type="button" class="btn btn-outline-secondary btn-sm" @click="rotateSelectedArrow(45)">
+            <button type="button" class="btn btn-secondary btn-sm" @click="rotateSelectedArrow(45)">
                 <i class="fa fa-rotate-right fa-width-auto" aria-hidden="true"></i>
                 <span>Derecha</span>
             </button>
@@ -201,10 +201,44 @@ function normalizeRotation(rotation) {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/assets/base/color_variables';
+
 .field-editor {
+    --field-editor-border: #{color_variables.$m-color_3};
+    --field-editor-label: #{color_variables.$dark};
+    --field-editor-surface: #{color_variables.$white};
+    --field-editor-input-bg: #{color_variables.$white};
+    --field-grass: #{color_variables.$l-success};
+    --field-grass-fill: #{color_variables.$l-success};
+    --field-line-color: #{color_variables.$m-color_14};
+    --field-player-color: #{color_variables.$info};
+    --field-cone-color: #{color_variables.$warning};
+    --field-ball-color: #{color_variables.$m-color_23};
+    --field-arrow-color: #{color_variables.$danger};
+    --field-xmark-color: #{color_variables.$m-color_23};
+    --field-label-color: #{color_variables.$m-color_23};
+    --field-selected-shadow: #{color_variables.$m-color_23};
     display: grid;
     gap: 0.75rem;
+}
+
+:global(.dark) .field-editor,
+:global(body.dark) .field-editor {
+    --field-editor-border: #{color_variables.$m-color_12};
+    --field-editor-label: #{color_variables.$m-color_4};
+    --field-editor-surface: #{color_variables.$m-color_10};
+    --field-editor-input-bg: #{color_variables.$m-color_19};
+    --field-grass: #{color_variables.$m-color_19};
+    --field-grass-fill: #{color_variables.$m-color_10};
+    --field-line-color: #{color_variables.$m-color_14};
+    --field-player-color: #{color_variables.$info};
+    --field-cone-color: #{color_variables.$warning};
+    --field-ball-color: #{color_variables.$m-color_3};
+    --field-arrow-color: #{color_variables.$danger};
+    --field-xmark-color: #{color_variables.$m-color_3};
+    --field-label-color: #{color_variables.$m-color_3};
+    --field-selected-shadow: #{color_variables.$m-color_3};
 }
 
 .field-toolbar {
@@ -220,13 +254,27 @@ function normalizeRotation(rotation) {
 }
 
 .field-text-input {
+    color: var(--field-editor-label);
     max-width: 280px;
     font-size: 0.8125rem;
     font-weight: 600;
 }
 
+.field-text-input .form-control {
+    background-color: var(--field-editor-input-bg) !important;
+    border-color: var(--field-editor-border);
+    color: var(--field-editor-label) !important;
+}
+
+.field-text-input .form-control:focus {
+    background-color: var(--field-editor-input-bg) !important;
+    color: var(--field-editor-label) !important;
+    box-shadow: none;
+}
+
 .field-arrow-controls {
     align-items: center;
+    color: var(--field-editor-label);
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -243,21 +291,21 @@ function normalizeRotation(rotation) {
 .soccer-field {
     width: 100%;
     aspect-ratio: 100 / 64;
-    min-height: 230px;
-    border: 1px solid #d7dee8;
+    min-height: 170px;
+    border: 1px solid var(--field-editor-border);
     border-radius: 6px;
-    background: #f5faf7;
+    background: var(--field-grass);
     touch-action: none;
 }
 
 .field-border,
 .field-line {
-    stroke: #39765b;
+    stroke: var(--field-line-color);
     stroke-width: 0.45;
 }
 
 .field-border {
-    fill: #ecf8ef;
+    fill: var(--field-grass-fill);
 }
 
 .fill-none {
@@ -265,7 +313,7 @@ function normalizeRotation(rotation) {
 }
 
 .field-dot {
-    fill: #39765b;
+    fill: var(--field-line-color);
 }
 
 .field-item {
@@ -279,39 +327,39 @@ function normalizeRotation(rotation) {
 .field-item.selected .arrow-line,
 .field-item.selected .xmark-line,
 .field-item.selected .field-label {
-    filter: drop-shadow(0 0 1.8px #111827);
+    filter: drop-shadow(0 0 1.8px var(--field-selected-shadow));
 }
 
 .player {
-    fill: #2563eb;
+    fill: var(--field-player-color);
 }
 
 .cone {
-    fill: #f97316;
+    fill: var(--field-cone-color);
 }
 
 .ball {
-    fill: #111827;
+    fill: var(--field-ball-color);
 }
 
 .arrow-line {
-    stroke: #b91c1c;
+    stroke: var(--field-arrow-color);
     stroke-width: 1.1;
     stroke-linecap: round;
 }
 
 .arrow-head {
-    fill: #b91c1c;
+    fill: var(--field-arrow-color);
 }
 
 .xmark-line {
-    stroke: #111827;
+    stroke: var(--field-xmark-color);
     stroke-linecap: round;
     stroke-width: 1.05;
 }
 
 .field-label {
-    fill: #111827;
+    fill: var(--field-label-color);
     font-size: 4px;
     font-weight: 700;
     dominant-baseline: middle;

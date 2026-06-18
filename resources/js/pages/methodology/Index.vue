@@ -68,7 +68,11 @@
         data-bs-keyboard="false"
     >
         <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
-            <form class="modal-content" @submit.prevent="saveRecord">
+            <form
+                class="modal-content methodology-modal"
+                :class="{ 'methodology-modal--dark': appState.is_dark_mode }"
+                @submit.prevent="saveRecord"
+            >
                 <div class="modal-header">
                     <h5 class="modal-title">{{ selectedId ? 'Editar' : 'Crear' }} {{ activeTab.label }}</h5>
                     <button type="button" class="btn-close" aria-label="Cerrar" @click="closeModal"></button>
@@ -92,12 +96,13 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="methodology-group">Grupo de entrenamiento</label>
-                            <select id="methodology-group" v-model="form.training_group_id" class="form-select">
-                                <option :value="null">Sin grupo</option>
-                                <option v-for="group in groupOptions" :key="group.id" :value="group.id">
-                                    {{ group.name }}
-                                </option>
-                            </select>
+                            <CustomSelect2
+                                id="methodology-group"
+                                v-model="form.training_group_id"
+                                :options="groupOptions"
+                                placeholder="Sin grupo"
+                                search-placeholder="Buscar grupo..."
+                            />
                         </div>
                     </div>
 
@@ -294,7 +299,7 @@
                                     </thead>
                                     <tbody>
                                         <tr v-for="field in planningStructureFields" :key="field.key">
-                                            <td>{{ field.label }}</td>
+                                            <td><span>{{ field.label }}</span></td>
                                             <td>
                                                 <textarea
                                                     v-model="form.fields[field.key]"
@@ -443,7 +448,10 @@
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref, useTemplateRef } from 'vue'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import CustomSelect2 from '@/components/form/CustomSelect2.vue'
 import { usePageTitle } from '@/composables/use-meta'
+import { useAppState } from '@/store/app-state'
+import { useAuthUser } from '@/store/auth-user'
 import api from '@/utils/axios'
 import configLanguaje from '@/utils/datatableUtils'
 import SoccerFieldDiagramEditor from './SoccerFieldDiagramEditor.vue'
@@ -458,6 +466,8 @@ import {
 
 usePageTitle('Metodología')
 
+const appState = useAppState()
+const authUser = useAuthUser()
 const modalRef = ref(null)
 const modalInstance = ref(null)
 const table = useTemplateRef('table')
@@ -475,6 +485,7 @@ const form = reactive({
 })
 
 const activeTab = computed(() => getTabByType(activeType.value))
+const authenticatedUserName = computed(() => authUser.user?.name ?? '')
 const fieldGroups = computed(() => {
     const groups = methodologyFieldGroups[activeType.value] ?? []
 
@@ -665,13 +676,18 @@ const planningFieldPhaseSections = [
 
 function resetForm(record = null) {
     const tab = getTabByType(activeType.value)
-
-    form.title = record?.title ?? tab.title
-    form.training_group_id = record?.training_group_id ?? null
-    form.fields = {
+    const fields = {
         ...createBlankFields(activeType.value),
         ...(record?.fields ?? {}),
     }
+
+    if ('coach' in fields && !fields.coach) {
+        fields.coach = authenticatedUserName.value
+    }
+
+    form.title = record?.title ?? tab.title
+    form.training_group_id = record?.training_group_id ?? null
+    form.fields = fields
     form.diagrams = {
         ...createBlankDiagrams(),
         ...(record?.diagrams ?? {}),
@@ -682,8 +698,8 @@ async function loadGroups() {
     try {
         const response = await api.get('/api/v2/training_groups')
         groupOptions.value = (response.data.data ?? []).map((group) => ({
-            id: group.id,
-            name: group.name ?? group.full_group ?? `Grupo ${group.id}`,
+            value: group.id,
+            label: group.name ?? group.full_group ?? `Grupo ${group.id}`,
         }))
     } catch {
         groupOptions.value = []
@@ -767,6 +783,7 @@ onMounted(async () => {
         keyboard: false,
     })
 
+    await authUser.init({ silent: true, preserveStateOnError: true })
     resetForm()
     await loadGroups()
 })
@@ -780,17 +797,105 @@ function reloadTable(resetPaging = false) {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/assets/base/color_variables';
+
+.methodology-modal {
+    --methodology-border: #{color_variables.$m-color_3};
+    --methodology-border-strong: #{color_variables.$m-color_2};
+    --methodology-heading-bg: #{color_variables.$m-color_1};
+    --methodology-surface: #{color_variables.$white};
+    --methodology-input-bg: #{color_variables.$white};
+    --methodology-text: #{color_variables.$dark};
+    --methodology-muted: #{color_variables.$m-color_6};
+}
+
 .methodology-empty {
-    border: 1px dashed #cbd5e1;
+    --methodology-border: #{color_variables.$m-color_3};
+    --methodology-border-strong: #{color_variables.$m-color_2};
+    --methodology-heading-bg: #{color_variables.$m-color_1};
+    --methodology-surface: #{color_variables.$white};
+    --methodology-input-bg: #{color_variables.$white};
+    --methodology-text: #{color_variables.$dark};
+    --methodology-muted: #{color_variables.$m-color_6};
+}
+
+:global(.dark) .methodology-empty,
+:global(body.dark) .methodology-empty {
+    --methodology-border: #{color_variables.$m-color_12};
+    --methodology-border-strong: #{color_variables.$m-color_12};
+    --methodology-heading-bg: #{color_variables.$m-color_18};
+    --methodology-surface: #{color_variables.$m-color_10};
+    --methodology-input-bg: #{color_variables.$m-color_19};
+    --methodology-text: #{color_variables.$m-color_4};
+    --methodology-muted: #{color_variables.$m-color_4};
+}
+
+.methodology-modal--dark,
+:global(.dark) .methodology-modal,
+:global(body.dark) .methodology-modal,
+.methodology-modal--dark .methodology-section {
+    --methodology-border: #{color_variables.$m-color_12};
+    --methodology-border-strong: #{color_variables.$m-color_12};
+    --methodology-heading-bg: #{color_variables.$m-color_18};
+    --methodology-surface: #{color_variables.$m-color_10};
+    --methodology-input-bg: #{color_variables.$m-color_19};
+    --methodology-text: #{color_variables.$m-color_4};
+    --methodology-muted: #{color_variables.$m-color_4};
+}
+
+.methodology-modal {
+    color: var(--methodology-text);
+}
+
+.methodology-modal .form-control,
+.methodology-modal .form-select {
+    background-color: var(--methodology-input-bg) !important;
+    border-color: var(--methodology-border-strong);
+    color: var(--methodology-text) !important;
+}
+
+.methodology-modal .form-control:focus,
+.methodology-modal .form-select:focus {
+    background-color: var(--methodology-input-bg) !important;
+    border-color: var(--methodology-border);
+    color: var(--methodology-text) !important;
+    box-shadow: none;
+}
+
+.methodology-modal .form-label,
+.methodology-modal label {
+    color: var(--methodology-text);
+}
+
+.methodology-modal--dark :deep(.field-editor) {
+    --field-editor-border: #{color_variables.$m-color_12};
+    --field-editor-label: #{color_variables.$m-color_4};
+    --field-editor-surface: #{color_variables.$m-color_10};
+    --field-editor-input-bg: #{color_variables.$m-color_19};
+    --field-grass: #{color_variables.$m-color_19};
+    --field-grass-fill: #{color_variables.$m-color_10};
+    --field-line-color: #{color_variables.$m-color_14};
+    --field-player-color: #{color_variables.$info};
+    --field-cone-color: #{color_variables.$warning};
+    --field-ball-color: #{color_variables.$m-color_3};
+    --field-arrow-color: #{color_variables.$danger};
+    --field-xmark-color: #{color_variables.$m-color_3};
+    --field-label-color: #{color_variables.$m-color_3};
+    --field-selected-shadow: #{color_variables.$m-color_3};
+}
+
+.methodology-empty {
+    border: 1px dashed var(--methodology-border-strong);
     border-radius: 6px;
-    color: #64748b;
+    color: var(--methodology-muted);
     padding: 2rem;
     text-align: center;
 }
 
 .methodology-section {
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--methodology-border);
+    color: var(--methodology-text);
     padding-top: 1rem;
     margin-top: 1rem;
 }
@@ -824,13 +929,25 @@ function reloadTable(resetPaging = false) {
     width: 220px;
 }
 
+.planning-structures-table td:first-child {
+    background: var(--methodology-heading-bg);
+    color: var(--methodology-text);
+    font-weight: 700;
+}
+
+.planning-structures-table .form-control {
+    background-color: var(--methodology-input-bg) !important;
+    color: var(--methodology-text) !important;
+}
+
 .planning-phase-list {
     display: grid;
     gap: 1rem;
 }
 
 .planning-phase-row {
-    border: 1px solid #e2e8f0;
+    background: var(--methodology-surface);
+    border: 1px solid var(--methodology-border);
     border-radius: 6px;
     display: grid;
     grid-template-columns: minmax(300px, 0.95fr) minmax(280px, 1.05fr);
@@ -838,14 +955,16 @@ function reloadTable(resetPaging = false) {
 }
 
 .planning-final-phase-row {
-    border: 1px solid #e2e8f0;
+    background: var(--methodology-surface);
+    border: 1px solid var(--methodology-border);
     border-radius: 6px;
     overflow: hidden;
 }
 
 .planning-phase-title {
-    background: #d9dee7;
-    border-bottom: 1px solid #e2e8f0;
+    background: var(--methodology-heading-bg);
+    border-bottom: 1px solid var(--methodology-border);
+    color: var(--methodology-text);
     grid-column: 1 / -1;
     font-weight: 700;
     margin-bottom: 0;
@@ -854,7 +973,7 @@ function reloadTable(resetPaging = false) {
 }
 
 .planning-phase-field {
-    border-right: 1px solid #e2e8f0;
+    border-right: 1px solid var(--methodology-border);
     padding: 0.75rem;
 }
 
@@ -875,26 +994,29 @@ function reloadTable(resetPaging = false) {
 
 .planning-cell-grid label,
 .planning-closing-cell label {
-    background: #d9dee7;
-    border-bottom: 1px solid #d8dee8;
+    background: var(--methodology-heading-bg);
+    border-bottom: 1px solid var(--methodology-border-strong);
+    color: var(--methodology-text);
     font-weight: 700;
     padding: 0.55rem;
     text-align: center;
 }
 
 .planning-phase-fields .planning-cell-grid:not(:last-child) {
-    border-bottom: 1px solid #d8dee8;
+    border-bottom: 1px solid var(--methodology-border-strong);
 }
 
 .planning-final-fields .planning-cell-grid:not(:last-child),
 .planning-closing-cell:not(:last-child) {
-    border-right: 1px solid #d8dee8;
+    border-right: 1px solid var(--methodology-border-strong);
 }
 
 .planning-cell-grid .form-control,
 .planning-closing-cell .form-control {
+    background-color: var(--methodology-input-bg);
     border: 0;
     border-radius: 0;
+    color: var(--methodology-text);
 }
 
 .planning-time-grid .form-control {
@@ -902,7 +1024,8 @@ function reloadTable(resetPaging = false) {
 }
 
 .planning-closing-grid {
-    border: 1px solid #d8dee8;
+    background: var(--methodology-surface);
+    border: 1px solid var(--methodology-border-strong);
     display: grid;
     grid-template-columns: 1fr 1fr;
 }
@@ -922,7 +1045,8 @@ function reloadTable(resetPaging = false) {
 }
 
 .characterization-grid {
-    border: 1px solid #d8dee8;
+    background: var(--methodology-surface);
+    border: 1px solid var(--methodology-border-strong);
     display: grid;
 }
 
@@ -940,7 +1064,8 @@ function reloadTable(resetPaging = false) {
 
 .characterization-grid label,
 .characterization-heading {
-    background: #d9dee7;
+    background: var(--methodology-heading-bg);
+    color: var(--methodology-text);
     font-weight: 700;
 }
 
@@ -949,15 +1074,22 @@ function reloadTable(resetPaging = false) {
 .characterization-grid textarea,
 .characterization-heading {
     border: 0;
-    border-bottom: 1px solid #d8dee8;
+    border-bottom: 1px solid var(--methodology-border-strong);
     border-radius: 0;
     padding: 0.55rem;
+}
+
+.characterization-grid input,
+.characterization-grid textarea,
+.methodology-inline-table .form-control {
+    background-color: var(--methodology-input-bg);
+    color: var(--methodology-text);
 }
 
 .characterization-grid label,
 .characterization-grid input,
 .characterization-grid textarea {
-    border-right: 1px solid #d8dee8;
+    border-right: 1px solid var(--methodology-border-strong);
 }
 
 .characterization-heading {
@@ -965,8 +1097,21 @@ function reloadTable(resetPaging = false) {
 }
 
 .methodology-inline-table th {
-    background: #d9dee7;
+    background: var(--methodology-heading-bg);
+    color: var(--methodology-text);
     text-align: center;
+}
+
+.methodology-inline-table {
+    --bs-table-bg: var(--methodology-surface);
+    --bs-table-border-color: var(--methodology-border-strong);
+    --bs-table-color: var(--methodology-text);
+    color: var(--methodology-text);
+}
+
+.methodology-inline-table td {
+    background: var(--methodology-surface);
+    color: var(--methodology-text);
 }
 
 .methodology-inline-table td:first-child,
@@ -1022,7 +1167,7 @@ function reloadTable(resetPaging = false) {
 
     .planning-final-fields .planning-cell-grid:not(:last-child),
     .planning-closing-cell:not(:last-child) {
-        border-bottom: 1px solid #d8dee8;
+        border-bottom: 1px solid var(--methodology-border-strong);
     }
 }
 </style>
