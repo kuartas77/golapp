@@ -2,32 +2,101 @@ name: Repository to cPanel
 
 on:
   push:
-    branches: [ template ]
+    branches: [template]
+
+  # Permite ejecutar manualmente un despliegue completo desde GitHub Actions.
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+# Evita dos despliegues FTP simultáneos hacia el mismo cPanel.
+concurrency:
+  group: cpanel-template-deploy
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
-  FTP-Deploy-Action:
-    name: FTP-Deploy-Action
+  deploy:
+    name: Detect and deploy changes
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
+
+      - name: Detect backend and frontend changes
+        id: changes
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          backend=false
+          frontend=false
+
+          # Para ejecución manual o primer push de una rama:
+          # despliega todo para evitar omitir archivos.
+          if [[ "$EVENT_NAME" == "workflow_dispatch" || "$BEFORE_SHA" =~ ^0{40}$ ]]; then
+            backend=true
+            frontend=true
+            echo "Deploy completo: ejecución manual o primer push."
+          else
+            changed_files="$(git diff --name-only "$BEFORE_SHA" "$AFTER_SHA")"
+
+            echo "Archivos modificados:"
+            echo "$changed_files"
+
+            while IFS= read -r file; do
+              # Backend Laravel / PHP
+              case "$file" in
+                app/*|bootstrap/*|config/*|database/*|routes/*|lang/*|\
+                resources/views/*|resources/lang/*|public/*|\
+                artisan|composer.json|composer.lock|phpunit.xml)
+                  backend=true
+                  ;;
+              esac
+
+              # Frontend compilado por Vite
+              case "$file" in
+                resources/js/*|resources/css/*|resources/sass/*|resources/scss/*|\
+                resources/images/*|resources/fonts/*|\
+                package.json|package-lock.json|npm-shrinkwrap.json|\
+                vite.config.*|tailwind.config.*|postcss.config.*)
+                  frontend=true
+                  ;;
+              esac
+            done <<< "$changed_files"
+          fi
+
+          echo "backend=$backend" >> "$GITHUB_OUTPUT"
+          echo "frontend=$frontend" >> "$GITHUB_OUTPUT"
+
+          echo "¿Desplegar backend?: $backend"
+          echo "¿Compilar/desplegar frontend?: $frontend"
 
       - name: Use Node.js 24
+        if: steps.changes.outputs.frontend == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
+          cache: npm
 
-      - name: 🔨 Test and build project
+      - name: Build frontend with Vite
+        if: steps.changes.outputs.frontend == 'true'
         run: |
-          npm install
+          npm ci
           npm run build
 
-      - name: Deploy full project except build
+      - name: Deploy Laravel / PHP project
+        if: steps.changes.outputs.backend == 'true'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
           server: ${{ secrets.FTP_TEST_SERVER }}
@@ -35,15 +104,25 @@ jobs:
           password: ${{ secrets.FTP_TEST_PASSWORD }}
           local-dir: ./
           server-dir: /
+          state-name: .ftp-deploy-sync-state.json
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
+            **/vendor/**
             .github/**
+            tests/**
+            .env
+            .env.*
+            storage/**
+            public/storage/**
+            public/uploads/**
             public/build/**
             public/build
+            **/.ftp-deploy-*.json
 
-      - name: Deploy build folder clean
+      - name: Deploy compiled frontend build
+        if: steps.changes.outputs.frontend == 'true'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
           server: ${{ secrets.FTP_TEST_SERVER }}
@@ -51,4 +130,4 @@ jobs:
           password: ${{ secrets.FTP_TEST_PASSWORD }}
           local-dir: ./public/build/
           server-dir: /public/build/
-          dangerous-clean-slate: true
+          state-name: .ftp-deploy-sync-state.json
