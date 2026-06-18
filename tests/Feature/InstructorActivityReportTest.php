@@ -154,11 +154,25 @@ final class InstructorActivityReportTest extends TestCase
             'created_at' => '2026-05-20 10:00:00',
             'updated_at' => '2026-05-20 10:00:00',
         ])->save();
+        $activityWithoutInscriptionYear = MethodologyRecord::query()->create([
+            'school_id' => $this->school['id'],
+            'user_id' => $instructor->id,
+            'training_group_id' => $group->id,
+            'type' => MethodologyRecord::TYPE_PLANNING,
+            'title' => 'Actividad sin inscripcion anual',
+            'fields' => [],
+        ]);
+        $activityWithoutInscriptionYear->forceFill([
+            'created_at' => '2027-05-20 10:00:00',
+            'updated_at' => '2027-05-20 10:00:00',
+        ])->save();
 
         $metadata = $this->actingAs($this->user)
             ->getJson('/api/v2/reports/instructors/activity/metadata')
             ->assertOk();
 
+        $this->assertContains(2026, collect($metadata->json('years'))->pluck('value')->all());
+        $this->assertNotContains(2027, collect($metadata->json('years'))->pluck('value')->all());
         $this->assertContains($instructor->id, collect($metadata->json('instructors'))->pluck('value')->all());
         $this->assertContains($inactiveInstructor->id, collect($metadata->json('instructors'))->pluck('value')->all());
         $this->assertNotContains($otherInstructor->id, collect($metadata->json('instructors'))->pluck('value')->all());

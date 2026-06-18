@@ -135,22 +135,14 @@ class InstructorActivityReportService
 
     public function years(int $schoolId): Collection
     {
-        $years = collect([now()->year]);
-        $gameYearExpression = $this->yearExpression('date');
-        $methodologyYearExpression = $this->yearExpression('created_at');
-
-        $years = $years
-            ->merge(DB::table('assists')->where('school_id', $schoolId)->distinct()->pluck('year'))
+        $years = collect([now()->year])
             ->merge(
-                DB::table('games')
-                    ->join('competition_groups as cg', 'cg.id', '=', 'games.competition_group_id')
-                    ->where('cg.school_id', $schoolId)
-                    ->selectRaw("{$gameYearExpression} as year")
+                DB::table('inscriptions')
+                    ->where('school_id', $schoolId)
+                    ->whereNull('deleted_at')
                     ->distinct()
                     ->pluck('year')
-            )
-            ->merge(DB::table('methodology_records')->where('school_id', $schoolId)->selectRaw("{$methodologyYearExpression} as year")->distinct()->pluck('year'))
-            ->merge(DB::table('training_sessions')->where('school_id', $schoolId)->distinct()->pluck('year'));
+            );
 
         return $years
             ->filter()
@@ -196,15 +188,6 @@ class InstructorActivityReportService
             $start->toDateString(),
             $start->endOfMonth()->toDateString(),
         ];
-    }
-
-    private function yearExpression(string $column): string
-    {
-        if (DB::connection()->getDriverName() === 'sqlite') {
-            return "CAST(strftime('%Y', {$column}) AS INTEGER)";
-        }
-
-        return "YEAR({$column})";
     }
 
     private function attendanceCoverage(array $filters): array
