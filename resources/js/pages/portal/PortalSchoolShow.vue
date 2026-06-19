@@ -256,6 +256,10 @@ watch(
     line-height: 1.55;
 }
 
+.portal-school-show__school-meta p {
+    color: inherit;
+}
+
 .portal-school-show__intro {
     margin-bottom: 1.5rem;
 }
