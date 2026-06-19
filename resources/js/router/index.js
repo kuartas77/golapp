@@ -63,7 +63,7 @@ const routes = [
                     { path: ':id', name: 'player-evaluations.show', component: () => import('@/pages/player-evaluations/Show.vue') },
                 ]
             },
-            { path: 'perfil/usuario', name: 'user-profile', component: () => import('@/pages/home/Index.vue'), },
+            { path: 'perfil/usuario', name: 'user-profile', component: () => import('@/pages/profile/UserProfile.vue'), },
             {
                 path: 'deportistas',
                 meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] },

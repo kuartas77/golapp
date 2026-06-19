@@ -9,8 +9,10 @@ use App\Repositories\UserRepository;
 use App\Http\Requests\API\UserRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Http\Resources\API\ProfileResource;
 use App\Http\Resources\API\UserResource;
 use App\Http\Resources\API\UserCollection;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class UsersController extends Controller
@@ -59,6 +61,19 @@ class UsersController extends Controller
     public function show(User $user): UserResource
     {
         return new UserResource($user->load(['profile', 'school', 'roles']));
+    }
+
+    public function profile(User $user): JsonResponse
+    {
+        if (isSchool()) {
+            abort_unless((int) $user->school_id === (int) getSchool(auth()->user())->id, 403);
+        }
+
+        $profile = $user->profile()->firstOrCreate([]);
+
+        return (new ProfileResource($profile->load('user'), false))
+            ->response()
+            ->setStatusCode(200);
     }
 
     /**

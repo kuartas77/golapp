@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Profile;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ProfileUpdate extends FormRequest
 {
@@ -24,18 +25,18 @@ class ProfileUpdate extends FormRequest
     public function rules(): array
     {
         return [
-            'date_birth' => ['nullable'],
-            'identification_document' => ['nullable'],
-            'gender' => ['nullable'],
-            'address' => ['nullable'],
-            'phone' => ['nullable'],
-            'mobile' => ['nullable'],
-            'studies' => ['nullable'],
-            'references' => ['nullable'],
-            'contacts' => ['nullable'],
-            'experience' => ['nullable'],
-            'position' => ['nullable'],
-            'aptitude' => ['nullable']
+            'date_birth' => ['nullable', 'date'],
+            'identification_document' => ['nullable', 'string', 'max:20'],
+            'gender' => ['nullable', 'string', Rule::in(array_keys(config('variables.KEY_GENDERS', [])))],
+            'address' => ['nullable', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'mobile' => ['nullable', 'string', 'max:50'],
+            'studies' => ['nullable', 'string', 'max:2000'],
+            'references' => ['nullable', 'string', 'max:2000'],
+            'contacts' => ['nullable', 'string', 'max:2000'],
+            'experience' => ['nullable', 'string', 'max:5000'],
+            'position' => ['nullable', 'string', 'max:50', Rule::in(array_keys(config('variables.KEY_POSITIONS_ASSIGNED', [])))],
+            'aptitude' => ['nullable', 'string', 'max:2000']
         ];
     }
 

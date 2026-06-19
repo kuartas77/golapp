@@ -37,7 +37,7 @@ class ProfileController extends Controller
      */
     public function edit(Profile $profile)
     {
-        if (auth()->id() == $profile->user_id || isAdmin() || isSchool()) {
+        if (auth()->id() == $profile->user_id) {
             $profile->load('user');
             view()->share('profile', $profile);
             return view('profile.edit');
@@ -56,6 +56,11 @@ class ProfileController extends Controller
     public
     function update(ProfileUpdate $request, Profile $profile): RedirectResponse
     {
+        if (auth()->id() !== $profile->user_id) {
+            Alert::error(config('app.name'), __('messages.denied'));
+            return redirect()->to(route('home'));
+        }
+
         $profile->fill($request->validated())->save();
         Alert::success(config('app.name'), __('messages.profile_save'));
         return redirect()->to(route('profiles.show', [$profile->id]));

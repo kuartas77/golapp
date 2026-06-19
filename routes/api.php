@@ -25,6 +25,7 @@ use App\Http\Controllers\API\Portal\GuardianAuthController;
 use App\Http\Controllers\API\Portal\GuardianEvaluationController;
 use App\Http\Controllers\API\Portal\GuardianPlayerController;
 use App\Http\Controllers\API\Portal\GuardianProfileController;
+use App\Http\Controllers\API\ProfileController as ApiProfileController;
 use App\Http\Controllers\API\TrainingSessionsController as ApiTrainingSessionsController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Assists\AssistController;
@@ -115,6 +116,8 @@ Route::prefix('v2')->group(function () {
         Route::get('kpis', [DashboardController::class, 'kpis'])->middleware('role:super-admin|school|instructor');
 
         Route::get('user', [UserController::class, 'user']);
+        Route::get('profile', [ApiProfileController::class, 'show']);
+        Route::put('profile', [ApiProfileController::class, 'update']);
 
         Route::prefix('admin')->group(function () {
             Route::get('info_campus', [BackOfficeShoolController::class, 'infoCampus']);
@@ -139,6 +142,7 @@ Route::prefix('v2')->group(function () {
             });
 
             Route::middleware('school.permission:school.module.user_management')->group(function () {
+                Route::get('users/{user}/profile', [UsersController::class, 'profile']);
                 Route::apiResource('users', UsersController::class);
             });
 

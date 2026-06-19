@@ -23,7 +23,18 @@
         <template #body>
 
             <div data-tour="admin-users-table">
-                <DatatableTemplate :options="options" :id="'users_table'" ref="table" @click="onClickRow($event)" />
+                <DatatableTemplate :options="options" :id="'users_table'" ref="table" @click="onClickRow($event)">
+                    <template #actions="props">
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm"
+                            title="Ver perfil"
+                            @click.stop="showProfile(props.cellData)"
+                        >
+                            <i class="fa-regular fa-address-card"></i>
+                        </button>
+                    </template>
+                </DatatableTemplate>
             </div>
         </template>
     </panel>
@@ -71,6 +82,70 @@
         </div>
     </div>
 
+    <div class="modal fade" id="profileModalUser" tabindex="-1" role="dialog" aria-labelledby="profileModalUserTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title" id="profileModalUserTitle">Perfil de usuario</h5>
+                        <small v-if="selectedProfile?.user" class="text-muted">
+                            {{ selectedProfile.user.name }} · {{ selectedProfile.user.email }}
+                        </small>
+                    </div>
+                    <button type="button" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"
+                        class="btn-close" @click="closeProfile"></button>
+                </div>
+                <div class="modal-body">
+                    <div v-if="profileLoading" class="text-center py-4 text-muted">
+                        Cargando perfil...
+                    </div>
+                    <div v-else-if="profileError" class="alert alert-danger" role="alert">
+                        {{ profileError }}
+                    </div>
+                    <template v-else-if="selectedProfile">
+                        <div class="row g-3">
+                            <div
+                                v-for="item in profileSummaryItems"
+                                :key="item.label"
+                                class="col-12 col-md-6"
+                            >
+                                <div class="card h-100">
+                                    <div class="card-body py-3">
+                                        <small class="text-muted d-block">{{ item.label }}</small>
+                                        <strong>{{ item.value || 'Sin registrar' }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="row g-3">
+                            <div
+                                v-for="item in profileDetailItems"
+                                :key="item.label"
+                                class="col-12 col-lg-6"
+                            >
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <small class="text-muted d-block mb-1">{{ item.label }}</small>
+                                        <div class="profile-readonly-text">
+                                            {{ item.value || 'Sin registrar' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" data-bs-dismiss="modal" @click="closeProfile">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <breadcrumb :parent="'Adminstración'" :current="'Cuentas de usuarios'" />
     <PageTutorialOverlay :tutorial="tutorial" />
 </template>
@@ -79,9 +154,56 @@ import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useUsersList from '@/composables/admin/users/usersList'
 import { usePageTutorial } from '@/composables/usePageTutorial'
+import { computed } from 'vue'
 import { ErrorMessage, Field, Form } from 'vee-validate'
 import { usersListTutorial } from '@/tutorials/admin'
 
-const { table, options, initialData, schema, onClickRow, onCancel, submit } = useUsersList()
+const {
+    table,
+    options,
+    initialData,
+    schema,
+    onClickRow,
+    onCancel,
+    submit,
+    selectedProfile,
+    profileLoading,
+    profileError,
+    showProfile,
+    closeProfile,
+} = useUsersList()
 const tutorial = usePageTutorial(usersListTutorial)
+
+const optionLabel = (options, value) => options?.find((option) => option.value === value)?.label || value
+const profileSummaryItems = computed(() => {
+    const profile = selectedProfile.value?.profile || {}
+
+    return [
+        { label: 'Documento', value: profile.identification_document },
+        { label: 'Fecha de nacimiento', value: profile.date_birth },
+        { label: 'Genero', value: optionLabel(selectedProfile.value?.gender_options, profile.gender) },
+        { label: 'Cargo', value: optionLabel(selectedProfile.value?.position_options, profile.position) },
+        { label: 'Dirección', value: profile.address },
+        { label: 'Teléfono', value: profile.phone },
+        { label: 'Celular', value: profile.mobile },
+    ]
+})
+
+const profileDetailItems = computed(() => {
+    const profile = selectedProfile.value?.profile || {}
+
+    return [
+        { label: 'Estudios', value: profile.studies },
+        { label: 'Referencias', value: profile.references },
+        { label: 'Contactos', value: profile.contacts },
+        { label: 'Experiencia', value: profile.experience },
+        { label: 'Aptitudes', value: profile.aptitude },
+    ]
+})
 </script>
+<style scoped>
+.profile-readonly-text {
+    min-height: 88px;
+    white-space: pre-wrap;
+}
+</style>

@@ -15,6 +15,7 @@ export default function useUsersList() {
         { data: 'role_name', title: 'Perfil', name: 'roles.name', searchable: true, orderable: true },
         { data: 'email', title: 'Correo', searchable: true, orderable: false },
         { data: 'created_at', title: 'Registro', name: 'users.created_at', render: '#date', searchable: false, orderable: false },
+        { data: 'id', title: 'Acciones', render: '#actions', searchable: false, orderable: false },
     ]
 
     const options = {
@@ -51,6 +52,10 @@ export default function useUsersList() {
     const globalError = ref(null)
 
     const composeModalUser = ref(null)
+    const profileModal = ref(null)
+    const selectedProfile = ref(null)
+    const profileLoading = ref(false)
+    const profileError = ref('')
     const initialData = ref({
         id: null,
         name: null,
@@ -120,6 +125,28 @@ export default function useUsersList() {
 
     }
 
+    const showProfile = async (userId) => {
+        profileLoading.value = true
+        profileError.value = ''
+        selectedProfile.value = null
+        profileModal.value.show()
+
+        try {
+            const response = await api.get(`/api/v2/admin/users/${userId}/profile`)
+            selectedProfile.value = response.data.data
+        } catch (error) {
+            profileError.value = error.response?.data?.message || 'No fue posible cargar el perfil.'
+        } finally {
+            profileLoading.value = false
+        }
+    }
+
+    const closeProfile = () => {
+        profileModal.value.hide()
+        selectedProfile.value = null
+        profileError.value = ''
+    }
+
     onMounted(() => {
         usePageTitle('Usuarios')
         composeModalUser.value = new window.bootstrap.Modal(document.getElementById("composeModalUser"), {
@@ -127,7 +154,25 @@ export default function useUsersList() {
             keyboard: false,    // Disables closing the modal with the escape key
             focus: false         // Focuses the modal when initialized (default is true)
         })
+        profileModal.value = new window.bootstrap.Modal(document.getElementById("profileModalUser"), {
+            backdrop: true,
+            keyboard: true,
+            focus: true
+        })
     })
 
-    return { table, options, initialData, schema, onClickRow, onCancel, submit }
+    return {
+        table,
+        options,
+        initialData,
+        schema,
+        onClickRow,
+        onCancel,
+        submit,
+        selectedProfile,
+        profileLoading,
+        profileError,
+        showProfile,
+        closeProfile,
+    }
 }
