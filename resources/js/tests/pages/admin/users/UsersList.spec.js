@@ -2,13 +2,15 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent } from 'vue'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-const { axiosMock, modalShowMock, modalHideMock } = vi.hoisted(() => ({
+const { axiosMock, modalShowMock, modalHideMock, formResetMock, formSetValuesMock } = vi.hoisted(() => ({
     axiosMock: {
         get: vi.fn(),
         post: vi.fn(),
     },
     modalShowMock: vi.fn(),
     modalHideMock: vi.fn(),
+    formResetMock: vi.fn(),
+    formSetValuesMock: vi.fn(),
 }))
 
 vi.mock('@/utils/axios', () => ({
@@ -37,8 +39,8 @@ const FormStub = defineComponent({
     template: '<form><slot /></form>',
     setup(props, { expose }) {
         expose({
-            resetForm: vi.fn(),
-            setValues: vi.fn(),
+            resetForm: formResetMock,
+            setValues: formSetValuesMock,
         })
     },
 })
@@ -72,6 +74,8 @@ describe('UsersList profile modal', () => {
         axiosMock.get.mockReset()
         modalShowMock.mockReset()
         modalHideMock.mockReset()
+        formResetMock.mockReset()
+        formSetValuesMock.mockReset()
     })
 
     it('opens a readonly profile modal from the users table action', async () => {
@@ -114,6 +118,32 @@ describe('UsersList profile modal', () => {
         expect(wrapper.text()).toContain('Masculino')
         expect(wrapper.text()).toContain('Experiencia')
         expect(wrapper.text()).not.toContain('Guardar perfil')
+        wrapper.unmount()
+    })
+
+    it('loads the selected user role when opening the edit modal', async () => {
+        axiosMock.get.mockResolvedValue({
+            data: {
+                data: {
+                    name: 'Instructor Uno',
+                    email: 'instructor@example.com',
+                    role_id: 3,
+                },
+            },
+        })
+
+        const wrapper = mountPage()
+        await wrapper.find('button[title="Editar usuario"]').trigger('click')
+        await flushPromises()
+
+        expect(axiosMock.get).toHaveBeenCalledWith('/api/v2/admin/users/21')
+        expect(formSetValuesMock).toHaveBeenCalledWith({
+            id: 21,
+            name: 'Instructor Uno',
+            email: 'instructor@example.com',
+            rol_id: 3,
+        })
+        expect(modalShowMock).toHaveBeenCalled()
         wrapper.unmount()
     })
 })

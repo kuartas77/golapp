@@ -111,7 +111,7 @@ export default function useUsersList() {
             id: itemId,
             name: response.data.data.name,
             email: response.data.data.email,
-            rol_id: response.data.data.role.id
+            rol_id: response.data.data.role_id
         }
 
         form.value.resetForm()
