@@ -44,7 +44,13 @@
                 <td>&nbsp;{{ $row['category'] }}&nbsp;</td>
                 <td>
                     @foreach($row['debt_items'] as $item)
-                    <div>&nbsp;{{ $item['label'] }}&nbsp; ({{ number_format($item['amount'], 0, ',', '.') }})&nbsp;</div>
+                    <div>
+                        &nbsp;{{ $item['label'] }}
+                        @if($showTotalDebt)
+                            ({{ number_format($item['amount'], 0, ',', '.') }})
+                        @endif
+                        &nbsp;
+                    </div>
                     @endforeach
                 </td>
                 @if($showTotalDebt)

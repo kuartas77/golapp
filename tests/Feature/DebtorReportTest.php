@@ -17,6 +17,35 @@ use Tests\TestCase;
 
 final class DebtorReportTest extends TestCase
 {
+    public function testDebtorReportOnlyShowsDebtItemAmountsWhenTotalsAreEnabled(): void
+    {
+        $data = [
+            'school' => (object) [
+                'logo_local' => '',
+                'name' => 'Escuela test',
+            ],
+            'rows' => collect([[
+                'unique_code' => '1001',
+                'student_name' => 'Ana Torres',
+                'category' => 'Sub 10',
+                'debt_items' => [[
+                    'label' => 'Mensualidad Enero',
+                    'amount' => 50000,
+                ]],
+                'total_debt' => 50000,
+            ]]),
+            'date' => '19-06-2026 10:00:00',
+            'year' => 2026,
+            'group' => 'Todos los grupos',
+        ];
+
+        $withoutTotals = view('templates.pdf.debtors', $data + ['showTotalDebt' => false])->render();
+        $withTotals = view('templates.pdf.debtors', $data + ['showTotalDebt' => true])->render();
+
+        $this->assertStringNotContainsString('(50.000)', $withoutTotals);
+        $this->assertStringContainsString('(50.000)', $withTotals);
+    }
+
     public function testDebtorReportConsolidatesMonthlyAndInvoiceDebts(): void
     {
         $this->actingAs($this->user);
