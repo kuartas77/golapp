@@ -27,7 +27,7 @@
 <script setup>
 </script>
 
-<style scoped>
+<style>
 .portal-public {
     min-height: 100vh;
     color: #3b3f5c;
@@ -82,84 +82,84 @@
     padding: 1.5rem 0 2.5rem;
 }
 
-:global(.dark) .portal-public .logo-light-mode,
-:global(body.dark) .portal-public .logo-light-mode {
+.dark .portal-public .logo-light-mode,
+body.dark .portal-public .logo-light-mode {
     display: inline-block;
 }
 
-:global(.dark) .portal-public .logo-dark-mode,
-:global(body.dark) .portal-public .logo-dark-mode {
+.dark .portal-public .logo-dark-mode,
+body.dark .portal-public .logo-dark-mode {
     display: none;
 }
 
-:global(.dark) .portal-public__topbar,
-:global(body.dark) .portal-public__topbar {
+.dark .portal-public__topbar,
+body.dark .portal-public__topbar {
     background: rgba(255, 255, 255, 0.72);
     border-bottom-color: rgba(59, 63, 92, 0.12);
 }
 
-:global(.dark) .portal-light-surface,
-:global(body.dark) .portal-light-surface {
+.dark .portal-light-surface,
+body.dark .portal-light-surface {
     color: #3b3f5c;
     background: #ffffff;
 }
 
-:global(.dark) .portal-light-surface :is(h1, h2, h3, h4, h5, h6),
-:global(body.dark) .portal-light-surface :is(h1, h2, h3, h4, h5, h6) {
+.dark .portal-light-surface :is(h1, h2, h3, h4, h5, h6),
+body.dark .portal-light-surface :is(h1, h2, h3, h4, h5, h6) {
     color: #3b3f5c;
 }
 
-:global(.dark) .portal-light-surface .card,
-:global(body.dark) .portal-light-surface .card,
-:global(.dark) .portal-light-surface .modal-content,
-:global(body.dark) .portal-light-surface .modal-content,
-:global(.dark) .portal-light-surface .list-group-item,
-:global(body.dark) .portal-light-surface .list-group-item {
+.dark .portal-light-surface .card,
+body.dark .portal-light-surface .card,
+.dark .portal-light-surface .modal-content,
+body.dark .portal-light-surface .modal-content,
+.dark .portal-light-surface .list-group-item,
+body.dark .portal-light-surface .list-group-item {
     color: #3b3f5c;
     background: #ffffff;
     border-color: rgba(59, 63, 92, 0.12);
 }
 
-:global(.dark) .portal-light-surface .text-muted,
-:global(body.dark) .portal-light-surface .text-muted {
+.dark .portal-light-surface .text-muted,
+body.dark .portal-light-surface .text-muted {
     color: #888ea8 !important;
 }
 
-:global(.dark) .portal-light-surface .form-control,
-:global(body.dark) .portal-light-surface .form-control,
-:global(.dark) .portal-light-surface .form-select,
-:global(body.dark) .portal-light-surface .form-select {
+.dark .portal-light-surface .form-control,
+body.dark .portal-light-surface .form-control,
+.dark .portal-light-surface .form-select,
+body.dark .portal-light-surface .form-select {
     color: #3b3f5c;
     background-color: #ffffff;
     border-color: #e0e6ed;
 }
 
-:global(.dark) .portal-light-surface label,
-:global(body.dark) .portal-light-surface label,
-:global(.dark) .portal-light-surface .form-label,
-:global(body.dark) .portal-light-surface .form-label {
+.dark .portal-light-surface label,
+body.dark .portal-light-surface label,
+.dark .portal-light-surface .form-label,
+body.dark .portal-light-surface .form-label {
     color: #3b3f5c;
 }
 
-:global(.dark) .portal-light-surface .form-control:disabled,
-:global(body.dark) .portal-light-surface .form-control:disabled,
-:global(.dark) .portal-light-surface .form-control[readonly],
-:global(body.dark) .portal-light-surface .form-control[readonly] {
+.dark .portal-light-surface .form-control:disabled,
+body.dark .portal-light-surface .form-control:disabled,
+.dark .portal-light-surface .form-control[readonly],
+body.dark .portal-light-surface .form-control[readonly] {
     color: #6c757d;
     background-color: #f8f9fa !important;
 }
 
-:global(.dark) .portal-light-surface .modal-header,
-:global(body.dark) .portal-light-surface .modal-header,
-:global(.dark) .portal-light-surface .modal-footer,
-:global(body.dark) .portal-light-surface .modal-footer,
-:global(.dark) .portal-light-surface .nav-tabs,
-:global(body.dark) .portal-light-surface .nav-tabs {
+.dark .portal-light-surface .modal-header,
+body.dark .portal-light-surface .modal-header,
+.dark .portal-light-surface .modal-footer,
+body.dark .portal-light-surface .modal-footer,
+.dark .portal-light-surface .nav-tabs,
+body.dark .portal-light-surface .nav-tabs {
     border-color: #e0e6ed !important;
 }
 
-:global(.dark) .portal-light-surface .nav-tabs .nav-link.active,
-:global(body.dark) .portal-light-surface .nav-tabs .nav-link.active {
+.dark .portal-light-surface .nav-tabs .nav-link.active,
+body.dark .portal-light-surface .nav-tabs .nav-link.active {
     color: #4361ee;
     background-color: #ffffff;
     border-color: #e0e6ed #e0e6ed #ffffff;
