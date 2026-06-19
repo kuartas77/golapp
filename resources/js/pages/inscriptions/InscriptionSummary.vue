@@ -335,7 +335,7 @@ const editingPayment = ref(null)
 const paymentBackup = ref(null)
 const selectedAttendanceMonth = ref('')
 
-const tabs = [
+const baseTabs = [
     { key: 'summary', label: 'Resumen' },
     { key: 'payments', label: 'Pagos' },
     { key: 'attendance', label: 'Asistencias' },
@@ -386,6 +386,17 @@ const filteredAttendance = computed(() => {
 })
 const invoices = computed(() => summary.value?.invoices || [])
 const evaluations = computed(() => summary.value?.evaluations || [])
+const tabs = computed(() => baseTabs.filter((tab) => {
+    if (tab.key === 'invoices') {
+        return invoices.value.length > 0
+    }
+
+    if (tab.key === 'evaluations') {
+        return evaluations.value.length > 0
+    }
+
+    return true
+}))
 const paymentTypes = computed(() => settings.paymentTypeOptions || [])
 const paymentTypeLabels = computed(() => settings.paymentTypeLabels || {})
 const documents = computed(() => {
@@ -518,6 +529,12 @@ async function loadSummary() {
 function goToInscription(id) {
     router.push({ name: 'inscriptions.summary', params: { id } })
 }
+
+watch(tabs, (visibleTabs) => {
+    if (!visibleTabs.some((tab) => tab.key === activeTab.value)) {
+        activeTab.value = 'summary'
+    }
+})
 
 watch(() => route.params.id, () => {
     activeTab.value = 'summary'

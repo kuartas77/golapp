@@ -32,7 +32,29 @@
                 </button>
             </div>
             <div data-tour="players-list-table">
-                <DatatableTemplate :options="options" :id="'players_table'" ref="table" @click="onClickRow" />
+                <DatatableTemplate :options="options" :id="'players_table'" ref="table">
+                    <template #actions="props">
+                        <div class="d-inline-flex gap-1">
+                            <button
+                                type="button"
+                                class="btn btn-outline-primary btn-sm"
+                                title="Editar deportista"
+                                @click.stop="editPlayer(props.rowData.unique_code)"
+                            >
+                                <i class="fa fa-edit"></i>
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-outline-info btn-sm"
+                                title="Ver resumen"
+                                :disabled="!props.rowData.current_inscription_id"
+                                @click.stop="showSummary(props.rowData.current_inscription_id)"
+                            >
+                                <i class="fa-regular fa-address-card"></i>
+                            </button>
+                        </div>
+                    </template>
+                </DatatableTemplate>
             </div>
         </template>
     </panel>
@@ -103,7 +125,7 @@ import api from '@/utils/axios'
 import { useAuthUser } from '@/store/auth-user'
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 
-const { options, table, onClickRow, reloadTable, globalError } = usePlayerList()
+const { options, table, editPlayer, showSummary, reloadTable, globalError } = usePlayerList()
 const tutorial = usePageTutorial(playersListTutorial)
 const auth = useAuthUser()
 

@@ -23,11 +23,19 @@
         <template #body>
 
             <div data-tour="admin-users-table">
-                <DatatableTemplate :options="options" :id="'users_table'" ref="table" @click="onClickRow($event)">
+                <DatatableTemplate :options="options" :id="'users_table'" ref="table">
                     <template #actions="props">
                         <button
                             type="button"
-                            class="btn btn-outline-primary btn-sm"
+                            class="btn btn-outline-primary btn-sm me-1"
+                            title="Editar usuario"
+                            @click.stop="editUser(props.cellData)"
+                        >
+                            <i class="fa fa-edit"></i>
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-outline-info btn-sm"
                             title="Ver perfil"
                             @click.stop="showProfile(props.cellData)"
                         >
@@ -163,7 +171,7 @@ const {
     options,
     initialData,
     schema,
-    onClickRow,
+    editUser,
     onCancel,
     submit,
     selectedProfile,

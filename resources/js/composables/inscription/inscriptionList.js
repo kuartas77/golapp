@@ -73,23 +73,6 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
                 const manageActions = canManageSelectedYear.value
                     ? `
                         ${createInvoiceAction}
-                        <li>
-                            <button
-                                class="dropdown-item"
-                                data-item-id="${row.id}"
-                                data-type="edit"
-                                title="Modificar Inscripción"
-                                type="button"
-                            >
-                                <i
-                                    data-item-id="${row.id}"
-                                    class="fa fa-edit fa-width-auto me-2"
-                                    data-type="edit"
-                                ></i>
-                                Modificar inscripción
-                            </button>
-                        </li>
-
                         <li><hr class="dropdown-divider"></li>
 
                         <li>
@@ -110,51 +93,72 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
                         </li>
                     `
                     : ''
+                const editAction = canManageSelectedYear.value
+                    ? `
+                        <button
+                            class="btn btn-sm btn-outline-primary"
+                            data-item-id="${row.id}"
+                            data-type="edit"
+                            title="Modificar inscripción"
+                            type="button"
+                        >
+                            <i
+                                data-item-id="${row.id}"
+                                class="fa fa-edit"
+                                data-type="edit"
+                            ></i>
+                        </button>
+                    `
+                    : ''
 
                 return `
-                <div class="dropdown inscription-actions-dropdown">
-                    <button
-                        class="btn btn-sm btn-primary dropdown-toggle"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        data-bs-display="static"
-                        aria-expanded="false"
-                    >
-                        Acciones
-                    </button>
+                <div class="d-inline-flex align-items-center gap-1 text-nowrap">
+                    ${editAction}
 
-                    <ul class="dropdown-menu dropdown-menu-end inscription-actions-menu">
-                        <li>
-                            <button
-                                class="dropdown-item"
-                                data-item-id="${row.unique_code}"
-                                data-type="attendance-qr"
-                                title="Ver QR de asistencia"
-                                type="button"
-                            >
-                                <i
+                    <div class="dropdown inscription-actions-dropdown">
+                        <button
+                            class="btn btn-sm btn-primary dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            data-bs-display="static"
+                            aria-expanded="false"
+                        >
+                            Acciones
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-end inscription-actions-menu">
+                            <li>
+                                <button
+                                    class="dropdown-item"
                                     data-item-id="${row.unique_code}"
-                                    class="fa-solid fa-qrcode fa-width-auto me-2"
                                     data-type="attendance-qr"
-                                ></i>
-                                QR asistencia
-                            </button>
-                        </li>
+                                    title="Ver QR de asistencia"
+                                    type="button"
+                                >
+                                    <i
+                                        data-item-id="${row.unique_code}"
+                                        class="fa-solid fa-qrcode fa-width-auto me-2"
+                                        data-type="attendance-qr"
+                                    ></i>
+                                    QR asistencia
+                                </button>
+                            </li>
 
-                        <li>
-                            <a
-                                class="dropdown-item"
-                                href="${row.url_impression}"
-                                target="_blank"
-                                title="Imprimir inscripción"
-                            >
-                                <i href="${row.url_show}" class="fa-solid fa-file-pdf fa-width-auto me-2"></i>
-                                Imprimir inscripción
-                            </a>
-                        </li>
+                            <li>
+                                <a
+                                    class="dropdown-item"
+                                    href="${row.url_impression}"
+                                    target="_blank"
+                                    title="Imprimir inscripción"
+                                >
+                                    <i href="${row.url_show}" class="fa-solid fa-file-pdf fa-width-auto me-2"></i>
+                                    Imprimir inscripción
+                                </a>
+                            </li>
 
-                        ${manageActions}
-                    </ul>
+                            ${manageActions}
+                        </ul>
+                    </div>
                 </div>
             `
             }, searchable: false, orderable: false

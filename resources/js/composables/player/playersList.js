@@ -14,11 +14,12 @@ export default function usePlayerList() {
 
     const columns = [
         { data: 'photo_url', title: '', width: '1%', render: '#photo', searchable: false, orderable: false},
-        { data: 'unique_code', title: 'Código', width: '5%', render: '#link', searchable: true, orderable: true},
+        { data: 'unique_code', title: 'Código', width: '5%', searchable: true, orderable: true},
         { data: 'identification_document', title: 'Doc', width: '5%', searchable: true, orderable: true},
         { data: 'date_birth', title: 'Fecha Nac', width: '5%', render: '#date', searchable: false, orderable: false},
         { data: 'full_names', title: 'Nombres', name: 'full_names', width: '15%', searchable: true, orderable: true},
         { data: 'created_at', title: 'Registro', render: '#date', width: '5%', searchable: true, orderable: true},
+        { data: 'unique_code', title: 'Acciones', width: '1%', render: '#actions', searchable: false, orderable: false},
     ];
 
     const clearLoadError = () => {
@@ -45,7 +46,7 @@ export default function usePlayerList() {
         ...configLanguaje,
         lengthMenu: [[10, 20, 30, 50, 100], [10, 20, 30, 50, 100]],
         columnDefs: [
-            { responsivePriority: 1, targets: columns.length - 1 },
+            { responsivePriority: 1, targets: columns.length - 1, className: 'dt-head-center dt-body-center text-nowrap' },
             {
                 targets: ['_all'],
                 className: 'dt-head-center dt-body-center', // Center align their headers
@@ -75,13 +76,18 @@ export default function usePlayerList() {
         columns: columns
     };
 
-    const onClickRow = (e) => {
-        const itemId = e.target.dataset.itemId
-        if (!itemId) {
+    const editPlayer = (uniqueCode) => {
+        if (!uniqueCode) {
             return
         }
-        e.preventDefault()
-        router.push({ name: 'player-detail', params: { unique_code: itemId } })
+        router.push({ name: 'player-detail', params: { unique_code: uniqueCode } })
+    }
+
+    const showSummary = (inscriptionId) => {
+        if (!inscriptionId) {
+            return
+        }
+        router.push({ name: 'inscriptions.summary', params: { id: inscriptionId } })
     }
 
     const reloadTable = () => {
@@ -97,5 +103,5 @@ export default function usePlayerList() {
         usePageTitle('Deportistas')
     })
 
-    return { options, table, onClickRow, reloadTable, globalError };
+    return { options, table, editPlayer, showSummary, reloadTable, globalError };
 }

@@ -10,7 +10,6 @@ export default function useUsersList() {
     const form = useTemplateRef('form')
 
     const columns = [
-        { data: 'id', width: '1%', title: 'ID', render: '#link', searchable: false, orderable: true },
         { data: 'user_name', title: 'Nombres', searchable: true, orderable: true },
         { data: 'role_name', title: 'Perfil', name: 'roles.name', searchable: true, orderable: true },
         { data: 'email', title: 'Correo', searchable: true, orderable: false },
@@ -32,7 +31,7 @@ export default function useUsersList() {
         serverSide: true,
         pipeline: { pages: 5 },
         processing: true,
-        order: [[2, 'desc']],
+        order: [[1, 'desc']],
         ajax: async (data, callback, settings) => {
             try {
                 const response = await api.get('/api/v2/datatables/users_enabled', { params: data }) // Adjust endpoint and method
@@ -102,12 +101,10 @@ export default function useUsersList() {
         }
     }
 
-    const onClickRow = async (e) => {
-        const itemId = e.target.dataset.itemId
+    const editUser = async (itemId) => {
         if (!itemId) {
             return
         }
-        e.preventDefault()
         const response = await api.get(`/api/v2/admin/users/${itemId}`)
 
         const data = {
@@ -166,7 +163,7 @@ export default function useUsersList() {
         options,
         initialData,
         schema,
-        onClickRow,
+        editUser,
         onCancel,
         submit,
         selectedProfile,

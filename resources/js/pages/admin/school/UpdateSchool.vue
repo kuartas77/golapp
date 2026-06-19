@@ -52,7 +52,13 @@
                 <div class="row g-3" data-tour="admin-school-settings">
                     <div class="col-12 col-xl-7">
                         <div class="border rounded p-3 h-100">
-                            <h6 class="mb-3">Precios de inscripción y mensualidades</h6>
+                            <h6 class="mb-3 d-flex align-items-center gap-2">
+                                Precios de inscripción y mensualidades
+                                <i
+                                    class="fa-regular fa-circle-question text-info"
+                                    v-tooltip.top="'Si Precio Mensualidad Hermano, Mensualidad 5 dias, Mensualidad 4 dias o Mensualidad 3 dias tienen un valor mayor a 0, aparecerán como opciones en la Tarifa mensual al diligenciar una inscripción. La tarifa seleccionada se usará para calcular los valores de las mensualidades.'"
+                                ></i>
+                            </h6>
                             <div class="row g-3">
                                 <div class="col-md-6 col-xl-4">
                                     <div class="form-group">

@@ -48,6 +48,17 @@ class PlayerRepository
                 'players.created_at',
                 'players.school_id',
             ])
+            ->selectSub(
+                Inscription::query()
+                    ->select('inscriptions.id')
+                    ->whereColumn('inscriptions.player_id', 'players.id')
+                    ->whereColumn('inscriptions.school_id', 'players.school_id')
+                    ->whereNull('inscriptions.deleted_at')
+                    ->orderByDesc('inscriptions.year')
+                    ->orderByDesc('inscriptions.id')
+                    ->limit(1),
+                'current_inscription_id'
+            )
             ->schoolId();
     }
 

@@ -344,7 +344,7 @@
                 </Can>
 
                 <li v-if="showInstructorModulesDivider" class="sidebar-section-divider">
-                    <span>Módulos Instructor</span>
+                    <span>Módulos Deportivos</span>
                 </li>
 
                 <li v-if="canAttendances" class="menu">

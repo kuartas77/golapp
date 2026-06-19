@@ -211,11 +211,6 @@
             </table>
 
             <table class="table-full detail detail-lines pdf-section no-break">
-                <thead>
-                    <tr class="section-heading">
-                        <th colspan="{{ $paymentColspan }}" class="text-center">Estado de mensualidades</th>
-                    </tr>
-                </thead>
                 <tbody>
                 @forelse ($inscription->payments as $pay)
                     <tr class="subsection-heading">
@@ -285,8 +280,7 @@
                 @endphp
                 <thead>
                     <tr class="section-heading">
-                        <th colspan="26" class="text-center">Asistencias de entrenamiento</th>
-                        <th class="text-center bold">%</th>
+                        <th colspan="27" class="text-center">Asistencias de entrenamiento</th>
                     </tr>
                     <tr class="subsection-heading">
                         <th colspan="27" class="text-left">Grupo: <span class="text-uppercase">{{ $trainingGroupName }}</span></th>
