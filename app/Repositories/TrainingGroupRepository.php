@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Collection;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Database\Eloquent\Model;
-use Exception;
-use Carbon\Carbon;
 use App\Models\TrainingGroup;
+use App\Service\Groups\GroupCatalogCache;
+use Carbon\Carbon;
+use Exception;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\Str;
 
 /**
  * @method static create(array $group)
@@ -24,36 +24,38 @@ class TrainingGroupRepository
 {
     private TrainingGroup $trainingGroup;
 
-    public function __construct(TrainingGroup $trainingGroup)
+    public function __construct(TrainingGroup $trainingGroup, private GroupCatalogCache $groupCatalogCache)
     {
         $this->trainingGroup = $trainingGroup;
     }
 
-    public function listGroupEnabled()
+    public function listGroupEnabled(?int $schoolId = null)
     {
-        $firstTeam = $this->trainingGroup->query()->select(['id'])->schoolId()->orderBy('id', 'ASC')->first();
+        $schoolId ??= (int) getSchool(auth()->user())->id;
+        $firstTeam = $this->trainingGroup->query()->select(['id'])->where('school_id', $schoolId)->orderBy('id', 'ASC')->first();
+
         return $this->trainingGroup->query()
-            ->schoolId()
+            ->where('school_id', $schoolId)
             ->with(['instructors'])
             ->withCount('members')
             ->where(
-                fn($query) =>
-                $query->whereRelation('instructors', 'assigned_year', '>=', now()->year)
+                fn ($query) => $query->whereRelation('instructors', 'assigned_year', '>=', now()->year)
                     ->orWhere('id', $firstTeam->id)
                     ->orWhere('year_active', '>=', now()->year)
             );
     }
 
-    public function listGroupDisabled()
+    public function listGroupDisabled(?int $schoolId = null)
     {
+        $schoolId ??= (int) getSchool(auth()->user())->id;
+
         return $this->trainingGroup->query()
             ->onlyTrashedRelations()
-            ->schoolId()
-            ->whereRelation('instructors', fn($query) => $query->where('assigned_year', '<', now()->year))
+            ->where('school_id', $schoolId)
+            ->whereRelation('instructors', fn ($query) => $query->where('assigned_year', '<', now()->year))
             ->where('year_active', '<', now()->year)
             ->get();
     }
-
 
     public function createTrainingGroup(FormRequest $formRequest): ?TrainingGroup
     {
@@ -76,12 +78,13 @@ class TrainingGroupRepository
         } catch (Exception $exception) {
             DB::rollBack();
             report($exception);
+
             return null;
         }
     }
 
     /**
-     * @param $request
+     * @param  $request
      */
     private function setTrainingGroupParams(FormRequest $formRequest): array
     {
@@ -92,10 +95,10 @@ class TrainingGroupRepository
             'schedules' => $formRequest->input('schedules', []),
             'days' => $formRequest->input('days', []),
             'school_id' => $formRequest->input('school_id'),
-            'year_active' => $formRequest->input('year_active')
+            'year_active' => $formRequest->input('year_active'),
         ];
 
-        if (Schema::hasColumn('training_groups', 'user_id') && !blank($formRequest->input('user_id'))) {
+        if (Schema::hasColumn('training_groups', 'user_id') && ! blank($formRequest->input('user_id'))) {
             $params['user_id'] = $formRequest->input('user_id');
         }
 
@@ -121,30 +124,16 @@ class TrainingGroupRepository
         } catch (Exception $exception) {
             DB::rollBack();
             report($exception);
+
             return null;
         }
     }
 
-    private function clearTrainingGroupCache(int $schoolId): void
+    public function clearTrainingGroupCache(int $schoolId): void
     {
+        $this->groupCatalogCache->invalidateSchool($schoolId);
         Cache::forget("KEY_TRAINING_GROUPS_{$schoolId}");
         Cache::forget("KEY_TRAINING_GROUPS_ARR_{$schoolId}");
-
-        $userIds = DB::table('users')
-            ->where('school_id', $schoolId)
-            ->pluck('id');
-
-        if (Schema::hasTable('schools_user')) {
-            $userIds = $userIds->merge(
-                DB::table('schools_user')
-                    ->where('school_id', $schoolId)
-                    ->pluck('user_id')
-            );
-        }
-
-        $userIds = $userIds->unique();
-
-        $userIds->each(fn ($userId) => Cache::forget("KEY_TRAINING_GROUPS_{$schoolId}.{$userId}"));
     }
 
     /**
@@ -158,38 +147,40 @@ class TrainingGroupRepository
 
         $years = collect();
         $trainingGroup->year == null ?: $years->push($trainingGroup->year);
-        for ($i = 2; $i <= 12; ++$i) {
+        for ($i = 2; $i <= 12; $i++) {
             $number = numbersToLetters($i, false);
             is_null($trainingGroup->$number) ?: $years->push($trainingGroup->$number);
         }
 
         $trainingGroup->years = $years;
+
         return $trainingGroup;
     }
 
     /**
-     * @param null $whereUser
+     * @param  null  $whereUser
      */
-    public function getListGroupsSchedule(bool $deleted = false, ?int $user_id = null, ?callable $filter = null): Collection
+    public function getListGroupsSchedule(bool $deleted = false, ?int $user_id = null, ?callable $filter = null, ?int $schoolId = null): Collection
     {
-        $query = $this->trainingGroup->query()->schoolId()->where('year_active', '>=', now()->year);
+        $schoolId ??= (int) getSchool(auth()->user())->id;
+        $query = $this->trainingGroup->query()->where('school_id', $schoolId)->where('year_active', '>=', now()->year);
         $query->select([
             'id', 'name', 'stage', 'category',
             'schedules', 'days', 'year_two', 'year_three',
             'year_four', 'year_five', 'year_six', 'year_seven',
-            'year_eight','year_nine', 'year_ten', 'year_eleven',
+            'year_eight', 'year_nine', 'year_ten', 'year_eleven',
             'year_twelve',
         ])->withCount('members');
         if ($deleted) {
             $query->onlyTrashedRelations()
-                ->whereRelation('instructors', fn($query) => $query->where('assigned_year', '<', now()->year));
+                ->whereRelation('instructors', fn ($query) => $query->where('assigned_year', '<', now()->year));
         } elseif ($user_id) {
             $query->whereRelation('instructors', function ($query) use ($user_id): void {
                 $query->where('training_group_user.user_id', $user_id)
                     ->where('assigned_year', now()->year);
             });
         } else {
-            $firstTeam = $this->trainingGroup->query()->select(['id'])->schoolId()->orderBy('id', 'ASC')->first();
+            $firstTeam = $this->trainingGroup->query()->select(['id'])->where('school_id', $schoolId)->orderBy('id', 'ASC')->first();
             $query->where(function ($query) use ($firstTeam): void {
                 $query->whereRelation('instructors', 'assigned_year', '>=', now()->year);
 
@@ -201,7 +192,7 @@ class TrainingGroupRepository
 
         $result = $query->orderBy('name', 'ASC')->get();
 
-        if (!is_null($filter)) {
+        if (! is_null($filter)) {
             $result = $filter($result);
         }
 
@@ -214,11 +205,11 @@ class TrainingGroupRepository
     public function historicAssistData()
     {
         return $this->trainingGroup->query()->schoolId()
-            ->whereHas('assists', fn($query) => $query->withTrashed()->where('year', '<', now()->year))
+            ->whereHas('assists', fn ($query) => $query->withTrashed()->where('year', '<', now()->year))
             ->onlyTrashedRelationsFilter()
             ->orderBy('created_at', 'desc')
             ->get()
-            ->each(fn($group) => $group->assists->setAppends(['url_historic', 'months']));
+            ->each(fn ($group) => $group->assists->setAppends(['url_historic', 'months']));
     }
 
     /**
@@ -227,16 +218,13 @@ class TrainingGroupRepository
     public function historicPaymentData()
     {
         return $this->trainingGroup->query()->schoolId()
-            ->whereHas('payments', fn($query) => $query->withTrashed()->where('year', '<', now()->year))
+            ->whereHas('payments', fn ($query) => $query->withTrashed()->where('year', '<', now()->year))
             ->onlyTrashedRelationsPayments()
             ->orderBy('created_at', 'desc')
             ->get()
-            ->each(fn($group) => $group->payments->setAppends(['url_historic']));
+            ->each(fn ($group) => $group->payments->setAppends(['url_historic']));
     }
 
-    /**
-     * @param $year
-     */
     public function getGroupsYear($year): Collection
     {
         return $this->trainingGroup->query()->schoolId()
@@ -261,11 +249,11 @@ class TrainingGroupRepository
 
     public function makeRows(TrainingGroup $trainingGroup): string
     {
-        $trainingGroup->load(['inscriptions' => fn($q) => $q->with('player')->where('year', now()->year)]);
+        $trainingGroup->load(['inscriptions' => fn ($q) => $q->with('player')->where('year', now()->year)]);
         $rows = '';
         foreach ($trainingGroup->inscriptions as $inscription) {
             $rows .= View::make('templates.groups.div_row', [
-                'inscription' => $inscription
+                'inscription' => $inscription,
             ])->render();
         }
 
@@ -289,6 +277,7 @@ class TrainingGroupRepository
 
         return $classDays->map(function ($classDay) use ($group, $date) {
             $name = Str::ucfirst($classDay['name']);
+
             return [
                 'index' => $classDay['number_class'],
                 'id' => "{$group->id}{$date->month}{$classDay['day']}",
@@ -299,7 +288,7 @@ class TrainingGroupRepository
                 'column' => $classDay['column'],
                 'group_id' => $group->id,
                 'school_id' => getSchool(auth()->user())->id,
-                'year' => $date->year
+                'year' => $date->year,
             ];
         });
     }

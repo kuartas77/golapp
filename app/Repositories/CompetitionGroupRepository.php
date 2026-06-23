@@ -4,40 +4,46 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-
-use Throwable;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Collection;
-use Illuminate\Database\Eloquent\Model;
-use Exception;
-use App\Models\Inscription;
-use App\Models\CompetitionGroupInscription;
 use App\Models\CompetitionGroup;
+use App\Models\CompetitionGroupInscription;
+use App\Models\Inscription;
+use App\Service\Groups\GroupCatalogCache;
+use Exception;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\View;
+use Throwable;
 
 class CompetitionGroupRepository
 {
     private CompetitionGroup $competitionGroup;
 
-    public function __construct(CompetitionGroup $competitionGroup)
+    public function __construct(CompetitionGroup $competitionGroup, private GroupCatalogCache $groupCatalogCache)
     {
         $this->competitionGroup = $competitionGroup;
     }
 
-    public function listGroupEnabled()
+    public function listGroupEnabled(?int $schoolId = null, ?int $instructorId = null)
     {
+        $schoolId ??= (int) getSchool(auth()->user())->id;
+        $instructorId ??= isInstructor() ? auth()->id() : null;
+
         return $this->competitionGroup->query()
-            ->schoolId()
-            ->when(isInstructor(), fn($query) => $query->byInstructor())
+            ->where('school_id', $schoolId)
+            ->when($instructorId, fn ($query) => $query->where('user_id', $instructorId))
             ->with('tournament', 'professor');
     }
 
-    public function listGroupDisabled()
+    public function listGroupDisabled(?int $schoolId = null, ?int $instructorId = null)
     {
+        $schoolId ??= (int) getSchool(auth()->user())->id;
+        $instructorId ??= isInstructor() ? auth()->id() : null;
+
         return $this->competitionGroup->query()
-            ->schoolId()
-            ->when(isInstructor(), fn($query) => $query->byInstructor())
+            ->where('school_id', $schoolId)
+            ->when($instructorId, fn ($query) => $query->where('user_id', $instructorId))
             ->onlyTrashedRelations()
             ->get();
     }
@@ -55,30 +61,36 @@ class CompetitionGroupRepository
 
             DB::commit();
 
-            Cache::forget('KEY_COMPETITION_GROUPS_' . $dataGroup['school_id']);
+            $this->clearCompetitionGroupCache((int) $dataGroup['school_id']);
 
             return $competitionGroup;
         } catch (Throwable $throwable) {
             DB::rollBack();
             report($throwable);
+
             return $this->competitionGroup;
         }
     }
 
-    public function getListGroupFullName(): Collection
+    public function getListGroupFullName(?int $schoolId = null, ?int $instructorId = null): Collection
     {
+        $schoolId ??= (int) getSchool(auth()->user())->id;
+        $instructorId ??= isInstructor() ? auth()->id() : null;
+
         return $this->competitionGroup->query()
-            ->schoolId()
-            ->when(isInstructor(), fn($query) => $query->byInstructor())
+            ->where('school_id', $schoolId)
+            ->when($instructorId, fn ($query) => $query->where('user_id', $instructorId))
             ->with('tournament', 'professor')
             ->orderBy('name', 'ASC')->get();
     }
 
-    public function getGroupsYear($year = null): Collection
+    public function getGroupsYear($year = null, ?int $schoolId = null, ?int $instructorId = null): Collection
     {
+        $schoolId ??= (int) getSchool(auth()->user())->id;
+        $instructorId ??= isInstructor() ? auth()->id() : null;
         $groups = $this->competitionGroup->query()
-            ->schoolId()
-            ->when(isInstructor(), fn($query) => $query->byInstructor())
+            ->where('school_id', $schoolId)
+            ->when($instructorId, fn ($query) => $query->where('user_id', $instructorId))
             ->with('professor', 'tournament')
             ->orderBy('name', 'ASC');
         if ($year) {
@@ -88,21 +100,25 @@ class CompetitionGroupRepository
         return $groups->get()->pluck('full_name_group', 'id');
     }
 
+    public function clearCompetitionGroupCache(int $schoolId): void
+    {
+        $this->groupCatalogCache->invalidateSchool($schoolId);
+        Cache::forget("KEY_COMPETITION_GROUPS_{$schoolId}");
+    }
+
     public function makeRows(CompetitionGroup $competitionGroup): array
     {
         $competitionGroup->load(['inscriptions' => fn ($q) => $q->with('player')->where('year', now()->year)]);
+
         return [$this->rows($competitionGroup->inscriptions), $competitionGroup->inscriptions->count()];
     }
 
-    /**
-     * @param $inscriptions
-     */
     private function rows($inscriptions): string
     {
         $rows = '';
         foreach ($inscriptions as $inscription) {
             $rows .= View::make('templates.groups.div_row', [
-                'inscription' => $inscription
+                'inscription' => $inscription,
             ])->render();
         }
 
@@ -121,7 +137,6 @@ class CompetitionGroupRepository
             $group = CompetitionGroup::without(['inscriptions'])->findOrfail($destination_group_id);
             $inscription = Inscription::select(['id'])->findOrFail($inscription_id);
 
-
             DB::beginTransaction();
 
             if ($assign) {
@@ -129,7 +144,7 @@ class CompetitionGroupRepository
                     ->where('competition_group_id', $destination_group_id)
                     ->where('inscription_id', $inscription_id)->exists();
 
-                throw_if($exists, Exception::class, "The member already exists in the group", 4);
+                throw_if($exists, Exception::class, 'The member already exists in the group', 4);
 
                 $group->inscriptions()->attach($inscription->id);
                 $response = 1;
@@ -139,6 +154,8 @@ class CompetitionGroupRepository
             }
 
             DB::commit();
+
+            $this->clearCompetitionGroupCache((int) $group->school_id);
 
         } catch (Throwable $throwable) {
             DB::rollBack();

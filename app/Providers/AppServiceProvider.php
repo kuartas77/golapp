@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Service\School\CurrentSchoolContext;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -14,7 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->scoped(CurrentSchoolContext::class, fn () => new CurrentSchoolContext);
     }
 
     /**

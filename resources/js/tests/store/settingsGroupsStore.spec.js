@@ -21,7 +21,7 @@ vi.mock('axios', () => ({
     },
 }));
 
-import { useSettingGroups } from '@/store/settings-store';
+import { useSetting, useSettingGroups } from '@/store/settings-store';
 
 describe('useSettingGroups', () => {
     beforeEach(() => {
@@ -49,5 +49,33 @@ describe('useSettingGroups', () => {
         expect(store.schedules).toEqual([{ value: '08:00 AM', label: '08:00 AM' }]);
         expect(store.categories).toEqual([{ value: 'SUB-12', label: 'SUB-12' }]);
         expect(store.tournaments).toEqual([{ value: '7', label: 'Liga Escolar' }]);
+    });
+});
+
+describe('useSetting', () => {
+    beforeEach(() => {
+        setActivePinia(createPinia());
+        apiMock.get.mockReset();
+    });
+
+    it('discards persisted group data when the server school context changes', async () => {
+        const store = useSetting();
+        store.current_school_id = '10';
+        store.groups = [{ id: 1, name: 'Grupo anterior' }];
+        store.categories = [{ category: 'SUB-10' }];
+
+        apiMock.get.mockResolvedValue({
+            data: {
+                current_school_id: 20,
+                t_groups: [{ id: 2, name: 'Grupo actual' }],
+                all_t_groups: [{ id: 2, name: 'Grupo actual' }],
+            },
+        });
+
+        await store.getSettings();
+
+        expect(store.current_school_id).toBe('20');
+        expect(store.groups).toEqual([{ id: 2, name: 'Grupo actual' }]);
+        expect(store.categories).toEqual([]);
     });
 });

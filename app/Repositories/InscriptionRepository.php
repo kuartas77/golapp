@@ -12,6 +12,7 @@ use App\Models\School;
 use App\Models\Setting;
 use App\Models\TrainingGroup;
 use App\Notifications\InscriptionNotification;
+use App\Service\Groups\GroupCatalogCache;
 use App\Service\InscriptionLimitService;
 use App\Service\PaymentAmountResolver;
 use Exception;
@@ -97,6 +98,7 @@ class InscriptionRepository
             }
 
             DB::commit();
+            app(GroupCatalogCache::class)->invalidateSchool((int) $inscription->school_id);
 
             $result['success'] = true;
         } catch (ValidationException $exception) {
@@ -188,6 +190,7 @@ class InscriptionRepository
             $this->syncCustomCharges($inscription->fresh(), $customCharges);
 
             DB::commit();
+            app(GroupCatalogCache::class)->invalidateSchool((int) $inscription->school_id);
 
         } catch (Throwable $throwable) {
             DB::rollBack();
@@ -363,6 +366,7 @@ class InscriptionRepository
 
             $inscription->delete();
             DB::commit();
+            app(GroupCatalogCache::class)->invalidateSchool((int) $inscription->school_id);
 
             return true;
         } catch (Throwable $throwable) {
@@ -589,6 +593,7 @@ class InscriptionRepository
             }
 
             DB::commit();
+            app(GroupCatalogCache::class)->invalidateSchool((int) $trainingGroup->school_id);
         } catch (Throwable $throwable) {
             DB::rollBack();
             report($throwable);

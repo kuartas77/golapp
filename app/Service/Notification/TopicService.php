@@ -4,8 +4,8 @@ namespace App\Service\Notification;
 
 use App\Models\CompetitionGroup;
 use App\Models\Player;
-use App\Models\TrainingGroup;
 use App\Models\User;
+use App\Service\Groups\GroupCatalogCache;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -44,7 +44,7 @@ class TopicService
         $ttl = now()->addMinutes(5);
         $school = getSchool($user);
 
-        $topicCategories = Cache::remember('KEY_TOPIC_CATEGORIES_SCHOOL' . $school->id, $ttl, function () use ($school) {
+        $topicCategories = Cache::remember('KEY_TOPIC_CATEGORIES_SCHOOL'.$school->id, $ttl, function () use ($school) {
             $topics = [];
             $categories = DB::table('inscriptions')->select(['category'])->where('school_id', $school->id)->where('year', now()->year)->orderBy('category')->groupBy('category')->get();
             foreach ($categories as $category) {
@@ -54,12 +54,14 @@ class TopicService
                     'topic' => self::generateTopic($category->category, $school->slug),
                 ];
             }
+
             return $topics;
         });
 
-        $topicGroups = Cache::remember('KEY_TOPIC_TRAINING_GROUPS_SCHOOL' . $school->id, $ttl, function () use ($school) {
+        $catalogCache = app(GroupCatalogCache::class);
+        $topicGroups = $catalogCache->remember(GroupCatalogCache::TRAINING, (int) $school->id, 'notification-topics', function () use ($school) {
             $topics = [];
-            $groups = DB::table('training_groups')->select(['id','name'])->where('year_active', now()->year)->where('school_id', $school->id)->get();
+            $groups = DB::table('training_groups')->select(['id', 'name'])->where('year_active', now()->year)->where('school_id', $school->id)->get();
             foreach ($groups as $group) {
                 $topics[] = [
                     'search' => $group->id,
@@ -67,18 +69,19 @@ class TopicService
                     'topic' => self::generateTopic($group->name, $school->slug),
                 ];
             }
+
             return $topics;
         });
 
-        $topicUniqueCodes = Cache::remember('KEY_TOPIC_UNIQUE_CODES_SCHOOL' . $school->id, $ttl, function () use ($school) {
+        $topicUniqueCodes = Cache::remember('KEY_TOPIC_UNIQUE_CODES_SCHOOL'.$school->id, $ttl, function () use ($school) {
             $topics = [];
             $uniqueCodes = DB::table('inscriptions')
-            ->join('players', 'players.id', '=', 'inscriptions.player_id')
-            ->select(['players.id as player_id', 'players.unique_code', 'names', 'last_names'])->where('inscriptions.school_id', $school->id)->where('year', now()->year)->whereNull('inscriptions.deleted_at')->get();
+                ->join('players', 'players.id', '=', 'inscriptions.player_id')
+                ->select(['players.id as player_id', 'players.unique_code', 'names', 'last_names'])->where('inscriptions.school_id', $school->id)->where('year', now()->year)->whereNull('inscriptions.deleted_at')->get();
             foreach ($uniqueCodes as $uniqueCode) {
                 $topics[] = [
                     'search' => $uniqueCode->player_id,
-                    'name' => $uniqueCode->names . ' ' . $uniqueCode->last_names,
+                    'name' => $uniqueCode->names.' '.$uniqueCode->last_names,
                     'topic' => self::generateTopic($uniqueCode->unique_code, $school->slug),
                 ];
             }
@@ -86,11 +89,11 @@ class TopicService
             return $topics;
         });
 
-        $topicCompetitionGroups = Cache::remember('KEY_TOPIC_COMPETITION_GROUPS_SCHOOL' . $school->id, $ttl, function () use ($school) {
+        $topicCompetitionGroups = $catalogCache->remember(GroupCatalogCache::COMPETITION, (int) $school->id, 'notification-topics', function () use ($school) {
             $topics = [];
             $competitionGroups = CompetitionGroup::query()
-            ->where('competition_groups.school_id', $school->id)
-            ->whereHas('inscriptions', fn($q) => $q, '>' , 0)->get();
+                ->where('competition_groups.school_id', $school->id)
+                ->whereHas('inscriptions', fn ($q) => $q, '>', 0)->get();
             foreach ($competitionGroups as $group) {
                 $topics[] = [
                     'search' => $group->id,
@@ -102,6 +105,6 @@ class TopicService
             return $topics;
         });
 
-        return [$topicCategories, $topicGroups, $topicUniqueCodes,$topicCompetitionGroups];
+        return [$topicCategories, $topicGroups, $topicUniqueCodes, $topicCompetitionGroups];
     }
 }

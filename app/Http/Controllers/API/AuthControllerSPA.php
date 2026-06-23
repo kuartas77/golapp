@@ -7,6 +7,7 @@ use App\Http\Requests\API\ForgotPasswordSPARequest;
 use App\Http\Requests\API\LoginSPARequest;
 use App\Http\Requests\API\ResetPasswordSPARequest;
 use App\Models\User;
+use App\Service\School\CurrentSchoolContext;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,15 +18,17 @@ use Illuminate\Validation\ValidationException;
 
 class AuthControllerSPA extends Controller
 {
-    public function login(LoginSPARequest $request): JsonResponse
+    public function login(LoginSPARequest $request, CurrentSchoolContext $schoolContext): JsonResponse
     {
-        if (!Auth::attempt($request->validated())) {
+        if (! Auth::attempt($request->validated())) {
             return response()->json(['message' => 'Credenciales incorrectas'], 401);
         }
 
         if ($request->hasSession()) {
             $request->session()->regenerate();
         }
+
+        $schoolContext->initialize($request->user());
 
         return response()->json(['message' => 'Autenticado']);
     }

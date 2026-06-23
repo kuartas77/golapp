@@ -8,6 +8,7 @@ use App\Models\Schedule;
 use App\Models\School;
 use App\Models\Tournament;
 use App\Models\TrainingGroup;
+use App\Service\Groups\GroupCatalogCache;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
@@ -180,7 +181,8 @@ final class AdminGroupCatalogsTest extends TestCase
 
         Cache::put("KEY_TRAINING_GROUPS_{$schoolId}", 'stale-list');
         Cache::put("KEY_TRAINING_GROUPS_ARR_{$schoolId}", 'stale-array');
-        Cache::put("KEY_TRAINING_GROUPS_{$schoolId}.{$userId}", 'stale-settings-list');
+        $catalogCache = app(GroupCatalogCache::class);
+        $previousVersion = $catalogCache->version($schoolId);
 
         $this->actingAs($this->user)
             ->postJson('/api/v2/admin/training_groups', [
@@ -197,7 +199,7 @@ final class AdminGroupCatalogsTest extends TestCase
 
         $this->assertFalse(Cache::has("KEY_TRAINING_GROUPS_{$schoolId}"));
         $this->assertFalse(Cache::has("KEY_TRAINING_GROUPS_ARR_{$schoolId}"));
-        $this->assertFalse(Cache::has("KEY_TRAINING_GROUPS_{$schoolId}.{$userId}"));
+        $this->assertNotSame($previousVersion, $catalogCache->version($schoolId));
     }
 
     public function test_attendance_classdays_reflect_five_training_days(): void

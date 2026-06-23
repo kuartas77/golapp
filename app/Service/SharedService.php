@@ -4,8 +4,8 @@ namespace App\Service;
 
 use App\Models\Inscription;
 use App\Models\Payment;
-use App\Models\School;
 use App\Models\TrainingGroup;
+use App\Service\Groups\GroupCatalogCache;
 use App\Traits\ErrorTrait;
 use Illuminate\Support\Facades\DB;
 use Jenssegers\Date\Date;
@@ -15,13 +15,21 @@ class SharedService
 {
     use ErrorTrait;
 
-    public function __construct(private PaymentAmountResolver $paymentAmountResolver)
-    {
+    private GroupCatalogCache $groupCatalogCache;
+
+    public function __construct(
+        private PaymentAmountResolver $paymentAmountResolver,
+        ?GroupCatalogCache $groupCatalogCache = null,
+    ) {
+        $this->groupCatalogCache = $groupCatalogCache ?? app(GroupCatalogCache::class);
     }
 
     private array $searchPayment;
+
     private array $searchAssist;
+
     private array $dataPayment;
+
     private array $dataAssist;
 
     public function paymentAssist(Inscription $inscription)
@@ -32,15 +40,15 @@ class SharedService
             DB::beginTransaction();
 
             $start_date = Date::parse($inscription->start_date);
-            if($inscription->wasRecentlyCreated){
+            if ($inscription->wasRecentlyCreated) {
 
-                if (!$inscription->training_group_id) {
+                if (! $inscription->training_group_id) {
                     $trainingGroup = TrainingGroup::orderBy('id', 'asc')->firstWhere('school_id', $inscription->school_id);
                     $inscription->training_group_id = $trainingGroup->id;
                     $inscription->save();
                 }
 
-                $paymentValue = $inscription->scholarship ? '8': '0';
+                $paymentValue = $inscription->scholarship ? '8' : '0';
 
                 $dataPayment = [
                     'inscription_id' => $inscription->id,
@@ -67,7 +75,7 @@ class SharedService
                     $this->checkMonthValue($start_date->month, $paymentValue, $dataPayment);
                 }
 
-                if(!$inscription->scholarship) {
+                if (! $inscription->scholarship) {
                     $this->debtMonth($inscription, $start_date->month, $dataPayment);
                 }
 
@@ -75,15 +83,15 @@ class SharedService
                     'training_group_id' => $inscription->training_group_id,
                     'year' => $start_date->year,
                     'month' => $start_date->month,
-                    'school_id' => $inscription->school_id
+                    'school_id' => $inscription->school_id,
                 ];
 
                 $inscription->payments()->create($dataPayment);
 
                 $inscription->assistance()->create($assistance);
 
-            }else{
-                if($inscription->wasChanged('training_group_id')){
+            } else {
+                if ($inscription->wasChanged('training_group_id')) {
 
                     $dataToUpdate = ['training_group_id' => $inscription->training_group_id, 'deleted_at' => null];
 
@@ -111,12 +119,11 @@ class SharedService
 
     }
 
-
     private function checkMonthValue(int $actualMonth, $value, &$dataPayment)
     {
         $configMonths = config('variables.KEY_INDEX_MONTHS');
         foreach (range(1, $actualMonth) as $numMonth) {
-            $dataPayment[$configMonths[$numMonth]] = ($actualMonth == $numMonth) ? $value : '14'; //No aplica
+            $dataPayment[$configMonths[$numMonth]] = ($actualMonth == $numMonth) ? $value : '14'; // No aplica
         }
     }
 
@@ -141,7 +148,7 @@ class SharedService
             ->where('year', $year)
             ->first();
 
-        if (!$payment) {
+        if (! $payment) {
             return;
         }
 
@@ -168,11 +175,6 @@ class SharedService
         $inscription->skillsControls()->withTrashed()->restore();
     }
 
-    /**
-     * @param $inscription_id
-     * @param $request
-     * @return bool
-     */
     public function assignTrainingGroup($inscription_id, $request): bool
     {
         try {
@@ -180,13 +182,14 @@ class SharedService
             $target_group = $request->input('target_group', null);
             $inscription = Inscription::query()->findOrFail($inscription_id);
 
-            if (!is_null($target_group)) {
+            if (! is_null($target_group)) {
 
                 DB::beginTransaction();
 
                 $state = $inscription->update(['training_group_id' => $target_group]);
 
                 DB::commit();
+                $this->groupCatalogCache->invalidateSchool((int) $inscription->school_id);
 
                 return $state;
             }
@@ -198,6 +201,7 @@ class SharedService
             $this->logError('SharedService assignTrainingGroup failed', $th, [
                 'inscription_id' => $inscription_id,
             ]);
+
             return false;
         }
     }

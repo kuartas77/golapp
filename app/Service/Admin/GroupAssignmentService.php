@@ -10,6 +10,7 @@ use App\Models\Inscription;
 use App\Models\TrainingGroup;
 use App\Repositories\CompetitionGroupRepository;
 use App\Repositories\TrainingGroupRepository;
+use App\Service\Groups\GroupCatalogCache;
 use Illuminate\Support\Collection;
 
 class GroupAssignmentService
@@ -17,8 +18,8 @@ class GroupAssignmentService
     public function __construct(
         private readonly TrainingGroupRepository $trainingGroupRepository,
         private readonly CompetitionGroupRepository $competitionGroupRepository,
-    ) {
-    }
+        private readonly GroupCatalogCache $groupCatalogCache,
+    ) {}
 
     public function getTrainingBoard(?int $originGroupId, ?int $targetGroupId): array
     {
@@ -47,9 +48,15 @@ class GroupAssignmentService
             ->schoolId()
             ->findOrFail($inscriptionId);
 
-        return (bool) $inscription->update([
+        $updated = (bool) $inscription->update([
             'training_group_id' => $targetGroupId,
         ]);
+
+        if ($updated) {
+            $this->groupCatalogCache->invalidateSchool((int) $inscription->school_id);
+        }
+
+        return $updated;
     }
 
     public function getCompetitionBoard(?int $competitionGroupId): array
@@ -108,7 +115,7 @@ class GroupAssignmentService
 
     private function makeTrainingPanel(Collection $groups, ?int $groupId): array
     {
-        if (!$groupId) {
+        if (! $groupId) {
             return [
                 'group_id' => null,
                 'group_label' => null,
@@ -132,7 +139,7 @@ class GroupAssignmentService
 
     private function makeCompetitionDestinationPanel(?CompetitionGroup $group): array
     {
-        if (!$group) {
+        if (! $group) {
             return [
                 'group_id' => null,
                 'group_label' => null,

@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
@@ -227,37 +226,7 @@ if (!function_exists('isInstructor')) {
 if (!function_exists('getSchool')) {
     function getSchool($user = null): School
     {
-        $user = isset($user) ? $user : auth()->user();
-        $prefixKey = isAdmin() ? 'admin.' : (isSchool() ? 'school.': '');
-
-        $defaultSchoolId = max((int) data_get($user, 'school_id', 1), 1);
-        $school_id = filter_var(
-            Session::get($prefixKey . 'selected_school', $defaultSchoolId),
-            FILTER_VALIDATE_INT,
-            ['options' => ['min_range' => 1]]
-        );
-        $school_id = $school_id !== false ? $school_id : $defaultSchoolId;
-
-        $key = School::cacheKeyFor($prefixKey, $school_id);
-        $ttl = now()->addMinutes(env('SESSION_LIFETIME', 120));
-        $builder = School::with(['settingsValues']);
-
-        if ((isAdmin() || isSchool()) && Cache::has($key)) {
-            $data = Cache::get($key);
-        } elseif (isAdmin() && !Cache::has($key)) {
-            $key = School::cacheKeyFor(School::CACHE_PREFIX_ADMIN, $school_id);
-            $data = Cache::remember($key, $ttl, fn() => $builder->firstWhere('id', $school_id) ?? $builder->first());
-        } elseif (isSchool() && !Cache::has($key)) {
-            $school_id = (int) $user->school_id;
-            $key = School::cacheKeyFor('', $school_id);
-            $data = Cache::remember($key, $ttl, fn() => $builder->firstWhere('id', $school_id));
-        } else {
-            $school_id = (int) $user->school_id;
-            $key = School::cacheKeyFor('', $school_id);
-            $data = Cache::remember($key, $ttl, fn() => $builder->firstWhere('id', $school_id));
-        }
-
-        return $data;
+        return app(\App\Service\School\CurrentSchoolContext::class)->current($user ?? auth()->user());
     }
 }
 

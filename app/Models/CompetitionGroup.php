@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Observers\CompetitionGroupObserver;
 use App\Traits\GeneralScopes;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,13 +19,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property mixed year
  * @property mixed name
  * @property mixed inscriptions
+ *
  * @method onlyTrashedRelations()
  */
 class CompetitionGroup extends Model
 {
-    use SoftDeletes;
     use GeneralScopes;
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'competition_groups';
 
@@ -34,7 +36,7 @@ class CompetitionGroup extends Model
         'tournament_id',
         'user_id',
         'category',
-        'school_id'
+        'school_id',
     ];
 
     protected $casts = [
@@ -43,18 +45,23 @@ class CompetitionGroup extends Model
 
     protected $appends = [
         'full_name_group',
-        'url_format_match'
+        'url_format_match',
     ];
 
     protected $withCount = [
-        'inscriptions'
+        'inscriptions',
     ];
+
+    protected static function booted(): void
+    {
+        self::observe(CompetitionGroupObserver::class);
+    }
 
     public function scopeOnlyTrashedRelations($query)
     {
         return $query->with([
             'tournament',
-            'professor' => fn($query) => $query->withTrashed()->get()
+            'professor' => fn ($query) => $query->withTrashed()->get(),
         ])->onlyTrashed();
     }
 

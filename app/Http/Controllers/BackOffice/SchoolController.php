@@ -13,14 +13,10 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\ValidationException;
 
 class SchoolController extends Controller
 {
-
     private SchoolRepository $repository;
 
     public function __construct(SchoolRepository $repository)
@@ -39,12 +35,14 @@ class SchoolController extends Controller
     public function store(SchoolCreateRequest $request, RegisterService $registerService): JsonResponse
     {
         abort_unless($request->ajax(), 404);
+
         return response()->json($registerService->createUserSchoolUsesCase($request));
     }
 
     public function show(School $school, Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 404);
+
         return response()->json($school);
     }
 
@@ -53,6 +51,7 @@ class SchoolController extends Controller
         abort_unless($request->ajax(), 404);
 
         $school = $this->repository->update($request, $school);
+
         return response()->json($school->isDirty());
     }
 
@@ -63,16 +62,16 @@ class SchoolController extends Controller
 
     public function infoCampus(Request $request)
     {
-        abort_unless($request->ajax(), 404);
-
         $response = $this->repository->checkSchoolCampus();
+
         return response()->json($response, 200);
     }
 
     public function choose(Request $request): JsonResponse
     {
-        abort_unless($request->ajax(), 404);
+        $request->validate(['school_id' => ['required', 'integer', 'exists:schools,id']]);
         $success = $this->repository->chooseSchool();
-        return response()->json($success, $success ? 200 : 500);
+
+        return response()->json($success);
     }
 }

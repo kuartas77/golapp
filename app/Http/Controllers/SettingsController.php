@@ -9,6 +9,7 @@ use App\Models\Tournament;
 use App\Models\TrainingGroup;
 use App\Repositories\CompetitionGroupRepository;
 use App\Repositories\TrainingGroupRepository;
+use App\Service\Groups\GroupCatalogCache;
 use App\Traits\Commons;
 use Closure;
 use Illuminate\Support\Facades\Cache;
@@ -20,7 +21,8 @@ class SettingsController extends Controller
 
     public function __construct(
         private TrainingGroupRepository $trainingGroupRepository,
-        private CompetitionGroupRepository $competitionGroupRepository
+        private CompetitionGroupRepository $competitionGroupRepository,
+        private GroupCatalogCache $groupCatalogCache,
     ) {
         //
     }
@@ -42,15 +44,21 @@ class SettingsController extends Controller
         $school_id = $school->id;
         $user_id = auth()->id();
 
-        $training_groups = Cache::remember("KEY_TRAINING_GROUPS_{$school_id}.{$user_id}", now()->addMinutes(5), function () {
-            $filter = Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);
-            if (isSchool() || isAdmin()) {
-                return $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, filter: $filter);
-            } else {
+        $instructorId = isInstructor() ? $user_id : null;
+        $training_groups = $this->groupCatalogCache->remember(
+            GroupCatalogCache::TRAINING,
+            $school_id,
+            'settings',
+            function () use ($school_id, $instructorId) {
+                $filter = Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);
 
-                return $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, user_id: auth()->id(), filter: $filter);
-            }
-        });
+                return $this->trainingGroupRepository->getListGroupsSchedule(
+                    deleted: false,
+                    user_id: $instructorId,
+                    filter: $filter,
+                    schoolId: $school_id,
+                );
+            }, $instructorId);
 
         $firstGroup = TrainingGroup::orderBy('id')->firstWhere('school_id', $school_id);
         $allGroups = collect($training_groups->all());
@@ -83,10 +91,12 @@ class SettingsController extends Controller
         $optionsAssist = $this->rememberConfigOptions('KEY_ASSIST', now()->addYear(), 'KEY_ASSIST');
         $optionsPayment = $this->rememberConfigOptions('KEY_PAYMENTS_SELECT', now()->addYear(), 'KEY_PAYMENTS_SELECT');
 
-        $competition_groups = Cache::remember(
-            "KEY_COMPETITION_GROUPS_{$school_id}.{$user_id}",
-            now()->addMinutes(5),
-            fn () => $this->competitionGroupRepository->getListGroupFullName()
+        $competition_groups = $this->groupCatalogCache->remember(
+            GroupCatalogCache::COMPETITION,
+            $school_id,
+            'settings',
+            fn () => $this->competitionGroupRepository->getListGroupFullName($school_id, $instructorId),
+            $instructorId,
         );
 
         $inscription_years = Cache::remember(
@@ -122,6 +132,7 @@ class SettingsController extends Controller
             'type_assistance' => $optionsAssist,
             'type_payments' => $optionsPayment,
             'settings' => $school->settings,
+            'current_school_id' => $school_id,
         ]);
     }
 

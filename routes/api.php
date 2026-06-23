@@ -121,6 +121,7 @@ Route::prefix('v2')->group(function () {
 
         Route::prefix('admin')->group(function () {
             Route::get('info_campus', [BackOfficeShoolController::class, 'infoCampus']);
+            Route::post('change_school', [BackOfficeShoolController::class, 'choose']);
         });
 
         Route::prefix('admin')->middleware(['role:super-admin|school'])->group(function () {
@@ -161,8 +162,6 @@ Route::prefix('v2')->group(function () {
                 Route::get('competition-groups/board', [GroupAssignmentController::class, 'competitionBoard']);
                 Route::post('competition-groups/move', [GroupAssignmentController::class, 'moveCompetition']);
             });
-
-            Route::post('change_school', [BackOfficeShoolController::class, 'choose']);
 
             Route::middleware(['role:super-admin'])->group(function () {
                 Route::get('schools/options', [SchoolController::class, 'options']);

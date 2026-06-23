@@ -36,6 +36,7 @@ const optionListToMap = (value) => normalizeOptionList(value).reduce((accumulato
 export const useSetting = defineStore('settings-store', {
     persist: true,
     state: () => ({
+        current_school_id: null,
         all_groups: [],
         groups: [],
         categories: [],
@@ -73,6 +74,13 @@ export const useSetting = defineStore('settings-store', {
         async getSettings()  {
             const response = await api.get('/api/v2/settings/general')
             const data = response?.data ?? {}
+            const incomingSchoolId = data.current_school_id == null ? null : String(data.current_school_id)
+
+            if (this.current_school_id != null && incomingSchoolId != null && String(this.current_school_id) !== incomingSchoolId) {
+                this.$reset()
+            }
+
+            this.current_school_id = incomingSchoolId
 
             this.all_groups = toArray(data.all_t_groups)
             this.groups = toArray(data.t_groups)

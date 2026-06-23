@@ -1,30 +1,30 @@
 <?php
 
-
 namespace App\Http\ViewComposers\Inscription;
 
-
-use Closure;
-use App\Models\School;
-use App\Traits\Commons;
+use App\Http\ViewComposers\Payments\PaymentsViewComposer;
 use App\Models\Inscription;
+use App\Models\School;
 use App\Models\TrainingGroup;
-use Illuminate\Support\Facades\DB;
+use App\Repositories\CompetitionGroupRepository;
+use App\Repositories\TrainingGroupRepository;
+use App\Service\Groups\GroupCatalogCache;
+use App\Traits\Commons;
+use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use App\Repositories\TrainingGroupRepository;
-use App\Repositories\CompetitionGroupRepository;
-use App\Http\ViewComposers\Payments\PaymentsViewComposer;
+use Illuminate\Support\Facades\DB;
 
 class InscriptionCreateComposer
 {
     use Commons;
 
     private TrainingGroupRepository $trainingGroupRepository;
+
     private CompetitionGroupRepository $competitionGroupRepository;
 
-    public function __construct(TrainingGroupRepository $trainingGroupRepository, CompetitionGroupRepository $competitionGroupRepository)
+    public function __construct(TrainingGroupRepository $trainingGroupRepository, CompetitionGroupRepository $competitionGroupRepository, private GroupCatalogCache $groupCatalogCache)
     {
         $this->trainingGroupRepository = $trainingGroupRepository;
         $this->competitionGroupRepository = $competitionGroupRepository;
@@ -36,8 +36,7 @@ class InscriptionCreateComposer
 
             $school_id = getSchool(auth()->user())->id;
 
-
-            $provitionalGroup = Cache::remember("PROVITIONAL_GROUP_{$school_id}", now()->addMonth(), function() use($school_id){
+            $provitionalGroup = $this->groupCatalogCache->remember(GroupCatalogCache::TRAINING, $school_id, 'provisional', function () use ($school_id) {
                 return TrainingGroup::query()->orderBy('id')->firstWhere('school_id', $school_id);
             });
 
@@ -65,37 +64,55 @@ class InscriptionCreateComposer
                 return config('variables.KEY_RELATIONSHIPS_SELECT');
             });
 
-            $training_groups = Cache::remember("KEY_TRAINING_GROUPS_{$school_id}", now()->addMinutes(5), function () {
+            $instructorId = isInstructor() ? auth()->id() : null;
+            $training_groups = $this->groupCatalogCache->remember(GroupCatalogCache::TRAINING, $school_id, 'inscription-options', function () use ($school_id, $instructorId) {
                 $filter = Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);
-                return $this->trainingGroupRepository->getListGroupsSchedule(deleted: false, filter: $filter)->pluck('full_schedule_group', 'id');
+
+                return $this->trainingGroupRepository->getListGroupsSchedule(false, $instructorId, $filter, $school_id)->pluck('full_schedule_group', 'id');
+            }, $instructorId);
+
+            $competition_groups = $this->groupCatalogCache->remember(
+                GroupCatalogCache::COMPETITION,
+                $school_id,
+                'inscription-options',
+                fn () => $this->competitionGroupRepository->getListGroupFullName($school_id, $instructorId),
+                $instructorId,
+            );
+
+            $inscription_years = Cache::remember("KEY_INSCRIPTION_YEARS_{$school_id}", now()->addMinutes(5), function () use ($school_id) {
+                return Inscription::query()->where('school_id', $school_id)->distinct('year')->orderBy('year', 'desc')->pluck('year', 'year');
             });
 
-            $competition_groups = Cache::remember("KEY_COMPETITION_GROUPS_{$school_id}", now()->addMinutes(5), function () {
-                return $this->competitionGroupRepository->getListGroupFullName();
-            });
-
-            $inscription_years = Cache::remember("KEY_INSCRIPTION_YEARS_{$school_id}", now()->addMinutes(5), function () use($school_id) {
-                return Inscription::query()->where('school_id', $school_id)->distinct('year')->orderBy('year','desc')->pluck('year', 'year');
-            });
-
-            $categories = Cache::remember("KEY_CATEGORIES_SELECT_{$school_id}", now()->addMinutes(5), function() use($school_id){
+            $categories = Cache::remember("KEY_CATEGORIES_SELECT_{$school_id}", now()->addMinutes(5), function () use ($school_id) {
                 return DB::table('inscriptions')->where('school_id', $school_id)->where('year', now()->year)->orderBy('category')->groupBy('category')->select(['category'])->get();
             });
 
-            $training_groups_arr = Cache::remember("KEY_TRAINING_GROUPS_ARR_{$school_id}", now()->addMinutes(5), function () {
-                return TrainingGroup::schoolId()->select(['id', 'name'])->where('year_active', now()->year)->get();
-            });
+            $training_groups_arr = $this->groupCatalogCache->remember(
+                GroupCatalogCache::TRAINING,
+                $school_id,
+                'inscription-array',
+                fn () => TrainingGroup::query()
+                    ->where('school_id', $school_id)
+                    ->when($instructorId, fn ($query) => $query->whereRelation('instructors', function ($query) use ($instructorId): void {
+                        $query->where('training_group_user.user_id', $instructorId)
+                            ->where('assigned_year', now()->year);
+                    }))
+                    ->select(['id', 'name'])
+                    ->where('year_active', now()->year)
+                    ->get(),
+                $instructorId,
+            );
 
-            $document_types = Cache::remember('KEY_DOCUMENT_TYPES', now()->addYear(), fn() => config('variables.KEY_DOCUMENT_TYPES'));
+            $document_types = Cache::remember('KEY_DOCUMENT_TYPES', now()->addYear(), fn () => config('variables.KEY_DOCUMENT_TYPES'));
 
-            $jornada = Cache::remember('KEY_JORNADA_TYPES', now()->addYear(), fn() => config('variables.KEY_JORNADA'));
+            $jornada = Cache::remember('KEY_JORNADA_TYPES', now()->addYear(), fn () => config('variables.KEY_JORNADA'));
 
             $schools = [];
             if (isAdmin()) {
                 $schools = School::query()->pluck('name', 'id');
             }
 
-            $firstGroup = Cache::remember('PROVISIONAL_GROUP_'.$school_id, now()->addYear(), fn () => TrainingGroup::orderBy('id')->firstWhere('school_id', $school_id));
+            $firstGroup = $provitionalGroup;
 
             if (request()->routeIs('inscriptions.index')) {
                 $training_groups_arr->push($firstGroup);
@@ -121,5 +138,4 @@ class InscriptionCreateComposer
             $view->with('provitional_group', $provitionalGroup);
         }
     }
-
 }
