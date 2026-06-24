@@ -575,11 +575,11 @@ const emptyDataTableResponse = (draw = 0) => ({
 })
 
 const columns = [
-    { data: 'title', title: 'Título', name: 'title' },
-    { data: 'creator_name', title: 'Creado por', name: 'creator_name' },
-    { data: 'training_group_name', title: 'Grupo', name: 'training_group_name' },
-    { data: 'created_at', title: 'Creado', name: 'created_at' },
-    { data: 'id', title: 'Opciones', searchable: false, orderable: false, render: '#actions' },
+    { data: 'title', name: 'title' },
+    { data: 'creator_name', name: 'creator_name', orderable: false },
+    { data: 'training_group_name', name: 'training_group_name', orderable: false },
+    { data: 'created_at', name: 'created_at' },
+    { data: 'id', searchable: false, orderable: false, render: '#actions' },
 ]
 
 const options = {
