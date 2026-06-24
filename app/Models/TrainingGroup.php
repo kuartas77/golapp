@@ -135,26 +135,15 @@ class TrainingGroup extends Model
 
     private function nameGroup(bool $full = false): string
     {
-        $categories = implode(',', $this->category);
+        $name = filled($this->stage)
+            ? sprintf('%s - %s', $this->name, $this->stage)
+            : (string) $this->name;
 
-        if ($this->name !== 'Provisional') {
-
-            // $optional = ($this->year_active ?? implode(', ', $this->explode_days));
-
-            $var = filled($categories)
-                ? sprintf('%s - (%s)', $this->name, $categories)
-                : (string) $this->name;
-
-            if ($full) {
-                $var .= sprintf(' %s %s', $this->days, $this->schedules);
-            }
-        } else {
-            $var = filled($categories)
-                ? sprintf('%s (%s)', $this->name, $categories)
-                : (string) $this->name;
+        if ($full && $this->name !== 'Provisional') {
+            $name .= sprintf(' %s %s', $this->days, $this->schedules);
         }
 
-        return trim($var);
+        return trim($name);
     }
 
     public function getFullScheduleGroupAttribute(): string

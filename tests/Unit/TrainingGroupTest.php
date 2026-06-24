@@ -26,7 +26,7 @@ class TrainingGroupTest extends TestCase
         $this->assertStringNotContainsString('()', $group->full_schedule_group);
     }
 
-    public function testTrainingGroupWithCategoriesKeepsExistingLabelFormat(): void
+    public function testTrainingGroupCategoriesAreNotIncludedInLabels(): void
     {
         $group = new TrainingGroup();
         $group->setRawAttributes([
@@ -37,7 +37,25 @@ class TrainingGroupTest extends TestCase
         ]);
 
         $this->assertSame(['SUB-13', 'SUB-15'], $group->category);
-        $this->assertSame('Grupo Avanzado - (SUB-13,SUB-15)', $group->full_group);
-        $this->assertSame('Grupo Avanzado - (SUB-13,SUB-15) Lunes 08:00 AM - 09:00 AM', $group->full_schedule_group);
+        $this->assertSame('Grupo Avanzado', $group->full_group);
+        $this->assertSame('Grupo Avanzado Lunes 08:00 AM - 09:00 AM', $group->full_schedule_group);
+    }
+
+    public function testTrainingGroupLabelsIncludeStageWhenPresent(): void
+    {
+        $group = new TrainingGroup();
+        $group->setRawAttributes([
+            'name' => 'Grupo Avanzado',
+            'stage' => 'Cancha Norte',
+            'category' => 'SUB-13,SUB-15',
+            'days' => 'Lunes',
+            'schedules' => '08:00 AM - 09:00 AM',
+        ]);
+
+        $this->assertSame('Grupo Avanzado - Cancha Norte', $group->full_group);
+        $this->assertSame(
+            'Grupo Avanzado - Cancha Norte Lunes 08:00 AM - 09:00 AM',
+            $group->full_schedule_group
+        );
     }
 }

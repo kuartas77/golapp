@@ -223,7 +223,7 @@ const resetFormState = () => {
 
 const schema = yup.object().shape({
     name: yup.string().required(),
-    stage: yup.string(),
+    stage: yup.string().nullable(),
     year_active: yup.mixed().required(),
     days: yup
         .array()

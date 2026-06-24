@@ -174,6 +174,43 @@ final class AdminGroupCatalogsTest extends TestCase
             ->assertJsonValidationErrors('days');
     }
 
+    public function test_training_group_stage_is_optional_when_creating_and_updating(): void
+    {
+        $payload = [
+            'name' => 'Grupo Sin Escenario',
+            'users_id' => [$this->user->id],
+            'categories' => [],
+            'schedules' => ['07:00AM - 08:00AM'],
+            'days' => ['Lunes', 'Miércoles'],
+            'year_active' => now()->year,
+        ];
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/training_groups', $payload)
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $trainingGroup = TrainingGroup::query()
+            ->where('school_id', $this->school['id'])
+            ->where('name', 'Grupo Sin Escenario')
+            ->firstOrFail();
+
+        $this->assertNull($trainingGroup->stage);
+
+        $this->actingAs($this->user)
+            ->putJson("/api/v2/admin/training_groups/{$trainingGroup->id}", array_merge($payload, [
+                'name' => 'Grupo Sin Escenario Editado',
+            ]))
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('training_groups', [
+            'id' => $trainingGroup->id,
+            'name' => 'Grupo Sin Escenario Editado',
+            'stage' => null,
+        ]);
+    }
+
     public function test_training_group_creation_clears_school_group_cache_keys(): void
     {
         $schoolId = $this->school['id'];
