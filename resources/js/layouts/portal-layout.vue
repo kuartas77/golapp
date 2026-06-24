@@ -11,9 +11,9 @@
                     <router-link :to="{ name: 'guardian-login' }" class="btn btn-outline-primary">
                         Ingreso Acudiente
                     </router-link>
-                    <a href="/login" class="btn btn-primary">
+                    <router-link :to="{ name: 'login' }" class="btn btn-primary">
                         Ingreso Escuela
-                    </a>
+                    </router-link>
                 </nav>
             </div>
         </header>

@@ -34,6 +34,9 @@ use Illuminate\Support\Facades\Route;
 
 // Route::get('/', fn() => redirect('login'));
 
+// Compatibilidad con enlaces y sesiones antiguas que todavia apuntan a /login.
+Route::redirect('/login', '/ingreso')->name('login');
+
 Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
 
 Route::middleware(['auth', 'verified_school'])->group(function () {

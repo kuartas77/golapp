@@ -30,6 +30,10 @@ const routes = [
         ]
     },
     {
+        path: '/login',
+        redirect: { name: 'login' },
+    },
+    {
         path: '/ingreso',
         component: () => import('@/layouts/auth-layout.vue'),
         meta: { guest: true },

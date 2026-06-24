@@ -5,6 +5,27 @@ import { useAuthUser } from '@/store/auth-user'
 import * as yup from 'yup'
 import api from '@/utils/axios'
 
+const DEFAULT_LOGIN_REDIRECT = '/inicio'
+
+export const resolvePostLoginRedirect = (router, redirect) => {
+    if (typeof redirect !== 'string' || !redirect.startsWith('/') || redirect.startsWith('//')) {
+        return DEFAULT_LOGIN_REDIRECT
+    }
+
+    try {
+        const target = router.resolve(redirect)
+        const returnsToAuthScreen = target.matched.some(routeRecord => routeRecord.meta?.guest)
+
+        if (target.matched.length === 0 || returnsToAuthScreen) {
+            return DEFAULT_LOGIN_REDIRECT
+        }
+
+        return target.fullPath
+    } catch {
+        return DEFAULT_LOGIN_REDIRECT
+    }
+}
+
 
 export default function useFormLogin() {
     const storeAuth = useAuthUser()
@@ -29,10 +50,10 @@ export default function useFormLogin() {
 
     const handleLogin = async (values, actions) => {
         try {
-            const redirect = route.query.redirect || "/inicio"
+            const redirect = resolvePostLoginRedirect(router, route.query.redirect)
             let credentials = { email: values.email, password: values.password }
             await storeAuth.login(credentials)
-            router.push(redirect)
+            await router.replace(redirect)
         } catch (error) {
             proxy.$handleBackendErrors(error, actions.setErrors, (msg) => (globalError.value = msg))
         }

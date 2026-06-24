@@ -35,6 +35,6 @@ class VerifySchool
 
         Alert::error(config('app.name'), __('messages.schools_dissabled'));
 
-        return redirect('login');
+        return redirect()->route('login');
     }
 }

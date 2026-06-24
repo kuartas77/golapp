@@ -31,9 +31,9 @@
                             <router-link :to="{ name: 'guardian-login' }" class="btn btn-outline-primary">
                                 Ingreso acudiente
                             </router-link>
-                            <a href="/login" class="btn btn-primary">
+                            <router-link :to="{ name: 'login' }" class="btn btn-primary">
                                 Ingreso escuela
-                            </a>
+                            </router-link>
                         </template>
                     </nav>
                 </div>
