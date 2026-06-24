@@ -10,7 +10,7 @@ const routes = [
     {
         path: '/portal/acudientes',
         component: () => import('@/layouts/guardian-layout.vue'),
-        meta: { guardianArea: true },
+        meta: { guardianArea: true, forceLightTheme: true },
         children: [
             { path: '', name: 'guardian-dashboard', component: () => import('@/pages/portal/guardians/GuardianDashboard.vue'), meta: { requiresGuardian: true, guardianArea: true } },
             { path: 'login', name: 'guardian-login', component: () => import('@/pages/portal/guardians/GuardianLogin.vue'), meta: { guardianGuest: true, guardianArea: true } },
@@ -22,7 +22,7 @@ const routes = [
     {
         path: '/portal',
         component: () => import('@/layouts/portal-layout.vue'),
-        meta: { public: true },
+        meta: { public: true, forceLightTheme: true },
         children: [
             { path: '', redirect: { name: 'guardian-login' } },
             // { path: 'escuelas', name: 'portal-school-index', component: () => import('@/pages/portal/PortalSchoolsIndex.vue'), meta: { public: true } },
@@ -327,12 +327,19 @@ const router = new createRouter({
     },
 });
 
+const syncThemeForRoute = (to, appState) => {
+    const forceLightTheme = to.matched.some(route => route.meta.forceLightTheme);
+
+    document.body.classList.toggle('dark', !forceLightTheme && appState.is_dark_mode);
+};
+
 router.beforeEach(async (to, from, next) => {
     const userStore = useAuthUser();
     const guardianStore = useGuardianAuth();
     const appState = useAppState();
     const isGuardianRoute = to.matched.some(r => r.meta.guardianArea);
 
+    syncThemeForRoute(to, appState);
     appState.startNavigationLoading();
 
     if (isGuardianRoute) {

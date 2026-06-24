@@ -370,6 +370,61 @@ describe('PortalSchoolInscriptionModal', () => {
         expect(stepTitles.join(' ')).toContain('Documentos');
     });
 
+    it('acepta aliases MIME y exige una extension permitida para los documentos', async () => {
+        const { wrapper } = await mountModal({
+            school: {
+                send_documents: true,
+            },
+        });
+
+        await setWizardStep(wrapper, 3);
+
+        const playerDocumentInput = wrapper.get('input[name="player_document"]');
+        expect(playerDocumentInput.attributes('accept')).toContain('.pdf');
+        expect(playerDocumentInput.attributes('accept')).toContain('application/x-pdf');
+
+        await setFileValue(
+            wrapper,
+            'player_document',
+            new File(['pdf'], 'documento.pdf', { type: 'application/x-pdf' })
+        );
+
+        expect(wrapper.text()).not.toContain('El documento de identidad del deportista debe estar en formato');
+
+        await setFileValue(
+            wrapper,
+            'player_document',
+            new File(['pdf'], 'documento.exe', { type: 'application/pdf' })
+        );
+        expect(await wrapper.getComponent({ name: 'Wizard' }).props('options').onFinishing()).toBe(false);
+        await flushPromises();
+
+        expect(wrapper.text()).toContain('El documento de identidad del deportista debe estar en formato JPG, JPEG, PNG o PDF.');
+    });
+
+    it('rechaza en frontend documentos que superan tres megabytes', async () => {
+        const { wrapper } = await mountModal({
+            school: {
+                send_documents: true,
+            },
+        });
+
+        await setWizardStep(wrapper, 3);
+        await setFileValue(
+            wrapper,
+            'player_document',
+            new File(
+                [new Uint8Array((3 * 1024 * 1024) + 1)],
+                'documento.pdf',
+                { type: 'application/pdf' }
+            )
+        );
+        expect(await wrapper.getComponent({ name: 'Wizard' }).props('options').onFinishing()).toBe(false);
+        await flushPromises();
+
+        expect(wrapper.text()).toContain('El documento de identidad del deportista no puede superar 3 MB.');
+    });
+
     it('solo exige el contrato de inscripcion cuando affiliate no esta disponible', async () => {
         const { wrapper } = await mountModal({
             school: {
@@ -672,9 +727,9 @@ describe('PortalSchoolInscriptionModal', () => {
 
         await setWizardStep(wrapper, 4);
 
-        const playerDocument = new File(['player'], 'player.pdf', { type: 'application/pdf' });
-        const medicalCertificate = new File(['medical'], 'medical.pdf', { type: 'application/pdf' });
-        const tutorDocument = new File(['tutor'], 'tutor.pdf', { type: 'application/pdf' });
+        const playerDocument = new File(['player'], 'player.pdf', { type: 'application/x-pdf' });
+        const medicalCertificate = new File(['medical'], 'medical.jpg', { type: 'image/pjpeg' });
+        const tutorDocument = new File(['tutor'], 'tutor.png', { type: 'application/octet-stream' });
         const paymentReceipt = new File(['payment'], 'payment.pdf', { type: 'application/pdf' });
 
         await setFileValue(wrapper, 'player_document', playerDocument);

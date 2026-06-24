@@ -9,11 +9,35 @@ use App\Models\People;
 use App\Models\Player;
 use App\Models\School;
 use App\Models\Setting;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 final class PortalSchoolsTest extends TestCase
 {
-    public function testPortalSchoolIndexOnlyListsSchoolsWithEnabledInscriptions(): void
+    private array $temporaryUploads = [];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'recaptchav3.sitekey' => null,
+            'recaptchav3.secret' => null,
+        ]);
+    }
+
+    protected function tearDown(): void
+    {
+        foreach ($this->temporaryUploads as $path) {
+            @unlink($path);
+        }
+
+        parent::tearDown();
+    }
+
+    public function test_portal_school_index_only_lists_schools_with_enabled_inscriptions(): void
     {
         $visibleSchool = $this->createSchool([
             'name' => 'Escuela Visible',
@@ -42,7 +66,7 @@ final class PortalSchoolsTest extends TestCase
         $this->assertFalse($listedSlugs->contains($hiddenSchool['slug']));
     }
 
-    public function testPortalInscriptionStoreIsBlockedWhenSchoolHasInscriptionsDisabled(): void
+    public function test_portal_inscription_store_is_blocked_when_school_has_inscriptions_disabled(): void
     {
         $school = $this->createSchool([
             'name' => 'Escuela Sin Inscripciones',
@@ -63,7 +87,7 @@ final class PortalSchoolsTest extends TestCase
         $this->assertDatabaseCount('inscriptions', 0);
     }
 
-    public function testPortalInscriptionStoreIsBlockedWhenSchoolReachedYearLimit(): void
+    public function test_portal_inscription_store_is_blocked_when_school_reached_year_limit(): void
     {
         config([
             'recaptchav3.sitekey' => null,
@@ -106,7 +130,7 @@ final class PortalSchoolsTest extends TestCase
         ]);
     }
 
-    public function testPortalAllowsRegisteringTwoPlayersWithTheSameGuardian(): void
+    public function test_portal_allows_registering_two_players_with_the_same_guardian(): void
     {
         config([
             'recaptchav3.sitekey' => null,
@@ -145,7 +169,7 @@ final class PortalSchoolsTest extends TestCase
         $this->assertSame(2, $guardian->players()->count());
     }
 
-    public function testPortalRejectsGuardianEmailRegisteredWithAnotherDocument(): void
+    public function test_portal_rejects_guardian_email_registered_with_another_document(): void
     {
         config([
             'recaptchav3.sitekey' => null,
@@ -181,6 +205,98 @@ final class PortalSchoolsTest extends TestCase
         $response->assertJsonValidationErrors(['tutor_email']);
     }
 
+    public function test_portal_accepts_real_jpeg_png_and_pdf_documents(): void
+    {
+        Notification::fake();
+        Storage::fake('local');
+
+        $school = $this->createSchool([
+            'slug' => 'escuela-documentos-validos',
+            'is_enable' => true,
+            'inscriptions_enabled' => true,
+            'send_documents' => true,
+        ]);
+
+        $response = $this->withHeader('Accept', 'application/json')->post(
+            route('portal.school.inscription.store', [$school['slug']]),
+            array_merge($this->portalInscriptionPayload($school['slug']), $this->validPortalDocuments())
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('players', [
+            'identification_document' => '1002003004',
+            'school_id' => $school['id'],
+        ]);
+    }
+
+    public function test_portal_requires_documents_when_school_enables_document_uploads(): void
+    {
+        $school = $this->createSchool([
+            'slug' => 'escuela-documentos-obligatorios',
+            'is_enable' => true,
+            'inscriptions_enabled' => true,
+            'send_documents' => true,
+        ]);
+
+        $response = $this->postJson(
+            route('portal.school.inscription.store', [$school['slug']]),
+            $this->portalInscriptionPayload($school['slug'])
+        );
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors([
+            'player_document',
+            'medical_certificate',
+            'tutor_document',
+        ]);
+    }
+
+    public function test_portal_rejects_renamed_content_that_is_not_a_real_pdf(): void
+    {
+        $school = $this->createSchool([
+            'slug' => 'escuela-documento-renombrado',
+            'is_enable' => true,
+            'inscriptions_enabled' => true,
+            'send_documents' => true,
+        ]);
+        $documents = $this->validPortalDocuments();
+        $documents['player_document'] = $this->uploadedFileWithContent(
+            'documento.pdf',
+            'Este contenido no es un PDF.'
+        );
+
+        $response = $this->withHeader('Accept', 'application/json')->post(
+            route('portal.school.inscription.store', [$school['slug']]),
+            array_merge($this->portalInscriptionPayload($school['slug']), $documents)
+        );
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['player_document']);
+    }
+
+    public function test_portal_rejects_documents_larger_than_three_megabytes(): void
+    {
+        $school = $this->createSchool([
+            'slug' => 'escuela-documento-pesado',
+            'is_enable' => true,
+            'inscriptions_enabled' => true,
+            'send_documents' => true,
+        ]);
+        $documents = $this->validPortalDocuments();
+        $documents['player_document'] = $this->fakePdf(
+            'documento-pesado.pdf',
+            (3 * 1024 * 1024) + 1
+        );
+
+        $response = $this->withHeader('Accept', 'application/json')->post(
+            route('portal.school.inscription.store', [$school['slug']]),
+            array_merge($this->portalInscriptionPayload($school['slug']), $documents)
+        );
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['player_document']);
+    }
+
     private function portalInscriptionPayload(string $schoolSlug): array
     {
         return [
@@ -214,5 +330,48 @@ final class PortalSchoolsTest extends TestCase
             'year' => now()->format('Y'),
             'slug' => $schoolSlug,
         ];
+    }
+
+    private function validPortalDocuments(): array
+    {
+        return [
+            'player_document' => $this->fakePdf('documento-deportista.pdf'),
+            'medical_certificate' => $this->fakeImage('certificado-medico.jpg', 'jpeg'),
+            'tutor_document' => $this->fakeImage('documento-acudiente.png', 'png'),
+        ];
+    }
+
+    private function fakePdf(string $name, int $minimumSize = 0): UploadedFile
+    {
+        $pdf = "%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF\n";
+
+        if ($minimumSize > strlen($pdf)) {
+            $pdf .= str_repeat(' ', $minimumSize - strlen($pdf));
+        }
+
+        return $this->uploadedFileWithContent($name, $pdf);
+    }
+
+    private function fakeImage(string $name, string $type): UploadedFile
+    {
+        $image = imagecreatetruecolor(10, 10);
+        ob_start();
+
+        $type === 'png' ? imagepng($image) : imagejpeg($image);
+
+        $contents = (string) ob_get_clean();
+        imagedestroy($image);
+
+        return $this->uploadedFileWithContent($name, $contents);
+    }
+
+    private function uploadedFileWithContent(string $name, string $contents): UploadedFile
+    {
+        $path = tempnam(sys_get_temp_dir(), 'portal-upload-');
+
+        file_put_contents($path, $contents);
+        $this->temporaryUploads[] = $path;
+
+        return new UploadedFile($path, $name, null, UPLOAD_ERR_OK, true);
     }
 }

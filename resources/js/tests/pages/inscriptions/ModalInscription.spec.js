@@ -92,18 +92,18 @@ const mountModal = async (
                         full_names: 'Jugador Demo',
                     },
                     start_date: '2026-04-10',
-                    scholarship: false,
-                    brother_payment: false,
+                    scholarship: '0',
+                    brother_payment: 'false',
                     monthly_payment_type: 'MONTHLY_PAYMENT_OPTION_1',
                     monthly_payment_amount: 55000,
                     training_group_id: 2,
                     competition_groups: [],
-                    photos: false,
-                    copy_identification_document: false,
-                    eps_certificate: false,
-                    medic_certificate: false,
-                    study_certificate: false,
-                    pre_inscription: false,
+                    photos: '0',
+                    copy_identification_document: 'false',
+                    eps_certificate: '0',
+                    medic_certificate: 'false',
+                    study_certificate: '0',
+                    pre_inscription: 'false',
                 },
             });
         }
@@ -205,6 +205,14 @@ describe('ModalInscription', () => {
         expect(handleChange).toHaveBeenNthCalledWith(1, true);
         expect(handleChange).toHaveBeenNthCalledWith(2, false);
         expect(currentPreInscription).toBe(false);
+    });
+
+    it('normalizes boolean values received as numbers and strings', async () => {
+        const wrapper = await mountModal();
+        const { normalizeBoolean } = wrapper.vm.$.setupState;
+
+        expect(['1', 'true', 'yes', 'on', 1, true].every(normalizeBoolean)).toBe(true);
+        expect(['0', 'false', 'no', 'off', 0, false, null, undefined].some(normalizeBoolean)).toBe(false);
     });
 
     it('opens explicitly in create mode', async () => {
@@ -312,6 +320,25 @@ describe('ModalInscription', () => {
         await flushPromises();
 
         expect(wrapper.vm.$.setupState.form.values.monthly_payment_type).toBe('MONTHLY_PAYMENT_OPTION_1');
+    });
+
+    it('keeps API boolean fields unchecked when they return false-like strings', async () => {
+        const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
+
+        await wrapper.setProps({ inscription_id: 1 });
+        await flushPromises();
+        await flushPromises();
+
+        expect(wrapper.vm.$.setupState.form.values).toMatchObject({
+            scholarship: false,
+            brother_payment: false,
+            photos: false,
+            copy_identification_document: false,
+            eps_certificate: false,
+            medic_certificate: false,
+            study_certificate: false,
+            pre_inscription: false,
+        });
     });
 
     it('shows configured monthly payment amounts and hides zero-value options', async () => {

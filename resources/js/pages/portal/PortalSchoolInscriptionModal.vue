@@ -40,7 +40,7 @@
                                             <InputFileImage
                                                 name="photo"
                                                 label="Foto tipo documento"
-                                                accept="image/png, image/jpeg"
+                                                :accept="photoFileAccept"
                                                 :default-preview="assets.defaultUserPhoto"
                                             />
                                         </div>
@@ -482,7 +482,7 @@
                                             <PortalFileInput
                                                 name="player_document"
                                                 label="Documento de identidad del deportista escaneado"
-                                                accept="image/png, image/jpeg, application/pdf"
+                                                :accept="documentFileAccept"
                                                 :required="true"
                                             />
                                         </div>
@@ -491,7 +491,7 @@
                                             <PortalFileInput
                                                 name="medical_certificate"
                                                 label="Certificado EPS escaneado"
-                                                accept="image/png, image/jpeg, application/pdf"
+                                                :accept="documentFileAccept"
                                                 :required="true"
                                             />
                                         </div>
@@ -502,7 +502,7 @@
                                             <PortalFileInput
                                                 name="tutor_document"
                                                 label="Documento de identidad del acudiente escaneado"
-                                                accept="image/png, image/jpeg, application/pdf"
+                                                :accept="documentFileAccept"
                                                 :required="true"
                                             />
                                         </div>
@@ -511,7 +511,7 @@
                                             <PortalFileInput
                                                 name="payment_receipt"
                                                 label="Adjunte recibo de consignación o transferencia (Opcional)"
-                                                accept="image/png, image/jpeg, application/pdf"
+                                                :accept="documentFileAccept"
                                             />
                                         </div>
                                     </div>
@@ -603,6 +603,29 @@ const props = defineProps({
 
 const FILE_FIELDS = ['photo', 'player_document', 'medical_certificate', 'tutor_document', 'payment_receipt'];
 const SIGNATURE_FIELDS = ['signatureTutor', 'signatureAlumno'];
+const PHOTO_FILE_EXTENSIONS = ['jpg', 'jpeg', 'png'];
+const PHOTO_FILE_MIME_TYPES = ['image/png', 'image/x-png', 'image/jpeg', 'image/pjpeg'];
+const DOCUMENT_FILE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'pdf'];
+const DOCUMENT_FILE_MIME_TYPES = [
+    'image/png',
+    'image/x-png',
+    'image/jpeg',
+    'image/pjpeg',
+    'application/pdf',
+    'application/acrobat',
+    'application/nappdf',
+    'application/x-pdf',
+    'image/pdf',
+];
+const GENERIC_FILE_MIME_TYPES = ['', 'application/octet-stream'];
+const photoFileAccept = [
+    ...PHOTO_FILE_EXTENSIONS.map((extension) => `.${extension}`),
+    ...PHOTO_FILE_MIME_TYPES,
+].join(',');
+const documentFileAccept = [
+    ...DOCUMENT_FILE_EXTENSIONS.map((extension) => `.${extension}`),
+    ...DOCUMENT_FILE_MIME_TYPES,
+].join(',');
 const LEGACY_CONTRACTS = {
     inscription: {
         code: 'inscription',
@@ -725,6 +748,33 @@ const maxBirthDateValue = new Date(today.getFullYear() - 3, today.getMonth(), to
 const minBirthDate = formatDate(minBirthDateValue);
 const maxBirthDate = formatDate(maxBirthDateValue);
 
+const fileExtension = (file) => {
+    const fileName = String(file?.name ?? '');
+    const extensionSeparator = fileName.lastIndexOf('.');
+
+    return extensionSeparator >= 0
+        ? fileName.slice(extensionSeparator + 1).toLowerCase()
+        : '';
+};
+
+const isAllowedDocumentFile = (file) => {
+    if (!DOCUMENT_FILE_EXTENSIONS.includes(fileExtension(file))) {
+        return false;
+    }
+
+    return GENERIC_FILE_MIME_TYPES.includes(file.type)
+        || DOCUMENT_FILE_MIME_TYPES.includes(file.type);
+};
+
+const isAllowedPhotoFile = (file) => {
+    if (!PHOTO_FILE_EXTENSIONS.includes(fileExtension(file))) {
+        return false;
+    }
+
+    return GENERIC_FILE_MIME_TYPES.includes(file.type)
+        || PHOTO_FILE_MIME_TYPES.includes(file.type);
+};
+
 const fileFieldSchema = (label, required = false, requiredMessage = `${label} es obligatorio.`) => {
     let schema = yup
         .mixed()
@@ -734,11 +784,7 @@ const fileFieldSchema = (label, required = false, requiredMessage = `${label} es
                 return true;
             }
 
-            return [
-                'image/png',
-                'image/jpeg',
-                'application/pdf',
-            ].includes(value.type);
+            return isAllowedDocumentFile(value);
         })
         .test('file-size', `${label} no puede superar ${props.fileSizeMb} MB.`, (value) => {
             if (!value) {
@@ -763,7 +809,7 @@ const photoFieldSchema = yup
             return true;
         }
 
-        return ['image/png', 'image/jpeg'].includes(value.type);
+        return isAllowedPhotoFile(value);
     })
     .test('file-size', `La foto no puede superar ${props.fileSizeMb} MB.`, (value) => {
         if (!value) {

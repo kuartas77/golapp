@@ -34,6 +34,51 @@
                 id="methodology-records-table"
                 :options="options"
             >
+                <template #thead>
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>
+                                <select
+                                    v-model="creatorFilter"
+                                    class="form-select form-select-sm methodology-table-filter"
+                                    aria-label="Filtrar por creador"
+                                    @change="applyColumnFilter(1, creatorFilter)"
+                                    @click.stop
+                                >
+                                    <option value="">Todos los creadores</option>
+                                    <option
+                                        v-for="creator in creatorOptions"
+                                        :key="creator.value"
+                                        :value="creator.value"
+                                    >
+                                        {{ creator.label }}
+                                    </option>
+                                </select>
+                            </th>
+                            <th>
+                                <select
+                                    v-model="trainingGroupFilter"
+                                    class="form-select form-select-sm methodology-table-filter"
+                                    aria-label="Filtrar por grupo de entrenamiento"
+                                    @change="applyColumnFilter(2, trainingGroupFilter)"
+                                    @click.stop
+                                >
+                                    <option value="">Todos los grupos</option>
+                                    <option
+                                        v-for="group in trainingGroupFilterOptions"
+                                        :key="group.value"
+                                        :value="group.value"
+                                    >
+                                        {{ group.label }}
+                                    </option>
+                                </select>
+                            </th>
+                            <th>Creado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                </template>
                 <template #actions="props">
                     <div class="d-flex justify-content-center gap-1">
                         <a
@@ -473,6 +518,9 @@ const modalInstance = ref(null)
 const table = useTemplateRef('table')
 const activeType = ref(METHODOLOGY_TYPES.planning)
 const groupOptions = ref([])
+const creatorOptions = ref([])
+const creatorFilter = ref('')
+const trainingGroupFilter = ref('')
 const isSaving = ref(false)
 const selectedId = ref(null)
 const formError = ref('')
@@ -499,6 +547,12 @@ const isPlanning = computed(() => activeType.value === METHODOLOGY_TYPES.plannin
 const isCharacterization = computed(() => activeType.value === METHODOLOGY_TYPES.characterizationSheet)
 const isMonthlyReport = computed(() => activeType.value === METHODOLOGY_TYPES.monthlyReport)
 const isCategoryMonthlyReport = computed(() => activeType.value === METHODOLOGY_TYPES.categoryMonthlyReport)
+const trainingGroupFilterOptions = computed(() => (
+    groupOptions.value.map((group) => ({
+        value: group.label,
+        label: group.label,
+    }))
+))
 
 const planningHeaderFields = [
     { key: 'category', label: 'Categoría' },
@@ -537,6 +591,12 @@ const options = {
     pipeline: { pages: 5 },
     deferRender: true,
     searchDelay: 400,
+    layout: {
+        topStart: 'pageLength',
+        topEnd: null,
+        bottomStart: 'info',
+        bottomEnd: 'paging',
+    },
     order: [[3, 'desc']],
     ajax: async (data, callback) => {
         try {
@@ -707,6 +767,28 @@ async function loadGroups() {
     }
 }
 
+async function loadCreators() {
+    if (authUser.hasRole('instructor')) {
+        creatorOptions.value = authenticatedUserName.value
+            ? [{ value: authenticatedUserName.value, label: authenticatedUserName.value }]
+            : []
+        return
+    }
+
+    try {
+        const response = await api.get('/api/v2/settings/groups')
+        const creators = (response.data.users ?? []).map((user) => ({
+            value: user.name,
+            label: user.name,
+        }))
+
+        creatorOptions.value = [...new Map(creators.map((creator) => [creator.value, creator])).values()]
+            .sort((first, second) => first.label.localeCompare(second.label))
+    } catch {
+        creatorOptions.value = []
+    }
+}
+
 async function selectType(type) {
     activeType.value = type
     selectedId.value = null
@@ -786,8 +868,19 @@ onMounted(async () => {
 
     await authUser.init({ silent: true, preserveStateOnError: true })
     resetForm()
-    await loadGroups()
+    await Promise.all([loadGroups(), loadCreators()])
 })
+
+function applyColumnFilter(columnIndex, value) {
+    const dt = table.value?.table?.dt
+
+    if (!dt) {
+        return
+    }
+
+    dt.clearPipeline()
+    dt.column(columnIndex).search(value).draw()
+}
 
 function reloadTable(resetPaging = false) {
     const dt = table.value?.table?.dt
@@ -801,6 +894,10 @@ function reloadTable(resetPaging = false) {
 
 <style scoped lang="scss">
 @use '@/assets/base/color_variables';
+
+.methodology-table-filter {
+    min-width: 170px;
+}
 
 .methodology-modal {
     --methodology-border: #{color_variables.$m-color_3};

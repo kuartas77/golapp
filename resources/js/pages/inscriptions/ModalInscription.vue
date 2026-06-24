@@ -141,7 +141,7 @@
                                                     id="pre_inscription"
                                                     type="checkbox"
                                                     class="custom-control-input"
-                                                    :checked="Boolean(value)"
+                                                    :checked="normalizeBoolean(value)"
                                                     @change="(event) => onPreInscriptionInput(event, handleChange)"
                                                 />
                                                 <label class="custom-control-label" for="pre_inscription">
@@ -436,6 +436,14 @@ const resolveMonthlyPaymentType = (type, brotherPayment = false) => {
 
 const normalizeTrainingGroupId = (value) => [null, '', undefined].includes(value) ? null : String(value)
 
+const normalizeBoolean = (value) => {
+    if (typeof value === 'string') {
+        return ['1', 'true', 'yes', 'on'].includes(value.trim().toLowerCase())
+    }
+
+    return value === true || value === 1
+}
+
 const normalizeVisibleTrainingGroupId = (value) => {
     const trainingGroupId = normalizeTrainingGroupId(value)
 
@@ -535,7 +543,7 @@ const loadInscriptionForEdit = async (inscriptionId) => {
         const visibleTrainingGroupId = normalizeVisibleTrainingGroupId(trainingGroupId)
 
         currentTrainingGroupId.value = trainingGroupId
-        currentPreInscription.value = Boolean(data.pre_inscription)
+        currentPreInscription.value = normalizeBoolean(data.pre_inscription)
         form.value.setValues({
             ...defaultValues(),
             id: data.id,
@@ -543,17 +551,17 @@ const loadInscriptionForEdit = async (inscriptionId) => {
             unique_code: data.unique_code,
             player_name: data.player.full_names,
             start_date: data.start_date,
-            scholarship: Boolean(data.scholarship),
-            brother_payment: Boolean(data.brother_payment),
+            scholarship: normalizeBoolean(data.scholarship),
+            brother_payment: normalizeBoolean(data.brother_payment),
             monthly_payment_type: resolveMonthlyPaymentType(data.monthly_payment_type, data.brother_payment),
             training_group_id: visibleTrainingGroupId,
             competition_groups: data.competition_groups ?? [],
-            photos: Boolean(data.photos),
-            copy_identification_document: Boolean(data.copy_identification_document),
-            eps_certificate: Boolean(data.eps_certificate),
-            medic_certificate: Boolean(data.medic_certificate),
-            study_certificate: Boolean(data.study_certificate),
-            pre_inscription: Boolean(data.pre_inscription),
+            photos: normalizeBoolean(data.photos),
+            copy_identification_document: normalizeBoolean(data.copy_identification_document),
+            eps_certificate: normalizeBoolean(data.eps_certificate),
+            medic_certificate: normalizeBoolean(data.medic_certificate),
+            study_certificate: normalizeBoolean(data.study_certificate),
+            pre_inscription: normalizeBoolean(data.pre_inscription),
         })
 
         composeModalInscription.value?.show()
@@ -752,20 +760,20 @@ const loadPlayerByUniqueCode = async (uniqueCode) => {
             player_id: data.id,
             player_name: data.full_names,
             start_date: reactivationInscription?.start_date || resolveDefaultStartDate(),
-            scholarship: Boolean(reactivationInscription?.scholarship),
-            brother_payment: Boolean(reactivationInscription?.brother_payment),
+            scholarship: normalizeBoolean(reactivationInscription?.scholarship),
+            brother_payment: normalizeBoolean(reactivationInscription?.brother_payment),
             monthly_payment_type: resolveMonthlyPaymentType(reactivationInscription?.monthly_payment_type, reactivationInscription?.brother_payment),
             training_group_id: normalizeVisibleTrainingGroupId(reactivationInscription?.training_group_id),
             competition_groups: reactivationInscription?.competition_groups ?? [],
-            photos: Boolean(reactivationInscription?.photos),
-            copy_identification_document: Boolean(reactivationInscription?.copy_identification_document),
-            eps_certificate: Boolean(reactivationInscription?.eps_certificate),
-            medic_certificate: Boolean(reactivationInscription?.medic_certificate),
-            study_certificate: Boolean(reactivationInscription?.study_certificate),
-            pre_inscription: Boolean(reactivationInscription?.pre_inscription),
+            photos: normalizeBoolean(reactivationInscription?.photos),
+            copy_identification_document: normalizeBoolean(reactivationInscription?.copy_identification_document),
+            eps_certificate: normalizeBoolean(reactivationInscription?.eps_certificate),
+            medic_certificate: normalizeBoolean(reactivationInscription?.medic_certificate),
+            study_certificate: normalizeBoolean(reactivationInscription?.study_certificate),
+            pre_inscription: normalizeBoolean(reactivationInscription?.pre_inscription),
         })
         currentTrainingGroupId.value = normalizeTrainingGroupId(reactivationInscription?.training_group_id)
-        currentPreInscription.value = Boolean(reactivationInscription?.pre_inscription)
+        currentPreInscription.value = normalizeBoolean(reactivationInscription?.pre_inscription)
     } catch (error) {
         reactivationCandidate.value = null
         currentTrainingGroupId.value = null
@@ -842,7 +850,7 @@ const onTrainingGroupChange = (value) => {
 }
 
 const onPreInscriptionChange = (value) => {
-    currentPreInscription.value = Boolean(value)
+    currentPreInscription.value = normalizeBoolean(value)
 }
 
 const onPreInscriptionInput = (event, handleChange) => {

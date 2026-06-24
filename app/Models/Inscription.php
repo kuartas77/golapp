@@ -87,6 +87,7 @@ class Inscription extends Model
     protected $casts = [
         'start_date' => "datetime:Y-m-d",
         'created_at' => "datetime:Y-m-d",
+        'scholarship' => 'boolean',
         'pre_inscription' => 'boolean',
         'brother_payment' => 'boolean',
         'monthly_payment_amount' => 'integer',
