@@ -20,6 +20,7 @@ export default function useMonthlyPayments() {
     const paymentTypeLabels = computed(() => settings.paymentTypeLabels)
     const selected_group = ref(null)
     const groupPayments = ref([])
+    const playerSearchTerm = ref('')
     const globalError = ref(null)
     const export_excel = ref(null)
     const export_pdf = ref(null)
@@ -64,11 +65,31 @@ export default function useMonthlyPayments() {
         12: 'december',
     }
     const paymentFieldNames = Object.values(paymentFields)
-    const retiredRowsCount = computed(() => groupPayments.value.filter((payPlayer) => Boolean(payPlayer.inscription_deleted)).length)
+    const normalizePlayerName = (value) => String(value ?? '')
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+        .toLocaleLowerCase()
+
+    const filteredGroupPayments = computed(() => {
+        const searchTerm = normalizePlayerName(playerSearchTerm.value.trim())
+
+        if (!searchTerm) {
+            return groupPayments.value
+        }
+
+        return groupPayments.value.filter((payPlayer) => normalizePlayerName(
+            payPlayer?.player?.full_names
+        ).includes(searchTerm))
+    })
+    const visiblePlayerCount = computed(() => filteredGroupPayments.value.length)
+    const retiredRowsCount = computed(() => filteredGroupPayments.value.filter(
+        (payPlayer) => Boolean(payPlayer.inscription_deleted)
+    ).length)
 
     const handleSearch = async (values, actions) => {
         try {
             groupPayments.value = []
+            playerSearchTerm.value = ''
             isLoading.value = true
             const params = {
                 category: values.category,
@@ -349,7 +370,7 @@ export default function useMonthlyPayments() {
     const statusPayConsignment = [10, 11]
     const statsDeb = [2]
 
-    watch(groupPayments, async (newValue) => {
+    watch(filteredGroupPayments, async (newValue) => {
         totalByType.value.cash = 0
         totalByType.value.consignment = 0
         totalByType.value.pay = 0
@@ -390,6 +411,9 @@ export default function useMonthlyPayments() {
         modelGroup,
         modelCategory,
         groupPayments,
+        playerSearchTerm,
+        filteredGroupPayments,
+        visiblePlayerCount,
         schema,
         formData,
         editingCell,

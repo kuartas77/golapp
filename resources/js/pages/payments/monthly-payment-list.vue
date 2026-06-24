@@ -111,10 +111,22 @@
                     </div>
                 </div>
 
+                <div v-if="groupPayments.length" class="col-md-4 col-lg-3 mb-2">
+                    <label for="player_search" class="sr-only">Buscar por nombre de deportista</label>
+                    <input
+                        id="player_search"
+                        v-model="playerSearchTerm"
+                        type="search"
+                        class="form-control form-control-sm"
+                        placeholder="Buscar por nombre de deportista"
+                        autocomplete="off"
+                    />
+                </div>
+
                 <div
-                    class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mb-2">
+                    class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto mb-2">
                     <div class="dt-info">
-                        Mostrando {{ player_count }} Deportistas.
+                        Mostrando {{ visiblePlayerCount }}<template v-if="playerSearchTerm.trim()"> de {{ player_count }}</template> Deportistas.
                     </div>
                 </div>
             </div>
@@ -126,7 +138,7 @@
             <div
                 ref="scrollContainer"
                 class="table-responsive"
-                :class="groupPayments.length ? 'scroll-container' : ''"
+                :class="filteredGroupPayments.length ? 'scroll-container' : ''"
                 data-tour="monthly-payments-table"
             >
                 <table class="table table-bordered table-sm dataTable align-middle text-center">
@@ -150,9 +162,9 @@
                     </thead>
 
                     <tbody>
-                        <template v-if="groupPayments.length">
+                        <template v-if="filteredGroupPayments.length">
 
-                            <tr v-for="(payPlayer, index) in groupPayments" :key="index">
+                            <tr v-for="payPlayer in filteredGroupPayments" :key="payPlayer.id">
                                 <td class="dt-head-center dt-body-center">
                                     <div class="media d-md-flex d-block text-sm-start text-center">
                                         <div class="media-aside align-self-start avatar avatar-sm me-1">
@@ -246,7 +258,7 @@
                         </template>
                     </tbody>
 
-                    <tfoot v-if="groupPayments.length">
+                    <tfoot v-if="filteredGroupPayments.length">
                         <tr>
                             <th class="dt-head-center dt-body-center">
                                 <span class="text-muted">Pagos Totales</span>
@@ -292,6 +304,9 @@ const {
     modelGroup,
     modelCategory,
     groupPayments,
+    playerSearchTerm,
+    filteredGroupPayments,
+    visiblePlayerCount,
     schema,
     formData,
     editingCell,

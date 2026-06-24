@@ -17,7 +17,7 @@
                                     </p>
 
                                     <div class="alert alert-info mb-0">
-                                        Puedes dejar el grupo vacío para generar el informe completo del año seleccionado.
+                                        Puedes dejar el grupo vacío para generar el informe de todos los grupos.
                                     </div>
                                 </div>
 
@@ -26,7 +26,7 @@
                                         {{ loadError }}
                                     </div>
 
-                                    <div class="row g-3 align-items-end">
+                                    <div class="row g-3 mb-4">
                                         <div class="col-md-4">
                                             <label class="form-label" for="debtor-report-year">Año</label>
                                             <CustomSelect2
@@ -37,7 +37,7 @@
                                                 placeholder="Selecciona un año" />
                                         </div>
 
-                                        <div class="col-md-4">
+                                        <div class="col-md-8">
                                             <label class="form-label" for="debtor-report-group">Grupo de entrenamiento</label>
                                             <CustomSelect2
                                                 id="debtor-report-group"
@@ -46,29 +46,50 @@
                                                 :disabled="isLoading"
                                                 placeholder="Todos los grupos" />
                                         </div>
+                                    </div>
 
-                                        <div class="col-md-2">
-                                            <div class="form-check mb-md-2">
-                                                <input
-                                                    id="debtor-report-total"
-                                                    v-model="form.show_total_debt"
-                                                    class="form-check-input"
-                                                    type="checkbox">
-                                                <label class="form-check-label" for="debtor-report-total">
-                                                    Mostrar total
-                                                </label>
+                                    <div class="card mb-4">
+                                        <div class="card-body py-3">
+                                            <h6 class="mb-3">Opciones del PDF</h6>
+
+                                            <div class="row g-3">
+                                                <div class="col-sm-6">
+                                                    <div class="form-check mb-0">
+                                                        <input
+                                                            id="debtor-report-item-amounts"
+                                                            v-model="form.show_item_amounts"
+                                                            class="form-check-input"
+                                                            type="checkbox">
+                                                        <label class="form-check-label" for="debtor-report-item-amounts">
+                                                            Mostrar valores por ítem
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-sm-6">
+                                                    <div class="form-check mb-0">
+                                                        <input
+                                                            id="debtor-report-total"
+                                                            v-model="form.show_total_debt"
+                                                            class="form-check-input"
+                                                            type="checkbox">
+                                                        <label class="form-check-label" for="debtor-report-total">
+                                                            Mostrar total general
+                                                        </label>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
+                                    </div>
 
-                                        <div class="col-md-2">
-                                            <button
-                                                type="button"
-                                                class="btn btn-primary w-100"
-                                                :disabled="isLoading || !exportUrl"
-                                                @click="exportPdf">
-                                                Exportar PDF
-                                            </button>
-                                        </div>
+                                    <div class="d-grid d-md-flex justify-content-md-end">
+                                        <button
+                                            type="button"
+                                            class="btn btn-primary px-4"
+                                            :disabled="isLoading || !exportUrl"
+                                            @click="exportPdf">
+                                            Exportar PDF
+                                        </button>
                                     </div>
                                 </div>
                             </div>

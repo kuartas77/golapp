@@ -36,6 +36,7 @@ class ReportDebtorController extends Controller
         $validated = $request->validate([
             'year' => ['required', 'integer'],
             'training_group_id' => ['nullable', 'integer'],
+            'show_item_amounts' => ['nullable', 'boolean'],
             'show_total_debt' => ['nullable', 'boolean'],
         ]);
 

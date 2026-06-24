@@ -506,6 +506,7 @@ const confirmCreate = async () => {
         text: "¡Puedes cancelar y verificar la factura!",
         icon: "warning",
         showCancelButton: true,
+        focusConfirm: true,
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
         confirmButtonText: "¡Sí, guardar!"

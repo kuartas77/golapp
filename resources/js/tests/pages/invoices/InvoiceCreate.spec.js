@@ -44,7 +44,7 @@ const mountPage = async () => {
     vi.stubGlobal('moneyFormat', (value) => `$${value}`);
     vi.stubGlobal('showMessage', vi.fn());
     vi.stubGlobal('Swal', {
-        fire: vi.fn(),
+        fire: vi.fn().mockResolvedValue({ isConfirmed: false }),
     });
 
     axiosMock.get.mockResolvedValue({
@@ -156,5 +156,16 @@ describe('InvoiceCreate', () => {
                 id: 55,
             },
         });
+    });
+
+    it('focuses the confirm button so the invoice can be saved with Enter', async () => {
+        const wrapper = await mountPage();
+
+        await wrapper.find('form').trigger('submit');
+
+        expect(window.Swal.fire).toHaveBeenCalledWith(expect.objectContaining({
+            focusConfirm: true,
+            confirmButtonText: '¡Sí, guardar!',
+        }));
     });
 });

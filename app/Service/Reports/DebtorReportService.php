@@ -169,6 +169,7 @@ class DebtorReportService
             'date' => $date,
             'year' => (int) data_get($filters, 'year', now()->year),
             'group' => $this->selectedGroupLabel($filters),
+            'showItemAmounts' => filter_var(data_get($filters, 'show_item_amounts', false), FILTER_VALIDATE_BOOLEAN),
             'showTotalDebt' => filter_var(data_get($filters, 'show_total_debt', false), FILTER_VALIDATE_BOOLEAN),
         ];
 

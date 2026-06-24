@@ -43,7 +43,7 @@
                 <td>&nbsp;{{ $row['student_name'] }}&nbsp;</td>
                 <td>&nbsp;{{ $row['category'] }}&nbsp;</td>
                 <td>
-                    &nbsp;{{ collect($row['debt_items'])->map(fn ($item) => $item['label'].($showTotalDebt ? ' ('.number_format($item['amount'], 0, ',', '.').')' : ''))->implode(', ') }}&nbsp;
+                    &nbsp;{{ collect($row['debt_items'])->map(fn ($item) => $item['label'].($showItemAmounts ? ' ('.number_format($item['amount'], 0, ',', '.').')' : ''))->implode(', ') }}&nbsp;
                 </td>
                 @if($showTotalDebt)
                     <td class="text-right">&nbsp;{{ number_format($row['total_debt'], 0, ',', '.') }}&nbsp;</td>

@@ -17,7 +17,7 @@ use Tests\TestCase;
 
 final class DebtorReportTest extends TestCase
 {
-    public function testDebtorReportOnlyShowsDebtItemAmountsWhenTotalsAreEnabled(): void
+    public function testDebtorReportControlsItemAmountsAndGeneralTotalsIndependently(): void
     {
         $data = [
             'school' => (object) [
@@ -42,15 +42,20 @@ final class DebtorReportTest extends TestCase
             'group' => 'Todos los grupos',
         ];
 
-        $withoutTotals = view('templates.pdf.debtors', $data + ['showTotalDebt' => false])->render();
-        $withTotals = view('templates.pdf.debtors', $data + ['showTotalDebt' => true])->render();
-        $withoutTotalsText = preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($withoutTotals)));
-        $withTotalsText = preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($withTotals)));
+        $itemAmountsOnly = view('templates.pdf.debtors', $data + [
+            'showItemAmounts' => true,
+            'showTotalDebt' => false,
+        ])->render();
+        $generalTotalsOnly = view('templates.pdf.debtors', $data + [
+            'showItemAmounts' => false,
+            'showTotalDebt' => true,
+        ])->render();
+        $itemAmountsOnlyText = preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($itemAmountsOnly)));
 
-        $this->assertStringNotContainsString('(50.000)', $withoutTotals);
-        $this->assertStringContainsString('(50.000)', $withTotals);
-        $this->assertStringContainsString('Mensualidad Enero, Uniforme', $withoutTotalsText);
-        $this->assertStringContainsString('Mensualidad Enero (50.000), Uniforme (25.000)', $withTotalsText);
+        $this->assertStringContainsString('Mensualidad Enero (50.000), Uniforme (25.000)', $itemAmountsOnlyText);
+        $this->assertStringNotContainsString('Total Deuda', $itemAmountsOnly);
+        $this->assertStringNotContainsString('(50.000)', $generalTotalsOnly);
+        $this->assertStringContainsString('Total Deuda', $generalTotalsOnly);
     }
 
     public function testDebtorReportConsolidatesMonthlyAndInvoiceDebts(): void

@@ -29,6 +29,7 @@ export default function useDebtorReport() {
     const form = reactive({
         year: null,
         training_group_id: null,
+        show_item_amounts: false,
         show_total_debt: false,
     })
 
@@ -47,6 +48,10 @@ export default function useDebtorReport() {
 
         if (form.show_total_debt) {
             params.set('show_total_debt', '1')
+        }
+
+        if (form.show_item_amounts) {
+            params.set('show_item_amounts', '1')
         }
 
         return `/api/v2/reports/debtors/pdf?${params.toString()}`
