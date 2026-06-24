@@ -100,6 +100,22 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         $this->assertCount(1, $peopleIds);
         $this->assertNotNull($peopleIds->first());
+
+        $peopleIdsFromLabel = $peopleRepository->getPeopleIds([
+            [
+                'tutor' => 'false',
+                'relationship' => 'ABUELO',
+                'names' => 'Abuelo Uno',
+                'identification_card' => 'DOC-101',
+                'phone' => '3007654321',
+            ],
+        ]);
+
+        $this->assertCount(1, $peopleIdsFromLabel);
+        $this->assertDatabaseHas('peoples', [
+            'identification_card' => 'DOC-101',
+            'relationship' => '2',
+        ]);
     }
 
     public function testScheduleRepositoryStoreUpdateAndAll(): void

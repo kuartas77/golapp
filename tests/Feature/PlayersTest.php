@@ -75,7 +75,9 @@ final class PlayersTest extends TestCase
     {
         Mail::fake();
 
-        $dataPlayer = $this->playerUpdatePayload();
+        $dataPlayer = $this->playerUpdatePayload([
+            'relationship_0' => 'ABUELO',
+        ]);
         $uniqueCode = $dataPlayer['unique_code'];
 
         $this->createPlayer();
@@ -92,6 +94,10 @@ final class PlayersTest extends TestCase
             'id' => $player->id,
             'names' => $dataPlayer['names'],
             'mobile' => $dataPlayer['phones'],
+        ]);
+        $this->assertDatabaseHas('peoples', [
+            'identification_card' => $dataPlayer['document_0'],
+            'relationship' => '2',
         ]);
     }
 

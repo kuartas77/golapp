@@ -22,11 +22,9 @@ class PeopleRepository
      */
     public function getPeopleIds($people): Collection
     {
-        $relationship = config('variables.KEY_RELATIONSHIPS_SELECT');
         $peopleIds = collect();
         foreach ($people as $person) {
             if ($person['relationship'] != '' && $person['names'] != '' && $person['identification_card'] != '') {
-                $person['relationship_name'] = $relationship[$person['relationship']];
                 $peopleIds->push(optional($this->createOrUpdatePeople($person))->id);
             }
         }
@@ -36,6 +34,8 @@ class PeopleRepository
 
     public function createOrUpdatePeople($person): People
     {
+        $person['relationship'] = $this->normalizeRelationship($person['relationship']);
+
         return $this->people->query()->updateOrCreate(
             [
                 'identification_card' => $person['identification_card']
@@ -53,5 +53,19 @@ class PeopleRepository
                 'position' => ($person['position'] ?? null),
             ]
         );
+    }
+
+    private function normalizeRelationship($relationship): string
+    {
+        $relationships = config('variables.KEY_RELATIONSHIPS_SELECT', []);
+
+        if (array_key_exists($relationship, $relationships)) {
+            return (string) $relationship;
+        }
+
+        $normalizedRelationship = mb_strtoupper(trim((string) $relationship));
+        $relationshipId = array_search($normalizedRelationship, $relationships, true);
+
+        return $relationshipId === false ? (string) $relationship : (string) $relationshipId;
     }
 }
