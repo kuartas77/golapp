@@ -159,7 +159,7 @@ class DebtorReportService
     {
         $school = getSchool(auth()->user());
         $rows = $this->rows($filters + ['school_id' => $school->id]);
-        $date = now()->format('d-m-Y H:i:s');
+        $date = now()->format('d-m-Y h:i:s A');
 
 
 

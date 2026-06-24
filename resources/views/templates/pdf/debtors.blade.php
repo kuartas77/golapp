@@ -27,11 +27,11 @@
         <tr class="tr-tit">
             <th class="text-center">#</th>
             <th class="text-center">Código</th>
-            <th>Deportista</th>
-            <th>Categoría</th>
-            <th>Debe</th>
+            <th>&nbsp;Deportista&nbsp;</th>
+            <th>&nbsp;Categoría&nbsp;</th>
+            <th>&nbsp;Debe&nbsp;</th>
             @if($showTotalDebt)
-                <th class="text-right">Total Deuda</th>
+                <th class="text-right">&nbsp;Total Deuda&nbsp;</th>
             @endif
         </tr>
     </thead>
@@ -43,7 +43,7 @@
                 <td>&nbsp;{{ $row['student_name'] }}&nbsp;</td>
                 <td>&nbsp;{{ $row['category'] }}&nbsp;</td>
                 <td>
-                    {{ collect($row['debt_items'])->map(fn ($item) => $item['label'].($showTotalDebt ? ' ('.number_format($item['amount'], 0, ',', '.').')' : ''))->implode(', ') }}
+                    &nbsp;{{ collect($row['debt_items'])->map(fn ($item) => $item['label'].($showTotalDebt ? ' ('.number_format($item['amount'], 0, ',', '.').')' : ''))->implode(', ') }}&nbsp;
                 </td>
                 @if($showTotalDebt)
                     <td class="text-right">&nbsp;{{ number_format($row['total_debt'], 0, ',', '.') }}&nbsp;</td>
