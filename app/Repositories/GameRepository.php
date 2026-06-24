@@ -69,7 +69,7 @@ class GameRepository
     public function makeMatch($competitionGroup): object
     {
         $competitionGroup->load([
-            'inscriptions' => fn($q) => $q->select(['id', 'player_id'])->where('year', now()->year)->with('player:id,names,last_names,unique_code'),
+            'inscriptions' => fn($q) => $q->select(['id', 'player_id'])->where('year', now()->year)->with('player:id,names,last_names,unique_code,photo'),
             'tournament:id,name',
             'professor:id,name'
         ]);
@@ -119,7 +119,7 @@ class GameRepository
     {
         $match->loadMissing([
             'competitionGroup' => fn($q) => $q->with(['tournament:id,name', 'professor:id,name']),
-            'skillsControls' => fn($q) => $q->with('inscription', fn($q) => $q->select(['id', 'player_id'])->with('player:id,names,last_names,unique_code'))
+            'skillsControls' => fn($q) => $q->with('inscription', fn($q) => $q->select(['id', 'player_id'])->with('player:id,names,last_names,unique_code,photo'))
         ]);
 
         foreach ($match->skillsControls as $skilControl) {

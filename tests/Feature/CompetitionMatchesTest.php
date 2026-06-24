@@ -12,6 +12,7 @@ use App\Models\Player;
 use App\Models\Tournament;
 use App\Models\TrainingGroup;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 final class CompetitionMatchesTest extends TestCase
@@ -86,6 +87,43 @@ final class CompetitionMatchesTest extends TestCase
             'goal_assists' => 0,
             'goal_saves' => 0,
         ]);
+    }
+
+    public function testCreateAndEditMatchDataIncludeTheStoredPlayerPhoto(): void
+    {
+        Storage::fake('public');
+
+        $photoPath = 'players/coachboard-player.jpg';
+        Storage::disk('public')->put($photoPath, 'photo-content');
+
+        $player = $this->createTestPlayer();
+        $player->update(['photo' => $photoPath]);
+
+        [$inscription] = $this->createInscriptionAndPayment($player);
+        $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
+        $competitionGroup->inscriptions()->attach($inscription->id);
+
+        $createResponse = $this->actingAs($this->user)
+            ->getJson("/api/v2/matches/0?competition_group={$competitionGroup->id}")
+            ->assertOk();
+
+        $this->assertStringContainsString(
+            $photoPath,
+            $createResponse->json('skills_controls.0.player.photo_url')
+        );
+
+        $storeResponse = $this->postJson(
+            '/api/v2/matches',
+            $this->validMatchPayload($competitionGroup->tournament, $competitionGroup, $inscription)
+        )->assertOk();
+
+        $editResponse = $this->getJson('/api/v2/matches/' . $storeResponse->json('match_id'))
+            ->assertOk();
+
+        $this->assertStringContainsString(
+            $photoPath,
+            $editResponse->json('skills_controls.0.player.photo_url')
+        );
     }
 
     public function testFinalScoreArrayAccessorSupportsCurrentAndLegacyFormats(): void
