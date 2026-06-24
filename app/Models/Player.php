@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Models\Concerns\ResolvesLocalAssetPath;
 use App\Traits\GeneralScopes;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -15,7 +16,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
-use Jenssegers\Date\Date;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
@@ -112,7 +112,7 @@ class Player extends Authenticatable
 
     public function getDateBirthAttribute(): string
     {
-        return Date::parse($this->attributes['date_birth'])->format('Y-m-d');
+        return Carbon::parse($this->attributes['date_birth'])->format('Y-m-d');
     }
 
     public function getFullNamesAttribute(): string

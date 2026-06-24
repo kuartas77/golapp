@@ -6,12 +6,12 @@ namespace App\Http\ViewComposers\Assists;
 use App\Http\ViewComposers\Payments\PaymentsViewComposer;
 use App\Models\Assist;
 use App\Repositories\TrainingGroupRepository;
+use Carbon\Carbon;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-use Jenssegers\Date\Date;
 
 class AssistViewComposer
 {
@@ -40,7 +40,7 @@ class AssistViewComposer
             $months = Cache::rememberForever("KEY_MONTHS", fn() => config('variables.KEY_MONTHS'));
             $monthsKeys = Cache::rememberForever("KEY_MONTHS_INDEX", fn() => config('variables.KEY_MONTHS_INDEX'));
 
-            $actual_month = Str::ucfirst(Date::now()->monthName);
+            $actual_month = Str::ucfirst(Carbon::now()->monthName);
 
             $previousMonth = now()->subMonthNoOverflow();
 

@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Portal;
 
-use Jenssegers\Date\Date;
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
 class PlayerPortalUpdateRequest extends FormRequest
@@ -44,7 +44,7 @@ class PlayerPortalUpdateRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'category' => categoriesName(Date::parse($this->date_birth)->year),
+            'category' => categoriesName(Carbon::parse($this->date_birth)->year),
             'school_id' => auth()->user()->school_id
         ]);
     }

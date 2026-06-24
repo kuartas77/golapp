@@ -7,8 +7,8 @@ use App\Models\Payment;
 use App\Models\TrainingGroup;
 use App\Service\Groups\GroupCatalogCache;
 use App\Traits\ErrorTrait;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Jenssegers\Date\Date;
 use Throwable;
 
 class SharedService
@@ -39,7 +39,7 @@ class SharedService
             $school = $inscription->school;
             DB::beginTransaction();
 
-            $start_date = Date::parse($inscription->start_date);
+            $start_date = Carbon::parse($inscription->start_date);
             if ($inscription->wasRecentlyCreated) {
 
                 if (! $inscription->training_group_id) {

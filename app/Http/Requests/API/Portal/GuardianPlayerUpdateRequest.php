@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\API\Portal;
 
 use App\Models\Player;
-use Jenssegers\Date\Date;
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
 class GuardianPlayerUpdateRequest extends FormRequest
@@ -44,7 +44,7 @@ class GuardianPlayerUpdateRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $year = Date::parse($this->date_birth)->year;
+        $year = Carbon::parse($this->date_birth)->year;
         $player = Player::query()->find($this->route('player'));
 
         $this->merge([

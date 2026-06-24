@@ -5,10 +5,10 @@ namespace App\Http\Requests\Portal;
 use App\Models\School;
 use App\Rules\UniqueGuardianEmail;
 use App\Service\Contracts\ContractTemplateService;
+use Carbon\Carbon;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\File;
-use Jenssegers\Date\Date;
 
 class InscriptionRegisterRequest extends FormRequest
 {
@@ -142,7 +142,7 @@ class InscriptionRegisterRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'category' => Date::parse($this->date_birth)->year,
+            'category' => categoriesName(Carbon::parse($this->date_birth)->year),
             'school_data' => School::firstWhere('slug', request()->segments()[3]),
             'tutor_doc' => $this->tutor_num_doc,
             'tutor_email' => filled($this->tutor_email) ? mb_strtolower(trim((string) $this->tutor_email)) : null,

@@ -4,9 +4,9 @@ namespace App\Http\Requests\Inscription;
 
 use App\Models\Player;
 use App\Models\Setting;
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Jenssegers\Date\Date;
 
 class InscriptionRequest extends FormRequest
 {
@@ -70,14 +70,14 @@ class InscriptionRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $dateBirth = optional(Player::find($this->player_id))->date_birth;
-        $startDate = Date::parse($this->start_date);
+        $startDate = Carbon::parse($this->start_date);
         $monthlyPaymentType = $this->resolveMonthlyPaymentType();
 
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
             'year' => $startDate->year,
             'start_date' => $startDate,
-            'category' => categoriesName(Date::parse($dateBirth)->year),
+            'category' => categoriesName(Carbon::parse($dateBirth)->year),
             'photos' => $this->input('photos', false),
             'copy_identification_document' => $this->input('copy_identification_document', false),
             'eps_certificate' => $this->input('eps_certificate', false),
