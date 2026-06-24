@@ -138,9 +138,20 @@ class DebtorReportService
 
         return $rows
             ->filter(fn ($row) => $row['total_debt'] > 0)
-            ->sortBy([
-                ['student_name', 'asc'],
-            ])
+            ->sort(function (array $left, array $right): int {
+                $leftCategory = trim($left['category']);
+                $rightCategory = trim($right['category']);
+
+                if ($leftCategory === '' || $rightCategory === '') {
+                    $categoryComparison = ($leftCategory === '') <=> ($rightCategory === '');
+                } else {
+                    $categoryComparison = strnatcasecmp($leftCategory, $rightCategory);
+                }
+
+                return $categoryComparison !== 0
+                    ? $categoryComparison
+                    : strcasecmp($left['student_name'], $right['student_name']);
+            })
             ->values();
     }
 

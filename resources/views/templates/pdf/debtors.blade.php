@@ -43,15 +43,7 @@
                 <td>&nbsp;{{ $row['student_name'] }}&nbsp;</td>
                 <td>&nbsp;{{ $row['category'] }}&nbsp;</td>
                 <td>
-                    @foreach($row['debt_items'] as $item)
-                    <div>
-                        &nbsp;{{ $item['label'] }}
-                        @if($showTotalDebt)
-                            ({{ number_format($item['amount'], 0, ',', '.') }})
-                        @endif
-                        &nbsp;
-                    </div>
-                    @endforeach
+                    {{ collect($row['debt_items'])->map(fn ($item) => $item['label'].($showTotalDebt ? ' ('.number_format($item['amount'], 0, ',', '.').')' : ''))->implode(', ') }}
                 </td>
                 @if($showTotalDebt)
                     <td class="text-right">&nbsp;{{ number_format($row['total_debt'], 0, ',', '.') }}&nbsp;</td>

@@ -31,8 +31,11 @@ final class DebtorReportTest extends TestCase
                 'debt_items' => [[
                     'label' => 'Mensualidad Enero',
                     'amount' => 50000,
+                ], [
+                    'label' => 'Uniforme',
+                    'amount' => 25000,
                 ]],
-                'total_debt' => 50000,
+                'total_debt' => 75000,
             ]]),
             'date' => '19-06-2026 10:00:00',
             'year' => 2026,
@@ -41,9 +44,13 @@ final class DebtorReportTest extends TestCase
 
         $withoutTotals = view('templates.pdf.debtors', $data + ['showTotalDebt' => false])->render();
         $withTotals = view('templates.pdf.debtors', $data + ['showTotalDebt' => true])->render();
+        $withoutTotalsText = preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($withoutTotals)));
+        $withTotalsText = preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($withTotals)));
 
         $this->assertStringNotContainsString('(50.000)', $withoutTotals);
         $this->assertStringContainsString('(50.000)', $withTotals);
+        $this->assertStringContainsString('Mensualidad Enero, Uniforme', $withoutTotalsText);
+        $this->assertStringContainsString('Mensualidad Enero (50.000), Uniforme (25.000)', $withTotalsText);
     }
 
     public function testDebtorReportConsolidatesMonthlyAndInvoiceDebts(): void
@@ -204,6 +211,38 @@ final class DebtorReportTest extends TestCase
 
         $this->assertCount(1, $rows);
         $this->assertSame('1003', $rows->first()['unique_code']);
+    }
+
+    public function testDebtorReportOrdersRowsByCategoryUsingNaturalNumericOrder(): void
+    {
+        $this->actingAs($this->user);
+        $group = $this->defaultTrainingGroup();
+
+        foreach ([
+            ['code' => '1010', 'name' => 'Ana', 'category' => 'SUB-10'],
+            ['code' => '1003', 'name' => 'Beto', 'category' => 'SUB-3'],
+            ['code' => '1001', 'name' => 'Carlos', 'category' => 'SUB-1'],
+        ] as $playerData) {
+            $inscription = $this->createInscriptionForReport(
+                $group,
+                $playerData['code'],
+                $playerData['name'],
+                'Test'
+            );
+            $inscription->update(['category' => $playerData['category']]);
+
+            $this->resetPayment($this->paymentForInscription($inscription))->update([
+                'january' => Payment::$debt,
+                'january_amount' => 50000,
+            ]);
+        }
+
+        $rows = app(DebtorReportService::class)->rows([
+            'school_id' => $this->school['id'],
+            'year' => 2026,
+        ]);
+
+        $this->assertSame(['SUB-1', 'SUB-3', 'SUB-10'], $rows->pluck('category')->all());
     }
 
     public function testDebtorReportIncludesDueCustomChargesThatAreNotInvoiced(): void
