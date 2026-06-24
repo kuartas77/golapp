@@ -716,7 +716,7 @@ const normalizeDate = (value) => {
 
 const hasAutocompleteValue = (value) => value !== null && value !== undefined && String(value).trim() !== '';
 
-const toOptions = (options) => {
+const toOptions = (options, { useArrayIndexAsValue = false } = {}) => {
     if (Array.isArray(options)) {
         return options.map((item, index) => {
             if (item && typeof item === 'object' && !Array.isArray(item)) {
@@ -730,7 +730,7 @@ const toOptions = (options) => {
             }
 
             return {
-                value: String(item),
+                value: String(useArrayIndexAsValue ? index : item),
                 label: String(item),
             };
         });
@@ -1003,7 +1003,10 @@ const hasDocumentsStep = computed(() => Boolean(props.school.send_documents));
 const genderOptions = computed(() => toOptions(props.options.genders));
 const documentTypeOptions = computed(() => toOptions(props.options.documentTypes));
 const bloodTypeOptions = computed(() => toOptions(props.options.bloodTypes));
-const relationshipOptions = computed(() => toOptions(props.options.relationships));
+const relationshipOptions = computed(() => toOptions(
+    props.options.relationships,
+    { useArrayIndexAsValue: true },
+));
 const jornadaOptions = computed(() => toOptions(props.options.jornada));
 const degreeOptions = computed(() => Array.from({ length: 12 }, (_, index) => ({
     value: String(index),

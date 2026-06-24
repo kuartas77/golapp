@@ -477,6 +477,27 @@ describe('PortalSchoolInscriptionModal', () => {
         expect(wrapper.get('select[name="gender"]').element.value).toBe('M');
     });
 
+    it('usa el índice como valor para los parentescos enviados como un array simple', async () => {
+        const { wrapper } = await mountModal({
+            options: {
+                ...defaultProps.options,
+                relationships: ['DESCONOCIDO', 'ABUELA', 'ABUELO'],
+            },
+        });
+
+        await setWizardStep(wrapper, 2);
+
+        const grandfatherOption = wrapper
+            .findAll('select[name="tutor_relationship"] option')
+            .find((option) => option.text() === 'ABUELO');
+
+        expect(grandfatherOption.attributes('value')).toBe('2');
+
+        await setFieldValue(wrapper, 'tutor_relationship', '2');
+
+        expect(wrapper.get('select[name="tutor_relationship"]').element.value).toBe('2');
+    });
+
     it('muestra y exige el lugar de expedición del documento del acudiente', async () => {
         const { wrapper } = await mountModal();
 
