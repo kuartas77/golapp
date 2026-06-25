@@ -43,7 +43,7 @@
                                 </router-link>
                             </li>
                         </Can>
-                        <li v-if="canPlayers && canMatches">
+                        <li v-if="canPlayerStats">
                             <router-link :to="{ name: 'player-stats.index' }" @click="toggleMobileMenu">
                                 Estadísticas Jugador
                             </router-link>
@@ -477,6 +477,7 @@ const canTopicNotifications = access.topicNotifications
 const canPaymentRequests = access.paymentRequests
 const canUniformRequests = access.uniformRequests
 const canEvaluationTemplates = access.evaluationTemplates
+const canPlayerStats = access.playerStats
 
 const showAttendanceQrMenu = false
 

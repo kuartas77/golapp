@@ -80,6 +80,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import PlayerList from './PlayerList.vue'
 import Field from './Field.vue'
 import { baseFormationsMap } from './utils/formations.js'
+import { normalizeCoachBoardPositionRole } from '@/composables/matches/useCoachBoardField'
 
 const props = defineProps({
     initialPlayers: {
@@ -242,12 +243,7 @@ function handlePlayerDragStart() {
 }
 
 function formatLineupPosition(position) {
-    if (!position) return ''
-
-    return position
-        .replace(/\(/g, ' (')
-        .replace(/\s+/g, ' ')
-        .trim()
+    return normalizeCoachBoardPositionRole(position)
 }
 
 function getSkillControlsPayload() {

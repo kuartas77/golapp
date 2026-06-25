@@ -13,6 +13,7 @@ use App\Models\TrainingSession;
 use App\Models\User;
 use App\Repositories\InvoiceRepository;
 use App\Service\Notification\TopicNotificationStoreService;
+use App\Service\Player\PlayerStatsService;
 use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
@@ -235,9 +236,41 @@ final class SchoolPermissionsTest extends TestCase
             'school.module.inscriptions' => true,
         ]);
 
+        $this->mock(PlayerStatsService::class, function (MockInterface $mock) use ($school, $player): void {
+            $mock->shouldReceive('getRankingPayload')
+                ->once()
+                ->with($school->id, $school->name, [])
+                ->andReturn(['players' => [['player_id' => $player->id]]]);
+
+            $mock->shouldReceive('getTopPlayersPayload')
+                ->once()
+                ->with($school->id)
+                ->andReturn(['top_scorers' => [['player_id' => $player->id]]]);
+
+            $mock->shouldReceive('getPlayerDetailPayload')
+                ->once()
+                ->with($player->id, $school->id)
+                ->andReturn(['player' => ['player_id' => $player->id]]);
+        });
+
         $this->actingAs($instructor)
             ->getJson('/api/v2/kpis')
             ->assertOk();
+
+        $this->actingAs($instructor)
+            ->getJson('/api/v2/player-stats')
+            ->assertOk()
+            ->assertJsonPath('players.0.player_id', $player->id);
+
+        $this->actingAs($instructor)
+            ->getJson('/api/v2/top-players')
+            ->assertOk()
+            ->assertJsonPath('top_scorers.0.player_id', $player->id);
+
+        $this->actingAs($instructor)
+            ->getJson("/api/v2/player/{$player->id}/detail")
+            ->assertOk()
+            ->assertJsonPath('player.player_id', $player->id);
 
         $this->actingAs($instructor)
             ->getJson("/api/v2/players/{$player->unique_code}")

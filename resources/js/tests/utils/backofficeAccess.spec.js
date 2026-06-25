@@ -46,4 +46,16 @@ describe('hasBackofficeAccess', () => {
 
         expect(hasBackofficeAccess(auth, backofficeAccessRequirements.methodology)).toBe(true)
     })
+
+    it('allows instructors with players permission to access player stats', () => {
+        const auth = makeAuth({
+            roles: ['instructor'],
+            schoolPermissions: {
+                'school.module.players': true,
+            },
+        })
+
+        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.playerStats)).toBe(true)
+        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.players)).toBe(false)
+    })
 })

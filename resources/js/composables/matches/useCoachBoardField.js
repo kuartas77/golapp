@@ -1,5 +1,42 @@
 import { computed, onMounted, ref, watch } from 'vue'
 
+export const COACHBOARD_POSITION_ROLES = {
+    goalkeeper: 'Portero',
+    defenseCentral: 'Defensa (Central)',
+    defenseBothSides: 'Defensa (Derecho)(Izquierdo)',
+    defenseLeft: 'Defensa (Izquierdo)',
+    defenseRight: 'Defensa (Derecho)',
+    defense: 'Defensa',
+    midfielderDefensiveLeft: 'Volante (Defensivo Izquierdo)',
+    midfielderDefensiveRight: 'Volante (Defensivo Derecho)',
+    midfielderDefensiveCentral: 'Volante (Defensivo Central)',
+    midfielderOffensiveLeft: 'Volante (Ofensivo Izquierdo)',
+    midfielderOffensiveRight: 'Volante (Ofensivo Derecho)',
+    midfielderOffensiveCentral: 'Volante (Ofensivo Central)',
+    midfielderWingerLeft: 'Volante (Extremo Izquierdo)',
+    midfielderWingerRight: 'Volante (Extremo Derecho)',
+    midfielderFirstLine: 'Volante (Primera línea)',
+    midfielderSecondLine: 'Volante (Segunda línea)',
+    midfielderFirstLineLegacy: 'Volante (Primera linea)',
+    midfielderSecondLineLegacy: 'Volante (Segunda linea)',
+    midfielderWinger: 'Volante (Extremo)',
+    midfielderCentral: 'Volante (Central)',
+    forwardLeft: 'Delantero (Izquierdo)',
+    forwardRight: 'Delantero (Derecho)',
+    forwardCentral: 'Delantero (Central)',
+    forward: 'Delantero'
+}
+
+export function normalizeCoachBoardPositionRole(position) {
+    if (!position) return ''
+
+    return String(position)
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/^([^(]+?)\s*\(/, '$1 (')
+        .replace(/\)\s+\(/g, ')(')
+}
+
 /**
  * Centraliza la lógica táctica del coachboard.
  *
@@ -134,7 +171,7 @@ export default function useCoachBoardField(props, emit) {
         const { type, line, x } = position
         const canvasCenterX = canvasWidth.value / 2
 
-        if (position.key === 'GK') return 'Portero'
+        if (position.key === 'GK') return COACHBOARD_POSITION_ROLES.goalkeeper
 
         if (type === 'defense') {
             if (line === 0) {
@@ -142,12 +179,12 @@ export default function useCoachBoardField(props, emit) {
                 const isRight = x > canvasCenterX + 50
                 const isCenter = !isLeft && !isRight
 
-                if (isCenter) return 'Defensa(Central)'
-                if (isLeft) return 'Defensa(Izquierdo)'
-                if (isRight) return 'Defensa(Derecho)'
+                if (isCenter) return COACHBOARD_POSITION_ROLES.defenseCentral
+                if (isLeft) return COACHBOARD_POSITION_ROLES.defenseLeft
+                if (isRight) return COACHBOARD_POSITION_ROLES.defenseRight
             }
 
-            return 'Defensa'
+            return COACHBOARD_POSITION_ROLES.defense
         }
 
         if (type?.includes('mid')) {
@@ -157,36 +194,40 @@ export default function useCoachBoardField(props, emit) {
 
             if (type === 'mid-defensive') {
                 if (isWide) {
-                    return isLeftWide ? 'Volante(Defensivo Izquierdo)' : 'Volante(Defensivo Derecho)'
+                    return isLeftWide
+                        ? COACHBOARD_POSITION_ROLES.midfielderDefensiveLeft
+                        : COACHBOARD_POSITION_ROLES.midfielderDefensiveRight
                 }
-                return 'Volante(Defensivo Central)'
+                return COACHBOARD_POSITION_ROLES.midfielderDefensiveCentral
             }
 
             if (type === 'mid-offensive') {
                 if (isWide) {
-                    return isLeftWide ? 'Volante(Ofensivo Izquierdo)' : 'Volante(Ofensivo Derecho)'
+                    return isLeftWide
+                        ? COACHBOARD_POSITION_ROLES.midfielderOffensiveLeft
+                        : COACHBOARD_POSITION_ROLES.midfielderOffensiveRight
                 }
-                return 'Volante(Ofensivo Central)'
+                return COACHBOARD_POSITION_ROLES.midfielderOffensiveCentral
             }
 
             if (isWide) {
-                if (isLeftWide) return 'Volante(Extremo Izquierdo)'
-                if (isRightWide) return 'Volante(Extremo Derecho)'
+                if (isLeftWide) return COACHBOARD_POSITION_ROLES.midfielderWingerLeft
+                if (isRightWide) return COACHBOARD_POSITION_ROLES.midfielderWingerRight
             }
 
-            if (line === 1) return 'Volante(Primera línea)'
-            if (line === 2) return 'Volante(Segunda línea)'
+            if (line === 1) return COACHBOARD_POSITION_ROLES.midfielderFirstLine
+            if (line === 2) return COACHBOARD_POSITION_ROLES.midfielderSecondLine
 
-            return 'Volante(Central)'
+            return COACHBOARD_POSITION_ROLES.midfielderCentral
         }
 
         if (type === 'attack') {
             const isLeft = x < canvasCenterX - 30
             const isRight = x > canvasCenterX + 30
 
-            if (isLeft) return 'Delantero(Izquierdo)'
-            if (isRight) return 'Delantero(Derecho)'
-            return 'Delantero(Central)'
+            if (isLeft) return COACHBOARD_POSITION_ROLES.forwardLeft
+            if (isRight) return COACHBOARD_POSITION_ROLES.forwardRight
+            return COACHBOARD_POSITION_ROLES.forwardCentral
         }
 
         return 'Jugador'
@@ -1016,7 +1057,9 @@ export default function useCoachBoardField(props, emit) {
                 line: positions.value[key].line || 0,
                 order: positions.value[key].order || 0,
                 key: positions.value[key].key,
-                specificRole: positions.value[key].specificRole || getSpecificRole(positions.value[key]),
+                specificRole: normalizeCoachBoardPositionRole(
+                    positions.value[key].specificRole || getSpecificRole(positions.value[key])
+                ),
                 assigned: positions.value[key].assigned ? {
                     id: positions.value[key].assigned.id,
                     name: positions.value[key].assigned.name,

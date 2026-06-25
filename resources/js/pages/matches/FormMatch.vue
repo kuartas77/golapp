@@ -490,6 +490,10 @@ import { computed, getCurrentInstance, useTemplateRef, onMounted, ref } from "vu
 import { useRoute, useRouter } from "vue-router"
 import { useSetting, useSettingGroups } from '@/store/settings-store'
 import { matchFormTutorial } from '@/tutorials/matches'
+import {
+    buildSkillControlLookup,
+    findMatchingSkillControl
+} from './utils/skillControls'
 
 const props = defineProps({ isEdition: { type: Boolean, default: false } })
 
@@ -629,10 +633,10 @@ const onLoadData = async () => {
 }
 
 const mergeCoachBoardPayload = (skillControls, lineupPayload) => {
-    const lineupByPlayerId = new Map(lineupPayload.map((item) => [item.player.id, item]))
+    const lineupLookup = buildSkillControlLookup(lineupPayload)
 
     return skillControls.map((skillControl) => {
-        const lineupItem = lineupByPlayerId.get(skillControl.player?.id)
+        const lineupItem = findMatchingSkillControl(lineupLookup, skillControl)
 
         if (!lineupItem) {
             return {
@@ -697,22 +701,11 @@ const handleSubmit = async (values, actions) => {
     }
 }
 
-const getSkillControlKey = (skillControl) => {
-    return skillControl?.inscription_id
-        ?? skillControl?.inscription?.id
-        ?? skillControl?.player?.id
-        ?? skillControl?.inscription?.player?.id
-        ?? skillControl?.player?.unique_code
-        ?? skillControl?.inscription?.player?.unique_code
-}
-
 const normalizeImportedSkillControls = (importedSkillControls) => {
-    const currentSkillControlsByKey = new Map(
-        skills_controls.value.map((skillControl) => [getSkillControlKey(skillControl), skillControl])
-    )
+    const currentSkillControlsLookup = buildSkillControlLookup(skills_controls.value)
 
     return importedSkillControls.map((skillControl) => {
-        const currentSkillControl = currentSkillControlsByKey.get(getSkillControlKey(skillControl)) ?? {}
+        const currentSkillControl = findMatchingSkillControl(currentSkillControlsLookup, skillControl) ?? {}
         const player = skillControl.player
             ?? skillControl.inscription?.player
             ?? currentSkillControl.player

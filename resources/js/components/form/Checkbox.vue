@@ -44,7 +44,7 @@ const { value, errorMessage, meta } = useField(() => props.name)
 // Computed para determinar si el checkbox debe estar checked
 const isChecked = computed(() => {
     if (props.returnValueType === 'number') {
-        return value.value === 1
+        return Number(value.value) === 1
     }
     return Boolean(value.value) // Convertir cualquier valor truthy a true
 })
