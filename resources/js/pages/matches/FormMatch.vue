@@ -728,6 +728,10 @@ const uploadFileFormat = async (e) => {
     }
     globalError.value = null
     const file = e.target.files[0];
+    if (!file) {
+        return
+    }
+
     const formData = new FormData();
     formData.append('file', file, file.name)
     api.post(`/import/matches/${route.params.id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
@@ -737,8 +741,13 @@ const uploadFileFormat = async (e) => {
                 formMatches.value?.setFieldValue?.('skill_controls', skills_controls.value)
                 showMessage('Se cargaron los datos correctamente.')
             } else {
-                showMessage('Algo salió mal.', 'error')
+                showMessage(resp.data.message || 'Algo salió mal.', 'error')
             }
+        })
+        .catch(error => {
+            const message = error.response?.data?.message || 'Algo salió mal.'
+            globalError.value = message
+            showMessage(message, 'error')
         })
 }
 

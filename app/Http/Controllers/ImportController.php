@@ -28,15 +28,32 @@ class ImportController extends Controller
 
     public function importMatchDetail(Request $request)
     {
-        $file = $request->file('file');
+        try {
+            $request->validate([
+                'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
+            ]);
 
-        $importMatchDetail = new ImportMatchDetail($request->input('match', null));
+            $importMatchDetail = new ImportMatchDetail();
 
-        Excel::import($importMatchDetail, $file);
+            Excel::import($importMatchDetail, $request->file('file'));
 
-        $response = $this->gameRepository->loadDataFromFile($importMatchDetail->getData());
+            $response = $this->gameRepository->loadDataFromFile($importMatchDetail->getData());
 
-        return response()->json($response);
+            return response()->json($response);
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => $exception->validator->errors()->first(),
+                'errors' => $exception->errors(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (Throwable $throwable) {
+            report($throwable);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('messages.error_general'),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
 
     }
 

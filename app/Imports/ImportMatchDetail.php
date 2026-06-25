@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Models\Inscription;
 use App\Models\SkillsControl;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
@@ -22,18 +23,47 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
 
     public function collection(Collection $rows)
     {
+        if ($rows->isEmpty()) {
+            throw ValidationException::withMessages([
+                'file' => 'El formato no contiene datos para importar.',
+            ]);
+        }
+
+        $this->validateHeadings($rows->first());
+
+        $codes = $rows
+            ->pluck('codigo')
+            ->filter(fn ($code) => filled($code))
+            ->map(fn ($code) => trim((string) $code))
+            ->unique()
+            ->values();
+
+        if ($codes->isEmpty()) {
+            throw ValidationException::withMessages([
+                'file' => 'El formato no contiene códigos de deportistas.',
+            ]);
+        }
+
         $inscriptions = Inscription::query()->select(['id', 'player_id','unique_code'])
             ->with('player:id,names,last_names,unique_code')
-            ->whereIn('unique_code', $rows->pluck('codigo'))
+            ->whereIn('unique_code', $codes)
             ->where('school_id', getSchool(auth()->user())->id)
             ->get();
 
         $inscriptions = $inscriptions->keyBy('unique_code');
+        $missingCodes = $codes->diff($inscriptions->keys());
+
+        if ($missingCodes->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'file' => 'No se encontraron deportistas con estos códigos: ' . $missingCodes->implode(', '),
+            ]);
+        }
 
         foreach ($rows as $row) {
+            $code = trim((string) ($row['codigo'] ?? ''));
 
-            if ($row['codigo']) {
-                $inscription = $inscriptions[$row['codigo']];
+            if ($code !== '') {
+                $inscription = $inscriptions[$code];
 
                 $skillControll = new SkillsControl([
                     'game_id' => $this->matchId,
@@ -77,6 +107,35 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
         return [
             // 'administrador' => 'required|string',
         ];
+    }
+
+    private function validateHeadings($row): void
+    {
+        $requiredHeadings = [
+            'deportista',
+            'codigo',
+            'asistio',
+            'titular',
+            'jugo_aprox',
+            'posicion',
+            'goles',
+            'asistencia_gol',
+            'atajadas',
+            'amarillas',
+            'rojas',
+            'calificacion',
+            'observacion',
+        ];
+
+        $missingHeadings = collect($requiredHeadings)
+            ->diff(collect($row?->keys() ?? []))
+            ->values();
+
+        if ($missingHeadings->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'file' => 'El formato no tiene las columnas requeridas: ' . $missingHeadings->implode(', '),
+            ]);
+        }
     }
 
     public function getData()
