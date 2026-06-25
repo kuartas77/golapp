@@ -178,7 +178,7 @@ class DataTableController extends Controller
 
     public function matches(Request $request)
     {
-        abort_unless($request->ajax() && isAdmin(), 403);
+        abort_unless($request->ajax() && (isAdmin() || isSchool() || isInstructor()), 403);
 
         return datatables()->of($this->gameRepository->getDatatable())->toJson();
 

@@ -9,8 +9,10 @@ use App\Models\Game;
 use App\Models\Inscription;
 use App\Models\Payment;
 use App\Models\Player;
+use App\Models\SchoolUser;
 use App\Models\Tournament;
 use App\Models\TrainingGroup;
+use App\Models\User;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -40,6 +42,25 @@ final class CompetitionMatchesTest extends TestCase
         $this->actingAs($this->user)
             ->getJson("/api/v2/matches/0?competition_group={$otherCompetitionGroup->id}")
             ->assertNotFound();
+    }
+
+    public function testInstructorCanAccessMatchesDatatableScopedToOwnCompetitionGroups(): void
+    {
+        $instructor = $this->createSchoolScopedUser((int) $this->school['id'], [User::INSTRUCTOR], 'matches-instructor@example.com');
+        $otherInstructor = $this->createSchoolScopedUser((int) $this->school['id'], [User::INSTRUCTOR], 'matches-other-instructor@example.com');
+
+        $ownMatch = $this->createMatchForSchool((int) $this->school['id'], $instructor->id, ['soccer' => 2, 'rival' => 1]);
+        $hiddenMatch = $this->createMatchForSchool((int) $this->school['id'], $otherInstructor->id, ['soccer' => 0, 'rival' => 1]);
+
+        $response = $this->actingAs($instructor)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/api/v2/datatables/matches?draw=1&start=0&length=10&year=' . now()->year)
+            ->assertOk();
+
+        $ids = collect($response->json('data'))->pluck('id')->all();
+
+        $this->assertContains($ownMatch->id, $ids);
+        $this->assertNotContains($hiddenMatch->id, $ids);
     }
 
     public function testEditUpdateAndDestroyReturn404ForMatchFromAnotherSchool(): void
@@ -222,6 +243,21 @@ final class CompetitionMatchesTest extends TestCase
             'category' => '2010-2011',
             'school_id' => $schoolId,
         ])->load('tournament');
+    }
+
+    private function createSchoolScopedUser(int $schoolId, array $roles, string $email): User
+    {
+        $user = $this->createUser([
+            'email' => $email,
+            'school_id' => $schoolId,
+        ], $roles);
+
+        SchoolUser::query()->create([
+            'user_id' => $user->id,
+            'school_id' => $schoolId,
+        ]);
+
+        return $user;
     }
 
     private function createMatchForSchool(int $schoolId, int $userId, array $finalScore): Game
