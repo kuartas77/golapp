@@ -252,7 +252,7 @@
                             <tr v-for="invoice in invoices" :key="invoice.id">
                                 <td>{{ invoice.invoice_number }}</td>
                                 <td>{{ invoice.issue_date || '—' }}</td>
-                                <td>{{ invoice.status || '—' }}</td>
+                                <td>{{ invoiceStatusLabel(invoice.status) }}</td>
                                 <td>{{ formatMoney(invoice.total_amount) }}</td>
                                 <td>{{ formatMoney(invoice.paid_amount) }}</td>
                                 <td class="text-end">
@@ -367,6 +367,13 @@ const attendanceTypes = {
     5: 'Incapacidad',
 }
 
+const invoiceStatusLabels = {
+    paid: 'Pagada',
+    partial: 'Parcial',
+    pending: 'Pendiente',
+    cancelled: 'Cancelada',
+}
+
 const readOnlyPaymentTypes = [14]
 
 const inscription = computed(() => summary.value?.inscription || {})
@@ -435,6 +442,10 @@ function formatMoney(value) {
         currency: 'COP',
         maximumFractionDigits: 0,
     })
+}
+
+function invoiceStatusLabel(status) {
+    return invoiceStatusLabels[status] || status || '—'
 }
 
 function canEditPayment(payment, field) {
