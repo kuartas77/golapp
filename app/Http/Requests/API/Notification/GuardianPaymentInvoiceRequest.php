@@ -5,6 +5,7 @@ namespace App\Http\Requests\API\Notification;
 use App\Models\People;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class GuardianPaymentInvoiceRequest extends FormRequest
 {
@@ -20,7 +21,7 @@ class GuardianPaymentInvoiceRequest extends FormRequest
             'amount' => ['required', 'numeric'],
             'description' => ['nullable', 'string'],
             'reference_number' => ['nullable', 'string'],
-            'payment_method' => ['required', 'string'],
+            'payment_method' => ['required', 'string', Rule::in(['cash', 'card', 'transfer', 'check', 'other'])],
             'image' => ['required', 'file', 'mimetypes:image/jpeg,image/png,image/webp'],
         ];
     }
@@ -28,7 +29,7 @@ class GuardianPaymentInvoiceRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'payment_method' => Str::upper($this->payment_method),
+            'payment_method' => Str::lower($this->payment_method),
         ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Requests\API\Notification;
 use App\Models\Player;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class PaymentInvoiceRequest extends FormRequest
 {
@@ -31,7 +32,7 @@ class PaymentInvoiceRequest extends FormRequest
             'amount' => ['required', 'numeric'],
             'description' => ['nullable', 'string'],
             'reference_number' => ['nullable', 'string'],
-            'payment_method' => ['required', 'string'],
+            'payment_method' => ['required', 'string', Rule::in(['cash', 'card', 'transfer', 'check', 'other'])],
             'image' => ['required', 'file', 'mimetypes:image/jpeg,image/png,image/webp'],
         ];
     }
@@ -39,7 +40,7 @@ class PaymentInvoiceRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'payment_method' => Str::upper($this->payment_method),
+            'payment_method' => Str::lower($this->payment_method),
         ]);
     }
 }
