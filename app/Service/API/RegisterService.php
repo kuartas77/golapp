@@ -137,8 +137,6 @@ class RegisterService
 
             DB::commit();
 
-            $school->refresh();
-
             School::forgetCachedSchool($school->id);
             Cache::forget('admin.schools');
 

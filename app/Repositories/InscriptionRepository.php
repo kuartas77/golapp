@@ -10,6 +10,7 @@ use App\Models\InvoiceCustomItem;
 use App\Models\Payment;
 use App\Models\School;
 use App\Models\Setting;
+use App\Models\SkillsControl;
 use App\Models\TrainingGroup;
 use App\Notifications\InscriptionNotification;
 use App\Service\Groups\GroupCatalogCache;
@@ -397,8 +398,8 @@ class InscriptionRepository
                 'training_group_id' => $inscription->training_group_id,
             ]);
 
-        $inscription->skillsControls()
-            ->withTrashed()
+        SkillsControl::withTrashed()
+            ->where('inscription_id', $inscription->id)
             ->update(['deleted_at' => null]);
     }
 

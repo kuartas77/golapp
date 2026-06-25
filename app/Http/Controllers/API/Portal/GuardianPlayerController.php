@@ -130,7 +130,6 @@ class GuardianPlayerController extends Controller
             'inscriptions' => fn ($query) => $query
                 ->where('year', now()->year)
                 ->with([
-                    'school',
                     'trainingGroup' => fn ($trainingQuery) => $trainingQuery->withTrashed(),
                     'payments',
                     'assistance' => fn ($assistQuery) => $assistQuery->orderBy('month'),

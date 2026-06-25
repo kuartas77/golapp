@@ -57,6 +57,7 @@ class CurrentSchoolContext
         abort_unless($user instanceof User, 401);
 
         return School::query()
+            ->without('settingsValues')
             ->whereIn('id', $this->allowedSchoolIds($user))
             ->orderBy('name')
             ->get();
@@ -69,7 +70,10 @@ class CurrentSchoolContext
         }
 
         if ($user->hasAnyRole(['super-admin'])) {
-            return $this->allowedIdsByUser[$user->id] = School::query()->pluck('id')->map(fn ($id) => (int) $id);
+            return $this->allowedIdsByUser[$user->id] = School::query()
+                ->without('settingsValues')
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id);
         }
 
         $ids = collect([(int) $user->school_id]);
@@ -94,6 +98,7 @@ class CurrentSchoolContext
             ->values();
 
         return $this->allowedIdsByUser[$user->id] = School::query()
+            ->without('settingsValues')
             ->whereIn('id', $ids)
             ->pluck('id')
             ->map(fn ($id) => (int) $id);

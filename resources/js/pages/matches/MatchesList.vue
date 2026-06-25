@@ -99,10 +99,10 @@ const options = {
         });
 
         tableElement.querySelectorAll('.delete-btn').forEach(button => {
-            button.onclick = (event) => {
+            button.onclick = async (event) => {
                 const id = event.target.dataset.itemId
 
-                Swal.fire({
+                const result = await Swal.fire({
                     title: "¿Eliminar?",
                     text: "¡No podrás revertir esto!",
                     icon: "warning",
@@ -110,15 +110,39 @@ const options = {
                     confirmButtonColor: "#3085d6",
                     cancelButtonColor: "#d33",
                     confirmButtonText: "¡Sí, bórralo!"
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // TODO: Implement your delete logic here
-                    }
                 });
 
+                if (!result.isConfirmed) {
+                    return
+                }
+
+                try {
+                    const response = await api.delete(`/api/v2/matches/${id}`)
+
+                    if (!response.data?.success) {
+                        showMessage('No fue posible eliminar la competencia.', 'error')
+                        return
+                    }
+
+                    showMessage('Competencia eliminada correctamente.')
+                    reloadMatchesTable()
+                } catch (error) {
+                    showMessage(error.response?.data?.message || 'No fue posible eliminar la competencia.', 'error')
+                }
             };
         });
     }
+}
+
+const reloadMatchesTable = () => {
+    const dt = matches_table.value?.table?.dt
+
+    if (!dt) {
+        return
+    }
+
+    dt.clearPipeline()
+    dt.ajax.reload(null, false)
 }
 
 const openGroupSelection = () => {
