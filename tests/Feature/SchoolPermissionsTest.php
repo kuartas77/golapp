@@ -170,6 +170,10 @@ final class SchoolPermissionsTest extends TestCase
             ->assertForbidden();
 
         $this->actingAs($this->user)
+            ->deleteJson("/api/v2/training-sessions/{$trainingSession->id}")
+            ->assertForbidden();
+
+        $this->actingAs($this->user)
             ->get(route('export.training_sessions.pdf', ['id' => $trainingSession->id]))
             ->assertForbidden();
 
@@ -193,6 +197,14 @@ final class SchoolPermissionsTest extends TestCase
             ->get(route('export.training_sessions.pdf', ['id' => $trainingSession->id]))
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
+
+        $this->actingAs($this->user)
+            ->deleteJson("/api/v2/training-sessions/{$trainingSession->id}")
+            ->assertOk();
+
+        $this->assertSoftDeleted('training_sessions', [
+            'id' => $trainingSession->id,
+        ]);
     }
 
     public function test_info_campus_endpoint_is_available_without_school_profile_permission_and_for_instructors(): void

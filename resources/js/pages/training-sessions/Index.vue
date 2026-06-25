@@ -40,6 +40,16 @@
                         >
                             <i class="fa fa-edit fa-width-auto me-2" aria-hidden="true"></i>
                         </button>
+
+                        <button
+                            v-if="canDelete"
+                            type="button"
+                            class="btn btn-danger btn-sm"
+                            title="Eliminar sesión"
+                            @click="confirmDelete(props.rowData)"
+                        >
+                            <i class="fa fa-trash fa-width-auto me-2" aria-hidden="true"></i>
+                        </button>
                     </div>
                 </template>
             </DatatableTemplate>
@@ -57,18 +67,21 @@
 </template>
 
 <script setup>
-import { ref, useTemplateRef } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import { usePageTitle } from '@/composables/use-meta'
 import TrainingSessionModal from './TrainingSessionModal.vue'
 import api from '@/utils/axios'
 import configLanguaje from '@/utils/datatableUtils'
+import { useAuthUser } from '@/store/auth-user'
 
 usePageTitle('Sesiones de entrenamiento')
 
+const auth = useAuthUser()
 const table = useTemplateRef('table')
 const selectedId = ref(null)
 const isModalOpen = ref(false)
+const canDelete = computed(() => auth.hasAnyRole(['super-admin', 'school']))
 
 const emptyDataTableResponse = (draw = 0) => ({
     draw,
@@ -149,6 +162,45 @@ const reloadTable = () => {
     if (dt) {
         dt.clearPipeline()
         dt.ajax.reload(null, false)
+    }
+}
+
+const notify = (message, type = 'success') => {
+    window.Swal?.fire({
+        toast: true,
+        position: 'bottom-end',
+        showConfirmButton: false,
+        timer: 4000,
+        icon: type,
+        title: message,
+    })
+}
+
+const errorMessage = (error, fallback) => {
+    return error.response?.data?.message
+        || Object.values(error.response?.data?.errors || {})?.flat()?.[0]
+        || fallback
+}
+
+const confirmDelete = async (session) => {
+    const result = await window.Swal.fire({
+        title: `Eliminar sesión #${session.id}`,
+        text: 'Esta acción no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+    })
+
+    if (!result.isConfirmed) {
+        return
+    }
+
+    try {
+        await api.delete(`/api/v2/training-sessions/${session.id}`)
+        notify('Sesión eliminada correctamente.')
+        reloadTable()
+    } catch (error) {
+        notify(errorMessage(error, 'No fue posible eliminar la sesión.'), 'error')
     }
 }
 </script>

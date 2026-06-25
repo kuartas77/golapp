@@ -106,6 +106,22 @@ final class TrainingSessionsTest extends TestCase
             ->get(route('export.training_sessions.pdf', ['id' => $createdId]))
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
+
+        $this->actingAs($this->user)
+            ->deleteJson("/api/v2/training-sessions/{$createdId}")
+            ->assertOk();
+
+        $this->assertSoftDeleted('training_sessions', [
+            'id' => $createdId,
+            'school_id' => $this->school['id'],
+        ]);
+        $this->assertSame(
+            3,
+            TrainingSessionDetail::withTrashed()
+                ->where('training_session_id', $createdId)
+                ->whereNotNull('deleted_at')
+                ->count()
+        );
     }
 
     public function testSuperAdminCanManageTrainingSessionsForSelectedSchool(): void
@@ -161,6 +177,16 @@ final class TrainingSessionsTest extends TestCase
             ->get(route('export.training_sessions.pdf', ['id' => $createdId]))
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
+
+        $this->withSession(['admin.selected_school' => $secondarySchool->id])
+            ->actingAs($superAdmin)
+            ->deleteJson("/api/v2/training-sessions/{$createdId}")
+            ->assertOk();
+
+        $this->assertSoftDeleted('training_sessions', [
+            'id' => $createdId,
+            'school_id' => $secondarySchool->id,
+        ]);
     }
 
     public function testInstructorOnlyAccessesAssignedTrainingGroupSessions(): void
@@ -206,6 +232,15 @@ final class TrainingSessionsTest extends TestCase
         $this->actingAs($instructor)
             ->get(route('export.training_sessions.pdf', ['id' => $blockedSession->id]))
             ->assertNotFound();
+
+        $this->actingAs($instructor)
+            ->deleteJson("/api/v2/training-sessions/{$allowedSession->id}")
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('training_sessions', [
+            'id' => $allowedSession->id,
+            'deleted_at' => null,
+        ]);
     }
 
     private function createTrainingGroup(int $schoolId, ?User $instructor = null, ?int $year = null, string $suffix = 'Base'): TrainingGroup

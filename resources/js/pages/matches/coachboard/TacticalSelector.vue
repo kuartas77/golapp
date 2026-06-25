@@ -18,7 +18,7 @@
             <div class="selector-grid" :class="{ 'selector-grid--compact': compact }">
                 <div class="form-group selector-item">
                     <label class="form-label selector-label" :for="modalityId">Modalidad</label>
-                    <select class="form-select form-select-sm" v-model="modalitySelected" @change="emitChange" :id="modalityId">
+                    <select class="form-select form-select-sm" v-model="modalitySelected" @change="handleModalityChange" :id="modalityId">
                         <option v-for="(label, key) in footballModality" :key="key" :value="parseInt(key)">
                             {{ label }}
                         </option>
@@ -121,6 +121,17 @@ function emitChange() {
         formation: selectedFormation.value,
         modality: modalitySelected.value
     })
+}
+
+function ensureSelectedFormationForModality() {
+    if (availableFormations.value.includes(selectedFormation.value)) return
+
+    selectedFormation.value = availableFormations.value[0] || ''
+}
+
+function handleModalityChange() {
+    ensureSelectedFormationForModality()
+    emitChange()
 }
 
 function tryAdd() {

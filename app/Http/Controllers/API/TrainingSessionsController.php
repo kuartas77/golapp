@@ -69,6 +69,21 @@ class TrainingSessionsController extends Controller
         ]);
     }
 
+    public function destroy(int $trainingSession): JsonResponse
+    {
+        $model = $this->repository->findAccessibleForMutationOrFail($trainingSession);
+
+        if (!$this->repository->destroy($model)) {
+            return response()->json([
+                'message' => __('messages.error_general'),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return response()->json([
+            'message' => __('Eliminado'),
+        ]);
+    }
+
     private function ensureGroupAccess(int $trainingGroupId, int $year): void
     {
         abort_unless(

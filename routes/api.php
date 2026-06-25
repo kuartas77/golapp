@@ -255,6 +255,8 @@ Route::prefix('v2')->group(function () {
             Route::post('', [ApiTrainingSessionsController::class, 'store']);
             Route::get('{trainingSession}', [ApiTrainingSessionsController::class, 'show']);
             Route::put('{trainingSession}', [ApiTrainingSessionsController::class, 'update']);
+            Route::delete('{trainingSession}', [ApiTrainingSessionsController::class, 'destroy'])
+                ->middleware('role:super-admin|school');
         });
 
         Route::middleware('school.permission:school.module.methodology')->prefix('methodology-records')->group(function () {
