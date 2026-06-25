@@ -132,8 +132,8 @@ final class DebtorReportTest extends TestCase
         $this->assertCount(1, $rows);
         $this->assertSame(125000.0, $rows->first()['total_debt']);
         $this->assertSame([
-            'Mensualidades: Debe Enero',
-            'FAC-DEBT-001 - Item: Uniforme',
+            'Enero',
+            'Uniforme',
         ], collect($rows->first()['debt_items'])->pluck('label')->all());
     }
 
@@ -180,7 +180,7 @@ final class DebtorReportTest extends TestCase
         ]);
 
         $this->assertCount(1, $rows);
-        $this->assertSame(['FAC-DEBT-002 - Mensualidad: Enero'], collect($rows->first()['debt_items'])->pluck('label')->all());
+        $this->assertSame(['Enero'], collect($rows->first()['debt_items'])->pluck('label')->all());
         $this->assertSame(60000.0, $rows->first()['total_debt']);
     }
 

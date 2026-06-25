@@ -30,7 +30,7 @@ final class EvaluationTemplatesTest extends TestCase
 
         $this->withSession(['admin.selected_school' => $this->school['id']])
             ->actingAs($superAdmin)
-            ->get('/administracion/plantillas-evaluacion')
+            ->get('/configuracion/plantillas-evaluacion')
             ->assertOk()
             ->assertSee('id="app"', false);
     }

@@ -250,7 +250,7 @@ final class ContractsTest extends TestCase
         $this->createConfiguredContract($school, 'inscription');
 
         $this->actingAs($this->user)
-            ->get('/administracion/contratos/inscription/preview')
+            ->get(route('admin.contracts.preview', ['contractTypeCode' => 'inscription']))
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
     }

@@ -29,6 +29,7 @@ final class VerifyInscriptionStatusTest extends TestCase
             'year' => now()->year,
             'school_id' => $schoolId,
             'training_group_id' => $trainingGroup->id,
+            'competition_group_id' => null,
             'pre_inscription' => true,
         ]);
 
