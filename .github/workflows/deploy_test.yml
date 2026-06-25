@@ -2,7 +2,9 @@ name: Repository to cPanel
 
 on:
   push:
-    branches: [template]
+    branches: ["template"]
+  pull_request:
+    branches: ["template"]
 
   # Permite ejecutar manualmente un despliegue completo desde GitHub Actions.
   workflow_dispatch:
