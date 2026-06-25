@@ -16,7 +16,7 @@ class MethodologyRecordRepository
             ->select('methodology_records.*')
             ->schoolId()
             ->with(['user:id,name', 'trainingGroup:id,name,category'])
-            ->when(isInstructor(), fn (Builder $query) => $query->where('user_id', auth()->id()));
+            ->when(isInstructor(), fn (Builder $query) => $query->where('methodology_records.user_id', auth()->id()));
     }
 
     public function datatableQuery(?string $type = null): Builder
@@ -30,7 +30,7 @@ class MethodologyRecordRepository
     public function list(?string $type = null): Collection
     {
         return $this->query()
-            ->when($type, fn (Builder $query) => $query->where('type', $type))
+            ->when($type, fn (Builder $query) => $query->where('methodology_records.type', $type))
             ->latest()
             ->get();
     }
