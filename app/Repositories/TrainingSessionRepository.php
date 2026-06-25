@@ -137,6 +137,22 @@ class TrainingSessionRepository
         return $success;
     }
 
+    public function destroy(TrainingSession $trainingSession): bool
+    {
+        try {
+            DB::transaction(function () use ($trainingSession): void {
+                $trainingSession->tasks()->delete();
+                $trainingSession->delete();
+            });
+
+            return true;
+        } catch (\Throwable $throwable) {
+            report($throwable);
+
+            return false;
+        }
+    }
+
     private function makeTraininSession(TrainingSession $trainingSession, array $payload): TrainingSession
     {
         foreach ([
