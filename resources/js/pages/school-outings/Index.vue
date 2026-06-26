@@ -210,9 +210,13 @@ const renderStatus = (data, type, row) => {
 
 const tableOptions = computed(() => ({
     ...configLanguaje,
-    dom: 'lfrtip',
+    layout: {
+        topStart: { pageLength: { menu: [10, 25, 50, 100] } },
+        topEnd: 'search',
+        bottomStart: 'info',
+        bottomEnd: 'paging',
+    },
     pageLength: 10,
-    lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
     order: [[1, 'desc']],
     deferRender: true,
     language: {

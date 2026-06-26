@@ -285,8 +285,12 @@ const renderSchedule = (data, type, row) => {
 
 const tableOptions = computed(() => ({
     ...configLanguaje,
-    dom: 'litp',
-    lengthMenu: [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
+    layout: {
+        topStart: { pageLength: { menu: [10, 30, 50, 70, 100] } },
+        topEnd: null,
+        bottomStart: 'info',
+        bottomEnd: 'paging',
+    },
     pageLength: 10,
     order: [[0, 'asc']],
     deferRender: true,
