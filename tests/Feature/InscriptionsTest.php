@@ -60,6 +60,32 @@ final class InscriptionsTest extends TestCase
         ]);
     }
 
+    public function test_create_inscription_sets_zero_amounts_for_non_applicable_months(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $player = Player::factory()->create();
+
+        $this->actingAs($this->user);
+
+        $this->post(route('inscriptions.store'), [
+            'unique_code' => $player->unique_code,
+            'player_id' => $player->id,
+            'start_date' => '2026-03-15',
+        ])->assertStatus(200);
+
+        $inscription = Inscription::query()->where('player_id', $player->id)->latest('id')->firstOrFail();
+        $payment = Payment::query()->where('inscription_id', $inscription->id)->firstOrFail();
+
+        $this->assertSame(Payment::$no_application, (int) $payment->january);
+        $this->assertSame(0, (int) $payment->january_amount);
+        $this->assertSame(Payment::$no_application, (int) $payment->february);
+        $this->assertSame(0, (int) $payment->february_amount);
+        $this->assertSame(Payment::$debt, (int) $payment->march);
+        $this->assertSame(50000, (int) $payment->march_amount);
+    }
+
     public function test_inscription_email_shows_school_name_to_guardian(): void
     {
         $template = file_get_contents(resource_path('views/emails/inscriptions/added.blade.php'));
