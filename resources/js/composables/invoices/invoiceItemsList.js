@@ -165,8 +165,12 @@ export default function useInvoiceItemsList() {
 
     const options = {
         ...configLanguaje,
-        dom: "<'row'<'col-sm-12 col-md-6'l>>t<'row align-items-center'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
-        lengthMenu: [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
+        layout: {
+            topStart: { pageLength: { menu: [10, 30, 50, 70, 100] } },
+            topEnd: null,
+            bottomStart: 'info',
+            bottomEnd: 'paging',
+        },
         order: [[0, 'desc']],
         serverSide: true,
         pipeline: { pages: 5 },

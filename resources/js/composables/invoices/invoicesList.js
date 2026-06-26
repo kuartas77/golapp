@@ -53,7 +53,12 @@ export default function useInvoicesList() {
 
     const options = {
         ...configLanguaje,
-        lengthMenu: [[10, 20, 30, 50, 100], [10, 20, 30, 50, 100]],
+        layout: {
+            topStart: { pageLength: { menu: [10, 20, 30, 50, 100] } },
+            topEnd: null,
+            bottomStart: 'info',
+            bottomEnd: 'paging',
+        },
         columnDefs: [
             { responsivePriority: 1, targets: columns.length - 1 },
             { targets: [2], width: '10%', className: 'dt-head-center dt-body-center' },
@@ -64,7 +69,6 @@ export default function useInvoicesList() {
         serverSide: true,
         pipeline: { pages: 5 },
         processing: true,
-        dom: "<'row'<'col-sm-12 col-md-6'l>>t<'row align-items-center'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
         order: [[6, 'desc']],
         ajax: async (data, callback, settings) => {
             try {

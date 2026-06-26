@@ -439,7 +439,12 @@ const productColumns = [
 
 const productOptions = {
     ...configLanguaje,
-    dom: 'litp',
+    layout: {
+        topStart: { pageLength: { menu: [10, 20, 30, 50, 100] } },
+        topEnd: null,
+        bottomStart: 'info',
+        bottomEnd: 'paging',
+    },
     serverSide: true,
     pipeline: { pages: 5 },
     processing: true,
@@ -485,7 +490,12 @@ const movementColumns = [
 
 const movementOptions = {
     ...configLanguaje,
-    dom: 'litp',
+    layout: {
+        topStart: { pageLength: { menu: [10, 20, 30, 50, 100] } },
+        topEnd: null,
+        bottomStart: 'info',
+        bottomEnd: 'paging',
+    },
     serverSide: true,
     pipeline: { pages: 5 },
     processing: true,
