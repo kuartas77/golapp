@@ -153,8 +153,10 @@ const openGroupSelection = () => {
         input: 'select',
         inputOptions: Object.fromEntries(settings.competition_groups.map(item => [item.id, item.name])),
         inputPlaceholder: 'Selecciona...',
-        allowOutsideClick: true,
         allowEscapeKey: true,
+        showLoaderOnConfirm: true,
+        confirmButtonText: 'Crear competencia',
+        allowOutsideClick: () => !Swal.isLoading(),
         inputValidator: function (value) {
             return new Promise(function (resolve) {
                 if (value !== '') {
@@ -163,9 +165,26 @@ const openGroupSelection = () => {
                     resolve('Necesitas Seleccionar Uno.');
                 }
             });
+        },
+        preConfirm: async (value) => {
+            try {
+                const response = await api.get('/api/v2/matches/0', {
+                    params: { competition_group: value }
+                })
+
+                if (!response.data?.skills_controls?.length) {
+                    Swal.showValidationMessage('No se puede crear la competencia porque el grupo seleccionado no tiene integrantes.')
+                    return false
+                }
+
+                return value
+            } catch (error) {
+                Swal.showValidationMessage(error.response?.data?.message || 'No fue posible validar el grupo de competencia.')
+                return false
+            }
         }
     }).then(function (result) {
-        if (result?.value !== undefined) {
+        if (result.isConfirmed && result?.value !== undefined) {
             router.push({ name: 'matches-create', params: { grupo_competencia: result.value } })
         }
     });
