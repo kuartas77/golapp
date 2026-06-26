@@ -8,6 +8,7 @@ use App\Http\Requests\InvoiceStoreRequest;
 use App\Models\Invoice;
 use App\Repositories\InvoiceRepository;
 use App\Traits\PDFTrait;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -23,8 +24,33 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         return datatables()->of($this->invoice_repository->query())
-        ->filterColumn('created_at', fn($query, $keyword) => $query->whereBetween('created_at', explode(' a ', $keyword)))
+        ->filterColumn('training_group_id', fn ($query, $keyword) => $query->where('training_group_id', $keyword))
+        ->filterColumn('created_at', fn ($query, $keyword) => $this->filterCreatedAtColumn($query, $keyword))
         ->toJson();
+    }
+
+    private function filterCreatedAtColumn($query, string $keyword)
+    {
+        $dates = preg_split('/\s+a\s+/', trim($keyword));
+
+        if (! $dates || count($dates) > 2) {
+            return $query;
+        }
+
+        foreach ($dates as $date) {
+            if (! preg_match('/^\d{4}-\d{1,2}-\d{1,2}$/', $date)) {
+                return $query;
+            }
+        }
+
+        try {
+            $startDate = CarbonImmutable::parse($dates[0])->startOfDay();
+            $endDate = CarbonImmutable::parse($dates[1] ?? $dates[0])->endOfDay();
+        } catch (\Throwable) {
+            return $query;
+        }
+
+        return $query->whereBetween('created_at', [$startDate, $endDate]);
     }
 
     public function create($inscriptionId, Request $request)
