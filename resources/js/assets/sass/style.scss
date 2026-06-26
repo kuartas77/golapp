@@ -2695,6 +2695,10 @@ textarea[disabled], textarea[readonly] {
     padding: 1px 16px !important;
 }
 
+.datatable-header-filter-input {
+    min-width: 7.5rem;
+}
+
 input[readonly].form-control.flatpickr.flatpickr-input  {
     cursor: pointer;
     color: #000;

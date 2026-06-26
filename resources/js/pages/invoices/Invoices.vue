@@ -35,14 +35,58 @@
                 </div>
             </div>
 
-            <div data-tour="invoices-index-table">
+            <div v-if="groupOptionsLoaded" data-tour="invoices-index-table">
                 <DatatableTemplate :options="options" :id="'invoives_table'" ref="invoives_table" @click="onClickRow">
                 <template #thead>
                     <thead>
                         <tr>
-                            <th># Factura</th>
-                            <th>Deportista</th>
-                            <th>Grupo</th>
+                            <th>
+                                <div>
+                                    <input
+                                        v-model="invoiceNumberFilter"
+                                        type="search"
+                                        class="form-control form-control-sm datatable-header-filter-input"
+                                        placeholder="# Factura"
+                                        aria-label="Buscar por número de factura"
+                                        autocomplete="off"
+                                        @click.stop
+                                        @keydown.stop
+                                        @input="applyInvoiceNumberFilter"
+                                    >
+                                </div>
+                            </th>
+                            <th>
+                                <div>
+                                    <input
+                                        v-model="studentNameFilter"
+                                        type="search"
+                                        class="form-control form-control-sm datatable-header-filter-input"
+                                        placeholder="Deportista"
+                                        aria-label="Buscar por deportista"
+                                        autocomplete="off"
+                                        @click.stop
+                                        @keydown.stop
+                                        @input="applyStudentNameFilter"
+                                    >
+                                </div>
+                            </th>
+                            <th>
+                                <div>
+                                    <select
+                                        v-model="trainingGroupFilter"
+                                        class="form-select form-select-sm form-select-custom"
+                                        aria-label="Filtrar por grupo"
+                                        @click.stop
+                                        @keydown.stop
+                                        @change="applyTrainingGroupFilter"
+                                    >
+                                        <option value="">Grupo</option>
+                                        <option v-for="group in groupOptions" :key="group.value" :value="group.value">
+                                            {{ group.label }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </th>
                             <th class="text-right">Total</th>
                             <th class="text-right">Pagado</th>
                             <th class="text-center">Estado</th>
@@ -94,7 +138,22 @@ const flatpickrConfig = {
     maxDate: dayjs().format('YYYY-M-D'),
     minDate: dayjs().subtract(5, 'year').format('YYYY-M-D'),
 }
-const { options, invoives_table, filterDate, clearDate, onClickRow, reloadTable } = useInvoicesList()
+const {
+    options,
+    invoives_table,
+    filterDate,
+    clearDate,
+    onClickRow,
+    reloadTable,
+    invoiceNumberFilter,
+    studentNameFilter,
+    trainingGroupFilter,
+    groupOptions,
+    groupOptionsLoaded,
+    applyInvoiceNumberFilter,
+    applyStudentNameFilter,
+    applyTrainingGroupFilter,
+} = useInvoicesList()
 const tutorial = usePageTutorial(invoicesIndexTutorial)
 </script>
 
@@ -121,4 +180,5 @@ const tutorial = usePageTutorial(invoicesIndexTutorial)
     padding: 0.25rem 0.5rem;
     font-size: 0.875rem;
 }
+
 </style>

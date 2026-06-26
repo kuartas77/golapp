@@ -1,5 +1,5 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { ref, useTemplateRef, onMounted } from 'vue';
+import { nextTick, ref, useTemplateRef, onMounted, watch } from 'vue';
 import api from '@/utils/axios'
 import { usePageTitle } from "@/composables/use-meta";
 import { useRouter } from 'vue-router'
@@ -8,10 +8,18 @@ import dayjs from '@/utils/dayjs';
 export default function useInvoicesList() {
     const router = useRouter()
     const invoives_table = useTemplateRef('invoives_table')
+    const invoiceNumberFilter = ref('')
+    const studentNameFilter = ref('')
+    const trainingGroupFilter = ref('')
+    const groupOptions = ref([])
+    const groupOptionsLoaded = ref(false)
+    let filterTimeout = null
+    let tableFiltersReady = false
+
     const columns = [
         { data: 'invoice_number', name: 'invoice_number', searchable: true, orderable: false },
         { data: 'student_name', name: 'student_name', searchable: true, orderable: false },
-        { data: 'training_group.name', searchable: false, orderable: false },
+        { data: 'training_group.name', name: 'training_group_id', searchable: true, orderable: false },
         { data: 'total_amount', searchable: false, orderable: false, render: (data, type, row) => `${moneyFormat(data)}` },
         { data: 'paid_amount', searchable: false, orderable: false, render: (data, type, row) => `${moneyFormat(data)}` },
         {
@@ -48,6 +56,7 @@ export default function useInvoicesList() {
         lengthMenu: [[10, 20, 30, 50, 100], [10, 20, 30, 50, 100]],
         columnDefs: [
             { responsivePriority: 1, targets: columns.length - 1 },
+            { targets: [2], width: '10%', className: 'dt-head-center dt-body-center' },
             { targets: [3, 4], className: 'dt-body-right' },
             { targets: [5], className: 'dt-body-center' },
             { targets: [7],  width: '1%' }
@@ -55,6 +64,7 @@ export default function useInvoicesList() {
         serverSide: true,
         pipeline: { pages: 5 },
         processing: true,
+        dom: "<'row'<'col-sm-12 col-md-6'l>>t<'row align-items-center'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>",
         order: [[6, 'desc']],
         ajax: async (data, callback, settings) => {
             try {
@@ -95,6 +105,56 @@ export default function useInvoicesList() {
         }
     };
 
+    const getDataTable = () => invoives_table.value?.table?.dt
+
+    const drawWithFreshPipeline = (dt) => {
+        if (!dt) {
+            return
+        }
+
+        dt.clearPipeline()
+        dt.draw()
+    }
+
+    const searchColumn = (columnIndex, value) => {
+        const dt = getDataTable()
+        if (!dt) {
+            return
+        }
+
+        dt.column(columnIndex).search(value ?? '')
+        drawWithFreshPipeline(dt)
+    }
+
+    const debounceColumnSearch = (columnIndex, value) => {
+        window.clearTimeout(filterTimeout)
+        filterTimeout = window.setTimeout(() => {
+            searchColumn(columnIndex, String(value ?? '').trim())
+        }, 300)
+    }
+
+    const applyInvoiceNumberFilter = () => debounceColumnSearch(0, invoiceNumberFilter.value)
+    const applyStudentNameFilter = () => debounceColumnSearch(1, studentNameFilter.value)
+    const applyTrainingGroupFilter = () => searchColumn(2, trainingGroupFilter.value)
+
+    const loadGroupOptions = async () => {
+        try {
+            const response = await api.get('/api/v2/settings/general')
+            const groups = response.data?.all_t_groups ?? response.data?.t_groups ?? []
+
+            groupOptions.value = groups.map((group) => ({
+                value: String(group.id),
+                label: group.full_schedule_group ?? group.full_group ?? group.name ?? `Grupo ${group.id}`,
+            }))
+        } catch {
+            groupOptions.value = []
+        } finally {
+            groupOptionsLoaded.value = true
+        }
+    }
+
+    loadGroupOptions()
+
     const onClickRow = (e) => {
         const type = e.target.dataset.type
         const itemId = e.target.dataset.itemId
@@ -116,8 +176,8 @@ export default function useInvoicesList() {
     }
 
     const reloadTable = () => {
-        if (invoives_table.value) {
-            let dt = invoives_table.value.table.dt;
+        const dt = getDataTable()
+        if (dt) {
             dt.clearPipeline()
             dt.ajax.reload(null, false)
         }
@@ -129,27 +189,65 @@ export default function useInvoicesList() {
       if (filterDate.value) {
         filterDate.value = ''
       }
+
+      searchColumn(6, '')
     };
 
-    onMounted(() => {
-        usePageTitle('Facturas')
-
-        if (invoives_table.value) {
-            let dt = invoives_table.value.table.dt;
-            const filterStatus = document.getElementById('filterStatus');
-            if (filterStatus) {
-                filterStatus.addEventListener('change', function () {
-                    return dt.column(5).search(this.value).draw()
-                });
-            }
-            const filterDateEle = document.getElementById('filterDate');
-            if (filterDateEle) {
-                filterDateEle.addEventListener('change', function () {
-                    return dt.column(6).search(this.value).draw()
-                });
-            }
+    const setupTableFilters = () => {
+        if (tableFiltersReady) {
+            return
         }
+        const dt = getDataTable()
+        if (!dt) {
+            return
+        }
+
+        const filterStatus = document.getElementById('filterStatus');
+        if (filterStatus) {
+            filterStatus.addEventListener('change', function () {
+                dt.column(5).search(this.value)
+                return drawWithFreshPipeline(dt)
+            });
+        }
+        const filterDateEle = document.getElementById('filterDate');
+        if (filterDateEle) {
+            filterDateEle.addEventListener('change', function () {
+                dt.column(6).search(this.value)
+                return drawWithFreshPipeline(dt)
+            });
+        }
+        tableFiltersReady = true
+    }
+
+    watch(groupOptionsLoaded, async (loaded) => {
+        if (!loaded) {
+            return
+        }
+
+        await nextTick()
+        setupTableFilters()
     })
 
-    return { options, invoives_table, filterDate, clearDate, onClickRow, reloadTable }
+    onMounted(async () => {
+        usePageTitle('Facturas')
+        await nextTick()
+        setupTableFilters()
+    })
+
+    return {
+        options,
+        invoives_table,
+        filterDate,
+        clearDate,
+        onClickRow,
+        reloadTable,
+        invoiceNumberFilter,
+        studentNameFilter,
+        trainingGroupFilter,
+        groupOptions,
+        groupOptionsLoaded,
+        applyInvoiceNumberFilter,
+        applyStudentNameFilter,
+        applyTrainingGroupFilter,
+    }
 }
