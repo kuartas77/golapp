@@ -90,6 +90,10 @@ class SettingsController extends Controller
 
         $optionsAssist = $this->rememberConfigOptions('KEY_ASSIST', now()->addYear(), 'KEY_ASSIST');
         $optionsPayment = $this->rememberConfigOptions('KEY_PAYMENTS_SELECT', now()->addYear(), 'KEY_PAYMENTS_SELECT');
+        $trainingSessionGeneralObjectiveOptions = $this->rememberConfigOptions('KEY_TRAINING_SESSION_GENERAL_OBJECTIVE', now()->addYear(), 'KEY_TRAINING_SESSION_GENERAL_OBJECTIVE');
+        $trainingSessionSpecificGoalOptions = $this->rememberConfigOptions('KEY_TRAINING_SESSION_SPECIFIC_GOAL', now()->addYear(), 'KEY_TRAINING_SESSION_SPECIFIC_GOAL');
+        $trainingSessionContentOptions = $this->rememberConfigOptions('KEY_TRAINING_SESSION_CONTENT', now()->addYear(), 'KEY_TRAINING_SESSION_CONTENT');
+        $trainingSessionTaskOptions = $this->rememberConfigOptions('KEY_TRAINING_SESSION_TASKS', now()->addYear(), 'KEY_TRAINING_SESSION_TASKS');
 
         $competition_groups = $this->groupCatalogCache->remember(
             GroupCatalogCache::COMPETITION,
@@ -131,6 +135,10 @@ class SettingsController extends Controller
             'schools' => $schools,
             'type_assistance' => $optionsAssist,
             'type_payments' => $optionsPayment,
+            'training_session_general_objectives' => $trainingSessionGeneralObjectiveOptions,
+            'training_session_specific_goals' => $trainingSessionSpecificGoalOptions,
+            'training_session_contents' => $trainingSessionContentOptions,
+            'training_session_tasks' => $trainingSessionTaskOptions,
             'settings' => $school->settings,
             'current_school_id' => $school_id,
         ]);

@@ -44,7 +44,6 @@ export default function useMonthlyPayments() {
     const isLoading = ref(false)
     const editingCell = ref(null)
     const backupCell = ref(null)
-    const typesNoEditables = [14]
     const annuity_amount = ref(0)
     const enrollment_amount = ref(0)
     const monthly_amount = ref(0)
@@ -142,8 +141,8 @@ export default function useMonthlyPayments() {
         backupCell.value = cloneDeep(toRaw(payPlayer));
     };
 
-    const canEditPaymentRow = (payPlayer, field) => {
-        return !payPlayer.inscription_deleted && !typesNoEditables.some((type) => type === payPlayer[field])
+    const canEditPaymentRow = (payPlayer) => {
+        return !payPlayer.inscription_deleted
     }
 
     const cancelEdition = () => {
@@ -422,7 +421,6 @@ export default function useMonthlyPayments() {
         categories,
         type_payments,
         paymentTypeLabels,
-        typesNoEditables,
         canEditPaymentRow,
         paymentFields,
         retiredRowsCount,

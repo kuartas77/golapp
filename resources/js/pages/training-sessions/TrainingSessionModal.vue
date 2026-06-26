@@ -15,6 +15,7 @@
                 v-slot="{ errors, handleSubmit }"
                 :validation-schema="schema"
                 :initial-values="initialValues"
+                :keep-values="true"
                 @submit="onSubmit"
             >
                 <div class="modal-content">
@@ -141,6 +142,29 @@
                                                     :name="taskField(taskNumber - 1, 'task_name')"
                                                     :label="`Ejercicio N° ${taskNumber}`"
                                                     :is-required="true"
+                                                    list="training-session-task-list"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row col-md-12">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <inputField
+                                                    :name="taskField(taskNumber - 1, 'general_objective')"
+                                                    label="Objetivo general"
+                                                    list="training-session-general-objective-list"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <inputField
+                                                    :name="taskField(taskNumber - 1, 'specific_goal')"
+                                                    label="Objetivo específico"
+                                                    list="training-session-specific-goal-list"
                                                 />
                                             </div>
                                         </div>
@@ -150,38 +174,29 @@
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <inputField
-                                                    :name="taskField(taskNumber - 1, 'general_objective')"
-                                                    label="Objetivo general"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <inputField
-                                                    :name="taskField(taskNumber - 1, 'specific_goal')"
-                                                    label="Objetivo específico"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <inputField
                                                     :name="taskField(taskNumber - 1, 'content_one')"
-                                                    label="Contenido 1"
+                                                    label="Desarrollo del ejercicio 1"
+                                                    list="training-session-content-list"
                                                 />
                                             </div>
-                                            <div class="form-group mt-2">
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="form-group">
                                                 <inputField
                                                     :name="taskField(taskNumber - 1, 'content_two')"
-                                                    label="Contenido 2"
+                                                    label="Desarrollo del ejercicio 2"
+                                                    list="training-session-content-list"
                                                 />
                                             </div>
-                                            <div class="form-group mt-2">
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="form-group">
                                                 <inputField
                                                     :name="taskField(taskNumber - 1, 'content_three')"
-                                                    label="Contenido 3"
+                                                    label="Desarrollo del ejercicio 3"
+                                                    list="training-session-content-list"
                                                 />
                                             </div>
                                         </div>
@@ -192,9 +207,10 @@
                                             <div class="form-group">
                                                 <inputField
                                                     :name="taskField(taskNumber - 1, 'ts')"
-                                                    label="TS"
+                                                    label="T/S"
                                                     placeholder="9"
                                                 />
+                                                <div class="form-text">Tiempo por serie</div>
                                             </div>
                                         </div>
 
@@ -205,6 +221,7 @@
                                                     label="S/R"
                                                     placeholder="2 (1'D)"
                                                 />
+                                                <div class="form-text">Series / Repeticiones</div>
                                             </div>
                                         </div>
 
@@ -212,9 +229,10 @@
                                             <div class="form-group">
                                                 <inputField
                                                     :name="taskField(taskNumber - 1, 'tt')"
-                                                    label="TT"
+                                                    label="T/T"
                                                     placeholder="20"
                                                 />
+                                                <div class="form-text">Tiempo total</div>
                                             </div>
                                         </div>
                                     </div>
@@ -319,6 +337,30 @@
             </Form>
         </div>
     </div>
+
+    <datalist id="training-session-task-list">
+        <option v-for="option in settings.training_session_tasks" :key="`task-${option.value}`" :value="option.label" />
+    </datalist>
+
+    <datalist id="training-session-general-objective-list">
+        <option
+            v-for="option in settings.training_session_general_objectives"
+            :key="`general-objective-${option.value}`"
+            :value="option.label"
+        />
+    </datalist>
+
+    <datalist id="training-session-specific-goal-list">
+        <option
+            v-for="option in settings.training_session_specific_goals"
+            :key="`specific-goal-${option.value}`"
+            :value="option.label"
+        />
+    </datalist>
+
+    <datalist id="training-session-content-list">
+        <option v-for="option in settings.training_session_contents" :key="`content-${option.value}`" :value="option.label" />
+    </datalist>
 </template>
 
 <script setup>
@@ -368,7 +410,7 @@ const numericString = (label) =>
 
 const taskSchema = yup.object({
     task_number: yup.number().required().integer().min(1).max(3),
-    task_name: yup.string().required().max(10),
+    task_name: yup.string().required().max(100),
     general_objective: yup.string().nullable().max(50),
     specific_goal: yup.string().nullable().max(50),
     content_one: yup.string().nullable().max(50),
@@ -491,7 +533,7 @@ function mapResponseToForm(data) {
 }
 
 async function ensureSettingsLoaded() {
-    if (!settings.groups.length) {
+    if (!settings.groups.length || !settings.training_session_tasks.length) {
         await settings.getSettings()
     }
 }

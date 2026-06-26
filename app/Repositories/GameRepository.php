@@ -206,6 +206,7 @@ class GameRepository
 
             foreach ($skillsData as $skill) {
                 $skill['school_id'] = $matchData['school_id'];
+                $skill['game_id'] = $game->id;
 
                 SkillsControl::query()->updateOrCreate(
                     [

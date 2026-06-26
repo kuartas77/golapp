@@ -53,6 +53,10 @@ export const useSetting = defineStore('settings-store', {
         schools: [],
         type_assistance: [],
         type_payments: [],
+        training_session_general_objectives: [],
+        training_session_specific_goals: [],
+        training_session_contents: [],
+        training_session_tasks: [],
         settings: {},
     }),
     getters: {
@@ -98,6 +102,10 @@ export const useSetting = defineStore('settings-store', {
             this.schools = toArray(data.schools)
             this.type_assistance = normalizeOptionList(data.type_assistance)
             this.type_payments = normalizeOptionList(data.type_payments)
+            this.training_session_general_objectives = normalizeOptionList(data.training_session_general_objectives)
+            this.training_session_specific_goals = normalizeOptionList(data.training_session_specific_goals)
+            this.training_session_contents = normalizeOptionList(data.training_session_contents)
+            this.training_session_tasks = normalizeOptionList(data.training_session_tasks)
             this.settings = data.settings ?? {}
         }
     }
