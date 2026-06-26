@@ -264,6 +264,7 @@ Route::prefix('v2')->group(function () {
             Route::post('', [MethodologyRecordController::class, 'store']);
             Route::get('{methodologyRecord}', [MethodologyRecordController::class, 'show']);
             Route::put('{methodologyRecord}', [MethodologyRecordController::class, 'update']);
+            Route::delete('{methodologyRecord}', [MethodologyRecordController::class, 'destroy']);
         });
 
         Route::middleware([

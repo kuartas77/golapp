@@ -147,6 +147,26 @@ final class MethodologyRecordsTest extends TestCase
                 'title' => 'Intento bloqueado',
             ]))
             ->assertNotFound();
+
+        $this->actingAs($instructorA)
+            ->deleteJson("/api/v2/methodology-records/{$blockedRecord->id}")
+            ->assertNotFound();
+    }
+
+    public function test_accessible_methodology_records_can_be_deleted(): void
+    {
+        $record = $this->createRecord((int) $this->school['id'], $this->user, [
+            'title' => 'Registro para eliminar',
+        ]);
+
+        $this->actingAs($this->user)
+            ->deleteJson("/api/v2/methodology-records/{$record->id}")
+            ->assertOk()
+            ->assertJsonPath('message', 'Registro metodológico eliminado correctamente.');
+
+        $this->assertSoftDeleted('methodology_records', [
+            'id' => $record->id,
+        ]);
     }
 
     public function test_school_and_super_admin_can_access_all_school_records(): void

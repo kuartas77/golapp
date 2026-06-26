@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
+use App\Models\TrainingGroup;
 use App\Models\MethodologyRecord;
 use App\Repositories\PlayerRepository;
 use App\Repositories\SchoolRepository;
@@ -211,7 +212,9 @@ class DataTableController extends Controller
 
         abort_if($type && ! in_array($type, MethodologyRecord::TYPES, true), 422);
 
-        return datatables()->eloquent($this->methodologyRecordRepository->datatableQuery($type))
+        $filters = $this->methodologyFilterOptions($type);
+
+        $response = datatables()->eloquent($this->methodologyRecordRepository->datatableQuery($type))
             ->filterColumn('title', fn ($query, $keyword) => $query->where('methodology_records.title', 'like', "%{$keyword}%"))
             ->filterColumn('creator_name', fn ($query, $keyword) => $query->where('users.name', 'like', "%{$keyword}%"))
             ->filterColumn('training_group_name', fn ($query, $keyword) => $query->where('training_groups.name', 'like', "%{$keyword}%"))
@@ -224,6 +227,40 @@ class DataTableController extends Controller
             ->editColumn('created_at', fn (MethodologyRecord $record) => $record->created_at?->format('Y-m-d'))
             ->addColumn('export_pdf_url', fn (MethodologyRecord $record) => route('methodology.records.pdf', ['id' => $record->id]))
             ->toJson();
+
+        $payload = $response->getData(true);
+        $payload['filters'] = $filters;
+
+        return response()->json($payload);
+    }
+
+    private function methodologyFilterOptions(?string $type): array
+    {
+        $school = getSchool(auth()->user());
+
+        $creators = (isInstructor()
+            ? collect([auth()->user()])
+            : $school->users()->select('users.name')->orderBy('users.name')->get())
+            ->pluck('name')
+            ->filter()
+            ->unique()
+            ->map(fn (string $name) => ['value' => $name, 'label' => $name])
+            ->values();
+
+        $trainingGroups = TrainingGroup::query()
+            ->schoolId()
+            ->select('name')
+            ->whereNotNull('name')
+            ->orderBy('name')
+            ->pluck('name')
+            ->unique()
+            ->map(fn (string $name) => ['value' => $name, 'label' => $name])
+            ->values();
+
+        return [
+            'creators' => $creators,
+            'training_groups' => $trainingGroups,
+        ];
     }
 
     public function playerEvaluations(Request $request): JsonResponse

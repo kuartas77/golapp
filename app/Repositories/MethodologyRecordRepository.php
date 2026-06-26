@@ -57,4 +57,9 @@ class MethodologyRecordRepository
 
         return $record->fresh(['user:id,name', 'trainingGroup:id,name,category']);
     }
+
+    public function destroy(MethodologyRecord $record): bool
+    {
+        return (bool) $record->delete();
+    }
 }
