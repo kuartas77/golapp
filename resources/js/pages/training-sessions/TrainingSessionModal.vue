@@ -17,6 +17,7 @@
                 :initial-values="initialValues"
                 :keep-values="true"
                 @submit="onSubmit"
+                @invalid-submit="onInvalidSubmit"
             >
                 <div class="modal-content">
                     <div class="modal-header">
@@ -36,7 +37,25 @@
                             {{ globalError }}
                         </div>
 
-                        <Wizard v-model="currentStep" :options="wizardOptions" @finish="handleSubmit(onSubmit)">
+                        <div v-if="formErrorSummary.length" class="alert alert-danger" role="alert">
+                            <div class="fw-semibold">Hay campos por corregir antes de guardar.</div>
+                            <ul class="mb-0 mt-2 ps-3">
+                                <li v-for="error in formErrorSummary" :key="`${error.field}_${error.message}`">
+                                    <button
+                                        v-if="error.stepIndex !== null"
+                                        type="button"
+                                        class="btn btn-link btn-sm alert-link p-0 align-baseline"
+                                        @click="goToStep(error.stepIndex)"
+                                    >
+                                        Paso {{ error.stepIndex + 1 }} · {{ error.stepTitle }}
+                                    </button>
+                                    <span v-if="error.stepIndex !== null">:</span>
+                                    <span> {{ error.label }}. {{ error.message }}</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <Wizard v-model="currentStep" :options="wizardOptions" @finish="handleSubmit(null, onSubmit)">
                             <template #info>
                                 <h6 class="d-flex block-helper justify-content-center">
                                     Los campos con <span class="text-danger">&ensp;(*)&ensp;</span> son requeridos.
@@ -84,13 +103,31 @@
 
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <inputField label="Hora" name="hour" :is-required="true" placeholder="02:00 PM" />
+                                                <label for="hour" class="form-label">
+                                                    Hora
+                                                    <span class="text-danger">&nbsp;(*)</span>
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                                                    <Field name="hour" v-slot="{ field, errorMessage, meta }">
+                                                        <flat-pickr
+                                                            v-bind="field"
+                                                            id="hour"
+                                                            v-model="field.value"
+                                                            :config="flatpickrConfigHour"
+                                                            class="form-control form-control-sm flatpickr"
+                                                            :class="{ 'is-invalid': meta.touched && errorMessage }"
+                                                            placeholder="02:00 PM"
+                                                        />
+                                                    </Field>
+                                                </div>
+                                                <ErrorMessage name="hour" class="invalid-feedback d-block" />
                                             </div>
                                         </div>
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <inputField label="Lugar" name="training_ground" :is-required="true" />
+                                                <inputField label="Lugar" name="training_ground" />
                                             </div>
                                         </div>
                                     </div>
@@ -141,7 +178,7 @@
                                                 <inputField
                                                     :name="taskField(taskNumber - 1, 'task_name')"
                                                     :label="`Ejercicio N° ${taskNumber}`"
-                                                    :is-required="true"
+                                                    :is-required="taskNumber === 1"
                                                     list="training-session-task-list"
                                                 />
                                             </div>
@@ -364,8 +401,11 @@
 </template>
 
 <script setup>
+import "@/assets/sass/forms/custom-flatpickr.css"
+import 'flatpickr/dist/flatpickr.css'
 import { computed, getCurrentInstance, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { ErrorMessage, Field, Form } from 'vee-validate'
+import flatPickr from 'vue-flatpickr-component'
 import * as yup from 'yup'
 import Loader from '@/components/general/Loader.vue'
 import Step from '@/plugins/wizard/Step.vue'
@@ -395,6 +435,7 @@ const settings = useSetting()
 const isLoading = ref(false)
 const isSubmitting = ref(false)
 const globalError = ref(null)
+const formErrorSummary = ref([])
 const currentStep = ref(0)
 const initialValues = ref(createInitialValues())
 
@@ -408,9 +449,25 @@ const numericString = (label) =>
             excludeEmptyString: true,
         })
 
+const flatpickrConfigHour = {
+    enableTime: true,
+    noCalendar: true,
+    dateFormat: 'h:i K',
+}
+
 const taskSchema = yup.object({
     task_number: yup.number().required().integer().min(1).max(3),
-    task_name: yup.string().required().max(100),
+    task_name: yup
+        .string()
+        .nullable()
+        .max(100)
+        .test('first-task-name-required', 'El ejercicio 1 es obligatorio.', function (value) {
+            if (Number(this.parent?.task_number) !== 1) {
+                return true
+            }
+
+            return Boolean(String(value ?? '').trim())
+        }),
     general_objective: yup.string().nullable().max(50),
     specific_goal: yup.string().nullable().max(50),
     content_one: yup.string().nullable().max(50),
@@ -427,8 +484,11 @@ const schema = yup.object({
     period: yup.string().required().max(100),
     session: yup.string().required().max(100),
     date: yup.string().required(),
-    hour: yup.string().required().max(20),
-    training_ground: yup.string().required().max(100),
+    hour: yup.string().matches(
+        /^((1[0-2]|[1-9]):([0-5][0-9]))\s(AM|PM)$/i,
+        'La hora debe estar en formato de 12 horas. (ejemplo: 9:30 AM o 12:00 PM)'
+    ).required(),
+    training_ground: yup.string().nullable().max(100),
     material: yup.string().nullable(),
     warm_up: yup.string().nullable(),
     back_to_calm: numericString('Vuelta a la calma').max(10),
@@ -436,10 +496,23 @@ const schema = yup.object({
     absences: yup.string().nullable(),
     incidents: yup.string().nullable(),
     feedback: yup.string().nullable(),
-    tasks: yup.array().of(taskSchema).length(3),
+    tasks: yup
+        .array()
+        .of(taskSchema)
+        .length(3)
+        .test('first-task-name-required', 'El ejercicio 1 es obligatorio.', function (tasks) {
+            if (String(tasks?.[0]?.task_name ?? '').trim()) {
+                return true
+            }
+
+            return this.createError({
+                path: 'tasks[0].task_name',
+                message: 'El ejercicio 1 es obligatorio.',
+            })
+        }),
 })
 
-const wizardOptions = {
+const wizardOptions = computed(() => ({
     saveState: false,
     enableAllSteps: true,
     labels: {
@@ -447,7 +520,93 @@ const wizardOptions = {
         next: 'Siguiente',
         previous: 'Anterior',
     },
+    onStepChanging: validateStepChange,
+    onFinishing: async () => validateStepsUpTo(currentStep.value),
+}))
+
+const fieldMeta = {
+    training_group_id: { label: 'Grupo de entrenamiento', stepIndex: 0, stepTitle: 'Información general' },
+    period: { label: 'Periodo', stepIndex: 0, stepTitle: 'Información general' },
+    session: { label: 'Sesión', stepIndex: 0, stepTitle: 'Información general' },
+    date: { label: 'Fecha', stepIndex: 0, stepTitle: 'Información general' },
+    hour: { label: 'Hora', stepIndex: 0, stepTitle: 'Información general' },
+    training_ground: { label: 'Lugar', stepIndex: 0, stepTitle: 'Información general' },
+    material: { label: 'Materiales utilizados', stepIndex: 0, stepTitle: 'Información general' },
+    warm_up: { label: 'Calentamiento', stepIndex: 0, stepTitle: 'Información general' },
+    'tasks[0].task_name': { label: 'Ejercicio 1', stepIndex: 1, stepTitle: 'Ejercicio 1' },
+    'tasks[0].general_objective': { label: 'Objetivo general', stepIndex: 1, stepTitle: 'Ejercicio 1' },
+    'tasks[0].specific_goal': { label: 'Objetivo específico', stepIndex: 1, stepTitle: 'Ejercicio 1' },
+    'tasks[0].content_one': { label: 'Desarrollo del ejercicio 1', stepIndex: 1, stepTitle: 'Ejercicio 1' },
+    'tasks[0].content_two': { label: 'Desarrollo del ejercicio 2', stepIndex: 1, stepTitle: 'Ejercicio 1' },
+    'tasks[0].content_three': { label: 'Desarrollo del ejercicio 3', stepIndex: 1, stepTitle: 'Ejercicio 1' },
+    'tasks[0].ts': { label: 'T/S', stepIndex: 1, stepTitle: 'Ejercicio 1' },
+    'tasks[0].sr': { label: 'S/R', stepIndex: 1, stepTitle: 'Ejercicio 1' },
+    'tasks[0].tt': { label: 'T/T', stepIndex: 1, stepTitle: 'Ejercicio 1' },
+    'tasks[1].task_name': { label: 'Ejercicio 2', stepIndex: 2, stepTitle: 'Ejercicio 2' },
+    'tasks[1].general_objective': { label: 'Objetivo general', stepIndex: 2, stepTitle: 'Ejercicio 2' },
+    'tasks[1].specific_goal': { label: 'Objetivo específico', stepIndex: 2, stepTitle: 'Ejercicio 2' },
+    'tasks[1].content_one': { label: 'Desarrollo del ejercicio 1', stepIndex: 2, stepTitle: 'Ejercicio 2' },
+    'tasks[1].content_two': { label: 'Desarrollo del ejercicio 2', stepIndex: 2, stepTitle: 'Ejercicio 2' },
+    'tasks[1].content_three': { label: 'Desarrollo del ejercicio 3', stepIndex: 2, stepTitle: 'Ejercicio 2' },
+    'tasks[1].ts': { label: 'T/S', stepIndex: 2, stepTitle: 'Ejercicio 2' },
+    'tasks[1].sr': { label: 'S/R', stepIndex: 2, stepTitle: 'Ejercicio 2' },
+    'tasks[1].tt': { label: 'T/T', stepIndex: 2, stepTitle: 'Ejercicio 2' },
+    'tasks[2].task_name': { label: 'Ejercicio 3', stepIndex: 3, stepTitle: 'Ejercicio 3' },
+    'tasks[2].general_objective': { label: 'Objetivo general', stepIndex: 3, stepTitle: 'Ejercicio 3' },
+    'tasks[2].specific_goal': { label: 'Objetivo específico', stepIndex: 3, stepTitle: 'Ejercicio 3' },
+    'tasks[2].content_one': { label: 'Desarrollo del ejercicio 1', stepIndex: 3, stepTitle: 'Ejercicio 3' },
+    'tasks[2].content_two': { label: 'Desarrollo del ejercicio 2', stepIndex: 3, stepTitle: 'Ejercicio 3' },
+    'tasks[2].content_three': { label: 'Desarrollo del ejercicio 3', stepIndex: 3, stepTitle: 'Ejercicio 3' },
+    'tasks[2].ts': { label: 'T/S', stepIndex: 3, stepTitle: 'Ejercicio 3' },
+    'tasks[2].sr': { label: 'S/R', stepIndex: 3, stepTitle: 'Ejercicio 3' },
+    'tasks[2].tt': { label: 'T/T', stepIndex: 3, stepTitle: 'Ejercicio 3' },
+    back_to_calm: { label: 'Vuelta a la calma', stepIndex: 4, stepTitle: 'Cierre' },
+    players: { label: 'N° Jugadores', stepIndex: 4, stepTitle: 'Cierre' },
+    absences: { label: 'Ausencias', stepIndex: 4, stepTitle: 'Cierre' },
+    incidents: { label: 'Incidencias', stepIndex: 4, stepTitle: 'Cierre' },
+    feedback: { label: 'Retroalimentación', stepIndex: 4, stepTitle: 'Cierre' },
 }
+
+const stepFields = [
+    ['training_group_id', 'period', 'session', 'date', 'hour', 'training_ground', 'material', 'warm_up'],
+    [
+        'tasks[0].task_name',
+        'tasks[0].general_objective',
+        'tasks[0].specific_goal',
+        'tasks[0].content_one',
+        'tasks[0].content_two',
+        'tasks[0].content_three',
+        'tasks[0].ts',
+        'tasks[0].sr',
+        'tasks[0].tt',
+        'tasks[0].observations',
+    ],
+    [
+        'tasks[1].task_name',
+        'tasks[1].general_objective',
+        'tasks[1].specific_goal',
+        'tasks[1].content_one',
+        'tasks[1].content_two',
+        'tasks[1].content_three',
+        'tasks[1].ts',
+        'tasks[1].sr',
+        'tasks[1].tt',
+        'tasks[1].observations',
+    ],
+    [
+        'tasks[2].task_name',
+        'tasks[2].general_objective',
+        'tasks[2].specific_goal',
+        'tasks[2].content_one',
+        'tasks[2].content_two',
+        'tasks[2].content_three',
+        'tasks[2].ts',
+        'tasks[2].sr',
+        'tasks[2].tt',
+        'tasks[2].observations',
+    ],
+    ['back_to_calm', 'players', 'absences', 'incidents', 'feedback'],
+]
 
 const modalTitle = computed(() =>
     props.sessionId ? `Actualizar sesión de entrenamiento #${props.sessionId}` : 'Crear sesión de entrenamiento'
@@ -510,6 +669,130 @@ function normalizeValue(value) {
     return value === null || value === undefined ? null : String(value).trim() || null
 }
 
+function normalizeErrorKey(key) {
+    return String(key).replace(/\.(\d+)(?=\.|$)/g, '[$1]')
+}
+
+function prettifyField(field) {
+    return String(field)
+        .replace(/\[(\d+)\]/g, ' $1 ')
+        .replace(/_/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+}
+
+function buildErrorSummary(errors = {}) {
+    return Object.entries(errors)
+        .filter(([, message]) => Boolean(message))
+        .map(([field, message]) => {
+            const normalizedField = normalizeErrorKey(field)
+            const meta = fieldMeta[normalizedField]
+
+            return {
+                field: normalizedField,
+                label: meta?.label || prettifyField(normalizedField),
+                message,
+                stepIndex: typeof meta?.stepIndex === 'number' ? meta.stepIndex : null,
+                stepTitle: meta?.stepTitle || null,
+            }
+        })
+        .sort((left, right) => {
+            const leftStep = left.stepIndex ?? Number.MAX_SAFE_INTEGER
+            const rightStep = right.stepIndex ?? Number.MAX_SAFE_INTEGER
+
+            return leftStep - rightStep
+        })
+}
+
+function moveToFirstErrorStep(summary = []) {
+    const firstError = summary.find((item) => item.stepIndex !== null)
+
+    if (firstError) {
+        currentStep.value = firstError.stepIndex
+    }
+}
+
+function registerFormErrors(errors = {}, message = 'Revisa los campos obligatorios antes de guardar.') {
+    const summary = buildErrorSummary(errors)
+
+    formErrorSummary.value = summary
+    globalError.value = message
+    moveToFirstErrorStep(summary)
+}
+
+async function validateStep(index) {
+    const fields = stepFields[index] || []
+
+    if (!fields.length) {
+        return true
+    }
+
+    await nextTick()
+
+    const validationResults = await Promise.all(
+        fields.map(async (field) => ({
+            field,
+            result: await form.value?.validateField(field),
+        }))
+    )
+
+    const errors = validationResults.reduce((accumulator, { field, result }) => {
+        if (result?.valid === false && result.errors?.[0]) {
+            accumulator[field] = result.errors[0]
+        }
+
+        return accumulator
+    }, {})
+
+    if (Object.keys(errors).length) {
+        registerFormErrors(errors)
+        currentStep.value = index
+
+        return false
+    }
+
+    globalError.value = null
+    formErrorSummary.value = []
+
+    return true
+}
+
+async function validateStepsUpTo(index) {
+    for (let stepIndex = 0; stepIndex <= index; stepIndex += 1) {
+        const isValid = await validateStep(stepIndex)
+
+        if (!isValid) {
+            return false
+        }
+    }
+
+    return true
+}
+
+async function validateStepChange(currentIndex, nextIndex) {
+    if (nextIndex <= currentIndex) {
+        return true
+    }
+
+    for (let stepIndex = currentIndex; stepIndex < nextIndex; stepIndex += 1) {
+        const isValid = await validateStep(stepIndex)
+
+        if (!isValid) {
+            return false
+        }
+    }
+
+    return true
+}
+
+function normalizeBackendErrors(errors = {}) {
+    return Object.entries(errors).reduce((accumulator, [field, message]) => {
+        accumulator[normalizeErrorKey(field)] = Array.isArray(message) ? message[0] : message
+
+        return accumulator
+    }, {})
+}
+
 function mapResponseToForm(data) {
     return {
         training_group_id: data.training_group_id,
@@ -540,6 +823,7 @@ async function ensureSettingsLoaded() {
 
 async function prepareModal() {
     globalError.value = null
+    formErrorSummary.value = []
     currentStep.value = 0
 
     await ensureSettingsLoaded()
@@ -572,6 +856,7 @@ async function prepareModal() {
 async function onSubmit(values, actions) {
     isSubmitting.value = true
     globalError.value = null
+    formErrorSummary.value = []
 
     try {
         const payload = {
@@ -590,7 +875,7 @@ async function onSubmit(values, actions) {
             feedback: normalizeValue(values.feedback),
             tasks: values.tasks.map((task, index) => ({
                 task_number: index + 1,
-                task_name: task.task_name,
+                task_name: normalizeValue(task.task_name),
                 general_objective: normalizeValue(task.general_objective),
                 specific_goal: normalizeValue(task.specific_goal),
                 content_one: normalizeValue(task.content_one),
@@ -616,6 +901,16 @@ async function onSubmit(values, actions) {
         emit('updated')
         actions.resetForm({ values: createInitialValues() })
     } catch (error) {
+        if (error.response?.status === 422) {
+            const formattedErrors = normalizeBackendErrors(error.response.data?.errors || {})
+            actions.setErrors(formattedErrors)
+            registerFormErrors(
+                formattedErrors,
+                error.response.data?.message || 'Encontramos errores al guardar. Revisa los campos indicados.'
+            )
+            return
+        }
+
         proxy.$handleBackendErrors(
             error,
             actions.setErrors,
@@ -628,8 +923,17 @@ async function onSubmit(values, actions) {
     }
 }
 
+function onInvalidSubmit({ errors }) {
+    registerFormErrors(errors)
+}
+
+function goToStep(stepIndex) {
+    currentStep.value = stepIndex
+}
+
 function onCancel() {
     globalError.value = null
+    formErrorSummary.value = []
     currentStep.value = 0
     modalHidden()
     modalInstance.value?.hide()

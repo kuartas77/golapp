@@ -186,6 +186,7 @@ class TrainingSessionRepository
     {
         if (isset($payload['tasks']) && is_array($payload['tasks'])) {
             return collect($payload['tasks'])
+                ->filter(fn (array $task): bool => ! empty($task['task_name']))
                 ->map(function (array $task, int $index): array {
                     return [
                         'task_number' => $task['task_number'] ?? ($index + 1),
