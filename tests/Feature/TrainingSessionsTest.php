@@ -128,6 +128,41 @@ final class TrainingSessionsTest extends TestCase
         );
     }
 
+    public function testOnlyFirstTrainingSessionTaskIsRequired(): void
+    {
+        $group = $this->createTrainingGroup($this->school['id'], $this->user);
+        $tasks = $this->makeTasks('OP');
+        $tasks[1]['task_name'] = '';
+        $tasks[2]['task_name'] = null;
+
+        $storeResponse = $this->actingAs($this->user)
+            ->postJson('/api/v2/training-sessions', $this->sessionPayload($group->id, [
+                'tasks' => $tasks,
+            ]))
+            ->assertCreated()
+            ->assertJsonPath('data.tasks.0.task_name', 'OP1')
+            ->assertJsonPath('data.tasks.1.task_name', null)
+            ->assertJsonPath('data.tasks.2.task_name', null);
+
+        $this->assertSame(
+            ['OP1'],
+            TrainingSessionDetail::query()
+                ->where('training_session_id', (int) $storeResponse->json('data.id'))
+                ->orderBy('task_number')
+                ->pluck('task_name')
+                ->all()
+        );
+
+        $tasks[0]['task_name'] = '';
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/training-sessions', $this->sessionPayload($group->id, [
+                'tasks' => $tasks,
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('tasks.0.task_name');
+    }
+
     public function testSuperAdminCanManageTrainingSessionsForSelectedSchool(): void
     {
         $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
