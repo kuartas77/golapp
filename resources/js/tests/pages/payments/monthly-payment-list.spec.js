@@ -44,6 +44,12 @@ const paymentRow = (id, fullNames) => ({
     },
 })
 
+const paymentRowWithStatus = (status, inscriptionDeleted = false) => ({
+    ...paymentRow(1, 'María José Pérez'),
+    january: status,
+    inscription_deleted: inscriptionDeleted,
+})
+
 describe('monthly payment list', () => {
     beforeEach(() => {
         apiMock.get.mockReset()
@@ -82,6 +88,15 @@ describe('monthly payment list', () => {
 
         expect(wrapper.vm.filteredGroupPayments).toHaveLength(2)
         expect(wrapper.vm.visiblePlayerCount).toBe(2)
+
+        wrapper.unmount()
+    })
+
+    it('allows editing no aplica payments when the inscription is active', () => {
+        const wrapper = mountComposable()
+
+        expect(wrapper.vm.canEditPaymentRow(paymentRowWithStatus(14), 'january')).toBe(true)
+        expect(wrapper.vm.canEditPaymentRow(paymentRowWithStatus(14, true), 'january')).toBe(false)
 
         wrapper.unmount()
     })

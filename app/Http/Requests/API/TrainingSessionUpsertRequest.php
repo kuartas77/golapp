@@ -43,7 +43,7 @@ class TrainingSessionUpsertRequest extends FormRequest
             'coaches' => ['nullable', 'string'],
             'tasks' => ['required', 'array', 'size:3'],
             'tasks.*.task_number' => ['required', 'integer', 'between:1,3', 'distinct'],
-            'tasks.*.task_name' => ['required', 'string', 'max:10'],
+            'tasks.*.task_name' => ['required', 'string', 'max:100'],
             'tasks.*.general_objective' => ['nullable', 'string', 'max:50'],
             'tasks.*.specific_goal' => ['nullable', 'string', 'max:50'],
             'tasks.*.content_one' => ['nullable', 'string', 'max:50'],

@@ -743,6 +743,7 @@ const normalizeImportedSkillControls = (importedSkillControls) => {
             ...skillControl,
             player,
             inscription_id: skillControl.inscription_id ?? skillControl.inscription?.id ?? currentSkillControl.inscription_id,
+            game_id: Number(route.params.id),
         }
     })
 }

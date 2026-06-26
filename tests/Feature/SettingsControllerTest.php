@@ -32,5 +32,25 @@ final class SettingsControllerTest extends TestCase
             'value' => '0',
             'label' => 'Pendiente',
         ], collect($response->json('type_payments'))->firstWhere('value', '0'));
+
+        $this->assertSame([
+            'value' => 'AUTOMATISMOS',
+            'label' => 'AUTOMATISMOS',
+        ], collect($response->json('training_session_tasks'))->firstWhere('value', 'AUTOMATISMOS'));
+
+        $this->assertSame([
+            'value' => 'ATAQUE ORGANIZADO',
+            'label' => 'ATAQUE ORGANIZADO',
+        ], collect($response->json('training_session_general_objectives'))->firstWhere('value', 'ATAQUE ORGANIZADO'));
+
+        $this->assertSame([
+            'value' => 'SALIDA DE BALÓN',
+            'label' => 'SALIDA DE BALÓN',
+        ], collect($response->json('training_session_specific_goals'))->firstWhere('value', 'SALIDA DE BALÓN'));
+
+        $this->assertSame([
+            'value' => 'PASE',
+            'label' => 'PASE',
+        ], collect($response->json('training_session_contents'))->firstWhere('value', 'PASE'));
     }
 }

@@ -63,10 +63,20 @@ class CompetitionUpdateRequest extends FormRequest
         $final_score = [];
         $final_score['soccer'] = $this->input('final_score_school');
         $final_score['rival'] = $this->input('final_score_rival');
+        $match = $this->route('match');
+        $gameId = is_object($match) ? $match->id : $match;
+        $skillControls = collect($this->input('skill_controls', []))
+            ->map(function ($skillControl) use ($gameId) {
+                $skillControl['game_id'] = $gameId;
+
+                return $skillControl;
+            })
+            ->all();
 
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
             'final_score' => $final_score,
+            'skill_controls' => $skillControls,
         ]);
     }
 }

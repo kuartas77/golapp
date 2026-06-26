@@ -72,6 +72,10 @@ final class TrainingSessionsTest extends TestCase
                 ->all()
         );
 
+        $longTaskName = 'Ejercicio tecnico de posesion orientada por carriles';
+        $updatedTasks = $this->makeTasks('UP');
+        $updatedTasks[0]['task_name'] = $longTaskName;
+
         $this->actingAs($this->user)
             ->putJson(
                 "/api/v2/training-sessions/{$createdId}",
@@ -79,7 +83,7 @@ final class TrainingSessionsTest extends TestCase
                     'period' => '2',
                     'session' => '4',
                     'training_ground' => 'Cancha alterna',
-                    'tasks' => $this->makeTasks('UP'),
+                    'tasks' => $updatedTasks,
                 ])
             )
             ->assertOk()
@@ -94,7 +98,7 @@ final class TrainingSessionsTest extends TestCase
         ]);
 
         $this->assertSame(
-            ['UP1', 'UP2', 'UP3'],
+            [$longTaskName, 'UP2', 'UP3'],
             TrainingSessionDetail::query()
                 ->where('training_session_id', $createdId)
                 ->orderBy('task_number')

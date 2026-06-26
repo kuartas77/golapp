@@ -110,6 +110,38 @@ final class CompetitionMatchesTest extends TestCase
         ]);
     }
 
+    public function testUpdateDerivesSkillControlGameIdFromRouteWhenMissing(): void
+    {
+        [$inscription] = $this->createInscriptionAndPayment();
+        $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
+        $match = Game::query()->create([
+            'tournament_id' => $competitionGroup->tournament_id,
+            'competition_group_id' => $competitionGroup->id,
+            'date' => now()->toDateString(),
+            'hour' => '08:00 AM',
+            'num_match' => '8',
+            'place' => 'Cancha Import',
+            'rival_name' => 'Rival Import',
+            'final_score' => ['soccer' => '0', 'rival' => '0'],
+            'general_concept' => 'Antes de importar',
+            'school_id' => $this->school['id'],
+        ]);
+
+        $payload = $this->validMatchPayload($competitionGroup->tournament, $competitionGroup, $inscription);
+        $payload['skill_controls'][0]['goals'] = '2';
+
+        $this->actingAs($this->user)
+            ->putJson("/api/v2/matches/{$match->id}", $payload)
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('skills_control', [
+            'game_id' => $match->id,
+            'inscription_id' => $inscription->id,
+            'goals' => 2,
+        ]);
+    }
+
     public function testCreateAndEditMatchDataIncludeTheStoredPlayerPhoto(): void
     {
         Storage::fake('public');

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('training_session_id');
             $table->integer('task_number');
-            $table->char('task_name', 10);
+            $table->char('task_name', 100);
             $table->char('general_objective', 50)->nullable();
             $table->char('specific_goal', 50)->nullable();
             $table->char('content_one', 50)->nullable();
