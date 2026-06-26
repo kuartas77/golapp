@@ -123,7 +123,12 @@ class SharedService
     {
         $configMonths = config('variables.KEY_INDEX_MONTHS');
         foreach (range(1, $actualMonth) as $numMonth) {
-            $dataPayment[$configMonths[$numMonth]] = ($actualMonth == $numMonth) ? $value : '14'; // No aplica
+            $monthField = $configMonths[$numMonth];
+            $dataPayment[$monthField] = ($actualMonth == $numMonth) ? $value : '14'; // No aplica
+
+            if ($actualMonth !== $numMonth) {
+                $dataPayment["{$monthField}_amount"] = 0;
+            }
         }
     }
 
