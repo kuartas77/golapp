@@ -58,16 +58,16 @@ class MatchDetailExport implements ShouldQueue, FromView, WithTitle, WithStyles 
                 $validationLastRow = max($lastRow, 30);
 
                 $this->addOptionsSheet($sheet);
-                $this->addDropdown($sheet, "C", [1=>'Sí',0 => 'No'], $validationLastRow);
-                $this->addDropdown($sheet, "D", [1=>'Sí',0 => 'No'], $validationLastRow);
+                $this->addDropdownFromRange($sheet, "C", 'MATCH_YES_NO', $validationLastRow);
+                $this->addDropdownFromRange($sheet, "D", 'MATCH_YES_NO', $validationLastRow);
                 $this->addDropdownMin($sheet, "E", $validationLastRow);
                 $this->addDropdownFromRange($sheet, "F", 'MATCH_POSITIONS', $validationLastRow);
-                $this->addDropdown($sheet, "G", range(0, 10), $validationLastRow);
-                $this->addDropdown($sheet, "H", range(0, 10), $validationLastRow);
-                $this->addDropdown($sheet, "I", range(0, 10), $validationLastRow);
-                $this->addDropdown($sheet, "J", ['0','1','2'], $validationLastRow);
-                $this->addDropdown($sheet, "K", ['0','1'], $validationLastRow);
-                $this->addDropdown($sheet, "L", range(1, 5), $validationLastRow);
+                $this->addDropdownFromRange($sheet, "G", 'MATCH_SCORE_0_10', $validationLastRow);
+                $this->addDropdownFromRange($sheet, "H", 'MATCH_SCORE_0_10', $validationLastRow);
+                $this->addDropdownFromRange($sheet, "I", 'MATCH_SCORE_0_10', $validationLastRow);
+                $this->addDropdownFromRange($sheet, "J", 'MATCH_YELLOW_CARDS', $validationLastRow);
+                $this->addDropdownFromRange($sheet, "K", 'MATCH_RED_CARDS', $validationLastRow);
+                $this->addDropdownFromRange($sheet, "L", 'MATCH_QUALIFICATIONS', $validationLastRow);
 
                 $range = 'A1:' . $lastColumn . $lastRow;
 
@@ -109,30 +109,32 @@ class MatchDetailExport implements ShouldQueue, FromView, WithTitle, WithStyles 
             $optionsSheet->setTitle('Opciones');
         }
 
-        foreach (array_values(config('variables.KEY_POSITIONS', [])) as $index => $position) {
-            $optionsSheet->setCellValue('A' . ($index + 1), $position);
-        }
-
-        $lastPositionRow = max(1, count(config('variables.KEY_POSITIONS', [])));
-        if (! $spreadsheet->getNamedRange('MATCH_POSITIONS')) {
-            $spreadsheet->addNamedRange(new NamedRange(
-                'MATCH_POSITIONS',
-                $optionsSheet,
-                '$A$1:$A$' . $lastPositionRow
-            ));
-        }
+        $this->addOptionsRange($optionsSheet, 'A', 'MATCH_YES_NO', ['Sí', 'No']);
+        $this->addOptionsRange($optionsSheet, 'B', 'MATCH_POSITIONS', array_values(config('variables.KEY_POSITIONS', [])));
+        $this->addOptionsRange($optionsSheet, 'C', 'MATCH_SCORE_0_10', range(0, 10));
+        $this->addOptionsRange($optionsSheet, 'D', 'MATCH_YELLOW_CARDS', [0, 1, 2]);
+        $this->addOptionsRange($optionsSheet, 'E', 'MATCH_RED_CARDS', [0, 1]);
+        $this->addOptionsRange($optionsSheet, 'F', 'MATCH_QUALIFICATIONS', range(1, 5));
 
         $optionsSheet->setSheetState(Worksheet::SHEETSTATE_HIDDEN);
     }
 
-    private function addDropdown(Worksheet $sheet, string $cell, array $options, int $lastRow): void
+    private function addOptionsRange(Worksheet $optionsSheet, string $column, string $rangeName, array $options): void
     {
-        for ($i=2; $i <= $lastRow; $i++) {
-            $this->configureListValidation(
-                $sheet->getCell($cell.$i)->getDataValidation(),
-                '"'.implode(',', $options).'"'
-            );
+        foreach (array_values($options) as $index => $option) {
+            $optionsSheet->setCellValue($column . ($index + 1), $option);
         }
+
+        $spreadsheet = $optionsSheet->getParent();
+        if ($spreadsheet->getNamedRange($rangeName)) {
+            return;
+        }
+
+        $spreadsheet->addNamedRange(new NamedRange(
+            $rangeName,
+            $optionsSheet,
+            '$' . $column . '$1:$' . $column . '$' . max(1, count($options))
+        ));
     }
 
     private function addDropdownFromRange(Worksheet $sheet, string $cell, string $rangeName, int $lastRow): void

@@ -10,9 +10,10 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow, WithChunkReading, WithBatchInserts
+class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow, WithChunkReading, WithBatchInserts, WithMultipleSheets
 {
     private $data;
 
@@ -78,7 +79,6 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
                     'red_cards' => intval($row['rojas']),
                     'yellow_cards' => intval($row['amarillas']),
                     'qualification' => intval($row['calificacion']),
-                    'observation' => $row['observacion'],
                 ]);
 
                 if($this->matchId) {
@@ -90,6 +90,13 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
                 $this->data->push($skillControll);
             }
         }
+    }
+
+    public function sheets(): array
+    {
+        return [
+            0 => $this,
+        ];
     }
 
     public function batchSize(): int
@@ -124,7 +131,6 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
             'amarillas',
             'rojas',
             'calificacion',
-            'observacion',
         ];
 
         $missingHeadings = collect($requiredHeadings)

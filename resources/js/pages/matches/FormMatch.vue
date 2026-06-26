@@ -1,5 +1,19 @@
 <template>
-    <Form ref="form_matches" :validation-schema="schema" :initial-values="{ date: null, hour: null }"
+    <div v-if="creationBlocked" class="layout-px-spacing">
+        <div class="layout-top-spacing">
+            <div class="alert alert-warning d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
+                <div>
+                    <strong>No se puede crear la competencia.</strong>
+                    <div class="mt-1">{{ creationBlockedMessage }}</div>
+                </div>
+                <button type="button" class="btn btn-outline-warning btn-sm" @click="router.push({ name: 'matches' })">
+                    Volver
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <Form v-else ref="form_matches" :validation-schema="schema" :initial-values="{ date: null, hour: null }"
         @submit="handleSubmit">
 
         <div class="layout-px-spacing">
@@ -468,7 +482,7 @@
         </div>
     </Form>
 
-    <PageTutorialOverlay :tutorial="tutorial" />
+    <PageTutorialOverlay v-if="!creationBlocked" :tutorial="tutorial" />
 </template>
 <script setup>
 import "@/assets/sass/users/account-setting.scss"
@@ -512,6 +526,8 @@ const coachBoard = useTemplateRef('coach_board')
 const isLoading = ref(true)
 const urlExportFormat = ref(null)
 const skills_controls = ref([])
+const creationBlocked = ref(false)
+const creationBlockedMessage = ref('El grupo de competencia seleccionado no tiene integrantes.')
 const sidebarTitle = computed(() => props.isEdition ? 'Información del partido' : 'Nuevo partido')
 const sidebarSubtitle = computed(() => (
     props.isEdition
@@ -603,7 +619,17 @@ const onLoadData = async () => {
         const response = await api.get(url, { params: dataParams })
         if (response.status === 200 && response.data) {
             const match = response.data
-            skills_controls.value = match.skills_controls
+            const matchSkillControls = match.skills_controls ?? []
+            if (!props.isEdition && !matchSkillControls.length) {
+                creationBlocked.value = true
+                creationBlockedMessage.value = 'No se puede crear la competencia porque el grupo seleccionado no tiene integrantes.'
+                skills_controls.value = []
+                showMessage(creationBlockedMessage.value, 'error')
+                return
+            }
+
+            creationBlocked.value = false
+            skills_controls.value = matchSkillControls
 
             urlExportFormat.value = match.id
                 ? `/export/matches/${match.id}/format`
