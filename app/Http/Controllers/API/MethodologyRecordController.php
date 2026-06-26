@@ -61,6 +61,16 @@ class MethodologyRecordController extends Controller
         ]);
     }
 
+    public function destroy(int $methodologyRecord): JsonResponse
+    {
+        $record = $this->repository->findAccessibleOrFail($methodologyRecord);
+        $this->repository->destroy($record);
+
+        return response()->json([
+            'message' => 'Registro metodológico eliminado correctamente.',
+        ]);
+    }
+
     private function serialize(MethodologyRecord $record): array
     {
         return [

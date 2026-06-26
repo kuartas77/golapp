@@ -41,7 +41,7 @@
                             <th>
                                 <select
                                     v-model="creatorFilter"
-                                    class="form-select form-select-sm methodology-table-filter"
+                                    class="form-select form-select-sm form-select-custom methodology-table-filter"
                                     aria-label="Filtrar por creador"
                                     @change="applyColumnFilter(1, creatorFilter)"
                                     @click.stop
@@ -59,7 +59,7 @@
                             <th>
                                 <select
                                     v-model="trainingGroupFilter"
-                                    class="form-select form-select-sm methodology-table-filter"
+                                    class="form-select form-select-sm form-select-custom methodology-table-filter"
                                     aria-label="Filtrar por grupo de entrenamiento"
                                     @change="applyColumnFilter(2, trainingGroupFilter)"
                                     @click.stop
@@ -96,6 +96,14 @@
                             @click="openEdit(props.rowData.id)"
                         >
                             <i class="fa fa-edit fa-width-auto me-2" aria-hidden="true"></i>
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-danger btn-sm"
+                            title="Eliminar"
+                            @click="confirmDelete(props.rowData)"
+                        >
+                            <i class="fa fa-trash fa-width-auto me-2" aria-hidden="true"></i>
                         </button>
                     </div>
                 </template>
@@ -519,6 +527,7 @@ const table = useTemplateRef('table')
 const activeType = ref(METHODOLOGY_TYPES.planning)
 const groupOptions = ref([])
 const creatorOptions = ref([])
+const trainingGroupFilterOptions = ref([])
 const creatorFilter = ref('')
 const trainingGroupFilter = ref('')
 const isSaving = ref(false)
@@ -547,13 +556,6 @@ const isPlanning = computed(() => activeType.value === METHODOLOGY_TYPES.plannin
 const isCharacterization = computed(() => activeType.value === METHODOLOGY_TYPES.characterizationSheet)
 const isMonthlyReport = computed(() => activeType.value === METHODOLOGY_TYPES.monthlyReport)
 const isCategoryMonthlyReport = computed(() => activeType.value === METHODOLOGY_TYPES.categoryMonthlyReport)
-const trainingGroupFilterOptions = computed(() => (
-    groupOptions.value.map((group) => ({
-        value: group.label,
-        label: group.label,
-    }))
-))
-
 const planningHeaderFields = [
     { key: 'category', label: 'Categoría' },
     { key: 'coach', label: 'Entrenador' },
@@ -613,6 +615,8 @@ const options = {
                 recordsTotal: response.data.recordsTotal ?? 0,
                 recordsFiltered: response.data.recordsFiltered ?? 0,
             })
+
+            updateFilterOptions(response.data.filters)
         } catch {
             callback(emptyDataTableResponse(data.draw))
         }
@@ -767,28 +771,6 @@ async function loadGroups() {
     }
 }
 
-async function loadCreators() {
-    if (authUser.hasRole('instructor')) {
-        creatorOptions.value = authenticatedUserName.value
-            ? [{ value: authenticatedUserName.value, label: authenticatedUserName.value }]
-            : []
-        return
-    }
-
-    try {
-        const response = await api.get('/api/v2/settings/groups')
-        const creators = (response.data.users ?? []).map((user) => ({
-            value: user.name,
-            label: user.name,
-        }))
-
-        creatorOptions.value = [...new Map(creators.map((creator) => [creator.value, creator])).values()]
-            .sort((first, second) => first.label.localeCompare(second.label))
-    } catch {
-        creatorOptions.value = []
-    }
-}
-
 async function selectType(type) {
     activeType.value = type
     selectedId.value = null
@@ -816,6 +798,39 @@ async function openEdit(id) {
         modalInstance.value?.show()
     } catch (error) {
         formError.value = error.response?.data?.message || 'No fue posible cargar el registro.'
+    }
+}
+
+async function confirmDelete(record) {
+    const result = await window.Swal.fire({
+        title: 'Eliminar metodología',
+        text: `Se eliminará "${record.title}". Esta acción no se puede deshacer.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+    })
+
+    if (!result.isConfirmed) {
+        return
+    }
+
+    try {
+        await api.delete(`/api/v2/methodology-records/${record.id}`)
+        await window.Swal.fire({
+            title: 'Eliminado',
+            text: 'Registro metodológico eliminado correctamente.',
+            icon: 'success',
+            timer: 1800,
+            showConfirmButton: false,
+        })
+        reloadTable()
+    } catch (error) {
+        await window.Swal.fire({
+            title: 'No fue posible eliminar',
+            text: error.response?.data?.message || 'Intenta nuevamente.',
+            icon: 'error',
+        })
     }
 }
 
@@ -868,8 +883,23 @@ onMounted(async () => {
 
     await authUser.init({ silent: true, preserveStateOnError: true })
     resetForm()
-    await Promise.all([loadGroups(), loadCreators()])
+    await loadGroups()
 })
+
+function updateFilterOptions(filters = {}) {
+    const creators = filters.creators ?? []
+    const trainingGroups = filters.training_groups ?? []
+
+    creatorOptions.value = creators.map((creator) => ({
+        value: creator.value,
+        label: creator.label,
+    }))
+
+    trainingGroupFilterOptions.value = trainingGroups.map((group) => ({
+        value: group.value,
+        label: group.label,
+    }))
+}
 
 function applyColumnFilter(columnIndex, value) {
     const dt = table.value?.table?.dt
