@@ -52,6 +52,7 @@ use App\Http\Controllers\Payments\PaymentController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\PlayerStatsController;
+use App\Http\Controllers\Competition\CompetitionStatsController;
 use App\Http\Controllers\Portal\ContractController as PortalContract;
 use App\Http\Controllers\Portal\InscriptionsController as PortalInscription;
 use App\Http\Controllers\Portal\SchoolsController as PortalSchool;
@@ -249,6 +250,14 @@ Route::prefix('v2')->group(function () {
 
         Route::middleware('school.permission:school.module.matches')->group(function () {
             Route::apiResource('matches', GameController::class)->except(['index', 'edit', 'create']);
+        });
+
+        Route::middleware([
+            'role:super-admin|school|instructor',
+            'school.permission:school.module.matches',
+        ])->prefix('competition-stats')->group(function () {
+            Route::get('', [CompetitionStatsController::class, 'index']);
+            Route::get('groups/{group}', [CompetitionStatsController::class, 'show']);
         });
 
         Route::middleware('school.permission:school.module.training_sessions')->prefix('training-sessions')->group(function () {

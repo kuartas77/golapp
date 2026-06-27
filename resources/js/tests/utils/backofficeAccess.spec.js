@@ -58,4 +58,15 @@ describe('hasBackofficeAccess', () => {
         expect(hasBackofficeAccess(auth, backofficeAccessRequirements.playerStats)).toBe(true)
         expect(hasBackofficeAccess(auth, backofficeAccessRequirements.players)).toBe(false)
     })
+
+    it('allows instructors with matches permission to access competition stats', () => {
+        const auth = makeAuth({
+            roles: ['instructor'],
+            schoolPermissions: {
+                'school.module.matches': true,
+            },
+        })
+
+        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.competitionStats)).toBe(true)
+    })
 })

@@ -2,14 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Game;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CompetitionStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -18,8 +17,6 @@ class CompetitionStoreRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -32,10 +29,11 @@ class CompetitionStoreRequest extends FormRequest
             'num_match' => ['required'],
             'place' => ['required'],
             'rival_name' => ['required'],
-            'final_score' => ['required', 'array'],
+            'status' => ['required', 'in:'.implode(',', Game::STATUSES)],
+            'final_score' => ['nullable', 'array'],
             'general_concept' => ['nullable'],
             'school_id' => ['required'],
-            'skill_controls' => ['required','array', 'min:1'],
+            'skill_controls' => ['nullable', 'array'],
             'skill_controls.*.id' => ['nullable'],
             'skill_controls.*.inscription_id' => ['required'],
             'skill_controls.*.assistance' => ['required', 'numeric'],
@@ -56,13 +54,10 @@ class CompetitionStoreRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        $final_score = [];
-        $final_score['soccer'] = $this->input('final_score_school');
-        $final_score['rival'] = $this->input('final_score_rival');
-
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
-            'final_score' => $final_score,
+            'status' => Game::STATUS_SCHEDULED,
+            'final_score' => null,
         ]);
     }
 }

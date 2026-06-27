@@ -13,6 +13,11 @@ export const backofficeAccessRequirements = {
         anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.players],
     },
+    competitionStats: {
+        roles: ['super-admin', 'school', 'instructor'],
+        anyRole: true,
+        schoolPermissions: [SCHOOL_PERMISSION_KEYS.matches],
+    },
     inscriptions: {
         roles: ['super-admin', 'school'],
         anyRole: true,

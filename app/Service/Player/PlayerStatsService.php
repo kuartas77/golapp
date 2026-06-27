@@ -2,6 +2,7 @@
 
 namespace App\Service\Player;
 
+use App\Models\Game;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -68,7 +69,7 @@ class PlayerStatsService
     {
         $playerStats = $this->findPlayerStats($playerId, $schoolId);
 
-        if (!$playerStats) {
+        if (! $playerStats) {
             return null;
         }
 
@@ -137,7 +138,7 @@ class PlayerStatsService
                 ) as promedio_goles,
                 ROUND(AVG(
                     CASE
-                        WHEN sc.qualification REGEXP '^[0-9]+(\.[0-9]+)?$'
+                        WHEN sc.qualification REGEXP '^[0-9]+([.][0-9]+){0,1}$'
                         THEN CAST(sc.qualification AS DECIMAL(3,2))
                         ELSE 0
                     END
@@ -187,7 +188,7 @@ class PlayerStatsService
                 COUNT(sc.id) as partidos,
                 ROUND(AVG(
                     CASE
-                        WHEN sc.qualification REGEXP '^[0-9]+(\.[0-9]+)?$'
+                        WHEN sc.qualification REGEXP '^[0-9]+([.][0-9]+){0,1}$'
                         THEN CAST(sc.qualification AS DECIMAL(3,2))
                         ELSE 0
                     END
@@ -211,7 +212,7 @@ class PlayerStatsService
                 s.name as school_name,
                 ROUND(AVG(
                     CASE
-                        WHEN sc.qualification REGEXP '^[0-9]+(\.[0-9]+)?$'
+                        WHEN sc.qualification REGEXP '^[0-9]+([.][0-9]+){0,1}$'
                         THEN CAST(sc.qualification AS DECIMAL(3,2))
                         ELSE 0
                     END
@@ -232,10 +233,13 @@ class PlayerStatsService
     private function topPlayersBaseQuery(int $schoolId): Builder
     {
         return DB::table('skills_control as sc')
+            ->join('games as g', 'sc.game_id', '=', 'g.id')
             ->join('inscriptions as i', 'sc.inscription_id', '=', 'i.id')
             ->join('players as p', 'i.player_id', '=', 'p.id')
             ->leftJoin('schools as s', 'sc.school_id', '=', 's.id')
             ->whereNull('sc.deleted_at')
+            ->whereNull('g.deleted_at')
+            ->where('g.status', Game::STATUS_PLAYED)
             ->where('sc.assistance', 1)
             ->where('sc.school_id', $schoolId);
     }
@@ -253,7 +257,7 @@ class PlayerStatsService
                 SUM(sc.titular) as veces_titular,
                 ROUND(AVG(
                     CASE
-                        WHEN sc.qualification REGEXP '^[0-9]+(\.[0-9]+)?$'
+                        WHEN sc.qualification REGEXP '^[0-9]+([.][0-9]+){0,1}$'
                         THEN CAST(sc.qualification AS DECIMAL(3,2))
                         ELSE 0
                     END
@@ -277,7 +281,7 @@ class PlayerStatsService
                     SUM(sc.goal_saves) * 5 +
                     ROUND(AVG(
                         CASE
-                            WHEN sc.qualification REGEXP '^[0-9]+(\.[0-9]+)?$'
+                            WHEN sc.qualification REGEXP '^[0-9]+([.][0-9]+){0,1}$'
                             THEN CAST(sc.qualification AS DECIMAL(3,2))
                             ELSE 0
                         END
@@ -288,11 +292,14 @@ class PlayerStatsService
                     SUM(sc.red_cards) * 5
                 ) as puntaje_escalafon
             ")
+            ->join('games as g', 'sc.game_id', '=', 'g.id')
             ->join('inscriptions as i', 'sc.inscription_id', '=', 'i.id')
             ->join('players as p', 'i.player_id', '=', 'p.id')
             ->where('i.player_id', $playerId)
             ->where('i.school_id', $schoolId)
             ->whereNull('sc.deleted_at')
+            ->whereNull('g.deleted_at')
+            ->where('g.status', Game::STATUS_PLAYED)
             ->where('sc.assistance', 1)
             ->groupBy('i.player_id', 'p.names', 'p.last_names', 'p.photo', 'p.date_birth')
             ->first();
@@ -301,15 +308,18 @@ class PlayerStatsService
     private function getPositionsHistory(int $playerId, int $schoolId)
     {
         return DB::table('skills_control as sc')
-            ->selectRaw("
+            ->selectRaw('
                 sc.position,
                 COUNT(*) as veces_jugada,
                 ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 2) as porcentaje
-            ")
+            ')
+            ->join('games as g', 'sc.game_id', '=', 'g.id')
             ->join('inscriptions as i', 'sc.inscription_id', '=', 'i.id')
             ->where('i.player_id', $playerId)
             ->where('i.school_id', $schoolId)
             ->whereNull('sc.deleted_at')
+            ->whereNull('g.deleted_at')
+            ->where('g.status', Game::STATUS_PLAYED)
             ->where('sc.assistance', 1)
             ->whereNotNull('sc.position')
             ->groupBy('sc.position')
@@ -331,7 +341,7 @@ class PlayerStatsService
                 'sc.red_cards',
                 DB::raw("
                     CASE
-                        WHEN sc.qualification REGEXP '^[0-9]+(\.[0-9]+)?$'
+                        WHEN sc.qualification REGEXP '^[0-9]+([.][0-9]+){0,1}$'
                         THEN CAST(sc.qualification AS DECIMAL(3,2))
                         ELSE 0
                     END as qualification
@@ -343,6 +353,8 @@ class PlayerStatsService
             ->where('i.player_id', $playerId)
             ->where('i.school_id', $schoolId)
             ->whereNull('sc.deleted_at')
+            ->whereNull('g.deleted_at')
+            ->where('g.status', Game::STATUS_PLAYED)
             ->where('sc.assistance', 1)
             ->orderBy('g.date', 'DESC')
             ->limit(10)
@@ -358,7 +370,7 @@ class PlayerStatsService
 
     private function resolvePhotoUrl(?string $photo): string
     {
-        if (!empty($photo) && Storage::disk('public')->exists($photo)) {
+        if (! empty($photo) && Storage::disk('public')->exists($photo)) {
             return route('images', $photo);
         }
 

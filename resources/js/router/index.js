@@ -55,6 +55,8 @@ const routes = [
             { path: 'player-stats', name: 'player-stats.index', component: () => import('@/pages/player-stats/Ranking.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] } },
             { path: 'top-players', name: 'player-stats.top', component: () => import('@/pages/player-stats/TopPlayers.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] } },
             { path: 'player/:id/detail', name: 'player-stats.detail', component: () => import('@/pages/player-stats/Detail.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] } },
+            { path: 'competition-stats', name: 'competition-stats.index', component: () => import('@/pages/competition-stats/Ranking.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.matches] } },
+            { path: 'competition-stats/groups/:id', name: 'competition-stats.detail', component: () => import('@/pages/competition-stats/Detail.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.matches] } },
             {
                 path: 'evaluaciones-deportistas',
                 meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.evaluations] },

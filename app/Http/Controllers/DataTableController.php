@@ -2,25 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Repositories\UserRepository;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Str;
-use App\Models\TrainingGroup;
-use App\Models\MethodologyRecord;
-use App\Repositories\PlayerRepository;
-use App\Repositories\SchoolRepository;
-use App\Repositories\ScheduleRepository;
-use App\Repositories\MethodologyRecordRepository;
-use App\Repositories\InscriptionRepository;
-use App\Repositories\TrainingGroupRepository;
-use App\Repositories\TrainingSessionRepository;
-use App\Repositories\CompetitionGroupRepository;
-use App\Repositories\GameRepository;
 use App\Models\Evaluations\PlayerEvaluation;
+use App\Models\Game;
 use App\Models\InventoryMovement;
 use App\Models\InventoryProduct;
+use App\Models\MethodologyRecord;
+use App\Models\TrainingGroup;
+use App\Repositories\CompetitionGroupRepository;
+use App\Repositories\GameRepository;
+use App\Repositories\InscriptionRepository;
+use App\Repositories\MethodologyRecordRepository;
+use App\Repositories\PlayerRepository;
+use App\Repositories\ScheduleRepository;
+use App\Repositories\SchoolRepository;
+use App\Repositories\TrainingGroupRepository;
+use App\Repositories\TrainingSessionRepository;
+use App\Repositories\UserRepository;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class DataTableController extends Controller
 {
@@ -38,43 +39,33 @@ class DataTableController extends Controller
     ];
 
     public function __construct(
-        private InscriptionRepository      $inscriptionRepository,
-        private TrainingGroupRepository    $trainingGroupRepository,
+        private InscriptionRepository $inscriptionRepository,
+        private TrainingGroupRepository $trainingGroupRepository,
         private CompetitionGroupRepository $competitionGroupRepository,
-        private PlayerRepository           $playerRepository,
-        private ScheduleRepository         $scheduleRepository,
-        private SchoolRepository           $schoolRepository,
-        private TrainingSessionRepository  $trainingSessionRepository,
-        private UserRepository             $userRepository,
-        private GameRepository             $gameRepository,
+        private PlayerRepository $playerRepository,
+        private ScheduleRepository $scheduleRepository,
+        private SchoolRepository $schoolRepository,
+        private TrainingSessionRepository $trainingSessionRepository,
+        private UserRepository $userRepository,
+        private GameRepository $gameRepository,
         private MethodologyRecordRepository $methodologyRecordRepository,
-    )
-    {
-    }
+    ) {}
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function enabledInscriptions(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 403);
 
         return datatables()->of($this->inscriptionRepository->getInscriptionsEnabled())
-        ->filterColumn('training_group_id', fn ($query, $keyword) => $query->where('training_group_id', $keyword))
-        ->filterColumn('start_date', fn ($query, $keyword) => $query->whereDate('start_date', $keyword))
-        ->filterColumn('category', fn ($query, $keyword) => $query->where('category', $keyword))
-        ->filterColumn('player.last_names', function($query, $keyword) {
-            $sql = "CONCAT(players.names, ' ', players.last_names) like ?";
-            $query->whereRaw($sql, ["%{$keyword}%"]);
-        })
-        ->toJson();
+            ->filterColumn('training_group_id', fn ($query, $keyword) => $query->where('training_group_id', $keyword))
+            ->filterColumn('start_date', fn ($query, $keyword) => $query->whereDate('start_date', $keyword))
+            ->filterColumn('category', fn ($query, $keyword) => $query->where('category', $keyword))
+            ->filterColumn('player.last_names', function ($query, $keyword) {
+                $sql = "CONCAT(players.names, ' ', players.last_names) like ?";
+                $query->whereRaw($sql, ["%{$keyword}%"]);
+            })
+            ->toJson();
     }
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function disabledInscriptions(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 403);
@@ -83,7 +74,6 @@ class DataTableController extends Controller
     }
 
     /**
-     * @param Request $request
      * @return JsonResponse|void
      */
     public function enabledTrainingGroups(Request $request): JsonResponse
@@ -94,7 +84,6 @@ class DataTableController extends Controller
     }
 
     /**
-     * @param Request $request
      * @return JsonResponse|void
      */
     public function disabledTrainingGroups(Request $request): JsonResponse
@@ -104,10 +93,6 @@ class DataTableController extends Controller
         return datatables()->collection($this->trainingGroupRepository->listGroupDisabled())->toJson();
     }
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function enabledCompetitionGroups(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 403);
@@ -115,10 +100,6 @@ class DataTableController extends Controller
         return datatables()->of($this->competitionGroupRepository->listGroupEnabled())->toJson();
     }
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function disabledCompetitionGroups(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 403);
@@ -127,7 +108,6 @@ class DataTableController extends Controller
     }
 
     /**
-     * @param Request $request
      * @return JsonResponse|void
      */
     public function enabledSchedules(Request $request): JsonResponse
@@ -137,10 +117,6 @@ class DataTableController extends Controller
         return datatables()->collection($this->scheduleRepository->all())->toJson();
     }
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function enabledPlayers(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 403);
@@ -160,6 +136,7 @@ class DataTableController extends Controller
     public function enabledUsers(Request $request)
     {
         abort_unless($request->ajax(), 403);
+
         return datatables()->of($this->userRepository->getAll())->toJson();
     }
 
@@ -181,7 +158,11 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax() && (isAdmin() || isSchool() || isInstructor()), 403);
 
-        return datatables()->of($this->gameRepository->getDatatable())->toJson();
+        return datatables()->of($this->gameRepository->getDatatable())
+            ->filterColumn('status', fn ($query, $keyword) => $query->where('games.status', $keyword))
+            ->editColumn('final_score', fn (Game $game) => $game->final_score_array)
+            ->addColumn('status_label', fn (Game $game) => $game->status_label)
+            ->toJson();
 
     }
 
@@ -428,7 +409,7 @@ class DataTableController extends Controller
         return $player->full_names
             ?? $player->full_name
             ?? $player->name
-            ?? ('Jugador #' . $player->id);
+            ?? ('Jugador #'.$player->id);
     }
 
     private function matchingEvaluationKeys(array $labels, string $keyword): array

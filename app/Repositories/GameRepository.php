@@ -4,24 +4,23 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Http\Requests\CompetitionUpdateRequest;
 use App\Http\Requests\CompetitionStoreRequest;
+use App\Http\Requests\CompetitionUpdateRequest;
 use App\Models\CompetitionGroup;
 use App\Models\Game;
-use App\Models\Master;
 use App\Models\SkillsControl;
 use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
 use Exception;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\View;
 use Mpdf\MpdfException;
 
 class GameRepository
 {
     use ErrorTrait;
     use PDFTrait;
+
     private Game $game;
 
     public function __construct(Game $game)
@@ -35,16 +34,14 @@ class GameRepository
             ->select(['games.*', 'tournaments.name AS tournament_name', 'competition_groups.name AS competition_group_name'])
             ->join('tournaments', 'tournaments.id', '=', 'games.tournament_id')
             ->join('competition_groups', 'competition_groups.id', '=', 'games.competition_group_id')
-            ->whereYear('games.created_at', request('year', now()->year));
+            ->whereYear('games.created_at', request('year', now()->year))
+            ->when(request('status'), fn ($query, $status) => $query->where('games.status', $status));
 
         applyInstructorCompetitionGroupFilter($query, 'games.competition_group_id');
 
         return $query;
     }
 
-    /**
-     * @param Game|null $game
-     */
     public function getInformationToMatch(?Game $game = null): object
     {
         if (is_null($game)) {
@@ -52,6 +49,7 @@ class GameRepository
                 ->schoolId()
                 ->when(isInstructor(), fn ($query) => $query->byInstructor())
                 ->findOrFail(request('competition_group'));
+
             return $this->makeMatch($competitionGroup);
         }
 
@@ -63,15 +61,12 @@ class GameRepository
         return $this->game->query()->schoolId()->findOrFail($id);
     }
 
-    /**
-     * @param $competitionGroup
-     */
     public function makeMatch($competitionGroup): object
     {
         $competitionGroup->load([
-            'inscriptions' => fn($q) => $q->select(['id', 'player_id'])->where('year', now()->year)->with('player:id,names,last_names,unique_code,photo'),
+            'inscriptions' => fn ($q) => $q->select(['id', 'player_id'])->where('year', now()->year)->with('player:id,names,last_names,unique_code,photo'),
             'tournament:id,name',
-            'professor:id,name'
+            'professor:id,name',
         ]);
 
         $match = [];
@@ -79,8 +74,9 @@ class GameRepository
         $match['competition_group_id'] = $competitionGroup->id;
         $match['date'] = null;
         $match['hour'] = null;
-        $match['final_score']['soccer'] = 0;
-        $match['final_score']['rival'] = 0;
+        $match['status'] = Game::STATUS_SCHEDULED;
+        $match['status_label'] = 'Programado';
+        $match['final_score'] = null;
         $match['general_concept'] = null;
         $match['num_match'] = null;
         $match['place'] = null;
@@ -112,14 +108,11 @@ class GameRepository
         return (object) $match;
     }
 
-    /**
-     * @param $match
-     */
     public function makeMatchEdit($match): object
     {
         $match->loadMissing([
-            'competitionGroup' => fn($q) => $q->with(['tournament:id,name', 'professor:id,name']),
-            'skillsControls' => fn($q) => $q->with('inscription', fn($q) => $q->select(['id', 'player_id'])->with('player:id,names,last_names,unique_code,photo'))
+            'competitionGroup' => fn ($q) => $q->with(['tournament:id,name', 'professor:id,name']),
+            'skillsControls' => fn ($q) => $q->with('inscription', fn ($q) => $q->select(['id', 'player_id'])->with('player:id,names,last_names,unique_code,photo')),
         ]);
 
         foreach ($match->skillsControls as $skilControl) {
@@ -127,12 +120,11 @@ class GameRepository
             unset($skilControl->inscription);
         }
 
+        $match->setAttribute('final_score', $match->final_score_array);
+
         return $match;
     }
 
-    /**
-     * @param $request
-     */
     public function createMatchSkill(CompetitionStoreRequest $request): bool
     {
         return (bool) $this->createMatchSkillAndReturn($request);
@@ -168,9 +160,6 @@ class GameRepository
         return $result;
     }
 
-    /**
-     * @param $request
-     */
     private function getDataFromRequest(FormRequest $request): array
     {
         $matchData = $request->only([
@@ -181,19 +170,16 @@ class GameRepository
             'num_match',
             'place',
             'rival_name',
+            'status',
             'final_score',
             'general_concept',
-            'school_id'
+            'school_id',
         ]);
         $skillsData = $request->validated('skill_controls', []);
 
         return [$matchData, $skillsData];
     }
 
-    /**
-     * @param CompetitionUpdateRequest $request
-     * @param Game $game
-     */
     public function updateMatchSkill(CompetitionUpdateRequest $request, Game $game): bool
     {
         $result = false;
@@ -211,7 +197,7 @@ class GameRepository
                 SkillsControl::query()->updateOrCreate(
                     [
                         'game_id' => $game->id,
-                        'inscription_id' => $skill['inscription_id']
+                        'inscription_id' => $skill['inscription_id'],
                     ],
                     $skill
                 );
@@ -228,7 +214,6 @@ class GameRepository
         return $result;
     }
 
-
     /**
      * @throws MpdfException
      */
@@ -236,17 +221,17 @@ class GameRepository
     {
         $match = $this->game->query()
             ->schoolId()
+            ->played()
             ->when(isInstructor(), fn ($query) => $query->whereHas('competitionGroup', fn ($groupQuery) => $groupQuery->byInstructor()))
             ->with([
-                'tournament' => fn($query) => $query->withTrashed(),
-                'competitionGroup' => fn($query) => $query->with([
-                    'professor' => fn($query) => $query->withTrashed()
+                'tournament' => fn ($query) => $query->withTrashed(),
+                'competitionGroup' => fn ($query) => $query->with([
+                    'professor' => fn ($query) => $query->withTrashed(),
                 ])->withTrashed(),
-                'skillsControls' => fn($query) => $query->with([
-                    'inscription' => fn($query) => $query->with('player')->withTrashed()
-                ])->withTrashed()
+                'skillsControls' => fn ($query) => $query->with([
+                    'inscription' => fn ($query) => $query->with('player')->withTrashed(),
+                ])->withTrashed(),
             ])->findOrFail($matchId);
-
 
         $data['school'] = getSchool(auth()->user());
         $data['match'] = $match;
@@ -255,7 +240,7 @@ class GameRepository
         $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'match.blade.php');
 
-        return $this->stream("Control De Competencia.pdf");
+        return $this->stream('Control De Competencia.pdf');
     }
 
     public function exportMatchDetail($competitionGroupId)
@@ -265,7 +250,7 @@ class GameRepository
             ->when(isInstructor(), fn ($query) => $query->byInstructor())
             ->findOrFail($competitionGroupId)
             ->load([
-                'inscriptions' => fn($q) => $q->where('year', now()->year)->with('player')
+                'inscriptions' => fn ($q) => $q->where('year', now()->year)->with('player'),
             ]);
 
         return $competitionGroup->inscriptions;
@@ -277,11 +262,11 @@ class GameRepository
             ->schoolId()
             ->when(isInstructor(), fn ($query) => $query->whereHas('competitionGroup', fn ($groupQuery) => $groupQuery->byInstructor()))
             ->with([
-                'skillsControls' => fn($query) => $query
+                'skillsControls' => fn ($query) => $query
                     ->with([
-                        'inscription' => fn($inscriptionQuery) => $inscriptionQuery->with('player')
+                        'inscription' => fn ($inscriptionQuery) => $inscriptionQuery->with('player'),
                     ])
-                    ->orderBy('id')
+                    ->orderBy('id'),
             ])
             ->findOrFail($matchId);
 

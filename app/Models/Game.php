@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Observers\MatchObserver;
 use App\Traits\GeneralScopes;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,11 +18,17 @@ use Illuminate\Support\Str;
 
 class Game extends Model
 {
-    use SoftDeletes;
+    public const STATUS_SCHEDULED = 'scheduled';
+
+    public const STATUS_PLAYED = 'played';
+
+    public const STATUSES = [self::STATUS_SCHEDULED, self::STATUS_PLAYED];
+
     use GeneralScopes;
     use HasFactory;
+    use SoftDeletes;
 
-    protected $table = "games";
+    protected $table = 'games';
 
     protected $fillable = [
         'id',
@@ -32,29 +39,30 @@ class Game extends Model
         'num_match',
         'place',
         'rival_name',
+        'status',
         'final_score',
         'general_concept',
         'school_id',
     ];
 
     protected $appends = [
-        'general_concept_short', 'url_show',/*'url_destroy', 'url_edit', 'url_update'*/
+        'general_concept_short', 'url_show', 'status_label', /* 'url_destroy', 'url_edit', 'url_update' */
     ];
 
     protected $casts = [
-        'final_score' => 'object'
+        'final_score' => 'object',
     ];
 
     public static function getMinYear(int $school_id = 0)
     {
-        return self::query()->when($school_id, fn($query) => $query->where('school_id', $school_id))
+        return self::query()->when($school_id, fn ($query) => $query->where('school_id', $school_id))
             ->select([DB::raw('EXTRACT(YEAR FROM created_at) as year')])
             ->groupBy('year')->orderBy('year', 'asc')->first()->year ?? now()->year;
     }
 
     public static function getYears(int $school_id = 0): Collection
     {
-        return self::query()->when($school_id, fn($query) => $query->where('school_id', $school_id))
+        return self::query()->when($school_id, fn ($query) => $query->where('school_id', $school_id))
             ->select([DB::raw('EXTRACT(YEAR FROM created_at) as year')])
             ->groupBy('year')->pluck('year');
     }
@@ -79,6 +87,24 @@ class Game extends Model
             'soccer' => data_get($this->final_score, 'soccer', data_get($this->final_score, 'local')),
             'rival' => data_get($this->final_score, 'rival', data_get($this->final_score, 'visitor')),
         ];
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->status) {
+            self::STATUS_PLAYED => 'Jugado',
+            default => 'Programado',
+        };
+    }
+
+    public function scopePlayed(Builder $query): Builder
+    {
+        return $query->where($query->qualifyColumn('status'), self::STATUS_PLAYED);
+    }
+
+    public function scopeScheduled(Builder $query): Builder
+    {
+        return $query->where($query->qualifyColumn('status'), self::STATUS_SCHEDULED);
     }
 
     public function getUrlDestroyAttribute()

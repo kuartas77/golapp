@@ -2,14 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Game;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CompetitionUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -18,8 +18,6 @@ class CompetitionUpdateRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -27,15 +25,22 @@ class CompetitionUpdateRequest extends FormRequest
             'id' => ['nullable', 'numeric'],
             'tournament_id' => ['required', 'numeric'],
             'competition_group_id' => ['required', 'numeric'],
-            'date' => ['required'],
+            'date' => [
+                'required',
+                'date',
+                Rule::when($this->input('status') === Game::STATUS_PLAYED, ['before_or_equal:today']),
+            ],
             'hour' => ['required'],
             'num_match' => ['required'],
             'place' => ['required'],
             'rival_name' => ['required'],
-            'final_score' => ['required', 'array'],
+            'status' => ['required', Rule::in(Game::STATUSES)],
+            'final_score' => ['nullable', 'array', Rule::requiredIf($this->input('status') === Game::STATUS_PLAYED)],
+            'final_score.soccer' => ['nullable', 'integer', 'min:0', Rule::requiredIf($this->input('status') === Game::STATUS_PLAYED)],
+            'final_score.rival' => ['nullable', 'integer', 'min:0', Rule::requiredIf($this->input('status') === Game::STATUS_PLAYED)],
             'general_concept' => ['nullable'],
             'school_id' => ['required'],
-            'skill_controls' => ['required','array', 'min:1'],
+            'skill_controls' => ['nullable', 'array', Rule::requiredIf($this->input('status') === Game::STATUS_PLAYED)],
             'skill_controls.*.id' => ['nullable'],
             'skill_controls.*.inscription_id' => ['required'],
             'skill_controls.*.assistance' => ['required', 'numeric'],
@@ -60,11 +65,14 @@ class CompetitionUpdateRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        $final_score = [];
-        $final_score['soccer'] = $this->input('final_score_school');
-        $final_score['rival'] = $this->input('final_score_rival');
+        $schoolScore = $this->input('final_score_school');
+        $rivalScore = $this->input('final_score_rival');
+        $finalScore = ($schoolScore === null || $schoolScore === '') && ($rivalScore === null || $rivalScore === '')
+            ? null
+            : ['soccer' => $schoolScore, 'rival' => $rivalScore];
         $match = $this->route('match');
         $gameId = is_object($match) ? $match->id : $match;
+        $status = $this->input('status', is_object($match) ? $match->status : Game::STATUS_SCHEDULED);
         $skillControls = collect($this->input('skill_controls', []))
             ->map(function ($skillControl) use ($gameId) {
                 $skillControl['game_id'] = $gameId;
@@ -75,7 +83,8 @@ class CompetitionUpdateRequest extends FormRequest
 
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
-            'final_score' => $final_score,
+            'status' => $status,
+            'final_score' => $finalScore,
             'skill_controls' => $skillControls,
         ]);
     }
