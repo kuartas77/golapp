@@ -8,6 +8,9 @@ use App\Traits\PDFTrait;
 class TrainingSessionExportService
 {
     use PDFTrait;
+
+    public function __construct(private TrainingSessionAttendanceService $attendanceService) {}
+
     public function exportSessionPDF(int $id, bool $stream = true)
     {
         $trainingSession = TrainingSession::with(['user', 'training_group', 'tasks'])->schoolId()->findOrFail($id);
@@ -16,6 +19,12 @@ class TrainingSessionExportService
         $data['trainingSession'] = $trainingSession;
         $data['tasks'] = $trainingSession->tasks;
         $data['group'] = $trainingSession->training_group;
+        if ($trainingSession->attendance_synced_at) {
+            $absenceNames = $this->attendanceService->absenceNames($trainingSession);
+            $data['resolvedAbsences'] = $absenceNames === [] ? 'Sin ausencias' : implode(', ', $absenceNames);
+        } else {
+            $data['resolvedAbsences'] = $trainingSession->absences;
+        }
 
         $date = $trainingSession->date;
         $filename = "Sesion de entrenamiento {$trainingSession->training_group->name} {$date}.pdf";

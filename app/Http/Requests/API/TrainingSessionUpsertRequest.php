@@ -41,6 +41,9 @@ class TrainingSessionUpsertRequest extends FormRequest
             'feedback' => ['nullable', 'string'],
             'warm_up' => ['nullable', 'string'],
             'coaches' => ['nullable', 'string'],
+            'sync_attendance' => ['required', 'boolean'],
+            'absence_inscription_ids' => ['nullable', 'array'],
+            'absence_inscription_ids.*' => ['integer', 'distinct'],
             'tasks' => ['required', 'array', 'size:3'],
             'tasks.*.task_number' => ['required', 'integer', 'between:1,3', 'distinct'],
             'tasks.0.task_name' => ['required', 'string', 'max:100'],
@@ -100,6 +103,12 @@ class TrainingSessionUpsertRequest extends FormRequest
             'feedback' => $this->normalizeString($this->input('feedback')),
             'warm_up' => $this->normalizeString($this->input('warm_up')),
             'coaches' => $this->normalizeString($this->input('coaches')),
+            'sync_attendance' => true,
+            'absence_inscription_ids' => collect($this->input('absence_inscription_ids', []))
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all(),
             'tasks' => $normalizedTasks,
         ]);
     }

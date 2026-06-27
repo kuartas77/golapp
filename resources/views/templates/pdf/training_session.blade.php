@@ -53,7 +53,7 @@
                 <td class="texto bold" colspan="5">&nbsp;Incidentes: {{$trainingSession->incidents}}</td>
             </tr>
             <tr class="">
-                <td class="texto bold" colspan="5">&nbsp;Ausencias: {{$trainingSession->absences}}</td>
+                <td class="texto bold" colspan="5">&nbsp;Deportistas que faltaron: {{$resolvedAbsences}}</td>
             </tr>
             <tr class="">
                 <td class="texto bold" colspan="5">&nbsp;Vuelta a la calma: {{$trainingSession->back_to_calm}}</td>

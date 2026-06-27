@@ -19,6 +19,7 @@
                 @submit="onSubmit"
                 @invalid-submit="onInvalidSubmit"
             >
+                <Field name="absences" type="hidden" />
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">
@@ -27,7 +28,10 @@
                         <button type="button" class="btn-close" aria-label="Close" @click="onCancel"></button>
                     </div>
 
-                    <div class="modal-body position-relative">
+                    <div
+                        class="modal-body position-relative"
+                        :class="{ 'suppress-validation-errors': !showValidationErrors }"
+                    >
                         <Loader
                             :is-loading="isLoading || isSubmitting"
                             :loading-text="isLoading ? 'Cargando sesión...' : 'Guardando sesión...'"
@@ -47,39 +51,79 @@
                             <Step title="Información general">
                                 <fieldset class="col-md-12 p-2 border rounded h-100">
                                     <div class="row col-md-12">
-                                        <div class="col-md-6">
+                                        <div class="col-md-5">
                                             <div class="form-group">
                                                 <label for="training_group_id" class="form-label">
                                                     Grupo de entrenamiento
                                                     <span class="text-danger">&nbsp;(*)</span>
                                                 </label>
-                                                <Field
-                                                    id="training_group_id"
-                                                    name="training_group_id"
-                                                    as="CustomSelect2"
-                                                    :options="groupOptions"
-                                                />
+                                                <Field name="training_group_id" v-slot="{ value, handleBlur }">
+                                                    <CustomSelect2
+                                                        id="training_group_id"
+                                                        :model-value="value"
+                                                        :options="groupOptions"
+                                                        :disabled="identityLocked"
+                                                        @update:model-value="onGroupChanged"
+                                                        @blur="handleBlur"
+                                                    />
+                                                </Field>
                                                 <ErrorMessage name="training_group_id" class="invalid-feedback d-block" />
                                             </div>
                                         </div>
 
                                         <div class="col-md-3">
                                             <div class="form-group">
+                                                <label for="month" class="form-label">
+                                                    Mes <span class="text-danger">&nbsp;(*)</span>
+                                                </label>
+                                                <Field name="month" v-slot="{ value, handleBlur }">
+                                                    <CustomSelect2
+                                                        id="month"
+                                                        :model-value="value"
+                                                        :options="monthOptions"
+                                                        :disabled="identityLocked"
+                                                        @update:model-value="onMonthChanged"
+                                                        @blur="handleBlur"
+                                                    />
+                                                </Field>
+                                                <ErrorMessage name="month" class="invalid-feedback d-block" />
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <div class="form-group">
                                                 <inputField label="Periodo" name="period" :is-required="true" />
                                             </div>
                                         </div>
 
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <div class="form-group">
                                                 <inputField label="Sesión" name="session" :is-required="true" />
                                             </div>
                                         </div>
                                     </div>
 
+                                    <div v-if="classDays.length" class="row col-md-12 mb-3">
+                                        <div class="col-12">
+                                            <label class="form-label d-block">Día de entrenamiento <span class="text-danger">(*)</span></label>
+                                            <button
+                                                v-for="classDay in classDays"
+                                                :key="classDay.id"
+                                                type="button"
+                                                class="btn btn-sm m-1"
+                                                :class="selectedClassDay?.id === classDay.id ? 'btn-primary' : 'btn-outline-info'"
+                                                :disabled="identityLocked || isLoadingContext"
+                                                @click="selectClassDay(classDay)"
+                                            >
+                                                {{ `#${classDay.index} | ${classDay.day} ${classDay.date}` }}
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     <div class="row col-md-12">
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <inputField label="Fecha" name="date" type="date" :is-required="true" />
+                                                <inputField label="Fecha" name="date" type="date" :is-required="true" readonly />
                                             </div>
                                         </div>
 
@@ -91,15 +135,16 @@
                                                 </label>
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="fas fa-clock"></i></span>
-                                                    <Field name="hour" v-slot="{ field, errorMessage, meta }">
+                                                    <Field name="hour" v-slot="{ value, handleChange, handleBlur, errorMessage, meta }">
                                                         <flat-pickr
-                                                            v-bind="field"
                                                             id="hour"
-                                                            v-model="field.value"
+                                                            :model-value="value"
                                                             :config="flatpickrConfigHour"
                                                             class="form-control form-control-sm flatpickr"
                                                             :class="{ 'is-invalid': meta.touched && errorMessage }"
                                                             placeholder="02:00 PM"
+                                                            @update:model-value="handleChange"
+                                                            @blur="handleBlur"
                                                         />
                                                     </Field>
                                                 </div>
@@ -284,33 +329,51 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <inputField label="Vuelta a la calma" name="back_to_calm" type="number" />
+                                                <small class="form-text text-muted">Tiempo</small>
                                             </div>
                                         </div>
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <inputField label="N° Jugadores" name="players" type="number" />
+                                                <inputField label="N° Jugadores" name="players" type="number" readonly />
+                                                <small class="form-text text-muted">Se calcula con los deportistas no selecionados en faltaron.</small>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="row col-md-12">
-                                        <div class="col-md-6">
+                                        <div class="col-md-12">
                                             <div class="form-group">
-                                                <label for="absences" class="form-label">Ausencias</label>
-                                                <Field
-                                                    id="absences"
-                                                    name="absences"
-                                                    as="textarea"
-                                                    rows="4"
-                                                    class="form-control form-control-sm"
-                                                    :class="{ 'is-invalid': errors.absences }"
-                                                />
-                                                <ErrorMessage name="absences" class="invalid-feedback d-block" />
+                                                <Field name="absence_inscription_ids" v-slot="{ field, handleChange, handleBlur }">
+                                                    <label for="absence_inscription_ids" class="form-label">Deportistas que faltaron</label>
+                                                    <div class="row g-3 mb-1 text-center fw-semibold" aria-hidden="true">
+                                                        <div class="col-6 text-success">Izquierda: Asistieron</div>
+                                                        <div class="col-6 text-danger">Derecha: Faltaron</div>
+                                                    </div>
+                                                    <CustomMultiSelect
+                                                        v-bind="field"
+                                                        id="absence_inscription_ids"
+                                                        :buttons="true"
+                                                        :options="absenceOptions"
+                                                        @update:model-value="(value) => onAbsencesChanged(value, handleChange)"
+                                                        @blur="handleBlur"
+                                                    />
+                                                </Field>
+                                                <small class="form-text text-muted d-block mt-1">
+                                                    Mueve a la lista derecha únicamente quienes faltaron. Los deportistas que permanezcan en la izquierda se marcarán automáticamente como asistencia.
+                                                </small>
+                                                <ErrorMessage name="absence_inscription_ids" class="invalid-feedback d-block" />
                                             </div>
                                         </div>
+                                    </div>
 
-                                        <div class="col-md-6">
+                                    <div v-if="protectedPlayers.length" class="alert alert-info py-2">
+                                        Se conservarán sin cambios:
+                                        {{ protectedPlayers.map((player) => `${player.label} (${player.status_label})`).join(', ') }}.
+                                    </div>
+
+                                    <div class="row col-md-12">
+                                        <div class="col-md-12">
                                             <div class="form-group">
                                                 <label for="incidents" class="form-label">Incidencias</label>
                                                 <Field
@@ -415,11 +478,35 @@ const modalInstance = ref(null)
 const settings = useSetting()
 
 const isLoading = ref(false)
+const isLoadingContext = ref(false)
 const isSubmitting = ref(false)
 const globalError = ref(null)
 const formErrorSummary = ref([])
+const showValidationErrors = ref(false)
 const currentStep = ref(0)
 const initialValues = ref(createInitialValues())
+const classDays = ref([])
+const selectedClassDay = ref(null)
+const attendanceContext = ref(null)
+const identityLocked = ref(false)
+
+const monthOptions = [
+    { value: 1, label: 'Enero' },
+    { value: 2, label: 'Febrero' },
+    { value: 3, label: 'Marzo' },
+    { value: 4, label: 'Abril' },
+    { value: 5, label: 'Mayo' },
+    { value: 6, label: 'Junio' },
+    { value: 7, label: 'Julio' },
+    { value: 8, label: 'Agosto' },
+    { value: 9, label: 'Septiembre' },
+    { value: 10, label: 'Octubre' },
+    { value: 11, label: 'Noviembre' },
+    { value: 12, label: 'Diciembre' },
+]
+
+const absenceOptions = computed(() => attendanceContext.value?.players ?? [])
+const protectedPlayers = computed(() => attendanceContext.value?.protected_players ?? [])
 
 const numericString = (label) =>
     yup
@@ -463,6 +550,7 @@ const taskSchema = yup.object({
 
 const schema = yup.object({
     training_group_id: yup.number().typeError('Selecciona un grupo').required('Selecciona un grupo'),
+    month: yup.number().typeError('Selecciona un mes').required('Selecciona un mes').min(1).max(12),
     period: yup.string().required().max(100),
     session: yup.string().required().max(100),
     date: yup.string().required(),
@@ -475,6 +563,7 @@ const schema = yup.object({
     warm_up: yup.string().nullable(),
     back_to_calm: numericString('Vuelta a la calma').max(10),
     players: numericString('N° Jugadores'),
+    absence_inscription_ids: yup.array().of(yup.mixed()).default([]),
     absences: yup.string().nullable(),
     incidents: yup.string().nullable(),
     feedback: yup.string().nullable(),
@@ -508,6 +597,7 @@ const wizardOptions = computed(() => ({
 
 const fieldMeta = {
     training_group_id: { label: 'Grupo de entrenamiento', stepIndex: 0, stepTitle: 'Información general' },
+    month: { label: 'Mes', stepIndex: 0, stepTitle: 'Información general' },
     period: { label: 'Periodo', stepIndex: 0, stepTitle: 'Información general' },
     session: { label: 'Sesión', stepIndex: 0, stepTitle: 'Información general' },
     date: { label: 'Fecha', stepIndex: 0, stepTitle: 'Información general' },
@@ -544,13 +634,13 @@ const fieldMeta = {
     'tasks[2].tt': { label: 'T/T', stepIndex: 3, stepTitle: 'Ejercicio 3' },
     back_to_calm: { label: 'Vuelta a la calma', stepIndex: 4, stepTitle: 'Cierre' },
     players: { label: 'N° Jugadores', stepIndex: 4, stepTitle: 'Cierre' },
-    absences: { label: 'Ausencias', stepIndex: 4, stepTitle: 'Cierre' },
+    absence_inscription_ids: { label: 'Deportistas que faltaron', stepIndex: 4, stepTitle: 'Cierre' },
     incidents: { label: 'Incidencias', stepIndex: 4, stepTitle: 'Cierre' },
     feedback: { label: 'Retroalimentación', stepIndex: 4, stepTitle: 'Cierre' },
 }
 
 const stepFields = [
-    ['training_group_id', 'period', 'session', 'date', 'hour', 'training_ground', 'material', 'warm_up'],
+    ['training_group_id', 'month', 'period', 'session', 'date', 'hour', 'training_ground', 'material', 'warm_up'],
     [
         'tasks[0].task_name',
         'tasks[0].general_objective',
@@ -587,7 +677,7 @@ const stepFields = [
         'tasks[2].tt',
         'tasks[2].observations',
     ],
-    ['back_to_calm', 'players', 'absences', 'incidents', 'feedback'],
+    ['back_to_calm', 'players', 'absence_inscription_ids', 'incidents', 'feedback'],
 ]
 
 const modalTitle = computed(() =>
@@ -595,7 +685,7 @@ const modalTitle = computed(() =>
 )
 
 const groupOptions = computed(() =>
-    settings.groups.map((group) => ({
+    settings.groups.filter((group) => group.name !== 'Provisional').map((group) => ({
         value: group.id,
         label: group.full_schedule_group ?? group.full_group ?? group.name,
     }))
@@ -620,16 +710,18 @@ function blankTask(taskNumber) {
 function createInitialValues() {
     return {
         training_group_id: null,
+        month: new Date().getMonth() + 1,
         period: '',
         session: '',
-        date: todayDateString(),
-        hour: '',
+        date: '',
+        hour: '02:00 PM',
         training_ground: '',
         material: '',
         warm_up: '',
         back_to_calm: '',
         players: '',
         absences: '',
+        absence_inscription_ids: [],
         incidents: '',
         feedback: '',
         tasks: [blankTask(1), blankTask(2), blankTask(3)],
@@ -640,11 +732,97 @@ function taskField(index, field) {
     return `tasks[${index}].${field}`
 }
 
-function todayDateString() {
-    const now = new Date()
-    const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+function fullClassDate(classDay) {
+    const month = String(classDay.month).padStart(2, '0')
+    const day = String(classDay.date).padStart(2, '0')
 
-    return localDate.toISOString().slice(0, 10)
+    return `${classDay.year}-${month}-${day}`
+}
+
+function clearAttendanceSelection() {
+    selectedClassDay.value = null
+    attendanceContext.value = null
+    form.value?.setFieldValue('date', '', false)
+    form.value?.setFieldValue('absence_inscription_ids', [], false)
+    form.value?.setFieldValue('players', '', false)
+}
+
+async function loadClassDays(trainingGroupId, month) {
+    classDays.value = []
+    if (!trainingGroupId || !month) {
+        return
+    }
+
+    isLoadingContext.value = true
+    try {
+        const response = await api.get('/api/v2/training_group/classdays', {
+            params: { training_group_id: trainingGroupId, month },
+        })
+        classDays.value = response.data ?? []
+    } catch (error) {
+        globalError.value = error.response?.data?.message || 'No fue posible consultar los días de entrenamiento.'
+    } finally {
+        isLoadingContext.value = false
+    }
+}
+
+async function loadAttendanceContext(trainingGroupId, date, preferredAbsenceIds = null) {
+    if (!trainingGroupId || !date) {
+        return
+    }
+
+    isLoadingContext.value = true
+    try {
+        const response = await api.get('/api/v2/training-sessions/attendance-context', {
+            params: { training_group_id: trainingGroupId, date },
+        })
+        attendanceContext.value = response.data.data
+        const ids = preferredAbsenceIds ?? attendanceContext.value.current_absence_ids ?? []
+        const selected = absenceOptions.value.filter((option) => ids.map(Number).includes(Number(option.value)))
+        form.value?.setFieldValue('absence_inscription_ids', selected, false)
+        form.value?.setFieldValue('players', Math.max(absenceOptions.value.length - selected.length, 0), false)
+    } catch (error) {
+        attendanceContext.value = null
+        form.value?.setFieldValue('absence_inscription_ids', [], false)
+        form.value?.setFieldValue('players', '', false)
+        globalError.value = error.response?.data?.message
+            || Object.values(error.response?.data?.errors || {}).flat()?.[0]
+            || 'No fue posible cargar los deportistas para esta fecha.'
+    } finally {
+        isLoadingContext.value = false
+    }
+}
+
+async function onGroupChanged(value) {
+    showValidationErrors.value = false
+    form.value?.setFieldValue('training_group_id', value, false)
+    if (identityLocked.value) return
+
+    clearAttendanceSelection()
+    await loadClassDays(value, form.value?.values?.month)
+}
+
+async function onMonthChanged(value) {
+    showValidationErrors.value = false
+    form.value?.setFieldValue('month', value, false)
+    if (identityLocked.value) return
+
+    clearAttendanceSelection()
+    await loadClassDays(form.value?.values?.training_group_id, value)
+}
+
+async function selectClassDay(classDay) {
+    selectedClassDay.value = classDay
+    const date = fullClassDate(classDay)
+    form.value?.setFieldValue('date', date, false)
+    await loadAttendanceContext(form.value?.values?.training_group_id, date)
+}
+
+function onAbsencesChanged(value, handleChange) {
+    const selected = Array.isArray(value) ? value : []
+    handleChange(selected)
+    form.value?.setFieldValue('absence_inscription_ids', selected)
+    form.value?.setFieldValue('players', Math.max(absenceOptions.value.length - selected.length, 0))
 }
 
 function normalizeValue(value) {
@@ -698,6 +876,7 @@ function registerFormErrors(errors = {}, message = 'Revisa los campos obligatori
     const summary = buildErrorSummary(errors)
 
     formErrorSummary.value = summary
+    showValidationErrors.value = true
     globalError.value = message
     moveToFirstErrorStep(summary)
 }
@@ -735,6 +914,7 @@ async function validateStep(index) {
 
     globalError.value = null
     formErrorSummary.value = []
+    showValidationErrors.value = false
 
     return true
 }
@@ -778,6 +958,7 @@ function normalizeBackendErrors(errors = {}) {
 function mapResponseToForm(data) {
     return {
         training_group_id: data.training_group_id,
+        month: data.date ? Number(String(data.date).slice(5, 7)) : new Date().getMonth() + 1,
         period: data.period ?? '',
         session: data.session ?? '',
         date: data.date ?? '',
@@ -788,6 +969,7 @@ function mapResponseToForm(data) {
         back_to_calm: data.back_to_calm ?? '',
         players: data.players ?? '',
         absences: data.absences ?? '',
+        absence_inscription_ids: [],
         incidents: data.incidents ?? '',
         feedback: data.feedback ?? '',
         tasks: Array.from({ length: 3 }, (_, index) => ({
@@ -806,7 +988,12 @@ async function ensureSettingsLoaded() {
 async function prepareModal() {
     globalError.value = null
     formErrorSummary.value = []
+    showValidationErrors.value = false
     currentStep.value = 0
+    classDays.value = []
+    selectedClassDay.value = null
+    attendanceContext.value = null
+    identityLocked.value = false
 
     await ensureSettingsLoaded()
     await nextTick()
@@ -821,10 +1008,20 @@ async function prepareModal() {
 
         try {
             const response = await api.get(`/api/v2/training-sessions/${props.sessionId}`)
-            const values = mapResponseToForm(response.data.data)
+            const data = response.data.data
+            const values = mapResponseToForm(data)
 
             form.value?.resetForm()
             form.value?.setValues(values)
+            identityLocked.value = Boolean(data.attendance_synced)
+
+            await loadClassDays(values.training_group_id, values.month)
+            selectedClassDay.value = classDays.value.find((classDay) => fullClassDate(classDay) === values.date) ?? null
+            await loadAttendanceContext(
+                values.training_group_id,
+                values.date,
+                data.attendance_synced ? (data.absence_inscription_ids ?? []) : null
+            )
         } catch (error) {
             globalError.value = error.response?.data?.message || 'No fue posible cargar la sesión.'
         } finally {
@@ -853,6 +1050,10 @@ async function onSubmit(values, actions) {
             back_to_calm: normalizeValue(values.back_to_calm),
             players: normalizeValue(values.players),
             absences: normalizeValue(values.absences),
+            sync_attendance: true,
+            absence_inscription_ids: (values.absence_inscription_ids ?? [])
+                .map((option) => Number(option?.value ?? option))
+                .filter(Number.isInteger),
             incidents: normalizeValue(values.incidents),
             feedback: normalizeValue(values.feedback),
             tasks: values.tasks.map((task, index) => ({
@@ -906,6 +1107,7 @@ async function onSubmit(values, actions) {
 }
 
 function onInvalidSubmit({ errors }) {
+    showValidationErrors.value = true
     registerFormErrors(errors)
 }
 
@@ -946,3 +1148,15 @@ onMounted(() => {
     })
 })
 </script>
+
+<style scoped>
+.suppress-validation-errors :deep(.invalid-feedback),
+.suppress-validation-errors :deep(.custom-error) {
+    display: none !important;
+}
+
+.suppress-validation-errors :deep(.is-invalid) {
+    border-color: var(--bs-border-color, #ced4da) !important;
+    background-image: none !important;
+}
+</style>

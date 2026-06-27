@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\Assist;
+use App\Models\Inscription;
+use App\Models\Player;
 use App\Models\School;
 use App\Models\SchoolUser;
 use App\Models\TrainingGroup;
@@ -282,6 +285,186 @@ final class TrainingSessionsTest extends TestCase
         ]);
     }
 
+    public function testSessionClosureSynchronizesAttendancesAndPreservesSpecialStatuses(): void
+    {
+        $group = $this->createTrainingGroup($this->school['id'], $this->user);
+        $absent = $this->createActiveInscription($group, 'Ausente');
+        $attendee = $this->createActiveInscription($group, 'Asistente');
+        $excused = $this->createActiveInscription($group, 'Excusado');
+        $classDay = $this->currentClassDay($group);
+
+        Assist::query()->updateOrCreate([
+            'training_group_id' => $group->id,
+            'inscription_id' => $excused->id,
+            'year' => now()->year,
+            'month' => now()->month,
+            'school_id' => $this->school['id'],
+        ], [
+            $classDay['column'] => 3,
+        ]);
+
+        $context = $this->actingAs($this->user)
+            ->getJson('/api/v2/training-sessions/attendance-context?'.http_build_query([
+                'training_group_id' => $group->id,
+                'date' => $classDay['date'],
+            ]))
+            ->assertOk();
+
+        $this->assertCount(2, $context->json('data.players'));
+        $this->assertSame('Excusa', $context->json('data.protected_players.0.status_label'));
+
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/v2/training-sessions', $this->sessionPayload($group->id, [
+                'date' => $classDay['date'],
+                'sync_attendance' => true,
+                'absence_inscription_ids' => [$absent->id],
+            ]))
+            ->assertCreated()
+            ->assertJsonPath('data.players', '1')
+            ->assertJsonPath('data.attendance_synced', true);
+
+        $session = TrainingSession::findOrFail((int) $response->json('data.id'));
+        $this->assertSame([$absent->id], $session->absence_inscription_ids);
+        $this->assertNotNull($session->attendance_synced_at);
+
+        $this->assertSame(2, (int) $this->assistFor($absent, $group)->{$classDay['column']});
+        $this->assertSame(1, (int) $this->assistFor($attendee, $group)->{$classDay['column']});
+        $this->assertSame(3, (int) $this->assistFor($excused, $group)->{$classDay['column']});
+
+        $this->actingAs($this->user)
+            ->putJson("/api/v2/training-sessions/{$session->id}", $this->sessionPayload($group->id, [
+                'date' => $classDay['date'],
+                'sync_attendance' => true,
+                'absence_inscription_ids' => [$attendee->id],
+            ]))
+            ->assertOk();
+
+        $this->assertSame(1, (int) $this->assistFor($absent, $group)->{$classDay['column']});
+        $this->assertSame(2, (int) $this->assistFor($attendee, $group)->{$classDay['column']});
+        $this->assertSame(3, (int) $this->assistFor($excused, $group)->{$classDay['column']});
+    }
+
+    public function testSyncedSessionRejectsIdentityChangesDuplicatesAndHistoricalAttendance(): void
+    {
+        $group = $this->createTrainingGroup($this->school['id'], $this->user);
+        $this->createActiveInscription($group, 'Activo');
+        $classDays = classDays(now()->year, now()->month, array_map('dayToNumber', $group->explode_days));
+        $firstDay = $classDays->first();
+        $secondDay = $classDays->skip(1)->first();
+
+        $created = $this->actingAs($this->user)
+            ->postJson('/api/v2/training-sessions', $this->sessionPayload($group->id, [
+                'date' => $firstDay['date'],
+                'sync_attendance' => true,
+                'absence_inscription_ids' => [],
+            ]))
+            ->assertCreated();
+
+        $sessionId = (int) $created->json('data.id');
+
+        $this->actingAs($this->user)
+            ->putJson("/api/v2/training-sessions/{$sessionId}", $this->sessionPayload($group->id, [
+                'date' => $secondDay['date'],
+                'sync_attendance' => true,
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('date');
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/training-sessions', $this->sessionPayload($group->id, [
+                'date' => $firstDay['date'],
+                'sync_attendance' => true,
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('date');
+
+        $historicalDay = classDays(now()->subYear()->year, 1, array_map('dayToNumber', $group->explode_days))->first();
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/training-sessions', $this->sessionPayload($group->id, [
+                'date' => $historicalDay['date'],
+                'sync_attendance' => true,
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('date');
+    }
+
+    public function testExistingSessionSynchronizesAutomaticallyAndDeletionKeepsAttendance(): void
+    {
+        $group = $this->createTrainingGroup($this->school['id'], $this->user);
+        $inscription = $this->createActiveInscription($group, 'Legado');
+        $legacySession = $this->createTrainingSession($group, $this->user);
+        $classDay = $this->currentClassDay($group);
+
+        $this->actingAs($this->user)
+            ->putJson("/api/v2/training-sessions/{$legacySession->id}", $this->sessionPayload($group->id, [
+                'date' => $classDay['date'],
+                'feedback' => 'Edición con sincronización automática',
+                'absences' => 'Texto histórico conservado',
+                'sync_attendance' => false,
+                'absence_inscription_ids' => [$inscription->id],
+            ]))
+            ->assertOk()
+            ->assertJsonPath('data.attendance_synced', true);
+
+        $legacySession->refresh();
+        $this->assertNotNull($legacySession->attendance_synced_at);
+        $this->assertSame([$inscription->id], $legacySession->absence_inscription_ids);
+        $this->assertSame('Texto histórico conservado', $legacySession->absences);
+
+        $this->actingAs($this->user)
+            ->deleteJson("/api/v2/training-sessions/{$legacySession->id}")
+            ->assertOk();
+
+        $this->assertSame(2, (int) $this->assistFor($inscription, $group)->{$classDay['column']});
+    }
+
+    public function testAttendanceContextRejectsIneligiblePlayersAndUnscheduledDates(): void
+    {
+        $group = $this->createTrainingGroup($this->school['id'], $this->user);
+        $otherGroup = $this->createTrainingGroup($this->school['id'], $this->user, suffix: 'Otro');
+        $eligible = $this->createActiveInscription($group, 'Elegible');
+        $preInscription = $this->createActiveInscription($group, 'Preinscrito', ['pre_inscription' => true]);
+        $futureInscription = $this->createActiveInscription($group, 'Futuro', [
+            'start_date' => now()->endOfYear()->toDateString(),
+        ]);
+        $otherInscription = $this->createActiveInscription($otherGroup, 'Otro grupo');
+        $classDay = $this->currentClassDay($group);
+
+        $context = $this->actingAs($this->user)
+            ->getJson('/api/v2/training-sessions/attendance-context?'.http_build_query([
+                'training_group_id' => $group->id,
+                'date' => $classDay['date'],
+            ]))
+            ->assertOk();
+
+        $this->assertSame([$eligible->id], collect($context->json('data.players'))->pluck('value')->all());
+
+        foreach ([$preInscription, $futureInscription, $otherInscription] as $ineligible) {
+            $this->actingAs($this->user)
+                ->postJson('/api/v2/training-sessions', $this->sessionPayload($group->id, [
+                    'date' => $classDay['date'],
+                    'session' => 'invalid-'.$ineligible->id,
+                    'sync_attendance' => true,
+                    'absence_inscription_ids' => [$ineligible->id],
+                ]))
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors('absence_inscription_ids');
+        }
+
+        $unscheduledDate = now()->startOfMonth();
+        while (in_array($unscheduledDate->isoWeekday(), [1, 3], true)) {
+            $unscheduledDate->addDay();
+        }
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/training-sessions', $this->sessionPayload($group->id, [
+                'date' => $unscheduledDate->toDateString(),
+                'sync_attendance' => true,
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('date');
+    }
+
     private function createTrainingGroup(int $schoolId, ?User $instructor = null, ?int $year = null, string $suffix = 'Base'): TrainingGroup
     {
         $year = $year ?? now()->year;
@@ -302,6 +485,42 @@ final class TrainingSessionsTest extends TestCase
         }
 
         return $group->fresh();
+    }
+
+    private function createActiveInscription(TrainingGroup $group, string $name, array $overrides = []): Inscription
+    {
+        $player = Player::factory()->create([
+            'school_id' => $group->school_id,
+            'names' => $name,
+            'last_names' => 'Prueba',
+            'unique_code' => fake()->unique()->numerify('TS-#####'),
+        ]);
+
+        return Inscription::factory()->create(array_merge([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'training_group_id' => $group->id,
+            'competition_group_id' => null,
+            'school_id' => $group->school_id,
+            'year' => now()->year,
+            'start_date' => now()->startOfYear()->toDateString(),
+            'pre_inscription' => false,
+        ], $overrides));
+    }
+
+    private function currentClassDay(TrainingGroup $group): array
+    {
+        return classDays(now()->year, now()->month, array_map('dayToNumber', $group->explode_days))->first();
+    }
+
+    private function assistFor(Inscription $inscription, TrainingGroup $group): Assist
+    {
+        return Assist::query()
+            ->where('training_group_id', $group->id)
+            ->where('inscription_id', $inscription->id)
+            ->where('year', now()->year)
+            ->where('month', now()->month)
+            ->firstOrFail();
     }
 
     private function createTrainingSession(TrainingGroup $group, User $creator, ?int $year = null, string $prefix = 'EX'): TrainingSession
@@ -338,7 +557,7 @@ final class TrainingSessionsTest extends TestCase
             'training_group_id' => $trainingGroupId,
             'period' => '1',
             'session' => '1',
-            'date' => now()->format('Y-m-d'),
+            'date' => classDays(now()->year, now()->month, [1, 3])->first()['date'],
             'hour' => '02:00 PM',
             'training_ground' => 'Cancha principal',
             'material' => 'Conos y petos',

@@ -8,14 +8,18 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\API\TrainingSessionUpsertRequest;
 use App\Models\TrainingSession;
 use App\Repositories\TrainingSessionRepository;
+use App\Service\TrainigSession\TrainingSessionAttendanceService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 
 class TrainingSessionsController extends Controller
 {
-    public function __construct(private TrainingSessionRepository $repository)
-    {
-    }
+    public function __construct(
+        private TrainingSessionRepository $repository,
+        private TrainingSessionAttendanceService $attendanceService,
+    ) {}
 
     public function store(TrainingSessionUpsertRequest $request): JsonResponse
     {
@@ -42,6 +46,30 @@ class TrainingSessionsController extends Controller
     {
         return response()->json([
             'data' => $this->serialize($this->repository->findAccessibleOrFail($trainingSession)),
+        ]);
+    }
+
+    public function attendanceContext(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'training_group_id' => ['required', 'integer'],
+            'date' => ['required', 'date_format:Y-m-d'],
+        ]);
+        $year = (int) substr($validated['date'], 0, 4);
+
+        if ($year !== (int) now()->year) {
+            throw ValidationException::withMessages([
+                'date' => 'La sincronización de asistencias solo está disponible para el año actual.',
+            ]);
+        }
+
+        $group = $this->repository->findAccessibleTrainingGroupOrFail(
+            (int) $validated['training_group_id'],
+            $year
+        );
+
+        return response()->json([
+            'data' => $this->attendanceService->context($group, $validated['date']),
         ]);
     }
 
@@ -86,10 +114,7 @@ class TrainingSessionsController extends Controller
 
     private function ensureGroupAccess(int $trainingGroupId, int $year): void
     {
-        abort_unless(
-            $this->repository->trainingGroupIsAccessible($trainingGroupId, $year),
-            Response::HTTP_NOT_FOUND
-        );
+        $this->repository->findAccessibleTrainingGroupOrFail($trainingGroupId, $year);
     }
 
     private function serialize(TrainingSession $trainingSession): array
@@ -137,6 +162,10 @@ class TrainingSessionsController extends Controller
             'back_to_calm' => $trainingSession->back_to_calm,
             'players' => $trainingSession->players,
             'absences' => $trainingSession->absences,
+            'absence_inscription_ids' => $trainingSession->absence_inscription_ids ?? [],
+            'absence_names' => $this->attendanceService->absenceNames($trainingSession),
+            'attendance_synced_at' => $trainingSession->attendance_synced_at?->toISOString(),
+            'attendance_synced' => $trainingSession->attendance_synced_at !== null,
             'incidents' => $trainingSession->incidents,
             'feedback' => $trainingSession->feedback,
             'created_at' => $trainingSession->created_at?->format('Y-m-d'),

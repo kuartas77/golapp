@@ -6,15 +6,18 @@ namespace App\Repositories;
 
 use App\Models\TrainingGroup;
 use App\Models\TrainingSession;
+use App\Service\TrainigSession\TrainingSessionAttendanceService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class TrainingSessionRepository
 {
-    public function __construct(protected TrainingSession $trainingSession)
-    {
-    }
+    public function __construct(
+        protected TrainingSession $trainingSession,
+        private TrainingSessionAttendanceService $attendanceService,
+    ) {}
 
     private function accessibleBaseQuery(): Builder
     {
@@ -72,69 +75,86 @@ class TrainingSessionRepository
         return $this->accessibleBaseQuery()->findOrFail($id);
     }
 
-    public function trainingGroupIsAccessible(int $trainingGroupId, int $year): bool
+    public function findAccessibleTrainingGroupOrFail(int $trainingGroupId, int $year): TrainingGroup
     {
         return TrainingGroup::query()
             ->schoolId()
             ->whereKey($trainingGroupId)
             ->when(isInstructor(), fn (Builder $query) => $query->byInstructor($year))
-            ->exists();
+            ->whereRaw('LOWER(name) <> ?', ['provisional'])
+            ->firstOrFail();
     }
 
     public function store(array $payload): ?TrainingSession
     {
-        $trainingSession = null;
         try {
+            return DB::transaction(function () use ($payload): TrainingSession {
+                $this->ensureUniqueGroupDate($payload);
+                $trainingSession = $this->makeTraininSession(new TrainingSession(), $payload);
+                $trainingSession->save();
 
-            $trainingSession = $this->makeTraininSession(new TrainingSession(), $payload);
+                $tasks = $this->makeTask($payload);
+                if ($tasks !== []) {
+                    $trainingSession->tasks()->createMany($tasks);
+                }
 
-            DB::beginTransaction();
+                if ($payload['sync_attendance'] ?? false) {
+                    $group = $this->findAccessibleTrainingGroupOrFail(
+                        (int) $payload['training_group_id'],
+                        (int) $payload['year']
+                    );
+                    $this->attendanceService->sync(
+                        $trainingSession,
+                        $group,
+                        $payload['absence_inscription_ids'] ?? []
+                    );
+                }
 
-            $trainingSession->save();
-
-            $tasks = $this->makeTask($payload);
-
-            if ($tasks !== []) {
-                $trainingSession->tasks()->createMany($tasks);
-            }
-
-            DB::commit();
+                return $trainingSession;
+            });
+        } catch (ValidationException $exception) {
+            throw $exception;
         } catch (\Throwable $throwable) {
-            DB::rollBack();
             report($throwable);
-            $trainingSession = null;
+            return null;
         }
-
-        return $trainingSession;
     }
 
     public function update(TrainingSession $trainingSession, array $payload): bool
     {
-        $success = false;
         try {
+            return DB::transaction(function () use ($trainingSession, $payload): bool {
+                $this->ensureSyncedIdentityIsUnchanged($trainingSession, $payload);
+                $this->ensureUniqueGroupDate($payload, $trainingSession->id);
+                $trainingSession = $this->makeTraininSession($trainingSession, $payload);
+                $trainingSession->save();
 
-            $trainingSession = $this->makeTraininSession($trainingSession, $payload);
+                $tasks = $this->makeTask($payload);
+                if ($tasks !== []) {
+                    $trainingSession->tasks()->forceDelete();
+                    $trainingSession->tasks()->createMany($tasks);
+                }
 
-            DB::beginTransaction();
+                if ($payload['sync_attendance'] ?? false) {
+                    $group = $this->findAccessibleTrainingGroupOrFail(
+                        (int) $payload['training_group_id'],
+                        (int) $payload['year']
+                    );
+                    $this->attendanceService->sync(
+                        $trainingSession,
+                        $group,
+                        $payload['absence_inscription_ids'] ?? []
+                    );
+                }
 
-            $trainingSession->save();
-
-            $tasks = $this->makeTask($payload);
-
-            if ($tasks !== []) {
-                $trainingSession->tasks()->forceDelete();
-                $trainingSession->tasks()->createMany($tasks);
-            }
-
-            DB::commit();
-            $success = true;
+                return true;
+            });
+        } catch (ValidationException $exception) {
+            throw $exception;
         } catch (\Throwable $throwable) {
-            DB::rollBack();
             report($throwable);
-            $success = false;
+            return false;
         }
-
-        return $success;
     }
 
     public function destroy(TrainingSession $trainingSession): bool
@@ -180,6 +200,39 @@ class TrainingSessionRepository
         }
 
         return $trainingSession;
+    }
+
+    private function ensureSyncedIdentityIsUnchanged(TrainingSession $trainingSession, array $payload): void
+    {
+        if (! $trainingSession->attendance_synced_at) {
+            return;
+        }
+
+        if (
+            (int) $trainingSession->training_group_id !== (int) $payload['training_group_id']
+            || (string) $trainingSession->date !== (string) $payload['date']
+        ) {
+            throw ValidationException::withMessages([
+                'date' => 'El grupo y la fecha no se pueden cambiar después de sincronizar la asistencia.',
+            ]);
+        }
+    }
+
+    private function ensureUniqueGroupDate(array $payload, ?int $exceptId = null): void
+    {
+        $exists = $this->trainingSession->query()
+            ->schoolId()
+            ->where('training_group_id', $payload['training_group_id'])
+            ->whereDate('date', $payload['date'])
+            ->when($exceptId, fn (Builder $query) => $query->where('training_sessions.id', '<>', $exceptId))
+            ->lockForUpdate()
+            ->exists();
+
+        if ($exists) {
+            throw ValidationException::withMessages([
+                'date' => 'Ya existe una sesión activa para este grupo y fecha.',
+            ]);
+        }
     }
 
     private function makeTask(array $payload): array
