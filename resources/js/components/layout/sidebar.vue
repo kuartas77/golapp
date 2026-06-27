@@ -48,6 +48,11 @@
                                 Estadísticas Jugador
                             </router-link>
                         </li>
+                        <li v-if="canCompetitionStats">
+                            <router-link :to="{ name: 'competition-stats.index' }" @click="toggleMobileMenu">
+                                Estadísticas de Competencias
+                            </router-link>
+                        </li>
                     </ul>
                 </li>
 
@@ -478,6 +483,7 @@ const canPaymentRequests = access.paymentRequests
 const canUniformRequests = access.uniformRequests
 const canEvaluationTemplates = access.evaluationTemplates
 const canPlayerStats = access.playerStats
+const canCompetitionStats = access.competitionStats
 
 const showAttendanceQrMenu = false
 
@@ -504,6 +510,8 @@ const dashboardRouteNames = new Set([
     'player-stats.index',
     'player-stats.top',
     'player-stats.detail',
+    'competition-stats.index',
+    'competition-stats.detail',
 ]);
 
 const isDashboardRoute = computed(() => dashboardRouteNames.has(route.name));

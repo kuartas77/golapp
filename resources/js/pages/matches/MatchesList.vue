@@ -6,10 +6,17 @@
                 <a class="btn btn-block btn-primary" href="javascript:void(0);" @click="openGroupSelection()" data-tour="matches-list-actions">
                     Crear Competencia
                 </a>
-                <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
-                    <i class="fa-regular fa-circle-question me-2"></i>
-                    Guia
-                </button>
+                <div class="d-flex align-items-center gap-2">
+                    <select v-model="statusFilter" class="form-select form-select-sm" aria-label="Filtrar por estado" @change="reloadMatchesTable">
+                        <option value="">Todos los estados</option>
+                        <option value="scheduled">Programados</option>
+                        <option value="played">Jugados</option>
+                    </select>
+                    <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
+                        <i class="fa-regular fa-circle-question me-2"></i>
+                        Guia
+                    </button>
+                </div>
             </div>
             <div data-tour="matches-list-table">
                 <DatatableTemplate :id="'matches_table'" :options="options" ref="matches_table" class="table-hover"/>
@@ -36,6 +43,7 @@ const settings = useSetting()
 const matches_table = useTemplateRef('matches_table')
 const router = useRouter()
 const tutorial = usePageTutorial(matchesListTutorial)
+const statusFilter = ref('')
 
 const columns = [
     { data: 'tournament_name', title: 'Torneo', name: 'tournaments.name', render: (data) => `<small>${data}</small>`, searchable: true },
@@ -43,11 +51,20 @@ const columns = [
     { data: 'date', title: 'Fecha', render: (data) => `<small>${data}</small>`, searchable: true },
     { data: 'hour', title: 'Hora', render: (data) => `<small>${data}</small>`, searchable: false, orderable: false },
     { data: 'rival_name', title: 'Rival', render: (data) => `<small>${data}</small>`, searchable: true },
-    { data: 'final_score', title: 'Marcador', render: (data) => `<small>${data.soccer} - ${data.rival}</small>`, searchable: false, orderable: false },
+    {
+        data: 'status_label', title: 'Estado', name: 'games.status',
+        render: (data, type, row) => `<span class="badge bg-${row.status === 'played' ? 'success' : 'warning'}">${data}</span>`,
+        searchable: false,
+    },
+    { data: 'final_score', title: 'Marcador', render: (data, type, row) => row.status === 'played' && data ? `<small>${data.soccer} - ${data.rival}</small>` : '<small class="text-muted">Pendiente</small>', searchable: false, orderable: false },
     {
         data: 'id', title: '#', render: (data, type, row, meta) => {
+            const pdfAction = row.status === 'played'
+                ? `<a class="btn btn-sm btn-success print-btn" href="${row.url_show}" target="_blank"><i href="${row.url_show}" class="fa-solid fa-file-pdf fa-lg"></i></a>`
+                : ''
+
             return `<div class="btn-group">
-                <a class="btn btn-sm btn-success print-btn" href="${row.url_show}" target="_blank"><i href="${row.url_show}" class="fa-solid fa-file-pdf fa-lg"></i></a>
+                ${pdfAction}
                 <button class="btn btn-sm btn-info edit-btn" data-item-id="${data}"><i data-item-id="${data}" class="fa fa-edit fa-lg"></i></button>
                 <button class="btn btn-sm btn-danger delete-btn" data-item-id="${data}"><i data-item-id="${data}" class="fa fa-trash fa-lg"></i></button>
 
@@ -60,8 +77,8 @@ const options = {
     ...configLanguaje,
     columnDefs: [
         { responsivePriority: 1, targets: columns.length - 1 },
-        { targets: [5], width: '6%' },
-        { targets: [6], width: '9%' },
+        { targets: [6], width: '6%' },
+        { targets: [7], width: '9%' },
         { targets: ['_all'], className: 'dt-head-center dt-body-center' },
     ],
     layout: {
@@ -77,6 +94,7 @@ const options = {
     columns: columns,
     ajax: async (data, callback, settings) => {
         try {
+            data.status = statusFilter.value || undefined
             const response = await api.get('/api/v2/datatables/matches', { params: data }); // Adjust endpoint and method
             callback({
                 data: response.data.data, // Adjust based on your API response structure

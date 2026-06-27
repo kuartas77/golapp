@@ -23,7 +23,7 @@ final class CompetitionMatchesTest extends TestCase
     {
         parent::setUp();
 
-        if (!Schema::hasColumn('skills_control', 'goal_assists')) {
+        if (! Schema::hasColumn('skills_control', 'goal_assists')) {
             Schema::table('skills_control', function ($table): void {
                 $table->smallInteger('goal_assists')->default(0);
                 $table->smallInteger('goal_saves')->default(0);
@@ -31,7 +31,7 @@ final class CompetitionMatchesTest extends TestCase
         }
     }
 
-    public function testCreateReturns404ForCompetitionGroupFromAnotherSchool(): void
+    public function test_create_returns404_for_competition_group_from_another_school(): void
     {
         [, $otherUser] = $this->createSchoolAndUser();
         $otherCompetitionGroup = $this->createCompetitionGroupForSchool(
@@ -44,7 +44,7 @@ final class CompetitionMatchesTest extends TestCase
             ->assertNotFound();
     }
 
-    public function testInstructorCanAccessMatchesDatatableScopedToOwnCompetitionGroups(): void
+    public function test_instructor_can_access_matches_datatable_scoped_to_own_competition_groups(): void
     {
         $instructor = $this->createSchoolScopedUser((int) $this->school['id'], [User::INSTRUCTOR], 'matches-instructor@example.com');
         $otherInstructor = $this->createSchoolScopedUser((int) $this->school['id'], [User::INSTRUCTOR], 'matches-other-instructor@example.com');
@@ -54,7 +54,7 @@ final class CompetitionMatchesTest extends TestCase
 
         $response = $this->actingAs($instructor)
             ->withHeader('X-Requested-With', 'XMLHttpRequest')
-            ->getJson('/api/v2/datatables/matches?draw=1&start=0&length=10&year=' . now()->year)
+            ->getJson('/api/v2/datatables/matches?draw=1&start=0&length=10&year='.now()->year)
             ->assertOk();
 
         $ids = collect($response->json('data'))->pluck('id')->all();
@@ -63,7 +63,7 @@ final class CompetitionMatchesTest extends TestCase
         $this->assertNotContains($hiddenMatch->id, $ids);
     }
 
-    public function testEditUpdateAndDestroyReturn404ForMatchFromAnotherSchool(): void
+    public function test_edit_update_and_destroy_return404_for_match_from_another_school(): void
     {
         [$otherSchool, $otherUser] = $this->createSchoolAndUser();
         $otherMatch = $this->createMatchForSchool($otherSchool['id'], $otherUser->id, ['soccer' => 2, 'rival' => 1]);
@@ -87,7 +87,7 @@ final class CompetitionMatchesTest extends TestCase
             ->assertNotFound();
     }
 
-    public function testStoreCreatesSkillsControlWithGoalAssistAndGoalSavesDefaults(): void
+    public function test_store_creates_skills_control_with_goal_assist_and_goal_saves_defaults(): void
     {
         [$inscription] = $this->createInscriptionAndPayment();
         $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
@@ -110,7 +110,7 @@ final class CompetitionMatchesTest extends TestCase
         ]);
     }
 
-    public function testUpdateDerivesSkillControlGameIdFromRouteWhenMissing(): void
+    public function test_update_derives_skill_control_game_id_from_route_when_missing(): void
     {
         [$inscription] = $this->createInscriptionAndPayment();
         $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
@@ -142,7 +142,7 @@ final class CompetitionMatchesTest extends TestCase
         ]);
     }
 
-    public function testCreateAndEditMatchDataIncludeTheStoredPlayerPhoto(): void
+    public function test_create_and_edit_match_data_include_the_stored_player_photo(): void
     {
         Storage::fake('public');
 
@@ -170,7 +170,7 @@ final class CompetitionMatchesTest extends TestCase
             $this->validMatchPayload($competitionGroup->tournament, $competitionGroup, $inscription)
         )->assertOk();
 
-        $editResponse = $this->getJson('/api/v2/matches/' . $storeResponse->json('match_id'))
+        $editResponse = $this->getJson('/api/v2/matches/'.$storeResponse->json('match_id'))
             ->assertOk();
 
         $this->assertStringContainsString(
@@ -179,7 +179,7 @@ final class CompetitionMatchesTest extends TestCase
         );
     }
 
-    public function testFinalScoreArrayAccessorSupportsCurrentAndLegacyFormats(): void
+    public function test_final_score_array_accessor_supports_current_and_legacy_formats(): void
     {
         $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
 
@@ -215,14 +215,77 @@ final class CompetitionMatchesTest extends TestCase
         $this->assertSame('2', $legacyFormatMatch->final_score_array->rival);
     }
 
+    public function test_new_match_is_scheduled_without_a_placeholder_score(): void
+    {
+        [$inscription] = $this->createInscriptionAndPayment();
+        $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
+
+        $response = $this->actingAs($this->user)->postJson(
+            '/api/v2/matches',
+            $this->validMatchPayload($competitionGroup->tournament, $competitionGroup, $inscription)
+        )->assertOk()->assertJsonPath('success', true);
+
+        $match = Game::query()->findOrFail($response->json('match_id'));
+
+        $this->assertSame(Game::STATUS_SCHEDULED, $match->status);
+        $this->assertNull($match->final_score);
+    }
+
+    public function test_played_match_requires_a_non_future_date_and_non_negative_score(): void
+    {
+        [$inscription] = $this->createInscriptionAndPayment();
+        $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
+        $match = $this->createMatchForSchool($this->school['id'], $this->user->id, ['soccer' => 0, 'rival' => 0]);
+        $payload = $this->validMatchPayload($competitionGroup->tournament, $competitionGroup, $inscription, true, $match->id);
+        $payload['status'] = Game::STATUS_PLAYED;
+        $payload['date'] = now()->addDay()->toDateString();
+        $payload['final_score_school'] = '-1';
+
+        $this->actingAs($this->user)
+            ->putJson("/api/v2/matches/{$match->id}", $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['date', 'final_score.soccer']);
+    }
+
+    public function test_played_match_can_return_to_scheduled_without_losing_draft_data(): void
+    {
+        [$inscription] = $this->createInscriptionAndPayment();
+        $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
+        $match = Game::query()->create([
+            'tournament_id' => $competitionGroup->tournament_id,
+            'competition_group_id' => $competitionGroup->id,
+            'date' => now()->toDateString(),
+            'hour' => '08:00 AM',
+            'num_match' => '9',
+            'place' => 'Cancha Principal',
+            'rival_name' => 'Rival Estado',
+            'status' => Game::STATUS_PLAYED,
+            'final_score' => ['soccer' => 3, 'rival' => 1],
+            'school_id' => $this->school['id'],
+        ]);
+        $payload = $this->validMatchPayload($competitionGroup->tournament, $competitionGroup, $inscription, true, $match->id);
+        $payload['status'] = Game::STATUS_SCHEDULED;
+        $payload['final_score_school'] = '3';
+        $payload['final_score_rival'] = '1';
+
+        $this->actingAs($this->user)
+            ->putJson("/api/v2/matches/{$match->id}", $payload)
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $match->refresh();
+        $this->assertSame(Game::STATUS_SCHEDULED, $match->status);
+        $this->assertSame('3', (string) $match->final_score_array->soccer);
+        $this->assertSame('1', (string) $match->final_score_array->rival);
+    }
+
     private function validMatchPayload(
         Tournament $tournament,
         CompetitionGroup $competitionGroup,
         Inscription $inscription,
         bool $isUpdate = false,
         ?int $gameId = null
-    ): array
-    {
+    ): array {
         $skillControl = [
             'id' => null,
             'inscription_id' => (string) $inscription->id,
@@ -263,12 +326,12 @@ final class CompetitionMatchesTest extends TestCase
     private function createCompetitionGroupForSchool(int $schoolId, int $userId): CompetitionGroup
     {
         $tournament = Tournament::query()->create([
-            'name' => 'Torneo ' . $schoolId . '-' . fake()->unique()->numberBetween(100, 999),
+            'name' => 'Torneo '.$schoolId.'-'.fake()->unique()->numberBetween(100, 999),
             'school_id' => $schoolId,
         ]);
 
         return CompetitionGroup::query()->create([
-            'name' => 'Grupo ' . fake()->unique()->numberBetween(100, 999),
+            'name' => 'Grupo '.fake()->unique()->numberBetween(100, 999),
             'year' => (string) now()->year,
             'tournament_id' => $tournament->id,
             'user_id' => $userId,
@@ -314,7 +377,7 @@ final class CompetitionMatchesTest extends TestCase
     {
         return Player::factory()->create([
             'school_id' => $this->school['id'],
-            'unique_code' => 'MC-' . fake()->unique()->numberBetween(1000, 9999),
+            'unique_code' => 'MC-'.fake()->unique()->numberBetween(1000, 9999),
         ]);
     }
 

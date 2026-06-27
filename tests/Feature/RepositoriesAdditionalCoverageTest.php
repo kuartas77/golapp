@@ -1079,6 +1079,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'num_match' => '2',
             'place' => 'Cancha B',
             'rival_name' => 'Rival B',
+            'status' => Game::STATUS_PLAYED,
             'final_score' => '{"local":2,"visitor":1}',
             'general_concept' => 'Partido extendido',
             'school_id' => $this->school['id'],

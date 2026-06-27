@@ -37,24 +37,6 @@
                             {{ globalError }}
                         </div>
 
-                        <div v-if="formErrorSummary.length" class="alert alert-danger" role="alert">
-                            <div class="fw-semibold">Hay campos por corregir antes de guardar.</div>
-                            <ul class="mb-0 mt-2 ps-3">
-                                <li v-for="error in formErrorSummary" :key="`${error.field}_${error.message}`">
-                                    <button
-                                        v-if="error.stepIndex !== null"
-                                        type="button"
-                                        class="btn btn-link btn-sm alert-link p-0 align-baseline"
-                                        @click="goToStep(error.stepIndex)"
-                                    >
-                                        Paso {{ error.stepIndex + 1 }} · {{ error.stepTitle }}
-                                    </button>
-                                    <span v-if="error.stepIndex !== null">:</span>
-                                    <span> {{ error.label }}. {{ error.message }}</span>
-                                </li>
-                            </ul>
-                        </div>
-
                         <Wizard v-model="currentStep" :options="wizardOptions" @finish="handleSubmit(null, onSubmit)">
                             <template #info>
                                 <h6 class="d-flex block-helper justify-content-center">

@@ -13,7 +13,7 @@
         </div>
     </div>
 
-    <Form v-else ref="form_matches" :validation-schema="schema" :initial-values="{ date: null, hour: null }"
+    <Form v-else ref="form_matches" :validation-schema="schema" :initial-values="{ date: null, hour: null, status: 'scheduled' }"
         @submit="handleSubmit">
 
         <div class="layout-px-spacing">
@@ -138,6 +138,18 @@
                                                 <div class="form-group">
                                                     <inputField label="Equipo Rival" name="rival_name"
                                                         :is-required="true" />
+                                                </div>
+                                            </div>
+
+                                            <div v-if="isEdition" class="col-12">
+                                                <div class="form-group">
+                                                    <label for="status" class="form-label">Estado<span class="text-danger">&nbsp;(*)</span></label>
+                                                    <Field name="status" as="select" id="status" class="form-select form-select-sm">
+                                                        <option value="scheduled">Programado</option>
+                                                        <option value="played">Jugado</option>
+                                                    </Field>
+                                                    <ErrorMessage name="status" class="invalid-feedback d-block" />
+                                                    <small class="text-muted d-block mt-1">Solo los partidos jugados alimentan las estadísticas.</small>
                                                 </div>
                                             </div>
                                         </div>
@@ -528,6 +540,7 @@ const urlExportFormat = ref(null)
 const skills_controls = ref([])
 const creationBlocked = ref(false)
 const creationBlockedMessage = ref('El grupo de competencia seleccionado no tiene integrantes.')
+const originalStatus = ref('scheduled')
 const sidebarTitle = computed(() => props.isEdition ? 'Información del partido' : 'Nuevo partido')
 const sidebarSubtitle = computed(() => (
     props.isEdition
@@ -569,14 +582,23 @@ const schema = yup.object().shape({
     competition_group_id: yup.string(),
     place: yup.string().required(),
     num_match: yup.number().integer().required().typeError('Debe ser un número.'),
-    date: yup.date().required(),
+    status: yup.string().oneOf(['scheduled', 'played']).required(),
+    date: yup.date().required().test('played-date', 'Un partido jugado no puede tener una fecha futura.', function (value) {
+        return this.parent.status !== 'played' || !value || !dayjs(value).isAfter(dayjs(), 'day')
+    }),
     hour: yup.string().matches(
         /^((1[0-2]|[1-9]):([0-5][0-9]))\s(AM|PM)$/i,
         'La hora debe estar en formato de 12 horas. (ejemplo: 9:30 AM o 12:00 PM)'
     ).required(),
     rival_name: yup.string().required(),
-    final_score_school: yup.number().integer().default(0),
-    final_score_rival: yup.number().integer().default(0),
+    final_score_school: yup.number().transform((value, original) => original === '' || original === null ? null : value).nullable().integer().min(0).when('status', {
+        is: 'played',
+        then: (valueSchema) => valueSchema.required('Es requerido'),
+    }),
+    final_score_rival: yup.number().transform((value, original) => original === '' || original === null ? null : value).nullable().integer().min(0).when('status', {
+        is: 'played',
+        then: (valueSchema) => valueSchema.required('Es requerido'),
+    }),
     general_concept: yup.string().nullable(),
     skill_controls: yup.array().of(
         yup.object({
@@ -645,11 +667,13 @@ const onLoadData = async () => {
                 hour: match.hour,
                 num_match: match.num_match,
                 rival_name: match.rival_name,
-                final_score_school: match.final_score.soccer,
-                final_score_rival: match.final_score.rival,
+                status: match.status || 'scheduled',
+                final_score_school: match.final_score?.soccer ?? null,
+                final_score_rival: match.final_score?.rival ?? null,
                 general_concept: match.general_concept,
                 skill_controls: match.skills_controls
             })
+            originalStatus.value = match.status || 'scheduled'
         }
     } catch {
         showMessage('Algo salió mal.', 'error')
@@ -682,6 +706,21 @@ const mergeCoachBoardPayload = (skillControls, lineupPayload) => {
 
 const handleSubmit = async (values, actions) => {
     try {
+        if (props.isEdition && originalStatus.value === 'played' && values.status === 'scheduled') {
+            const confirmation = await Swal.fire({
+                title: '¿Volver a Programado?',
+                text: 'El partido dejará de aparecer en todas las estadísticas. Los datos diligenciados se conservarán como borrador.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, volver a Programado',
+                cancelButtonText: 'Cancelar',
+            })
+
+            if (!confirmation.isConfirmed) {
+                return
+            }
+        }
+
         isLoading.value = true
         globalError.value = null
 
@@ -710,6 +749,7 @@ const handleSubmit = async (values, actions) => {
 
         if (response.data.success) {
             showMessage('Guardado correctamente.')
+            originalStatus.value = values.status
 
             if (!props.isEdition && response.data.match_id) {
                 await router.replace({
