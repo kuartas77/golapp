@@ -52,9 +52,9 @@ const routes = [
             { path: '', redirect: '/inicio', name: 'redirect' },
             { path: 'inicio', name: 'dashboard', component: () => import('@/pages/home/Index.vue'), },
             { path: 'kpi', name: 'kpi', component: () => import('@/pages/kpi/Index.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'] } },
-            { path: 'player-stats', name: 'player-stats.index', component: () => import('@/pages/player-stats/Ranking.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] } },
-            { path: 'top-players', name: 'player-stats.top', component: () => import('@/pages/player-stats/TopPlayers.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] } },
-            { path: 'player/:id/detail', name: 'player-stats.detail', component: () => import('@/pages/player-stats/Detail.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] } },
+            { path: 'player-stats', name: 'player-stats.index', component: () => import('@/pages/player-stats/Ranking.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.matches] } },
+            { path: 'top-players', name: 'player-stats.top', component: () => import('@/pages/player-stats/TopPlayers.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.matches] } },
+            { path: 'player/:id/detail', name: 'player-stats.detail', component: () => import('@/pages/player-stats/Detail.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.matches] } },
             { path: 'competition-stats', name: 'competition-stats.index', component: () => import('@/pages/competition-stats/Ranking.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.matches] } },
             { path: 'competition-stats/groups/:id', name: 'competition-stats.detail', component: () => import('@/pages/competition-stats/Detail.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.matches] } },
             {

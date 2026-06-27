@@ -11,7 +11,7 @@ export const backofficeAccessRequirements = {
     playerStats: {
         roles: ['super-admin', 'school', 'instructor'],
         anyRole: true,
-        schoolPermissions: [SCHOOL_PERMISSION_KEYS.players],
+        schoolPermissions: [SCHOOL_PERMISSION_KEYS.matches],
     },
     competitionStats: {
         roles: ['super-admin', 'school', 'instructor'],

@@ -295,7 +295,7 @@ Route::prefix('v2')->group(function () {
 
         Route::middleware([
             'role:super-admin|school|instructor',
-            'school.permission:school.module.players',
+            'school.permission:school.module.matches',
         ])->group(function () {
             Route::get('/player-stats', [PlayerStatsController::class, 'index']);
             Route::get('/top-players', [PlayerStatsController::class, 'topPlayers']);

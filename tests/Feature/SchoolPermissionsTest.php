@@ -232,7 +232,7 @@ final class SchoolPermissionsTest extends TestCase
             ->assertJsonPath('school_selected', $school->name);
     }
 
-    public function test_instructor_can_access_kpis_but_still_cannot_access_players_or_inscriptions_even_when_school_permissions_are_enabled(): void
+    public function test_instructor_uses_matches_permission_for_stats_without_accessing_player_or_inscription_crud(): void
     {
         $school = School::findOrFail($this->school['id']);
         $instructor = $this->createSchoolScopedUser(
@@ -244,8 +244,9 @@ final class SchoolPermissionsTest extends TestCase
         [$player, $inscription] = $this->createPlayerWithInscription($school);
 
         $this->setSchoolPermissions($school, [
-            'school.module.players' => true,
+            'school.module.players' => false,
             'school.module.inscriptions' => true,
+            'school.module.matches' => true,
         ]);
 
         $this->mock(PlayerStatsService::class, function (MockInterface $mock) use ($school, $player): void {
@@ -306,6 +307,15 @@ final class SchoolPermissionsTest extends TestCase
 
         $this->actingAs($instructor)
             ->get('/inscriptions')
+            ->assertForbidden();
+
+        $this->setSchoolPermissions($school, [
+            'school.module.players' => true,
+            'school.module.matches' => false,
+        ]);
+
+        $this->actingAs($instructor)
+            ->getJson('/api/v2/player-stats')
             ->assertForbidden();
     }
 
