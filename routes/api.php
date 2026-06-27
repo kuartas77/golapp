@@ -262,6 +262,7 @@ Route::prefix('v2')->group(function () {
 
         Route::middleware('school.permission:school.module.training_sessions')->prefix('training-sessions')->group(function () {
             Route::post('', [ApiTrainingSessionsController::class, 'store']);
+            Route::get('attendance-context', [ApiTrainingSessionsController::class, 'attendanceContext']);
             Route::get('{trainingSession}', [ApiTrainingSessionsController::class, 'show']);
             Route::put('{trainingSession}', [ApiTrainingSessionsController::class, 'update']);
             Route::delete('{trainingSession}', [ApiTrainingSessionsController::class, 'destroy'])

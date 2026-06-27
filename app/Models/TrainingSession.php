@@ -35,7 +35,14 @@ class TrainingSession extends Model
         'incidents',
         'players',
         'absences',
+        'absence_inscription_ids',
+        'attendance_synced_at',
         'back_to_calm',
+    ];
+
+    protected $casts = [
+        'absence_inscription_ids' => 'array',
+        'attendance_synced_at' => 'datetime',
     ];
 
     public function school(): BelongsTo
