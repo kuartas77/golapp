@@ -128,10 +128,10 @@ describe('TrainingSessionModal attendance closure', () => {
 
         const groupSelect = wrapper.findAllComponents({ name: 'CustomSelect2' })
             .find((component) => component.props('id') === 'training_group_id')
-        groupSelect.vm.$emit('update:modelValue', 10)
+        groupSelect.vm.$emit('update:modelValue', '10')
         await flushPromises()
 
-        expect(wrapper.vm.$.setupState.form.values.training_group_id).toBe(10)
+        expect(wrapper.vm.$.setupState.form.values.training_group_id).toBe('10')
         expect(wrapper.get('.modal-body').classes()).toContain('suppress-validation-errors')
     })
 
@@ -220,10 +220,14 @@ describe('TrainingSessionModal attendance closure', () => {
         await wrapper.setProps({ show: true })
         await flushPromises()
 
+        const groupSelect = wrapper.findAllComponents({ name: 'CustomSelect2' })
+            .find((component) => component.props('id') === 'training_group_id')
+        expect(groupSelect.props('modelValue')).toBe('10')
+        expect(groupSelect.props('options')).toContainEqual({ value: '10', label: 'Grupo A' })
         expect(wrapper.text()).not.toContain('Activar registro automático de asistencia')
         expect(apiMock.get).toHaveBeenCalledWith(
             '/api/v2/training-sessions/attendance-context',
-            { params: { training_group_id: 10, date: '2026-06-01' } }
+            { params: { training_group_id: '10', date: '2026-06-01' } }
         )
     })
 })
