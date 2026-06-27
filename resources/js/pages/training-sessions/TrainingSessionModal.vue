@@ -686,7 +686,7 @@ const modalTitle = computed(() =>
 
 const groupOptions = computed(() =>
     settings.groups.filter((group) => group.name !== 'Provisional').map((group) => ({
-        value: group.id,
+        value: String(group.id),
         label: group.full_schedule_group ?? group.full_group ?? group.name,
     }))
 )
@@ -957,7 +957,7 @@ function normalizeBackendErrors(errors = {}) {
 
 function mapResponseToForm(data) {
     return {
-        training_group_id: data.training_group_id,
+        training_group_id: data.training_group_id == null ? null : String(data.training_group_id),
         month: data.date ? Number(String(data.date).slice(5, 7)) : new Date().getMonth() + 1,
         period: data.period ?? '',
         session: data.session ?? '',
