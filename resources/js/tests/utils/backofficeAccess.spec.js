@@ -47,19 +47,7 @@ describe('hasBackofficeAccess', () => {
         expect(hasBackofficeAccess(auth, backofficeAccessRequirements.methodology)).toBe(true)
     })
 
-    it('allows instructors with players permission to access player stats', () => {
-        const auth = makeAuth({
-            roles: ['instructor'],
-            schoolPermissions: {
-                'school.module.players': true,
-            },
-        })
-
-        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.playerStats)).toBe(true)
-        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.players)).toBe(false)
-    })
-
-    it('allows instructors with matches permission to access competition stats', () => {
+    it('allows instructors with matches permission to access both statistics modules without player CRUD', () => {
         const auth = makeAuth({
             roles: ['instructor'],
             schoolPermissions: {
@@ -67,6 +55,19 @@ describe('hasBackofficeAccess', () => {
             },
         })
 
+        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.playerStats)).toBe(true)
         expect(hasBackofficeAccess(auth, backofficeAccessRequirements.competitionStats)).toBe(true)
+        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.players)).toBe(false)
+    })
+
+    it('does not grant player stats from the players permission alone', () => {
+        const auth = makeAuth({
+            roles: ['instructor'],
+            schoolPermissions: {
+                'school.module.players': true,
+            },
+        })
+
+        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.playerStats)).toBe(false)
     })
 })
