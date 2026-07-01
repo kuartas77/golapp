@@ -363,6 +363,8 @@
                 ['number' => 4, 'report' => 'Valores deportivos abordados', 'key' => 'sport_values_description'],
                 ['number' => 5, 'report' => 'Situaciones o novedades específicas con jugadores. (enfermedad, incapacidad, lesión, evolución deportiva o entre otras).', 'key' => 'specific_player_news_description'],
                 ['number' => 6, 'report' => 'Seguimiento y/o control que se llevó o se está llevando a cabo con el jugador.', 'key' => 'player_follow_up_description'],
+                ['number' => 7, 'report' => 'Aspectos a mejorar/corregir', 'key' => 'aspects_to_improve_description'],
+                ['number' => 8, 'report' => 'Plan de acción', 'key' => 'action_plan_description'],
             ] as $row)
                 <tr>
                     <td class="text-center">{{ $row['number'] }}</td>
