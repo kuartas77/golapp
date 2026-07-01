@@ -365,6 +365,7 @@
                 ['number' => 6, 'report' => 'Seguimiento y/o control que se llevó o se está llevando a cabo con el jugador.', 'key' => 'player_follow_up_description'],
                 ['number' => 7, 'report' => 'Aspectos a mejorar/corregir', 'key' => 'aspects_to_improve_description'],
                 ['number' => 8, 'report' => 'Plan de acción', 'key' => 'action_plan_description'],
+                ['number' => 9, 'report' => 'Observaciones del coordinador', 'key' => 'coordinator_observations_description'],
             ] as $row)
                 <tr>
                     <td class="text-center">{{ $row['number'] }}</td>

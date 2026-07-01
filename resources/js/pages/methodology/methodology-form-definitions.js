@@ -153,6 +153,7 @@ export const methodologyFieldGroups = {
                 { key: 'player_follow_up_description', label: 'Seguimiento y/o control que se llevó o se está llevando a cabo con el jugador', type: 'textarea' },
                 { key: 'aspects_to_improve_description', label: 'Aspectos a mejorar/corregir', type: 'textarea' },
                 { key: 'action_plan_description', label: 'Plan de acción', type: 'textarea' },
+                { key: 'coordinator_observations_description', label: 'Observaciones del coordinador', type: 'textarea' },
             ],
         },
     ],

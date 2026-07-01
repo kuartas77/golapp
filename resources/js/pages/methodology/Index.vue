@@ -685,6 +685,11 @@ const categoryReportRows = [
         report: 'Plan de acción',
         key: 'action_plan_description',
     },
+    {
+        number: 9,
+        report: 'Observaciones del coordinador',
+        key: 'coordinator_observations_description',
+    },
 ]
 
 const monthlyReportRows = [

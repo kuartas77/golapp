@@ -65,6 +65,7 @@ describe('methodology form definitions', () => {
             player_follow_up_description: '',
             aspects_to_improve_description: '',
             action_plan_description: '',
+            coordinator_observations_description: '',
         }))
         expect(createBlankFields(METHODOLOGY_TYPES.categoryMonthlyReport)).not.toHaveProperty('signature')
         expect(createBlankFields(METHODOLOGY_TYPES.categoryMonthlyReport)).not.toHaveProperty('signer_name')
