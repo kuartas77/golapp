@@ -91,15 +91,18 @@ class DebtorReportService
         $this->paymentsQuery($schoolId, $year, $trainingGroupId)
             ->get()
             ->each(function (Payment $payment) use ($rows, $invoicedMonthlyKeys) {
-                $monthlyDebt = $this->monthlyDebtForPayment($payment, $invoicedMonthlyKeys);
+                $monthlyDebts = $this->monthlyDebtsForPayment($payment, $invoicedMonthlyKeys);
 
-                if ($monthlyDebt['amount'] <= 0) {
+                if ($monthlyDebts->isEmpty()) {
                     return;
                 }
 
                 $row = $this->baseRowFromPayment($payment);
                 $row = $rows->get($row['inscription_id'], $row);
-                $row = $this->appendDebt($row, $monthlyDebt['label'], $monthlyDebt['amount']);
+
+                $monthlyDebts->each(function (array $monthlyDebt) use (&$row) {
+                    $row = $this->appendDebt($row, $monthlyDebt['label'], $monthlyDebt['amount']);
+                });
 
                 $rows->put($row['inscription_id'], $row);
             });
@@ -235,9 +238,9 @@ class DebtorReportService
             ->mapWithKeys(fn ($item) => [$this->monthlyKey((int) $item->payment_id, (string) $item->month) => true]);
     }
 
-    private function monthlyDebtForPayment(Payment $payment, Collection $invoicedMonthlyKeys): array
+    private function monthlyDebtsForPayment(Payment $payment, Collection $invoicedMonthlyKeys): Collection
     {
-        $months = collect(Payment::paymentFields())->map(function (string $field) use ($payment, $invoicedMonthlyKeys) {
+        return collect(Payment::paymentFields())->map(function (string $field) use ($payment, $invoicedMonthlyKeys) {
             if ((int) $payment->{$field} !== Payment::$debt) {
                 return null;
             }
@@ -252,12 +255,7 @@ class DebtorReportService
                 'label' => $this->monthLabel($field),
                 'amount' => (float) ($amountField ? $payment->{$amountField} : 0),
             ];
-        })->filter()->values();
-
-        return [
-            'amount' => (float) $months->sum('amount'),
-            'label' => $months->pluck('label')->implode(', '),
-        ];
+        })->filter(fn (?array $debt) => $debt !== null && $debt['amount'] > 0)->values();
     }
 
     private function monthlyKey(int $paymentId, string $month): string

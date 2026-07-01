@@ -151,6 +151,8 @@ export const methodologyFieldGroups = {
                 { key: 'sport_values_description', label: 'Valores deportivos abordados', type: 'textarea' },
                 { key: 'specific_player_news_description', label: 'Situaciones o novedades específicas con jugadores', type: 'textarea' },
                 { key: 'player_follow_up_description', label: 'Seguimiento y/o control que se llevó o se está llevando a cabo con el jugador', type: 'textarea' },
+                { key: 'aspects_to_improve_description', label: 'Aspectos a mejorar/corregir', type: 'textarea' },
+                { key: 'action_plan_description', label: 'Plan de acción', type: 'textarea' },
             ],
         },
     ],

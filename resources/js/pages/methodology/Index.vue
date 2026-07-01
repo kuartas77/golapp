@@ -675,6 +675,16 @@ const categoryReportRows = [
         report: 'Seguimiento y/o control que se llevó o se está llevando a cabo con el jugador.',
         key: 'player_follow_up_description',
     },
+    {
+        number: 7,
+        report: 'Aspectos a mejorar/corregir',
+        key: 'aspects_to_improve_description',
+    },
+    {
+        number: 8,
+        report: 'Plan de acción',
+        key: 'action_plan_description',
+    },
 ]
 
 const monthlyReportRows = [

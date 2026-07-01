@@ -67,8 +67,8 @@ final class DebtorReportTest extends TestCase
         $this->resetPayment($this->paymentForInscription($inscription))->update([
             'january' => Payment::$debt,
             'january_amount' => 50000,
-            'february' => Payment::$paid,
-            'february_amount' => 50000,
+            'february' => Payment::$debt,
+            'february_amount' => 60000,
             'march' => Payment::$pending,
             'march_amount' => 50000,
         ]);
@@ -130,11 +130,17 @@ final class DebtorReportTest extends TestCase
         ]);
 
         $this->assertCount(1, $rows);
-        $this->assertSame(125000.0, $rows->first()['total_debt']);
+        $this->assertSame(185000.0, $rows->first()['total_debt']);
         $this->assertSame([
             'Enero',
+            'Febrero',
             'Uniforme',
         ], collect($rows->first()['debt_items'])->pluck('label')->all());
+        $this->assertSame([
+            50000.0,
+            60000.0,
+            75000.0,
+        ], collect($rows->first()['debt_items'])->pluck('amount')->all());
     }
 
     public function testDebtorReportDoesNotDuplicateMonthlyDebtAlreadyInPendingInvoice(): void
