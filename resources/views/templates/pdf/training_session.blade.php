@@ -90,7 +90,7 @@
                 <td class="texto bold">&nbsp;Tiempo Total "TT": {{$task->tt}}</td>
             </tr>
             <tr class="">
-                <td class="texto bold" colspan="3">&nbsp;Observaciones: {{$task->observations}}</td>
+                <td class="texto bold" colspan="3">&nbsp;Descripción: {{$task->observations}}</td>
             </tr>
         </tbody>
     </table>

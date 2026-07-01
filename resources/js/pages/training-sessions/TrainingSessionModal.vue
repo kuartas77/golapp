@@ -121,34 +121,9 @@
                                     </div>
 
                                     <div class="row col-md-12">
-                                        <div class="col-md-3">
+                                        <div class="col-md-6">
                                             <div class="form-group">
                                                 <inputField label="Fecha" name="date" type="date" :is-required="true" readonly />
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label for="hour" class="form-label">
-                                                    Hora
-                                                    <span class="text-danger">&nbsp;(*)</span>
-                                                </label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text"><i class="fas fa-clock"></i></span>
-                                                    <Field name="hour" v-slot="{ value, handleChange, handleBlur, errorMessage, meta }">
-                                                        <flat-pickr
-                                                            id="hour"
-                                                            :model-value="value"
-                                                            :config="flatpickrConfigHour"
-                                                            class="form-control form-control-sm flatpickr"
-                                                            :class="{ 'is-invalid': meta.touched && errorMessage }"
-                                                            placeholder="02:00 PM"
-                                                            @update:model-value="handleChange"
-                                                            @blur="handleBlur"
-                                                        />
-                                                    </Field>
-                                                </div>
-                                                <ErrorMessage name="hour" class="invalid-feedback d-block" />
                                             </div>
                                         </div>
 
@@ -239,7 +214,7 @@
                                             <div class="form-group">
                                                 <inputField
                                                     :name="taskField(taskNumber - 1, 'content_one')"
-                                                    label="Desarrollo del ejercicio 1"
+                                                    label="Contenido 1"
                                                     list="training-session-content-list"
                                                 />
                                             </div>
@@ -249,7 +224,7 @@
                                             <div class="form-group">
                                                 <inputField
                                                     :name="taskField(taskNumber - 1, 'content_two')"
-                                                    label="Desarrollo del ejercicio 2"
+                                                    label="Contenido 2"
                                                     list="training-session-content-list"
                                                 />
                                             </div>
@@ -259,7 +234,7 @@
                                             <div class="form-group">
                                                 <inputField
                                                     :name="taskField(taskNumber - 1, 'content_three')"
-                                                    label="Desarrollo del ejercicio 3"
+                                                    label="Contenido 3"
                                                     list="training-session-content-list"
                                                 />
                                             </div>
@@ -304,7 +279,7 @@
                                     <div class="row col-md-12">
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                <label :for="`observations_${taskNumber}`" class="form-label">Observaciones</label>
+                                                <label :for="`observations_${taskNumber}`" class="form-label">Descripción</label>
                                                 <Field
                                                     :id="`observations_${taskNumber}`"
                                                     :name="taskField(taskNumber - 1, 'observations')"
@@ -317,6 +292,9 @@
                                                     :name="taskField(taskNumber - 1, 'observations')"
                                                     class="invalid-feedback d-block"
                                                 />
+                                                <div class="form-text">
+                                                    Agrega aquí la descripción del ejercicio, observaciones u otra información relevante.
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -446,11 +424,8 @@
 </template>
 
 <script setup>
-import "@/assets/sass/forms/custom-flatpickr.css"
-import 'flatpickr/dist/flatpickr.css'
 import { computed, getCurrentInstance, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { ErrorMessage, Field, Form } from 'vee-validate'
-import flatPickr from 'vue-flatpickr-component'
 import * as yup from 'yup'
 import Loader from '@/components/general/Loader.vue'
 import Step from '@/plugins/wizard/Step.vue'
@@ -518,12 +493,6 @@ const numericString = (label) =>
             excludeEmptyString: true,
         })
 
-const flatpickrConfigHour = {
-    enableTime: true,
-    noCalendar: true,
-    dateFormat: 'h:i K',
-}
-
 const taskSchema = yup.object({
     task_number: yup.number().required().integer().min(1).max(3),
     task_name: yup
@@ -554,10 +523,6 @@ const schema = yup.object({
     period: yup.string().required().max(100),
     session: yup.string().required().max(100),
     date: yup.string().required(),
-    hour: yup.string().matches(
-        /^((1[0-2]|[1-9]):([0-5][0-9]))\s(AM|PM)$/i,
-        'La hora debe estar en formato de 12 horas. (ejemplo: 9:30 AM o 12:00 PM)'
-    ).required(),
     training_ground: yup.string().nullable().max(100),
     material: yup.string().nullable(),
     warm_up: yup.string().nullable(),
@@ -601,34 +566,33 @@ const fieldMeta = {
     period: { label: 'Periodo', stepIndex: 0, stepTitle: 'Información general' },
     session: { label: 'Sesión', stepIndex: 0, stepTitle: 'Información general' },
     date: { label: 'Fecha', stepIndex: 0, stepTitle: 'Información general' },
-    hour: { label: 'Hora', stepIndex: 0, stepTitle: 'Información general' },
     training_ground: { label: 'Lugar', stepIndex: 0, stepTitle: 'Información general' },
     material: { label: 'Materiales utilizados', stepIndex: 0, stepTitle: 'Información general' },
     warm_up: { label: 'Calentamiento', stepIndex: 0, stepTitle: 'Información general' },
     'tasks[0].task_name': { label: 'Ejercicio 1', stepIndex: 1, stepTitle: 'Ejercicio 1' },
     'tasks[0].general_objective': { label: 'Objetivo general', stepIndex: 1, stepTitle: 'Ejercicio 1' },
     'tasks[0].specific_goal': { label: 'Objetivo específico', stepIndex: 1, stepTitle: 'Ejercicio 1' },
-    'tasks[0].content_one': { label: 'Desarrollo del ejercicio 1', stepIndex: 1, stepTitle: 'Ejercicio 1' },
-    'tasks[0].content_two': { label: 'Desarrollo del ejercicio 2', stepIndex: 1, stepTitle: 'Ejercicio 1' },
-    'tasks[0].content_three': { label: 'Desarrollo del ejercicio 3', stepIndex: 1, stepTitle: 'Ejercicio 1' },
+    'tasks[0].content_one': { label: 'Contenido 1', stepIndex: 1, stepTitle: 'Ejercicio 1' },
+    'tasks[0].content_two': { label: 'Contenido 2', stepIndex: 1, stepTitle: 'Ejercicio 1' },
+    'tasks[0].content_three': { label: 'Contenido 3', stepIndex: 1, stepTitle: 'Ejercicio 1' },
     'tasks[0].ts': { label: 'T/S', stepIndex: 1, stepTitle: 'Ejercicio 1' },
     'tasks[0].sr': { label: 'S/R', stepIndex: 1, stepTitle: 'Ejercicio 1' },
     'tasks[0].tt': { label: 'T/T', stepIndex: 1, stepTitle: 'Ejercicio 1' },
     'tasks[1].task_name': { label: 'Ejercicio 2', stepIndex: 2, stepTitle: 'Ejercicio 2' },
     'tasks[1].general_objective': { label: 'Objetivo general', stepIndex: 2, stepTitle: 'Ejercicio 2' },
     'tasks[1].specific_goal': { label: 'Objetivo específico', stepIndex: 2, stepTitle: 'Ejercicio 2' },
-    'tasks[1].content_one': { label: 'Desarrollo del ejercicio 1', stepIndex: 2, stepTitle: 'Ejercicio 2' },
-    'tasks[1].content_two': { label: 'Desarrollo del ejercicio 2', stepIndex: 2, stepTitle: 'Ejercicio 2' },
-    'tasks[1].content_three': { label: 'Desarrollo del ejercicio 3', stepIndex: 2, stepTitle: 'Ejercicio 2' },
+    'tasks[1].content_one': { label: 'Contenido 1', stepIndex: 2, stepTitle: 'Ejercicio 2' },
+    'tasks[1].content_two': { label: 'Contenido 2', stepIndex: 2, stepTitle: 'Ejercicio 2' },
+    'tasks[1].content_three': { label: 'Contenido 3', stepIndex: 2, stepTitle: 'Ejercicio 2' },
     'tasks[1].ts': { label: 'T/S', stepIndex: 2, stepTitle: 'Ejercicio 2' },
     'tasks[1].sr': { label: 'S/R', stepIndex: 2, stepTitle: 'Ejercicio 2' },
     'tasks[1].tt': { label: 'T/T', stepIndex: 2, stepTitle: 'Ejercicio 2' },
     'tasks[2].task_name': { label: 'Ejercicio 3', stepIndex: 3, stepTitle: 'Ejercicio 3' },
     'tasks[2].general_objective': { label: 'Objetivo general', stepIndex: 3, stepTitle: 'Ejercicio 3' },
     'tasks[2].specific_goal': { label: 'Objetivo específico', stepIndex: 3, stepTitle: 'Ejercicio 3' },
-    'tasks[2].content_one': { label: 'Desarrollo del ejercicio 1', stepIndex: 3, stepTitle: 'Ejercicio 3' },
-    'tasks[2].content_two': { label: 'Desarrollo del ejercicio 2', stepIndex: 3, stepTitle: 'Ejercicio 3' },
-    'tasks[2].content_three': { label: 'Desarrollo del ejercicio 3', stepIndex: 3, stepTitle: 'Ejercicio 3' },
+    'tasks[2].content_one': { label: 'Contenido 1', stepIndex: 3, stepTitle: 'Ejercicio 3' },
+    'tasks[2].content_two': { label: 'Contenido 2', stepIndex: 3, stepTitle: 'Ejercicio 3' },
+    'tasks[2].content_three': { label: 'Contenido 3', stepIndex: 3, stepTitle: 'Ejercicio 3' },
     'tasks[2].ts': { label: 'T/S', stepIndex: 3, stepTitle: 'Ejercicio 3' },
     'tasks[2].sr': { label: 'S/R', stepIndex: 3, stepTitle: 'Ejercicio 3' },
     'tasks[2].tt': { label: 'T/T', stepIndex: 3, stepTitle: 'Ejercicio 3' },
@@ -640,7 +604,7 @@ const fieldMeta = {
 }
 
 const stepFields = [
-    ['training_group_id', 'month', 'period', 'session', 'date', 'hour', 'training_ground', 'material', 'warm_up'],
+    ['training_group_id', 'month', 'period', 'session', 'date', 'training_ground', 'material', 'warm_up'],
     [
         'tasks[0].task_name',
         'tasks[0].general_objective',

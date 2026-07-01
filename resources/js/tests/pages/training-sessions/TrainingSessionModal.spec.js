@@ -51,7 +51,6 @@ function mountModal(props = { show: false, sessionId: null }) {
                 Loader: true,
                 Wizard: { template: '<div><slot name="info"/><slot/></div>' },
                 Step: { template: '<section><slot/></section>' },
-                flatPickr: { props: ['modelValue'], template: '<input />' },
                 inputField: {
                     props: ['name', 'label', 'readonly'],
                     template: '<div><label>{{ label }}</label><input :name="name" :readonly="readonly" /></div>',
@@ -113,11 +112,25 @@ describe('TrainingSessionModal attendance closure', () => {
         apiMock.put.mockReset()
     })
 
-    it('initializes the validated hour field with the visible default value', async () => {
+    it('keeps the default hour internally without rendering an hour field', async () => {
         const wrapper = mountModal()
         await flushPromises()
 
         expect(wrapper.vm.$.setupState.form.values.hour).toBe('02:00 PM')
+        expect(wrapper.find('#hour').exists()).toBe(false)
+        expect(wrapper.text()).not.toContain('Hora (*)')
+    })
+
+    it('shows the updated exercise labels and description help', async () => {
+        const wrapper = mountModal()
+        await flushPromises()
+
+        expect(wrapper.text()).toContain('Contenido 1')
+        expect(wrapper.text()).toContain('Contenido 2')
+        expect(wrapper.text()).toContain('Contenido 3')
+        expect(wrapper.text()).toContain('Descripción')
+        expect(wrapper.text()).toContain('Agrega aquí la descripción del ejercicio, observaciones u otra información relevante.')
+        expect(wrapper.text()).not.toContain('Desarrollo del ejercicio')
     })
 
     it('does not show required-field errors when selecting the training group', async () => {
@@ -143,10 +156,27 @@ describe('TrainingSessionModal attendance closure', () => {
         await wrapper.vm.$.setupState.onSubmit(validValues(), { resetForm: vi.fn(), setErrors: vi.fn() })
 
         expect(apiMock.post).toHaveBeenCalledWith('/api/v2/training-sessions', expect.objectContaining({
+            hour: '02:00 PM',
             sync_attendance: true,
             absence_inscription_ids: [21],
             players: '1',
         }))
+    })
+
+    it('preserves the stored hour when updating an existing session', async () => {
+        apiMock.put.mockResolvedValue({ data: { data: { id: 99 } } })
+        const wrapper = mountModal({ show: false, sessionId: 99 })
+        await flushPromises()
+
+        await wrapper.vm.$.setupState.onSubmit(
+            validValues({ hour: '07:30 PM' }),
+            { resetForm: vi.fn(), setErrors: vi.fn() }
+        )
+
+        expect(apiMock.put).toHaveBeenCalledWith(
+            '/api/v2/training-sessions/99',
+            expect.objectContaining({ hour: '07:30 PM' })
+        )
     })
 
     it('loads players for the selected day and recalculates attending players', async () => {
