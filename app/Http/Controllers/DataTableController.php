@@ -18,6 +18,7 @@ use App\Repositories\SchoolRepository;
 use App\Repositories\TrainingGroupRepository;
 use App\Repositories\TrainingSessionRepository;
 use App\Repositories\UserRepository;
+use App\Service\InstructorPeriodEditPolicy;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -49,6 +50,7 @@ class DataTableController extends Controller
         private UserRepository $userRepository,
         private GameRepository $gameRepository,
         private MethodologyRecordRepository $methodologyRecordRepository,
+        private InstructorPeriodEditPolicy $periodEditPolicy,
     ) {}
 
     public function enabledInscriptions(Request $request): JsonResponse
@@ -162,6 +164,7 @@ class DataTableController extends Controller
             ->filterColumn('status', fn ($query, $keyword) => $query->where('games.status', $keyword))
             ->editColumn('final_score', fn (Game $game) => $game->final_score_array)
             ->addColumn('status_label', fn (Game $game) => $game->status_label)
+            ->addColumn('period_locked', fn (Game $game) => ! $this->periodEditPolicy->canMutateDate($game->date))
             ->toJson();
 
     }
@@ -181,6 +184,7 @@ class DataTableController extends Controller
             ->addColumn('training_group_name', fn ($model) => $model->training_group?->full_group ?? '')
             ->editColumn('date', fn ($model) => Carbon::parse($model->date)->format('Y-m-d'))
             ->editColumn('created_at', fn ($model) => $model->created_at?->format('Y-m-d'))
+            ->addColumn('period_locked', fn ($model) => ! $this->periodEditPolicy->canMutateDate($model->date))
             ->addColumn('export_pdf_url', fn ($model) => route('export.training_sessions.pdf', [$model->id]))
             ->toJson();
     }
@@ -206,6 +210,7 @@ class DataTableController extends Controller
             ->addColumn('creator_name', fn (MethodologyRecord $record) => $record->user?->name ?? '')
             ->addColumn('training_group_name', fn (MethodologyRecord $record) => $record->trainingGroup?->name ?? '')
             ->editColumn('created_at', fn (MethodologyRecord $record) => $record->created_at?->format('Y-m-d'))
+            ->addColumn('period_locked', fn (MethodologyRecord $record) => ! $this->periodEditPolicy->canMutateDate($record->created_at))
             ->addColumn('export_pdf_url', fn (MethodologyRecord $record) => route('methodology.records.pdf', ['id' => $record->id]))
             ->toJson();
 
@@ -337,6 +342,7 @@ class DataTableController extends Controller
             ->addColumn('evaluation_type_label', fn (PlayerEvaluation $evaluation) => self::EVALUATION_TYPE_LABELS[$evaluation->evaluation_type] ?? $evaluation->evaluation_type)
             ->addColumn('status_label', fn (PlayerEvaluation $evaluation) => self::EVALUATION_STATUS_LABELS[$evaluation->status] ?? $evaluation->status)
             ->addColumn('is_closed', fn (PlayerEvaluation $evaluation) => (bool) $evaluation->is_closed)
+            ->addColumn('period_locked', fn (PlayerEvaluation $evaluation) => ! $this->periodEditPolicy->canMutateDate($evaluation->evaluated_at ?? now()))
             ->addColumn('urls', fn (PlayerEvaluation $evaluation) => [
                 'show' => url("/player-evaluations/{$evaluation->id}"),
                 'edit' => url("/player-evaluations/{$evaluation->id}/edit"),

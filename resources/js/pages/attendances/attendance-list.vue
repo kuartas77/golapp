@@ -127,6 +127,9 @@
                                                         <span v-if="props.rowData.inscription_deleted" class="badge bg-warning text-dark ms-2">
                                                             Inscripción retirada
                                                         </span>
+                                                        <span v-if="props.rowData.period_locked" class="badge bg-secondary ms-2">
+                                                            Periodo cerrado
+                                                        </span>
                                                     </small>
                                                     <p>
                                                         <small>

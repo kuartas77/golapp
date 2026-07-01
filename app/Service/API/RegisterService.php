@@ -134,6 +134,12 @@ class RegisterService
             if($annuity && $request->has('ANNUITY')) {
                 $annuity->update(['value' => $request->ANNUITY]);
             }
+            if ($request->has(Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED)) {
+                $school->settingsValues()->updateOrCreate(
+                    ['setting_key' => Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED],
+                    ['value' => $request->boolean(Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED) ? '1' : '0']
+                );
+            }
 
             DB::commit();
 

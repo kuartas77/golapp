@@ -145,7 +145,15 @@ export default function useAttendances() {
 
     const isTruthyFlag = (value) => value === true || value === 1 || value === '1'
 
-    const attendanceRowReadOnly = (row) => isTruthyFlag(row?.inscription_deleted)
+    const attendanceRowReadOnly = (row) => isTruthyFlag(row?.inscription_deleted) || isTruthyFlag(row?.period_locked)
+
+    const attendanceRowReadOnlyMessage = (row) => {
+        if (isTruthyFlag(row?.period_locked)) {
+            return 'Este periodo ya está cerrado para instructores. Solicita a la escuela una corrección administrativa.'
+        }
+
+        return 'La inscripción está retirada; reactívala antes de modificar asistencias.'
+    }
 
     const applyPlayerSearch = (searchValue) => {
         playerSearchTerm.value = searchValue?.target ? searchValue.target.value : (searchValue ?? '')
@@ -273,7 +281,7 @@ export default function useAttendances() {
 
     const onChangeAttendance = async (row, selectedValue) => {
         if (attendanceRowReadOnly(row)) {
-            showMessage('La inscripción está retirada; reactívala antes de modificar asistencias.', 'warning')
+            showMessage(attendanceRowReadOnlyMessage(row), 'warning')
             return
         }
 
@@ -373,7 +381,7 @@ export default function useAttendances() {
 
     const onClickOpenModalObservation = async (row) => {
         if (attendanceRowReadOnly(row)) {
-            showMessage('La inscripción está retirada; reactívala antes de modificar asistencias.', 'warning')
+            showMessage(attendanceRowReadOnlyMessage(row), 'warning')
             return
         }
 
@@ -393,6 +401,7 @@ export default function useAttendances() {
                 takeAttendance.value = {
                     ...response.data,
                     inscription_deleted: attendanceRowReadOnly(row),
+                    period_locked: isTruthyFlag(row?.period_locked),
                 }
                 composeModalObservation.value.show()
             } else {
@@ -413,8 +422,8 @@ export default function useAttendances() {
     }
 
     const onSaveModalObservation = async () => {
-        if (takeAttendance.value?.inscription_deleted) {
-            showMessage('La inscripción está retirada; reactívala antes de modificar asistencias.', 'warning')
+        if (takeAttendance.value?.inscription_deleted || takeAttendance.value?.period_locked) {
+            showMessage(attendanceRowReadOnlyMessage(takeAttendance.value), 'warning')
             return
         }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Setting;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SchoolUpdateRequest extends FormRequest
@@ -44,6 +45,7 @@ class SchoolUpdateRequest extends FormRequest
             'tutor_platform' => ['nullable', 'boolean'],
             'sign_player' => ['nullable', 'boolean'],
             'inscriptions_enabled' => ['nullable', 'boolean'],
+            Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED => ['nullable', 'boolean'],
         ];
     }
 
@@ -68,6 +70,7 @@ class SchoolUpdateRequest extends FormRequest
             'tutor_platform',
             'sign_player',
             'inscriptions_enabled',
+            Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED,
         ] as $field) {
             if ($this->has($field)) {
                 $data[$field] = $this->boolean($field);

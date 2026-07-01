@@ -3,6 +3,7 @@
 namespace App\Service\Assist;
 
 use App\Models\TrainingGroup;
+use App\Service\InstructorPeriodEditPolicy;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\View;
 
@@ -91,11 +92,20 @@ class AssistService
 
     private function decorateAssists(Collection $assists): Collection
     {
-        return $assists->map(function ($assist) {
+        $periodEditPolicy = app(InstructorPeriodEditPolicy::class);
+
+        return $assists->map(function ($assist) use ($periodEditPolicy) {
             $assist->setAttribute('inscription_deleted', (bool) $assist->inscription?->trashed());
             $assist->setAttribute(
                 'inscription_status_label',
                 $assist->inscription?->trashed() ? 'Retirada' : 'Activa'
+            );
+            $assist->setAttribute(
+                'period_locked',
+                ! $periodEditPolicy->canMutateYearMonth(
+                    (int) $assist->year,
+                    (int) $assist->getRawOriginal('month')
+                )
             );
 
             return $assist;

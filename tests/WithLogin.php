@@ -35,6 +35,7 @@ trait WithLogin
             Setting::ANNUITY,
             Setting::SYSTEM_NOTIFY,
             Setting::MULTIPLE_SCHOOLS,
+            Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED,
         ] as $key) {
             Setting::query()->firstOrCreate(['key' => $key], ['public' => false]);
         }

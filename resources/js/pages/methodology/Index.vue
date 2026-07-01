@@ -92,7 +92,8 @@
                         <button
                             type="button"
                             class="btn btn-warning btn-sm"
-                            title="Editar"
+                            :title="props.rowData.period_locked ? 'Periodo cerrado' : 'Editar'"
+                            :disabled="props.rowData.period_locked"
                             @click="openEdit(props.rowData.id)"
                         >
                             <i class="fa fa-edit fa-width-auto me-2" aria-hidden="true"></i>
@@ -100,7 +101,8 @@
                         <button
                             type="button"
                             class="btn btn-danger btn-sm"
-                            title="Eliminar"
+                            :title="props.rowData.period_locked ? 'Periodo cerrado' : 'Eliminar'"
+                            :disabled="props.rowData.period_locked"
                             @click="confirmDelete(props.rowData)"
                         >
                             <i class="fa fa-trash fa-width-auto me-2" aria-hidden="true"></i>

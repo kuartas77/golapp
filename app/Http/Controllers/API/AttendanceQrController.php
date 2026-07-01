@@ -8,12 +8,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\API\AttendanceQrTakeRequest;
 use App\Models\Assist;
 use App\Models\Inscription;
+use App\Service\InstructorPeriodEditPolicy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class AttendanceQrController extends Controller
 {
+    public function __construct(private InstructorPeriodEditPolicy $periodEditPolicy)
+    {
+    }
+
     public function show(string $uniqueCode): JsonResponse
     {
         $now = now();
@@ -119,6 +124,12 @@ class AttendanceQrController extends Controller
             isInstructor() && !instructorCanAccessTrainingGroup($assistModel->training_group_id, (int) $assistModel->year),
             403,
             'No tienes acceso al grupo de entrenamiento de este deportista.'
+        );
+
+        $this->periodEditPolicy->assertCanMutateYearMonth(
+            (int) $assistModel->year,
+            (int) $assistModel->getRawOriginal('month'),
+            'assist'
         );
 
         if ((int) $assistModel->year !== now()->year || (int) $assistModel->getRawOriginal('month') !== now()->month) {

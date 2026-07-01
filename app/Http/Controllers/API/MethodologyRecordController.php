@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\API\MethodologyRecordRequest;
 use App\Models\MethodologyRecord;
 use App\Repositories\MethodologyRecordRepository;
+use App\Service\InstructorPeriodEditPolicy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -15,7 +16,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class MethodologyRecordController extends Controller
 {
-    public function __construct(private MethodologyRecordRepository $repository)
+    public function __construct(
+        private MethodologyRecordRepository $repository,
+        private InstructorPeriodEditPolicy $periodEditPolicy,
+    )
     {
     }
 
@@ -53,6 +57,7 @@ class MethodologyRecordController extends Controller
     public function update(MethodologyRecordRequest $request, int $methodologyRecord): JsonResponse
     {
         $record = $this->repository->findAccessibleOrFail($methodologyRecord);
+        $this->periodEditPolicy->assertCanMutateDate($record->created_at, 'period');
         $record = $this->repository->update($record, $request->validated());
 
         return response()->json([
@@ -64,6 +69,7 @@ class MethodologyRecordController extends Controller
     public function destroy(int $methodologyRecord): JsonResponse
     {
         $record = $this->repository->findAccessibleOrFail($methodologyRecord);
+        $this->periodEditPolicy->assertCanMutateDate($record->created_at, 'period');
         $this->repository->destroy($record);
 
         return response()->json([
@@ -86,6 +92,7 @@ class MethodologyRecordController extends Controller
             'diagrams' => $record->diagrams ?? [],
             'created_at' => $record->created_at?->format('Y-m-d'),
             'updated_at' => $record->updated_at?->format('Y-m-d'),
+            'period_locked' => ! $this->periodEditPolicy->canMutateDate($record->created_at),
             'export_pdf_url' => route('methodology.records.pdf', ['id' => $record->id]),
         ];
     }

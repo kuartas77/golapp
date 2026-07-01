@@ -88,6 +88,11 @@ class SettingValue extends Model
                 'setting_key' => Setting::SYSTEM_NOTIFY,
                 'school_id' => $school_id,
                 'value' => false
+            ],
+            [
+                'setting_key' => Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED,
+                'school_id' => $school_id,
+                'value' => false
             ]
         ];
     }

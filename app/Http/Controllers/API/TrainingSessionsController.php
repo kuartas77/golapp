@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\API\TrainingSessionUpsertRequest;
 use App\Models\TrainingSession;
 use App\Repositories\TrainingSessionRepository;
+use App\Service\InstructorPeriodEditPolicy;
 use App\Service\TrainigSession\TrainingSessionAttendanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,10 +20,13 @@ class TrainingSessionsController extends Controller
     public function __construct(
         private TrainingSessionRepository $repository,
         private TrainingSessionAttendanceService $attendanceService,
+        private InstructorPeriodEditPolicy $periodEditPolicy,
     ) {}
 
     public function store(TrainingSessionUpsertRequest $request): JsonResponse
     {
+        $this->periodEditPolicy->assertCanMutateDate($request->input('date'), 'date');
+
         $this->ensureGroupAccess(
             $request->integer('training_group_id'),
             $request->integer('year')
@@ -57,7 +61,9 @@ class TrainingSessionsController extends Controller
         ]);
         $year = (int) substr($validated['date'], 0, 4);
 
-        if ($year !== (int) now()->year) {
+        $this->periodEditPolicy->assertCanMutateDate($validated['date'], 'date');
+
+        if (! $this->periodEditPolicy->enabled() && $year !== (int) now()->year) {
             throw ValidationException::withMessages([
                 'date' => 'La sincronización de asistencias solo está disponible para el año actual.',
             ]);
@@ -76,6 +82,9 @@ class TrainingSessionsController extends Controller
     public function update(TrainingSessionUpsertRequest $request, int $trainingSession): JsonResponse
     {
         $model = $this->repository->findAccessibleForMutationOrFail($trainingSession);
+
+        $this->periodEditPolicy->assertCanMutateDate($model->date, 'date');
+        $this->periodEditPolicy->assertCanMutateDate($request->input('date'), 'date');
 
         $this->ensureGroupAccess(
             $request->integer('training_group_id'),
@@ -166,6 +175,7 @@ class TrainingSessionsController extends Controller
             'absence_names' => $this->attendanceService->absenceNames($trainingSession),
             'attendance_synced_at' => $trainingSession->attendance_synced_at?->toISOString(),
             'attendance_synced' => $trainingSession->attendance_synced_at !== null,
+            'period_locked' => ! $this->periodEditPolicy->canMutateDate($trainingSession->date),
             'incidents' => $trainingSession->incidents,
             'feedback' => $trainingSession->feedback,
             'created_at' => $trainingSession->created_at?->format('Y-m-d'),

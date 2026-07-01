@@ -594,7 +594,7 @@ const tutorial = usePageTutorial(playerEvaluationsEditorTutorial, {
     formReady,
     isEditMode,
 })
-const isReadOnly = computed(() => Boolean(loadedEvaluation.value?.is_closed))
+const isReadOnly = computed(() => Boolean(loadedEvaluation.value?.is_closed || loadedEvaluation.value?.period_locked))
 
 const dimensionEntries = computed(() => Object.entries(formContext.criteria_by_dimension || {}))
 

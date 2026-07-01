@@ -15,6 +15,7 @@ use App\Models\Player;
 use App\Models\TrainingGroup;
 use App\Service\Evaluations\GuardianEvaluationPdfService;
 use App\Service\Evaluations\PlayerEvaluationCrudService;
+use App\Service\InstructorPeriodEditPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,7 +36,8 @@ class PlayerEvaluationController extends Controller
 
     public function __construct(
         private PlayerEvaluationCrudService $crudService,
-        private GuardianEvaluationPdfService $guardianEvaluationPdfService
+        private GuardianEvaluationPdfService $guardianEvaluationPdfService,
+        private InstructorPeriodEditPolicy $periodEditPolicy
     ) {}
 
     public function index(Request $request)
@@ -177,6 +179,8 @@ class PlayerEvaluationController extends Controller
     {
         $data = $request->validated();
         $data['scores'] = $this->normalizeScores($data['scores'] ?? []);
+        $data['evaluated_at'] = $data['evaluated_at'] ?? now();
+        $this->periodEditPolicy->assertCanMutateDate($data['evaluated_at'] ?? now(), 'evaluated_at');
 
         $inscription = $this->scopedInscriptionsQuery($this->currentSchoolId())
             ->with(['player', 'trainingGroup'])
@@ -258,6 +262,11 @@ class PlayerEvaluationController extends Controller
         $playerEvaluation = $this->scopedEvaluation($playerEvaluation);
         $data = $request->validated();
         $data['scores'] = $this->normalizeScores($data['scores'] ?? []);
+        if (array_key_exists('evaluated_at', $data) && empty($data['evaluated_at'])) {
+            $data['evaluated_at'] = now();
+        }
+        $this->periodEditPolicy->assertCanMutateDate($playerEvaluation->evaluated_at ?? now(), 'evaluated_at');
+        $this->periodEditPolicy->assertCanMutateDate($data['evaluated_at'] ?? $playerEvaluation->evaluated_at ?? now(), 'evaluated_at');
 
         $evaluation = $this->crudService->update(
             evaluation: $playerEvaluation,
@@ -281,6 +290,7 @@ class PlayerEvaluationController extends Controller
     public function destroy(PlayerEvaluation $playerEvaluation)
     {
         $playerEvaluation = $this->scopedEvaluation($playerEvaluation);
+        $this->periodEditPolicy->assertCanMutateDate($playerEvaluation->evaluated_at ?? now(), 'evaluated_at');
         $this->crudService->delete($playerEvaluation);
 
         if (request()->expectsJson()) {

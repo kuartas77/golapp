@@ -63,6 +63,10 @@ class SuperAdminSchoolService
                     'settings.' . Setting::MAX_INSCRIPTIONS,
                     InscriptionLimitService::DEFAULT_LIMIT
                 ),
+                'instructor_monthly_edit_lock_enabled' => filter_var(
+                    data_get($school, 'settings.' . Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED, false),
+                    FILTER_VALIDATE_BOOLEAN
+                ),
             ],
             'multiple_schools' => $this->campusIdsForForm($school),
             ...$this->options($school),
@@ -95,6 +99,10 @@ class SuperAdminSchoolService
                 'max_inscriptions',
                 InscriptionLimitService::DEFAULT_LIMIT
             ));
+            $this->syncInstructorMonthlyEditLock(
+                $school,
+                $request->boolean('instructor_monthly_edit_lock_enabled')
+            );
 
             if ($shouldNotify && $password !== null) {
                 $user->notify(new RegisterNotification($user, $password));
@@ -122,6 +130,12 @@ class SuperAdminSchoolService
             );
             if ($request->has('max_inscriptions')) {
                 $this->syncMaxInscriptions($school, (int) $request->input('max_inscriptions'));
+            }
+            if ($request->has('instructor_monthly_edit_lock_enabled')) {
+                $this->syncInstructorMonthlyEditLock(
+                    $school,
+                    $request->boolean('instructor_monthly_edit_lock_enabled')
+                );
             }
 
             $this->flushCaches([$school->id]);
@@ -296,6 +310,24 @@ class SuperAdminSchoolService
             ],
             [
                 'value' => (string) max(0, $limit),
+            ]
+        );
+    }
+
+    private function syncInstructorMonthlyEditLock(School $school, bool $enabled): void
+    {
+        Setting::query()->firstOrCreate(
+            ['key' => Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED],
+            ['public' => false]
+        );
+
+        SettingValue::query()->updateOrCreate(
+            [
+                'school_id' => $school->id,
+                'setting_key' => Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED,
+            ],
+            [
+                'value' => $enabled ? '1' : '0',
             ]
         );
     }

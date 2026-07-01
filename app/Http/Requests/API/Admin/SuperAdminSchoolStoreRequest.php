@@ -45,6 +45,7 @@ class SuperAdminSchoolStoreRequest extends FormRequest
             'tutor_platform' => ['nullable', 'boolean'],
             'sign_player' => ['nullable', 'boolean'],
             'inscriptions_enabled' => ['nullable', 'boolean'],
+            'instructor_monthly_edit_lock_enabled' => ['nullable', 'boolean'],
             'multiple_schools' => array_values(array_filter([
                 $isCampus ? 'required' : 'nullable',
                 'array',
@@ -80,6 +81,7 @@ class SuperAdminSchoolStoreRequest extends FormRequest
             'tutor_platform',
             'sign_player',
             'inscriptions_enabled',
+            'instructor_monthly_edit_lock_enabled',
         ] as $field) {
             if ($this->has($field)) {
                 $data[$field] = $this->boolean($field);

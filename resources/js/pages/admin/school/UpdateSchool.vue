@@ -133,6 +133,9 @@
                                 <div class="col-md-6 col-xl">
                                     <checkbox label="Enviar recibos de mensualidad?" name="send_monthly_payment_receipts" v-tooltip.top="'Envía al acudiente tutor el recibo PDF cuando una mensualidad cambia a pagada.'" />
                                 </div>
+                                <div class="col-md-6 col-xl">
+                                    <checkbox label="Limitar edición de instructores al mes actual" name="INSTRUCTOR_MONTH_LOCK_ENABLED" v-tooltip.top="'Cuando está activo, los instructores sólo pueden modificar registros operativos del mes calendario actual.'" />
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -4,6 +4,7 @@ namespace App\Http\Resources\API\Evaluations;
 
 
 use App\Service\Evaluations\PlayerEvaluationScoreCalculator;
+use App\Service\InstructorPeriodEditPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -86,6 +87,8 @@ class PlayerEvaluationResource extends JsonResource
             'overall_score' => $this->overall_score,
             'is_closed' => (bool) $this->is_closed,
             'is_completed' => (bool) $this->is_completed,
+            'period_locked' => ! app(InstructorPeriodEditPolicy::class)
+                ->canMutateDate($this->evaluated_at ?? now()),
 
             'general_comment' => $this->general_comment,
             'strengths' => $this->strengths,

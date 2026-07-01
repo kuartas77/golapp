@@ -44,6 +44,8 @@ class Setting extends Model
 
     public const MULTIPLE_SCHOOLS = 'MULTIPLE_SCHOOLS';
 
+    public const INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED = 'INSTRUCTOR_MONTH_LOCK_ENABLED';
+
     protected $table = "settings";
 
     protected $fillable = [

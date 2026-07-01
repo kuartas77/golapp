@@ -7,6 +7,7 @@ use App\Http\Requests\AssistBulkUpdateRequest;
 use App\Http\Requests\AsistUpdateRequest;
 use App\Models\Assist;
 use App\Repositories\AssistRepository;
+use App\Service\InstructorPeriodEditPolicy;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
@@ -17,7 +18,7 @@ class AssistController extends Controller
 {
     private AssistRepository $repository;
 
-    public function __construct(AssistRepository $repository)
+    public function __construct(AssistRepository $repository, private InstructorPeriodEditPolicy $periodEditPolicy)
     {
         $this->repository = $repository;
     }
@@ -51,6 +52,8 @@ class AssistController extends Controller
             isInstructor() && ! instructorCanAccessTrainingGroup((int) $validated['training_group_id'], (int) $validated['year']),
             404
         );
+
+        $this->periodEditPolicy->assertCanMutateYearMonth($validated['year'], $validated['month'], 'assist');
 
         if ((int) $validated['year'] !== (int) now()->year) {
             $message = 'Las asistencias de años anteriores son de sólo lectura.';
@@ -125,6 +128,12 @@ class AssistController extends Controller
                 ],
             ], 422);
         }
+
+        $this->periodEditPolicy->assertCanMutateYearMonth(
+            (int) $assist->year,
+            (int) $assist->getRawOriginal('month'),
+            'assist'
+        );
 
         if ((int) $assist->year !== (int) now()->year) {
             $message = 'Las asistencias de años anteriores son de sólo lectura.';

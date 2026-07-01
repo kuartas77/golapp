@@ -179,6 +179,20 @@ describe('TrainingSessionModal attendance closure', () => {
         )
     })
 
+    it('shows the closed-period message only once when submission is blocked', async () => {
+        const wrapper = mountModal()
+        await flushPromises()
+
+        wrapper.vm.$.setupState.periodLocked = true
+        await wrapper.vm.$.setupState.onSubmit(validValues(), { resetForm: vi.fn(), setErrors: vi.fn() })
+        await wrapper.vm.$nextTick()
+
+        const message = 'Este periodo ya está cerrado para instructores. Solicita a la escuela una corrección administrativa.'
+        expect(wrapper.text().split(message)).toHaveLength(2)
+        expect(apiMock.post).not.toHaveBeenCalled()
+        expect(apiMock.put).not.toHaveBeenCalled()
+    })
+
     it('loads players for the selected day and recalculates attending players', async () => {
         apiMock.get.mockResolvedValue({
             data: {

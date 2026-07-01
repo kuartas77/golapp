@@ -20,6 +20,7 @@ const defaultValues = () => ({
     create_contract: false,
     send_documents: false,
     send_monthly_payment_receipts: false,
+    instructor_monthly_edit_lock_enabled: false,
 })
 
 export default function useSuperAdminSchoolForm(mode = 'create') {
@@ -63,6 +64,7 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
         create_contract: yup.boolean().default(false),
         send_documents: yup.boolean().default(false),
         send_monthly_payment_receipts: yup.boolean().default(false),
+        instructor_monthly_edit_lock_enabled: yup.boolean().default(false),
         multiple_schools: yup.array()
             .of(yup.number().integer())
             .when('is_campus', {
@@ -97,6 +99,7 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
         create_contract: Boolean(payload.create_contract),
         send_documents: Boolean(payload.send_documents),
         send_monthly_payment_receipts: Boolean(payload.send_monthly_payment_receipts),
+        instructor_monthly_edit_lock_enabled: Boolean(payload.instructor_monthly_edit_lock_enabled),
     })
 
     const loadCreateOptions = async () => {

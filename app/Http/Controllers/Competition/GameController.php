@@ -7,6 +7,7 @@ use App\Http\Requests\CompetitionUpdateRequest;
 use App\Http\Requests\CompetitionStoreRequest;
 use App\Models\Game;
 use App\Repositories\GameRepository;
+use App\Service\InstructorPeriodEditPolicy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,7 @@ class GameController extends Controller
 {
     private GameRepository $repository;
 
-    public function __construct(GameRepository $repository)
+    public function __construct(GameRepository $repository, private InstructorPeriodEditPolicy $periodEditPolicy)
     {
         $this->repository = $repository;
     }
@@ -39,6 +40,7 @@ class GameController extends Controller
     public function store(CompetitionStoreRequest $request): JsonResponse
     {
         abort_if(!instructorCanAccessCompetitionGroup($request->input('competition_group_id')), 404);
+        $this->periodEditPolicy->assertCanMutateDate($request->input('date'), 'date');
 
         $match = $this->repository->createMatchSkillAndReturn($request);
 
@@ -59,6 +61,8 @@ class GameController extends Controller
     {
         abort_if(!instructorCanAccessCompetitionGroup($request->input('competition_group_id')), 404);
         $match = $this->accessibleMatch($match->id);
+        $this->periodEditPolicy->assertCanMutateDate($match->date, 'date');
+        $this->periodEditPolicy->assertCanMutateDate($request->input('date'), 'date');
 
         $response = [];
         $response['success'] = $this->repository->updateMatchSkill($request, $match);
@@ -68,6 +72,7 @@ class GameController extends Controller
     public function destroy(Game $match): JsonResponse
     {
         $match = $this->accessibleMatch($match->id);
+        $this->periodEditPolicy->assertCanMutateDate($match->date, 'date');
 
         $response = [];
         $response['success'] = $match->forceDelete() ?? false;

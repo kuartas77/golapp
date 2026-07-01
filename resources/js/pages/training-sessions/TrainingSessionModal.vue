@@ -40,6 +40,9 @@
                         <div v-if="globalError" class="alert alert-danger" role="alert">
                             {{ globalError }}
                         </div>
+                        <div v-if="periodLocked" class="alert alert-warning" role="alert">
+                            Este periodo ya está cerrado para instructores. Solicita a la escuela una corrección administrativa.
+                        </div>
 
                         <Wizard v-model="currentStep" :options="wizardOptions" @finish="handleSubmit(null, onSubmit)">
                             <template #info>
@@ -464,6 +467,7 @@ const classDays = ref([])
 const selectedClassDay = ref(null)
 const attendanceContext = ref(null)
 const identityLocked = ref(false)
+const periodLocked = ref(false)
 
 const monthOptions = [
     { value: 1, label: 'Enero' },
@@ -958,6 +962,7 @@ async function prepareModal() {
     selectedClassDay.value = null
     attendanceContext.value = null
     identityLocked.value = false
+    periodLocked.value = false
 
     await ensureSettingsLoaded()
     await nextTick()
@@ -978,6 +983,7 @@ async function prepareModal() {
             form.value?.resetForm()
             form.value?.setValues(values)
             identityLocked.value = Boolean(data.attendance_synced)
+            periodLocked.value = Boolean(data.period_locked)
 
             await loadClassDays(values.training_group_id, values.month)
             selectedClassDay.value = classDays.value.find((classDay) => fullClassDate(classDay) === values.date) ?? null
@@ -997,6 +1003,10 @@ async function prepareModal() {
 }
 
 async function onSubmit(values, actions) {
+    if (periodLocked.value) {
+        return
+    }
+
     isSubmitting.value = true
     globalError.value = null
     formErrorSummary.value = []
