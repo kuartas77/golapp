@@ -117,7 +117,7 @@ class PlayerEvaluationCrudService
 
     private function finalize(PlayerEvaluation $evaluation): PlayerEvaluation
     {
-        $evaluation->loadMissing([
+        $evaluation->load([
             'inscription',
             'scores.criterion',
         ]);

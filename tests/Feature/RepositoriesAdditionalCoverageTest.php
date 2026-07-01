@@ -37,6 +37,7 @@ use App\Repositories\InvoiceRepository;
 use App\Repositories\PaymentRepository;
 use App\Repositories\PaymentRequestRepository;
 use App\Repositories\PeopleRepository;
+use App\Repositories\PlayerRepository;
 use App\Repositories\ScheduleRepository;
 use App\Repositories\SchoolRepository;
 use App\Repositories\TopicNotificationRepository;
@@ -216,6 +217,117 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertSame($annuity, (int) $payment->april_amount);
         $this->assertSame('11', (string) $payment->may);
         $this->assertSame(777, (int) $payment->may_amount);
+    }
+
+    public function testPaymentRepositoryFiltersDecoratesAndQueriesDuePayments(): void
+    {
+        $this->actingAs($this->user);
+        DB::connection()->getPdo()->sqliteCreateFunction(
+            'SUBSTRING_INDEX',
+            function (string $value, string $delimiter, int $count): string {
+                $parts = explode($delimiter, $value);
+
+                return $count < 0
+                    ? implode($delimiter, array_slice($parts, $count))
+                    : implode($delimiter, array_slice($parts, 0, $count));
+            },
+            3
+        );
+        [$inscription, $payment] = $this->createInscriptionAndPayment();
+        $repository = app(PaymentRepository::class);
+
+        $payment->forceFill([
+            'january' => Payment::$debt,
+            'created_at' => now()->subMonths(2),
+        ])->save();
+
+        $params = [
+            'school_id' => $this->school['id'],
+            'year' => now()->year,
+            'unique_code' => $payment->unique_code,
+            'training_group_id' => $inscription->training_group_id,
+            'category' => $inscription->category,
+            'status' => 'all',
+        ];
+
+        $filtered = $repository->filterSelect($params)->get();
+        $rawFiltered = $repository->filterSelectRaw($params, true)->get();
+
+        $this->assertTrue($filtered->contains('id', $payment->id));
+        $this->assertTrue($rawFiltered->contains('id', $payment->id));
+
+        request()->replace($params);
+        $response = $repository->filter(request(), false, true);
+
+        $this->assertSame(1, $response['count']);
+        $this->assertSame('Activa', $response['rows']->first()->inscription_status_label);
+        $this->assertArrayHasKey('monthly_payment', $response);
+        $this->assertStringContainsString('training_group_id=', $response['url_export_excel']);
+
+        $due = $repository->queryPaymentsDueByMonth(
+            (int) $this->school['id'],
+            now()->year,
+            1
+        )->get();
+        $paidOrDue = $repository->queryPaymentsDueByMonth(
+            (int) $this->school['id'],
+            now()->year,
+            99,
+            false
+        )->get();
+
+        $this->assertTrue($due->contains('id', $payment->id));
+        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $paidOrDue);
+    }
+
+    public function testPlayerRepositoryLookupListsAndBirthdayFlows(): void
+    {
+        $this->actingAs($this->user);
+        $repository = app(PlayerRepository::class);
+        $player = $this->createTestPlayer();
+        $player->update([
+            'identification_document' => 'PLAYER-LOOKUP-1',
+            'date_birth' => now()->subYears(12)->toDateString(),
+        ]);
+        [$inscription] = $this->createInscriptionAndPayment($player);
+
+        $this->assertTrue($repository->checkDocumentExists('PLAYER-LOOKUP-1'));
+        $this->assertFalse($repository->checkDocumentExists('PLAYER-MISSING'));
+        $this->assertTrue($repository->checkUniqueCode($player->unique_code));
+        $this->assertFalse($repository->checkUniqueCode('PLAYER-CODE-MISSING'));
+        $this->assertTrue($repository->getPlayersPeople()->get()->contains('id', $player->id));
+        $this->assertNull($repository->searchUniqueCode([
+            'unique_code' => $player->unique_code,
+            'year' => now()->year,
+        ]));
+
+        request()->replace(['query' => $player->unique_code, 'year' => now()->year]);
+        $this->assertTrue($repository->getListPlayersWithInscription()->contains($player->unique_code));
+        $this->assertFalse($repository->getListPlayersNotInscription()->contains($player->unique_code));
+
+        $playerWithoutInscription = $this->createTestPlayer();
+        request()->replace(['query' => $playerWithoutInscription->unique_code, 'year' => now()->year]);
+        $this->assertSame(
+            $playerWithoutInscription->id,
+            $repository->searchUniqueCode([
+                'unique_code' => $playerWithoutInscription->unique_code,
+                'year' => now()->year,
+            ])->id
+        );
+        $this->assertTrue($repository->getListPlayersNotInscription()->contains($playerWithoutInscription->unique_code));
+
+        $info = $repository->getPlayerInfo('PLAYER-LOOKUP-1', $this->school['id']);
+        $this->assertSame($player->names, $info['names']);
+        $this->assertSame([], $repository->getPlayerInfo('PLAYER-MISSING', $this->school['id']));
+        $this->assertTrue($repository->birthdayToday()->contains('id', $player->id));
+
+        $inscription->delete();
+        $reactivation = $repository->searchUniqueCode([
+            'unique_code' => $player->unique_code,
+            'year' => now()->year,
+        ]);
+
+        $this->assertSame($inscription->id, data_get($reactivation, 'reactivation_inscription.id'));
     }
 
     public function testPaymentUpdateAcceptsColumnScopedPayloadWithoutFullRow(): void

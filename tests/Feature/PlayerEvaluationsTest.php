@@ -12,6 +12,8 @@ use App\Models\Evaluations\PlayerEvaluationScore;
 use App\Models\Inscription;
 use App\Models\Player;
 use App\Models\TrainingGroup;
+use App\Service\Evaluations\PlayerEvaluationCrudService;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 final class PlayerEvaluationsTest extends TestCase
@@ -195,6 +197,150 @@ final class PlayerEvaluationsTest extends TestCase
             ->assertJsonPath('comparison.overall.period_b_score', 3.8);
     }
 
+    public function testPlayerEvaluationCrudCreatesUpdatesReplacesScoresAndDeletes(): void
+    {
+        $fixture = $this->createEvaluationFixture();
+        $service = app(PlayerEvaluationCrudService::class);
+
+        $period = EvaluationPeriod::create([
+            'name' => 'Corte CRUD',
+            'code' => 'CRUD',
+            'year' => now()->year,
+            'starts_at' => now()->startOfMonth(),
+            'ends_at' => now()->endOfMonth(),
+            'sort_order' => 3,
+            'is_active' => true,
+            'school_id' => $this->school['id'],
+        ]);
+
+        $evaluation = $service->create($fixture['inscription'], [
+            'school_id' => $this->school['id'],
+            'evaluation_period_id' => $period->id,
+            'evaluation_template_id' => $fixture['template']->id,
+            'evaluation_type' => 'special',
+            'status' => 'draft',
+            'general_comment' => 'Borrador inicial.',
+            'scores' => [
+                [
+                    'template_criterion_id' => $fixture['criterionPass']->id,
+                    'score' => 3.5,
+                    'comment' => 'Puntaje inicial.',
+                ],
+                [
+                    'template_criterion_id' => $fixture['criterionDecision']->id,
+                    'score' => 4,
+                ],
+            ],
+        ], $this->user->id);
+
+        $this->assertSame('draft', $evaluation->status);
+        $this->assertCount(2, $evaluation->scores);
+
+        $evaluation = $service->update($evaluation, [
+            'general_comment' => 'Borrador ajustado.',
+            'scores' => [[
+                'template_criterion_id' => $fixture['criterionPass']->id,
+                'score' => 4.5,
+                'comment' => 'Puntaje ajustado.',
+            ]],
+        ]);
+
+        $this->assertSame('Borrador ajustado.', $evaluation->general_comment);
+        $this->assertCount(1, $evaluation->scores);
+        $this->assertDatabaseMissing('player_evaluation_scores', [
+            'player_evaluation_id' => $evaluation->id,
+            'template_criterion_id' => $fixture['criterionDecision']->id,
+        ]);
+
+        $evaluation = $service->update($evaluation, [
+            'status' => 'completed',
+            'evaluated_at' => null,
+            'scores' => [
+                [
+                    'template_criterion_id' => $fixture['criterionPass']->id,
+                    'score' => 4.5,
+                ],
+                [
+                    'template_criterion_id' => $fixture['criterionDecision']->id,
+                    'score' => 4,
+                ],
+            ],
+        ]);
+
+        $this->assertSame('completed', $evaluation->status);
+        $this->assertNotNull($evaluation->evaluated_at);
+        $this->assertSame(4.27, (float) $evaluation->overall_score);
+
+        $service->delete($evaluation);
+
+        $this->assertDatabaseMissing('player_evaluations', ['id' => $evaluation->id]);
+    }
+
+    public function testPlayerEvaluationCrudRejectsInvalidRelationshipsAndClosedMutations(): void
+    {
+        $fixture = $this->createEvaluationFixture();
+        $service = app(PlayerEvaluationCrudService::class);
+
+        try {
+            $service->create($fixture['inscription'], [
+                'school_id' => $this->school['id'],
+                'evaluation_period_id' => $fixture['periodA']->id,
+                'evaluation_template_id' => $fixture['template']->id,
+            ], $this->user->id);
+            $this->fail('Expected duplicate period validation to fail.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('evaluation_period_id', $exception->errors());
+        }
+
+        $otherGroup = $fixture['group']->replicate();
+        $otherGroup->name = 'Grupo distinto';
+        $otherGroup->save();
+        $otherTemplate = EvaluationTemplate::create([
+            'name' => 'Plantilla de otro grupo',
+            'year' => now()->year,
+            'training_group_id' => $otherGroup->id,
+            'status' => 'active',
+            'version' => 1,
+            'created_by' => $this->user->id,
+            'school_id' => $this->school['id'],
+        ]);
+        $period = EvaluationPeriod::create([
+            'name' => 'Corte inválido',
+            'code' => 'INVALID',
+            'year' => now()->year,
+            'starts_at' => now()->startOfMonth(),
+            'ends_at' => now()->endOfMonth(),
+            'sort_order' => 4,
+            'is_active' => true,
+            'school_id' => $this->school['id'],
+        ]);
+
+        try {
+            $service->create($fixture['inscription'], [
+                'school_id' => $this->school['id'],
+                'evaluation_period_id' => $period->id,
+                'evaluation_template_id' => $otherTemplate->id,
+            ], $this->user->id);
+            $this->fail('Expected template and training group validation to fail.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('evaluation_template_id', $exception->errors());
+        }
+
+        $closedEvaluation = $fixture['evaluation'];
+        $closedEvaluation->update(['status' => 'closed']);
+
+        foreach (['update', 'delete'] as $operation) {
+            try {
+                $operation === 'update'
+                    ? $service->update($closedEvaluation->fresh(), ['general_comment' => 'No permitido'])
+                    : $service->delete($closedEvaluation->fresh());
+                $this->fail("Expected closed evaluation {$operation} to fail.");
+            } catch (ValidationException $exception) {
+                $this->assertArrayHasKey('status', $exception->errors());
+            }
+        }
+    }
+
     private function createEvaluationFixture(): array
     {
         $group = TrainingGroup::query()->where('school_id', $this->school['id'])->firstOrFail();
@@ -342,6 +488,8 @@ final class PlayerEvaluationsTest extends TestCase
             'periodA' => $periodA,
             'periodB' => $periodB,
             'template' => $template,
+            'criterionPass' => $criterionPass,
+            'criterionDecision' => $criterionDecision,
             'evaluation' => $evaluation,
         ];
     }
