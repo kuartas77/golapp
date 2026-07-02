@@ -682,7 +682,6 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
                 'month' => 'january',
                 'payment_id' => $payment->id,
                 'is_paid' => false,
-                'payment_received_id' => 0,
             ]);
 
             $response = $this->from(route('invoices.show', $invoice->id))
@@ -1828,7 +1827,15 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $createResult = $createRepository->create(['training_group_id' => 1]);
         $this->assertSame([], $createResult);
 
-        $trainingGroupId = TrainingGroup::query()->where('school_id', $this->school['id'])->firstOrFail()->id;
+        $trainingGroupId = TrainingGroup::query()->firstOrCreate([
+            'school_id' => $this->school['id'],
+            'name' => 'Provisional',
+        ], [
+            'year' => now()->year,
+            'category' => 'Todas las categorías',
+            'days' => 'Grupo predeterminado',
+            'schedules' => '10:00AM - 11:00AM',
+        ])->id;
         $inscription = Inscription::query()->create([
             'school_id' => $this->school['id'],
             'player_id' => $this->createTestPlayer()->id,

@@ -63,6 +63,7 @@ class AssistRepository
     public function create(array $dataAssist): array
     {
         $table = [];
+        $transactionStarted = false;
         try {
             $school_id = getSchool(auth()->user())->id;
 
@@ -88,6 +89,7 @@ class AssistRepository
             $assistsQuery = $this->assist->schoolId()->with('inscription.player')->where($dataAssist);
 
             DB::beginTransaction();
+            $transactionStarted = true;
 
             self::createAssistBulk($inscriptionIds, $assistsQuery, $dataAssist, $school_id);
 
@@ -95,7 +97,9 @@ class AssistRepository
 
             // $table = $this->service->generateTable($assistsQuery, $trainingGroup, $dataAssist);
         } catch (Exception $exception) {
-            DB::rollBack();
+            if ($transactionStarted) {
+                DB::rollBack();
+            }
             $this->logError('AssistRepository create failed', $exception, [
                 'training_group_id' => $dataAssist['training_group_id'] ?? null,
                 'month' => $dataAssist['month'] ?? null,
@@ -107,6 +111,7 @@ class AssistRepository
 
     public function upsert(AssistDTO $assistDto): bool
     {
+        $transactionStarted = false;
         try {
             if(is_null($assistDto->value)) {
                 return true;
@@ -121,6 +126,7 @@ class AssistRepository
             }
 
             DB::beginTransaction();
+            $transactionStarted = true;
 
             $assist = Assist::query()
                 ->where('inscription_id', $assistDto->inscription_id)
@@ -157,7 +163,9 @@ class AssistRepository
 
             return true;
         } catch (Exception $exception) {
-            DB::rollBack();
+            if ($transactionStarted) {
+                DB::rollBack();
+            }
             $this->logError('AssistRepository upsert failed', $exception, [
                 'inscription_id' => $assistDto->inscription_id,
                 'training_group_id' => $assistDto->training_group_id,
@@ -169,12 +177,14 @@ class AssistRepository
 
     public function update(Assist $assist, array $validated): bool
     {
+        $transactionStarted = false;
         try {
             if ($this->assistBelongsToDeletedInscription($assist)) {
                 return false;
             }
 
             DB::beginTransaction();
+            $transactionStarted = true;
             if ($assist->observations || (isset($validated['observations'], $validated['attendance_date']))) {
                 if ($assist->observations !== null && is_object($assist->observations)) {
                     $observations = $assist->observations;
@@ -192,7 +202,9 @@ class AssistRepository
             DB::commit();
             return $updated;
         } catch (Exception $exception) {
-            DB::rollBack();
+            if ($transactionStarted) {
+                DB::rollBack();
+            }
             $this->logError('AssistRepository update failed', $exception, [
                 'assist_id' => $assist->id ?? null,
             ]);
@@ -207,8 +219,11 @@ class AssistRepository
             ->unique()
             ->values();
 
+        $transactionStarted = false;
+
         try {
             DB::beginTransaction();
+            $transactionStarted = true;
 
             $eligibleAssistIds = Assist::query()
                 ->schoolId()
@@ -242,7 +257,9 @@ class AssistRepository
                 'updated_ids' => $eligibleAssistIds->map(fn ($id) => (int) $id)->values()->all(),
             ];
         } catch (Exception $exception) {
-            DB::rollBack();
+            if ($transactionStarted) {
+                DB::rollBack();
+            }
             $this->logError('AssistRepository bulkUpdate failed', $exception, [
                 'training_group_id' => $validated['training_group_id'] ?? null,
                 'month' => $validated['month'] ?? null,

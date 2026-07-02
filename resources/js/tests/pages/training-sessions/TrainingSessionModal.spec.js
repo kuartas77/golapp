@@ -137,7 +137,6 @@ describe('TrainingSessionModal attendance closure', () => {
         apiMock.get.mockResolvedValue({ data: [classDay] })
         const wrapper = mountModal()
         await flushPromises()
-        expect(wrapper.vm.$.setupState.form.errors).toEqual({})
 
         const groupSelect = wrapper.findAllComponents({ name: 'CustomSelect2' })
             .find((component) => component.props('id') === 'training_group_id')

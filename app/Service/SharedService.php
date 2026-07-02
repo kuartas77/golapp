@@ -40,7 +40,11 @@ class SharedService
             DB::beginTransaction();
 
             $start_date = Carbon::parse($inscription->start_date);
-            if ($inscription->wasRecentlyCreated) {
+            $hasPayment = $inscription->payments()
+                ->where('year', $start_date->year)
+                ->exists();
+
+            if ($inscription->wasRecentlyCreated && ! $hasPayment) {
 
                 if (! $inscription->training_group_id) {
                     $trainingGroup = TrainingGroup::orderBy('id', 'asc')->firstWhere('school_id', $inscription->school_id);
@@ -113,7 +117,7 @@ class SharedService
             DB::commit();
 
         } catch (Throwable $th) {
-            DB::rollBack(2);
+            DB::rollBack();
             report($th);
         }
 
