@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -23,6 +24,12 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });
+
+        if (DB::getDriverName() !== 'sqlite' && Schema::hasTable('invoice_items')) {
+            Schema::table('invoice_items', function (Blueprint $table) {
+                $table->foreign('payment_received_id')->references('id')->on('payments_received')->cascadeOnDelete();
+            });
+        }
     }
 
     /**
@@ -30,6 +37,12 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() !== 'sqlite' && Schema::hasTable('invoice_items')) {
+            Schema::table('invoice_items', function (Blueprint $table) {
+                $table->dropForeign(['payment_received_id']);
+            });
+        }
+
         Schema::dropIfExists('payments_received');
     }
 };

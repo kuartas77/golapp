@@ -20,7 +20,7 @@ Modelo mental del proyecto:
 
 | Capa | Tecnologias principales |
 | --- | --- |
-| Backend | PHP 8.1, Laravel 10, Sanctum, Spatie Permission, Yajra DataTables |
+| Backend | PHP 8.3, Laravel 12, Sanctum 4, Spatie Permission 6, Yajra DataTables 12 |
 | Frontend | Vue 3, Vue Router, Pinia, Vite, Bootstrap 5, Sass |
 | Formularios/UI | vee-validate, yup, flatpickr, SweetAlert2, componentes Vue propios |
 | Datos y reportes | MySQL 8, Laravel Excel, mPDF, DataTables |

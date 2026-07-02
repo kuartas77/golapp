@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,7 +12,9 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('invoice_items', function (Blueprint $table) {
+        $canCreatePaymentReceivedForeignKey = Schema::hasTable('payments_received') || DB::getDriverName() === 'sqlite';
+
+        Schema::create('invoice_items', function (Blueprint $table) use ($canCreatePaymentReceivedForeignKey) {
             $table->id();
             $table->foreignId('invoice_id')->constrained()->onDelete('cascade');
             $table->enum('type', ['monthly', 'enrollment', 'additional']);
@@ -25,7 +28,10 @@ return new class extends Migration
             ])->nullable();
             $table->foreignId('payment_id')->nullable()->constrained('payments')->onDelete('set null');
             $table->boolean('is_paid')->default(false);
-            $table->foreignId('payment_received_id')->nullable()->constrained('payments_received')->onDelete('cascade');
+            $table->foreignId('payment_received_id')->nullable();
+            if ($canCreatePaymentReceivedForeignKey) {
+                $table->foreign('payment_received_id')->references('id')->on('payments_received')->cascadeOnDelete();
+            }
             $table->integer('uniform_request_id', false, true)->nullable();
             $table->timestamps();
         });

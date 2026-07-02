@@ -14,7 +14,9 @@ class CreateInscriptionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('inscriptions', function (Blueprint $table) {
+        $canCreatePlayerForeignKey = Schema::hasTable('players') || DB::getDriverName() === 'sqlite';
+
+        Schema::create('inscriptions', function (Blueprint $table) use ($canCreatePlayerForeignKey) {
             $table->id();
             $table->unsignedBigInteger('player_id');
             $table->string('unique_code');
@@ -44,7 +46,9 @@ class CreateInscriptionsTable extends Migration
 
             $table->foreign('training_group_id')->references('id')->on('training_groups');
             $table->foreign('competition_group_id')->references('id')->on('competition_groups');
-            $table->foreign('player_id')->references('id')->on('players');
+            if ($canCreatePlayerForeignKey) {
+                $table->foreign('player_id')->references('id')->on('players');
+            }
             $table->unique(['unique_code','year']);
             // $table->unique(['unique_code','year', 'school_id]);
 

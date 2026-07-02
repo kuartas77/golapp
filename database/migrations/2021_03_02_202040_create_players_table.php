@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class CreatePlayersTable extends Migration
@@ -48,6 +49,12 @@ class CreatePlayersTable extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+
+        if (DB::getDriverName() !== 'sqlite' && Schema::hasTable('inscriptions')) {
+            Schema::table('inscriptions', function (Blueprint $table) {
+                $table->foreign('player_id')->references('id')->on('players');
+            });
+        }
     }
 
     /**
@@ -57,6 +64,12 @@ class CreatePlayersTable extends Migration
      */
     public function down()
     {
+        if (DB::getDriverName() !== 'sqlite' && Schema::hasTable('inscriptions')) {
+            Schema::table('inscriptions', function (Blueprint $table) {
+                $table->dropForeign(['player_id']);
+            });
+        }
+
         Schema::dropIfExists('players');
     }
 }
