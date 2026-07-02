@@ -149,8 +149,6 @@ jobs:
       - name: Setup pnpm
         if: steps.changes.outputs.frontend == 'true'
         uses: pnpm/action-setup@v6
-        with:
-          version: 10
 
       - name: Use Node.js 24
         if: steps.changes.outputs.frontend == 'true'
