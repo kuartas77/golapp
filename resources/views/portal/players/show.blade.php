@@ -29,7 +29,7 @@
 @section('scripts')
 <script>
     let imgUser = "{{asset('img/user.png')}}";
-    let url_autocomplete = "{{ route('portal.autocomplete.fields') }}";
+    let url_autocomplete = "{{ route('api.v2.portal.autocomplete.fields') }}";
     const form_update_player = $("#form_update_player");
     const MinDateBirth = moment().subtract(18, 'year'); //TODO: settings
     const MaxDateBirth = moment().subtract(4, 'year'); //TODO: settings

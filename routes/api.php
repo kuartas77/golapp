@@ -78,9 +78,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*']);
 
-    Route::prefix('instructor')->name('instructor.')->middleware(['auth:sanctum'])->group(function () {
+    Route::prefix('instructor')->middleware(['auth:sanctum'])->group(function () {
 
-        Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);
+        Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']])
+            ->names('instructor.training_groups');
 
         Route::get('statistics/groups', [GroupsController::class, 'statistics']);
         Route::get('attendances', [AssistsController::class, 'index']);
@@ -136,8 +137,9 @@ Route::prefix('v2')->group(function () {
                 Route::put('{contractTypeCode}', [AdminContractController::class, 'update']);
             });
 
-            Route::middleware('school.permission:school.module.billing')->name('api.')->group(function () {
-                Route::apiResource('invoice-items-custom', AdminInvoiceCustomItemController::class);
+            Route::middleware('school.permission:school.module.billing')->group(function () {
+                Route::apiResource('invoice-items-custom', AdminInvoiceCustomItemController::class)
+                    ->names('billing.invoice-items-custom');
                 Route::get('inscription-custom-charges', [InscriptionCustomChargeController::class, 'index']);
                 Route::put('inscription-custom-charges/{charge}', [InscriptionCustomChargeController::class, 'update']);
                 Route::delete('inscription-custom-charges/{charge}', [InscriptionCustomChargeController::class, 'destroy']);
@@ -149,7 +151,8 @@ Route::prefix('v2')->group(function () {
             });
 
             Route::middleware('school.permission:school.module.training_groups')->group(function () {
-                Route::apiResource('training_groups', TrainingGroupController::class, ['only' => ['show', 'store', 'update']]);
+                Route::apiResource('training_groups', TrainingGroupController::class, ['only' => ['show', 'store', 'update']])
+                    ->names('admin.training_groups');
                 Route::apiResource('schedules', AdminScheduleController::class, ['except' => ['create', 'edit']])
                     ->names('admin.schedules');
                 Route::get('training-groups/board', [GroupAssignmentController::class, 'trainingBoard']);
@@ -203,7 +206,7 @@ Route::prefix('v2')->group(function () {
 
         Route::middleware('school.permission:school.module.payments')->group(function () {
             Route::get('payments/monthly-receipts', [MonthlyPaymentReceiptController::class, 'index'])
-                ->name('api.payments.monthly-receipts.index');
+                ->name('payments.monthly-receipts.index');
             Route::apiResource('payments', PaymentController::class)->only(['index', 'update', 'show']);
         });
 
@@ -474,3 +477,13 @@ Route::prefix('v2')->group(function () {
     });
 
 });
+
+foreach (Route::getRoutes()->getRoutes() as $route) {
+    if (str_starts_with($route->uri(), 'api/v2/') && $route->getName() !== null) {
+        $action = $route->getAction();
+        $action['as'] = 'api.v2.'.$route->getName();
+        $route->setAction($action);
+    }
+}
+
+Route::getRoutes()->refreshNameLookups();

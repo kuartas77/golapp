@@ -77,7 +77,7 @@ final class PortalSchoolsTest extends TestCase
         ]);
 
         $response = $this->postJson(
-            route('portal.school.inscription.store', [$school['slug']]),
+            route('api.v2.portal.school.inscription.store', [$school['slug']]),
             $this->portalInscriptionPayload($school['slug'])
         );
 
@@ -118,7 +118,7 @@ final class PortalSchoolsTest extends TestCase
         ]);
 
         $response = $this->postJson(
-            route('portal.school.inscription.store', [$school->slug]),
+            route('api.v2.portal.school.inscription.store', [$school->slug]),
             $this->portalInscriptionPayload($school->slug)
         );
 
@@ -147,12 +147,12 @@ final class PortalSchoolsTest extends TestCase
         $school = School::query()->findOrFail($schoolData['id']);
 
         $this->postJson(
-            route('portal.school.inscription.store', [$school->slug]),
+            route('api.v2.portal.school.inscription.store', [$school->slug]),
             $this->portalInscriptionPayload($school->slug)
         )->assertOk();
 
         $this->postJson(
-            route('portal.school.inscription.store', [$school->slug]),
+            route('api.v2.portal.school.inscription.store', [$school->slug]),
             array_merge($this->portalInscriptionPayload($school->slug), [
                 'names' => 'Segundo',
                 'last_names' => 'Deportista',
@@ -186,12 +186,12 @@ final class PortalSchoolsTest extends TestCase
         $school = School::query()->findOrFail($schoolData['id']);
 
         $this->postJson(
-            route('portal.school.inscription.store', [$school->slug]),
+            route('api.v2.portal.school.inscription.store', [$school->slug]),
             $this->portalInscriptionPayload($school->slug)
         )->assertOk();
 
         $response = $this->postJson(
-            route('portal.school.inscription.store', [$school->slug]),
+            route('api.v2.portal.school.inscription.store', [$school->slug]),
             array_merge($this->portalInscriptionPayload($school->slug), [
                 'names' => 'Otro',
                 'last_names' => 'Acudido',
@@ -218,7 +218,7 @@ final class PortalSchoolsTest extends TestCase
         ]);
 
         $response = $this->withHeader('Accept', 'application/json')->post(
-            route('portal.school.inscription.store', [$school['slug']]),
+            route('api.v2.portal.school.inscription.store', [$school['slug']]),
             array_merge($this->portalInscriptionPayload($school['slug']), $this->validPortalDocuments())
         );
 
@@ -239,7 +239,7 @@ final class PortalSchoolsTest extends TestCase
         ]);
 
         $response = $this->postJson(
-            route('portal.school.inscription.store', [$school['slug']]),
+            route('api.v2.portal.school.inscription.store', [$school['slug']]),
             $this->portalInscriptionPayload($school['slug'])
         );
 
@@ -266,7 +266,7 @@ final class PortalSchoolsTest extends TestCase
         );
 
         $response = $this->withHeader('Accept', 'application/json')->post(
-            route('portal.school.inscription.store', [$school['slug']]),
+            route('api.v2.portal.school.inscription.store', [$school['slug']]),
             array_merge($this->portalInscriptionPayload($school['slug']), $documents)
         );
 
@@ -289,7 +289,7 @@ final class PortalSchoolsTest extends TestCase
         );
 
         $response = $this->withHeader('Accept', 'application/json')->post(
-            route('portal.school.inscription.store', [$school['slug']]),
+            route('api.v2.portal.school.inscription.store', [$school['slug']]),
             array_merge($this->portalInscriptionPayload($school['slug']), $documents)
         );
 

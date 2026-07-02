@@ -205,7 +205,7 @@ class ContractTemplateService
                 return [
                     'code' => $type['code'],
                     'label' => $type['label'],
-                    'url' => route('portal.school.contract.show', [$school->slug, $type['code']]),
+                    'url' => route('api.v2.portal.school.contract.show', [$school->slug, $type['code']]),
                     'acceptance_field' => $type['acceptance_field'] ?? null,
                     'requires_acceptance' => (bool) data_get($type, 'portal.requires_acceptance', false),
                     'requires_tutor_signature' => (bool) data_get($type, 'portal.requires_tutor_signature', false),

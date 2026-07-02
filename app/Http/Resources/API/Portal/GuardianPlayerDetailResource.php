@@ -55,7 +55,7 @@ class GuardianPlayerDetailResource extends JsonResource
             'historical_inscriptions' => $historicalInscriptions->map(fn ($historicalInscription) => [
                 'id' => $historicalInscription->id,
                 'year' => $historicalInscription->year,
-                'report_url' => route('portal.guardians.players.inscription-report', [
+                'report_url' => route('api.v2.portal.guardians.players.inscription-report', [
                     'player' => $this->id,
                     'inscription' => $historicalInscription->id,
                 ]),
@@ -131,7 +131,7 @@ class GuardianPlayerDetailResource extends JsonResource
                         'code' => $evaluation->period->code,
                         'year' => $evaluation->period->year,
                     ] : null,
-                    'pdf_url' => route('portal.guardians.evaluations.pdf', $evaluation->id),
+                    'pdf_url' => route('api.v2.portal.guardians.evaluations.pdf', $evaluation->id),
                 ])->values(),
                 'comparison_periods' => $inscription->playerEvaluations
                     ->filter(fn ($evaluation) => $evaluation->period)
@@ -143,7 +143,7 @@ class GuardianPlayerDetailResource extends JsonResource
                     ])
                     ->unique('id')
                     ->values(),
-                'report_url' => route('portal.guardians.players.inscription-report', [
+                'report_url' => route('api.v2.portal.guardians.players.inscription-report', [
                     'player' => $this->id,
                     'inscription' => $inscription->id,
                 ]),

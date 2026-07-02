@@ -11,7 +11,7 @@
         <div class="wizard-content">
             <div class="modal-content">
                 <div class="modal-body">
-                    {{html()->form('post', route('portal.school.inscription.store', [$school->slug]))->attributes(['id' => 'form_inscripcion', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class' => 'validation-wizard wizard-circle'])->open()}}
+                    {{html()->form('post', route('api.v2.portal.school.inscription.store', [$school->slug]))->attributes(['id' => 'form_inscripcion', 'accept-charset' => 'UTF-8', 'enctype' => "multipart/form-data", 'class' => 'validation-wizard wizard-circle'])->open()}}
                     {!! RecaptchaV3::field('inscriptions', 'g-recaptcha-response', true, 'form_inscripcion') !!}
                     @include('portal.inscriptions.fields.step_1')
                     @include('portal.inscriptions.fields.step_2')
@@ -28,8 +28,8 @@
 <script>
     let imgUser = "{{ asset('img/user.png') }}";
     const school = @json($school);
-    const url_autocomplete = "{{ route('portal.autocomplete.fields') }}";
-    const url_search = "{{ route('portal.autocomplete.search_doc') }}";
+    const url_autocomplete = "{{ route('api.v2.portal.autocomplete.fields') }}";
+    const url_search = "{{ route('api.v2.portal.autocomplete.search_doc') }}";
     const form_inscripcion = $("#form_inscripcion");
     const MinDateBirth = moment().subtract(20, 'year');
     const MaxDateBirth = moment().subtract(3, 'year');

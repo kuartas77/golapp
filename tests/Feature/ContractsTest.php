@@ -210,7 +210,7 @@ final class ContractsTest extends TestCase
         $this->createConfiguredContract($school, 'inscription');
 
         $response = $this->postJson(
-            route('portal.school.inscription.store', [$school->slug]),
+            route('api.v2.portal.school.inscription.store', [$school->slug]),
             $this->portalInscriptionPayload()
         );
 
@@ -230,11 +230,11 @@ final class ContractsTest extends TestCase
 
         $this->createConfiguredContract($school, 'inscription');
 
-        $this->get(route('portal.school.contract.show', [$school->slug, 'inscription']))
+        $this->get(route('api.v2.portal.school.contract.show', [$school->slug, 'inscription']))
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
 
-        $this->get(route('portal.school.contract.show', [$school->slug, 'affiliate']))
+        $this->get(route('api.v2.portal.school.contract.show', [$school->slug, 'affiliate']))
             ->assertNotFound();
     }
 
@@ -347,7 +347,7 @@ final class ContractsTest extends TestCase
         School::forgetCachedSchool($school->id);
 
         $missingResponse = $this->postJson(
-            route('portal.school.inscription.store', [$school->slug]),
+            route('api.v2.portal.school.inscription.store', [$school->slug]),
             array_diff_key($this->portalInscriptionPayload(), ['tutor_doc_exp' => true])
         );
 
@@ -355,7 +355,7 @@ final class ContractsTest extends TestCase
         $missingResponse->assertJsonValidationErrors(['tutor_doc_exp']);
 
         $this->postJson(
-            route('portal.school.inscription.store', [$school->slug]),
+            route('api.v2.portal.school.inscription.store', [$school->slug]),
             $this->portalInscriptionPayload([
                 'identification_document' => '1002003999',
                 'email' => 'jugador.exp@example.com',

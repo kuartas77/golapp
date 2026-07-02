@@ -137,7 +137,7 @@ class Player extends Authenticatable
     public function getPhotoUrlPublicAttribute(): string
     {
         if (!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
-            return route('portal.player.images', $this->attributes['photo']);
+            return route('api.v2.portal.player.images', $this->attributes['photo']);
         }
 
         return url('img/user.webp');

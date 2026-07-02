@@ -264,7 +264,7 @@ class TrainingGroupRepository
     {
         if ($month) {
             $month = getMonthNumber($month);
-            $date = Carbon::now()->setMonth($month);
+            $date = Carbon::now()->setMonth((int) $month);
         } else {
             $date = Carbon::now();
         }
