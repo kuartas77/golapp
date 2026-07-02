@@ -1,18 +1,234 @@
-name: Deploy Private GitHub repository to cPanel
+name: Repository to cPanel
+
 on:
   push:
-    branches: [ main ]
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+  # Permite ejecutar manualmente un despliegue completo desde GitHub Actions.
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Debe coincidir con la versión PHP activa en tu cPanel.
+  PHP_VERSION: "8.3"
+
+concurrency:
+  group: cpanel-template-deploy
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
-  FTP-Deploy-Action:
-    name: FTP-Deploy-Action
+  deploy:
+    name: Detect and deploy changes
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
-    - name: FTP-Deploy-Action
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      with:
-        server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect backend, frontend and vendor changes
+        id: changes
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          backend=false
+          frontend=false
+          vendor=false
+
+          # En ejecución manual o primer push de una rama,
+          # se construye y despliega todo.
+          if [[ "$EVENT_NAME" == "workflow_dispatch" || "$BEFORE_SHA" =~ ^0{40}$ ]]; then
+            backend=true
+            frontend=true
+            vendor=true
+
+            echo "Despliegue completo: ejecución manual o primer push."
+          else
+            changed_files="$(git diff --name-only "$BEFORE_SHA" "$AFTER_SHA")"
+
+            echo "Archivos modificados:"
+            echo "$changed_files"
+
+            while IFS= read -r file; do
+              [[ -z "$file" ]] && continue
+
+              # Backend Laravel / PHP
+              case "$file" in
+                app/*|bootstrap/*|config/*|database/*|routes/*|lang/*|\
+                resources/views/*|resources/lang/*|public/*|\
+                artisan|composer.json|composer.lock|phpunit.xml|\
+                .htaccess|*/.htaccess|php.ini|.user.ini)
+                  backend=true
+                  ;;
+              esac
+
+              # Dependencias PHP: solo se regeneran y suben
+              # cuando cambian composer.json o composer.lock.
+              case "$file" in
+                composer.json|composer.lock)
+                  vendor=true
+                  ;;
+              esac
+
+              # Frontend compilado por Vite
+              case "$file" in
+                resources/js/*|resources/ts/*|resources/css/*|\
+                resources/sass/*|resources/scss/*|resources/images/*|\
+                resources/fonts/*|resources/assets/*|\
+                package.json|pnpm-lock.yaml|pnpm-workspace.yaml|\
+                vite.config.*|tailwind.config.*|postcss.config.*)
+                  frontend=true
+                  ;;
+              esac
+            done <<< "$changed_files"
+          fi
+
+          {
+            echo "backend=$backend"
+            echo "frontend=$frontend"
+            echo "vendor=$vendor"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "¿Desplegar backend?: $backend"
+          echo "¿Actualizar vendor?: $vendor"
+          echo "¿Compilar/desplegar frontend?: $frontend"
+
+      # -------------------------
+      # PHP / Composer / vendor
+      # -------------------------
+
+      - name: Setup PHP and Composer
+        if: steps.changes.outputs.vendor == 'true'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
+          coverage: none
+          extensions: mbstring, xml, curl, zip, pdo_mysql, bcmath, gd, intl
+
+      - name: Get Composer cache directory
+        if: steps.changes.outputs.vendor == 'true'
+        id: composer-cache
+        shell: bash
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore Composer cache
+        if: steps.changes.outputs.vendor == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install production PHP dependencies
+        if: steps.changes.outputs.vendor == 'true'
+        run: |
+          composer install \
+            --no-dev \
+            --prefer-dist \
+            --no-interaction \
+            --no-progress \
+            --optimize-autoloader
+
+      # -------------------------
+      # Frontend / pnpm / Vite
+      # -------------------------
+
+      - name: Setup pnpm
+        if: steps.changes.outputs.frontend == 'true'
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - name: Use Node.js 24
+        if: steps.changes.outputs.frontend == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Build frontend with Vite
+        if: steps.changes.outputs.frontend == 'true'
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+
+      # -------------------------
+      # Deploy vendor first
+      # -------------------------
+
+      - name: Deploy Composer vendor
+        if: steps.changes.outputs.vendor == 'true'
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./vendor/
+          server-dir: /vendor/
+          state-name: .ftp-deploy-vendor-state.json
+          exclude: |
+            .ftp-deploy-vendor-state.json
+            **/.ftp-deploy-*.json
+
+      # -------------------------
+      # Deploy Laravel project
+      # -------------------------
+
+      - name: Deploy Laravel / PHP project
+        if: steps.changes.outputs.backend == 'true'
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./
+          server-dir: /
+          state-name: .ftp-deploy-backend-state.json
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/vendor/**
+            .github/**
+            tests/**
+            .env
+            .env.*
+            storage/**
+            public/storage/**
+            public/uploads/**
+            public/build/**
+            public/build
+            .ftp-deploy-backend-state.json
+            **/.ftp-deploy-*.json
+
+      # -------------------------
+      # Deploy generated Vite files
+      # -------------------------
+
+      - name: Deploy compiled frontend build
+        if: steps.changes.outputs.frontend == 'true'
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./public/build/
+          server-dir: /public/build/
+          state-name: .ftp-deploy-frontend-state.json
+          exclude: |
+            .ftp-deploy-frontend-state.json
+            **/.ftp-deploy-*.json
