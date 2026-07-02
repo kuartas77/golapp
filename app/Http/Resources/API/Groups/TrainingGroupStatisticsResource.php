@@ -41,6 +41,10 @@ class TrainingGroupStatisticsResource extends JsonResource
 
         $columns = $classDays->map(fn($classDay) => DB::raw("sum(case when {$classDay['column']} is not null then 1 else 0 end) as {$classDay['column']}"));
 
+        if ($columns->isEmpty()) {
+            return $this->statisticsResponse(0, 0);
+        }
+
         $query = Assist::query()->where('training_group_id', $this->id)
             ->where('year', $date->year)
             ->where('month', $date->month)
@@ -51,9 +55,15 @@ class TrainingGroupStatisticsResource extends JsonResource
 
         $assistTaken = !is_null($assist) ? array_sum($assist->toArray()) : 0;
 
-        $noTaken = (($columns->count() * $query->count()) - $assistTaken);
-        $total = ($noTaken + $assistTaken);
-        $percentage = number_format((float)(($assistTaken * 100) / ($total ?: 1)), 2, '.', '');
+        $total = $columns->count() * $query->count();
+
+        return $this->statisticsResponse($assistTaken, $total);
+    }
+
+    private function statisticsResponse(int $assistTaken, int $total): array
+    {
+        $noTaken = $total - $assistTaken;
+        $percentage = number_format((float) (($assistTaken * 100) / ($total ?: 1)), 2, '.', '');
 
         return [
             'group_id' => $this->id,
