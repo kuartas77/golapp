@@ -10,7 +10,7 @@
 
                         <template v-else>
                             <div class="row g-4 align-items-start">
-                                <div class="col-lg-5">
+                                <div class="col-lg-5" data-tour="debtor-report-context">
                                     <h4 class="mb-2">Informe de deudores</h4>
                                     <p class="text-muted mb-3">
                                         Exporta el consolidado por deportista con deuda de mensualidades y facturas.
@@ -19,9 +19,10 @@
                                     <div class="alert alert-info mb-0">
                                         Puedes dejar el grupo vacío para generar el informe de todos los grupos.
                                     </div>
+                                    <button type="button" class="btn btn-info btn-sm mt-3" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button>
                                 </div>
 
-                                <div class="col-lg-7">
+                                <div class="col-lg-7" data-tour="debtor-report-filters">
                                     <div v-if="loadError" class="alert alert-danger">
                                         {{ loadError }}
                                     </div>
@@ -82,7 +83,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="d-grid d-md-flex justify-content-md-end">
+                                    <div class="d-grid d-md-flex justify-content-md-end" data-tour="debtor-report-actions">
                                         <button
                                             type="button"
                                             class="btn btn-primary px-4"
@@ -100,6 +101,7 @@
         </div>
     </div>
 
+    <PageTutorialOverlay :tutorial="tutorial" />
     <breadcrumb :parent="'Informes'" :current="'Deudores'" />
 </template>
 
@@ -111,6 +113,11 @@ export default {
 
 <script setup>
 import useDebtorReport from '@/composables/reports/debtor-report'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { debtorReportTutorial } from '@/tutorials/reports'
+
+const tutorial = usePageTutorial(debtorReportTutorial)
 
 const {
     exportPdf,

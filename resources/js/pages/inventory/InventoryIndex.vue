@@ -1,18 +1,18 @@
 <template>
     <panel>
         <template #body>
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3" data-tour="inventory-actions">
                 <div>
                     <h4 class="mb-1">Inventario</h4>
                     <p class="text-muted mb-0">Administra productos, stock y movimientos de inventario.</p>
                 </div>
-                <button v-if="activeTab === 'products'" type="button" class="btn btn-info btn-sm" @click="openProductForm()">
+                <div class="d-flex gap-2"><button v-if="activeTab === 'products'" type="button" class="btn btn-info btn-sm" @click="openProductForm()">
                     <i class="fa fa-plus me-2" aria-hidden="true"></i>
                     Nuevo producto
-                </button>
+                </button><button type="button" class="btn btn-info btn-sm" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button></div>
             </div>
 
-            <ul class="nav nav-tabs mb-3">
+            <ul class="nav nav-tabs mb-3" data-tour="inventory-tabs">
                 <li class="nav-item">
                     <button type="button" class="nav-link" :class="{ active: activeTab === 'products' }" @click="setActiveTab('products')">
                         Productos
@@ -29,7 +29,7 @@
                 {{ globalError }}
             </div>
 
-            <div v-show="activeTab === 'products'" class="table-responsive-md">
+            <div v-show="activeTab === 'products'" class="table-responsive-md" data-tour="inventory-products-table">
                 <DatatableTemplate id="inventory_products_table" ref="productsTable" :options="productOptions">
                     <template #thead>
                         <thead class="align-middle">
@@ -67,7 +67,7 @@
                 </DatatableTemplate>
             </div>
 
-            <div v-show="activeTab === 'movements'" class="table-responsive-md">
+            <div v-show="activeTab === 'movements'" class="table-responsive-md" data-tour="inventory-movements-table">
                 <DatatableTemplate id="inventory_movements_table" ref="movementsTable" :options="movementOptions">
                     <template #thead>
                         <thead class="align-middle">
@@ -107,6 +107,7 @@
             </div>
         </template>
     </panel>
+    <PageTutorialOverlay :tutorial="tutorial" />
 
     <div v-if="showProductModal" class="modal fade show d-block" tabindex="-1" aria-modal="true" role="dialog">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -285,6 +286,9 @@ import CurrencyInput from '@/components/general/CurrencyInput'
 import api from '@/utils/axios'
 import configLanguaje from '@/utils/datatableUtils'
 import { usePageTitle } from '@/composables/use-meta'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { inventoryTutorial } from '@/tutorials/operations'
 
 const props = defineProps({
     initialTab: { type: String, default: 'products' },
@@ -293,6 +297,7 @@ const props = defineProps({
 usePageTitle('Inventario')
 
 const activeTab = ref(props.initialTab === 'movements' ? 'movements' : 'products')
+const tutorial = usePageTutorial(inventoryTutorial, { activeTab })
 const productsTable = useTemplateRef('productsTable')
 const movementsTable = useTemplateRef('movementsTable')
 const globalError = ref('')

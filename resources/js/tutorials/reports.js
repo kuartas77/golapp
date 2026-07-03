@@ -43,3 +43,28 @@ export const paymentReportTutorial = {
         },
     ],
 }
+
+export const instructorActivityReportTutorial = {
+    steps: [
+        { id: 'instructor-activity-actions', selector: '[data-tour="instructor-activity-actions"]', title: 'Consulta y exporta actividad', text: 'La cabecera resume el informe y ofrece sus exportaciones.' },
+        { id: 'instructor-activity-filters', selector: '[data-tour="instructor-activity-filters"]', title: 'Define el periodo', text: 'Selecciona ano, mes e instructor antes de consultar.' },
+        { id: 'instructor-activity-table', selector: '[data-tour="instructor-activity-table"]', title: 'Compara la actividad', text: 'Revisa asistencias, competencias, metodologias y sesiones por instructor.' },
+    ],
+}
+
+export const debtorReportTutorial = {
+    steps: [
+        { id: 'debtor-report-context', selector: '[data-tour="debtor-report-context"]', title: 'Prepara el informe de deudores', text: 'Este informe consolida deudas de mensualidades y facturas por deportista.' },
+        { id: 'debtor-report-filters', selector: '[data-tour="debtor-report-filters"]', title: 'Selecciona el alcance', text: 'Define el ano, el grupo y el nivel de detalle que tendra el PDF.' },
+        { id: 'debtor-report-actions', selector: '[data-tour="debtor-report-actions"]', title: 'Genera el documento', text: 'Exporta el informe con las opciones seleccionadas.' },
+    ],
+}
+
+export const attendancePaymentReportTutorial = {
+    steps: [
+        { id: 'attendance-payment-context', selector: '[data-tour="attendance-payment-context"]', title: 'Identifica inconsistencias', text: 'Compara asistencias registradas con el estado de las mensualidades.' },
+        { id: 'attendance-payment-filters', selector: '[data-tour="attendance-payment-filters"]', title: 'Define la consulta', text: 'Selecciona periodo y grupo para actualizar los resultados.' },
+        { id: 'attendance-payment-summary', selector: '[data-tour="attendance-payment-summary"]', title: 'Revisa el resumen', text: 'Compara deportistas asistentes y observados por grupo.' },
+        { id: 'attendance-payment-detail', selector: '[data-tour="attendance-payment-detail"]', title: 'Consulta el detalle', text: 'Revisa los deportistas con asistencia y mensualidad pendiente.' },
+    ],
+}

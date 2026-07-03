@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #header>
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3" data-tour="admin-contracts-actions">
                 <div>
                     <h3 class="mb-1">Contratos</h3>
                     <p class="text-muted mb-0">
@@ -21,6 +21,7 @@
                     >
                         {{ isSaving ? 'Guardando...' : 'Guardar cambios' }}
                     </button>
+                    <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button>
                 </div>
             </div>
         </template>
@@ -63,7 +64,7 @@
                                 </div>
                             </div>
 
-                            <div class="surface-card card">
+                            <div class="surface-card card" data-tour="admin-contracts-types">
                                 <div class="surface-card-header card-header">
                                     <div class="section-label mb-2">Tipos</div>
                                     <h5 class="mb-1">Plantillas disponibles</h5>
@@ -97,7 +98,7 @@
                         </div>
 
                         <div class="col-12 col-xl-8 col-xxl-9">
-                            <div class="surface-card card mb-4">
+                            <div class="surface-card card mb-4" data-tour="admin-contracts-editor">
                                 <div class="surface-card-header card-header d-flex flex-column flex-lg-row justify-content-between gap-3">
                                     <div>
                                         <div class="section-label mb-2">Editor</div>
@@ -210,7 +211,7 @@
                                 </div>
                             </div>
 
-                            <div class="surface-card card">
+                            <div class="surface-card card" data-tour="admin-contracts-preview">
                                 <div class="surface-card-header card-header">
                                     <div class="section-label mb-2">Ayudas</div>
                                     <h5 class="mb-1">Placeholders disponibles</h5>
@@ -280,6 +281,7 @@
         </template>
     </panel>
 
+    <PageTutorialOverlay :tutorial="tutorial" />
     <breadcrumb :parent="'Configuración'" :current="'Contratos'" />
 </template>
 
@@ -290,8 +292,12 @@ import TinyMceEditor from '@/components/general/TinyMceEditor.vue'
 import Loader from '@/components/general/Loader.vue'
 import api from '@/utils/axios'
 import { usePageTitle } from '@/composables/use-meta'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { contractsTutorial } from '@/tutorials/admin'
 
 usePageTitle('Contratos')
+const tutorial = usePageTutorial(contractsTutorial)
 
 const route = useRoute()
 const router = useRouter()

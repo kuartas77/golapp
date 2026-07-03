@@ -15,6 +15,20 @@ export const invoicesIndexTutorial = {
     ],
 }
 
+export const invoiceItemsTutorial = {
+    steps: [
+        { id: 'invoice-items-filters', selector: '[data-tour="invoice-items-filters"]', title: 'Filtra los conceptos', text: 'Usa los filtros de cabecera para encontrar conceptos facturados por nombre o estado.' },
+        { id: 'invoice-items-table', selector: '[data-tour="invoice-items-table"]', title: 'Consulta los items', text: 'La tabla centraliza los conceptos asociados a las facturas de la escuela.' },
+    ],
+}
+
+export const customChargesTutorial = {
+    steps: [
+        { id: 'custom-charges-actions', selector: '[data-tour="custom-charges-actions"]', title: 'Actualiza los cargos', text: 'Recarga la informacion cuando necesites sincronizar el listado visible.' },
+        { id: 'custom-charges-table', selector: '[data-tour="custom-charges-table"]', title: 'Administra cargos personalizados', text: 'Consulta los cargos por inscripcion y utiliza sus acciones para editar o eliminar.' },
+    ],
+}
+
 export const invoiceCreateTutorial = {
     steps: [
         {

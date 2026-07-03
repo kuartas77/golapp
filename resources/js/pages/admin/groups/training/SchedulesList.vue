@@ -4,7 +4,7 @@
             <div class="col-xl-7 col-lg-8 col-md-10 col-12 layout-spacing">
                 <div class="panel training-schedules-panel">
                     <div class="panel-heading">
-                        <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                        <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap" data-tour="training-schedules-actions">
                             <div>
                                 <h5 class="mb-1">Horarios</h5>
                                 <small class="text-muted">
@@ -24,6 +24,7 @@
                                 >
                                     Agregar horario
                                 </button>
+                                <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button>
                             </div>
                         </div>
                     </div>
@@ -39,7 +40,7 @@
                         </div>
 
                         <template v-else>
-                            <div class="table-responsive-md schedules-table">
+                            <div class="table-responsive-md schedules-table" data-tour="training-schedules-table">
                                 <DatatableTemplate
                                     id="training_schedules_table"
                                     :options="tableOptions"
@@ -179,6 +180,7 @@
         </div>
     </div>
 
+    <PageTutorialOverlay :tutorial="tutorial" />
     <breadcrumb :parent="'Configuración'" :current="'Horarios'" />
 </template>
 
@@ -193,8 +195,12 @@ import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import api from '@/utils/axios'
 import configLanguaje from '@/utils/datatableUtils'
 import { usePageTitle } from '@/composables/use-meta'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { schedulesTutorial } from '@/tutorials/training'
 
 const items = ref([])
+const tutorial = usePageTutorial(schedulesTutorial)
 const isLoading = ref(true)
 const listError = ref('')
 const isSaving = ref(false)

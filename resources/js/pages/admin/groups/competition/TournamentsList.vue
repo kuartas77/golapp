@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #header>
-            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap" data-tour="admin-tournaments-actions">
                 <div>
                     <h5 class="mb-1">Torneos</h5>
                     <p class="mb-0 text-muted">
@@ -16,6 +16,7 @@
                     <button type="button" class="btn btn-primary" :disabled="isSaving" @click="openCreateModal">
                         Agregar torneo
                     </button>
+                    <button type="button" class="btn btn-info" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button>
                 </div>
             </div>
         </template>
@@ -30,7 +31,7 @@
                 <p class="text-muted mb-0">Cargando torneos...</p>
             </div>
 
-            <template v-else>
+            <div v-else data-tour="admin-tournaments-table">
                 <div v-if="items.length" class="table-responsive">
                     <table class="table table-sm align-middle mb-0">
                         <thead>
@@ -80,9 +81,10 @@
                 >
                     Todavía no hay torneos configurados para esta escuela.
                 </div>
-            </template>
+            </div>
         </template>
     </panel>
+    <PageTutorialOverlay :tutorial="tutorial" />
 
     <div ref="modalElement" class="modal fade" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -155,6 +157,9 @@ import { ErrorMessage, Field, Form } from 'vee-validate'
 import * as yup from 'yup'
 import api from '@/utils/axios'
 import { usePageTitle } from '@/composables/use-meta'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { tournamentsTutorial } from '@/tutorials/competition'
 
 const items = ref([])
 const isLoading = ref(true)
@@ -166,6 +171,7 @@ const modalElement = ref(null)
 const globalError = ref('')
 const tournamentForm = useTemplateRef('tournamentForm')
 const { proxy } = getCurrentInstance()
+const tutorial = usePageTutorial(tournamentsTutorial)
 
 const isEditMode = computed(() => editingId.value !== null)
 

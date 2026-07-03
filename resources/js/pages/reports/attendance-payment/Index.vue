@@ -9,16 +9,17 @@
                         </div>
 
                         <template v-else-if="isReady">
-                            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+                            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4" data-tour="attendance-payment-context">
                                 <div>
                                     <h3 class="mb-1">Mensualidades vs asistencias</h3>
                                     <p class="text-muted mb-0">
                                         Detecta deportistas que asistieron a entrenamientos sin tener la mensualidad del mes completamente al día.
                                     </p>
                                 </div>
+                                <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button>
                             </div>
 
-                            <section class="border rounded-3 shadow-sm p-3 p-lg-4 mb-4">
+                            <section class="border rounded-3 shadow-sm p-3 p-lg-4 mb-4" data-tour="attendance-payment-filters">
                                 <div class="row g-3 align-items-end">
                                     <div class="col-12 col-md-3">
                                         <label class="form-label" for="attendance-payment-year">Año</label>
@@ -52,7 +53,7 @@
                                 </div>
                             </section>
 
-                            <section class="border rounded-3 shadow-sm p-3 p-lg-4 mb-4">
+                            <section class="border rounded-3 shadow-sm p-3 p-lg-4 mb-4" data-tour="attendance-payment-summary">
                                 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
                                     <div>
                                         <h4 class="mb-1">Resumen por grupo</h4>
@@ -90,7 +91,7 @@
                                 </div>
                             </section>
 
-                            <section class="border rounded-3 shadow-sm p-3 p-lg-4">
+                            <section class="border rounded-3 shadow-sm p-3 p-lg-4" data-tour="attendance-payment-detail">
                                 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
                                     <div>
                                         <h4 class="mb-1">Detalle por deportista</h4>
@@ -142,6 +143,7 @@
         </div>
     </div>
 
+    <PageTutorialOverlay :tutorial="tutorial" />
     <breadcrumb :parent="'Informes'" :current="'Mensualidades vs asistencias'" />
 </template>
 
@@ -154,6 +156,11 @@ export default {
 <script setup>
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import useAttendancePaymentReport from '@/composables/reports/attendance-payment-report'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { attendancePaymentReportTutorial } from '@/tutorials/reports'
+
+const tutorial = usePageTutorial(attendancePaymentReportTutorial)
 
 const {
     filters,

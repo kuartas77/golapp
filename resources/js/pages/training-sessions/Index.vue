@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #header>
-            <div class="row g-3 align-items-center">
+            <div class="row g-3 align-items-center" data-tour="training-sessions-actions">
                 <div class="col-md-auto">
                     <button type="button" class="btn btn-primary" @click="openCreate">
                         Nueva sesión
@@ -12,11 +12,12 @@
                         Administra las sesiones de entrenamiento, consulta el histórico y edita sus ejercicios por pasos.
                     </p>
                 </div>
+                <div class="col-md-auto"><button type="button" class="btn btn-info" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button></div>
             </div>
         </template>
 
         <template #body>
-            <DatatableTemplate
+            <div data-tour="training-sessions-table"><DatatableTemplate
                 ref="table"
                 id="training-sessions-table"
                 :options="options"
@@ -52,7 +53,7 @@
                         </button>
                     </div>
                 </template>
-            </DatatableTemplate>
+            </DatatableTemplate></div>
         </template>
     </panel>
 
@@ -62,6 +63,7 @@
         @updated="reloadTable"
         @cancel="closeModal"
     />
+    <PageTutorialOverlay :tutorial="tutorial" />
 
     <breadcrumb :parent="'Plataforma'" :current="'Sesiones de entrenamiento'" />
 </template>
@@ -69,6 +71,9 @@
 <script setup>
 import { computed, ref, useTemplateRef } from 'vue'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { trainingSessionsTutorial } from '@/tutorials/training'
 import { usePageTitle } from '@/composables/use-meta'
 import TrainingSessionModal from './TrainingSessionModal.vue'
 import api from '@/utils/axios'
@@ -76,6 +81,7 @@ import configLanguaje from '@/utils/datatableUtils'
 import { useAuthUser } from '@/store/auth-user'
 
 usePageTitle('Sesiones de entrenamiento')
+const tutorial = usePageTutorial(trainingSessionsTutorial)
 
 const auth = useAuthUser()
 const table = useTemplateRef('table')

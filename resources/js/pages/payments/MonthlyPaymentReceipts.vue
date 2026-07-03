@@ -10,9 +10,10 @@
                     <i class="fa fa-arrow-left me-1"></i>
                     Mensualidades
                 </router-link>
+                <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button>
             </div>
 
-            <Form :validation-schema="schema" :initial-values="formData" class="row align-items-end" @submit="searchReceipts">
+            <Form :validation-schema="schema" :initial-values="formData" class="row align-items-end" data-tour="monthly-receipts-filters" @submit="searchReceipts">
                 <div class="col-xl-2 col-lg-3 col-sm-6 mb-2">
                     <label for="receipt_unique_code" class="form-label">Codigo unico</label>
                     <Field
@@ -79,7 +80,7 @@
                 <span class="badge outline-badge-info">Total página {{ moneyFormat(totalAmount) }}</span>
             </div>
 
-            <div class="table-responsive-md">
+            <div class="table-responsive-md" data-tour="monthly-receipts-table">
                 <DatatableTemplate
                     id="monthly-payment-receipts-table"
                     ref="receiptsTable"
@@ -101,6 +102,7 @@
             </div>
         </template>
     </panel>
+    <PageTutorialOverlay :tutorial="tutorial" />
     <breadcrumb :parent="'Mensualidades'" :current="'Recibos'" />
 </template>
 
@@ -113,8 +115,12 @@ import { useSetting } from '@/store/settings-store'
 import { usePageTitle } from '@/composables/use-meta'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import configLanguaje from '@/utils/datatableUtils'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { monthlyPaymentReceiptsTutorial } from '@/tutorials/operations'
 
 const currentYear = new Date().getFullYear()
+const tutorial = usePageTutorial(monthlyPaymentReceiptsTutorial)
 const settings = useSetting()
 const groups = computed(() => settings.groups
     .filter((group) => group.name !== 'Provisional')

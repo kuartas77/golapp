@@ -1,7 +1,7 @@
 <template>
     <div class="attendance-qr-page">
         <section class="attendance-qr-page__shell">
-            <div class="card border-0 shadow-sm overflow-hidden">
+            <div class="card border-0 shadow-sm overflow-hidden" data-tour="attendance-qr-context">
                 <div class="card-body p-4 p-lg-5">
                     <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
                         <div>
@@ -15,11 +15,12 @@
                         <router-link :to="{ name: 'attendances' }" class="btn btn-outline-secondary btn-sm align-self-start">
                             Volver a asistencias
                         </router-link>
+                        <button type="button" class="btn btn-info btn-sm align-self-start" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button>
                     </div>
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm mt-4">
+            <div class="card border-0 shadow-sm mt-4" data-tour="attendance-qr-form">
                 <div class="card-body p-4">
                     <form class="row g-3 align-items-end" @submit.prevent="openQrAttendance">
                         <div class="col-12">
@@ -60,6 +61,7 @@
         </section>
     </div>
 
+    <PageTutorialOverlay :tutorial="tutorial" />
     <breadcrumb :parent="'Plataforma'" :current="'Asistencia QR'" />
 </template>
 
@@ -67,8 +69,12 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePageTitle } from '@/composables/use-meta'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { attendanceQrTutorial } from '@/tutorials/operations'
 
 usePageTitle('Asistencia QR')
+const tutorial = usePageTutorial(attendanceQrTutorial)
 
 const router = useRouter()
 const uniqueCode = ref('')

@@ -1,15 +1,15 @@
 <template>
     <panel>
         <template #body>
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3" data-tour="school-outings-actions">
                 <div>
                     <h4 class="mb-1">Salidas</h4>
                     <p class="text-muted mb-0">Planea salidas y controla el avance de aportes por deportista.</p>
                 </div>
-                <button type="button" class="btn btn-info btn-sm" @click="openForm()">
+                <div class="d-flex gap-2"><button type="button" class="btn btn-info btn-sm" @click="openForm()">
                     <i class="fa fa-plus me-2" aria-hidden="true"></i>
                     Nueva salida
-                </button>
+                </button><button type="button" class="btn btn-info btn-sm" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button></div>
             </div>
 
             <div v-if="globalError" class="alert alert-danger" role="alert">{{ globalError }}</div>
@@ -18,7 +18,7 @@
                 Cargando salidas...
             </div>
 
-            <div v-else class="table-responsive-md">
+            <div v-else class="table-responsive-md" data-tour="school-outings-table">
                 <DatatableTemplate
                     :key="tableVersion"
                     id="school_outings_table"
@@ -60,6 +60,7 @@
             </div>
         </template>
     </panel>
+    <PageTutorialOverlay :tutorial="tutorial" />
 
     <div v-if="showForm" class="modal fade show d-block" tabindex="-1" aria-modal="true" role="dialog">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -113,8 +114,12 @@ import api from '@/utils/axios'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import CurrencyInput from '@/components/general/CurrencyInput'
 import configLanguaje from '@/utils/datatableUtils'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { schoolOutingsTutorial } from '@/tutorials/operations'
 
 const router = useRouter()
+const tutorial = usePageTutorial(schoolOutingsTutorial)
 const outings = ref([])
 const loading = ref(false)
 const saving = ref(false)

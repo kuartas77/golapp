@@ -1,7 +1,7 @@
 <template>
     <panel>
         <template #header>
-            <div class="row g-3 align-items-center">
+            <div class="row g-3 align-items-center" data-tour="methodology-actions">
                 <div class="col-md-auto">
                     <button type="button" class="btn btn-primary" @click="openCreate">
                         Nuevo registro
@@ -12,11 +12,12 @@
                         Gestiona formatos metodológicos, planificaciones e informes por escuela.
                     </p>
                 </div>
+                <div class="col-md-auto"><button type="button" class="btn btn-info" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button></div>
             </div>
         </template>
 
         <template #body>
-            <ul class="nav nav-tabs mb-3" role="tablist">
+            <ul class="nav nav-tabs mb-3" role="tablist" data-tour="methodology-tabs">
                 <li v-for="tab in methodologyTabs" :key="tab.type" class="nav-item" role="presentation">
                     <button
                         type="button"
@@ -29,7 +30,7 @@
                 </li>
             </ul>
 
-            <DatatableTemplate
+            <div data-tour="methodology-table"><DatatableTemplate
                 ref="table"
                 id="methodology-records-table"
                 :options="options"
@@ -109,9 +110,10 @@
                         </button>
                     </div>
                 </template>
-            </DatatableTemplate>
+            </DatatableTemplate></div>
         </template>
     </panel>
+    <PageTutorialOverlay :tutorial="tutorial" />
 
     <div
         ref="modalRef"
@@ -503,6 +505,9 @@
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref, useTemplateRef } from 'vue'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { methodologyTutorial } from '@/tutorials/training'
 import CustomSelect2 from '@/components/form/CustomSelect2.vue'
 import { usePageTitle } from '@/composables/use-meta'
 import { useAppState } from '@/store/app-state'
@@ -520,6 +525,7 @@ import {
 } from './methodology-form-definitions'
 
 usePageTitle('Metodología')
+const tutorial = usePageTutorial(methodologyTutorial)
 
 const appState = useAppState()
 const authUser = useAuthUser()

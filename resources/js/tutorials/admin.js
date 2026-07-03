@@ -182,3 +182,12 @@ export const schoolsInfoTutorial = {
         },
     ],
 }
+
+export const contractsTutorial = {
+    steps: [
+        { id: 'admin-contracts-actions', selector: '[data-tour="admin-contracts-actions"]', title: 'Gestiona los contratos', text: 'La cabecera permite recargar la configuracion y guardar los cambios del contrato activo.' },
+        { id: 'admin-contracts-types', selector: '[data-tour="admin-contracts-types"]', title: 'Selecciona el tipo', text: 'Elige el documento que deseas configurar para la escuela.' },
+        { id: 'admin-contracts-editor', selector: '[data-tour="admin-contracts-editor"]', title: 'Configura el contenido', text: 'Edita el texto, estado y requisitos del contrato seleccionado.' },
+        { id: 'admin-contracts-preview', selector: '[data-tour="admin-contracts-preview"]', title: 'Revisa el resultado', text: 'Comprueba las variables y el resumen antes de guardar los cambios.' },
+    ],
+}

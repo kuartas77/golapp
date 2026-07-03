@@ -9,7 +9,7 @@
                         </div>
 
                         <template v-else-if="isReady">
-                            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+                            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4" data-tour="instructor-activity-actions">
                                 <div>
                                     <h3 class="mb-1">Actividad de instructores</h3>
                                     <p class="text-muted mb-0">
@@ -17,6 +17,7 @@
                                     </p>
                                 </div>
                                 <div class="d-flex gap-2 flex-wrap">
+                                    <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button>
                                     <a
                                         :href="excelUrl"
                                         target="_blank"
@@ -38,7 +39,7 @@
                                 {{ loadError }}
                             </div>
 
-                            <div class="row g-3 align-items-end mb-4">
+                            <div class="row g-3 align-items-end mb-4" data-tour="instructor-activity-filters">
                                 <div class="col-12 col-md-3">
                                     <label class="form-label" for="instructor-activity-year">Año</label>
                                     <CustomSelect2
@@ -73,7 +74,7 @@
                                 </div>
                             </div>
 
-                            <div class="table-responsive-sm">
+                            <div class="table-responsive-sm" data-tour="instructor-activity-table">
                                 <DatatableTemplate
                                     id="instructor-activity-report-table"
                                     ref="instructorActivityTable"
@@ -100,6 +101,7 @@
         </div>
     </div>
 
+    <PageTutorialOverlay :tutorial="tutorial" />
     <breadcrumb :parent="'Informes'" :current="'Actividad de instructores'" />
 </template>
 
@@ -112,6 +114,11 @@ export default {
 <script setup>
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import useInstructorActivityReport from '@/composables/reports/instructor-activity-report'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { instructorActivityReportTutorial } from '@/tutorials/reports'
+
+const tutorial = usePageTutorial(instructorActivityReportTutorial)
 
 const {
     columns,

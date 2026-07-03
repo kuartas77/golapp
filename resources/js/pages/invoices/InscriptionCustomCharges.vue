@@ -3,18 +3,18 @@
         <div class="row layout-top-spacing">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" data-tour="custom-charges-actions">
                         <div>
                             <h4 class="mb-1"><i class="fa fa-receipt"></i> Cargos Personalizados</h4>
                             <small class="text-muted">Cargos asignados a inscripciones antes de facturarse.</small>
                         </div>
-                        <button type="button" class="btn btn-outline-primary btn-sm" @click="reloadTable">
+                        <div class="d-flex gap-2"><button type="button" class="btn btn-outline-primary btn-sm" @click="reloadTable">
                             <i class="fa fa-sync"></i> Actualizar
-                        </button>
+                        </button><button type="button" class="btn btn-info btn-sm" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button></div>
                     </div>
 
                     <div class="card-body">
-                        <div class="table-responsive-sm">
+                        <div class="table-responsive-sm" data-tour="custom-charges-table">
                             <DatatableTemplate
                                 id="custom-charges-table"
                                 ref="custom_charges_table"
@@ -109,6 +109,7 @@
             </div>
         </div>
     </div>
+    <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 
 <script setup>
@@ -121,8 +122,12 @@ import flatPickr from 'vue-flatpickr-component'
 import { Spanish } from 'flatpickr/dist/l10n/es.js'
 import 'flatpickr/dist/flatpickr.css'
 import '@/assets/sass/forms/custom-flatpickr.css'
+import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import { usePageTutorial } from '@/composables/usePageTutorial'
+import { customChargesTutorial } from '@/tutorials/invoices'
 
 const saving = ref(false)
+const tutorial = usePageTutorial(customChargesTutorial)
 const deletingId = ref(null)
 const modalElement = ref(null)
 const formMessage = ref('')
