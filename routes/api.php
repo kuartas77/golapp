@@ -30,6 +30,7 @@ use App\Http\Controllers\API\TrainingSessionsController as ApiTrainingSessionsCo
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Assists\AssistController;
 use App\Http\Controllers\BackOffice\SchoolController as BackOfficeShoolController;
+use App\Http\Controllers\Competition\CompetitionStatsController;
 use App\Http\Controllers\Competition\GameController;
 use App\Http\Controllers\DataTableController;
 use App\Http\Controllers\Evaluations\EvaluationTemplateController;
@@ -52,7 +53,6 @@ use App\Http\Controllers\Payments\PaymentController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\PlayerStatsController;
-use App\Http\Controllers\Competition\CompetitionStatsController;
 use App\Http\Controllers\Portal\ContractController as PortalContract;
 use App\Http\Controllers\Portal\InscriptionsController as PortalInscription;
 use App\Http\Controllers\Portal\SchoolsController as PortalSchool;
@@ -61,8 +61,8 @@ use App\Http\Controllers\Reports\ReportAttendancePaymentController;
 use App\Http\Controllers\Reports\ReportDebtorController;
 use App\Http\Controllers\Reports\ReportInstructorActivityController;
 use App\Http\Controllers\Reports\ReportPaymentController;
-use App\Http\Controllers\SchoolPages\SchoolsController;
 use App\Http\Controllers\SchoolOutings\SchoolOutingController;
+use App\Http\Controllers\SchoolPages\SchoolsController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
