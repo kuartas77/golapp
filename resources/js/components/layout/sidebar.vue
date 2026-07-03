@@ -49,8 +49,9 @@
                             </router-link>
                         </li>
                         <li v-if="canCompetitionStats">
-                            <router-link :to="{ name: 'competition-stats.index' }" @click="toggleMobileMenu">
-                                Estadísticas de Competencias
+                            <router-link :to="{ name: 'competition-stats.index' }" @click="toggleMobileMenu"
+                                v-tooltip.right="'Estadísticas de competencias'">
+                                Estad. competencias
                             </router-link>
                         </li>
                     </ul>
@@ -111,8 +112,8 @@
                             <router-link :to="{ name: 'users' }" @click="toggleMobileMenu">Usuarios</router-link>
                         </li>
                         <li v-if="canTrainingGroups">
-                            <router-link :to="{ name: 'training-groups' }" @click="toggleMobileMenu">G.
-                                Entrenamiento</router-link>
+                            <router-link :to="{ name: 'training-groups' }" @click="toggleMobileMenu"
+                                v-tooltip.right="'Grupos de entrenamiento'">G. Entrenamiento</router-link>
                         </li>
                         <li v-if="canTrainingGroups">
                             <router-link :to="{ name: 'training-schedules' }" @click="toggleMobileMenu">
@@ -120,8 +121,8 @@
                             </router-link>
                         </li>
                         <li v-if="canCompetitionGroups">
-                            <router-link :to="{ name: 'competition-groups' }" @click="toggleMobileMenu">G.
-                                Competencia</router-link>
+                            <router-link :to="{ name: 'competition-groups' }" @click="toggleMobileMenu"
+                                v-tooltip.right="'Grupos de competencia'">G. Competencia</router-link>
                         </li>
                         <li v-if="canCompetitionGroups">
                             <router-link :to="{ name: 'competition-tournaments' }" @click="toggleMobileMenu">
@@ -214,18 +215,21 @@
                                 </router-link>
                             </li>
                             <li>
-                                <router-link :to="{ name: 'invoices.custom-charges.index' }" @click="toggleMobileMenu">
-                                    Cargos Personalizados
+                                <router-link :to="{ name: 'invoices.custom-charges.index' }" @click="toggleMobileMenu"
+                                    v-tooltip.right="'Cargos personalizados'">
+                                    Cargos person.
                                 </router-link>
                             </li>
                             <li v-if="canPaymentRequests">
-                                <router-link :to="{ name: 'payment-requests.index' }" @click="toggleMobileMenu">
-                                    Comprobantes de Pago
+                                <router-link :to="{ name: 'payment-requests.index' }" @click="toggleMobileMenu"
+                                    v-tooltip.right="'Comprobantes de pago'">
+                                    Comp. de pago
                                 </router-link>
                             </li>
                             <li v-if="canUniformRequests">
-                                <router-link :to="{ name: 'uniform-requests.index' }" @click="toggleMobileMenu">
-                                    Solicitudes de Uniformes
+                                <router-link :to="{ name: 'uniform-requests.index' }" @click="toggleMobileMenu"
+                                    v-tooltip.right="'Solicitudes de uniformes'">
+                                    Sol. de uniformes
                                 </router-link>
                             </li>
                         </ul>
@@ -325,8 +329,9 @@
                                 </router-link>
                             </li>
                             <li>
-                                <router-link :to="{ name: 'reports.instructor-activity' }" @click="toggleMobileMenu">
-                                    Actividad de instructores
+                                <router-link :to="{ name: 'reports.instructor-activity' }" @click="toggleMobileMenu"
+                                    v-tooltip.right="'Actividad de instructores'">
+                                    Act. de instructores
                                 </router-link>
                             </li>
                             <li>
@@ -340,8 +345,9 @@
                                 </router-link>
                             </li>
                             <li>
-                                <router-link :to="{ name: 'reports.attendance-payment' }" @click="toggleMobileMenu">
-                                    Mensualidades vs Asistencias
+                                <router-link :to="{ name: 'reports.attendance-payment' }" @click="toggleMobileMenu"
+                                    v-tooltip.right="'Mensualidades vs. asistencias'">
+                                    Mens. vs. asist.
                                 </router-link>
                             </li>
                         </ul>
@@ -383,7 +389,8 @@
                     </router-link>
                 </li>
                 <li v-if="canTrainingSessions" class="menu">
-                    <router-link :to="{ name: 'training-sessions' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                    <router-link :to="{ name: 'training-sessions' }" class="dropdown-toggle" @click="toggleMobileMenu"
+                        v-tooltip.right="'Sesiones de entrenamiento'">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
