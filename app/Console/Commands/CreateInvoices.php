@@ -22,7 +22,7 @@ class CreateInvoices extends Command
         parent::__construct();
     }
 
-    public function handle()
+    public function handle(): int
     {
         $currentDate = now();
 
@@ -103,6 +103,8 @@ class CreateInvoices extends Command
                     }
                 }
             });
+
+        return self::SUCCESS;
     }
 
     private function makeItemsInvoice(array &$invoiceData, array $pendingMonths, array $pendingUniformRequests, Collection $customCharges)

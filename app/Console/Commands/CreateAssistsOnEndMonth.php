@@ -51,7 +51,7 @@ class CreateAssistsOnEndMonth extends Command
 
             if (!$currentDate->isLastOfMonth()) {
                 logger(__CLASS__, [$currentDate->format('Y-m-d H:i:s')]);
-                return 0;
+                return self::SUCCESS;
             }
 
             $targetDate = $currentDate->copy()->addDay();
@@ -95,11 +95,16 @@ class CreateAssistsOnEndMonth extends Command
                 });
             }
         } catch (\Throwable $th) {
-            DB::rollBack();
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
             report($th);
+
+            return self::FAILURE;
         }
 
-        return 0;
+        return self::SUCCESS;
     }
 
     private function getInscriptionsByGroup(array $params, int $school_id, int $inscriptionYear): Collection

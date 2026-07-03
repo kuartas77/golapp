@@ -17,7 +17,7 @@ class NotifyUserOfCompletedExport implements ShouldQueue
 
     }
 
-    public function handle()
+    public function handle(): void
     {
         $this->user->notify(new ExportClaimNotification($this->filename));
     }

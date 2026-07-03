@@ -40,7 +40,7 @@ class CheckPayments extends Command
      *
      * @return int
      */
-    public function handle(): Int
+    public function handle(): int
     {
         $months = $this->getAndCheckMonths(collect(config('variables.KEY_INDEX_MONTHS')));
 
@@ -87,7 +87,7 @@ class CheckPayments extends Command
         });
 
 
-        return 1;
+        return self::SUCCESS;
     }
 
     private function getAndCheckMonths(Collection $months): Collection

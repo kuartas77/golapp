@@ -19,10 +19,9 @@ class UpdateCategoryPlayers extends Command
         parent::__construct();
     }
 
-    public function handle(): Int
+    public function handle(): int
     {
         try {
-
             Player::query()->whereRelation('inscriptions', 'year', '>=', now()->year)->chunkByIdDesc(50, function($players){
                 DB::transaction(function() use($players){
                     foreach ($players as $player) {
@@ -39,8 +38,10 @@ class UpdateCategoryPlayers extends Command
             });
         } catch (\Throwable $th) {
             report($th);
-        } finally {
-            return 1;
+
+            return self::FAILURE;
         }
+
+        return self::SUCCESS;
     }
 }
