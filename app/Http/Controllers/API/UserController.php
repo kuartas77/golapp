@@ -15,6 +15,6 @@ class UserController extends Controller
 
     public function user(Request $request): AuthUserResource
     {
-        return new AuthUserResource($request->user()->loadMissing('roles'));
+        return new AuthUserResource($request->user());
     }
 }

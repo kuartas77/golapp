@@ -12,8 +12,10 @@ use App\Models\TrainingGroup;
 use App\Models\TrainingSession;
 use App\Models\User;
 use App\Repositories\InvoiceRepository;
+use App\Service\Auth\AuthUserContext;
 use App\Service\Notification\TopicNotificationStoreService;
 use App\Service\Player\PlayerStatsService;
+use Illuminate\Support\Facades\Cache;
 use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
@@ -84,6 +86,34 @@ final class SchoolPermissionsTest extends TestCase
             ->getJson('/api/v2/user')
             ->assertOk()
             ->assertJsonPath('data.school_id', $secondarySchool->id);
+    }
+
+    public function test_authenticated_user_context_is_cached_and_invalidated_when_user_changes(): void
+    {
+        Cache::flush();
+
+        $user = User::findOrFail($this->user->id);
+        $this->withSession(['selected_school_id' => $this->school['id']]);
+
+        $context = app(AuthUserContext::class);
+        $payload = $context->get($user);
+
+        $this->assertSame($user->name, $payload['name']);
+        $this->assertTrue(Cache::has(sprintf(
+            'auth-user-context:%d:%d:u1:s1',
+            $user->id,
+            $this->school['id'],
+        )));
+
+        $user->update(['name' => 'Usuario con contexto actualizado']);
+        $updatedPayload = $context->get($user->fresh());
+
+        $this->assertSame('Usuario con contexto actualizado', $updatedPayload['name']);
+        $this->assertTrue(Cache::has(sprintf(
+            'auth-user-context:%d:%d:u2:s1',
+            $user->id,
+            $this->school['id'],
+        )));
     }
 
     public function test_user_endpoint_reflects_updated_permissions_for_school_and_instructor_users(): void

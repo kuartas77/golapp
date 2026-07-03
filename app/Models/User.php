@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Notifications\UserPasswordResetNotification;
+use App\Service\Auth\AuthUserContext;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -65,6 +66,13 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $appends = [
         'url_activate'
     ];
+
+    protected static function booted(): void
+    {
+        static::saved(fn (self $user) => AuthUserContext::forgetUser($user->id));
+        static::deleted(fn (self $user) => AuthUserContext::forgetUser($user->id));
+        static::restored(fn (self $user) => AuthUserContext::forgetUser($user->id));
+    }
 
     public function setPasswordAttribute($value): void
     {

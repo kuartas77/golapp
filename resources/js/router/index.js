@@ -370,7 +370,6 @@ router.beforeEach(async (to, from, next) => {
     if (isGuestRoute) return next();
 
     const isAuth = await userStore.init({
-        force: true,
         silent: true,
         preserveStateOnError: true,
     });

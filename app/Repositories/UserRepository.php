@@ -7,6 +7,7 @@ namespace App\Repositories;
 use App\Models\SchoolUser;
 use App\Models\User;
 use App\Notifications\RegisterNotification;
+use App\Service\Auth\AuthUserContext;
 use App\Traits\ErrorTrait;
 use Exception;
 use Illuminate\Foundation\Http\FormRequest;
@@ -51,6 +52,7 @@ class UserRepository
             $attributes = $formRequest->validated() + ['school_id' => $school->id, 'password' => $password];
             $user = $this->user->query()->create($attributes);
             $user->syncRoles([$formRequest->input('rol_id')]);
+            AuthUserContext::forgetUser($user->id);
             $user->profile()->create();
 
             $schoolUser = new SchoolUser();
@@ -83,6 +85,7 @@ class UserRepository
             DB::beginTransaction();
             $user->update($formRequest->validated());
             $user->syncRoles([$formRequest->input('rol_id')]);
+            AuthUserContext::forgetUser($user->id);
             Cache::forget('KEY_USERS_' . $user->school_id);
             DB::commit();
 

@@ -7,6 +7,7 @@ use App\Models\SchoolUser;
 use App\Models\Setting;
 use App\Models\User;
 use App\Notifications\RegisterNotification;
+use App\Service\Auth\AuthUserContext;
 use App\Traits\UploadFile;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
@@ -41,6 +42,7 @@ class RegisterService
                 ]);
 
                 $user->syncRoles([User::SCHOOL]);
+                AuthUserContext::forgetUser($user->id);
                 $user->profile()->create();
             }else{
                 $user = User::query()->firstWhere('email', $request->email);

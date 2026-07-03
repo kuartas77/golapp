@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\School;
+use App\Service\Auth\AuthUserContext;
 
 class SchoolObserver
 {
@@ -23,9 +24,10 @@ class SchoolObserver
      * @param School $school
      * @return void
      */
-    public function updated(School $school)
+    public function updated(School $school): void
     {
-        //
+        School::forgetCachedSchool($school->id);
+        AuthUserContext::forgetSchool($school->id);
     }
 
     /**

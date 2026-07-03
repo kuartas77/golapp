@@ -10,6 +10,7 @@ use App\Models\Setting;
 use App\Models\SettingValue;
 use App\Models\User;
 use App\Notifications\RegisterNotification;
+use App\Service\Auth\AuthUserContext;
 use App\Service\InscriptionLimitService;
 use App\Traits\UploadFile;
 use Illuminate\Foundation\Http\FormRequest;
@@ -184,6 +185,7 @@ class SuperAdminSchoolService
             ]);
 
             $user->syncRoles([User::SCHOOL]);
+            AuthUserContext::forgetUser($user->id);
 
             if ($user->profile()->doesntExist()) {
                 $user->profile()->create();
