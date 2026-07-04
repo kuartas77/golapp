@@ -3,7 +3,6 @@
 namespace App\Exports;
 
 use App\Repositories\GameRepository;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromView;
@@ -18,7 +17,7 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 
-class MatchDetailExport implements ShouldQueue, FromView, WithTitle, WithStyles , ShouldAutoSize, WithEvents
+class MatchDetailExport implements FromView, WithTitle, WithStyles , ShouldAutoSize, WithEvents
 {
     use Exportable;
 
