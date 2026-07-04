@@ -153,7 +153,7 @@
                                 :multiple="true"
                                 placeholder="Selecciona una o varias escuelas"
                                 search-placeholder="Buscar escuela..."
-                                @update:modelValue="handleChange"
+                                @update:modelValue="(value) => onSchoolsChange(value, handleChange, setFieldValue)"
                             />
                         </Field>
                         <ErrorMessage name="multiple_schools" class="custom-error mt-2" as="div" />
@@ -245,6 +245,14 @@ const onCampusChange = (event, handleChange, setFieldValue) => {
 
     if (!event.target.checked) {
         setFieldValue('multiple_schools', [])
+    }
+}
+
+const onSchoolsChange = (value, handleChange, setFieldValue) => {
+    handleChange(value)
+
+    if (!Array.isArray(value) || value.length === 0) {
+        setFieldValue('is_campus', false)
     }
 }
 </script>

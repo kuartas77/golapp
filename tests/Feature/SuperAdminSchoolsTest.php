@@ -361,6 +361,42 @@ final class SuperAdminSchoolsTest extends TestCase
         ]);
     }
 
+    public function testSuperAdminCanUpdateLegacySlugSchoolAndRemoveCampusGroup(): void
+    {
+        $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
+        $secondarySchool = School::query()->findOrFail($this->createSchool([
+            'email' => 'remove-campus@example.com',
+            'slug' => 'remove-campus',
+        ])['id']);
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->forceFill(['slug' => 'slug-historico-personalizado'])->save();
+        $this->storeMultipleSchoolsGroup([$school->id, $secondarySchool->id]);
+
+        $this->actingAs($superAdmin)
+            ->withHeader('Accept', 'application/json')
+            ->post("/api/v2/admin/schools/{$school->slug}", [
+                '_method' => 'PUT',
+                'name' => $school->name,
+                'agent' => 'Agente sin sedes',
+                'address' => $school->address,
+                'phone' => $school->phone,
+                'email' => $school->email,
+                'is_enable' => '1',
+                'is_campus' => '0',
+                'multiple_schools' => [],
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertSame('Agente sin sedes', $school->fresh()->agent);
+        foreach ([$school->id, $secondarySchool->id] as $schoolId) {
+            $this->assertDatabaseMissing('setting_values', [
+                'school_id' => $schoolId,
+                'setting_key' => Setting::MULTIPLE_SCHOOLS,
+            ]);
+        }
+    }
+
     public function testSuperAdminValidatesCampusCreationPayload(): void
     {
         $superAdmin = $this->createSuperAdminForSchool($this->school['id']);

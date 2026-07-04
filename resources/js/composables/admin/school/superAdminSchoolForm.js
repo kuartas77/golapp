@@ -181,7 +181,10 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
                 globalError.value = message
             })
 
-            if (error.response?.status !== 422) {
+            if (error.response?.status === 422) {
+                globalError.value = 'No fue posible guardar. Revisa los campos marcados en el formulario.'
+                showMessage(globalError.value, 'error')
+            } else {
                 showMessage(
                     error.response?.data?.message || 'No fue posible guardar la escuela.',
                     'error'

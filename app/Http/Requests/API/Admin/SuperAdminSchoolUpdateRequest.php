@@ -7,7 +7,6 @@ namespace App\Http\Requests\API\Admin;
 use App\Models\School;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class SuperAdminSchoolUpdateRequest extends FormRequest
@@ -25,7 +24,6 @@ class SuperAdminSchoolUpdateRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', Rule::in([$school->name])],
-            'slug' => ['required', 'string', Rule::in([$school->slug])],
             'agent' => ['required', 'string', 'max:255'],
             'address' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:255'],
@@ -53,7 +51,6 @@ class SuperAdminSchoolUpdateRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'slug' => Str::slug((string) $this->input('name')),
             'is_campus' => $this->boolean('is_campus'),
             'multiple_schools' => array_values(array_filter(
                 Arr::wrap($this->input('multiple_schools', [])),
