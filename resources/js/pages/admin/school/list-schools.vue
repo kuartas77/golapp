@@ -51,6 +51,14 @@
                         >
                             Exportar datos
                         </button>
+                        <button
+                            type="button"
+                            class="btn btn-outline-danger btn-sm"
+                            :disabled="['pending', 'processing'].includes(props.rowData.deletion_status)"
+                            @click="deleteSchool(props.rowData)"
+                        >
+                            {{ ['pending', 'processing'].includes(props.rowData.deletion_status) ? 'Eliminando...' : 'Eliminar' }}
+                        </button>
                     </div>
                 </template>
                 </DatatableTemplate>
@@ -312,6 +320,7 @@ const selectedExportSchool = ref(null)
 const dataExports = ref([])
 const isLoadingExports = ref(false)
 const isRequestingExport = ref(false)
+const isDeletingSchool = ref(false)
 const exportsError = ref('')
 
 const groupedCatalog = computed(() => {
@@ -469,6 +478,38 @@ const requestDataExport = async () => {
         showMessage(exportsError.value, 'error')
     } finally {
         isRequestingExport.value = false
+    }
+}
+
+const deleteSchool = async (school) => {
+    if (isDeletingSchool.value) {
+        return
+    }
+
+    const confirmation = window.prompt(
+        `Esta acción eliminará definitivamente todos los datos y archivos de la escuela.\n\nEscribe exactamente "${school.name}" para confirmar.`
+    )
+
+    if (confirmation === null) {
+        return
+    }
+
+    if (confirmation !== school.name) {
+        showMessage('El nombre de confirmación no coincide.', 'error')
+        return
+    }
+
+    isDeletingSchool.value = true
+    try {
+        const { data } = await api.delete(`/api/v2/admin/schools/${school.slug}`, {
+            data: { confirmation },
+        })
+        showMessage(data.message || 'La eliminación definitiva fue programada.')
+        reloadTable()
+    } catch (error) {
+        showMessage(error.response?.data?.message || 'No fue posible programar la eliminación.', 'error')
+    } finally {
+        isDeletingSchool.value = false
     }
 }
 

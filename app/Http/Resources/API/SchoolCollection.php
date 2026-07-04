@@ -10,7 +10,7 @@ class SchoolCollection extends ResourceCollection
     /**
      * Transform the resource collection into an array.
      *
-     * @param Request $request
+     * @param  Request  $request
      * @return array
      */
     public function toArray($request)
@@ -37,6 +37,7 @@ class SchoolCollection extends ResourceCollection
                 'training_groups_count' => $school->training_groups_count,
                 'is_enable' => $school->is_enable,
                 'deleted_at' => $school->deleted_at,
+                'deletion_status' => $school->deletion_status,
                 'logo' => $school->logo_file,
             ];
         })->toArray();

@@ -179,6 +179,7 @@ Route::prefix('v2')->group(function () {
                 Route::get('schools/{school}', [SchoolController::class, 'show']);
                 Route::post('schools', [SchoolController::class, 'store']);
                 Route::put('schools/{school}', [SchoolController::class, 'update']);
+                Route::delete('schools/{school}', [SchoolController::class, 'destroy']);
             });
 
             Route::middleware(['role:super-admin'])->prefix('evaluation-templates')->group(function () {

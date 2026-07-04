@@ -7,17 +7,17 @@ use App\Http\Requests\API\Admin\SchoolPermissionsUpdateRequest;
 use App\Http\Requests\API\Admin\SuperAdminSchoolStoreRequest;
 use App\Http\Requests\API\Admin\SuperAdminSchoolUpdateRequest;
 use App\Http\Resources\API\SchoolCollection;
+use App\Jobs\DeleteSchoolPermanently;
 use App\Models\School;
 use App\Service\Admin\SuperAdminSchoolService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 
 class SchoolController extends Controller
 {
-    public function __construct(private SuperAdminSchoolService $superAdminSchoolService)
-    {
-    }
+    public function __construct(private SuperAdminSchoolService $superAdminSchoolService) {}
 
     /**
      * Display a listing of the resource.
@@ -27,8 +27,8 @@ class SchoolController extends Controller
     public function index(Request $request)
     {
         $schools = School::withCount([
-            'users', 'inscriptions', 'players', 'payments', 'assists', 'skillControls', 'matches', 'tournaments', 'trainingGroups', 'competitionGroups', 'incidents'
-        ])->when($request->orderBy, fn($query) => $query->orderBy($request->orderBy, $request->order))
+            'users', 'inscriptions', 'players', 'payments', 'assists', 'skillControls', 'matches', 'tournaments', 'trainingGroups', 'competitionGroups', 'incidents',
+        ])->when($request->orderBy, fn ($query) => $query->orderBy($request->orderBy, $request->order))
             ->orderByRaw('-id ASC');
 
         return new SchoolCollection($schools->paginate($request->per_page));
@@ -37,7 +37,7 @@ class SchoolController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param Request $request
+     * @param  Request  $request
      * @return Response
      */
     public function store(SuperAdminSchoolStoreRequest $request): JsonResponse
@@ -58,7 +58,7 @@ class SchoolController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param int $id
+     * @param  int  $id
      * @return Response
      */
     public function show(School $school): JsonResponse
@@ -71,8 +71,8 @@ class SchoolController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param Request $request
-     * @param int $id
+     * @param  Request  $request
+     * @param  int  $id
      * @return Response
      */
     public function update(SuperAdminSchoolUpdateRequest $request, School $school): JsonResponse
@@ -125,7 +125,7 @@ class SchoolController extends Controller
         ])->save();
 
         School::forgetCachedSchool($school->id);
-        \Illuminate\Support\Facades\Cache::forget('admin.schools');
+        Cache::forget('admin.schools');
 
         return response()->json([
             'success' => true,
@@ -136,11 +136,30 @@ class SchoolController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
+     * @param  int  $id
      * @return Response
      */
-    public function destroy($id): \Illuminate\Http\RedirectResponse
+    public function destroy(Request $request, School $school): JsonResponse
     {
-        return back();
+        $validated = $request->validate([
+            'confirmation' => ['required', 'string'],
+        ]);
+
+        abort_unless(hash_equals($school->name, $validated['confirmation']), Response::HTTP_UNPROCESSABLE_ENTITY, 'El nombre de confirmación no coincide.');
+        abort_if(in_array($school->deletion_status, ['pending', 'processing'], true), Response::HTTP_CONFLICT, 'La eliminación de esta escuela ya está en proceso.');
+
+        $school->forceFill([
+            'is_enable' => false,
+            'deletion_status' => 'pending',
+            'deletion_error' => null,
+            'deletion_requested_at' => now(),
+        ])->save();
+
+        DeleteSchoolPermanently::dispatch($school->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'La eliminación definitiva fue programada.',
+        ], Response::HTTP_ACCEPTED);
     }
 }

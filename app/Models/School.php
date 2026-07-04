@@ -56,7 +56,10 @@ class School extends Model
         'school_permissions',
         'short_name',
         'email_info',
-        'auto_invoice'
+        'auto_invoice',
+        'deletion_status',
+        'deletion_error',
+        'deletion_requested_at',
     ];
 
     protected $casts = [
@@ -69,6 +72,7 @@ class School extends Model
         'inscriptions_enabled' => 'bool',
         'school_permissions' => 'array',
         'auto_invoice' => 'bool',
+        'deletion_requested_at' => 'datetime',
     ];
 
     protected $appends = [
