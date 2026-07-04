@@ -141,6 +141,8 @@ class SchoolController extends Controller
      */
     public function destroy(Request $request, School $school): JsonResponse
     {
+        abort_if($school->is_enable, Response::HTTP_CONFLICT, 'Primero debes desactivar la escuela antes de eliminarla.');
+
         $validated = $request->validate([
             'confirmation' => ['required', 'string'],
         ]);

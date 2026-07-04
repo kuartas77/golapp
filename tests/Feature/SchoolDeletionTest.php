@@ -28,7 +28,7 @@ class SchoolDeletionTest extends TestCase
     public function test_super_admin_can_schedule_a_confirmed_school_deletion(): void
     {
         Queue::fake();
-        [$school] = $this->createSchoolAndUser();
+        [$school] = $this->createSchoolAndUser(['is_enable' => false]);
         $superAdmin = $this->createUser(roles: [User::SUPER_ADMIN]);
 
         $this->actingAs($superAdmin)
@@ -46,13 +46,32 @@ class SchoolDeletionTest extends TestCase
     public function test_confirmation_must_match_the_school_name(): void
     {
         Queue::fake();
-        [$school] = $this->createSchoolAndUser();
+        [$school] = $this->createSchoolAndUser(['is_enable' => false]);
         $superAdmin = $this->createUser(roles: [User::SUPER_ADMIN]);
 
         $this->actingAs($superAdmin)
             ->deleteJson("/api/v2/admin/schools/{$school['slug']}", ['confirmation' => 'otra escuela'])
             ->assertUnprocessable();
 
+        Queue::assertNothingPushed();
+    }
+
+    public function test_active_school_cannot_be_deleted(): void
+    {
+        Queue::fake();
+        [$school] = $this->createSchoolAndUser(['is_enable' => true]);
+        $superAdmin = $this->createUser(roles: [User::SUPER_ADMIN]);
+
+        $this->actingAs($superAdmin)
+            ->deleteJson("/api/v2/admin/schools/{$school['slug']}", ['confirmation' => $school['name']])
+            ->assertConflict()
+            ->assertJsonPath('message', 'Primero debes desactivar la escuela antes de eliminarla.');
+
+        $this->assertDatabaseHas('schools', [
+            'id' => $school['id'],
+            'is_enable' => true,
+            'deletion_status' => null,
+        ]);
         Queue::assertNothingPushed();
     }
 

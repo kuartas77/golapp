@@ -54,7 +54,8 @@
                         <button
                             type="button"
                             class="btn btn-outline-danger btn-sm"
-                            :disabled="['pending', 'processing'].includes(props.rowData.deletion_status)"
+                            :disabled="props.rowData.is_enable || ['pending', 'processing'].includes(props.rowData.deletion_status)"
+                            :title="props.rowData.is_enable ? 'Primero debes desactivar la escuela' : 'Eliminar escuela definitivamente'"
                             @click="deleteSchool(props.rowData)"
                         >
                             {{ ['pending', 'processing'].includes(props.rowData.deletion_status) ? 'Eliminando...' : 'Eliminar' }}
