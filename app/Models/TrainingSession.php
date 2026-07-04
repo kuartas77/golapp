@@ -9,9 +9,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TrainingSession extends Model
 {
+    public const FORMAT_STANDARD = 'standard';
+    public const FORMAT_PLANNED = 'planned';
+
     use SoftDeletes;
     use GeneralScopes;
     use HasFactory;
@@ -22,6 +26,7 @@ class TrainingSession extends Model
         'school_id',
         'user_id',
         'training_group_id',
+        'format',
         'year',
         'period',
         'session',
@@ -63,5 +68,10 @@ class TrainingSession extends Model
     public function tasks()
     {
         return $this->hasMany(TrainingSessionDetail::class, 'training_session_id', 'id');
+    }
+
+    public function phases(): HasMany
+    {
+        return $this->hasMany(TrainingSessionPhase::class)->orderBy('position');
     }
 }

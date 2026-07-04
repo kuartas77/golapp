@@ -20,6 +20,7 @@ use App\Http\Controllers\API\Instructor\AssistsController;
 use App\Http\Controllers\API\Instructor\GroupsController;
 use App\Http\Controllers\API\LoginController;
 use App\Http\Controllers\API\MethodologyRecordController;
+use App\Http\Controllers\API\SessionPlanningController;
 use App\Http\Controllers\API\Notifications\HeaderNotificationsController;
 use App\Http\Controllers\API\Portal\GuardianAuthController;
 use App\Http\Controllers\API\Portal\GuardianEvaluationController;
@@ -272,6 +273,14 @@ Route::prefix('v2')->group(function () {
                 ->middleware('role:super-admin|school');
         });
 
+        Route::middleware('school.permission:school.module.session_planning')->prefix('session-plannings')->group(function () {
+            Route::post('', [SessionPlanningController::class, 'store']);
+            Route::get('attendance-context', [SessionPlanningController::class, 'attendanceContext']);
+            Route::get('{sessionPlanning}', [SessionPlanningController::class, 'show']);
+            Route::put('{sessionPlanning}', [SessionPlanningController::class, 'update']);
+            Route::delete('{sessionPlanning}', [SessionPlanningController::class, 'destroy']);
+        });
+
         Route::middleware('school.permission:school.module.methodology')->prefix('methodology-records')->group(function () {
             Route::get('', [MethodologyRecordController::class, 'index']);
             Route::post('', [MethodologyRecordController::class, 'store']);
@@ -337,6 +346,9 @@ Route::prefix('v2')->group(function () {
 
             Route::middleware('school.permission:school.module.training_sessions')->group(function () {
                 Route::get('training_sessions_enabled', [DataTableController::class, 'trainingSessions']);
+            });
+            Route::middleware('school.permission:school.module.session_planning')->group(function () {
+                Route::get('session_plannings', [DataTableController::class, 'sessionPlannings']);
             });
             Route::middleware('school.permission:school.module.methodology')->group(function () {
                 Route::get('methodology_records', [DataTableController::class, 'methodologyRecords']);

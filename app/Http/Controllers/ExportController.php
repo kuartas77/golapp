@@ -133,6 +133,12 @@ class ExportController extends Controller
         return $trainingSessionExportService->exportSessionPDF($id);
     }
 
+    public function exportSessionPlanning(int $id, TrainingSessionExportService $service, TrainingSessionRepository $repository)
+    {
+        $repository->findAccessiblePlannedOrFail($id);
+        return $service->exportPlannedSessionPDF($id);
+    }
+
     public function exportMethodologyRecord(int $id, MethodologyRecordExportService $exportService, MethodologyRecordRepository $repository)
     {
         $record = $repository->findAccessibleOrFail($id);

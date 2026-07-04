@@ -105,6 +105,12 @@ const routes = [
                 component: () => import('@/pages/training-sessions/Index.vue')
             },
             {
+                path: 'planificacion-sesiones',
+                name: 'session-plannings',
+                meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.sessionPlanning] },
+                component: () => import('@/pages/session-plannings/Index.vue')
+            },
+            {
                 path: 'metodologia',
                 name: 'methodology.index',
                 meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.methodology] },

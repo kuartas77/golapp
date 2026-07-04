@@ -202,6 +202,7 @@ class SchoolDataExportGenerator
                     $this->sheet('assists', 'asistencias', 'assists', fn ($query) => $query->where('school_id', $schoolId)),
                     $this->sheet('training_sessions', 'sesiones', 'training_sessions', fn ($query) => $query->where('school_id', $schoolId)),
                     $this->sheet('training_session_details', 'detalle_sesiones', 'training_session_details', fn ($query) => $query->whereIn('training_session_id', $this->ids('training_sessions', fn ($q) => $q->where('school_id', $schoolId)) ?: [0])),
+                    $this->sheet('training_session_phases', 'fases_sesiones', 'training_session_phases', fn ($query) => $query->whereIn('training_session_id', $this->ids('training_sessions', fn ($q) => $q->where('school_id', $schoolId)) ?: [0])),
                     $this->sheet('methodology_records', 'metodologia', 'methodology_records', fn ($query) => $query->where('school_id', $schoolId)),
                 ],
             ],

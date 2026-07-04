@@ -32,6 +32,9 @@ export const backofficeAccessRequirements = {
     trainingSessions: {
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.trainingSessions],
     },
+    sessionPlanning: {
+        schoolPermissions: [SCHOOL_PERMISSION_KEYS.sessionPlanning],
+    },
     methodology: {
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.methodology],
     },

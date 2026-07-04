@@ -44,7 +44,20 @@
                             Este periodo ya está cerrado para instructores. Solicita a la escuela una corrección administrativa.
                         </div>
 
-                        <Wizard v-model="currentStep" :options="wizardOptions" @finish="handleSubmit(null, onSubmit)">
+                        <div class="d-flex flex-wrap gap-2 mb-3 training-session-step-buttons">
+                            <button
+                                v-for="(label, index) in stepLabels"
+                                :key="label"
+                                type="button"
+                                class="btn btn-sm"
+                                :class="currentStep === index ? 'btn-primary' : 'btn-outline-primary'"
+                                @click="goToStep(index)"
+                            >
+                                {{ label }}
+                            </button>
+                        </div>
+
+                        <Wizard class="training-session-wizard" v-model="currentStep" :options="wizardOptions" @finish="handleSubmit(null, onSubmit)">
                             <template #info>
                                 <h6 class="d-flex block-helper justify-content-center">
                                     Los campos con <span class="text-danger">&ensp;(*)&ensp;</span> son requeridos.
@@ -326,7 +339,7 @@
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <Field name="absence_inscription_ids" v-slot="{ field, handleChange, handleBlur }">
-                                                    <label for="absence_inscription_ids" class="form-label">Deportistas que faltaron</label>
+                                                    <label for="absence_inscription_ids" class="form-label d-block text-center">Deportistas</label>
                                                     <div class="row g-3 mb-1 text-center fw-semibold" aria-hidden="true">
                                                         <div class="col-6 text-success">Izquierda: Asistieron</div>
                                                         <div class="col-6 text-danger">Derecha: Faltaron</div>
@@ -392,8 +405,17 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="onCancel">
+                        <button type="button" class="btn btn-secondary" @click="onCancel">
                             Cerrar
+                        </button>
+                        <button v-if="currentStep > 0" type="button" class="btn btn-outline-primary" @click="previousStep">
+                            Anterior
+                        </button>
+                        <button v-if="currentStep < stepLabels.length - 1" type="button" class="btn btn-primary" @click="nextStep">
+                            Siguiente
+                        </button>
+                        <button v-else type="button" class="btn btn-success" :disabled="isSubmitting || periodLocked" @click="handleSubmit(null, onSubmit)">
+                            Guardar
                         </button>
                     </div>
                 </div>
@@ -555,6 +577,7 @@ const schema = yup.object({
 const wizardOptions = computed(() => ({
     saveState: false,
     enableAllSteps: true,
+    enablePagination: false,
     labels: {
         finish: 'Guardar',
         next: 'Siguiente',
@@ -563,6 +586,8 @@ const wizardOptions = computed(() => ({
     onStepChanging: validateStepChange,
     onFinishing: async () => validateStepsUpTo(currentStep.value),
 }))
+
+const stepLabels = ['Información general', 'Ejercicio 1', 'Ejercicio 2', 'Ejercicio 3', 'Cierre']
 
 const fieldMeta = {
     training_group_id: { label: 'Grupo de entrenamiento', stepIndex: 0, stepTitle: 'Información general' },
@@ -1085,8 +1110,20 @@ function onInvalidSubmit({ errors }) {
     registerFormErrors(errors)
 }
 
-function goToStep(stepIndex) {
-    currentStep.value = stepIndex
+async function goToStep(stepIndex) {
+    if (stepIndex <= currentStep.value || await validateStepChange(currentStep.value, stepIndex)) {
+        currentStep.value = stepIndex
+    }
+}
+
+function previousStep() {
+    currentStep.value = Math.max(0, currentStep.value - 1)
+}
+
+async function nextStep() {
+    if (await validateStep(currentStep.value)) {
+        currentStep.value = Math.min(stepLabels.length - 1, currentStep.value + 1)
+    }
 }
 
 function onCancel() {
@@ -1132,5 +1169,15 @@ onMounted(() => {
 .suppress-validation-errors :deep(.is-invalid) {
     border-color: var(--bs-border-color, #ced4da) !important;
     background-image: none !important;
+}
+
+.training-session-wizard :deep(.steps),
+.training-session-wizard :deep(.actions) {
+    display: none !important;
+}
+
+.training-session-wizard :deep(.wizard-content),
+.training-session-wizard :deep(.content) {
+    margin: 0;
 }
 </style>

@@ -189,6 +189,22 @@ class DataTableController extends Controller
             ->toJson();
     }
 
+    public function sessionPlannings(Request $request)
+    {
+        return datatables()->eloquent($this->trainingSessionRepository->plannedDatatableQuery())
+            ->filterColumn('creator_name', fn ($query, $keyword) => $query->where('users.name', 'like', "%{$keyword}%"))
+            ->filterColumn('training_group_name', fn ($query, $keyword) => $query->where('training_groups.name', 'like', "%{$keyword}%"))
+            ->orderColumn('creator_name', 'users.name $1')
+            ->orderColumn('training_group_name', 'training_groups.name $1')
+            ->addColumn('creator_name', fn ($model) => $model->user?->name ?? '')
+            ->addColumn('training_group_name', fn ($model) => $model->training_group?->full_group ?? '')
+            ->editColumn('date', fn ($model) => Carbon::parse($model->date)->format('Y-m-d'))
+            ->editColumn('created_at', fn ($model) => $model->created_at?->format('Y-m-d'))
+            ->addColumn('period_locked', fn ($model) => ! $this->periodEditPolicy->canMutateDate($model->date))
+            ->addColumn('export_pdf_url', fn ($model) => route('session-plannings.pdf', $model->id))
+            ->toJson();
+    }
+
     public function methodologyRecords(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 403);

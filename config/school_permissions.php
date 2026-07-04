@@ -34,6 +34,12 @@ return [
             'group' => 'Operación deportiva',
             'default' => true,
         ],
+        'school.module.session_planning' => [
+            'label' => 'Planificación de sesiones',
+            'description' => 'Permite planificar sesiones con fases y diagramas de cancha.',
+            'group' => 'Operación deportiva',
+            'default' => false,
+        ],
         'school.module.methodology' => [
             'label' => 'Metodología',
             'description' => 'Permite gestionar formatos metodológicos, planificaciones e informes.',

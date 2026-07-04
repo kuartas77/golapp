@@ -405,6 +405,12 @@
                         </div>
                     </router-link>
                 </li>
+                <li v-if="canSessionPlanning" class="menu">
+                    <router-link :to="{ name: 'session-plannings' }" class="dropdown-toggle" @click="toggleMobileMenu"
+                        v-tooltip.right="'Planificación de sesiones'">
+                        <div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18"/></svg><span>Plan. sesiones</span></div>
+                    </router-link>
+                </li>
                 <li v-if="canMethodology" class="menu">
                     <router-link :to="{ name: 'methodology.index' }" class="dropdown-toggle" @click="toggleMobileMenu">
                         <div class="">
@@ -473,6 +479,7 @@ const canInscriptions = access.inscriptions
 const canEvaluations = access.evaluations
 const canAttendances = access.attendances
 const canTrainingSessions = access.trainingSessions
+const canSessionPlanning = access.sessionPlanning
 const canMethodology = access.methodology
 const canMatches = access.matches
 const canPayments = access.payments

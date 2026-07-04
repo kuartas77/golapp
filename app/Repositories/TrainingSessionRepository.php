@@ -19,10 +19,11 @@ class TrainingSessionRepository
         private TrainingSessionAttendanceService $attendanceService,
     ) {}
 
-    private function accessibleBaseQuery(): Builder
+    private function accessibleBaseQuery(string $format = TrainingSession::FORMAT_STANDARD): Builder
     {
         return $this->trainingSession->query()
             ->select('training_sessions.*')
+            ->where('training_sessions.format', $format)
             ->whereHas('training_group')
             ->schoolId()
             ->when(isInstructor(), function (Builder $query): void {
@@ -58,6 +59,22 @@ class TrainingSessionRepository
             ]);
     }
 
+    public function plannedDatatableQuery(): Builder
+    {
+        return $this->accessibleQueryForFormat(TrainingSession::FORMAT_PLANNED)
+            ->leftJoin('users', 'users.id', '=', 'training_sessions.user_id')
+            ->leftJoin('training_groups', 'training_groups.id', '=', 'training_sessions.training_group_id')
+            ->addSelect(['users.name as creator_name_sort', 'training_groups.name as training_group_name_sort'])
+            ->withCount('phases');
+    }
+
+    private function accessibleQueryForFormat(string $format): Builder
+    {
+        return $this->accessibleBaseQuery($format)->with([
+            'school', 'user:id,name', 'training_group:id,name,category,days,schedules',
+        ]);
+    }
+
     public function list(): Collection
     {
         return $this->accessibleQuery()->get();
@@ -73,6 +90,18 @@ class TrainingSessionRepository
     public function findAccessibleForMutationOrFail(int $id): TrainingSession
     {
         return $this->accessibleBaseQuery()->findOrFail($id);
+    }
+
+    public function findAccessiblePlannedOrFail(int $id): TrainingSession
+    {
+        return $this->accessibleQueryForFormat(TrainingSession::FORMAT_PLANNED)
+            ->with('phases')
+            ->findOrFail($id);
+    }
+
+    public function findAccessiblePlannedForMutationOrFail(int $id): TrainingSession
+    {
+        return $this->accessibleBaseQuery(TrainingSession::FORMAT_PLANNED)->findOrFail($id);
     }
 
     public function findAccessibleTrainingGroupOrFail(int $trainingGroupId, int $year): TrainingGroup
@@ -120,6 +149,47 @@ class TrainingSessionRepository
         }
     }
 
+    public function storePlanned(array $payload): ?TrainingSession
+    {
+        $payload['format'] = TrainingSession::FORMAT_PLANNED;
+
+        return $this->persistPlanned(new TrainingSession(), $payload);
+    }
+
+    public function updatePlanned(TrainingSession $session, array $payload): bool
+    {
+        return (bool) $this->persistPlanned($session, $payload, true);
+    }
+
+    private function persistPlanned(TrainingSession $session, array $payload, bool $updating = false): TrainingSession|false|null
+    {
+        try {
+            return DB::transaction(function () use ($session, $payload, $updating): TrainingSession {
+                if ($updating) {
+                    $this->ensureSyncedIdentityIsUnchanged($session, $payload);
+                }
+                $this->ensureUniqueGroupDate($payload, $updating ? $session->id : null);
+                $session = $this->makeTraininSession($session, $payload);
+                $session->format = TrainingSession::FORMAT_PLANNED;
+                $session->save();
+                $session->phases()->delete();
+                $session->phases()->createMany($payload['phases']);
+
+                if ($payload['sync_attendance'] ?? false) {
+                    $group = $this->findAccessibleTrainingGroupOrFail((int) $payload['training_group_id'], (int) $payload['year']);
+                    $this->attendanceService->sync($session, $group, $payload['absence_inscription_ids'] ?? []);
+                }
+
+                return $session;
+            });
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (\Throwable $throwable) {
+            report($throwable);
+            return $updating ? false : null;
+        }
+    }
+
     public function update(TrainingSession $trainingSession, array $payload): bool
     {
         try {
@@ -162,6 +232,7 @@ class TrainingSessionRepository
         try {
             DB::transaction(function () use ($trainingSession): void {
                 $trainingSession->tasks()->delete();
+                $trainingSession->phases()->delete();
                 $trainingSession->delete();
             });
 
@@ -179,6 +250,7 @@ class TrainingSessionRepository
             'school_id',
             'user_id',
             'training_group_id',
+            'format',
             'year',
             'period',
             'session',

@@ -24,6 +24,57 @@ final class TrainingSessionsTest extends TestCase
         $this->withoutVite();
     }
 
+    public function testSessionPlanningCrudIsIsolatedFromStandardSessionsAndSharesDateUniqueness(): void
+    {
+        $school = School::findOrFail($this->school['id']);
+        $this->actingAs($this->user)->get('/planificacion-sesiones')->assertForbidden();
+        $this->actingAs($this->user)->postJson('/api/v2/session-plannings', [])->assertForbidden();
+        $school->forceFill(['school_permissions' => School::normalizeSchoolPermissions([
+            ...$school->getResolvedSchoolPermissions(),
+            'school.module.session_planning' => true,
+        ])])->save();
+        $group = $this->createTrainingGroup($school->id, $this->user, suffix: 'Planificación');
+        $payload = $this->plannedPayload($group->id);
+
+        $this->actingAs($this->user)->get('/planificacion-sesiones')->assertOk();
+
+        $response = $this->actingAs($this->user)->postJson('/api/v2/session-plannings', $payload)
+            ->assertCreated()->assertJsonCount(4, 'data.phases')->assertJsonPath('data.phases.0.name', 'Activación');
+        $id = (int) $response->json('data.id');
+
+        $this->assertDatabaseHas('training_sessions', ['id' => $id, 'format' => TrainingSession::FORMAT_PLANNED]);
+        $this->assertDatabaseCount('training_session_phases', 4);
+        $this->actingAs($this->user)->getJson("/api/v2/training-sessions/{$id}")->assertNotFound();
+        $this->actingAs($this->user)->getJson('/api/v2/datatables/training_sessions_enabled?draw=1&start=0&length=10')
+            ->assertOk()->assertJsonMissing(['id' => $id]);
+
+        $this->actingAs($this->user)->postJson('/api/v2/training-sessions', $this->sessionPayload($group->id, ['date' => $payload['date']]))
+            ->assertUnprocessable()->assertJsonValidationErrors('date');
+
+        $payload['phases'] = [$payload['phases'][0]];
+        $this->actingAs($this->user)->putJson("/api/v2/session-plannings/{$id}", $payload)
+            ->assertOk()->assertJsonCount(1, 'data.phases');
+        $this->assertDatabaseCount('training_session_phases', 1);
+
+        $this->actingAs($this->user)->get(route('session-plannings.pdf', $id))
+            ->assertOk()->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function testSessionPlanningRequiresBetweenOneAndFourNamedPhases(): void
+    {
+        $school = School::findOrFail($this->school['id']);
+        $school->forceFill(['school_permissions' => School::normalizeSchoolPermissions([
+            ...$school->getResolvedSchoolPermissions(), 'school.module.session_planning' => true,
+        ])])->save();
+        $group = $this->createTrainingGroup($school->id, $this->user, suffix: 'Validación');
+
+        $this->actingAs($this->user)->postJson('/api/v2/session-plannings', $this->plannedPayload($group->id, []))
+            ->assertUnprocessable()->assertJsonValidationErrors('phases');
+        $phases = array_fill(0, 5, ['name' => 'Fase', 'diagram' => []]);
+        $this->actingAs($this->user)->postJson('/api/v2/session-plannings', $this->plannedPayload($group->id, $phases))
+            ->assertUnprocessable()->assertJsonValidationErrors('phases');
+    }
+
     public function testSchoolUserCanListShowStoreUpdateAndExportTrainingSessions(): void
     {
         $group = $this->createTrainingGroup($this->school['id'], $this->user);
@@ -569,6 +620,20 @@ final class TrainingSessionsTest extends TestCase
             'feedback' => 'Sesión positiva',
             'tasks' => $this->makeTasks('EX'),
         ], $overrides);
+    }
+
+    private function plannedPayload(int $trainingGroupId, ?array $phases = null): array
+    {
+        $phases ??= collect(['Activación', 'Técnica', 'Táctica', 'Juego'])->map(fn ($name, $index) => [
+            'position' => $index + 1, 'name' => $name, 'time' => '15 min', 'dosage' => '2 series',
+            'description' => "Descripción {$name}",
+            'diagram' => [['id' => "p{$index}", 'type' => 'player', 'x' => 50, 'y' => 32, 'label' => '']],
+        ])->all();
+
+        $payload = $this->sessionPayload($trainingGroupId);
+        unset($payload['tasks']);
+        $payload['phases'] = $phases;
+        return $payload;
     }
 
     private function makeTasks(string $prefix): array
