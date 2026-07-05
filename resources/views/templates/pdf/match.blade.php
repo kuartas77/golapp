@@ -50,6 +50,7 @@
         <td width="4%" class="bold text-center">T. Ama</td>
         <td width="4%" class="bold text-center">T. Roj</td>
         <td width="3%" class="bold text-center">Cal</td>
+        <td width="15%" class="bold text-center">Observación</td>
     </tr>
     @foreach($match->skillsControls as $control)
         <tr class="tr-info">
@@ -66,6 +67,7 @@
             <td class="text-center">{{ $control->yellow_cards }}</td>
             <td class="text-center">{{ $control->red_cards }}</td>
             <td class="text-center">{{ $control->qualification }}</td>
+            <td>{{ $control->observation }}</td>
         </tr>
     @endforeach
     @for ($i = 0; $i <= $result; $i++)
@@ -84,11 +86,12 @@
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
+            <td>&nbsp;</td>
         </tr>
     @endfor
     <tr>
         <td colspan="2" class="bold">Concepto general</td>
-        <td colspan="11" class="text-center">{{ mb_strtoupper($match->general_concept ?? '', 'UTF-8') }}</td>
+        <td colspan="12" class="text-center">{{ mb_strtoupper($match->general_concept ?? '', 'UTF-8') }}</td>
     </tr>
 </table>
 

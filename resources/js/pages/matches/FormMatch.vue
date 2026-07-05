@@ -261,8 +261,8 @@
                                                     v-tooltip.top="'Calificación'">
                                                     ⭐ CAL
                                                 </th>
-                                                <!-- <th class="dt-head-center" style="width: 15%;" v-tooltip.top="''">
-                                                    observación</th> -->
+                                                <th class="dt-head-center" style="width: 15%;">
+                                                    observación</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -417,7 +417,7 @@
                                                         <Field :name="`skill_controls[${index}].qualification`" as="select"
                                                             :id="`skill_controls[${index}].qualification`"
                                                             class="form-select form-select-sm">
-                                                            <option value="0">0</option>
+                                                            <option value="">Selecciona...</option>
                                                             <option value="1">1</option>
                                                             <option value="2">2</option>
                                                             <option value="3">3</option>
@@ -429,19 +429,19 @@
                                                             class="invalid-feedback d-block" />
 
                                                     </td>
-                                                    <!-- <td class="match-observation-cell">
-                                                        <Field :name="`skill_controls[${index}].general_concept`"
-                                                            :id="`skill_controls[${index}].general_concept`" as="textarea"
+                                                    <td class="match-observation-cell">
+                                                        <Field :name="`skill_controls[${index}].observation`"
+                                                            :id="`skill_controls[${index}].observation`" as="textarea"
                                                             class="form-control form-control-sm match-observation-field"
                                                             rows="2" />
-                                                        <ErrorMessage :name="`skill_controls[${index}].general_concept`"
+                                                        <ErrorMessage :name="`skill_controls[${index}].observation`"
                                                             class="invalid-feedback d-block" />
-                                                    </td> -->
+                                                    </td>
                                                 </tr>
                                             </template>
                                             <template v-else>
                                                 <tr>
-                                                    <td colspan="12" class="dt-body-center">
+                                                    <td colspan="13" class="dt-body-center">
                                                         El grupo no cuenta con integrantes
                                                     </td>
                                                 </tr>
@@ -614,8 +614,14 @@ const schema = yup.object().shape({
             goals: yup.number().integer().required('Es requerido'),
             yellow_cards: yup.number().integer().required('Es requerido'),
             red_cards: yup.number().integer().required('Es requerido'),
-            qualification: yup.number().integer().required('Es requerido'),
-            general_concept: yup.string().nullable(),
+            qualification: yup.number()
+                .transform((value, original) => original === '' || original === null ? null : value)
+                .nullable()
+                .integer()
+                .min(1, 'Debe estar entre 1 y 5')
+                .max(5, 'Debe estar entre 1 y 5')
+                .required('Es requerido'),
+            observation: yup.string().nullable(),
             game_id: yup.number().nullable(),
             goal_assists: yup.number().integer().required('Es requerido'),
             goal_saves: yup.number().integer().required('Es requerido'),

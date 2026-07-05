@@ -12,6 +12,7 @@
         <td>Amarillas</td>
         <td>Rojas</td>
         <td>Calificación</td>
+        <td>Observación</td>
     </tr>
     @foreach($inscriptions as $inscription)
         @php
@@ -33,7 +34,8 @@
             <td>{{ $skillControl?->goal_saves }}</td>
             <td>{{ $skillControl?->yellow_cards }}</td>
             <td>{{ $skillControl?->red_cards }}</td>
-            <td>{{ $skillControl?->qualification }}</td>
+            <td>{{ $skillControl && in_array((int) $skillControl->qualification, range(1, 5), true) ? $skillControl->qualification : '' }}</td>
+            <td>{{ $skillControl?->observation }}</td>
         </tr>
     @endforeach
 
@@ -44,6 +46,7 @@
     @for ($i = 0; $i <= $resultado; $i++)
         <tr class="tr-info">
             <td class="texto">&nbsp;</td>
+            <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>

@@ -13,7 +13,7 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow, WithChunkReading, WithBatchInserts, WithMultipleSheets
+class ImportMatchDetail implements ToCollection, WithBatchInserts, WithChunkReading, WithHeadingRow, WithMultipleSheets, WithValidation
 {
     private $data;
 
@@ -45,7 +45,7 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
             ]);
         }
 
-        $inscriptions = Inscription::query()->select(['id', 'player_id','unique_code'])
+        $inscriptions = Inscription::query()->select(['id', 'player_id', 'unique_code'])
             ->with('player:id,names,last_names,unique_code')
             ->whereIn('unique_code', $codes)
             ->where('school_id', getSchool(auth()->user())->id)
@@ -56,7 +56,7 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
 
         if ($missingCodes->isNotEmpty()) {
             throw ValidationException::withMessages([
-                'file' => 'No se encontraron deportistas con estos códigos: ' . $missingCodes->implode(', '),
+                'file' => 'No se encontraron deportistas con estos códigos: '.$missingCodes->implode(', '),
             ]);
         }
 
@@ -74,14 +74,15 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
                     'played_approx' => intval($row['jugo_aprox']),
                     'position' => $row['posicion'],
                     'goals' => intval($row['goles']),
-                    'goal_assists'=> intval($row['asistencia_gol']),
-                    'goal_saves'=> intval($row['atajadas']),
+                    'goal_assists' => intval($row['asistencia_gol']),
+                    'goal_saves' => intval($row['atajadas']),
                     'red_cards' => intval($row['rojas']),
                     'yellow_cards' => intval($row['amarillas']),
                     'qualification' => intval($row['calificacion']),
+                    'observation' => $row['observacion'] ?? null,
                 ]);
 
-                if($this->matchId) {
+                if ($this->matchId) {
                     $skillControll->save();
                 }
 
@@ -131,6 +132,7 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
             'amarillas',
             'rojas',
             'calificacion',
+            'observacion',
         ];
 
         $missingHeadings = collect($requiredHeadings)
@@ -139,7 +141,7 @@ class ImportMatchDetail implements ToCollection, WithValidation, WithHeadingRow,
 
         if ($missingHeadings->isNotEmpty()) {
             throw ValidationException::withMessages([
-                'file' => 'El formato no tiene las columnas requeridas: ' . $missingHeadings->implode(', '),
+                'file' => 'El formato no tiene las columnas requeridas: '.$missingHeadings->implode(', '),
             ]);
         }
     }

@@ -11,17 +11,16 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\NamedRange;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-
-class MatchDetailExport implements FromView, WithTitle, WithStyles , ShouldAutoSize, WithEvents
+class MatchDetailExport implements FromView, ShouldAutoSize, WithEvents, WithStyles, WithTitle
 {
     use Exportable;
 
     private $competition_group;
+
     private $match;
 
     public function __construct($competition_group = null, $match = null)
@@ -38,13 +37,13 @@ class MatchDetailExport implements FromView, WithTitle, WithStyles , ShouldAutoS
 
         return view('exports.match_excel', [
             'inscriptions' => $inscriptions,
-            'cantidad' => count($inscriptions)
+            'cantidad' => count($inscriptions),
         ]);
     }
 
     public function title(): string
     {
-        return "Detalle del partido";
+        return 'Detalle del partido';
     }
 
     public function registerEvents(): array
@@ -56,19 +55,18 @@ class MatchDetailExport implements FromView, WithTitle, WithStyles , ShouldAutoS
                 $lastRow = $sheet->getHighestRow();
                 $validationLastRow = max($lastRow, 30);
 
-                $this->addOptionsSheet($sheet);
-                $this->addDropdownFromRange($sheet, "C", 'MATCH_YES_NO', $validationLastRow);
-                $this->addDropdownFromRange($sheet, "D", 'MATCH_YES_NO', $validationLastRow);
-                $this->addDropdownMin($sheet, "E", $validationLastRow);
-                $this->addDropdownFromRange($sheet, "F", 'MATCH_POSITIONS', $validationLastRow);
-                $this->addDropdownFromRange($sheet, "G", 'MATCH_SCORE_0_10', $validationLastRow);
-                $this->addDropdownFromRange($sheet, "H", 'MATCH_SCORE_0_10', $validationLastRow);
-                $this->addDropdownFromRange($sheet, "I", 'MATCH_SCORE_0_10', $validationLastRow);
-                $this->addDropdownFromRange($sheet, "J", 'MATCH_YELLOW_CARDS', $validationLastRow);
-                $this->addDropdownFromRange($sheet, "K", 'MATCH_RED_CARDS', $validationLastRow);
-                $this->addDropdownFromRange($sheet, "L", 'MATCH_QUALIFICATIONS', $validationLastRow);
+                $this->addInlineDropdown($sheet, 'C', ['Sí', 'No'], $validationLastRow);
+                $this->addInlineDropdown($sheet, 'D', ['Sí', 'No'], $validationLastRow);
+                $this->addDropdownMin($sheet, 'E', $validationLastRow);
+                $this->addInlineDropdown($sheet, 'F', array_values(config('variables.KEY_POSITIONS', [])), $validationLastRow);
+                $this->addInlineDropdown($sheet, 'G', range(0, 10), $validationLastRow);
+                $this->addInlineDropdown($sheet, 'H', range(0, 10), $validationLastRow);
+                $this->addInlineDropdown($sheet, 'I', range(0, 10), $validationLastRow);
+                $this->addInlineDropdown($sheet, 'J', [0, 1, 2], $validationLastRow);
+                $this->addInlineDropdown($sheet, 'K', [0, 1], $validationLastRow);
+                $this->addInlineDropdown($sheet, 'L', range(1, 5), $validationLastRow);
 
-                $range = 'A1:' . $lastColumn . $lastRow;
+                $range = 'A1:'.$lastColumn.$lastRow;
 
                 $sheet->getStyle($range)->applyFromArray([
                     'borders' => [
@@ -78,7 +76,7 @@ class MatchDetailExport implements FromView, WithTitle, WithStyles , ShouldAutoS
                         ],
                     ],
                 ]);
-            }
+            },
         ];
     }
 
@@ -96,54 +94,16 @@ class MatchDetailExport implements FromView, WithTitle, WithStyles , ShouldAutoS
         $sheet->getColumnDimension('J')->setAutoSize(true);
         $sheet->getColumnDimension('K')->setAutoSize(true);
         $sheet->getColumnDimension('L')->setAutoSize(true);
+        $sheet->getColumnDimension('M')->setAutoSize(true);
     }
 
-    private function addOptionsSheet(Worksheet $sheet): void
+    private function addInlineDropdown(Worksheet $sheet, string $cell, array $options, int $lastRow): void
     {
-        $spreadsheet = $sheet->getParent();
-        $optionsSheet = $spreadsheet->getSheetByName('Opciones');
+        $formula = '"'.implode(',', $options).'"';
 
-        if (! $optionsSheet) {
-            $optionsSheet = $spreadsheet->createSheet();
-            $optionsSheet->setTitle('Opciones');
-        }
-
-        $this->addOptionsRange($optionsSheet, 'A', 'MATCH_YES_NO', ['Sí', 'No']);
-        $this->addOptionsRange($optionsSheet, 'B', 'MATCH_POSITIONS', array_values(config('variables.KEY_POSITIONS', [])));
-        $this->addOptionsRange($optionsSheet, 'C', 'MATCH_SCORE_0_10', range(0, 10));
-        $this->addOptionsRange($optionsSheet, 'D', 'MATCH_YELLOW_CARDS', [0, 1, 2]);
-        $this->addOptionsRange($optionsSheet, 'E', 'MATCH_RED_CARDS', [0, 1]);
-        $this->addOptionsRange($optionsSheet, 'F', 'MATCH_QUALIFICATIONS', range(1, 5));
-
-        $optionsSheet->setSheetState(Worksheet::SHEETSTATE_HIDDEN);
-    }
-
-    private function addOptionsRange(Worksheet $optionsSheet, string $column, string $rangeName, array $options): void
-    {
-        foreach (array_values($options) as $index => $option) {
-            $optionsSheet->setCellValue($column . ($index + 1), $option);
-        }
-
-        $spreadsheet = $optionsSheet->getParent();
-        if ($spreadsheet->getNamedRange($rangeName)) {
-            return;
-        }
-
-        $spreadsheet->addNamedRange(new NamedRange(
-            $rangeName,
-            $optionsSheet,
-            '$' . $column . '$1:$' . $column . '$' . max(1, count($options))
-        ));
-    }
-
-    private function addDropdownFromRange(Worksheet $sheet, string $cell, string $rangeName, int $lastRow): void
-    {
-        for ($i=2; $i <= $lastRow; $i++) {
-            $this->configureListValidation(
-                $sheet->getCell($cell.$i)->getDataValidation(),
-                '=' . $rangeName
-            );
-        }
+        $validation = new DataValidation;
+        $this->configureListValidation($validation, $formula);
+        $sheet->setDataValidation($cell.'2:'.$cell.$lastRow, $validation);
     }
 
     private function configureListValidation(DataValidation $validation, string $formula): void
@@ -162,7 +122,7 @@ class MatchDetailExport implements FromView, WithTitle, WithStyles , ShouldAutoS
 
     private function addDropdownMin(Worksheet $sheet, string $cell, int $lastRow): void
     {
-        for ($i=2; $i <= $lastRow; $i++) {
+        for ($i = 2; $i <= $lastRow; $i++) {
             $objValidation = $sheet->getCell($cell.$i)->getDataValidation();
             $objValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
             $objValidation->setAllowBlank(false);
@@ -172,5 +132,4 @@ class MatchDetailExport implements FromView, WithTitle, WithStyles , ShouldAutoS
             $objValidation->setErrorTitle('Error');
         }
     }
-
 }

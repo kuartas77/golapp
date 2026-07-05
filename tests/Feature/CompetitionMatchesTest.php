@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Exports\MatchDetailExport;
 use App\Models\CompetitionGroup;
 use App\Models\Game;
 use App\Models\Inscription;
@@ -13,8 +14,13 @@ use App\Models\SchoolUser;
 use App\Models\Tournament;
 use App\Models\TrainingGroup;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Excel as ExcelWriter;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Tests\TestCase;
 
 final class CompetitionMatchesTest extends TestCase
@@ -139,7 +145,48 @@ final class CompetitionMatchesTest extends TestCase
             'game_id' => $match->id,
             'inscription_id' => $inscription->id,
             'goals' => 2,
+            'observation' => 'Ingreso desde test',
         ]);
+    }
+
+    public function test_exported_match_file_can_be_imported_with_inline_dropdown_values(): void
+    {
+        [$inscription] = $this->createInscriptionAndPayment();
+        $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
+        $competitionGroup->inscriptions()->attach($inscription->id);
+        $this->actingAs($this->user);
+
+        $contents = Excel::raw(new MatchDetailExport($competitionGroup->id), ExcelWriter::XLSX);
+        $path = tempnam(sys_get_temp_dir(), 'match-import-');
+        file_put_contents($path, $contents);
+
+        try {
+            $spreadsheet = IOFactory::load($path);
+            $sheet = $spreadsheet->getSheet(0);
+            $sheet->fromArray(
+                ['Sí', 'Sí', 60, 'Defensa (Central)', 2, 1, 0, 1, 0, 5, 'Buen desempeño defensivo'],
+                null,
+                'C2'
+            );
+            (new Xlsx($spreadsheet))->save($path);
+
+            $response = $this->postJson('/import/matches/0', [
+                'file' => UploadedFile::fake()->createWithContent('partido.xlsx', file_get_contents($path)),
+            ]);
+        } finally {
+            @unlink($path);
+        }
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonCount(1, 'skills_controls')
+            ->assertJsonPath('skills_controls.0.inscription_id', $inscription->id)
+            ->assertJsonPath('skills_controls.0.assistance', 1)
+            ->assertJsonPath('skills_controls.0.position', 'Defensa (Central)')
+            ->assertJsonPath('skills_controls.0.goals', 2)
+            ->assertJsonPath('skills_controls.0.qualification', 5)
+            ->assertJsonPath('skills_controls.0.observation', 'Buen desempeño defensivo');
     }
 
     public function test_create_and_edit_match_data_include_the_stored_player_photo(): void

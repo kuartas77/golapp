@@ -100,7 +100,7 @@ class GameRepository
             $control['red_cards'] = 0;
             $control['yellow_cards'] = 0;
             $control['qualification'] = 0;
-            $control['observation'] = 0;
+            $control['observation'] = null;
 
             array_push($match['skills_controls'], $control);
         }

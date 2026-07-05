@@ -62,6 +62,7 @@
         <td width="6%" align="center" class="texto">Amarillas</td>
         <td width="6%" align="center" class="texto">Rojas</td>
         <td width="5%" align="center" class="texto">Cal</td>
+        <td width="15%" align="center" class="texto">Observación</td>
     </tr>
     @php
         $cantidad = 0;
@@ -85,6 +86,7 @@
             <td class="texto" align="center">{{ $control->yellow_cards }}</td>
             <td class="texto" align="center">{{ $control->red_cards }}</td>
             <td class="texto" align="center">{{ $control->qualification }}</td>
+            <td class="texto">{{ $control->observation }}</td>
         </tr>
     @endforeach
     @php
@@ -106,11 +108,12 @@
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
+            <td>&nbsp;</td>
         </tr>
     @endfor
     <tr >
         <td colspan="2" class="texto">Concepto general</td>
-        <td colspan="12" class="texto">{{ mb_strtolower($match->general_concept ?? '', 'UTF-8') }}</td>
+        <td colspan="13" class="texto">{{ mb_strtolower($match->general_concept ?? '', 'UTF-8') }}</td>
     </tr>
 </table>
 
