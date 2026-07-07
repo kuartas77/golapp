@@ -204,6 +204,8 @@ Route::prefix('v2')->group(function () {
             'school.permission:school.module.players',
         ])->group(function () {
             Route::post('import/players', [ImportController::class, 'importPlayers']);
+            Route::get('players/{player}/financial-clearance', [PlayerController::class, 'financialClearanceStatus']);
+            Route::get('players/{player}/financial-clearance/pdf', [PlayerController::class, 'financialClearancePdf']);
             Route::apiResource('players', PlayerController::class, ['only' => ['edit', 'show', 'update']]);
         });
 

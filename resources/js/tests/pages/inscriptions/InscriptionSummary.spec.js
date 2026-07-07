@@ -1,7 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { apiMock, routerPushMock, routeState, settingsStore } = vi.hoisted(() => ({
+const { apiMock, routerPushMock, routeState, settingsStore, swalFireMock } = vi.hoisted(() => ({
     apiMock: {
         get: vi.fn(),
         post: vi.fn(),
@@ -25,6 +25,7 @@ const { apiMock, routerPushMock, routeState, settingsStore } = vi.hoisted(() => 
         },
         getSettings: vi.fn().mockResolvedValue(undefined),
     },
+    swalFireMock: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('@/utils/axios', () => ({
@@ -161,6 +162,11 @@ async function mountPage(payload = summaryPayload()) {
 
     const wrapper = mount(InscriptionSummary, {
         global: {
+            config: {
+                globalProperties: {
+                    $swal: { fire: swalFireMock },
+                },
+            },
             stubs: {
                 panel: {
                     template: '<section><slot name="body" /></section>',
@@ -198,8 +204,10 @@ describe('InscriptionSummary', () => {
         apiMock.post.mockReset()
         routerPushMock.mockReset()
         settingsStore.getSettings.mockClear()
+        swalFireMock.mockClear()
         vi.stubGlobal('moneyFormat', (value) => `$${value}`)
         vi.stubGlobal('showMessage', vi.fn())
+        vi.stubGlobal('open', vi.fn())
     })
 
     afterEach(() => {
@@ -216,6 +224,21 @@ describe('InscriptionSummary', () => {
         expect(wrapper.text()).toContain('ABC123')
         expect(wrapper.text()).toContain('Editable')
         expect(apiMock.get).toHaveBeenCalledWith('/api/v2/inscriptions/1/summary')
+    })
+
+    it('generates the financial clearance from the summary', async () => {
+        const wrapper = await mountPage()
+        apiMock.get.mockResolvedValue({ data: { eligible: true, debts: [], total_debt: 0 } })
+
+        await wrapper.findAll('button').find((button) => button.text().includes('Generar paz y salvo')).trigger('click')
+        await flushPromises()
+
+        expect(apiMock.get).toHaveBeenLastCalledWith('/api/v2/players/ABC123/financial-clearance')
+        expect(window.open).toHaveBeenCalledWith(
+            '/api/v2/players/ABC123/financial-clearance/pdf',
+            '_blank',
+            'noopener'
+        )
     })
 
     it('shows inline payment and attendance actions for current year inscriptions', async () => {

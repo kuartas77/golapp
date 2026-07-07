@@ -42,6 +42,16 @@
                         <router-link :to="{ name: 'player-stats.detail', params: { id: player.id } }" class="btn btn-primary btn-sm">
                             Estadísticas
                         </router-link>
+                        <button
+                            type="button"
+                            class="btn btn-success btn-sm"
+                            :disabled="isGeneratingClearance"
+                            @click="generateFinancialClearance(player.unique_code || inscription.unique_code)"
+                        >
+                            <span v-if="isGeneratingClearance" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                            <i v-else class="fa-solid fa-file-circle-check me-2"></i>
+                            {{ isGeneratingClearance ? 'Verificando...' : 'Generar paz y salvo' }}
+                        </button>
                         <a :href="summary.links.print" target="_blank" rel="noopener" class="btn btn-dark btn-sm">
                             PDF inscripción
                         </a>
@@ -321,12 +331,14 @@ import Loader from '@/components/general/Loader.vue'
 import CurrencyInput from '@/components/general/CurrencyInput.vue'
 import { useSetting } from '@/store/settings-store'
 import { usePageTitle } from '@/composables/use-meta'
+import useFinancialClearance from '@/composables/player/useFinancialClearance'
 
 usePageTitle('Resumen de inscripción')
 
 const route = useRoute()
 const router = useRouter()
 const settings = useSetting()
+const { isGeneratingClearance, generateFinancialClearance } = useFinancialClearance()
 
 const summary = ref(null)
 const isLoading = ref(false)

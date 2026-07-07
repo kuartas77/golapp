@@ -29,6 +29,12 @@
 
                         <div class="d-flex justify-content-end ">
                             <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-success btn-sm" :disabled="isGeneratingClearance"
+                                    @click="generateFinancialClearance(playerUniqueCode)">
+                                    <span v-if="isGeneratingClearance" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                                    <i v-else class="fa-solid fa-file-circle-check me-2"></i>
+                                    {{ isGeneratingClearance ? 'Verificando...' : 'Generar paz y salvo' }}
+                                </button>
                                 <button type="button" class="btn btn-outline-primary btn-sm" @click="showAttendanceQr = true">
                                     <i class="fa-solid fa-qrcode me-2"></i>
                                     QR asistencia
@@ -254,10 +260,12 @@ import "@/assets/sass/forms/custom-flatpickr.css";
 import usePlayerDetail from '@/composables/player/playerDetail'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { playerDetailTutorial } from '@/tutorials/players'
+import useFinancialClearance from '@/composables/player/useFinancialClearance'
 
 const route = useRoute()
 const showAttendanceQr = ref(false)
 const playerUniqueCode = computed(() => String(route.params.unique_code || ''))
+const { isGeneratingClearance, generateFinancialClearance } = useFinancialClearance()
 const { globalError, onSubmit, wizardOptions, currentTextPlayer, step, initialValues, flatpickrConfig, settings, schema, degrees, loadingText, isLoading, guardianPortalEnabled, formErrorSummary, hasGeneralErrors, goToStep } = usePlayerDetail()
 const tutorial = usePageTutorial(playerDetailTutorial, {
     goToStep,

@@ -7,6 +7,7 @@ use App\Http\Requests\Player\PlayerCreateRequest;
 use App\Http\Requests\Player\PlayerUpdateRequest;
 use App\Models\Player;
 use App\Repositories\PlayerRepository;
+use App\Service\Player\PlayerFinancialClearanceService;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\JsonResponse;
@@ -16,51 +17,45 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class PlayerController extends Controller
 {
-    public function __construct(private PlayerRepository $repository)
-    {
-    }
+    public function __construct(
+        private PlayerRepository $repository,
+        private PlayerFinancialClearanceService $financialClearanceService
+    ) {}
 
-    /**
-     * @return Application|Factory|View
-     */
     public function index(): Factory|View|Application
     {
         $admin = isAdmin() || isSchool() ? 1 : 0;
+
         return view('player.index', compact('admin'));
     }
 
-    /**
-     * @return Application|Factory|View
-     */
     public function create(): Factory|View|Application
     {
         abort_unless(isAdmin() || isSchool(), 404);
         view()->share('edit', false);
         view()->share('peoples', collect([1]));
+
         return view('player.create');
     }
 
-    /**
-     * @param PlayerCreateRequest $request
-     * @return RedirectResponse
-     */
     public function store(PlayerCreateRequest $request): RedirectResponse
     {
         abort_unless(isAdmin() || isSchool(), 404);
         $player = $this->repository->createPlayer($request);
 
-        if($player){
+        if ($player) {
             Alert::success(env('APP_NAME'), __('messages.player_created'));
+
             return redirect()->to(route('players.index'));
         }
 
         Alert::error(env('APP_NAME'), __('messages.error_general'));
+
         return back()->withInput($request->input());
     }
 
     /**
-     * @param Player $player
-     * @return JsonResponse
+     * @param  Player  $player
      */
     public function show($uniqueCode): JsonResponse
     {
@@ -71,8 +66,7 @@ class PlayerController extends Controller
     }
 
     /**
-     * @param Player $player
-     * @return JsonResponse
+     * @param  Player  $player
      */
     public function edit($uniqueCode): JsonResponse
     {
@@ -84,9 +78,7 @@ class PlayerController extends Controller
     }
 
     /**
-     * @param PlayerUpdateRequest $request
-     * @param Player $player
-     * @return JsonResponse
+     * @param  Player  $player
      */
     public function update(PlayerUpdateRequest $request, $uniqueCode): JsonResponse
     {
@@ -97,6 +89,28 @@ class PlayerController extends Controller
         $response['success'] = $isUpdated ?: false;
 
         return response()->json($response);
+    }
+
+    public function financialClearanceStatus(string $uniqueCode): JsonResponse
+    {
+        $school = getSchool(auth()->user());
+        $player = Player::query()
+            ->where('school_id', $school->id)
+            ->where('unique_code', $uniqueCode)
+            ->firstOrFail();
+
+        return response()->json($this->financialClearanceService->status($school, $player));
+    }
+
+    public function financialClearancePdf(string $uniqueCode)
+    {
+        $school = getSchool(auth()->user());
+        $player = Player::query()
+            ->where('school_id', $school->id)
+            ->where('unique_code', $uniqueCode)
+            ->firstOrFail();
+
+        return $this->financialClearanceService->generatePdf($school, $player);
     }
 
     /**

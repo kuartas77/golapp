@@ -2,9 +2,10 @@
 
 namespace App\Service\Reports;
 
+use App\Models\Inscription;
+use App\Models\InscriptionCustomCharge;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
-use App\Models\InscriptionCustomCharge;
 use App\Models\Payment;
 use App\Models\TrainingGroup;
 use App\Traits\PDFTrait;
@@ -84,11 +85,13 @@ class DebtorReportService
         $schoolId = (int) data_get($filters, 'school_id');
         $year = (int) data_get($filters, 'year', now()->year);
         $trainingGroupId = (int) data_get($filters, 'training_group_id', 0);
+        $inscriptionIds = collect(data_get($filters, 'inscription_ids', []))->map(fn ($id) => (int) $id)->all();
+        $asOf = data_get($filters, 'as_of');
 
         $rows = collect();
-        $invoicedMonthlyKeys = $this->invoicedMonthlyKeys($schoolId, $year, $trainingGroupId);
+        $invoicedMonthlyKeys = $this->invoicedMonthlyKeys($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf);
 
-        $this->paymentsQuery($schoolId, $year, $trainingGroupId)
+        $this->paymentsQuery($schoolId, $year, $trainingGroupId, $inscriptionIds)
             ->get()
             ->each(function (Payment $payment) use ($rows, $invoicedMonthlyKeys) {
                 $monthlyDebts = $this->monthlyDebtsForPayment($payment, $invoicedMonthlyKeys);
@@ -107,7 +110,7 @@ class DebtorReportService
                 $rows->put($row['inscription_id'], $row);
             });
 
-        $this->invoiceItemsQuery($schoolId, $year, $trainingGroupId)
+        $this->invoiceItemsQuery($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf)
             ->get()
             ->each(function (InvoiceItem $item) use ($rows) {
                 $itemDebt = (float) $item->total;
@@ -123,7 +126,7 @@ class DebtorReportService
                 $rows->put($row['inscription_id'], $row);
             });
 
-        $this->customChargesQuery($schoolId, $year, $trainingGroupId)
+        $this->customChargesQuery($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf)
             ->get()
             ->each(function (InscriptionCustomCharge $charge) use ($rows) {
                 $chargeDebt = (float) $charge->value;
@@ -158,13 +161,39 @@ class DebtorReportService
             ->values();
     }
 
+    public function playerDebts(int $schoolId, int $playerId, Carbon $asOf): Collection
+    {
+        $inscriptionIds = Inscription::withTrashed()
+            ->where('school_id', $schoolId)
+            ->where('player_id', $playerId)
+            ->pluck('id')
+            ->all();
+
+        if ($inscriptionIds === []) {
+            return collect();
+        }
+
+        return $this->years($schoolId)
+            ->flatMap(function (int $year) use ($schoolId, $inscriptionIds, $asOf) {
+                return $this->rows([
+                    'school_id' => $schoolId,
+                    'year' => $year,
+                    'inscription_ids' => $inscriptionIds,
+                    'as_of' => $asOf,
+                ])->flatMap(fn (array $row) => collect($row['debt_items'])->map(fn (array $item) => [
+                    'year' => $year,
+                    'label' => $item['label'],
+                    'amount' => (float) $item['amount'],
+                ]));
+            })
+            ->values();
+    }
+
     public function exportPdf(array $filters, bool $stream = true)
     {
         $school = getSchool(auth()->user());
         $rows = $this->rows($filters + ['school_id' => $school->id]);
         $date = now()->format('d-m-Y h:i:s A');
-
-
 
         $data = [
             'school' => $school,
@@ -183,55 +212,63 @@ class DebtorReportService
         return $stream ? $this->stream($filename) : $this->output($filename);
     }
 
-    private function paymentsQuery(int $schoolId, int $year, int $trainingGroupId)
+    private function paymentsQuery(int $schoolId, int $year, int $trainingGroupId, array $inscriptionIds = [])
     {
         return Payment::query()
             ->where('school_id', $schoolId)
             ->where('year', $year)
             ->when($trainingGroupId !== 0, fn ($query) => $query->where('training_group_id', $trainingGroupId))
+            ->when($inscriptionIds !== [], fn ($query) => $query->whereIn('inscription_id', $inscriptionIds))
             ->with([
                 'inscription' => fn ($query) => $query->with(['player', 'trainingGroup']),
                 'training_group',
             ]);
     }
 
-    private function invoiceItemsQuery(int $schoolId, int $year, int $trainingGroupId)
+    private function invoiceItemsQuery(int $schoolId, int $year, int $trainingGroupId, array $inscriptionIds = [], ?Carbon $asOf = null)
     {
         return InvoiceItem::query()
             ->where('is_paid', false)
-            ->whereHas('invoice', function ($query) use ($schoolId, $year, $trainingGroupId) {
+            ->whereHas('invoice', function ($query) use ($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf) {
                 $query->where('school_id', $schoolId)
                     ->where('year', $year)
                     ->whereIn('status', ['pending', 'partial'])
                     ->whereRaw('total_amount > paid_amount')
+                    ->when($inscriptionIds !== [], fn ($query) => $query->whereIn('inscription_id', $inscriptionIds))
+                    ->when($asOf !== null, fn ($query) => $query->whereDate('due_date', '<=', $asOf->toDateString()))
                     ->when($trainingGroupId !== 0, fn ($query) => $query->where('training_group_id', $trainingGroupId));
             })
             ->with(['invoice.inscription.player', 'invoice.trainingGroup']);
     }
 
-    private function customChargesQuery(int $schoolId, int $year, int $trainingGroupId)
+    private function customChargesQuery(int $schoolId, int $year, int $trainingGroupId, array $inscriptionIds = [], ?Carbon $asOf = null)
     {
         return InscriptionCustomCharge::query()
             ->where('school_id', $schoolId)
             ->where('status', InscriptionCustomCharge::STATUS_DUE)
             ->whereNull('invoice_item_id')
             ->whereYear('due_date', $year)
-            ->whereHas('inscription', function ($query) use ($trainingGroupId) {
-                $query->when($trainingGroupId !== 0, fn ($query) => $query->where('training_group_id', $trainingGroupId));
-            })
+            ->when($inscriptionIds !== [], fn ($query) => $query->whereIn('inscription_id', $inscriptionIds))
+            ->when($asOf !== null, fn ($query) => $query->whereDate('due_date', '<=', $asOf->toDateString()))
+            ->when($trainingGroupId !== 0, fn ($query) => $query->whereHas(
+                'inscription',
+                fn ($query) => $query->where('training_group_id', $trainingGroupId)
+            ))
             ->with(['inscription.player', 'inscription.trainingGroup', 'invoiceCustomItem']);
     }
 
-    private function invoicedMonthlyKeys(int $schoolId, int $year, int $trainingGroupId): Collection
+    private function invoicedMonthlyKeys(int $schoolId, int $year, int $trainingGroupId, array $inscriptionIds = [], ?Carbon $asOf = null): Collection
     {
         return InvoiceItem::query()
             ->where('is_paid', false)
             ->whereNotNull('payment_id')
             ->whereNotNull('month')
-            ->whereHas('invoice', function ($query) use ($schoolId, $year, $trainingGroupId) {
+            ->whereHas('invoice', function ($query) use ($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf) {
                 $query->where('school_id', $schoolId)
                     ->where('year', $year)
                     ->whereIn('status', ['pending', 'partial'])
+                    ->when($inscriptionIds !== [], fn ($query) => $query->whereIn('inscription_id', $inscriptionIds))
+                    ->when($asOf !== null, fn ($query) => $query->whereDate('due_date', '<=', $asOf->toDateString()))
                     ->when($trainingGroupId !== 0, fn ($query) => $query->where('training_group_id', $trainingGroupId));
             })
             ->get(['payment_id', 'month'])
@@ -333,7 +370,7 @@ class DebtorReportService
             'label' => $label,
             'amount' => $amount,
         ];
-        $row['debt_label'] = collect($row['debt_items'])->pluck('label')->implode(", ");
+        $row['debt_label'] = collect($row['debt_items'])->pluck('label')->implode(', ');
         $row['total_debt'] += $amount;
 
         return $row;
