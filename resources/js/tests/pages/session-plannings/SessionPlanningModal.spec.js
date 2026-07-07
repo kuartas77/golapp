@@ -87,4 +87,47 @@ describe('SessionPlanningModal', () => {
         await nameInput.setValue('Trabajo personalizado')
         expect(wrapper.vm.$.setupState.form.phases[0].name).toBe('Trabajo personalizado')
     })
+
+    it('keeps the stored date and selected day when editing', async () => {
+        apiMock.get.mockImplementation((url) => {
+            if (url === '/api/v2/session-plannings/99') {
+                return Promise.resolve({
+                    data: {
+                        data: {
+                            id: 99,
+                            training_group_id: 10,
+                            date: '2026-06-01',
+                            period: '1',
+                            session: '1',
+                            attendance_synced: false,
+                            period_locked: false,
+                            phases: [{ name: 'Técnica', diagram: [] }],
+                        },
+                    },
+                })
+            }
+
+            if (url === '/api/v2/training_group/classdays') {
+                return Promise.resolve({
+                    data: [{ id: 1, index: 1, day: 'Lunes', date: 1, month: 6, year: 2026 }],
+                })
+            }
+
+            if (url === '/api/v2/session-plannings/attendance-context') {
+                return Promise.resolve({
+                    data: { data: { players: [], protected_players: [], current_absence_ids: [] } },
+                })
+            }
+
+            return Promise.reject(new Error(`Unexpected URL ${url}`))
+        })
+
+        const wrapper = mountModal()
+        await wrapper.setProps({ show: true, sessionId: 99 })
+        await flushPromises()
+
+        expect(wrapper.vm.$.setupState.form.date).toBe('2026-06-01')
+        const selectedDay = wrapper.findAll('button.btn-primary').find(button => button.text().includes('Lunes 1'))
+        expect(selectedDay).toBeDefined()
+    })
 })

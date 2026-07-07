@@ -267,6 +267,8 @@ describe('TrainingSessionModal attendance closure', () => {
             .find((component) => component.props('id') === 'training_group_id')
         expect(groupSelect.props('modelValue')).toBe('10')
         expect(groupSelect.props('options')).toContainEqual({ value: '10', label: 'Grupo A' })
+        expect(wrapper.vm.$.setupState.form.values.date).toBe('2026-06-01')
+        expect(wrapper.vm.$.setupState.selectedClassDay).toEqual(classDay)
         expect(wrapper.text()).not.toContain('Activar registro automático de asistencia')
         expect(apiMock.get).toHaveBeenCalledWith(
             '/api/v2/training-sessions/attendance-context',

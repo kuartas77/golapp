@@ -223,6 +223,11 @@ watch(
     { immediate: true }
 )
 watch(innerValue, (val) => {
+    const incoming = props.modelValue ?? props.value ?? (props.multiple ? [] : null)
+    if (JSON.stringify(val) === JSON.stringify(incoming)) {
+        return
+    }
+
     emit('update:modelValue', val)
     emit('update:value', val)
     emit('change', val)
