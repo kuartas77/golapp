@@ -5,6 +5,10 @@ const { apiMock, settingsStore } = vi.hoisted(() => ({
     apiMock: { get: vi.fn(), post: vi.fn(), put: vi.fn() },
     settingsStore: {
         groups: [{ id: 10, name: 'Grupo A', full_group: 'Grupo A' }],
+        training_session_tasks: [
+            { value: 'TECNICA', label: 'Técnica' },
+            { value: 'TACTICA', label: 'Táctica' },
+        ],
         getSettings: vi.fn().mockResolvedValue(undefined),
     },
 }))
@@ -70,5 +74,17 @@ describe('SessionPlanningModal', () => {
         await wrapper.vm.$.setupState.next()
         expect(wrapper.text()).toContain('El nombre de la fase 1 es obligatorio.')
         expect(wrapper.vm.$.setupState.step).toBe(1)
+    })
+
+    it('suggests training-session tasks while allowing a custom phase name', async () => {
+        const wrapper = mountModal()
+        const nameInput = wrapper.find('input[list="session-planning-phase-name-list"]')
+
+        expect(nameInput.exists()).toBe(true)
+        expect(wrapper.findAll('#session-planning-phase-name-list option').map(option => option.attributes('value')))
+            .toEqual(['Técnica', 'Táctica'])
+
+        await nameInput.setValue('Trabajo personalizado')
+        expect(wrapper.vm.$.setupState.form.phases[0].name).toBe('Trabajo personalizado')
     })
 })

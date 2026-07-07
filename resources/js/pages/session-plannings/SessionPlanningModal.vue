@@ -27,7 +27,7 @@
 
                 <section v-for="(phase, index) in form.phases" :key="index" v-show="step === index + 1">
                     <h6>Fase {{ index + 1 }}</h6><div class="row g-3">
-                        <div class="col-md-8"><label class="form-label">Nombre *</label><input v-model.trim="phase.name" class="form-control" maxlength="100"></div>
+                        <div class="col-md-8"><label class="form-label">Nombre *</label><input v-model.trim="phase.name" class="form-control" maxlength="100" list="session-planning-phase-name-list"></div>
                         <div class="col-md-4"><label class="form-label">Tiempo</label><input v-model.trim="phase.time" class="form-control" maxlength="50"></div>
                         <div class="col-12"><div class="session-phase-field"><SoccerFieldDiagramEditor v-model="phase.diagram" /></div></div>
                         <div class="col-md-6"><label class="form-label">Dosificación</label><textarea v-model.trim="phase.dosage" class="form-control" rows="4"></textarea></div>
@@ -52,6 +52,10 @@
             <div class="modal-footer"><button type="button" class="btn btn-secondary" @click="close">Cerrar</button><button v-if="step > 0" type="button" class="btn btn-outline-primary" @click="step--">Anterior</button><button v-if="step < stepLabels.length - 1" type="button" class="btn btn-primary" @click="next">Siguiente</button><button v-else type="submit" class="btn btn-success" :disabled="saving || periodLocked">Guardar</button></div>
         </form></div>
     </div>
+
+    <datalist id="session-planning-phase-name-list">
+        <option v-for="option in settings.training_session_tasks" :key="`phase-name-${option.value}`" :value="option.label" />
+    </datalist>
 </template>
 
 <script setup>
@@ -85,7 +89,7 @@ async function changePhaseCount(count, event = null) { const current = form.phas
 function validate(index) { error.value = null; if (index === 0 && (!form.training_group_id || !form.period || !form.session || !form.date)) error.value = 'Completa grupo, periodo, sesión y día de entrenamiento.'; else if (index > 0 && index <= form.phases.length && !form.phases[index - 1].name) error.value = `El nombre de la fase ${index} es obligatorio.`; return !error.value }
 function next() { if (validate(step.value)) step.value++ }
 function goTo(index) { if (index <= step.value) { step.value = index; return } for (let current = step.value; current < index; current++) { if (!validate(current)) { step.value = current; return } } step.value = index }
-async function prepare() { reset(); loading.value = true; try { if (!settings.groups.length) await settings.getSettings(); await nextTick(); if (props.sessionId) { const { data: response } = await api.get(`/api/v2/session-plannings/${props.sessionId}`); const data = response.data; reset({ ...data, training_group_id: String(data.training_group_id), month: Number(data.date.slice(5, 7)), absence_inscription_ids: [], phases: data.phases.map(phase => ({ ...blankPhase(), ...phase, diagram: phase.diagram ?? [] })) }); identityLocked.value = data.attendance_synced; periodLocked.value = data.period_locked; await loadDays(); await loadAttendance(data.attendance_synced ? data.absence_inscription_ids : null) } modal.value.show() } catch (e) { error.value = e.response?.data?.message ?? 'No fue posible cargar la planificación.' } finally { loading.value = false } }
+async function prepare() { reset(); loading.value = true; try { if (!settings.groups.length || !settings.training_session_tasks.length) await settings.getSettings(); await nextTick(); if (props.sessionId) { const { data: response } = await api.get(`/api/v2/session-plannings/${props.sessionId}`); const data = response.data; reset({ ...data, training_group_id: String(data.training_group_id), month: Number(data.date.slice(5, 7)), absence_inscription_ids: [], phases: data.phases.map(phase => ({ ...blankPhase(), ...phase, diagram: phase.diagram ?? [] })) }); identityLocked.value = data.attendance_synced; periodLocked.value = data.period_locked; await loadDays(); await loadAttendance(data.attendance_synced ? data.absence_inscription_ids : null) } modal.value.show() } catch (e) { error.value = e.response?.data?.message ?? 'No fue posible cargar la planificación.' } finally { loading.value = false } }
 async function save() { for (let index = 0; index <= form.phases.length; index++) { if (!validate(index)) { step.value = index; return } } saving.value = true; error.value = null; try { const payload = { ...form, training_group_id: Number(form.training_group_id), sync_attendance: true, absence_inscription_ids: form.absence_inscription_ids.map(option => Number(option?.value ?? option)).filter(Number.isInteger), phases: form.phases.map((phase, index) => ({ ...phase, position: index + 1 })) }; if (props.sessionId) await api.put(`/api/v2/session-plannings/${props.sessionId}`, payload); else await api.post('/api/v2/session-plannings', payload); modal.value.hide(); emit('updated') } catch (e) { error.value = Object.values(e.response?.data?.errors ?? {}).flat()[0] ?? e.response?.data?.message ?? 'No fue posible guardar.' } finally { saving.value = false } }
 function close() { modal.value.hide(); emit('cancel') }
 watch(() => [props.show, props.sessionId], ([show]) => { if (modal.value) show ? prepare() : modal.value.hide() })
