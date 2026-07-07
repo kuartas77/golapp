@@ -90,6 +90,7 @@ class DebtorReportService
 
         $rows = collect();
         $invoicedMonthlyKeys = $this->invoicedMonthlyKeys($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf);
+        $appendedInvoiceMonthlyKeys = collect();
 
         $this->paymentsQuery($schoolId, $year, $trainingGroupId, $inscriptionIds)
             ->get()
@@ -112,11 +113,21 @@ class DebtorReportService
 
         $this->invoiceItemsQuery($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf)
             ->get()
-            ->each(function (InvoiceItem $item) use ($rows) {
+            ->each(function (InvoiceItem $item) use ($rows, $appendedInvoiceMonthlyKeys) {
                 $itemDebt = (float) $item->total;
 
                 if ($itemDebt <= 0) {
                     return;
+                }
+
+                if ($item->payment_id && $item->month) {
+                    $monthlyKey = $this->monthlyKey((int) $item->payment_id, (string) $item->month);
+
+                    if ($appendedInvoiceMonthlyKeys->has($monthlyKey)) {
+                        return;
+                    }
+
+                    $appendedInvoiceMonthlyKeys->put($monthlyKey, true);
                 }
 
                 $row = $this->baseRowFromInvoiceItem($item);

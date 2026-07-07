@@ -21,6 +21,11 @@ final class PlayerFinancialClearanceTest extends TestCase
         parent::setUp();
 
         Carbon::setTestNow('2026-07-07 10:30:00');
+        $school = School::findOrFail($this->school['id']);
+        $permissions = $school->getResolvedSchoolPermissions();
+        $permissions['school.module.players'] = true;
+        $school->forceFill(['school_permissions' => $permissions])->save();
+        School::forgetCachedSchool($school->id);
     }
 
     protected function tearDown(): void
@@ -131,6 +136,17 @@ final class PlayerFinancialClearanceTest extends TestCase
             'is_paid' => false,
         ]);
 
+        $duplicateInvoice = $this->createInvoice($inscription, 'FAC-CLEAR-DUPLICATE', '2026-02-28', 60000);
+        $duplicateInvoice->items()->create([
+            'type' => 'monthly',
+            'description' => 'Mensualidad enero',
+            'quantity' => 1,
+            'unit_price' => 60000,
+            'month' => 'january',
+            'payment_id' => $payment->id,
+            'is_paid' => false,
+        ]);
+
         $futureInvoice = $this->createInvoice($inscription, 'FAC-CLEAR-FUTURE', '2026-08-15', 90000);
         $futureInvoice->items()->create([
             'type' => 'additional',
@@ -166,6 +182,11 @@ final class PlayerFinancialClearanceTest extends TestCase
             'email' => 'other-clearance@example.com',
             'slug' => 'other-clearance',
         ]);
+        $otherSchoolModel = School::findOrFail($otherSchool['id']);
+        $otherPermissions = $otherSchoolModel->getResolvedSchoolPermissions();
+        $otherPermissions['school.module.players'] = true;
+        $otherSchoolModel->forceFill(['school_permissions' => $otherPermissions])->save();
+        School::forgetCachedSchool($otherSchoolModel->id);
 
         $this->actingAs($otherUser)
             ->getJson("/api/v2/players/{$player->unique_code}/financial-clearance")
