@@ -17,5 +17,7 @@ export const SCHOOL_PERMISSION_KEYS = {
     userManagement: 'school.module.user_management',
     trainingGroups: 'school.module.training_groups',
     competitionGroups: 'school.module.competition_groups',
+    clubDocuments: 'school.module.club_documents',
+    documentPlanning: 'school.module.document_planning',
     systemNotify: 'school.feature.system_notify',
 }

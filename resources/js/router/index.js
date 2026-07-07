@@ -116,6 +116,16 @@ const routes = [
                 meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.methodology] },
                 component: () => import('@/pages/methodology/Index.vue')
             },
+            {
+                path: 'planificacion-documental',
+                name: 'document-planning.index',
+                meta: {
+                    requiresRole: ['super-admin', 'school', 'instructor'],
+                    requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.documentPlanning],
+                    documentScope: 'document_planning',
+                },
+                component: () => import('@/pages/documents/Index.vue')
+            },
 
             {
                 path: 'mensualidades',
@@ -156,6 +166,15 @@ const routes = [
                         name: 'contracts',
                         component: () => import('@/pages/admin/contracts/Index.vue'),
                         meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.contracts] }
+                    },
+                    {
+                        path: 'documentos-club',
+                        name: 'club-documents.index',
+                        component: () => import('@/pages/documents/Index.vue'),
+                        meta: {
+                            requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.clubDocuments],
+                            documentScope: 'club_document',
+                        }
                     },
                     {
                         path: 'usuarios',

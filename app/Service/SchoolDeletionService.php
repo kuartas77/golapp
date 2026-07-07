@@ -45,6 +45,7 @@ class SchoolDeletionService
         }
 
         Storage::disk('public')->deleteDirectory($slug);
+        Storage::disk('local')->deleteDirectory("{$slug}/documents");
         Storage::disk('export')->deleteDirectory("school-data-exports/{$slug}");
         if (filled($logo)) {
             Storage::disk('public')->delete($logo);

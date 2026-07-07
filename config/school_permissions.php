@@ -112,6 +112,18 @@ return [
             'group' => 'Administración',
             'default' => true,
         ],
+        'school.module.club_documents' => [
+            'label' => 'Documentos del club',
+            'description' => 'Permite administrar documentos legales y administrativos del club.',
+            'group' => 'Administración',
+            'default' => true,
+        ],
+        'school.module.document_planning' => [
+            'label' => 'Planificación documental',
+            'description' => 'Permite administrar programas y documentos de planificación del club.',
+            'group' => 'Operación deportiva',
+            'default' => true,
+        ],
         'school.feature.system_notify' => [
             'label' => 'Notificaciones del sistema',
             'description' => 'Habilita las notificaciones y procesos integrados con GOLAPPLINK.',

@@ -70,4 +70,30 @@ describe('hasBackofficeAccess', () => {
 
         expect(hasBackofficeAccess(auth, backofficeAccessRequirements.playerStats)).toBe(false)
     })
+
+    it('allows instructors to access document planning but not club documents', () => {
+        const auth = makeAuth({
+            roles: ['instructor'],
+            schoolPermissions: {
+                'school.module.document_planning': true,
+                'school.module.club_documents': true,
+            },
+        })
+
+        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.documentPlanning)).toBe(true)
+        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.clubDocuments)).toBe(false)
+    })
+
+    it('keeps both document modules behind independent school permissions', () => {
+        const auth = makeAuth({
+            roles: ['school'],
+            schoolPermissions: {
+                'school.module.document_planning': true,
+                'school.module.club_documents': false,
+            },
+        })
+
+        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.documentPlanning)).toBe(true)
+        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.clubDocuments)).toBe(false)
+    })
 })

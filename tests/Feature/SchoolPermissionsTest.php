@@ -42,6 +42,8 @@ final class SchoolPermissionsTest extends TestCase
             $permissions['school.module.training_sessions']
         );
         $this->assertTrue($permissions['school.module.billing']);
+        $this->assertTrue($permissions['school.module.club_documents']);
+        $this->assertTrue($permissions['school.module.document_planning']);
         $this->assertFalse($permissions['school.module.session_planning']);
         $this->assertFalse($permissions['school.feature.system_notify']);
     }

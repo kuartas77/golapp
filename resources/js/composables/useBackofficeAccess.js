@@ -91,6 +91,16 @@ export const backofficeAccessRequirements = {
         anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.competitionGroups],
     },
+    clubDocuments: {
+        roles: ['super-admin', 'school'],
+        anyRole: true,
+        schoolPermissions: [SCHOOL_PERMISSION_KEYS.clubDocuments],
+    },
+    documentPlanning: {
+        roles: ['super-admin', 'school', 'instructor'],
+        anyRole: true,
+        schoolPermissions: [SCHOOL_PERMISSION_KEYS.documentPlanning],
+    },
     topicNotifications: {
         roles: ['super-admin', 'school'],
         anyRole: true,

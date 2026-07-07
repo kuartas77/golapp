@@ -17,10 +17,10 @@ const configLanguaje = {
         sInfoThousands: ',',
         sLoadingRecords: 'Cargando...',
         paginate: {
-            // first: "Primera",
-            // last: "Última",
-            // next: "Siguiente",
-            // previous: "Anterior"
+            first: 'Primera',
+            last: 'Última',
+            next: 'Siguiente',
+            previous: 'Anterior',
         },
         oAria: {
             sSortAscending: ': Activar para ordenar la columna de manera ascendente',

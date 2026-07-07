@@ -20,6 +20,7 @@ use App\Http\Controllers\API\Instructor\AssistsController;
 use App\Http\Controllers\API\Instructor\GroupsController;
 use App\Http\Controllers\API\LoginController;
 use App\Http\Controllers\API\MethodologyRecordController;
+use App\Http\Controllers\API\SchoolDocumentController;
 use App\Http\Controllers\API\SessionPlanningController;
 use App\Http\Controllers\API\Notifications\HeaderNotificationsController;
 use App\Http\Controllers\API\Portal\GuardianAuthController;
@@ -288,6 +289,26 @@ Route::prefix('v2')->group(function () {
             Route::get('{methodologyRecord}', [MethodologyRecordController::class, 'show']);
             Route::put('{methodologyRecord}', [MethodologyRecordController::class, 'update']);
             Route::delete('{methodologyRecord}', [MethodologyRecordController::class, 'destroy']);
+        });
+
+        Route::middleware([
+            'role:super-admin|school',
+            'school.permission:school.module.club_documents',
+        ])->prefix('club-documents')->name('club-documents.')->group(function () {
+            Route::get('', [SchoolDocumentController::class, 'index'])->name('index');
+            Route::post('', [SchoolDocumentController::class, 'store'])->name('store');
+            Route::get('{schoolDocument}/download', [SchoolDocumentController::class, 'download'])->name('download');
+            Route::delete('{schoolDocument}', [SchoolDocumentController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::middleware([
+            'role:super-admin|school|instructor',
+            'school.permission:school.module.document_planning',
+        ])->prefix('document-planning')->name('document-planning.')->group(function () {
+            Route::get('', [SchoolDocumentController::class, 'index'])->name('index');
+            Route::post('', [SchoolDocumentController::class, 'store'])->name('store');
+            Route::get('{schoolDocument}/download', [SchoolDocumentController::class, 'download'])->name('download');
+            Route::delete('{schoolDocument}', [SchoolDocumentController::class, 'destroy'])->name('destroy');
         });
 
         Route::middleware([
