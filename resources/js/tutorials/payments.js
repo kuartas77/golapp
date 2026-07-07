@@ -4,7 +4,7 @@ export const monthlyPaymentsTutorial = {
             id: 'monthly-payments-filters',
             selector: '[data-tour="monthly-payments-filters"]',
             title: 'Empieza por los filtros',
-            text: 'Selecciona grupo, categoria y ano para consultar la matriz de mensualidades.',
+            text: 'Selecciona el ano. Para el ano actual agrega grupo o categoria; en anos anteriores puedes consultar solo por ano y luego refinar los resultados.',
         },
         {
             id: 'monthly-payments-summary',

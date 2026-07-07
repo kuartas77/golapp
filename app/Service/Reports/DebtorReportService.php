@@ -87,21 +87,22 @@ class DebtorReportService
         $trainingGroupId = (int) data_get($filters, 'training_group_id', 0);
         $inscriptionIds = collect(data_get($filters, 'inscription_ids', []))->map(fn ($id) => (int) $id)->all();
         $asOf = data_get($filters, 'as_of');
+        $includeRowContext = (bool) data_get($filters, 'include_row_context', true);
 
         $rows = collect();
         $invoicedMonthlyKeys = $this->invoicedMonthlyKeys($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf);
         $appendedInvoiceMonthlyKeys = collect();
 
-        $this->paymentsQuery($schoolId, $year, $trainingGroupId, $inscriptionIds)
+        $this->paymentsQuery($schoolId, $year, $trainingGroupId, $inscriptionIds, $includeRowContext)
             ->get()
-            ->each(function (Payment $payment) use ($rows, $invoicedMonthlyKeys) {
+            ->each(function (Payment $payment) use ($rows, $invoicedMonthlyKeys, $includeRowContext) {
                 $monthlyDebts = $this->monthlyDebtsForPayment($payment, $invoicedMonthlyKeys);
 
                 if ($monthlyDebts->isEmpty()) {
                     return;
                 }
 
-                $row = $this->baseRowFromPayment($payment);
+                $row = $this->baseRowFromPayment($payment, $includeRowContext);
                 $row = $rows->get($row['inscription_id'], $row);
 
                 $monthlyDebts->each(function (array $monthlyDebt) use (&$row) {
@@ -111,9 +112,9 @@ class DebtorReportService
                 $rows->put($row['inscription_id'], $row);
             });
 
-        $this->invoiceItemsQuery($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf)
+        $this->invoiceItemsQuery($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf, $includeRowContext)
             ->get()
-            ->each(function (InvoiceItem $item) use ($rows, $appendedInvoiceMonthlyKeys) {
+            ->each(function (InvoiceItem $item) use ($rows, $appendedInvoiceMonthlyKeys, $includeRowContext) {
                 $itemDebt = (float) $item->total;
 
                 if ($itemDebt <= 0) {
@@ -130,23 +131,23 @@ class DebtorReportService
                     $appendedInvoiceMonthlyKeys->put($monthlyKey, true);
                 }
 
-                $row = $this->baseRowFromInvoiceItem($item);
+                $row = $this->baseRowFromInvoiceItem($item, $includeRowContext);
                 $row = $rows->get($row['inscription_id'], $row);
                 $row = $this->appendDebt($row, $this->itemLabel($item), $itemDebt);
 
                 $rows->put($row['inscription_id'], $row);
             });
 
-        $this->customChargesQuery($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf)
+        $this->customChargesQuery($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf, $includeRowContext)
             ->get()
-            ->each(function (InscriptionCustomCharge $charge) use ($rows) {
+            ->each(function (InscriptionCustomCharge $charge) use ($rows, $includeRowContext) {
                 $chargeDebt = (float) $charge->value;
 
                 if ($chargeDebt <= 0) {
                     return;
                 }
 
-                $row = $this->baseRowFromCustomCharge($charge);
+                $row = $this->baseRowFromCustomCharge($charge, $includeRowContext);
                 $row = $rows->get($row['inscription_id'], $row);
                 $row = $this->appendDebt($row, $this->customChargeLabel($charge), $chargeDebt);
 
@@ -191,6 +192,7 @@ class DebtorReportService
                     'year' => $year,
                     'inscription_ids' => $inscriptionIds,
                     'as_of' => $asOf,
+                    'include_row_context' => false,
                 ])->flatMap(fn (array $row) => collect($row['debt_items'])->map(fn (array $item) => [
                     'year' => $year,
                     'label' => $item['label'],
@@ -223,21 +225,32 @@ class DebtorReportService
         return $stream ? $this->stream($filename) : $this->output($filename);
     }
 
-    private function paymentsQuery(int $schoolId, int $year, int $trainingGroupId, array $inscriptionIds = [])
-    {
+    private function paymentsQuery(
+        int $schoolId,
+        int $year,
+        int $trainingGroupId,
+        array $inscriptionIds = [],
+        bool $includeRowContext = true,
+    ) {
         return Payment::query()
             ->where('school_id', $schoolId)
             ->where('year', $year)
             ->when($trainingGroupId !== 0, fn ($query) => $query->where('training_group_id', $trainingGroupId))
             ->when($inscriptionIds !== [], fn ($query) => $query->whereIn('inscription_id', $inscriptionIds))
-            ->with([
+            ->when($includeRowContext, fn ($query) => $query->with([
                 'inscription' => fn ($query) => $query->with(['player', 'trainingGroup']),
                 'training_group',
-            ]);
+            ]));
     }
 
-    private function invoiceItemsQuery(int $schoolId, int $year, int $trainingGroupId, array $inscriptionIds = [], ?Carbon $asOf = null)
-    {
+    private function invoiceItemsQuery(
+        int $schoolId,
+        int $year,
+        int $trainingGroupId,
+        array $inscriptionIds = [],
+        ?Carbon $asOf = null,
+        bool $includeRowContext = true,
+    ) {
         return InvoiceItem::query()
             ->where('is_paid', false)
             ->whereHas('invoice', function ($query) use ($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf) {
@@ -249,11 +262,19 @@ class DebtorReportService
                     ->when($asOf !== null, fn ($query) => $query->whereDate('due_date', '<=', $asOf->toDateString()))
                     ->when($trainingGroupId !== 0, fn ($query) => $query->where('training_group_id', $trainingGroupId));
             })
-            ->with(['invoice.inscription.player', 'invoice.trainingGroup']);
+            ->with($includeRowContext
+                ? ['invoice.inscription.player', 'invoice.trainingGroup']
+                : ['invoice']);
     }
 
-    private function customChargesQuery(int $schoolId, int $year, int $trainingGroupId, array $inscriptionIds = [], ?Carbon $asOf = null)
-    {
+    private function customChargesQuery(
+        int $schoolId,
+        int $year,
+        int $trainingGroupId,
+        array $inscriptionIds = [],
+        ?Carbon $asOf = null,
+        bool $includeRowContext = true,
+    ) {
         return InscriptionCustomCharge::query()
             ->where('school_id', $schoolId)
             ->where('status', InscriptionCustomCharge::STATUS_DUE)
@@ -265,7 +286,9 @@ class DebtorReportService
                 'inscription',
                 fn ($query) => $query->where('training_group_id', $trainingGroupId)
             ))
-            ->with(['inscription.player', 'inscription.trainingGroup', 'invoiceCustomItem']);
+            ->with($includeRowContext
+                ? ['inscription.player', 'inscription.trainingGroup', 'invoiceCustomItem']
+                : ['invoiceCustomItem']);
     }
 
     private function invoicedMonthlyKeys(int $schoolId, int $year, int $trainingGroupId, array $inscriptionIds = [], ?Carbon $asOf = null): Collection
@@ -311,8 +334,19 @@ class DebtorReportService
         return "{$paymentId}:{$month}";
     }
 
-    private function baseRowFromPayment(Payment $payment): array
+    private function baseRowFromPayment(Payment $payment, bool $includeRowContext = true): array
     {
+        if (! $includeRowContext) {
+            return $this->baseRow(
+                (int) $payment->inscription_id,
+                null,
+                $payment->unique_code,
+                $payment->unique_code,
+                null,
+                null
+            );
+        }
+
         $inscription = $payment->inscription;
         $player = $inscription?->player;
         $group = $inscription?->trainingGroup ?? $payment->training_group;
@@ -327,9 +361,21 @@ class DebtorReportService
         );
     }
 
-    private function baseRowFromInvoiceItem(InvoiceItem $item): array
+    private function baseRowFromInvoiceItem(InvoiceItem $item, bool $includeRowContext = true): array
     {
         $invoice = $item->invoice;
+
+        if (! $includeRowContext) {
+            return $this->baseRow(
+                (int) $invoice->inscription_id,
+                null,
+                '',
+                $invoice->student_name,
+                null,
+                null
+            );
+        }
+
         $inscription = $invoice->inscription;
         $player = $inscription?->player;
         $group = $invoice->trainingGroup;
@@ -344,8 +390,19 @@ class DebtorReportService
         );
     }
 
-    private function baseRowFromCustomCharge(InscriptionCustomCharge $charge): array
+    private function baseRowFromCustomCharge(InscriptionCustomCharge $charge, bool $includeRowContext = true): array
     {
+        if (! $includeRowContext) {
+            return $this->baseRow(
+                (int) $charge->inscription_id,
+                $charge->player_id ? (int) $charge->player_id : null,
+                '',
+                $charge->name,
+                null,
+                null
+            );
+        }
+
         $inscription = $charge->inscription;
         $player = $inscription?->player;
         $group = $inscription?->trainingGroup;

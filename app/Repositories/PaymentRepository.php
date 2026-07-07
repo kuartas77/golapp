@@ -6,9 +6,10 @@ namespace App\Repositories;
 
 use App\Models\Inscription;
 use App\Models\Payment;
+use App\Models\TrainingGroup;
 use App\Notifications\MonthlyPaymentReceiptNotification;
-use App\Service\PaymentAmountResolver;
 use App\Service\Payment\MonthlyPaymentReceiptService;
+use App\Service\PaymentAmountResolver;
 use App\Service\ReportService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
@@ -25,23 +26,21 @@ class PaymentRepository
     public function __construct(
         private Payment $payment,
         private PaymentAmountResolver $paymentAmountResolver
-    )
-    {
+    ) {
         //
     }
 
     /**
-     * @param $request
-     * @param false $deleted
+     * @param  false  $deleted
      */
     public function filter($request, bool $deleted = false, $raw = false): array
     {
         $payments = $this->filterSelect($request->all(), $deleted, $raw)->get();
         $payments->setAppends(['check_payments']);
 
-        if(!$raw) {
+        if (! $raw) {
             return $this->generateTable($payments, $deleted);
-        }else {
+        } else {
             return $this->generateData($payments, $deleted);
         }
     }
@@ -66,13 +65,15 @@ class PaymentRepository
         $inscription_amount = $this->paymentAmountResolver->inscriptionAmountForSchool($school);
         $monthly_payment = $this->paymentAmountResolver->monthlyAmountForSchool($school);
         $annuity = $this->paymentAmountResolver->annuityAmountForSchool($school);
+        $year = (int) request()->input('year', now()->year);
 
         [$urlExportExcel, $urlExportPDF] = $this->generateLinks($payments, $deleted);
 
         $extra = [
             'inscription_amount' => $inscription_amount,
             'monthly_payment' => $monthly_payment,
-            'annuity' => $annuity
+            'annuity' => $annuity,
+            'filter_options' => $this->filterOptions((int) $school->id, $year),
         ];
 
         return $this->generateResponse($payments, $payments->count(), $urlExportExcel, $urlExportPDF, $extra);
@@ -100,7 +101,7 @@ class PaymentRepository
                 'nameFields' => $nameFields,
                 'inscription_amount' => $inscription_amount,
                 'monthly_payment' => $monthly_payment,
-                'annuity' => $annuity
+                'annuity' => $annuity,
             ])->render();
         }
 
@@ -116,7 +117,7 @@ class PaymentRepository
             $query_params['deleted'] = true;
         }
 
-        if ($payments && !request()->filled('training_group_id')) {
+        if ($payments && ! request()->filled('training_group_id')) {
             $query_params['training_group_id'] = 0;
         }
 
@@ -124,7 +125,7 @@ class PaymentRepository
 
         return [
             route('export.payments.excel', $query_params),
-            route('export.payments.pdf', $query_params)
+            route('export.payments.pdf', $query_params),
         ];
     }
 
@@ -144,8 +145,7 @@ class PaymentRepository
     }
 
     /**
-     * @param $params
-     * @param false $deleted
+     * @param  false  $deleted
      */
     public function filterSelect(array $params, bool $deleted = false, bool $raw = false): Builder
     {
@@ -167,20 +167,19 @@ class PaymentRepository
                     ->select('category')
                     ->whereColumn('inscriptions.id', 'payments.inscription_id')
                     ->where('year', $year)
-                    ->take(1)
+                    ->take(1),
             ])
             ->where('year', $year)
             ->whereHas('inscription.player')
             ->whereHas('inscription', fn ($inscriptionQuery) => $inscriptionQuery->where('year', $year))
-            ->when($unique_code, fn($q) => $q->where('unique_code', $unique_code))
-            ->when($training_group_id != 0, fn($q) => $q->where('training_group_id', $training_group_id))
-            ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription
+            ->when($unique_code, fn ($q) => $q->where('unique_code', $unique_code))
+            ->when($training_group_id != 0, fn ($q) => $q->where('training_group_id', $training_group_id))
+            ->when($category, fn ($q) => $q->whereHas('inscription', fn ($inscription) => $inscription
                 ->where('year', $year)
                 ->where('category', $category)))
-            ->when($paymentStatus != null, fn($q)=> $q->ByPaymentStatus($paymentStatus))
-            ->orderByRaw("CAST(SUBSTRING_INDEX(category, '-', -1) AS UNSIGNED) ASC");
+            ->when($paymentStatus != null, fn ($q) => $q->ByPaymentStatus($paymentStatus));
 
-        return $query;
+        return $this->orderByCategory($query);
     }
 
     public function filterSelectRaw(array $params, bool $deleted = false)
@@ -192,26 +191,70 @@ class PaymentRepository
         $training_group_id = data_get($params, 'training_group_id', 0);
         $paymentStatus = $this->normalizePaymentStatus(data_get($params, 'status'));
 
-        return $this->payment->query()
+        $query = $this->payment->query()
             ->addSelect([
                 'category' => Inscription::withTrashed()
                     ->select('category')
                     ->whereColumn('inscriptions.id', 'payments.inscription_id')
                     ->where('year', $year)
-                    ->take(1)
+                    ->take(1),
             ])
             ->where('school_id', $school_id)
             ->where('year', $year)
             ->whereHas('inscription.player')
             ->whereHas('inscription', fn ($inscriptionQuery) => $inscriptionQuery->where('year', $year))
-            ->when($unique_code, fn($q) => $q->where('unique_code', $unique_code))
-            ->when($training_group_id != 0, fn($q) => $q->where('training_group_id', $training_group_id))
-            ->when($category, fn($q) => $q->whereHas('inscription', fn($inscription) => $inscription
+            ->when($unique_code, fn ($q) => $q->where('unique_code', $unique_code))
+            ->when($training_group_id != 0, fn ($q) => $q->where('training_group_id', $training_group_id))
+            ->when($category, fn ($q) => $q->whereHas('inscription', fn ($inscription) => $inscription
                 ->where('year', $year)
                 ->where('category', $category)))
-            ->when($paymentStatus != null, fn($q)=> $q->ByPaymentStatus($paymentStatus))
-            ->when($deleted, fn ($q) => $q->withTrashed(), fn ($q) => $q->whereNull('payments.deleted_at'))
-            ->orderBy('inscription_id', 'asc');
+            ->when($paymentStatus != null, fn ($q) => $q->ByPaymentStatus($paymentStatus))
+            ->when($deleted, fn ($q) => $q->withTrashed(), fn ($q) => $q->whereNull('payments.deleted_at'));
+
+        return $this->orderByCategory($query)->orderBy('inscription_id', 'asc');
+    }
+
+    private function orderByCategory(Builder $query): Builder
+    {
+        if ($query->getConnection()->getDriverName() === 'sqlite') {
+            return $query->orderBy('category');
+        }
+
+        return $query->orderByRaw("CAST(SUBSTRING_INDEX(category, '-', -1) AS UNSIGNED) ASC");
+    }
+
+    private function filterOptions(int $schoolId, int $year): array
+    {
+        $payments = Payment::query()
+            ->where('school_id', $schoolId)
+            ->where('year', $year)
+            ->whereNull('deleted_at');
+
+        $categories = Inscription::withTrashed()
+            ->where('school_id', $schoolId)
+            ->where('year', $year)
+            ->whereIn('id', (clone $payments)->select('inscription_id'))
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category')
+            ->map(fn (string $category) => ['value' => $category, 'label' => $category])
+            ->values();
+
+        $groups = TrainingGroup::withTrashed()
+            ->where('school_id', $schoolId)
+            ->where('name', '!=', 'Provisional')
+            ->whereIn('id', (clone $payments)->select('training_group_id'))
+            ->orderBy('name')
+            ->get()
+            ->map(fn (TrainingGroup $group) => [
+                'value' => $group->id,
+                'label' => $group->full_group,
+            ])
+            ->values();
+
+        return compact('categories', 'groups');
     }
 
     public function setPay(array $values, Payment $payment): bool
@@ -532,12 +575,13 @@ class PaymentRepository
     {
         $year = $year == 0 ? now()->year : $year;
         $school_id = getSchool(auth()->user())->id;
-        return Cache::remember(sprintf('graphics.year.%d.%s', $year, $school_id), now()->addMinute(), fn() => $this->queryGraphics($year, $school_id));
+
+        return Cache::remember(sprintf('graphics.year.%d.%s', $year, $school_id), now()->addMinute(), fn () => $this->queryGraphics($year, $school_id));
     }
 
     private function queryGraphics($year, $school_id)
     {
-        $consult = DB::table('payments')->selectRaw("
+        $consult = DB::table('payments')->selectRaw('
             COALESCE(SUM(case when january IN (1,9,10,11,12) then 1 else 0 end),0) january_payment,
             COALESCE(SUM(case when january = 2 then 1 else 0 end),0) january_due,
             COALESCE(SUM(case when january = 8 then 1 else 0 end),0) january_scholarship,
@@ -585,9 +629,9 @@ class PaymentRepository
             COALESCE(SUM(case when december IN (1,9,10,11,12) then 1 else 0 end),0) december_payment,
             COALESCE(SUM(case when december = 2 then 1 else 0 end),0) december_due,
             COALESCE(SUM(case when december = 8 then 1 else 0 end),0) december_scholarship,
-            COALESCE(SUM(case when december = 0 then 1 else 0 end),0) december_pending")
+            COALESCE(SUM(case when december = 0 then 1 else 0 end),0) december_pending')
             ->where('year', $year)
-            ->when(!is_null($school_id), fn($query) => $query->where('school_id', $school_id))
+            ->when(! is_null($school_id), fn ($query) => $query->where('school_id', $school_id))
             ->first();
 
         return $this->makeLabelAndSeries($consult);
@@ -602,60 +646,60 @@ class PaymentRepository
         $arSholar = [];
         $arPending = [];
 
-        array_push($arPayments, (integer)$consult->january_payment);
-        array_push($arPayments, (integer)$consult->february_payment);
-        array_push($arPayments, (integer)$consult->march_payment);
-        array_push($arPayments, (integer)$consult->april_payment);
-        array_push($arPayments, (integer)$consult->may_payment);
-        array_push($arPayments, (integer)$consult->june_payment);
-        array_push($arPayments, (integer)$consult->july_payment);
-        array_push($arPayments, (integer)$consult->august_payment);
-        array_push($arPayments, (integer)$consult->september_payment);
-        array_push($arPayments, (integer)$consult->october_payment);
-        array_push($arPayments, (integer)$consult->november_payment);
-        array_push($arPayments, (integer)$consult->december_payment);
+        array_push($arPayments, (int) $consult->january_payment);
+        array_push($arPayments, (int) $consult->february_payment);
+        array_push($arPayments, (int) $consult->march_payment);
+        array_push($arPayments, (int) $consult->april_payment);
+        array_push($arPayments, (int) $consult->may_payment);
+        array_push($arPayments, (int) $consult->june_payment);
+        array_push($arPayments, (int) $consult->july_payment);
+        array_push($arPayments, (int) $consult->august_payment);
+        array_push($arPayments, (int) $consult->september_payment);
+        array_push($arPayments, (int) $consult->october_payment);
+        array_push($arPayments, (int) $consult->november_payment);
+        array_push($arPayments, (int) $consult->december_payment);
         $payments = collect(['name' => 'Pagaron', 'data' => $arPayments]);
 
-        array_push($arDue, (integer)$consult->january_due);
-        array_push($arDue, (integer)$consult->february_due);
-        array_push($arDue, (integer)$consult->march_due);
-        array_push($arDue, (integer)$consult->april_due);
-        array_push($arDue, (integer)$consult->may_due);
-        array_push($arDue, (integer)$consult->june_due);
-        array_push($arDue, (integer)$consult->july_due);
-        array_push($arDue, (integer)$consult->august_due);
-        array_push($arDue, (integer)$consult->september_due);
-        array_push($arDue, (integer)$consult->october_due);
-        array_push($arDue, (integer)$consult->november_due);
-        array_push($arDue, (integer)$consult->december_due);
+        array_push($arDue, (int) $consult->january_due);
+        array_push($arDue, (int) $consult->february_due);
+        array_push($arDue, (int) $consult->march_due);
+        array_push($arDue, (int) $consult->april_due);
+        array_push($arDue, (int) $consult->may_due);
+        array_push($arDue, (int) $consult->june_due);
+        array_push($arDue, (int) $consult->july_due);
+        array_push($arDue, (int) $consult->august_due);
+        array_push($arDue, (int) $consult->september_due);
+        array_push($arDue, (int) $consult->october_due);
+        array_push($arDue, (int) $consult->november_due);
+        array_push($arDue, (int) $consult->december_due);
         $due = collect(['name' => 'Deben', 'data' => $arDue]);
 
-        array_push($arSholar, (integer)$consult->january_scholarship);
-        array_push($arSholar, (integer)$consult->february_scholarship);
-        array_push($arSholar, (integer)$consult->march_scholarship);
-        array_push($arSholar, (integer)$consult->april_scholarship);
-        array_push($arSholar, (integer)$consult->may_scholarship);
-        array_push($arSholar, (integer)$consult->june_scholarship);
-        array_push($arSholar, (integer)$consult->july_scholarship);
-        array_push($arSholar, (integer)$consult->august_scholarship);
-        array_push($arSholar, (integer)$consult->september_scholarship);
-        array_push($arSholar, (integer)$consult->october_scholarship);
-        array_push($arSholar, (integer)$consult->november_scholarship);
-        array_push($arSholar, (integer)$consult->december_scholarship);
+        array_push($arSholar, (int) $consult->january_scholarship);
+        array_push($arSholar, (int) $consult->february_scholarship);
+        array_push($arSholar, (int) $consult->march_scholarship);
+        array_push($arSholar, (int) $consult->april_scholarship);
+        array_push($arSholar, (int) $consult->may_scholarship);
+        array_push($arSholar, (int) $consult->june_scholarship);
+        array_push($arSholar, (int) $consult->july_scholarship);
+        array_push($arSholar, (int) $consult->august_scholarship);
+        array_push($arSholar, (int) $consult->september_scholarship);
+        array_push($arSholar, (int) $consult->october_scholarship);
+        array_push($arSholar, (int) $consult->november_scholarship);
+        array_push($arSholar, (int) $consult->december_scholarship);
         $scholarship = collect(['name' => 'Becados', 'data' => $arSholar]);
 
-        array_push($arPending, (integer)$consult->january_pending);
-        array_push($arPending, (integer)$consult->february_pending);
-        array_push($arPending, (integer)$consult->march_pending);
-        array_push($arPending, (integer)$consult->april_pending);
-        array_push($arPending, (integer)$consult->may_pending);
-        array_push($arPending, (integer)$consult->june_pending);
-        array_push($arPending, (integer)$consult->july_pending);
-        array_push($arPending, (integer)$consult->august_pending);
-        array_push($arPending, (integer)$consult->september_pending);
-        array_push($arPending, (integer)$consult->october_pending);
-        array_push($arPending, (integer)$consult->november_pending);
-        array_push($arPending, (integer)$consult->december_pending);
+        array_push($arPending, (int) $consult->january_pending);
+        array_push($arPending, (int) $consult->february_pending);
+        array_push($arPending, (int) $consult->march_pending);
+        array_push($arPending, (int) $consult->april_pending);
+        array_push($arPending, (int) $consult->may_pending);
+        array_push($arPending, (int) $consult->june_pending);
+        array_push($arPending, (int) $consult->july_pending);
+        array_push($arPending, (int) $consult->august_pending);
+        array_push($arPending, (int) $consult->september_pending);
+        array_push($arPending, (int) $consult->october_pending);
+        array_push($arPending, (int) $consult->november_pending);
+        array_push($arPending, (int) $consult->december_pending);
         $pending = collect(['name' => 'Pendientes', 'data' => $arPending]);
 
         $series->push($payments);
@@ -720,14 +764,13 @@ class PaymentRepository
         $schoolId = getSchool(auth()->user())->id;
         switch ($params['status']) {
             case '1':
-                $status = ['1','9','10','11','12'];
+                $status = ['1', '9', '10', '11', '12'];
                 break;
 
             default:
-               $status = [$params['status']];
+                $status = [$params['status']];
                 break;
         }
-
 
         return Payment::query()
             ->select([
@@ -764,8 +807,7 @@ class PaymentRepository
             ->join('players', 'players.id', '=', 'inscriptions.player_id')
             ->join('training_groups', 'training_groups.id', '=', 'payments.training_group_id')
             ->where(
-                fn($q) =>
-                $q->orWhereIn('january', $status)
+                fn ($q) => $q->orWhereIn('january', $status)
                     ->orWhereIn('february', $status)
                     ->orWhereIn('march', $status)
                     ->orWhereIn('april', $status)
@@ -786,14 +828,14 @@ class PaymentRepository
     {
         $schoolId = getSchool(auth()->user())->id;
 
-        return Cache::remember('statistics.school.' . $schoolId, 1, function () use ($schoolId) {
-        // return Cache::remember('statistics.school.' . $schoolId, now()->addMinutes(3), function () use ($schoolId) {
+        return Cache::remember('statistics.school.'.$schoolId, 1, function () use ($schoolId) {
+            // return Cache::remember('statistics.school.' . $schoolId, now()->addMinutes(3), function () use ($schoolId) {
 
             // mensualidades x grupo
             $paymentByGroup = ReportService::paymentByGroupReport(year: now()->year, schoolId: $schoolId, groupId: null);
             $assistReport = ReportService::assistsPercentagesReport(year: now()->year, month: now()->month, groupId: null, schoolId: $schoolId);
-            $monthlyReport = ReportService::monthlyReport(year:now()->year, schoolId: $schoolId, groupId: null)->first();
-            $generalReport = ReportService::generalReport(year:now()->year, schoolId: $schoolId);
+            $monthlyReport = ReportService::monthlyReport(year: now()->year, schoolId: $schoolId, groupId: null)->first();
+            $generalReport = ReportService::generalReport(year: now()->year, schoolId: $schoolId);
 
             $paymentGroup = [
                 'categories' => $paymentByGroup->pluck('grupo')->toArray(),
@@ -803,7 +845,7 @@ class PaymentRepository
                     ['name' => 'Deben', 'data' => $paymentByGroup->pluck('monthly_payments_debt')->toArray()],
                     ['name' => 'Becados', 'data' => $paymentByGroup->pluck('monthly_payments_scholarship')->toArray()],
                     // ['name' => 'Otros', 'data' => $paymentByGroup->pluck('monthly_payments_others')->toArray()],
-                ]
+                ],
             ];
 
             $amountGroup = [
@@ -812,9 +854,8 @@ class PaymentRepository
                     ['type' => 'column', 'name' => 'Mensualidades', 'data' => $paymentByGroup->pluck('total_raised')->toArray()],
                     ['type' => 'column', 'name' => 'Inscripciones', 'data' => $paymentByGroup->pluck('total_enrollment')->toArray()],
                     ['type' => 'line', 'name' => '% de cumplimiento', 'data' => $paymentByGroup->pluck('percentage_compliance')->toArray()],
-                ]
+                ],
             ];
-
 
             $assistReportData = [
                 'categories' => ['Asistencias', 'Excusas', 'Ausencias', 'Retiros', 'Incapacidades'],
@@ -824,14 +865,14 @@ class PaymentRepository
                     $assistReport->sum('total_absences'),
                     $assistReport->sum('total_retreat'),
                     $assistReport->sum('total_disabilities'),
-                ]
+                ],
             ];
 
             $months = array_keys(config('variables.KEY_INDEX_MONTHS_LABEL', []));
             $valueMonths = [];
             $paymentByMonth = [];
 
-            if(!is_null($monthlyReport)) {
+            if (! is_null($monthlyReport)) {
                 foreach ($months as $month) {
                     $valueMonths[] = $monthlyReport->{$month};
                     $paymentByMonth[] = (int) $monthlyReport->{'payments_'.$month};
@@ -843,7 +884,7 @@ class PaymentRepository
                 'data' => [
                     ['type' => 'column', 'name' => 'Valor', 'data' => $valueMonths],
                     ['type' => 'column', 'name' => 'Pagos', 'data' => $paymentByMonth],
-                ]
+                ],
             ];
 
             return [

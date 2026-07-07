@@ -40,7 +40,8 @@ class SharedService
             DB::beginTransaction();
 
             $start_date = Carbon::parse($inscription->start_date);
-            $hasPayment = $inscription->payments()
+            $hasPayment = Payment::query()
+                ->where('inscription_id', $inscription->id)
                 ->where('year', $start_date->year)
                 ->exists();
 

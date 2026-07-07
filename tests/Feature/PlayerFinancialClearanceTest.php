@@ -31,6 +31,13 @@ final class PlayerFinancialClearanceTest extends TestCase
     protected function tearDown(): void
     {
         Carbon::setTestNow();
+        $school = School::find($this->school['id']);
+        if ($school) {
+            $permissions = $school->getResolvedSchoolPermissions();
+            $permissions['school.module.players'] = true;
+            $school->forceFill(['school_permissions' => $permissions])->save();
+            School::forgetCachedSchool($school->id);
+        }
 
         parent::tearDown();
     }

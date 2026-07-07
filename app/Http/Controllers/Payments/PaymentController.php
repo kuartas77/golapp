@@ -31,6 +31,28 @@ class PaymentController extends Controller
     {
         view()->share('enabledPaymentOld', true);
         if ($request->ajax()) {
+            if ($request->has('dataRaw')) {
+                $request->merge(['dataRaw' => $request->boolean('dataRaw')]);
+            }
+
+            $validated = $request->validate([
+                'year' => ['required', 'integer'],
+                'training_group_id' => ['nullable', 'integer'],
+                'category' => ['nullable', 'string'],
+                'dataRaw' => ['nullable', 'boolean'],
+            ]);
+
+            if ((int) $validated['year'] === (int) now()->year
+                && empty($validated['training_group_id'])
+                && empty($validated['category'])) {
+                return response()->json([
+                    'message' => 'Para el año actual selecciona un grupo o una categoría.',
+                    'errors' => [
+                        'training_group_id' => ['Para el año actual selecciona un grupo o una categoría.'],
+                    ],
+                ], 422);
+            }
+
             $request->merge(['school_id' => getSchool(auth()->user())->id]);
 
             return $this->repository->filter($request, false, $request->filled('dataRaw'));
@@ -50,6 +72,7 @@ class PaymentController extends Controller
         $payment = Payment::query()
             ->with(['inscription.player'])
             ->withTrashed()
+            ->where('school_id', getSchool(auth()->user())->id)
             ->whereHas('inscription.player')
             ->find($id);
 
@@ -70,25 +93,15 @@ class PaymentController extends Controller
     public function update(SetPaymentRequest $request, $id): JsonResponse
     {
         abort_unless($request->ajax(), 401);
-        $payment = Payment::withTrashed()->findOrFail($id);
+        $payment = Payment::withTrashed()
+            ->where('school_id', getSchool(auth()->user())->id)
+            ->findOrFail($id);
 
         if ($this->repository->paymentBelongsToDeletedInscription($payment)) {
             return response()->json([
                 'message' => PaymentRepository::RETIRED_INSCRIPTION_MESSAGE,
                 'errors' => [
                     'payment' => [PaymentRepository::RETIRED_INSCRIPTION_MESSAGE],
-                ],
-            ], 422);
-        }
-
-        $payment->loadMissing('inscription');
-        if ((int) $payment->inscription?->year !== (int) now()->year) {
-            $message = 'Las mensualidades de años anteriores son de sólo lectura.';
-
-            return response()->json([
-                'message' => $message,
-                'errors' => [
-                    'payment' => [$message],
                 ],
             ], 422);
         }
@@ -101,6 +114,7 @@ class PaymentController extends Controller
         $payment = Payment::query()
             ->with(['inscription.player'])
             ->withTrashed()
+            ->where('school_id', getSchool(auth()->user())->id)
             ->whereHas('inscription.player')
             ->findOrFail($id);
 

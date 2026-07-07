@@ -7,7 +7,9 @@
                 <div class="col-xl-6 col-lg-6 col-sm-12 text-center">
                     <Form ref="form" :validation-schema="schema" @submit="handleSearch" :initial-values="formData"
                         class="row align-items-center justify-content-center">
-                        <p class="text-muted">Puedes seleccionar un grupo y/o una categoría, en otro caso combinarlos.
+                        <p class="text-muted">
+                            Para el año actual selecciona al menos un grupo o una categoría; también puedes combinar ambos.
+                            En años anteriores puedes consultar sólo por año o aplicar esos mismos filtros.
                         </p>
                         <div class="col-sm-4">
                             <label for="training_group_id" class="sr-only">Grupo</label>

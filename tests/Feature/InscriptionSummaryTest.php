@@ -15,6 +15,19 @@ use Tests\TestCase;
 
 final class InscriptionSummaryTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $school = School::findOrFail($this->school['id']);
+        $permissions = $school->getResolvedSchoolPermissions();
+        foreach (['school.module.inscriptions', 'school.module.payments', 'school.module.attendances'] as $permission) {
+            $permissions[$permission] = true;
+        }
+        $school->forceFill(['school_permissions' => $permissions])->save();
+        School::forgetCachedSchool($school->id);
+    }
+
     public function test_school_user_can_fetch_current_year_summary(): void
     {
         [$player, $inscription, $payment, $assist] = $this->createSummaryFixture(now()->year);
@@ -83,9 +96,9 @@ final class InscriptionSummaryTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_previous_year_payment_update_is_blocked(): void
+    public function test_previous_year_payment_can_be_updated(): void
     {
-        [, , $payment] = $this->createSummaryFixture(now()->subYear()->year);
+        [, $inscription, $payment] = $this->createSummaryFixture(now()->subYear()->year);
 
         $this->actingAs($this->user)
             ->withHeader('X-Requested-With', 'XMLHttpRequest')
@@ -94,8 +107,89 @@ final class InscriptionSummaryTest extends TestCase
                 'january' => Payment::$paid,
                 'january_amount' => 50000,
             ])
-            ->assertStatus(422)
-            ->assertJsonPath('errors.payment.0', 'Las mensualidades de años anteriores son de sólo lectura.');
+            ->assertOk()
+            ->assertJsonPath('data.january', Payment::$paid)
+            ->assertJsonPath('data.january_amount', 50000);
+
+        $this->assertDatabaseHas('payments', [
+            'id' => $payment->id,
+            'year' => now()->subYear()->year,
+            'january' => Payment::$paid,
+            'january_amount' => 50000,
+        ]);
+    }
+
+    public function test_payment_update_does_not_expose_another_school(): void
+    {
+        $otherSchool = School::factory()->create();
+        $group = $this->createTrainingGroup($otherSchool->id, now()->subYear()->year);
+        $player = Player::factory()->create([
+            'school_id' => $otherSchool->id,
+            'unique_code' => 'OTHER-PAYMENT',
+        ]);
+        $inscription = Inscription::factory()->create([
+            'school_id' => $otherSchool->id,
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'training_group_id' => $group->id,
+            'competition_group_id' => null,
+            'year' => now()->subYear()->year,
+        ]);
+        $payment = Payment::query()->where('inscription_id', $inscription->id)->firstOrFail();
+
+        $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->putJson("/api/v2/payments/{$payment->id}", [
+                'column' => 'january',
+                'january' => Payment::$paid,
+                'january_amount' => 50000,
+            ])
+            ->assertNotFound();
+    }
+
+    public function test_historical_payments_can_be_queried_using_only_the_year(): void
+    {
+        [, $inscription, $payment] = $this->createSummaryFixture(now()->subYear()->year);
+
+        $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/api/v2/payments?year='.now()->subYear()->year.'&dataRaw=true')
+            ->assertOk()
+            ->assertJsonPath('count', 1)
+            ->assertJsonPath('rows.0.id', $payment->id)
+            ->assertJsonPath('filter_options.categories.0.value', $inscription->category)
+            ->assertJsonPath('filter_options.groups.0.value', $inscription->training_group_id);
+    }
+
+    public function test_current_year_payments_require_group_or_category_filter(): void
+    {
+        [, $inscription, $payment] = $this->createSummaryFixture(now()->year);
+
+        $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/api/v2/payments?year='.now()->year.'&dataRaw=true')
+            ->assertUnprocessable()
+            ->assertJsonPath('errors.training_group_id.0', 'Para el año actual selecciona un grupo o una categoría.');
+
+        $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/api/v2/payments?'.http_build_query([
+                'year' => now()->year,
+                'training_group_id' => $inscription->training_group_id,
+                'dataRaw' => true,
+            ]))
+            ->assertOk()
+            ->assertJsonPath('rows.0.id', $payment->id);
+
+        $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/api/v2/payments?'.http_build_query([
+                'year' => now()->year,
+                'category' => $inscription->category,
+                'dataRaw' => true,
+            ]))
+            ->assertOk()
+            ->assertJsonPath('rows.0.id', $payment->id);
     }
 
     public function test_previous_year_attendance_update_is_blocked(): void

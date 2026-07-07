@@ -10,8 +10,8 @@ import * as yup from 'yup';
 export default function useMonthlyPayments() {
     const currentDate = new Date()
     const settings = useSetting()
-    const groups = settings.groups.filter((group) => group.name !== 'Provisional').map((group) => ({ value: group.id, label: group.full_group }));
-    const categories = settings.categories.map((i) => ({ value: i.category, label: i.category }));
+    const groups = ref(settings.groups.filter((group) => group.name !== 'Provisional').map((group) => ({ value: group.id, label: group.full_group })));
+    const categories = ref(settings.categories.map((i) => ({ value: i.category, label: i.category })));
     const years = settings.inscription_years
     const defaultYear = years.find((year) => Number(year.value) === currentDate.getFullYear())?.value
         ?? years[years.length - 1]?.value
@@ -30,11 +30,16 @@ export default function useMonthlyPayments() {
     const schema = yup.object().shape({
         year: yup.mixed().required(),
         category: yup.string().nullable().optional(),
-        training_group_id: yup.string().when('category', {
-            is: (categoryValue) => !categoryValue || categoryValue === null , // Check if category is empty
-            then: (schema) => schema.required(), // If empty, training_group_id is required
-            otherwise: (schema) => schema.notRequired(), // Otherwise, training_group_id is not required
-        }),
+        training_group_id: yup.string().nullable().test(
+            'current-year-filter-required',
+            'Para el año actual selecciona un grupo o una categoría.',
+            function (value) {
+                const selectedYear = Number(this.parent.year)
+                const category = this.parent.category
+
+                return selectedYear !== currentDate.getFullYear() || Boolean(value || category)
+            }
+        ),
     })
     const formData = ref({
         year: defaultYear,
@@ -99,8 +104,15 @@ export default function useMonthlyPayments() {
             const response = await api.get(`/api/v2/payments`, { params: params })
             if (response?.data) {
                 const data = response.data
+                categories.value = data.filter_options?.categories ?? categories.value
+                groups.value = data.filter_options?.groups ?? groups.value
                 if (data.rows.length) {
                     groupPayments.value = data.rows
+                    if (!data.filter_options?.categories && !values.category) {
+                        categories.value = [...new Set(data.rows.map((row) => row.category).filter(Boolean))]
+                            .sort((left, right) => left.localeCompare(right, 'es', { numeric: true }))
+                            .map((category) => ({ value: category, label: category }))
+                    }
                     export_excel.value = data.url_export_excel
                     export_pdf.value = data.url_export_pdf
                     annuity_amount.value = data.annuity
@@ -114,7 +126,7 @@ export default function useMonthlyPayments() {
                     player_count.value = 0
                 }
 
-                selected_group.value = (values?.training_group?.id) ? groups.find((group) => group.id === values.training_group.id) : null
+                selected_group.value = groups.value.find((group) => String(group.value) === String(values.training_group_id)) ?? null
                 isLoading.value = false
             } else {
                 groupPayments.value = []

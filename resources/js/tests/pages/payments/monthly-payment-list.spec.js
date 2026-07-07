@@ -100,4 +100,85 @@ describe('monthly payment list', () => {
 
         wrapper.unmount()
     })
+
+    it('allows a year-only search for historical years', async () => {
+        const wrapper = mountComposable()
+
+        await expect(wrapper.vm.schema.validate({
+            year: 2025,
+            training_group_id: null,
+            category: null,
+        })).resolves.toBeTruthy()
+
+        apiMock.get.mockResolvedValue({
+            data: {
+                rows: [
+                    { ...paymentRow(1, 'Jugador Uno'), category: 'SUB-8' },
+                    { ...paymentRow(2, 'Jugador Dos'), category: 'SUB-10' },
+                ],
+                count: 2,
+                url_export_excel: null,
+                url_export_pdf: null,
+                filter_options: {
+                    categories: [
+                        { value: 'SUB-8', label: 'SUB-8' },
+                        { value: 'SUB-10', label: 'SUB-10' },
+                    ],
+                    groups: [
+                        { value: 7, label: 'Histórico A' },
+                        { value: 8, label: 'Histórico B' },
+                    ],
+                },
+            },
+        })
+
+        await wrapper.vm.handleSearch({
+            year: 2025,
+            training_group_id: null,
+            category: null,
+        }, { setErrors: vi.fn() })
+
+        expect(apiMock.get).toHaveBeenCalledWith('/api/v2/payments', {
+            params: {
+                category: null,
+                year: 2025,
+                training_group_id: null,
+                dataRaw: true,
+            },
+        })
+        expect(wrapper.vm.categories).toEqual([
+            { value: 'SUB-8', label: 'SUB-8' },
+            { value: 'SUB-10', label: 'SUB-10' },
+        ])
+        expect(wrapper.vm.groups).toEqual([
+            { value: 7, label: 'Histórico A' },
+            { value: 8, label: 'Histórico B' },
+        ])
+
+        wrapper.unmount()
+    })
+
+    it('requires group or category for the current year and allows either filter', async () => {
+        const wrapper = mountComposable()
+
+        await expect(wrapper.vm.schema.validate({
+            year: 2026,
+            training_group_id: null,
+            category: null,
+        })).rejects.toThrow('Para el año actual selecciona un grupo o una categoría.')
+
+        await expect(wrapper.vm.schema.validate({
+            year: 2026,
+            training_group_id: '5',
+            category: null,
+        })).resolves.toBeTruthy()
+
+        await expect(wrapper.vm.schema.validate({
+            year: 2026,
+            training_group_id: null,
+            category: 'Sub 10',
+        })).resolves.toBeTruthy()
+
+        wrapper.unmount()
+    })
 })
