@@ -14,7 +14,7 @@
     </div>
 
     <Form v-else ref="form_matches" :validation-schema="schema" :initial-values="{ date: null, hour: null, status: 'scheduled' }"
-        @submit="handleSubmit">
+        @submit="handleSubmit" @invalid-submit="handleInvalidSubmit">
 
         <div class="layout-px-spacing">
             <div class="layout-top-spacing">
@@ -771,6 +771,16 @@ const handleSubmit = async (values, actions) => {
     } finally {
         isLoading.value = false
     }
+}
+
+const handleInvalidSubmit = ({ errors }) => {
+    const errorCount = Object.keys(errors ?? {}).length
+    const message = errorCount === 1
+        ? 'Revisa el campo marcado antes de guardar.'
+        : `Revisa los ${errorCount} campos marcados antes de guardar.`
+
+    globalError.value = message
+    showMessage(message, 'error')
 }
 
 const normalizeImportedSkillControls = (importedSkillControls) => {

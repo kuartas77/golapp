@@ -278,6 +278,31 @@ final class CompetitionMatchesTest extends TestCase
         $this->assertNull($match->final_score);
     }
 
+    public function test_new_match_uses_and_accepts_the_default_qualification(): void
+    {
+        [$inscription] = $this->createInscriptionAndPayment();
+        $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
+        $competitionGroup->inscriptions()->attach($inscription->id);
+
+        $formResponse = $this->actingAs($this->user)
+            ->getJson("/api/v2/matches/0?competition_group={$competitionGroup->id}")
+            ->assertOk()
+            ->assertJsonPath('skills_controls.0.qualification', 1);
+
+        $payload = $this->validMatchPayload($competitionGroup->tournament, $competitionGroup, $inscription);
+        $payload['skill_controls'][0]['qualification'] = (string) $formResponse->json('skills_controls.0.qualification');
+
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/v2/matches', $payload)
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $match = Game::query()->findOrFail($response->json('match_id'));
+
+        $this->assertSame(Game::STATUS_SCHEDULED, $match->status);
+        $this->assertSame('1', (string) $match->skillsControls()->firstOrFail()->qualification);
+    }
+
     public function test_played_match_requires_a_non_future_date_and_non_negative_score(): void
     {
         [$inscription] = $this->createInscriptionAndPayment();
