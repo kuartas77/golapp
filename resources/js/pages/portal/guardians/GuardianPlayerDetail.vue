@@ -428,8 +428,9 @@
                                             :key="`${activeAttendance.id}-${register.class_number}`"
                                             class="badge rounded-pill guardian-player-detail__badge"
                                             :class="attendanceBadgeClass(register.status)"
-                                            v-html="`${register.class_number} | ${register.date} : ${register.label || 'Sin registro'}`"
-                                        />
+                                        >
+                                            {{ register.class_number }} | {{ register.date }} : {{ register.label || 'Sin registro' }}
+                                        </span>
                                     </div>
                                 </div>
                                 <p v-else class="text-muted mb-0">No hay asistencias registradas para esta inscripción.</p>
@@ -992,15 +993,17 @@ const paymentMonthClass = (value) => {
 };
 
 const attendanceBadgeClass = (status) => {
-    if (status === 'as') {
+    const value = Number(status);
+
+    if (value === 1) {
         return 'guardian-player-detail__badge--success';
     }
 
-    if (status === 'fa' || status === 'fr') {
+    if (value === 2 || value === 4) {
         return 'guardian-player-detail__badge--danger';
     }
 
-    if (status === 'ex') {
+    if (value === 3 || value === 5) {
         return 'guardian-player-detail__badge--warning';
     }
 

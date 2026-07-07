@@ -96,14 +96,14 @@ class GuardianPlayerDetailResource extends JsonResource
                     $registers = collect($assist->classDays ?? [])
                         ->map(function ($classDay) use ($assist) {
                             $field = numbersToLetters($classDay['number_class']);
-                            $status = $assist->{$field};
+                            $status = $assist->{$field} !== null ? (int) $assist->{$field} : null;
 
                             return [
                                 'class_number' => $classDay['number_class'],
                                 'day' => $classDay['day'],
                                 'date' => $classDay['date'],
                                 'status' => $status,
-                                'label' => $status ? checkAssists($status) : '',
+                                'label' => $status ? (config('variables.KEY_ASSIST')[$status] ?? 'Sin registro') : 'Sin registro',
                             ];
                         })
                         ->values();

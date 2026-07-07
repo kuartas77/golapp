@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\Assist;
 use App\Models\Inscription;
 use App\Models\People;
 use App\Models\Player;
@@ -118,6 +119,31 @@ final class PortalGuardiansTest extends TestCase
 
         $showResponse = $this->getJson("/api/v2/portal/acudientes/players/{$otherPlayer->id}");
         $showResponse->assertNotFound();
+    }
+
+    public function testGuardianSeesDescriptiveAttendanceStatusInsteadOfSymbols(): void
+    {
+        [$guardian, $player, $inscription] = $this->createGuardianScenario([
+            'email' => 'attendance.guardian@example.com',
+            'password' => 'attendance-secret',
+        ]);
+
+        $inscription->trainingGroup()->update(['days' => 'Lunes']);
+
+        $assist = Assist::query()
+            ->where('inscription_id', $inscription->id)
+            ->where('training_group_id', $inscription->training_group_id)
+            ->where('year', now()->year)
+            ->where('month', now()->month)
+            ->firstOrFail();
+        $assist->update(['assistance_one' => 1]);
+
+        $this->actingAs($guardian, 'guardians')
+            ->getJson("/api/v2/portal/acudientes/players/{$player->id}")
+            ->assertOk()
+            ->assertJsonPath('data.current_inscription.attendance.0.id', $assist->id)
+            ->assertJsonPath('data.current_inscription.attendance.0.registers.0.status', 1)
+            ->assertJsonPath('data.current_inscription.attendance.0.registers.0.label', 'Asistencia');
     }
 
     public function testGuardianCanUpdatePlayerPhoto(): void

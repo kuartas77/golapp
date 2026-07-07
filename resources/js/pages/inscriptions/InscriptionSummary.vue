@@ -92,7 +92,7 @@
                             <div class="card-body">
                                 <h6 class="mb-3">Inscripción</h6>
                                 <dl class="summary-list">
-                                    <dt>Inicio</dt><dd>{{ inscription.start_date || '—' }}</dd>
+                                    <dt>Inicio</dt><dd>{{ dayjs(inscription.start_date).format('YYYY-M-D') || '—' }}</dd>
                                     <dt>Grupo</dt><dd>{{ inscription.training_group?.name || '—' }}</dd>
                                     <dt>Preinscripción</dt><dd>{{ yesNo(inscription.pre_inscription) }}</dd>
                                     <dt>Hermano</dt><dd>{{ yesNo(inscription.brother_payment) }}</dd>
@@ -332,6 +332,7 @@ import CurrencyInput from '@/components/general/CurrencyInput.vue'
 import { useSetting } from '@/store/settings-store'
 import { usePageTitle } from '@/composables/use-meta'
 import useFinancialClearance from '@/composables/player/useFinancialClearance'
+import dayjs from "@/utils/dayjs";
 
 usePageTitle('Resumen de inscripción')
 
