@@ -18,7 +18,21 @@
                         </select>
                     </div>
 
-                    <div v-if="canExportInscriptions" class="col-sm-auto px-0" data-tour="inscription-export">
+                    <div class="col-sm-6 col-md-4 col-lg-3 px-0 pe-sm-3">
+                        <select
+                            id="pre_inscription"
+                            name="pre_inscription"
+                            class="form-select form-select-sm"
+                            aria-label="Filtrar por estado de inscripción"
+                            @change="onPreInscriptionFilterChange"
+                        >
+                            <option value="">Todas</option>
+                            <option value="1">Solo preinscritos</option>
+                            <option value="0">Solo inscritos</option>
+                        </select>
+                    </div>
+
+                    <div v-if="canExportInscriptions" class="col-sm-auto px-0 pe-sm-3" data-tour="inscription-export">
                         <a :href="exportExcelUrl" target="_blank" rel="noopener" class="btn btn-success btn-sm">
                             <i class="far fa-file-excel me-2"></i>
                             Exportar Excel
@@ -100,6 +114,7 @@
                                 </th>
                                 <th>Genero</th>
                                 <th>Nombres</th>
+                                <th></th>
                                 <th>Cert. Médico</th>
                                 <th>F.Inicio</th>
                                 <th></th>
@@ -201,6 +216,7 @@ const {
     triggerCreateModal,
     onGroupFilterChange,
     onCategoryFilterChange,
+    onPreInscriptionFilterChange,
     resolveRouteFromClick,
     onAttendanceQrModalToggle,
     onCancelModal,

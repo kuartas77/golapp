@@ -123,6 +123,97 @@ final class InscriptionsTest extends TestCase
             ]);
     }
 
+    public function test_enabled_inscriptions_can_prioritize_and_filter_preinscriptions(): void
+    {
+        $schoolId = $this->school['id'];
+        $year = now()->year;
+        $trainingGroup = TrainingGroup::query()->create([
+            'name' => 'Preinscripciones test',
+            'school_id' => $schoolId,
+            'year_active' => $year,
+        ]);
+
+        $createInscription = function (array $attributes) use ($schoolId, $trainingGroup, $year): Inscription {
+            $player = Player::factory()->create(['school_id' => $schoolId]);
+
+            return Inscription::factory()->create([
+                'player_id' => $player->id,
+                'unique_code' => $player->unique_code,
+                'school_id' => $schoolId,
+                'year' => $year,
+                'training_group_id' => $trainingGroup->id,
+                'competition_group_id' => null,
+                ...$attributes,
+            ]);
+        };
+
+        $regular = $createInscription([
+            'pre_inscription' => false,
+            'start_date' => now()->subMonths(3),
+        ]);
+        $newerPreinscription = $createInscription([
+            'pre_inscription' => true,
+            'start_date' => now()->subMonth(),
+        ]);
+        $olderPreinscription = $createInscription([
+            'pre_inscription' => true,
+            'start_date' => now()->subMonths(2),
+        ]);
+
+        $params = [
+            'draw' => 1,
+            'start' => 0,
+            'length' => 10,
+            'inscription_year' => $year,
+            'columns' => [
+                [
+                    'data' => 'pre_inscription',
+                    'name' => 'inscriptions.pre_inscription',
+                    'searchable' => 'true',
+                    'orderable' => 'true',
+                    'search' => ['value' => '', 'regex' => 'false'],
+                ],
+                [
+                    'data' => 'start_date',
+                    'name' => 'inscriptions.start_date',
+                    'searchable' => 'false',
+                    'orderable' => 'true',
+                    'search' => ['value' => '', 'regex' => 'false'],
+                ],
+            ],
+            'order' => [
+                ['column' => 0, 'dir' => 'desc'],
+                ['column' => 1, 'dir' => 'asc'],
+            ],
+            'search' => ['value' => '', 'regex' => 'false'],
+        ];
+
+        $orderedResponse = $this->actingAs($this->user)
+            ->getJson('/api/v2/datatables/inscriptions_enabled?'.http_build_query($params), [
+                'X-Requested-With' => 'XMLHttpRequest',
+            ])
+            ->assertOk();
+
+        $this->assertSame(
+            [$olderPreinscription->id, $newerPreinscription->id, $regular->id],
+            collect($orderedResponse->json('data'))->pluck('id')->all(),
+        );
+
+        $params['columns'][0]['search']['value'] = '1';
+
+        $filteredResponse = $this->actingAs($this->user)
+            ->getJson('/api/v2/datatables/inscriptions_enabled?'.http_build_query($params), [
+                'X-Requested-With' => 'XMLHttpRequest',
+            ])
+            ->assertOk();
+
+        $this->assertSame(2, $filteredResponse->json('recordsFiltered'));
+        $this->assertSame(
+            [$olderPreinscription->id, $newerPreinscription->id],
+            collect($filteredResponse->json('data'))->pluck('id')->all(),
+        );
+    }
+
     public function test_create_inscription_is_blocked_when_school_reaches_year_limit(): void
     {
         Mail::fake();

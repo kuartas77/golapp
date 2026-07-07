@@ -44,6 +44,11 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         { data: 'player.category', name: 'inscriptions.category', orderable: false, searchable: true },
         { data: 'player.gender', name: 'player.gender', orderable: false, searchable: false },
         { data: 'player.full_names', render: '#inscription', name: 'player.last_names', orderable: false, searchable: true  },
+        {
+            data: 'pre_inscription',
+            name: 'inscriptions.pre_inscription',
+            searchable: true,
+        },
         { data: 'eps_certificate', render: (data) => `<span class="badge badge-warning">`+(data ? 'Sí':'No')+`</span>`, orderable: false, searchable: true },
         { data: 'start_date', name: 'inscriptions.start_date', render: '#date', searchable: false },
         {
@@ -170,15 +175,16 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         lengthMenu: [[10, 20, 30, 50, 100], [10, 20, 30, 50, 100]],
         columnDefs: [
             { responsivePriority: 1, targets: columns.length - 1 },
+            { targets: [6], visible: false },
             { targets: [1, 2, 3],  width: '9%' },
-            { targets: [4, 6, 7, 8], width: '1%', className: 'dt-head-center dt-body-center' },
+            { targets: [4, 7, 8, 9], width: '1%', className: 'dt-head-center dt-body-center' },
             { targets: [5], width: '35%'},
             { targets: [0, 1, 2, 3], className: 'dt-head-center dt-body-center' },
         ],
         serverSide: true,
         pipeline: { pages: 5 },
         processing: true,
-        order: [[1, 'desc']],
+        order: [[6, 'desc'], [8, 'asc']],
         ajax: async (data, callback, settings) => {
             try {
                 const response = await api.get('/api/v2/datatables/inscriptions_enabled', {
@@ -232,6 +238,10 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
 
     const onCategoryFilterChange = (event) => {
         applyColumnFilter(3, event?.target?.value ?? '')
+    }
+
+    const onPreInscriptionFilterChange = (event) => {
+        applyColumnFilter(6, event?.target?.value ?? '')
     }
 
     const resolveRouteFromClick = (e) => {
@@ -335,6 +345,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         triggerCreateModal,
         onGroupFilterChange,
         onCategoryFilterChange,
+        onPreInscriptionFilterChange,
         resolveRouteFromClick,
         onAttendanceQrModalToggle,
         onCancelModal,
