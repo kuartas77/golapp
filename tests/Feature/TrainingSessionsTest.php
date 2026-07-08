@@ -27,6 +27,11 @@ final class TrainingSessionsTest extends TestCase
     public function testSessionPlanningCrudIsIsolatedFromStandardSessionsAndSharesDateUniqueness(): void
     {
         $school = School::findOrFail($this->school['id']);
+        $school->forceFill(['school_permissions' => School::normalizeSchoolPermissions([
+            ...$school->getResolvedSchoolPermissions(),
+            'school.module.session_planning' => false,
+        ])])->save();
+
         $this->actingAs($this->user)->get('/planificacion-sesiones')->assertForbidden();
         $this->actingAs($this->user)->postJson('/api/v2/session-plannings', [])->assertForbidden();
         $school->forceFill(['school_permissions' => School::normalizeSchoolPermissions([

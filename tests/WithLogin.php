@@ -59,6 +59,11 @@ trait WithLogin
     protected function createSchool(array $attributes = []): array
     {
         $school = School::factory()->create($attributes);
+        $school->forceFill([
+            'school_permissions' => array_fill_keys(array_keys(School::permissionCatalog()), true),
+        ])->save();
+        School::forgetCachedSchool($school->id);
+
         $school->schedules()->create([
             'schedule' => '10:00AM - 11:00AM',
         ]);

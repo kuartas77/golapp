@@ -36,16 +36,9 @@ final class SchoolPermissionsTest extends TestCase
         $permissions = $school->fresh()->getResolvedSchoolPermissions();
         $catalog = School::permissionCatalog();
 
-        $this->assertTrue($permissions['school.module.players']);
-        $this->assertSame(
-            (bool) ($catalog['school.module.training_sessions']['default'] ?? false),
-            $permissions['school.module.training_sessions']
-        );
-        $this->assertTrue($permissions['school.module.billing']);
-        $this->assertTrue($permissions['school.module.club_documents']);
-        $this->assertTrue($permissions['school.module.document_planning']);
-        $this->assertFalse($permissions['school.module.session_planning']);
-        $this->assertFalse($permissions['school.feature.system_notify']);
+        $this->assertNotEmpty($catalog);
+        $this->assertSame(array_keys($catalog), array_keys($permissions));
+        $this->assertNotContains(true, $permissions, 'Los permisos nuevos deben estar deshabilitados por defecto.');
     }
 
     public function test_user_endpoint_returns_selected_school_permissions_and_merged_permissions_for_super_admin(): void
