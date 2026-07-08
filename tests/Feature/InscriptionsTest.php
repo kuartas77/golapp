@@ -134,7 +134,13 @@ final class InscriptionsTest extends TestCase
         ]);
 
         $createInscription = function (array $attributes) use ($schoolId, $trainingGroup, $year): Inscription {
-            $player = Player::factory()->create(['school_id' => $schoolId]);
+            $playerAttributes = ['school_id' => $schoolId];
+
+            if (array_key_exists('unique_code', $attributes)) {
+                $playerAttributes['unique_code'] = $attributes['unique_code'];
+            }
+
+            $player = Player::factory()->create($playerAttributes);
 
             return Inscription::factory()->create([
                 'player_id' => $player->id,
@@ -148,14 +154,17 @@ final class InscriptionsTest extends TestCase
         };
 
         $regular = $createInscription([
+            'unique_code' => '99999',
             'pre_inscription' => false,
             'start_date' => now()->subMonths(3),
         ]);
-        $newerPreinscription = $createInscription([
+        $lowerCodePreinscription = $createInscription([
+            'unique_code' => '10002',
             'pre_inscription' => true,
             'start_date' => now()->subMonth(),
         ]);
-        $olderPreinscription = $createInscription([
+        $higherCodePreinscription = $createInscription([
+            'unique_code' => '10003',
             'pre_inscription' => true,
             'start_date' => now()->subMonths(2),
         ]);
@@ -174,8 +183,8 @@ final class InscriptionsTest extends TestCase
                     'search' => ['value' => '', 'regex' => 'false'],
                 ],
                 [
-                    'data' => 'start_date',
-                    'name' => 'inscriptions.start_date',
+                    'data' => 'unique_code',
+                    'name' => 'inscriptions.unique_code',
                     'searchable' => 'false',
                     'orderable' => 'true',
                     'search' => ['value' => '', 'regex' => 'false'],
@@ -183,7 +192,7 @@ final class InscriptionsTest extends TestCase
             ],
             'order' => [
                 ['column' => 0, 'dir' => 'desc'],
-                ['column' => 1, 'dir' => 'asc'],
+                ['column' => 1, 'dir' => 'desc'],
             ],
             'search' => ['value' => '', 'regex' => 'false'],
         ];
@@ -195,7 +204,7 @@ final class InscriptionsTest extends TestCase
             ->assertOk();
 
         $this->assertSame(
-            [$olderPreinscription->id, $newerPreinscription->id, $regular->id],
+            [$higherCodePreinscription->id, $lowerCodePreinscription->id, $regular->id],
             collect($orderedResponse->json('data'))->pluck('id')->all(),
         );
 
@@ -209,7 +218,7 @@ final class InscriptionsTest extends TestCase
 
         $this->assertSame(2, $filteredResponse->json('recordsFiltered'));
         $this->assertSame(
-            [$olderPreinscription->id, $newerPreinscription->id],
+            [$higherCodePreinscription->id, $lowerCodePreinscription->id],
             collect($filteredResponse->json('data'))->pluck('id')->all(),
         );
     }

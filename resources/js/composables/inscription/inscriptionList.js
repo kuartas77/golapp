@@ -184,7 +184,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         serverSide: true,
         pipeline: { pages: 5 },
         processing: true,
-        order: [[6, 'desc'], [8, 'asc']],
+        order: [[6, 'desc'], [1, 'desc']],
         ajax: async (data, callback, settings) => {
             try {
                 const response = await api.get('/api/v2/datatables/inscriptions_enabled', {
