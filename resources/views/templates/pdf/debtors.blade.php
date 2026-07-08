@@ -29,6 +29,7 @@
             <th class="text-center">Código</th>
             <th>&nbsp;Deportista&nbsp;</th>
             <th>&nbsp;Categoría&nbsp;</th>
+            <th>&nbsp;Grupo de entrenamiento&nbsp;</th>
             <th>&nbsp;Debe&nbsp;</th>
             @if($showTotalDebt)
                 <th class="text-right">&nbsp;Total Deuda&nbsp;</th>
@@ -42,6 +43,7 @@
                 <td class="text-center">&nbsp;{{ $row['unique_code'] }}&nbsp;</td>
                 <td>&nbsp;{{ $row['student_name'] }}&nbsp;</td>
                 <td>&nbsp;{{ $row['category'] }}&nbsp;</td>
+                <td>&nbsp;{{ $row['training_group'] }}&nbsp;</td>
                 <td>
                     &nbsp;{{ collect($row['debt_items'])->map(fn ($item) => $item['label'].($showItemAmounts ? ' ('.number_format($item['amount'], 0, ',', '.').')' : ''))->implode(', ') }}&nbsp;
                 </td>
@@ -51,12 +53,12 @@
             </tr>
         @empty
             <tr>
-                <td colspan="{{ $showTotalDebt ? 6 : 5 }}" class="text-center">&nbsp;No se encontraron deudores para los filtros seleccionados.&nbsp;</td>
+                <td colspan="{{ $showTotalDebt ? 7 : 6 }}" class="text-center">&nbsp;No se encontraron deudores para los filtros seleccionados.&nbsp;</td>
             </tr>
         @endforelse
         @if($showTotalDebt)
             <tr>
-                <th colspan="5" class="text-right">Total deuda:</th>
+                <th colspan="6" class="text-right">Total deuda:</th>
                 <th class="text-right">&nbsp;{{ number_format($rows->sum('total_debt'), 0, ',', '.') }}&nbsp;</th>
             </tr>
         @endif

@@ -28,6 +28,7 @@ final class DebtorReportTest extends TestCase
                 'unique_code' => '1001',
                 'student_name' => 'Ana Torres',
                 'category' => 'Sub 10',
+                'training_group' => 'Grupo 1',
                 'debt_items' => [[
                     'label' => 'Mensualidad Enero',
                     'amount' => 50000,
@@ -56,6 +57,8 @@ final class DebtorReportTest extends TestCase
         $this->assertStringNotContainsString('Total Deuda', $itemAmountsOnly);
         $this->assertStringNotContainsString('(50.000)', $generalTotalsOnly);
         $this->assertStringContainsString('Total Deuda', $generalTotalsOnly);
+        $this->assertStringContainsString('Grupo de entrenamiento', $generalTotalsOnly);
+        $this->assertStringContainsString('Grupo 1', $generalTotalsOnly);
     }
 
     public function testDebtorReportConsolidatesMonthlyAndInvoiceDebts(): void
@@ -254,6 +257,63 @@ final class DebtorReportTest extends TestCase
         ]);
 
         $this->assertSame(['SUB-1', 'SUB-3', 'SUB-10'], $rows->pluck('category')->all());
+    }
+
+    public function testDebtorReportOrdersRowsByTrainingGroupId(): void
+    {
+        $this->actingAs($this->user);
+
+        $groups = collect([10, 2])->mapWithKeys(function (int $number) {
+            $group = TrainingGroup::query()->create([
+                'school_id' => $this->school['id'],
+                'name' => "Grupo {$number}",
+                'stage' => null,
+                'year' => '2014',
+                'category' => 'Sub 10',
+                'days' => 'Lunes',
+                'schedules' => '10:00AM - 11:00AM',
+            ]);
+
+            return [$number => $group];
+        });
+
+        foreach ([
+            ['group' => $groups->get(2), 'code' => '1002', 'name' => 'Beto'],
+            ['group' => $groups->get(10), 'code' => '1010', 'name' => 'Ana'],
+            ['group' => $groups->get(2), 'code' => '1004', 'name' => 'Diana'],
+            ['group' => $groups->get(10), 'code' => '1012', 'name' => 'Carlos'],
+        ] as $playerData) {
+            $inscription = $this->createInscriptionForReport(
+                $playerData['group'],
+                $playerData['code'],
+                $playerData['name'],
+                'Test'
+            );
+
+            $this->resetPayment($this->paymentForInscription($inscription))->update([
+                'january' => Payment::$debt,
+                'january_amount' => 50000,
+            ]);
+        }
+
+        $rows = app(DebtorReportService::class)->rows([
+            'school_id' => $this->school['id'],
+            'year' => 2026,
+        ]);
+
+        $this->assertSame(
+            ['Grupo 10', 'Grupo 10', 'Grupo 2', 'Grupo 2'],
+            $rows->pluck('training_group')->all()
+        );
+        $this->assertSame(
+            [
+                $groups->get(10)->id,
+                $groups->get(10)->id,
+                $groups->get(2)->id,
+                $groups->get(2)->id,
+            ],
+            $rows->pluck('training_group_id')->all()
+        );
     }
 
     public function testDebtorReportIncludesDueCustomChargesThatAreNotInvoiced(): void

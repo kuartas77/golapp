@@ -157,20 +157,35 @@ class DebtorReportService
         return $rows
             ->filter(fn ($row) => $row['total_debt'] > 0)
             ->sort(function (array $left, array $right): int {
-                $leftCategory = trim($left['category']);
-                $rightCategory = trim($right['category']);
+                $leftGroupId = (int) ($left['training_group_id'] ?? 0);
+                $rightGroupId = (int) ($right['training_group_id'] ?? 0);
+                $groupComparison = $leftGroupId === 0 || $rightGroupId === 0
+                    ? ($leftGroupId === 0) <=> ($rightGroupId === 0)
+                    : $leftGroupId <=> $rightGroupId;
 
-                if ($leftCategory === '' || $rightCategory === '') {
-                    $categoryComparison = ($leftCategory === '') <=> ($rightCategory === '');
-                } else {
-                    $categoryComparison = strnatcasecmp($leftCategory, $rightCategory);
+                if ($groupComparison !== 0) {
+                    return $groupComparison;
                 }
+
+                $categoryComparison = $this->compareNaturalText($left['category'], $right['category']);
 
                 return $categoryComparison !== 0
                     ? $categoryComparison
                     : strcasecmp($left['student_name'], $right['student_name']);
             })
             ->values();
+    }
+
+    private function compareNaturalText(string $left, string $right): int
+    {
+        $left = trim($left);
+        $right = trim($right);
+
+        if ($left === '' || $right === '') {
+            return ($left === '') <=> ($right === '');
+        }
+
+        return strnatcasecmp($left, $right);
     }
 
     public function playerDebts(int $schoolId, int $playerId, Carbon $asOf): Collection
@@ -357,7 +372,8 @@ class DebtorReportService
             $payment->unique_code,
             $player?->full_names ?? $inscription?->player?->full_names ?? $payment->unique_code,
             $inscription?->category ?? $payment->category,
-            $group?->full_group ?? $group?->name
+            $group?->full_group ?? $group?->name,
+            $group?->id
         );
     }
 
@@ -386,7 +402,8 @@ class DebtorReportService
             $player?->unique_code ?? $inscription?->unique_code ?? '',
             $player?->full_names ?? $invoice->student_name,
             $inscription?->category,
-            $group?->full_group ?? $group?->name
+            $group?->full_group ?? $group?->name,
+            $group?->id
         );
     }
 
@@ -413,11 +430,20 @@ class DebtorReportService
             $player?->unique_code ?? $inscription?->unique_code ?? '',
             $player?->full_names ?? $charge->name,
             $inscription?->category,
-            $group?->full_group ?? $group?->name
+            $group?->full_group ?? $group?->name,
+            $group?->id
         );
     }
 
-    private function baseRow(int $inscriptionId, ?int $playerId, string $uniqueCode, string $studentName, ?string $category, ?string $trainingGroup): array
+    private function baseRow(
+        int $inscriptionId,
+        ?int $playerId,
+        string $uniqueCode,
+        string $studentName,
+        ?string $category,
+        ?string $trainingGroup,
+        ?int $trainingGroupId = null
+    ): array
     {
         return [
             'player_id' => $playerId,
@@ -426,6 +452,7 @@ class DebtorReportService
             'student_name' => $studentName,
             'category' => $category ?? '',
             'training_group' => $trainingGroup ?? '',
+            'training_group_id' => $trainingGroupId,
             'debt_items' => [],
             'debt_label' => '',
             'total_debt' => 0.0,
