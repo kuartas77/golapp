@@ -80,9 +80,9 @@ class User extends Authenticatable implements MustVerifyEmail
             return;
         }
 
-        $this->attributes['password'] = Hash::needsRehash((string) $value)
-            ? Hash::make((string) $value)
-            : (string) $value;
+        $this->attributes['password'] = Hash::isHashed((string) $value)
+            ? (string) $value
+            : Hash::make((string) $value);
     }
 
     public function competition_groups(): HasMany
