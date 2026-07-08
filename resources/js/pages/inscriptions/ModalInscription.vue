@@ -846,7 +846,14 @@ const onChangeCode = (uniqueCode) => {
 }
 
 const onTrainingGroupChange = (value) => {
-    currentTrainingGroupId.value = value
+    const trainingGroupId = normalizeTrainingGroupId(value)
+
+    currentTrainingGroupId.value = trainingGroupId
+
+    if (trainingGroupId && !isProvisionalTrainingGroup(trainingGroupId)) {
+        form.value?.setFieldValue('pre_inscription', false)
+        currentPreInscription.value = false
+    }
 }
 
 const onPreInscriptionChange = (value) => {

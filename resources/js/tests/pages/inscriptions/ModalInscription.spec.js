@@ -383,6 +383,23 @@ describe('ModalInscription', () => {
         expect(wrapper.get('[data-select-id="training_group_id"]').text()).not.toContain('Provisional');
     });
 
+    it('clears the pre-inscription state when assigning a definitive training group', async () => {
+        const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
+
+        await wrapper.setProps({ inscription_id: 3 });
+        await flushPromises();
+        await flushPromises();
+
+        expect(wrapper.vm.$.setupState.form.values.pre_inscription).toBe(true);
+
+        wrapper.vm.$.setupState.onTrainingGroupChange('2');
+        await flushPromises();
+
+        expect(wrapper.vm.$.setupState.currentTrainingGroupId).toBe('2');
+        expect(wrapper.vm.$.setupState.currentPreInscription).toBe(false);
+        expect(wrapper.vm.$.setupState.form.values.pre_inscription).toBe(false);
+    });
+
     it('submits the selected monthly payment type', async () => {
         const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
         const actions = { setErrors: vi.fn() };
