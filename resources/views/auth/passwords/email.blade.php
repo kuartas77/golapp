@@ -10,7 +10,7 @@
 
             <form method="POST" action="{{ route('password.email') }}" class="form-horizontal form-material" id="form-reset">
                 @csrf
-                <img src="{{asset('img/log3.jpg')}}" alt="{{config('app.name', 'Laravel')}}" class="img-center img-responsive">
+                <img src="{{asset('img/logo-light.svg')}}" alt="{{config('app.name', 'Laravel')}}" class="img-center img-responsive">
 
                 <div class="form-group">
                     <div class="col-xs-12">

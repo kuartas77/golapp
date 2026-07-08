@@ -4,13 +4,13 @@
 
 @endsection
 @section('content')
-<div class="login-register" style="background-image:url('{{asset('imagenes/login-register.jpg')}}');" >
+<div class="login-register">
     <div class="login-box card">
         <div class="card-body">
 
             <form method="POST" action="{{ route('expired') }}" class="form-horizontal form-material" id="form-ingreso">
                 @csrf
-                <img src="{{asset('imagenes/log3.png')}}" alt="Aserpublicos" class="img-center img-responsive">
+                <img src="{{asset('img/logo-light.svg')}}" alt="Aserpublicos" class="img-center img-responsive">
                 <blockquote class="blockquote text-center">
                     <p class="text-justify">{{Lang::getFromJson("Your Password is expired, You need to change your password.")}}</p>
                 </blockquote>

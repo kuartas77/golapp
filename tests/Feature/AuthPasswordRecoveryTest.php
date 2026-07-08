@@ -12,6 +12,13 @@ use Tests\TestCase;
 
 final class AuthPasswordRecoveryTest extends TestCase
 {
+    public function testLegacyPasswordRecoveryLogoRedirectsToCurrentLogo(): void
+    {
+        $this->get('/img/log3.png')
+            ->assertMovedPermanently()
+            ->assertRedirect('/img/logo-light.svg');
+    }
+
     public function testUserCanRequestPasswordRecoveryInstructions(): void
     {
         Notification::fake();

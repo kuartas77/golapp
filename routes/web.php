@@ -37,6 +37,9 @@ use Illuminate\Support\Facades\Route;
 // Compatibilidad con enlaces y sesiones antiguas que todavia apuntan a /login.
 Route::redirect('/login', '/ingreso')->name('login');
 
+// Mantiene funcionales los correos antiguos que referencian el logo retirado.
+Route::redirect('/img/log3.png', '/img/logo-light.svg', 301);
+
 Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
 
 Route::middleware(['auth', 'verified_school'])->group(function () {

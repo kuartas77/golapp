@@ -9,7 +9,7 @@
         <div class="card-body">
             <form method="POST" action="{{ route('password.update') }}" class="form-horizontal form-material" id="form-reset">
                 @csrf
-                <img src="{{asset('img/log3.jpg')}}" alt="{{config('app.name', 'Laravel')}}" class="img-center img-responsive">
+                <img src="{{asset('img/logo-light.svg')}}" alt="{{config('app.name', 'Laravel')}}" class="img-center img-responsive">
 
                 <input type="hidden" name="token" value="{{ $token }}">
 
