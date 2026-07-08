@@ -483,6 +483,8 @@ Route::prefix('v2')->group(function () {
         Route::get('escuelas/{school}/data', [PortalSchool::class, 'showData'])->name('school.show.data');
         Route::get('escuelas/{school}/contracts/{contractTypeCode}', [PortalContract::class, 'show'])->name('school.contract.show');
 
+        Route::post('inscription-client-errors', [PortalInscription::class, 'clientError'])
+            ->name('inscription.client-error');
         Route::post('{school}/inscripcion', [PortalInscription::class, 'store'])->name('school.inscription.store');
 
         Route::prefix('autocomplete')->group(function () {

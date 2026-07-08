@@ -101,6 +101,7 @@ class SchoolsController extends Controller
             ],
             'endpoints' => [
                 'store' => route('api.v2.portal.school.inscription.store', [$school->slug], false),
+                'clientError' => route('api.v2.portal.inscription.client-error', [], false),
                 'autocomplete' => route('api.v2.portal.autocomplete.fields', [], false),
                 'searchDoc' => route('api.v2.portal.autocomplete.search_doc', [], false),
             ],

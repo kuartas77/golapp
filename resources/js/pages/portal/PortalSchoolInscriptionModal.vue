@@ -1255,6 +1255,34 @@ const buildFormData = (payload, recaptchaToken) => {
     return formData;
 };
 
+const reportSubmissionError = async (error, submittedValues) => {
+    if (error.response) {
+        return;
+    }
+
+    const fileSizes = Object.fromEntries(
+        FILE_FIELDS.flatMap((field) => {
+            const value = submittedValues[field];
+            return value instanceof File ? [[field, value.size]] : [];
+        })
+    );
+
+    try {
+        await api.post(props.endpoints.clientError || '/api/v2/portal/inscription-client-errors', {
+            school_slug: props.school.slug,
+            endpoint: props.endpoints.store,
+            error_code: error.code || null,
+            error_message: error.message || null,
+            status: error.response?.status || null,
+            online: navigator.onLine,
+            file_sizes: fileSizes,
+            total_file_bytes: Object.values(fileSizes).reduce((total, size) => total + size, 0),
+        });
+    } catch (reportError) {
+        // The original submission error remains the one shown to the user.
+    }
+};
+
 const hideModal = () => {
     const modalElement = modalRef.value;
 
@@ -1329,6 +1357,8 @@ const submitForm = handleSubmit(async (submittedValues) => {
 
         window.location.reload();
     } catch (error) {
+        await reportSubmissionError(error, submittedValues);
+
         const response = error.response;
         const backendErrors = response?.data?.errors ?? {};
         const fieldErrors = Object.fromEntries(

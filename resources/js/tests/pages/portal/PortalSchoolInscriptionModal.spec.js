@@ -48,6 +48,7 @@ const defaultProps = {
         autocomplete: '/api/autocomplete',
         searchDoc: '/api/search-doc',
         store: '/api/store',
+        clientError: '/api/inscription-client-errors',
     },
     assets: {
         defaultUserPhoto: '/img/default-user.png',
@@ -717,6 +718,34 @@ describe('PortalSchoolInscriptionModal', () => {
         expect(swalFireMock).toHaveBeenLastCalledWith(expect.objectContaining({
             icon: 'error',
             text: 'Revisa la información enviada.',
+        }));
+    });
+
+    it('reporta de forma segura los errores de red ocurridos al enviar la inscripción', async () => {
+        swalFireMock.mockResolvedValue({ isConfirmed: true });
+        const networkError = Object.assign(new Error('Network Error'), { code: 'ERR_NETWORK' });
+        const postImplementation = vi.fn()
+            .mockRejectedValueOnce(networkError)
+            .mockResolvedValueOnce({ data: { reported: true } });
+
+        const { wrapper, props } = await mountModal({}, { postImplementation });
+
+        await fillRequiredBaseSteps(wrapper);
+        await submitVisibleWizard(wrapper);
+
+        expect(apiMock.post).toHaveBeenCalledTimes(2);
+        expect(apiMock.post.mock.calls[1][0]).toBe(props.endpoints.clientError);
+        expect(apiMock.post.mock.calls[1][1]).toEqual(expect.objectContaining({
+            school_slug: props.school.slug,
+            endpoint: props.endpoints.store,
+            error_code: 'ERR_NETWORK',
+            error_message: 'Network Error',
+            total_file_bytes: 0,
+        }));
+        expect(apiMock.post.mock.calls[1][1]).not.toHaveProperty('form');
+        expect(swalFireMock).toHaveBeenLastCalledWith(expect.objectContaining({
+            icon: 'error',
+            text: 'Network Error',
         }));
     });
 

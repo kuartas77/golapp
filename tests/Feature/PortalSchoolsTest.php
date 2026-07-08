@@ -11,6 +11,7 @@ use App\Models\School;
 use App\Models\Setting;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -176,6 +177,10 @@ final class PortalSchoolsTest extends TestCase
                 route('api.v2.portal.school.inscription.store', [$school['slug']], false)
             )
             ->assertJsonPath(
+                'data.endpoints.clientError',
+                route('api.v2.portal.inscription.client-error', [], false)
+            )
+            ->assertJsonPath(
                 'data.endpoints.autocomplete',
                 route('api.v2.portal.autocomplete.fields', [], false)
             )
@@ -183,6 +188,34 @@ final class PortalSchoolsTest extends TestCase
                 'data.endpoints.searchDoc',
                 route('api.v2.portal.autocomplete.search_doc', [], false)
             );
+    }
+
+    public function test_portal_accepts_sanitized_browser_failure_reports(): void
+    {
+        Log::spy();
+
+        $this->postJson(route('api.v2.portal.inscription.client-error'), [
+            'school_slug' => 'club-deportivo-academia-union',
+            'endpoint' => '/api/v2/portal/club-deportivo-academia-union/inscripcion',
+            'error_code' => 'ERR_NETWORK',
+            'error_message' => 'Network Error',
+            'status' => null,
+            'online' => true,
+            'file_sizes' => [
+                'player_document' => 2000000,
+                'medical_certificate' => 1800000,
+            ],
+            'total_file_bytes' => 3800000,
+        ])->assertOk()->assertJsonPath('reported', true);
+
+        Log::shouldHaveReceived('warning')
+            ->once()
+            ->with('Portal inscription failed in browser', \Mockery::on(
+                fn (array $context): bool => $context['school_slug'] === 'club-deportivo-academia-union'
+                    && $context['error_code'] === 'ERR_NETWORK'
+                    && $context['total_file_bytes'] === 3800000
+                    && isset($context['ip'], $context['user_agent'])
+            ));
     }
 
     public function test_portal_allows_registering_two_players_with_the_same_guardian(): void
