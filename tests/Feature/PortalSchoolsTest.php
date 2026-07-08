@@ -161,6 +161,30 @@ final class PortalSchoolsTest extends TestCase
             ->assertJsonPath('data.inscriptionLimit.is_full', true);
     }
 
+    public function test_portal_school_data_uses_same_origin_form_endpoints(): void
+    {
+        $school = $this->createSchool([
+            'slug' => 'escuela-endpoints-relativos',
+            'is_enable' => true,
+            'inscriptions_enabled' => true,
+        ]);
+
+        $this->getJson(route('api.v2.portal.school.show.data', [$school['slug']]))
+            ->assertOk()
+            ->assertJsonPath(
+                'data.endpoints.store',
+                route('api.v2.portal.school.inscription.store', [$school['slug']], false)
+            )
+            ->assertJsonPath(
+                'data.endpoints.autocomplete',
+                route('api.v2.portal.autocomplete.fields', [], false)
+            )
+            ->assertJsonPath(
+                'data.endpoints.searchDoc',
+                route('api.v2.portal.autocomplete.search_doc', [], false)
+            );
+    }
+
     public function test_portal_allows_registering_two_players_with_the_same_guardian(): void
     {
         config([

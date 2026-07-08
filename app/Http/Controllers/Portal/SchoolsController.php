@@ -100,9 +100,9 @@ class SchoolsController extends Controller
                 'schoolLogin' => url('/login'),
             ],
             'endpoints' => [
-                'store' => route('api.v2.portal.school.inscription.store', [$school->slug]),
-                'autocomplete' => route('api.v2.portal.autocomplete.fields'),
-                'searchDoc' => route('api.v2.portal.autocomplete.search_doc'),
+                'store' => route('api.v2.portal.school.inscription.store', [$school->slug], false),
+                'autocomplete' => route('api.v2.portal.autocomplete.fields', [], false),
+                'searchDoc' => route('api.v2.portal.autocomplete.search_doc', [], false),
             ],
             'assets' => [
                 'defaultUserPhoto' => asset('img/user.png'),
