@@ -19,7 +19,10 @@ const { apiMock, settingsStore, authStore } = vi.hoisted(() => ({
             { id: 1, name: 'Provisional' },
             { id: 2, name: 'Grupo definitivo' },
         ],
-        competition_groups: [],
+        competition_groups: [
+            { id: 10, name: 'Competencia A' },
+            { id: 11, name: 'Competencia B' },
+        ],
         all_groups: [
             { id: 1, name: 'Provisional' },
             { id: 2, name: 'Grupo definitivo' },
@@ -153,7 +156,9 @@ const mountModal = async (
                     template: '<input :name="name" type="checkbox" />',
                 },
                 CustomSelect2: {
+                    name: 'CustomSelect2',
                     props: ['id', 'modelValue', 'options', 'multiple'],
+                    emits: ['update:modelValue'],
                     template: '<div class="custom-select2-stub" :id="id" :data-select-id="id">{{ JSON.stringify({ modelValue, options, multiple }) }}</div>',
                 },
                 TypeAhead: {
@@ -398,6 +403,41 @@ describe('ModalInscription', () => {
         expect(wrapper.vm.$.setupState.currentTrainingGroupId).toBe('2');
         expect(wrapper.vm.$.setupState.currentPreInscription).toBe(false);
         expect(wrapper.vm.$.setupState.form.values.pre_inscription).toBe(false);
+        expect(wrapper.get('#pre_inscription').element.checked).toBe(false);
+    });
+
+    it('allows the pre-inscription checkbox to be unchecked manually', async () => {
+        const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
+
+        await wrapper.setProps({ inscription_id: 3 });
+        await flushPromises();
+        await flushPromises();
+
+        const checkbox = wrapper.get('#pre_inscription');
+
+        expect(checkbox.attributes('disabled')).toBeUndefined();
+        expect(checkbox.element.checked).toBe(true);
+
+        await checkbox.setValue(false);
+
+        expect(wrapper.vm.$.setupState.currentPreInscription).toBe(false);
+        expect(wrapper.vm.$.setupState.form.values.pre_inscription).toBe(false);
+        expect(checkbox.element.checked).toBe(false);
+    });
+
+    it('keeps multiple competition groups selected in the form', async () => {
+        const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
+        const competitionSelect = wrapper
+            .findAllComponents({ name: 'CustomSelect2' })
+            .find((component) => component.props('id') === 'competition_groups');
+
+        expect(competitionSelect.props('multiple')).toBe(true);
+
+        competitionSelect.vm.$emit('update:modelValue', ['10', '11']);
+        await flushPromises();
+
+        expect(wrapper.vm.$.setupState.form.values.competition_groups).toEqual(['10', '11']);
+        expect(competitionSelect.props('modelValue')).toEqual(['10', '11']);
     });
 
     it('submits the selected monthly payment type', async () => {

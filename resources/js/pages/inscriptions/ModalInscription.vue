@@ -100,8 +100,15 @@
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label for="competition_groups">Grupo de competencia:</label>
-                                    <Field name="competition_groups" as="CustomSelect2" :options="competitionGroups" id="competition_groups"
-                                        :multiple="true" />
+                                    <Field name="competition_groups" v-slot="{ field, handleChange }">
+                                        <CustomSelect2
+                                            id="competition_groups"
+                                            :modelValue="field.value"
+                                            :options="competitionGroups"
+                                            :multiple="true"
+                                            @update:modelValue="handleChange"
+                                        />
+                                    </Field>
                                     <ErrorMessage name="competition_groups" class="custom-error" />
                                 </div>
                             </div>
@@ -135,19 +142,17 @@
                                 </div>
                                 <Field name="pre_inscription" v-slot="{ value, handleChange }">
                                     <div class="form-group mt-2">
-                                        <div class="form-check ps-0">
-                                            <div class="custom-control custom-checkbox checkbox-primary">
-                                                <input
-                                                    id="pre_inscription"
-                                                    type="checkbox"
-                                                    class="custom-control-input"
-                                                    :checked="normalizeBoolean(value)"
-                                                    @change="(event) => onPreInscriptionInput(event, handleChange)"
-                                                />
-                                                <label class="custom-control-label" for="pre_inscription">
-                                                    Marcar como preinscripción
-                                                </label>
-                                            </div>
+                                        <div class="form-check">
+                                            <input
+                                                id="pre_inscription"
+                                                type="checkbox"
+                                                class="form-check-input"
+                                                :checked="normalizeBoolean(value)"
+                                                @change="(event) => onPreInscriptionInput(event, handleChange)"
+                                            />
+                                            <label class="form-check-label" for="pre_inscription">
+                                                Marcar como preinscripción
+                                            </label>
                                         </div>
                                     </div>
                                 </Field>
