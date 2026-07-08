@@ -130,6 +130,37 @@ final class PortalSchoolsTest extends TestCase
         ]);
     }
 
+    public function test_portal_school_data_reports_when_inscription_limit_is_reached(): void
+    {
+        $schoolData = $this->createSchool([
+            'name' => 'Escuela Sin Cupos',
+            'slug' => 'escuela-sin-cupos',
+            'email' => 'sin-cupos@example.com',
+            'is_enable' => true,
+            'inscriptions_enabled' => true,
+        ]);
+        $school = School::query()->findOrFail($schoolData['id']);
+        $school->settingsValues()
+            ->where('setting_key', Setting::MAX_INSCRIPTIONS)
+            ->update(['value' => '1']);
+
+        $player = Player::factory()->create(['school_id' => $school->id]);
+        Inscription::factory()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'school_id' => $school->id,
+            'year' => now()->year,
+            'competition_group_id' => null,
+        ]);
+
+        $this->getJson(route('api.v2.portal.school.show.data', [$school->slug]))
+            ->assertOk()
+            ->assertJsonPath('data.inscriptionLimit.current', 1)
+            ->assertJsonPath('data.inscriptionLimit.limit', 1)
+            ->assertJsonPath('data.inscriptionLimit.remaining', 0)
+            ->assertJsonPath('data.inscriptionLimit.is_full', true);
+    }
+
     public function test_portal_allows_registering_two_players_with_the_same_guardian(): void
     {
         config([

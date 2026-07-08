@@ -5,13 +5,15 @@ namespace App\Http\Controllers\Portal;
 use App\Models\School;
 use App\Http\Controllers\Controller;
 use App\Service\Contracts\ContractTemplateService;
+use App\Service\InscriptionLimitService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 
 class SchoolsController extends Controller
 {
     public function __construct(
-        private readonly ContractTemplateService $contractTemplateService
+        private readonly ContractTemplateService $contractTemplateService,
+        private readonly InscriptionLimitService $inscriptionLimitService
     ) {
     }
 
@@ -71,6 +73,7 @@ class SchoolsController extends Controller
         $availableContracts = $school->create_contract
             ? $this->contractTemplateService->availablePortalContracts($school)
             : [];
+        $year = (int) $this->getPortalYear();
 
         return $this->responseJson([
             'school' => [
@@ -87,7 +90,8 @@ class SchoolsController extends Controller
                 'sign_player' => $school->sign_player,
                 'inscriptions_enabled' => $school->inscriptions_enabled,
             ],
-            'year' => $this->getPortalYear(),
+            'year' => $year,
+            'inscriptionLimit' => $this->inscriptionLimitService->summary($school, $year),
             'fileSizeMb' => 3,
             'storageKey' => "portal-inscription-form-{$school->slug}",
             'links' => [

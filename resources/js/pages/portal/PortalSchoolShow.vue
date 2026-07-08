@@ -68,7 +68,7 @@
                                 <h2 class="h3 mb-3">{{ school.name }}</h2>
                             </div>
 
-                            <div v-if="school.inscriptions_enabled">
+                            <div v-if="inscriptionsAvailable">
                                 <p class="text-muted mb-4" v-if="school.send_documents">
                                     Antes de comenzar, deja listos los documentos y firmas que se solicitan durante el proceso.
                                 </p>
@@ -98,6 +98,11 @@
                                 >
                                     Realizar Inscripción
                                 </button>
+                            </div>
+
+                            <div v-else-if="inscriptionLimitReached" class="alert alert-warning mb-0" role="alert">
+                                El cupo límite de inscripciones para {{ pageData.year }} ya se ha alcanzado.
+                                Comunícate con {{ school.name }} para que gestionen la disponibilidad de cupos.
                             </div>
 
                             <div v-else class="alert alert-warning mb-0" role="alert">
@@ -130,7 +135,7 @@
         </div>
 
         <PortalSchoolInscriptionModal
-            v-if="school && school.inscriptions_enabled"
+            v-if="school && inscriptionsAvailable"
             :school="pageData.school"
             :year="pageData.year"
             :file-size-mb="pageData.fileSizeMb"
@@ -160,6 +165,10 @@ const activeTab = ref('inscriptions');
 const pageData = ref(null);
 
 const school = computed(() => pageData.value?.school ?? null);
+const inscriptionLimitReached = computed(() => pageData.value?.inscriptionLimit?.is_full === true);
+const inscriptionsAvailable = computed(() => (
+    school.value?.inscriptions_enabled === true && !inscriptionLimitReached.value
+));
 const availableContracts = computed(() => pageData.value?.contracts?.available ?? []);
 const requiresTutorSignature = computed(() => (
     availableContracts.value.some((contract) => contract.requires_tutor_signature)
