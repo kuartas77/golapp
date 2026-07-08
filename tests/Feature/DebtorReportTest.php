@@ -354,6 +354,34 @@ final class DebtorReportTest extends TestCase
         $this->assertSame(90000.0, $rows->first()['total_debt']);
     }
 
+    public function testDebtorReportIgnoresCustomChargesWithoutActiveInscriptionContext(): void
+    {
+        $this->actingAs($this->user);
+        $group = $this->defaultTrainingGroup();
+        $inscription = $this->createInscriptionForReport($group, '1006', 'Lia', 'Mora');
+
+        $this->resetPayment($this->paymentForInscription($inscription));
+
+        InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'player_id' => $inscription->player_id,
+            'name' => 'Implementos',
+            'value' => 45000,
+            'status' => InscriptionCustomCharge::STATUS_DUE,
+            'due_date' => '2026-04-15',
+        ]);
+
+        Inscription::withoutEvents(fn () => $inscription->delete());
+
+        $rows = app(DebtorReportService::class)->rows([
+            'school_id' => $this->school['id'],
+            'year' => 2026,
+        ]);
+
+        $this->assertTrue($rows->isEmpty());
+    }
+
     private function defaultTrainingGroup(): TrainingGroup
     {
         return TrainingGroup::query()->where('school_id', $this->school['id'])->firstOrFail();

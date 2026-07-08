@@ -297,6 +297,9 @@ class DebtorReportService
             ->whereYear('due_date', $year)
             ->when($inscriptionIds !== [], fn ($query) => $query->whereIn('inscription_id', $inscriptionIds))
             ->when($asOf !== null, fn ($query) => $query->whereDate('due_date', '<=', $asOf->toDateString()))
+            ->when($includeRowContext, fn ($query) => $query
+                ->whereHas('inscription.player')
+                ->whereHas('inscription.trainingGroup'))
             ->when($trainingGroupId !== 0, fn ($query) => $query->whereHas(
                 'inscription',
                 fn ($query) => $query->where('training_group_id', $trainingGroupId)
