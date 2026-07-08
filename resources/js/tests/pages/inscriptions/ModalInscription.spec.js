@@ -425,6 +425,25 @@ describe('ModalInscription', () => {
         expect(checkbox.element.checked).toBe(false);
     });
 
+    it('toggles the pre-inscription checkbox when clicking its styled label', async () => {
+        const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
+
+        await wrapper.setProps({ inscription_id: 3 });
+        await flushPromises();
+        await flushPromises();
+
+        const checkbox = wrapper.get('#pre_inscription');
+
+        expect(checkbox.classes()).toContain('custom-control-input');
+        expect(checkbox.element.checked).toBe(true);
+
+        await wrapper.get('label[for="pre_inscription"]').trigger('click');
+
+        expect(wrapper.vm.$.setupState.form.values.pre_inscription).toBe(false);
+        expect(wrapper.vm.$.setupState.currentPreInscription).toBe(false);
+        expect(checkbox.element.checked).toBe(false);
+    });
+
     it('keeps multiple competition groups selected in the form', async () => {
         const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
         const competitionSelect = wrapper

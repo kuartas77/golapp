@@ -142,17 +142,23 @@
                                 </div>
                                 <Field name="pre_inscription" v-slot="{ value, handleChange }">
                                     <div class="form-group mt-2">
-                                        <div class="form-check">
-                                            <input
-                                                id="pre_inscription"
-                                                type="checkbox"
-                                                class="form-check-input"
-                                                :checked="normalizeBoolean(value)"
-                                                @change="(event) => onPreInscriptionInput(event, handleChange)"
-                                            />
-                                            <label class="form-check-label" for="pre_inscription">
-                                                Marcar como preinscripción
-                                            </label>
+                                        <div class="form-check ps-0">
+                                            <div class="custom-control custom-checkbox checkbox-primary">
+                                                <input
+                                                    id="pre_inscription"
+                                                    type="checkbox"
+                                                    class="custom-control-input"
+                                                    :checked="normalizeBoolean(value)"
+                                                    @change="(event) => onPreInscriptionInput(event, handleChange)"
+                                                />
+                                                <label
+                                                    class="custom-control-label"
+                                                    for="pre_inscription"
+                                                    @click.prevent="onPreInscriptionLabelClick(value, handleChange)"
+                                                >
+                                                    Marcar como preinscripción
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
                                 </Field>
@@ -867,6 +873,13 @@ const onPreInscriptionChange = (value) => {
 
 const onPreInscriptionInput = (event, handleChange) => {
     const checked = Boolean(event?.target?.checked)
+
+    handleChange(checked)
+    onPreInscriptionChange(checked)
+}
+
+const onPreInscriptionLabelClick = (value, handleChange) => {
+    const checked = !normalizeBoolean(value)
 
     handleChange(checked)
     onPreInscriptionChange(checked)
