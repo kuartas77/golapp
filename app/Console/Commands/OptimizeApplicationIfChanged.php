@@ -52,9 +52,9 @@ class OptimizeApplicationIfChanged extends Command
     {
         $compiledViewsPath = config('view.compiled');
 
-        return $this->laravel->configurationIsCached()
-            && $this->laravel->eventsAreCached()
-            && $this->laravel->routesAreCached()
+        return File::exists($this->laravel->getCachedConfigPath())
+            && File::exists($this->laravel->getCachedEventsPath())
+            && File::exists($this->laravel->getCachedRoutesPath())
             && is_string($compiledViewsPath)
             && File::isDirectory($compiledViewsPath);
     }

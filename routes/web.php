@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\Admin\ContractController as AdminContractController;
 use App\Http\Controllers\{Admin\UserController, Assists\AssistController, Players\PlayerController};
+use App\Http\Controllers\Auth\LoginController as WebLoginController;
 use App\Http\Controllers\{Competition\GameController, Payments\PaymentController, Schedule\SchedulesController, SchoolPages\SchoolsController};
 use App\Http\Controllers\{HomeController, ExportController, MasterController, ProfileController};
 use App\Http\Controllers\{Players\PlayerExportController, Tournaments\TournamentController, Inscription\InscriptionController};
@@ -36,6 +37,8 @@ use Illuminate\Support\Facades\Route;
 
 // Compatibilidad con enlaces y sesiones antiguas que todavia apuntan a /login.
 Route::redirect('/login', '/ingreso')->name('login');
+
+Route::post('/logout', [WebLoginController::class, 'logout'])->middleware('auth')->name('logout');
 
 // Mantiene funcionales los correos antiguos que referencian el logo retirado.
 Route::redirect('/img/log3.png', '/img/logo-light.svg', 301);

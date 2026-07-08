@@ -13,4 +13,15 @@ class SpaLoginRouteTest extends TestCase
 
         $this->assertSame(url('/login'), route('login'));
     }
+
+    public function test_legacy_blade_logout_route_is_available(): void
+    {
+        $this->assertSame(url('/logout'), route('logout'));
+
+        $this->actingAs($this->user)
+            ->post(route('logout'))
+            ->assertRedirect('/');
+
+        $this->assertGuest();
+    }
 }
