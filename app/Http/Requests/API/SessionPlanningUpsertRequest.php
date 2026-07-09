@@ -10,6 +10,21 @@ use Illuminate\Validation\Rule;
 
 class SessionPlanningUpsertRequest extends FormRequest
 {
+    private const DIAGRAM_TYPES = [
+        'player',
+        'player_token',
+        'cone',
+        'ball',
+        'hoop',
+        'arrow',
+        'pass',
+        'dribble',
+        'off_ball_run',
+        'cross',
+        'xmark',
+        'text',
+    ];
+
     public function authorize(): bool
     {
         return isSchool() || isInstructor() || isAdmin();
@@ -44,7 +59,7 @@ class SessionPlanningUpsertRequest extends FormRequest
             'phases.*.dosage' => ['nullable', 'string'],
             'phases.*.description' => ['nullable', 'string'],
             'phases.*.diagram' => ['nullable', 'array'],
-            'phases.*.diagram.*.type' => ['required', Rule::in(['player', 'cone', 'ball', 'arrow', 'xmark', 'text'])],
+            'phases.*.diagram.*.type' => ['required', Rule::in(self::DIAGRAM_TYPES)],
             'phases.*.diagram.*.x' => ['required', 'numeric', 'between:0,100'],
             'phases.*.diagram.*.y' => ['required', 'numeric', 'between:0,64'],
         ];

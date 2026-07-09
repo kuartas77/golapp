@@ -80,6 +80,34 @@ final class TrainingSessionsTest extends TestCase
             ->assertUnprocessable()->assertJsonValidationErrors('phases');
     }
 
+    public function testSessionPlanningAcceptsExpandedDiagramSymbols(): void
+    {
+        $school = School::findOrFail($this->school['id']);
+        $school->forceFill(['school_permissions' => School::normalizeSchoolPermissions([
+            ...$school->getResolvedSchoolPermissions(), 'school.module.session_planning' => true,
+        ])])->save();
+        $group = $this->createTrainingGroup($school->id, $this->user, suffix: 'Símbolos');
+        $symbols = ['player_token', 'hoop', 'pass', 'dribble', 'off_ball_run', 'cross'];
+        $phases = [[
+            'name' => 'Símbolos',
+            'diagram' => collect($symbols)->map(fn ($type, $index) => [
+                'id' => "symbol{$index}",
+                'type' => $type,
+                'x' => 50,
+                'y' => 32,
+                'label' => $type === 'player_token' ? '9' : '',
+                'color' => $type === 'player_token' ? 'red' : 'blue',
+                'rotation' => 45,
+            ])->all(),
+        ]];
+
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/v2/session-plannings', $this->plannedPayload($group->id, $phases))
+            ->assertCreated();
+
+        $this->assertSame($symbols, collect($response->json('data.phases.0.diagram'))->pluck('type')->all());
+    }
+
     public function testSchoolUserCanListShowStoreUpdateAndExportTrainingSessions(): void
     {
         $group = $this->createTrainingGroup($this->school['id'], $this->user);
