@@ -25,6 +25,7 @@ class GroupAssignmentService
     {
         $groups = $this->trainingGroupRepository
             ->getListGroupsSchedule()
+            ->reject(fn (TrainingGroup $group) => $group->is_complementary)
             ->unique('id')
             ->values();
 
@@ -42,7 +43,10 @@ class GroupAssignmentService
 
     public function moveTraining(int $inscriptionId, int $targetGroupId): bool
     {
-        TrainingGroup::query()->schoolId()->findOrFail($targetGroupId);
+        TrainingGroup::query()
+            ->schoolId()
+            ->where('is_complementary', false)
+            ->findOrFail($targetGroupId);
 
         $inscription = Inscription::query()
             ->schoolId()

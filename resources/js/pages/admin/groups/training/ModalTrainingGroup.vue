@@ -46,6 +46,14 @@
                                             11, 12 se pueden crear los grupos del año siguiente.</small>
                                     </div>
                                 </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <checkbox label="Grupo complementario" name="is_complementary" />
+                                        <small class="text-muted d-block">
+                                            Úsalo para entrenamientos adicionales que no generan mensualidad.
+                                        </small>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="row">
@@ -166,6 +174,7 @@ const buildDefaultValues = () => ({
     schedules: [],
     user_id: [],
     years: [],
+    is_complementary: false,
 });
 const initialData = ref(buildDefaultValues());
 
@@ -232,6 +241,7 @@ const schema = yup.object().shape({
         .required(),
     schedules: yup.array().min(1, "Selecciona al menos un horario").required(),
     user_id: yup.array().min(1, "Selecciona al menos un instructor").required(),
+    is_complementary: yup.boolean().default(false),
     years: yup
         .array()
         .max(12, "No puedes seleccionar más de 12 categorías")
@@ -248,6 +258,7 @@ const submit = async (values, actions) => {
             name: values.name,
             stage: values.stage,
             year_active: values.year_active,
+            is_complementary: Boolean(values.is_complementary),
         };
 
         let urlAction = url
@@ -301,6 +312,7 @@ const onLoadData = async () => {
             explode_schedules,
             instructors,
             category,
+            is_complementary,
         } = response.data.data;
 
         if (name === "Provisional") {
@@ -325,6 +337,7 @@ const onLoadData = async () => {
             schedules: resolveSelectedOptions(scheduleOptions.value, explode_schedules ?? []),
             user_id: resolveSelectedOptions(userOptions.value, instructors ?? []),
             years: resolveSelectedOptions(categoryOptions.value, selectedCategories),
+            is_complementary: Boolean(is_complementary),
         };
 
         form.value.resetForm({ values: data });

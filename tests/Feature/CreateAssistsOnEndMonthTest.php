@@ -76,9 +76,39 @@ final class CreateAssistsOnEndMonthTest extends TestCase
         ]);
     }
 
-    private function createTrainingGroup(School $school, int $year): TrainingGroup
+    public function testCommandCreatesSeparateAssistsForPrincipalAndComplementaryGroups(): void
     {
-        return TrainingGroup::query()->create([
+        $school = School::findOrFail($this->school['id']);
+        $principalGroup = $this->createTrainingGroup($school, 2026);
+        $complementaryGroup = $this->createTrainingGroup($school, 2026, [
+            'name' => 'Command Complementary ' . fake()->unique()->numberBetween(100, 999),
+            'is_complementary' => true,
+        ]);
+        $inscription = $this->createInscription($school, $principalGroup, 2026, [
+            'complementary_group_id' => $complementaryGroup->id,
+        ]);
+
+        $this->artisan('assists:month', ['--date' => '2026-04-30'])->assertExitCode(0);
+
+        $this->assertDatabaseHas('assists', [
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $principalGroup->id,
+            'year' => 2026,
+            'month' => 5,
+            'school_id' => $school->id,
+        ]);
+        $this->assertDatabaseHas('assists', [
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $complementaryGroup->id,
+            'year' => 2026,
+            'month' => 5,
+            'school_id' => $school->id,
+        ]);
+    }
+
+    private function createTrainingGroup(School $school, int $year, array $overrides = []): TrainingGroup
+    {
+        return TrainingGroup::query()->create(array_merge([
             'name' => 'Command Team ' . fake()->unique()->numberBetween(100, 999),
             'year' => $year,
             'category' => ['Todas las categorías'],
@@ -86,17 +116,17 @@ final class CreateAssistsOnEndMonthTest extends TestCase
             'schedules' => ['10:00AM - 11:00AM'],
             'school_id' => $school->id,
             'year_active' => $year,
-        ]);
+        ], $overrides));
     }
 
-    private function createInscription(School $school, TrainingGroup $group, int $year): Inscription
+    private function createInscription(School $school, TrainingGroup $group, int $year, array $overrides = []): Inscription
     {
         $player = Player::factory()->create([
             'school_id' => $school->id,
             'unique_code' => 'CMD-' . fake()->unique()->numberBetween(1000, 9999),
         ]);
 
-        return Inscription::factory()->create([
+        return Inscription::factory()->create(array_merge([
             'player_id' => $player->id,
             'unique_code' => $player->unique_code,
             'training_group_id' => $group->id,
@@ -104,6 +134,6 @@ final class CreateAssistsOnEndMonthTest extends TestCase
             'school_id' => $school->id,
             'year' => $year,
             'start_date' => sprintf('%d-01-01', $year),
-        ]);
+        ], $overrides));
     }
 }

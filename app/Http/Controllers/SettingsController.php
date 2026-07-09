@@ -67,6 +67,13 @@ class SettingsController extends Controller
             $allGroups->prepend($firstGroup);
         }
 
+        $normalTrainingGroups = $training_groups
+            ->filter(fn (TrainingGroup $group) => ! $group->is_complementary)
+            ->values();
+        $complementaryTrainingGroups = $training_groups
+            ->filter(fn (TrainingGroup $group) => $group->is_complementary)
+            ->values();
+
         $categories = Cache::remember(
             "KEY_CATEGORIES_SELECT_{$school_id}",
             now()->addMinutes(5),
@@ -121,6 +128,8 @@ class SettingsController extends Controller
         return response()->json([
             'all_t_groups' => $allGroups,
             't_groups' => $training_groups,
+            'normal_training_groups' => $normalTrainingGroups,
+            'complementary_training_groups' => $complementaryTrainingGroups,
             'categories' => $categories,
             'genders' => $genders,
             'positions' => $positions,

@@ -11,10 +11,16 @@ class TrainingGroupObserver
 
     public function deleting(TrainingGroup $trainingGroup)
     {
-        $firtsTrainigGroup = TrainingGroup::orderBy('id')->firstWhere('school_id', $trainingGroup->school_id)?->id;
+        $firtsTrainigGroup = TrainingGroup::query()
+            ->orderBy('id')
+            ->where('school_id', $trainingGroup->school_id)
+            ->where('is_complementary', false)
+            ->first()
+            ?->id;
 
-        $trainingGroup->load('payments', 'inscriptions');
+        $trainingGroup->load('payments', 'inscriptions', 'complementaryInscriptions');
         $trainingGroup->inscriptions()->update(['training_group_id' => $firtsTrainigGroup]);
+        $trainingGroup->complementaryInscriptions()->update(['complementary_group_id' => null]);
         $trainingGroup->payments()->update(['training_group_id' => $firtsTrainigGroup]);
     }
 

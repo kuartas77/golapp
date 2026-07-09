@@ -26,6 +26,14 @@ const { apiMock, settingsStore, authStore } = vi.hoisted(() => ({
         all_groups: [
             { id: 1, name: 'Provisional' },
             { id: 2, name: 'Grupo definitivo' },
+            { id: 3, name: 'Porteros', is_complementary: true },
+        ],
+        normal_training_groups: [
+            { id: 1, name: 'Provisional' },
+            { id: 2, name: 'Grupo definitivo' },
+        ],
+        complementary_training_groups: [
+            { id: 3, name: 'Porteros', full_group: 'Porteros' },
         ],
         settings: {
             MONTHLY_PAYMENT: 50000,
@@ -100,6 +108,7 @@ const mountModal = async (
                     monthly_payment_type: 'MONTHLY_PAYMENT_OPTION_1',
                     monthly_payment_amount: 55000,
                     training_group_id: 2,
+                    complementary_group_id: 3,
                     competition_groups: [],
                     photos: '0',
                     copy_identification_document: 'false',
@@ -126,6 +135,7 @@ const mountModal = async (
                     monthly_payment_type: 'MONTHLY_PAYMENT',
                     monthly_payment_amount: 50000,
                     training_group_id: 1,
+                    complementary_group_id: null,
                     competition_groups: [],
                     photos: false,
                     copy_identification_document: false,
@@ -252,6 +262,7 @@ describe('ModalInscription', () => {
             brother_payment: false,
             monthly_payment_type: 'MONTHLY_PAYMENT_OPTION_2',
             training_group_id: 2,
+            complementary_group_id: null,
             competition_groups: [],
             photos: false,
             copy_identification_document: false,
@@ -280,6 +291,7 @@ describe('ModalInscription', () => {
                                 id: 7,
                                 start_date: '2026-02-01',
                                 training_group_id: 2,
+                                complementary_group_id: 3,
                                 competition_groups: [],
                                 scholarship: true,
                                 brother_payment: true,
@@ -325,6 +337,21 @@ describe('ModalInscription', () => {
         await flushPromises();
 
         expect(wrapper.vm.$.setupState.form.values.monthly_payment_type).toBe('MONTHLY_PAYMENT_OPTION_1');
+    });
+
+    it('shows and precaches the complementary training group when editing', async () => {
+        const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
+
+        await wrapper.setProps({ inscription_id: 1 });
+        await flushPromises();
+        await flushPromises();
+
+        expect(wrapper.vm.$.setupState.complementaryTrainingGroups).toContainEqual({
+            value: '3',
+            label: 'Porteros',
+        });
+        expect(wrapper.vm.$.setupState.form.values.complementary_group_id).toBe('3');
+        expect(wrapper.get('[data-select-id="complementary_group_id"]').text()).toContain('Porteros');
     });
 
     it('keeps API boolean fields unchecked when they return false-like strings', async () => {
@@ -473,6 +500,7 @@ describe('ModalInscription', () => {
             brother_payment: false,
             monthly_payment_type: 'MONTHLY_PAYMENT_OPTION_2',
             training_group_id: 2,
+            complementary_group_id: '3',
             competition_groups: [],
             photos: false,
             copy_identification_document: false,
@@ -484,6 +512,7 @@ describe('ModalInscription', () => {
 
         expect(apiMock.post).toHaveBeenCalledWith('/api/v2/inscriptions', expect.objectContaining({
             monthly_payment_type: 'MONTHLY_PAYMENT_OPTION_2',
+            complementary_group_id: '3',
         }));
     });
 });

@@ -78,7 +78,12 @@ final class CreateInscriptionAction implements IContractPassable
             'year' => $startDate->year,
             'start_date' => $startDate->format('Y-m-d'),
             'category' => categoriesName(Carbon::parse($this->player->date_birth)->year),
-            'training_group_id' => TrainingGroup::orderBy('id')->firstWhere('school_id', $this->school->id)->id,
+            'training_group_id' => TrainingGroup::query()
+                ->orderBy('id')
+                ->where('school_id', $this->school->id)
+                ->where('is_complementary', false)
+                ->firstOrFail()
+                ->id,
             'competition_group_id' => null,
             'photos' => true,
             'copy_identification_document' => $passable->getPropertyFromData('player_document') !== null,

@@ -34,7 +34,21 @@ class InscriptionUpdateRequest extends FormRequest
             'year' => ['required', 'bail'],
             'start_date' => ['required', 'bail'],
             'category' => ['required', 'bail'],
-            'training_group_id' => ['nullable', 'numeric'],
+            'training_group_id' => [
+                'nullable',
+                'numeric',
+                Rule::exists('training_groups', 'id')->where(fn ($query) => $query
+                    ->where('school_id', getSchool(auth()->user())->id)
+                    ->where('is_complementary', false)),
+            ],
+            'complementary_group_id' => [
+                'nullable',
+                'numeric',
+                'different:training_group_id',
+                Rule::exists('training_groups', 'id')->where(fn ($query) => $query
+                    ->where('school_id', getSchool(auth()->user())->id)
+                    ->where('is_complementary', true)),
+            ],
             'competition_groups' => ['nullable', 'array'],
             'photos' => ['nullable', 'boolean'],
             'copy_identification_document' => ['nullable', 'boolean'],
@@ -94,6 +108,7 @@ class InscriptionUpdateRequest extends FormRequest
             'brother_payment' => $monthlyPaymentType === Setting::BROTHER_MONTHLY_PAYMENT,
             'competition_groups' => array_filter($this->input('competition_groups', [])),
             'training_group_id' => $this->filled('training_group_id') ? $this->training_group_id : null,
+            'complementary_group_id' => $this->filled('complementary_group_id') ? $this->complementary_group_id : null,
             'pre_inscription' => $this->input('pre_inscription', false),
             'custom_charges' => $this->normalizeCustomCharges(),
         ]);

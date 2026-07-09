@@ -84,6 +84,10 @@ const mountModal = async (component, props = { id: null }) => {
                     props: ['id', 'modelValue', 'options', 'maxSelections'],
                     template: '<div class="custom-multiselect-stub" :data-select-id="id">{{ JSON.stringify({ modelValue, options, maxSelections }) }}</div>',
                 },
+                checkbox: {
+                    props: ['name', 'label'],
+                    template: '<label><input :name="name" type="checkbox" />{{ label }}</label>',
+                },
             },
         },
     });
@@ -159,6 +163,7 @@ describe('Admin group modals', () => {
             schedules: [{ value: '08:00 AM - 09:00 AM', label: '08:00 AM - 09:00 AM' }],
             user_id: [{ value: '7', label: 'Instructor Principal' }],
             years: [],
+            is_complementary: true,
         }, {
             setErrors: vi.fn(),
         });
@@ -167,6 +172,7 @@ describe('Admin group modals', () => {
         expect(apiMock.post).toHaveBeenCalledWith('/api/v2/admin/training_groups', expect.objectContaining({
             categories: [],
             stage: '',
+            is_complementary: true,
         }));
     });
 
@@ -216,6 +222,7 @@ describe('Admin group modals', () => {
                             explode_days: ['Lunes', 'Miércoles'],
                             explode_schedules: ['08:00 AM - 09:00 AM'],
                             instructors: [{ id: 99, name: 'Instructor Histórico' }],
+                            is_complementary: true,
                         },
                     },
                 });
@@ -235,6 +242,7 @@ describe('Admin group modals', () => {
         expect(wrapper.get('[data-select-id="user_id"]').text()).toContain('Instructor Histórico');
         expect(wrapper.get('[data-select-id="schedules"]').text()).toContain('08:00 AM - 09:00 AM');
         expect(wrapper.get('select#year_active').element.value).toBe(currentYear);
+        expect(wrapper.vm.$.setupState.form.values.is_complementary).toBe(true);
     });
 
     it('keeps competition group labels available even when the active catalog no longer has them', async () => {

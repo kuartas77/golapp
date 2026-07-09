@@ -172,10 +172,12 @@ class TrainingSessionAttendanceService
 
     private function eligibleInscriptions(TrainingGroup $group, Carbon $date)
     {
+        $groupColumn = $group->is_complementary ? 'complementary_group_id' : 'training_group_id';
+
         return Inscription::query()
             ->schoolId()
             ->with('player:id,names,last_names,unique_code')
-            ->where('training_group_id', $group->id)
+            ->where($groupColumn, $group->id)
             ->where('year', $date->year)
             ->where('pre_inscription', false)
             ->whereDate('start_date', '<=', $date->toDateString())

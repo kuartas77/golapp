@@ -37,6 +37,9 @@ SELECT
         ELSE NULL
     END AS flag_reason
 FROM vw_attendance_monthly_report_detail a
+INNER JOIN training_groups tg
+    ON tg.id = a.training_group_id
+    AND COALESCE(tg.is_complementary, 0) = 0
 LEFT JOIN inscriptions i
     ON i.id = a.inscription_id
 LEFT JOIN vw_payments_report_detail p

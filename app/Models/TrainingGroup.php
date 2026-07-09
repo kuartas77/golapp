@@ -63,7 +63,12 @@ class TrainingGroup extends Model
         'schedules',
         'days',
         'school_id',
-        'year_active'
+        'year_active',
+        'is_complementary',
+    ];
+
+    protected $casts = [
+        'is_complementary' => 'boolean',
     ];
 
     protected $appends = [
@@ -236,6 +241,11 @@ class TrainingGroup extends Model
         return $this->hasMany(Inscription::class, 'training_group_id');
     }
 
+    public function complementaryInscriptions(): HasMany
+    {
+        return $this->hasMany(Inscription::class, 'complementary_group_id');
+    }
+
     public function assists(): HasMany
     {
         return $this->hasMany(Assist::class, 'training_group_id');
@@ -260,6 +270,11 @@ class TrainingGroup extends Model
     public function members()
     {
         return $this->hasManyThrough(Player::class, Inscription::class, 'training_group_id', 'id', 'id', 'player_id')->where('inscriptions.year', now()->year);
+    }
+
+    public function complementaryMembers()
+    {
+        return $this->hasManyThrough(Player::class, Inscription::class, 'complementary_group_id', 'id', 'id', 'player_id')->where('inscriptions.year', now()->year);
     }
 
 }

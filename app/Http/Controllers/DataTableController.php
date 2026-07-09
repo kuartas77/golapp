@@ -58,7 +58,12 @@ class DataTableController extends Controller
         abort_unless($request->ajax(), 403);
 
         return datatables()->of($this->inscriptionRepository->getInscriptionsEnabled())
-            ->filterColumn('training_group_id', fn ($query, $keyword) => $query->where('training_group_id', $keyword))
+            ->filterColumn('training_group_id', function ($query, $keyword) {
+                $query->where(function ($query) use ($keyword) {
+                    $query->where('inscriptions.training_group_id', $keyword)
+                        ->orWhere('inscriptions.complementary_group_id', $keyword);
+                });
+            })
             ->filterColumn('start_date', fn ($query, $keyword) => $query->whereDate('start_date', $keyword))
             ->filterColumn('category', fn ($query, $keyword) => $query->where('category', $keyword))
             ->filterColumn('inscriptions.pre_inscription', fn ($query, $keyword) => $query->where('inscriptions.pre_inscription', (bool) $keyword))
@@ -83,7 +88,12 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->of($this->trainingGroupRepository->listGroupEnabled())->toJson();
+        return datatables()
+            ->of($this->trainingGroupRepository->listGroupEnabled())
+            ->editColumn('members_count', fn ($group) => $group->is_complementary
+                ? $group->complementary_inscriptions_count
+                : $group->members_count)
+            ->toJson();
     }
 
     /**

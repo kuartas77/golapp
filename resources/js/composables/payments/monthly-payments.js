@@ -10,7 +10,8 @@ import * as yup from 'yup';
 export default function useMonthlyPayments() {
     const currentDate = new Date()
     const settings = useSetting()
-    const groups = ref(settings.groups.filter((group) => group.name !== 'Provisional').map((group) => ({ value: group.id, label: group.full_group })));
+    const paymentGroups = settings.normal_training_groups.length ? settings.normal_training_groups : settings.groups
+    const groups = ref(paymentGroups.filter((group) => group.name !== 'Provisional').map((group) => ({ value: group.id, label: group.full_group })));
     const categories = ref(settings.categories.map((i) => ({ value: i.category, label: i.category })));
     const years = settings.inscription_years
     const defaultYear = years.find((year) => Number(year.value) === currentDate.getFullYear())?.value

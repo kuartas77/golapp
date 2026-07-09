@@ -699,6 +699,7 @@ class KpiDashboardService
         return TrainingGroup::withTrashed()
             ->where('school_id', $schoolId)
             ->where('name', '!=', 'Provisional')
+            ->where('is_complementary', false)
             ->when(
                 $this->isInstructor($user),
                 fn ($query) => $query->whereHas('instructors', function ($instructorQuery) use ($user, $year) {

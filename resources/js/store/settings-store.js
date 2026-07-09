@@ -39,6 +39,8 @@ export const useSetting = defineStore('settings-store', {
         current_school_id: null,
         all_groups: [],
         groups: [],
+        normal_training_groups: [],
+        complementary_training_groups: [],
         categories: [],
         genders: [],
         positions: [],
@@ -88,6 +90,8 @@ export const useSetting = defineStore('settings-store', {
 
             this.all_groups = toArray(data.all_t_groups)
             this.groups = toArray(data.t_groups)
+            this.normal_training_groups = toArray(data.normal_training_groups)
+            this.complementary_training_groups = toArray(data.complementary_training_groups)
             this.categories = toArray(data.categories)
             this.genders = normalizeOptionList(data.genders)
             this.positions = toArray(data.positions)

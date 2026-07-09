@@ -428,6 +428,44 @@ final class TrainingSessionsTest extends TestCase
         $this->assertSame(3, (int) $this->assistFor($excused, $group)->{$classDay['column']});
     }
 
+    public function testComplementaryTrainingSessionUsesComplementaryGroupMembersForAttendance(): void
+    {
+        $principalGroup = $this->createTrainingGroup($this->school['id'], $this->user, suffix: 'Principal');
+        $complementaryGroup = $this->createTrainingGroup($this->school['id'], $this->user, suffix: 'Complementario', overrides: [
+            'is_complementary' => true,
+        ]);
+        $complementaryMember = $this->createActiveInscription($principalGroup, 'Portero', [
+            'complementary_group_id' => $complementaryGroup->id,
+        ]);
+        $this->createActiveInscription($principalGroup, 'Solo Principal');
+        $classDay = $this->currentClassDay($complementaryGroup);
+
+        $context = $this->actingAs($this->user)
+            ->getJson('/api/v2/training-sessions/attendance-context?'.http_build_query([
+                'training_group_id' => $complementaryGroup->id,
+                'date' => $classDay['date'],
+            ]))
+            ->assertOk();
+
+        $this->assertSame([$complementaryMember->id], collect($context->json('data.players'))->pluck('value')->all());
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/training-sessions', $this->sessionPayload($complementaryGroup->id, [
+                'date' => $classDay['date'],
+                'sync_attendance' => true,
+                'absence_inscription_ids' => [$complementaryMember->id],
+            ]))
+            ->assertCreated()
+            ->assertJsonPath('data.players', '0')
+            ->assertJsonPath('data.attendance_synced', true);
+
+        $this->assertSame(2, (int) $this->assistFor($complementaryMember, $complementaryGroup)->{$classDay['column']});
+        $this->assertDatabaseMissing('payments', [
+            'inscription_id' => $complementaryMember->id,
+            'training_group_id' => $complementaryGroup->id,
+        ]);
+    }
+
     public function testSyncedSessionRejectsIdentityChangesDuplicatesAndHistoricalAttendance(): void
     {
         $group = $this->createTrainingGroup($this->school['id'], $this->user);
@@ -549,11 +587,11 @@ final class TrainingSessionsTest extends TestCase
             ->assertJsonValidationErrors('date');
     }
 
-    private function createTrainingGroup(int $schoolId, ?User $instructor = null, ?int $year = null, string $suffix = 'Base'): TrainingGroup
+    private function createTrainingGroup(int $schoolId, ?User $instructor = null, ?int $year = null, string $suffix = 'Base', array $overrides = []): TrainingGroup
     {
         $year = $year ?? now()->year;
 
-        $group = TrainingGroup::query()->create([
+        $group = TrainingGroup::query()->create(array_merge([
             'school_id' => $schoolId,
             'name' => "Grupo {$suffix}",
             'stage' => 'Cancha principal',
@@ -562,7 +600,7 @@ final class TrainingSessionsTest extends TestCase
             'schedules' => ['10:00AM - 11:00AM'],
             'year' => $year,
             'year_active' => $year,
-        ]);
+        ], $overrides));
 
         if ($instructor) {
             $group->instructors()->attach($instructor->id, ['assigned_year' => $year]);

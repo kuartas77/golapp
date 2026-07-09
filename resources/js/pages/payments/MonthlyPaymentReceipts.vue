@@ -122,7 +122,7 @@ import { monthlyPaymentReceiptsTutorial } from '@/tutorials/operations'
 const currentYear = new Date().getFullYear()
 const tutorial = usePageTutorial(monthlyPaymentReceiptsTutorial)
 const settings = useSetting()
-const groups = computed(() => settings.groups
+const groups = computed(() => (settings.normal_training_groups.length ? settings.normal_training_groups : settings.groups)
     .filter((group) => group.name !== 'Provisional')
     .map((group) => ({ value: group.id, label: group.full_group })))
 const categories = computed(() => settings.categories.map((item) => ({ value: item.category, label: item.category })))

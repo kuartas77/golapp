@@ -86,6 +86,107 @@ final class InscriptionsTest extends TestCase
         $this->assertSame(50000, (int) $payment->march_amount);
     }
 
+    public function test_create_inscription_accepts_one_complementary_training_group_without_affecting_payments(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $schoolId = $this->school['id'];
+        $principalGroup = TrainingGroup::query()
+            ->where('school_id', $schoolId)
+            ->where('is_complementary', false)
+            ->orderBy('id')
+            ->firstOrFail();
+        $complementaryGroup = TrainingGroup::query()->create([
+            'name' => 'Complementario Porteros',
+            'school_id' => $schoolId,
+            'year_active' => now()->year,
+            'is_complementary' => true,
+            'days' => ['Lunes'],
+            'schedules' => ['07:00AM - 08:00AM'],
+        ]);
+        $player = Player::factory()->create(['school_id' => $schoolId]);
+
+        $this->actingAs($this->user)
+            ->postJson(route('inscriptions.store'), [
+                'unique_code' => $player->unique_code,
+                'player_id' => $player->id,
+                'start_date' => now()->format('Y-m-d'),
+                'training_group_id' => $principalGroup->id,
+                'complementary_group_id' => $complementaryGroup->id,
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $inscription = Inscription::query()->where('player_id', $player->id)->firstOrFail();
+
+        $this->assertSame($principalGroup->id, (int) $inscription->training_group_id);
+        $this->assertSame($complementaryGroup->id, (int) $inscription->complementary_group_id);
+        $this->assertDatabaseHas('payments', [
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $principalGroup->id,
+        ]);
+        $this->assertDatabaseMissing('payments', [
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $complementaryGroup->id,
+        ]);
+        $this->assertDatabaseHas('assists', [
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $principalGroup->id,
+            'year' => now()->year,
+            'month' => now()->month,
+        ]);
+        $this->assertDatabaseHas('assists', [
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $complementaryGroup->id,
+            'year' => now()->year,
+            'month' => now()->month,
+        ]);
+    }
+
+    public function test_inscription_rejects_invalid_complementary_group_roles(): void
+    {
+        $schoolId = $this->school['id'];
+        $normalGroup = TrainingGroup::query()
+            ->where('school_id', $schoolId)
+            ->where('is_complementary', false)
+            ->orderBy('id')
+            ->firstOrFail();
+        $complementaryGroup = TrainingGroup::query()->create([
+            'name' => 'Complementario Arqueros',
+            'school_id' => $schoolId,
+            'year_active' => now()->year,
+            'is_complementary' => true,
+            'days' => ['Lunes'],
+            'schedules' => ['07:00AM - 08:00AM'],
+        ]);
+
+        $makePayload = function (Player $player, array $overrides = []) use ($normalGroup): array {
+            return array_merge([
+                'unique_code' => $player->unique_code,
+                'player_id' => $player->id,
+                'start_date' => now()->format('Y-m-d'),
+                'training_group_id' => $normalGroup->id,
+            ], $overrides);
+        };
+
+        $this->actingAs($this->user)
+            ->postJson(route('inscriptions.store'), $makePayload(
+                Player::factory()->create(['school_id' => $schoolId]),
+                ['training_group_id' => $complementaryGroup->id]
+            ))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('training_group_id');
+
+        $this->actingAs($this->user)
+            ->postJson(route('inscriptions.store'), $makePayload(
+                Player::factory()->create(['school_id' => $schoolId]),
+                ['complementary_group_id' => $normalGroup->id]
+            ))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('complementary_group_id');
+    }
+
     public function test_inscription_email_shows_school_name_to_guardian(): void
     {
         $template = file_get_contents(resource_path('views/emails/inscriptions/added.blade.php'));
@@ -221,6 +322,92 @@ final class InscriptionsTest extends TestCase
             [$higherCodePreinscription->id, $lowerCodePreinscription->id],
             collect($filteredResponse->json('data'))->pluck('id')->all(),
         );
+    }
+
+    public function test_enabled_inscriptions_group_filter_matches_complementary_group_assignments(): void
+    {
+        $schoolId = $this->school['id'];
+        $year = now()->year;
+        $principalGroup = TrainingGroup::query()->create([
+            'name' => 'Principal lista',
+            'school_id' => $schoolId,
+            'year_active' => $year,
+            'is_complementary' => false,
+        ]);
+        $complementaryGroup = TrainingGroup::query()->create([
+            'name' => 'Complementario lista',
+            'school_id' => $schoolId,
+            'year_active' => $year,
+            'is_complementary' => true,
+        ]);
+        $otherGroup = TrainingGroup::query()->create([
+            'name' => 'Otro grupo lista',
+            'school_id' => $schoolId,
+            'year_active' => $year,
+            'is_complementary' => false,
+        ]);
+
+        $primaryPlayer = Player::factory()->create(['school_id' => $schoolId]);
+        $complementaryPlayer = Player::factory()->create(['school_id' => $schoolId]);
+        $unrelatedPlayer = Player::factory()->create(['school_id' => $schoolId]);
+
+        $primaryMember = Inscription::factory()->create([
+            'player_id' => $primaryPlayer->id,
+            'unique_code' => $primaryPlayer->unique_code,
+            'school_id' => $schoolId,
+            'year' => $year,
+            'training_group_id' => $principalGroup->id,
+            'complementary_group_id' => null,
+            'competition_group_id' => null,
+        ]);
+        $complementaryMember = Inscription::factory()->create([
+            'player_id' => $complementaryPlayer->id,
+            'unique_code' => $complementaryPlayer->unique_code,
+            'school_id' => $schoolId,
+            'year' => $year,
+            'training_group_id' => $otherGroup->id,
+            'complementary_group_id' => $complementaryGroup->id,
+            'competition_group_id' => null,
+        ]);
+        $unrelatedMember = Inscription::factory()->create([
+            'player_id' => $unrelatedPlayer->id,
+            'unique_code' => $unrelatedPlayer->unique_code,
+            'school_id' => $schoolId,
+            'year' => $year,
+            'training_group_id' => $otherGroup->id,
+            'complementary_group_id' => null,
+            'competition_group_id' => null,
+        ]);
+
+        $params = [
+            'draw' => 1,
+            'start' => 0,
+            'length' => 10,
+            'inscription_year' => $year,
+            'columns' => [
+                [
+                    'data' => 'training_group.name',
+                    'name' => 'training_group_id',
+                    'searchable' => 'true',
+                    'orderable' => 'false',
+                    'search' => ['value' => (string) $complementaryGroup->id, 'regex' => 'false'],
+                ],
+            ],
+            'search' => ['value' => '', 'regex' => 'false'],
+        ];
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/v2/datatables/inscriptions_enabled?'.http_build_query($params), [
+                'X-Requested-With' => 'XMLHttpRequest',
+            ])
+            ->assertOk();
+
+        $ids = collect($response->json('data'))->pluck('id');
+
+        $this->assertSame(1, $response->json('recordsFiltered'));
+        $this->assertFalse($ids->contains($primaryMember->id));
+        $this->assertTrue($ids->contains($complementaryMember->id));
+        $this->assertFalse($ids->contains($unrelatedMember->id));
     }
 
     public function test_create_inscription_is_blocked_when_school_reaches_year_limit(): void

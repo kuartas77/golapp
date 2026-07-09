@@ -92,8 +92,8 @@
                                         @click.stop
                                     >
                                         <option value="">Grupos...</option>
-                                        <option v-for="group in settings.all_groups" :value="group.id" :key="group.id">
-                                            {{ group.name }}
+                                        <option v-for="group in filterTrainingGroups" :value="group.id" :key="group.id">
+                                            {{ group.name }}{{ group.is_complementary ? ' (Complementario)' : '' }}
                                         </option>
                                     </select>
                                 </th>
@@ -168,6 +168,23 @@ const settings = useSetting()
 const auth = useAuthUser()
 const currentYear = String(new Date().getFullYear())
 const yearOptions = computed(() => settings.inscription_years || [])
+const filterTrainingGroups = computed(() => {
+    const groups = [
+        ...(settings.normal_training_groups || []),
+        ...(settings.complementary_training_groups || []),
+    ]
+
+    const source = groups.length ? groups : (settings.all_groups || [])
+    const uniqueGroups = new Map()
+
+    source.forEach((group) => {
+        if (group?.id) {
+            uniqueGroups.set(String(group.id), group)
+        }
+    })
+
+    return Array.from(uniqueGroups.values())
+})
 const canExportInscriptions = computed(() => auth.hasAnyRole(['super-admin', 'school']))
 const selectedYear = ref(String(route.query.inscription_year || currentYear))
 const exportExcelUrl = computed(() => `/export/inscriptions/excel?inscription_year=${encodeURIComponent(selectedYear.value || currentYear)}`)

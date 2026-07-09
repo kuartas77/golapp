@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Groups;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
+use App\Models\Inscription;
 
 class TrainingGroupRequest extends FormRequest
 {
@@ -32,6 +34,7 @@ class TrainingGroupRequest extends FormRequest
             'schedules' => ['required', 'array'],
             'school_id' => ['required'],
             'year_active' => ['required'],
+            'is_complementary' => ['nullable', 'boolean'],
             // 'years' => ['required', 'array'],
             // 'year_two' => ['nullable'],
             // 'year_three' => ['nullable'],
@@ -55,7 +58,37 @@ class TrainingGroupRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => getSchool(auth()->user())->id
+            'school_id' => getSchool(auth()->user())->id,
+            'is_complementary' => $this->boolean('is_complementary'),
         ]);
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if (! $this->boolean('is_complementary')) {
+                return;
+            }
+
+            $trainingGroup = $this->route('training_group') ?? $this->route('trainingGroup');
+
+            if (! $trainingGroup) {
+                return;
+            }
+
+            $hasPrimaryInscriptions = Inscription::query()
+                ->where('school_id', $this->input('school_id'))
+                ->where('training_group_id', $trainingGroup->id)
+                ->where('year', now()->year)
+                ->whereNull('deleted_at')
+                ->exists();
+
+            if ($hasPrimaryInscriptions) {
+                $validator->errors()->add(
+                    'is_complementary',
+                    'No puedes marcar como complementario un grupo con inscripciones principales activas.'
+                );
+            }
+        });
     }
 }

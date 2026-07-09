@@ -139,6 +139,7 @@ class InscriptionRepository
     {
         $trainingGroup = TrainingGroup::query()
             ->orderBy('id')
+            ->where('is_complementary', false)
             ->firstWhere('school_id', $requestData['school_id']);
 
         throw_if(is_null($trainingGroup), Exception::class, 'Training group not found for school');
@@ -395,10 +396,17 @@ class InscriptionRepository
         $inscription->assistance()
             ->withTrashed()
             ->where('year', $year)
+            ->whereHas('trainingGroup', fn ($query) => $query->where('is_complementary', false))
             ->update([
                 'deleted_at' => null,
                 'training_group_id' => $inscription->training_group_id,
             ]);
+
+        $this->ensureInitialAssistForGroup($inscription, (int) $inscription->training_group_id);
+
+        if ($inscription->complementary_group_id) {
+            $this->ensureInitialAssistForGroup($inscription, (int) $inscription->complementary_group_id);
+        }
 
         SkillsControl::withTrashed()
             ->where('inscription_id', $inscription->id)
@@ -416,14 +424,27 @@ class InscriptionRepository
             $inscription->payments()->create($this->buildInitialPaymentData($inscription, $startDate));
         }
 
-        if (! $inscription->assistance()->withTrashed()->where('year', $year)->where('month', $month)->exists()) {
-            $inscription->assistance()->create([
-                'training_group_id' => $inscription->training_group_id,
-                'year' => $year,
-                'month' => $month,
+        $this->ensureInitialAssistForGroup($inscription, (int) $inscription->training_group_id);
+
+        if ($inscription->complementary_group_id) {
+            $this->ensureInitialAssistForGroup($inscription, (int) $inscription->complementary_group_id);
+        }
+    }
+
+    private function ensureInitialAssistForGroup(Inscription $inscription, int $trainingGroupId): void
+    {
+        $startDate = Carbon::parse($inscription->start_date);
+
+        $assist = $inscription->assistance()
+            ->withTrashed()
+            ->firstOrNew([
+                'training_group_id' => $trainingGroupId,
+                'year' => (int) $startDate->year,
+                'month' => (int) $startDate->month,
                 'school_id' => $inscription->school_id,
             ]);
-        }
+
+        $assist->forceFill(['deleted_at' => null])->save();
     }
 
     private function restoreRetiredPendingMonths(Inscription $inscription): void
@@ -551,7 +572,11 @@ class InscriptionRepository
                 $futureStartDate = $futureDate->format('Y-m-d');
             }
 
-            $trainingGroup = TrainingGroup::query()->orderBy('id')->schoolId()->first();
+            $trainingGroup = TrainingGroup::query()
+                ->orderBy('id')
+                ->where('is_complementary', false)
+                ->schoolId()
+                ->first();
             throw_if(is_null($trainingGroup), Exception::class, 'Training group not found');
 
             $inscriptions = $this->inscription->where('year', $actualYear)->schoolId()->get();

@@ -211,6 +211,41 @@ final class AdminGroupCatalogsTest extends TestCase
         ]);
     }
 
+    public function test_training_group_can_be_marked_as_complementary(): void
+    {
+        $payload = [
+            'name' => 'Grupo Complementario Porteros',
+            'stage' => 'Cancha Norte',
+            'users_id' => [$this->user->id],
+            'categories' => [],
+            'schedules' => ['07:00AM - 08:00AM'],
+            'days' => ['Lunes', 'Miércoles'],
+            'year_active' => now()->year,
+            'is_complementary' => true,
+        ];
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/training_groups', $payload)
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('training_groups', [
+            'name' => 'Grupo Complementario Porteros',
+            'school_id' => $this->school['id'],
+            'is_complementary' => true,
+        ]);
+
+        $trainingGroup = TrainingGroup::query()
+            ->where('school_id', $this->school['id'])
+            ->where('name', 'Grupo Complementario Porteros')
+            ->firstOrFail();
+
+        $this->actingAs($this->user)
+            ->getJson("/api/v2/admin/training_groups/{$trainingGroup->id}")
+            ->assertOk()
+            ->assertJsonPath('data.is_complementary', true);
+    }
+
     public function test_training_group_creation_clears_school_group_cache_keys(): void
     {
         $schoolId = $this->school['id'];

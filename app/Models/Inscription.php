@@ -57,6 +57,7 @@ class Inscription extends Model
         'unique_code',
         'year',
         'training_group_id',
+        'complementary_group_id',
         'competition_group_id',
         'start_date',
         'category',
@@ -164,6 +165,11 @@ class Inscription extends Model
     public function trainingGroup(): BelongsTo
     {
         return $this->belongsTo(TrainingGroup::class);
+    }
+
+    public function complementaryGroup(): BelongsTo
+    {
+        return $this->belongsTo(TrainingGroup::class, 'complementary_group_id');
     }
 
     public function payment(): HasOne

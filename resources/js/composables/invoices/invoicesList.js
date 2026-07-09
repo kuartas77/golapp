@@ -144,7 +144,7 @@ export default function useInvoicesList() {
     const loadGroupOptions = async () => {
         try {
             const response = await api.get('/api/v2/settings/general')
-            const groups = response.data?.all_t_groups ?? response.data?.t_groups ?? []
+            const groups = response.data?.normal_training_groups ?? response.data?.all_t_groups ?? response.data?.t_groups ?? []
 
             groupOptions.value = groups.map((group) => ({
                 value: String(group.id),

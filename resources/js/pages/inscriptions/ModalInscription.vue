@@ -99,6 +99,23 @@
 
                             <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
+                                    <label for="complementary_group_id">Grupo complementario:</label>
+                                    <Field name="complementary_group_id" v-slot="{ field, handleChange }">
+                                        <CustomSelect2
+                                            id="complementary_group_id"
+                                            :options="complementaryTrainingGroups"
+                                            :modelValue="field.value"
+                                            :clearable="true"
+                                            @update:modelValue="handleChange"
+                                        />
+                                    </Field>
+                                    <ErrorMessage name="complementary_group_id" class="custom-error" as="div" />
+                                    <small class="form-text text-muted">Opcional. No genera mensualidad adicional.</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                <div class="form-group">
                                     <label for="competition_groups">Grupo de competencia:</label>
                                     <Field name="competition_groups" v-slot="{ field, handleChange }">
                                         <CustomSelect2
@@ -350,12 +367,14 @@ const isProvisionalTrainingGroup = (trainingGroupId) => (
     provisionalTrainingGroup.value
     && String(trainingGroupId) === String(provisionalTrainingGroup.value.id)
 )
-const trainingGroups = computed(() => settings.groups
+const mapTrainingGroupOption = (group) => ({
+    value: String(group.value ?? group.id),
+    label: group.label ?? group.name ?? group.full_schedule_group ?? group.full_group ?? String(group.value ?? group.id),
+})
+const trainingGroups = computed(() => (settings.normal_training_groups.length ? settings.normal_training_groups : settings.groups)
     .filter((group) => !isProvisionalTrainingGroup(group.value ?? group.id))
-    .map((group) => ({
-        value: String(group.value ?? group.id),
-        label: group.label ?? group.name ?? group.full_group ?? String(group.value ?? group.id),
-    })));
+    .map(mapTrainingGroupOption));
+const complementaryTrainingGroups = computed(() => settings.complementary_training_groups.map(mapTrainingGroupOption));
 const hasTrainingGroupSelected = computed(() => ![null, '', undefined].includes(currentTrainingGroupId.value));
 const preInscriptionAutoReason = computed(() => {
     if (!hasTrainingGroupSelected.value) {
@@ -471,6 +490,7 @@ const defaultValues = () => ({
     brother_payment: false,
     monthly_payment_type: resolveMonthlyPaymentType(),
     training_group_id: null,
+    complementary_group_id: null,
     competition_groups: [],
     photos: false,
     copy_identification_document: false,
@@ -491,6 +511,7 @@ const schema = yup.object().shape({
     brother_payment: yup.boolean().default(false),
     monthly_payment_type: yup.string().nullable().oneOf(monthlyPaymentDefinitions.map((option) => option.value)).default('MONTHLY_PAYMENT'),
     training_group_id: yup.mixed().nullable(),
+    complementary_group_id: yup.mixed().nullable(),
     competition_groups: yup.array().default([]),
     photos: yup.boolean().default(false),
     copy_identification_document: yup.boolean().default(false),
@@ -566,6 +587,7 @@ const loadInscriptionForEdit = async (inscriptionId) => {
             brother_payment: normalizeBoolean(data.brother_payment),
             monthly_payment_type: resolveMonthlyPaymentType(data.monthly_payment_type, data.brother_payment),
             training_group_id: visibleTrainingGroupId,
+            complementary_group_id: normalizeTrainingGroupId(data.complementary_group_id),
             competition_groups: data.competition_groups ?? [],
             photos: normalizeBoolean(data.photos),
             copy_identification_document: normalizeBoolean(data.copy_identification_document),
@@ -775,6 +797,7 @@ const loadPlayerByUniqueCode = async (uniqueCode) => {
             brother_payment: normalizeBoolean(reactivationInscription?.brother_payment),
             monthly_payment_type: resolveMonthlyPaymentType(reactivationInscription?.monthly_payment_type, reactivationInscription?.brother_payment),
             training_group_id: normalizeVisibleTrainingGroupId(reactivationInscription?.training_group_id),
+            complementary_group_id: normalizeTrainingGroupId(reactivationInscription?.complementary_group_id),
             competition_groups: reactivationInscription?.competition_groups ?? [],
             photos: normalizeBoolean(reactivationInscription?.photos),
             copy_identification_document: normalizeBoolean(reactivationInscription?.copy_identification_document),

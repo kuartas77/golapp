@@ -81,8 +81,9 @@ class AssistRepository
                 return $table;
             }
 
+            $groupColumn = $trainingGroup->is_complementary ? 'complementary_group_id' : 'training_group_id';
             $inscriptionIds = Inscription::query()->schoolId()
-                ->where('training_group_id', $trainingGroup->id)
+                ->where($groupColumn, $trainingGroup->id)
                 ->where('year', $dataAssist['year'])->pluck('id');
 
 
@@ -321,13 +322,6 @@ class AssistRepository
                         'school_id' => $school_id
                     ]
                 );
-
-                Assist::query()->where('inscription_id', $idDiff)
-                    ->where('year', $dataAssist['year'])
-                    ->where('month', $dataAssist['month'])
-                    ->where('training_group_id', '<>', $dataAssist['training_group_id'])
-                    ->where('school_id', $school_id)
-                    ->forceDelete();
             }
         }
     }

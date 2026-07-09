@@ -66,10 +66,15 @@ class CreateAssistsOnEndMonth extends Command
             foreach ($schools as $school) {
                 $groupsQuery = TrainingGroup::query()
                     ->where('school_id', $school->id)
-                    ->whereHas('inscriptions', fn ($query) => $query
-                        ->where('school_id', $school->id)
-                        ->where('year', $inscriptionYear)
-                    );
+                    ->where(function ($query) use ($school, $inscriptionYear): void {
+                        $query->whereHas('inscriptions', fn ($query) => $query
+                            ->where('school_id', $school->id)
+                            ->where('year', $inscriptionYear)
+                        )->orWhereHas('complementaryInscriptions', fn ($query) => $query
+                            ->where('school_id', $school->id)
+                            ->where('year', $inscriptionYear)
+                        );
+                    });
 
                 $groupsQuery->chunkById(50, function ($groups) use ($dataAssist, $school, $inscriptionYear) {
                     foreach ($groups as $group) {
@@ -109,8 +114,11 @@ class CreateAssistsOnEndMonth extends Command
 
     private function getInscriptionsByGroup(array $params, int $school_id, int $inscriptionYear): Collection
     {
+        $group = TrainingGroup::query()->findOrFail($params['training_group_id']);
+        $groupColumn = $group->is_complementary ? 'complementary_group_id' : 'training_group_id';
+
         return Inscription::query()
-            ->where('training_group_id', $params['training_group_id'])
+            ->where($groupColumn, $params['training_group_id'])
             ->where('year', $inscriptionYear)
             ->where('school_id', $school_id)
             ->pluck('id');

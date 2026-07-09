@@ -48,7 +48,11 @@ class SharedService
             if ($inscription->wasRecentlyCreated && ! $hasPayment) {
 
                 if (! $inscription->training_group_id) {
-                    $trainingGroup = TrainingGroup::orderBy('id', 'asc')->firstWhere('school_id', $inscription->school_id);
+                    $trainingGroup = TrainingGroup::query()
+                        ->orderBy('id', 'asc')
+                        ->where('school_id', $inscription->school_id)
+                        ->where('is_complementary', false)
+                        ->first();
                     $inscription->training_group_id = $trainingGroup->id;
                     $inscription->save();
                 }
@@ -84,16 +88,10 @@ class SharedService
                     $this->debtMonth($inscription, $start_date->month, $dataPayment);
                 }
 
-                $assistance = [
-                    'training_group_id' => $inscription->training_group_id,
-                    'year' => $start_date->year,
-                    'month' => $start_date->month,
-                    'school_id' => $inscription->school_id,
-                ];
-
                 $inscription->payments()->create($dataPayment);
 
-                $inscription->assistance()->create($assistance);
+                $this->ensureAssistForGroup($inscription, (int) $inscription->training_group_id, $start_date);
+                $this->ensureComplementaryAssist($inscription, $start_date);
 
             } else {
                 if ($inscription->wasChanged('training_group_id')) {
@@ -102,9 +100,19 @@ class SharedService
 
                     $inscription->payments()->withTrashed()->where('year', $start_date->year)->update($dataToUpdate);
 
-                    $inscription->assistance()->withTrashed()->where('year', $start_date->year)->update($dataToUpdate);
+                    $inscription->assistance()
+                        ->withTrashed()
+                        ->where('year', $start_date->year)
+                        ->where('training_group_id', $inscription->getOriginal('training_group_id'))
+                        ->update($dataToUpdate);
 
                     $this->enableSkillControl($inscription);
+                }
+
+                if ($inscription->wasChanged('complementary_group_id')) {
+                    $this->syncComplementaryAssists($inscription, $start_date);
+                } else {
+                    $this->ensureComplementaryAssist($inscription, $start_date);
                 }
 
                 if ($inscription->wasChanged('brother_payment')
@@ -122,6 +130,52 @@ class SharedService
             report($th);
         }
 
+    }
+
+    private function ensureComplementaryAssist(Inscription $inscription, Carbon $startDate): void
+    {
+        if (! $inscription->complementary_group_id) {
+            return;
+        }
+
+        $this->ensureAssistForGroup($inscription, (int) $inscription->complementary_group_id, $startDate);
+    }
+
+    private function ensureAssistForGroup(Inscription $inscription, int $trainingGroupId, Carbon $startDate): void
+    {
+        $assist = $inscription->assistance()
+            ->withTrashed()
+            ->firstOrNew([
+                'training_group_id' => $trainingGroupId,
+                'year' => $startDate->year,
+                'month' => $startDate->month,
+                'school_id' => $inscription->school_id,
+            ]);
+
+        $assist->forceFill(['deleted_at' => null])->save();
+    }
+
+    private function syncComplementaryAssists(Inscription $inscription, Carbon $startDate): void
+    {
+        $previousGroupId = $inscription->getOriginal('complementary_group_id');
+
+        if ($previousGroupId) {
+            $query = $inscription->assistance()
+                ->withTrashed()
+                ->where('year', $startDate->year)
+                ->where('training_group_id', $previousGroupId);
+
+            if ($inscription->complementary_group_id) {
+                $query->update([
+                    'training_group_id' => $inscription->complementary_group_id,
+                    'deleted_at' => null,
+                ]);
+            } else {
+                $query->delete();
+            }
+        }
+
+        $this->ensureComplementaryAssist($inscription, $startDate);
     }
 
     private function checkMonthValue(int $actualMonth, $value, &$dataPayment)
