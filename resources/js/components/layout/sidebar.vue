@@ -57,6 +57,45 @@
                     </ul>
                 </li>
 
+                <li v-if="showSuperAdminMenu" class="menu">
+                    <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#super-admin"
+                        aria-controls="super-admin" :aria-expanded="isSuperAdminRoute ? 'true' : 'false'"
+                        :data-active="isSuperAdminRoute ? 'true' : null"
+                        :class="{active: isSuperAdminRoute}">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-shield">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            <span>Super Admin</span>
+                        </div>
+                        <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-chevron-right">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </div>
+                    </a>
+                    <ul id="super-admin" class="collapse submenu list-unstyled" :class="{ show: isSuperAdminRoute }"
+                        data-bs-parent="#sidebar">
+                        <li v-if="canEvaluationTemplates">
+                            <router-link :to="{ name: 'schools' }" @click="toggleMobileMenu">Listado
+                                Escuelas</router-link>
+                        </li>
+                        <li v-if="canEvaluationTemplates">
+                            <router-link :to="{ name: 'schools-info' }" @click="toggleMobileMenu">Información
+                                Escuelas</router-link>
+                        </li>
+                        <li v-if="canEvaluationTemplates">
+                            <router-link :to="{ name: 'evaluation-templates.index' }" @click="toggleMobileMenu">
+                                Plantillas evaluación
+                            </router-link>
+                        </li>
+                    </ul>
+                </li>
+
                 <li v-if="showConfigurationMenu" class="menu">
                     <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#configuration"
                         aria-controls="configuration" :aria-expanded="isConfigurationRoute ? 'true' : 'false'"
@@ -89,19 +128,6 @@
                     </a>
                     <ul id="configuration" class="collapse submenu list-unstyled" :class="{ show: isConfigurationRoute }"
                         data-bs-parent="#sidebar">
-                        <li v-if="canEvaluationTemplates">
-                            <router-link :to="{ name: 'schools' }" @click="toggleMobileMenu">Listado
-                                Escuelas</router-link>
-                        </li>
-                        <li v-if="canEvaluationTemplates">
-                            <router-link :to="{ name: 'schools-info' }" @click="toggleMobileMenu">Información
-                                Escuelas</router-link>
-                        </li>
-                        <li v-if="canEvaluationTemplates">
-                            <router-link :to="{ name: 'evaluation-templates.index' }" @click="toggleMobileMenu">
-                                Plantillas evaluación
-                            </router-link>
-                        </li>
                         <li v-if="canSchoolProfile">
                             <router-link :to="{ name: 'school' }" @click="toggleMobileMenu">Escuela</router-link>
                         </li>
@@ -518,9 +544,10 @@ const canDocumentPlanning = access.documentPlanning
 
 const showAttendanceQrMenu = false
 
+const showSuperAdminMenu = computed(() => canEvaluationTemplates.value)
+
 const showConfigurationMenu = computed(() => (
-    canEvaluationTemplates.value
-    || canSchoolProfile.value
+    canSchoolProfile.value
     || canContracts.value
     || canUserManagement.value
     || canTrainingGroups.value
@@ -547,8 +574,19 @@ const dashboardRouteNames = new Set([
     'competition-stats.detail',
 ]);
 
+const superAdminRouteNames = new Set([
+    'schools',
+    'schools.create',
+    'schools.edit',
+    'schools-info',
+    'evaluation-templates.index',
+    'evaluation-templates.create',
+    'evaluation-templates.edit',
+]);
+
 const isDashboardRoute = computed(() => dashboardRouteNames.has(route.name));
-const isConfigurationRoute = computed(() => (
+const isSuperAdminRoute = computed(() => superAdminRouteNames.has(route.name));
+const isConfigurationRoute = computed(() => !isSuperAdminRoute.value && (
     route.path.startsWith('/configuracion')
     || route.path.startsWith('/administracion')
 ));

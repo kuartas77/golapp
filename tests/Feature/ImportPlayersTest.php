@@ -106,6 +106,12 @@ final class ImportPlayersTest extends TestCase
             ->assertOk()
             ->assertJson([
                 'success' => true,
+                'summary' => [
+                    'created_players' => 1,
+                    'updated_players' => 0,
+                    'created_inscriptions' => 1,
+                    'skipped_inscriptions' => 0,
+                ],
             ]);
 
         $player = Player::query()
@@ -170,14 +176,110 @@ final class ImportPlayersTest extends TestCase
         $this->assertSame(1, Inscription::query()->where('player_id', $player->id)->where('year', getYearInscription())->count());
     }
 
-    private function makeImportFile(array $row): UploadedFile
+    public function test_api_import_players_endpoint_reports_bulk_summary(): void
+    {
+        Notification::fake();
+
+        $existing = Player::factory()->create([
+            'school_id' => $this->school['id'],
+            'identification_document' => 'DOC-IMPORT-BULK-1',
+            'unique_code' => createUniqueCode((string) $this->school['id']),
+        ]);
+
+        Inscription::query()->create([
+            'player_id' => $existing->id,
+            'school_id' => $this->school['id'],
+            'unique_code' => $existing->unique_code,
+            'year' => getYearInscription(),
+            'training_group_id' => 1,
+            'competition_group_id' => null,
+            'start_date' => now()->format('Y-m-d'),
+            'category' => $existing->category,
+            'photos' => false,
+            'scholarship' => false,
+            'copy_identification_document' => false,
+            'eps_certificate' => false,
+            'medic_certificate' => false,
+            'study_certificate' => false,
+            'overalls' => false,
+            'ball' => false,
+            'bag' => false,
+            'presentation_uniform' => false,
+            'competition_uniform' => false,
+            'tournament_pay' => false,
+        ]);
+
+        $this->actingAs($this->user)
+            ->post('/api/v2/import/players', [
+                'file' => $this->makeImportFile([
+                    [
+                        'fecha_de_nacimiento' => ExcelDate::PHPToExcel(now()->subYears(11)->startOfDay()),
+                        'numero_de_documento' => 'DOC-IMPORT-BULK-1',
+                        'nombres' => 'Actualizado',
+                        'apellidos' => 'Uno',
+                        'genero' => 'M',
+                        'lugar_de_nacimiento' => 'Medellin',
+                        'rh' => 'O+',
+                        'escuela_o_colegio_donde_estudia' => 'Colegio Bulk',
+                        'direccion_de_residencia' => 'Calle 1',
+                        'municipio' => 'Medellin',
+                        'barrio' => 'Centro',
+                        'correo_electronico' => 'bulk1@example.com',
+                        'numero_de_celular' => '3000000001',
+                        'eps' => 'Sura',
+                        'nombres_y_apellidos' => 'Acudiente Bulk',
+                        'numero_de_telefono' => '6040000001',
+                        'profesion' => '',
+                        'empresa' => '',
+                        'cargo' => '',
+                    ],
+                    [
+                        'fecha_de_nacimiento' => ExcelDate::PHPToExcel(now()->subYears(12)->startOfDay()),
+                        'numero_de_documento' => 'DOC-IMPORT-BULK-2',
+                        'nombres' => 'Nuevo',
+                        'apellidos' => 'Dos',
+                        'genero' => 'F',
+                        'lugar_de_nacimiento' => 'Cali',
+                        'rh' => 'A+',
+                        'escuela_o_colegio_donde_estudia' => 'Colegio Bulk',
+                        'direccion_de_residencia' => 'Calle 2',
+                        'municipio' => 'Cali',
+                        'barrio' => 'Sur',
+                        'correo_electronico' => 'bulk2@example.com',
+                        'numero_de_celular' => '3000000002',
+                        'eps' => 'Sanitas',
+                        'nombres_y_apellidos' => 'Acudiente Bulk',
+                        'numero_de_telefono' => '6040000001',
+                        'profesion' => '',
+                        'empresa' => '',
+                        'cargo' => '',
+                    ],
+                ]),
+            ], ['Accept' => 'application/json'])
+            ->assertOk()
+            ->assertJson([
+                'success' => true,
+                'summary' => [
+                    'created_players' => 1,
+                    'updated_players' => 1,
+                    'created_inscriptions' => 1,
+                    'skipped_inscriptions' => 1,
+                ],
+            ]);
+
+        $this->assertSame('ACTUALIZADO', $existing->refresh()->names);
+        $this->assertSame(1, Inscription::query()->where('player_id', $existing->id)->where('year', getYearInscription())->count());
+    }
+
+    private function makeImportFile(array $rows): UploadedFile
     {
         $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
 
-        $headers = array_keys($row);
+        $rows = array_is_list($rows) ? $rows : [$rows];
+        $headers = array_keys($rows[0]);
         $sheet->fromArray($headers, null, 'A1');
-        $sheet->fromArray(array_values($row), null, 'A2');
+        $sheet->fromArray(array_map('array_values', $rows), null, 'A2');
 
         $path = storage_path('framework/testing/import_players_'.uniqid().'.xlsx');
         (new Xlsx($spreadsheet))->save($path);

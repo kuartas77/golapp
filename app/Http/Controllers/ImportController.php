@@ -90,6 +90,7 @@ class ImportController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => __('messages.player_created'),
+                    'summary' => $importPlayers->summary(),
                 ]);
             }
 

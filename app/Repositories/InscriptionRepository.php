@@ -95,7 +95,9 @@ class InscriptionRepository
             $inscription->load(['player', 'school']);
 
             if (checkEmail(data_get($inscription, 'player.email'))) {
-                $inscription->player->notifyNow(new InscriptionNotification($inscription));
+                $inscription->player->notify(
+                    (new InscriptionNotification($inscription))->afterCommit()
+                );
             }
 
             DB::commit();

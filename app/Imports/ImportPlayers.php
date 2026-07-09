@@ -22,31 +22,44 @@ use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading, WithHeadingRow, WithValidation
 {
+    private Collection $peopleByName;
+
+    private Collection $peopleByIdentification;
+
+    private Collection $playersByDocument;
+
+    private Collection $activeInscriptionPlayerIds;
+
+    private int $createdPlayers = 0;
+
+    private int $updatedPlayers = 0;
+
+    private int $createdInscriptions = 0;
+
+    private int $skippedInscriptions = 0;
+
     public function __construct(
         private int $school_id,
         private PlayerRepository $playerRepository,
         private InscriptionRepository $inscriptionRepository
     ) {
-        //
+        $this->peopleByName = collect();
+        $this->peopleByIdentification = collect();
+        $this->playersByDocument = collect();
+        $this->activeInscriptionPlayerIds = collect();
     }
 
     public function collection(Collection $rows)
     {
         try {
+            $rows = $this->filterBlankRows($rows);
+            $this->warmChunkLookups($rows);
 
             foreach ($rows as $row) {
                 DB::beginTransaction();
                 $dataPeople = $this->setAttributesPeople($row);
 
-                $people = People::query()->select('id')
-                    ->where(function ($query) use ($dataPeople) {
-                        $query->where('names', $dataPeople['names'])
-                            ->Orwhere('identification_card', $dataPeople['identification_card']);
-                    })->first();
-
-                if (! $people) {
-                    $people = People::query()->create($dataPeople);
-                }
+                $people = $this->storePeople($dataPeople);
 
                 $dataPlayer = $this->setAttributesPlayer($row);
                 $player = $this->storePlayer($dataPlayer);
@@ -132,17 +145,20 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
 
     private function storePlayer(array $dataPlayer): Player
     {
-        $player = Player::query()
-            ->where('school_id', $dataPlayer['school_id'])
-            ->where('identification_document', $dataPlayer['identification_document'])
-            ->first();
+        $player = $this->playersByDocument->get($dataPlayer['identification_document']);
 
         if (! $player) {
-            return Player::query()->create($dataPlayer);
+            $player = Player::query()->create($dataPlayer);
+            $this->createdPlayers++;
+            $this->playersByDocument->put($player->identification_document, $player);
+
+            return $player;
         }
 
         $player->fill(Arr::except($dataPlayer, ['unique_code']));
         $player->save();
+        $this->updatedPlayers++;
+        $this->playersByDocument->put($player->identification_document, $player);
 
         return $player;
     }
@@ -151,17 +167,12 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
     {
         $year = getYearInscription();
 
-        $hasActiveInscription = Inscription::query()
-            ->where('player_id', $player->id)
-            ->where('school_id', $this->school_id)
-            ->where('year', $year)
-            ->exists();
-
-        if ($hasActiveInscription) {
+        if ($this->activeInscriptionPlayerIds->contains($player->id)) {
+            $this->skippedInscriptions++;
             return;
         }
 
-        $this->inscriptionRepository->createInscription([
+        $result = $this->inscriptionRepository->createInscription([
             'player_id' => $player->id,
             'unique_code' => $player->unique_code,
             'school_id' => $this->school_id,
@@ -184,6 +195,101 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
             'pre_inscription' => false,
             'brother_payment' => false,
         ]);
+
+        if (! data_get($result, 'success')) {
+            throw new Exception('Imported player inscription could not be created.');
+        }
+
+        $this->createdInscriptions++;
+        $this->activeInscriptionPlayerIds->push($player->id);
+    }
+
+    private function storePeople(array $dataPeople): People
+    {
+        $people = $this->peopleByIdentification->get($dataPeople['identification_card'])
+            ?? $this->peopleByName->get($dataPeople['names']);
+
+        if (! $people) {
+            $people = People::query()->create($dataPeople);
+        }
+
+        $this->peopleByName->put($people->names, $people);
+        if (filled($people->identification_card)) {
+            $this->peopleByIdentification->put($people->identification_card, $people);
+        }
+
+        return $people;
+    }
+
+    private function warmChunkLookups(Collection $rows): void
+    {
+        if ($rows->isEmpty()) {
+            return;
+        }
+
+        $peopleNames = $rows
+            ->map(fn ($row) => Str::upper($this->rowValue($row, 'nombres_y_apellidos')))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $peopleIdentifications = $rows
+            ->map(fn ($row) => $this->firstRowValue($row, ['numero_de_telefono', 'telefonos', 'numero_de_celular']))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $people = collect();
+        if ($peopleNames->isNotEmpty() || $peopleIdentifications->isNotEmpty()) {
+            $people = People::query()
+                ->select(['id', 'names', 'identification_card'])
+                ->where(function ($query) use ($peopleNames, $peopleIdentifications) {
+                    $query->when($peopleNames->isNotEmpty(), fn ($query) => $query->whereIn('names', $peopleNames))
+                        ->when($peopleIdentifications->isNotEmpty(), fn ($query) => $query->orWhereIn('identification_card', $peopleIdentifications));
+                })
+                ->get();
+        }
+
+        $this->peopleByName = $people->keyBy('names');
+        $this->peopleByIdentification = $people->whereNotNull('identification_card')->keyBy('identification_card');
+
+        $documents = $rows
+            ->map(fn ($row) => $this->rowValue($row, 'numero_de_documento'))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $players = $documents->isEmpty()
+            ? collect()
+            : Player::query()
+                ->where('school_id', $this->school_id)
+                ->whereIn('identification_document', $documents)
+                ->get();
+
+        $this->playersByDocument = $players->keyBy('identification_document');
+
+        $this->activeInscriptionPlayerIds = Inscription::query()
+            ->where('school_id', $this->school_id)
+            ->where('year', getYearInscription())
+            ->whereIn('player_id', $players->pluck('id'))
+            ->pluck('player_id');
+    }
+
+    private function filterBlankRows(Collection $rows): Collection
+    {
+        return $rows->filter(function ($row) {
+            return collect($row)->filter(fn ($value) => filled($value))->isNotEmpty();
+        });
+    }
+
+    public function summary(): array
+    {
+        return [
+            'created_players' => $this->createdPlayers,
+            'updated_players' => $this->updatedPlayers,
+            'created_inscriptions' => $this->createdInscriptions,
+            'skipped_inscriptions' => $this->skippedInscriptions,
+        ];
     }
 
     private function rowValue($row, string $key): string
