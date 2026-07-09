@@ -100,6 +100,67 @@ describe('SoccerFieldDiagramEditor', () => {
             rotation: 0,
         }))
     })
+
+    it('adds editable player tokens with colors', async () => {
+        const wrapper = mount(SoccerFieldDiagramEditor, {
+            props: {
+                modelValue: [],
+            },
+        })
+
+        await wrapper.findAll('button').find((button) => button.text().includes('Ficha roja')).trigger('click')
+        let value = latestModelValue(wrapper)
+
+        expect(value).toHaveLength(1)
+        expect(value[0]).toEqual(expect.objectContaining({
+            type: 'player_token',
+            color: 'red',
+            label: '1',
+            x: 50,
+            y: 32,
+        }))
+
+        await wrapper.setProps({ modelValue: value })
+        await wrapper.find('input').setValue('9')
+        value = latestModelValue(wrapper)
+
+        expect(value[0]).toEqual(expect.objectContaining({
+            type: 'player_token',
+            color: 'red',
+            label: '9',
+        }))
+    })
+
+    it('adds tactical symbols and rotates directional items', async () => {
+        const wrapper = mount(SoccerFieldDiagramEditor, {
+            props: {
+                modelValue: [],
+            },
+        })
+
+        for (const label of ['Pase', 'Conducción', 'Recorrido', 'Centro']) {
+            await wrapper.findAll('button').find((button) => button.text().includes(label)).trigger('click')
+            await wrapper.setProps({ modelValue: latestModelValue(wrapper) })
+        }
+
+        let value = latestModelValue(wrapper)
+
+        expect(value.map((item) => item.type)).toEqual(['pass', 'dribble', 'off_ball_run', 'cross'])
+        expect(value.every((item) => item.rotation === 0)).toBe(true)
+
+        await wrapper.findAll('button').find((button) => button.text().includes('Derecha')).trigger('click')
+        value = latestModelValue(wrapper)
+
+        expect(value[3]).toEqual(expect.objectContaining({
+            type: 'cross',
+            rotation: 45,
+        }))
+
+        await wrapper.setProps({ modelValue: value })
+        await wrapper.findAll('button').find((button) => button.text().includes('Eliminar')).trigger('click')
+
+        expect(latestModelValue(wrapper).map((item) => item.type)).toEqual(['pass', 'dribble', 'off_ball_run'])
+    })
 })
 
 function makePointerEvent(name, values = {}) {
