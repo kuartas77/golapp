@@ -35,10 +35,9 @@
             $tokenLength = strlen($tokenLabel);
             $tokenIsShort = $tokenLength <= 3;
             $tokenFontSize = $tokenLength <= 2 ? 3.5 : 2.8;
+            $tokenTextX = $x + ($tokenLength === 1 ? 1.2 : ($tokenLength === 2 ? 1.55 : 0.4));
             $tokenTextY = $y + ($tokenLength <= 2 ? 1.15 : 0.95);
-            $tokenBadgeWidth = min(22, max(8, ($tokenLength * 1.65) + 2));
-            $tokenBadgeX = min(99 - $tokenBadgeWidth, max(1, $x - ($tokenBadgeWidth / 2)));
-            $tokenBadgeY = $y > 56 ? $y - 8.2 : $y + 4.4;
+            $tokenLongTextY = $y > 56 ? $y - 4.6 : $y + 5.6;
         @endphp
 
         @if($type === 'cone')
@@ -50,10 +49,9 @@
         @elseif($type === 'player_token')
             <circle cx="{{ $x }}" cy="{{ $y }}" r="3.4" fill="{{ $itemColor }}" />
             @if($tokenIsShort)
-                <text x="{{ $x }}" y="{{ $tokenTextY }}" fill="#ffffff" font-size="{{ $tokenFontSize }}" font-weight="800" text-anchor="middle">{{ $tokenLabel }}</text>
+                <text x="{{ $tokenTextX }}" y="{{ $tokenTextY }}" fill="#ffffff" font-size="{{ $tokenFontSize }}" font-weight="800" text-anchor="middle">{{ $tokenLabel }}</text>
             @else
-                <rect x="{{ $tokenBadgeX }}" y="{{ $tokenBadgeY }}" width="{{ $tokenBadgeWidth }}" height="4.8" rx="0.8" fill="#ffffff" stroke="{{ $itemColor }}" stroke-width="0.35" />
-                <text x="{{ $tokenBadgeX + ($tokenBadgeWidth / 2) }}" y="{{ $tokenBadgeY + 3.35 }}" fill="#111827" font-size="2.8" font-weight="700" text-anchor="middle">{{ $tokenLabel }}</text>
+                <text x="{{ $x }}" y="{{ $y }}" font-size="2.8" font-weight="bold" fill="#0051ff" stroke-width="2" text-anchor="middle">{{ $tokenLabel }}</text>
             @endif
         @elseif($type === 'arrow')
             <g transform="rotate({{ $rotation }} {{ $x }} {{ $y }})">
