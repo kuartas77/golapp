@@ -31,6 +31,14 @@
             $rotation = is_numeric(data_get($item, 'rotation')) ? fmod((float) data_get($item, 'rotation'), 360) : 0;
             $rotation = $rotation < 0 ? $rotation + 360 : $rotation;
             $itemColor = $color(data_get($item, 'color'), $type === 'cone' ? 'orange' : ($type === 'ball' ? 'black' : 'blue'));
+            $tokenLabel = $label !== '' ? $label : '1';
+            $tokenLength = strlen($tokenLabel);
+            $tokenIsShort = $tokenLength <= 3;
+            $tokenFontSize = $tokenLength <= 2 ? 3.5 : 2.8;
+            $tokenTextY = $y + ($tokenLength <= 2 ? 1.15 : 0.95);
+            $tokenBadgeWidth = min(22, max(8, ($tokenLength * 1.65) + 2));
+            $tokenBadgeX = min(99 - $tokenBadgeWidth, max(1, $x - ($tokenBadgeWidth / 2)));
+            $tokenBadgeY = $y > 56 ? $y - 8.2 : $y + 4.4;
         @endphp
 
         @if($type === 'cone')
@@ -41,7 +49,12 @@
             <circle cx="{{ $x }}" cy="{{ $y }}" r="3.2" fill="none" stroke="{{ $itemColor }}" stroke-width="1.05" />
         @elseif($type === 'player_token')
             <circle cx="{{ $x }}" cy="{{ $y }}" r="3.4" fill="{{ $itemColor }}" />
-            <text x="{{ $x }}" y="{{ $y }}" fill="#ffffff" font-size="3.5" font-weight="800" dominant-baseline="middle" text-anchor="middle">{{ $label !== '' ? $label : '1' }}</text>
+            @if($tokenIsShort)
+                <text x="{{ $x }}" y="{{ $tokenTextY }}" fill="#ffffff" font-size="{{ $tokenFontSize }}" font-weight="800" text-anchor="middle">{{ $tokenLabel }}</text>
+            @else
+                <rect x="{{ $tokenBadgeX }}" y="{{ $tokenBadgeY }}" width="{{ $tokenBadgeWidth }}" height="4.8" rx="0.8" fill="#ffffff" stroke="{{ $itemColor }}" stroke-width="0.35" />
+                <text x="{{ $tokenBadgeX + ($tokenBadgeWidth / 2) }}" y="{{ $tokenBadgeY + 3.35 }}" fill="#111827" font-size="2.8" font-weight="700" text-anchor="middle">{{ $tokenLabel }}</text>
+            @endif
         @elseif($type === 'arrow')
             <g transform="rotate({{ $rotation }} {{ $x }} {{ $y }})">
                 <line x1="{{ $x - 4 }}" y1="{{ $y + 2.4 }}" x2="{{ $x + 3.15 }}" y2="{{ $y - 1.9 }}" stroke="#b91c1c" stroke-width="1.1" stroke-linecap="round" />
