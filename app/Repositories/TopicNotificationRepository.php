@@ -71,15 +71,14 @@ class TopicNotificationRepository
 
     public function markRead($idNotification = null)
     {
-        $id = request()->input('notificationId', $idNotification);
         $player = request()->user();
-        $notification = $player->notifications()->whereKey($id)->first();
+        $notification = $player->notifications()->whereKey($idNotification)->first();
 
         if (is_null($notification)) {
             throw new ModelNotFoundException('Notification not found for player');
         }
 
-        $player->notifications()->updateExistingPivot($id, ['is_read' => true]);
+        $player->notifications()->updateExistingPivot($idNotification, ['is_read' => true]);
     }
 
     public function markReadForPlayer($player, int $notificationId): void
@@ -97,6 +96,19 @@ class TopicNotificationRepository
             ->where('player_id', $player->id)
             ->where('topic_notification_id', $notificationId)
             ->update(['is_read' => true]);
+    }
+
+    public function markReadForPlayers($players, int $notificationId): void
+    {
+        $query = DB::table('player_topic_notification')
+            ->whereIn('player_id', $players->pluck('id'))
+            ->where('topic_notification_id', $notificationId);
+
+        if (!$query->exists()) {
+            throw new ModelNotFoundException('Notification not found for guardian players');
+        }
+
+        $query->update(['is_read' => true]);
     }
 
     public function markReadAll()

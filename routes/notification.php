@@ -29,6 +29,7 @@ Route::prefix('v2/guardians')->group(function () {
             Route::get('/{notification}', [GuardianTopicNotificationsController::class, 'show']);
             Route::put('/read-all', [GuardianTopicNotificationsController::class, 'readAll']);
             Route::put('/read', [GuardianTopicNotificationsController::class, 'read']);
+            Route::put('/read/{notification}', [GuardianTopicNotificationsController::class, 'read']);
         });
 
         Route::prefix('invoices')->group(function () {
@@ -62,7 +63,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
         Route::get('', [TopicNotificationsController::class, 'index']);
         Route::get('/{id}', [TopicNotificationsController::class, 'show']);
         Route::put('/read-all', [TopicNotificationsController::class, 'readAll']);
-        Route::put('/read', [TopicNotificationsController::class, 'read']);
+        Route::put('/read/{id}', [TopicNotificationsController::class, 'read']);
     });
 
     Route::prefix('invoices')->group(function() {

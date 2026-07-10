@@ -49,6 +49,10 @@
                     </div>
 
                     <div class="modal-body">
+                        <div v-if="backendError" class="alert alert-danger" role="alert">
+                            {{ backendError }}
+                        </div>
+
                         <span class="text-muted d-block mb-4">
                             Las notificaciones se envían a tópicos a los cuales los usuarios de GOLAPPLINK se
                             suscriben al momento de ingresar a la App.
@@ -107,6 +111,19 @@
                                         {{ getError('competition_groups') }}
                                     </div>
                                 </div>
+
+                                <div v-if="form.notification_type === 'players'" class="mb-3">
+                                    <label class="form-label" for="players">Jugadores</label>
+                                    <CustomSelect2
+                                        id="players"
+                                        v-model="form.players"
+                                        :options="optionGroups.players"
+                                        multiple size="8"/>
+
+                                    <div v-if="getError('players')" class="text-danger small mt-1">
+                                        {{ getError('players') }}
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="col-md-12 col-lg-8">
@@ -159,6 +176,7 @@ usePageTitle('Notificaciones')
 const notificationsTable = useTemplateRef('notificationsTable')
 const modalElement = ref(null)
 const validationErrors = ref({})
+const backendError = ref('')
 const submitting = ref(false)
 const tutorial = usePageTutorial(topicNotificationsTutorial)
 
@@ -169,12 +187,14 @@ const notificationTypes = [
     { value: 'categories', label: 'Categorías' },
     { value: 'training_groups', label: 'Grupos de Entrenamiento' },
     { value: 'competition_groups', label: 'Grupos de Competencia' },
+    { value: 'players', label: 'Jugadores' },
 ]
 
 const optionGroups = reactive({
     categories: [],
     training_groups: [],
     competition_groups: [],
+    players: [],
 })
 
 const createDefaultForm = () => ({
@@ -182,6 +202,7 @@ const createDefaultForm = () => ({
     categories: [],
     training_groups: [],
     competition_groups: [],
+    players: [],
     notification_title: '',
     notification_body: '',
 })
@@ -250,6 +271,7 @@ const options = {
 const resetForm = () => {
     Object.assign(form, createDefaultForm())
     validationErrors.value = {}
+    backendError.value = ''
     submitting.value = false
 }
 
@@ -257,6 +279,7 @@ const resetTopicSelections = () => {
     form.categories = []
     form.training_groups = []
     form.competition_groups = []
+    form.players = []
 }
 
 const reloadTable = () => {
@@ -276,6 +299,7 @@ const loadOptions = async () => {
     optionGroups.categories = response.data.categories ?? []
     optionGroups.training_groups = response.data.training_groups ?? []
     optionGroups.competition_groups = response.data.competition_groups ?? []
+    optionGroups.players = response.data.players ?? []
 }
 
 const openCreateModal = () => {
@@ -285,6 +309,7 @@ const openCreateModal = () => {
 
 const submitForm = async () => {
     validationErrors.value = {}
+    backendError.value = ''
     submitting.value = true
 
     try {
@@ -293,6 +318,7 @@ const submitForm = async () => {
             categories: form.categories,
             training_groups: form.training_groups,
             competition_groups: form.competition_groups,
+            players: form.players,
             notification_title: form.notification_title,
             notification_body: form.notification_body,
         })
@@ -307,9 +333,11 @@ const submitForm = async () => {
     } catch (error) {
         if (error.response?.status === 422) {
             validationErrors.value = error.response.data.errors ?? {}
+            backendError.value = error.response.data.message ?? 'Revisa los campos marcados.'
             return
         }
 
+        backendError.value = error.response?.data?.message ?? 'No fue posible crear la notificación.'
         await Swal.fire({
             title: window.__APP_CONFIG__?.appName ?? 'GOLAPP',
             text: 'No fue posible crear la notificación.',
@@ -334,5 +362,6 @@ watch(() => form.notification_type, () => {
     delete validationErrors.value.categories
     delete validationErrors.value.training_groups
     delete validationErrors.value.competition_groups
+    delete validationErrors.value.players
 })
 </script>

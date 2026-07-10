@@ -35,15 +35,21 @@ class GuardianTopicNotificationsController extends Controller
         ]);
     }
 
-    public function read(Request $request): JsonResponse
+    public function read(Request $request, ?int $notification = null): JsonResponse
     {
         $validated = $request->validate([
-            'notification_id' => ['required', 'integer'],
-            'player_id' => ['required', 'integer'],
+            'notification_id' => [$notification === null ? 'required' : 'nullable', 'integer'],
+            'player_id' => ['nullable', 'integer'],
         ]);
 
-        $player = $this->guardianAccessService->findEligiblePlayer($this->guardian($request), (int) $validated['player_id']);
-        $this->repository->markReadForPlayer($player, (int) $validated['notification_id']);
+        $notificationId = $notification ?? (int) $validated['notification_id'];
+
+        if (isset($validated['player_id'])) {
+            $player = $this->guardianAccessService->findEligiblePlayer($this->guardian($request), (int) $validated['player_id']);
+            $this->repository->markReadForPlayer($player, $notificationId);
+        } else {
+            $this->repository->markReadForPlayers($this->eligiblePlayers($request), $notificationId);
+        }
 
         return response()->json([
             'data' => [

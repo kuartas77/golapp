@@ -43,7 +43,7 @@ class TopicNotificationsController extends Controller
                 'label' => $item['name'],
             ])->values(),
             'players' => collect($topicUniqueCodes)->map(fn(array $item) => [
-                'value' => $item['topic'],
+                'value' => $item['search'],
                 'label' => $item['name'],
             ])->values(),
             'competition_groups' => collect($topicCompetitionGroups)->map(fn(array $item) => [

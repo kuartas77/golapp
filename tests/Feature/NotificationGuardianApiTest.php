@@ -277,6 +277,34 @@ final class NotificationGuardianApiTest extends TestCase
         ]);
     }
 
+    public function testGuardianCanMarkNotificationReadUsingMobileUrlContract(): void
+    {
+        [$guardian, $playerA, , $school] = $this->createGuardianScenario();
+        [$playerB] = $this->attachSecondPlayerToGuardian($guardian, $school);
+
+        $notification = TopicNotification::query()->create([
+            'school_id' => $school->id,
+            'topics' => 'general',
+            'title' => 'Aviso móvil',
+            'body' => 'Mensaje pendiente',
+            'type' => 'GENERAL',
+            'priority' => 'NORMAL',
+        ]);
+        $notification->players()->attach($playerA->id, ['school_id' => $school->id, 'is_read' => false]);
+        $notification->players()->attach($playerB->id, ['school_id' => $school->id, 'is_read' => false]);
+
+        Sanctum::actingAs($guardian, ['auth', 'notification-index']);
+
+        $this->putJson("/api/notify/v2/guardians/notifications/read/{$notification->id}")
+            ->assertOk()
+            ->assertJsonPath('data.success', true);
+
+        $this->assertDatabaseMissing('player_topic_notification', [
+            'topic_notification_id' => $notification->id,
+            'is_read' => false,
+        ]);
+    }
+
     private function createGuardianScenario(array $guardianAttributes = []): array
     {
         $school = School::factory()->create([
