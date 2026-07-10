@@ -70,6 +70,43 @@ final class NotificationGuardianApiTest extends TestCase
             ->assertJsonCount(1, 'data');
     }
 
+    public function testGuardianCanRegisterMobileDeviceToken(): void
+    {
+        [$guardian] = $this->createGuardianScenario();
+
+        Sanctum::actingAs($guardian, ['auth']);
+
+        $this->postJson('/api/notify/v2/guardians/notifications/device-token', [
+            'platform' => 'android',
+            'token' => 'firebase-device-token',
+        ])->assertOk()
+            ->assertJsonPath('data.platform', 'android');
+
+        $this->assertDatabaseHas('guardian_device_tokens', [
+            'people_id' => $guardian->id,
+            'platform' => 'android',
+            'token' => 'firebase-device-token',
+        ]);
+    }
+
+    public function testGuardianDeviceTokenRequiresAuthenticationAndValidPayload(): void
+    {
+        $this->postJson('/api/notify/v2/guardians/notifications/device-token', [
+            'platform' => 'android',
+            'token' => 'firebase-device-token',
+        ])->assertUnauthorized();
+
+        [$guardian] = $this->createGuardianScenario();
+
+        Sanctum::actingAs($guardian, ['auth']);
+
+        $this->postJson('/api/notify/v2/guardians/notifications/device-token', [
+            'platform' => 'windows',
+            'token' => '',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['platform', 'token']);
+    }
+
     public function testGuardianAggregatedListsOnlyReturnOwnedPlayersAndIncludePlayerPayload(): void
     {
         [$guardian, $ownedPlayer, $ownedInscription, $school] = $this->createGuardianScenario();

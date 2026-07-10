@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\Notifications\InvoiceController;
 use App\Http\Controllers\API\Notifications\Guardians\GuardianInvoiceController;
+use App\Http\Controllers\API\Notifications\Guardians\GuardianDeviceTokenController;
 use App\Http\Controllers\API\Notifications\Guardians\GuardianPlayerController;
 use App\Http\Controllers\API\Notifications\Guardians\GuardianTopicNotificationsController;
 use App\Http\Controllers\API\Notifications\Guardians\GuardianUniformRequestController;
@@ -19,6 +20,7 @@ Route::prefix('v2/guardians')->group(function () {
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('refresh', [LoginGuardianController::class, 'refresh'])->middleware('abilities:refresh');
         Route::post('logout', [LoginGuardianController::class, 'logout']);
+        Route::post('notifications/device-token', [GuardianDeviceTokenController::class, 'store']);
 
         Route::get('players', [GuardianPlayerController::class, 'index']);
 
