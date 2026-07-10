@@ -284,6 +284,25 @@ final class ServicesCoverageTest extends TestCase
 
         $enabledPlayer = $this->makePlayer();
         $inscription = $this->createInscription($enabledPlayer, $group);
+        $complementaryGroup = $this->createTrainingGroup('Player Export Complementary');
+        $complementaryGroup->update([
+            'days' => 'martes',
+            'is_complementary' => true,
+        ]);
+        $inscription->update(['complementary_group_id' => $complementaryGroup->id]);
+        $complementaryAssist = Assist::query()->updateOrCreate([
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $complementaryGroup->id,
+            'year' => now()->year,
+            'month' => now()->month,
+        ], [
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $complementaryGroup->id,
+            'year' => now()->year,
+            'month' => now()->month,
+            'assistance_one' => 1,
+        ]);
 
         $this->makePlayer();
 
@@ -294,13 +313,20 @@ final class ServicesCoverageTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $excel['enabled']->count());
 
         $playerWithRelations = Player::query()->with([
-            'inscriptions' => fn($q) => $q->with('trainingGroup', 'assistance'),
+            'inscriptions' => fn($q) => $q->with(
+                'trainingGroup',
+                'complementaryGroup',
+                'assistance.trainingGroup'
+            ),
         ])->findOrFail($enabledPlayer->id);
         PlayerExportService::loadClassDays($playerWithRelations);
-        $this->assertInstanceOf(
-            \Illuminate\Support\Collection::class,
-            $playerWithRelations->inscriptions->first()->assistance->first()->classDays
-        );
+        $loadedComplementaryAssist = $playerWithRelations->inscriptions
+            ->first()
+            ->assistance
+            ->firstWhere('id', $complementaryAssist->id);
+        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $loadedComplementaryAssist->classDays);
+        $this->assertSame('Grupo complementario', $loadedComplementaryAssist->groupLabel);
+        $this->assertSame('Player Export Complementary', $loadedComplementaryAssist->groupName);
 
         $streamMock = Mockery::mock(PlayerExportService::class)->makePartial()->shouldAllowMockingProtectedMethods();
         $streamMock->shouldReceive('setConfigurationMpdf')->once();

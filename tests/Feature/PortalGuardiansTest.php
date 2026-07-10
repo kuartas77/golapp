@@ -146,6 +146,60 @@ final class PortalGuardiansTest extends TestCase
             ->assertJsonPath('data.current_inscription.attendance.0.registers.0.label', 'Asistencia');
     }
 
+    public function testGuardianSeesComplementaryGroupAttendanceIdentifiedByGroup(): void
+    {
+        [$guardian, $player, $inscription, $school] = $this->createGuardianScenario([
+            'email' => 'attendance-complementary.guardian@example.com',
+            'password' => 'attendance-complementary-secret',
+        ]);
+
+        $inscription->trainingGroup()->update(['name' => 'Principal portal', 'days' => 'Lunes']);
+        $complementaryGroup = TrainingGroup::query()->create([
+            'name' => 'Porteros portal',
+            'school_id' => $school->id,
+            'year' => now()->year,
+            'year_active' => now()->year,
+            'category' => 'Todas las categorías',
+            'days' => 'Martes',
+            'schedules' => '11:00AM - 12:00PM',
+            'is_complementary' => true,
+        ]);
+        $inscription->update(['complementary_group_id' => $complementaryGroup->id]);
+
+        $inscription->assistance()->withTrashed()->forceDelete();
+        Assist::query()->create([
+            'school_id' => $school->id,
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $inscription->training_group_id,
+            'year' => now()->year,
+            'month' => 1,
+            'assistance_one' => 1,
+        ]);
+        $complementaryAssist = Assist::query()->updateOrCreate([
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $complementaryGroup->id,
+            'year' => now()->year,
+            'month' => 1,
+        ], [
+            'school_id' => $school->id,
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $complementaryGroup->id,
+            'year' => now()->year,
+            'month' => 1,
+            'assistance_one' => 2,
+        ]);
+
+        $response = $this->actingAs($guardian, 'guardians')
+            ->getJson("/api/v2/portal/acudientes/players/{$player->id}")
+            ->assertOk()
+            ->assertJsonCount(2, 'data.current_inscription.attendance');
+
+        $attendance = collect($response->json('data.current_inscription.attendance'))->keyBy('id');
+
+        $this->assertSame('Grupo complementario', $attendance[$complementaryAssist->id]['group_label']);
+        $this->assertSame('Porteros portal', $attendance[$complementaryAssist->id]['group_name']);
+    }
+
     public function testGuardianCanUpdatePlayerPhoto(): void
     {
         Storage::fake('public');

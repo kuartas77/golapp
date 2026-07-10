@@ -197,7 +197,12 @@ class PlayerRepository
         $player->load([
             'schoolData',
             'people',
-            'inscriptions' => fn ($q) => $q->with(['trainingGroup' => fn($q) => $q->withTrashed()])->withTrashedRelations()
+            'inscriptions' => fn ($q) => $q
+                ->with([
+                    'trainingGroup' => fn($q) => $q->withTrashed(),
+                    'complementaryGroup' => fn($q) => $q->withTrashed(),
+                ])
+                ->withTrashedRelations()
         ]);
         $player->inscriptions->setAppends(['format_average']);
         PlayerExportService::loadClassDays($player);

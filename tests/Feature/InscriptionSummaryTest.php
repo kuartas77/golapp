@@ -48,6 +48,61 @@ final class InscriptionSummaryTest extends TestCase
             ->assertJsonPath('data.years.1.status_label', 'Histórica');
     }
 
+    public function test_summary_attendance_identifies_principal_and_complementary_groups(): void
+    {
+        [$player, $inscription] = $this->createSummaryFixture(now()->year);
+        $principalGroup = $inscription->trainingGroup;
+        $principalGroup->update(['days' => 'Lunes']);
+        $complementaryGroup = TrainingGroup::query()->create([
+            'school_id' => $this->school['id'],
+            'name' => 'Porteros resumen',
+            'year' => now()->year,
+            'year_active' => now()->year,
+            'category' => 'Sub 10',
+            'days' => 'Martes',
+            'schedules' => '11:00AM - 12:00PM',
+            'is_complementary' => true,
+        ]);
+        $inscription->update(['complementary_group_id' => $complementaryGroup->id]);
+        $inscription->assistance()->withTrashed()->forceDelete();
+        $principalAssist = Assist::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $principalGroup->id,
+            'year' => now()->year,
+            'month' => 1,
+            'assistance_one' => 1,
+        ]);
+        $complementaryAssist = Assist::query()->updateOrCreate([
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $complementaryGroup->id,
+            'year' => now()->year,
+            'month' => 1,
+        ], [
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $complementaryGroup->id,
+            'year' => now()->year,
+            'month' => 1,
+            'assistance_one' => 2,
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->getJson("/api/v2/inscriptions/{$inscription->id}/summary")
+            ->assertOk()
+            ->assertJsonPath('data.inscription.complementary_group.id', $complementaryGroup->id)
+            ->assertJsonCount(2, 'data.attendance');
+
+        $attendance = collect($response->json('data.attendance'))->keyBy('id');
+
+        $this->assertSame('Grupo principal', $attendance[$principalAssist->id]['group_label']);
+        $this->assertSame($principalGroup->id, $attendance[$principalAssist->id]['training_group_id']);
+        $this->assertSame($principalGroup->name, $attendance[$principalAssist->id]['group_name']);
+        $this->assertSame('Grupo complementario', $attendance[$complementaryAssist->id]['group_label']);
+        $this->assertSame($complementaryGroup->id, $attendance[$complementaryAssist->id]['training_group_id']);
+        $this->assertSame($complementaryGroup->name, $attendance[$complementaryAssist->id]['group_name']);
+    }
+
     public function test_previous_year_summary_is_read_only(): void
     {
         [, $inscription] = $this->createSummaryFixture(now()->subYear()->year);

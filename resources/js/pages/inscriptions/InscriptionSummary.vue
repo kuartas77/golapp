@@ -94,6 +94,7 @@
                                 <dl class="summary-list">
                                     <dt>Inicio</dt><dd>{{ dayjs(inscription.start_date).format('YYYY-M-D') || '—' }}</dd>
                                     <dt>Grupo</dt><dd>{{ inscription.training_group?.name || '—' }}</dd>
+                                    <dt>Grupo complementario</dt><dd>{{ inscription.complementary_group?.name || '—' }}</dd>
                                     <dt>Preinscripción</dt><dd>{{ yesNo(inscription.pre_inscription) }}</dd>
                                     <dt>Hermano</dt><dd>{{ yesNo(inscription.brother_payment) }}</dd>
                                 </dl>
@@ -190,7 +191,12 @@
 
                     <div v-for="assist in filteredAttendance" :key="assist.id" class="card">
                         <div class="card-body">
-                            <h6 class="mb-3">{{ assist.month_label }} {{ assist.year }}</h6>
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                                <h6 class="mb-0">{{ assist.month_label }} {{ assist.year }}</h6>
+                                <span class="badge" :class="assist.is_complementary_group ? 'bg-info text-dark' : 'bg-primary'">
+                                    {{ assist.group_label }}: {{ assist.group_full_name || assist.group_name }}
+                                </span>
+                            </div>
                             <div class="table-responsive">
                                 <table class="table table-bordered table-sm align-middle">
                                     <thead>
@@ -393,10 +399,22 @@ const inscription = computed(() => summary.value?.inscription || {})
 const player = computed(() => summary.value?.player || {})
 const payments = computed(() => summary.value?.payments || [])
 const attendance = computed(() => summary.value?.attendance || [])
-const attendanceMonthOptions = computed(() => attendance.value.map((assist) => ({
-    value: assist.month,
-    label: `${assist.month_label} ${assist.year}`,
-})))
+const attendanceMonthOptions = computed(() => {
+    const options = new Map()
+
+    attendance.value.forEach((assist) => {
+        const key = `${assist.year}-${assist.month}`
+
+        if (!options.has(key)) {
+            options.set(key, {
+                value: assist.month,
+                label: `${assist.month_label} ${assist.year}`,
+            })
+        }
+    })
+
+    return Array.from(options.values())
+})
 const filteredAttendance = computed(() => {
     if (!selectedAttendanceMonth.value) {
         return attendance.value.slice(0, 1)

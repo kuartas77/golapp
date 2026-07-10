@@ -68,6 +68,10 @@ class GuardianPlayerDetailResource extends JsonResource
                     'id' => $inscription->trainingGroup->id,
                     'name' => $inscription->trainingGroup->name,
                 ] : null,
+                'complementary_group' => $inscription->complementaryGroup ? [
+                    'id' => $inscription->complementaryGroup->id,
+                    'name' => $inscription->complementaryGroup->name,
+                ] : null,
                 'stats' => $inscription->format_average,
                 'payments' => $inscription->payments->map(fn ($payment) => [
                     'id' => $payment->id,
@@ -92,8 +96,15 @@ class GuardianPlayerDetailResource extends JsonResource
                         'display' => getPay($payment->{$field}),
                     ])->values(),
                 ])->values(),
-                'attendance' => $inscription->assistance->map(function ($assist) {
-                    $registers = collect($assist->classDays ?? [])
+                'attendance' => $inscription->assistance->map(function ($assist) use ($inscription) {
+                    $group = $assist->trainingGroup ?: $inscription->trainingGroup;
+                    $isComplementary = (int) $assist->training_group_id === (int) $inscription->complementary_group_id;
+                    $classDays = classDays(
+                        (int) $assist->year,
+                        (int) $assist->getRawOriginal('month'),
+                        array_map('dayToNumber', $group?->explode_days ?? [])
+                    );
+                    $registers = collect($classDays)
                         ->map(function ($classDay) use ($assist) {
                             $field = numbersToLetters($classDay['number_class']);
                             $status = $assist->{$field} !== null ? (int) $assist->{$field} : null;
@@ -113,6 +124,11 @@ class GuardianPlayerDetailResource extends JsonResource
 
                     return [
                         'id' => $assist->id,
+                        'training_group_id' => (int) $assist->training_group_id,
+                        'group_name' => $group?->name ?? 'Sin grupo',
+                        'group_full_name' => $group?->full_group ?? $group?->name ?? 'Sin grupo',
+                        'is_complementary_group' => $isComplementary,
+                        'group_label' => $isComplementary ? 'Grupo complementario' : 'Grupo principal',
                         'month' => $assist->month,
                         'year' => $assist->year,
                         'percentage' => percent($attendanceCount, $classCount),

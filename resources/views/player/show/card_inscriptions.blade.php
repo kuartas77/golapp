@@ -190,7 +190,12 @@
                                             $countAS = 0;
                                             $classCount = $assistance->classDays->count();
                                             $colspan = ($totalSpan - $classCount);
+                                            $attendanceGroupName = $assistance->groupFullName ?? $assistance->groupName ?? optional($assistance->trainingGroup)->name ?? optional($inscription->trainingGroup)->name ?? 'Sin grupo';
+                                            $attendanceGroupLabel = $assistance->groupLabel ?? (((int) $assistance->training_group_id === (int) $inscription->complementary_group_id) ? 'Grupo complementario' : 'Grupo principal');
                                             @endphp
+                                            <tr>
+                                                <td colspan="27" class="text-left"><strong>{{ $attendanceGroupLabel }}:</strong> {{ $attendanceGroupName }}</td>
+                                            </tr>
                                             <tr>
                                                 <td class="text-center">Clase #</td>
                                                 @for ($index = 1; $index <= $classCount; $index++)

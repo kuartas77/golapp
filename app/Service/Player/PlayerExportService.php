@@ -21,7 +21,6 @@ class PlayerExportService
         $year = $year ? (int)$year : now()->year;
         $quarter_text = 'Actuales';
         $months = [];
-        $months_ = config('variables.KEY_MONTHS_INDEX');
         $observations_assists = [];
         $observations_skills = [];
 
@@ -31,20 +30,31 @@ class PlayerExportService
             'schoolData',
             'inscriptions' => fn($q) => $q->where('id', $inscription_id)->with([
                 'trainingGroup' => fn ($query) => $query->withTrashed(),
-                'assistance' => fn($q) => $q->when($months, fn($q) => $q->whereIn('month', $months))->orderByRaw("MONTH(CONCAT('2000-', assists.month, '-01')) asc"),
+                'complementaryGroup' => fn ($query) => $query->withTrashed(),
+                'assistance' => fn($q) => $q
+                    ->with(['trainingGroup' => fn ($query) => $query->withTrashed()])
+                    ->when($months, fn($q) => $q->whereIn('month', $months))
+                    ->orderByRaw("MONTH(CONCAT('2000-', assists.month, '-01')) asc")
+                    ->orderBy('training_group_id'),
                 'payments',
                 'skillsControls' => fn($q) => $q->when(($from && $to), fn($q) => $q->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to))
             ])
         ])->find($player_id);
 
-        $player->inscriptions->each(function ($inscription) use ($months_, &$observations_assists, &$observations_skills) {
+        $player->inscriptions->each(function ($inscription) use (&$observations_assists, &$observations_skills) {
             $observations_assists = $inscription->assistance->where('observations', '<>', null);
             $observations_skills = $inscription->skillsControls->where('observation', '<>', null);
             foreach ($inscription->assistance as $assistance) {
+                $group = $assistance->trainingGroup ?: $inscription->trainingGroup;
+                $assistance->groupName = $group?->name ?: 'Sin grupo';
+                $assistance->groupFullName = $group?->full_group ?? $group?->name ?? 'Sin grupo';
+                $assistance->groupLabel = (int) $assistance->training_group_id === (int) $inscription->complementary_group_id
+                    ? 'Grupo complementario'
+                    : 'Grupo principal';
                 $assistance->classDays = classDays(
-                    $assistance->year,
-                    array_search($assistance->month, $months_, true),
-                    array_map('dayToNumber', $inscription->trainingGroup?->explode_days ?? [])
+                    (int) $assistance->year,
+                    (int) $assistance->getRawOriginal('month'),
+                    array_map('dayToNumber', $group?->explode_days ?? [])
                 );
             }
         });
@@ -154,13 +164,18 @@ class PlayerExportService
 
     public static function loadClassDays(&$player)
     {
-        $months_ = config('variables.KEY_MONTHS_INDEX');
-        $player->inscriptions->each(function ($inscription) use ($months_) {
+        $player->inscriptions->each(function ($inscription) {
             foreach ($inscription->assistance as $assistance) {
+                $group = $assistance->trainingGroup ?: $inscription->trainingGroup;
+                $assistance->groupName = $group?->name ?: 'Sin grupo';
+                $assistance->groupFullName = $group?->full_group ?? $group?->name ?? 'Sin grupo';
+                $assistance->groupLabel = (int) $assistance->training_group_id === (int) $inscription->complementary_group_id
+                    ? 'Grupo complementario'
+                    : 'Grupo principal';
                 $assistance->classDays = classDays(
-                    $assistance->year,
-                    array_search($assistance->month, $months_, true),
-                    array_map('dayToNumber', $inscription->trainingGroup?->explode_days ?? [])
+                    (int) $assistance->year,
+                    (int) $assistance->getRawOriginal('month'),
+                    array_map('dayToNumber', $group?->explode_days ?? [])
                 );
             }
         });

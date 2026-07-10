@@ -406,7 +406,7 @@
                                         @click="activeAttendanceId = assist.id"
                                     >
                                         <span class="guardian-player-detail__attendance-tab-title">
-                                            {{ assist.month }} {{ assist.year }}
+                                            {{ assist.month }} {{ assist.year }} · {{ assist.group_name || 'Sin grupo' }}
                                         </span>
                                         <span class="badge guardian-player-detail__badge guardian-player-detail__badge--primary">
                                             {{ assist.percentage }}
@@ -416,7 +416,11 @@
 
                                 <div v-if="activeAttendance" class="guardian-player-detail__attendance-panel">
                                     <div class="d-flex justify-content-between gap-2 flex-wrap mb-3">
-                                        <strong>{{ activeAttendance.month }} {{ activeAttendance.year }}</strong>
+                                        <strong>
+                                            {{ activeAttendance.month }} {{ activeAttendance.year }} ·
+                                            {{ activeAttendance.group_label || 'Grupo' }}:
+                                            {{ activeAttendance.group_full_name || activeAttendance.group_name || 'Sin grupo' }}
+                                        </strong>
                                         <span class="badge guardian-player-detail__badge guardian-player-detail__badge--primary">
                                             {{ activeAttendance.percentage }}
                                         </span>

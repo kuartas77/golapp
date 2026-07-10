@@ -45,8 +45,13 @@ class InscriptionSummaryService
         $inscription->load([
             'player',
             'trainingGroup' => fn ($query) => $query->withTrashed(),
+            'complementaryGroup' => fn ($query) => $query->withTrashed(),
             'payments' => fn ($query) => $query->withTrashed()->orderBy('year'),
-            'assistance' => fn ($query) => $query->withTrashed()->orderBy('month'),
+            'assistance' => fn ($query) => $query
+                ->withTrashed()
+                ->with(['trainingGroup' => fn ($groupQuery) => $groupQuery->withTrashed()])
+                ->orderBy('month')
+                ->orderBy('training_group_id'),
             'invoices' => fn ($query) => $query->with(['items'])->latest('id'),
             'playerEvaluations.period',
             'playerEvaluations.template',
@@ -88,6 +93,11 @@ class InscriptionSummaryService
                 'id' => $inscription->trainingGroup->id,
                 'name' => $inscription->trainingGroup->name,
                 'full_group' => $inscription->trainingGroup->full_group ?? $inscription->trainingGroup->name,
+            ] : null,
+            'complementary_group' => $inscription->complementaryGroup ? [
+                'id' => $inscription->complementaryGroup->id,
+                'name' => $inscription->complementaryGroup->name,
+                'full_group' => $inscription->complementaryGroup->full_group ?? $inscription->complementaryGroup->name,
             ] : null,
             'stats' => $inscription->format_average,
         ];
@@ -173,14 +183,21 @@ class InscriptionSummaryService
     private function serializeAttendance(Inscription $inscription): array
     {
         return $inscription->assistance->map(function (Assist $assist) use ($inscription) {
+            $group = $assist->trainingGroup ?: $inscription->trainingGroup;
+            $isComplementary = (int) $assist->training_group_id === (int) $inscription->complementary_group_id;
             $classDays = classDays(
                 (int) $assist->year,
                 (int) $assist->getRawOriginal('month'),
-                array_map('dayToNumber', $inscription->trainingGroup?->explode_days ?? [])
+                array_map('dayToNumber', $group?->explode_days ?? [])
             );
 
             return [
                 'id' => $assist->id,
+                'training_group_id' => (int) $assist->training_group_id,
+                'group_name' => $group?->name ?? 'Sin grupo',
+                'group_full_name' => $group?->full_group ?? $group?->name ?? 'Sin grupo',
+                'is_complementary_group' => $isComplementary,
+                'group_label' => $isComplementary ? 'Grupo complementario' : 'Grupo principal',
                 'year' => (int) $assist->year,
                 'month' => (int) $assist->getRawOriginal('month'),
                 'month_label' => config('variables.KEY_MONTHS_INDEX')[(int) $assist->getRawOriginal('month')] ?? $assist->month,

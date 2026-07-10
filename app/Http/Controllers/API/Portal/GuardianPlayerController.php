@@ -131,8 +131,12 @@ class GuardianPlayerController extends Controller
                 ->where('year', now()->year)
                 ->with([
                     'trainingGroup' => fn ($trainingQuery) => $trainingQuery->withTrashed(),
+                    'complementaryGroup' => fn ($trainingQuery) => $trainingQuery->withTrashed(),
                     'payments',
-                    'assistance' => fn ($assistQuery) => $assistQuery->orderBy('month'),
+                    'assistance' => fn ($assistQuery) => $assistQuery
+                        ->with(['trainingGroup' => fn ($groupQuery) => $groupQuery->withTrashed()])
+                        ->orderBy('month')
+                        ->orderBy('training_group_id'),
                     'skillsControls',
                     'playerEvaluations.period',
                 ]),

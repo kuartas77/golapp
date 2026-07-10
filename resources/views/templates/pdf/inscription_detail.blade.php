@@ -282,9 +282,6 @@
                     <tr class="section-heading">
                         <th colspan="27" class="text-center">Asistencias de entrenamiento</th>
                     </tr>
-                    <tr class="subsection-heading">
-                        <th colspan="27" class="text-left">Grupo: <span class="text-uppercase">{{ $trainingGroupName }}</span></th>
-                    </tr>
                 </thead>
                 <tbody>
                 @forelse ($inscription->assistance as $assistance)
@@ -292,7 +289,12 @@
                         $countAS = 0;
                         $classCount = $assistance->classDays->count();
                         $colspan = ($totalSpan - $classCount);
+                        $attendanceGroupName = $assistance->groupFullName ?? $assistance->groupName ?? $trainingGroupName;
+                        $attendanceGroupLabel = $assistance->groupLabel ?? 'Grupo principal';
                     @endphp
+                    <tr class="subsection-heading">
+                        <th colspan="27" class="text-left">{{ $attendanceGroupLabel }}: <span class="text-uppercase">{{ $attendanceGroupName }}</span></th>
+                    </tr>
                     <tr class="subsection-heading">
                         <td class="bold">Clase #</td>
                         @for ($index = 1; $index <= $classCount; $index++)
