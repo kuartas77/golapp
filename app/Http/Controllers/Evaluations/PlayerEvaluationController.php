@@ -15,6 +15,7 @@ use App\Models\Player;
 use App\Models\TrainingGroup;
 use App\Service\Evaluations\GuardianEvaluationPdfService;
 use App\Service\Evaluations\PlayerEvaluationCrudService;
+use App\Service\Evaluations\PlayerEvaluationQueryService;
 use App\Service\InstructorPeriodEditPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -37,59 +38,15 @@ class PlayerEvaluationController extends Controller
     public function __construct(
         private PlayerEvaluationCrudService $crudService,
         private GuardianEvaluationPdfService $guardianEvaluationPdfService,
-        private InstructorPeriodEditPolicy $periodEditPolicy
+        private InstructorPeriodEditPolicy $periodEditPolicy,
+        private PlayerEvaluationQueryService $queries,
     ) {}
 
     public function index(Request $request)
     {
-        $perPage = max(1, min(100, (int) $request->integer('per_page', 15)));
-        $search = trim((string) $request->input('search'));
-
-        $evaluations = PlayerEvaluation::query()
-            ->where('school_id', $this->currentSchoolId())
-            ->when(isInstructor(), function ($query) {
-                $query->whereHas('inscription.trainingGroup', fn ($groupQuery) => $groupQuery->byInstructor());
-            })
-            ->with([
-                'inscription.player',
-                'inscription.trainingGroup',
-                'period',
-                'template.trainingGroup',
-                'evaluator',
-            ])
-            ->when($request->player_id, function ($query) use ($request) {
-                $query->whereHas('inscription', function ($subQuery) use ($request) {
-                    $subQuery->where('player_id', $request->player_id);
-                });
-            })
-            ->when($request->training_group_id, function ($query) use ($request) {
-                $query->whereHas('inscription', function ($subQuery) use ($request) {
-                    $subQuery->where('training_group_id', $request->training_group_id);
-                });
-            })
-            ->when($request->evaluation_period_id, function ($query) use ($request) {
-                $query->where('evaluation_period_id', $request->evaluation_period_id);
-            })
-            ->when($request->status, function ($query) use ($request) {
-                $query->where('status', $request->status);
-            })
-            ->when($request->evaluation_type, function ($query) use ($request) {
-                $query->where('evaluation_type', $request->evaluation_type);
-            })
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($nestedQuery) use ($search) {
-                    $nestedQuery->whereHas('inscription.player', function ($subQuery) use ($search) {
-                        $subQuery->where('names', 'like', "%{$search}%")
-                            ->orWhere('last_names', 'like', "%{$search}%")
-                            ->orWhereRaw("CONCAT(COALESCE(names, ''), ' ', COALESCE(last_names, '')) LIKE ?", ["%{$search}%"])
-                            ->orWhere('unique_code', 'like', "%{$search}%");
-                    })->orWhereHas('inscription.trainingGroup', function ($subQuery) use ($search) {
-                        $subQuery->where('name', 'like', "%{$search}%");
-                    });
-                });
-            })
-            ->latest('id')
-            ->paginate($perPage);
+        $evaluations = $this->queries->paginate($this->currentSchoolId(), $request->only([
+            'per_page', 'search', 'player_id', 'training_group_id', 'evaluation_period_id', 'status', 'evaluation_type',
+        ]));
 
         return PlayerEvaluationResource::collection($evaluations);
     }
@@ -318,14 +275,7 @@ class PlayerEvaluationController extends Controller
 
     private function evaluationRelations(): array
     {
-        return [
-            'inscription.player',
-            'inscription.trainingGroup',
-            'period',
-            'template.trainingGroup',
-            'evaluator',
-            'scores.criterion',
-        ];
+        return $this->queries->relations();
     }
 
     private function currentSchoolId(): int
@@ -335,26 +285,12 @@ class PlayerEvaluationController extends Controller
 
     private function scopedEvaluation(PlayerEvaluation $playerEvaluation): PlayerEvaluation
     {
-        $query = PlayerEvaluation::query()
-            ->whereKey($playerEvaluation->id)
-            ->where('school_id', $this->currentSchoolId());
-
-        if (isInstructor()) {
-            $query->whereHas('inscription.trainingGroup', fn ($groupQuery) => $groupQuery->byInstructor());
-        }
-
-        abort_unless($query->exists(), 404);
-
-        return $playerEvaluation;
+        return $this->queries->scopedEvaluation($playerEvaluation, $this->currentSchoolId());
     }
 
     private function scopedInscriptionsQuery(int $schoolId)
     {
-        return Inscription::query()
-            ->where('school_id', $schoolId)
-            ->when(isInstructor(), function ($query) {
-                $query->whereHas('trainingGroup', fn ($groupQuery) => $groupQuery->byInstructor());
-            });
+        return $this->queries->scopedInscriptions($schoolId);
     }
 
     private function playerEvaluationIndexUrl(): string
