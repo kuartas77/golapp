@@ -17,6 +17,10 @@ final class AuthPasswordRecoveryTest extends TestCase
         $this->get('/img/log3.png')
             ->assertMovedPermanently()
             ->assertRedirect('/img/logo-light.svg');
+
+        $this->get('/img/log3.jpg')
+            ->assertMovedPermanently()
+            ->assertRedirect('/img/logo-light.svg');
     }
 
     public function testUserCanRequestPasswordRecoveryInstructions(): void
