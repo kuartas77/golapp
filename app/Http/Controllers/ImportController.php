@@ -2,29 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Imports\ImportMatchDetail;
-use App\Imports\ImportPlayers;
-use App\Repositories\AssistRepository;
-use App\Repositories\GameRepository;
-use App\Repositories\IncidentRepository;
-use App\Repositories\InscriptionRepository;
-use App\Repositories\PlayerRepository;
+use App\Service\Import\ImportService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
-use Maatwebsite\Excel\Facades\Excel;
 use RealRashid\SweetAlert\Facades\Alert;
 use Throwable;
 
 class ImportController extends Controller
 {
-    public function __construct(
-        private InscriptionRepository $inscriptionRepository,
-        private AssistRepository $assistRepository,
-        private IncidentRepository $incidentRepository,
-        private GameRepository $gameRepository,
-        private PlayerRepository $playerRepository
-    ) {}
+    public function __construct(private ImportService $service) {}
 
     public function importMatchDetail(Request $request)
     {
@@ -33,13 +20,7 @@ class ImportController extends Controller
                 'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
             ]);
 
-            $importMatchDetail = new ImportMatchDetail();
-
-            Excel::import($importMatchDetail, $request->file('file'));
-
-            $response = $this->gameRepository->loadDataFromFile($importMatchDetail->getData());
-
-            return response()->json($response);
+            return response()->json($this->service->matchDetail($request->file('file')));
         } catch (ValidationException $exception) {
             return response()->json([
                 'success' => false,
@@ -57,7 +38,7 @@ class ImportController extends Controller
 
     }
 
-    public function importPlayers(Request $request, PlayerRepository $playerRepository)
+    public function importPlayers(Request $request)
     {
         try {
             $request->validate([
@@ -67,30 +48,13 @@ class ImportController extends Controller
 
             $schoolId = $this->resolveImportSchoolId($request);
 
-            $diff = $this->playerRepository->validateImport($request->file('file'));
-            if ($diff !== '') {
-                $message = "Error en las columnas: {$diff}";
-
-                if ($this->expectsJsonResponse($request)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => $message,
-                    ], Response::HTTP_UNPROCESSABLE_ENTITY);
-                }
-
-                Alert::error('Error en las columnas a importar', $message);
-
-                return back();
-            }
-
-            $importPlayers = new ImportPlayers($schoolId, $playerRepository, $this->inscriptionRepository);
-            Excel::import($importPlayers, $request->file('file'));
+            $summary = $this->service->players($request->file('file'), $schoolId);
 
             if ($this->expectsJsonResponse($request)) {
                 return response()->json([
                     'success' => true,
                     'message' => __('messages.player_created'),
-                    'summary' => $importPlayers->summary(),
+                    'summary' => $summary,
                 ]);
             }
 
@@ -98,6 +62,10 @@ class ImportController extends Controller
 
         } catch (ValidationException $exception) {
             if ($this->expectsJsonResponse($request)) {
+                $message = $exception->validator->errors()->first('file');
+                if (str_starts_with($message, 'Error en las columnas:')) {
+                    return response()->json(['success' => false, 'message' => $message], Response::HTTP_UNPROCESSABLE_ENTITY);
+                }
                 throw $exception;
             }
 
