@@ -5,10 +5,12 @@ namespace App\Http\Requests\Portal;
 use App\Models\School;
 use App\Rules\UniqueGuardianEmail;
 use App\Service\Contracts\ContractTemplateService;
+use App\Service\Portal\GuardianEmailVerificationService;
 use Carbon\Carbon;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\File;
+use Illuminate\Validation\Validator;
 
 class InscriptionRegisterRequest extends FormRequest
 {
@@ -61,6 +63,11 @@ class InscriptionRegisterRequest extends FormRequest
                 'email:rfc',
                 'max:50',
                 new UniqueGuardianEmail($this->input('tutor_num_doc')),
+            ],
+            'guardian_email_verification_token' => [
+                'nullable',
+                'string',
+                'size:64',
             ],
             // Step 4
             'photo' => [
@@ -130,6 +137,26 @@ class InscriptionRegisterRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $school = $this->input('school_data');
+            $token = $this->input('guardian_email_verification_token');
+
+            if (! $school instanceof School || ! app(GuardianEmailVerificationService::class)->isVerified(
+                $school,
+                (string) $this->input('tutor_num_doc'),
+                (string) $this->input('tutor_email'),
+                is_string($token) ? $token : null
+            )) {
+                $validator->errors()->add(
+                    'guardian_email_verification_token',
+                    'Debes verificar el correo electrónico del acudiente para completar la inscripción.'
+                );
+            }
+        });
     }
 
     private function documentFileRule(): File

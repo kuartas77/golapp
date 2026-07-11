@@ -439,7 +439,7 @@ final class ContractsTest extends TestCase
 
     private function portalInscriptionPayload(array $overrides = []): array
     {
-        return array_merge([
+        $payload = array_merge([
             'names' => 'Jugador',
             'last_names' => 'Prueba',
             'date_birth' => '2014-05-11',
@@ -469,6 +469,19 @@ final class ContractsTest extends TestCase
             'tutor_email' => 'acudiente.prueba@example.com',
             'year' => now()->format('Y'),
         ], $overrides);
+
+        People::query()->updateOrCreate(
+            ['identification_card' => $payload['tutor_num_doc']],
+            [
+                'names' => $payload['tutor_name'],
+                'tutor' => true,
+                'relationship' => People::MOTHER,
+                'email' => $payload['tutor_email'],
+                'email_verified_at' => now(),
+            ]
+        );
+
+        return $payload;
     }
 
 }

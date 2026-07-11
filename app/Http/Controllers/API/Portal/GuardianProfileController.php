@@ -14,10 +14,12 @@ class GuardianProfileController extends Controller
     public function update(GuardianProfileUpdateRequest $request): JsonResponse
     {
         $guardian = auth('guardians')->user();
+        $validated = $request->validated();
+        $emailChanged = $guardian->email !== $validated['email'];
 
         $guardian->forceFill([
-            ...$request->validated(),
-            'email_verified_at' => $guardian->email_verified_at ?? now(),
+            ...$validated,
+            'email_verified_at' => $emailChanged ? null : ($guardian->email_verified_at ?? now()),
         ])->save();
 
         return response()->json([

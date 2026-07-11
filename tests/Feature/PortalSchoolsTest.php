@@ -13,6 +13,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Notifications\GuardianEmailVerificationCodeNotification;
 use Tests\TestCase;
 
 final class PortalSchoolsTest extends TestCase
@@ -317,6 +318,66 @@ final class PortalSchoolsTest extends TestCase
         ]);
     }
 
+    public function test_portal_requires_and_accepts_guardian_email_verification(): void
+    {
+        Notification::fake();
+        $schoolData = $this->createSchool([
+            'slug' => 'escuela-verificacion-correo',
+            'is_enable' => true,
+            'inscriptions_enabled' => true,
+        ]);
+        $school = School::query()->findOrFail($schoolData['id']);
+        $document = '987654321';
+        $email = 'correo.nuevo@example.com';
+        $payload = array_merge($this->portalInscriptionPayload($school->slug), [
+            'identification_document' => '1002003998',
+            'email' => 'jugador.verificacion@example.com',
+            'tutor_num_doc' => $document,
+            'tutor_email' => $email,
+        ]);
+
+        $this->postJson(
+            route('api.v2.portal.school.inscription.store', [$school->slug]),
+            $payload
+        )->assertJsonValidationErrors(['guardian_email_verification_token']);
+
+        $this->postJson(
+            route('api.v2.portal.school.inscription.guardian-email.request', [$school->slug]),
+            ['tutor_num_doc' => $document, 'tutor_email' => $email]
+        )->assertOk()->assertJson(['already_verified' => false]);
+
+        $code = null;
+        Notification::assertSentOnDemand(
+            GuardianEmailVerificationCodeNotification::class,
+            function (GuardianEmailVerificationCodeNotification $notification) use (&$code): bool {
+                $code = $notification->code;
+                return true;
+            }
+        );
+
+        $confirmation = $this->postJson(
+            route('api.v2.portal.school.inscription.guardian-email.confirm', [$school->slug]),
+            [
+                'tutor_num_doc' => $document,
+                'tutor_email' => $email,
+                'verification_code' => $code,
+            ]
+        )->assertOk();
+
+        $this->postJson(
+            route('api.v2.portal.school.inscription.store', [$school->slug]),
+            array_merge($payload, [
+                'guardian_email_verification_token' => $confirmation->json('token'),
+            ])
+        )->assertOk();
+
+        $this->assertDatabaseHas('peoples', [
+            'identification_card' => $document,
+            'email' => $email,
+        ]);
+        $this->assertNotNull(People::firstWhere('identification_card', $document)?->email_verified_at);
+    }
+
     public function test_portal_requires_documents_when_school_enables_document_uploads(): void
     {
         $school = $this->createSchool([
@@ -387,7 +448,7 @@ final class PortalSchoolsTest extends TestCase
 
     private function portalInscriptionPayload(string $schoolSlug): array
     {
-        return [
+        $payload = [
             'names' => 'Jugador',
             'last_names' => 'Prueba',
             'date_birth' => '2014-05-11',
@@ -418,6 +479,19 @@ final class PortalSchoolsTest extends TestCase
             'year' => now()->format('Y'),
             'slug' => $schoolSlug,
         ];
+
+        People::query()->updateOrCreate(
+            ['identification_card' => $payload['tutor_num_doc']],
+            [
+                'names' => $payload['tutor_name'],
+                'tutor' => true,
+                'relationship' => People::MOTHER,
+                'email' => $payload['tutor_email'],
+                'email_verified_at' => now(),
+            ]
+        );
+
+        return $payload;
     }
 
     private function validPortalDocuments(): array

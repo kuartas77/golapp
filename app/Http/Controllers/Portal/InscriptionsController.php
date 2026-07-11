@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Portal;
 
+use App\Models\School;
+use App\Service\Portal\GuardianEmailVerificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use App\Modules\Inscriptions\Actions\Create\Pipeline as InscriptionsPipeline;
@@ -14,6 +16,47 @@ use Illuminate\Validation\ValidationException;
 
 class InscriptionsController extends Controller
 {
+    public function requestGuardianEmailCode(
+        Request $request,
+        School $school,
+        GuardianEmailVerificationService $verificationService
+    ): JsonResponse {
+        abort_unless($school->is_enable && $school->inscriptions_enabled, 404);
+
+        $validated = $request->validate([
+            'tutor_num_doc' => ['required', 'string', 'max:50'],
+            'tutor_email' => ['required', 'string', 'email:rfc', 'max:50'],
+        ]);
+
+        return response()->json($verificationService->requestCode(
+            $school,
+            $validated['tutor_num_doc'],
+            $validated['tutor_email'],
+            (string) $request->ip()
+        ));
+    }
+
+    public function confirmGuardianEmailCode(
+        Request $request,
+        School $school,
+        GuardianEmailVerificationService $verificationService
+    ): JsonResponse {
+        abort_unless($school->is_enable && $school->inscriptions_enabled, 404);
+
+        $validated = $request->validate([
+            'tutor_num_doc' => ['required', 'string', 'max:50'],
+            'tutor_email' => ['required', 'string', 'email:rfc', 'max:50'],
+            'verification_code' => ['required', 'digits:6'],
+        ]);
+
+        return response()->json($verificationService->confirmCode(
+            $school,
+            $validated['tutor_num_doc'],
+            $validated['tutor_email'],
+            $validated['verification_code']
+        ));
+    }
+
     public function clientError(Request $request): JsonResponse
     {
         $context = $request->validate([
@@ -37,7 +80,10 @@ class InscriptionsController extends Controller
         return response()->json(['reported' => true]);
     }
 
-    public function store(InscriptionRegisterRequest $request)
+    public function store(
+        InscriptionRegisterRequest $request,
+        GuardianEmailVerificationService $verificationService
+    )
     {
         $response = [];
         $code = 200;
@@ -48,6 +94,8 @@ class InscriptionsController extends Controller
             InscriptionsPipeline::execute($request->validated());
 
             DB::commit();
+
+            $verificationService->consume($request->input('guardian_email_verification_token'));
 
             $response = ['ok'];
         } catch (ValidationException $th) {

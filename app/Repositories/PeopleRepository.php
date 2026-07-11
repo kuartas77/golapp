@@ -35,23 +35,38 @@ class PeopleRepository
     public function createOrUpdatePeople($person): People
     {
         $person['relationship'] = $this->normalizeRelationship($person['relationship']);
+        $existing = $this->people->query()
+            ->withTrashed()
+            ->firstWhere('identification_card', $person['identification_card']);
+        $email = filled($person['email'] ?? null)
+            ? mb_strtolower(trim((string) $person['email']))
+            : null;
+        $emailChanged = $existing && $existing->email !== $email;
+
+        $attributes = [
+            'names' => $person['names'],
+            'tutor' => $person['tutor'],
+            'relationship' => $person['relationship'],
+            'phone' => ($person['phone'] ?? null),
+            'document_expedition_place' => ($person['document_expedition_place'] ?? null),
+            'email' => $email,
+            'mobile' => ($person['mobile'] ?? null),
+            'profession' => ($person['profession'] ?? null),
+            'business' => ($person['business'] ?? null),
+            'position' => ($person['position'] ?? null),
+        ];
+
+        if (array_key_exists('email_verified_at', $person)) {
+            $attributes['email_verified_at'] = $person['email_verified_at'];
+        } elseif ($emailChanged) {
+            $attributes['email_verified_at'] = null;
+        }
 
         return $this->people->query()->updateOrCreate(
             [
                 'identification_card' => $person['identification_card']
             ],
-            [
-                'names' => $person['names'],
-                'tutor' => $person['tutor'],
-                'relationship' => $person['relationship'],
-                'phone' => ($person['phone'] ?? null),
-                'document_expedition_place' => ($person['document_expedition_place'] ?? null),
-                'email' => ($person['email'] ?? null),
-                'mobile' => ($person['mobile'] ?? null),
-                'profession' => ($person['profession'] ?? null),
-                'business' => ($person['business'] ?? null),
-                'position' => ($person['position'] ?? null),
-            ]
+            $attributes
         );
     }
 

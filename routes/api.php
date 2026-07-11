@@ -485,6 +485,10 @@ Route::prefix('v2')->group(function () {
 
         Route::post('inscription-client-errors', [PortalInscription::class, 'clientError'])
             ->name('inscription.client-error');
+        Route::post('{school}/inscripcion/verificar-correo/solicitar', [PortalInscription::class, 'requestGuardianEmailCode'])
+            ->name('school.inscription.guardian-email.request');
+        Route::post('{school}/inscripcion/verificar-correo/confirmar', [PortalInscription::class, 'confirmGuardianEmailCode'])
+            ->name('school.inscription.guardian-email.confirm');
         Route::post('{school}/inscripcion', [PortalInscription::class, 'store'])->name('school.inscription.store');
 
         Route::prefix('autocomplete')->group(function () {

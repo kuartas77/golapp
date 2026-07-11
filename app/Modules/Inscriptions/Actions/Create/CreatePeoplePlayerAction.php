@@ -51,6 +51,7 @@ final class CreatePeoplePlayerAction implements IContractPassable
             'relationship' => $passable->getPropertyFromData('tutor_relationship'),
             'phone' => null,
             'email' => $passable->getPropertyFromData('tutor_email'),
+            'email_verified_at' => now(),
             'mobile' => $passable->getPropertyFromData('tutor_phone'),
             'profession' => null,
             'business' => $passable->getPropertyFromData('tutor_work'),
