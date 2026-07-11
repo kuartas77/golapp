@@ -22,7 +22,9 @@ trait ResolvesGuardianPlayers
         return $this->guardianAccessService->eligiblePlayersQuery($this->guardian($request))
             ->with([
                 'schoolData',
-                'inscription.trainingGroup',
+                'inscriptions' => fn ($query) => $query
+                    ->where('year', now()->year)
+                    ->with(['trainingGroup' => fn ($trainingQuery) => $trainingQuery->withTrashed()]),
             ])
             ->orderBy('players.names')
             ->orderBy('players.last_names')

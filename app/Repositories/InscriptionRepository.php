@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Models\Assist;
 use App\Models\Inscription;
 use App\Models\InscriptionCustomCharge;
 use App\Models\InvoiceCustomItem;
@@ -435,9 +436,10 @@ class InscriptionRepository
     {
         $startDate = Carbon::parse($inscription->start_date);
 
-        $assist = $inscription->assistance()
+        $assist = Assist::query()
             ->withTrashed()
             ->firstOrNew([
+                'inscription_id' => $inscription->id,
                 'training_group_id' => $trainingGroupId,
                 'year' => (int) $startDate->year,
                 'month' => (int) $startDate->month,

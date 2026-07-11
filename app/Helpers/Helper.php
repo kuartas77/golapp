@@ -2,47 +2,43 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Collection;
-use Illuminate\Contracts\Database\Eloquent\Builder;
-use Carbon\CarbonPeriod;
-use Carbon\Carbon;
-use App\Service\StopWatch;
 use App\Models\CompetitionGroup;
-use App\Models\School;
 use App\Models\Payment;
+use App\Models\School;
 use App\Models\TrainingGroup;
 use App\Models\User;
+use App\Service\School\CurrentSchoolContext;
+use App\Service\StopWatch;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
+use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
-if (!function_exists('getPay')) {
-    /**
-     * @param $value
-     */
+if (! function_exists('getPay')) {
     function getPay($value): string
     {
         $payments = config('variables.KEY_PAYMENTS_SELECT');
-        return array_key_exists($value, $payments) ? $payments[$value] : number_format((float)$value);
+
+        return array_key_exists($value, $payments) ? $payments[$value] : number_format((float) $value);
     }
 }
 
-if (!function_exists('getAmount')) {
-    /**
-     * @param $value
-     */
+if (! function_exists('getAmount')) {
     function getAmount($value): string
     {
-        return (string) $value; //number_format((float)$value, 0, ',', '.');
+        return (string) $value; // number_format((float)$value, 0, ',', '.');
     }
 }
 
-if (!function_exists('getEloquentSqlWithBindings')) {
+if (! function_exists('getEloquentSqlWithBindings')) {
     /**
      * get query with binding
      *
-     * @param Builder $query
+     * @param  Builder  $query
      */
     function getEloquentSqlWithBindings($query): string
     {
@@ -54,22 +50,23 @@ if (!function_exists('getEloquentSqlWithBindings')) {
     }
 }
 
-if (!function_exists('checkAssists')) {
+if (! function_exists('checkAssists')) {
     function checkAssists($value): string
     {
         $assist = config('variables.KEY_ASSIST_LETTER');
         $key = array_search($value, array_keys($assist), true);
+
         return is_numeric($key) ? $assist[$value] : '-';
     }
 }
 
-if (!function_exists('getMonthNumber')) {
+if (! function_exists('getMonthNumber')) {
     function getMonthNumber($value)
     {
-        if(!is_numeric($value)){
+        if (! is_numeric($value)) {
             $months = config('variables.KEY_MONTHS_INDEX');
             foreach ($months as $key => $month) {
-                if($month === $value){
+                if ($month === $value) {
                     $value = $key;
                     break;
                 }
@@ -80,7 +77,7 @@ if (!function_exists('getMonthNumber')) {
     }
 }
 
-if (!function_exists('countAssists')) {
+if (! function_exists('countAssists')) {
     function countAssists($assist, $dayClass): float
     {
         $i = 0;
@@ -99,22 +96,23 @@ if (!function_exists('countAssists')) {
         $assist->assistance_thirteen !== 'as' ?: $i++;
         $assist->assistance_fourteen !== 'as' ?: $i++;
         $assist->assistance_fifteen !== 'as' ?: $i++;
+
         return round(($i * 100) / $dayClass);
     }
 }
 
-if (!function_exists('getMonth')) {
+if (! function_exists('getMonth')) {
     function getMonth($month): string
     {
         return config('variables.KEY_MONTHS_INDEX')[$month];
     }
 }
 
-if (!function_exists('getMonths')) {
+if (! function_exists('getMonths')) {
     function getMonths(int $months = 12): Collection
     {
         $response = collect();
-        for ($i = 1; $i <= $months; ++$i) {
+        for ($i = 1; $i <= $months; $i++) {
             $response->put(strtolower(getMonth($i)), 1);
         }
 
@@ -122,7 +120,7 @@ if (!function_exists('getMonths')) {
     }
 }
 
-if (!function_exists('classDaysMonth')) {
+if (! function_exists('classDaysMonth')) {
     function classDaysMonth(int $year, int $month, array $classDays): Collection
     {
         $date = Carbon::createFromDate($year, $month);
@@ -133,7 +131,7 @@ if (!function_exists('classDaysMonth')) {
         foreach ($carbonPeriod as $date) {
             if (in_array($date->isoWeekday(), $classDays)) {
                 $dayList->push(arrayDay($date, $count));
-                ++$count;
+                $count++;
             }
         }
 
@@ -141,7 +139,7 @@ if (!function_exists('classDaysMonth')) {
     }
 }
 
-if (!function_exists('arrayDay')) {
+if (! function_exists('arrayDay')) {
     function arrayDay(Carbon $date, $count): array
     {
         return [
@@ -149,91 +147,94 @@ if (!function_exists('arrayDay')) {
             'date' => $date->format('Y-m-d'),
             'name' => $date->getTranslatedDayName(),
             'column' => numbersToLetters($count),
-            'number_class' => $count
+            'number_class' => $count,
         ];
     }
 }
 
-if (!function_exists('classDays')) {
+if (! function_exists('classDays')) {
     function classDays(int $year, int $month, array $days): Collection
     {
         return classDaysMonth($year, $month, $days);
     }
 }
 
-if (!function_exists('numbersToLetters')) {
+if (! function_exists('numbersToLetters')) {
     function numbersToLetters($number, $assist = true): string
     {
-        $numberFormatter = NumberFormatter::create("en_CA", NumberFormatter::SPELLOUT);
+        $numberFormatter = NumberFormatter::create('en_CA', NumberFormatter::SPELLOUT);
         $numberFormat = str_replace('-', '_', $numberFormatter->format(intval($number)));
 
-
-        return $assist ? 'assistance_' . $numberFormat : 'year_' . $numberFormat;
+        return $assist ? 'assistance_'.$numberFormat : 'year_'.$numberFormat;
     }
 }
 
-if (!function_exists('percent')) {
+if (! function_exists('percent')) {
     function percent($number, $count): float
     {
         $divisor = $count ?: 1;
+
         return round(($number * 100) / $divisor, 2);
     }
 }
 
-if (!function_exists('categoriesName')) {
+if (! function_exists('categoriesName')) {
     function categoriesName($value): string
     {
-        return "SUB-" . abs((int)$value - now()->year);
+        return 'SUB-'.abs((int) $value - now()->year);
     }
 }
 
-if (!function_exists('dayToNumber')) {
+if (! function_exists('dayToNumber')) {
     function dayToNumber(string $day): int
     {
         $result = array_search(Str::title($day), config('variables.KEY_WEEKS_INDEX'), true);
+
         return $result ?: 0;
     }
 }
 
-
-if (!function_exists('isAdmin')) {
+if (! function_exists('isAdmin')) {
     function isAdmin(): bool
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
+
         return $user->hasAnyRole(['super-admin']);
     }
 }
 
-if (!function_exists('isSchool')) {
+if (! function_exists('isSchool')) {
     function isSchool(): bool
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
+
         return $user->hasAnyRole(['school']);
     }
 }
 
-if (!function_exists('isInstructor')) {
+if (! function_exists('isInstructor')) {
     function isInstructor(): bool
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
+
         return $user->hasAnyRole(['instructor']);
     }
 }
 
-if (!function_exists('getSchool')) {
+if (! function_exists('getSchool')) {
     function getSchool($user = null): School
     {
-        return app(\App\Service\School\CurrentSchoolContext::class)->current($user ?? auth()->user());
+        return app(CurrentSchoolContext::class)->current($user ?? auth()->user());
     }
 }
 
-if (!function_exists('instructorTrainingGroupIds')) {
+if (! function_exists('instructorTrainingGroupIds')) {
     function instructorTrainingGroupIds(?int $year = null): Collection
     {
-        if (!isInstructor()) {
+        if (! isInstructor()) {
             return collect();
         }
 
@@ -244,10 +245,10 @@ if (!function_exists('instructorTrainingGroupIds')) {
     }
 }
 
-if (!function_exists('instructorCompetitionGroupIds')) {
+if (! function_exists('instructorCompetitionGroupIds')) {
     function instructorCompetitionGroupIds(): Collection
     {
-        if (!isInstructor()) {
+        if (! isInstructor()) {
             return collect();
         }
 
@@ -258,10 +259,10 @@ if (!function_exists('instructorCompetitionGroupIds')) {
     }
 }
 
-if (!function_exists('applyInstructorTrainingGroupFilter')) {
+if (! function_exists('applyInstructorTrainingGroupFilter')) {
     function applyInstructorTrainingGroupFilter($query, string $column = 'training_group_id', ?int $year = null)
     {
-        if (!isInstructor()) {
+        if (! isInstructor()) {
             return $query;
         }
 
@@ -271,10 +272,10 @@ if (!function_exists('applyInstructorTrainingGroupFilter')) {
     }
 }
 
-if (!function_exists('applyInstructorCompetitionGroupFilter')) {
+if (! function_exists('applyInstructorCompetitionGroupFilter')) {
     function applyInstructorCompetitionGroupFilter($query, string $column = 'competition_group_id')
     {
-        if (!isInstructor()) {
+        if (! isInstructor()) {
             return $query;
         }
 
@@ -284,10 +285,10 @@ if (!function_exists('applyInstructorCompetitionGroupFilter')) {
     }
 }
 
-if (!function_exists('instructorCanAccessTrainingGroup')) {
+if (! function_exists('instructorCanAccessTrainingGroup')) {
     function instructorCanAccessTrainingGroup($groupId, ?int $year = null): bool
     {
-        if (!isInstructor()) {
+        if (! isInstructor()) {
             return true;
         }
 
@@ -303,10 +304,10 @@ if (!function_exists('instructorCanAccessTrainingGroup')) {
     }
 }
 
-if (!function_exists('instructorCanAccessCompetitionGroup')) {
+if (! function_exists('instructorCanAccessCompetitionGroup')) {
     function instructorCanAccessCompetitionGroup($groupId): bool
     {
-        if (!isInstructor()) {
+        if (! isInstructor()) {
             return true;
         }
 
@@ -322,12 +323,12 @@ if (!function_exists('instructorCanAccessCompetitionGroup')) {
     }
 }
 
-if (!function_exists('schoolCan')) {
+if (! function_exists('schoolCan')) {
     function schoolCan(string $key, ?User $user = null): bool
     {
         $user = $user ?? auth()->user();
 
-        if (!$user instanceof User) {
+        if (! $user instanceof User) {
             return false;
         }
 
@@ -335,10 +336,10 @@ if (!function_exists('schoolCan')) {
     }
 }
 
-if (!function_exists('cleanString')) {
+if (! function_exists('cleanString')) {
     function cleanString($text): string
     {
-        $utf8 = array(
+        $utf8 = [
             '/[áàâãªä]/u' => 'a',
             '/[ÁÀÂÃÄ]/u' => 'A',
             '/[ÍÌÎÏ]/u' => 'I',
@@ -357,30 +358,31 @@ if (!function_exists('cleanString')) {
             '/[’‘‹›‚]/u' => ' ', // Literally a single quote
             '/[“”«»„]/u' => ' ', // Double quote
             '/ /' => ' ', // non breaking space (equiv. to 0x160)
-        );
+        ];
+
         return strtolower(preg_replace(array_keys($utf8), array_values($utf8), $text));
     }
 }
 
-if (!function_exists('randomPassword')) {
+if (! function_exists('randomPassword')) {
     function randomPassword(int $length = 10): string
     {
         $alphabet = '#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890*.';
-        $pass = array(); //remember to declare $pass as an array
-        $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
-        for ($i = 0; $i < $length; ++$i) {
+        $pass = []; // remember to declare $pass as an array
+        $alphaLength = strlen($alphabet) - 1; // put the length -1 in cache
+        for ($i = 0; $i < $length; $i++) {
             $n = rand(0, $alphaLength);
             $pass[] = $alphabet[$n];
         }
 
-        return implode('', $pass); //turn the array into a string
+        return implode('', $pass); // turn the array into a string
     }
 }
 
-if (!function_exists('checkValuePayment')) {
+if (! function_exists('checkValuePayment')) {
     function checkValuePayment(Payment $payment, string $column, int $defaultValue, int $alternative = 0)
     {
-        $attribute = $column . '_amount';
+        $attribute = $column.'_amount';
         $value = 0;
         if (in_array($payment->$column, ['1', '9', '10'])) {
             $value = $payment->$attribute == 0 ? $defaultValue : $payment->$attribute;
@@ -392,29 +394,30 @@ if (!function_exists('checkValuePayment')) {
     }
 }
 
-if (!function_exists('checkValueEnrollment')) {
+if (! function_exists('checkValueEnrollment')) {
     function checkValueEnrollment(Payment $payment, string $column, int $defaultValue)
     {
-        $attribute = $column . '_amount';
+        $attribute = $column.'_amount';
+
         return $payment->$attribute == 0 && in_array($payment->$column, ['1', '9', '10']) ? $defaultValue : $payment->$attribute;
     }
 }
 
-if (!function_exists('checkEmail')){
+if (! function_exists('checkEmail')) {
     function checkEmail($email): bool
     {
         return isset($email) && filter_var($email, FILTER_VALIDATE_EMAIL);
     }
 }
 
-if (!function_exists('getIpToLog')){
+if (! function_exists('getIpToLog')) {
     function getIpToLog(): ?string
     {
-        foreach (array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR') as $key){
-            if (array_key_exists($key, $_SERVER)){
-                foreach (explode(',', $_SERVER[$key]) as $ip){
+        foreach (['HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR'] as $key) {
+            if (array_key_exists($key, $_SERVER)) {
+                foreach (explode(',', $_SERVER[$key]) as $ip) {
                     $ip = trim($ip); // just to be safe
-                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false){
+                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
                         return $ip;
                     }
                 }
@@ -425,14 +428,14 @@ if (!function_exists('getIpToLog')){
     }
 }
 
-if (!function_exists('loggerTimeRequest')){
+if (! function_exists('loggerTimeRequest')) {
     function loggerTimeRequest(StopWatch $stopWatch): void
     {
         if (env('APP_ENV') == 'local') {
             logger()->info(
-                "req",
+                'req',
                 [
-                    'elapsed'=> $stopWatch->getTimeElapsed(),
+                    'elapsed' => $stopWatch->getTimeElapsed(),
                     'url' => request()->fullUrl(),
                     'ip_address' => getIpToLog(),
                     'user_id' => (auth()->user() ? auth()->id() : 0),
@@ -442,37 +445,41 @@ if (!function_exists('loggerTimeRequest')){
     }
 }
 
-if (!function_exists('createUniqueCode')){
+if (! function_exists('createUniqueCode')) {
     function createUniqueCode(string $school_id, ?string $year = null): mixed
     {
-        $campusIds = [];
+        static $campusIdsBySchool = [];
+
         $newUniqueCode = '';
-        $keyCache = "KEY_LAST_UNIQUE_CODE_".$school_id;
-        $year = isset($year) ? $year: now()->year;
+        $keyCache = 'KEY_LAST_UNIQUE_CODE_'.$school_id;
+        $year = isset($year) ? $year : now()->year;
 
-        $school = School::with(['settingsValues'])->find($school_id);
-        if ($multiple = $school->settings->get('MULTIPLE_SCHOOLS')){
-            $campusIds = json_decode($multiple);
-        }
+        $campusIds = $campusIdsBySchool[$school_id] ??= (function () use ($school_id) {
+            $school = School::with(['settingsValues'])->find($school_id);
+            $multiple = $school?->settings?->get('MULTIPLE_SCHOOLS');
 
-        $lastUniqueCode = Cache::remember($keyCache, now()->addMinute(), function() use($year, $school_id, $campusIds){
+            return $multiple ? json_decode($multiple) : [];
+        })();
+
+        $lastUniqueCode = Cache::remember($keyCache, now()->addMinute(), function () use ($year, $school_id, $campusIds) {
             $result = DB::table('players')->select(['unique_code'])
-                ->where('unique_code', 'like', $year . '%')
-                ->when(!empty($campusIds),
-                    fn($q) => $q->whereIn('school_id', $campusIds),
-                    fn($q) => $q->where('school_id', $school_id)
+                ->where('unique_code', 'like', $year.'%')
+                ->when(! empty($campusIds),
+                    fn ($q) => $q->whereIn('school_id', $campusIds),
+                    fn ($q) => $q->where('school_id', $school_id)
                 )
                 ->orderBy('unique_code', 'desc')
                 ->limit(1)
                 ->first();
+
             return isset($result) ? $result->unique_code : null;
         });
 
-        if(isset($lastUniqueCode)){
+        if (isset($lastUniqueCode)) {
             $newUniqueCode = intval($lastUniqueCode) + 1;
-        }else{
+        } else {
             $count = 1;
-            $newUniqueCode = $year . str_pad((string)$count, 4, '0', STR_PAD_LEFT);
+            $newUniqueCode = $year.str_pad((string) $count, 4, '0', STR_PAD_LEFT);
         }
 
         $newUniqueCode = generateCode($school_id, $newUniqueCode, $campusIds);
@@ -483,21 +490,21 @@ if (!function_exists('createUniqueCode')){
     }
 }
 
-if(!function_exists('generateCode')) {
+if (! function_exists('generateCode')) {
     function generateCode($school_id, $lastUniqueCode, $campusIds = [])
     {
         $next = true;
-        while ($next){
+        while ($next) {
             $exits = DB::table('players')->select(['unique_code'])
-                    ->where('unique_code', $lastUniqueCode)
-                    ->when(!empty($campusIds),
-                        fn($q) => $q->whereIn('school_id', $campusIds),
-                        fn($q) => $q->where('school_id', $school_id)
-                    )
-                    ->exists();
-            if(!$exits){
+                ->where('unique_code', $lastUniqueCode)
+                ->when(! empty($campusIds),
+                    fn ($q) => $q->whereIn('school_id', $campusIds),
+                    fn ($q) => $q->where('school_id', $school_id)
+                )
+                ->exists();
+            if (! $exits) {
                 $next = false;
-            }else{
+            } else {
                 $lastUniqueCode = intval($lastUniqueCode) + 1;
             }
         }
@@ -506,15 +513,16 @@ if(!function_exists('generateCode')) {
     }
 }
 
-if(!function_exists('getYearInscription')) {
-    function getYearInscription() {
+if (! function_exists('getYearInscription')) {
+    function getYearInscription()
+    {
         $year = in_array(now()->month, [11, 12]) ? now()->addYear()->year : now()->year;
 
         return $year;
     }
 }
 
-//if (!function_exists('')){}
-//if (!function_exists('')){}
-//if (!function_exists('')){}
-//if (!function_exists('')){}
+// if (!function_exists('')){}
+// if (!function_exists('')){}
+// if (!function_exists('')){}
+// if (!function_exists('')){}

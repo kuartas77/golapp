@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\API\Portal;
 
 use App\Models\Inscription;
+use App\Models\Player;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -12,13 +13,16 @@ class GuardianPlayerListResource extends JsonResource
 {
     public static $wrap = null;
 
-    /** @var \App\Models\Player */
+    /** @var Player */
     public $resource;
 
     public function toArray(Request $request): array
     {
         /** @var Inscription|null $inscription */
-        $inscription = $this->inscriptions->first();
+        $inscription = $this->relationLoaded('inscriptions')
+            ? $this->inscriptions->first()
+            : ($this->relationLoaded('inscription') ? $this->inscription : null);
+        $trainingGroup = $inscription?->relationLoaded('trainingGroup') ? $inscription->trainingGroup : null;
 
         return [
             'id' => $this->id,
@@ -35,9 +39,9 @@ class GuardianPlayerListResource extends JsonResource
             'current_inscription' => $inscription ? [
                 'id' => $inscription->id,
                 'year' => $inscription->year,
-                'training_group' => $inscription->trainingGroup ? [
-                    'id' => $inscription->trainingGroup->id,
-                    'name' => $inscription->trainingGroup->name,
+                'training_group' => $trainingGroup ? [
+                    'id' => $trainingGroup->id,
+                    'name' => $trainingGroup->name,
                 ] : null,
             ] : null,
         ];

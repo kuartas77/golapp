@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Models\Assist;
 use App\Models\Inscription;
 use App\Models\Payment;
 use App\Models\TrainingGroup;
@@ -143,9 +144,10 @@ class SharedService
 
     private function ensureAssistForGroup(Inscription $inscription, int $trainingGroupId, Carbon $startDate): void
     {
-        $assist = $inscription->assistance()
+        $assist = Assist::query()
             ->withTrashed()
             ->firstOrNew([
+                'inscription_id' => $inscription->id,
                 'training_group_id' => $trainingGroupId,
                 'year' => $startDate->year,
                 'month' => $startDate->month,

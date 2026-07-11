@@ -15,9 +15,7 @@ use Illuminate\Validation\ValidationException;
 
 class LoginGuardianController extends Controller
 {
-    public function __construct(private GuardianAccessService $guardianAccessService)
-    {
-    }
+    public function __construct(private GuardianAccessService $guardianAccessService) {}
 
     public function login(GuardianLoginRequest $request): JsonResponse
     {
@@ -35,13 +33,13 @@ class LoginGuardianController extends Controller
         /** @var People $guardian */
         $guardian = $guardians->first();
 
-        if (blank($guardian->password) || !Hash::check((string) $request->validated('password'), $guardian->password)) {
+        if (blank($guardian->password) || ! Hash::check((string) $request->validated('password'), $guardian->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Las credenciales proporcionadas son incorrectas.'],
             ]);
         }
 
-        if (!$this->guardianAccessService->hasEligiblePlayers($guardian)) {
+        if (! $this->guardianAccessService->hasEligiblePlayers($guardian)) {
             throw ValidationException::withMessages([
                 'email' => ['Tu acceso está temporalmente bloqueado porque no tienes jugadores vigentes este año o se ha deshabilitado la plataforma de acudientes.'],
             ]);
@@ -91,7 +89,12 @@ class LoginGuardianController extends Controller
         ];
 
         $guardian->notification_players = $this->guardianAccessService->eligiblePlayersQuery($guardian)
-            ->with(['schoolData', 'inscription.trainingGroup', 'inscription.competitionGroup'])
+            ->with([
+                'schoolData',
+                'inscriptions' => fn ($query) => $query
+                    ->where('year', now()->year)
+                    ->with(['trainingGroup' => fn ($trainingQuery) => $trainingQuery->withTrashed()]),
+            ])
             ->orderBy('players.names')
             ->orderBy('players.last_names')
             ->get();
