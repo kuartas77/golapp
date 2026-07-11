@@ -19,6 +19,28 @@ use Tests\TestCase;
 
 final class NotificationGuardianApiTest extends TestCase
 {
+    public function testGuardianMobileLoginDoesNotRequireRecaptcha(): void
+    {
+        $this->createGuardianScenario([
+            'email' => 'without.recaptcha@example.com',
+            'password' => 'secret-mobile',
+        ]);
+
+        config()->set('recaptchav3.sitekey', 'configured-site-key');
+        config()->set('recaptchav3.secret', 'configured-secret');
+
+        app()->detectEnvironment(fn (): string => 'production');
+
+        try {
+            $this->postJson('/api/notify/v2/guardians/login', [
+                'email' => 'without.recaptcha@example.com',
+                'password' => 'secret-mobile',
+            ])->assertOk();
+        } finally {
+            app()->detectEnvironment(fn (): string => 'testing');
+        }
+    }
+
     public function testGuardianCanLoginAndReceiveMobileTokensWithPlayers(): void
     {
         [$guardian, $player] = $this->createGuardianScenario([
