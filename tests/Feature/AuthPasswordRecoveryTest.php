@@ -37,6 +37,15 @@ final class AuthPasswordRecoveryTest extends TestCase
         Notification::assertSentTo($this->user, UserPasswordResetNotification::class);
     }
 
+    public function testUserPasswordRecoveryEmailRendersASingleLogo(): void
+    {
+        $html = (string) (new UserPasswordResetNotification($this->user, 'test-token'))
+            ->toMail($this->user)
+            ->render();
+
+        $this->assertSame(1, substr_count($html, 'img/logo-light.svg'));
+    }
+
     public function testUserCanResetPasswordFromRecoveryToken(): void
     {
         $token = Password::broker('users')->createToken($this->user);

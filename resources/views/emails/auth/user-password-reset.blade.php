@@ -1,12 +1,4 @@
 @component('mail::message')
-<div style="text-align: center; margin-bottom: 24px;">
-    <img
-        src="{{ asset('img/logo-light.svg') }}"
-        alt="Logo GOLAPP"
-        style="max-width: 220px; height: auto;"
-    >
-</div>
-
 # Restablece tu contraseña
 
 Hola {{ $user->name }},
