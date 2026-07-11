@@ -42,6 +42,7 @@ Route::post('/logout', [WebLoginController::class, 'logout'])->middleware('auth'
 
 // Mantiene funcionales los correos antiguos que referencian el logo retirado.
 Route::redirect('/img/log3.png', '/img/logo-light.svg', 301);
+Route::redirect('/img/log3.jpg', '/img/logo-light.svg', 301);
 
 Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
 
