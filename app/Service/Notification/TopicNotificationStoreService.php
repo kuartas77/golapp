@@ -29,6 +29,11 @@ class TopicNotificationStoreService
         );
     }
 
+    public function storeForTopics(array $data, array $topics, array $playerIds): TopicNotification
+    {
+        return $this->saveNotification($data, $topics, $playerIds);
+    }
+
     private function saveNotification(
         array $data,
         array $topics,

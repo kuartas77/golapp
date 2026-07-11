@@ -99,7 +99,7 @@ class CreateInvoices extends Command
                             'notification_title' => 'Nueva factura de mensualidad',
                             'notification_body' => 'Esta factura se ha generado automaticamente por el sistema',
                         ];
-                        $this->notificationService->saveNotification($data, $topics, $playerIds);
+                        $this->notificationService->storeForTopics($data, $topics, $playerIds);
                     }
                 }
             });

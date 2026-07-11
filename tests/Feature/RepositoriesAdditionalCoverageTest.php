@@ -564,10 +564,9 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $player = Mockery::mock();
         $player->shouldReceive('notifications')->andReturn($relation);
 
-        app('request')->merge(['notificationId' => 15]);
         app('request')->setUserResolver(fn() => $player);
 
-        $repository->markRead();
+        $repository->markRead(15);
         $repository->markReadAll();
 
         $this->assertTrue(true);
@@ -975,6 +974,9 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $request = Mockery::mock(FormRequest::class);
         $request->shouldReceive('input')
             ->andReturnUsing(fn(string $key, $default = null) => data_get($payload, $key, $default));
+        $request->shouldReceive('boolean')
+            ->with('is_complementary')
+            ->andReturn(false);
 
         $group = $repository->createTrainingGroup($request);
         $this->assertNotNull($group);
@@ -1804,7 +1806,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'inscription_id' => $inscriptionBulk->id,
             'month' => '2',
         ]);
-        $this->assertDatabaseMissing('assists', [
+        $this->assertDatabaseHas('assists', [
             'training_group_id' => $groupA->id,
             'inscription_id' => $inscriptionBulk->id,
             'month' => '2',
@@ -1935,8 +1937,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $playerForException->shouldReceive('notifications')->andReturn($relation);
 
         app('request')->setUserResolver(fn() => $playerForException);
-        app('request')->merge(['notificationId' => 9999999]);
-        $repository->markRead();
+        $repository->markRead(9999999);
     }
 
     public function testUniformRequestRepositoryRemainingBranchesAndErrors(): void

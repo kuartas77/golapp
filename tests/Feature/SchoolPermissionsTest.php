@@ -456,7 +456,7 @@ final class SchoolPermissionsTest extends TestCase
         });
 
         $this->mock(TopicNotificationStoreService::class, function (MockInterface $mock) use ($enabledSchool, $enabledPlayer) {
-            $mock->shouldReceive('saveNotification')
+            $mock->shouldReceive('storeForTopics')
                 ->once()
                 ->with(
                     Mockery::on(fn (array $payload) => $payload['school_id'] === $enabledSchool->id),
