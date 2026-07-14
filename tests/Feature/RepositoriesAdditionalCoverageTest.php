@@ -1125,6 +1125,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'user_id' => $created->id,
         ]);
         $this->assertDatabaseHas('profiles', ['user_id' => $created->id]);
+        $this->assertTrue($created->fresh()->hasRole(User::INSTRUCTOR));
         Notification::assertSentTo([$created], RegisterNotification::class);
 
         $updateRequest = new class ([
@@ -1153,7 +1154,9 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         };
 
         $repository->update($created, $updateRequest);
-        $this->assertSame('Repo User Updated', $created->fresh()->name);
+        $created->refresh();
+        $this->assertSame('Repo User Updated', $created->name);
+        $this->assertTrue($created->hasRole(User::SCHOOL));
     }
 
     public function testGameRepositoryExtendedFlows(): void

@@ -14,6 +14,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use RealRashid\SweetAlert\Facades\Alert;
+use Spatie\Permission\Models\Role;
 
 class UserRepository
 {
@@ -51,7 +52,7 @@ class UserRepository
             $password = $formRequest->password ?? randomPassword();
             $attributes = $formRequest->validated() + ['school_id' => $school->id, 'password' => $password];
             $user = $this->user->query()->create($attributes);
-            $user->syncRoles([$formRequest->input('rol_id')]);
+            $user->syncRoles([$this->resolveRoleName($formRequest)]);
             AuthUserContext::forgetUser($user->id);
             $user->profile()->create();
 
@@ -84,7 +85,7 @@ class UserRepository
 
             DB::beginTransaction();
             $user->update($formRequest->validated());
-            $user->syncRoles([$formRequest->input('rol_id')]);
+            $user->syncRoles([$this->resolveRoleName($formRequest)]);
             AuthUserContext::forgetUser($user->id);
             Cache::forget('KEY_USERS_' . $user->school_id);
             DB::commit();
@@ -104,5 +105,12 @@ class UserRepository
     public function restore(int $id)
     {
         return User::onlyTrashed()->where('id', $id)->restore();
+    }
+
+    private function resolveRoleName(FormRequest $formRequest): string
+    {
+        $roleId = $formRequest->input('rol_id');
+
+        return Role::query()->whereKey($roleId)->value('name') ?? (string) $roleId;
     }
 }
