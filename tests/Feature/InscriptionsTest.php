@@ -879,6 +879,81 @@ final class InscriptionsTest extends TestCase
         $this->assertSame(65000, (int) $inscription->monthly_payment_amount);
     }
 
+    public function test_assigning_complementary_group_does_not_rewrite_existing_debt_month_amounts(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $now = Carbon::now();
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->settingsValues()->where('setting_key', Setting::MONTHLY_PAYMENT)->update(['value' => '50000']);
+        $principalGroup = TrainingGroup::query()
+            ->where('school_id', $school->id)
+            ->where('is_complementary', false)
+            ->orderBy('id')
+            ->firstOrFail();
+        $complementaryGroup = TrainingGroup::query()->create([
+            'name' => 'Complementario Porteros',
+            'school_id' => $school->id,
+            'year_active' => $now->year,
+            'is_complementary' => true,
+            'days' => ['Lunes'],
+            'schedules' => ['07:00AM - 08:00AM'],
+        ]);
+
+        $player = Player::factory()->create();
+        $inscription = Inscription::factory()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => $now->year,
+            'training_group_id' => $principalGroup->id,
+            'competition_group_id' => null,
+            'complementary_group_id' => null,
+            'start_date' => $now->format('Y-m-d'),
+            'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+            'school_id' => $school->id,
+            'brother_payment' => false,
+            'monthly_payment_type' => Setting::MONTHLY_PAYMENT,
+            'monthly_payment_amount' => 50000,
+        ]);
+
+        $payment = Payment::query()->where('inscription_id', $inscription->id)->firstOrFail();
+        $monthField = config('variables.KEY_INDEX_MONTHS')[$now->month];
+        $otherDebtField = collect(config('variables.KEY_INDEX_MONTHS'))
+            ->values()
+            ->first(fn (string $field) => $field !== $monthField);
+
+        $payment->forceFill([
+            $monthField => Payment::$debt,
+            "{$monthField}_amount" => 60000,
+            $otherDebtField => Payment::$debt,
+            "{$otherDebtField}_amount" => 60000,
+        ])->save();
+
+        $this->actingAs($this->user);
+
+        $this->post(route('inscriptions.update', [$inscription->id]), [
+            'unique_code' => $player->unique_code,
+            'player_id' => $player->id,
+            'start_date' => $now->format('Y-m-d'),
+            'training_group_id' => $principalGroup->id,
+            'complementary_group_id' => $complementaryGroup->id,
+            'monthly_payment_type' => Setting::MONTHLY_PAYMENT,
+            '_method' => 'PATCH',
+        ])->assertStatus(200);
+
+        $payment->refresh();
+
+        $this->assertDatabaseHas('inscriptions', [
+            'id' => $inscription->id,
+            'complementary_group_id' => $complementaryGroup->id,
+            'monthly_payment_type' => Setting::MONTHLY_PAYMENT,
+            'monthly_payment_amount' => 50000,
+        ]);
+        $this->assertSame(60000, (int) $payment->{"{$monthField}_amount"});
+        $this->assertSame(60000, (int) $payment->{"{$otherDebtField}_amount"});
+    }
+
     public function test_delete_inscription(): void
     {
         Mail::fake();
