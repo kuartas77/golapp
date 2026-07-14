@@ -116,12 +116,6 @@ class SharedService
                     $this->ensureComplementaryAssist($inscription, $start_date);
                 }
 
-                if ($inscription->wasChanged('brother_payment')
-                    || $inscription->wasChanged('monthly_payment_type')
-                    || $inscription->wasChanged('monthly_payment_amount')
-                ) {
-                    $this->refreshDebtMonthAmounts($inscription, $start_date->year);
-                }
             }
 
             DB::commit();
@@ -205,35 +199,6 @@ class SharedService
 
         $dataPayment[$configMonths[$actualMonth]] = '2';
         $dataPayment[$configMonths[$actualMonth].'_amount'] = $monthlyAmount;
-    }
-
-    private function refreshDebtMonthAmounts(Inscription $inscription, int $year): void
-    {
-        $payment = $inscription->payments()
-            ->withTrashed()
-            ->where('year', $year)
-            ->first();
-
-        if (! $payment) {
-            return;
-        }
-
-        $monthlyAmount = $this->paymentAmountResolver->monthlyAmountForInscription($inscription);
-        $updates = [];
-
-        foreach (config('variables.KEY_INDEX_MONTHS') as $field) {
-            if ((int) $payment->{$field} !== Payment::$debt) {
-                continue;
-            }
-
-            $updates["{$field}_amount"] = $monthlyAmount;
-        }
-
-        if (empty($updates)) {
-            return;
-        }
-
-        $payment->fill($updates)->save();
     }
 
     private function enableSkillControl($inscription)
