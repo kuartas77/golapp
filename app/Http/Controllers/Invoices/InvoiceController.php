@@ -82,7 +82,7 @@ class InvoiceController extends Controller
 
     public function show($id)
     {
-        $invoice = Invoice::with(['items', 'payments', 'inscription.player', 'trainingGroup', 'creator', 'paymentRequests'])
+        $invoice = Invoice::with(['items', 'payments.creator', 'inscription.player', 'trainingGroup', 'creator', 'paymentRequests'])
             ->schoolId()
             ->findOrFail($id);
 

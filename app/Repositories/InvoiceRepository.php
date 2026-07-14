@@ -268,7 +268,7 @@ class InvoiceRepository
             'payment_date' => $request->validated('payment_date'),
             'notes' => $request->validated('notes'),
             'school_id' => $invoice->school_id,
-            'created_by' => auth()->id(),
+            'created_by' => $this->currentUserId(),
         ]);
 
         // Actualizar totales de la factura
@@ -313,7 +313,7 @@ class InvoiceRepository
             'payment_date' => now(),
             'notes' => $paymentRequest->description,
             'school_id' => $invoice->school_id,
-            'created_by' => auth()->id(),
+            'created_by' => $this->currentUserId(),
         ]);
 
         // Actualizar totales de la factura
@@ -330,6 +330,11 @@ class InvoiceRepository
         return InvoiceItem::query()->select(['invoice_items.*', 'payments_received.payment_method'])->with('paymentReceived')
             ->withWhereHas('invoice', fn($q) => $q->schoolId())
             ->leftJoin('payments_received', 'invoice_items.payment_received_id', 'payments_received.id');
+    }
+
+    private function currentUserId(): ?int
+    {
+        return request()->user()?->getAuthIdentifier() ?? auth()->id();
     }
 
     public function addUniformRequest(int $playerId, int $schoolId)

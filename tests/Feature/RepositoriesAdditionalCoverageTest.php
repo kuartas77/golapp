@@ -17,6 +17,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceCustomItem;
 use App\Models\Payment;
 use App\Models\PaymentReceived;
+use App\Models\PaymentRequest;
 use App\Models\Player;
 use App\Models\PlayerTopicNotification;
 use App\Models\Schedule;
@@ -758,6 +759,98 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         } finally {
             Schema::enableForeignKeyConstraints();
         }
+    }
+
+    public function testPaymentRequestApprovalStoresCurrentUserOnPaymentHistory(): void
+    {
+        $this->actingAs($this->user);
+        [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
+
+        Schema::disableForeignKeyConstraints();
+
+        try {
+            $invoice = Invoice::query()->create([
+                'invoice_number' => 'FAC-REQ-' . now()->format('YmdHis'),
+                'inscription_id' => $inscription->id,
+                'training_group_id' => $trainingGroup->id,
+                'year' => now()->year,
+                'student_name' => $inscription->player->full_names,
+                'total_amount' => 0,
+                'paid_amount' => 0,
+                'issue_date' => now()->toDateString(),
+                'due_date' => now()->addWeek()->toDateString(),
+                'status' => 'pending',
+                'school_id' => $this->school['id'],
+                'created_by' => $this->user->id,
+            ]);
+
+            $invoice->items()->create([
+                'type' => 'monthly',
+                'description' => 'Mensualidad Enero',
+                'quantity' => 1,
+                'unit_price' => 50000,
+                'month' => 'january',
+                'payment_id' => $payment->id,
+                'is_paid' => false,
+            ]);
+
+            $paymentRequest = PaymentRequest::query()->create([
+                'school_id' => $this->school['id'],
+                'invoice_id' => $invoice->id,
+                'player_id' => $inscription->player_id,
+                'amount' => 50000,
+                'description' => 'Comprobante validado',
+                'reference_number' => 'REQ-50000',
+                'payment_method' => 'transfer',
+                'image' => 'invoice_receipts/support.jpg',
+            ]);
+
+            app(InvoiceRepository::class)->addPaymentButton($invoice->id, $paymentRequest->id);
+
+            $paymentReceived = PaymentReceived::query()->firstWhere('invoice_id', $invoice->id);
+
+            $this->assertNotNull($paymentReceived);
+            $this->assertSame($this->user->id, $paymentReceived->created_by);
+        } finally {
+            Schema::enableForeignKeyConstraints();
+        }
+    }
+
+    public function testInvoiceShowIncludesPaymentHistoryCreator(): void
+    {
+        $this->actingAs($this->user);
+        [$inscription, , $trainingGroup] = $this->createInscriptionAndPayment();
+
+        $invoice = Invoice::query()->create([
+            'invoice_number' => 'FAC-SHOW-' . now()->format('YmdHis'),
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $trainingGroup->id,
+            'year' => now()->year,
+            'student_name' => $inscription->player->full_names,
+            'total_amount' => 50000,
+            'paid_amount' => 50000,
+            'issue_date' => now()->toDateString(),
+            'due_date' => now()->addWeek()->toDateString(),
+            'status' => 'paid',
+            'school_id' => $this->school['id'],
+            'created_by' => $this->user->id,
+        ]);
+
+        PaymentReceived::query()->create([
+            'invoice_id' => $invoice->id,
+            'amount' => 50000,
+            'payment_method' => 'cash',
+            'reference' => 'SHOW-50000',
+            'payment_date' => now()->toDateString(),
+            'notes' => 'Pago visible',
+            'school_id' => $this->school['id'],
+            'created_by' => $this->user->id,
+        ]);
+
+        $this->getJson(route('invoices.show', $invoice->id))
+            ->assertOk()
+            ->assertJsonPath('payments.0.creator.id', $this->user->id)
+            ->assertJsonPath('payments.0.creator.name', $this->user->name);
     }
 
     public function testStoreInvoicePersistsItemTotalsAndKeepsPendingStatus(): void
