@@ -147,6 +147,27 @@ final class GroupCatalogContextTest extends TestCase
         $this->assertSame($primaryIds->all(), $revisitedIds->all());
     }
 
+    public function test_school_attendance_catalog_includes_unassigned_complementary_groups(): void
+    {
+        $this->actingAs($this->user);
+
+        $complementaryGroup = TrainingGroup::query()->create([
+            'name' => 'Porteros sin instructor',
+            'school_id' => $this->school['id'],
+            'year_active' => now()->year,
+            'days' => ['Martes'],
+            'schedules' => ['08:00AM - 09:00AM'],
+            'is_complementary' => true,
+        ]);
+
+        $response = $this->getJson('/api/v2/settings/general')->assertOk();
+        $regularCatalogIds = collect($response->json('t_groups'))->pluck('id');
+        $attendanceCatalogIds = collect($response->json('attendance_training_groups'))->pluck('id');
+
+        $this->assertFalse($regularCatalogIds->contains($complementaryGroup->id));
+        $this->assertTrue($attendanceCatalogIds->contains($complementaryGroup->id));
+    }
+
     private function configureCampuses(int $primarySchoolId, array $campusIds): void
     {
         SettingValue::query()->updateOrCreate(

@@ -14,7 +14,13 @@ export default function useAttendances() {
     const settings = useSetting()
     const attendance_table = useTemplateRef('attendance_table')
 
-    const groups = computed(() => settings.groups
+    const attendanceGroups = computed(() => (
+        settings.attendance_training_groups?.length
+            ? settings.attendance_training_groups
+            : settings.groups
+    ))
+
+    const groups = computed(() => attendanceGroups.value
         .filter((group) => group.name !== 'Provisional')
         .map((group) => ({ value: group.id, label: group.full_group })))
 
@@ -38,6 +44,7 @@ export default function useAttendances() {
     const classDays = ref([])
     const classDaySelected = ref(null)
     const attendancesGroup = ref([])
+    const lastSearchValues = ref(null)
     const playerSearchTerm = ref('')
     const takeAttendance = ref(null)
     const retiredRowsCount = computed(() => attendancesGroup.value.filter((row) => Boolean(row.inscription_deleted)).length)
@@ -205,7 +212,8 @@ export default function useAttendances() {
             playerSearchTerm.value = ''
             export_pdf.value = null
             export_excel.value = null
-            modelGroup.value = settings.groups.find((group) => String(group.id) === String(values.training_group_id)) ?? null
+            lastSearchValues.value = { ...values }
+            modelGroup.value = attendanceGroups.value.find((group) => String(group.id) === String(values.training_group_id)) ?? null
             modelMonth.value = optionsMonths.find((month) => Number(month.value) === Number(values.month)) ?? null
 
             const response = await api.get(`/api/v2/training_group/classdays`, {
@@ -263,6 +271,34 @@ export default function useAttendances() {
             export_pdf.value = null
             export_excel.value = null
             showMessage("Algo salió mal", 'error')
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    const createMissingAttendances = async () => {
+        const values = lastSearchValues.value
+
+        if (! values?.training_group_id || ! values?.month) {
+            showMessage('Selecciona un grupo y mes antes de crear asistencias.', 'warning')
+            return
+        }
+
+        try {
+            isLoading.value = true
+
+            await api.post('/api/v2/assists', {
+                training_group_id: values.training_group_id,
+                month: values.month,
+            })
+
+            if (classDaySelected.value) {
+                await clickClassDay(classDaySelected.value)
+            }
+
+            showMessage('Asistencias creadas correctamente.')
+        } catch (error) {
+            showMessage(error.response?.data?.message || 'No fue posible crear las asistencias.', 'error')
         } finally {
             isLoading.value = false
         }
@@ -485,6 +521,7 @@ export default function useAttendances() {
         attendanceRowReadOnly,
         applyPlayerSearch,
         handleSearchClassdays,
+        createMissingAttendances,
         clickClassDay,
         markAttendanceForAllLoaded,
         onChangeAttendance,

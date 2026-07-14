@@ -12,6 +12,7 @@ const { apiMock, settingsStore } = vi.hoisted(() => ({
             { id: 10, name: 'Grupo A', full_group: 'Grupo A Sub 12' },
             { id: 11, name: 'Provisional', full_group: 'Provisional' },
         ],
+        attendance_training_groups: [],
         getSettings: vi.fn().mockResolvedValue(undefined),
     },
 }))
@@ -82,6 +83,11 @@ describe('attendance-list composable', () => {
     beforeEach(() => {
         apiMock.get.mockReset()
         apiMock.post.mockReset()
+        settingsStore.groups = [
+            { id: 10, name: 'Grupo A', full_group: 'Grupo A Sub 12' },
+            { id: 11, name: 'Provisional', full_group: 'Provisional' },
+        ]
+        settingsStore.attendance_training_groups = []
         settingsStore.getSettings.mockClear()
         vi.stubGlobal('showMessage', vi.fn())
         vi.stubGlobal('modalHidden', vi.fn())
@@ -128,6 +134,59 @@ describe('attendance-list composable', () => {
         expect(wrapper.vm.filteredAttendancesGroup[0].id).toBe(1)
         expect(columnMock).not.toHaveBeenCalled()
         expect(apiMock.get).not.toHaveBeenCalled()
+    })
+
+    it('uses attendance-specific groups so complementary groups can appear in the selector', async () => {
+        settingsStore.attendance_training_groups = [
+            { id: 20, name: 'Grupo Principal', full_group: 'Grupo Principal Sub 12', is_complementary: false },
+            { id: 21, name: 'Porteros', full_group: 'Porteros', is_complementary: true },
+        ]
+
+        const wrapper = mountComposable()
+        await flushPromises()
+
+        expect(wrapper.vm.groups).toEqual([
+            { value: 20, label: 'Grupo Principal Sub 12' },
+            { value: 21, label: 'Porteros' },
+        ])
+    })
+
+    it('creates missing attendance rows from the Vue flow and reloads the selected class day', async () => {
+        const wrapper = mountComposable()
+        await flushPromises()
+
+        const classDay = {
+            id: '211',
+            group_id: 21,
+            month: 1,
+            year: 2026,
+            column: 'assistance_one',
+        }
+
+        apiMock.get
+            .mockResolvedValueOnce({ data: [classDay] })
+            .mockResolvedValueOnce({ data: { rows: [], url_print: null, url_print_excel: null } })
+            .mockResolvedValueOnce({ data: { rows: [activeRow({ id: 10 })], url_print: '/pdf', url_print_excel: '/excel' } })
+        apiMock.post.mockResolvedValue({ data: [] })
+
+        await wrapper.vm.handleSearchClassdays({ training_group_id: 21, month: 1 })
+        await wrapper.vm.clickClassDay(classDay)
+        await wrapper.vm.createMissingAttendances()
+
+        expect(apiMock.post).toHaveBeenCalledWith('/api/v2/assists', {
+            training_group_id: 21,
+            month: 1,
+        })
+        expect(apiMock.get).toHaveBeenLastCalledWith('/api/v2/assists', {
+            params: {
+                month: 1,
+                training_group_id: 21,
+                column: 'assistance_one',
+                dataRaw: true,
+            },
+        })
+        expect(wrapper.vm.attendancesGroup).toHaveLength(1)
+        expect(showMessage).toHaveBeenCalledWith('Asistencias creadas correctamente.')
     })
 
     it('indexes player name, code and category for local DataTable search', async () => {

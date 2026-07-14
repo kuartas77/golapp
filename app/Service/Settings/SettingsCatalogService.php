@@ -25,12 +25,22 @@ class SettingsCatalogService
         $groups = $this->catalogCache->remember(GroupCatalogCache::TRAINING, $schoolId, 'settings', function () use ($schoolId, $instructorId) {
             return $this->trainingGroups->getListGroupsSchedule(false, $instructorId, Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']), $schoolId);
         }, $instructorId);
+        $attendanceGroups = $this->catalogCache->remember(GroupCatalogCache::TRAINING, $schoolId, 'settings-attendances', function () use ($schoolId, $instructorId, $instructor) {
+            return $this->trainingGroups->getListGroupsSchedule(
+                false,
+                $instructorId,
+                Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']),
+                $schoolId,
+                $instructor
+            );
+        }, $instructorId);
         $allGroups = collect($groups->all());
         $firstGroup = TrainingGroup::orderBy('id')->firstWhere('school_id', $schoolId);
         if (!$instructor && $firstGroup && !$allGroups->contains('id', $firstGroup->id)) $allGroups->prepend($firstGroup);
 
         return [
             'all_t_groups' => $allGroups, 't_groups' => $groups,
+            'attendance_training_groups' => $attendanceGroups,
             'normal_training_groups' => $groups->reject(fn ($group) => $group->is_complementary)->values(),
             'complementary_training_groups' => $groups->filter(fn ($group) => $group->is_complementary)->values(),
             'categories' => Cache::remember("KEY_CATEGORIES_SELECT_{$schoolId}", now()->addMinutes(5), fn () => DB::table('inscriptions')->where('school_id', $schoolId)->where('year', now()->year)->orderBy('category')->groupBy('category')->select('category')->get()),

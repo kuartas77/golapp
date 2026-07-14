@@ -162,7 +162,7 @@ class TrainingGroupRepository
     /**
      * @param  null  $whereUser
      */
-    public function getListGroupsSchedule(bool $deleted = false, ?int $user_id = null, ?callable $filter = null, ?int $schoolId = null): Collection
+    public function getListGroupsSchedule(bool $deleted = false, ?int $user_id = null, ?callable $filter = null, ?int $schoolId = null, bool $requireInstructorAssignment = true): Collection
     {
         $schoolId ??= (int) getSchool(auth()->user())->id;
         $query = $this->trainingGroup->query()->where('school_id', $schoolId)->where('year_active', '>=', now()->year);
@@ -181,7 +181,7 @@ class TrainingGroupRepository
                 $query->where('training_group_user.user_id', $user_id)
                     ->where('assigned_year', now()->year);
             });
-        } else {
+        } elseif ($requireInstructorAssignment) {
             $firstTeam = $this->trainingGroup->query()->select(['id'])->where('school_id', $schoolId)->orderBy('id', 'ASC')->first();
             $query->where(function ($query) use ($firstTeam): void {
                 $query->whereRelation('instructors', 'assigned_year', '>=', now()->year);

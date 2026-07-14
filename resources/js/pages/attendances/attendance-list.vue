@@ -47,6 +47,16 @@
                                             </template>
                                         </button>
                                     </div>
+                                    <div v-if="classDays.length" class="mb-3">
+                                        <button
+                                            type="button"
+                                            class="btn btn-success w-100"
+                                            :disabled="isLoading"
+                                            @click="createMissingAttendances"
+                                        >
+                                            Crear asistencias
+                                        </button>
+                                    </div>
                                 </Form>
                             </div>
 
@@ -287,6 +297,7 @@ const {
     options,
     attendanceRowReadOnly,
     handleSearchClassdays,
+    createMissingAttendances,
     clickClassDay,
     markAttendanceForAllLoaded,
     onChangeAttendance,
