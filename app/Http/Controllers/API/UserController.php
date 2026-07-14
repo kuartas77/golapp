@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\API;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use App\Http\Resources\API\AuthUserResource;
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
@@ -15,6 +16,10 @@ class UserController extends Controller
 
     public function user(Request $request): AuthUserResource
     {
-        return new AuthUserResource($request->user());
+        $user = $request->user();
+
+        abort_unless($user instanceof User, 401);
+
+        return new AuthUserResource($user);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Inscription;
+use App\Models\People;
 use App\Models\Player;
 use App\Models\School;
 use App\Models\SchoolUser;
@@ -16,6 +17,7 @@ use App\Service\Auth\AuthUserContext;
 use App\Service\Notification\TopicNotificationStoreService;
 use App\Service\Player\PlayerStatsService;
 use Illuminate\Support\Facades\Cache;
+use Laravel\Sanctum\Sanctum;
 use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
@@ -82,6 +84,19 @@ final class SchoolPermissionsTest extends TestCase
             ->getJson('/api/v2/user')
             ->assertOk()
             ->assertJsonPath('data.school_id', $secondarySchool->id);
+    }
+
+    public function test_user_endpoint_rejects_guardian_authentication_context(): void
+    {
+        $guardian = People::factory()->create([
+            'tutor' => true,
+            'email' => 'guardian-user-endpoint@example.com',
+        ]);
+
+        Sanctum::actingAs($guardian, ['auth']);
+
+        $this->getJson('/api/v2/user')
+            ->assertUnauthorized();
     }
 
     public function test_authenticated_user_context_is_cached_and_invalidated_when_user_changes(): void
