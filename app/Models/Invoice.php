@@ -150,6 +150,43 @@ class Invoice extends Model
     // Marcar meses como pagados en la tabla payments original
     public function markMonthsAsPaid()
     {
+        $monthItems = $this->items()
+            ->where('type', 'monthly')
+            ->where('is_paid', 1)
+            ->whereNotNull('month')
+            ->get();
+
+        if ($monthItems->isEmpty()) {
+            return;
+        }
+
+        $paymentFields = Payment::paymentFields();
+
+        $monthItems
+            ->whereNotNull('payment_id')
+            ->groupBy('payment_id')
+            ->each(function ($items, $paymentId) use ($paymentFields) {
+                $payment = Payment::query()->find($paymentId);
+
+                if (! $payment) {
+                    return;
+                }
+
+                foreach ($items as $item) {
+                    if (in_array($item->month, $paymentFields, true)) {
+                        $payment->{$item->month} = Payment::$paid;
+                    }
+                }
+
+                $payment->save();
+            });
+
+        $itemsWithoutPayment = $monthItems->whereNull('payment_id');
+
+        if ($itemsWithoutPayment->isEmpty()) {
+            return;
+        }
+
         $payment = Payment::where('inscription_id', $this->inscription_id)
             ->where('year', $this->year)
             ->first();
@@ -158,19 +195,9 @@ class Invoice extends Model
             return;
         }
 
-        // Obtener los ítems de meses que están marcados como pagados
-        $monthItems = $this->items()
-            ->where('type', 'monthly')
-            ->where('is_paid', 1)
-            ->whereNotNull('month')
-            ->get();
-
-        foreach ($monthItems as $item) {
-            if (in_array($item->month, [
-                'enrollment', 'january', 'february', 'march', 'april', 'may',
-                'june', 'july', 'august', 'september', 'october', 'november', 'december'
-            ])) {
-                $payment->{$item->month} = 1; // Marcar como pagado
+        foreach ($itemsWithoutPayment as $item) {
+            if (in_array($item->month, $paymentFields, true)) {
+                $payment->{$item->month} = Payment::$paid;
             }
         }
 

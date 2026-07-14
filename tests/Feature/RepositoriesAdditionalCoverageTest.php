@@ -715,6 +715,51 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         }
     }
 
+    public function testInvoicePaymentMarksMonthlyItemPaymentByPaymentId(): void
+    {
+        $this->actingAs($this->user);
+        [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
+
+        Schema::disableForeignKeyConstraints();
+
+        try {
+            $invoice = Invoice::query()->create([
+                'invoice_number' => 'FAC-PAY-ID-' . now()->format('YmdHis'),
+                'inscription_id' => $inscription->id,
+                'training_group_id' => $trainingGroup->id,
+                'year' => now()->addYear()->year,
+                'student_name' => $inscription->player->full_names,
+                'total_amount' => 0,
+                'paid_amount' => 0,
+                'issue_date' => now()->toDateString(),
+                'due_date' => now()->addWeek()->toDateString(),
+                'status' => 'pending',
+                'school_id' => $this->school['id'],
+                'created_by' => $this->user->id,
+            ]);
+
+            $item = $invoice->items()->create([
+                'type' => 'monthly',
+                'description' => 'Mensualidad Enero',
+                'quantity' => 1,
+                'unit_price' => 50000,
+                'month' => 'january',
+                'payment_id' => $payment->id,
+                'is_paid' => true,
+            ]);
+
+            $invoice->markMonthsAsPaid();
+
+            $payment->refresh();
+            $item->refresh();
+
+            $this->assertTrue($item->is_paid);
+            $this->assertSame('1', (string) $payment->january);
+        } finally {
+            Schema::enableForeignKeyConstraints();
+        }
+    }
+
     public function testStoreInvoicePersistsItemTotalsAndKeepsPendingStatus(): void
     {
         // if (DB::getDriverName() === 'sqlite') {
