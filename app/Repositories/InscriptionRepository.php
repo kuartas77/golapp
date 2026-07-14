@@ -180,7 +180,7 @@ class InscriptionRepository
         $result = false;
         try {
             $this->prepareTrainingGroupData($requestData);
-            $this->prepareMonthlyPaymentData($requestData);
+            $this->preserveMonthlyPaymentData($requestData, $inscription);
             $customCharges = $requestData['custom_charges'] ?? [];
             unset($requestData['custom_charges'], $requestData['custom_charges_due_date']);
             $requestData['deleted_at'] = null;
@@ -204,6 +204,13 @@ class InscriptionRepository
         }
 
         return $result;
+    }
+
+    private function preserveMonthlyPaymentData(array &$requestData, Inscription $inscription): void
+    {
+        $requestData['monthly_payment_type'] = $inscription->monthly_payment_type;
+        $requestData['monthly_payment_amount'] = $inscription->monthly_payment_amount;
+        $requestData['brother_payment'] = $inscription->brother_payment;
     }
 
     private function syncCustomCharges(Inscription $inscription, array $customCharges): void

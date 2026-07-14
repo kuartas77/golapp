@@ -777,7 +777,7 @@ final class InscriptionsTest extends TestCase
         ]);
     }
 
-    public function test_update_inscription_recalculates_debt_months_when_monthly_payment_type_changes(): void
+    public function test_update_inscription_preserves_existing_monthly_payment_values(): void
     {
         Mail::fake();
         Notification::fake();
@@ -830,14 +830,14 @@ final class InscriptionsTest extends TestCase
         $this->assertDatabaseHas('inscriptions', [
             'id' => $inscription->id,
             'brother_payment' => false,
-            'monthly_payment_type' => Setting::MONTHLY_PAYMENT_OPTION_1,
-            'monthly_payment_amount' => 62000,
+            'monthly_payment_type' => Setting::MONTHLY_PAYMENT,
+            'monthly_payment_amount' => 50000,
         ]);
-        $this->assertSame(62000, (int) $payment->{"{$monthField}_amount"});
+        $this->assertSame(50000, (int) $payment->{"{$monthField}_amount"});
         $this->assertSame(50000, (int) $payment->{"{$paidField}_amount"});
     }
 
-    public function test_update_inscription_from_brother_to_extra_option_clears_brother_payment(): void
+    public function test_update_inscription_from_brother_keeps_existing_monthly_payment_type(): void
     {
         Mail::fake();
         Notification::fake();
@@ -874,9 +874,9 @@ final class InscriptionsTest extends TestCase
 
         $inscription->refresh();
 
-        $this->assertFalse((bool) $inscription->brother_payment);
-        $this->assertSame(Setting::MONTHLY_PAYMENT_OPTION_2, $inscription->monthly_payment_type);
-        $this->assertSame(72000, (int) $inscription->monthly_payment_amount);
+        $this->assertTrue((bool) $inscription->brother_payment);
+        $this->assertSame(Setting::BROTHER_MONTHLY_PAYMENT, $inscription->monthly_payment_type);
+        $this->assertSame(65000, (int) $inscription->monthly_payment_amount);
     }
 
     public function test_delete_inscription(): void
