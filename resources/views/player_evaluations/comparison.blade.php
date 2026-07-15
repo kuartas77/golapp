@@ -73,6 +73,12 @@
         $delta = data_get($comparison, 'overall.delta');
         $trend = data_get($comparison, 'overall.trend', 'neutral');
         $badge = $trend === 'up' ? 'success' : ($trend === 'down' ? 'danger' : 'secondary');
+        $trendLabels = [
+            'up' => 'Mejora',
+            'down' => 'Descenso',
+            'equal' => 'Sin cambio',
+            'neutral' => 'Sin datos',
+        ];
     @endphp
 
     <div class="row mb-4">
@@ -114,6 +120,7 @@
                 @else
                     —
                 @endif
+                · {{ $trendLabels[$trend] ?? $trend }}
             </span>
         </div>
 
@@ -170,7 +177,7 @@
                             </td>
                             <td>
                                 <span class="badge badge-{{ $trendClass }}">
-                                    {{ $trendItem }}
+                                    {{ $trendLabels[$trendItem] ?? $trendItem }}
                                 </span>
                             </td>
                         </tr>

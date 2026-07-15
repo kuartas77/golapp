@@ -51,6 +51,15 @@
     </style>
 </head>
 <body>
+    @php
+        $trendLabels = [
+            'up' => 'Mejora',
+            'down' => 'Descenso',
+            'equal' => 'Sin cambio',
+            'neutral' => 'Sin datos',
+        ];
+    @endphp
+
     <div class="text-center mb-20">
         <h2>{{ $clubName ?? 'Club' }}</h2>
         <h3>Comparativo de evaluaciones del jugador</h3>
@@ -107,7 +116,7 @@
                     {{ data_get($comparison, 'overall.delta') !== null ? number_format((float) data_get($comparison, 'overall.delta'), 2) : '—' }}
                 </td>
                 <td>
-                    {{ data_get($comparison, 'overall.trend', 'neutral') }}
+                    {{ $trendLabels[data_get($comparison, 'overall.trend', 'neutral')] ?? data_get($comparison, 'overall.trend', 'Sin datos') }}
                 </td>
             </tr>
         </tbody>
@@ -131,7 +140,7 @@
                     <td>{{ data_get($item, 'period_a_score') !== null ? number_format((float) data_get($item, 'period_a_score'), 2) : '—' }}</td>
                     <td>{{ data_get($item, 'period_b_score') !== null ? number_format((float) data_get($item, 'period_b_score'), 2) : '—' }}</td>
                     <td>{{ data_get($item, 'delta') !== null ? number_format((float) data_get($item, 'delta'), 2) : '—' }}</td>
-                    <td>{{ data_get($item, 'trend', 'neutral') }}</td>
+                    <td>{{ $trendLabels[data_get($item, 'trend', 'neutral')] ?? data_get($item, 'trend', 'Sin datos') }}</td>
                 </tr>
             @empty
                 <tr>

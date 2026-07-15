@@ -91,28 +91,6 @@
                     </button>
                 </div>
 
-                <div class="surface-card card mb-4" data-tour="admin-evaluation-templates-summary">
-                    <div class="surface-card-body card-body compact-stats">
-                        <div class="compact-stat-item">
-                            <span class="compact-stat-label">Total filtrado</span>
-                            <strong class="compact-stat-value">{{ tableInfo.recordsDisplay }}</strong>
-                            <span class="text-muted">plantillas encontradas</span>
-                        </div>
-
-                        <div class="compact-stat-item">
-                            <span class="compact-stat-label">Página actual</span>
-                            <strong class="compact-stat-value">{{ tableInfo.page }}</strong>
-                            <span class="text-muted">de {{ tableInfo.pages || 1 }}</span>
-                        </div>
-
-                        <div class="compact-stat-item">
-                            <span class="compact-stat-label">Rango visible</span>
-                            <strong class="compact-stat-value">{{ tableInfo.from }} - {{ tableInfo.to }}</strong>
-                            <span class="text-muted">resultados en esta página</span>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="surface-card card overflow-hidden" data-tour="admin-evaluation-templates-table">
                     <div class="surface-card-body card-body p-1">
                         <DatatableTemplate
@@ -164,12 +142,13 @@
 
                             <template #template-actions="props">
                                 <div class="d-flex flex-wrap justify-content-end gap-2">
-                                    <router-link
-                                        :to="{ name: 'evaluation-templates.edit', params: { id: props.rowData.id } }"
+                                    <button
+                                        type="button"
                                         class="btn btn-primary btn-sm"
+                                        @click="goToTemplate(props.rowData)"
                                     >
                                         {{ props.rowData.is_in_use ? 'Ver' : 'Editar' }}
-                                    </router-link>
+                                    </button>
 
                                     <button
                                         type="button"
@@ -262,14 +241,6 @@ const filters = reactive({
     training_group_id: '',
 })
 
-const tableInfo = reactive({
-    page: 1,
-    pages: 1,
-    recordsDisplay: 0,
-    from: 0,
-    to: 0,
-})
-
 function statusVariant(status) {
     return statusVariantMap[status] || 'secondary'
 }
@@ -357,14 +328,6 @@ const options = {
             })
         }
     },
-    drawCallback() {
-        const info = this.api().page.info()
-        tableInfo.page = info.pages ? info.page + 1 : 1
-        tableInfo.pages = info.pages || 1
-        tableInfo.recordsDisplay = info.recordsDisplay || 0
-        tableInfo.from = info.recordsDisplay ? info.start + 1 : 0
-        tableInfo.to = info.end || 0
-    },
     columns,
 }
 
@@ -392,6 +355,14 @@ function applyFilters() {
 
 function resetFilters() {
     router.replace({ name: 'evaluation-templates.index' })
+}
+
+function goToTemplate(template) {
+    if (!template?.id) {
+        return
+    }
+
+    router.push({ name: 'evaluation-templates.edit', params: { id: template.id } })
 }
 
 async function duplicateTemplate(template) {
@@ -486,43 +457,6 @@ watch(
 
 .evaluation-templates-page {
     min-height: 18rem;
-}
-
-.compact-stats {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.75rem 1.25rem;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-}
-
-.compact-stat-item {
-    display: inline-flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-}
-
-.compact-stat-item + .compact-stat-item::before {
-    content: '';
-    width: 1px;
-    height: 1rem;
-    margin-right: 0.2rem;
-    background: rgba(127, 127, 127, 0.2);
-}
-
-.compact-stat-label {
-    font-size: 0.82rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: inherit;
-    opacity: 0.75;
-}
-
-.compact-stat-value {
-    font-size: 1rem;
-    line-height: 1.2;
 }
 
 .usage-chip {

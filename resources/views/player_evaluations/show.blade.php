@@ -109,7 +109,7 @@
                         <tr>
                             <td>{{ $score->criterion?->name ?? '—' }}</td>
                             <td>{{ $score->score !== null ? number_format($score->score, 2) : '—' }}</td>
-                            <td>{{ $score->scale_value ?: '—' }}</td>
+                            <td>{{ $score->scale_label ?: $score->scale_value ?: '—' }}</td>
                             <td>{{ $score->comment ?: '—' }}</td>
                         </tr>
                     @endforeach

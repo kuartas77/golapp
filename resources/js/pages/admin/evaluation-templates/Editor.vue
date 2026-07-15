@@ -69,6 +69,7 @@
                                         :disabled="isReadOnly"
                                         placeholder="Ej. Plantilla base jugadores de campo"
                                     >
+                                    <div class="form-text">Nombre visible para seleccionar esta plantilla al crear una evaluación.</div>
                                 </div>
 
                                 <div class="col-12 col-md-4 col-lg-2">
@@ -81,6 +82,7 @@
                                         class="form-control"
                                         :disabled="isReadOnly"
                                     >
+                                    <div class="form-text">Año deportivo al que pertenece la plantilla.</div>
                                 </div>
 
                                 <div class="col-12 col-md-4 col-lg-2">
@@ -90,6 +92,7 @@
                                             {{ status.label }}
                                         </option>
                                     </select>
+                                    <div class="form-text">Solo las plantillas activas estarán disponibles para nuevas evaluaciones.</div>
                                 </div>
 
                                 <div class="col-12 col-md-4 col-lg-3">
@@ -104,6 +107,7 @@
                                             {{ group.name }}
                                         </option>
                                     </select>
+                                    <div class="form-text">Déjalo en General si aplica a todos los grupos.</div>
                                 </div>
 
                                 <div class="col-12">
@@ -115,6 +119,7 @@
                                         :disabled="isReadOnly"
                                         placeholder="Describe el propósito de la plantilla y el tipo de seguimiento que soporta."
                                     ></textarea>
+                                    <div class="form-text">Ayuda a otros administradores a entender cuándo usar esta plantilla.</div>
                                 </div>
                             </div>
                         </div>
@@ -127,6 +132,9 @@
                                 <h5 class="mb-1">Criterios de evaluación</h5>
                                 <p class="text-muted mb-0">
                                     Crea la estructura que verá el evaluador. Solo se permiten criterios numéricos o de escala.
+                                </p>
+                                <p class="text-muted small mb-0 mt-2">
+                                    El orden define cómo se muestran los criterios. El peso indica cuánto aporta cada criterio al resultado total.
                                 </p>
                             </div>
 
@@ -159,7 +167,7 @@
                                         :key="value"
                                         class="theme-chip scale-option-chip"
                                     >
-                                        {{ value }}: {{ label }}
+                                        {{ label }}
                                     </span>
                                 </div>
                             </div>
@@ -168,15 +176,60 @@
                                 <table class="table table-bordered align-middle mb-0">
                                     <thead>
                                         <tr>
-                                            <th style="width: 90px;">Orden</th>
-                                            <th style="min-width: 150px;">Dimensión</th>
-                                            <th style="min-width: 170px;">Criterio</th>
-                                            <th style="width: 140px;">Tipo</th>
-                                            <th style="width: 110px;">Mín.</th>
-                                            <th style="width: 110px;">Máx.</th>
-                                            <th style="width: 110px;">Peso</th>
-                                            <th style="width: 110px;">Oblig.</th>
-                                            <th style="min-width: 220px;">Descripción</th>
+                                            <th style="width: 120px;">
+                                                <span class="th-help">
+                                                    Orden
+                                                    <i class="fa-regular fa-circle-question" v-tooltip.top="'Posición en la que se mostrará el criterio dentro del formulario de evaluación.'"></i>
+                                                </span>
+                                            </th>
+                                            <th style="min-width: 150px;">
+                                                <span class="th-help">
+                                                    Dimensión
+                                                    <i class="fa-regular fa-circle-question" v-tooltip.top="'Área evaluada, por ejemplo Técnica, Táctica, Física o Actitudinal.'"></i>
+                                                </span>
+                                            </th>
+                                            <th style="min-width: 170px;">
+                                                <span class="th-help">
+                                                    Criterio
+                                                    <i class="fa-regular fa-circle-question" v-tooltip.top="'Aspecto específico que se calificará dentro de la dimensión.'"></i>
+                                                </span>
+                                            </th>
+                                            <th style="width: 140px;">
+                                                <span class="th-help">
+                                                    Tipo
+                                                    <i class="fa-regular fa-circle-question" v-tooltip.top="'Numérico permite definir mínimo y máximo. Escala usa las etiquetas configuradas.'"></i>
+                                                </span>
+                                            </th>
+                                            <th style="width: 110px;">
+                                                <span class="th-help">
+                                                    Mín.
+                                                    <i class="fa-regular fa-circle-question" v-tooltip.top="'Puntaje mínimo permitido para criterios numéricos.'"></i>
+                                                </span>
+                                            </th>
+                                            <th style="width: 110px;">
+                                                <span class="th-help">
+                                                    Máx.
+                                                    <i class="fa-regular fa-circle-question" v-tooltip.top="'Puntaje máximo permitido para criterios numéricos.'"></i>
+                                                </span>
+                                            </th>
+                                            <th style="width: 110px;">
+                                                <span class="th-help">
+                                                    Peso
+                                                    <i class="fa-regular fa-circle-question" v-tooltip.top="'Importancia relativa del criterio dentro de la evaluación. Un peso mayor aporta más al resultado total.'"></i>
+                                                </span>
+                                            </th>
+                                            <th style="width: 110px;">
+                                                <span class="th-help">
+                                                    Oblig.
+                                                    <i class="fa-regular fa-circle-question" v-tooltip.top="'Si está activo, el criterio debe tener calificación para finalizar la evaluación.'"></i>
+                                                </span>
+                                            </th>
+                                            <th style="min-width: 220px;">
+                                                <span class="th-help">
+                                                    Descripción
+                                                    <i class="fa-regular fa-circle-question" v-tooltip.top="'Guía corta para que el evaluador entienda cómo calificar este criterio.'"></i>
+                                                </span>
+                                            </th>
                                             <th class="text-end" style="width: 110px;">Acción</th>
                                         </tr>
                                     </thead>
@@ -184,9 +237,11 @@
                                         <tr v-for="(criterion, index) in form.criteria" :key="`criterion-${index}`">
                                             <td>
                                                 <input
-                                                    v-model="criterion.sort_order"
+                                                    v-model.number="criterion.sort_order"
                                                     type="number"
                                                     min="1"
+                                                    step="1"
+                                                    inputmode="numeric"
                                                     class="form-control form-control-sm"
                                                     :disabled="isReadOnly"
                                                 >
@@ -560,6 +615,20 @@ watch(
 
 .scale-option-chip {
     opacity: 0.8;
+}
+
+.th-help {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.th-help i {
+    color: inherit;
+    cursor: help;
+    font-size: 0.8rem;
+    opacity: 0.65;
 }
 
 .table > :not(caption) > * > * {
