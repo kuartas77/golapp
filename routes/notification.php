@@ -86,7 +86,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
         Route::middleware('abilities:request-store')->group(function () {
             Route::post('store', [UniformRequestController::class, 'store']);
-            Route::get('/{uniformRequest}/cancel', [UniformRequestController::class, 'cancel']);
+            Route::post('/{uniformRequest}/cancel', [UniformRequestController::class, 'cancel']);
         });
     });
 

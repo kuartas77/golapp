@@ -142,13 +142,13 @@ return [
      */
 
     'hsts' => [
-        'enable' => false,
+        'enable' => (bool) env('SECURE_HEADERS_HSTS', env('APP_ENV', 'production') === 'production'),
 
-        'max-age' => 31536000,
+        'max-age' => (int) env('SECURE_HEADERS_HSTS_MAX_AGE', 31536000),
 
-        'include-sub-domains' => false,
+        'include-sub-domains' => (bool) env('SECURE_HEADERS_HSTS_INCLUDE_SUBDOMAINS', false),
 
-        'preload' => false,
+        'preload' => (bool) env('SECURE_HEADERS_HSTS_PRELOAD', false),
     ],
 
     /*
