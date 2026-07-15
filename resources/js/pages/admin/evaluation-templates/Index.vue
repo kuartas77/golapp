@@ -25,7 +25,7 @@
             <div class="position-relative evaluation-templates-page">
                 <Loader :is-loading="isLoading" loading-text="Cargando plantillas..." />
 
-                <div class="surface-card card mb-4" data-tour="admin-evaluation-templates-filters">
+                <div class="surface-card card overflow-visible mb-4" data-tour="admin-evaluation-templates-filters">
                     <div class="surface-card-body card-body">
                         <div class="row g-3 align-items-end">
                             <div class="col-12 col-lg-4">
@@ -61,16 +61,12 @@
 
                             <div class="col-12 col-md-4 col-lg-4">
                                 <label class="form-label">Grupo de entrenamiento</label>
-                                <select v-model="filters.training_group_id" class="form-select form-select-sm">
-                                    <option value="">Todos</option>
-                                    <option
-                                        v-for="group in filterOptions.training_groups"
-                                        :key="group.id"
-                                        :value="String(group.id)"
-                                    >
-                                        {{ group.name }}
-                                    </option>
-                                </select>
+                                <CustomSelect2
+                                    v-model="filters.training_group_id"
+                                    :options="trainingGroupOptions"
+                                    placeholder="Todos"
+                                    search-placeholder="Buscar grupo..."
+                                />
                             </div>
                         </div>
 
@@ -81,7 +77,7 @@
                             <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters">
                                 Limpiar
                             </button>
-                            <button type="button" class="btn btn-secondary btn-sm" @click="loadPage">
+                            <button type="button" class="btn btn-secondary btn-sm" @click="reloadTable">
                                 Recargar
                             </button>
                         </div>
@@ -90,7 +86,7 @@
 
                 <div v-if="globalError" class="alert alert-danger d-flex flex-column flex-md-row justify-content-between gap-3">
                     <span>{{ globalError }}</span>
-                    <button type="button" class="btn btn-sm btn-danger align-self-start" @click="loadPage">
+                    <button type="button" class="btn btn-sm btn-danger align-self-start" @click="reloadTable">
                         Reintentar
                     </button>
                 </div>
@@ -99,28 +95,32 @@
                     <div class="surface-card-body card-body compact-stats">
                         <div class="compact-stat-item">
                             <span class="compact-stat-label">Total filtrado</span>
-                            <strong class="compact-stat-value">{{ pagination.total }}</strong>
+                            <strong class="compact-stat-value">{{ tableInfo.recordsDisplay }}</strong>
                             <span class="text-muted">plantillas encontradas</span>
                         </div>
 
                         <div class="compact-stat-item">
                             <span class="compact-stat-label">Página actual</span>
-                            <strong class="compact-stat-value">{{ pagination.current_page }}</strong>
-                            <span class="text-muted">de {{ pagination.last_page || 1 }}</span>
+                            <strong class="compact-stat-value">{{ tableInfo.page }}</strong>
+                            <span class="text-muted">de {{ tableInfo.pages || 1 }}</span>
                         </div>
 
                         <div class="compact-stat-item">
                             <span class="compact-stat-label">Rango visible</span>
-                            <strong class="compact-stat-value">{{ pagination.from || 0 }} - {{ pagination.to || 0 }}</strong>
+                            <strong class="compact-stat-value">{{ tableInfo.from }} - {{ tableInfo.to }}</strong>
                             <span class="text-muted">resultados en esta página</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="surface-card card overflow-hidden" data-tour="admin-evaluation-templates-table">
-                    <div class="surface-card-body card-body p-0">
-                        <div v-if="templates.length" class="table-responsive">
-                            <table class="table table-hover table-bordered align-middle mb-0">
+                    <div class="surface-card-body card-body p-1">
+                        <DatatableTemplate
+                            id="evaluation_templates_table"
+                            ref="templateTable"
+                            :options="options"
+                        >
+                            <template #thead>
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -135,124 +135,79 @@
                                         <th class="text-end">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr v-for="template in templates" :key="template.id">
-                                        <td class="fw-semibold">#{{ template.id }}</td>
-                                        <td>
-                                            <div class="fw-semibold">{{ template.name }}</div>
-                                            <div class="small text-muted">{{ template.description || 'Sin descripción' }}</div>
-                                        </td>
-                                        <td>{{ template.training_group_name || 'General' }}</td>
-                                        <td>{{ template.year }}</td>
-                                        <td>v{{ template.version }}</td>
-                                        <td>{{ template.criteria_count || 0 }}</td>
-                                        <td>
-                                            <span class="theme-chip usage-chip" :class="{ 'is-in-use': template.is_in_use }">
-                                                {{ template.is_in_use ? `${template.evaluations_count || 0} evaluaciones` : 'Sin uso' }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge text-uppercase" :class="`badge-${statusVariant(template.status)}`">
-                                                {{ labelFromOptions(filterOptions.statuses, template.status, template.status) }}
-                                            </span>
-                                        </td>
-                                        <td>{{ formatDateTime(template.updated_at) }}</td>
-                                        <td>
-                                            <div class="d-flex flex-wrap justify-content-end gap-2">
-                                                <router-link
-                                                    :to="{ name: 'evaluation-templates.edit', params: { id: template.id } }"
-                                                    class="btn btn-primary btn-sm"
-                                                >
-                                                    {{ template.is_in_use ? 'Ver' : 'Editar' }}
-                                                </router-link>
+                            </template>
 
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-secondary btn-sm"
-                                                    @click="duplicateTemplate(template)"
-                                                >
-                                                    Duplicar
-                                                </button>
+                            <template #template-name="props">
+                                <div class="fw-semibold">{{ props.rowData.name }}</div>
+                                <div class="small text-muted">{{ props.rowData.description || 'Sin descripción' }}</div>
+                            </template>
 
-                                                <button
-                                                    v-if="template.status !== 'active'"
-                                                    type="button"
-                                                    class="btn btn-success btn-sm"
-                                                    @click="changeStatus(template, 'active')"
-                                                >
-                                                    Activar
-                                                </button>
+                            <template #template-version="props">
+                                v{{ props.cellData }}
+                            </template>
 
-                                                <button
-                                                    v-if="template.status !== 'inactive'"
-                                                    type="button"
-                                                    class="btn btn-warning btn-sm"
-                                                    @click="changeStatus(template, 'inactive')"
-                                                >
-                                                    Inactivar
-                                                </button>
+                            <template #template-usage="props">
+                                <span class="theme-chip usage-chip" :class="{ 'is-in-use': props.rowData.is_in_use }">
+                                    {{ props.rowData.is_in_use ? `${props.rowData.evaluations_count || 0} evaluaciones` : 'Sin uso' }}
+                                </span>
+                            </template>
 
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-danger btn-sm"
-                                                    :disabled="!template.can_delete"
-                                                    @click="confirmDelete(template)"
-                                                >
-                                                    Eliminar
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                            <template #template-status="props">
+                                <span class="badge text-uppercase" :class="`badge-${statusVariant(props.rowData.status)}`">
+                                    {{ labelFromOptions(filterOptions.statuses, props.rowData.status, props.rowData.status) }}
+                                </span>
+                            </template>
 
-                        <div v-else-if="!isLoading" class="empty-state">
-                            <h5 class="mb-2">No hay plantillas para mostrar</h5>
-                            <p class="text-muted mb-0">
-                                Ajusta los filtros o crea una nueva plantilla para empezar.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                            <template #template-date="props">
+                                {{ formatDateTime(props.cellData) }}
+                            </template>
 
-                <div
-                    v-if="pagination.last_page > 1"
-                    class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-4"
-                >
-                    <p class="text-muted mb-0">
-                        Mostrando {{ pagination.from || 0 }} a {{ pagination.to || 0 }} de {{ pagination.total }} plantillas.
-                    </p>
+                            <template #template-actions="props">
+                                <div class="d-flex flex-wrap justify-content-end gap-2">
+                                    <router-link
+                                        :to="{ name: 'evaluation-templates.edit', params: { id: props.rowData.id } }"
+                                        class="btn btn-primary btn-sm"
+                                    >
+                                        {{ props.rowData.is_in_use ? 'Ver' : 'Editar' }}
+                                    </router-link>
 
-                    <div class="d-flex flex-wrap gap-2">
-                        <button
-                            type="button"
-                            class="btn btn-secondary btn-sm"
-                            :disabled="pagination.current_page <= 1"
-                            @click="goToPage(pagination.current_page - 1)"
-                        >
-                            Anterior
-                        </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary btn-sm"
+                                        @click="duplicateTemplate(props.rowData)"
+                                    >
+                                        Duplicar
+                                    </button>
 
-                        <button
-                            v-for="page in visiblePages"
-                            :key="page"
-                            type="button"
-                            class="btn btn-sm"
-                            :class="page === pagination.current_page ? 'btn-primary' : 'btn-secondary'"
-                            @click="goToPage(page)"
-                        >
-                            {{ page }}
-                        </button>
+                                    <button
+                                        v-if="props.rowData.status !== 'active'"
+                                        type="button"
+                                        class="btn btn-success btn-sm"
+                                        @click="changeStatus(props.rowData, 'active')"
+                                    >
+                                        Activar
+                                    </button>
 
-                        <button
-                            type="button"
-                            class="btn btn-secondary btn-sm"
-                            :disabled="pagination.current_page >= pagination.last_page"
-                            @click="goToPage(pagination.current_page + 1)"
-                        >
-                            Siguiente
-                        </button>
+                                    <button
+                                        v-if="props.rowData.status !== 'inactive'"
+                                        type="button"
+                                        class="btn btn-warning btn-sm"
+                                        @click="changeStatus(props.rowData, 'inactive')"
+                                    >
+                                        Inactivar
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-danger btn-sm"
+                                        :disabled="!props.rowData.can_delete"
+                                        @click="confirmDelete(props.rowData)"
+                                    >
+                                        Eliminar
+                                    </button>
+                                </div>
+                            </template>
+                        </DatatableTemplate>
                     </div>
                 </div>
             </div>
@@ -264,13 +219,16 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import CustomSelect2 from '@/components/form/CustomSelect2.vue'
 import Loader from '@/components/general/Loader.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from '@/composables/use-meta'
 import api from '@/utils/axios'
+import configLanguaje from '@/utils/datatableUtils'
 import {
     defaultStatusOptions,
     formatDateTime,
@@ -288,9 +246,8 @@ const router = useRouter()
 const tutorial = usePageTutorial(evaluationTemplatesIndexTutorial)
 
 const isLoading = ref(false)
-const hasLoadedOptions = ref(false)
 const globalError = ref('')
-const templates = ref([])
+const templateTable = ref(null)
 
 const filterOptions = reactive({
     years: [],
@@ -305,41 +262,38 @@ const filters = reactive({
     training_group_id: '',
 })
 
-const pagination = reactive({
-    current_page: 1,
-    last_page: 1,
-    total: 0,
+const tableInfo = reactive({
+    page: 1,
+    pages: 1,
+    recordsDisplay: 0,
     from: 0,
     to: 0,
-})
-
-const visiblePages = computed(() => {
-    const pages = []
-    const windowSize = 5
-    let start = Math.max(1, pagination.current_page - Math.floor(windowSize / 2))
-    let end = Math.min(pagination.last_page, start + windowSize - 1)
-
-    if ((end - start + 1) < windowSize) {
-        start = Math.max(1, end - windowSize + 1)
-    }
-
-    for (let page = start; page <= end; page += 1) {
-        pages.push(page)
-    }
-
-    return pages
 })
 
 function statusVariant(status) {
     return statusVariantMap[status] || 'secondary'
 }
 
+function mapTrainingGroupOption(group) {
+    const value = String(group.value ?? group.id)
+    const label = group.label || (group.is_complementary ? `${group.name} (Complementario)` : group.name)
+
+    return {
+        value,
+        label,
+        meta: group.is_complementary ? 'Complementario' : '',
+    }
+}
+
+const trainingGroupOptions = computed(() => (
+    filterOptions.training_groups.map(mapTrainingGroupOption)
+))
+
 function syncFiltersFromRoute() {
     filters.search = String(route.query.search || '')
     filters.year = String(route.query.year || '')
     filters.status = String(route.query.status || '')
     filters.training_group_id = String(route.query.training_group_id || '')
-    pagination.current_page = Number(route.query.page || 1)
 }
 
 async function loadOptions() {
@@ -350,69 +304,94 @@ async function loadOptions() {
     filterOptions.training_groups = data.filters?.training_groups || []
 }
 
-async function loadTemplates() {
-    const { data } = await api.get('/api/v2/admin/evaluation-templates', {
-        params: {
-            ...toQueryObject(filters),
-            page: pagination.current_page,
-        },
-    })
+const columns = [
+    { data: 'id', name: 'evaluation_templates.id', width: '1%', className: 'dt-head-center dt-body-center' },
+    { data: 'name', name: 'name', render: '#template-name' },
+    { data: 'training_group_name', name: 'training_group_name', defaultContent: 'General' },
+    { data: 'year', name: 'year', className: 'dt-head-center dt-body-center' },
+    { data: 'version', name: 'version', render: '#template-version', className: 'dt-head-center dt-body-center' },
+    { data: 'criteria_count', name: 'criteria_count', className: 'dt-head-center dt-body-center', searchable: false, orderable: false },
+    { data: 'evaluations_count', name: 'evaluations_count', render: '#template-usage', className: 'dt-head-center dt-body-center', searchable: false, orderable: false },
+    { data: 'status', name: 'status', render: '#template-status', className: 'dt-head-center dt-body-center' },
+    { data: 'updated_at', name: 'updated_at', render: '#template-date' },
+    { data: 'id', name: 'actions', render: '#template-actions', searchable: false, orderable: false, className: 'dt-head-center dt-body-end' },
+]
 
-    templates.value = data.data || []
-    pagination.current_page = data.meta?.current_page || 1
-    pagination.last_page = data.meta?.last_page || 1
-    pagination.total = data.meta?.total || 0
-    pagination.from = data.meta?.from || 0
-    pagination.to = data.meta?.to || 0
+const options = {
+    ...configLanguaje,
+    lengthMenu: [[10, 20, 30, 50, 100], [10, 20, 30, 50, 100]],
+    serverSide: true,
+    pipeline: { pages: 5 },
+    processing: true,
+    order: [[3, 'desc'], [1, 'asc'], [4, 'desc']],
+    columnDefs: [
+        { responsivePriority: 1, targets: columns.length - 1 },
+        { responsivePriority: 2, targets: 1 },
+        { targets: [0, 3, 4, 5, 6, 7], className: 'dt-head-center dt-body-center' },
+        { targets: [9], className: 'dt-head-right dt-body-right' },
+        { targets: [1], width: '28%' },
+    ],
+    ajax: async (data, callback) => {
+        try {
+            globalError.value = ''
+            const response = await api.get('/api/v2/admin/evaluation-templates', {
+                params: {
+                    ...data,
+                    ...toQueryObject({
+                        year: filters.year,
+                        status: filters.status,
+                        training_group_id: filters.training_group_id,
+                        template_search: filters.search,
+                    }),
+                },
+            })
+
+            callback(response.data)
+        } catch (error) {
+            globalError.value = getValidationMessage(error, 'No fue posible cargar las plantillas.')
+            callback({
+                data: [],
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                draw: data.draw,
+            })
+        }
+    },
+    drawCallback() {
+        const info = this.api().page.info()
+        tableInfo.page = info.pages ? info.page + 1 : 1
+        tableInfo.pages = info.pages || 1
+        tableInfo.recordsDisplay = info.recordsDisplay || 0
+        tableInfo.from = info.recordsDisplay ? info.start + 1 : 0
+        tableInfo.to = info.end || 0
+    },
+    columns,
 }
 
-async function loadPage() {
-    isLoading.value = true
-    globalError.value = ''
-    syncFiltersFromRoute()
+function getDataTable() {
+    return templateTable.value?.table?.dt ?? null
+}
 
-    try {
-        const requests = [loadTemplates()]
+function reloadTable() {
+    const dt = getDataTable()
 
-        if (!hasLoadedOptions.value) {
-            requests.unshift(loadOptions())
-        }
-
-        await Promise.all(requests)
-        hasLoadedOptions.value = true
-    } catch (error) {
-        globalError.value = getValidationMessage(error, 'No fue posible cargar las plantillas.')
-    } finally {
-        isLoading.value = false
+    if (!dt) {
+        return
     }
+
+    dt.clearPipeline()
+    dt.ajax.reload(null, false)
 }
 
 function applyFilters() {
     router.replace({
         name: 'evaluation-templates.index',
-        query: {
-            ...toQueryObject(filters),
-            page: 1,
-        },
+        query: toQueryObject(filters),
     })
 }
 
 function resetFilters() {
     router.replace({ name: 'evaluation-templates.index' })
-}
-
-function goToPage(page) {
-    if (page < 1 || page > pagination.last_page || page === pagination.current_page) {
-        return
-    }
-
-    router.replace({
-        name: 'evaluation-templates.index',
-        query: {
-            ...toQueryObject(filters),
-            page,
-        },
-    })
 }
 
 async function duplicateTemplate(template) {
@@ -443,7 +422,7 @@ async function changeStatus(template, status) {
     try {
         await api.patch(`/api/v2/admin/evaluation-templates/${template.id}/status`, { status })
         showMessage(`Plantilla ${label}da correctamente.`)
-        await loadPage()
+        reloadTable()
     } catch (error) {
         showMessage(getValidationMessage(error, `No fue posible ${label} la plantilla.`), 'error')
     }
@@ -470,22 +449,31 @@ async function confirmDelete(template) {
     try {
         await api.delete(`/api/v2/admin/evaluation-templates/${template.id}`)
         showMessage('Plantilla eliminada correctamente.')
-
-        if (templates.value.length === 1 && pagination.current_page > 1) {
-            goToPage(pagination.current_page - 1)
-            return
-        }
-
-        await loadPage()
+        reloadTable()
     } catch (error) {
         showMessage(getValidationMessage(error, 'No fue posible eliminar la plantilla.'), 'error')
     }
 }
 
+onMounted(async () => {
+    syncFiltersFromRoute()
+    isLoading.value = true
+    globalError.value = ''
+
+    try {
+        await loadOptions()
+    } catch (error) {
+        globalError.value = getValidationMessage(error, 'No fue posible cargar los filtros de plantillas.')
+    } finally {
+        isLoading.value = false
+    }
+})
+
 watch(
     () => route.fullPath,
     () => {
-        loadPage()
+        syncFiltersFromRoute()
+        reloadTable()
     },
     { immediate: true }
 )
@@ -545,8 +533,4 @@ watch(
     opacity: 0.95;
 }
 
-.empty-state {
-    padding: 3rem 1.5rem;
-    text-align: center;
-}
 </style>

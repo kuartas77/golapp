@@ -47,6 +47,14 @@
             <slot name="actions" v-bind="props" />
         </template>
 
+        <template
+            v-for="slotName in customDataTableSlots"
+            :key="slotName"
+            #[slotName]="props"
+        >
+            <slot :name="slotName" v-bind="props" />
+        </template>
+
         <template #player-photo="props">
             <div class="media d-md-flex d-block text-sm-start text-center">
                 <div class=" me-1">
@@ -86,7 +94,7 @@ export default {
 <script setup>
 import dayjs from "@/utils/dayjs";
 import DataTable, { dataTablePipeline } from '@/plugins/datatables';
-import { computed, useTemplateRef } from 'vue';
+import { computed, useSlots, useTemplateRef } from 'vue';
 const props = defineProps({
     options: {
         type: Object,
@@ -101,6 +109,22 @@ const props = defineProps({
         default: undefined,
     },
 })
+const slots = useSlots()
+const reservedSlotNames = new Set([
+    'thead',
+    'photo',
+    'date',
+    'check',
+    'link',
+    'player',
+    'actions',
+    'player-photo',
+    'inscription',
+])
+
+const customDataTableSlots = computed(() => (
+    Object.keys(slots).filter((slotName) => !reservedSlotNames.has(slotName))
+))
 
 const resolvedOptions = computed(() => {
     const options = props.options

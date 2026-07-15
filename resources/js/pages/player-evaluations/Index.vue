@@ -112,7 +112,6 @@
                             id="player_evaluations_table"
                             ref="evaluationTable"
                             :options="options"
-                            @click="resolveRouteFromClick"
                         >
                             <template #thead>
                                 <thead>
@@ -129,6 +128,106 @@
                                         <th></th>
                                     </tr>
                                 </thead>
+                            </template>
+
+                            <template #evaluation-player="props">
+                                <div class="d-flex align-items-center gap-3">
+                                    <img
+                                        :src="props.rowData.player_photo_url || '/img/user.webp'"
+                                        :alt="props.cellData || 'Jugador sin nombre'"
+                                        class="player-avatar"
+                                    >
+                                    <div>
+                                        <button
+                                            type="button"
+                                            class="btn btn-link btn-sm p-0 fw-semibold text-decoration-none text-start"
+                                            title="Ver evaluación"
+                                            @click.stop="goToEvaluation(props.rowData, 'show')"
+                                        >
+                                            {{ props.cellData || 'Jugador sin nombre' }}
+                                        </button>
+                                        <div class="small text-muted">{{ props.rowData.player_code || 'Sin código' }}</div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template #evaluation-type="props">
+                                <span class="theme-chip">{{ props.cellData || '—' }}</span>
+                            </template>
+
+                            <template #evaluation-status="props">
+                                <span class="badge text-uppercase" :class="`badge-${statusVariant(props.rowData.status)}`">
+                                    {{ props.cellData || props.rowData.status || '—' }}
+                                </span>
+                            </template>
+
+                            <template #evaluation-score="props">
+                                <span class="fw-semibold">{{ formatScore(props.cellData) }}</span>
+                            </template>
+
+                            <template #evaluation-date="props">
+                                {{ formatDateTime(props.cellData) }}
+                            </template>
+
+                            <template #evaluation-actions="props">
+                                <div class="dropdown player-evaluation-actions-dropdown">
+                                    <button
+                                        class="btn btn-sm btn-primary dropdown-toggle"
+                                        type="button"
+                                        data-bs-toggle="dropdown"
+                                        data-bs-display="static"
+                                        aria-expanded="false"
+                                    >
+                                        Acciones
+                                    </button>
+
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <button
+                                                class="dropdown-item"
+                                                type="button"
+                                                @click="goToEvaluation(props.rowData, 'show')"
+                                            >
+                                                <i class="fa fa-eye fa-width-auto me-2"></i>
+                                                Ver
+                                            </button>
+                                        </li>
+                                        <li v-if="!props.rowData.is_closed">
+                                            <button
+                                                class="dropdown-item"
+                                                type="button"
+                                                @click="goToEvaluation(props.rowData, 'edit')"
+                                            >
+                                                <i class="fa fa-edit fa-width-auto me-2"></i>
+                                                Editar
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <a
+                                                class="dropdown-item"
+                                                :href="props.rowData.urls?.pdf || '#'"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                <i class="fa-solid fa-file-pdf fa-width-auto me-2"></i>
+                                                PDF
+                                            </a>
+                                        </li>
+                                        <template v-if="!props.rowData.is_closed">
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <button
+                                                    class="dropdown-item text-danger"
+                                                    type="button"
+                                                    @click="confirmDelete(props.rowData.id)"
+                                                >
+                                                    <i class="fa fa-trash fa-width-auto me-2"></i>
+                                                    Eliminar
+                                                </button>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
                             </template>
                         </DatatableTemplate>
                     </div>
@@ -203,137 +302,17 @@ function statusVariant(status) {
     return statusVariantMap[status] || 'secondary'
 }
 
-function escapeHtml(value) {
-    return String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;')
-}
-
-function renderPlayer(data, type, row) {
-    const playerName = escapeHtml(data || 'Jugador sin nombre')
-    const playerCode = escapeHtml(row.player_code || 'Sin código')
-    const photoUrl = escapeHtml(row.player_photo_url || '/img/user.webp')
-
-    return `
-        <div class="d-flex align-items-center gap-3">
-            <img src="${photoUrl}" alt="${playerName}" class="player-avatar">
-            <div>
-                <button
-                    type="button"
-                    class="btn btn-link btn-sm p-0 fw-semibold text-decoration-none text-start"
-                    data-item-id="${row.id}"
-                    data-type="show"
-                    title="Ver evaluación"
-                >
-                    ${playerName}
-                </button>
-                <div class="small text-muted">${playerCode}</div>
-            </div>
-        </div>
-    `
-}
-
-function renderStatus(data, type, row) {
-    return `
-        <span class="badge text-uppercase badge-${statusVariant(row.status)}">
-            ${escapeHtml(data || row.status || '—')}
-        </span>
-    `
-}
-
-function renderType(data) {
-    return `<span class="theme-chip">${escapeHtml(data || '—')}</span>`
-}
-
-function renderScore(data) {
-    return `<span class="fw-semibold">${escapeHtml(formatScore(data))}</span>`
-}
-
-function renderDate(data) {
-    return escapeHtml(formatDateTime(data))
-}
-
-function renderActions(data, type, row) {
-    const editAction = row.is_closed ? '' : `
-        <li>
-            <button
-                class="dropdown-item"
-                data-item-id="${row.id}"
-                data-type="edit"
-                type="button"
-            >
-                <i class="fa fa-edit fa-width-auto me-2" data-item-id="${row.id}" data-type="edit"></i>
-                Editar
-            </button>
-        </li>
-    `
-
-    const deleteAction = row.is_closed ? '' : `
-        <li><hr class="dropdown-divider"></li>
-        <li>
-            <button
-                class="dropdown-item text-danger"
-                data-item-id="${row.id}"
-                data-type="delete"
-                type="button"
-            >
-                <i class="fa fa-trash fa-width-auto me-2" data-item-id="${row.id}" data-type="delete"></i>
-                Eliminar
-            </button>
-        </li>
-    `
-
-    return `
-        <div class="dropdown player-evaluation-actions-dropdown">
-            <button
-                class="btn btn-sm btn-primary dropdown-toggle"
-                type="button"
-                data-bs-toggle="dropdown"
-                data-bs-display="static"
-                aria-expanded="false"
-            >
-                Acciones
-            </button>
-
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                    <button
-                        class="dropdown-item"
-                        data-item-id="${row.id}"
-                        data-type="show"
-                        type="button"
-                    >
-                        <i class="fa fa-eye fa-width-auto me-2" data-item-id="${row.id}" data-type="show"></i>
-                        Ver
-                    </button>
-                </li>
-                ${editAction}
-                <li>
-                    <a class="dropdown-item" href="${escapeHtml(row.urls?.pdf || '#')}" target="_blank" rel="noopener noreferrer">
-                        <i class="fa-solid fa-file-pdf fa-width-auto me-2"></i>
-                        PDF
-                    </a>
-                </li>
-                ${deleteAction}
-            </ul>
-        </div>
-    `
-}
-
 const columns = [
     { data: 'id', name: 'player_evaluations.id', width: '1%', className: 'dt-head-center dt-body-center' },
-    { data: 'player_name', name: 'player_name', render: renderPlayer },
+    { data: 'player_name', name: 'player_name', render: '#evaluation-player' },
     { data: 'training_group_name', name: 'training_group_name' },
     { data: 'period_name', name: 'period_name' },
     { data: 'template_name', name: 'template_name' },
-    { data: 'evaluation_type_label', name: 'evaluation_type_label', render: renderType },
-    { data: 'status_label', name: 'status_label', render: renderStatus },
-    { data: 'overall_score', name: 'player_evaluations.overall_score', render: renderScore, className: 'dt-head-center dt-body-center' },
-    { data: 'evaluated_at', name: 'player_evaluations.evaluated_at', render: renderDate },
-    { data: 'id', title: 'Acciones', render: renderActions, searchable: false, orderable: false, className: 'dt-head-center dt-body-center' },
+    { data: 'evaluation_type_label', name: 'evaluation_type_label', render: '#evaluation-type' },
+    { data: 'status_label', name: 'status_label', render: '#evaluation-status' },
+    { data: 'overall_score', name: 'player_evaluations.overall_score', render: '#evaluation-score', className: 'dt-head-center dt-body-center' },
+    { data: 'evaluated_at', name: 'player_evaluations.evaluated_at', render: '#evaluation-date' },
+    { data: 'id', title: 'Acciones', render: '#evaluation-actions', searchable: false, orderable: false, className: 'dt-head-center dt-body-center' },
 ]
 
 const options = {
@@ -397,6 +376,21 @@ function resetFilters() {
     reloadTable()
 }
 
+function goToEvaluation(row, type) {
+    const itemId = row?.id
+
+    if (!itemId) {
+        return
+    }
+
+    if (type === 'edit') {
+        router.push({ name: 'player-evaluations.edit', params: { id: itemId } })
+        return
+    }
+
+    router.push({ name: 'player-evaluations.show', params: { id: itemId } })
+}
+
 async function loadOptions() {
     isLoading.value = true
     globalError.value = ''
@@ -436,31 +430,6 @@ async function confirmDelete(evaluationId) {
         reloadTable()
     } catch (error) {
         showMessage(getValidationMessage(error, 'No se pudo eliminar la evaluación.'), 'error')
-    }
-}
-
-function resolveRouteFromClick(event) {
-    const type = event.target.dataset.type
-    const itemId = event.target.dataset.itemId
-
-    if (!itemId || !type) {
-        return
-    }
-
-    event.preventDefault()
-
-    switch (type) {
-        case 'show':
-            router.push({ name: 'player-evaluations.show', params: { id: itemId } })
-            break
-        case 'edit':
-            router.push({ name: 'player-evaluations.edit', params: { id: itemId } })
-            break
-        case 'delete':
-            confirmDelete(itemId)
-            break
-        default:
-            break
     }
 }
 
