@@ -38,6 +38,7 @@ class ReportDebtorController extends Controller
             'training_group_id' => ['nullable', 'integer'],
             'show_item_amounts' => ['nullable', 'boolean'],
             'show_total_debt' => ['nullable', 'boolean'],
+            'include_current_month' => ['nullable', 'boolean'],
         ]);
 
         try {

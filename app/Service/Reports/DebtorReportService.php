@@ -88,15 +88,17 @@ class DebtorReportService
         $inscriptionIds = collect(data_get($filters, 'inscription_ids', []))->map(fn ($id) => (int) $id)->all();
         $asOf = data_get($filters, 'as_of');
         $includeRowContext = (bool) data_get($filters, 'include_row_context', true);
+        $includeCurrentMonth = filter_var(data_get($filters, 'include_current_month', true), FILTER_VALIDATE_BOOLEAN);
+        $excludedMonthlyField = $this->excludedCurrentMonthField($year, $includeCurrentMonth);
 
         $rows = collect();
-        $invoicedMonthlyKeys = $this->invoicedMonthlyKeys($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf);
+        $invoicedMonthlyKeys = $this->invoicedMonthlyKeys($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf, $excludedMonthlyField);
         $appendedInvoiceMonthlyKeys = collect();
 
         $this->paymentsQuery($schoolId, $year, $trainingGroupId, $inscriptionIds, $includeRowContext)
             ->get()
-            ->each(function (Payment $payment) use ($rows, $invoicedMonthlyKeys, $includeRowContext) {
-                $monthlyDebts = $this->monthlyDebtsForPayment($payment, $invoicedMonthlyKeys);
+            ->each(function (Payment $payment) use ($rows, $invoicedMonthlyKeys, $includeRowContext, $excludedMonthlyField) {
+                $monthlyDebts = $this->monthlyDebtsForPayment($payment, $invoicedMonthlyKeys, $excludedMonthlyField);
 
                 if ($monthlyDebts->isEmpty()) {
                     return;
@@ -112,7 +114,7 @@ class DebtorReportService
                 $rows->put($row['inscription_id'], $row);
             });
 
-        $this->invoiceItemsQuery($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf, $includeRowContext)
+        $this->invoiceItemsQuery($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf, $includeRowContext, $excludedMonthlyField)
             ->get()
             ->each(function (InvoiceItem $item) use ($rows, $appendedInvoiceMonthlyKeys, $includeRowContext) {
                 $itemDebt = (float) $item->total;
@@ -220,7 +222,9 @@ class DebtorReportService
     public function exportPdf(array $filters, bool $stream = true)
     {
         $school = getSchool(auth()->user());
-        $rows = $this->rows($filters + ['school_id' => $school->id]);
+        $reportFilters = $filters + ['school_id' => $school->id];
+        $reportFilters['include_current_month'] = filter_var(data_get($filters, 'include_current_month', false), FILTER_VALIDATE_BOOLEAN);
+        $rows = $this->rows($reportFilters);
         $date = now()->format('d-m-Y h:i:s A');
 
         $data = [
@@ -265,9 +269,15 @@ class DebtorReportService
         array $inscriptionIds = [],
         ?Carbon $asOf = null,
         bool $includeRowContext = true,
+        ?string $excludedMonthlyField = null,
     ) {
         return InvoiceItem::query()
             ->where('is_paid', false)
+            ->when($excludedMonthlyField !== null, fn ($query) => $query->where(function ($query) use ($excludedMonthlyField) {
+                $query->where('type', '!=', 'monthly')
+                    ->orWhereNull('month')
+                    ->orWhere('month', '!=', $excludedMonthlyField);
+            }))
             ->whereHas('invoice', function ($query) use ($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf) {
                 $query->where('school_id', $schoolId)
                     ->where('year', $year)
@@ -309,12 +319,20 @@ class DebtorReportService
                 : ['invoiceCustomItem']);
     }
 
-    private function invoicedMonthlyKeys(int $schoolId, int $year, int $trainingGroupId, array $inscriptionIds = [], ?Carbon $asOf = null): Collection
+    private function invoicedMonthlyKeys(
+        int $schoolId,
+        int $year,
+        int $trainingGroupId,
+        array $inscriptionIds = [],
+        ?Carbon $asOf = null,
+        ?string $excludedMonthlyField = null
+    ): Collection
     {
         return InvoiceItem::query()
             ->where('is_paid', false)
             ->whereNotNull('payment_id')
             ->whereNotNull('month')
+            ->when($excludedMonthlyField !== null, fn ($query) => $query->where('month', '!=', $excludedMonthlyField))
             ->whereHas('invoice', function ($query) use ($schoolId, $year, $trainingGroupId, $inscriptionIds, $asOf) {
                 $query->where('school_id', $schoolId)
                     ->where('year', $year)
@@ -327,9 +345,13 @@ class DebtorReportService
             ->mapWithKeys(fn ($item) => [$this->monthlyKey((int) $item->payment_id, (string) $item->month) => true]);
     }
 
-    private function monthlyDebtsForPayment(Payment $payment, Collection $invoicedMonthlyKeys): Collection
+    private function monthlyDebtsForPayment(Payment $payment, Collection $invoicedMonthlyKeys, ?string $excludedMonthlyField = null): Collection
     {
-        return collect(Payment::paymentFields())->map(function (string $field) use ($payment, $invoicedMonthlyKeys) {
+        return collect(Payment::paymentFields())->map(function (string $field) use ($payment, $invoicedMonthlyKeys, $excludedMonthlyField) {
+            if ($field === $excludedMonthlyField) {
+                return null;
+            }
+
             if ((int) $payment->{$field} !== Payment::$debt) {
                 return null;
             }
@@ -345,6 +367,15 @@ class DebtorReportService
                 'amount' => (float) ($amountField ? $payment->{$amountField} : 0),
             ];
         })->filter(fn (?array $debt) => $debt !== null && $debt['amount'] > 0)->values();
+    }
+
+    private function excludedCurrentMonthField(int $year, bool $includeCurrentMonth): ?string
+    {
+        if ($includeCurrentMonth || $year !== now()->year) {
+            return null;
+        }
+
+        return config('variables.KEY_INDEX_MONTHS')[now()->month] ?? null;
     }
 
     private function monthlyKey(int $paymentId, string $month): string

@@ -31,6 +31,7 @@ export default function useDebtorReport() {
         training_group_id: null,
         show_item_amounts: false,
         show_total_debt: false,
+        include_current_month: false,
     })
 
     const exportUrl = computed(() => {
@@ -52,6 +53,10 @@ export default function useDebtorReport() {
 
         if (form.show_item_amounts) {
             params.set('show_item_amounts', '1')
+        }
+
+        if (form.include_current_month) {
+            params.set('include_current_month', '1')
         }
 
         return `/api/v2/reports/debtors/pdf?${params.toString()}`

@@ -54,7 +54,7 @@
                                             <h6 class="mb-3">Opciones del PDF</h6>
 
                                             <div class="row g-3">
-                                                <div class="col-sm-6">
+                                                <div class="col-sm-6 col-xl-4">
                                                     <div class="form-check mb-0">
                                                         <input
                                                             id="debtor-report-item-amounts"
@@ -67,7 +67,7 @@
                                                     </div>
                                                 </div>
 
-                                                <div class="col-sm-6">
+                                                <div class="col-sm-6 col-xl-4">
                                                     <div class="form-check mb-0">
                                                         <input
                                                             id="debtor-report-total"
@@ -76,6 +76,19 @@
                                                             type="checkbox">
                                                         <label class="form-check-label" for="debtor-report-total">
                                                             Mostrar total general
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-sm-6 col-xl-4">
+                                                    <div class="form-check mb-0">
+                                                        <input
+                                                            id="debtor-report-current-month"
+                                                            v-model="form.include_current_month"
+                                                            class="form-check-input"
+                                                            type="checkbox">
+                                                        <label class="form-check-label" for="debtor-report-current-month">
+                                                            Incluir mes en curso
                                                         </label>
                                                     </div>
                                                 </div>

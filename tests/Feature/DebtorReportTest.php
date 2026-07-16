@@ -13,6 +13,7 @@ use App\Models\Player;
 use App\Models\Tournament;
 use App\Models\TrainingGroup;
 use App\Service\Reports\DebtorReportService;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 final class DebtorReportTest extends TestCase
@@ -191,6 +192,43 @@ final class DebtorReportTest extends TestCase
         $this->assertCount(1, $rows);
         $this->assertSame(['Enero'], collect($rows->first()['debt_items'])->pluck('label')->all());
         $this->assertSame(60000.0, $rows->first()['total_debt']);
+    }
+
+    public function testDebtorReportExcludesCurrentMonthUnlessOptionIsEnabled(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-16 10:00:00'));
+
+        try {
+            $this->actingAs($this->user);
+            $group = $this->defaultTrainingGroup();
+            $inscription = $this->createInscriptionForReport($group, '1007', 'Eva', 'Marin');
+
+            $this->resetPayment($this->paymentForInscription($inscription))->update([
+                'june' => Payment::$debt,
+                'june_amount' => 55000,
+                'july' => Payment::$debt,
+                'july_amount' => 65000,
+            ]);
+
+            $withoutCurrentMonth = app(DebtorReportService::class)->rows([
+                'school_id' => $this->school['id'],
+                'year' => 2026,
+                'include_current_month' => false,
+            ]);
+
+            $withCurrentMonth = app(DebtorReportService::class)->rows([
+                'school_id' => $this->school['id'],
+                'year' => 2026,
+                'include_current_month' => true,
+            ]);
+
+            $this->assertSame(['Junio'], collect($withoutCurrentMonth->first()['debt_items'])->pluck('label')->all());
+            $this->assertSame(55000.0, $withoutCurrentMonth->first()['total_debt']);
+            $this->assertSame(['Junio', 'Julio'], collect($withCurrentMonth->first()['debt_items'])->pluck('label')->all());
+            $this->assertSame(120000.0, $withCurrentMonth->first()['total_debt']);
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function testDebtorReportFiltersByTrainingGroup(): void
