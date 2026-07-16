@@ -997,7 +997,7 @@ final class InscriptionsTest extends TestCase
             $this->assertSoftDeleted('inscriptions', ['id' => $inscription->id]);
             $this->assertNotNull($payment->deleted_at);
             $this->assertNotNull($assist->deleted_at);
-            $this->assertSame(Payment::$debt, (int) $payment->{$currentField});
+            $this->assertSame(Payment::$permanent_retirement, (int) $payment->{$currentField});
             $this->assertSame(Payment::$permanent_retirement, (int) $payment->{$futureField});
             $this->assertSame(Payment::$permanent_retirement, (int) $payment->{$futureDebtField});
         } finally {

@@ -548,18 +548,7 @@ class InscriptionRepository
 
     private function markFutureCollectibleMonthsAsRetired(Payment $payment): void
     {
-        $paymentYear = (int) $payment->year;
-        $currentYear = (int) now()->year;
-        $currentMonth = (int) now()->month;
-
-        foreach (config('variables.KEY_INDEX_MONTHS', []) as $monthNumber => $field) {
-            if (
-                $paymentYear < $currentYear
-                || ($paymentYear === $currentYear && (int) $monthNumber <= $currentMonth)
-            ) {
-                continue;
-            }
-
+        foreach (config('variables.KEY_INDEX_MONTHS', []) as $field) {
             if (in_array((int) $payment->{$field}, [Payment::$pending, Payment::$debt], true)) {
                 $payment->{$field} = (string) Payment::$permanent_retirement;
             }

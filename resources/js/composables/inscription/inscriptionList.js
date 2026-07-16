@@ -85,7 +85,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
                                 class="dropdown-item text-danger"
                                 data-item-id="${row.url_destroy}"
                                 data-type="disable"
-                                title="Eliminar inscripción"
+                                title="Retirar inscripción"
                                 type="button"
                             >
                                 <i
@@ -93,7 +93,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
                                     class="fa fa-trash fa-width-auto me-2"
                                     data-type="disable"
                                 ></i>
-                                Eliminar inscripción
+                                Retirar inscripción
                             </button>
                         </li>
                     `
