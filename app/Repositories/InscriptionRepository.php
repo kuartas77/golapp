@@ -372,10 +372,12 @@ class InscriptionRepository
             $inscription->load(['payments']);
 
             foreach ($inscription->payments as $payment) {
-                $this->markFuturePendingMonthsAsRetired($payment);
+                $this->markFutureCollectibleMonthsAsRetired($payment);
                 $payment->save();
             }
 
+            $inscription->payments()->delete();
+            $inscription->assistance()->delete();
             $inscription->delete();
             DB::commit();
             app(GroupCatalogCache::class)->invalidateSchool((int) $inscription->school_id);
@@ -544,7 +546,7 @@ class InscriptionRepository
         }
     }
 
-    private function markFuturePendingMonthsAsRetired(Payment $payment): void
+    private function markFutureCollectibleMonthsAsRetired(Payment $payment): void
     {
         $paymentYear = (int) $payment->year;
         $currentYear = (int) now()->year;
@@ -558,7 +560,7 @@ class InscriptionRepository
                 continue;
             }
 
-            if ((int) $payment->{$field} === Payment::$pending) {
+            if (in_array((int) $payment->{$field}, [Payment::$pending, Payment::$debt], true)) {
                 $payment->{$field} = (string) Payment::$permanent_retirement;
             }
         }

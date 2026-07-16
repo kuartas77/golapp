@@ -978,6 +978,12 @@ final class InscriptionsTest extends TestCase
             $assist = Assist::query()->where('inscription_id', $inscription->id)->where('year', $now->year)->where('month', $now->month)->firstOrFail();
             $currentField = config('variables.KEY_INDEX_MONTHS')[$now->month];
             $futureField = config('variables.KEY_INDEX_MONTHS')[$now->month + 1];
+            $futureDebtField = config('variables.KEY_INDEX_MONTHS')[$now->month + 2];
+
+            $payment->forceFill([
+                $futureDebtField => Payment::$debt,
+                "{$futureDebtField}_amount" => 50000,
+            ])->save();
 
             $this->actingAs($this->user);
 
@@ -989,10 +995,11 @@ final class InscriptionsTest extends TestCase
             $assist->refresh();
 
             $this->assertSoftDeleted('inscriptions', ['id' => $inscription->id]);
-            $this->assertNull($payment->deleted_at);
-            $this->assertNull($assist->deleted_at);
+            $this->assertNotNull($payment->deleted_at);
+            $this->assertNotNull($assist->deleted_at);
             $this->assertSame(Payment::$debt, (int) $payment->{$currentField});
             $this->assertSame(Payment::$permanent_retirement, (int) $payment->{$futureField});
+            $this->assertSame(Payment::$permanent_retirement, (int) $payment->{$futureDebtField});
         } finally {
             Carbon::setTestNow();
         }

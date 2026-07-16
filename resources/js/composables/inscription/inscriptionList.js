@@ -318,7 +318,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
                         onDataChanged?.()
                         Swal.fire({
                             title: "Inscripción retirada",
-                            text: "La inscripción fue eliminada exitosamente.",
+                            text: "La inscripción fue retirada exitosamente.",
                             icon: "success",
                             confirmButtonColor: "#3085d6",
                         })
@@ -326,7 +326,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
                     .catch(() => {
                         Swal.fire({
                             title: "Error",
-                            text: "No se pudo eliminar la inscripción.",
+                            text: "No se pudo retirar la inscripción.",
                             icon: "error",
                             confirmButtonColor: "#3085d6",
                         })
