@@ -68,6 +68,7 @@ export default {
                 { value: 12, text: "Pago Anualidad Efectivo", color: 'color-brown' },
                 { value: 13, text: "Acuerdo de Pago", color: '' },
                 { value: 14, text: "No Aplica", color: '' },
+                { value: 15, text: "Pagó - Saldo a favor", color: 'color-success' },
                 { value: 2, text: "Debe", color: 'color-error' },
                 { value: 3, text: "Abonó", color: 'color-agua' },
                 { value: 4, text: "Incapacidad", color: 'color-incapacidad' },

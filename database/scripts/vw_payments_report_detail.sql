@@ -30,6 +30,7 @@ SELECT
         WHEN 12 THEN 'Pago Anualidad Efectivo'
         WHEN 13 THEN 'Acuerdo de Pago'
         WHEN 14 THEN 'No Aplica'
+        WHEN 15 THEN 'Pagó - Saldo a favor'
         WHEN 2 THEN 'Debe'
         WHEN 3 THEN 'Abonó'
         WHEN 4 THEN 'Incapacidad'

@@ -187,6 +187,11 @@ class Player extends Authenticatable
         return $this->hasMany(Payment::class, 'unique_code', 'unique_code');
     }
 
+    public function creditMovements(): HasMany
+    {
+        return $this->hasMany(PlayerCreditMovement::class);
+    }
+
     public function schoolData(): BelongsTo
     {
         return $this->belongsTo(School::class, 'school_id');

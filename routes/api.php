@@ -54,6 +54,7 @@ use App\Http\Controllers\Payments\MonthlyPaymentReceiptController;
 use App\Http\Controllers\Payments\PaymentController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
 use App\Http\Controllers\Players\PlayerController;
+use App\Http\Controllers\PlayerCredits\PlayerCreditController;
 use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\Portal\ContractController as PortalContract;
 use App\Http\Controllers\Portal\InscriptionsController as PortalInscription;
@@ -231,6 +232,16 @@ Route::prefix('v2')->group(function () {
             Route::put('{outing}/activities/{activity}', [SchoolOutingController::class, 'updateActivity']);
             Route::delete('{outing}/activities/{activity}', [SchoolOutingController::class, 'destroyActivity']);
             Route::post('{outing}/contributions', [SchoolOutingController::class, 'storeContribution']);
+        });
+
+        Route::middleware([
+            'role:super-admin|school',
+            'school.permission:school.module.player_credits',
+        ])->prefix('player-credits')->group(function () {
+            Route::get('', [PlayerCreditController::class, 'index']);
+            Route::get('datatable', [PlayerCreditController::class, 'datatable']);
+            Route::get('{player:id}', [PlayerCreditController::class, 'show']);
+            Route::post('{player:id}/movements', [PlayerCreditController::class, 'storeMovement']);
         });
 
         Route::middleware('school.permission:school.module.attendances')->group(function () {

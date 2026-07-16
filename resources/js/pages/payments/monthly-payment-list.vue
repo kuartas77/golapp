@@ -69,6 +69,9 @@
                             <span class="badge outline-badge-info me-1">
                                 Consignación {{ moneyFormat(totalByType.consignment) }}
                             </span>
+                            <span class="badge outline-badge-info me-1">
+                                Saldo a favor {{ moneyFormat(totalByType.playerCredit) }}
+                            </span>
                             <span class="badge outline-badge-danger  me-1">
                                 Deben {{ moneyFormat(totalByType.debts) }}
                             </span>

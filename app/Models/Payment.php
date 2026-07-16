@@ -38,7 +38,7 @@ class Payment extends Model
     ];
 
     public const STATUS_VALUES = [
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
     ];
 
     protected $table = 'payments';
@@ -136,6 +136,13 @@ class Payment extends Model
     public static $payment_agreement = 13;
 
     public static $no_application = 14;
+
+    public static $paid_player_credit = 15;
+
+    public function creditMovements()
+    {
+        return $this->hasMany(PlayerCreditMovement::class);
+    }
 
     protected static function booted(): void
     {

@@ -9,6 +9,7 @@ use App\Models\InscriptionCustomCharge;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Player;
+use App\Models\PlayerCreditMovement;
 use App\Models\School;
 use App\Models\TrainingGroup;
 use Illuminate\Support\Carbon;
@@ -51,6 +52,8 @@ final class PlayerFinancialClearanceTest extends TestCase
             ->assertOk()
             ->assertJsonPath('eligible', true)
             ->assertJsonPath('total_debt', 0)
+            ->assertJsonPath('credit_balance', 0)
+            ->assertJsonPath('has_credit_balance', false)
             ->assertJsonCount(0, 'debts');
 
         $this->actingAs($this->user)
@@ -60,7 +63,7 @@ final class PlayerFinancialClearanceTest extends TestCase
             ->assertHeader('content-disposition', 'inline; filename="Paz y salvo CLEAR-001.pdf"');
     }
 
-    public function test_clearance_template_does_not_display_a_balance(): void
+    public function test_clearance_template_does_not_display_credit_balance(): void
     {
         $html = view('templates.pdf.player_financial_clearance', [
             'school' => (object) [
@@ -81,7 +84,31 @@ final class PlayerFinancialClearanceTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('CERTIFICADO DE PAZ Y SALVO', $html);
-        $this->assertStringNotContainsString('SALDO PENDIENTE', $html);
+        $this->assertStringNotContainsString('saldo a favor disponible', $html);
+        $this->assertStringNotContainsString('$45.000', $html);
+    }
+
+    public function test_clearance_status_reports_available_credit_balance_without_blocking(): void
+    {
+        $player = $this->createPlayerWithInscription('CLEAR-CREDIT', 2026);
+
+        PlayerCreditMovement::query()->create([
+            'school_id' => $this->school['id'],
+            'player_id' => $player->id,
+            'type' => PlayerCreditMovement::TYPE_CREDIT,
+            'amount' => 75000,
+            'movement_date' => now()->toDateString(),
+            'concept' => 'Anticipo',
+            'created_by' => $this->user->id,
+        ]);
+
+        $this->actingAs($this->user)
+            ->getJson("/api/v2/players/{$player->unique_code}/financial-clearance")
+            ->assertOk()
+            ->assertJsonPath('eligible', true)
+            ->assertJsonPath('total_debt', 0)
+            ->assertJsonPath('credit_balance', 75000)
+            ->assertJsonPath('has_credit_balance', true);
     }
 
     public function test_historical_debts_are_itemized_and_block_pdf_generation(): void

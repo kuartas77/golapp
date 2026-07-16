@@ -66,6 +66,11 @@ export const backofficeAccessRequirements = {
         anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.schoolOutings],
     },
+    playerCredits: {
+        roles: ['super-admin', 'school'],
+        anyRole: true,
+        schoolPermissions: [SCHOOL_PERMISSION_KEYS.playerCredits],
+    },
     schoolProfile: {
         roles: ['super-admin', 'school'],
         anyRole: true,

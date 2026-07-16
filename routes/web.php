@@ -411,6 +411,11 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         Route::get('{any}', [AppController::class, 'index'])->where('any', '.*');
     });
 
+    Route::prefix('saldos-a-favor')->middleware(['role:super-admin|school', 'school.permission:school.module.player_credits'])->group(function () {
+        Route::get('', [AppController::class, 'index'])->name('player-credits.index');
+        Route::get('{any}', [AppController::class, 'index'])->where('any', '.*');
+    });
+
     // Route::prefix('')->group(function () {
     //     Route::get(
     //         'evaluations/inscriptions/{inscription}/compare',

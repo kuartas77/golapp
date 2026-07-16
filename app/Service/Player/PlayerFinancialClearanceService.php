@@ -6,6 +6,7 @@ namespace App\Service\Player;
 
 use App\Models\Player;
 use App\Models\School;
+use App\Service\PlayerCredits\PlayerCreditService;
 use App\Service\Reports\DebtorReportService;
 use App\Traits\PDFTrait;
 use Illuminate\Support\Carbon;
@@ -14,18 +15,24 @@ final class PlayerFinancialClearanceService
 {
     use PDFTrait;
 
-    public function __construct(private DebtorReportService $debtorReportService) {}
+    public function __construct(
+        private DebtorReportService $debtorReportService,
+        private PlayerCreditService $playerCreditService
+    ) {}
 
     public function status(School $school, Player $player, ?Carbon $asOf = null): array
     {
         $asOf ??= now();
         $debts = $this->debtorReportService->playerDebts($school->id, $player->id, $asOf);
+        $creditBalance = $this->playerCreditService->balanceForPlayer((int) $school->id, (int) $player->id);
 
         return [
             'eligible' => $debts->isEmpty(),
             'as_of' => $asOf->toIso8601String(),
             'debts' => $debts,
             'total_debt' => (float) $debts->sum('amount'),
+            'credit_balance' => $creditBalance,
+            'has_credit_balance' => $creditBalance > 0,
         ];
     }
 

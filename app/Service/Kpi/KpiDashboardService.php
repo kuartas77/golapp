@@ -793,6 +793,7 @@ class KpiDashboardService
             Payment::$paid_deposit,
             Payment::$annuity_payment_deposit,
             Payment::$annuity_payment_cash,
+            Payment::$paid_player_credit,
         ], true);
     }
 

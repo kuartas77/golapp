@@ -59,6 +59,15 @@ export default function useFinancialClearance() {
                 return
             }
 
+            if (Number(data.credit_balance || 0) > 0) {
+                await proxy?.$swal?.fire({
+                    icon: 'info',
+                    title: 'Saldo a favor disponible',
+                    text: `El deportista tiene ${moneyFormat.format(Number(data.credit_balance || 0))} de saldo a favor. El paz y salvo se puede generar porque no registra obligaciones vencidas.`,
+                    confirmButtonText: 'Generar paz y salvo',
+                })
+            }
+
             window.open(`${endpoint}/pdf`, '_blank', 'noopener')
         } catch (error) {
             await proxy?.$swal?.fire({

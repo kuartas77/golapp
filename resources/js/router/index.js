@@ -296,6 +296,15 @@ const routes = [
                 ]
             },
             {
+                path: '/saldos-a-favor',
+                name: 'player-credits.index',
+                meta: {
+                    requiresRole: ['super-admin', 'school'],
+                    requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.playerCredits],
+                },
+                component: () => import('@/pages/player-credits/Index.vue')
+            },
+            {
                 path: 'notificaciones',
                 name: 'topic-notifications.index',
                 meta: {

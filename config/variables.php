@@ -150,6 +150,7 @@ return [
         12 => "Pagó A. Efectivo",
         13 => "Acuerdo de Pago",
         14 => "No Aplica",
+        15 => "Pagó - Saldo a favor",
         2 => "Debe",
         3 => "Abonó",
         4 => "Incapacidad",

@@ -82,6 +82,12 @@ return [
             'group' => 'Finanzas',
             'default' => false,
         ],
+        'school.module.player_credits' => [
+            'label' => 'Saldos a favor',
+            'description' => 'Permite administrar bolsas de dinero disponibles por deportista.',
+            'group' => 'Finanzas',
+            'default' => false,
+        ],
         'school.module.school_profile' => [
             'label' => 'Escuela',
             'description' => 'Permite administrar la información principal de la escuela.',

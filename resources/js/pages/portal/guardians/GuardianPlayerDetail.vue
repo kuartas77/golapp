@@ -971,7 +971,7 @@ const openUrl = (url) => {
 };
 
 const paidMonthsCount = (payment) => payment.months.filter((month) =>
-    [1, 9, 10, 11, 12].includes(Number(month.value))
+    [1, 9, 10, 11, 12, 15].includes(Number(month.value))
 ).length;
 
 const paymentMonthClass = (value) => {

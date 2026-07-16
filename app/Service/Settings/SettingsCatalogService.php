@@ -76,6 +76,9 @@ class SettingsCatalogService
 
     private function options(string $cacheKey, ?string $configKey = null): array
     {
-        return Cache::remember($cacheKey, now()->addYear(), fn () => collect(config('variables.'.($configKey ?? $cacheKey), []))->map(fn ($label, $value) => ['value' => (string) $value, 'label' => (string) $label])->values()->all());
+        $options = config('variables.'.($configKey ?? $cacheKey), []);
+        $versionedCacheKey = $cacheKey.'_'.md5(json_encode($options));
+
+        return Cache::remember($versionedCacheKey, now()->addYear(), fn () => collect($options)->map(fn ($label, $value) => ['value' => (string) $value, 'label' => (string) $label])->values()->all());
     }
 }

@@ -1,6 +1,8 @@
 import cloneDeep from "lodash.clonedeep";
 
 import { useSetting } from '@/store/settings-store';
+import { useAuthUser } from '@/store/auth-user'
+import { SCHOOL_PERMISSION_KEYS } from '@/config/school-permissions'
 import { usePageTitle } from "@/composables/use-meta";
 import api from "@/utils/axios";
 import { computed, getCurrentInstance, onMounted, ref, toRaw, watch } from "vue";
@@ -10,6 +12,7 @@ import * as yup from 'yup';
 export default function useMonthlyPayments() {
     const currentDate = new Date()
     const settings = useSetting()
+    const auth = useAuthUser()
     const paymentGroups = settings.normal_training_groups.length ? settings.normal_training_groups : settings.groups
     const groups = ref(paymentGroups.filter((group) => group.name !== 'Provisional').map((group) => ({ value: group.id, label: group.full_group })));
     const categories = ref(settings.categories.map((i) => ({ value: i.category, label: i.category })));
@@ -17,7 +20,9 @@ export default function useMonthlyPayments() {
     const defaultYear = years.find((year) => Number(year.value) === currentDate.getFullYear())?.value
         ?? years[years.length - 1]?.value
         ?? currentDate.getFullYear()
-    const type_payments = computed(() => settings.paymentTypeOptions)
+    const type_payments = computed(() => settings.paymentTypeOptions.filter((option) => (
+        option.value !== '15' || auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.playerCredits)
+    )))
     const paymentTypeLabels = computed(() => settings.paymentTypeLabels)
     const selected_group = ref(null)
     const groupPayments = ref([])
@@ -373,18 +378,21 @@ export default function useMonthlyPayments() {
         pay: 0,
         cash: 0,
         consignment: 0,
+        playerCredit: 0,
         debts: 0,
         total: 0
     })
 
-    const statusPay = [1, 9, 10, 11, 12]
+    const statusPay = [1, 9, 10, 11, 12, 15]
     const statusPayCash = [9, 12]
     const statusPayConsignment = [10, 11]
+    const statusPayPlayerCredit = [15]
     const statsDeb = [2]
 
     watch(filteredGroupPayments, async (newValue) => {
         totalByType.value.cash = 0
         totalByType.value.consignment = 0
+        totalByType.value.playerCredit = 0
         totalByType.value.pay = 0
         totalByType.value.debts = 0
         totalByType.value.total = 0
@@ -399,6 +407,9 @@ export default function useMonthlyPayments() {
                 .reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
 
             totalByType.value.consignment += newValue.filter(pay => statusPayConsignment.includes(pay[`${paymentFields[field]}`]))
+                .reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
+
+            totalByType.value.playerCredit += newValue.filter(pay => statusPayPlayerCredit.includes(pay[`${paymentFields[field]}`]))
                 .reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
 
             totalByType.value.debts += newValue.filter(pay => statsDeb.includes(pay[`${paymentFields[field]}`]))

@@ -10,6 +10,7 @@ use App\Models\TrainingGroup;
 use App\Notifications\MonthlyPaymentReceiptNotification;
 use App\Service\Payment\MonthlyPaymentReceiptService;
 use App\Service\PaymentAmountResolver;
+use App\Service\PlayerCredits\PlayerCreditService;
 use App\Service\ReportService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
@@ -17,6 +18,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
 class PaymentRepository
@@ -25,7 +27,8 @@ class PaymentRepository
 
     public function __construct(
         private Payment $payment,
-        private PaymentAmountResolver $paymentAmountResolver
+        private PaymentAmountResolver $paymentAmountResolver,
+        private PlayerCreditService $playerCreditService
     ) {
         //
     }
@@ -268,6 +271,7 @@ class PaymentRepository
             DB::beginTransaction();
             $normalizedValues = $this->normalizePaymentUpdate($payment, $values);
             $previousStatuses = $this->monthlyStatuses($payment);
+            $this->syncPlayerCreditMovementsBeforeSave($payment, $normalizedValues);
             $isPay = $payment->fill($normalizedValues)->save();
 
             if ($isPay) {
@@ -277,6 +281,11 @@ class PaymentRepository
             DB::commit();
         } catch (Throwable $throwable) {
             DB::rollBack();
+
+            if ($throwable instanceof HttpExceptionInterface) {
+                throw $throwable;
+            }
+
             report($throwable);
             $isPay = false;
         }
@@ -438,7 +447,7 @@ class PaymentRepository
 
     private function normalizeAmountByStatus(string $field, int $status, int $amount, array $defaults): int
     {
-        if (in_array($status, [Payment::$paid, Payment::$paid_cash, Payment::$paid_deposit], true) && $amount === 0) {
+        if (in_array($status, [Payment::$paid, Payment::$paid_cash, Payment::$paid_deposit, Payment::$paid_player_credit], true) && $amount === 0) {
             return $this->defaultAmountForField($field, $defaults);
         }
 
@@ -566,6 +575,39 @@ class PaymentRepository
             : 0;
     }
 
+    private function syncPlayerCreditMovementsBeforeSave(Payment $payment, array $normalizedValues): void
+    {
+        $payment->loadMissing('inscription.player');
+        $school = getSchool(auth()->user());
+
+        foreach (Payment::paymentFields() as $field) {
+            if (! array_key_exists($field, $normalizedValues)) {
+                continue;
+            }
+
+            $previousStatus = (int) $payment->{$field};
+            $currentStatus = (int) $normalizedValues[$field];
+
+            if ($previousStatus === Payment::$paid_player_credit) {
+                $this->playerCreditService->compensatePaymentDebit($payment, $field, (int) auth()->id());
+            }
+
+            if ($currentStatus !== Payment::$paid_player_credit) {
+                continue;
+            }
+
+            abort_unless(
+                $school->hasSchoolPermission('school.module.player_credits'),
+                403,
+                'El módulo de saldos a favor no está activo para esta escuela.'
+            );
+
+            $amountField = Payment::amountFieldFor($field);
+            $amount = (int) ($normalizedValues[$amountField] ?? 0);
+            $this->playerCreditService->applyPaymentDebit($payment, $field, $amount, $previousStatus, (int) auth()->id());
+        }
+    }
+
     private function normalizeAmountValue($amount): int
     {
         return max(0, (int) $amount);
@@ -582,51 +624,51 @@ class PaymentRepository
     private function queryGraphics($year, $school_id)
     {
         $consult = DB::table('payments')->selectRaw('
-            COALESCE(SUM(case when january IN (1,9,10,11,12) then 1 else 0 end),0) january_payment,
+            COALESCE(SUM(case when january IN (1,9,10,11,12,15) then 1 else 0 end),0) january_payment,
             COALESCE(SUM(case when january = 2 then 1 else 0 end),0) january_due,
             COALESCE(SUM(case when january = 8 then 1 else 0 end),0) january_scholarship,
             COALESCE(SUM(case when january = 0 then 1 else 0 end),0) january_pending,
-            COALESCE(SUM(case when february IN (1,9,10,11,12) then 1 else 0 end),0) february_payment,
+            COALESCE(SUM(case when february IN (1,9,10,11,12,15) then 1 else 0 end),0) february_payment,
             COALESCE(SUM(case when february = 2 then 1 else 0 end),0) february_due,
             COALESCE(SUM(case when february = 8 then 1 else 0 end),0) february_scholarship,
             COALESCE(SUM(case when february = 0 then 1 else 0 end),0) february_pending,
-            COALESCE(SUM(case when march IN (1,9,10,11,12) then 1 else 0 end),0) march_payment,
+            COALESCE(SUM(case when march IN (1,9,10,11,12,15) then 1 else 0 end),0) march_payment,
             COALESCE(SUM(case when march = 2 then 1 else 0 end),0) march_due,
             COALESCE(SUM(case when march = 8 then 1 else 0 end),0) march_scholarship,
             COALESCE(SUM(case when march = 0 then 1 else 0 end),0) march_pending,
-            COALESCE(SUM(case when april IN (1,9,10,11,12) then 1 else 0 end),0) april_payment,
+            COALESCE(SUM(case when april IN (1,9,10,11,12,15) then 1 else 0 end),0) april_payment,
             COALESCE(SUM(case when april = 2 then 1 else 0 end),0) april_due,
             COALESCE(SUM(case when april = 8 then 1 else 0 end),0) april_scholarship,
             COALESCE(SUM(case when april = 0 then 1 else 0 end),0) april_pending,
-            COALESCE(SUM(case when may IN (1,9,10,11,12) then 1 else 0 end),0) may_payment,
+            COALESCE(SUM(case when may IN (1,9,10,11,12,15) then 1 else 0 end),0) may_payment,
             COALESCE(SUM(case when may = 2 then 1 else 0 end),0) may_due,
             COALESCE(SUM(case when may = 8 then 1 else 0 end),0) may_scholarship,
             COALESCE(SUM(case when may = 0 then 1 else 0 end),0) may_pending,
-            COALESCE(SUM(case when june IN (1,9,10,11,12) then 1 else 0 end),0) june_payment,
+            COALESCE(SUM(case when june IN (1,9,10,11,12,15) then 1 else 0 end),0) june_payment,
             COALESCE(SUM(case when june = 2 then 1 else 0 end),0) june_due,
             COALESCE(SUM(case when june = 8 then 1 else 0 end),0) june_scholarship,
             COALESCE(SUM(case when june = 0 then 1 else 0 end),0) june_pending,
-            COALESCE(SUM(case when july IN (1,9,10,11,12) then 1 else 0 end),0) july_payment,
+            COALESCE(SUM(case when july IN (1,9,10,11,12,15) then 1 else 0 end),0) july_payment,
             COALESCE(SUM(case when july = 2 then 1 else 0 end),0) july_due,
             COALESCE(SUM(case when july = 8 then 1 else 0 end),0) july_scholarship,
             COALESCE(SUM(case when july = 0 then 1 else 0 end),0) july_pending,
-            COALESCE(SUM(case when august IN (1,9,10,11,12) then 1 else 0 end),0) august_payment,
+            COALESCE(SUM(case when august IN (1,9,10,11,12,15) then 1 else 0 end),0) august_payment,
             COALESCE(SUM(case when august = 2 then 1 else 0 end),0) august_due,
             COALESCE(SUM(case when august = 8 then 1 else 0 end),0) august_scholarship,
             COALESCE(SUM(case when august = 0 then 1 else 0 end),0) august_pending,
-            COALESCE(SUM(case when september IN (1,9,10,11,12) then 1 else 0 end),0) september_payment,
+            COALESCE(SUM(case when september IN (1,9,10,11,12,15) then 1 else 0 end),0) september_payment,
             COALESCE(SUM(case when september = 2 then 1 else 0 end),0) september_due,
             COALESCE(SUM(case when september = 8 then 1 else 0 end),0) september_scholarship,
             COALESCE(SUM(case when september = 0 then 1 else 0 end),0) september_pending,
-            COALESCE(SUM(case when october IN (1,9,10,11,12) then 1 else 0 end),0) october_payment,
+            COALESCE(SUM(case when october IN (1,9,10,11,12,15) then 1 else 0 end),0) october_payment,
             COALESCE(SUM(case when october = 2 then 1 else 0 end),0) october_due,
             COALESCE(SUM(case when october = 8 then 1 else 0 end),0) october_scholarship,
             COALESCE(SUM(case when october = 0 then 1 else 0 end),0) october_pending,
-            COALESCE(SUM(case when november IN (1,9,10,11,12) then 1 else 0 end),0) november_payment,
+            COALESCE(SUM(case when november IN (1,9,10,11,12,15) then 1 else 0 end),0) november_payment,
             COALESCE(SUM(case when november = 2 then 1 else 0 end),0) november_due,
             COALESCE(SUM(case when november = 8 then 1 else 0 end),0) november_scholarship,
             COALESCE(SUM(case when november = 0 then 1 else 0 end),0) november_pending,
-            COALESCE(SUM(case when december IN (1,9,10,11,12) then 1 else 0 end),0) december_payment,
+            COALESCE(SUM(case when december IN (1,9,10,11,12,15) then 1 else 0 end),0) december_payment,
             COALESCE(SUM(case when december = 2 then 1 else 0 end),0) december_due,
             COALESCE(SUM(case when december = 8 then 1 else 0 end),0) december_scholarship,
             COALESCE(SUM(case when december = 0 then 1 else 0 end),0) december_pending')
