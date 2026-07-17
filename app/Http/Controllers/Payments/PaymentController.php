@@ -90,6 +90,15 @@ class PaymentController extends Controller
         ]);
     }
 
+    public function history(Payment $payment): JsonResponse
+    {
+        abort_unless((int) $payment->school_id === (int) getSchool(auth()->user())->id, 404);
+
+        return response()->json([
+            'data' => $this->repository->history($payment),
+        ]);
+    }
+
     public function show($id, Request $request)
     {
         abort_unless($request->ajax(), 401);

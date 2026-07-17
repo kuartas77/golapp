@@ -6,6 +6,7 @@ namespace App\Repositories;
 
 use App\Models\Inscription;
 use App\Models\Payment;
+use App\Models\PaymentChangeLog;
 use App\Models\TrainingGroup;
 use App\Notifications\MonthlyPaymentReceiptNotification;
 use App\Service\Payment\PaymentStatusCatalog;
@@ -286,7 +287,7 @@ class PaymentRepository
         return compact('categories', 'groups');
     }
 
-    public function setPay(array $values, Payment $payment): bool
+    public function setPay(array $values, Payment $payment, string $source = 'manual'): bool
     {
         $isPay = false;
         try {
@@ -296,11 +297,13 @@ class PaymentRepository
 
             DB::beginTransaction();
             $normalizedValues = $this->normalizePaymentUpdate($payment, $values);
+            $previousValues = $this->paymentValuesSnapshot($payment, $normalizedValues);
             $previousStatuses = $this->monthlyStatuses($payment);
             $this->syncPlayerCreditMovementsBeforeSave($payment, $normalizedValues);
             $isPay = $payment->fill($normalizedValues)->save();
 
             if ($isPay) {
+                $this->recordPaymentChangeLogs($payment, $normalizedValues, $previousValues, $source);
                 $this->notifyMonthlyReceiptPayments($payment, $normalizedValues, $previousStatuses);
             }
 
@@ -352,7 +355,7 @@ class PaymentRepository
                 'column' => $field,
                 $field => (int) $validated['status'],
                 $amountField => (int) ($validated['amount'] ?? 0),
-            ], $payment);
+            ], $payment, 'bulk');
 
             if ($saved) {
                 $updatedIds->push((int) $payment->id);
@@ -365,6 +368,85 @@ class PaymentRepository
             'skipped_count' => $paymentIds->count() - $updatedIds->count(),
             'updated_ids' => $updatedIds->values()->all(),
         ];
+    }
+
+    public function history(Payment $payment): array
+    {
+        return $payment->changeLogs()
+            ->with('user:id,name')
+            ->latest('id')
+            ->limit(100)
+            ->get()
+            ->map(fn (PaymentChangeLog $log) => [
+                'id' => $log->id,
+                'field' => $log->field,
+                'month_label' => config("variables.KEY_INDEX_MONTHS_LABEL.{$log->field}", $log->field),
+                'old_status' => $log->old_status,
+                'new_status' => $log->new_status,
+                'old_status_label' => config("variables.KEY_PAYMENTS_SELECT.{$log->old_status}", (string) $log->old_status),
+                'new_status_label' => config("variables.KEY_PAYMENTS_SELECT.{$log->new_status}", (string) $log->new_status),
+                'old_amount' => $log->old_amount,
+                'new_amount' => $log->new_amount,
+                'source' => $log->source,
+                'changed_by' => $log->changed_by,
+                'changed_by_name' => $log->user?->name,
+                'created_at' => optional($log->created_at)->toDateTimeString(),
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function paymentValuesSnapshot(Payment $payment, array $normalizedValues): array
+    {
+        $snapshot = [];
+
+        foreach (Payment::paymentFields() as $field) {
+            $amountField = Payment::amountFieldFor($field);
+
+            if (! array_key_exists($field, $normalizedValues) && ! array_key_exists($amountField, $normalizedValues)) {
+                continue;
+            }
+
+            $snapshot[$field] = [
+                'status' => (int) $payment->{$field},
+                'amount' => (int) $payment->{$amountField},
+            ];
+        }
+
+        return $snapshot;
+    }
+
+    private function recordPaymentChangeLogs(Payment $payment, array $normalizedValues, array $previousValues, string $source): void
+    {
+        foreach ($previousValues as $field => $previous) {
+            $amountField = Payment::amountFieldFor($field);
+            $oldStatus = (int) $previous['status'];
+            $newStatus = array_key_exists($field, $normalizedValues)
+                ? (int) $normalizedValues[$field]
+                : (int) $payment->{$field};
+            $oldAmount = (int) $previous['amount'];
+            $newAmount = array_key_exists($amountField, $normalizedValues)
+                ? (int) $normalizedValues[$amountField]
+                : (int) $payment->{$amountField};
+
+            if ($oldStatus === $newStatus && $oldAmount === $newAmount) {
+                continue;
+            }
+
+            PaymentChangeLog::query()->create([
+                'school_id' => $payment->school_id,
+                'payment_id' => $payment->id,
+                'inscription_id' => $payment->inscription_id,
+                'changed_by' => auth()->id(),
+                'year' => $payment->year,
+                'field' => $field,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'old_amount' => $oldAmount,
+                'new_amount' => $newAmount,
+                'source' => $source,
+            ]);
+        }
     }
 
     private function normalizePaymentUpdate(Payment $payment, array $values): array

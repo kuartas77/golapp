@@ -217,6 +217,8 @@ Route::prefix('v2')->group(function () {
                 ->name('payments.status-catalog');
             Route::post('payments/bulk-update', [PaymentController::class, 'bulkUpdate'])
                 ->name('payments.bulk-update');
+            Route::get('payments/{payment}/history', [PaymentController::class, 'history'])
+                ->name('payments.history');
             Route::apiResource('payments', PaymentController::class)->only(['index', 'update', 'show']);
         });
 

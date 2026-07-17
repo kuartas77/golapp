@@ -16,6 +16,7 @@ use App\Models\InscriptionCustomCharge;
 use App\Models\Invoice;
 use App\Models\InvoiceCustomItem;
 use App\Models\Payment;
+use App\Models\PaymentChangeLog;
 use App\Models\PaymentReceived;
 use App\Models\PaymentRequest;
 use App\Models\Player;
@@ -218,6 +219,13 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertSame($annuity, (int) $payment->april_amount);
         $this->assertSame('11', (string) $payment->may);
         $this->assertSame(777, (int) $payment->may_amount);
+        $this->assertDatabaseHas('payment_change_logs', [
+            'payment_id' => $payment->id,
+            'field' => 'march',
+            'old_status' => 0,
+            'new_status' => 11,
+            'source' => 'manual',
+        ]);
     }
 
     public function testPaymentRepositoryFiltersDecoratesAndQueriesDuePayments(): void
@@ -310,6 +318,62 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertSame(Payment::$paid_cash, $activePayment->fresh()->january);
         $this->assertGreaterThan(0, $activePayment->fresh()->january_amount);
         $this->assertSame(Payment::$debt, $retiredPayment->fresh()->january);
+        $this->assertDatabaseHas('payment_change_logs', [
+            'payment_id' => $activePayment->id,
+            'field' => 'january',
+            'old_status' => Payment::$debt,
+            'new_status' => Payment::$paid_cash,
+            'source' => 'bulk',
+        ]);
+        $this->assertDatabaseMissing('payment_change_logs', [
+            'payment_id' => $retiredPayment->id,
+            'source' => 'bulk',
+        ]);
+    }
+
+    public function testPaymentRepositoryDoesNotAuditNoOpPaymentUpdate(): void
+    {
+        $this->actingAs($this->user);
+        [, $payment] = $this->createInscriptionAndPayment();
+        $payment->forceFill([
+            'january' => Payment::$debt,
+            'january_amount' => 50000,
+        ])->save();
+
+        $result = app(PaymentRepository::class)->setPay([
+            'column' => 'january',
+            'january' => Payment::$debt,
+            'january_amount' => 50000,
+        ], $payment->fresh());
+
+        $this->assertTrue($result);
+        $this->assertSame(0, PaymentChangeLog::query()
+            ->where('payment_id', $payment->id)
+            ->where('field', 'january')
+            ->count());
+    }
+
+    public function testPaymentHistoryEndpointReturnsReadableAuditRows(): void
+    {
+        $this->actingAs($this->user);
+        [, $payment] = $this->createInscriptionAndPayment();
+
+        app(PaymentRepository::class)->setPay([
+            'column' => 'january',
+            'january' => Payment::$paid_cash,
+            'january_amount' => 0,
+        ], $payment->fresh());
+
+        $this
+            ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+            ->getJson("/api/v2/payments/{$payment->id}/history")
+            ->assertOk()
+            ->assertJsonPath('data.0.field', 'january')
+            ->assertJsonPath('data.0.month_label', 'Enero')
+            ->assertJsonPath('data.0.old_status_label', 'Debe')
+            ->assertJsonPath('data.0.new_status_label', 'Pagó - Efectivo')
+            ->assertJsonPath('data.0.source', 'manual')
+            ->assertJsonPath('data.0.changed_by', $this->user->id);
     }
 
     public function testPlayerRepositoryLookupListsAndBirthdayFlows(): void
