@@ -1,7 +1,7 @@
 <template>
     <div class="modal fade" id="composeModalInscription" tabindex="-1" role="dialog" aria-labelledby="modalInscription"
         aria-hidden="false" aria-modal="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog" :class="hasCustomChargeRows ? 'modal-xl inscription-modal-wide' : 'modal-lg'" role="document">
             <Form ref="form" :validation-schema="schema" @submit="submit" :initial-values="initialData" v-slot="{ isSubmitting }">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -16,8 +16,10 @@
                         <div v-if="isReactivationMode" class="alert alert-warning py-2" role="alert">
                             Se reactivará una inscripción retirada del año {{ selectedInscriptionYear }}. La fecha de inicio original se conservará y podrás ajustar los demás datos antes de guardar.
                         </div>
-                        <div class="row col-12 ">
-                            <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                        <div class="inscription-modal-layout" :class="{ 'has-custom-charges': hasCustomChargeRows }">
+                            <div class="inscription-form-panel">
+                                <div class="row col-12 ">
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label for="unique_code">Código único</label><span class="text-danger">(*)</span>:
                                     <Field v-if="isEditing" name="unique_code" as="input" id="unique_code" readonly
@@ -35,7 +37,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label for="player_name">Jugador:</label>
                                     <Field name="player_name" as="input" id="player_name" readonly
@@ -44,7 +46,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label for="start_date">Fecha de inicio</label><span class="text-danger">(*)</span>:
                                     <Field v-if="isEditing || isReactivationMode" name="start_date" as="input" id="start_date" readonly
@@ -58,13 +60,13 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <small class="form-text text-muted mt-4">Al ser becado, todas las mensualidades del año
                                     se estableceran cómo: "<span class="text-warning">Becado</span>"</small>
                                 <checkbox label="¿ Becado ?" name="scholarship" />
                             </div>
 
-                            <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label for="monthly_payment_type">Tarifa mensual:</label>
                                     <Field name="monthly_payment_type" v-slot="{ field, handleChange }">
@@ -101,7 +103,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label for="training_group_id">Grupo de entrenamiento:</label>
                                     <Field name="training_group_id" v-slot="{ field, handleChange }">
@@ -118,7 +120,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label for="complementary_group_id">Grupo complementario:</label>
                                     <Field name="complementary_group_id" v-slot="{ field, handleChange }">
@@ -135,7 +137,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
                                     <label for="competition_groups">Grupo de competencia:</label>
                                     <Field name="competition_groups" v-slot="{ field, handleChange }">
@@ -150,9 +152,9 @@
                                     <ErrorMessage name="competition_groups" class="custom-error" />
                                 </div>
                             </div>
-                        </div>
-                        <div class="row col-12">
-                            <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                </div>
+                                <div class="row col-12">
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <h6 class="text-center text-uppercase text-muted"><strong>Documentos</strong></h6>
                                 <div class="check col">
                                     <checkbox label="Fotos" name="photos" />
@@ -163,7 +165,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <h6 class="text-center text-uppercase text-muted">
                                     <strong>Pre-Inscripción</strong>
                                 </h6>
@@ -205,11 +207,10 @@
                                 </small>
                                 <ErrorMessage name="pre_inscription" class="custom-error" as="div" />
                             </div>
-
-                        </div>
-                        <div v-if="canManageCustomCharges" class="row col-12 mt-3">
-                            <div class="col-12">
-                                <div class="border rounded p-2">
+                                </div>
+                            </div>
+                            <div v-if="canManageCustomCharges" class="custom-charges-panel mt-3">
+                                <div class="border rounded p-2 h-100">
                                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
                                         <h6 class="text-uppercase text-muted mb-0">
                                             <strong>Cargos personalizados</strong>
@@ -228,7 +229,7 @@
                                         <span class="spinner-border spinner-border-sm text-primary"></span>
                                     </div>
 
-                                    <div v-else-if="customChargeRows.length" class="table-responsive">
+                                    <div v-else-if="customChargeRows.length" class="table-responsive custom-charges-table">
                                         <table class="table table-sm align-middle mb-0">
                                             <thead>
                                                 <tr>
@@ -243,7 +244,7 @@
                                                     <td>
                                                         <div class="fw-semibold">{{ charge.name }}</div>
                                                         <small class="text-muted">
-                                                            Base {{ moneyFormat(Number(charge.unit_price || 0)) }}
+                                                            Base {{ formatMoney(Number(charge.unit_price || 0)) }}
                                                         </small>
                                                     </td>
                                                     <td>
@@ -351,6 +352,7 @@ const customChargeRemovalIds = ref([]);
 const editIdentifier = computed(() => props.inscription_id ?? props.unique_code);
 const isEditing = computed(() => editIdentifier.value !== null);
 const canManageCustomCharges = computed(() => auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.billing));
+const hasCustomChargeRows = computed(() => canManageCustomCharges.value && customChargeRows.value.length > 0);
 const selectedInscriptionYear = computed(() => {
     const year = Number(props.selected_year ?? dayjs().year())
 
@@ -370,6 +372,7 @@ const moneyFormatter = new Intl.NumberFormat('es-CO', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
 });
+const formatMoney = (value) => moneyFormatter.format(Number(value || 0));
 const monthlyPaymentOptions = computed(() => monthlyPaymentDefinitions
     .map((option) => ({
         ...option,
@@ -984,7 +987,52 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.inscription-modal-layout.has-custom-charges {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 44%);
+    gap: 1rem;
+    align-items: start;
+}
+
+.inscription-form-panel,
+.custom-charges-panel {
+    min-width: 0;
+}
+
+.inscription-modal-layout.has-custom-charges .custom-charges-panel {
+    margin-top: 0 !important;
+    position: sticky;
+    top: 0;
+}
+
+.custom-charges-table {
+    max-height: min(52vh, 520px);
+    overflow: auto;
+}
+
+.custom-charges-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--bs-body-bg, #fff);
+}
+
 .custom-charge-date {
     width: 130px;
+}
+
+@media (max-width: 1199.98px) {
+    .inscription-modal-layout.has-custom-charges {
+        display: block;
+    }
+
+    .inscription-modal-layout.has-custom-charges .custom-charges-panel {
+        margin-top: 1rem !important;
+        position: static;
+    }
+
+    .custom-charges-table {
+        max-height: 360px;
+    }
 }
 </style>

@@ -90,7 +90,7 @@ const mountModal = async (
 
     apiMock.get.mockImplementation((url) => {
         if (url === '/api/v2/admin/invoice-items-custom') {
-            return Promise.resolve({ data: [] });
+            return Promise.resolve({ data: options.customChargeItems ?? [] });
         }
 
         if (url === '/api/v2/inscriptions/1/edit') {
@@ -275,6 +275,21 @@ describe('ModalInscription', () => {
         expect(apiMock.post).toHaveBeenCalledWith('/api/v2/inscriptions', expect.not.objectContaining({
             custom_charges: expect.anything(),
         }));
+    });
+
+    it('uses the wide responsive layout only when custom charge rows exist', async () => {
+        const wrapper = await mountModal(
+            { inscription_id: null, create_open: false, selected_year: 2026 },
+            {
+                customChargeItems: [
+                    { id: 15, name: 'Uniforme', unit_price: 120000 },
+                ],
+            },
+        );
+
+        expect(wrapper.find('.modal-dialog').classes()).toContain('modal-xl');
+        expect(wrapper.find('.inscription-modal-layout').classes()).toContain('has-custom-charges');
+        expect(wrapper.find('.custom-charges-table').exists()).toBe(true);
     });
 
     it('marks the form as a reactivation when search_unique_code returns a retired inscription', async () => {
