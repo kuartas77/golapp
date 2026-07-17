@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Payments;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PaymentBulkUpdateRequest;
 use App\Http\Requests\SetPaymentRequest;
 use App\Models\Payment;
 use App\Repositories\PaymentRepository;
@@ -78,6 +79,15 @@ class PaymentController extends Controller
         return response()->json(PaymentStatusCatalog::toArray(
             $school->hasSchoolPermission('school.module.player_credits')
         ));
+    }
+
+    public function bulkUpdate(PaymentBulkUpdateRequest $request): JsonResponse
+    {
+        abort_unless($request->ajax(), 404);
+
+        return response()->json([
+            'data' => $this->repository->bulkUpdate($request->validated()),
+        ]);
     }
 
     public function show($id, Request $request)

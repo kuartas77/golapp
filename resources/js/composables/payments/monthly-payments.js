@@ -20,6 +20,22 @@ export default function useMonthlyPayments() {
     const defaultYear = years.find((year) => Number(year.value) === currentDate.getFullYear())?.value
         ?? years[years.length - 1]?.value
         ?? currentDate.getFullYear()
+    const paymentFields = {
+        0: 'enrollment',
+        1: 'january',
+        2: 'february',
+        3: 'march',
+        4: 'april',
+        5: 'may',
+        6: 'june',
+        7: 'july',
+        8: 'august',
+        9: 'september',
+        10: 'october',
+        11: 'november',
+        12: 'december',
+    }
+    const defaultMonthField = paymentFields[currentDate.getMonth() + 1] ?? 'january'
     const type_payments = computed(() => settings.paymentTypeOptions.filter((option) => (
         option.value !== '15' || auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.playerCredits)
     )))
@@ -86,12 +102,15 @@ export default function useMonthlyPayments() {
         year: defaultYear,
         training_group_id: null,
         category: null,
-        month: '',
+        month: defaultMonthField,
         status: '',
         player_name: '',
         unique_code: '',
     })
     const viewMode = ref('annual')
+    const bulkStatus = ref('')
+    const bulkAmount = ref(0)
+    const isBulkUpdating = ref(false)
     const isLoading = ref(false)
     const editingCell = ref(null)
     const backupCell = ref(null)
@@ -99,21 +118,6 @@ export default function useMonthlyPayments() {
     const enrollment_amount = ref(0)
     const monthly_amount = ref(0)
     const player_count = ref(0)
-    const paymentFields = {
-        0: 'enrollment',
-        1: 'january',
-        2: 'february',
-        3: 'march',
-        4: 'april',
-        5: 'may',
-        6: 'june',
-        7: 'july',
-        8: 'august',
-        9: 'september',
-        10: 'october',
-        11: 'november',
-        12: 'december',
-    }
     const paymentFieldNames = Object.values(paymentFields)
     const normalizePlayerName = (value) => String(value ?? '')
         .normalize('NFD')
@@ -141,10 +145,11 @@ export default function useMonthlyPayments() {
             groupPayments.value = []
             playerSearchTerm.value = ''
             isLoading.value = true
+            const selectedMonth = values.month ?? formData.value.month ?? defaultMonthField
             formData.value = {
                 ...formData.value,
                 ...values,
-                month: values.month || '',
+                month: selectedMonth || '',
                 status: values.status || '',
                 player_name: values.player_name || '',
                 unique_code: values.unique_code || '',
@@ -153,7 +158,7 @@ export default function useMonthlyPayments() {
                 category: values.category,
                 year: values.year ?? defaultYear,
                 training_group_id: values.training_group_id,
-                month: values.month || null,
+                month: selectedMonth || null,
                 status: values.status || null,
                 player_name: values.player_name || null,
                 unique_code: values.unique_code || null,
@@ -496,6 +501,105 @@ export default function useMonthlyPayments() {
         .some((field) => statsDeb.value.includes(payPlayer[field]))).length)
     const receiptableCount = computed(() => filteredGroupPayments.value.reduce((count, payPlayer) => count + Object.values(paymentFields)
         .filter((field) => statusPay.value.includes(payPlayer[field])).length, 0))
+    const bulkEligibleRows = computed(() => filteredGroupPayments.value.filter((payPlayer) => canEditPaymentRow(payPlayer, selectedMonthField.value)))
+    const bulkStatusOptions = computed(() => statusOptions.value.filter((option) => option.value !== ''))
+
+    const applyBulkPaymentStatus = async () => {
+        const field = selectedMonthField.value
+        const status = Number(bulkStatus.value)
+
+        if (!field) {
+            showMessage('Selecciona un mes antes de aplicar una acción masiva.', 'warning')
+            return
+        }
+
+        if (!isKnownBulkStatus(status)) {
+            showMessage('Selecciona un estado válido para la acción masiva.', 'warning')
+            return
+        }
+
+        const rows = bulkEligibleRows.value
+
+        if (!rows.length) {
+            showMessage('No hay mensualidades activas para actualizar.', 'warning')
+            return
+        }
+
+        const amountField = `${field}_amount`
+        const previousValues = new Map(rows.map((row) => [row.id, {
+            status: row[field],
+            amount: row[amountField],
+        }]))
+        const amount = normalizeAmount(bulkAmount.value)
+        const statusLabel = statusOptions.value.find((option) => Number(option.value) === status)?.label || 'estado seleccionado'
+        const confirmation = await Swal.fire({
+            title: 'Aplicar acción masiva',
+            text: `Se actualizará ${selectedMonthLabel.value} a "${statusLabel}" para ${rows.length} deportista(s) activos visibles.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Aplicar',
+            cancelButtonText: 'Cancelar',
+        })
+
+        if (!confirmation.isConfirmed) {
+            return
+        }
+
+        isBulkUpdating.value = true
+
+        try {
+            rows.forEach((row) => {
+                row[field] = status
+                row[amountField] = amount
+                syncPaymentField(row, field)
+            })
+
+            const response = await api.post('/api/v2/payments/bulk-update', {
+                payment_ids: rows.map((row) => row.id),
+                year: formData.value.year ?? defaultYear,
+                month: field,
+                status,
+                amount,
+            })
+
+            const result = response?.data?.data
+            const updatedIds = new Set((result?.updated_ids ?? []).map((id) => Number(id)))
+            const updatedRows = Number(result?.updated_count ?? 0)
+            const failedRows = rows.length - updatedRows
+
+            rows.forEach((row) => {
+                if (!updatedIds.has(Number(row.id))) {
+                    const previous = previousValues.get(row.id)
+                    row[field] = previous.status
+                    row[amountField] = previous.amount
+                }
+            })
+
+            if (failedRows > 0 && updatedRows > 0) {
+                showMessage(`Se actualizaron ${updatedRows} mensualidad(es). ${failedRows} registro(s) no se pudieron guardar.`, 'warning')
+                return
+            }
+
+            if (failedRows > 0) {
+                showMessage('No fue posible aplicar la acción masiva.', 'error')
+                return
+            }
+
+            showMessage(`Mensualidades actualizadas para ${updatedRows} deportista(s).`)
+        } catch (error) {
+            rows.forEach((row) => {
+                const previous = previousValues.get(row.id)
+                row[field] = previous.status
+                row[amountField] = previous.amount
+            })
+            showMessage(getSaveErrorMessage(error), 'error')
+        } finally {
+            isBulkUpdating.value = false
+        }
+    }
+
+    const isKnownBulkStatus = (status) => statusOptions.value
+        .some((option) => option.value !== '' && Number(option.value) === status)
 
     return {
         handleSearch,
@@ -529,6 +633,12 @@ export default function useMonthlyPayments() {
         canEditPaymentRow,
         paymentFields,
         viewMode,
+        bulkStatus,
+        bulkAmount,
+        bulkStatusOptions,
+        bulkEligibleRows,
+        isBulkUpdating,
+        applyBulkPaymentStatus,
         monthlyRows,
         selectedMonthField,
         selectedMonthLabel,

@@ -57,6 +57,21 @@ const paymentRowWithStatus = (status, inscriptionDeleted = false) => ({
     inscription_deleted: inscriptionDeleted,
 })
 
+const currentMonthField = () => ({
+    0: 'january',
+    1: 'february',
+    2: 'march',
+    3: 'april',
+    4: 'may',
+    5: 'june',
+    6: 'july',
+    7: 'august',
+    8: 'september',
+    9: 'october',
+    10: 'november',
+    11: 'december',
+}[new Date().getMonth()])
+
 describe('monthly payment list', () => {
     beforeEach(() => {
         apiMock.get.mockReset()
@@ -115,6 +130,15 @@ describe('monthly payment list', () => {
         wrapper.unmount()
     })
 
+    it('defaults the month filter to the current month', () => {
+        const wrapper = mountComposable()
+
+        expect(wrapper.vm.formData.month).toBe(currentMonthField())
+        expect(wrapper.vm.selectedMonthField).toBe(currentMonthField())
+
+        wrapper.unmount()
+    })
+
     it('allows a year-only search for historical years', async () => {
         const wrapper = mountComposable()
 
@@ -163,7 +187,7 @@ describe('monthly payment list', () => {
                 category: null,
                 year: 2025,
                 training_group_id: null,
-                month: null,
+                month: currentMonthField(),
                 status: null,
                 player_name: null,
                 unique_code: null,

@@ -177,6 +177,39 @@
                         Mostrando {{ visiblePlayerCount }}<template v-if="playerSearchTerm.trim()"> de {{ player_count }}</template> Deportistas.
                     </div>
                 </div>
+
+                <div v-if="groupPayments.length" class="col-12">
+                    <div class="row align-items-end g-2 justify-content-end">
+                        <div class="col-sm-3 col-lg-2">
+                            <label for="bulk_status" class="form-label mb-1">Acción masiva</label>
+                            <select id="bulk_status" v-model="bulkStatus" class="form-select form-select-sm">
+                                <option value="">Estado</option>
+                                <option v-for="status in bulkStatusOptions" :key="status.value" :value="status.value">
+                                    {{ status.label }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-sm-3 col-lg-2">
+                            <label for="bulk_amount" class="form-label mb-1">Monto</label>
+                            <CurrencyInput
+                                id="bulk_amount"
+                                v-model="bulkAmount"
+                                class="form-control form-control-sm"
+                                placeholder="Monto"
+                            />
+                        </div>
+                        <div class="col-sm-4 col-lg-auto">
+                            <button
+                                type="button"
+                                class="btn btn-outline-primary btn-sm w-100"
+                                :disabled="isBulkUpdating || !bulkStatus || !bulkEligibleRows.length"
+                                @click="applyBulkPaymentStatus"
+                            >
+                                Aplicar a {{ bulkEligibleRows.length }} visible(s)
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div v-if="retiredRowsCount" class="alert alert-warning py-2" role="alert">
@@ -449,6 +482,12 @@ const {
     canEditPaymentRow,
     paymentFields,
     viewMode,
+    bulkStatus,
+    bulkAmount,
+    bulkStatusOptions,
+    bulkEligibleRows,
+    isBulkUpdating,
+    applyBulkPaymentStatus,
     monthlyRows,
     selectedMonthLabel,
     debtorCount,

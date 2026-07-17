@@ -283,6 +283,35 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertInstanceOf(\Illuminate\Support\Collection::class, $paidOrDue);
     }
 
+    public function testPaymentBulkUpdateMarksOnlyActiveLoadedPayments(): void
+    {
+        $this->actingAs($this->user);
+        [, $activePayment, $trainingGroup] = $this->createInscriptionAndPayment();
+        [$retiredInscription, $retiredPayment] = $this->createInscriptionAndPayment($this->createTestPlayer(), $trainingGroup);
+        $retiredInscription->delete();
+
+        $response = $this
+            ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+            ->postJson('/api/v2/payments/bulk-update', [
+                'payment_ids' => [$activePayment->id, $retiredPayment->id],
+                'year' => now()->year,
+                'month' => 'january',
+                'status' => Payment::$paid_cash,
+                'amount' => 0,
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.requested_count', 2)
+            ->assertJsonPath('data.updated_count', 1)
+            ->assertJsonPath('data.skipped_count', 1)
+            ->assertJsonPath('data.updated_ids.0', $activePayment->id);
+
+        $this->assertSame(Payment::$paid_cash, $activePayment->fresh()->january);
+        $this->assertGreaterThan(0, $activePayment->fresh()->january_amount);
+        $this->assertSame(Payment::$debt, $retiredPayment->fresh()->january);
+    }
+
     public function testPlayerRepositoryLookupListsAndBirthdayFlows(): void
     {
         $this->actingAs($this->user);

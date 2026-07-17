@@ -319,6 +319,54 @@ class PaymentRepository
         return $isPay;
     }
 
+    public function bulkUpdate(array $validated): array
+    {
+        $paymentIds = collect($validated['payment_ids'])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+        $field = (string) $validated['month'];
+        $amountField = Payment::amountFieldFor($field);
+        $updatedIds = collect();
+
+        if (! $amountField) {
+            return [
+                'requested_count' => $paymentIds->count(),
+                'updated_count' => 0,
+                'skipped_count' => $paymentIds->count(),
+                'updated_ids' => [],
+            ];
+        }
+
+        $eligiblePayments = Payment::query()
+            ->with(['inscription'])
+            ->whereIn('id', $paymentIds)
+            ->where('school_id', $validated['school_id'])
+            ->where('year', $validated['year'])
+            ->whereNull('deleted_at')
+            ->whereHas('inscription', fn ($query) => $query->whereNull('deleted_at'))
+            ->get();
+
+        foreach ($eligiblePayments as $payment) {
+            $saved = $this->setPay([
+                'column' => $field,
+                $field => (int) $validated['status'],
+                $amountField => (int) ($validated['amount'] ?? 0),
+            ], $payment);
+
+            if ($saved) {
+                $updatedIds->push((int) $payment->id);
+            }
+        }
+
+        return [
+            'requested_count' => $paymentIds->count(),
+            'updated_count' => $updatedIds->count(),
+            'skipped_count' => $paymentIds->count() - $updatedIds->count(),
+            'updated_ids' => $updatedIds->values()->all(),
+        ];
+    }
+
     private function normalizePaymentUpdate(Payment $payment, array $values): array
     {
         $column = data_get($values, 'column');
