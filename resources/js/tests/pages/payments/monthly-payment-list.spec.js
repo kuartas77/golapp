@@ -9,6 +9,7 @@ const { apiMock, settingsStore } = vi.hoisted(() => ({
     },
     settingsStore: {
         groups: [],
+        normal_training_groups: [],
         categories: [],
         inscription_years: [{ value: 2026, label: '2026' }],
         paymentTypeOptions: [],
@@ -22,6 +23,12 @@ vi.mock('@/utils/axios', () => ({
 
 vi.mock('@/store/settings-store', () => ({
     useSetting: () => settingsStore,
+}))
+
+vi.mock('@/store/auth-user', () => ({
+    useAuthUser: () => ({
+        hasSchoolPermission: vi.fn(() => true),
+    }),
 }))
 
 vi.mock('@/composables/use-meta', () => ({
@@ -54,6 +61,13 @@ describe('monthly payment list', () => {
     beforeEach(() => {
         apiMock.get.mockReset()
         apiMock.post.mockReset()
+        apiMock.get.mockImplementation((url) => {
+            if (url === '/api/v2/payments/status-catalog') {
+                return Promise.resolve({ data: { statuses: [], groups: { paid: [1, 9, 10, 11, 12, 15], debt: [2], player_credit: [15] }, months: [] } })
+            }
+
+            return Promise.resolve({ data: {} })
+        })
     })
 
     it('filters the loaded backend result locally by player name', async () => {
@@ -69,7 +83,7 @@ describe('monthly payment list', () => {
         expect(wrapper.vm.filteredGroupPayments).toHaveLength(1)
         expect(wrapper.vm.filteredGroupPayments[0].id).toBe(1)
         expect(wrapper.vm.visiblePlayerCount).toBe(1)
-        expect(apiMock.get).not.toHaveBeenCalled()
+        expect(apiMock.get).not.toHaveBeenCalledWith('/api/v2/payments', expect.anything())
 
         wrapper.unmount()
     })
@@ -110,26 +124,32 @@ describe('monthly payment list', () => {
             category: null,
         })).resolves.toBeTruthy()
 
-        apiMock.get.mockResolvedValue({
-            data: {
-                rows: [
-                    { ...paymentRow(1, 'Jugador Uno'), category: 'SUB-8' },
-                    { ...paymentRow(2, 'Jugador Dos'), category: 'SUB-10' },
-                ],
-                count: 2,
-                url_export_excel: null,
-                url_export_pdf: null,
-                filter_options: {
-                    categories: [
-                        { value: 'SUB-8', label: 'SUB-8' },
-                        { value: 'SUB-10', label: 'SUB-10' },
+        apiMock.get.mockImplementation((url) => {
+            if (url === '/api/v2/payments/status-catalog') {
+                return Promise.resolve({ data: { statuses: [], groups: { paid: [1, 9, 10, 11, 12, 15], debt: [2], player_credit: [15] }, months: [] } })
+            }
+
+            return Promise.resolve({
+                data: {
+                    rows: [
+                        { ...paymentRow(1, 'Jugador Uno'), category: 'SUB-8' },
+                        { ...paymentRow(2, 'Jugador Dos'), category: 'SUB-10' },
                     ],
-                    groups: [
-                        { value: 7, label: 'Histórico A' },
-                        { value: 8, label: 'Histórico B' },
-                    ],
+                    count: 2,
+                    url_export_excel: null,
+                    url_export_pdf: null,
+                    filter_options: {
+                        categories: [
+                            { value: 'SUB-8', label: 'SUB-8' },
+                            { value: 'SUB-10', label: 'SUB-10' },
+                        ],
+                        groups: [
+                            { value: 7, label: 'Histórico A' },
+                            { value: 8, label: 'Histórico B' },
+                        ],
+                    },
                 },
-            },
+            })
         })
 
         await wrapper.vm.handleSearch({
@@ -143,6 +163,10 @@ describe('monthly payment list', () => {
                 category: null,
                 year: 2025,
                 training_group_id: null,
+                month: null,
+                status: null,
+                player_name: null,
+                unique_code: null,
                 dataRaw: true,
             },
         })

@@ -8,6 +8,7 @@ use App\Models\Inscription;
 use App\Models\People;
 use App\Models\Payment;
 use App\Models\Player;
+use App\Models\School;
 use App\Models\TrainingGroup;
 use App\Notifications\MonthlyPaymentReceiptNotification;
 use Illuminate\Support\Arr;
@@ -16,6 +17,31 @@ use Tests\TestCase;
 
 final class MonthlyPaymentReceiptsTest extends TestCase
 {
+    public function test_status_catalog_respects_player_credit_permission(): void
+    {
+        $this->actingAs($this->user);
+        $school = School::findOrFail($this->school['id']);
+
+        $this->setPlayerCreditsPermission($school, false);
+
+        $this->getJson('/api/v2/payments/status-catalog')
+            ->assertOk()
+            ->assertJsonPath('player_credit_enabled', false)
+            ->assertJsonPath('groups.player_credit', [])
+            ->assertJsonMissing(['value' => (string) Payment::$paid_player_credit]);
+
+        $this->setPlayerCreditsPermission($school, true);
+
+        $this->getJson('/api/v2/payments/status-catalog')
+            ->assertOk()
+            ->assertJsonPath('player_credit_enabled', true)
+            ->assertJsonPath('groups.player_credit.0', Payment::$paid_player_credit)
+            ->assertJsonFragment([
+                'value' => (string) Payment::$paid_player_credit,
+                'label' => 'Pagó - Saldo a favor',
+            ]);
+    }
+
     public function test_it_lists_only_closed_paid_monthly_receipts(): void
     {
         $this->actingAs($this->user);
@@ -498,5 +524,13 @@ final class MonthlyPaymentReceiptsTest extends TestCase
                 $field => (string) $status,
                 Payment::amountFieldFor($field) => (string) $amount,
             ]);
+    }
+
+    private function setPlayerCreditsPermission(School $school, bool $enabled): void
+    {
+        $permissions = $school->getResolvedSchoolPermissions();
+        $permissions['school.module.player_credits'] = $enabled;
+        $school->forceFill(['school_permissions' => School::normalizeSchoolPermissions($permissions)])->save();
+        School::forgetCachedSchool($school->id);
     }
 }

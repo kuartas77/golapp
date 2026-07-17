@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\SetPaymentRequest;
 use App\Models\Payment;
 use App\Repositories\PaymentRepository;
+use App\Service\Payment\PaymentStatusCatalog;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\JsonResponse;
@@ -39,6 +40,10 @@ class PaymentController extends Controller
                 'year' => ['required', 'integer'],
                 'training_group_id' => ['nullable', 'integer'],
                 'category' => ['nullable', 'string'],
+                'month' => ['nullable', 'string', 'in:'.implode(',', Payment::paymentFields())],
+                'status' => ['nullable', 'string'],
+                'player_name' => ['nullable', 'string'],
+                'unique_code' => ['nullable', 'string'],
                 'dataRaw' => ['nullable', 'boolean'],
             ]);
 
@@ -64,6 +69,15 @@ class PaymentController extends Controller
         view()->share('annuity', data_get($school, 'settings.ANNUITY', 48500));
 
         return view('payments.payment.index');
+    }
+
+    public function statusCatalog(): JsonResponse
+    {
+        $school = getSchool(auth()->user());
+
+        return response()->json(PaymentStatusCatalog::toArray(
+            $school->hasSchoolPermission('school.module.player_credits')
+        ));
     }
 
     public function show($id, Request $request)

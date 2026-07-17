@@ -24,6 +24,37 @@ export default function useMonthlyPayments() {
         option.value !== '15' || auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.playerCredits)
     )))
     const paymentTypeLabels = computed(() => settings.paymentTypeLabels)
+    const statusCatalog = ref({
+        statuses: [],
+        groups: {
+            paid: [1, 9, 10, 11, 12, 15],
+            debt: [2],
+            player_credit: [15],
+        },
+        months: [],
+    })
+    const monthOptions = computed(() => [
+        { value: '', label: 'Todos los meses' },
+        ...(statusCatalog.value.months?.length ? statusCatalog.value.months : [
+            { value: 'january', label: 'Enero' },
+            { value: 'february', label: 'Febrero' },
+            { value: 'march', label: 'Marzo' },
+            { value: 'april', label: 'Abril' },
+            { value: 'may', label: 'Mayo' },
+            { value: 'june', label: 'Junio' },
+            { value: 'july', label: 'Julio' },
+            { value: 'august', label: 'Agosto' },
+            { value: 'september', label: 'Septiembre' },
+            { value: 'october', label: 'Octubre' },
+            { value: 'november', label: 'Noviembre' },
+            { value: 'december', label: 'Diciembre' },
+        ]),
+    ])
+    const statusOptions = computed(() => [
+        { value: '', label: 'Todos los estados' },
+        ...((statusCatalog.value.statuses?.length ? statusCatalog.value.statuses : type_payments.value)
+            .map((status) => ({ value: String(status.value), label: status.label }))),
+    ])
     const selected_group = ref(null)
     const groupPayments = ref([])
     const playerSearchTerm = ref('')
@@ -46,12 +77,21 @@ export default function useMonthlyPayments() {
                 return selectedYear !== currentDate.getFullYear() || Boolean(value || category)
             }
         ),
+        month: yup.string().nullable().optional(),
+        status: yup.string().nullable().optional(),
+        player_name: yup.string().nullable().optional(),
+        unique_code: yup.string().nullable().optional(),
     })
     const formData = ref({
         year: defaultYear,
         training_group_id: null,
-        category: null
+        category: null,
+        month: '',
+        status: '',
+        player_name: '',
+        unique_code: '',
     })
+    const viewMode = ref('annual')
     const isLoading = ref(false)
     const editingCell = ref(null)
     const backupCell = ref(null)
@@ -101,10 +141,22 @@ export default function useMonthlyPayments() {
             groupPayments.value = []
             playerSearchTerm.value = ''
             isLoading.value = true
+            formData.value = {
+                ...formData.value,
+                ...values,
+                month: values.month || '',
+                status: values.status || '',
+                player_name: values.player_name || '',
+                unique_code: values.unique_code || '',
+            }
             const params = {
                 category: values.category,
                 year: values.year ?? defaultYear,
                 training_group_id: values.training_group_id,
+                month: values.month || null,
+                status: values.status || null,
+                player_name: values.player_name || null,
+                unique_code: values.unique_code || null,
                 dataRaw: true
             }
             const response = await api.get(`/api/v2/payments`, { params: params })
@@ -324,16 +376,17 @@ export default function useMonthlyPayments() {
     const exportFile = async (event) => {
         event.preventDefault()
         const link = event.currentTarget
-        // console.log(link.href)
+        const exportStatusOptions = statusOptions.value.reduce((options, option) => {
+            options[option.value || 'all'] = option.label
+            return options
+        }, {})
+
         Swal.fire({
             title: 'Exportar pagos',
             icon: 'info',
             input: 'select',
             inputLabel: 'Estado de la mensualidad',
-            inputOptions: {
-                all: 'Todos',
-                '2': 'Debe',
-            },
+            inputOptions: exportStatusOptions,
             inputValidator: function (value) {
                 return new Promise(function (resolve) {
                     if (value !== '') {
@@ -356,6 +409,13 @@ export default function useMonthlyPayments() {
 
     onMounted(() => {
         usePageTitle('Mensualidades')
+        api.get('/api/v2/payments/status-catalog')
+            .then((response) => {
+                statusCatalog.value = response.data ?? statusCatalog.value
+            })
+            .catch(() => {
+                statusCatalog.value.statuses = type_payments.value
+            })
     })
 
     const totalsFooter = ref({
@@ -383,11 +443,11 @@ export default function useMonthlyPayments() {
         total: 0
     })
 
-    const statusPay = [1, 9, 10, 11, 12, 15]
+    const statusPay = computed(() => statusCatalog.value.groups?.paid ?? [1, 9, 10, 11, 12, 15])
     const statusPayCash = [9, 12]
     const statusPayConsignment = [10, 11]
-    const statusPayPlayerCredit = [15]
-    const statsDeb = [2]
+    const statusPayPlayerCredit = computed(() => statusCatalog.value.groups?.player_credit ?? [15])
+    const statsDeb = computed(() => statusCatalog.value.groups?.debt ?? [2])
 
     watch(filteredGroupPayments, async (newValue) => {
         totalByType.value.cash = 0
@@ -397,27 +457,45 @@ export default function useMonthlyPayments() {
         totalByType.value.debts = 0
         totalByType.value.total = 0
         for (const field in paymentFields) {
-            totalsFooter.value[`${paymentFields[field]}`] = newValue.filter(pay => statusPay.includes(pay[`${paymentFields[field]}`]))
+            totalsFooter.value[`${paymentFields[field]}`] = newValue.filter(pay => statusPay.value.includes(pay[`${paymentFields[field]}`]))
                 .reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
 
             totalByType.value.cash += newValue.filter(pay => statusPayCash.includes(pay[`${paymentFields[field]}`]))
                 .reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
 
-            totalByType.value.pay += newValue.filter(pay => statusPay.includes(pay[`${paymentFields[field]}`]))
+            totalByType.value.pay += newValue.filter(pay => statusPay.value.includes(pay[`${paymentFields[field]}`]))
                 .reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
 
             totalByType.value.consignment += newValue.filter(pay => statusPayConsignment.includes(pay[`${paymentFields[field]}`]))
                 .reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
 
-            totalByType.value.playerCredit += newValue.filter(pay => statusPayPlayerCredit.includes(pay[`${paymentFields[field]}`]))
+            totalByType.value.playerCredit += newValue.filter(pay => statusPayPlayerCredit.value.includes(pay[`${paymentFields[field]}`]))
                 .reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
 
-            totalByType.value.debts += newValue.filter(pay => statsDeb.includes(pay[`${paymentFields[field]}`]))
+            totalByType.value.debts += newValue.filter(pay => statsDeb.value.includes(pay[`${paymentFields[field]}`]))
                 .reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
 
             totalByType.value.total += newValue.reduce((accumulator, pay) => accumulator + pay[`${paymentFields[field]}_amount`], 0)
         }
     }, { deep: true })
+
+    const selectedMonthField = computed(() => formData.value.month || monthOptions.value.find((month) => month.value)?.value || 'january')
+    const selectedMonthLabel = computed(() => monthOptions.value.find((month) => month.value === selectedMonthField.value)?.label || 'Mes')
+    const monthlyRows = computed(() => filteredGroupPayments.value.map((payPlayer) => {
+        const field = selectedMonthField.value
+
+        return {
+            payPlayer,
+            field,
+            status: payPlayer[field],
+            statusLabel: paymentTypeLabels.value[String(payPlayer[field])] || payPlayer[field],
+            amount: payPlayer[`${field}_amount`],
+        }
+    }))
+    const debtorCount = computed(() => filteredGroupPayments.value.filter((payPlayer) => Object.values(paymentFields)
+        .some((field) => statsDeb.value.includes(payPlayer[field]))).length)
+    const receiptableCount = computed(() => filteredGroupPayments.value.reduce((count, payPlayer) => count + Object.values(paymentFields)
+        .filter((field) => statusPay.value.includes(payPlayer[field])).length, 0))
 
     return {
         handleSearch,
@@ -445,8 +523,17 @@ export default function useMonthlyPayments() {
         categories,
         type_payments,
         paymentTypeLabels,
+        statusCatalog,
+        monthOptions,
+        statusOptions,
         canEditPaymentRow,
         paymentFields,
+        viewMode,
+        monthlyRows,
+        selectedMonthField,
+        selectedMonthLabel,
+        debtorCount,
+        receiptableCount,
         retiredRowsCount,
         totalsFooter,
         totalByType,

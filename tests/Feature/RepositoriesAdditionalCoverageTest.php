@@ -246,9 +246,11 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'school_id' => $this->school['id'],
             'year' => now()->year,
             'unique_code' => $payment->unique_code,
+            'player_name' => $inscription->player->names,
             'training_group_id' => $inscription->training_group_id,
             'category' => $inscription->category,
-            'status' => 'all',
+            'month' => 'january',
+            'status' => (string) Payment::$debt,
         ];
 
         $filtered = $repository->filterSelect($params)->get();

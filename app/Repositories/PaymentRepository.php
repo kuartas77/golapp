@@ -8,7 +8,7 @@ use App\Models\Inscription;
 use App\Models\Payment;
 use App\Models\TrainingGroup;
 use App\Notifications\MonthlyPaymentReceiptNotification;
-use App\Service\Payment\MonthlyPaymentReceiptService;
+use App\Service\Payment\PaymentStatusCatalog;
 use App\Service\PaymentAmountResolver;
 use App\Service\PlayerCredits\PlayerCreditService;
 use App\Service\ReportService;
@@ -156,6 +156,8 @@ class PaymentRepository
         $category = data_get($params, 'category');
         $year = data_get($params, 'year', now()->year);
         $unique_code = data_get($params, 'unique_code');
+        $playerName = trim((string) data_get($params, 'player_name', ''));
+        $month = data_get($params, 'month');
         $training_group_id = data_get($params, 'training_group_id', 0);
         $paymentStatus = $this->normalizePaymentStatus(data_get($params, 'status'));
 
@@ -176,11 +178,22 @@ class PaymentRepository
             ->whereHas('inscription.player')
             ->whereHas('inscription', fn ($inscriptionQuery) => $inscriptionQuery->where('year', $year))
             ->when($unique_code, fn ($q) => $q->where('unique_code', $unique_code))
+            ->when($playerName !== '', fn ($q) => $q->whereHas('inscription.player', fn ($playerQuery) => $playerQuery
+                ->where('names', 'like', "%{$playerName}%")
+                ->orWhere('last_names', 'like', "%{$playerName}%")
+                ->orWhereRaw("CONCAT_WS(' ', names, last_names) LIKE ?", ["%{$playerName}%"])))
             ->when($training_group_id != 0, fn ($q) => $q->where('training_group_id', $training_group_id))
             ->when($category, fn ($q) => $q->whereHas('inscription', fn ($inscription) => $inscription
                 ->where('year', $year)
                 ->where('category', $category)))
-            ->when($paymentStatus != null, fn ($q) => $q->ByPaymentStatus($paymentStatus));
+            ->when($paymentStatus != null, function ($q) use ($paymentStatus, $month) {
+                if ($month && Payment::amountFieldFor((string) $month)) {
+                    $q->where($month, $paymentStatus);
+                    return;
+                }
+
+                $q->ByPaymentStatus($paymentStatus);
+            });
 
         return $this->orderByCategory($query);
     }
@@ -191,6 +204,8 @@ class PaymentRepository
         $category = data_get($params, 'category');
         $year = data_get($params, 'year', now()->year);
         $unique_code = data_get($params, 'unique_code');
+        $playerName = trim((string) data_get($params, 'player_name', ''));
+        $month = data_get($params, 'month');
         $training_group_id = data_get($params, 'training_group_id', 0);
         $paymentStatus = $this->normalizePaymentStatus(data_get($params, 'status'));
 
@@ -207,11 +222,22 @@ class PaymentRepository
             ->whereHas('inscription.player')
             ->whereHas('inscription', fn ($inscriptionQuery) => $inscriptionQuery->where('year', $year))
             ->when($unique_code, fn ($q) => $q->where('unique_code', $unique_code))
+            ->when($playerName !== '', fn ($q) => $q->whereHas('inscription.player', fn ($playerQuery) => $playerQuery
+                ->where('names', 'like', "%{$playerName}%")
+                ->orWhere('last_names', 'like', "%{$playerName}%")
+                ->orWhereRaw("CONCAT_WS(' ', names, last_names) LIKE ?", ["%{$playerName}%"])))
             ->when($training_group_id != 0, fn ($q) => $q->where('training_group_id', $training_group_id))
             ->when($category, fn ($q) => $q->whereHas('inscription', fn ($inscription) => $inscription
                 ->where('year', $year)
                 ->where('category', $category)))
-            ->when($paymentStatus != null, fn ($q) => $q->ByPaymentStatus($paymentStatus))
+            ->when($paymentStatus != null, function ($q) use ($paymentStatus, $month) {
+                if ($month && Payment::amountFieldFor((string) $month)) {
+                    $q->where($month, $paymentStatus);
+                    return;
+                }
+
+                $q->ByPaymentStatus($paymentStatus);
+            })
             ->when($deleted, fn ($q) => $q->withTrashed(), fn ($q) => $q->whereNull('payments.deleted_at'));
 
         return $this->orderByCategory($query)->orderBy('inscription_id', 'asc');
@@ -337,17 +363,13 @@ class PaymentRepository
             if ($this->isPaidStatus($previousStatus) || ! $this->isPaidStatus($currentStatus)) {
                 continue;
             }
-            logger('aaaaaa', [
-                $normalizedValues,
-                $previousStatus,
-            ]);
             $guardian->notify(new MonthlyPaymentReceiptNotification($payment, $field, $payment->school));
         }
     }
 
     private function isPaidStatus(int $status): bool
     {
-        return in_array($status, MonthlyPaymentReceiptService::paidStatuses(), true);
+        return in_array($status, PaymentStatusCatalog::paidStatuses(), true);
     }
 
     private function normalizeColumnUpdate(Payment $payment, string $column, array $values): array

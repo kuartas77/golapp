@@ -11,7 +11,7 @@
                             Para el año actual selecciona al menos un grupo o una categoría; también puedes combinar ambos.
                             En años anteriores puedes consultar sólo por año o aplicar esos mismos filtros.
                         </p>
-                        <div class="col-sm-4">
+                        <div class="col-sm-3">
                             <label for="training_group_id" class="sr-only">Grupo</label>
                             <Field name="training_group_id" as="CustomSelect2" :options="groups" id="training_group_id"
                                 placeholder="Grupo" />
@@ -23,11 +23,35 @@
                                 placeholder="Categoría" />
                             <ErrorMessage name="category" class="custom-error" />
                         </div>
-                        <div class="col-sm-3">
+                        <div class="col-sm-2">
                             <label for="year" class="sr-only">Año</label>
                             <Field name="year" as="CustomSelect2" :options="years" id="year"
                                 placeholder="Año" />
                             <ErrorMessage name="year" class="custom-error" />
+                        </div>
+                        <div class="col-sm-3 mt-2">
+                            <label for="month" class="sr-only">Mes</label>
+                            <Field name="month" as="CustomSelect2" :options="monthOptions" id="month"
+                                placeholder="Mes" />
+                            <ErrorMessage name="month" class="custom-error" />
+                        </div>
+                        <div class="col-sm-3 mt-2">
+                            <label for="status" class="sr-only">Estado</label>
+                            <Field name="status" as="CustomSelect2" :options="statusOptions" id="status"
+                                placeholder="Estado" />
+                            <ErrorMessage name="status" class="custom-error" />
+                        </div>
+                        <div class="col-sm-3 mt-2">
+                            <label for="player_name" class="sr-only">Deportista</label>
+                            <Field name="player_name" id="player_name" class="form-control form-control-sm"
+                                placeholder="Deportista" />
+                            <ErrorMessage name="player_name" class="custom-error" />
+                        </div>
+                        <div class="col-sm-3 mt-2">
+                            <label for="unique_code" class="sr-only">Código</label>
+                            <Field name="unique_code" id="unique_code" class="form-control form-control-sm"
+                                placeholder="Código" />
+                            <ErrorMessage name="unique_code" class="custom-error" />
                         </div>
                         <div class="col-sm-2">
                             <button type="submit" class="btn btn-primary w-100" :disabled="isLoading">
@@ -75,6 +99,12 @@
                             <span class="badge outline-badge-danger  me-1">
                                 Deben {{ moneyFormat(totalByType.debts) }}
                             </span>
+                            <span class="badge outline-badge-danger me-1">
+                                Deudores {{ debtorCount }}
+                            </span>
+                            <span class="badge outline-badge-success me-1">
+                                Recibos {{ receiptableCount }}
+                            </span>
                             <!-- <span class="badge outline-badge-info  me-1">
                                 Otros {{ moneyFormat(totalByType.others) }}
                             </span> -->
@@ -111,7 +141,20 @@
                     <div class="dt-info">
                         <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                             <i class="fa-regular fa-circle-question me-2"></i>
-                            Guia
+                            Guía
+                        </button>
+                    </div>
+                </div>
+
+                <div v-if="groupPayments.length" class="col-md-auto mb-2">
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Vista de mensualidades">
+                        <button type="button" class="btn" :class="viewMode === 'annual' ? 'btn-primary' : 'btn-outline-primary'"
+                            @click="viewMode = 'annual'">
+                            Anual
+                        </button>
+                        <button type="button" class="btn" :class="viewMode === 'monthly' ? 'btn-primary' : 'btn-outline-primary'"
+                            @click="viewMode = 'monthly'">
+                            Mensual
                         </button>
                     </div>
                 </div>
@@ -140,7 +183,88 @@
                 Hay {{ retiredRowsCount }} fila(s) con inscripción retirada. Se muestran solo como referencia histórica y permanecen en solo lectura.
             </div>
 
-            <div
+            <div v-if="viewMode === 'monthly' && filteredGroupPayments.length"
+                class="table-responsive"
+                data-tour="monthly-payments-table"
+            >
+                <table class="table table-bordered table-sm dataTable align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th class="dt-head-center dt-body-center">Deportista</th>
+                            <th class="dt-head-center dt-body-center">Mes</th>
+                            <th class="dt-head-center dt-body-center">Estado</th>
+                            <th class="dt-head-center dt-body-center">Monto</th>
+                            <th class="dt-head-center dt-body-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="row in monthlyRows" :key="`${row.payPlayer.id}-${row.field}`">
+                            <td class="dt-head-center dt-body-center text-sm-start">
+                                <small>
+                                    {{ row.payPlayer.player.full_names }}
+                                    <span v-if="row.payPlayer.inscription_deleted" class="badge bg-warning text-dark ms-2">
+                                        Inscripción retirada
+                                    </span>
+                                </small>
+                                <p class="mb-0">
+                                    <small class="text-muted">
+                                        {{ row.payPlayer.player.unique_code }}
+                                        <span>| {{ row.payPlayer.player.category }}</span>
+                                    </small>
+                                </p>
+                            </td>
+                            <td class="dt-head-center dt-body-center">{{ selectedMonthLabel }}</td>
+                            <td class="dt-head-center dt-body-center"
+                                :data-payment-id="row.payPlayer.id"
+                                :data-payment-field="row.field">
+                                <template
+                                    v-if="editingCell?.payPlayer === row.payPlayer && editingCell?.field === row.field && canEditPaymentRow(row.payPlayer, row.field)">
+                                    <select v-model="row.payPlayer[row.field]"
+                                        :id="`select_${row.field}_${row.payPlayer.id}`"
+                                        :name="`select_${row.field}_${row.payPlayer.id}`" autocomplete="off"
+                                        @change="handleSelectChange(row.payPlayer, row.field)"
+                                        class="form-select form-select-sm">
+                                        <option v-for="type in type_payments" :key="type.value"
+                                            :value="type.value">{{ type.label }}</option>
+                                    </select>
+                                </template>
+                                <span v-else :class="`badge payments-c-${row.status}`">
+                                    {{ row.statusLabel }}
+                                </span>
+                            </td>
+                            <td class="dt-head-center dt-body-center">
+                                <template
+                                    v-if="editingCell?.payPlayer === row.payPlayer && editingCell?.field === row.field && canEditPaymentRow(row.payPlayer, row.field)">
+                                    <CurrencyInput class="form-control form-control-sm"
+                                        v-model="row.payPlayer[`${row.field}_amount`]"
+                                        :id="`input_${row.field}_${row.payPlayer.id}`"
+                                        :name="`input_${row.field}_${row.payPlayer.id}`" autocomplete="off"
+                                        placeholder="Monto" />
+                                </template>
+                                <small v-else class="text-muted">{{ moneyFormat(row.amount) }}</small>
+                            </td>
+                            <td class="dt-head-center dt-body-center">
+                                <template
+                                    v-if="editingCell?.payPlayer === row.payPlayer && editingCell?.field === row.field && canEditPaymentRow(row.payPlayer, row.field)">
+                                    <span class="badge badge-success clickable me-1" @click="saveField" title="Guardar">
+                                        <i class="far fa-check-square fa-lg"></i>
+                                    </span>
+                                    <span class="badge badge-info clickable" @click="cancelEdition(row.field)" title="Cancelar">
+                                        <i class="far fa-window-close fa-lg"></i>
+                                    </span>
+                                </template>
+                                <span v-else-if="canEditPaymentRow(row.payPlayer, row.field)"
+                                    class="badge badge-light btn btn-sm clickable"
+                                    @click="editRow(row.payPlayer, row.field)">
+                                    <i class="far fa-edit"></i>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div v-else
                 ref="scrollContainer"
                 class="table-responsive"
                 :class="filteredGroupPayments.length ? 'scroll-container' : ''"
@@ -320,8 +444,15 @@ const {
     categories,
     type_payments,
     paymentTypeLabels,
+    monthOptions,
+    statusOptions,
     canEditPaymentRow,
     paymentFields,
+    viewMode,
+    monthlyRows,
+    selectedMonthLabel,
+    debtorCount,
+    receiptableCount,
     retiredRowsCount,
     totalsFooter,
     totalByType

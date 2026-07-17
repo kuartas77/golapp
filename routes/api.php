@@ -213,6 +213,8 @@ Route::prefix('v2')->group(function () {
         Route::middleware('school.permission:school.module.payments')->group(function () {
             Route::get('payments/monthly-receipts', [MonthlyPaymentReceiptController::class, 'index'])
                 ->name('payments.monthly-receipts.index');
+            Route::get('payments/status-catalog', [PaymentController::class, 'statusCatalog'])
+                ->name('payments.status-catalog');
             Route::apiResource('payments', PaymentController::class)->only(['index', 'update', 'show']);
         });
 

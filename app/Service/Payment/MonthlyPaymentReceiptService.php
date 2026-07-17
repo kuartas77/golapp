@@ -253,13 +253,6 @@ class MonthlyPaymentReceiptService
 
     public static function paidStatuses(): array
     {
-        return [
-            Payment::$paid,
-            Payment::$paid_cash,
-            Payment::$paid_deposit,
-            Payment::$annuity_payment_deposit,
-            Payment::$annuity_payment_cash,
-            Payment::$paid_player_credit,
-        ];
+        return PaymentStatusCatalog::paidStatuses();
     }
 }
