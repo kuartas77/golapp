@@ -339,6 +339,32 @@ describe('ModalInscription', () => {
         expect(wrapper.vm.$.setupState.form.values.monthly_payment_type).toBe('MONTHLY_PAYMENT_OPTION_1');
     });
 
+    it('shows monthly recalculation only when editing with a changed monthly payment type', async () => {
+        const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
+
+        await wrapper.setProps({ inscription_id: 1 });
+        await flushPromises();
+        await flushPromises();
+
+        expect(wrapper.vm.$.setupState.showRecalculateMonthlyPaymentsOption).toBe(false);
+        expect(wrapper.find('#recalculate_monthly_payments').exists()).toBe(false);
+
+        wrapper.vm.$.setupState.form.setFieldValue('monthly_payment_type', 'MONTHLY_PAYMENT');
+        await flushPromises();
+
+        expect(wrapper.vm.$.setupState.showRecalculateMonthlyPaymentsOption).toBe(true);
+        expect(wrapper.find('#recalculate_monthly_payments').exists()).toBe(true);
+        expect(wrapper.get('label[for="recalculate_monthly_payments"]').attributes('title'))
+            .toContain('se actualizarán solo mensualidades cobrables');
+
+        wrapper.vm.$.setupState.form.setFieldValue('recalculate_monthly_payments', true);
+        wrapper.vm.$.setupState.form.setFieldValue('monthly_payment_type', 'MONTHLY_PAYMENT_OPTION_1');
+        await flushPromises();
+
+        expect(wrapper.vm.$.setupState.showRecalculateMonthlyPaymentsOption).toBe(false);
+        expect(wrapper.find('#recalculate_monthly_payments').exists()).toBe(false);
+    });
+
     it('shows and precaches the complementary training group when editing', async () => {
         const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
 
@@ -513,6 +539,38 @@ describe('ModalInscription', () => {
         expect(apiMock.post).toHaveBeenCalledWith('/api/v2/inscriptions', expect.objectContaining({
             monthly_payment_type: 'MONTHLY_PAYMENT_OPTION_2',
             complementary_group_id: '3',
+        }));
+    });
+
+    it('sends monthly recalculation only when explicitly enabled in edit mode', async () => {
+        const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
+        const actions = { setErrors: vi.fn() };
+
+        await wrapper.setProps({ inscription_id: 1 });
+        await flushPromises();
+        await flushPromises();
+
+        await wrapper.vm.$.setupState.submit({
+            ...wrapper.vm.$.setupState.form.values,
+            id: 1,
+            monthly_payment_type: 'MONTHLY_PAYMENT',
+            recalculate_monthly_payments: false,
+        }, actions);
+
+        expect(apiMock.post).toHaveBeenLastCalledWith('/api/v2/inscriptions/1', expect.not.objectContaining({
+            recalculate_monthly_payments: expect.anything(),
+        }));
+
+        await wrapper.vm.$.setupState.submit({
+            ...wrapper.vm.$.setupState.form.values,
+            id: 1,
+            monthly_payment_type: 'MONTHLY_PAYMENT',
+            recalculate_monthly_payments: true,
+        }, actions);
+
+        expect(apiMock.post).toHaveBeenLastCalledWith('/api/v2/inscriptions/1', expect.objectContaining({
+            recalculate_monthly_payments: true,
+            monthly_payment_type: 'MONTHLY_PAYMENT',
         }));
     });
 });

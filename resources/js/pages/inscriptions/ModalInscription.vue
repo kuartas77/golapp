@@ -77,6 +77,27 @@
                                         />
                                     </Field>
                                     <ErrorMessage name="monthly_payment_type" class="custom-error" />
+                                    <div
+                                        v-if="showRecalculateMonthlyPaymentsOption"
+                                        class="custom-control custom-checkbox mt-2"
+                                    >
+                                        <Field name="recalculate_monthly_payments" type="checkbox" v-slot="{ field, handleChange }">
+                                            <input
+                                                id="recalculate_monthly_payments"
+                                                type="checkbox"
+                                                class="custom-control-input"
+                                                :checked="field.value"
+                                                @change="handleChange($event.target.checked)"
+                                            >
+                                        </Field>
+                                        <label
+                                            class="custom-control-label"
+                                            for="recalculate_monthly_payments"
+                                            title="Por defecto se conservan los valores actuales. Si activas esta opción, se actualizarán solo mensualidades cobrables y quedará historial del cambio."
+                                        >
+                                            Actualizar mensualidades existentes
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
@@ -319,6 +340,7 @@ const form = useTemplateRef("form");
 const composeModalInscription = ref(null);
 const currentTrainingGroupId = ref(null);
 const currentPreInscription = ref(false);
+const originalMonthlyPaymentType = ref(null);
 const reactivationCandidate = ref(null);
 const customChargeCatalog = ref([]);
 const existingCustomCharges = ref([]);
@@ -358,6 +380,13 @@ const monthlyPaymentOptions = computed(() => monthlyPaymentDefinitions
         value: option.value,
         label: `${option.label} - ${moneyFormatter.format(option.amount)}`,
     })));
+const selectedMonthlyPaymentType = computed(() => form.value?.values?.monthly_payment_type ?? null);
+const showRecalculateMonthlyPaymentsOption = computed(() => (
+    isEditing.value
+    && originalMonthlyPaymentType.value !== null
+    && selectedMonthlyPaymentType.value !== null
+    && selectedMonthlyPaymentType.value !== originalMonthlyPaymentType.value
+));
 const competitionGroups = computed(() => settings.competition_groups.map((group) => ({
     value: String(group.id),
     label: group.full_name_group ?? group.full_name ?? group.name ?? String(group.id),
@@ -489,6 +518,7 @@ const defaultValues = () => ({
     scholarship: false,
     brother_payment: false,
     monthly_payment_type: resolveMonthlyPaymentType(),
+    recalculate_monthly_payments: false,
     training_group_id: null,
     complementary_group_id: null,
     competition_groups: [],
@@ -510,6 +540,7 @@ const schema = yup.object().shape({
     scholarship: yup.boolean().default(false),
     brother_payment: yup.boolean().default(false),
     monthly_payment_type: yup.string().nullable().oneOf(monthlyPaymentDefinitions.map((option) => option.value)).default('MONTHLY_PAYMENT'),
+    recalculate_monthly_payments: yup.boolean().default(false),
     training_group_id: yup.mixed().nullable(),
     complementary_group_id: yup.mixed().nullable(),
     competition_groups: yup.array().default([]),
@@ -525,6 +556,7 @@ const resetFormState = () => {
     form.value?.resetForm({ values: defaultValues() })
     currentTrainingGroupId.value = null
     currentPreInscription.value = false
+    originalMonthlyPaymentType.value = null
     reactivationCandidate.value = null
     existingCustomCharges.value = []
     customChargeRemovalIds.value = []
@@ -576,6 +608,7 @@ const loadInscriptionForEdit = async (inscriptionId) => {
 
         currentTrainingGroupId.value = trainingGroupId
         currentPreInscription.value = normalizeBoolean(data.pre_inscription)
+        originalMonthlyPaymentType.value = resolveMonthlyPaymentType(data.monthly_payment_type, data.brother_payment)
         form.value.setValues({
             ...defaultValues(),
             id: data.id,
@@ -585,7 +618,8 @@ const loadInscriptionForEdit = async (inscriptionId) => {
             start_date: data.start_date,
             scholarship: normalizeBoolean(data.scholarship),
             brother_payment: normalizeBoolean(data.brother_payment),
-            monthly_payment_type: resolveMonthlyPaymentType(data.monthly_payment_type, data.brother_payment),
+            monthly_payment_type: originalMonthlyPaymentType.value,
+            recalculate_monthly_payments: false,
             training_group_id: visibleTrainingGroupId,
             complementary_group_id: normalizeTrainingGroupId(data.complementary_group_id),
             competition_groups: data.competition_groups ?? [],
@@ -796,6 +830,7 @@ const loadPlayerByUniqueCode = async (uniqueCode) => {
             scholarship: normalizeBoolean(reactivationInscription?.scholarship),
             brother_payment: normalizeBoolean(reactivationInscription?.brother_payment),
             monthly_payment_type: resolveMonthlyPaymentType(reactivationInscription?.monthly_payment_type, reactivationInscription?.brother_payment),
+            recalculate_monthly_payments: false,
             training_group_id: normalizeVisibleTrainingGroupId(reactivationInscription?.training_group_id),
             complementary_group_id: normalizeTrainingGroupId(reactivationInscription?.complementary_group_id),
             competition_groups: reactivationInscription?.competition_groups ?? [],
@@ -825,6 +860,10 @@ const submit = async (values, actions) => {
         globalError.value = null
         let response = null
         const data = { ...values }
+
+        if (!isEditing.value || data.recalculate_monthly_payments !== true) {
+            delete data.recalculate_monthly_payments
+        }
 
         if (canManageCustomCharges.value) {
             data.custom_charges = selectedCustomChargesPayload()
@@ -874,6 +913,12 @@ watch(
         }
     }
 )
+
+watch(showRecalculateMonthlyPaymentsOption, (isVisible) => {
+    if (!isVisible) {
+        form.value?.setFieldValue('recalculate_monthly_payments', false)
+    }
+})
 
 const onChangeCode = (uniqueCode) => {
     loadPlayerByUniqueCode(uniqueCode)

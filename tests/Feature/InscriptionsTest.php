@@ -9,6 +9,7 @@ use App\Models\Assist;
 use App\Models\CompetitionGroup;
 use App\Models\Inscription;
 use App\Models\Payment;
+use App\Models\PaymentChangeLog;
 use App\Models\Player;
 use App\Models\School;
 use App\Models\Setting;
@@ -877,6 +878,100 @@ final class InscriptionsTest extends TestCase
         $this->assertTrue((bool) $inscription->brother_payment);
         $this->assertSame(Setting::BROTHER_MONTHLY_PAYMENT, $inscription->monthly_payment_type);
         $this->assertSame(65000, (int) $inscription->monthly_payment_amount);
+    }
+
+    public function test_update_inscription_recalculates_collectible_monthly_amounts_when_requested(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $now = Carbon::now();
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->settingsValues()->where('setting_key', Setting::MONTHLY_PAYMENT)->update(['value' => '50000']);
+        $school->settingsValues()->where('setting_key', Setting::MONTHLY_PAYMENT_OPTION_1)->update(['value' => '62000']);
+
+        $player = Player::factory()->create();
+        $inscription = Inscription::factory()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => $now->year,
+            'training_group_id' => 1,
+            'competition_group_id' => null,
+            'start_date' => $now->format('Y-m-d'),
+            'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+            'school_id' => $this->school['id'],
+            'brother_payment' => false,
+            'monthly_payment_type' => Setting::MONTHLY_PAYMENT,
+            'monthly_payment_amount' => 50000,
+        ]);
+
+        $payment = Payment::query()->where('inscription_id', $inscription->id)->firstOrFail();
+        $nonCollectibleMonths = collect(config('variables.KEY_INDEX_MONTHS'))
+            ->mapWithKeys(fn (string $field) => [
+                $field => Payment::$no_application,
+                "{$field}_amount" => 0,
+            ])
+            ->all();
+
+        $payment->forceFill(array_merge($nonCollectibleMonths, [
+            'january' => Payment::$debt,
+            'january_amount' => 50000,
+            'february' => Payment::$paid_,
+            'february_amount' => 50000,
+            'march' => Payment::$payment_agreement,
+            'march_amount' => 50000,
+            'april' => Payment::$paid_cash,
+            'april_amount' => 50000,
+            'may' => Payment::$no_application,
+            'may_amount' => 0,
+            'june' => Payment::$permanent_retirement,
+            'june_amount' => 50000,
+            'july' => Payment::$scholarship_recipient,
+            'july_amount' => 0,
+        ]))->save();
+
+        $this->actingAs($this->user);
+
+        $this->post(route('inscriptions.update', [$inscription->id]), [
+            'unique_code' => $player->unique_code,
+            'player_id' => $player->id,
+            'start_date' => $now->format('Y-m-d'),
+            'monthly_payment_type' => Setting::MONTHLY_PAYMENT_OPTION_1,
+            'recalculate_monthly_payments' => true,
+            '_method' => 'PATCH',
+        ])->assertStatus(200);
+
+        $inscription->refresh();
+        $payment->refresh();
+
+        $this->assertSame(Setting::MONTHLY_PAYMENT_OPTION_1, $inscription->monthly_payment_type);
+        $this->assertSame(62000, (int) $inscription->monthly_payment_amount);
+        $this->assertSame(62000, (int) $payment->january_amount);
+        $this->assertSame(62000, (int) $payment->february_amount);
+        $this->assertSame(62000, (int) $payment->march_amount);
+        $this->assertSame(50000, (int) $payment->april_amount);
+        $this->assertSame(0, (int) $payment->may_amount);
+        $this->assertSame(50000, (int) $payment->june_amount);
+        $this->assertSame(0, (int) $payment->july_amount);
+
+        $this->assertSame(3, PaymentChangeLog::query()
+            ->where('payment_id', $payment->id)
+            ->where('source', 'inscription_tariff')
+            ->count());
+        $this->assertDatabaseHas('payment_change_logs', [
+            'payment_id' => $payment->id,
+            'field' => 'january',
+            'old_status' => Payment::$debt,
+            'new_status' => Payment::$debt,
+            'old_amount' => 50000,
+            'new_amount' => 62000,
+            'source' => 'inscription_tariff',
+        ]);
+        $this->assertDatabaseMissing('payment_change_logs', [
+            'payment_id' => $payment->id,
+            'field' => 'april',
+            'source' => 'inscription_tariff',
+        ]);
     }
 
     public function test_assigning_complementary_group_does_not_rewrite_existing_debt_month_amounts(): void

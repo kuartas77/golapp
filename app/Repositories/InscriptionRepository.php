@@ -9,6 +9,7 @@ use App\Models\Inscription;
 use App\Models\InscriptionCustomCharge;
 use App\Models\InvoiceCustomItem;
 use App\Models\Payment;
+use App\Models\PaymentChangeLog;
 use App\Models\School;
 use App\Models\Setting;
 use App\Models\SkillsControl;
@@ -180,9 +181,16 @@ class InscriptionRepository
         $result = false;
         try {
             $this->prepareTrainingGroupData($requestData);
-            $this->preserveMonthlyPaymentData($requestData, $inscription);
+            $shouldRecalculateMonthlyPayments = (bool) data_get($requestData, 'recalculate_monthly_payments', false);
+
+            if ($shouldRecalculateMonthlyPayments) {
+                $this->prepareMonthlyPaymentData($requestData);
+            } else {
+                $this->preserveMonthlyPaymentData($requestData, $inscription);
+            }
+
             $customCharges = $requestData['custom_charges'] ?? [];
-            unset($requestData['custom_charges'], $requestData['custom_charges_due_date']);
+            unset($requestData['custom_charges'], $requestData['custom_charges_due_date'], $requestData['recalculate_monthly_payments']);
             $requestData['deleted_at'] = null;
             $requestData['unique_code'] = $inscription->unique_code;
             $requestData['start_date'] = $inscription->start_date;
@@ -192,6 +200,11 @@ class InscriptionRepository
             $this->setCompetitionGroupIds($inscription, $requestData);
 
             $result = $inscription->update($requestData);
+
+            if ($result && $shouldRecalculateMonthlyPayments) {
+                $this->recalculateCollectibleMonthlyPaymentAmounts($inscription->fresh());
+            }
+
             $this->syncCustomCharges($inscription->fresh(), $customCharges);
 
             DB::commit();
@@ -211,6 +224,69 @@ class InscriptionRepository
         $requestData['monthly_payment_type'] = $inscription->monthly_payment_type;
         $requestData['monthly_payment_amount'] = $inscription->monthly_payment_amount;
         $requestData['brother_payment'] = $inscription->brother_payment;
+    }
+
+    private function recalculateCollectibleMonthlyPaymentAmounts(Inscription $inscription): void
+    {
+        $payment = $inscription->payments()
+            ->where('year', $inscription->year)
+            ->first();
+
+        if (! $payment) {
+            return;
+        }
+
+        $monthlyAmount = $this->paymentAmountResolver->monthlyAmountForInscription($inscription);
+        $collectibleStatuses = [
+            Payment::$pending,
+            Payment::$debt,
+            Payment::$paid_,
+            Payment::$payment_agreement,
+        ];
+        $changes = [];
+
+        foreach (config('variables.KEY_INDEX_MONTHS', []) as $field) {
+            $amountField = Payment::amountFieldFor($field);
+
+            if (! $amountField || ! in_array((int) $payment->{$field}, $collectibleStatuses, true)) {
+                continue;
+            }
+
+            $oldAmount = (int) $payment->{$amountField};
+
+            if ($oldAmount === $monthlyAmount) {
+                continue;
+            }
+
+            $changes[$field] = [
+                'status' => (int) $payment->{$field},
+                'old_amount' => $oldAmount,
+                'new_amount' => $monthlyAmount,
+            ];
+            $payment->{$amountField} = $monthlyAmount;
+        }
+
+        if ($changes === []) {
+            return;
+        }
+
+        $payment->save();
+
+        foreach ($changes as $field => $change) {
+            PaymentChangeLog::query()->create([
+                'school_id' => $payment->school_id,
+                'payment_id' => $payment->id,
+                'inscription_id' => $payment->inscription_id,
+                'changed_by' => auth()->id(),
+                'year' => $payment->year,
+                'field' => $field,
+                'old_status' => $change['status'],
+                'new_status' => $change['status'],
+                'old_amount' => $change['old_amount'],
+                'new_amount' => $change['new_amount'],
+                'source' => 'inscription_tariff',
+            ]);
+        }
     }
 
     private function syncCustomCharges(Inscription $inscription, array $customCharges): void
