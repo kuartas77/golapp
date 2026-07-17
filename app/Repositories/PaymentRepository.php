@@ -156,8 +156,6 @@ class PaymentRepository
         $school_id = data_get($params, 'school_id');
         $category = data_get($params, 'category');
         $year = data_get($params, 'year', now()->year);
-        $unique_code = data_get($params, 'unique_code');
-        $playerName = trim((string) data_get($params, 'player_name', ''));
         $month = data_get($params, 'month');
         $training_group_id = data_get($params, 'training_group_id', 0);
         $paymentStatus = $this->normalizePaymentStatus(data_get($params, 'status'));
@@ -178,11 +176,6 @@ class PaymentRepository
             ->where('year', $year)
             ->whereHas('inscription.player')
             ->whereHas('inscription', fn ($inscriptionQuery) => $inscriptionQuery->where('year', $year))
-            ->when($unique_code, fn ($q) => $q->where('unique_code', $unique_code))
-            ->when($playerName !== '', fn ($q) => $q->whereHas('inscription.player', fn ($playerQuery) => $playerQuery
-                ->where('names', 'like', "%{$playerName}%")
-                ->orWhere('last_names', 'like', "%{$playerName}%")
-                ->orWhereRaw("CONCAT_WS(' ', names, last_names) LIKE ?", ["%{$playerName}%"])))
             ->when($training_group_id != 0, fn ($q) => $q->where('training_group_id', $training_group_id))
             ->when($category, fn ($q) => $q->whereHas('inscription', fn ($inscription) => $inscription
                 ->where('year', $year)
@@ -204,8 +197,6 @@ class PaymentRepository
         $school_id = data_get($params, 'school_id');
         $category = data_get($params, 'category');
         $year = data_get($params, 'year', now()->year);
-        $unique_code = data_get($params, 'unique_code');
-        $playerName = trim((string) data_get($params, 'player_name', ''));
         $month = data_get($params, 'month');
         $training_group_id = data_get($params, 'training_group_id', 0);
         $paymentStatus = $this->normalizePaymentStatus(data_get($params, 'status'));
@@ -222,11 +213,6 @@ class PaymentRepository
             ->where('year', $year)
             ->whereHas('inscription.player')
             ->whereHas('inscription', fn ($inscriptionQuery) => $inscriptionQuery->where('year', $year))
-            ->when($unique_code, fn ($q) => $q->where('unique_code', $unique_code))
-            ->when($playerName !== '', fn ($q) => $q->whereHas('inscription.player', fn ($playerQuery) => $playerQuery
-                ->where('names', 'like', "%{$playerName}%")
-                ->orWhere('last_names', 'like', "%{$playerName}%")
-                ->orWhereRaw("CONCAT_WS(' ', names, last_names) LIKE ?", ["%{$playerName}%"])))
             ->when($training_group_id != 0, fn ($q) => $q->where('training_group_id', $training_group_id))
             ->when($category, fn ($q) => $q->whereHas('inscription', fn ($inscription) => $inscription
                 ->where('year', $year)
@@ -351,10 +337,16 @@ class PaymentRepository
             ->get();
 
         foreach ($eligiblePayments as $payment) {
+            $preserveAmount = (int) ($validated['amount'] ?? 0) === 0;
+            $bulkAmount = $preserveAmount
+                ? (int) $payment->{$amountField}
+                : (int) $validated['amount'];
+
             $saved = $this->setPay([
                 'column' => $field,
                 $field => (int) $validated['status'],
-                $amountField => (int) ($validated['amount'] ?? 0),
+                $amountField => $bulkAmount,
+                'preserve_amount' => $preserveAmount,
             ], $payment, 'bulk');
 
             if ($saved) {
@@ -512,6 +504,10 @@ class PaymentRepository
 
         $normalizedValues[$column] = $status;
         $normalizedValues[$amountField] = $amount;
+
+        if ((bool) data_get($values, 'preserve_amount', false)) {
+            return $normalizedValues;
+        }
 
         if ($status === Payment::$permanent_retirement) {
             $this->applyStatusToFollowingFields(
@@ -673,8 +669,9 @@ class PaymentRepository
         $payments->loadMissing('inscription.player');
         $school = getSchool(auth()->user());
         $school->loadMissing('settingsValues');
+        $historyFieldsByPayment = $this->historyFieldsByPayment($payments);
 
-        return $payments->map(function (Payment $payment) use ($school) {
+        return $payments->map(function (Payment $payment) use ($school, $historyFieldsByPayment) {
             $inscription = $payment->inscription;
             $player = $inscription?->player;
 
@@ -699,9 +696,42 @@ class PaymentRepository
                 'inscription_status_label',
                 $inscription?->trashed() ? 'Retirada' : 'Activa'
             );
+            $payment->setAttribute('history_fields', $historyFieldsByPayment[$payment->id] ?? []);
 
             return $payment;
         });
+    }
+
+    public function decoratePayment(Payment $payment): Payment
+    {
+        return $this->decoratePayments(new \Illuminate\Database\Eloquent\Collection([$payment]))->first();
+    }
+
+    private function historyFieldsByPayment(Collection $payments): array
+    {
+        $paymentIds = $payments
+            ->pluck('id')
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($paymentIds->isEmpty()) {
+            return [];
+        }
+
+        return PaymentChangeLog::query()
+            ->select('payment_id', 'field', DB::raw('COUNT(*) as changes_count'))
+            ->whereIn('payment_id', $paymentIds)
+            ->groupBy('payment_id', 'field')
+            ->get()
+            ->groupBy('payment_id')
+            ->map(fn (Collection $logs) => $logs
+                ->mapWithKeys(fn (PaymentChangeLog $log) => [
+                    $log->field => (int) $log->changes_count,
+                ])
+                ->all())
+            ->all();
     }
 
     public function paymentBelongsToDeletedInscription(Payment $payment): bool

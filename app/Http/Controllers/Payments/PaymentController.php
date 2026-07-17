@@ -43,8 +43,6 @@ class PaymentController extends Controller
                 'category' => ['nullable', 'string'],
                 'month' => ['nullable', 'string', 'in:'.implode(',', Payment::paymentFields())],
                 'status' => ['nullable', 'string'],
-                'player_name' => ['nullable', 'string'],
-                'unique_code' => ['nullable', 'string'],
                 'dataRaw' => ['nullable', 'boolean'],
             ]);
 
@@ -109,12 +107,9 @@ class PaymentController extends Controller
             ->whereHas('inscription.player')
             ->find($id);
 
-        if ($payment?->inscription?->player) {
-            $payment->setRelation('player', $payment->inscription->player);
+        if ($payment) {
+            $payment = $this->repository->decoratePayment($payment);
         }
-
-        $payment?->setAttribute('inscription_deleted', (bool) $payment?->inscription?->trashed());
-        $payment?->setAttribute('inscription_status_label', $payment?->inscription?->trashed() ? 'Retirada' : 'Activa');
 
         return $this->responseJson($payment);
     }
@@ -151,12 +146,7 @@ class PaymentController extends Controller
             ->whereHas('inscription.player')
             ->findOrFail($id);
 
-        if ($payment->inscription?->player) {
-            $payment->setRelation('player', $payment->inscription->player);
-        }
-
-        $payment->setAttribute('inscription_deleted', (bool) $payment->inscription?->trashed());
-        $payment->setAttribute('inscription_status_label', $payment->inscription?->trashed() ? 'Retirada' : 'Activa');
+        $payment = $this->repository->decoratePayment($payment);
 
         return $this->responseJson($payment);
     }

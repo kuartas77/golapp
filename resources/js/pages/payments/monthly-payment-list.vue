@@ -6,54 +6,47 @@
 
                 <div class="col-xl-6 col-lg-6 col-sm-12 text-center">
                     <Form ref="form" :validation-schema="schema" @submit="handleSearch" :initial-values="formData"
-                        class="row align-items-center justify-content-center">
-                        <p class="text-muted">
-                            Para el año actual selecciona al menos un grupo o una categoría; también puedes combinar ambos.
-                            En años anteriores puedes consultar sólo por año o aplicar esos mismos filtros.
-                        </p>
-                        <div class="col-sm-3">
+                        class="row g-2 align-items-end justify-content-center">
+                        <div class="col-12 text-start">
+                            <small class="text-muted">
+                                Filtros de consulta
+                                <i
+                                    class="fa-regular fa-circle-question ms-1"
+                                    v-tooltip.top="'Para el año actual selecciona al menos un grupo o una categoría. En años anteriores puedes consultar sólo por año o combinar filtros. El mes define la vista mensual y el filtro de estado.'"
+                                ></i>
+                            </small>
+                        </div>
+                        <div class="col-sm-6 col-lg-4">
                             <label for="training_group_id" class="sr-only">Grupo</label>
                             <Field name="training_group_id" as="CustomSelect2" :options="groups" id="training_group_id"
                                 placeholder="Grupo" />
                             <ErrorMessage name="training_group_id" class="custom-error" />
                         </div>
-                        <div class="col-sm-3">
+                        <div class="col-sm-6 col-lg-4">
                             <label for="category" class="sr-only">Categoría</label>
                             <Field name="category" as="CustomSelect2" :options="categories" id="category"
                                 placeholder="Categoría" />
                             <ErrorMessage name="category" class="custom-error" />
                         </div>
-                        <div class="col-sm-2">
+                        <div class="col-sm-4 col-lg-2">
                             <label for="year" class="sr-only">Año</label>
                             <Field name="year" as="CustomSelect2" :options="years" id="year"
                                 placeholder="Año" />
                             <ErrorMessage name="year" class="custom-error" />
                         </div>
-                        <div class="col-sm-3 mt-2">
+                        <div class="col-sm-4 col-lg-3">
                             <label for="month" class="sr-only">Mes</label>
                             <Field name="month" as="CustomSelect2" :options="monthOptions" id="month"
                                 placeholder="Mes" />
                             <ErrorMessage name="month" class="custom-error" />
                         </div>
-                        <div class="col-sm-3 mt-2">
+                        <div class="col-sm-4 col-lg-3">
                             <label for="status" class="sr-only">Estado</label>
                             <Field name="status" as="CustomSelect2" :options="statusOptions" id="status"
                                 placeholder="Estado" />
                             <ErrorMessage name="status" class="custom-error" />
                         </div>
-                        <div class="col-sm-3 mt-2">
-                            <label for="player_name" class="sr-only">Deportista</label>
-                            <Field name="player_name" id="player_name" class="form-control form-control-sm"
-                                placeholder="Deportista" />
-                            <ErrorMessage name="player_name" class="custom-error" />
-                        </div>
-                        <div class="col-sm-3 mt-2">
-                            <label for="unique_code" class="sr-only">Código</label>
-                            <Field name="unique_code" id="unique_code" class="form-control form-control-sm"
-                                placeholder="Código" />
-                            <ErrorMessage name="unique_code" class="custom-error" />
-                        </div>
-                        <div class="col-sm-2">
+                        <div class="col-sm-4 col-lg-2">
                             <button type="submit" class="btn btn-primary w-100" :disabled="isLoading">
                                 Buscar
                                 <template v-if="isLoading">
@@ -138,11 +131,36 @@
 
                 <div
                     class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mb-2">
-                    <div class="dt-info">
+                    <div class="dt-info d-flex align-items-center gap-1 flex-wrap">
                         <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                             <i class="fa-regular fa-circle-question me-2"></i>
                             Guía
                         </button>
+                        <span
+                            class="badge badge-light btn btn-sm"
+                            v-tooltip.top="'Primero consulta por año, grupo o categoría. El mes inicia en el mes actual y puedes cambiarlo para enfocar la vista mensual.'"
+                        >
+                            <i class="fa fa-filter"></i>
+                        </span>
+                        <span
+                            class="badge badge-light btn btn-sm"
+                            v-tooltip.top="'La vista Anual muestra todos los meses en matriz. La vista Mensual concentra el trabajo operativo en el mes seleccionado.'"
+                        >
+                            <i class="fa fa-table"></i>
+                        </span>
+                        <span
+                            v-if="canUsePlayerCredits"
+                            class="badge badge-light btn btn-sm"
+                            v-tooltip.top="'Pagó - Saldo a favor descuenta el valor de la mensualidad de la bolsa del deportista y registra el movimiento en saldos a favor.'"
+                        >
+                            <i class="fa fa-wallet"></i>
+                        </span>
+                        <span
+                            class="badge badge-light btn btn-sm"
+                            v-tooltip.top="'El icono de historial muestra cambios manuales y masivos: estado anterior, estado nuevo, monto, usuario y fecha.'"
+                        >
+                            <i class="fa fa-history"></i>
+                        </span>
                     </div>
                 </div>
 
@@ -160,13 +178,13 @@
                 </div>
 
                 <div v-if="groupPayments.length" class="col-md-4 col-lg-3 mb-2">
-                    <label for="player_search" class="sr-only">Buscar por nombre de deportista</label>
+                    <label for="player_search" class="sr-only">Buscar por nombre o código de deportista</label>
                     <input
                         id="player_search"
                         v-model="playerSearchTerm"
                         type="search"
                         class="form-control form-control-sm"
-                        placeholder="Buscar por nombre de deportista"
+                        placeholder="Buscar por nombre o código"
                         autocomplete="off"
                     />
                 </div>
@@ -178,7 +196,7 @@
                     </div>
                 </div>
 
-                <div v-if="groupPayments.length" class="col-12">
+                <div v-if="false && groupPayments.length" class="col-12">
                     <div class="row align-items-end g-2 justify-content-end">
                         <div class="col-sm-3 col-lg-2">
                             <label for="bulk_status" class="form-label mb-1">Acción masiva</label>
@@ -290,6 +308,13 @@
                                     class="badge badge-light btn btn-sm clickable"
                                     @click="editRow(row.payPlayer, row.field)">
                                     <i class="far fa-edit"></i>
+                                </span>
+                                <span v-if="canShowPaymentHistory(row.payPlayer, row.field)"
+                                    class="badge badge-info btn btn-sm clickable ms-1"
+                                    title="Historial"
+                                    v-tooltip.top="'Historial de mensualidad'"
+                                    @click="openHistoryModal(row.payPlayer)">
+                                    <i class="fa fa-history"></i>
                                 </span>
                             </td>
                         </tr>
@@ -407,6 +432,13 @@
                                             @click="editRow(payPlayer, field)">
                                             <i class="far fa-edit"></i>
                                         </span>
+                                        <span v-if="canShowPaymentHistory(payPlayer, field)"
+                                            class="badge badge-info btn btn-sm clickable ms-1"
+                                            title="Historial"
+                                            v-tooltip.top="'Historial de mensualidad'"
+                                            @click="openHistoryModal(payPlayer)">
+                                            <i class="fa fa-history"></i>
+                                        </span>
                                     </template>
                                 </td>
                             </tr>
@@ -434,6 +466,69 @@
             </div>
         </template>
     </panel>
+    <div ref="historyModalElement" class="modal fade" id="monthlyPaymentHistoryModal" tabindex="-1" role="dialog" aria-labelledby="monthlyPaymentHistoryModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="monthlyPaymentHistoryModalTitle" class="modal-title">
+                        Historial de mensualidades
+                    </h5>
+                    <button type="button" class="btn-close" aria-label="Cerrar" @click="hideHistoryModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div v-if="historyPayment" class="mb-2">
+                        <strong>{{ historyPayment.player?.full_names }}</strong>
+                        <small class="text-muted ms-2">{{ historyPayment.player?.unique_code }}</small>
+                    </div>
+                    <div v-if="isHistoryLoading" class="text-center py-4">
+                        <span class="text-muted">Cargando historial...</span>
+                    </div>
+                    <div v-else-if="!paymentHistory.length" class="text-center py-4">
+                        <span class="text-muted">No hay cambios registrados para esta mensualidad.</span>
+                    </div>
+                    <div v-else class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Mes</th>
+                                    <th>Estado</th>
+                                    <th>Monto</th>
+                                    <th>Origen</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in paymentHistory" :key="item.id">
+                                    <td>{{ item.created_at }}</td>
+                                    <td>{{ item.month_label }}</td>
+                                    <td>
+                                        <small>{{ item.old_status_label }}</small>
+                                        <span class="mx-1">→</span>
+                                        <small>{{ item.new_status_label }}</small>
+                                    </td>
+                                    <td>
+                                        <small>{{ moneyFormat(item.old_amount) }}</small>
+                                        <span class="mx-1">→</span>
+                                        <small>{{ moneyFormat(item.new_amount) }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ item.source === 'bulk' ? 'Masivo' : 'Manual' }}</span>
+                                    </td>
+                                    <td>{{ item.changed_by_name || 'Sistema' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" @click="hideHistoryModal">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <breadcrumb :parent="'Plataforma'" :current="'Mensualidades'" />
     <PageTutorialOverlay :tutorial="tutorial" />
 </template>
@@ -459,6 +554,7 @@ const {
     saveField,
     exportFile,
     isLoading,
+    isHistoryLoading,
     player_count,
     selected_group,
     export_excel,
@@ -472,14 +568,18 @@ const {
     schema,
     formData,
     editingCell,
+    historyPayment,
+    paymentHistory,
     groups,
     years,
     categories,
     type_payments,
+    canUsePlayerCredits,
     paymentTypeLabels,
     monthOptions,
     statusOptions,
     canEditPaymentRow,
+    canShowPaymentHistory,
     paymentFields,
     viewMode,
     bulkStatus,
@@ -488,6 +588,7 @@ const {
     bulkEligibleRows,
     isBulkUpdating,
     applyBulkPaymentStatus,
+    openPaymentHistory,
     monthlyRows,
     selectedMonthLabel,
     debtorCount,
@@ -499,6 +600,28 @@ const {
 const tutorial = usePageTutorial(monthlyPaymentsTutorial)
 
 const scrollContainer = ref(null)
+const historyModalElement = ref(null)
+let historyModalInstance = null
+
+const showHistoryModal = () => {
+    if (!historyModalElement.value) {
+        return
+    }
+
+    historyModalInstance = window.bootstrap?.Modal?.getOrCreateInstance
+        ? window.bootstrap.Modal.getOrCreateInstance(historyModalElement.value)
+        : historyModalInstance || new window.bootstrap.Modal(historyModalElement.value)
+    historyModalInstance?.show()
+}
+
+const hideHistoryModal = () => {
+    historyModalInstance?.hide()
+}
+
+const openHistoryModal = async (payPlayer) => {
+    await openPaymentHistory(payPlayer)
+    showHistoryModal()
+}
 
 const waitForAnimationFrame = () => new Promise((resolve) => requestAnimationFrame(resolve))
 

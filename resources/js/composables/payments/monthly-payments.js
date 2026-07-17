@@ -39,6 +39,7 @@ export default function useMonthlyPayments() {
     const type_payments = computed(() => settings.paymentTypeOptions.filter((option) => (
         option.value !== '15' || auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.playerCredits)
     )))
+    const canUsePlayerCredits = computed(() => auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.playerCredits))
     const paymentTypeLabels = computed(() => settings.paymentTypeLabels)
     const statusCatalog = ref({
         statuses: [],
@@ -49,9 +50,8 @@ export default function useMonthlyPayments() {
         },
         months: [],
     })
-    const monthOptions = computed(() => [
-        { value: '', label: 'Todos los meses' },
-        ...(statusCatalog.value.months?.length ? statusCatalog.value.months : [
+    const monthOptions = computed(() => (
+        statusCatalog.value.months?.length ? statusCatalog.value.months : [
             { value: 'january', label: 'Enero' },
             { value: 'february', label: 'Febrero' },
             { value: 'march', label: 'Marzo' },
@@ -64,8 +64,8 @@ export default function useMonthlyPayments() {
             { value: 'october', label: 'Octubre' },
             { value: 'november', label: 'Noviembre' },
             { value: 'december', label: 'Diciembre' },
-        ]),
-    ])
+        ]
+    ))
     const statusOptions = computed(() => [
         { value: '', label: 'Todos los estados' },
         ...((statusCatalog.value.statuses?.length ? statusCatalog.value.statuses : type_payments.value)
@@ -95,8 +95,6 @@ export default function useMonthlyPayments() {
         ),
         month: yup.string().nullable().optional(),
         status: yup.string().nullable().optional(),
-        player_name: yup.string().nullable().optional(),
-        unique_code: yup.string().nullable().optional(),
     })
     const formData = ref({
         year: defaultYear,
@@ -104,16 +102,17 @@ export default function useMonthlyPayments() {
         category: null,
         month: defaultMonthField,
         status: '',
-        player_name: '',
-        unique_code: '',
     })
     const viewMode = ref('annual')
     const bulkStatus = ref('')
     const bulkAmount = ref(0)
     const isBulkUpdating = ref(false)
     const isLoading = ref(false)
+    const isHistoryLoading = ref(false)
     const editingCell = ref(null)
     const backupCell = ref(null)
+    const historyPayment = ref(null)
+    const paymentHistory = ref([])
     const annuity_amount = ref(0)
     const enrollment_amount = ref(0)
     const monthly_amount = ref(0)
@@ -131,9 +130,12 @@ export default function useMonthlyPayments() {
             return groupPayments.value
         }
 
-        return groupPayments.value.filter((payPlayer) => normalizePlayerName(
-            payPlayer?.player?.full_names
-        ).includes(searchTerm))
+        return groupPayments.value.filter((payPlayer) => {
+            const playerName = normalizePlayerName(payPlayer?.player?.full_names)
+            const uniqueCode = normalizePlayerName(payPlayer?.player?.unique_code ?? payPlayer?.unique_code)
+
+            return playerName.includes(searchTerm) || uniqueCode.includes(searchTerm)
+        })
     })
     const visiblePlayerCount = computed(() => filteredGroupPayments.value.length)
     const retiredRowsCount = computed(() => filteredGroupPayments.value.filter(
@@ -151,8 +153,6 @@ export default function useMonthlyPayments() {
                 ...values,
                 month: selectedMonth || '',
                 status: values.status || '',
-                player_name: values.player_name || '',
-                unique_code: values.unique_code || '',
             }
             const params = {
                 category: values.category,
@@ -160,8 +160,6 @@ export default function useMonthlyPayments() {
                 training_group_id: values.training_group_id,
                 month: selectedMonth || null,
                 status: values.status || null,
-                player_name: values.player_name || null,
-                unique_code: values.unique_code || null,
                 dataRaw: true
             }
             const response = await api.get(`/api/v2/payments`, { params: params })
@@ -218,6 +216,10 @@ export default function useMonthlyPayments() {
 
     const canEditPaymentRow = (payPlayer) => {
         return !payPlayer.inscription_deleted
+    }
+
+    const canShowPaymentHistory = (payPlayer, field) => {
+        return Number(payPlayer?.history_fields?.[field] ?? 0) > 0
     }
 
     const cancelEdition = () => {
@@ -375,6 +377,21 @@ export default function useMonthlyPayments() {
             showMessage(globalError.value, 'error')
         } finally {
             isLoading.value = false
+        }
+    }
+
+    const openPaymentHistory = async (payPlayer) => {
+        historyPayment.value = payPlayer
+        paymentHistory.value = []
+        isHistoryLoading.value = true
+
+        try {
+            const response = await api.get(`/api/v2/payments/${payPlayer.id}/history`)
+            paymentHistory.value = response?.data?.data ?? []
+        } catch (error) {
+            showMessage(error.response?.data?.message || 'No fue posible cargar el historial de mensualidades.', 'error')
+        } finally {
+            isHistoryLoading.value = false
         }
     }
 
@@ -550,8 +567,13 @@ export default function useMonthlyPayments() {
         try {
             rows.forEach((row) => {
                 row[field] = status
-                row[amountField] = amount
-                syncPaymentField(row, field)
+                if (amount > 0) {
+                    row[amountField] = amount
+                    syncPaymentField(row, field)
+                    return
+                }
+
+                row[amountField] = previousValues.get(row.id).amount
             })
 
             const response = await api.post('/api/v2/payments/bulk-update', {
@@ -609,6 +631,7 @@ export default function useMonthlyPayments() {
         saveField,
         exportFile,
         isLoading,
+        isHistoryLoading,
         player_count,
         selected_group,
         export_excel,
@@ -622,15 +645,19 @@ export default function useMonthlyPayments() {
         schema,
         formData,
         editingCell,
+        historyPayment,
+        paymentHistory,
         groups,
         years,
         categories,
         type_payments,
+        canUsePlayerCredits,
         paymentTypeLabels,
         statusCatalog,
         monthOptions,
         statusOptions,
         canEditPaymentRow,
+        canShowPaymentHistory,
         paymentFields,
         viewMode,
         bulkStatus,
@@ -639,6 +666,7 @@ export default function useMonthlyPayments() {
         bulkEligibleRows,
         isBulkUpdating,
         applyBulkPaymentStatus,
+        openPaymentHistory,
         monthlyRows,
         selectedMonthField,
         selectedMonthLabel,

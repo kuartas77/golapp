@@ -253,8 +253,6 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $params = [
             'school_id' => $this->school['id'],
             'year' => now()->year,
-            'unique_code' => $payment->unique_code,
-            'player_name' => $inscription->player->names,
             'training_group_id' => $inscription->training_group_id,
             'category' => $inscription->category,
             'month' => 'january',
@@ -272,6 +270,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         $this->assertSame(1, $response['count']);
         $this->assertSame('Activa', $response['rows']->first()->inscription_status_label);
+        $this->assertSame([], $response['rows']->first()->history_fields);
         $this->assertArrayHasKey('monthly_payment', $response);
         $this->assertStringContainsString('training_group_id=', $response['url_export_excel']);
 
@@ -295,6 +294,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
     {
         $this->actingAs($this->user);
         [, $activePayment, $trainingGroup] = $this->createInscriptionAndPayment();
+        $activePayment->forceFill(['january_amount' => 64000])->save();
         [$retiredInscription, $retiredPayment] = $this->createInscriptionAndPayment($this->createTestPlayer(), $trainingGroup);
         $retiredInscription->delete();
 
@@ -316,7 +316,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             ->assertJsonPath('data.updated_ids.0', $activePayment->id);
 
         $this->assertSame(Payment::$paid_cash, $activePayment->fresh()->january);
-        $this->assertGreaterThan(0, $activePayment->fresh()->january_amount);
+        $this->assertSame(64000, $activePayment->fresh()->january_amount);
         $this->assertSame(Payment::$debt, $retiredPayment->fresh()->january);
         $this->assertDatabaseHas('payment_change_logs', [
             'payment_id' => $activePayment->id,
@@ -374,6 +374,32 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             ->assertJsonPath('data.0.new_status_label', 'Pagó - Efectivo')
             ->assertJsonPath('data.0.source', 'manual')
             ->assertJsonPath('data.0.changed_by', $this->user->id);
+    }
+
+    public function testPaymentListIncludesHistoryCountsWithoutLoadingHistoryRows(): void
+    {
+        $this->actingAs($this->user);
+        [$inscription, $payment] = $this->createInscriptionAndPayment();
+
+        app(PaymentRepository::class)->setPay([
+            'column' => 'january',
+            'january' => Payment::$paid_cash,
+            'january_amount' => 0,
+        ], $payment->fresh());
+
+        request()->replace([
+            'school_id' => $this->school['id'],
+            'year' => now()->year,
+            'training_group_id' => $inscription->training_group_id,
+            'category' => $inscription->category,
+            'month' => 'january',
+            'status' => (string) Payment::$paid_cash,
+        ]);
+
+        $response = app(PaymentRepository::class)->filter(request(), false, true);
+
+        $this->assertSame(1, $response['rows']->first()->history_fields['january']);
+        $this->assertArrayNotHasKey('february', $response['rows']->first()->history_fields);
     }
 
     public function testPlayerRepositoryLookupListsAndBirthdayFlows(): void
