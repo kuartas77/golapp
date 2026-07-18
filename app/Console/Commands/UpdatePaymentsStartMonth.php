@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Payment;
+use App\Models\PaymentChangeLog;
 use App\Models\School;
 use App\Service\PaymentAmountResolver;
 use Illuminate\Console\Command;
@@ -72,6 +73,8 @@ class UpdatePaymentsStartMonth extends Command
                             ->where($month, Payment::$pending)
                             ->chunkById(100, function ($payments) use ($month, $amountColumn): void {
                                 foreach ($payments as $payment) {
+                                    $oldStatus = (int) $payment->{$month};
+                                    $oldAmount = (int) $payment->{$amountColumn};
                                     $payment->{$month} = Payment::$debt;
 
                                     if ((int) $payment->{$amountColumn} === 0) {
@@ -79,6 +82,20 @@ class UpdatePaymentsStartMonth extends Command
                                     }
 
                                     $payment->save();
+
+                                    PaymentChangeLog::query()->create([
+                                        'school_id' => $payment->school_id,
+                                        'payment_id' => $payment->id,
+                                        'inscription_id' => $payment->inscription_id,
+                                        'changed_by' => null,
+                                        'year' => $payment->year,
+                                        'field' => $month,
+                                        'old_status' => $oldStatus,
+                                        'new_status' => Payment::$debt,
+                                        'old_amount' => $oldAmount,
+                                        'new_amount' => (int) $payment->{$amountColumn},
+                                        'source' => 'monthly_job',
+                                    ]);
                                 }
                             });
                     }
