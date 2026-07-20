@@ -165,6 +165,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
     public function testPaymentRepositorySetPayPaymentsByStatusAndGraphics(): void
     {
         $this->actingAs($this->user);
+        $this->createPaymentsReportDetailViewForSqlite();
         [, $payment] = $this->createInscriptionAndPayment();
         $repository = app(PaymentRepository::class);
 
@@ -177,6 +178,31 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $graphics = $repository->dataGraphicsYear((int) now()->year);
         $this->assertTrue($graphics->has('labels'));
         $this->assertTrue($graphics->has('series'));
+    }
+
+    private function createPaymentsReportDetailViewForSqlite(): void
+    {
+        DB::statement('DROP VIEW IF EXISTS vw_payments_report_detail');
+
+        $monthlySelects = collect(config('variables.KEY_INDEX_MONTHS'))
+            ->map(fn (string $month, int $number) => "
+                SELECT
+                    id AS payment_id,
+                    school_id,
+                    training_group_id,
+                    inscription_id,
+                    unique_code,
+                    year AS payment_year,
+                    {$number} AS month_number,
+                    '{$month}' AS period_key,
+                    1 AS is_monthly,
+                    {$month} AS status_code,
+                    deleted_at
+                FROM payments
+            ")
+            ->implode(' UNION ALL ');
+
+        DB::statement("CREATE VIEW vw_payments_report_detail AS {$monthlySelects}");
     }
 
     public function testPaymentRepositorySetPaySupportsColumnScopedNormalization(): void

@@ -6,8 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\PaymentBulkUpdateRequest;
 use App\Http\Requests\SetPaymentRequest;
 use App\Models\Payment;
-use App\Repositories\PaymentRepository;
-use App\Service\Payment\PaymentStatusCatalog;
+use App\Service\Payment\PaymentControllerService;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\JsonResponse;
@@ -16,14 +15,8 @@ use Illuminate\View\View;
 
 class PaymentController extends Controller
 {
-    /**
-     * @var PaymentRepository
-     */
-    private $repository;
-
-    public function __construct(PaymentRepository $repository)
+    public function __construct(private PaymentControllerService $payments)
     {
-        $this->repository = $repository;
     }
 
     /**
@@ -33,50 +26,19 @@ class PaymentController extends Controller
     {
         view()->share('enabledPaymentOld', true);
         if ($request->ajax()) {
-            if ($request->has('dataRaw')) {
-                $request->merge(['dataRaw' => $request->boolean('dataRaw')]);
-            }
+            $result = $this->payments->filter($request);
 
-            $validated = $request->validate([
-                'year' => ['required', 'integer'],
-                'training_group_id' => ['nullable', 'integer'],
-                'category' => ['nullable', 'string'],
-                'month' => ['nullable', 'string', 'in:'.implode(',', Payment::paymentFields())],
-                'status' => ['nullable', 'string'],
-                'dataRaw' => ['nullable', 'boolean'],
-            ]);
-
-            if ((int) $validated['year'] === (int) now()->year
-                && empty($validated['training_group_id'])
-                && empty($validated['category'])) {
-                return response()->json([
-                    'message' => 'Para el año actual selecciona un grupo o una categoría.',
-                    'errors' => [
-                        'training_group_id' => ['Para el año actual selecciona un grupo o una categoría.'],
-                    ],
-                ], 422);
-            }
-
-            $request->merge(['school_id' => getSchool(auth()->user())->id]);
-
-            return $this->repository->filter($request, false, $request->filled('dataRaw'));
+            return response()->json($result['payload'], $result['status']);
         }
 
-        $school = getSchool(auth()->user());
-        view()->share('inscription_amount', data_get($school, 'settings.INSCRIPTION_AMOUNT', 70000));
-        view()->share('monthly_payment', data_get($school, 'settings.MONTHLY_PAYMENT', 50000));
-        view()->share('annuity', data_get($school, 'settings.ANNUITY', 48500));
+        view()->share($this->payments->viewData());
 
         return view('payments.payment.index');
     }
 
     public function statusCatalog(): JsonResponse
     {
-        $school = getSchool(auth()->user());
-
-        return response()->json(PaymentStatusCatalog::toArray(
-            $school->hasSchoolPermission('school.module.player_credits')
-        ));
+        return response()->json($this->payments->statusCatalog());
     }
 
     public function bulkUpdate(PaymentBulkUpdateRequest $request): JsonResponse
@@ -84,34 +46,21 @@ class PaymentController extends Controller
         abort_unless($request->ajax(), 404);
 
         return response()->json([
-            'data' => $this->repository->bulkUpdate($request->validated()),
+            'data' => $this->payments->bulkUpdate($request->validated()),
         ]);
     }
 
     public function history(Payment $payment): JsonResponse
     {
-        abort_unless((int) $payment->school_id === (int) getSchool(auth()->user())->id, 404);
-
         return response()->json([
-            'data' => $this->repository->history($payment),
+            'data' => $this->payments->history($payment),
         ]);
     }
 
     public function show($id, Request $request)
     {
         abort_unless($request->ajax(), 401);
-        $payment = Payment::query()
-            ->with(['inscription.player'])
-            ->withTrashed()
-            ->where('school_id', getSchool(auth()->user())->id)
-            ->whereHas('inscription.player')
-            ->find($id);
-
-        if ($payment) {
-            $payment = $this->repository->decoratePayment($payment);
-        }
-
-        return $this->responseJson($payment);
+        return $this->responseJson($this->payments->decoratedPayment((int) $id));
     }
 
     /**
@@ -121,39 +70,18 @@ class PaymentController extends Controller
     public function update(SetPaymentRequest $request, $id): JsonResponse
     {
         abort_unless($request->ajax(), 401);
-        $payment = Payment::withTrashed()
-            ->where('school_id', getSchool(auth()->user())->id)
-            ->findOrFail($id);
+        $result = $this->payments->update((int) $id, $request->validated());
 
-        if ($this->repository->paymentBelongsToDeletedInscription($payment)) {
-            return response()->json([
-                'message' => PaymentRepository::RETIRED_INSCRIPTION_MESSAGE,
-                'errors' => [
-                    'payment' => [PaymentRepository::RETIRED_INSCRIPTION_MESSAGE],
-                ],
-            ], 422);
+        if ($result['wrap_data']) {
+            return $this->responseJson($result['payload'], $result['status']);
         }
 
-        $isPay = $this->repository->setPay($request->validated(), $payment);
-        if (! $isPay) {
-            return $this->responseJson(false);
-        }
-
-        $payment = Payment::query()
-            ->with(['inscription.player'])
-            ->withTrashed()
-            ->where('school_id', getSchool(auth()->user())->id)
-            ->whereHas('inscription.player')
-            ->findOrFail($id);
-
-        $payment = $this->repository->decoratePayment($payment);
-
-        return $this->responseJson($payment);
+        return response()->json($result['payload'], $result['status']);
     }
 
     public function paymentStatuses(Request $request)
     {
-        $payments = $this->repository->paymentsByStatus($request->only(['status']));
+        $payments = $this->payments->paymentsByStatus($request->only(['status']));
 
         return view('payments.status.index', compact('payments'));
     }
