@@ -8,7 +8,7 @@
         "php": "^8.2",
         "ext-intl": "*",
         "bepsvpt/secure-headers": "^7.4",
-        "guzzlehttp/guzzle": "^7.2",
+        "guzzlehttp/guzzle": "^7.15.1",
         "intervention/image": "^2.7",
         "josiasmontag/laravel-recaptchav3": "^1.0",
         "kreait/firebase-php": "^8.0",

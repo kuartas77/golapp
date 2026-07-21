@@ -9,4 +9,6 @@ onlyBuiltDependencies:
   - esbuild
   - vue-demi
 overrides:
+  brace-expansion: 5.0.7
+  jquery: 3.7.1
   vite-plugin-full-reload>picomatch: ^4.0.4
