@@ -5,6 +5,9 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\ServiceProvider;
+use Throwable;
 
 class OptimizeApplicationIfChanged extends Command
 {
@@ -25,9 +28,7 @@ class OptimizeApplicationIfChanged extends Command
             return self::SUCCESS;
         }
 
-        $exitCode = $this->call('optimize');
-
-        if ($exitCode !== self::SUCCESS || ! $this->frameworkCachesExist()) {
+        if (! $this->runOptimizationCommands() || ! $this->frameworkCachesExist()) {
             $this->components->error('No fue posible generar todas las cachés de optimización.');
 
             return self::FAILURE;
@@ -57,6 +58,50 @@ class OptimizeApplicationIfChanged extends Command
             && File::exists($this->laravel->getCachedRoutesPath())
             && is_string($compiledViewsPath)
             && File::isDirectory($compiledViewsPath);
+    }
+
+    private function runOptimizationCommands(): bool
+    {
+        $this->components->info('Actualizando cachés de optimización de Laravel.');
+
+        foreach ($this->optimizationCommands() as $command) {
+            try {
+                $exitCode = $this->callSilently($command);
+            } catch (Throwable $exception) {
+                Log::error('Falló un subcomando de optimize:if-changed.', [
+                    'command' => $command,
+                    'exception' => $exception,
+                ]);
+
+                $this->components->error("Falló el subcomando [{$command}].");
+
+                return false;
+            }
+
+            if ($exitCode !== self::SUCCESS) {
+                Log::error('Un subcomando de optimize:if-changed terminó con error.', [
+                    'command' => $command,
+                    'exit_code' => $exitCode,
+                ]);
+
+                $this->components->error("El subcomando [{$command}] terminó con código {$exitCode}.");
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function optimizationCommands(): array
+    {
+        return [
+            'config:cache',
+            'event:cache',
+            'route:cache',
+            'view:cache',
+            ...array_values(ServiceProvider::$optimizeCommands),
+        ];
     }
 
     private function viewCacheMarkerPath(): string
