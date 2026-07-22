@@ -5,25 +5,10 @@ namespace App\Providers;
 use App\Channels\FirebaseTopicChannel;
 use App\Custom\CustomRecaptchaV3;
 use App\Custom\CustomSanctumToken;
-use App\Http\ViewComposers\AdminComposer;
-use App\Http\ViewComposers\Assists\AssistHistoricViewComposer;
-use App\Http\ViewComposers\Assists\AssistViewComposer;
-use App\Http\ViewComposers\Competition\MatchesViewComposer;
-use App\Http\ViewComposers\Incidents\IncidentComposer;
-use App\Http\ViewComposers\Inscription\InscriptionCreateComposer;
-use App\Http\ViewComposers\Payments\PaymentsHistoricViewComposer;
-use App\Http\ViewComposers\Payments\PaymentsViewComposer;
-use App\Http\ViewComposers\Payments\TournamentPaymentsViewComposer;
-use App\Http\ViewComposers\Profile\ProfileComposer;
-use App\Http\ViewComposers\Public\PortalComposer;
-use App\Http\ViewComposers\TemplatesComposer;
-use App\Http\ViewComposers\TrainingGroup\TrainingGroupComposer;
-use App\Http\ViewComposers\TrainingSession\TrainingSessionComposer;
 use GuzzleHttp\Client;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Lunaweb\RecaptchaV3\RecaptchaV3;
@@ -56,8 +41,6 @@ class GolAppProvider extends ServiceProvider
         $this->loggerQueries();
 
         $this->macros();
-
-        $this->viewComposers();
 
         $this->registerChannels();
     }
@@ -95,48 +78,6 @@ class GolAppProvider extends ServiceProvider
                 return $item;
             });
         });
-    }
-
-    private function viewComposers()
-    {
-        View::composer([
-            'inscription.index',
-            'inscription.create',
-            'inscription.edit',
-            'player.index',
-            'player.create',
-            'player.edit'
-        ], InscriptionCreateComposer::class);
-
-        View::composer([
-            'competition.match.*',
-            'templates.competitions.row',
-            'templates.competitions.row_edit'
-        ], MatchesViewComposer::class);
-
-        View::composer(['groups.competition.index', 'groups.training.index'], TrainingGroupComposer::class);
-
-        View::composer(['training_sessions.*'], TrainingSessionComposer::class);
-
-        View::composer(['payments.payment.index'], PaymentsViewComposer::class);
-
-        View::composer(['profile.*'], ProfileComposer::class);
-
-        View::composer(['assists.assist.index', 'assists.assist.single.index', 'reports.assists.index'], AssistViewComposer::class);
-
-        View::composer(['assists.historic.index', 'assists.historic.show'], AssistHistoricViewComposer::class);
-
-        View::composer(['payments.historic.index', 'payments.historic.show'], PaymentsHistoricViewComposer::class);
-
-        View::composer(['incidents.index'], IncidentComposer::class);
-
-        View::composer(['templates.*', 'modals.modal_attendance', 'assists.assist.index', 'assists.assist.single.index'], TemplatesComposer::class);
-
-        View::composer(['layouts.menu', 'layouts.topbar', 'backoffice.contracts.*', 'layouts.notifications'], AdminComposer::class);
-
-        View::composer(['layouts.portal.*', 'portal.*', 'welcome'], PortalComposer::class);
-
-        View::composer(['payments.tournaments.index'], TournamentPaymentsViewComposer::class);
     }
 
     private function custombinding()

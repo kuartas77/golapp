@@ -15,9 +15,9 @@ use Closure;
 use App\Repositories\TrainingGroupRepository;
 use App\Models\TrainingGroup;
 use App\Models\Inscription;
-use App\Http\ViewComposers\Payments\PaymentsViewComposer;
 use App\Http\Requests\Groups\TrainingGroupRequest;
 use App\Http\Controllers\Controller;
+use App\Service\Groups\TrainingGroupYearFilter;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class TrainingGroupController extends Controller
@@ -157,7 +157,8 @@ class TrainingGroupController extends Controller
 
     public function groupList(Request $request): JsonResponse
     {
-        $filter = Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']);
+        $filter = Closure::fromCallable([TrainingGroupYearFilter::class, 'activeForCurrentYear']);
+        $training_groups = collect();
         if (isSchool() || isAdmin()) {
             $training_groups = $this->repository->getListGroupsSchedule(deleted: false, filter: $filter);
         } elseif (isInstructor()) {

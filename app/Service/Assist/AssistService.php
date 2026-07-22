@@ -60,12 +60,14 @@ class AssistService
     {
         $rows = '';
         $column = isset($params['column']) ? $params['column'] : null;
+        $optionAssist = config('variables.KEY_ASSIST');
         foreach ($assists as $assist) {
             $rows .= View::make('templates.assists.row', [
                 'assist' => $assist,
                 'classDays' => $classDays,
                 'deleted' => $deleted,
-                'column' => $column
+                'column' => $column,
+                'optionAssist' => $optionAssist,
             ])->render();
         }
 

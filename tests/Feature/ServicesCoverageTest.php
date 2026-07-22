@@ -17,6 +17,7 @@ use App\Models\TrainingSessionDetail;
 use App\Service\API\Instructor\AssistsService;
 use App\Service\API\Instructor\TrainingGroupsService;
 use App\Service\Assist\AssistService;
+use App\Service\Groups\TrainingGroupYearFilter;
 use App\Service\Notification\TopicService;
 use App\Service\PaymentAmountResolver;
 use App\Service\Payment\PaymentExportService;
@@ -91,6 +92,17 @@ final class ServicesCoverageTest extends TestCase
 
         $this->expectException(ModelNotFoundException::class);
         $service->getGroup(999999);
+    }
+
+    public function testTrainingGroupYearFilterKeepsCurrentAndPastActiveGroups(): void
+    {
+        $groups = collect([
+            (object) ['id' => 1, 'year_active' => now()->year - 1],
+            (object) ['id' => 2, 'year_active' => now()->year],
+            (object) ['id' => 3, 'year_active' => now()->year + 1],
+        ]);
+
+        $this->assertSame([1, 2], TrainingGroupYearFilter::activeForCurrentYear($groups)->pluck('id')->values()->all());
     }
 
     public function testTopicServiceGenerateTopicAndPlayerTopicsAndSchoolTopics(): void

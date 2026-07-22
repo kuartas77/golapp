@@ -2,7 +2,6 @@
 
 namespace App\Service\Settings;
 
-use App\Http\ViewComposers\Payments\PaymentsViewComposer;
 use App\Models\Schedule;
 use App\Models\School;
 use App\Models\Tournament;
@@ -10,6 +9,7 @@ use App\Models\TrainingGroup;
 use App\Repositories\CompetitionGroupRepository;
 use App\Repositories\TrainingGroupRepository;
 use App\Service\Groups\GroupCatalogCache;
+use App\Service\Groups\TrainingGroupYearFilter;
 use Closure;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -23,13 +23,13 @@ class SettingsCatalogService
         $schoolId = (int) $school->id;
         $instructorId = $instructor ? $userId : null;
         $groups = $this->catalogCache->remember(GroupCatalogCache::TRAINING, $schoolId, 'settings', function () use ($schoolId, $instructorId) {
-            return $this->trainingGroups->getListGroupsSchedule(false, $instructorId, Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']), $schoolId);
+            return $this->trainingGroups->getListGroupsSchedule(false, $instructorId, Closure::fromCallable([TrainingGroupYearFilter::class, 'activeForCurrentYear']), $schoolId);
         }, $instructorId);
         $attendanceGroups = $this->catalogCache->remember(GroupCatalogCache::TRAINING, $schoolId, 'settings-attendances', function () use ($schoolId, $instructorId, $instructor) {
             return $this->trainingGroups->getListGroupsSchedule(
                 false,
                 $instructorId,
-                Closure::fromCallable([PaymentsViewComposer::class, 'filterGroupsYearActive']),
+                Closure::fromCallable([TrainingGroupYearFilter::class, 'activeForCurrentYear']),
                 $schoolId,
                 $instructor
             );
