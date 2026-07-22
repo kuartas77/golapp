@@ -21,12 +21,11 @@ class AssistController extends Controller
 
     public function index(Request $request): Application|Factory|View|JsonResponse
     {
-        if ($request->ajax()) {
+        if ($request->ajax() || $request->expectsJson() || $request->is('api/*')) {
             return response()->json($this->actions->search($request));
         }
 
-        // return view('assists.assist.index');
-        return view('assists.assist.single.index');
+        abort(404);
     }
 
     public function store(Request $request): JsonResponse

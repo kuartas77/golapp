@@ -53,21 +53,10 @@ class RouteServiceProvider extends ServiceProvider
                 ->namespace($this->namespace)
                 ->group(base_path('routes/web.php'));
 
-            if (! $this->app->environment('production')) {
-                Route::middleware('web')
-                    ->namespace($this->namespace)
-                    ->group(base_path('routes/test.php'));
-            }
-
             Route::middleware('web')
                 ->namespace($this->namespace)
                 ->prefix('backoffice')
                 ->group(base_path('routes/backoffice.php'));
-
-            Route::middleware('web')
-            ->namespace($this->namespace)
-            ->prefix('portal')
-            ->group(base_path('routes/portal.php'));
         });
     }
 

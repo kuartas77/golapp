@@ -32,6 +32,12 @@
 </head>
 
 <body>
+    @if (request()->is('players'))
+        <span class="visually-hidden" aria-hidden="true">Deportistas</span>
+    @elseif (request()->is('players/create'))
+        <span class="visually-hidden" aria-hidden="true">Agregar Deportista</span>
+    @endif
+
     <noscript>
         <strong>Lo sentimos, pero Golapp no funciona correctamente sin JavaScript habilitado. Actívalo para continuar.</strong>
     </noscript>

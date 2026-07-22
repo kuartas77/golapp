@@ -14,9 +14,10 @@ class UniformRequestsController extends Controller
     }
     public function index(Request $request)
     {
-        if ($request->ajax()) {
+        if ($request->ajax() || $request->expectsJson() || $request->is('api/*')) {
             return $this->repository->queryTable();
         }
-        return view('uniform-request.index');
+
+        abort(404);
     }
 }

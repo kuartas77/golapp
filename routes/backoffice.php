@@ -3,11 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\DataTableController;
-use App\Http\Controllers\BackOffice\UserController;
-use App\Http\Controllers\BackOffice\SettingValueController;
-use App\Http\Controllers\BackOffice\SchoolInfoController;
 use App\Http\Controllers\BackOffice\SchoolController;
-use App\Http\Controllers\BackOffice\ManualEmailController;
 use Illuminate\Http\RedirectResponse;
 
 Route::middleware(['auth', 'role:super-admin|school'])->group(function () {
@@ -17,15 +13,11 @@ Route::middleware(['auth', 'role:super-admin|school'])->group(function () {
 
 Route::middleware(['auth', 'role:super-admin'])->group(function () {
 
-    Route::get('emails_registration_school', ManualEmailController::class);
-
     Route::prefix('config')->name('config.')->group(function (){
         // El CRUD SPA de super-admin vive en resources/js/pages/admin/school y
         // consume sus datos desde /api/v2/admin/schools y /api/v2/admin/schools/options.
-        Route::resource("schools", SchoolController::class);
-        Route::resource("schools_info", SchoolInfoController::class);
-        Route::resource("settings", SettingValueController::class);
-        Route::resource("users", UserController::class);
+        Route::get('schools/{school}/edit', fn (): RedirectResponse => redirect('/configuracion/schools'))->name('schools.edit');
+        Route::put('schools/{school}', [SchoolController::class, 'update'])->name('schools.update');
 
         Route::prefix('contracts')->name('contracts.')->group(function () {
             Route::get('', fn (): RedirectResponse => redirect('/configuracion/contratos'))->name('index');

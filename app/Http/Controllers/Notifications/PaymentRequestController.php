@@ -19,11 +19,11 @@ class PaymentRequestController extends Controller
 
     public function index(Request $request)
     {
-        if ($request->ajax()) {
+        if ($request->ajax() || $request->expectsJson() || $request->is('api/*')) {
             return $this->repository->getPaymentRequestsQuery();
         }
 
-        return view('payment-request.index');
+        abort(404);
     }
 
     public function proof(int $paymentRequest): Response|Application|ResponseFactory

@@ -46,7 +46,7 @@ class PlayerController extends Controller
         if ($player) {
             Alert::success(env('APP_NAME'), __('messages.player_created'));
 
-            return redirect()->to(route('players.index'));
+            return redirect()->to('/players');
         }
 
         Alert::error(env('APP_NAME'), __('messages.error_general'));

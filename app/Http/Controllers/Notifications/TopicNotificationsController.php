@@ -17,16 +17,11 @@ class TopicNotificationsController extends Controller
 
     public function index(Request $request)
     {
-        if ($request->ajax()) {
+        if ($request->ajax() || $request->expectsJson() || $request->is('api/*')) {
             return datatables()->of($this->repository->getAll())->toJson();
         }
 
-        [$topicCategories, $topicGroups, $topicUniqueCodes, $topicCompetitionGroups] = $this->repository->getTopics();
-
-        return view(
-            'topic-notification.index',
-            compact('topicCategories', 'topicGroups', 'topicUniqueCodes', 'topicCompetitionGroups')
-        );
+        abort(404);
     }
 
     public function options()

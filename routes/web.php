@@ -48,37 +48,32 @@ Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->w
 
 Route::middleware(['auth', 'verified_school'])->group(function () {
 
-    // El dashboard SPA renderiza resources/js/pages/kpi/Index.vue y consume sus datos desde GET /api/v2/kpis.
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
-    Route::get('/birthdays', [HomeController::class, 'birthDays'])->name('birthDays');
-
     // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
     Route::middleware([
         'role:super-admin|school',
         'school.permission:school.module.inscriptions',
     ])->group(function () {
         Route::post('inscriptions/activate/{id}', [InscriptionController::class, 'activate'])->name('inscriptions.activate');
-        Route::resource("inscriptions", InscriptionController::class)->except(['create','show']);
+        Route::resource("inscriptions", InscriptionController::class)->except(['index', 'create', 'show']);
     });
 
     // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
     Route::middleware('school.permission:school.module.payments')->group(function () {
-        Route::resource("payments", PaymentController::class)->only(['index','update', 'show']);
+        Route::resource("payments", PaymentController::class)->only(['update', 'show']);
         Route::get('payments/{payment}/monthly-receipts/{month}', [MonthlyPaymentReceiptController::class, 'show'])
             ->name('payments.monthly-receipts.show');
-        Route::get('statuses/payments', [PaymentController::class, 'paymentStatuses'])->name('payments.status');
     });
 
     // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
     Route::middleware('school.permission:school.module.attendances')->group(function () {
-        Route::resource("assists", AssistController::class)->except(['create','edit', 'destroy']);
+        Route::resource("assists", AssistController::class)->only(['store', 'show', 'update']);
         // El flujo SPA de asistencia QR vive en resources/js/pages/attendances/qr/*
         // y consume GET /api/v2/attendance-qr/{unique_code} y POST /api/v2/attendance-qr/{assist}/take.
     });
 
     // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
     Route::middleware('school.permission:school.module.matches')->group(function () {
-        Route::resource("matches", GameController::class)->except(['show']);
+        Route::resource("matches", GameController::class)->only(['store', 'update', 'destroy']);
     });
 
     // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
@@ -86,29 +81,26 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         'role:super-admin|school',
         'school.permission:school.module.players',
     ])->group(function () {
-        Route::resource("players", PlayerController::class);
+        Route::resource("players", PlayerController::class)->only(['store', 'show', 'edit', 'update', 'destroy']);
     });
     // El composable Vue resources/js/composables/tournament_payouts.js consume ahora:
     // GET /api/v2/autocomplete/tournaments,
     // GET /api/v2/autocomplete/competition_groups y
     // GET|POST|PUT /api/v2/tournament-payouts.
-    Route::resource("tournamentpayout", TournamentPayoutsController::class)->only(['index', 'store', 'update']);
+    Route::resource("tournamentpayout", TournamentPayoutsController::class)->only(['store', 'update']);
 
     // La SPA equivalente vive en resources/js/router/index.js y consume su CRUD/listado desde routes/api.php:
     // GET /api/v2/training-sessions/{trainingSession}, POST|PUT /api/v2/training-sessions y
     // GET /api/v2/datatables/training_sessions_enabled.
     Route::middleware('school.permission:school.module.training_sessions')->group(function () {
-        Route::get('training-sessions', [AppController::class, 'index'])->name('training-sessions.index');
         Route::redirect('training-sessions/create', 'training-sessions');
     });
 
     Route::middleware('school.permission:school.module.session_planning')->group(function () {
-        Route::get('planificacion-sesiones', [AppController::class, 'index'])->name('session-plannings.index');
         Route::get('planificacion-sesiones/pdf/{id}', [ExportController::class, 'exportSessionPlanning'])->name('session-plannings.pdf');
     });
 
     Route::middleware('school.permission:school.module.methodology')->group(function () {
-        Route::get('metodologia', [AppController::class, 'index'])->name('methodology.index');
         Route::get('metodologia/pdf/{id}', [ExportController::class, 'exportMethodologyRecord'])->name('methodology.records.pdf');
     });
 
@@ -124,32 +116,28 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         });
     });
 
-    Route::resource("profiles", ProfileController::class)->except(['index','create','store','destroy']);
+    Route::resource("profiles", ProfileController::class)->only(['update']);
 
     Route::prefix('admin')->middleware(['role:super-admin|school'])->group(function (){
 
         Route::middleware('school.permission:school.module.user_management')->group(function () {
-            Route::resource('users', UserController::class);
-        });
-
-        Route::resources([
-            'incidents' => IncidentController::class,
-        ]);
-
-        Route::middleware('school.permission:school.module.training_groups')->group(function () {
-            Route::resource('schedules', SchedulesController::class);
-        });
-
-        Route::middleware('school.permission:school.module.competition_groups')->group(function () {
-            Route::resource('tournaments', TournamentController::class);
+            Route::post('users/activate/{id}', [UserController::class, 'activate'])->name('users.activate');
         });
 
         Route::middleware('school.permission:school.module.training_groups')->group(function () {
-            Route::resource('training_groups', TrainingGroupController::class);
+            Route::resource('schedules', SchedulesController::class)->only(['edit']);
         });
 
         Route::middleware('school.permission:school.module.competition_groups')->group(function () {
-            Route::resource('competition_groups', CompetitionGroupController::class);
+            Route::resource('tournaments', TournamentController::class)->only(['show']);
+        });
+
+        Route::middleware('school.permission:school.module.training_groups')->group(function () {
+            Route::resource('training_groups', TrainingGroupController::class)->except(['index', 'create', 'destroy']);
+        });
+
+        Route::middleware('school.permission:school.module.competition_groups')->group(function () {
+            Route::resource('competition_groups', CompetitionGroupController::class)->except(['index', 'create', 'destroy']);
         });
 
         Route::middleware('school.permission:school.module.school_profile')->group(function () {
@@ -163,20 +151,14 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         });
 
         Route::middleware('school.permission:school.module.training_groups')->group(function () {
-            Route::get('inscription_training',[InscriptionTGroupController::class, 'index'])->name('ins_training.index');
             Route::get('inscription_training/{training_group}', [InscriptionTGroupController::class, 'makeRows'])->name('ins_training.make');
             Route::post('inscription_training/{inscription_id}', [InscriptionTGroupController::class, 'assignGroup'])->name('ins_training.assign');
         });
 
         Route::middleware('school.permission:school.module.competition_groups')->group(function () {
-            Route::get('inscription_competition',[InscriptionCGroupController::class, 'index'])->name('ins_competition.index');
             Route::get('inscription_competition/{competition_group}', [InscriptionCGroupController::class, 'makeRows'])->name('ins_competition.make');
             Route::post('inscription_competition/{inscription}', [InscriptionCGroupController::class, 'assignGroup'])->name('ins_competition.change');
             Route::get('availability_competition_groups/{competition_groups?}', [CompetitionGroupController::class, 'availabilityGroup'])->name('competition_groups.availability');
-        });
-
-        Route::middleware('school.permission:school.module.user_management')->group(function () {
-            Route::post('users/activate/{id}', [UserController::class, 'activate'])->name('users.activate');
         });
 
         Route::middleware('school.permission:school.module.billing')->group(function () {
@@ -288,33 +270,9 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         });
     });
 
-    Route::prefix('historic')->name('historic.')->group(function () {
-        Route::middleware('school.permission:school.module.attendances')->group(function () {
-            Route::get('assists', [HistoricController::class, 'assists'])->name('assists');
-            Route::get('assists/{training_group_id}/{year}/{month?}', [HistoricController::class, 'assistsGroup'])->name('assists.group');
-        });
-
-        Route::middleware('school.permission:school.module.payments')->group(function () {
-            Route::get('payments', [HistoricController::class, 'payments'])->name('payments');
-            Route::get('payments/{training_group_id}/{year}/{month?}', [HistoricController::class, 'paymentsGroup'])->name('payments.group');
-        });
-    });
-
     // Las vistas SPA equivalentes viven en resources/js/router/index.js y usan metadata desde routes/api.php.
     // El envio por correo ahora tambien vive en POST /api/v2/reports/payments.
     Route::middleware('school.permission:school.module.reports')->prefix('reports')->name('reports.')->group(function () {
-        Route::get('assists', [ReportAssistsController::class, 'index'])->name('assists');
-        Route::get('payments', [ReportPaymentController::class, 'index'])->name('payments');
-        Route::get('debtors', [ReportDebtorController::class, 'index'])->name('debtors');
-        Route::middleware('role:super-admin|school')->group(function () {
-            Route::get('instructor-activity', [ReportInstructorActivityController::class, 'index'])
-                ->name('instructor-activity');
-        });
-        // La vista SPA equivalente vive en resources/js/router/index.js y consume:
-        // GET /api/v2/reports/attendance-payment,
-        // GET /api/v2/reports/attendance-payment/monthly-by-group y
-        // GET /api/v2/reports/attendance-payment/monthly-by-player.
-        Route::get('attendance-payment', [ReportAttendancePaymentController::class, 'index'])->name('attendance-payment');
         Route::post('payments', [ReportPaymentController::class, 'report'])->name('payments.report');
     });
 
@@ -353,14 +311,11 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         // GET /api/v2/notifications/uniform-requests y
         // PUT /api/v2/notifications/invoice/{invoice}/payment-request/{paymentRequest}.
         Route::put('invoice/{invoice}/payment-request/{paymentRequest}', [InvoiceController::class, 'update']);
-        Route::get('payment-request/invoices', [PaymentRequestController::class, 'index'])->name('payment-request.index');
-        Route::get('uniform-request/invoices', [UniformRequestsController::class, 'index'])->name('uniform-request.index');
     });
 
     Route::middleware('school.permission:school.feature.system_notify')->group(function () {
         // TopicNotifications.vue consume ahora /api/v2/notifications/topics y /api/v2/notifications/topics/options.
         Route::get('notifications/options', [TopicNotificationsController::class, 'options'])->name('notification.options');
-        Route::get('notifications', [TopicNotificationsController::class, 'index'])->name('notification.index');
         Route::post('notifications', [TopicNotificationsController::class, 'store'])->name('notification.store');
     });
 
@@ -382,16 +337,7 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         // Route::get('/{playerEvaluation}', [AppController::class, 'index'])->name('show');
     });
 
-    Route::prefix('configuracion')->middleware(['role:super-admin'])->group(function () {
-        // Las vistas SPA de plantillas de evaluacion ya viven en el router de Vue.
-        // Sus datos y escrituras se atienden desde routes/api.php.
-        Route::get('plantillas-evaluacion', [AppController::class, 'index']);
-        Route::get('plantillas-evaluacion/crear', [AppController::class, 'index']);
-        Route::get('plantillas-evaluacion/{any}', [AppController::class, 'index'])->where('any', '.*');
-    });
-
     Route::prefix('configuracion')->middleware(['role:super-admin|school', 'school.permission:school.module.contracts'])->group(function () {
-        Route::get('contratos', [AppController::class, 'index']);
         Route::get('contratos/{contractTypeCode}/preview', [AdminContractController::class, 'preview'])->name('admin.contracts.preview');
     });
 
@@ -404,16 +350,6 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
     Route::prefix('administracion')->middleware(['role:super-admin|school', 'school.permission:school.module.contracts'])->group(function () {
         Route::redirect('contratos', '/configuracion/contratos');
         Route::redirect('contratos/{contractTypeCode}/preview', '/configuracion/contratos/{contractTypeCode}/preview');
-    });
-
-    Route::prefix('inventario')->middleware(['role:super-admin|school', 'school.permission:school.module.inventory'])->group(function () {
-        Route::get('', [AppController::class, 'index'])->name('inventory.index');
-        Route::get('{any}', [AppController::class, 'index'])->where('any', '.*');
-    });
-
-    Route::prefix('saldos-a-favor')->middleware(['role:super-admin|school', 'school.permission:school.module.player_credits'])->group(function () {
-        Route::get('', [AppController::class, 'index'])->name('player-credits.index');
-        Route::get('{any}', [AppController::class, 'index'])->where('any', '.*');
     });
 
     // Route::prefix('')->group(function () {
@@ -435,21 +371,8 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified_school'])->prefix('v1')->group(function () {
-    // Compatibilidad legacy: el flujo Vue equivalente consume GET /api/v2/tournament-payouts.
-    Route::get('tournamentpayout', [TournamentPayoutsController::class, 'searchRaw']);
-
-    Route::prefix('groups')->group(function () {
-        Route::get('training', [TrainingGroupController::class, 'groupList']);
-    });
-
-    Route::get('payments', [PaymentController::class, 'searchRaw']);
-
+    // La vista legacy de asistencias aun genera esta URL con route('group_classdays').
     Route::get("training_group/classdays", [TrainingGroupController::class, 'getClassDays'])->name('group_classdays');
-
-    Route::prefix('admin')->middleware(['role:super-admin|school'])->group(function (){
-        Route::get('school', [SchoolsController::class, 'index']);
-        Route::put('school/{school}', [SchoolsController::class, 'update']);
-    });
 });
 
 
