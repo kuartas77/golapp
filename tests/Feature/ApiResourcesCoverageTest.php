@@ -5,13 +5,28 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Http\Resources\API\Inscriptions\InscriptionResource;
+use App\Http\Resources\API\LoginPlayerResource;
+use App\Http\Resources\API\Notification\Invoices\InvoiceCollection;
+use App\Http\Resources\API\Notification\Invoices\InvoiceResource;
 use App\Http\Resources\API\Notification\Invoices\InvoiceStatistcsResource;
+use App\Http\Resources\API\Notification\Invoices\ItemInvoiceCollection;
 use App\Http\Resources\API\Notification\Invoices\ItemInvoiceResource;
+use App\Http\Resources\API\Notification\TopicNotification\TopicNotificationCollection;
+use App\Http\Resources\API\Notification\TopicNotification\TopicNotificationResource;
+use App\Http\Resources\API\Notification\UniformRequest\UniformRequestCollection;
+use App\Http\Resources\API\Notification\UniformRequest\UniformRequestResource;
 use App\Http\Resources\API\Notification\UniformRequest\UniformRequestStatistcsResource;
 use App\Http\Resources\API\Players\PlayerResource;
 use App\Http\Resources\API\SchoolCollection;
 use App\Http\Resources\API\TournamentPays\TournamentPaymentCollection;
 use App\Http\Resources\API\TournamentPays\TournamentPaymentResource;
+use App\Models\Inscription;
+use App\Models\Invoice;
+use App\Models\InvoiceItem;
+use App\Models\Player;
+use App\Models\TopicNotification;
+use App\Models\UniformRequest;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Tests\TestCase;
 
@@ -54,6 +69,54 @@ final class ApiResourcesCoverageTest extends TestCase
         ], $resource->toArray(Request::create('/')));
     }
 
+    public function testUniformRequestResourceIncludesRejectedAtAndPlayerWhenLoaded(): void
+    {
+        $uniformRequest = new UniformRequest([
+            'type' => 'Camiseta',
+            'quantity' => 2,
+            'size' => 'M',
+            'additional_notes' => 'Sin estampado',
+            'status' => 'CANCELLED',
+            'rejected_at' => '2026-07-03 08:15:00',
+            'rejection_reason' => 'Sin inventario',
+        ]);
+        $uniformRequest->id = 18;
+        $uniformRequest->created_at = Carbon::parse('2026-07-01 10:00:00');
+        $uniformRequest->updated_at = Carbon::parse('2026-07-02 11:30:00');
+
+        $player = new Player([
+            'names' => 'Maria',
+            'last_names' => 'Ruiz',
+            'unique_code' => 'U-001',
+        ]);
+        $player->id = 31;
+        $uniformRequest->setRelation('player', $player);
+
+        $payload = (new UniformRequestResource($uniformRequest))->resolve(Request::create('/'));
+
+        $this->assertSame(18, $payload['id']);
+        $this->assertSame('Camiseta', $payload['type']);
+        $this->assertSame('CANCELLED', $payload['status']);
+        $this->assertSame('Sin inventario', $payload['rejection_reason']);
+        $this->assertSame([
+            'id' => 31,
+            'full_names' => 'Maria Ruiz',
+            'unique_code' => 'U-001',
+        ], $payload['player']);
+        $this->assertIsNumeric($payload['rejected_at']);
+        $this->assertGreaterThan(0, $payload['rejected_at']);
+    }
+
+    public function testUniformRequestCollectionMapsRequestsToResources(): void
+    {
+        $payload = (new UniformRequestCollection(collect([
+            new UniformRequest(['type' => 'Medias', 'status' => 'PENDING']),
+        ])))->toArray(Request::create('/'));
+
+        $this->assertCount(1, $payload);
+        $this->assertInstanceOf(UniformRequestResource::class, $payload[0]);
+    }
+
     public function testItemInvoiceResourceKeepsInvoiceItemPayloadShape(): void
     {
         $resource = new ItemInvoiceResource((object) [
@@ -75,6 +138,73 @@ final class ApiResourcesCoverageTest extends TestCase
             'is_paid' => true,
             'description' => 'Balon oficial',
         ], $resource->toArray(Request::create('/')));
+    }
+
+    public function testItemInvoiceCollectionMapsItemsToResources(): void
+    {
+        $payload = (new ItemInvoiceCollection(collect([
+            new InvoiceItem(['description' => 'Mensualidad', 'quantity' => 1, 'unit_price' => 50000]),
+        ])))->toArray(Request::create('/'));
+
+        $this->assertCount(1, $payload);
+        $this->assertInstanceOf(ItemInvoiceResource::class, $payload[0]);
+    }
+
+    public function testInvoiceResourceIncludesItemsAndPlayerWhenRelationsAreLoaded(): void
+    {
+        $invoice = new Invoice([
+            'invoice_number' => 'INV-2026-001',
+            'total_amount' => 85000,
+            'status' => 'partial',
+            'due_date' => Carbon::parse('2026-07-31 00:00:00'),
+        ]);
+        $invoice->id = 44;
+        $invoice->created_at = Carbon::parse('2026-07-01 10:00:00');
+        $invoice->updated_at = Carbon::parse('2026-07-02 11:30:00');
+
+        $item = new InvoiceItem([
+            'invoice_id' => 44,
+            'quantity' => 1,
+            'unit_price' => 85000,
+            'total' => 85000,
+            'is_paid' => false,
+            'description' => 'Mensualidad julio',
+        ]);
+        $item->id = 9;
+        $invoice->setRelation('items', collect([$item]));
+
+        $player = new Player([
+            'names' => 'Luis',
+            'last_names' => 'Perez',
+            'unique_code' => 'P-2026',
+        ]);
+        $player->id = 77;
+        $inscription = new Inscription();
+        $inscription->setRelation('player', $player);
+        $invoice->setRelation('inscription', $inscription);
+
+        $payload = (new InvoiceResource($invoice))->resolve(Request::create('/'));
+
+        $this->assertSame(44, $payload['id']);
+        $this->assertSame(44, $payload['invoice_id']);
+        $this->assertSame('INV-2026-001', $payload['invoice_number']);
+        $this->assertSame('PARTIAL', $payload['status']);
+        $this->assertInstanceOf(ItemInvoiceCollection::class, $payload['items']);
+        $this->assertSame([
+            'id' => 77,
+            'full_names' => 'Luis Perez',
+            'unique_code' => 'P-2026',
+        ], $payload['player']);
+    }
+
+    public function testInvoiceCollectionMapsInvoicesToResources(): void
+    {
+        $payload = (new InvoiceCollection(collect([
+            new Invoice(['invoice_number' => 'INV-1', 'status' => 'pending']),
+        ])))->toArray(Request::create('/'));
+
+        $this->assertCount(1, $payload);
+        $this->assertInstanceOf(InvoiceResource::class, $payload[0]);
     }
 
     public function testInscriptionResourceKeepsAttendancePayloadShape(): void
@@ -180,6 +310,65 @@ final class ApiResourcesCoverageTest extends TestCase
             'deletion_status' => null,
             'logo' => '/logos/golapp.png',
         ]], (new SchoolCollection(collect([$school])))->toArray(Request::create('/')));
+    }
+
+    public function testLoginPlayerResourceCreatesAccessAndRefreshTokens(): void
+    {
+        $player = Player::factory()->create(['school_id' => $this->school['id']]);
+        $player->abilities = ['player'];
+
+        $payload = (new LoginPlayerResource($player))->resolve(Request::create('/'));
+
+        $this->assertSame('Bearer', $payload['token_type']);
+        $this->assertNotEmpty($payload['access_token']);
+        $this->assertNotEmpty($payload['refresh_token']);
+        $this->assertIsInt($payload['expires_at']);
+        $this->assertInstanceOf(PlayerResource::class, $payload['player']);
+        $this->assertSame($player->id, $payload['player']->resolve(Request::create('/'))['id']);
+    }
+
+    public function testTopicNotificationResourceIncludesPivotReadStatusAndPlayer(): void
+    {
+        $notification = new TopicNotification([
+            'title' => 'Entrenamiento',
+            'body' => 'Cambio de horario',
+            'type' => 'info',
+            'priority' => 'high',
+        ]);
+        $notification->id = 55;
+        $notification->created_at = Carbon::parse('2026-07-04 09:00:00');
+        $notification->setRelation('pivot', (object) ['is_read' => true]);
+
+        $player = new Player([
+            'names' => 'Carlos',
+            'last_names' => 'Lopez',
+            'unique_code' => 'TN-001',
+        ]);
+        $player->id = 91;
+        $notification->setRelation('notificationPlayer', $player);
+
+        $payload = (new TopicNotificationResource($notification))->resolve(Request::create('/'));
+
+        $this->assertSame(55, $payload['id']);
+        $this->assertSame('Entrenamiento', $payload['title']);
+        $this->assertTrue($payload['is_read']);
+        $this->assertSame('high', $payload['priority']);
+        $this->assertSame([
+            'id' => 91,
+            'full_names' => 'Carlos Lopez',
+            'unique_code' => 'TN-001',
+        ], $payload['player']);
+    }
+
+    public function testTopicNotificationCollectionMapsNotificationsToResources(): void
+    {
+        $notification = new TopicNotification(['title' => 'Aviso']);
+        $notification->setRelation('pivot', (object) ['is_read' => false]);
+
+        $payload = (new TopicNotificationCollection(collect([$notification])))->toArray(Request::create('/'));
+
+        $this->assertCount(1, $payload);
+        $this->assertInstanceOf(TopicNotificationResource::class, $payload[0]);
     }
 
     public function testTournamentPaymentResourceIncludesNestedPlayer(): void

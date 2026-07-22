@@ -22,12 +22,14 @@ use App\Service\Notification\TopicService;
 use App\Service\PaymentAmountResolver;
 use App\Service\Payment\PaymentExportService;
 use App\Service\Player\PlayerExportService;
+use App\Service\ReportService;
 use App\Service\SharedService;
 use App\Service\StopWatch;
 use App\Service\TrainigSession\TrainingSessionExportService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Mockery;
 use Tests\TestCase;
@@ -103,6 +105,33 @@ final class ServicesCoverageTest extends TestCase
         ]);
 
         $this->assertSame([1, 2], TrainingGroupYearFilter::activeForCurrentYear($groups)->pluck('id')->values()->all());
+    }
+
+    public function testReportServiceCallsStoredProceduresWithExpectedParameters(): void
+    {
+        DB::shouldReceive('select')
+            ->once()
+            ->with('CALL sp_group_payment_report(?, ?, ?)', [2026, 7, 3])
+            ->andReturn([(object) ['total' => 1]]);
+        $this->assertSame(1, ReportService::paymentByGroupReport(2026, 7, 3)->first()->total);
+
+        DB::shouldReceive('select')
+            ->once()
+            ->with('CALL sp_general_payment_report(?, ?)', [2026, 7])
+            ->andReturn([(object) ['total' => 2]]);
+        $this->assertSame(2, ReportService::generalReport(2026, 7)->first()->total);
+
+        DB::shouldReceive('select')
+            ->once()
+            ->with('CALL sp_monthly_payment_report(?, ?, ?)', [2026, 7, null])
+            ->andReturn([(object) ['total' => 3]]);
+        $this->assertSame(3, ReportService::monthlyReport(2026, 7)->first()->total);
+
+        DB::shouldReceive('select')
+            ->once()
+            ->with('CALL sp_get_assists_report_with_percentages(?, ?, ?, ?)', [2026, 5, null, 7])
+            ->andReturn([(object) ['total' => 4]]);
+        $this->assertSame(4, ReportService::assistsPercentagesReport(2026, 5, null, 7)->first()->total);
     }
 
     public function testTopicServiceGenerateTopicAndPlayerTopicsAndSchoolTopics(): void

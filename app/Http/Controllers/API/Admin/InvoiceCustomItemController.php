@@ -7,6 +7,7 @@ use App\Http\Requests\InvoiceCustomItemRequest;
 use App\Models\InvoiceCustomItem;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 class InvoiceCustomItemController extends Controller
 {
@@ -50,7 +51,7 @@ class InvoiceCustomItemController extends Controller
         );
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(int $id): Response
     {
         $this->findSchoolItem($id)->delete();
 
