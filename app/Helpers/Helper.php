@@ -227,7 +227,9 @@ if (! function_exists('isInstructor')) {
 if (! function_exists('getSchool')) {
     function getSchool($user = null): School
     {
-        return app(CurrentSchoolContext::class)->current($user ?? auth()->user());
+        /** @var User $user */
+        $user = $user ?? Auth::user();
+        return app(CurrentSchoolContext::class)->current($user);
     }
 }
 
@@ -326,7 +328,8 @@ if (! function_exists('instructorCanAccessCompetitionGroup')) {
 if (! function_exists('schoolCan')) {
     function schoolCan(string $key, ?User $user = null): bool
     {
-        $user = $user ?? auth()->user();
+        /** @var User $user */
+        $user = $user ?? Auth::user();
 
         if (! $user instanceof User) {
             return false;
@@ -432,13 +435,15 @@ if (! function_exists('loggerTimeRequest')) {
     function loggerTimeRequest(StopWatch $stopWatch): void
     {
         if (env('APP_ENV') == 'local') {
+            /** @var User $user */
+            $user = Auth::user();
             logger()->info(
                 'req',
                 [
                     'elapsed' => $stopWatch->getTimeElapsed(),
                     'url' => request()->fullUrl(),
                     'ip_address' => getIpToLog(),
-                    'user_id' => (auth()->user() ? auth()->id() : 0),
+                    'user_id' => ($user?->id ?? 0),
                 ]
             );
         }

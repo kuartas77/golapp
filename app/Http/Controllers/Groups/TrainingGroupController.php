@@ -2,22 +2,21 @@
 
 namespace App\Http\Controllers\Groups;
 
-use Illuminate\View\View;
-use Illuminate\Routing\Redirector;
-use Illuminate\Http\Response;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Contracts\Foundation\Application;
-use Exception;
-use Closure;
-use App\Repositories\TrainingGroupRepository;
-use App\Models\TrainingGroup;
-use App\Models\Inscription;
-use App\Http\Requests\Groups\TrainingGroupRequest;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Groups\TrainingGroupRequest;
+use App\Models\Inscription;
+use App\Models\TrainingGroup;
+use App\Repositories\TrainingGroupRepository;
 use App\Service\Groups\TrainingGroupYearFilter;
+use Closure;
+use Exception;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class TrainingGroupController extends Controller
@@ -57,7 +56,7 @@ class TrainingGroupController extends Controller
      * Store a newly created resource in storage.
      *
      * @param TrainingGroupRequest $request
-     * @return Application|Redirector|RedirectResponse
+     * @return JsonResponse
      */
     public function store(TrainingGroupRequest $request): JsonResponse
     {
@@ -100,7 +99,7 @@ class TrainingGroupController extends Controller
      *
      * @param Request $request
      * @param TrainingGroup $trainingGroup
-     * @return Application|Redirector|RedirectResponse
+     * @return JsonResponse
      */
     public function update(TrainingGroupRequest $request, TrainingGroup $trainingGroup): JsonResponse
     {
@@ -124,7 +123,10 @@ class TrainingGroupController extends Controller
      */
     public function destroy(TrainingGroup $trainingGroup)
     {
-        $firtsTrainigGroup = TrainingGroup::orderBy('id')->firstWhere('school_id', getSchool(auth()->user())->id)->id;
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $school = getSchool($user);
+        $firtsTrainigGroup = TrainingGroup::orderBy('id')->firstWhere('school_id', $school->id)->id;
         abort_if($firtsTrainigGroup == $trainingGroup->id, 401, 'El Grupo Provicional No Se Puede Eliminar o Modificar');
 
         if ($trainingGroup->delete()) {
@@ -157,12 +159,14 @@ class TrainingGroupController extends Controller
 
     public function groupList(Request $request): JsonResponse
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
         $filter = Closure::fromCallable([TrainingGroupYearFilter::class, 'activeForCurrentYear']);
         $training_groups = collect();
         if (isSchool() || isAdmin()) {
             $training_groups = $this->repository->getListGroupsSchedule(deleted: false, filter: $filter);
         } elseif (isInstructor()) {
-            $training_groups = $this->repository->getListGroupsSchedule(deleted: false, user_id: auth()->id(), filter: $filter);
+            $training_groups = $this->repository->getListGroupsSchedule(deleted: false, user_id: $user->id, filter: $filter);
         }
 
         $groups = $training_groups->map(fn ($group) => ['id' => $group->id, 'text' => $group->full_schedule_group]);
