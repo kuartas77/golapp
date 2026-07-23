@@ -194,6 +194,7 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
             'scholarship' => false,
             'pre_inscription' => false,
             'brother_payment' => false,
+            'send_notification' => false,
         ]);
 
         if (! data_get($result, 'success')) {

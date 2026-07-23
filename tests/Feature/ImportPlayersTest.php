@@ -72,7 +72,7 @@ final class ImportPlayersTest extends TestCase
             'year' => getYearInscription(),
         ]);
 
-        Notification::assertSentTo($player, InscriptionNotification::class);
+        Notification::assertNotSentTo($player, InscriptionNotification::class);
     }
 
     public function test_api_import_players_endpoint_creates_inscriptions(): void
@@ -124,6 +124,7 @@ final class ImportPlayersTest extends TestCase
             'school_id' => $this->school['id'],
             'year' => getYearInscription(),
         ]);
+        Notification::assertNotSentTo($player, InscriptionNotification::class);
     }
 
     public function test_reimporting_player_updates_data_without_creating_duplicate_inscription(): void

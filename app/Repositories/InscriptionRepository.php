@@ -61,8 +61,9 @@ class InscriptionRepository
         try {
             $this->prepareTrainingGroupData($requestData);
             $this->prepareMonthlyPaymentData($requestData);
+            $sendNotification = $requestData['send_notification'] ?? true;
             $customCharges = $requestData['custom_charges'] ?? [];
-            unset($requestData['custom_charges'], $requestData['custom_charges_due_date']);
+            unset($requestData['custom_charges'], $requestData['custom_charges_due_date'], $requestData['send_notification']);
             $requestData['deleted_at'] = null;
 
             DB::beginTransaction();
@@ -96,7 +97,7 @@ class InscriptionRepository
 
             $inscription->load(['player', 'school']);
 
-            if (checkEmail(data_get($inscription, 'player.email'))) {
+            if ($sendNotification && checkEmail(data_get($inscription, 'player.email'))) {
                 $inscription->player->notify(
                     (new InscriptionNotification($inscription))->afterCommit()
                 );
