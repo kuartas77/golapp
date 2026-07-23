@@ -9,11 +9,11 @@ use App\Http\Requests\API\Portal\GuardianPlayerUpdateRequest;
 use App\Http\Resources\API\Portal\GuardianPlayerDetailResource;
 use App\Http\Resources\API\Portal\GuardianPlayerListResource;
 use App\Models\People;
-use App\Models\Player;
 use App\Repositories\PlayerRepository;
 use App\Service\Evaluations\PlayerEvaluationComparisonService;
 use App\Service\Player\PlayerExportService;
 use App\Service\Portal\GuardianAccessService;
+use App\Service\Portal\GuardianPlayerExperienceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -22,6 +22,7 @@ class GuardianPlayerController extends Controller
 {
     public function __construct(
         private GuardianAccessService $guardianAccessService,
+        private GuardianPlayerExperienceService $experienceService,
         private PlayerEvaluationComparisonService $comparisonService
     ) {
     }
@@ -52,11 +53,8 @@ class GuardianPlayerController extends Controller
         /** @var People $guardian */
         $guardian = $request->user();
 
-        $playerModel = $this->guardianAccessService->findEligiblePlayer($guardian, $player);
-        $playerModel = $this->loadPlayerDetail($playerModel);
-
         return response()->json([
-            'data' => (new GuardianPlayerDetailResource($playerModel))->resolve(),
+            'data' => $this->experienceService->portalDetailPayload($guardian, $player, $request),
         ]);
     }
 
@@ -74,9 +72,12 @@ class GuardianPlayerController extends Controller
             ], 500);
         }
 
+        $resource = $this->experienceService->loadPlayerDetail($playerModel->refresh());
+        $guardianPlayerDetail = new GuardianPlayerDetailResource($resource);
+
         return response()->json([
             'message' => 'Datos del deportista actualizados correctamente.',
-            'data' => (new GuardianPlayerDetailResource($this->loadPlayerDetail($playerModel->refresh())))->resolve(),
+            'data' => $guardianPlayerDetail->resolve($request),
         ]);
     }
 
@@ -123,34 +124,4 @@ class GuardianPlayerController extends Controller
         ]);
     }
 
-    private function loadPlayerDetail(Player $player): Player
-    {
-        $player->load([
-            'schoolData',
-            'inscriptions' => fn ($query) => $query
-                ->where('year', now()->year)
-                ->with([
-                    'trainingGroup' => fn ($trainingQuery) => $trainingQuery->withTrashed(),
-                    'complementaryGroup' => fn ($trainingQuery) => $trainingQuery->withTrashed(),
-                    'payments',
-                    'assistance' => fn ($assistQuery) => $assistQuery
-                        ->with(['trainingGroup' => fn ($groupQuery) => $groupQuery->withTrashed()])
-                        ->orderBy('month')
-                        ->orderBy('training_group_id'),
-                    'skillsControls',
-                    'playerEvaluations.period',
-                ]),
-        ]);
-
-        $player->historical_inscriptions = $player->inscriptions()
-            ->select(['id', 'player_id', 'year'])
-            ->where('year', '<', now()->year)
-            ->orderByDesc('year')
-            ->get();
-
-        $player->inscriptions->setAppends(['format_average']);
-        PlayerExportService::loadClassDays($player);
-
-        return $player;
-    }
 }

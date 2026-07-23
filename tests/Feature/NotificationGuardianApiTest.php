@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\Assist;
 use App\Models\Inscription;
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Models\People;
 use App\Models\Player;
 use App\Models\School;
@@ -325,6 +327,104 @@ final class NotificationGuardianApiTest extends TestCase
             'topic_notification_id' => $notification->id,
             'is_read' => false,
         ]);
+    }
+
+    public function testGuardianCanFetchOwnedPlayerSportsSummary(): void
+    {
+        [$guardian, $player, $inscription, , $trainingGroup] = $this->createGuardianScenario();
+        $trainingGroup->update(['name' => 'Sub 12 Mobile']);
+
+        Sanctum::actingAs($guardian, ['auth']);
+
+        $this->getJson("/api/notify/v2/guardians/players/{$player->id}/sports-summary")
+            ->assertOk()
+            ->assertJsonPath('data.id', $player->id)
+            ->assertJsonPath('data.unique_code', $player->unique_code)
+            ->assertJsonPath('data.full_names', $player->full_names)
+            ->assertJsonPath('data.current_inscription.id', $inscription->id)
+            ->assertJsonPath('data.current_inscription.training_group.name', 'Sub 12 Mobile')
+            ->assertJsonStructure([
+                'data' => [
+                    'current_inscription' => [
+                        'stats' => [
+                            'total_matches',
+                            'assistance',
+                            'goals',
+                            'qualification',
+                        ],
+                    ],
+                ],
+            ]);
+    }
+
+    public function testGuardianCanFetchOwnedPlayerMobileActivity(): void
+    {
+        [$guardian, $player, $inscription, $school, $trainingGroup] = $this->createGuardianScenario();
+        $trainingGroup->update(['days' => ['Lunes']]);
+
+        Payment::query()->updateOrCreate([
+            'inscription_id' => $inscription->id,
+            'year' => now()->year,
+        ], array_merge([
+            'school_id' => $school->id,
+            'training_group_id' => $trainingGroup->id,
+            'unique_code' => $player->unique_code,
+            'enrollment' => 1,
+            'january' => 1,
+            'february' => 2,
+        ], array_fill_keys(array_values(Payment::FIELD_AMOUNT_MAP), 0)));
+
+        $assist = Assist::query()->updateOrCreate([
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $trainingGroup->id,
+            'year' => now()->year,
+            'month' => now()->month,
+        ], [
+            'school_id' => $school->id,
+            'assistance_one' => 1,
+            'assistance_two' => 1,
+            'assistance_three' => 1,
+            'assistance_four' => 1,
+        ]);
+
+        Sanctum::actingAs($guardian, ['auth']);
+
+        $response = $this->getJson("/api/notify/v2/guardians/players/{$player->id}/activity")
+            ->assertOk()
+            ->assertJsonPath('data.player.id', $player->id)
+            ->assertJsonPath('data.current_inscription.id', $inscription->id)
+            ->assertJsonPath('data.payments.0.months.0.field', 'january')
+            ->assertJsonPath('data.payments.0.months.0.value', 1)
+            ->assertJsonPath('data.attendance.0.id', $assist->id)
+            ->assertJsonMissingPath('data.evaluations');
+
+        $this->assertTrue(
+            collect($response->json('data.attendance.0.registers'))
+                ->contains(fn (array $register): bool => $register['status'] === 1 && $register['label'] === 'Asistencia')
+        );
+    }
+
+    public function testGuardianCannotFetchOtherPlayerMobileExperience(): void
+    {
+        [$guardian] = $this->createGuardianScenario();
+        [, $otherPlayer] = $this->createGuardianScenario();
+
+        Sanctum::actingAs($guardian, ['auth']);
+
+        $this->getJson("/api/notify/v2/guardians/players/{$otherPlayer->id}/sports-summary")
+            ->assertNotFound();
+        $this->getJson("/api/notify/v2/guardians/players/{$otherPlayer->id}/activity")
+            ->assertNotFound();
+    }
+
+    public function testGuardianMobileExperienceEndpointsRequireAuthentication(): void
+    {
+        [, $player] = $this->createGuardianScenario();
+
+        $this->getJson("/api/notify/v2/guardians/players/{$player->id}/sports-summary")
+            ->assertUnauthorized();
+        $this->getJson("/api/notify/v2/guardians/players/{$player->id}/activity")
+            ->assertUnauthorized();
     }
 
     private function createGuardianScenario(array $guardianAttributes = []): array
