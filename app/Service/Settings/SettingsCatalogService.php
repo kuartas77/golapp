@@ -45,7 +45,7 @@ class SettingsCatalogService
             'complementary_training_groups' => $groups->filter(fn ($group) => $group->is_complementary)->values(),
             'categories' => Cache::remember("KEY_CATEGORIES_SELECT_{$schoolId}", now()->addMinutes(5), fn () => DB::table('inscriptions')->where('school_id', $schoolId)->where('year', now()->year)->orderBy('category')->groupBy('category')->select('category')->get()),
             'genders' => $this->options('KEY_GENDERS'),
-            'positions' => Cache::remember('KEY_POSITIONS', now()->addYear(), fn () => collect(config('variables.KEY_POSITIONS'))->values()->map(fn ($item) => ['id' => $item, 'name' => $item])),
+            'positions' => $this->positionOptions(),
             'blood_types' => $this->options('KEY_BLOOD_TYPES'), 'averages' => $this->options('KEY_AVERAGES'),
             'dominant_profile' => $this->options('KEY_DOMINANT_PROFILE'), 'relationships' => $this->options('KEY_RELATIONSHIPS_SELECT'),
             'competition_groups' => $this->catalogCache->remember(GroupCatalogCache::COMPETITION, $schoolId, 'settings', fn () => $this->competitionGroups->getListGroupFullName($schoolId, $instructorId), $instructorId),
@@ -59,6 +59,16 @@ class SettingsCatalogService
             'training_session_tasks' => $this->options('KEY_TRAINING_SESSION_TASKS'),
             'settings' => $school->settings, 'current_school_id' => $schoolId,
         ];
+    }
+
+    private function positionOptions(): array
+    {
+        $hidden = config('variables.KEY_POSITIONS_HIDDEN_FROM_SELECT', []);
+        $positions = collect(config('variables.KEY_POSITIONS', []))
+            ->reject(fn ($label, $value) => array_key_exists($value, $hidden));
+        $versionedCacheKey = 'KEY_POSITIONS_SELECT_'.md5(json_encode($positions->all()));
+
+        return Cache::remember($versionedCacheKey, now()->addYear(), fn () => $positions->values()->map(fn ($item) => ['id' => $item, 'name' => $item])->all());
     }
 
     public function groups(School $school): array

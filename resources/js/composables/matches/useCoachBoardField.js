@@ -3,7 +3,6 @@ import { computed, onMounted, ref, watch } from 'vue'
 export const COACHBOARD_POSITION_ROLES = {
     goalkeeper: 'Portero',
     defenseCentral: 'Defensa (Central)',
-    defenseBothSides: 'Defensa (Derecho)(Izquierdo)',
     defenseLeft: 'Defensa (Izquierdo)',
     defenseRight: 'Defensa (Derecho)',
     defense: 'Defensa',
@@ -17,14 +16,10 @@ export const COACHBOARD_POSITION_ROLES = {
     midfielderWingerRight: 'Volante (Extremo Derecho)',
     midfielderFirstLine: 'Volante (Primera línea)',
     midfielderSecondLine: 'Volante (Segunda línea)',
-    midfielderFirstLineLegacy: 'Volante (Primera linea)',
-    midfielderSecondLineLegacy: 'Volante (Segunda linea)',
-    midfielderWinger: 'Volante (Extremo)',
     midfielderCentral: 'Volante (Central)',
     forwardLeft: 'Delantero (Izquierdo)',
     forwardRight: 'Delantero (Derecho)',
-    forwardCentral: 'Delantero (Central)',
-    forward: 'Delantero'
+    forwardCentral: 'Delantero (Central)'
 }
 
 export function normalizeCoachBoardPositionRole(position) {

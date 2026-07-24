@@ -16,6 +16,13 @@ final class SettingsControllerTest extends TestCase
         $response->assertOk();
 
         $this->assertIsArray($response->json('genders'));
+        $this->assertContains('Volante (Primera línea)', collect($response->json('positions'))->pluck('name'));
+        $this->assertNotContains('Defensa (Derecho)(Izquierdo)', collect($response->json('positions'))->pluck('name'));
+        $this->assertNotContains('Volante (Primera linea)', collect($response->json('positions'))->pluck('name'));
+        $this->assertNotContains('Volante (Segunda linea)', collect($response->json('positions'))->pluck('name'));
+        $this->assertNotContains('Volante (Extremo)', collect($response->json('positions'))->pluck('name'));
+        $this->assertNotContains('Delantero', collect($response->json('positions'))->pluck('name'));
+
         $this->assertSame([
             'value' => 'M',
             'label' => 'Masculino',

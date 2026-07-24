@@ -124,6 +124,13 @@ return [
         'Delantero (Central)' => 'Delantero (Central)',
         'Delantero' => 'Delantero',
     ],
+    'KEY_POSITIONS_HIDDEN_FROM_SELECT' => [
+        'Defensa (Derecho)(Izquierdo)' => 'Defensa (Derecho)(Izquierdo)',
+        'Volante (Primera linea)' => 'Volante (Primera linea)',
+        'Volante (Segunda linea)' => 'Volante (Segunda linea)',
+        'Volante (Extremo)' => 'Volante (Extremo)',
+        'Delantero' => 'Delantero',
+    ],
     'KEY_BLOOD_TYPES' => [
         'O-' => 'O-', 'O+' => 'O+',
         'A-' => 'A-', 'A+' => 'A+',

@@ -10,8 +10,14 @@ import {
 function getConfigKeyPositions() {
     const config = readFileSync(resolve(process.cwd(), 'config/variables.php'), 'utf8')
     const keyPositionsBlock = config.match(/'KEY_POSITIONS'\s*=>\s*\[(?<body>[\s\S]*?)\n\s*\],/)?.groups?.body ?? ''
+    const hiddenPositionsBlock = config.match(/'KEY_POSITIONS_HIDDEN_FROM_SELECT'\s*=>\s*\[(?<body>[\s\S]*?)\n\s*\],/)?.groups?.body ?? ''
+    const hiddenPositions = new Set(
+        [...hiddenPositionsBlock.matchAll(/'([^']+)'\s*=>\s*'([^']+)'/g)].map((match) => match[2])
+    )
 
-    return [...keyPositionsBlock.matchAll(/'([^']+)'\s*=>\s*'([^']+)'/g)].map((match) => match[2])
+    return [...keyPositionsBlock.matchAll(/'([^']+)'\s*=>\s*'([^']+)'/g)]
+        .map((match) => match[2])
+        .filter((position) => !hiddenPositions.has(position))
 }
 
 describe('normalizeCoachBoardPositionRole', () => {
@@ -22,7 +28,7 @@ describe('normalizeCoachBoardPositionRole', () => {
         expect(normalizeCoachBoardPositionRole('Delantero(Central)')).toBe('Delantero (Central)')
     })
 
-    it('keeps the coachboard role catalog exactly aligned with config KEY_POSITIONS', () => {
+    it('keeps the coachboard role catalog aligned with visible config KEY_POSITIONS', () => {
         expect(Object.values(COACHBOARD_POSITION_ROLES)).toEqual(getConfigKeyPositions())
     })
 })
