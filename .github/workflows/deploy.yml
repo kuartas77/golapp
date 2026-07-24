@@ -109,7 +109,7 @@ jobs:
       # -------------------------
 
       - name: Setup PHP and Composer
-        if: steps.changes.outputs.vendor == 'true'
+        if: steps.changes.outputs.vendor == 'true' || steps.changes.outputs.backend == 'true'
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
@@ -118,13 +118,13 @@ jobs:
           extensions: mbstring, xml, curl, zip, pdo_mysql, bcmath, gd, intl
 
       - name: Get Composer cache directory
-        if: steps.changes.outputs.vendor == 'true'
+        if: steps.changes.outputs.vendor == 'true' || steps.changes.outputs.backend == 'true'
         id: composer-cache
         shell: bash
         run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
       - name: Restore Composer cache
-        if: steps.changes.outputs.vendor == 'true'
+        if: steps.changes.outputs.vendor == 'true' || steps.changes.outputs.backend == 'true'
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
@@ -132,8 +132,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-composer-
 
+      - name: Clear generated Laravel bootstrap cache
+        if: steps.changes.outputs.vendor == 'true' || steps.changes.outputs.backend == 'true'
+        shell: bash
+        run: find bootstrap/cache -type f ! -name '.gitignore' -delete
+
       - name: Install production PHP dependencies
-        if: steps.changes.outputs.vendor == 'true'
+        if: steps.changes.outputs.vendor == 'true' || steps.changes.outputs.backend == 'true'
         run: |
           composer install \
             --no-dev \
@@ -141,6 +146,17 @@ jobs:
             --no-interaction \
             --no-progress \
             --optimize-autoloader
+
+      - name: Prepare Composer autoload metadata
+        if: steps.changes.outputs.backend == 'true' && steps.changes.outputs.vendor != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rm -rf /tmp/golapp-composer-autoload
+          mkdir -p /tmp/golapp-composer-autoload/vendor
+          cp vendor/autoload.php /tmp/golapp-composer-autoload/vendor/autoload.php
+          cp -a vendor/composer /tmp/golapp-composer-autoload/vendor/composer
 
       # -------------------------
       # Frontend / pnpm / Vite
@@ -180,6 +196,20 @@ jobs:
           state-name: .ftp-deploy-vendor-state.json
           exclude: |
             .ftp-deploy-vendor-state.json
+            **/.ftp-deploy-*.json
+
+      - name: Deploy Composer autoload metadata
+        if: steps.changes.outputs.backend == 'true' && steps.changes.outputs.vendor != 'true'
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: /tmp/golapp-composer-autoload/
+          server-dir: /
+          state-name: .ftp-deploy-composer-autoload-state.json
+          exclude: |
+            .ftp-deploy-composer-autoload-state.json
             **/.ftp-deploy-*.json
 
       # -------------------------

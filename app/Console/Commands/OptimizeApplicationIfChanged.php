@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
@@ -66,7 +67,8 @@ class OptimizeApplicationIfChanged extends Command
 
         foreach ($this->optimizationCommands() as $command) {
             try {
-                $exitCode = $this->callSilently($command);
+                $exitCode = Artisan::call($command);
+                $output = trim(Artisan::output());
             } catch (Throwable $exception) {
                 Log::error('Falló un subcomando de optimize:if-changed.', [
                     'command' => $command,
@@ -82,6 +84,7 @@ class OptimizeApplicationIfChanged extends Command
                 Log::error('Un subcomando de optimize:if-changed terminó con error.', [
                     'command' => $command,
                     'exit_code' => $exitCode,
+                    'output' => $output,
                 ]);
 
                 $this->components->error("El subcomando [{$command}] terminó con código {$exitCode}.");
