@@ -29,7 +29,7 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping();
 
         $schedule->command('optimize:if-changed')
-            ->everyMinute()
+            ->everyFiveMinutes()
             ->withoutOverlapping(5);
 
         $schedule->command('auth:clear-resets')->dailyAt('00:01')->withoutOverlapping();
