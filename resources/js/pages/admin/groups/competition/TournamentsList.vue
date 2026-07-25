@@ -37,6 +37,7 @@
                         <thead>
                             <tr>
                                 <th>Torneo</th>
+                                <th>Deporte</th>
                                 <th class="text-end">Acciones</th>
                             </tr>
                         </thead>
@@ -44,6 +45,11 @@
                             <tr v-for="item in items" :key="item.id">
                                 <td>
                                     <div class="fw-semibold">{{ item.name }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        {{ sportLabel(item.sport) }}
+                                    </span>
                                 </td>
                                 <td class="text-end">
                                     <div class="d-inline-flex gap-2">
@@ -132,6 +138,20 @@
                             </Field>
                             <ErrorMessage name="name" class="invalid-feedback d-block" />
                         </div>
+
+                        <div class="mt-3">
+                            <label class="form-label" for="tournament-sport">Deporte</label>
+                            <Field name="sport" as="select" id="tournament-sport" class="form-select form-select-sm" :disabled="isSaving">
+                                <option
+                                    v-for="sport in sportOptions"
+                                    :key="sport.value"
+                                    :value="sport.value"
+                                >
+                                    {{ sport.label }}
+                                </option>
+                            </Field>
+                            <ErrorMessage name="sport" class="invalid-feedback d-block" />
+                        </div>
                     </div>
 
                     <div class="modal-footer">
@@ -159,6 +179,7 @@ import api from '@/utils/axios'
 import { usePageTitle } from '@/composables/use-meta'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
+import { useSettingGroups } from '@/store/settings-store'
 import { tournamentsTutorial } from '@/tutorials/competition'
 
 const items = ref([])
@@ -172,17 +193,28 @@ const globalError = ref('')
 const tournamentForm = useTemplateRef('tournamentForm')
 const { proxy } = getCurrentInstance()
 const tutorial = usePageTutorial(tournamentsTutorial)
+const settingsGroup = useSettingGroups()
 
 const isEditMode = computed(() => editingId.value !== null)
+const defaultSport = computed(() => settingsGroup.default_sport || 'football')
+const sportOptions = computed(() => {
+    const enabledSports = settingsGroup.enabled_sports.length
+        ? settingsGroup.enabled_sports
+        : [defaultSport.value]
+
+    return settingsGroup.sports.filter((sport) => enabledSports.includes(sport.value))
+})
 
 let modalInstance = null
 
 const schema = yup.object().shape({
     name: yup.string().required(),
+    sport: yup.string().required(),
 })
 
 const buildDefaultFormValues = () => ({
     name: '',
+    sport: defaultSport.value,
 })
 
 const resetFormState = (values = buildDefaultFormValues()) => {
@@ -215,9 +247,12 @@ const openEditModal = (item) => {
     editingId.value = item.id
     resetFormState({
         name: item.name ?? '',
+        sport: item.sport ?? defaultSport.value,
     })
     modalInstance?.show()
 }
+
+const sportLabel = (value) => sportOptions.value.find((sport) => sport.value === value)?.label ?? value ?? '-'
 
 const closeModal = () => {
     modalInstance?.hide()
@@ -291,6 +326,7 @@ const handleModalHidden = () => {
 
 onMounted(() => {
     usePageTitle('Torneos')
+    settingsGroup.getGroupSettings()
     fetchTournaments()
 
     modalInstance = new window.bootstrap.Modal(modalElement.value)

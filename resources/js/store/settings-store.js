@@ -9,8 +9,12 @@ const normalizeOptionList = (value) => {
             if (item && typeof item === 'object' && !Array.isArray(item)) {
                 const optionValue = item.value ?? item.id ?? index
                 const optionLabel = item.label ?? item.name ?? optionValue
+                const metadata = Object.fromEntries(
+                    Object.entries(item).filter(([key]) => !['id', 'name', 'value', 'label'].includes(key))
+                )
 
                 return {
+                    ...metadata,
                     value: String(optionValue),
                     label: String(optionLabel),
                 }
@@ -131,6 +135,9 @@ export const useSetting = defineStore('settings-store', {
 export const useSettingGroups = defineStore('settings-groups-store', {
     state: () => ({
         users: [],
+        sports: [],
+        enabled_sports: [],
+        default_sport: 'football',
         year_active: [],
         schedules: [],
         categories: [],
@@ -145,6 +152,9 @@ export const useSettingGroups = defineStore('settings-groups-store', {
             const response = await api.get('/api/v2/settings/groups')
             const data = response?.data ?? {}
 
+            this.sports = normalizeOptionList(data.sports)
+            this.enabled_sports = toArray(data.enabled_sports)
+            this.default_sport = data.default_sport ?? 'football'
             this.users = normalizeOptionList(data.users)
             this.year_active = normalizeOptionList(data.year_active).map((option) => option.value)
             this.schedules = normalizeOptionList(data.schedules)

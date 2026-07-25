@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Groups;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use App\Models\Inscription;
 
@@ -33,6 +34,7 @@ class TrainingGroupRequest extends FormRequest
             'days' => ['required', 'array', 'max:5'],
             'schedules' => ['required', 'array'],
             'school_id' => ['required'],
+            'sport' => ['required', 'string', Rule::in(getSchool(auth()->user())->enabled_sports)],
             'year_active' => ['required'],
             'is_complementary' => ['nullable', 'boolean'],
             // 'years' => ['required', 'array'],
@@ -59,6 +61,7 @@ class TrainingGroupRequest extends FormRequest
     {
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
+            'sport' => $this->input('sport', config('sports.default_sport', 'football')),
             'is_complementary' => $this->boolean('is_complementary'),
         ]);
     }

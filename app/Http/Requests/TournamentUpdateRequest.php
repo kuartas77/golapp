@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 
 class TournamentUpdateRequest extends FormRequest
@@ -26,6 +27,7 @@ class TournamentUpdateRequest extends FormRequest
     {
         return [
             'name' => 'required',
+            'sport' => ['required', 'string', Rule::in(getSchool(auth()->user())->enabled_sports)],
             'school_id' => ['required'],
         ];
     }
@@ -34,6 +36,7 @@ class TournamentUpdateRequest extends FormRequest
     {
         $this->merge([
             'name' => Str::upper($this->name),
+            'sport' => $this->input('sport', config('sports.default_sport', 'football')),
             'school_id' => getSchool(auth()->user())->id
         ]);
     }

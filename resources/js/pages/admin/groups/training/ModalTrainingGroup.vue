@@ -28,6 +28,21 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
+                                        <label for="sport" class="form-label">Deporte</label><span class="text-danger">*</span>
+                                        <Field name="sport" as="select" id="sport" class="form-select form-select-sm">
+                                            <option
+                                                v-for="sport in sportOptions"
+                                                :key="sport.value"
+                                                :value="sport.value"
+                                            >
+                                                {{ sport.label }}
+                                            </option>
+                                        </Field>
+                                        <ErrorMessage name="sport" class="custom-error" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
                                         <label for="year_active" class="form-label">Año de actividad</label><span
                                             class="text-danger">*</span>
                                         <Field id="year_active" name="year_active" as="select"
@@ -165,9 +180,19 @@ const selectedCategoryOptions = ref([]);
 const currentYear = String(new Date().getFullYear());
 const maxTrainingDays = 5;
 
+const defaultSport = computed(() => settingsGroup.default_sport || "football");
+const sportOptions = computed(() => {
+    const enabledSports = settingsGroup.enabled_sports.length
+        ? settingsGroup.enabled_sports
+        : [defaultSport.value];
+
+    return settingsGroup.sports.filter((sport) => enabledSports.includes(sport.value));
+});
+
 const buildDefaultValues = () => ({
     id: null,
     name: null,
+    sport: defaultSport.value,
     stage: "",
     year_active: currentYear,
     days: [],
@@ -232,6 +257,7 @@ const resetFormState = () => {
 
 const schema = yup.object().shape({
     name: yup.string().required(),
+    sport: yup.string().required(),
     stage: yup.string().nullable(),
     year_active: yup.mixed().required(),
     days: yup
@@ -256,6 +282,7 @@ const submit = async (values, actions) => {
             users_id: values.user_id.map((user) => user.value),
             categories: values.years.map((year) => year.value),
             name: values.name,
+            sport: values.sport,
             stage: values.stage,
             year_active: values.year_active,
             is_complementary: Boolean(values.is_complementary),
@@ -305,6 +332,7 @@ const onLoadData = async () => {
         const {
             id,
             name,
+            sport,
             stage,
             year_active,
             years,
@@ -331,6 +359,7 @@ const onLoadData = async () => {
         const data = {
             id: id,
             name: name,
+            sport: sport || defaultSport.value,
             stage: stage,
             year_active: String(year_active ?? currentYear),
             days: resolveSelectedOptions(daysOptions.value, explode_days ?? []),

@@ -18,7 +18,7 @@ class Tournament extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'school_id',
+        'name', 'school_id', 'sport',
     ];
 
     protected $appends = [

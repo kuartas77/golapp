@@ -32,6 +32,21 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
+                                        <label for="sport" class="form-label">Deporte</label><span class="text-danger">*</span>
+                                        <Field name="sport" as="select" id="sport" class="form-select form-select-sm">
+                                            <option
+                                                v-for="sport in sportOptions"
+                                                :key="sport.value"
+                                                :value="sport.value"
+                                            >
+                                                {{ sport.label }}
+                                            </option>
+                                        </Field>
+                                        <ErrorMessage name="sport" class="custom-error" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
                                         <label for="name" class="form-label">Torneo</label><span
                                             class="text-danger">*</span>
                                         <Field name="tournament_id" as="CustomSelect2" id="tournament_id"
@@ -93,8 +108,18 @@ const selectedUserOptions = ref([]);
 const selectedTournamentOptions = ref([]);
 const selectedCategoryOptions = ref([]);
 
+const defaultSport = computed(() => settingsGroup.default_sport || "football");
+const sportOptions = computed(() => {
+    const enabledSports = settingsGroup.enabled_sports.length
+        ? settingsGroup.enabled_sports
+        : [defaultSport.value];
+
+    return settingsGroup.sports.filter((sport) => enabledSports.includes(sport.value));
+});
+
 const buildDefaultValues = () => ({
     name: null,
+    sport: defaultSport.value,
     user_id: null,
     tournament_id: null,
     year: null,
@@ -150,6 +175,7 @@ const resetFormState = () => {
 
 const schema = yup.object().shape({
     name: yup.string().required(),
+    sport: yup.string().required(),
     user_id: yup.string().required(),
     tournament_id: yup.string().required(),
     year: yup.string().required()
@@ -200,6 +226,7 @@ const onLoadData = async () => {
         const {
             id,
             name,
+            sport,
             tournament_id,
             user_id,
             year,
@@ -220,6 +247,7 @@ const onLoadData = async () => {
         const data = {
             id: id,
             name: name,
+            sport: sport || defaultSport.value,
             tournament_id: findOptionByValue(tournamentOptions.value, tournament_id)?.value ?? String(tournament_id),
             user_id: findOptionByValue(userOptions.value, user_id)?.value ?? String(user_id),
             year: findOptionByValue(categoryOptions.value, year)?.value ?? String(year),

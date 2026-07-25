@@ -39,7 +39,10 @@ class TournamentController extends Controller
      */
     public function store(TournamentCreateRequest $request): RedirectResponse
     {
-        $exist = Tournament::withTrashed()->firstWhere('name', $request->input('name'));
+        $exist = Tournament::withTrashed()
+            ->where('school_id', $request->input('school_id'))
+            ->where('sport', $request->input('sport'))
+            ->firstWhere('name', $request->input('name'));
 
         if ($exist) {
             $exist->trashed() == false ?: $exist->restore();

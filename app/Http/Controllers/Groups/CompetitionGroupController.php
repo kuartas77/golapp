@@ -53,7 +53,7 @@ class CompetitionGroupController extends Controller
         $competitionGroup = $this->repository->createOrUpdateTeam(
             $request->only([
                 'name', 'year', 'tournament_id',
-                'user_id', 'category', 'school_id'
+                'user_id', 'category', 'school_id', 'sport'
             ])
         );
         $response = [];
@@ -76,7 +76,7 @@ class CompetitionGroupController extends Controller
     public function show(CompetitionGroup $competitionGroup): JsonResponse
     {
         return $this->responseJson($competitionGroup->load([
-            'tournament:id,name',
+            'tournament:id,name,sport',
             'professor:id,name',
         ]));
     }
@@ -90,7 +90,7 @@ class CompetitionGroupController extends Controller
     public function edit(CompetitionGroup $competitionGroup): JsonResponse
     {
         return $this->responseJson($competitionGroup->load([
-            'tournament:id,name',
+            'tournament:id,name,sport',
             'professor:id,name',
         ]));
     }
@@ -104,7 +104,7 @@ class CompetitionGroupController extends Controller
         $competitionGroup = $this->repository->createOrUpdateTeam(
             $request->only([
                 'name', 'year', 'tournament_id',
-                'user_id', 'category', 'school_id'
+                'user_id', 'category', 'school_id', 'sport'
             ]),
             false,
             $competitionGroup

@@ -6,6 +6,8 @@ namespace Tests\Feature;
 
 use App\Models\Schedule;
 use App\Models\School;
+use App\Models\Setting;
+use App\Models\SettingValue;
 use App\Models\Tournament;
 use App\Models\TrainingGroup;
 use App\Service\Groups\GroupCatalogCache;
@@ -274,6 +276,58 @@ final class AdminGroupCatalogsTest extends TestCase
         $this->assertNotSame($previousVersion, $catalogCache->version($schoolId));
     }
 
+    public function test_training_group_persists_enabled_sport_and_defaults_to_football(): void
+    {
+        $school = School::findOrFail($this->school['id']);
+        $this->setEnabledSports($school, ['football', 'basketball']);
+
+        $basePayload = [
+            'name' => 'Grupo Multideporte',
+            'stage' => 'Coliseo',
+            'users_id' => [$this->user->id],
+            'categories' => ['SUB-12'],
+            'schedules' => ['07:00AM - 08:00AM'],
+            'days' => ['Lunes', 'Miércoles'],
+            'year_active' => now()->year,
+        ];
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/training_groups', array_merge($basePayload, [
+                'sport' => 'basketball',
+            ]))
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('training_groups', [
+            'name' => 'Grupo Multideporte',
+            'school_id' => $school->id,
+            'sport' => 'basketball',
+        ]);
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/training_groups', array_merge($basePayload, [
+                'name' => 'Grupo Default Futbol',
+            ]))
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('training_groups', [
+            'name' => 'Grupo Default Futbol',
+            'school_id' => $school->id,
+            'sport' => 'football',
+        ]);
+
+        $this->setEnabledSports($school, ['basketball']);
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/training_groups', array_merge($basePayload, [
+                'name' => 'Grupo Deporte Bloqueado',
+                'sport' => 'football',
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('sport');
+    }
+
     public function test_attendance_classdays_reflect_five_training_days(): void
     {
         Carbon::setTestNow(Carbon::create(2026, 4, 1));
@@ -305,6 +359,7 @@ final class AdminGroupCatalogsTest extends TestCase
         $tournament = Tournament::query()->create([
             'name' => 'COPA BARRIAL',
             'school_id' => $this->school['id'],
+            'sport' => 'football',
         ]);
 
         $tournament->delete();
@@ -320,8 +375,55 @@ final class AdminGroupCatalogsTest extends TestCase
         $this->assertDatabaseHas('tournaments', [
             'id' => $tournament->id,
             'name' => 'COPA BARRIAL',
+            'sport' => 'football',
             'deleted_at' => null,
         ]);
+    }
+
+    public function test_tournament_and_competition_group_persist_sport_and_require_matching_sport(): void
+    {
+        $school = School::findOrFail($this->school['id']);
+        $this->setEnabledSports($school, ['football', 'basketball']);
+
+        $basketballTournamentResponse = $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/tournaments', [
+                'name' => 'liga local',
+                'sport' => 'basketball',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.name', 'LIGA LOCAL')
+            ->assertJsonPath('data.sport', 'basketball');
+
+        $basketballTournamentId = $basketballTournamentResponse->json('data.id');
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/competition_groups', [
+                'name' => 'Equipo U12',
+                'year' => 'SUB-12',
+                'tournament_id' => $basketballTournamentId,
+                'user_id' => $this->user->id,
+                'sport' => 'basketball',
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('competition_groups', [
+            'name' => 'Equipo U12',
+            'school_id' => $school->id,
+            'sport' => 'basketball',
+            'tournament_id' => $basketballTournamentId,
+        ]);
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/competition_groups', [
+                'name' => 'Equipo Futbol Con Torneo Basket',
+                'year' => 'SUB-12',
+                'tournament_id' => $basketballTournamentId,
+                'user_id' => $this->user->id,
+                'sport' => 'football',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('tournament_id');
     }
 
     private function setSchoolPermissions(School $school, array $overrides): void
@@ -332,6 +434,22 @@ final class AdminGroupCatalogsTest extends TestCase
             'school_permissions' => School::normalizeSchoolPermissions($permissions),
         ])->save();
 
+        School::forgetCachedSchool($school->id);
+    }
+
+    private function setEnabledSports(School $school, array $sports): void
+    {
+        SettingValue::query()->updateOrCreate(
+            [
+                'school_id' => $school->id,
+                'setting_key' => Setting::SPORTS_ENABLED,
+            ],
+            [
+                'value' => json_encode($sports, JSON_THROW_ON_ERROR),
+            ]
+        );
+
+        $school->unsetRelation('settingsValues');
         School::forgetCachedSchool($school->id);
     }
 }

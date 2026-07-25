@@ -63,6 +63,7 @@ class TrainingGroup extends Model
         'schedules',
         'days',
         'school_id',
+        'sport',
         'year_active',
         'is_complementary',
     ];

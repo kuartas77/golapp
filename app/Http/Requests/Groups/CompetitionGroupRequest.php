@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Groups;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CompetitionGroupRequest extends FormRequest
 {
@@ -26,10 +27,16 @@ class CompetitionGroupRequest extends FormRequest
         return [
             'name' => ['required'],
             'year' => ['required'],
-            'tournament_id' => ['required', 'exists:tournaments,id'],
+            'tournament_id' => [
+                'required',
+                Rule::exists('tournaments', 'id')->where(fn ($query) => $query
+                    ->where('school_id', getSchool(auth()->user())->id)
+                    ->where('sport', $this->input('sport', config('sports.default_sport', 'football')))),
+            ],
             'user_id' => ['required'],
             'category' => ['required'],
-            'school_id' => ['required']
+            'school_id' => ['required'],
+            'sport' => ['required', 'string', Rule::in(getSchool(auth()->user())->enabled_sports)],
         ];
     }
 
@@ -42,7 +49,8 @@ class CompetitionGroupRequest extends FormRequest
     {
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
-            'category' => $this->year
+            'category' => $this->year,
+            'sport' => $this->input('sport', config('sports.default_sport', 'football')),
         ]);
     }
 }

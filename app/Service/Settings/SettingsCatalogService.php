@@ -86,11 +86,14 @@ class SettingsCatalogService
         $id = (int) $school->id;
         $years = Cache::remember("KEY_YEARS_{$id}", now()->addDay(), function () { $now = now(); $years = [$now->format('Y') => $now->format('Y')]; if (in_array($now->month, [10, 11, 12])) $years[$now->addYear()->format('Y')] = $now->format('Y'); return $years; });
         return [
+            'sports' => $this->sportOptions(),
+            'enabled_sports' => $school->enabled_sports,
+            'default_sport' => config('sports.default_sport', 'football'),
             'users' => Cache::remember("KEY_USERS_{$id}", now()->addMinute(), fn () => $school->users()->get(['users.id', 'users.name'])->map(fn ($user) => ['id' => $user->id, 'name' => $user->name])),
             'year_active' => $years,
             'schedules' => Cache::remember("SCHEDULES_{$id}", now()->addMinute(), fn () => Schedule::query()->schoolId()->get(['schedule']))->map(fn ($item) => ['id' => $item->schedule, 'name' => $item->schedule]),
             'categories' => Cache::remember("KEY_CATEGORIES_{$id}", now()->addDay(), fn () => collect(range(now()->subYears(18)->year, now()->subYears(2)->year))->map(fn ($year) => ['id' => categoriesName($year), 'name' => categoriesName($year)])),
-            'tournaments' => Cache::remember("KEY_TOURNAMENT_{$id}", now()->addMinutes(2), fn () => Tournament::orderBy('name')->schoolId()->get(['name', 'id'])->map(fn ($item) => ['id' => $item->id, 'name' => $item->name])),
+            'tournaments' => Cache::remember("KEY_TOURNAMENT_{$id}", now()->addMinutes(2), fn () => Tournament::orderBy('name')->schoolId()->get(['name', 'id', 'sport'])->map(fn ($item) => ['id' => $item->id, 'name' => $item->name, 'sport' => $item->sport])),
         ];
     }
 

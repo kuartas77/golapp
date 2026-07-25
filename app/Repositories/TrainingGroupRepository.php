@@ -96,6 +96,7 @@ class TrainingGroupRepository
             'schedules' => $formRequest->input('schedules', []),
             'days' => $formRequest->input('days', []),
             'school_id' => $formRequest->input('school_id'),
+            'sport' => $formRequest->input('sport', config('sports.default_sport', 'football')),
             'year_active' => $formRequest->input('year_active'),
             'is_complementary' => $formRequest->boolean('is_complementary'),
         ];
@@ -171,7 +172,7 @@ class TrainingGroupRepository
             'schedules', 'days', 'year_two', 'year_three',
             'year_four', 'year_five', 'year_six', 'year_seven',
             'year_eight', 'year_nine', 'year_ten', 'year_eleven',
-            'year_twelve', 'year_active', 'is_complementary',
+            'year_twelve', 'year_active', 'sport', 'is_complementary',
         ])->withCount('members');
         if ($deleted) {
             $query->onlyTrashedRelations()

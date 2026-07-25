@@ -19,7 +19,7 @@ class TournamentController extends Controller
         $tournaments = Tournament::query()
             ->schoolId()
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'sport']);
 
         return response()->json($tournaments);
     }
@@ -36,6 +36,7 @@ class TournamentController extends Controller
 
         $existing = Tournament::withTrashed()
             ->where('school_id', $schoolId)
+            ->where('sport', $validated['sport'])
             ->firstWhere('name', $validated['name']);
 
         if ($existing) {
