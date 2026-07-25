@@ -25,6 +25,8 @@ class SuperAdminSchoolService
     public function options(?School $exclude = null): array
     {
         return [
+            'organization_types' => $this->organizationTypeOptions(),
+            'sports' => $this->sportOptions(),
             'schools' => School::query()
                 ->when($exclude, fn ($query) => $query->whereKeyNot($exclude->id))
                 ->orderBy('name')
@@ -46,6 +48,9 @@ class SuperAdminSchoolService
                 'id' => $school->id,
                 'slug' => $school->slug,
                 'name' => $school->name,
+                'organization_type' => $school->organization_type ?: School::defaultOrganizationType(),
+                'organization_type_label' => data_get(School::organizationTypes(), $school->organization_type ?: School::defaultOrganizationType()),
+                'enabled_sports' => $school->enabled_sports,
                 'agent' => $school->agent,
                 'address' => $school->address,
                 'phone' => $school->phone,
@@ -104,6 +109,7 @@ class SuperAdminSchoolService
                 $school,
                 $request->boolean('instructor_monthly_edit_lock_enabled')
             );
+            $this->syncEnabledSports($school, $request->input('enabled_sports', School::defaultSports()));
 
             if ($shouldNotify && $password !== null) {
                 $user->notify(new RegisterNotification($user, $password));
@@ -138,6 +144,9 @@ class SuperAdminSchoolService
                     $request->boolean('instructor_monthly_edit_lock_enabled')
                 );
             }
+            if ($request->has('enabled_sports')) {
+                $this->syncEnabledSports($school, $request->input('enabled_sports', School::defaultSports()));
+            }
 
             $this->flushCaches([$school->id]);
 
@@ -149,6 +158,7 @@ class SuperAdminSchoolService
     {
         $data = Arr::only($request->validated(), [
             'name',
+            'organization_type',
             'slug',
             'agent',
             'address',
@@ -172,6 +182,26 @@ class SuperAdminSchoolService
         }
 
         return $data;
+    }
+
+    private function organizationTypeOptions(): array
+    {
+        return collect(School::organizationTypes())
+            ->map(fn (string $label, string $value) => ['value' => $value, 'label' => $label])
+            ->values()
+            ->all();
+    }
+
+    private function sportOptions(): array
+    {
+        return collect(School::sportCatalog())
+            ->map(fn (array $sport, string $value) => [
+                'value' => $value,
+                'label' => $sport['label'] ?? $value,
+                'modules' => $sport['modules'] ?? [],
+            ])
+            ->values()
+            ->all();
     }
 
     private function resolveAdminUser(FormRequest $request): array
@@ -295,6 +325,24 @@ class SuperAdminSchoolService
         Setting::query()->firstOrCreate(
             ['key' => Setting::MULTIPLE_SCHOOLS],
             ['public' => false]
+        );
+    }
+
+    private function syncEnabledSports(School $school, array $sports): void
+    {
+        Setting::query()->firstOrCreate(
+            ['key' => Setting::SPORTS_ENABLED],
+            ['public' => false]
+        );
+
+        SettingValue::query()->updateOrCreate(
+            [
+                'school_id' => $school->id,
+                'setting_key' => Setting::SPORTS_ENABLED,
+            ],
+            [
+                'value' => json_encode(School::normalizeSports($sports), JSON_THROW_ON_ERROR),
+            ]
         );
     }
 

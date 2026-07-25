@@ -39,6 +39,16 @@ class SettingsCatalogService
         if (!$instructor && $firstGroup && !$allGroups->contains('id', $firstGroup->id)) $allGroups->prepend($firstGroup);
 
         return [
+            'organization' => [
+                'id' => $schoolId,
+                'name' => $school->name,
+                'type' => $school->organization_type ?: School::defaultOrganizationType(),
+                'type_label' => data_get(School::organizationTypes(), $school->organization_type ?: School::defaultOrganizationType()),
+            ],
+            'organization_types' => $this->organizationTypeOptions(),
+            'sports' => $this->sportOptions(),
+            'enabled_sports' => $school->enabled_sports,
+            'default_sport' => config('sports.default_sport', 'football'),
             'all_t_groups' => $allGroups, 't_groups' => $groups,
             'attendance_training_groups' => $attendanceGroups,
             'normal_training_groups' => $groups->reject(fn ($group) => $group->is_complementary)->values(),
@@ -82,6 +92,26 @@ class SettingsCatalogService
             'categories' => Cache::remember("KEY_CATEGORIES_{$id}", now()->addDay(), fn () => collect(range(now()->subYears(18)->year, now()->subYears(2)->year))->map(fn ($year) => ['id' => categoriesName($year), 'name' => categoriesName($year)])),
             'tournaments' => Cache::remember("KEY_TOURNAMENT_{$id}", now()->addMinutes(2), fn () => Tournament::orderBy('name')->schoolId()->get(['name', 'id'])->map(fn ($item) => ['id' => $item->id, 'name' => $item->name])),
         ];
+    }
+
+    private function organizationTypeOptions(): array
+    {
+        return collect(School::organizationTypes())
+            ->map(fn (string $label, string $value) => ['value' => $value, 'label' => $label])
+            ->values()
+            ->all();
+    }
+
+    private function sportOptions(): array
+    {
+        return collect(School::sportCatalog())
+            ->map(fn (array $sport, string $value) => [
+                'value' => $value,
+                'label' => $sport['label'] ?? $value,
+                'modules' => $sport['modules'] ?? [],
+            ])
+            ->values()
+            ->all();
     }
 
     private function options(string $cacheKey, ?string $configKey = null): array

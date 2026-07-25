@@ -65,6 +65,29 @@
 
                             <div class="col-md-6">
                                 <div class="form-group">
+                                    <Field name="organization_type" v-slot="{ field, handleChange, handleBlur }">
+                                        <label class="form-label">Tipo de organización <span class="text-danger">&nbsp;(*)</span></label>
+                                        <select
+                                            class="form-select form-select-sm"
+                                            v-bind="field"
+                                            @change="handleChange"
+                                            @blur="handleBlur"
+                                        >
+                                            <option
+                                                v-for="option in organizationTypeOptions"
+                                                :key="option.value"
+                                                :value="option.value"
+                                            >
+                                                {{ option.label }}
+                                            </option>
+                                        </select>
+                                    </Field>
+                                    <ErrorMessage name="organization_type" class="custom-error" as="div" />
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
                                     <inputField label="Representante" name="agent" :is-required="true" />
                                 </div>
                             </div>
@@ -111,6 +134,41 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div class="border rounded-3 p-3 p-lg-4 mt-4">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
+                        <div>
+                            <h5 class="mb-1">Deportes habilitados</h5>
+                            <p class="text-muted mb-0">
+                                Define qué paquetes deportivos podrá usar esta organización. Fútbol queda activo por defecto para conservar la operación actual.
+                            </p>
+                        </div>
+                    </div>
+
+                    <Field name="enabled_sports" v-slot="{ field }">
+                        <div class="row g-2">
+                            <div
+                                v-for="sport in sportOptions"
+                                :key="sport.value"
+                                class="col-md-4"
+                            >
+                                <div class="form-check border rounded p-2 ps-4 h-100">
+                                    <input
+                                        :id="`sport-${sport.value}`"
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        :checked="(field.value ?? []).includes(sport.value)"
+                                        @change="(event) => onSportChange(event, sport.value, field.value, setFieldValue)"
+                                    >
+                                    <label class="form-check-label fw-semibold" :for="`sport-${sport.value}`">
+                                        {{ sport.label }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </Field>
+                    <ErrorMessage name="enabled_sports" class="custom-error mt-2" as="div" />
                 </div>
 
                 <div class="border rounded-3 p-3 p-lg-4 mt-4">
@@ -233,8 +291,10 @@ const {
     isLoading,
     isSaving,
     onCancel,
+    organizationTypeOptions,
     schoolOptions,
     schema,
+    sportOptions,
     submit,
     submitLabel,
     title,
@@ -254,5 +314,14 @@ const onSchoolsChange = (value, handleChange, setFieldValue) => {
     if (!Array.isArray(value) || value.length === 0) {
         setFieldValue('is_campus', false)
     }
+}
+
+const onSportChange = (event, sport, currentValue, setFieldValue) => {
+    const currentSports = Array.isArray(currentValue) ? currentValue : []
+    const nextSports = event.target.checked
+        ? [...new Set([...currentSports, sport])]
+        : currentSports.filter((item) => item !== sport)
+
+    setFieldValue('enabled_sports', nextSports)
 }
 </script>

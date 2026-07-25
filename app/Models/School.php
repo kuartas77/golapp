@@ -30,6 +30,18 @@ class School extends Model
     use ResolvesLocalAssetPath;
     use SoftDeletes;
 
+    public const ORGANIZATION_TYPE_SCHOOL = 'school';
+
+    public const ORGANIZATION_TYPE_CLUB = 'club';
+
+    public const ORGANIZATION_TYPE_ACADEMY = 'academy';
+
+    public const ORGANIZATION_TYPE_FOUNDATION = 'foundation';
+
+    public const ORGANIZATION_TYPE_LEAGUE = 'league';
+
+    public const ORGANIZATION_TYPE_OTHER = 'other';
+
     public const KEY_SCHOOL_CACHE = 'school_';
 
     public const CACHE_PREFIX_ADMIN = 'admin.';
@@ -40,6 +52,7 @@ class School extends Model
 
     protected $fillable = [
         'name',
+        'organization_type',
         'agent',
         'address',
         'phone',
@@ -130,6 +143,39 @@ class School extends Model
         return self::KEY_SCHOOL_CACHE . sprintf('_%s_%s', $prefixKey, $schoolId);
     }
 
+    public static function organizationTypes(): array
+    {
+        return config('sports.organization_types', []);
+    }
+
+    public static function defaultOrganizationType(): string
+    {
+        return (string) config('sports.default_organization_type', self::ORGANIZATION_TYPE_SCHOOL);
+    }
+
+    public static function sportCatalog(): array
+    {
+        return config('sports.sports', []);
+    }
+
+    public static function defaultSports(): array
+    {
+        return [(string) config('sports.default_sport', 'football')];
+    }
+
+    public static function normalizeSports(array $sports): array
+    {
+        $catalog = array_keys(self::sportCatalog());
+        $normalized = collect($sports)
+            ->map(static fn ($sport) => (string) $sport)
+            ->filter(static fn (string $sport) => in_array($sport, $catalog, true))
+            ->unique()
+            ->values()
+            ->all();
+
+        return $normalized ?: self::defaultSports();
+    }
+
     public static function cacheKeysFor(int $schoolId): array
     {
         return [
@@ -198,6 +244,25 @@ class School extends Model
             public_path('img/ballon.webp'),
             public_path('img/not-found.png'),
         ]);
+    }
+
+    public function getEnabledSportsAttribute(): array
+    {
+        $value = data_get($this, 'settings.' . Setting::SPORTS_ENABLED);
+
+        if (is_string($value) && $value !== '') {
+            $decoded = json_decode($value, true);
+
+            if (is_array($decoded)) {
+                return self::normalizeSports($decoded);
+            }
+        }
+
+        if (is_array($value)) {
+            return self::normalizeSports($value);
+        }
+
+        return self::defaultSports();
     }
 
     public function users(): HasManyThrough
@@ -305,6 +370,12 @@ class School extends Model
         );
 
         $defaultSettings = collect(SettingValue::settingsDefault($this->id));
+        foreach ($defaultSettings->pluck('setting_key')->unique() as $settingKey) {
+            Setting::query()->firstOrCreate(
+                ['key' => $settingKey],
+                ['public' => false]
+            );
+        }
         $existingSettings = SettingValue::query()
             ->where('school_id', $this->id)
             ->whereIn('setting_key', $defaultSettings->pluck('setting_key')->all())

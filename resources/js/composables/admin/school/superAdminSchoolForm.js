@@ -5,6 +5,8 @@ import api from '@/utils/axios'
 
 const defaultValues = () => ({
     name: '',
+    organization_type: 'school',
+    enabled_sports: ['football'],
     address: '',
     phone: '',
     agent: '',
@@ -26,6 +28,8 @@ const defaultValues = () => ({
 export default function useSuperAdminSchoolForm(mode = 'create') {
     const form = ref(null)
     const schoolOptions = ref([])
+    const organizationTypeOptions = ref([])
+    const sportOptions = ref([])
     const initialValues = ref(defaultValues())
     const isLoading = ref(mode === 'edit')
     const isSaving = ref(false)
@@ -51,6 +55,8 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
     const schema = yup.object({
         name: yup.string().required().min(3),
         address: yup.string().required(),
+        organization_type: yup.string().required(),
+        enabled_sports: yup.array().of(yup.string()).min(1, 'Selecciona al menos un deporte.').required(),
         phone: yup.string().required(),
         agent: yup.string().required(),
         email: yup.string().email().required(),
@@ -84,6 +90,8 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
 
     const normalizeValues = (payload) => ({
         name: payload.name ?? '',
+        organization_type: payload.organization_type ?? 'school',
+        enabled_sports: Array.isArray(payload.enabled_sports) && payload.enabled_sports.length ? payload.enabled_sports : ['football'],
         address: payload.address ?? '',
         phone: payload.phone ?? '',
         agent: payload.agent ?? '',
@@ -106,6 +114,8 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
         const { data } = await api.get('/api/v2/admin/schools/options')
 
         schoolOptions.value = data.schools ?? []
+        organizationTypeOptions.value = data.organization_types ?? []
+        sportOptions.value = data.sports ?? []
         resetForm(defaultValues())
     }
 
@@ -113,6 +123,8 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
         const { data } = await api.get(`/api/v2/admin/schools/${route.params.slug}`)
 
         schoolOptions.value = data.schools ?? []
+        organizationTypeOptions.value = data.organization_types ?? []
+        sportOptions.value = data.sports ?? []
         resetForm(normalizeValues({
             ...(data.school ?? {}),
             multiple_schools: data.multiple_schools ?? [],
@@ -126,6 +138,14 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
             if (key === 'multiple_schools') {
                 ;(Array.isArray(value) ? value : []).forEach((schoolId) => {
                     payload.append('multiple_schools[]', String(schoolId))
+                })
+
+                return
+            }
+
+            if (key === 'enabled_sports') {
+                ;(Array.isArray(value) ? value : []).forEach((sport) => {
+                    payload.append('enabled_sports[]', String(sport))
                 })
 
                 return
@@ -221,8 +241,10 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
         isLoading,
         isSaving,
         onCancel,
+        organizationTypeOptions,
         schoolOptions,
         schema,
+        sportOptions,
         submit,
         submitLabel,
         title,

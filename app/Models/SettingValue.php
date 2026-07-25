@@ -90,6 +90,11 @@ class SettingValue extends Model
                 'value' => false
             ],
             [
+                'setting_key' => Setting::SPORTS_ENABLED,
+                'school_id' => $school_id,
+                'value' => json_encode([config('sports.default_sport', 'football')], JSON_THROW_ON_ERROR)
+            ],
+            [
                 'setting_key' => Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED,
                 'school_id' => $school_id,
                 'value' => false

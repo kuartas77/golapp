@@ -23,6 +23,7 @@ class SuperAdminSchoolStoreRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('schools', 'name')],
             'slug' => ['required', 'string', 'max:255', Rule::unique('schools', 'slug')],
+            'organization_type' => ['nullable', 'string', Rule::in(array_keys(config('sports.organization_types', [])))],
             'agent' => ['required', 'string', 'max:255'],
             'address' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:255'],
@@ -46,6 +47,8 @@ class SuperAdminSchoolStoreRequest extends FormRequest
             'sign_player' => ['nullable', 'boolean'],
             'inscriptions_enabled' => ['nullable', 'boolean'],
             'instructor_monthly_edit_lock_enabled' => ['nullable', 'boolean'],
+            'enabled_sports' => ['nullable', 'array', 'min:1'],
+            'enabled_sports.*' => ['string', 'distinct', Rule::in(array_keys(config('sports.sports', [])))],
             'multiple_schools' => array_values(array_filter([
                 $isCampus ? 'required' : 'nullable',
                 'array',
@@ -59,7 +62,12 @@ class SuperAdminSchoolStoreRequest extends FormRequest
     {
         $this->merge([
             'slug' => Str::slug((string) $this->input('name')),
+            'organization_type' => $this->input('organization_type', config('sports.default_organization_type', 'school')),
             'max_inscriptions' => $this->input('max_inscriptions', 200),
+            'enabled_sports' => array_values(array_filter(
+                Arr::wrap($this->input('enabled_sports', [config('sports.default_sport', 'football')])),
+                static fn ($value) => $value !== null && $value !== ''
+            )),
             'is_campus' => $this->boolean('is_campus'),
             'multiple_schools' => array_values(array_filter(
                 Arr::wrap($this->input('multiple_schools', [])),

@@ -37,6 +37,11 @@ export const useSetting = defineStore('settings-store', {
     persist: true,
     state: () => ({
         current_school_id: null,
+        organization: null,
+        organization_types: [],
+        sports: [],
+        enabled_sports: [],
+        default_sport: 'football',
         all_groups: [],
         groups: [],
         attendance_training_groups: [],
@@ -88,6 +93,11 @@ export const useSetting = defineStore('settings-store', {
             }
 
             this.current_school_id = incomingSchoolId
+            this.organization = data.organization ?? null
+            this.organization_types = normalizeOptionList(data.organization_types)
+            this.sports = normalizeOptionList(data.sports)
+            this.enabled_sports = toArray(data.enabled_sports)
+            this.default_sport = data.default_sport ?? 'football'
 
             this.all_groups = toArray(data.all_t_groups)
             this.groups = toArray(data.t_groups)

@@ -82,9 +82,75 @@ final class SuperAdminSchoolsTest extends TestCase
             'setting_key' => Setting::MAX_INSCRIPTIONS,
             'value' => '200',
         ]);
+        $this->assertSame(School::defaultOrganizationType(), $school->organization_type);
+        $this->assertSame(School::defaultSports(), $school->enabled_sports);
+        $this->assertDatabaseHas('setting_values', [
+            'school_id' => $school->id,
+            'setting_key' => Setting::SPORTS_ENABLED,
+            'value' => json_encode(School::defaultSports(), JSON_THROW_ON_ERROR),
+        ]);
 
         Notification::assertSentTo($user, RegisterNotification::class);
         $response->assertJsonPath('school.slug', $school->slug);
+    }
+
+    public function testSuperAdminCanConfigureOrganizationTypeAndEnabledSports(): void
+    {
+        Notification::fake();
+
+        $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
+
+        $this->actingAs($superAdmin)
+            ->withHeader('Accept', 'application/json')
+            ->post('/api/v2/admin/schools', [
+                'name' => 'Club Multideporte Test',
+                'organization_type' => School::ORGANIZATION_TYPE_CLUB,
+                'agent' => 'Administradora Club',
+                'address' => 'Calle 987',
+                'phone' => '3002223344',
+                'email' => 'club-multideporte@example.com',
+                'is_enable' => '1',
+                'is_campus' => false,
+                'enabled_sports' => ['football'],
+            ])
+            ->assertCreated()
+            ->assertJsonPath('success', true);
+
+        $school = School::query()->firstWhere('slug', 'club-multideporte-test');
+
+        $this->assertNotNull($school);
+        $this->assertSame(School::ORGANIZATION_TYPE_CLUB, $school->organization_type);
+        $this->assertSame(['football'], $school->enabled_sports);
+
+        $this->actingAs($superAdmin)
+            ->getJson("/api/v2/admin/schools/{$school->slug}")
+            ->assertOk()
+            ->assertJsonPath('school.organization_type', School::ORGANIZATION_TYPE_CLUB)
+            ->assertJsonPath('school.organization_type_label', 'Club')
+            ->assertJsonPath('school.enabled_sports.0', 'football')
+            ->assertJsonPath('sports.0.value', 'football');
+
+        $this->actingAs($superAdmin)
+            ->withHeader('Accept', 'application/json')
+            ->post("/api/v2/admin/schools/{$school->slug}", [
+                '_method' => 'PUT',
+                'name' => $school->name,
+                'organization_type' => School::ORGANIZATION_TYPE_ACADEMY,
+                'agent' => $school->agent,
+                'address' => $school->address,
+                'phone' => $school->phone,
+                'email' => $school->email,
+                'is_enable' => '1',
+                'is_campus' => false,
+                'enabled_sports' => ['football'],
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $school->refresh();
+
+        $this->assertSame(School::ORGANIZATION_TYPE_ACADEMY, $school->organization_type);
+        $this->assertSame(['football'], $school->enabled_sports);
     }
 
     public function testSuperAdminCanConfigureSchoolMaxInscriptions(): void
