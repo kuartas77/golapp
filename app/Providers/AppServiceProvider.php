@@ -6,6 +6,7 @@ use App\Service\School\CurrentSchoolContext;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Opcodes\LogViewer\Facades\LogViewer;
+use RuntimeException;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->ensureTestingDatabaseIsIsolated();
+
         if ((bool) config('app.force_https')) {
             URL::forceScheme('https');
         }
@@ -36,5 +39,23 @@ class AppServiceProvider extends ServiceProvider
                         'kuartas77@gmail.com',
                     ]);
             });
+    }
+
+    private function ensureTestingDatabaseIsIsolated(): void
+    {
+        if (! $this->app->environment('testing')) {
+            return;
+        }
+
+        $connection = config('database.default');
+        $database = config("database.connections.{$connection}.database");
+
+        if ($connection === 'sqlite' && $database === ':memory:') {
+            return;
+        }
+
+        throw new RuntimeException(
+            "Testing environment must use sqlite :memory:, got {$connection} ({$database})."
+        );
     }
 }
