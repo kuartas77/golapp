@@ -1,12 +1,17 @@
 <template>
     <section class="position-relative guardian-player-detail">
-        <Loader :is-loading="loading" loading-text="Cargando información del deportista..." />
+        <Skeleton
+            name="guardian-player-detail"
+            :loading="loading"
+            animate="shimmer"
+            :transition="true"
+            class="guardian-player-detail__skeleton"
+        >
+            <div v-if="errorMessage && !player" class="alert alert-danger" role="alert">
+                {{ errorMessage }}
+            </div>
 
-        <div v-if="errorMessage && !player" class="alert alert-danger" role="alert">
-            {{ errorMessage }}
-        </div>
-
-        <div v-else-if="player" class="row g-4">
+            <div v-else-if="player" class="row g-4">
             <div class="col-12">
                 <div class="card border-0 shadow-sm overflow-hidden">
                     <div class="card-body p-2 p-lg-3 guardian-player-detail__hero">
@@ -551,7 +556,17 @@
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+
+            <template #fixture>
+                <GuardianPlayerDetailSkeletonFixture />
+            </template>
+
+            <template #fallback>
+                <GuardianPlayerDetailSkeletonFixture />
+                <Loader :is-loading="true" loading-text="Cargando información del deportista..." />
+            </template>
+        </Skeleton>
     </section>
 
     <AttendanceQrModal
@@ -566,11 +581,13 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import Skeleton from 'boneyard-js/vue';
 import { useRoute } from 'vue-router';
 import AttendanceQrModal from '@/components/attendances/AttendanceQrModal.vue';
 import Loader from '@/components/general/Loader.vue';
 import api from '@/utils/axios';
 import { usePageTitle } from '@/composables/use-meta';
+import GuardianPlayerDetailSkeletonFixture from '@/pages/portal/guardians/components/GuardianPlayerDetailSkeletonFixture.vue';
 
 const route = useRoute();
 const loading = ref(true);
@@ -590,6 +607,7 @@ const activeAttendanceId = ref(null);
 const player = ref(null);
 const comparison = ref(null);
 const showAttendanceQr = ref(false);
+const LOADING_PREVIEW_DELAY_MS = import.meta.env.MODE === 'development' ? 1600 : 0;
 
 const form = reactive({
     names: '',
@@ -885,13 +903,22 @@ const normalizeErrors = (error) => {
         ?? 'No fue posible guardar los cambios.';
 };
 
+const waitForLoadingPreview = () => (
+    LOADING_PREVIEW_DELAY_MS > 0
+        ? new Promise((resolve) => setTimeout(resolve, LOADING_PREVIEW_DELAY_MS))
+        : Promise.resolve()
+);
+
 const fetchPlayer = async () => {
     loading.value = true;
     errorMessage.value = '';
 
     try {
+        const previewDelay = waitForLoadingPreview();
         const response = await api.get(`/api/v2/portal/acudientes/players/${route.params.id}`);
         applyPlayer(response.data?.data ?? response.data);
+
+        await previewDelay;
     } catch (error) {
         errorMessage.value = error.response?.data?.message || 'No fue posible cargar el detalle del jugador.';
     } finally {
@@ -1356,5 +1383,9 @@ onBeforeUnmount(revokePhotoPreview);
     color: var(--guardian-player-detail-secondary-text);
     background: var(--guardian-player-detail-secondary-bg);
     border-color: var(--guardian-player-detail-secondary-border);
+}
+
+.guardian-player-detail__skeleton {
+    display: block;
 }
 </style>

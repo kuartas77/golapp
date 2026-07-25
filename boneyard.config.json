@@ -1,0 +1,21 @@
+{
+    "breakpoints": [375, 768, 1200],
+    "out": "./resources/js/bones",
+    "wait": 1000,
+    "color": "#eef1f6",
+    "darkColor": "rgba(255,255,255,0.08)",
+    "animate": "shimmer",
+    "routes": [
+        "/portal/acudientes"
+    ],
+    "skeletons": {
+        "guardian-dashboard": {
+            "route": "/portal/acudientes",
+            "wait": 1000
+        },
+        "guardian-player-detail": {
+            "route": "/portal/acudientes/jugadores/1",
+            "wait": 1000
+        }
+    }
+}

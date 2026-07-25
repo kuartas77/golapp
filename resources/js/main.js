@@ -1,4 +1,5 @@
 import '@/bootstrap';
+import '@/bones/registry';
 import '@/utils/yup-locale';
 
 import { createHead } from '@vueuse/head';
