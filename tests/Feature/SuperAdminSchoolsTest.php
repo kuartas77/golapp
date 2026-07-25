@@ -111,7 +111,7 @@ final class SuperAdminSchoolsTest extends TestCase
                 'email' => 'club-multideporte@example.com',
                 'is_enable' => '1',
                 'is_campus' => false,
-                'enabled_sports' => ['football'],
+                'enabled_sports' => ['football', 'basketball'],
             ])
             ->assertCreated()
             ->assertJsonPath('success', true);
@@ -120,15 +120,26 @@ final class SuperAdminSchoolsTest extends TestCase
 
         $this->assertNotNull($school);
         $this->assertSame(School::ORGANIZATION_TYPE_CLUB, $school->organization_type);
-        $this->assertSame(['football'], $school->enabled_sports);
+        $this->assertSame(['football', 'basketball'], $school->enabled_sports);
 
-        $this->actingAs($superAdmin)
+        $showResponse = $this->actingAs($superAdmin)
             ->getJson("/api/v2/admin/schools/{$school->slug}")
             ->assertOk()
             ->assertJsonPath('school.organization_type', School::ORGANIZATION_TYPE_CLUB)
             ->assertJsonPath('school.organization_type_label', 'Club')
             ->assertJsonPath('school.enabled_sports.0', 'football')
-            ->assertJsonPath('sports.0.value', 'football');
+            ->assertJsonPath('school.enabled_sports.1', 'basketball');
+
+        $sportOptions = collect($showResponse->json('sports'));
+
+        $this->assertSame(
+            ['football', 'futsal', 'basketball', 'volleyball'],
+            $sportOptions->pluck('value')->all()
+        );
+        $this->assertSame('Baloncesto', $sportOptions->firstWhere('value', 'basketball')['label']);
+        $this->assertContains('training_sessions', $sportOptions->firstWhere('value', 'basketball')['modules']);
+        $this->assertNotContains('matches', $sportOptions->firstWhere('value', 'basketball')['modules']);
+        $this->assertContains('matches', $sportOptions->firstWhere('value', 'futsal')['modules']);
 
         $this->actingAs($superAdmin)
             ->withHeader('Accept', 'application/json')
@@ -142,7 +153,7 @@ final class SuperAdminSchoolsTest extends TestCase
                 'email' => $school->email,
                 'is_enable' => '1',
                 'is_campus' => false,
-                'enabled_sports' => ['football'],
+                'enabled_sports' => ['volleyball'],
             ])
             ->assertOk()
             ->assertJsonPath('success', true);
@@ -150,7 +161,7 @@ final class SuperAdminSchoolsTest extends TestCase
         $school->refresh();
 
         $this->assertSame(School::ORGANIZATION_TYPE_ACADEMY, $school->organization_type);
-        $this->assertSame(['football'], $school->enabled_sports);
+        $this->assertSame(['volleyball'], $school->enabled_sports);
     }
 
     public function testSuperAdminCanConfigureSchoolMaxInscriptions(): void

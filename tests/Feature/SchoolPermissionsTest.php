@@ -19,7 +19,6 @@ use App\Service\Auth\AuthUserContext;
 use App\Service\Notification\TopicNotificationStoreService;
 use App\Service\Player\PlayerStatsService;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Config;
 use Laravel\Sanctum\Sanctum;
 use Mockery;
 use Mockery\MockInterface;
@@ -253,14 +252,6 @@ final class SchoolPermissionsTest extends TestCase
 
     public function test_sport_configuration_filters_effective_school_permissions(): void
     {
-        Config::set('sports.sports.basketball', [
-            'label' => 'Baloncesto',
-            'modules' => [
-                'training_groups',
-                'training_sessions',
-            ],
-        ]);
-
         $school = School::findOrFail($this->school['id']);
         $trainingGroup = TrainingGroup::query()
             ->where('school_id', $school->id)
