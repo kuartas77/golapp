@@ -173,6 +173,75 @@ final class InscriptionsTest extends TestCase
         ]);
     }
 
+    public function test_create_inscription_derives_sport_from_training_group(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $schoolId = $this->school['id'];
+        $basketballGroup = TrainingGroup::query()->create([
+            'name' => 'Baloncesto U12',
+            'school_id' => $schoolId,
+            'year_active' => now()->year,
+            'is_complementary' => false,
+            'days' => ['Lunes'],
+            'schedules' => ['07:00AM - 08:00AM'],
+            'sport' => 'basketball',
+        ]);
+        $player = Player::factory()->create(['school_id' => $schoolId]);
+
+        $this->actingAs($this->user)
+            ->postJson(route('inscriptions.store'), [
+                'unique_code' => $player->unique_code,
+                'player_id' => $player->id,
+                'start_date' => now()->format('Y-m-d'),
+                'training_group_id' => $basketballGroup->id,
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseHas('inscriptions', [
+            'player_id' => $player->id,
+            'training_group_id' => $basketballGroup->id,
+            'sport' => 'basketball',
+        ]);
+    }
+
+    public function test_enabled_inscriptions_datatable_exposes_sport_label(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $schoolId = $this->school['id'];
+        $basketballGroup = TrainingGroup::query()->create([
+            'name' => 'Baloncesto Datatable',
+            'school_id' => $schoolId,
+            'year_active' => now()->year,
+            'is_complementary' => false,
+            'days' => ['Lunes'],
+            'schedules' => ['07:00AM - 08:00AM'],
+            'sport' => 'basketball',
+        ]);
+        $player = Player::factory()->create(['school_id' => $schoolId]);
+        Inscription::factory()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => now()->year,
+            'training_group_id' => $basketballGroup->id,
+            'competition_group_id' => null,
+            'school_id' => $schoolId,
+            'sport' => 'basketball',
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/api/v2/datatables/inscriptions_enabled?draw=1&start=0&length=10')
+            ->assertOk();
+
+        $row = collect($response->json('data'))->firstWhere('unique_code', $player->unique_code);
+
+        $this->assertSame('Baloncesto', $row['sport_label']);
+    }
+
     public function test_create_inscription_rejects_groups_from_different_sports(): void
     {
         Mail::fake();

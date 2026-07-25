@@ -147,8 +147,15 @@ class InscriptionRepository
 
         throw_if(is_null($trainingGroup), Exception::class, 'Training group not found for school');
         $trainingGroupId = isset($requestData['training_group_id']) ? $requestData['training_group_id'] : $trainingGroup->id;
+        $selectedTrainingGroup = (string) $trainingGroupId === (string) $trainingGroup->id
+            ? $trainingGroup
+            : TrainingGroup::query()
+                ->where('school_id', $requestData['school_id'])
+                ->where('is_complementary', false)
+                ->findOrFail($trainingGroupId);
 
         $requestData['training_group_id'] = $trainingGroupId;
+        $requestData['sport'] = $selectedTrainingGroup->sport ?: config('sports.default_sport', 'football');
         $requestData['pre_inscription'] = (bool) data_get($requestData, 'pre_inscription', false)
             || (string) $trainingGroupId === (string) $trainingGroup->id;
     }
@@ -668,6 +675,7 @@ class InscriptionRepository
                     'year' => $futureYearValue,
                     'start_date' => $futureStartDate,
                     'category' => $inscription->category,
+                    'sport' => $trainingGroup->sport ?: config('sports.default_sport', 'football'),
                     'photos' => $inscription->photos,
                     'copy_identification_document' => $inscription->copy_identification_document,
                     'eps_certificate' => $inscription->eps_certificate,

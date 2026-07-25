@@ -70,6 +70,7 @@ final class ImportPlayersTest extends TestCase
             'unique_code' => $player->unique_code,
             'school_id' => $this->school['id'],
             'year' => getYearInscription(),
+            'sport' => 'football',
         ]);
 
         Notification::assertNotSentTo($player, InscriptionNotification::class);
@@ -123,6 +124,7 @@ final class ImportPlayersTest extends TestCase
             'player_id' => $player->id,
             'school_id' => $this->school['id'],
             'year' => getYearInscription(),
+            'sport' => 'football',
         ]);
         Notification::assertNotSentTo($player, InscriptionNotification::class);
     }

@@ -33,6 +33,7 @@ use Illuminate\Support\Collection;
  * @property mixed presentation_uniform
  * @property mixed photos
  * @property mixed category
+ * @property mixed sport
  * @property mixed period_one
  * @property mixed period_two
  * @property mixed period_three
@@ -57,6 +58,7 @@ class Inscription extends Model
         'competition_group_id',
         'start_date',
         'category',
+        'sport',
         'photos',
         'scholarship',
         'copy_identification_document',

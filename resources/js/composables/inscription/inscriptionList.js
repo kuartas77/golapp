@@ -41,6 +41,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
             `,
         },
         { data: 'training_group.name', name: 'training_group_id', orderable: false, searchable: true },
+        { data: 'sport_label', name: 'sport_label', title: 'Deporte', orderable: false, searchable: true },
         { data: 'player.category', name: 'inscriptions.category', orderable: false, searchable: true },
         { data: 'player.gender', name: 'player.gender', orderable: false, searchable: false },
         { data: 'player.full_names', render: '#inscription', name: 'player.last_names', orderable: false, searchable: true  },

@@ -17,6 +17,7 @@ class InscriptionFactory extends Factory
             'competition_group_id' => 1,
             'start_date' => now()->format('Y-m-d'),
             'category' => categoriesName(now()->subYears(4)->year),
+            'sport' => config('sports.default_sport', 'football'),
             'photos' => false,
             'scholarship' => false,
             'copy_identification_document' => false,

@@ -40,6 +40,7 @@ class DataTableController extends Controller
         abort_unless($request->ajax(), 403);
 
         return datatables()->of($this->inscriptionRepository->getInscriptionsEnabled())
+            ->addColumn('sport_label', fn ($inscription) => $this->sportLabel($inscription->sport))
             ->filterColumn('training_group_id', function ($query, $keyword) {
                 $query->where(function ($query) use ($keyword) {
                     $query->where('inscriptions.training_group_id', $keyword)
@@ -48,6 +49,7 @@ class DataTableController extends Controller
             })
             ->filterColumn('start_date', fn ($query, $keyword) => $query->whereDate('start_date', $keyword))
             ->filterColumn('category', fn ($query, $keyword) => $query->where('category', $keyword))
+            ->filterColumn('sport_label', fn ($query, $keyword) => $query->where('inscriptions.sport', $keyword))
             ->filterColumn('inscriptions.pre_inscription', fn ($query, $keyword) => $query->where('inscriptions.pre_inscription', (bool) $keyword))
             ->filterColumn('player.last_names', function ($query, $keyword) {
                 $sql = "CONCAT(players.names, ' ', players.last_names) like ?";
