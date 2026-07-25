@@ -18,7 +18,17 @@
                 <div class="col-md-8">
                     <p>Estos grupos cómo su nombre lo dice se crean para poder gestionar las competencias y así obtener los datos de las estadísticos de los deportistas.</p>
                 </div>
-                <div class="col-md-auto ms-md-auto">
+                <div class="col-md-auto ms-md-auto d-flex flex-column flex-sm-row gap-2 align-items-sm-center">
+                    <select v-model="sportFilter" class="form-select form-select-sm group-sport-filter">
+                        <option value="">Todos los deportes</option>
+                        <option
+                            v-for="sport in sportOptions"
+                            :key="sport.value"
+                            :value="sport.value"
+                        >
+                            {{ sport.label }}
+                        </option>
+                    </select>
                     <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                         <i class="fa-regular fa-circle-question me-2"></i>
                         Guia
@@ -54,6 +64,12 @@ import { usePageTutorial } from '@/composables/usePageTutorial'
 import ModalCompetitionGroup from "./ModalCompetitionGroup.vue";
 import { competitionGroupsTutorial } from '@/tutorials/admin'
 
-const { table, options, selectedId, onClickRow, reloadTable, onCancel } = useCompetitionGList()
+const { table, options, selectedId, sportFilter, sportOptions, onClickRow, reloadTable, onCancel } = useCompetitionGList()
 const tutorial = usePageTutorial(competitionGroupsTutorial)
 </script>
+
+<style scoped>
+.group-sport-filter {
+    min-width: 180px;
+}
+</style>

@@ -29,13 +29,14 @@ class TrainingGroupRepository
         $this->trainingGroup = $trainingGroup;
     }
 
-    public function listGroupEnabled(?int $schoolId = null)
+    public function listGroupEnabled(?int $schoolId = null, ?string $sport = null)
     {
         $schoolId ??= (int) getSchool(auth()->user())->id;
         $firstTeam = $this->trainingGroup->query()->select(['id'])->where('school_id', $schoolId)->orderBy('id', 'ASC')->first();
 
         return $this->trainingGroup->query()
             ->where('school_id', $schoolId)
+            ->when($sport, fn ($query) => $query->where('sport', $sport))
             ->with(['instructors'])
             ->withCount('members')
             ->withCount('complementaryInscriptions')
@@ -46,13 +47,14 @@ class TrainingGroupRepository
             );
     }
 
-    public function listGroupDisabled(?int $schoolId = null)
+    public function listGroupDisabled(?int $schoolId = null, ?string $sport = null)
     {
         $schoolId ??= (int) getSchool(auth()->user())->id;
 
         return $this->trainingGroup->query()
             ->onlyTrashedRelations()
             ->where('school_id', $schoolId)
+            ->when($sport, fn ($query) => $query->where('sport', $sport))
             ->whereRelation('instructors', fn ($query) => $query->where('assigned_year', '<', now()->year))
             ->where('year_active', '<', now()->year)
             ->get();

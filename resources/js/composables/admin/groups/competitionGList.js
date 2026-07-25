@@ -1,18 +1,25 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { useTemplateRef, onMounted, ref } from 'vue';
+import { useTemplateRef, computed, onMounted, ref, watch } from 'vue';
 import { useAuthUser } from '@/store/auth-user'
 import api from '@/utils/axios'
 import { usePageTitle } from "@/composables/use-meta";
+import { useSettingGroups } from "@/store/settings-store";
 
 export default function useCompetitionGList() {
 
     const store = useAuthUser()
     const table = useTemplateRef('table');
     const selectedId = ref(null)
+    const settingsGroup = useSettingGroups()
+    const sportFilter = ref('')
+    const sportOptions = computed(() => settingsGroup.sports.filter((sport) => (
+        settingsGroup.enabled_sports.length === 0 || settingsGroup.enabled_sports.includes(sport.value)
+    )))
 
     const columns = [
         { data: 'id', width: '1%', title: 'ID', render:'#link',searchable: false, orderable: true },
         { data: 'name', title: 'Nombre', searchable: true, orderable: true },
+        { data: 'sport_label', title: 'Deporte', searchable: false, orderable: true },
         { data: 'category', title: 'Categoria', searchable: true, orderable: true },
         { data: 'year', title: 'Año', searchable: true, orderable: false },
         { data: 'tournament.name', title: 'Torneo', searchable: false, orderable: false },
@@ -36,7 +43,12 @@ export default function useCompetitionGList() {
         order: [[0, 'desc']],
         ajax: async (data, callback, settings) => {
             try {
-                const response = await api.get('/api/v2/datatables/competition_groups_enabled', { params: data }); // Adjust endpoint and method
+                const response = await api.get('/api/v2/datatables/competition_groups_enabled', {
+                    params: {
+                        ...data,
+                        sport: sportFilter.value || undefined,
+                    },
+                });
                 callback({
                     data: response.data.data, // Adjust based on your API response structure
                     recordsTotal: response.data.recordsTotal,
@@ -74,7 +86,10 @@ export default function useCompetitionGList() {
 
     onMounted(() => {
         usePageTitle('G Competencia')
+        settingsGroup.getGroupSettings()
     })
 
-    return { table, options, selectedId, onClickRow, reloadTable, onCancel }
+    watch(sportFilter, reloadTable)
+
+    return { table, options, selectedId, sportFilter, sportOptions, onClickRow, reloadTable, onCancel }
 }

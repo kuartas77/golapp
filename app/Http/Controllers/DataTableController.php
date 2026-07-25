@@ -70,8 +70,11 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax(), 403);
 
+        $sport = $this->sportFilter($request);
+
         return datatables()
-            ->of($this->trainingGroupRepository->listGroupEnabled())
+            ->of($this->trainingGroupRepository->listGroupEnabled(sport: $sport))
+            ->addColumn('sport_label', fn ($group) => $this->sportLabel($group->sport))
             ->editColumn('members_count', fn ($group) => $group->is_complementary
                 ? $group->complementary_inscriptions_count
                 : $group->members_count)
@@ -85,21 +88,46 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->collection($this->trainingGroupRepository->listGroupDisabled())->toJson();
+        return datatables()
+            ->collection($this->trainingGroupRepository->listGroupDisabled(sport: $this->sportFilter($request)))
+            ->addColumn('sport_label', fn ($group) => $this->sportLabel($group->sport))
+            ->toJson();
     }
 
     public function enabledCompetitionGroups(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->of($this->competitionGroupRepository->listGroupEnabled())->toJson();
+        return datatables()
+            ->of($this->competitionGroupRepository->listGroupEnabled(sport: $this->sportFilter($request)))
+            ->addColumn('sport_label', fn ($group) => $this->sportLabel($group->sport))
+            ->toJson();
     }
 
     public function disabledCompetitionGroups(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 403);
 
-        return datatables()->collection($this->competitionGroupRepository->listGroupDisabled())->toJson();
+        return datatables()
+            ->collection($this->competitionGroupRepository->listGroupDisabled(sport: $this->sportFilter($request)))
+            ->addColumn('sport_label', fn ($group) => $this->sportLabel($group->sport))
+            ->toJson();
+    }
+
+    private function sportFilter(Request $request): ?string
+    {
+        $sport = $request->input('sport');
+
+        if (! is_string($sport) || $sport === '') {
+            return null;
+        }
+
+        return in_array($sport, getSchool(auth()->user())->enabled_sports, true) ? $sport : null;
+    }
+
+    private function sportLabel(?string $sport): string
+    {
+        return (string) data_get(config('sports.sports', []), "{$sport}.label", $sport ?: config('sports.default_sport', 'football'));
     }
 
     /**

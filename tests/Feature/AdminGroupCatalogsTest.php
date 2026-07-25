@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\Schedule;
 use App\Models\School;
+use App\Models\CompetitionGroup;
 use App\Models\Setting;
 use App\Models\SettingValue;
 use App\Models\Tournament;
@@ -328,6 +329,43 @@ final class AdminGroupCatalogsTest extends TestCase
             ->assertJsonValidationErrors('sport');
     }
 
+    public function test_training_groups_datatable_can_be_filtered_by_sport(): void
+    {
+        $school = School::findOrFail($this->school['id']);
+        $this->setEnabledSports($school, ['football', 'basketball']);
+
+        TrainingGroup::query()->create([
+            'name' => 'Entrenamiento Futbol',
+            'category' => ['SUB-12'],
+            'days' => ['Lunes'],
+            'schedules' => ['07:00AM - 08:00AM'],
+            'school_id' => $school->id,
+            'year_active' => now()->year,
+            'sport' => 'football',
+        ]);
+
+        TrainingGroup::query()->create([
+            'name' => 'Entrenamiento Basket',
+            'category' => ['SUB-12'],
+            'days' => ['Martes'],
+            'schedules' => ['08:00AM - 09:00AM'],
+            'school_id' => $school->id,
+            'year_active' => now()->year,
+            'sport' => 'basketball',
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/api/v2/datatables/training_groups_enabled?draw=1&start=0&length=10&sport=basketball')
+            ->assertOk();
+
+        $names = collect($response->json('data'))->pluck('name');
+
+        $this->assertTrue($names->contains('Entrenamiento Basket'));
+        $this->assertFalse($names->contains('Entrenamiento Futbol'));
+        $this->assertSame('Baloncesto', collect($response->json('data'))->firstWhere('name', 'Entrenamiento Basket')['sport_label']);
+    }
+
     public function test_attendance_classdays_reflect_five_training_days(): void
     {
         Carbon::setTestNow(Carbon::create(2026, 4, 1));
@@ -424,6 +462,55 @@ final class AdminGroupCatalogsTest extends TestCase
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('tournament_id');
+    }
+
+    public function test_competition_groups_datatable_can_be_filtered_by_sport(): void
+    {
+        $school = School::findOrFail($this->school['id']);
+        $this->setEnabledSports($school, ['football', 'basketball']);
+
+        $footballTournament = Tournament::query()->create([
+            'name' => 'LIGA FUTBOL',
+            'school_id' => $school->id,
+            'sport' => 'football',
+        ]);
+
+        $basketballTournament = Tournament::query()->create([
+            'name' => 'LIGA BASKET',
+            'school_id' => $school->id,
+            'sport' => 'basketball',
+        ]);
+
+        CompetitionGroup::query()->create([
+            'name' => 'Equipo Futbol',
+            'year' => 'SUB-12',
+            'category' => 'SUB-12',
+            'tournament_id' => $footballTournament->id,
+            'user_id' => $this->user->id,
+            'school_id' => $school->id,
+            'sport' => 'football',
+        ]);
+
+        CompetitionGroup::query()->create([
+            'name' => 'Equipo Basket',
+            'year' => 'SUB-12',
+            'category' => 'SUB-12',
+            'tournament_id' => $basketballTournament->id,
+            'user_id' => $this->user->id,
+            'school_id' => $school->id,
+            'sport' => 'basketball',
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/api/v2/datatables/competition_groups_enabled?draw=1&start=0&length=10&sport=basketball')
+            ->assertOk();
+
+        $names = collect($response->json('data'))->pluck('name');
+
+        $this->assertTrue($names->contains('Equipo Basket'));
+        $this->assertFalse($names->contains('Equipo Futbol'));
+        $this->assertSame('Baloncesto', collect($response->json('data'))->firstWhere('name', 'Equipo Basket')['sport_label']);
     }
 
     private function setSchoolPermissions(School $school, array $overrides): void

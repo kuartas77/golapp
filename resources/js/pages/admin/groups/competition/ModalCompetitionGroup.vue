@@ -33,14 +33,22 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="sport" class="form-label">Deporte</label><span class="text-danger">*</span>
-                                        <Field name="sport" as="select" id="sport" class="form-select form-select-sm">
-                                            <option
-                                                v-for="sport in sportOptions"
-                                                :key="sport.value"
-                                                :value="sport.value"
+                                        <Field name="sport" v-slot="{ field, handleChange, handleBlur }">
+                                            <select
+                                                id="sport"
+                                                class="form-select form-select-sm"
+                                                v-bind="field"
+                                                @change="(event) => onSportChange(event, handleChange)"
+                                                @blur="handleBlur"
                                             >
-                                                {{ sport.label }}
-                                            </option>
+                                                <option
+                                                    v-for="sport in sportOptions"
+                                                    :key="sport.value"
+                                                    :value="sport.value"
+                                                >
+                                                    {{ sport.label }}
+                                                </option>
+                                            </select>
                                         </Field>
                                         <ErrorMessage name="sport" class="custom-error" />
                                     </div>
@@ -107,6 +115,7 @@ const modalElement = ref(null);
 const selectedUserOptions = ref([]);
 const selectedTournamentOptions = ref([]);
 const selectedCategoryOptions = ref([]);
+const activeSport = ref("football");
 
 const defaultSport = computed(() => settingsGroup.default_sport || "football");
 const sportOptions = computed(() => {
@@ -158,8 +167,17 @@ const findOptionByValue = (options, value) => {
 };
 
 const userOptions = computed(() => mergeOptionLists(settingsGroup.users, selectedUserOptions.value));
-const tournamentOptions = computed(() => mergeOptionLists(settingsGroup.tournaments, selectedTournamentOptions.value));
+const tournamentOptions = computed(() => mergeOptionLists(
+    settingsGroup.tournaments.filter((tournament) => !tournament.sport || tournament.sport === activeSport.value),
+    selectedTournamentOptions.value
+));
 const categoryOptions = computed(() => mergeOptionLists(settingsGroup.categories, selectedCategoryOptions.value));
+
+const onSportChange = (event, handleChange) => {
+    handleChange(event);
+    activeSport.value = event.target.value || defaultSport.value;
+    form.value?.setFieldValue('tournament_id', null);
+};
 
 const clearSelectedOptions = () => {
     selectedUserOptions.value = [];
@@ -170,6 +188,7 @@ const clearSelectedOptions = () => {
 const resetFormState = () => {
     globalError.value = null;
     clearSelectedOptions();
+    activeSport.value = defaultSport.value;
     form.value?.resetForm({ values: buildDefaultValues() });
 };
 
@@ -243,6 +262,7 @@ const onLoadData = async () => {
         selectedCategoryOptions.value = year
             ? [normalizeOption(year, year)]
             : [];
+        activeSport.value = sport || defaultSport.value;
 
         const data = {
             id: id,

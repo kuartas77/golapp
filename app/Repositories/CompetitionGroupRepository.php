@@ -25,7 +25,7 @@ class CompetitionGroupRepository
         $this->competitionGroup = $competitionGroup;
     }
 
-    public function listGroupEnabled(?int $schoolId = null, ?int $instructorId = null)
+    public function listGroupEnabled(?int $schoolId = null, ?int $instructorId = null, ?string $sport = null)
     {
         $schoolId ??= (int) getSchool(auth()->user())->id;
         $instructorId ??= isInstructor() ? auth()->id() : null;
@@ -33,10 +33,11 @@ class CompetitionGroupRepository
         return $this->competitionGroup->query()
             ->where('school_id', $schoolId)
             ->when($instructorId, fn ($query) => $query->where('user_id', $instructorId))
+            ->when($sport, fn ($query) => $query->where('sport', $sport))
             ->with('tournament', 'professor');
     }
 
-    public function listGroupDisabled(?int $schoolId = null, ?int $instructorId = null)
+    public function listGroupDisabled(?int $schoolId = null, ?int $instructorId = null, ?string $sport = null)
     {
         $schoolId ??= (int) getSchool(auth()->user())->id;
         $instructorId ??= isInstructor() ? auth()->id() : null;
@@ -44,6 +45,7 @@ class CompetitionGroupRepository
         return $this->competitionGroup->query()
             ->where('school_id', $schoolId)
             ->when($instructorId, fn ($query) => $query->where('user_id', $instructorId))
+            ->when($sport, fn ($query) => $query->where('sport', $sport))
             ->onlyTrashedRelations()
             ->get();
     }

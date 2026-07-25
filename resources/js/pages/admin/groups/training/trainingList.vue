@@ -17,7 +17,17 @@
                 <div class="col-md-8">
                     <p>Grupos de entrenamiento, son parte fundamental del sistema, ya que con ellos se pueden buscar las inscripciones, pagos y asistencias.</p>
                 </div>
-                <div class="col-md-auto ms-md-auto">
+                <div class="col-md-auto ms-md-auto d-flex flex-column flex-sm-row gap-2 align-items-sm-center">
+                    <select v-model="sportFilter" class="form-select form-select-sm group-sport-filter">
+                        <option value="">Todos los deportes</option>
+                        <option
+                            v-for="sport in sportOptions"
+                            :key="sport.value"
+                            :value="sport.value"
+                        >
+                            {{ sport.label }}
+                        </option>
+                    </select>
                     <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                         <i class="fa-regular fa-circle-question me-2"></i>
                         Guia
@@ -45,6 +55,12 @@ import useTrainingList from '@/composables/admin/groups/trainingList'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import ModalTrainingGroup from './ModalTrainingGroup.vue';
 import { trainingGroupsTutorial } from '@/tutorials/admin'
-const { table, options, selectedId, onClickRow, reloadTable, onCancel } = useTrainingList()
+const { table, options, selectedId, sportFilter, sportOptions, onClickRow, reloadTable, onCancel } = useTrainingList()
 const tutorial = usePageTutorial(trainingGroupsTutorial)
 </script>
+
+<style scoped>
+.group-sport-filter {
+    min-width: 180px;
+}
+</style>
