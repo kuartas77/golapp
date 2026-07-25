@@ -9,6 +9,8 @@ use App\Models\People;
 use App\Models\Player;
 use App\Models\School;
 use App\Models\SchoolUser;
+use App\Models\Setting;
+use App\Models\SettingValue;
 use App\Models\TrainingGroup;
 use App\Models\TrainingSession;
 use App\Models\User;
@@ -17,6 +19,7 @@ use App\Service\Auth\AuthUserContext;
 use App\Service\Notification\TopicNotificationStoreService;
 use App\Service\Player\PlayerStatsService;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 use Laravel\Sanctum\Sanctum;
 use Mockery;
 use Mockery\MockInterface;
@@ -246,6 +249,52 @@ final class SchoolPermissionsTest extends TestCase
         $this->assertSoftDeleted('training_sessions', [
             'id' => $trainingSession->id,
         ]);
+    }
+
+    public function test_sport_configuration_filters_effective_school_permissions(): void
+    {
+        Config::set('sports.sports.basketball', [
+            'label' => 'Baloncesto',
+            'modules' => [
+                'training_groups',
+                'training_sessions',
+            ],
+        ]);
+
+        $school = School::findOrFail($this->school['id']);
+        $trainingGroup = TrainingGroup::query()
+            ->where('school_id', $school->id)
+            ->firstOrFail();
+        $trainingSession = $this->createTrainingSession($school, $trainingGroup);
+
+        $this->setEnabledSports($school, ['basketball']);
+        $this->setSchoolPermissions($school, [
+            'school.module.matches' => true,
+            'school.module.training_sessions' => true,
+        ]);
+
+        $school = $school->fresh();
+
+        $this->assertTrue($school->getResolvedSchoolPermissions()['school.module.matches']);
+        $this->assertFalse($school->getEffectiveSchoolPermissions()['school.module.matches']);
+        $this->assertFalse($school->hasSchoolPermission('school.module.matches'));
+        $this->assertTrue($school->hasSchoolPermission('school.module.training_sessions'));
+
+        $this->actingAs($this->user)
+            ->getJson('/api/v2/player-stats')
+            ->assertForbidden();
+
+        $this->actingAs($this->user)
+            ->getJson("/api/v2/training-sessions/{$trainingSession->id}")
+            ->assertOk();
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/v2/user')
+            ->assertOk();
+
+        $this->assertFalse($response->json('data.school_permissions.school.module.matches') ?? $response->json('data.school_permissions')['school.module.matches']);
+        $this->assertTrue($response->json('data.school_permissions_configured.school.module.matches') ?? $response->json('data.school_permissions_configured')['school.module.matches']);
+        $this->assertSame(['basketball'], $response->json('data.enabled_sports'));
     }
 
     public function test_info_campus_endpoint_is_available_without_school_profile_permission_and_for_instructors(): void
@@ -492,6 +541,24 @@ final class SchoolPermissionsTest extends TestCase
         ])->save();
 
         School::forgetCachedSchool($school->id);
+        AuthUserContext::forgetSchool($school->id);
+    }
+
+    private function setEnabledSports(School $school, array $sports): void
+    {
+        SettingValue::query()->updateOrCreate(
+            [
+                'school_id' => $school->id,
+                'setting_key' => Setting::SPORTS_ENABLED,
+            ],
+            [
+                'value' => json_encode($sports, JSON_THROW_ON_ERROR),
+            ]
+        );
+
+        $school->unsetRelation('settingsValues');
+        School::forgetCachedSchool($school->id);
+        AuthUserContext::forgetSchool($school->id);
     }
 
     private function createSuperAdminForSchool(int $schoolId): User

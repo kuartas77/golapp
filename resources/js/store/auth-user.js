@@ -10,6 +10,8 @@ export const useAuthUser = defineStore('auth-user', {
         roles: [],
         permissions: [],
         schoolPermissions: {},
+        schoolPermissionsConfigured: {},
+        enabledSports: [],
     }),
     getters: {
         isAuthenticated: state => !!state.user,
@@ -21,6 +23,8 @@ export const useAuthUser = defineStore('auth-user', {
             this.roles = []
             this.permissions = []
             this.schoolPermissions = {}
+            this.schoolPermissionsConfigured = {}
+            this.enabledSports = []
         },
         clearState() {
             this.$reset()
@@ -72,11 +76,15 @@ export const useAuthUser = defineStore('auth-user', {
                     school_name: data.data.school_name,
                     school_slug: data.data.school_slug,
                     school_logo: data.data.school_logo,
+                    school_organization_type: data.data.school_organization_type,
+                    enabled_sports: data.data.enabled_sports || [],
                     system_notify: data.data.system_notify,
                 };
                 this.roles = data.data.roles
                 this.permissions = data.data.permissions || []
                 this.schoolPermissions = data.data.school_permissions || {}
+                this.schoolPermissionsConfigured = data.data.school_permissions_configured || {}
+                this.enabledSports = data.data.enabled_sports || []
                 return this.user
             } catch (error) {
                 const status = error.response?.status

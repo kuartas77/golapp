@@ -46,7 +46,8 @@ final class AuthUserContext
         $school = getSchool($user);
         $user->loadMissing(['permissions', 'roles.permissions']);
 
-        $schoolPermissions = $school->getResolvedSchoolPermissions();
+        $configuredSchoolPermissions = $school->getResolvedSchoolPermissions();
+        $schoolPermissions = $school->getEffectiveSchoolPermissions();
         $enabledSchoolPermissions = collect($schoolPermissions)
             ->filter(fn (bool $enabled) => $enabled)
             ->keys();
@@ -66,9 +67,12 @@ final class AuthUserContext
             'school_name' => $school->name,
             'school_slug' => $school->slug,
             'school_logo' => $school->logo_file,
+            'school_organization_type' => $school->organization_type,
+            'enabled_sports' => $school->enabled_sports,
             'roles' => $user->getRoleNames()->values()->all(),
             'permissions' => $permissions,
             'school_permissions' => $schoolPermissions,
+            'school_permissions_configured' => $configuredSchoolPermissions,
             'system_notify' => $school->hasSchoolPermission('school.feature.system_notify'),
         ];
     }

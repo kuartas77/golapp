@@ -163,6 +163,18 @@ class School extends Model
         return [(string) config('sports.default_sport', 'football')];
     }
 
+    public static function supportedSportModules(array $sports): array
+    {
+        $catalog = self::sportCatalog();
+
+        return collect(self::normalizeSports($sports))
+            ->flatMap(static fn (string $sport) => $catalog[$sport]['modules'] ?? [])
+            ->map(static fn ($module) => (string) $module)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     public static function normalizeSports(array $sports): array
     {
         $catalog = array_keys(self::sportCatalog());
@@ -426,9 +438,25 @@ class School extends Model
         return self::normalizeSchoolPermissions($this->school_permissions ?? []);
     }
 
-    public function hasSchoolPermission(string $key): bool
+    public function getEffectiveSchoolPermissions(): array
     {
         $permissions = $this->getResolvedSchoolPermissions();
+        $supportedSportModules = self::supportedSportModules($this->enabled_sports);
+
+        foreach (self::permissionCatalog() as $key => $definition) {
+            $sportModule = $definition['sport_module'] ?? null;
+
+            if ($sportModule !== null && !in_array($sportModule, $supportedSportModules, true)) {
+                $permissions[$key] = false;
+            }
+        }
+
+        return $permissions;
+    }
+
+    public function hasSchoolPermission(string $key): bool
+    {
+        $permissions = $this->getEffectiveSchoolPermissions();
 
         return array_key_exists($key, $permissions) && (bool) $permissions[$key];
     }
