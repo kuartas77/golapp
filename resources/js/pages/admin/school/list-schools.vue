@@ -111,12 +111,21 @@
                                 <div class="col-lg-8">
                                     <h6 class="mb-2">Regla de acceso efectiva</h6>
                                     <p class="text-muted mb-0">
-                                        Un usuario necesita cumplir su rol y además que el módulo esté habilitado para la escuela actual.
+                                        Un usuario necesita cumplir su rol, que el permiso esté habilitado y que el módulo aplique a los deportes de la organización.
                                     </p>
+                                    <div v-if="selectedSchoolSports.length" class="d-flex flex-wrap gap-2 mt-3">
+                                        <span
+                                            v-for="sport in selectedSchoolSports"
+                                            :key="sport.key"
+                                            class="badge bg-light text-dark border"
+                                        >
+                                            {{ sport.label }}
+                                        </span>
+                                    </div>
                                 </div>
                                 <div class="col-lg-4 text-lg-end">
-                                    <div class="fw-semibold">{{ enabledPermissionsCount }} de {{ totalPermissionsCount }} permisos activos</div>
-                                    <small class="text-muted">Incluye módulos y funciones adicionales.</small>
+                                    <div class="fw-semibold">{{ effectivePermissionsCount }} de {{ totalPermissionsCount }} permisos efectivos</div>
+                                    <small class="text-muted">{{ enabledPermissionsCount }} permisos configurados como activos.</small>
                                 </div>
                             </div>
                         </div>
@@ -126,7 +135,7 @@
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h6 class="mb-0">{{ group.group }}</h6>
                                     <small class="text-muted">
-                                        {{ group.items.filter((permission) => permissionForm[permission.key]).length }} activos
+                                        {{ group.items.filter(isPermissionEffectivelyEnabled).length }} efectivos
                                     </small>
                                 </div>
 
@@ -136,7 +145,7 @@
                                         :key="permission.key"
                                         class="col-12 col-lg-6"
                                     >
-                                        <div class="border rounded p-3 h-100">
+                                        <div class="border rounded p-3 h-100" :class="{ 'permission-muted': isPermissionLimitedBySport(permission) }">
                                             <div class="form-check form-switch">
                                                 <input
                                                     :id="`permission-${permission.key}`"
@@ -152,6 +161,9 @@
                                             <p class="text-muted small mb-0 mt-2">
                                                 {{ permission.description }}
                                             </p>
+                                            <div v-if="isPermissionLimitedBySport(permission)" class="small text-warning mt-2">
+                                                No aplica con los deportes habilitados actualmente.
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -313,6 +325,7 @@ const modalError = ref('')
 const selectedSchool = ref(null)
 const permissionCatalog = ref([])
 const permissionForm = ref({})
+const selectedSchoolSports = ref([])
 const isModalLoading = ref(false)
 const isSavingPermissions = ref(false)
 const permissionsModal = ref(null)
@@ -342,7 +355,25 @@ const enabledPermissionsCount = computed(() => (
     Object.values(permissionForm.value).filter(Boolean).length
 ))
 
+const effectivePermissionsCount = computed(() => (
+    permissionCatalog.value.filter(isPermissionEffectivelyEnabled).length
+))
+
 const totalPermissionsCount = computed(() => permissionCatalog.value.length)
+
+const isPermissionSportSupported = (permission) => (
+    !Boolean(permission.sport_module) || Boolean(permission.is_sport_supported)
+)
+
+const isPermissionEffectivelyEnabled = (permission) => (
+    Boolean(permissionForm.value[permission.key]) && isPermissionSportSupported(permission)
+)
+
+const isPermissionLimitedBySport = (permission) => (
+    Boolean(permission.sport_module)
+    && Boolean(permissionForm.value[permission.key])
+    && !isPermissionSportSupported(permission)
+)
 
 const reloadTable = () => {
     const dataTable = table.value?.table?.dt
@@ -357,6 +388,7 @@ const resetModalState = () => {
     selectedSchool.value = null
     permissionCatalog.value = []
     permissionForm.value = {}
+    selectedSchoolSports.value = []
     isModalLoading.value = false
     isSavingPermissions.value = false
 }
@@ -392,6 +424,7 @@ const openPermissions = async (school) => {
         selectedSchool.value = data.school
         permissionCatalog.value = data.catalog || []
         permissionForm.value = { ...(data.permissions || {}) }
+        selectedSchoolSports.value = data.sports || []
     } catch (error) {
         modalError.value = error.response?.data?.message || 'No fue posible cargar los permisos de la escuela.'
         showMessage(modalError.value, 'error')
@@ -561,3 +594,10 @@ onMounted(() => {
     exportsElement?.addEventListener('hidden.bs.modal', resetDataExportsState)
 })
 </script>
+
+<style scoped>
+.permission-muted {
+    background-color: rgba(255, 193, 7, 0.08);
+    border-color: rgba(255, 193, 7, 0.35) !important;
+}
+</style>

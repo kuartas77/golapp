@@ -99,19 +99,38 @@ class SchoolController extends Controller
 
     public function permissions(School $school): JsonResponse
     {
+        $enabledSports = $school->enabled_sports;
+        $supportedSportModules = School::supportedSportModules($enabledSports);
+        $sportsCatalog = School::sportCatalog();
+
         return response()->json([
             'school' => [
                 'id' => $school->id,
                 'name' => $school->name,
                 'slug' => $school->slug,
+                'organization_type' => $school->organization_type,
+                'organization_type_label' => School::organizationTypes()[$school->organization_type] ?? $school->organization_type,
+                'enabled_sports' => $enabledSports,
             ],
             'permissions' => $school->getResolvedSchoolPermissions(),
+            'effective_permissions' => $school->getEffectiveSchoolPermissions(),
+            'supported_sport_modules' => $supportedSportModules,
+            'sports' => collect($enabledSports)
+                ->map(fn (string $sport) => [
+                    'key' => $sport,
+                    'label' => $sportsCatalog[$sport]['label'] ?? $sport,
+                    'modules' => $sportsCatalog[$sport]['modules'] ?? [],
+                ])
+                ->values(),
             'catalog' => collect(School::permissionCatalog())
                 ->map(fn (array $permission, string $key) => [
                     'key' => $key,
                     'label' => $permission['label'] ?? $key,
                     'description' => $permission['description'] ?? '',
                     'group' => $permission['group'] ?? 'General',
+                    'sport_module' => $permission['sport_module'] ?? null,
+                    'is_sport_supported' => !isset($permission['sport_module'])
+                        || in_array($permission['sport_module'], $supportedSportModules, true),
                     'default' => (bool) ($permission['default'] ?? false),
                 ])
                 ->values(),
@@ -130,6 +149,7 @@ class SchoolController extends Controller
         return response()->json([
             'success' => true,
             'permissions' => $school->fresh()->getResolvedSchoolPermissions(),
+            'effective_permissions' => $school->fresh()->getEffectiveSchoolPermissions(),
         ]);
     }
 

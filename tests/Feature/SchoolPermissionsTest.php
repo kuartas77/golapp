@@ -420,6 +420,16 @@ final class SchoolPermissionsTest extends TestCase
             ->assertOk();
 
         $this->assertSame($school->slug, $fetchResponse->json('school.slug'));
+        $this->assertSame($school->enabled_sports, $fetchResponse->json('school.enabled_sports'));
+        $this->assertSame($school->getEffectiveSchoolPermissions(), $fetchResponse->json('effective_permissions'));
+        $this->assertContains('matches', $fetchResponse->json('supported_sport_modules'));
+        $this->assertSame('Fútbol', $fetchResponse->json('sports.0.label'));
+
+        $matchesCatalogItem = collect($fetchResponse->json('catalog'))
+            ->firstWhere('key', 'school.module.matches');
+
+        $this->assertSame('matches', $matchesCatalogItem['sport_module']);
+        $this->assertTrue($matchesCatalogItem['is_sport_supported']);
 
         $permissions = $fetchResponse->json('permissions');
         $permissions['school.module.players'] = false;
@@ -434,6 +444,7 @@ final class SchoolPermissionsTest extends TestCase
         $updatedPermissions = $updateResponse->json('permissions');
 
         $this->assertFalse($updatedPermissions['school.module.players']);
+        $this->assertFalse($updateResponse->json('effective_permissions.school.module.players') ?? $updateResponse->json('effective_permissions')['school.module.players']);
 
         $this->assertFalse($school->fresh()->hasSchoolPermission('school.module.players'));
     }

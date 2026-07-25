@@ -344,6 +344,10 @@ class SuperAdminSchoolService
                 'value' => json_encode(School::normalizeSports($sports), JSON_THROW_ON_ERROR),
             ]
         );
+
+        $school->unsetRelation('settingsValues');
+        School::forgetCachedSchool($school->id);
+        AuthUserContext::forgetSchool($school->id);
     }
 
     private function syncMaxInscriptions(School $school, int $limit): void
