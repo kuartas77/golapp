@@ -61,6 +61,34 @@ final class InscriptionsTest extends TestCase
         ]);
     }
 
+    public function test_create_inscription_ignores_deprecated_product_fields(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $player = Player::factory()->create();
+
+        $this->actingAs($this->user)
+            ->postJson(route('inscriptions.store'), [
+                'unique_code' => $player->unique_code,
+                'player_id' => $player->id,
+                'start_date' => now()->format('Y-m-d'),
+                'ball' => true,
+                'bag' => true,
+                'competition_uniform' => true,
+                'tournament_pay' => true,
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseHas('inscriptions', [
+            'player_id' => $player->id,
+            'ball' => null,
+            'bag' => null,
+            'competition_uniform' => null,
+            'tournament_pay' => null,
+        ]);
+    }
+
     public function test_create_inscription_sets_zero_amounts_for_non_applicable_months(): void
     {
         Mail::fake();

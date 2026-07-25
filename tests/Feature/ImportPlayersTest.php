@@ -203,11 +203,7 @@ final class ImportPlayersTest extends TestCase
             'medic_certificate' => false,
             'study_certificate' => false,
             'overalls' => false,
-            'ball' => false,
-            'bag' => false,
             'presentation_uniform' => false,
-            'competition_uniform' => false,
-            'tournament_pay' => false,
         ]);
 
         $this->actingAs($this->user)

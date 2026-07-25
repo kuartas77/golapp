@@ -30,11 +30,7 @@ use Illuminate\Support\Collection;
  * @property mixed medic_certificate
  * @property mixed study_certificate
  * @property mixed overalls
- * @property mixed ball
- * @property mixed bag
  * @property mixed presentation_uniform
- * @property mixed tournament_pay
- * @property mixed competition_uniform
  * @property mixed photos
  * @property mixed category
  * @property mixed period_one
@@ -68,11 +64,7 @@ class Inscription extends Model
         'medic_certificate',
         'study_certificate',
         'overalls',
-        'ball',
-        'bag',
         'presentation_uniform',
-        'competition_uniform',
-        'tournament_pay',
         'period_one',
         'period_two',
         'period_three',

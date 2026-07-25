@@ -116,14 +116,9 @@
             <td colspan="3" class="text-center"><strong class="bold">Productos</strong></td>
         </tr>
         <tr>
-            <td><strong class="bold">&nbsp;Pagó Inscripción Torneo 1:</strong> {{$player->inscription->tournament_pay ? 'Si':'No'}}</td>
-            <td><strong class="bold">&nbsp;Pagó Inscripción Torneo 2:</strong> {{$player->inscription->bag ? 'Si':'No'}}</td>
-            <td><strong class="bold">&nbsp;Pagó Inscripción Torneo 3:</strong> {{$player->inscription->ball ? 'Si':'No'}}</td>
-        </tr>
-        <tr>
             <td><strong class="bold">&nbsp;Peto:</strong> {{$player->inscription->overalls ? 'Si':'No'}}</td>
             <td><strong class="bold">&nbsp;Uniforme Presentación:</strong> {{$player->inscription->presentation_uniform ? 'Si':'No'}}</td>
-            <td><strong class="bold">&nbsp;Uniforme Competición:</strong> {{$player->inscription->competition_uniform ? 'Si':'No'}}</td>
+            <td></td>
         </tr>
     </table>
 

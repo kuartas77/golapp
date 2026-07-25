@@ -75,13 +75,8 @@
     </tr>
     <tr>
         <td><strong>Peto:</strong> {{$player->overalls ? 'Si':'No'}}</td>
-        <td><strong>Balón:</strong> {{$player->ball ? 'Si':'No'}}</td>
-        <td><strong>Morral:</strong> {{$player->bag ? 'Si':'No'}}</td>
-    </tr>
-    <tr>
         <td><strong>Uniforme Presentación:</strong> {{$player->presentation_uniform ? 'Si':'No'}}</td>
-        <td><strong>Uniforme Competición:</strong> {{$player->competition_uniform ? 'Si':'No'}}</td>
-        <td><strong>Pagó Torneo:</strong> {{$player->tournament_pay ? 'Si':'No'}}</td>
+        <td></td>
     </tr>-->
 
 </table>
