@@ -225,6 +225,8 @@ Backend:
 
 - PHPUnit/Pest esta configurado en `phpunit.xml`.
 - Los tests usan SQLite en memoria (`DB_DATABASE=:memory:`).
+- Los comandos Artisan con `--env=testing` usan `.env.testing`, tambien con SQLite en memoria.
+- No usar `migrate:fresh` contra la base local. Si se necesita validar migraciones, usar `--env=testing` y confirmar que resuelve `sqlite/:memory:`.
 - La cobertura funcional vive principalmente en `tests/Feature`.
 - Para cambios backend, correr al menos el test filtrado del modulo afectado.
 
