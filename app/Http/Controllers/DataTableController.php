@@ -70,7 +70,7 @@ class DataTableController extends Controller
     {
         abort_unless($request->ajax(), 403);
 
-        $sport = $this->sportFilter($request);
+        $sport = $this->sportFilter($request, 'training_groups');
 
         return datatables()
             ->of($this->trainingGroupRepository->listGroupEnabled(sport: $sport))
@@ -89,7 +89,7 @@ class DataTableController extends Controller
         abort_unless($request->ajax(), 403);
 
         return datatables()
-            ->collection($this->trainingGroupRepository->listGroupDisabled(sport: $this->sportFilter($request)))
+            ->collection($this->trainingGroupRepository->listGroupDisabled(sport: $this->sportFilter($request, 'training_groups')))
             ->addColumn('sport_label', fn ($group) => $this->sportLabel($group->sport))
             ->toJson();
     }
@@ -99,7 +99,7 @@ class DataTableController extends Controller
         abort_unless($request->ajax(), 403);
 
         return datatables()
-            ->of($this->competitionGroupRepository->listGroupEnabled(sport: $this->sportFilter($request)))
+            ->of($this->competitionGroupRepository->listGroupEnabled(sport: $this->sportFilter($request, 'competition_groups')))
             ->addColumn('sport_label', fn ($group) => $this->sportLabel($group->sport))
             ->toJson();
     }
@@ -109,12 +109,12 @@ class DataTableController extends Controller
         abort_unless($request->ajax(), 403);
 
         return datatables()
-            ->collection($this->competitionGroupRepository->listGroupDisabled(sport: $this->sportFilter($request)))
+            ->collection($this->competitionGroupRepository->listGroupDisabled(sport: $this->sportFilter($request, 'competition_groups')))
             ->addColumn('sport_label', fn ($group) => $this->sportLabel($group->sport))
             ->toJson();
     }
 
-    private function sportFilter(Request $request): ?string
+    private function sportFilter(Request $request, ?string $module = null): ?string
     {
         $sport = $request->input('sport');
 
@@ -122,7 +122,12 @@ class DataTableController extends Controller
             return null;
         }
 
-        return in_array($sport, getSchool(auth()->user())->enabled_sports, true) ? $sport : null;
+        $school = getSchool(auth()->user());
+        $allowedSports = $module === null
+            ? $school->enabled_sports
+            : $school->enabledSportsSupportingModule($module);
+
+        return in_array($sport, $allowedSports, true) ? $sport : null;
     }
 
     private function sportLabel(?string $sport): string

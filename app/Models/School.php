@@ -175,6 +175,26 @@ class School extends Model
             ->all();
     }
 
+    public static function sportSupportsModule(string $sport, string $module): bool
+    {
+        $modules = self::sportCatalog()[$sport]['modules'] ?? [];
+
+        return in_array($module, $modules, true);
+    }
+
+    public static function sportsSupportingModule(array $sports, string $module): array
+    {
+        return collect(self::normalizeSports($sports))
+            ->filter(static fn (string $sport) => self::sportSupportsModule($sport, $module))
+            ->values()
+            ->all();
+    }
+
+    public function enabledSportsSupportingModule(string $module): array
+    {
+        return self::sportsSupportingModule($this->enabled_sports, $module);
+    }
+
     public static function normalizeSports(array $sports): array
     {
         $catalog = array_keys(self::sportCatalog());

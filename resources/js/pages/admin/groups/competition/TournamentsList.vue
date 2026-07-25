@@ -196,14 +196,19 @@ const tutorial = usePageTutorial(tournamentsTutorial)
 const settingsGroup = useSettingGroups()
 
 const isEditMode = computed(() => editingId.value !== null)
-const defaultSport = computed(() => settingsGroup.default_sport || 'football')
+const fallbackSport = computed(() => settingsGroup.default_sport || 'football')
 const sportOptions = computed(() => {
     const enabledSports = settingsGroup.enabled_sports.length
         ? settingsGroup.enabled_sports
-        : [defaultSport.value]
+        : [fallbackSport.value]
 
-    return settingsGroup.sports.filter((sport) => enabledSports.includes(sport.value))
+    return settingsGroup.sports.filter((sport) => (
+        enabledSports.includes(sport.value)
+        && Array.isArray(sport.modules)
+        && sport.modules.includes('competition_groups')
+    ))
 })
+const defaultSport = computed(() => sportOptions.value[0]?.value ?? fallbackSport.value)
 
 let modalInstance = null
 

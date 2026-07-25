@@ -24,6 +24,8 @@ class CompetitionGroupRequest extends FormRequest
      */
     public function rules()
     {
+        $sports = getSchool(auth()->user())->enabledSportsSupportingModule('competition_groups');
+
         return [
             'name' => ['required'],
             'year' => ['required'],
@@ -36,7 +38,7 @@ class CompetitionGroupRequest extends FormRequest
             'user_id' => ['required'],
             'category' => ['required'],
             'school_id' => ['required'],
-            'sport' => ['required', 'string', Rule::in(getSchool(auth()->user())->enabled_sports)],
+            'sport' => ['required', 'string', Rule::in($sports)],
         ];
     }
 

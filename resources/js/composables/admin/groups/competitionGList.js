@@ -13,7 +13,9 @@ export default function useCompetitionGList() {
     const settingsGroup = useSettingGroups()
     const sportFilter = ref('')
     const sportOptions = computed(() => settingsGroup.sports.filter((sport) => (
-        settingsGroup.enabled_sports.length === 0 || settingsGroup.enabled_sports.includes(sport.value)
+        (settingsGroup.enabled_sports.length === 0 || settingsGroup.enabled_sports.includes(sport.value))
+        && Array.isArray(sport.modules)
+        && sport.modules.includes('competition_groups')
     )))
 
     const columns = [

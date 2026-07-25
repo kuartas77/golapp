@@ -180,14 +180,19 @@ const selectedCategoryOptions = ref([]);
 const currentYear = String(new Date().getFullYear());
 const maxTrainingDays = 5;
 
-const defaultSport = computed(() => settingsGroup.default_sport || "football");
+const fallbackSport = computed(() => settingsGroup.default_sport || "football");
 const sportOptions = computed(() => {
     const enabledSports = settingsGroup.enabled_sports.length
         ? settingsGroup.enabled_sports
-        : [defaultSport.value];
+        : [fallbackSport.value];
 
-    return settingsGroup.sports.filter((sport) => enabledSports.includes(sport.value));
+    return settingsGroup.sports.filter((sport) => (
+        enabledSports.includes(sport.value)
+        && Array.isArray(sport.modules)
+        && sport.modules.includes("training_groups")
+    ));
 });
+const defaultSport = computed(() => sportOptions.value[0]?.value ?? fallbackSport.value);
 
 const buildDefaultValues = () => ({
     id: null,

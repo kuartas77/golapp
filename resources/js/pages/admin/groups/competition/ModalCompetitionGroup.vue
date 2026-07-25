@@ -117,14 +117,19 @@ const selectedTournamentOptions = ref([]);
 const selectedCategoryOptions = ref([]);
 const activeSport = ref("football");
 
-const defaultSport = computed(() => settingsGroup.default_sport || "football");
+const fallbackSport = computed(() => settingsGroup.default_sport || "football");
 const sportOptions = computed(() => {
     const enabledSports = settingsGroup.enabled_sports.length
         ? settingsGroup.enabled_sports
-        : [defaultSport.value];
+        : [fallbackSport.value];
 
-    return settingsGroup.sports.filter((sport) => enabledSports.includes(sport.value));
+    return settingsGroup.sports.filter((sport) => (
+        enabledSports.includes(sport.value)
+        && Array.isArray(sport.modules)
+        && sport.modules.includes("competition_groups")
+    ));
 });
+const defaultSport = computed(() => sportOptions.value[0]?.value ?? fallbackSport.value);
 
 const buildDefaultValues = () => ({
     name: null,
@@ -168,7 +173,10 @@ const findOptionByValue = (options, value) => {
 
 const userOptions = computed(() => mergeOptionLists(settingsGroup.users, selectedUserOptions.value));
 const tournamentOptions = computed(() => mergeOptionLists(
-    settingsGroup.tournaments.filter((tournament) => !tournament.sport || tournament.sport === activeSport.value),
+    settingsGroup.tournaments.filter((tournament) => (
+        sportOptions.value.some((sport) => sport.value === tournament.sport)
+        && tournament.sport === activeSport.value
+    )),
     selectedTournamentOptions.value
 ));
 const categoryOptions = computed(() => mergeOptionLists(settingsGroup.categories, selectedCategoryOptions.value));

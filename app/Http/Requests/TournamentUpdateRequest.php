@@ -25,9 +25,11 @@ class TournamentUpdateRequest extends FormRequest
      */
     public function rules()
     {
+        $sports = getSchool(auth()->user())->enabledSportsSupportingModule('competition_groups');
+
         return [
             'name' => 'required',
-            'sport' => ['required', 'string', Rule::in(getSchool(auth()->user())->enabled_sports)],
+            'sport' => ['required', 'string', Rule::in($sports)],
             'school_id' => ['required'],
         ];
     }

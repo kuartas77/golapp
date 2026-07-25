@@ -421,26 +421,26 @@ final class AdminGroupCatalogsTest extends TestCase
     public function test_tournament_and_competition_group_persist_sport_and_require_matching_sport(): void
     {
         $school = School::findOrFail($this->school['id']);
-        $this->setEnabledSports($school, ['football', 'basketball']);
+        $this->setEnabledSports($school, ['football', 'futsal', 'basketball']);
 
-        $basketballTournamentResponse = $this->actingAs($this->user)
+        $futsalTournamentResponse = $this->actingAs($this->user)
             ->postJson('/api/v2/admin/tournaments', [
                 'name' => 'liga local',
-                'sport' => 'basketball',
+                'sport' => 'futsal',
             ])
             ->assertCreated()
             ->assertJsonPath('data.name', 'LIGA LOCAL')
-            ->assertJsonPath('data.sport', 'basketball');
+            ->assertJsonPath('data.sport', 'futsal');
 
-        $basketballTournamentId = $basketballTournamentResponse->json('data.id');
+        $futsalTournamentId = $futsalTournamentResponse->json('data.id');
 
         $this->actingAs($this->user)
             ->postJson('/api/v2/admin/competition_groups', [
                 'name' => 'Equipo U12',
                 'year' => 'SUB-12',
-                'tournament_id' => $basketballTournamentId,
+                'tournament_id' => $futsalTournamentId,
                 'user_id' => $this->user->id,
-                'sport' => 'basketball',
+                'sport' => 'futsal',
             ])
             ->assertOk()
             ->assertJsonPath('success', true);
@@ -448,15 +448,15 @@ final class AdminGroupCatalogsTest extends TestCase
         $this->assertDatabaseHas('competition_groups', [
             'name' => 'Equipo U12',
             'school_id' => $school->id,
-            'sport' => 'basketball',
-            'tournament_id' => $basketballTournamentId,
+            'sport' => 'futsal',
+            'tournament_id' => $futsalTournamentId,
         ]);
 
         $this->actingAs($this->user)
             ->postJson('/api/v2/admin/competition_groups', [
-                'name' => 'Equipo Futbol Con Torneo Basket',
+                'name' => 'Equipo Futbol Con Torneo Futsal',
                 'year' => 'SUB-12',
-                'tournament_id' => $basketballTournamentId,
+                'tournament_id' => $futsalTournamentId,
                 'user_id' => $this->user->id,
                 'sport' => 'football',
             ])
@@ -464,10 +464,41 @@ final class AdminGroupCatalogsTest extends TestCase
             ->assertJsonValidationErrors('tournament_id');
     }
 
-    public function test_competition_groups_datatable_can_be_filtered_by_sport(): void
+    public function test_competition_catalog_rejects_enabled_sports_without_competition_module(): void
     {
         $school = School::findOrFail($this->school['id']);
         $this->setEnabledSports($school, ['football', 'basketball']);
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/tournaments', [
+                'name' => 'liga basket',
+                'sport' => 'basketball',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('sport');
+
+        $tournament = Tournament::query()->create([
+            'name' => 'LIGA BASKET',
+            'school_id' => $school->id,
+            'sport' => 'basketball',
+        ]);
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/competition_groups', [
+                'name' => 'Equipo Basket',
+                'year' => 'SUB-12',
+                'tournament_id' => $tournament->id,
+                'user_id' => $this->user->id,
+                'sport' => 'basketball',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('sport');
+    }
+
+    public function test_competition_groups_datatable_can_be_filtered_by_sport(): void
+    {
+        $school = School::findOrFail($this->school['id']);
+        $this->setEnabledSports($school, ['football', 'futsal', 'basketball']);
 
         $footballTournament = Tournament::query()->create([
             'name' => 'LIGA FUTBOL',
@@ -475,10 +506,10 @@ final class AdminGroupCatalogsTest extends TestCase
             'sport' => 'football',
         ]);
 
-        $basketballTournament = Tournament::query()->create([
-            'name' => 'LIGA BASKET',
+        $futsalTournament = Tournament::query()->create([
+            'name' => 'LIGA FUTSAL',
             'school_id' => $school->id,
-            'sport' => 'basketball',
+            'sport' => 'futsal',
         ]);
 
         CompetitionGroup::query()->create([
@@ -492,25 +523,25 @@ final class AdminGroupCatalogsTest extends TestCase
         ]);
 
         CompetitionGroup::query()->create([
-            'name' => 'Equipo Basket',
+            'name' => 'Equipo Futsal',
             'year' => 'SUB-12',
             'category' => 'SUB-12',
-            'tournament_id' => $basketballTournament->id,
+            'tournament_id' => $futsalTournament->id,
             'user_id' => $this->user->id,
             'school_id' => $school->id,
-            'sport' => 'basketball',
+            'sport' => 'futsal',
         ]);
 
         $response = $this->actingAs($this->user)
             ->withHeader('X-Requested-With', 'XMLHttpRequest')
-            ->getJson('/api/v2/datatables/competition_groups_enabled?draw=1&start=0&length=10&sport=basketball')
+            ->getJson('/api/v2/datatables/competition_groups_enabled?draw=1&start=0&length=10&sport=futsal')
             ->assertOk();
 
         $names = collect($response->json('data'))->pluck('name');
 
-        $this->assertTrue($names->contains('Equipo Basket'));
+        $this->assertTrue($names->contains('Equipo Futsal'));
         $this->assertFalse($names->contains('Equipo Futbol'));
-        $this->assertSame('Baloncesto', collect($response->json('data'))->firstWhere('name', 'Equipo Basket')['sport_label']);
+        $this->assertSame('Fútbol sala', collect($response->json('data'))->firstWhere('name', 'Equipo Futsal')['sport_label']);
     }
 
     private function setSchoolPermissions(School $school, array $overrides): void

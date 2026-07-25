@@ -26,6 +26,8 @@ class TrainingGroupRequest extends FormRequest
      */
     public function rules()
     {
+        $sports = getSchool(auth()->user())->enabledSportsSupportingModule('training_groups');
+
         return [
             'users_id' => ['required', 'array'],
             'name' => ['required'],
@@ -34,7 +36,7 @@ class TrainingGroupRequest extends FormRequest
             'days' => ['required', 'array', 'max:5'],
             'schedules' => ['required', 'array'],
             'school_id' => ['required'],
-            'sport' => ['required', 'string', Rule::in(getSchool(auth()->user())->enabled_sports)],
+            'sport' => ['required', 'string', Rule::in($sports)],
             'year_active' => ['required'],
             'is_complementary' => ['nullable', 'boolean'],
             // 'years' => ['required', 'array'],
