@@ -16,24 +16,29 @@ const { apiMock, settingsStore, authStore } = vi.hoisted(() => ({
     },
     settingsStore: {
         groups: [
-            { id: 1, name: 'Provisional' },
-            { id: 2, name: 'Grupo definitivo' },
+            { id: 1, name: 'Provisional', sport: 'football' },
+            { id: 2, name: 'Grupo definitivo', sport: 'football' },
+            { id: 4, name: 'Grupo futsal', sport: 'futsal' },
         ],
         competition_groups: [
-            { id: 10, name: 'Competencia A' },
-            { id: 11, name: 'Competencia B' },
+            { id: 10, name: 'Competencia A', sport: 'football' },
+            { id: 11, name: 'Competencia B', sport: 'futsal' },
         ],
         all_groups: [
-            { id: 1, name: 'Provisional' },
-            { id: 2, name: 'Grupo definitivo' },
-            { id: 3, name: 'Porteros', is_complementary: true },
+            { id: 1, name: 'Provisional', sport: 'football' },
+            { id: 2, name: 'Grupo definitivo', sport: 'football' },
+            { id: 3, name: 'Porteros', is_complementary: true, sport: 'football' },
+            { id: 4, name: 'Grupo futsal', sport: 'futsal' },
+            { id: 5, name: 'Complementario futsal', is_complementary: true, sport: 'futsal' },
         ],
         normal_training_groups: [
-            { id: 1, name: 'Provisional' },
-            { id: 2, name: 'Grupo definitivo' },
+            { id: 1, name: 'Provisional', sport: 'football' },
+            { id: 2, name: 'Grupo definitivo', sport: 'football' },
+            { id: 4, name: 'Grupo futsal', sport: 'futsal' },
         ],
         complementary_training_groups: [
-            { id: 3, name: 'Porteros', full_group: 'Porteros' },
+            { id: 3, name: 'Porteros', full_group: 'Porteros', sport: 'football' },
+            { id: 5, name: 'Complementario futsal', full_group: 'Complementario futsal', sport: 'futsal' },
         ],
         settings: {
             MONTHLY_PAYMENT: 50000,
@@ -222,6 +227,19 @@ describe('ModalInscription', () => {
         expect(currentPreInscription).toBe(false);
     });
 
+    it('filters complementary and competition groups by selected training sport', async () => {
+        const wrapper = await mountModal();
+
+        expect(wrapper.vm.$.setupState.competitionGroups.map((group) => group.label)).toEqual(['Competencia A']);
+        expect(wrapper.vm.$.setupState.complementaryTrainingGroups.map((group) => group.label)).toEqual(['Porteros']);
+
+        wrapper.vm.$.setupState.onTrainingGroupChange('4');
+        await flushPromises();
+
+        expect(wrapper.vm.$.setupState.competitionGroups.map((group) => group.label)).toEqual(['Competencia B']);
+        expect(wrapper.vm.$.setupState.complementaryTrainingGroups.map((group) => group.label)).toEqual(['Complementario futsal']);
+    });
+
     it('normalizes boolean values received as numbers and strings', async () => {
         const wrapper = await mountModal();
         const { normalizeBoolean } = wrapper.vm.$.setupState;
@@ -387,10 +405,10 @@ describe('ModalInscription', () => {
         await flushPromises();
         await flushPromises();
 
-        expect(wrapper.vm.$.setupState.complementaryTrainingGroups).toContainEqual({
+        expect(wrapper.vm.$.setupState.complementaryTrainingGroups).toContainEqual(expect.objectContaining({
             value: '3',
             label: 'Porteros',
-        });
+        }));
         expect(wrapper.vm.$.setupState.form.values.complementary_group_id).toBe('3');
         expect(wrapper.get('[data-select-id="complementary_group_id"]').text()).toContain('Porteros');
     });
@@ -432,14 +450,14 @@ describe('ModalInscription', () => {
         await flushPromises();
         await flushPromises();
 
-        expect(wrapper.vm.$.setupState.trainingGroups).toContainEqual({
+        expect(wrapper.vm.$.setupState.trainingGroups).toContainEqual(expect.objectContaining({
             value: '2',
             label: 'Grupo definitivo',
-        });
-        expect(wrapper.vm.$.setupState.trainingGroups).not.toContainEqual({
+        }));
+        expect(wrapper.vm.$.setupState.trainingGroups).not.toContainEqual(expect.objectContaining({
             value: '1',
             label: 'Provisional',
-        });
+        }));
         expect(wrapper.vm.$.setupState.form.values.training_group_id).toBe('2');
     });
 

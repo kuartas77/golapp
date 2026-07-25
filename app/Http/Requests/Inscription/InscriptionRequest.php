@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests\Inscription;
 
+use App\Models\CompetitionGroup;
 use App\Models\Player;
 use App\Models\Setting;
+use App\Models\TrainingGroup;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class InscriptionRequest extends FormRequest
 {
@@ -50,6 +53,12 @@ class InscriptionRequest extends FormRequest
                     ->where('is_complementary', true)),
             ],
             'competition_groups' => ['nullable', 'array'],
+            'competition_groups.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('competition_groups', 'id')->where(fn ($query) => $query
+                    ->where('school_id', getSchool(auth()->user())->id)),
+            ],
             'photos' => ['nullable', 'boolean'],
             'copy_identification_document' => ['nullable', 'boolean'],
             'eps_certificate' => ['nullable', 'boolean'],
@@ -104,6 +113,62 @@ class InscriptionRequest extends FormRequest
             'pre_inscription' => $this->input('pre_inscription', false),
             'custom_charges' => $this->normalizeCustomCharges(),
         ]);
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $trainingGroup = $this->selectedTrainingGroup();
+
+            if (! $trainingGroup) {
+                return;
+            }
+
+            $complementaryGroupId = $this->input('complementary_group_id');
+
+            if ($complementaryGroupId) {
+                $complementaryGroup = TrainingGroup::query()
+                    ->where('school_id', $this->input('school_id'))
+                    ->where('is_complementary', true)
+                    ->find($complementaryGroupId);
+
+                if ($complementaryGroup && $complementaryGroup->sport !== $trainingGroup->sport) {
+                    $validator->errors()->add('complementary_group_id', 'El grupo complementario debe pertenecer al mismo deporte del grupo de entrenamiento.');
+                }
+            }
+
+            $competitionGroupIds = $this->input('competition_groups', []);
+
+            if ($competitionGroupIds === []) {
+                return;
+            }
+
+            $differentSportExists = CompetitionGroup::query()
+                ->where('school_id', $this->input('school_id'))
+                ->whereIn('id', $competitionGroupIds)
+                ->where('sport', '!=', $trainingGroup->sport)
+                ->exists();
+
+            if ($differentSportExists) {
+                $validator->errors()->add('competition_groups', 'Los grupos de competencia deben pertenecer al mismo deporte del grupo de entrenamiento.');
+            }
+        });
+    }
+
+    private function selectedTrainingGroup(): ?TrainingGroup
+    {
+        if ($this->filled('training_group_id')) {
+            return TrainingGroup::query()
+                ->where('school_id', $this->input('school_id'))
+                ->where('is_complementary', false)
+                ->find($this->input('training_group_id'));
+        }
+
+        return TrainingGroup::query()
+            ->orderBy('id')
+            ->where('school_id', $this->input('school_id'))
+            ->where('is_complementary', false)
+            ->first();
     }
 
     private function normalizeCustomCharges(): array

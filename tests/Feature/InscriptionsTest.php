@@ -173,6 +173,59 @@ final class InscriptionsTest extends TestCase
         ]);
     }
 
+    public function test_create_inscription_rejects_groups_from_different_sports(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $schoolId = $this->school['id'];
+        $footballGroup = TrainingGroup::query()
+            ->where('school_id', $schoolId)
+            ->where('is_complementary', false)
+            ->orderBy('id')
+            ->firstOrFail();
+        $footballGroup->forceFill(['sport' => 'football'])->save();
+        $futsalComplementaryGroup = TrainingGroup::query()->create([
+            'name' => 'Complementario Futsal',
+            'school_id' => $schoolId,
+            'year_active' => now()->year,
+            'is_complementary' => true,
+            'days' => ['Lunes'],
+            'schedules' => ['07:00AM - 08:00AM'],
+            'sport' => 'futsal',
+        ]);
+        $futsalTournament = Tournament::query()->create([
+            'name' => 'LIGA FUTSAL',
+            'school_id' => $schoolId,
+            'sport' => 'futsal',
+        ]);
+        $futsalCompetitionGroup = CompetitionGroup::query()->create([
+            'name' => 'Equipo Futsal',
+            'year' => 'SUB-12',
+            'category' => 'SUB-12',
+            'tournament_id' => $futsalTournament->id,
+            'user_id' => $this->user->id,
+            'school_id' => $schoolId,
+            'sport' => 'futsal',
+        ]);
+        $player = Player::factory()->create(['school_id' => $schoolId]);
+
+        $this->actingAs($this->user)
+            ->postJson(route('inscriptions.store'), [
+                'unique_code' => $player->unique_code,
+                'player_id' => $player->id,
+                'start_date' => now()->format('Y-m-d'),
+                'training_group_id' => $footballGroup->id,
+                'complementary_group_id' => $futsalComplementaryGroup->id,
+                'competition_groups' => [$futsalCompetitionGroup->id],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'complementary_group_id',
+                'competition_groups',
+            ]);
+    }
+
     public function test_inscription_rejects_invalid_complementary_group_roles(): void
     {
         $schoolId = $this->school['id'];

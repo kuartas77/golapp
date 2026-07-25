@@ -390,10 +390,28 @@ const showRecalculateMonthlyPaymentsOption = computed(() => (
     && selectedMonthlyPaymentType.value !== null
     && selectedMonthlyPaymentType.value !== originalMonthlyPaymentType.value
 ));
-const competitionGroups = computed(() => settings.competition_groups.map((group) => ({
-    value: String(group.id),
-    label: group.full_name_group ?? group.full_name ?? group.name ?? String(group.id),
-})));
+const groupValue = (group) => String(group.value ?? group.id)
+const groupSport = (group) => group?.sport ?? 'football'
+const selectedTrainingGroup = computed(() => {
+    const trainingGroupId = currentTrainingGroupId.value ?? provisionalTrainingGroup.value?.id
+
+    if ([null, '', undefined].includes(trainingGroupId)) {
+        return null
+    }
+
+    return [
+        ...settings.all_groups,
+        ...settings.normal_training_groups,
+    ].find((group) => groupValue(group) === String(trainingGroupId)) ?? null
+})
+const selectedTrainingSport = computed(() => groupSport(selectedTrainingGroup.value))
+const competitionGroups = computed(() => settings.competition_groups
+    .filter((group) => !selectedTrainingSport.value || groupSport(group) === selectedTrainingSport.value)
+    .map((group) => ({
+        value: String(group.id),
+        label: group.full_name_group ?? group.full_name ?? group.name ?? String(group.id),
+        sport: groupSport(group),
+    })));
 const provisionalTrainingGroup = computed(() => settings.all_groups?.[0] ?? null);
 const isProvisionalTrainingGroup = (trainingGroupId) => (
     provisionalTrainingGroup.value
@@ -402,11 +420,14 @@ const isProvisionalTrainingGroup = (trainingGroupId) => (
 const mapTrainingGroupOption = (group) => ({
     value: String(group.value ?? group.id),
     label: group.label ?? group.name ?? group.full_schedule_group ?? group.full_group ?? String(group.value ?? group.id),
+    sport: groupSport(group),
 })
 const trainingGroups = computed(() => (settings.normal_training_groups.length ? settings.normal_training_groups : settings.groups)
     .filter((group) => !isProvisionalTrainingGroup(group.value ?? group.id))
     .map(mapTrainingGroupOption));
-const complementaryTrainingGroups = computed(() => settings.complementary_training_groups.map(mapTrainingGroupOption));
+const complementaryTrainingGroups = computed(() => settings.complementary_training_groups
+    .filter((group) => !selectedTrainingSport.value || groupSport(group) === selectedTrainingSport.value)
+    .map(mapTrainingGroupOption));
 const hasTrainingGroupSelected = computed(() => ![null, '', undefined].includes(currentTrainingGroupId.value));
 const preInscriptionAutoReason = computed(() => {
     if (!hasTrainingGroupSelected.value) {
@@ -566,6 +587,23 @@ const resetFormState = () => {
     customChargesDueDate.value = dayjs().add(15, 'day').format('YYYY-MM-DD')
     rebuildCustomChargeRows()
     globalError.value = null
+}
+
+const clearIncompatibleGroupSelections = () => {
+    const allowedComplementaryIds = new Set(complementaryTrainingGroups.value.map((group) => group.value))
+    const allowedCompetitionIds = new Set(competitionGroups.value.map((group) => group.value))
+    const complementaryGroupId = form.value?.values?.complementary_group_id
+    const competitionGroupIds = form.value?.values?.competition_groups ?? []
+
+    if (complementaryGroupId && !allowedComplementaryIds.has(String(complementaryGroupId))) {
+        form.value?.setFieldValue('complementary_group_id', null)
+    }
+
+    const compatibleCompetitionGroupIds = competitionGroupIds.filter((id) => allowedCompetitionIds.has(String(id)))
+
+    if (compatibleCompetitionGroupIds.length !== competitionGroupIds.length) {
+        form.value?.setFieldValue('competition_groups', compatibleCompetitionGroupIds)
+    }
 }
 
 const closeModal = () => {
@@ -923,6 +961,10 @@ watch(showRecalculateMonthlyPaymentsOption, (isVisible) => {
     }
 })
 
+watch(selectedTrainingSport, () => {
+    clearIncompatibleGroupSelections()
+})
+
 const onChangeCode = (uniqueCode) => {
     loadPlayerByUniqueCode(uniqueCode)
 }
@@ -931,6 +973,7 @@ const onTrainingGroupChange = (value) => {
     const trainingGroupId = normalizeTrainingGroupId(value)
 
     currentTrainingGroupId.value = trainingGroupId
+    clearIncompatibleGroupSelections()
 
     if (trainingGroupId && !isProvisionalTrainingGroup(trainingGroupId)) {
         form.value?.setFieldValue('pre_inscription', false)
