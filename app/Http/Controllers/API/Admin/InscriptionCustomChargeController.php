@@ -7,6 +7,7 @@ use App\Http\Requests\InscriptionCustomChargeUpdateRequest;
 use App\Models\Inscription;
 use App\Models\InscriptionCustomCharge;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class InscriptionCustomChargeController extends Controller
 {
@@ -16,10 +17,16 @@ class InscriptionCustomChargeController extends Controller
         $schoolId = getSchool(auth()->user())->id;
 
         $query = InscriptionCustomCharge::query()
-            ->select('inscription_custom_charges.*')
+            ->select([
+                'inscription_custom_charges.*',
+                'inscriptions.year as inscription_year',
+                'players.unique_code as player_unique_code',
+                'invoices.invoice_number as invoice_number',
+                DB::raw("TRIM(CONCAT(COALESCE(players.names, ''), ' ', COALESCE(players.last_names, ''))) as player_name"),
+            ])
             ->with(['inscription.player', 'invoiceCustomItem', 'invoiceItem.invoice'])
             ->leftJoin('inscriptions', 'inscriptions.id', '=', 'inscription_custom_charges.inscription_id')
-            ->leftJoin('players', 'players.id', '=', 'inscriptions.player_id')
+            ->leftJoin('players', 'players.id', '=', DB::raw('COALESCE(inscriptions.player_id, inscription_custom_charges.player_id)'))
             ->leftJoin('invoice_items', 'invoice_items.id', '=', 'inscription_custom_charges.invoice_item_id')
             ->leftJoin('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
             ->where('inscription_custom_charges.school_id', $schoolId)
@@ -37,6 +44,7 @@ class InscriptionCustomChargeController extends Controller
                 $query->where(function ($query) use ($keyword): void {
                     $query->where('players.names', 'like', "%{$keyword}%")
                         ->orWhere('players.last_names', 'like', "%{$keyword}%")
+                        ->orWhere(DB::raw("TRIM(CONCAT(COALESCE(players.names, ''), ' ', COALESCE(players.last_names, '')))"), 'like', "%{$keyword}%")
                         ->orWhere('players.unique_code', 'like', "%{$keyword}%");
                 });
             })

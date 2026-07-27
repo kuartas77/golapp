@@ -103,13 +103,13 @@ export default function useInscriptionCustomChargesList() {
 
     const columns = [
         {
-            data: 'inscription.player.full_names',
+            data: 'player_name',
             title: 'Jugador',
             name: 'player_name',
             defaultContent: 'N/D',
             render: (data, type, row) => {
                 const name = data || row.inscription?.player?.full_names || 'N/D'
-                const code = row.inscription?.player?.unique_code
+                const code = row.player_unique_code || row.inscription?.player?.unique_code
 
                 if (!code) {
                     return escapeHtml(name)
@@ -122,10 +122,11 @@ export default function useInscriptionCustomChargesList() {
             },
         },
         {
-            data: 'inscription.year',
+            data: 'inscription_year',
             title: 'Año',
             name: 'inscriptions.year',
             defaultContent: 'N/D',
+            render: (data, type, row) => escapeHtml(data || row.inscription?.year || 'N/D'),
         },
         {
             data: 'name',
@@ -153,11 +154,11 @@ export default function useInscriptionCustomChargesList() {
             render: data => formatDate(data),
         },
         {
-            data: 'invoice_item.invoice.invoice_number',
+            data: 'invoice_number',
             title: 'Factura',
             name: 'invoice_number',
             defaultContent: 'Sin facturar',
-            render: data => escapeHtml(data || 'Sin facturar'),
+            render: (data, type, row) => escapeHtml(data || row.invoice_item?.invoice?.invoice_number || 'Sin facturar'),
         },
         {
             data: 'id',

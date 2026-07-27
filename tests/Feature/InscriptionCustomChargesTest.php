@@ -42,6 +42,10 @@ final class InscriptionCustomChargesTest extends TestCase
             ->assertJsonPath('recordsFiltered', 2)
             ->assertJsonFragment(['name' => $currentCharge->name])
             ->assertJsonFragment(['name' => $priorDueCharge->name])
+            ->assertJsonPath('data.0.player_name', $priorDueCharge->player->full_names)
+            ->assertJsonPath('data.0.player_unique_code', $priorDueCharge->player->unique_code)
+            ->assertJsonPath('data.0.inscription_year', now()->subYear()->year)
+            ->assertJsonPath('data.0.invoice_number', null)
             ->assertJsonMissing(['name' => 'Cargo histórico pendiente'])
             ->assertJsonMissing(['name' => 'Cargo de otra escuela']);
 
@@ -52,6 +56,15 @@ final class InscriptionCustomChargesTest extends TestCase
             ->getJson('/api/v2/admin/inscription-custom-charges?'.http_build_query($params))
             ->assertOk()
             ->assertJsonCount(2, 'data');
+
+        $params = $this->datatableParams();
+        $params['columns'][0]['search']['value'] = $currentCharge->player->full_names;
+
+        $this->actingAs($this->user)
+            ->getJson('/api/v2/admin/inscription-custom-charges?'.http_build_query($params))
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.player_name', $currentCharge->player->full_names);
     }
 
     private function datatableParams(): array
@@ -61,13 +74,13 @@ final class InscriptionCustomChargesTest extends TestCase
             'start' => 0,
             'length' => 10,
             'columns' => [
-                ['data' => 'inscription.player.full_names', 'name' => 'player_name', 'searchable' => 'true', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']],
-                ['data' => 'inscription.year', 'name' => 'inscriptions.year', 'searchable' => 'true', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']],
+                ['data' => 'player_name', 'name' => 'player_name', 'searchable' => 'true', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']],
+                ['data' => 'inscription_year', 'name' => 'inscriptions.year', 'searchable' => 'true', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']],
                 ['data' => 'name', 'name' => 'inscription_custom_charges.name', 'searchable' => 'true', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']],
                 ['data' => 'value', 'name' => 'inscription_custom_charges.value', 'searchable' => 'false', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']],
                 ['data' => 'status', 'name' => 'inscription_custom_charges.status', 'searchable' => 'true', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']],
                 ['data' => 'due_date', 'name' => 'inscription_custom_charges.due_date', 'searchable' => 'true', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']],
-                ['data' => 'invoice_item.invoice.invoice_number', 'name' => 'invoice_number', 'searchable' => 'true', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']],
+                ['data' => 'invoice_number', 'name' => 'invoice_number', 'searchable' => 'true', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']],
                 ['data' => 'id', 'name' => 'inscription_custom_charges.id', 'searchable' => 'false', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']],
             ],
             'order' => [
