@@ -41,7 +41,7 @@ class InscriptionCustomChargeController extends Controller
                 });
             })
             ->filterColumn('invoice_number', fn ($query, $keyword) => $query->where('invoices.invoice_number', 'like', "%{$keyword}%"))
-            ->filterColumn('name', fn ($query, $keyword) => $query->where('inscription_custom_charges.name', 'like', "%{$keyword}%"))
+            ->filterColumn('inscription_custom_charges.name', fn ($query, $keyword) => $query->where('inscription_custom_charges.name', 'like', "%{$keyword}%"))
             ->orderColumn('player_name', function ($query, $order): void {
                 $query->orderBy('players.last_names', $order)
                     ->orderBy('players.names', $order);
