@@ -92,7 +92,7 @@ class InscriptionCustomChargeController extends Controller
             ], 422);
         }
 
-        $charge->delete();
+        $charge->forceDelete();
 
         return response()->json([
             'message' => 'Cargo personalizado eliminado correctamente.',
