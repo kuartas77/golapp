@@ -15,6 +15,13 @@ const STATUS_BADGES = {
     paid: 'badge-success',
 }
 
+const STATUS_OPTIONS = [
+    { value: '', label: 'Estado' },
+    { value: 'pending', label: 'Pendiente' },
+    { value: 'due', label: 'Debe' },
+    { value: 'paid', label: 'Pagado' },
+]
+
 const emptyDataTableResponse = (draw = 0) => ({
     draw,
     data: [],
@@ -41,6 +48,55 @@ const formatDate = (value) => {
 export const statusLabel = (status) => STATUS_LABELS[status] ?? status
 
 export const statusClass = (status) => STATUS_BADGES[status] ?? 'badge-light'
+
+const replaceHeaderContent = (header, element) => {
+    header.replaceChildren(element)
+}
+
+const drawFilteredColumn = (column, value) => {
+    if (column.search() === value) {
+        return
+    }
+
+    column.search(value).draw()
+}
+
+const createTextFilter = (column, placeholder, type = 'search') => {
+    const input = document.createElement('input')
+    input.type = type
+    input.placeholder = placeholder
+    input.className = 'form-control form-control-sm'
+    input.autocomplete = 'off'
+    input.addEventListener(type === 'date' ? 'change' : 'input', function () {
+        drawFilteredColumn(column, this.value)
+    })
+
+    if (type !== 'date') {
+        input.addEventListener('search', function () {
+            drawFilteredColumn(column, this.value)
+        })
+    }
+
+    replaceHeaderContent(column.header(), input)
+}
+
+const createSelectFilter = (column, options) => {
+    const select = document.createElement('select')
+    select.className = 'form-select form-select-sm'
+
+    options.forEach((optionData) => {
+        const option = document.createElement('option')
+        option.value = optionData.value
+        option.textContent = optionData.label
+        select.append(option)
+    })
+
+    select.addEventListener('change', function () {
+        drawFilteredColumn(column, this.value)
+    })
+
+    replaceHeaderContent(column.header(), select)
+}
 
 export default function useInscriptionCustomChargesList() {
     const table = useTemplateRef('custom_charges_table')
@@ -115,6 +171,12 @@ export default function useInscriptionCustomChargesList() {
 
     const options = {
         ...configLanguaje,
+        layout: {
+            topStart: { pageLength: { menu: [10, 20, 30, 50, 100] } },
+            topEnd: null,
+            bottomStart: 'info',
+            bottomEnd: 'paging',
+        },
         lengthMenu: [[10, 20, 30, 50, 100], [10, 20, 30, 50, 100]],
         pageLength: 10,
         processing: true,
@@ -122,7 +184,7 @@ export default function useInscriptionCustomChargesList() {
         pipeline: { pages: 5 },
         deferRender: true,
         searchDelay: 400,
-        order: [[7, 'desc']],
+        ordering: false,
         ajax: async (data, callback) => {
             try {
                 const response = await api.get('/api/v2/admin/inscription-custom-charges', { params: data })
@@ -145,6 +207,17 @@ export default function useInscriptionCustomChargesList() {
             { targets: [3], className: 'dt-head-right dt-body-right' },
             { targets: [7], width: '1%' },
         ],
+        initComplete: function () {
+            const api = this.api()
+
+            createTextFilter(api.column(0), 'Jugador')
+            createTextFilter(api.column(1), 'Año')
+            createTextFilter(api.column(2), 'Cargo')
+            createSelectFilter(api.column(4), STATUS_OPTIONS)
+            createTextFilter(api.column(5), 'Vence', 'date')
+            createTextFilter(api.column(6), 'Factura')
+            api.columns.adjust()
+        },
     }
 
     const reloadTable = () => {
