@@ -53,12 +53,14 @@ final class MethodologyRecordsTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.0.id', $recordId)
             ->assertJsonPath('data.0.creator_name', $this->user->name)
+            ->assertJsonPath('data.0.session_date', '2026-07-15')
             ->assertJsonPath('data.0.export_pdf_url', route('methodology.records.pdf', ['id' => $recordId]));
 
         $this->actingAs($this->user)
             ->getJson("/api/v2/methodology-records/{$recordId}")
             ->assertOk()
             ->assertJsonPath('data.fields.objective', 'Mejorar pase')
+            ->assertJsonPath('data.session_date', '2026-07-15')
             ->assertJsonPath('data.diagrams.initial_phase.0.type', 'player')
             ->assertJsonPath('data.export_pdf_url', route('methodology.records.pdf', ['id' => $recordId]));
 
@@ -218,6 +220,7 @@ final class MethodologyRecordsTest extends TestCase
             'type' => MethodologyRecord::TYPE_PLANNING,
             'title' => 'Planificación Sub 12',
             'fields' => [
+                'session_date' => '2026-07-15',
                 'objective' => 'Mejorar pase',
                 'material' => 'Conos y balones',
             ],

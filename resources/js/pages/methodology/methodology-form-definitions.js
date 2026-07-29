@@ -164,11 +164,14 @@ export function getTabByType(type) {
 }
 
 export function createBlankFields(type) {
-    return Object.fromEntries(
-        (methodologyFieldGroups[type] ?? [])
-            .flatMap((group) => group.fields)
-            .map((field) => [field.key, ''])
-    )
+    return {
+        session_date: '',
+        ...Object.fromEntries(
+            (methodologyFieldGroups[type] ?? [])
+                .flatMap((group) => group.fields)
+                .map((field) => [field.key, ''])
+        ),
+    }
 }
 
 export function createBlankDiagrams() {

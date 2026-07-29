@@ -75,7 +75,7 @@
                                     </option>
                                 </select>
                             </th>
-                            <th>Creado</th>
+                            <th>Fecha sesión</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -141,7 +141,7 @@
                     </div>
 
                     <div class="row g-3 mb-3">
-                        <div class="col-md-8">
+                        <div class="col-md-5">
                             <label class="form-label" for="methodology-title">Título</label>
                             <input
                                 id="methodology-title"
@@ -149,6 +149,15 @@
                                 type="text"
                                 class="form-control"
                                 required
+                            >
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="methodology-session-date">Fecha de la sesión</label>
+                            <input
+                                id="methodology-session-date"
+                                v-model="form.fields.session_date"
+                                type="date"
+                                class="form-control"
                             >
                         </div>
                         <div class="col-md-4">
@@ -588,7 +597,7 @@ const columns = [
     { data: 'title', name: 'title' },
     { data: 'creator_name', name: 'creator_name', orderable: false },
     { data: 'training_group_name', name: 'training_group_name', orderable: false },
-    { data: 'created_at', name: 'created_at' },
+    { data: 'session_date', name: 'session_date' },
     { data: 'id', searchable: false, orderable: false, render: '#actions' },
 ]
 
@@ -769,6 +778,10 @@ function resetForm(record = null) {
         ...(record?.fields ?? {}),
     }
 
+    if (!fields.session_date) {
+        fields.session_date = record?.session_date ?? todayDate()
+    }
+
     if ('coach' in fields && !fields.coach) {
         fields.coach = authenticatedUserName.value
     }
@@ -865,6 +878,13 @@ function normalizeFields(fields) {
     return Object.fromEntries(
         Object.entries(fields).map(([key, value]) => [key, value === null || value === undefined ? null : String(value).trim()])
     )
+}
+
+function todayDate() {
+    const date = new Date()
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset())
+
+    return date.toISOString().slice(0, 10)
 }
 
 async function saveRecord() {

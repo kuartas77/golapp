@@ -83,6 +83,7 @@
         $diagrams = $record->diagrams ?? [];
         $fieldValue = fn (string $key) => data_get($fields, $key, '');
         $diagramItems = fn (string $key) => data_get($diagrams, $key, []);
+        $sessionDate = $fieldValue('session_date') ?: $record->created_at?->format('Y-m-d');
     @endphp
 
     <table class="table-full title">
@@ -107,8 +108,8 @@
             <td>{{ $record->user?->name }}</td>
             <td class="field-label">Grupo</td>
             <td>{{ $record->trainingGroup?->name ?? 'Sin grupo' }}</td>
-            <td class="field-label">Fecha</td>
-            <td>{{ $record->created_at?->format('Y-m-d') }}</td>
+            <td class="field-label">Fecha sesión</td>
+            <td>{{ $sessionDate }}</td>
         </tr>
     </table>
 

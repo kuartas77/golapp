@@ -30,6 +30,7 @@ class MethodologyRecordRequest extends FormRequest
             'type' => ['required', 'string', Rule::in(MethodologyRecord::TYPES)],
             'title' => ['required', 'string', 'max:255'],
             'fields' => ['nullable', 'array'],
+            'fields.session_date' => ['nullable', 'date_format:Y-m-d'],
             'fields.*' => ['nullable'],
             'diagrams' => ['nullable', 'array'],
         ];

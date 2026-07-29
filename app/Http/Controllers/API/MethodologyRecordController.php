@@ -57,7 +57,7 @@ class MethodologyRecordController extends Controller
     public function update(MethodologyRecordRequest $request, int $methodologyRecord): JsonResponse
     {
         $record = $this->repository->findAccessibleOrFail($methodologyRecord);
-        $this->periodEditPolicy->assertCanMutateDate($record->created_at, 'period');
+        $this->periodEditPolicy->assertCanMutateDate($this->recordDate($record), 'period');
         $record = $this->repository->update($record, $request->validated());
 
         return response()->json([
@@ -69,7 +69,7 @@ class MethodologyRecordController extends Controller
     public function destroy(int $methodologyRecord): JsonResponse
     {
         $record = $this->repository->findAccessibleOrFail($methodologyRecord);
-        $this->periodEditPolicy->assertCanMutateDate($record->created_at, 'period');
+        $this->periodEditPolicy->assertCanMutateDate($this->recordDate($record), 'period');
         $this->repository->destroy($record);
 
         return response()->json([
@@ -90,10 +90,16 @@ class MethodologyRecordController extends Controller
             'title' => $record->title,
             'fields' => $record->fields ?? [],
             'diagrams' => $record->diagrams ?? [],
+            'session_date' => $this->recordDate($record),
             'created_at' => $record->created_at?->format('Y-m-d'),
             'updated_at' => $record->updated_at?->format('Y-m-d'),
-            'period_locked' => ! $this->periodEditPolicy->canMutateDate($record->created_at),
+            'period_locked' => ! $this->periodEditPolicy->canMutateDate($this->recordDate($record)),
             'export_pdf_url' => route('methodology.records.pdf', ['id' => $record->id]),
         ];
+    }
+
+    private function recordDate(MethodologyRecord $record): ?string
+    {
+        return data_get($record->fields ?? [], 'session_date') ?: $record->created_at?->format('Y-m-d');
     }
 }

@@ -20,6 +20,7 @@ describe('methodology form definitions', () => {
 
     it('creates planning fields and diagram buckets for payloads', () => {
         expect(createBlankFields(METHODOLOGY_TYPES.planning)).toEqual(expect.objectContaining({
+            session_date: '',
             objective: '',
             initial_phase_time: '',
             central_phase_three_time: '',
@@ -41,6 +42,7 @@ describe('methodology form definitions', () => {
 
     it('creates characterization fields that match the printed format', () => {
         expect(createBlankFields(METHODOLOGY_TYPES.characterizationSheet)).toEqual(expect.objectContaining({
+            session_date: '',
             category: '',
             year_semester: '',
             sport_objectives: '',
@@ -54,6 +56,7 @@ describe('methodology form definitions', () => {
 
     it('creates category monthly report fields that match the printed format', () => {
         expect(createBlankFields(METHODOLOGY_TYPES.categoryMonthlyReport)).toEqual(expect.objectContaining({
+            session_date: '',
             coach: '',
             category: '',
             report_month: '',
@@ -74,6 +77,7 @@ describe('methodology form definitions', () => {
 
     it('creates monthly report fields that match the printed format', () => {
         expect(createBlankFields(METHODOLOGY_TYPES.monthlyReport)).toEqual(expect.objectContaining({
+            session_date: '',
             coach: '',
             category: '',
             report_month: '',
