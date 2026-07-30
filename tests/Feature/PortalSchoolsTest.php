@@ -207,6 +207,8 @@ final class PortalSchoolsTest extends TestCase
                 'medical_certificate' => 1800000,
             ],
             'total_file_bytes' => 3800000,
+            'timeout_ms' => 60000,
+            'elapsed_ms' => 10023,
         ])->assertOk()->assertJsonPath('reported', true);
 
         Log::shouldHaveReceived('warning')
@@ -215,6 +217,8 @@ final class PortalSchoolsTest extends TestCase
                 fn (array $context): bool => $context['school_slug'] === 'club-deportivo-academia-union'
                     && $context['error_code'] === 'ERR_NETWORK'
                     && $context['total_file_bytes'] === 3800000
+                    && $context['timeout_ms'] === 60000
+                    && $context['elapsed_ms'] === 10023
                     && isset($context['ip'], $context['user_agent'])
             ));
     }

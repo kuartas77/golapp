@@ -661,6 +661,7 @@ const props = defineProps({
 });
 
 const FILE_FIELDS = ['photo', 'player_document', 'medical_certificate', 'tutor_document', 'payment_receipt'];
+const INSCRIPTION_SUBMISSION_TIMEOUT_MS = 60000;
 const SIGNATURE_FIELDS = ['signatureTutor', 'signatureAlumno'];
 const PHOTO_FILE_EXTENSIONS = ['jpg', 'jpeg', 'png'];
 const PHOTO_FILE_MIME_TYPES = ['image/png', 'image/x-png', 'image/jpeg', 'image/pjpeg'];
@@ -1421,7 +1422,7 @@ const buildFormData = (payload, recaptchaToken) => {
     return formData;
 };
 
-const reportSubmissionError = async (error, submittedValues) => {
+const reportSubmissionError = async (error, submittedValues, elapsedMs) => {
     if (error.response) {
         return;
     }
@@ -1443,6 +1444,8 @@ const reportSubmissionError = async (error, submittedValues) => {
             online: navigator.onLine,
             file_sizes: fileSizes,
             total_file_bytes: Object.values(fileSizes).reduce((total, size) => total + size, 0),
+            timeout_ms: INSCRIPTION_SUBMISSION_TIMEOUT_MS,
+            elapsed_ms: elapsedMs,
         });
     } catch (reportError) {
         // The original submission error remains the one shown to the user.
@@ -1494,6 +1497,7 @@ const finishWizard = async () => {
 const submitForm = handleSubmit(async (submittedValues) => {
     submitting.value = true;
     globalError.value = '';
+    const submissionStartedAt = Date.now();
 
     try {
         const recaptchaToken = await executeRecaptcha();
@@ -1508,6 +1512,7 @@ const submitForm = handleSubmit(async (submittedValues) => {
         const formData = buildFormData(payload, recaptchaToken);
 
         await api.post(props.endpoints.store, formData, {
+            timeout: INSCRIPTION_SUBMISSION_TIMEOUT_MS,
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -1524,7 +1529,7 @@ const submitForm = handleSubmit(async (submittedValues) => {
 
         window.location.reload();
     } catch (error) {
-        await reportSubmissionError(error, submittedValues);
+        await reportSubmissionError(error, submittedValues, Date.now() - submissionStartedAt);
 
         const response = error.response;
         const backendErrors = response?.data?.errors ?? {};

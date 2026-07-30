@@ -69,6 +69,8 @@ class InscriptionsController extends Controller
             'total_file_bytes' => ['nullable', 'integer', 'min:0'],
             'file_sizes' => ['nullable', 'array'],
             'file_sizes.*' => ['integer', 'min:0'],
+            'timeout_ms' => ['nullable', 'integer', 'min:0'],
+            'elapsed_ms' => ['nullable', 'integer', 'min:0'],
         ]);
 
         Log::warning('Portal inscription failed in browser', [
