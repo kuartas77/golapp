@@ -253,6 +253,50 @@ describe('SoccerFieldDiagramEditor', () => {
             { id: 'player-one', type: 'player', x: 18, y: 20 },
         ])
     })
+
+    it('allows a new pencil stroke after a long stroke loses the pointer release', async () => {
+        const wrapper = mount(SoccerFieldDiagramEditor, {
+            props: {
+                modelValue: [],
+            },
+        })
+        const svg = wrapper.find('svg').element
+        let projectedPoint = { x: 10, y: 12 }
+        svg.createSVGPoint = () => ({
+            x: 0,
+            y: 0,
+            matrixTransform() {
+                return projectedPoint
+            },
+        })
+        svg.getScreenCTM = () => ({
+            inverse() {
+                return {}
+            },
+        })
+        svg.setPointerCapture = () => {}
+
+        await wrapper.findAll('button').find((button) => button.text().includes('Lápiz')).trigger('click')
+        wrapper.find('svg').element.dispatchEvent(makePointerEvent('pointerdown', { pointerId: 1, buttons: 1 }))
+        await nextTick()
+        let value = latestModelValue(wrapper)
+
+        await wrapper.setProps({ modelValue: value })
+        projectedPoint = { x: 90, y: 55 }
+        wrapper.find('svg').element.dispatchEvent(makePointerEvent('pointermove', { pointerId: 1, buttons: 0 }))
+        await nextTick()
+
+        expect(latestModelValue(wrapper)).toEqual(value)
+
+        projectedPoint = { x: 22, y: 24 }
+        wrapper.find('svg').element.dispatchEvent(makePointerEvent('pointerdown', { pointerId: 2, buttons: 1 }))
+        await nextTick()
+        value = latestModelValue(wrapper)
+
+        expect(value).toHaveLength(2)
+        expect(value.map((item) => item.type)).toEqual(['freehand', 'freehand'])
+        expect(value[1].points).toEqual([{ x: 22, y: 24 }])
+    })
 })
 
 function makePointerEvent(name, values = {}) {

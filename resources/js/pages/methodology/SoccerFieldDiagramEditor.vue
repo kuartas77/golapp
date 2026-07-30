@@ -62,6 +62,8 @@
             @pointermove="moveSelected"
             @pointerup="stopCanvasInteraction"
             @pointerleave="stopCanvasInteraction"
+            @pointercancel="stopCanvasInteraction"
+            @lostpointercapture="stopCanvasInteraction"
         >
             <rect x="1" y="1" width="98" height="62" rx="1.5" class="field-border" />
             <line x1="50" y1="1" x2="50" y2="63" class="field-line" />
@@ -298,11 +300,21 @@ function startDrag(item, index, event) {
 
 function moveSelected(event) {
     if (drawingState.value) {
+        if (!isPointerActive(event)) {
+            stopCanvasInteraction(event)
+            return
+        }
+
         updateFreehand(event)
         return
     }
 
     if (erasingState.value) {
+        if (!isPointerActive(event)) {
+            stopCanvasInteraction(event)
+            return
+        }
+
         eraseFreehandAtEvent(event)
         return
     }
@@ -316,7 +328,8 @@ function moveSelected(event) {
     items.value = items.value.map((item, index) => itemKey(item, index) === dragState.value.key ? { ...item, x, y } : item)
 }
 
-function stopCanvasInteraction() {
+function stopCanvasInteraction(event = null) {
+    releasePointerCapture(event)
     dragState.value = null
     drawingState.value = null
     erasingState.value = null
@@ -326,6 +339,8 @@ function startFreehand(event) {
     if (!svgRef.value) {
         return
     }
+
+    stopCanvasInteraction()
 
     const point = eventPoint(event)
     const item = {
@@ -375,6 +390,7 @@ function eraseFreehandAtEvent(event) {
 }
 
 function startErasing(event) {
+    stopCanvasInteraction()
     erasingState.value = { pointerId: event.pointerId }
     selectedKey.value = null
     svgRef.value?.setPointerCapture?.(event.pointerId)
@@ -391,6 +407,20 @@ function eventPoint(event) {
         x: Math.min(97, Math.max(3, Number(svgPoint.x.toFixed(2)))),
         y: Math.min(61, Math.max(3, Number(svgPoint.y.toFixed(2)))),
     }
+}
+
+function isPointerActive(event) {
+    return event.buttons === undefined || event.buttons > 0 || event.pointerType === 'touch'
+}
+
+function releasePointerCapture(event) {
+    const pointerId = event?.pointerId ?? drawingState.value?.pointerId ?? erasingState.value?.pointerId ?? dragState.value?.pointerId
+
+    if (pointerId === undefined || !svgRef.value?.hasPointerCapture?.(pointerId)) {
+        return
+    }
+
+    svgRef.value.releasePointerCapture?.(pointerId)
 }
 
 function conePath(item) {
