@@ -434,8 +434,9 @@ final class TrainingSessionsTest extends TestCase
         $complementaryGroup = $this->createTrainingGroup($this->school['id'], $this->user, suffix: 'Complementario', overrides: [
             'is_complementary' => true,
         ]);
-        $complementaryMember = $this->createActiveInscription($principalGroup, 'Portero', [
-            'complementary_group_id' => $complementaryGroup->id,
+        $complementaryMember = $this->createActiveInscription($principalGroup, 'Portero');
+        $complementaryMember->complementaryGroups()->sync([
+            $complementaryGroup->id => ['school_id' => $this->school['id']],
         ]);
         $this->createActiveInscription($principalGroup, 'Solo Principal');
         $classDay = $this->currentClassDay($complementaryGroup);

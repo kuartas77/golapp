@@ -94,7 +94,7 @@
                                 <dl class="summary-list">
                                     <dt>Inicio</dt><dd>{{ dayjs(inscription.start_date).format('YYYY-M-D') || '—' }}</dd>
                                     <dt>Grupo</dt><dd>{{ inscription.training_group?.name || '—' }}</dd>
-                                    <dt>Grupo complementario</dt><dd>{{ inscription.complementary_group?.name || '—' }}</dd>
+                                    <dt>Grupos complementarios</dt><dd>{{ complementaryGroupNames }}</dd>
                                     <dt>Preinscripción</dt><dd>{{ yesNo(inscription.pre_inscription) }}</dd>
                                     <dt>Hermano</dt><dd>{{ yesNo(inscription.brother_payment) }}</dd>
                                 </dl>
@@ -399,6 +399,13 @@ const inscription = computed(() => summary.value?.inscription || {})
 const player = computed(() => summary.value?.player || {})
 const payments = computed(() => summary.value?.payments || [])
 const attendance = computed(() => summary.value?.attendance || [])
+const complementaryGroupNames = computed(() => {
+    const groups = inscription.value?.complementary_groups?.length
+        ? inscription.value.complementary_groups
+        : (inscription.value?.complementary_group ? [inscription.value.complementary_group] : [])
+
+    return groups.map((group) => group.name).filter(Boolean).join(', ') || '—'
+})
 const attendanceMonthOptions = computed(() => {
     const options = new Map()
 

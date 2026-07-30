@@ -84,8 +84,9 @@ final class CreateAssistsOnEndMonthTest extends TestCase
             'name' => 'Command Complementary ' . fake()->unique()->numberBetween(100, 999),
             'is_complementary' => true,
         ]);
-        $inscription = $this->createInscription($school, $principalGroup, 2026, [
-            'complementary_group_id' => $complementaryGroup->id,
+        $inscription = $this->createInscription($school, $principalGroup, 2026);
+        $inscription->complementaryGroups()->sync([
+            $complementaryGroup->id => ['school_id' => $school->id],
         ]);
 
         $this->artisan('assists:month', ['--date' => '2026-04-30'])->assertExitCode(0);

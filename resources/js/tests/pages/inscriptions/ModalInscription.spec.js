@@ -109,6 +109,7 @@ const mountModal = async (
                     monthly_payment_amount: 55000,
                     training_group_id: 2,
                     complementary_group_id: 3,
+                    complementary_group_ids: ['3'],
                     competition_groups: [],
                     photos: '0',
                     copy_identification_document: 'false',
@@ -136,6 +137,7 @@ const mountModal = async (
                     monthly_payment_amount: 50000,
                     training_group_id: 1,
                     complementary_group_id: null,
+                    complementary_group_ids: [],
                     competition_groups: [],
                     photos: false,
                     copy_identification_document: false,
@@ -262,7 +264,7 @@ describe('ModalInscription', () => {
             brother_payment: false,
             monthly_payment_type: 'MONTHLY_PAYMENT_OPTION_2',
             training_group_id: 2,
-            complementary_group_id: null,
+            complementary_group_ids: [],
             competition_groups: [],
             photos: false,
             copy_identification_document: false,
@@ -307,6 +309,7 @@ describe('ModalInscription', () => {
                                 start_date: '2026-02-01',
                                 training_group_id: 2,
                                 complementary_group_id: 3,
+                                complementary_group_ids: ['3'],
                                 competition_groups: [],
                                 scholarship: true,
                                 brother_payment: true,
@@ -391,8 +394,8 @@ describe('ModalInscription', () => {
             value: '3',
             label: 'Porteros',
         });
-        expect(wrapper.vm.$.setupState.form.values.complementary_group_id).toBe('3');
-        expect(wrapper.get('[data-select-id="complementary_group_id"]').text()).toContain('Porteros');
+        expect(wrapper.vm.$.setupState.form.values.complementary_group_ids).toEqual(['3']);
+        expect(wrapper.get('[data-select-id="complementary_group_ids"]').text()).toContain('Porteros');
     });
 
     it('keeps API boolean fields unchecked when they return false-like strings', async () => {
@@ -541,7 +544,7 @@ describe('ModalInscription', () => {
             brother_payment: false,
             monthly_payment_type: 'MONTHLY_PAYMENT_OPTION_2',
             training_group_id: 2,
-            complementary_group_id: '3',
+            complementary_group_ids: ['3'],
             competition_groups: [],
             photos: false,
             copy_identification_document: false,
@@ -553,7 +556,7 @@ describe('ModalInscription', () => {
 
         expect(apiMock.post).toHaveBeenCalledWith('/api/v2/inscriptions', expect.objectContaining({
             monthly_payment_type: 'MONTHLY_PAYMENT_OPTION_2',
-            complementary_group_id: '3',
+            complementary_group_ids: ['3'],
         }));
     });
 

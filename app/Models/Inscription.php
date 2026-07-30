@@ -175,6 +175,16 @@ class Inscription extends Model
         return $this->belongsTo(TrainingGroup::class, 'complementary_group_id');
     }
 
+    public function complementaryGroups(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            TrainingGroup::class,
+            'complementary_training_group_inscription',
+            'inscription_id',
+            'training_group_id'
+        )->withTimestamps();
+    }
+
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class);

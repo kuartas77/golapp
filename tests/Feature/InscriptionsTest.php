@@ -87,7 +87,7 @@ final class InscriptionsTest extends TestCase
         $this->assertSame(50000, (int) $payment->march_amount);
     }
 
-    public function test_create_inscription_accepts_one_complementary_training_group_without_affecting_payments(): void
+    public function test_create_inscription_accepts_multiple_complementary_training_groups_without_affecting_payments(): void
     {
         Mail::fake();
         Notification::fake();
@@ -106,6 +106,14 @@ final class InscriptionsTest extends TestCase
             'days' => ['Lunes'],
             'schedules' => ['07:00AM - 08:00AM'],
         ]);
+        $secondComplementaryGroup = TrainingGroup::query()->create([
+            'name' => 'Complementario Tecnica',
+            'school_id' => $schoolId,
+            'year_active' => now()->year,
+            'is_complementary' => true,
+            'days' => ['Martes'],
+            'schedules' => ['08:00AM - 09:00AM'],
+        ]);
         $player = Player::factory()->create(['school_id' => $schoolId]);
 
         $this->actingAs($this->user)
@@ -114,7 +122,7 @@ final class InscriptionsTest extends TestCase
                 'player_id' => $player->id,
                 'start_date' => now()->format('Y-m-d'),
                 'training_group_id' => $principalGroup->id,
-                'complementary_group_id' => $complementaryGroup->id,
+                'complementary_group_ids' => [$complementaryGroup->id, $secondComplementaryGroup->id],
             ])
             ->assertOk()
             ->assertJsonPath('success', true);
@@ -123,6 +131,16 @@ final class InscriptionsTest extends TestCase
 
         $this->assertSame($principalGroup->id, (int) $inscription->training_group_id);
         $this->assertSame($complementaryGroup->id, (int) $inscription->complementary_group_id);
+        $this->assertDatabaseHas('complementary_training_group_inscription', [
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $complementaryGroup->id,
+            'school_id' => $schoolId,
+        ]);
+        $this->assertDatabaseHas('complementary_training_group_inscription', [
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $secondComplementaryGroup->id,
+            'school_id' => $schoolId,
+        ]);
         $this->assertDatabaseHas('payments', [
             'inscription_id' => $inscription->id,
             'training_group_id' => $principalGroup->id,
@@ -130,6 +148,10 @@ final class InscriptionsTest extends TestCase
         $this->assertDatabaseMissing('payments', [
             'inscription_id' => $inscription->id,
             'training_group_id' => $complementaryGroup->id,
+        ]);
+        $this->assertDatabaseMissing('payments', [
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $secondComplementaryGroup->id,
         ]);
         $this->assertDatabaseHas('assists', [
             'inscription_id' => $inscription->id,
@@ -140,6 +162,12 @@ final class InscriptionsTest extends TestCase
         $this->assertDatabaseHas('assists', [
             'inscription_id' => $inscription->id,
             'training_group_id' => $complementaryGroup->id,
+            'year' => now()->year,
+            'month' => now()->month,
+        ]);
+        $this->assertDatabaseHas('assists', [
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $secondComplementaryGroup->id,
             'year' => now()->year,
             'month' => now()->month,
         ]);
@@ -186,6 +214,14 @@ final class InscriptionsTest extends TestCase
             ))
             ->assertUnprocessable()
             ->assertJsonValidationErrors('complementary_group_id');
+
+        $this->actingAs($this->user)
+            ->postJson(route('inscriptions.store'), $makePayload(
+                Player::factory()->create(['school_id' => $schoolId]),
+                ['complementary_group_ids' => [$normalGroup->id]]
+            ))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('complementary_group_ids.0');
     }
 
     public function test_inscription_email_shows_school_name_to_guardian(): void

@@ -73,6 +73,9 @@ class CreateAssistsOnEndMonth extends Command
                         )->orWhereHas('complementaryInscriptions', fn ($query) => $query
                             ->where('school_id', $school->id)
                             ->where('year', $inscriptionYear)
+                        )->orWhereHas('complementaryInscriptionsMany', fn ($query) => $query
+                            ->where('inscriptions.school_id', $school->id)
+                            ->where('year', $inscriptionYear)
                         );
                     });
 
@@ -115,10 +118,15 @@ class CreateAssistsOnEndMonth extends Command
     private function getInscriptionsByGroup(array $params, int $school_id, int $inscriptionYear): Collection
     {
         $group = TrainingGroup::query()->findOrFail($params['training_group_id']);
-        $groupColumn = $group->is_complementary ? 'complementary_group_id' : 'training_group_id';
 
         return Inscription::query()
-            ->where($groupColumn, $params['training_group_id'])
+            ->when($group->is_complementary,
+                fn ($query) => $query->where(function ($query) use ($params): void {
+                    $query->where('complementary_group_id', $params['training_group_id'])
+                        ->orWhereHas('complementaryGroups', fn ($groupQuery) => $groupQuery->where('training_groups.id', $params['training_group_id']));
+                }),
+                fn ($query) => $query->where('training_group_id', $params['training_group_id'])
+            )
             ->where('year', $inscriptionYear)
             ->where('school_id', $school_id)
             ->pluck('id');

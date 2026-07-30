@@ -246,6 +246,16 @@ class TrainingGroup extends Model
         return $this->hasMany(Inscription::class, 'complementary_group_id');
     }
 
+    public function complementaryInscriptionsMany(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Inscription::class,
+            'complementary_training_group_inscription',
+            'training_group_id',
+            'inscription_id'
+        )->withTimestamps();
+    }
+
     public function assists(): HasMany
     {
         return $this->hasMany(Assist::class, 'training_group_id');

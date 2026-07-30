@@ -39,6 +39,7 @@ class TrainingGroupRepository
             ->with(['instructors'])
             ->withCount('members')
             ->withCount('complementaryInscriptions')
+            ->withCount('complementaryInscriptionsMany')
             ->where(
                 fn ($query) => $query->whereRelation('instructors', 'assigned_year', '>=', now()->year)
                     ->orWhere('id', $firstTeam->id)

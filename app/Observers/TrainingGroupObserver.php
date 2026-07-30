@@ -18,9 +18,10 @@ class TrainingGroupObserver
             ->first()
             ?->id;
 
-        $trainingGroup->load('payments', 'inscriptions', 'complementaryInscriptions');
+        $trainingGroup->load('payments', 'inscriptions', 'complementaryInscriptions', 'complementaryInscriptionsMany');
         $trainingGroup->inscriptions()->update(['training_group_id' => $firtsTrainigGroup]);
         $trainingGroup->complementaryInscriptions()->update(['complementary_group_id' => null]);
+        $trainingGroup->complementaryInscriptionsMany()->detach();
         $trainingGroup->payments()->update(['training_group_id' => $firtsTrainigGroup]);
     }
 

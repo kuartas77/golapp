@@ -49,6 +49,14 @@ class InscriptionUpdateRequest extends FormRequest
                     ->where('school_id', getSchool(auth()->user())->id)
                     ->where('is_complementary', true)),
             ],
+            'complementary_group_ids' => ['nullable', 'array'],
+            'complementary_group_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('training_groups', 'id')->where(fn ($query) => $query
+                    ->where('school_id', getSchool(auth()->user())->id)
+                    ->where('is_complementary', true)),
+            ],
             'competition_groups' => ['nullable', 'array'],
             'photos' => ['nullable', 'boolean'],
             'copy_identification_document' => ['nullable', 'boolean'],
@@ -87,6 +95,7 @@ class InscriptionUpdateRequest extends FormRequest
         $dateBirth = Player::find($this->player_id)->date_birth;
         $startDate = Carbon::parse($this->start_date);
         $monthlyPaymentType = $this->resolveMonthlyPaymentType();
+        $complementaryGroupIds = $this->normalizeComplementaryGroupIds();
 
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
@@ -110,10 +119,46 @@ class InscriptionUpdateRequest extends FormRequest
             'recalculate_monthly_payments' => $this->boolean('recalculate_monthly_payments'),
             'competition_groups' => array_filter($this->input('competition_groups', [])),
             'training_group_id' => $this->filled('training_group_id') ? $this->training_group_id : null,
-            'complementary_group_id' => $this->filled('complementary_group_id') ? $this->complementary_group_id : null,
+            'complementary_group_id' => $complementaryGroupIds[0] ?? null,
+            'complementary_group_ids' => $complementaryGroupIds,
             'pre_inscription' => $this->input('pre_inscription', false),
             'custom_charges' => $this->normalizeCustomCharges(),
         ]);
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator): void {
+            $trainingGroupId = $this->input('training_group_id');
+
+            if (! $trainingGroupId) {
+                return;
+            }
+
+            $hasMainGroup = collect($this->input('complementary_group_ids', []))
+                ->contains(fn ($groupId) => (string) $groupId === (string) $trainingGroupId);
+
+            if ($hasMainGroup) {
+                $validator->errors()->add('complementary_group_ids', 'El grupo complementario no puede ser igual al grupo principal.');
+            }
+        });
+    }
+
+    private function normalizeComplementaryGroupIds(): array
+    {
+        $ids = $this->input('complementary_group_ids', []);
+        $ids = is_array($ids) ? $ids : [];
+
+        if ($this->filled('complementary_group_id')) {
+            $ids[] = $this->input('complementary_group_id');
+        }
+
+        return collect($ids)
+            ->filter(fn ($groupId) => ! blank($groupId))
+            ->map(fn ($groupId) => (int) $groupId)
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private function normalizeCustomCharges(): array

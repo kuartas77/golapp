@@ -72,6 +72,10 @@ class GuardianPlayerDetailResource extends JsonResource
                     'id' => $inscription->complementaryGroup->id,
                     'name' => $inscription->complementaryGroup->name,
                 ] : null,
+                'complementary_groups' => $inscription->complementaryGroups->map(fn ($group) => [
+                    'id' => $group->id,
+                    'name' => $group->name,
+                ])->values(),
                 'stats' => $inscription->format_average,
                 'payments' => $inscription->payments->map(fn ($payment) => [
                     'id' => $payment->id,
@@ -97,8 +101,14 @@ class GuardianPlayerDetailResource extends JsonResource
                     ])->values(),
                 ])->values(),
                 'attendance' => $inscription->assistance->map(function ($assist) use ($inscription) {
+                    $complementaryGroupIds = $inscription->complementaryGroups
+                        ->pluck('id')
+                        ->push($inscription->complementary_group_id)
+                        ->filter()
+                        ->map(fn ($groupId) => (int) $groupId)
+                        ->unique();
                     $group = $assist->trainingGroup ?: $inscription->trainingGroup;
-                    $isComplementary = (int) $assist->training_group_id === (int) $inscription->complementary_group_id;
+                    $isComplementary = $complementaryGroupIds->contains((int) $assist->training_group_id);
                     $classDays = classDays(
                         (int) $assist->year,
                         (int) $assist->getRawOriginal('month'),

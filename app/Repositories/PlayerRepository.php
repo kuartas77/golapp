@@ -246,7 +246,7 @@ class PlayerRepository
         }
 
         $reactivationInscription = Inscription::onlyTrashed()
-            ->with('competitionGroup')
+            ->with(['competitionGroup', 'complementaryGroups'])
             ->where('school_id', getSchool(auth()->user())->id)
             ->where('player_id', $player->id)
             ->where('year', $year)
@@ -258,6 +258,15 @@ class PlayerRepository
                 'id' => $reactivationInscription->id,
                 'start_date' => optional($reactivationInscription->start_date)->format('Y-m-d'),
                 'training_group_id' => $reactivationInscription->training_group_id,
+                'complementary_group_id' => $reactivationInscription->complementary_group_id,
+                'complementary_group_ids' => $reactivationInscription->complementaryGroups
+                    ->pluck('id')
+                    ->push($reactivationInscription->complementary_group_id)
+                    ->filter()
+                    ->map(fn ($groupId) => (string) $groupId)
+                    ->unique()
+                    ->values()
+                    ->all(),
                 'competition_groups' => $reactivationInscription->competitionGroup
                     ->pluck('id')
                     ->map(fn ($groupId) => (string) $groupId)

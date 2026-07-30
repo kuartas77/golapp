@@ -63,7 +63,8 @@ class InscriptionRepository
             $this->prepareMonthlyPaymentData($requestData);
             $sendNotification = $requestData['send_notification'] ?? true;
             $customCharges = $requestData['custom_charges'] ?? [];
-            unset($requestData['custom_charges'], $requestData['custom_charges_due_date'], $requestData['send_notification']);
+            $complementaryGroupIds = $requestData['complementary_group_ids'] ?? [];
+            unset($requestData['custom_charges'], $requestData['custom_charges_due_date'], $requestData['send_notification'], $requestData['complementary_group_ids']);
             $requestData['deleted_at'] = null;
 
             DB::beginTransaction();
@@ -92,6 +93,7 @@ class InscriptionRepository
                 $inscription = $this->inscription->create($requestData);
             }
 
+            $this->syncComplementaryGroupIds($inscription, $complementaryGroupIds);
             $this->setCompetitionGroupIds($inscription, $requestData);
             $this->syncCustomCharges($inscription, $customCharges);
 
@@ -127,13 +129,14 @@ class InscriptionRepository
         $inscription->restore();
         $inscription->fill($requestData)->save();
 
-        $this->restoreLegacyRelations($inscription);
-        $this->restoreRetiredPendingMonths($inscription);
-        $this->ensureReactivationBaseRecords($inscription);
+            $this->restoreLegacyRelations($inscription);
+            $this->restoreRetiredPendingMonths($inscription);
+            $this->ensureReactivationBaseRecords($inscription);
+            $this->syncComplementaryGroupIds($inscription, $requestData['complementary_group_ids'] ?? []);
 
-        return $inscription->fresh([
-            'player',
-            'school',
+            return $inscription->fresh([
+                'player',
+                'school',
             'competitionGroup',
         ]);
     }
@@ -177,6 +180,44 @@ class InscriptionRepository
         $inscription->competitionGroup()->sync($competitionGroupIds);
     }
 
+    private function syncComplementaryGroupIds(Inscription $inscription, array $groupIds): void
+    {
+        $groupIds = collect($groupIds)
+            ->filter(fn ($groupId) => ! blank($groupId))
+            ->map(fn ($groupId) => (int) $groupId)
+            ->unique()
+            ->values();
+
+        $currentGroupIds = $inscription->complementaryGroups()
+            ->pluck('training_groups.id')
+            ->map(fn ($groupId) => (int) $groupId);
+
+        if ($inscription->complementary_group_id) {
+            $currentGroupIds->push((int) $inscription->complementary_group_id);
+        }
+
+        $removedGroupIds = $currentGroupIds->unique()->diff($groupIds)->values();
+        $year = (int) Carbon::parse($inscription->start_date)->year;
+
+        if ($removedGroupIds->isNotEmpty()) {
+            $inscription->assistance()
+                ->withTrashed()
+                ->where('year', $year)
+                ->whereIn('training_group_id', $removedGroupIds)
+                ->delete();
+        }
+
+        $syncPayload = $groupIds
+            ->mapWithKeys(fn (int $groupId) => [$groupId => ['school_id' => $inscription->school_id]])
+            ->all();
+
+        $inscription->complementaryGroups()->sync($syncPayload);
+
+        foreach ($groupIds as $groupId) {
+            $this->ensureInitialAssistForGroup($inscription, (int) $groupId);
+        }
+    }
+
     public function updateInscription(array $requestData, Inscription $inscription): bool
     {
         $result = false;
@@ -191,7 +232,8 @@ class InscriptionRepository
             }
 
             $customCharges = $requestData['custom_charges'] ?? [];
-            unset($requestData['custom_charges'], $requestData['custom_charges_due_date'], $requestData['recalculate_monthly_payments']);
+            $complementaryGroupIds = $requestData['complementary_group_ids'] ?? [];
+            unset($requestData['custom_charges'], $requestData['custom_charges_due_date'], $requestData['recalculate_monthly_payments'], $requestData['complementary_group_ids']);
             $requestData['deleted_at'] = null;
             $requestData['unique_code'] = $inscription->unique_code;
             $requestData['start_date'] = $inscription->start_date;
@@ -201,6 +243,7 @@ class InscriptionRepository
             $this->setCompetitionGroupIds($inscription, $requestData);
 
             $result = $inscription->update($requestData);
+            $this->syncComplementaryGroupIds($inscription->fresh(), $complementaryGroupIds);
 
             if ($result && $shouldRecalculateMonthlyPayments) {
                 $this->recalculateCollectibleMonthlyPaymentAmounts($inscription->fresh());
@@ -415,7 +458,7 @@ class InscriptionRepository
     public function searchInsUniqueCode($id): ?Inscription
     {
         $query = $this->inscription->query()
-            ->with(['player', 'competitionGroup'])
+            ->with(['player', 'competitionGroup', 'complementaryGroups'])
             ->schoolId();
 
         $inscription = null;
@@ -437,6 +480,17 @@ class InscriptionRepository
         $inscription->setAttribute(
             'competition_groups',
             $inscription->competitionGroup->pluck('id')->map(fn ($groupId) => (string) $groupId)->values()->all()
+        );
+        $inscription->setAttribute(
+            'complementary_group_ids',
+            $inscription->complementaryGroups
+                ->pluck('id')
+                ->push($inscription->complementary_group_id)
+                ->filter()
+                ->map(fn ($groupId) => (string) $groupId)
+                ->unique()
+                ->values()
+                ->all()
         );
 
         return $inscription;
@@ -491,8 +545,8 @@ class InscriptionRepository
 
         $this->ensureInitialAssistForGroup($inscription, (int) $inscription->training_group_id);
 
-        if ($inscription->complementary_group_id) {
-            $this->ensureInitialAssistForGroup($inscription, (int) $inscription->complementary_group_id);
+        foreach ($this->complementaryGroupIdsFor($inscription) as $groupId) {
+            $this->ensureInitialAssistForGroup($inscription, (int) $groupId);
         }
 
         SkillsControl::withTrashed()
@@ -513,9 +567,20 @@ class InscriptionRepository
 
         $this->ensureInitialAssistForGroup($inscription, (int) $inscription->training_group_id);
 
-        if ($inscription->complementary_group_id) {
-            $this->ensureInitialAssistForGroup($inscription, (int) $inscription->complementary_group_id);
+        foreach ($this->complementaryGroupIdsFor($inscription) as $groupId) {
+            $this->ensureInitialAssistForGroup($inscription, (int) $groupId);
         }
+    }
+
+    private function complementaryGroupIdsFor(Inscription $inscription): \Illuminate\Support\Collection
+    {
+        return $inscription->complementaryGroups()
+            ->pluck('training_groups.id')
+            ->push($inscription->complementary_group_id)
+            ->filter()
+            ->map(fn ($groupId) => (int) $groupId)
+            ->unique()
+            ->values();
     }
 
     private function ensureInitialAssistForGroup(Inscription $inscription, int $trainingGroupId): void

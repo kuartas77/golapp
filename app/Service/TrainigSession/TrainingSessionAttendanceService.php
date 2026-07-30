@@ -172,12 +172,16 @@ class TrainingSessionAttendanceService
 
     private function eligibleInscriptions(TrainingGroup $group, Carbon $date)
     {
-        $groupColumn = $group->is_complementary ? 'complementary_group_id' : 'training_group_id';
-
         return Inscription::query()
             ->schoolId()
             ->with('player:id,names,last_names,unique_code')
-            ->where($groupColumn, $group->id)
+            ->when($group->is_complementary,
+                fn ($query) => $query->where(function ($query) use ($group): void {
+                    $query->where('complementary_group_id', $group->id)
+                        ->orWhereHas('complementaryGroups', fn ($groupQuery) => $groupQuery->where('training_groups.id', $group->id));
+                }),
+                fn ($query) => $query->where('training_group_id', $group->id)
+            )
             ->where('year', $date->year)
             ->where('pre_inscription', false)
             ->whereDate('start_date', '<=', $date->toDateString())

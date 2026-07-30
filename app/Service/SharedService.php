@@ -129,11 +129,16 @@ class SharedService
 
     private function ensureComplementaryAssist(Inscription $inscription, Carbon $startDate): void
     {
-        if (! $inscription->complementary_group_id) {
-            return;
-        }
+        $groupIds = $inscription->complementaryGroups()
+            ->pluck('training_groups.id')
+            ->push($inscription->complementary_group_id)
+            ->filter()
+            ->map(fn ($groupId) => (int) $groupId)
+            ->unique();
 
-        $this->ensureAssistForGroup($inscription, (int) $inscription->complementary_group_id, $startDate);
+        foreach ($groupIds as $groupId) {
+            $this->ensureAssistForGroup($inscription, (int) $groupId, $startDate);
+        }
     }
 
     private function ensureAssistForGroup(Inscription $inscription, int $trainingGroupId, Carbon $startDate): void
@@ -161,12 +166,7 @@ class SharedService
                 ->where('year', $startDate->year)
                 ->where('training_group_id', $previousGroupId);
 
-            if ($inscription->complementary_group_id) {
-                $query->update([
-                    'training_group_id' => $inscription->complementary_group_id,
-                    'deleted_at' => null,
-                ]);
-            } else {
+            if (! $inscription->complementary_group_id) {
                 $query->delete();
             }
         }

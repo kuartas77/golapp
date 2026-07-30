@@ -63,7 +63,9 @@ final class InscriptionSummaryTest extends TestCase
             'schedules' => '11:00AM - 12:00PM',
             'is_complementary' => true,
         ]);
-        $inscription->update(['complementary_group_id' => $complementaryGroup->id]);
+        $inscription->complementaryGroups()->sync([
+            $complementaryGroup->id => ['school_id' => $this->school['id']],
+        ]);
         $inscription->assistance()->withTrashed()->forceDelete();
         $principalAssist = Assist::query()->create([
             'school_id' => $this->school['id'],
@@ -90,7 +92,7 @@ final class InscriptionSummaryTest extends TestCase
         $response = $this->actingAs($this->user)
             ->getJson("/api/v2/inscriptions/{$inscription->id}/summary")
             ->assertOk()
-            ->assertJsonPath('data.inscription.complementary_group.id', $complementaryGroup->id)
+            ->assertJsonPath('data.inscription.complementary_groups.0.id', $complementaryGroup->id)
             ->assertJsonCount(2, 'data.attendance');
 
         $attendance = collect($response->json('data.attendance'))->keyBy('id');

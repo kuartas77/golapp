@@ -46,6 +46,7 @@ class InscriptionSummaryService
             'player',
             'trainingGroup' => fn ($query) => $query->withTrashed(),
             'complementaryGroup' => fn ($query) => $query->withTrashed(),
+            'complementaryGroups' => fn ($query) => $query->withTrashed(),
             'payments' => fn ($query) => $query->withTrashed()->orderBy('year'),
             'assistance' => fn ($query) => $query
                 ->withTrashed()
@@ -99,6 +100,11 @@ class InscriptionSummaryService
                 'name' => $inscription->complementaryGroup->name,
                 'full_group' => $inscription->complementaryGroup->full_group ?? $inscription->complementaryGroup->name,
             ] : null,
+            'complementary_groups' => $inscription->complementaryGroups->map(fn ($group) => [
+                'id' => $group->id,
+                'name' => $group->name,
+                'full_group' => $group->full_group ?? $group->name,
+            ])->values()->all(),
             'stats' => $inscription->format_average,
         ];
     }
@@ -182,9 +188,16 @@ class InscriptionSummaryService
 
     private function serializeAttendance(Inscription $inscription): array
     {
-        return $inscription->assistance->map(function (Assist $assist) use ($inscription) {
+        $complementaryGroupIds = $inscription->complementaryGroups
+            ->pluck('id')
+            ->push($inscription->complementary_group_id)
+            ->filter()
+            ->map(fn ($groupId) => (int) $groupId)
+            ->unique();
+
+        return $inscription->assistance->map(function (Assist $assist) use ($inscription, $complementaryGroupIds) {
             $group = $assist->trainingGroup ?: $inscription->trainingGroup;
-            $isComplementary = (int) $assist->training_group_id === (int) $inscription->complementary_group_id;
+            $isComplementary = $complementaryGroupIds->contains((int) $assist->training_group_id);
             $classDays = classDays(
                 (int) $assist->year,
                 (int) $assist->getRawOriginal('month'),

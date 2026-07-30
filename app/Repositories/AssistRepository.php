@@ -81,10 +81,16 @@ class AssistRepository
                 return $table;
             }
 
-            $groupColumn = $trainingGroup->is_complementary ? 'complementary_group_id' : 'training_group_id';
             $inscriptionIds = Inscription::query()->schoolId()
-                ->where($groupColumn, $trainingGroup->id)
-                ->where('year', $dataAssist['year'])->pluck('id');
+                ->when($trainingGroup->is_complementary,
+                    fn ($query) => $query->where(function ($query) use ($trainingGroup): void {
+                        $query->where('complementary_group_id', $trainingGroup->id)
+                            ->orWhereHas('complementaryGroups', fn ($groupQuery) => $groupQuery->where('training_groups.id', $trainingGroup->id));
+                    }),
+                    fn ($query) => $query->where('training_group_id', $trainingGroup->id)
+                )
+                ->where('year', $dataAssist['year'])
+                ->pluck('id');
 
 
             $assistsQuery = $this->assist->schoolId()->with('inscription.player')->where($dataAssist);

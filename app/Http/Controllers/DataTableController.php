@@ -43,7 +43,8 @@ class DataTableController extends Controller
             ->filterColumn('training_group_id', function ($query, $keyword) {
                 $query->where(function ($query) use ($keyword) {
                     $query->where('inscriptions.training_group_id', $keyword)
-                        ->orWhere('inscriptions.complementary_group_id', $keyword);
+                        ->orWhere('inscriptions.complementary_group_id', $keyword)
+                        ->orWhereHas('complementaryGroups', fn ($groupQuery) => $groupQuery->where('training_groups.id', $keyword));
                 });
             })
             ->filterColumn('start_date', fn ($query, $keyword) => $query->whereDate('start_date', $keyword))
@@ -73,7 +74,7 @@ class DataTableController extends Controller
         return datatables()
             ->of($this->trainingGroupRepository->listGroupEnabled())
             ->editColumn('members_count', fn ($group) => $group->is_complementary
-                ? $group->complementary_inscriptions_count
+                ? max((int) $group->complementary_inscriptions_count, (int) $group->complementary_inscriptions_many_count)
                 : $group->members_count)
             ->toJson();
     }

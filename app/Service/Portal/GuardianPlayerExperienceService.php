@@ -75,6 +75,7 @@ class GuardianPlayerExperienceService
                 ->with([
                     'trainingGroup' => fn ($trainingQuery) => $trainingQuery->withTrashed(),
                     'complementaryGroup' => fn ($trainingQuery) => $trainingQuery->withTrashed(),
+                    'complementaryGroups' => fn ($trainingQuery) => $trainingQuery->withTrashed(),
                     'payments',
                     'assistance' => fn ($assistQuery) => $assistQuery
                         ->with(['trainingGroup' => fn ($groupQuery) => $groupQuery->withTrashed()])

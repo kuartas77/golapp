@@ -31,6 +31,7 @@ class PlayerExportService
             'inscriptions' => fn($q) => $q->where('id', $inscription_id)->with([
                 'trainingGroup' => fn ($query) => $query->withTrashed(),
                 'complementaryGroup' => fn ($query) => $query->withTrashed(),
+                'complementaryGroups' => fn ($query) => $query->withTrashed(),
                 'assistance' => fn($q) => $q
                     ->with(['trainingGroup' => fn ($query) => $query->withTrashed()])
                     ->when($months, fn($q) => $q->whereIn('month', $months))
@@ -45,10 +46,16 @@ class PlayerExportService
             $observations_assists = $inscription->assistance->where('observations', '<>', null);
             $observations_skills = $inscription->skillsControls->where('observation', '<>', null);
             foreach ($inscription->assistance as $assistance) {
+                $complementaryGroupIds = $inscription->complementaryGroups
+                    ->pluck('id')
+                    ->push($inscription->complementary_group_id)
+                    ->filter()
+                    ->map(fn ($groupId) => (int) $groupId)
+                    ->unique();
                 $group = $assistance->trainingGroup ?: $inscription->trainingGroup;
                 $assistance->groupName = $group?->name ?: 'Sin grupo';
                 $assistance->groupFullName = $group?->full_group ?? $group?->name ?? 'Sin grupo';
-                $assistance->groupLabel = (int) $assistance->training_group_id === (int) $inscription->complementary_group_id
+                $assistance->groupLabel = $complementaryGroupIds->contains((int) $assistance->training_group_id)
                     ? 'Grupo complementario'
                     : 'Grupo principal';
                 $assistance->classDays = classDays(
@@ -166,10 +173,16 @@ class PlayerExportService
     {
         $player->inscriptions->each(function ($inscription) {
             foreach ($inscription->assistance as $assistance) {
+                $complementaryGroupIds = $inscription->complementaryGroups
+                    ->pluck('id')
+                    ->push($inscription->complementary_group_id)
+                    ->filter()
+                    ->map(fn ($groupId) => (int) $groupId)
+                    ->unique();
                 $group = $assistance->trainingGroup ?: $inscription->trainingGroup;
                 $assistance->groupName = $group?->name ?: 'Sin grupo';
                 $assistance->groupFullName = $group?->full_group ?? $group?->name ?? 'Sin grupo';
-                $assistance->groupLabel = (int) $assistance->training_group_id === (int) $inscription->complementary_group_id
+                $assistance->groupLabel = $complementaryGroupIds->contains((int) $assistance->training_group_id)
                     ? 'Grupo complementario'
                     : 'Grupo principal';
                 $assistance->classDays = classDays(
