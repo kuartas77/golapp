@@ -26,12 +26,16 @@
                 </section>
 
                 <section v-for="(phase, index) in form.phases" :key="index" v-show="step === index + 1">
-                    <h6>Fase {{ index + 1 }}</h6><div class="row g-3">
-                        <div class="col-md-8"><label class="form-label">Nombre *</label><input v-model.trim="phase.name" class="form-control" maxlength="100" list="session-planning-phase-name-list"></div>
-                        <div class="col-md-4"><label class="form-label">Tiempo</label><input v-model.trim="phase.time" class="form-control" maxlength="50"></div>
-                        <div class="col-12"><div class="session-phase-field"><SoccerFieldDiagramEditor v-model="phase.diagram" /></div></div>
-                        <div class="col-md-6"><label class="form-label">Dosificación</label><textarea v-model.trim="phase.dosage" class="form-control" rows="4"></textarea></div>
-                        <div class="col-md-6"><label class="form-label">Descripción</label><textarea v-model.trim="phase.description" class="form-control" rows="4"></textarea></div>
+                    <h6>Fase {{ index + 1 }}</h6><div class="session-phase-layout">
+                        <div class="session-phase-field"><SoccerFieldDiagramEditor v-model="phase.diagram" /></div>
+                        <div class="session-phase-fields">
+                            <div class="row g-3">
+                                <div class="col-md-8"><label class="form-label">Nombre *</label><input v-model.trim="phase.name" class="form-control" maxlength="100" list="session-planning-phase-name-list"></div>
+                                <div class="col-md-4"><label class="form-label">Tiempo</label><input v-model.trim="phase.time" class="form-control" maxlength="50"></div>
+                                <div class="col-12"><label class="form-label">Dosificación</label><textarea v-model.trim="phase.dosage" class="form-control" rows="5"></textarea></div>
+                                <div class="col-12"><label class="form-label">Descripción</label><textarea v-model.trim="phase.description" class="form-control" rows="6"></textarea></div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -97,8 +101,24 @@ onMounted(() => { modal.value = new window.bootstrap.Modal(modalRef.value, { bac
 </script>
 
 <style scoped>
+.session-phase-layout {
+    display: grid;
+    grid-template-columns: minmax(360px, 640px) minmax(280px, 1fr);
+    gap: 1rem;
+    align-items: start;
+}
+
 .session-phase-field {
-    width: min(100%, 820px);
-    margin-inline: auto;
+    width: 100%;
+}
+
+.session-phase-fields {
+    min-width: 0;
+}
+
+@media (max-width: 991.98px) {
+    .session-phase-layout {
+        grid-template-columns: 1fr;
+    }
 }
 </style>

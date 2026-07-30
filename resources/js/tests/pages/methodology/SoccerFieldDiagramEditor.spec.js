@@ -9,6 +9,17 @@ function latestModelValue(wrapper) {
 }
 
 describe('SoccerFieldDiagramEditor', () => {
+    it('supports a compact size variant', () => {
+        const wrapper = mount(SoccerFieldDiagramEditor, {
+            props: {
+                modelValue: [],
+                size: 'compact',
+            },
+        })
+
+        expect(wrapper.find('.field-editor').classes()).toContain('field-editor--compact')
+    })
+
     it('adds, moves, edits and deletes field items', async () => {
         const wrapper = mount(SoccerFieldDiagramEditor, {
             props: {

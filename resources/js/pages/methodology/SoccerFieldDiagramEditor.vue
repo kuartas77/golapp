@@ -1,5 +1,5 @@
 <template>
-    <div class="field-editor">
+    <div class="field-editor" :class="`field-editor--${size}`">
         <div class="field-drawing-tools" role="toolbar" aria-label="Herramientas de dibujo libre">
             <button
                 v-for="mode in interactionModes"
@@ -131,6 +131,11 @@ const props = defineProps({
     modelValue: {
         type: Array,
         default: () => [],
+    },
+    size: {
+        type: String,
+        default: 'default',
+        validator: (value) => ['default', 'compact'].includes(value),
     },
 })
 
@@ -540,6 +545,10 @@ function normalizeRotation(rotation) {
     gap: 0.75rem;
 }
 
+.field-editor--compact {
+    gap: 0.5rem;
+}
+
 :global(.dark) .field-editor,
 :global(body.dark) .field-editor {
     --field-editor-border: #{color_variables.$m-color_12};
@@ -587,6 +596,11 @@ function normalizeRotation(rotation) {
     padding: 0.5rem 0.65rem;
 }
 
+.field-editor--compact .field-mode-help {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.5rem;
+}
+
 .field-text-input {
     color: var(--field-editor-label);
     max-width: 280px;
@@ -630,6 +644,11 @@ function normalizeRotation(rotation) {
     border-radius: 6px;
     background: var(--field-grass);
     touch-action: none;
+}
+
+.field-editor--compact .soccer-field {
+    max-height: 230px;
+    min-height: 130px;
 }
 
 .field-border,
