@@ -195,6 +195,64 @@ describe('SoccerFieldDiagramEditor', () => {
             { type: 'pass', x: 70, y: 21 },
         ])
     })
+
+    it('draws freehand strokes and erases only pencil strokes', async () => {
+        const wrapper = mount(SoccerFieldDiagramEditor, {
+            props: {
+                modelValue: [],
+            },
+        })
+        const svg = wrapper.find('svg').element
+        let projectedPoint = { x: 12, y: 14 }
+        svg.createSVGPoint = () => ({
+            x: 0,
+            y: 0,
+            matrixTransform() {
+                return projectedPoint
+            },
+        })
+        svg.getScreenCTM = () => ({
+            inverse() {
+                return {}
+            },
+        })
+        svg.setPointerCapture = () => {}
+
+        await wrapper.findAll('button').find((button) => button.text().includes('Lápiz')).trigger('click')
+        wrapper.find('svg').element.dispatchEvent(makePointerEvent('pointerdown', { pointerId: 1, clientX: 12, clientY: 14 }))
+        await nextTick()
+        let value = latestModelValue(wrapper)
+
+        expect(value[0]).toEqual(expect.objectContaining({
+            type: 'freehand',
+            points: [{ x: 12, y: 14 }],
+        }))
+
+        await wrapper.setProps({ modelValue: value })
+        projectedPoint = { x: 18, y: 20 }
+        wrapper.find('svg').element.dispatchEvent(makePointerEvent('pointermove', { pointerId: 1, clientX: 18, clientY: 20 }))
+        await nextTick()
+        value = latestModelValue(wrapper)
+
+        expect(value[0]).toEqual(expect.objectContaining({
+            type: 'freehand',
+            points: [{ x: 12, y: 14 }, { x: 18, y: 20 }],
+        }))
+
+        await wrapper.setProps({
+            modelValue: [
+                value[0],
+                { id: 'player-one', type: 'player', x: 18, y: 20 },
+            ],
+        })
+        await wrapper.findAll('button').find((button) => button.text().includes('Borrador')).trigger('click')
+        wrapper.find('svg').element.dispatchEvent(makePointerEvent('pointerdown', { pointerId: 2, clientX: 18, clientY: 20 }))
+        await nextTick()
+
+        expect(latestModelValue(wrapper)).toEqual([
+            { id: 'player-one', type: 'player', x: 18, y: 20 },
+        ])
+    })
 })
 
 function makePointerEvent(name, values = {}) {

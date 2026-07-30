@@ -87,14 +87,15 @@ final class TrainingSessionsTest extends TestCase
             ...$school->getResolvedSchoolPermissions(), 'school.module.session_planning' => true,
         ])])->save();
         $group = $this->createTrainingGroup($school->id, $this->user, suffix: 'Símbolos');
-        $symbols = ['player_token', 'hoop', 'pass', 'dribble', 'off_ball_run', 'cross'];
+        $symbols = ['player_token', 'hoop', 'pass', 'dribble', 'off_ball_run', 'cross', 'freehand'];
         $phases = [[
             'name' => 'Símbolos',
             'diagram' => collect($symbols)->map(fn ($type, $index) => [
                 'id' => "symbol{$index}",
                 'type' => $type,
-                'x' => 50,
-                'y' => 32,
+                ...($type === 'freehand'
+                    ? ['points' => [['x' => 12, 'y' => 14], ['x' => 18, 'y' => 20]]]
+                    : ['x' => 50, 'y' => 32]),
                 'label' => $type === 'player_token' ? '9' : '',
                 'color' => $type === 'player_token' ? 'red' : 'blue',
                 'rotation' => 45,

@@ -38,6 +38,14 @@
             $tokenTextX = $x + ($tokenLength === 1 ? 1.2 : ($tokenLength === 2 ? 1.55 : 0.4));
             $tokenTextY = $y + ($tokenLength <= 2 ? 1.15 : 0.95);
             $tokenLongTextY = $y > 56 ? $y - 4.6 : $y + 5.6;
+            $points = collect(data_get($item, 'points', []))
+                ->filter(fn ($point) => is_array($point) && is_numeric(data_get($point, 'x')) && is_numeric(data_get($point, 'y')))
+                ->map(fn ($point) => [
+                    'x' => $number(data_get($point, 'x'), 50),
+                    'y' => max(0, min(64, (float) data_get($point, 'y'))),
+                ])
+                ->values();
+            $freehandPath = $points->map(fn ($point, $index) => ($index === 0 ? 'M' : 'L') . " {$point['x']} {$point['y']}")->implode(' ');
         @endphp
 
         @if($type === 'cone')
@@ -81,6 +89,8 @@
         @elseif($type === 'xmark')
             <line x1="{{ $x - 1.2 }}" y1="{{ $y - 1.2 }}" x2="{{ $x + 1.2 }}" y2="{{ $y + 1.2 }}" stroke="#111827" stroke-width="1.05" stroke-linecap="round" />
             <line x1="{{ $x + 1.2 }}" y1="{{ $y - 1.2 }}" x2="{{ $x - 1.2 }}" y2="{{ $y + 1.2 }}" stroke="#111827" stroke-width="1.05" stroke-linecap="round" />
+        @elseif($type === 'freehand' && $freehandPath !== '')
+            <path d="{{ $freehandPath }}" fill="none" stroke="#111827" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" />
         @elseif($type === 'text')
             <text x="{{ $x }}" y="{{ $y }}" fill="#111827" font-size="4" font-weight="700" dominant-baseline="middle" text-anchor="middle">{{ $label !== '' ? $label : 'Texto' }}</text>
         @else

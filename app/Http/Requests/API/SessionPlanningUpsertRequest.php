@@ -21,6 +21,7 @@ class SessionPlanningUpsertRequest extends FormRequest
         'dribble',
         'off_ball_run',
         'cross',
+        'freehand',
         'xmark',
         'text',
     ];
@@ -60,8 +61,11 @@ class SessionPlanningUpsertRequest extends FormRequest
             'phases.*.description' => ['nullable', 'string'],
             'phases.*.diagram' => ['nullable', 'array'],
             'phases.*.diagram.*.type' => ['required', Rule::in(self::DIAGRAM_TYPES)],
-            'phases.*.diagram.*.x' => ['required', 'numeric', 'between:0,100'],
-            'phases.*.diagram.*.y' => ['required', 'numeric', 'between:0,64'],
+            'phases.*.diagram.*.x' => ['nullable', 'numeric', 'between:0,100'],
+            'phases.*.diagram.*.y' => ['nullable', 'numeric', 'between:0,64'],
+            'phases.*.diagram.*.points' => ['nullable', 'array'],
+            'phases.*.diagram.*.points.*.x' => ['required_with:phases.*.diagram.*.points', 'numeric', 'between:0,100'],
+            'phases.*.diagram.*.points.*.y' => ['required_with:phases.*.diagram.*.points', 'numeric', 'between:0,64'],
         ];
     }
 

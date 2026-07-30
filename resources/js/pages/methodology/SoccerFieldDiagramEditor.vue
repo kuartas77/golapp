@@ -1,6 +1,24 @@
 <template>
     <div class="field-editor">
-        <div class="field-toolbar" role="toolbar" aria-label="Herramientas de cancha">
+        <div class="field-drawing-tools" role="toolbar" aria-label="Herramientas de dibujo libre">
+            <button
+                v-for="mode in interactionModes"
+                :key="mode.key"
+                type="button"
+                class="btn btn-sm"
+                :class="activeMode === mode.key ? 'btn-primary' : 'btn-outline-primary'"
+                @click="setActiveMode(mode.key)"
+            >
+                <i :class="mode.icon" aria-hidden="true"></i>
+                <span>{{ mode.label }}</span>
+            </button>
+        </div>
+
+        <div class="field-mode-help" role="status">
+            {{ activeModeHelp }}
+        </div>
+
+        <div class="field-toolbar" role="toolbar" aria-label="Figuras y simbología de cancha">
             <button
                 v-for="tool in tools"
                 :key="tool.key"
@@ -40,9 +58,10 @@
             viewBox="0 0 100 64"
             role="img"
             aria-label="Cancha editable"
+            @pointerdown="handleCanvasPointerDown"
             @pointermove="moveSelected"
-            @pointerup="stopDrag"
-            @pointerleave="stopDrag"
+            @pointerup="stopCanvasInteraction"
+            @pointerleave="stopCanvasInteraction"
         >
             <rect x="1" y="1" width="98" height="62" rx="1.5" class="field-border" />
             <line x1="50" y1="1" x2="50" y2="63" class="field-line" />
@@ -61,8 +80,8 @@
                 class="field-item"
                 :class="{ selected: itemKey(item, index) === selectedKey }"
                 tabindex="0"
-                @pointerdown.stop="startDrag(item, index, $event)"
-                @click.stop="selectedKey = itemKey(item, index)"
+                @pointerdown.stop="handleItemPointerDown(item, index, $event)"
+                @click.stop="selectItem(item, index)"
             >
                 <circle v-if="item.type === 'player'" :cx="item.x" :cy="item.y" r="2.8" class="player" :style="{ fill: itemColor(item) }" />
                 <g v-else-if="item.type === 'player_token'">
@@ -96,6 +115,7 @@
                     <line :x1="item.x - 1.2" :y1="item.y - 1.2" :x2="item.x + 1.2" :y2="item.y + 1.2" class="xmark-line" />
                     <line :x1="item.x + 1.2" :y1="item.y - 1.2" :x2="item.x - 1.2" :y2="item.y + 1.2" class="xmark-line" />
                 </g>
+                <path v-else-if="item.type === 'freehand'" :d="freehandPath(item)" class="freehand-line" />
                 <text v-else :x="item.x" :y="item.y" class="field-label">{{ item.label || 'Texto' }}</text>
             </g>
         </svg>
@@ -117,6 +137,9 @@ const emit = defineEmits(['update:modelValue'])
 const svgRef = ref(null)
 const selectedKey = ref(null)
 const dragState = ref(null)
+const activeMode = ref('select')
+const drawingState = ref(null)
+const erasingState = ref(null)
 
 const colorPalette = {
     blue: '#2563eb',
@@ -127,6 +150,12 @@ const colorPalette = {
 }
 
 const directionalTypes = ['arrow', 'pass', 'dribble', 'off_ball_run', 'cross']
+
+const interactionModes = [
+    { key: 'select', label: 'Seleccionar', icon: 'fa fa-mouse-pointer fa-width-auto' },
+    { key: 'pencil', label: 'Lápiz', icon: 'fa fa-pencil fa-width-auto' },
+    { key: 'eraser', label: 'Borrador', icon: 'fa fa-eraser fa-width-auto' },
+]
 
 const tools = [
     { key: 'player', type: 'player', label: 'Jugador', icon: 'fa fa-user fa-width-auto', color: 'blue' },
@@ -153,6 +182,11 @@ const items = computed({
 const selectedItem = computed(() => items.value.find((item, index) => itemKey(item, index) === selectedKey.value))
 const selectedItemAllowsLabel = computed(() => ['player_token', 'text'].includes(selectedItem.value?.type))
 const selectedItemIsDirectional = computed(() => directionalTypes.includes(selectedItem.value?.type))
+const activeModeHelp = computed(() => ({
+    select: 'Selecciona y arrastra figuras. El botón Eliminar quita la figura seleccionada.',
+    pencil: 'Dibuja trazos libres sobre la cancha. Los trazos se guardan con la planificación.',
+    eraser: 'Borra trazos completos hechos con el lápiz al tocarlos; no borra partes del trazo ni elimina jugadores, flechas, fichas o texto.',
+})[activeMode.value])
 
 function itemKey(item, index) {
     return item.id ?? `item-${index}`
@@ -163,6 +197,8 @@ function makeId() {
 }
 
 function addItem(tool) {
+    setActiveMode('select')
+
     const item = {
         id: makeId(),
         type: tool.type,
@@ -175,6 +211,17 @@ function addItem(tool) {
 
     items.value = [...items.value, item]
     selectedKey.value = item.id
+}
+
+function setActiveMode(mode) {
+    activeMode.value = mode
+    dragState.value = null
+    drawingState.value = null
+    erasingState.value = null
+
+    if (mode !== 'select') {
+        selectedKey.value = null
+    }
 }
 
 function removeSelected() {
@@ -202,6 +249,42 @@ function rotateSelectedDirectional(delta) {
     })
 }
 
+function handleCanvasPointerDown(event) {
+    if (activeMode.value === 'pencil') {
+        startFreehand(event)
+        return
+    }
+
+    if (activeMode.value === 'eraser') {
+        startErasing(event)
+        return
+    }
+
+    selectedKey.value = null
+}
+
+function handleItemPointerDown(item, index, event) {
+    if (activeMode.value === 'pencil') {
+        startFreehand(event)
+        return
+    }
+
+    if (activeMode.value === 'eraser') {
+        startErasing(event)
+        return
+    }
+
+    startDrag(item, index, event)
+}
+
+function selectItem(item, index) {
+    if (activeMode.value !== 'select') {
+        return
+    }
+
+    selectedKey.value = itemKey(item, index)
+}
+
 function startDrag(item, index, event) {
     const key = itemKey(item, index)
 
@@ -214,22 +297,100 @@ function startDrag(item, index, event) {
 }
 
 function moveSelected(event) {
+    if (drawingState.value) {
+        updateFreehand(event)
+        return
+    }
+
+    if (erasingState.value) {
+        eraseFreehandAtEvent(event)
+        return
+    }
+
     if (!dragState.value || !svgRef.value) {
         return
     }
 
-    const point = svgRef.value.createSVGPoint()
-    point.x = event.clientX
-    point.y = event.clientY
-    const svgPoint = point.matrixTransform(svgRef.value.getScreenCTM().inverse())
-    const x = Math.min(97, Math.max(3, Number(svgPoint.x.toFixed(2))))
-    const y = Math.min(61, Math.max(3, Number(svgPoint.y.toFixed(2))))
+    const { x, y } = eventPoint(event)
 
     items.value = items.value.map((item, index) => itemKey(item, index) === dragState.value.key ? { ...item, x, y } : item)
 }
 
-function stopDrag() {
+function stopCanvasInteraction() {
     dragState.value = null
+    drawingState.value = null
+    erasingState.value = null
+}
+
+function startFreehand(event) {
+    if (!svgRef.value) {
+        return
+    }
+
+    const point = eventPoint(event)
+    const item = {
+        id: makeId(),
+        type: 'freehand',
+        points: [point],
+        color: 'black',
+        strokeWidth: 1.1,
+    }
+
+    selectedKey.value = null
+    items.value = [...items.value, item]
+    drawingState.value = { key: item.id, pointerId: event.pointerId }
+    svgRef.value.setPointerCapture?.(event.pointerId)
+}
+
+function updateFreehand(event) {
+    if (!drawingState.value || !svgRef.value) {
+        return
+    }
+
+    const point = eventPoint(event)
+
+    items.value = items.value.map((item, index) => {
+        if (itemKey(item, index) !== drawingState.value.key || item.type !== 'freehand') {
+            return item
+        }
+
+        const points = Array.isArray(item.points) ? item.points : []
+        const lastPoint = points.at(-1)
+
+        if (lastPoint && distanceBetween(lastPoint, point) < 0.45) {
+            return item
+        }
+
+        return { ...item, points: [...points, point] }
+    })
+}
+
+function eraseFreehandAtEvent(event) {
+    if (!svgRef.value) {
+        return
+    }
+
+    const point = eventPoint(event)
+    items.value = items.value.filter((item) => item.type !== 'freehand' || !freehandContainsPoint(item, point))
+}
+
+function startErasing(event) {
+    erasingState.value = { pointerId: event.pointerId }
+    selectedKey.value = null
+    svgRef.value?.setPointerCapture?.(event.pointerId)
+    eraseFreehandAtEvent(event)
+}
+
+function eventPoint(event) {
+    const point = svgRef.value.createSVGPoint()
+    point.x = event.clientX
+    point.y = event.clientY
+    const svgPoint = point.matrixTransform(svgRef.value.getScreenCTM().inverse())
+
+    return {
+        x: Math.min(97, Math.max(3, Number(svgPoint.x.toFixed(2)))),
+        y: Math.min(61, Math.max(3, Number(svgPoint.y.toFixed(2)))),
+    }
 }
 
 function conePath(item) {
@@ -265,6 +426,53 @@ function dribblePoints(item) {
 
 function crossPath(item) {
     return `M ${item.x - 5} ${item.y + 3} Q ${item.x - 0.8} ${item.y - 4.3} ${item.x + 4.1} ${item.y - 3}`
+}
+
+function freehandPath(item) {
+    const points = Array.isArray(item.points) ? item.points : []
+
+    if (!points.length) {
+        return ''
+    }
+
+    return points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
+}
+
+function freehandContainsPoint(item, point) {
+    const points = Array.isArray(item.points) ? item.points : []
+
+    if (points.length === 1) {
+        return distanceBetween(points[0], point) <= 2.2
+    }
+
+    return points.some((currentPoint, index) => {
+        if (index === 0) {
+            return false
+        }
+
+        return distanceToSegment(point, points[index - 1], currentPoint) <= 2.2
+    })
+}
+
+function distanceBetween(a, b) {
+    return Math.hypot(a.x - b.x, a.y - b.y)
+}
+
+function distanceToSegment(point, start, end) {
+    const segmentLength = distanceBetween(start, end)
+
+    if (segmentLength === 0) {
+        return distanceBetween(point, start)
+    }
+
+    const ratio = Math.max(0, Math.min(1, (
+        ((point.x - start.x) * (end.x - start.x)) + ((point.y - start.y) * (end.y - start.y))
+    ) / (segmentLength ** 2)))
+
+    return distanceBetween(point, {
+        x: start.x + (ratio * (end.x - start.x)),
+        y: start.y + (ratio * (end.y - start.y)),
+    })
 }
 
 function arrowTransform(item) {
@@ -326,10 +534,27 @@ function normalizeRotation(rotation) {
     gap: 0.5rem;
 }
 
+.field-drawing-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.field-drawing-tools .btn,
 .field-toolbar .btn {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+}
+
+.field-mode-help {
+    background: var(--field-editor-surface);
+    border: 1px solid var(--field-editor-border);
+    border-radius: 6px;
+    color: var(--field-editor-label);
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    padding: 0.5rem 0.65rem;
 }
 
 .field-text-input {
@@ -408,6 +633,7 @@ function normalizeRotation(rotation) {
 .field-item.selected .arrow-line,
 .field-item.selected .tactical-line,
 .field-item.selected .xmark-line,
+.field-item.selected .freehand-line,
 .field-item.selected .field-label,
 .field-item.selected .player-token-label {
     filter: drop-shadow(0 0 1.8px var(--field-selected-shadow));
@@ -457,6 +683,14 @@ function normalizeRotation(rotation) {
 
 .tactical-head {
     stroke: none;
+}
+
+.freehand-line {
+    fill: none;
+    stroke: var(--field-ball-color);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.1;
 }
 
 .xmark-line {
