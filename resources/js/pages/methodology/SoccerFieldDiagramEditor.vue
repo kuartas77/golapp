@@ -11,7 +11,7 @@
                 <i :class="tool.icon" aria-hidden="true"></i>
                 <span>{{ tool.label }}</span>
             </button>
-            <button type="button" class="btn btn-danger btn-sm" :disabled="!selectedId" @click="removeSelected">
+            <button type="button" class="btn btn-danger btn-sm" :disabled="!selectedKey" @click="removeSelected">
                 <i class="fa fa-trash fa-width-auto" aria-hidden="true"></i>
                 <span>Eliminar</span>
             </button>
@@ -56,13 +56,13 @@
             <circle cx="89" cy="32" r="1" class="field-dot" />
 
             <g
-                v-for="item in items"
-                :key="item.id"
+                v-for="(item, index) in items"
+                :key="itemKey(item, index)"
                 class="field-item"
-                :class="{ selected: item.id === selectedId }"
+                :class="{ selected: itemKey(item, index) === selectedKey }"
                 tabindex="0"
-                @pointerdown.stop="startDrag(item, $event)"
-                @click.stop="selectedId = item.id"
+                @pointerdown.stop="startDrag(item, index, $event)"
+                @click.stop="selectedKey = itemKey(item, index)"
             >
                 <circle v-if="item.type === 'player'" :cx="item.x" :cy="item.y" r="2.8" class="player" :style="{ fill: itemColor(item) }" />
                 <g v-else-if="item.type === 'player_token'">
@@ -115,7 +115,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const svgRef = ref(null)
-const selectedId = ref(null)
+const selectedKey = ref(null)
 const dragState = ref(null)
 
 const colorPalette = {
@@ -150,9 +150,13 @@ const items = computed({
     set: (value) => emit('update:modelValue', value),
 })
 
-const selectedItem = computed(() => items.value.find((item) => item.id === selectedId.value))
+const selectedItem = computed(() => items.value.find((item, index) => itemKey(item, index) === selectedKey.value))
 const selectedItemAllowsLabel = computed(() => ['player_token', 'text'].includes(selectedItem.value?.type))
 const selectedItemIsDirectional = computed(() => directionalTypes.includes(selectedItem.value?.type))
+
+function itemKey(item, index) {
+    return item.id ?? `item-${index}`
+}
 
 function makeId() {
     return `${Date.now()}-${Math.random().toString(16).slice(2)}`
@@ -170,24 +174,24 @@ function addItem(tool) {
     }
 
     items.value = [...items.value, item]
-    selectedId.value = item.id
+    selectedKey.value = item.id
 }
 
 function removeSelected() {
-    items.value = items.value.filter((item) => item.id !== selectedId.value)
-    selectedId.value = null
+    items.value = items.value.filter((item, index) => itemKey(item, index) !== selectedKey.value)
+    selectedKey.value = null
 }
 
 function updateSelectedLabel(event) {
-    items.value = items.value.map((item) => item.id === selectedId.value
+    items.value = items.value.map((item, index) => itemKey(item, index) === selectedKey.value
         ? { ...item, label: event.target.value }
         : item
     )
 }
 
 function rotateSelectedDirectional(delta) {
-    items.value = items.value.map((item) => {
-        if (item.id !== selectedId.value || !directionalTypes.includes(item.type)) {
+    items.value = items.value.map((item, index) => {
+        if (itemKey(item, index) !== selectedKey.value || !directionalTypes.includes(item.type)) {
             return item
         }
 
@@ -198,10 +202,12 @@ function rotateSelectedDirectional(delta) {
     })
 }
 
-function startDrag(item, event) {
-    selectedId.value = item.id
+function startDrag(item, index, event) {
+    const key = itemKey(item, index)
+
+    selectedKey.value = key
     dragState.value = {
-        id: item.id,
+        key,
         pointerId: event.pointerId,
     }
     event.currentTarget.setPointerCapture?.(event.pointerId)
@@ -219,7 +225,7 @@ function moveSelected(event) {
     const x = Math.min(97, Math.max(3, Number(svgPoint.x.toFixed(2))))
     const y = Math.min(61, Math.max(3, Number(svgPoint.y.toFixed(2))))
 
-    items.value = items.value.map((item) => item.id === dragState.value.id ? { ...item, x, y } : item)
+    items.value = items.value.map((item, index) => itemKey(item, index) === dragState.value.key ? { ...item, x, y } : item)
 }
 
 function stopDrag() {

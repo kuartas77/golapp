@@ -161,6 +161,40 @@ describe('SoccerFieldDiagramEditor', () => {
 
         expect(latestModelValue(wrapper).map((item) => item.type)).toEqual(['pass', 'dribble', 'off_ball_run'])
     })
+
+    it('moves only the selected item when loaded diagram items do not have ids', async () => {
+        const wrapper = mount(SoccerFieldDiagramEditor, {
+            props: {
+                modelValue: [
+                    { type: 'arrow', x: 26.66, y: 10.17 },
+                    { type: 'pass', x: 30.57, y: 31.99 },
+                ],
+            },
+        })
+
+        const svg = wrapper.find('svg').element
+        svg.createSVGPoint = () => ({
+            x: 0,
+            y: 0,
+            matrixTransform() {
+                return { x: 70, y: 21 }
+            },
+        })
+        svg.getScreenCTM = () => ({
+            inverse() {
+                return {}
+            },
+        })
+
+        wrapper.findAll('.field-item')[1].element.dispatchEvent(makePointerEvent('pointerdown', { pointerId: 1 }))
+        wrapper.find('svg').element.dispatchEvent(makePointerEvent('pointermove', { clientX: 70, clientY: 21 }))
+        await nextTick()
+
+        expect(latestModelValue(wrapper)).toEqual([
+            { type: 'arrow', x: 26.66, y: 10.17 },
+            { type: 'pass', x: 70, y: 21 },
+        ])
+    })
 })
 
 function makePointerEvent(name, values = {}) {
