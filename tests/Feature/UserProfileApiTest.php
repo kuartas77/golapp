@@ -10,6 +10,14 @@ use Tests\TestCase;
 
 final class UserProfileApiTest extends TestCase
 {
+    public function test_profile_array_does_not_require_legacy_show_route(): void
+    {
+        $payload = $this->user->profile->toArray();
+
+        $this->assertArrayHasKey('url_update', $payload);
+        $this->assertArrayNotHasKey('url_show', $payload);
+    }
+
     public function test_authenticated_user_can_view_own_profile(): void
     {
         $this->user->profile()->update([

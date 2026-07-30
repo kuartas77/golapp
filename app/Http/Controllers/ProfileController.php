@@ -26,7 +26,7 @@ class ProfileController extends Controller
             return view('profile.show');
         }
         Alert::error(config('app.name'), __('messages.denied'));
-        return redirect()->to(route('home'));
+        return redirect()->to('/');
     }
 
     /**
@@ -43,7 +43,7 @@ class ProfileController extends Controller
             return view('profile.edit');
         }
         Alert::error(config('app.name'), __('messages.denied'));
-        return redirect()->to(route('home'));
+        return redirect()->to('/');
     }
 
     /**
@@ -58,11 +58,11 @@ class ProfileController extends Controller
     {
         if (auth()->id() !== $profile->user_id) {
             Alert::error(config('app.name'), __('messages.denied'));
-            return redirect()->to(route('home'));
+            return redirect()->to('/');
         }
 
         $profile->fill($request->validated())->save();
         Alert::success(config('app.name'), __('messages.profile_save'));
-        return redirect()->to(route('profiles.show', [$profile->id]));
+        return redirect()->to('/perfil/usuario');
     }
 }

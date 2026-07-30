@@ -34,7 +34,7 @@ class Profile extends Model
         'school_id',
     ];
 
-    protected $appends = ['url_update', 'url_show'];
+    protected $appends = ['url_update'];
 
     public function user(): BelongsTo
     {
@@ -46,8 +46,4 @@ class Profile extends Model
         return route('profiles.update', [$this->attributes['id']]);
     }
 
-    public function getUrlShowAttribute(): string
-    {
-        return route('profiles.show', [$this->attributes['id']]);
-    }
 }
