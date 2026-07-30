@@ -307,6 +307,7 @@ describe('SoccerFieldDiagramEditor', () => {
         expect(value).toHaveLength(2)
         expect(value.map((item) => item.type)).toEqual(['freehand', 'freehand'])
         expect(value[1].points).toEqual([{ x: 22, y: 24 }])
+        expect(wrapper.find('.field-item--freehand').exists()).toBe(true)
     })
 })
 

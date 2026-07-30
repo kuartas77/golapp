@@ -64,6 +64,7 @@
             @pointerleave="stopCanvasInteraction"
             @pointercancel="stopCanvasInteraction"
             @lostpointercapture="stopCanvasInteraction"
+            @dragstart.prevent
         >
             <rect x="1" y="1" width="98" height="62" rx="1.5" class="field-border" />
             <line x1="50" y1="1" x2="50" y2="63" class="field-line" />
@@ -80,7 +81,7 @@
                 v-for="(item, index) in items"
                 :key="itemKey(item, index)"
                 class="field-item"
-                :class="{ selected: itemKey(item, index) === selectedKey }"
+                :class="{ selected: itemKey(item, index) === selectedKey, 'field-item--freehand': item.type === 'freehand' }"
                 tabindex="0"
                 @pointerdown.stop="handleItemPointerDown(item, index, $event)"
                 @click.stop="selectItem(item, index)"
@@ -257,6 +258,8 @@ function rotateSelectedDirectional(delta) {
 }
 
 function handleCanvasPointerDown(event) {
+    event.preventDefault()
+
     if (activeMode.value === 'pencil') {
         startFreehand(event)
         return
@@ -271,6 +274,8 @@ function handleCanvasPointerDown(event) {
 }
 
 function handleItemPointerDown(item, index, event) {
+    event.preventDefault()
+
     if (activeMode.value === 'pencil') {
         startFreehand(event)
         return
@@ -293,6 +298,8 @@ function selectItem(item, index) {
 }
 
 function startDrag(item, index, event) {
+    event.preventDefault()
+
     const key = itemKey(item, index)
 
     selectedKey.value = key
@@ -305,6 +312,8 @@ function startDrag(item, index, event) {
 
 function moveSelected(event) {
     if (drawingState.value) {
+        event.preventDefault()
+
         if (!isPointerActive(event)) {
             stopCanvasInteraction(event)
             return
@@ -315,6 +324,8 @@ function moveSelected(event) {
     }
 
     if (erasingState.value) {
+        event.preventDefault()
+
         if (!isPointerActive(event)) {
             stopCanvasInteraction(event)
             return
@@ -327,6 +338,8 @@ function moveSelected(event) {
     if (!dragState.value || !svgRef.value) {
         return
     }
+
+    event.preventDefault()
 
     const { x, y } = eventPoint(event)
 
@@ -345,6 +358,7 @@ function startFreehand(event) {
         return
     }
 
+    event.preventDefault()
     stopCanvasInteraction()
 
     const point = eventPoint(event)
@@ -395,6 +409,7 @@ function eraseFreehandAtEvent(event) {
 }
 
 function startErasing(event) {
+    event.preventDefault()
     stopCanvasInteraction()
     erasingState.value = { pointerId: event.pointerId }
     selectedKey.value = null
@@ -644,6 +659,8 @@ function normalizeRotation(rotation) {
     border-radius: 6px;
     background: var(--field-grass);
     touch-action: none;
+    user-select: none;
+    -webkit-user-drag: none;
 }
 
 .field-editor--compact .soccer-field {
@@ -672,6 +689,13 @@ function normalizeRotation(rotation) {
 .field-item {
     cursor: grab;
     outline: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.field-item--freehand {
+    cursor: crosshair;
+    pointer-events: none;
 }
 
 .field-item.selected .player,
