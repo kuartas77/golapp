@@ -31,6 +31,7 @@
             </ul>
 
             <div data-tour="methodology-table"><DatatableTemplate
+                v-if="filtersReady"
                 ref="table"
                 id="methodology-records-table"
                 :options="options"
@@ -110,7 +111,8 @@
                         </button>
                     </div>
                 </template>
-            </DatatableTemplate></div>
+            </DatatableTemplate>
+            <div v-else class="text-center py-4 text-muted">Cargando filtros...</div></div>
         </template>
     </panel>
     <PageTutorialOverlay :tutorial="tutorial" />
@@ -521,6 +523,7 @@ import CustomSelect2 from '@/components/form/CustomSelect2.vue'
 import { usePageTitle } from '@/composables/use-meta'
 import { useAppState } from '@/store/app-state'
 import { useAuthUser } from '@/store/auth-user'
+import { useSetting } from '@/store/settings-store'
 import api from '@/utils/axios'
 import configLanguaje from '@/utils/datatableUtils'
 import SoccerFieldDiagramEditor from './SoccerFieldDiagramEditor.vue'
@@ -538,13 +541,14 @@ const tutorial = usePageTutorial(methodologyTutorial)
 
 const appState = useAppState()
 const authUser = useAuthUser()
+const settings = useSetting()
 const modalRef = ref(null)
 const modalInstance = ref(null)
 const table = useTemplateRef('table')
 const activeType = ref(METHODOLOGY_TYPES.planning)
 const groupOptions = ref([])
 const creatorOptions = ref([])
-const trainingGroupFilterOptions = ref([])
+const filtersReady = ref(false)
 const creatorFilter = ref('')
 const trainingGroupFilter = ref('')
 const isSaving = ref(false)
@@ -560,6 +564,25 @@ const form = reactive({
 
 const activeTab = computed(() => getTabByType(activeType.value))
 const authenticatedUserName = computed(() => authUser.user?.name ?? '')
+const trainingGroupFilterOptions = computed(() => {
+    const source = [
+        ...(settings.normal_training_groups || []),
+        ...(settings.complementary_training_groups || []),
+    ]
+    const groups = source.length ? source : (settings.all_groups || settings.groups || [])
+    const uniqueGroups = new Map()
+
+    groups.forEach((group) => {
+        if (group?.name) {
+            uniqueGroups.set(group.name, {
+                value: group.name,
+                label: group.full_schedule_group ?? group.full_group ?? group.name,
+            })
+        }
+    })
+
+    return Array.from(uniqueGroups.values())
+})
 const fieldGroups = computed(() => {
     const groups = methodologyFieldGroups[activeType.value] ?? []
 
@@ -632,8 +655,6 @@ const options = {
                 recordsTotal: response.data.recordsTotal ?? 0,
                 recordsFiltered: response.data.recordsFiltered ?? 0,
             })
-
-            updateFilterOptions(response.data.filters)
         } catch {
             callback(emptyDataTableResponse(data.draw))
         }
@@ -807,6 +828,15 @@ async function loadGroups() {
     }
 }
 
+async function loadFilterOptions() {
+    try {
+        const response = await api.get('/api/v2/methodology-records/filters')
+        updateFilterOptions(response.data.data ?? {})
+    } catch {
+        updateFilterOptions()
+    }
+}
+
 async function selectType(type) {
     activeType.value = type
     selectedId.value = null
@@ -926,21 +956,20 @@ onMounted(async () => {
 
     await authUser.init({ silent: true, preserveStateOnError: true })
     resetForm()
-    await loadGroups()
+    await Promise.all([
+        settings.getSettings(),
+        loadGroups(),
+        loadFilterOptions(),
+    ])
+    filtersReady.value = true
 })
 
 function updateFilterOptions(filters = {}) {
     const creators = filters.creators ?? []
-    const trainingGroups = filters.training_groups ?? []
 
     creatorOptions.value = creators.map((creator) => ({
         value: creator.value,
         label: creator.label,
-    }))
-
-    trainingGroupFilterOptions.value = trainingGroups.map((group) => ({
-        value: group.value,
-        label: group.label,
     }))
 }
 

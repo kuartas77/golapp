@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\API\MethodologyRecordRequest;
 use App\Models\MethodologyRecord;
 use App\Repositories\MethodologyRecordRepository;
+use App\Service\DataTables\MethodologyDataTableService;
 use App\Service\InstructorPeriodEditPolicy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -74,6 +75,13 @@ class MethodologyRecordController extends Controller
 
         return response()->json([
             'message' => 'Registro metodológico eliminado correctamente.',
+        ]);
+    }
+
+    public function filters(MethodologyDataTableService $dataTables): JsonResponse
+    {
+        return response()->json([
+            'data' => $dataTables->filters(),
         ]);
     }
 

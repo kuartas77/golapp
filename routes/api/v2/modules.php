@@ -140,6 +140,7 @@ Route::middleware('school.permission:school.module.session_planning')->prefix('s
 
 Route::middleware('school.permission:school.module.methodology')->prefix('methodology-records')->group(function () {
     Route::get('', [MethodologyRecordController::class, 'index']);
+    Route::get('filters', [MethodologyRecordController::class, 'filters']);
     Route::post('', [MethodologyRecordController::class, 'store']);
     Route::get('{methodologyRecord}', [MethodologyRecordController::class, 'show']);
     Route::put('{methodologyRecord}', [MethodologyRecordController::class, 'update']);

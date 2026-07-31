@@ -4,6 +4,7 @@ namespace App\Service\DataTables;
 
 use App\Models\MethodologyRecord;
 use App\Models\TrainingGroup;
+use App\Models\User;
 use App\Repositories\MethodologyRecordRepository;
 use App\Service\InstructorPeriodEditPolicy;
 use Illuminate\Http\JsonResponse;
@@ -28,18 +29,63 @@ class MethodologyDataTableService
             ->addColumn('period_locked', fn (MethodologyRecord $record) => !$this->periodPolicy->canMutateDate($this->recordDate($record)))
             ->addColumn('export_pdf_url', fn (MethodologyRecord $record) => route('methodology.records.pdf', ['id' => $record->id]))->toJson();
         $payload = $response->getData(true);
-        $payload['filters'] = $this->filters();
         return response()->json($payload);
     }
 
-    private function filters(): array
+    public function filters(): array
     {
-        $school = getSchool(auth()->user());
-        $creators = (isInstructor() ? collect([auth()->user()]) : $school->users()->select('users.name')->orderBy('users.name')->get())
-            ->pluck('name')->filter()->unique()->map(fn (string $name) => ['value' => $name, 'label' => $name])->values();
-        $groups = TrainingGroup::query()->schoolId()->select('name')->whereNotNull('name')->orderBy('name')->pluck('name')->unique()
-            ->map(fn (string $name) => ['value' => $name, 'label' => $name])->values();
+        $schoolId = (int) getSchool(auth()->user())->id;
+        $creators = $this->creatorFilters($schoolId);
+        $groups = TrainingGroup::query()
+            ->where('school_id', $schoolId)
+            ->select(['id', 'name', 'stage', 'days', 'schedules'])
+            ->whereNotNull('name')
+            ->orderBy('name')
+            ->get()
+            ->unique('name')
+            ->map(fn (TrainingGroup $group) => [
+                'value' => $group->name,
+                'label' => $group->full_schedule_group ?: $group->full_group ?: $group->name,
+            ])
+            ->values();
+
         return ['creators' => $creators, 'training_groups' => $groups];
+    }
+
+    private function creatorFilters(int $schoolId)
+    {
+        if (isInstructor()) {
+            return collect([auth()->user()?->name])
+                ->filter()
+                ->map(fn (string $name) => ['value' => $name, 'label' => $name])
+                ->values();
+        }
+
+        return User::query()
+            ->select('users.name')
+            ->whereNotNull('users.name')
+            ->where(function ($query) use ($schoolId) {
+                $query->where('users.school_id', $schoolId)
+                    ->orWhereExists(function ($exists) use ($schoolId) {
+                        $exists->selectRaw('1')
+                            ->from('schools_user')
+                            ->whereColumn('schools_user.user_id', 'users.id')
+                            ->where('schools_user.school_id', $schoolId);
+                    })
+                    ->orWhereExists(function ($exists) use ($schoolId) {
+                        $exists->selectRaw('1')
+                            ->from('methodology_records')
+                            ->whereColumn('methodology_records.user_id', 'users.id')
+                            ->where('methodology_records.school_id', $schoolId)
+                            ->whereNull('methodology_records.deleted_at');
+                    });
+            })
+            ->orderBy('users.name')
+            ->pluck('users.name')
+            ->filter()
+            ->unique()
+            ->map(fn (string $name) => ['value' => $name, 'label' => $name])
+            ->values();
     }
 
     private function recordDate(MethodologyRecord $record): ?string

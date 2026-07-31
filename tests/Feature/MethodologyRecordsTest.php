@@ -200,6 +200,55 @@ final class MethodologyRecordsTest extends TestCase
         $this->assertContains($recordB->id, $adminIds);
     }
 
+    public function test_methodology_filter_options_are_loaded_outside_datatable_rows(): void
+    {
+        $instructor = $this->createSchoolScopedUser((int) $this->school['id'], ['instructor'], 'methodology-filter-instructor@example.com');
+        $otherSchool = School::factory()->create([
+            'email' => 'methodology-filter-other@example.com',
+            'slug' => 'methodology-filter-other',
+        ]);
+        $otherInstructor = $this->createSchoolScopedUser($otherSchool->id, ['instructor'], 'methodology-filter-other-instructor@example.com');
+
+        TrainingGroup::query()->create([
+            'school_id' => $this->school['id'],
+            'name' => 'Sub 13',
+            'stage' => 'Avanzado',
+            'year' => now()->year,
+            'year_active' => now()->year,
+            'days' => 'Lunes',
+            'schedules' => '08:00 AM - 09:00 AM',
+        ]);
+        TrainingGroup::query()->create([
+            'school_id' => $otherSchool->id,
+            'name' => 'Oculto',
+            'year' => now()->year,
+            'year_active' => now()->year,
+        ]);
+
+        $this->createRecord((int) $this->school['id'], $instructor);
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/v2/methodology-records/filters')
+            ->assertOk();
+
+        $creatorLabels = collect($response->json('data.creators'))->pluck('label')->all();
+        $groupLabels = collect($response->json('data.training_groups'))->pluck('label')->all();
+
+        $this->assertContains($instructor->name, $creatorLabels);
+        $this->assertNotContains($otherInstructor->name, $creatorLabels);
+        $this->assertContains('Sub 13 - Avanzado', $groupLabels);
+        $this->assertNotContains('Oculto', $groupLabels);
+
+        $instructorResponse = $this->actingAs($instructor)
+            ->getJson('/api/v2/methodology-records/filters')
+            ->assertOk();
+
+        $this->assertSame(
+            [$instructor->name],
+            collect($instructorResponse->json('data.creators'))->pluck('label')->all(),
+        );
+    }
+
     public function test_non_planning_records_drop_diagrams(): void
     {
         $response = $this->actingAs($this->user)
