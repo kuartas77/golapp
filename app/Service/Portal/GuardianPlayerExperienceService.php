@@ -39,6 +39,7 @@ class GuardianPlayerExperienceService
                 'category' => $inscription['category'],
                 'training_group' => $inscription['training_group'],
                 'complementary_group' => $inscription['complementary_group'],
+                'complementary_groups' => $inscription['complementary_groups'] ?? [],
                 'stats' => $inscription['stats'],
             ] : null,
         ];

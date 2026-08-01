@@ -331,8 +331,30 @@ final class NotificationGuardianApiTest extends TestCase
 
     public function testGuardianCanFetchOwnedPlayerSportsSummary(): void
     {
-        [$guardian, $player, $inscription, , $trainingGroup] = $this->createGuardianScenario();
+        [$guardian, $player, $inscription, $school, $trainingGroup] = $this->createGuardianScenario();
         $trainingGroup->update(['name' => 'Sub 12 Mobile']);
+        $goalkeepersGroup = $school->trainingGroups()->create([
+            'name' => 'Porteros Mobile',
+            'year' => now()->year,
+            'year_active' => now()->year,
+            'category' => 'Todas las categorias',
+            'days' => 'Martes',
+            'schedules' => '08:00AM - 09:00AM',
+            'is_complementary' => true,
+        ]);
+        $finishingGroup = $school->trainingGroups()->create([
+            'name' => 'Definicion Mobile',
+            'year' => now()->year,
+            'year_active' => now()->year,
+            'category' => 'Todas las categorias',
+            'days' => 'Jueves',
+            'schedules' => '09:00AM - 10:00AM',
+            'is_complementary' => true,
+        ]);
+        $inscription->complementaryGroups()->sync([
+            $goalkeepersGroup->id => ['school_id' => $school->id],
+            $finishingGroup->id => ['school_id' => $school->id],
+        ]);
 
         Sanctum::actingAs($guardian, ['auth']);
 
@@ -343,9 +365,16 @@ final class NotificationGuardianApiTest extends TestCase
             ->assertJsonPath('data.full_names', $player->full_names)
             ->assertJsonPath('data.current_inscription.id', $inscription->id)
             ->assertJsonPath('data.current_inscription.training_group.name', 'Sub 12 Mobile')
+            ->assertJsonPath('data.current_inscription.complementary_groups.0.id', $goalkeepersGroup->id)
+            ->assertJsonPath('data.current_inscription.complementary_groups.0.name', 'Porteros Mobile')
+            ->assertJsonPath('data.current_inscription.complementary_groups.1.id', $finishingGroup->id)
+            ->assertJsonPath('data.current_inscription.complementary_groups.1.name', 'Definicion Mobile')
             ->assertJsonStructure([
                 'data' => [
                     'current_inscription' => [
+                        'complementary_groups' => [
+                            ['id', 'name'],
+                        ],
                         'stats' => [
                             'total_matches',
                             'assistance',
