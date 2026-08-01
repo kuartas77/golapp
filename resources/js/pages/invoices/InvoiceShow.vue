@@ -96,7 +96,49 @@
                     </div>
                 </div>
 
-                <!-- Payment request TODO: -->
+                <!-- Comprobantes de pago -->
+                <div v-if="paymentRequests.length > 0" class="card mb-4" data-tour="invoice-show-payment-requests">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fa fa-receipt"></i> Comprobantes de Pago</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Enviado en</th>
+                                        <th>Método</th>
+                                        <th>Referencia</th>
+                                        <th class="text-right">Monto</th>
+                                        <th class="text-center">Comprobante</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="paymentRequest in paymentRequests" :key="paymentRequest.id">
+                                        <td>{{ formatDate(paymentRequest.created_at) }}</td>
+                                        <td>
+                                            <span
+                                                :class="`badge badge-${getPaymentMethodClass(paymentRequest.payment_method)}`">
+                                                {{ getPaymentMethodLabel(paymentRequest.payment_method) }}
+                                            </span>
+                                        </td>
+                                        <td>{{ paymentRequest.reference_number || 'N/A' }}</td>
+                                        <td class="text-right">{{ moneyFormat(paymentRequest.amount) }}</td>
+                                        <td class="text-center">
+                                            <button
+                                                type="button"
+                                                class="btn btn-info btn-sm"
+                                                @click="openProofModal(paymentRequest)"
+                                            >
+                                                <i class="fa fa-image"></i> Ver
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Historial de pagos -->
                 <div v-if="invoice.payments?.length > 0" class="card" data-tour="invoice-show-history">
@@ -278,10 +320,25 @@
     </div>
 
     <PageTutorialOverlay :tutorial="tutorial" />
+
+    <div ref="proofModalElement" class="modal fade" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Referencia: {{ selectedProof.title || 'Comprobante' }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img :src="selectedProof.url" :alt="selectedProof.title || 'Comprobante de pago'"
+                        class="img-fluid rounded proof-image" />
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, reactive, watch } from 'vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { useRoute, useRouter } from 'vue-router'
@@ -311,6 +368,10 @@ const invoice = ref({ items: [], payments: [] })
 const loading = ref(true)
 const paymentLoading = ref(false)
 const canDelete = ref(true)
+const proofModalElement = ref(null)
+const selectedProof = ref({ url: '', title: '' })
+
+let proofModalInstance = null
 
 // Formulario de pago
 const payment = reactive({
@@ -330,6 +391,10 @@ const balance = computed(() => {
 
 const unpaidItems = computed(() => {
     return invoice.value.items?.filter(item => !item.is_paid) || []
+})
+
+const paymentRequests = computed(() => {
+    return invoice.value.payment_requests || invoice.value.paymentRequests || []
 })
 
 // Nuevo computed para calcular el monto basado en ítems seleccionados
@@ -450,6 +515,15 @@ const confirmDelete = async () => {
     });
 }
 
+const openProofModal = (paymentRequest) => {
+    selectedProof.value = {
+        url: paymentRequest.url_image,
+        title: paymentRequest.reference_number,
+    }
+
+    proofModalInstance?.show()
+}
+
 // Métodos de utilidad
 const formatDate = (dateString) => {
     return dayjs(dateString).format('YYYY-MM-DD')
@@ -525,7 +599,15 @@ const getPaymentMethodLabel = (method) => {
 
 // Cargar datos al montar
 onMounted(() => {
+    if (proofModalElement.value) {
+        proofModalInstance = new window.bootstrap.Modal(proofModalElement.value)
+    }
+
     loadInvoice()
+})
+
+onBeforeUnmount(() => {
+    proofModalInstance?.dispose()
 })
 
 // Watcher para actualizar automáticamente el monto cuando cambian los ítems seleccionados
@@ -537,5 +619,10 @@ watch(() => payment.paid_items, () => {
 <style scoped>
 .badge {
     font-size: 0.8em;
+}
+
+.proof-image {
+    max-height: 70vh;
+    object-fit: contain;
 }
 </style>

@@ -82,7 +82,14 @@ class InvoiceController extends Controller
 
     public function show($id)
     {
-        $invoice = Invoice::with(['items', 'payments.creator', 'inscription.player', 'trainingGroup', 'creator', 'paymentRequests'])
+        $invoice = Invoice::with([
+            'items',
+            'payments.creator',
+            'inscription.player',
+            'trainingGroup',
+            'creator',
+            'paymentRequests' => fn ($query) => $query->latest(),
+        ])
             ->schoolId()
             ->findOrFail($id);
 

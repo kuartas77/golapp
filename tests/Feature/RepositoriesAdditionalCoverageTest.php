@@ -963,8 +963,9 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         }
     }
 
-    public function testInvoiceShowIncludesPaymentHistoryCreator(): void
+    public function testInvoiceShowIncludesPaymentHistoryCreatorAndPaymentRequests(): void
     {
+        Storage::fake('public');
         $this->actingAs($this->user);
         [$inscription, , $trainingGroup] = $this->createInscriptionAndPayment();
 
@@ -983,6 +984,19 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'created_by' => $this->user->id,
         ]);
 
+        Storage::disk('public')->put('invoice_receipts/show-proof.jpg', 'proof-content');
+
+        $paymentRequest = PaymentRequest::query()->create([
+            'school_id' => $this->school['id'],
+            'invoice_id' => $invoice->id,
+            'player_id' => $inscription->player_id,
+            'amount' => 50000,
+            'description' => 'Comprobante visible',
+            'reference_number' => 'REQ-SHOW',
+            'payment_method' => 'transfer',
+            'image' => 'invoice_receipts/show-proof.jpg',
+        ]);
+
         PaymentReceived::query()->create([
             'invoice_id' => $invoice->id,
             'amount' => 50000,
@@ -997,7 +1011,11 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->getJson(route('invoices.show', $invoice->id))
             ->assertOk()
             ->assertJsonPath('payments.0.creator.id', $this->user->id)
-            ->assertJsonPath('payments.0.creator.name', $this->user->name);
+            ->assertJsonPath('payments.0.creator.name', $this->user->name)
+            ->assertJsonPath('payment_requests.0.reference_number', 'REQ-SHOW')
+            ->assertJsonPath('payment_requests.0.url_image', route('api.v2.notifications.payment-requests.proof', [
+                'paymentRequest' => $paymentRequest->id,
+            ]));
     }
 
     public function testStoreInvoicePersistsItemTotalsAndKeepsPendingStatus(): void
