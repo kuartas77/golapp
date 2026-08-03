@@ -661,7 +661,7 @@ const props = defineProps({
 });
 
 const FILE_FIELDS = ['photo', 'player_document', 'medical_certificate', 'tutor_document', 'payment_receipt'];
-const INSCRIPTION_SUBMISSION_TIMEOUT_MS = 60000;
+const INSCRIPTION_SUBMISSION_TIMEOUT_MS = 180000;
 const SIGNATURE_FIELDS = ['signatureTutor', 'signatureAlumno'];
 const PHOTO_FILE_EXTENSIONS = ['jpg', 'jpeg', 'png'];
 const PHOTO_FILE_MIME_TYPES = ['image/png', 'image/x-png', 'image/jpeg', 'image/pjpeg'];
@@ -1446,6 +1446,7 @@ const reportSubmissionError = async (error, submittedValues, elapsedMs) => {
             total_file_bytes: Object.values(fileSizes).reduce((total, size) => total + size, 0),
             timeout_ms: INSCRIPTION_SUBMISSION_TIMEOUT_MS,
             elapsed_ms: elapsedMs,
+            client_timed_out: error.code === 'ECONNABORTED' && elapsedMs >= INSCRIPTION_SUBMISSION_TIMEOUT_MS,
         });
     } catch (reportError) {
         // The original submission error remains the one shown to the user.

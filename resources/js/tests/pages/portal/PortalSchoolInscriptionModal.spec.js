@@ -709,7 +709,7 @@ describe('PortalSchoolInscriptionModal', () => {
 
         expect(storeUrl).toBe(props.endpoints.store);
         expect(requestConfig).toEqual({
-            timeout: 60000,
+            timeout: 180000,
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -781,8 +781,9 @@ describe('PortalSchoolInscriptionModal', () => {
             error_code: 'ERR_NETWORK',
             error_message: 'Network Error',
             total_file_bytes: 0,
-            timeout_ms: 60000,
+            timeout_ms: 180000,
             elapsed_ms: expect.any(Number),
+            client_timed_out: false,
         }));
         expect(apiMock.post.mock.calls[2][1]).not.toHaveProperty('form');
         expect(swalFireMock).toHaveBeenLastCalledWith(expect.objectContaining({

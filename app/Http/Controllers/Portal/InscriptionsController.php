@@ -66,6 +66,7 @@ class InscriptionsController extends Controller
             'error_message' => ['nullable', 'string', 'max:500'],
             'status' => ['nullable', 'integer', 'between:100,599'],
             'online' => ['nullable', 'boolean'],
+            'client_timed_out' => ['nullable', 'boolean'],
             'total_file_bytes' => ['nullable', 'integer', 'min:0'],
             'file_sizes' => ['nullable', 'array'],
             'file_sizes.*' => ['integer', 'min:0'],
