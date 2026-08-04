@@ -77,6 +77,10 @@ const defaultProps = {
             },
         ],
     },
+    dataProcessingPolicy: {
+        version: '2026-08-04',
+        url: '/portal/escuelas/escuela-demo/politica-tratamiento-datos',
+    },
     options: {
         genders: {
             M: 'Masculino',
@@ -123,6 +127,10 @@ const buildProps = (overrides = {}) => ({
     contracts: {
         ...defaultProps.contracts,
         ...(overrides.contracts ?? {}),
+    },
+    dataProcessingPolicy: {
+        ...defaultProps.dataProcessingPolicy,
+        ...(overrides.dataProcessingPolicy ?? {}),
     },
     options: {
         ...defaultProps.options,
@@ -381,17 +389,21 @@ describe('PortalSchoolInscriptionModal', () => {
         vi.useRealTimers();
     });
 
-    it('muestra solo los pasos base cuando la escuela no exige contrato ni documentos', async () => {
+    it('siempre muestra la autorización de tratamiento de datos aunque no haya contratos', async () => {
         const { wrapper } = await mountModal();
 
         const stepTitles = wrapper.findAll('.steps li').map((step) => step.text());
 
-        expect(stepTitles).toHaveLength(3);
+        expect(stepTitles).toHaveLength(4);
         expect(stepTitles.join(' ')).toContain('Información Del Deportista');
         expect(stepTitles.join(' ')).toContain('Información general');
         expect(stepTitles.join(' ')).toContain('Información Familiar');
-        expect(stepTitles.join(' ')).not.toContain('T y C');
+        expect(stepTitles.join(' ')).toContain('T y C');
         expect(stepTitles.join(' ')).not.toContain('Documentos');
+
+        await setWizardStep(wrapper, 3);
+        expect(wrapper.find('input[name="data_processing_policy_accepted"]').exists()).toBe(true);
+        expect(wrapper.get('a[href="/portal/escuelas/escuela-demo/politica-tratamiento-datos"]').exists()).toBe(true);
     });
 
     it('agrega los pasos opcionales cuando la escuela pide contrato y documentos', async () => {
@@ -417,7 +429,7 @@ describe('PortalSchoolInscriptionModal', () => {
             },
         });
 
-        await setWizardStep(wrapper, 3);
+        await setWizardStep(wrapper, 4);
 
         const playerDocumentInput = wrapper.get('input[name="player_document"]');
         expect(playerDocumentInput.attributes('accept')).toContain('.pdf');
@@ -449,7 +461,7 @@ describe('PortalSchoolInscriptionModal', () => {
             },
         });
 
-        await setWizardStep(wrapper, 3);
+        await setWizardStep(wrapper, 4);
         await setFileValue(
             wrapper,
             'player_document',
@@ -697,6 +709,8 @@ describe('PortalSchoolInscriptionModal', () => {
         const { wrapper, props } = await mountModal();
 
         await fillRequiredBaseSteps(wrapper);
+        await setWizardStep(wrapper, 3);
+        await setFieldValue(wrapper, 'data_processing_policy_accepted', true);
         await submitVisibleWizard(wrapper);
 
         expect(swalFireMock).toHaveBeenCalledWith(expect.objectContaining({
@@ -719,6 +733,7 @@ describe('PortalSchoolInscriptionModal', () => {
         expect(formData.get('tutor_email')).toBe('acudiente@example.com');
         expect(formData.get('tutor_doc_exp')).toBe('Bogota');
         expect(formData.get('year')).toBe(String(props.year));
+        expect(formData.get('data_processing_policy_accepted')).toBe('1');
         expect(formData.get('contrato_insc')).toBeNull();
         expect(formData.get('g-recaptcha-response')).toBeNull();
         expect(bootstrapHideMock).toHaveBeenCalledTimes(1);
@@ -747,6 +762,8 @@ describe('PortalSchoolInscriptionModal', () => {
         });
 
         await fillRequiredBaseSteps(wrapper);
+        await setWizardStep(wrapper, 3);
+        await setFieldValue(wrapper, 'data_processing_policy_accepted', true);
         await submitVisibleWizard(wrapper);
 
         expect(apiMock.post).toHaveBeenCalledTimes(2);
@@ -771,6 +788,8 @@ describe('PortalSchoolInscriptionModal', () => {
         const { wrapper, props } = await mountModal({}, { postImplementation });
 
         await fillRequiredBaseSteps(wrapper);
+        await setWizardStep(wrapper, 3);
+        await setFieldValue(wrapper, 'data_processing_policy_accepted', true);
         await submitVisibleWizard(wrapper);
 
         expect(apiMock.post).toHaveBeenCalledTimes(3);
@@ -815,6 +834,7 @@ describe('PortalSchoolInscriptionModal', () => {
 
         await wrapper.get('canvas').trigger('mouseup');
         await wrapper.findAll('canvas')[1].trigger('mouseup');
+        await setFieldValue(wrapper, 'data_processing_policy_accepted', true);
         await setFieldValue(wrapper, 'contrato_aff', true);
         await setFieldValue(wrapper, 'contrato_insc', true);
 

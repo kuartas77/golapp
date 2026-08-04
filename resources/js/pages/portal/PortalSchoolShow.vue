@@ -143,6 +143,7 @@
             :endpoints="pageData.endpoints"
             :assets="pageData.assets"
             :contracts="pageData.contracts"
+            :data-processing-policy="pageData.dataProcessingPolicy"
             :options="pageData.options"
             :recaptcha="pageData.recaptcha"
         />

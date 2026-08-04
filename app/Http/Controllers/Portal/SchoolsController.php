@@ -6,6 +6,7 @@ use App\Models\School;
 use App\Http\Controllers\Controller;
 use App\Service\Contracts\ContractTemplateService;
 use App\Service\InscriptionLimitService;
+use App\Service\Portal\DataProcessingPolicyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 
@@ -13,7 +14,8 @@ class SchoolsController extends Controller
 {
     public function __construct(
         private readonly ContractTemplateService $contractTemplateService,
-        private readonly InscriptionLimitService $inscriptionLimitService
+        private readonly InscriptionLimitService $inscriptionLimitService,
+        private readonly DataProcessingPolicyService $dataProcessingPolicyService
     ) {
     }
 
@@ -74,6 +76,7 @@ class SchoolsController extends Controller
             ? $this->contractTemplateService->availablePortalContracts($school)
             : [];
         $year = (int) $this->getPortalYear();
+        $dataProcessingPolicy = $this->dataProcessingPolicyService->evidenceFor($school);
 
         return $this->responseJson([
             'school' => [
@@ -113,6 +116,10 @@ class SchoolsController extends Controller
             'contracts' => [
                 'available' => $availableContracts,
             ],
+            'dataProcessingPolicy' => [
+                'version' => $dataProcessingPolicy['version'],
+                'url' => route('portal.school.data-processing-policy', [$school]),
+            ],
             'options' => [
                 'genders' => Cache::remember('KEY_GENDERS', now()->addYear(), fn() => config('variables.KEY_GENDERS')),
                 'relationships' => Cache::remember('KEY_RELATIONSHIPS_SELECT', now()->addYear(), fn() => config('variables.KEY_RELATIONSHIPS_SELECT')),
@@ -126,6 +133,16 @@ class SchoolsController extends Controller
                     && filled(config('recaptchav3.secret')),
                 'action' => 'inscriptions',
             ],
+        ]);
+    }
+
+    public function dataProcessingPolicy(School $school)
+    {
+        abort_unless($school->is_enable, 404);
+
+        return view('portal.data-processing-policy', [
+            'school' => $school,
+            'policy' => $this->dataProcessingPolicyService->evidenceFor($school),
         ]);
     }
 

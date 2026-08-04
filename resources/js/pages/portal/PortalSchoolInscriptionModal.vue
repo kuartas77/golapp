@@ -498,6 +498,33 @@
                                     </fieldset>
 
                                     <fieldset class="col-md-12 p-2">
+                                        <div class="row">
+                                            <div class="check col">
+                                                <div class="form-group">
+                                                    <div class="custom-control custom-checkbox checkbox-primary">
+                                                        <Field name="data_processing_policy_accepted" v-slot="{ field, value, handleChange }">
+                                                            <input
+                                                                v-bind="field"
+                                                                id="data_processing_policy_accepted"
+                                                                type="checkbox"
+                                                                value="true"
+                                                                class="custom-control-input"
+                                                                :checked="Boolean(value)"
+                                                                @change="handleChange($event.target.checked)"
+                                                            >
+                                                        </Field>
+                                                        <label for="data_processing_policy_accepted" class="custom-control-label checkboxsizeletter">
+                                                            (<span class="text-danger">*</span>) He leído y autorizo el
+                                                            <a target="_blank" rel="noopener noreferrer" :href="dataProcessingPolicy.url">
+                                                                tratamiento de mis datos personales y los del menor que represento
+                                                            </a>.
+                                                        </label>
+                                                        <ErrorMessage name="data_processing_policy_accepted" class="custom-error d-block" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div
                                             v-for="contract in acceptanceContracts"
                                             :key="contract.code"
@@ -647,6 +674,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    dataProcessingPolicy: {
+        type: Object,
+        required: true,
+    },
     options: {
         type: Object,
         required: true,
@@ -663,6 +694,7 @@ const props = defineProps({
 const FILE_FIELDS = ['photo', 'player_document', 'medical_certificate', 'tutor_document', 'payment_receipt'];
 const INSCRIPTION_SUBMISSION_TIMEOUT_MS = 180000;
 const SIGNATURE_FIELDS = ['signatureTutor', 'signatureAlumno'];
+const DATA_PROCESSING_POLICY_FIELD = 'data_processing_policy_accepted';
 const PHOTO_FILE_EXTENSIONS = ['jpg', 'jpeg', 'png'];
 const PHOTO_FILE_MIME_TYPES = ['image/png', 'image/x-png', 'image/jpeg', 'image/pjpeg'];
 const DOCUMENT_FILE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'pdf'];
@@ -1002,9 +1034,12 @@ const acceptanceContracts = computed(() => (
 ))
 
 const checkboxFields = computed(() => (
-    acceptanceContracts.value
-        .map((contract) => contract.acceptance_field)
-        .filter(Boolean)
+    [
+        DATA_PROCESSING_POLICY_FIELD,
+        ...acceptanceContracts.value
+            .map((contract) => contract.acceptance_field)
+            .filter(Boolean),
+    ]
 ))
 
 const requiresTutorSignature = computed(() => (
@@ -1081,6 +1116,10 @@ const schema = yup.object({
     signatureAlumno: props.school.create_contract && requiresPlayerSignature.value
         ? yup.string().required('Ingresa la firma del deportista para continuar.')
         : yup.string().nullable(),
+    data_processing_policy_accepted: yup.boolean().oneOf(
+        [true],
+        'Debes autorizar el tratamiento de datos personales para continuar.'
+    ),
     ...acceptanceRules,
 
     player_document: props.school.send_documents
@@ -1157,7 +1196,7 @@ const {
     keepValuesOnUnmount: true,
 });
 
-const hasTermsStep = computed(() => Boolean(props.school.create_contract) && availableContracts.value.length > 0);
+const hasTermsStep = computed(() => Boolean(props.dataProcessingPolicy?.url));
 const hasDocumentsStep = computed(() => Boolean(props.school.send_documents));
 
 const genderOptions = computed(() => toOptions(props.options.genders));

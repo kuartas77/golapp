@@ -348,7 +348,34 @@ final class PortalSchoolsTest extends TestCase
             'school_id' => $school['id'],
             'signature_ip_address' => '203.0.113.42',
             'signature_user_agent' => 'Golapp Portal Signature Test/1.0',
+            'data_processing_policy_version' => '2026-08-04',
         ]);
+
+        $inscription = Inscription::query()->where('school_id', $school['id'])->firstOrFail();
+        $this->assertNotNull($inscription->data_processing_policy_accepted_at);
+        $this->assertMatchesRegularExpression('/\A[a-f0-9]{64}\z/', $inscription->data_processing_policy_hash);
+    }
+
+    public function test_portal_requires_data_processing_policy_acceptance(): void
+    {
+        $school = $this->createSchool([
+            'slug' => 'escuela-politica-datos',
+            'is_enable' => true,
+            'inscriptions_enabled' => true,
+        ]);
+
+        $payload = $this->portalInscriptionPayload($school['slug']);
+        unset($payload['data_processing_policy_accepted']);
+
+        $this->postJson(
+            route('api.v2.portal.school.inscription.store', [$school['slug']]),
+            $payload
+        )->assertJsonValidationErrors(['data_processing_policy_accepted']);
+
+        $this->get(route('portal.school.data-processing-policy', [$school['slug']]))
+            ->assertOk()
+            ->assertSee('Política de tratamiento de datos personales')
+            ->assertSee($school['name']);
     }
 
     public function test_portal_requires_and_accepts_guardian_email_verification(): void
@@ -509,6 +536,7 @@ final class PortalSchoolsTest extends TestCase
             'tutor_work' => 'Empresa Demo',
             'tutor_position_held' => 'Analista',
             'tutor_email' => 'acudiente.prueba@example.com',
+            'data_processing_policy_accepted' => true,
             'year' => now()->format('Y'),
             'slug' => $schoolSlug,
         ];

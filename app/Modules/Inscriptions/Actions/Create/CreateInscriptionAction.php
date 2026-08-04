@@ -104,6 +104,9 @@ final class CreateInscriptionAction implements IContractPassable
             'pre_inscription' => true,
             'signature_ip_address' => $passable->getPropertyFromData('signature_ip_address'),
             'signature_user_agent' => $passable->getPropertyFromData('signature_user_agent'),
+            'data_processing_policy_accepted_at' => $passable->getPropertyFromData('data_processing_policy_accepted_at'),
+            'data_processing_policy_version' => $passable->getPropertyFromData('data_processing_policy_version'),
+            'data_processing_policy_hash' => $passable->getPropertyFromData('data_processing_policy_hash'),
             'school_id' => $this->school->id,
             'delete_at' => null,
         ];

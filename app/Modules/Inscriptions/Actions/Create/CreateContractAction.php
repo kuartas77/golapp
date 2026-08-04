@@ -25,6 +25,8 @@ final class CreateContractAction implements IContractPassable
 
     private array $paths = [];
 
+    private array $documentHashes = [];
+
     private array $tutor = [];
 
     public function __construct(
@@ -48,6 +50,19 @@ final class CreateContractAction implements IContractPassable
             $this->uploadSigns($passable);
 
             $this->signContracts($passable);
+
+            if ($this->documentHashes !== []) {
+                $signedAt = now();
+
+                $passable->getInscription()->forceFill([
+                    'signed_at' => $signedAt,
+                    'signed_document_hashes' => $this->documentHashes,
+                ])->save();
+
+                $this->createHashManifest($passable, $signedAt);
+            }
+
+            $this->deleteRawSignatures();
         }
 
         $passable->setPaths($this->paths);
@@ -105,9 +120,56 @@ final class CreateContractAction implements IContractPassable
             $this->createPDF($rendered, $this->contractTemplateService->pdfViewForCode($code), false);
             $this->save($absolutePath);
 
+            $documentHash = hash_file('sha256', $absolutePath);
+
+            if ($documentHash === false) {
+                throw new \RuntimeException("No fue posible calcular el hash del documento {$code}.");
+            }
+
+            $this->documentHashes[$code] = $documentHash;
+
             $this->paths['contracts'][$code] = [
                 $this->contractTemplateService->fileLabelForCode($code) => $relativePath,
             ];
+        }
+    }
+
+    private function deleteRawSignatures(): void
+    {
+        $signaturePaths = array_values(array_filter([
+            $this->paths['sign_tutor'] ?? null,
+            $this->paths['sign_player'] ?? null,
+        ]));
+
+        if ($signaturePaths !== []) {
+            Storage::disk('local')->delete($signaturePaths);
+        }
+
+        unset($this->paths['sign_tutor'], $this->paths['sign_player']);
+    }
+
+    private function createHashManifest(Passable $passable, \DateTimeInterface $signedAt): void
+    {
+        $lines = [
+            'MANIFIESTO DE INTEGRIDAD DE DOCUMENTOS FIRMADOS',
+            '',
+            'Inscripción: ' . $passable->getInscription()->unique_code,
+            'Fecha de firma: ' . $signedAt->format(DATE_ATOM),
+            'Algoritmo: SHA-256',
+            '',
+        ];
+
+        foreach ($this->documentHashes as $code => $hash) {
+            $contractPath = array_values($this->paths['contracts'][$code])[0];
+            $lines[] = basename($contractPath);
+            $lines[] = 'SHA-256: ' . $hash;
+            $lines[] = '';
+        }
+
+        $manifestPath = $this->folderDocuments . DIRECTORY_SEPARATOR . 'MANIFIESTO_SHA256.txt';
+
+        if (!Storage::disk('local')->put($manifestPath, implode("\n", $lines))) {
+            throw new \RuntimeException('No fue posible crear el manifiesto de hashes de la inscripción.');
         }
     }
 }

@@ -21,6 +21,7 @@ use App\Http\Controllers\Notifications\TopicNotificationsController;
 use App\Http\Controllers\Notifications\UniformRequestsController;
 use App\Http\Controllers\Payments\MonthlyPaymentReceiptController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
+use App\Http\Controllers\Portal\SchoolsController as PortalSchoolsController;
 use App\Http\Controllers\Reports\AttendancePaymentReportExportController;
 use App\Http\Controllers\Reports\AttendanceReportExportController;
 use App\Http\Controllers\Reports\ReportAttendancePaymentController;
@@ -45,6 +46,11 @@ Route::redirect('/img/log3.png', '/img/logo-light.svg', 301);
 Route::redirect('/img/log3.jpg', '/img/logo-light.svg', 301);
 
 Route::get('img/dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('images');
+
+Route::get(
+    'portal/escuelas/{school}/politica-tratamiento-datos',
+    [PortalSchoolsController::class, 'dataProcessingPolicy']
+)->name('portal.school.data-processing-policy');
 
 Route::middleware(['auth', 'verified_school'])->group(function () {
 

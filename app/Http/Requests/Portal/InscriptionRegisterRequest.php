@@ -69,6 +69,7 @@ class InscriptionRegisterRequest extends FormRequest
                 'string',
                 'size:64',
             ],
+            'data_processing_policy_accepted' => ['accepted'],
             // Step 4
             'photo' => [
                 'nullable',

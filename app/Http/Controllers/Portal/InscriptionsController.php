@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Models\School;
+use App\Service\Portal\DataProcessingPolicyService;
 use App\Service\Portal\GuardianEmailVerificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -85,7 +86,8 @@ class InscriptionsController extends Controller
 
     public function store(
         InscriptionRegisterRequest $request,
-        GuardianEmailVerificationService $verificationService
+        GuardianEmailVerificationService $verificationService,
+        DataProcessingPolicyService $policyService
     )
     {
         $response = [];
@@ -95,6 +97,10 @@ class InscriptionsController extends Controller
             DB::beginTransaction();
 
             $data = $request->validated();
+            $policyEvidence = $policyService->evidenceFor($data['school_data']);
+            $data['data_processing_policy_accepted_at'] = now();
+            $data['data_processing_policy_version'] = $policyEvidence['version'];
+            $data['data_processing_policy_hash'] = $policyEvidence['sha256'];
 
             if (filled($data['signatureTutor'] ?? null) || filled($data['signatureAlumno'] ?? null)) {
                 $data['signature_ip_address'] = $request->ip();

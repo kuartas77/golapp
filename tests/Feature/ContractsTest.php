@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\Contract;
 use App\Models\ContractType;
+use App\Models\Inscription;
 use App\Models\People;
 use App\Models\Player;
 use App\Models\School;
@@ -13,8 +14,10 @@ use App\Models\SchoolUser;
 use App\Models\User;
 use App\Modules\Inscriptions\Actions\Create\CreateContractAction;
 use App\Modules\Inscriptions\Actions\Create\Passable;
+use App\Modules\Inscriptions\Notifications\InscriptionToSchoolNotification;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
+use ZipArchive;
 
 final class ContractsTest extends TestCase
 {
@@ -269,6 +272,7 @@ final class ContractsTest extends TestCase
             'body' => '<p>[PLAYER_FULLNAMES]</p><p>[TUTOR_NAME]</p>',
             'footer' => '<p>[DATE]</p>',
         ]);
+        $this->createConfiguredContract($school, 'image_rights');
 
         $player = Player::factory()->create([
             'school_id' => $school->id,
@@ -285,9 +289,20 @@ final class ContractsTest extends TestCase
         $passable = new Passable([
             'school_data' => $school,
             'year' => now()->format('Y'),
+            'signatureTutor' => 'data:image/png;base64,' . base64_encode(
+                file_get_contents(public_path('img/user.png'))
+            ),
         ]);
         $passable->setSchool();
         $passable->setPlayer($player);
+        $inscription = Inscription::factory()->create([
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'school_id' => $school->id,
+            'year' => now()->year,
+            'competition_group_id' => null,
+        ]);
+        $passable->setInscription($inscription);
         $passable->setTutor([
             'name' => $tutor->names,
             'email' => $tutor->email,
@@ -298,12 +313,65 @@ final class ContractsTest extends TestCase
         $paths = $passable->getPaths();
 
         $this->assertArrayHasKey('contracts', $paths);
+        $this->assertArrayNotHasKey('sign_tutor', $paths);
+        $this->assertArrayNotHasKey('sign_player', $paths);
         $this->assertArrayHasKey('inscription', $paths['contracts']);
+        $this->assertArrayHasKey('image_rights', $paths['contracts']);
         $this->assertArrayNotHasKey('affiliate', $paths['contracts']);
 
         $contractPath = array_values($paths['contracts']['inscription'])[0];
 
         Storage::disk('local')->assertExists($contractPath);
+
+        $generatedFiles = Storage::disk('local')->files(dirname($contractPath));
+        $this->assertCount(3, $generatedFiles);
+
+        $nonPdfFiles = array_values(array_filter(
+            $generatedFiles,
+            fn (string $file): bool => !str_ends_with($file, '.pdf')
+        ));
+        $this->assertCount(1, $nonPdfFiles);
+        $this->assertSame('MANIFIESTO_SHA256.txt', basename($nonPdfFiles[0]));
+
+        $inscription->refresh();
+        $this->assertNotNull($inscription->signed_at);
+        $this->assertSame(
+            hash_file('sha256', Storage::disk('local')->path($contractPath)),
+            $inscription->signed_document_hashes['inscription']
+        );
+        $imageRightsPath = array_values($paths['contracts']['image_rights'])[0];
+        $this->assertSame(
+            hash_file('sha256', Storage::disk('local')->path($imageRightsPath)),
+            $inscription->signed_document_hashes['image_rights']
+        );
+
+        $manifest = Storage::disk('local')->get($nonPdfFiles[0]);
+        $this->assertStringContainsString('Inscripción: ' . $inscription->unique_code, $manifest);
+        $this->assertStringContainsString('Algoritmo: SHA-256', $manifest);
+        $this->assertStringContainsString(basename($contractPath), $manifest);
+        $this->assertStringContainsString($inscription->signed_document_hashes['inscription'], $manifest);
+        $this->assertStringContainsString(basename($imageRightsPath), $manifest);
+        $this->assertStringContainsString($inscription->signed_document_hashes['image_rights'], $manifest);
+        $this->assertStringNotContainsString('signature_ip_address', $manifest);
+        $this->assertStringNotContainsString('signature_user_agent', $manifest);
+
+        (new InscriptionToSchoolNotification($inscription, $school))->toMail(new \stdClass());
+
+        $zipPath = Storage::disk('local')->path(
+            "tmp/zips/{$school->slug}-{$inscription->unique_code}.zip"
+        );
+        $zip = new ZipArchive();
+        $this->assertTrue($zip->open($zipPath));
+        $this->assertSame(3, $zip->numFiles);
+        $this->assertNotFalse($zip->locateName('MANIFIESTO_SHA256.txt'));
+        $this->assertNotFalse($zip->locateName(basename($contractPath)));
+        $this->assertNotFalse($zip->locateName(basename($imageRightsPath)));
+
+        for ($index = 0; $index < $zip->numFiles; $index++) {
+            $this->assertDoesNotMatchRegularExpression('/\.(png|jpe?g)$/i', $zip->getNameIndex($index));
+        }
+
+        $zip->close();
     }
 
     public function testTutorDocumentExpeditionPlaceholderAndVariablesAreAvailable(): void
@@ -467,6 +535,7 @@ final class ContractsTest extends TestCase
             'tutor_work' => 'Empresa Demo',
             'tutor_position_held' => 'Analista',
             'tutor_email' => 'acudiente.prueba@example.com',
+            'data_processing_policy_accepted' => true,
             'year' => now()->format('Y'),
         ], $overrides);
 

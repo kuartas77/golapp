@@ -82,6 +82,11 @@ class Inscription extends Model
         'pre_inscription',
         'signature_ip_address',
         'signature_user_agent',
+        'signed_at',
+        'signed_document_hashes',
+        'data_processing_policy_accepted_at',
+        'data_processing_policy_version',
+        'data_processing_policy_hash',
         'brother_payment',
         'monthly_payment_type',
         'monthly_payment_amount',
@@ -94,6 +99,9 @@ class Inscription extends Model
         'pre_inscription' => 'boolean',
         'brother_payment' => 'boolean',
         'monthly_payment_amount' => 'integer',
+        'signed_at' => 'datetime',
+        'signed_document_hashes' => 'array',
+        'data_processing_policy_accepted_at' => 'datetime',
     ];
 
     public static $documentFields = [
