@@ -21,7 +21,7 @@ final class Passable
 
     private array $tutor = [];
 
-    private ?People $guardian = null;
+    private ?People $people = null;
 
     private bool $shouldInviteGuardian = false;
 
@@ -62,7 +62,7 @@ final class Passable
 
     public function getGuardian(): ?People
     {
-        return $this->guardian;
+        return $this->people;
     }
 
     public function shouldInviteGuardian(): bool
@@ -95,9 +95,9 @@ final class Passable
         $this->tutor = $tutor;
     }
 
-    public function setGuardian(People $guardian): void
+    public function setGuardian(People $people): void
     {
-        $this->guardian = $guardian;
+        $this->people = $people;
     }
 
     public function setShouldInviteGuardian(bool $shouldInviteGuardian): void

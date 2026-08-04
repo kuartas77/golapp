@@ -21,8 +21,6 @@ class InscriptionToSchoolNotification extends Notification implements ShouldQueu
 
     /**
      * Create a new notification instance.
-     *
-     * @return void
      */
     public function __construct(private Inscription $inscription, private School $school)
     {
@@ -54,7 +52,7 @@ class InscriptionToSchoolNotification extends Notification implements ShouldQueu
         [$zipAbsolute, $zipRelative, $playerFolder] = $this->attachment();
 
         $mailMessage->attach($zipAbsolute, [
-            'as' => "{$this->inscription->unique_code}.zip",
+            'as' => $this->inscription->unique_code . '.zip',
             'mime' => 'application/zip',
         ]);
 
@@ -79,11 +77,11 @@ class InscriptionToSchoolNotification extends Notification implements ShouldQueu
         ];
     }
 
-    private function attachment()
+    private function attachment(): array
     {
         $folderDocuments = $this->school->slug;
         $short = data_get($this->school, 'short_name', 'tmp');
-        $playerFolder = 'tmp'. DIRECTORY_SEPARATOR .$folderDocuments . DIRECTORY_SEPARATOR . "{$short}-{$this->inscription->unique_code}";
+        $playerFolder = 'tmp'. DIRECTORY_SEPARATOR .$folderDocuments . DIRECTORY_SEPARATOR . sprintf('%s-%s', $short, $this->inscription->unique_code);
 
         $zipName = $folderDocuments. '-'.$this->inscription->unique_code . '.zip';
         $zipRelative = 'tmp/zips/' . $zipName;
@@ -92,22 +90,22 @@ class InscriptionToSchoolNotification extends Notification implements ShouldQueu
 
         File::ensureDirectoryExists($zipDirectory, 0775, true);
 
-        $zip = new \ZipArchive();
+        $zipArchive = new \ZipArchive();
 
-        $status = $zip->open($zipAbsolute, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+        $status = $zipArchive->open($zipAbsolute, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
 
         if ($status !== true) {
-            throw new RuntimeException("No fue posible crear el ZIP temporal de la inscripción en {$zipAbsolute}.");
+            throw new RuntimeException(sprintf('No fue posible crear el ZIP temporal de la inscripción en %s.', $zipAbsolute));
         }
 
         $files = Storage::disk('local')->files($playerFolder);
 
         foreach ($files as $file) {
             $absoluteFile = Storage::disk('local')->path($file);
-            $zip->addFile($absoluteFile, basename($file));
+            $zipArchive->addFile($absoluteFile, basename($file));
         }
 
-        $zip->close();
+        $zipArchive->close();
 
         return [$zipAbsolute, $zipRelative, $playerFolder];
     }

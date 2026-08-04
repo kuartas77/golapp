@@ -67,7 +67,7 @@ final class SendDocumentsAction implements IContractPassable
     {
         $base = 'tmp'. DIRECTORY_SEPARATOR .$this->school->slug;
         $short = data_get($this->school, 'short_name', 'tmp');
-        $folderPlayer = "{$short}-{$this->player->unique_code}";
+        $folderPlayer = sprintf('%s-%s', $short, $this->player->unique_code);
         $folderDocuments = trim($base, "/\\") . DIRECTORY_SEPARATOR . $folderPlayer;
 
         foreach (Inscription::$documentFields as $field) {
@@ -146,7 +146,7 @@ final class SendDocumentsAction implements IContractPassable
     {
         $base = 'tmp'. DIRECTORY_SEPARATOR .$this->school->slug;
         $short = data_get($this->school, 'short_name', 'tmp');
-        $folderPlayer = "{$short}-{$this->player->unique_code}";
+        $folderPlayer = sprintf('%s-%s', $short, $this->player->unique_code);
         $playerFolder = trim($base, "/\\") . DIRECTORY_SEPARATOR . $folderPlayer;
 
         if ($this->school->send_documents) {

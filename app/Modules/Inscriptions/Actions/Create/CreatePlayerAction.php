@@ -36,7 +36,7 @@ final class CreatePlayerAction implements IContractPassable
         return $next($passable);
     }
 
-    private function getPlayer(Passable $passable)
+    private function getPlayer(Passable $passable): void
     {
         $this->player = Player::query()
             ->where('identification_document', $passable->getPropertyFromData('identification_document'))
@@ -44,7 +44,7 @@ final class CreatePlayerAction implements IContractPassable
             ->firstOr(callback: fn(): Player => new Player());
     }
 
-    private function setAttributes(Passable $passable)
+    private function setAttributes(Passable $passable): void
     {
         $uniqueCode = $this->player->exists ? $this->player->unique_code: $this->createUniqueCode($passable);
         $this->attributes = [

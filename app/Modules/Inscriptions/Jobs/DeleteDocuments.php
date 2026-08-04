@@ -18,10 +18,9 @@ class DeleteDocuments implements ShouldQueue
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
+
     /**
      * Create a new job instance.
-     *
-     * @return void
      */
     public function __construct(private string $folder, private string $uniqueCode)
     {

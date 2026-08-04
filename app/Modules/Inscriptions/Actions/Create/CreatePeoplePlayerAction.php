@@ -27,13 +27,13 @@ final class CreatePeoplePlayerAction implements IContractPassable
 
         $peopleRepository = app(PeopleRepository::class);
 
-        $guardian = $peopleRepository->createOrUpdatePeople($this->attributes);
+        $people = $peopleRepository->createOrUpdatePeople($this->attributes);
 
-        $this->player->people()->syncWithoutDetaching([$guardian->id]);
+        $this->player->people()->syncWithoutDetaching([$people->id]);
 
-        $passable->setGuardian($guardian);
+        $passable->setGuardian($people);
         $passable->setShouldInviteGuardian(
-            checkEmail($guardian->email)
+            checkEmail($people->email)
             && blank($existingGuardian?->password)
         );
         $passable->setPlayer($this->player);

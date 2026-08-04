@@ -7,6 +7,7 @@ use Rector\Config\RectorConfig;
 return RectorConfig::configure()
     ->withPaths([
         __DIR__ . '/app/Modules',
+        __DIR__ . '/app',
         // __DIR__ . '/bootstrap',
         // __DIR__ . '/config',
         // __DIR__ . '/lang',
@@ -23,7 +24,6 @@ return RectorConfig::configure()
         privatization : true,
         naming : true,
         earlyReturn : true,
-        strictBooleans : true,
         carbon : true,
         rectorPreset : true,
         phpunitCodeQuality : true,

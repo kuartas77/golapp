@@ -74,7 +74,7 @@ final class CreateContractAction implements IContractPassable
     {
         $base = 'tmp'. DIRECTORY_SEPARATOR .$this->school->slug;
         $short = data_get($this->school, 'short_name', 'tmp');
-        $folderPlayer = "{$short}-{$this->player->unique_code}";
+        $folderPlayer = sprintf('%s-%s', $short, $this->player->unique_code);
         $this->folderDocuments = trim($base, "/\\") . DIRECTORY_SEPARATOR . $folderPlayer;
         Storage::disk('local')->makeDirectory($this->folderDocuments);
     }
@@ -123,7 +123,7 @@ final class CreateContractAction implements IContractPassable
             $documentHash = hash_file('sha256', $absolutePath);
 
             if ($documentHash === false) {
-                throw new \RuntimeException("No fue posible calcular el hash del documento {$code}.");
+                throw new \RuntimeException(sprintf('No fue posible calcular el hash del documento %s.', $code));
             }
 
             $this->documentHashes[$code] = $documentHash;
