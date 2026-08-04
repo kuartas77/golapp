@@ -102,6 +102,8 @@ final class CreateInscriptionAction implements IContractPassable
             'period_three' => null,
             'period_four' => null,
             'pre_inscription' => true,
+            'signature_ip_address' => $passable->getPropertyFromData('signature_ip_address'),
+            'signature_user_agent' => $passable->getPropertyFromData('signature_user_agent'),
             'school_id' => $this->school->id,
             'delete_at' => null,
         ];

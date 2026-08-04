@@ -80,6 +80,8 @@ class Inscription extends Model
         'school_id',
         'deleted_at',
         'pre_inscription',
+        'signature_ip_address',
+        'signature_user_agent',
         'brother_payment',
         'monthly_payment_type',
         'monthly_payment_amount',

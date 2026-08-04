@@ -324,6 +324,33 @@ final class PortalSchoolsTest extends TestCase
         ]);
     }
 
+    public function test_portal_stores_server_signature_ip_and_user_agent_on_the_inscription(): void
+    {
+        $school = $this->createSchool([
+            'slug' => 'escuela-trazabilidad-firma',
+            'is_enable' => true,
+            'inscriptions_enabled' => true,
+        ]);
+
+        $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.42'])
+            ->withHeader('User-Agent', 'Golapp Portal Signature Test/1.0')
+            ->postJson(
+                route('api.v2.portal.school.inscription.store', [$school['slug']]),
+                array_merge($this->portalInscriptionPayload($school['slug']), [
+                    'signatureTutor' => 'data:image/png;base64,c2lnbmF0dXJl',
+                    'signature_ip_address' => '198.51.100.10',
+                    'signature_user_agent' => 'Spoofed client value',
+                ])
+            )
+            ->assertOk();
+
+        $this->assertDatabaseHas('inscriptions', [
+            'school_id' => $school['id'],
+            'signature_ip_address' => '203.0.113.42',
+            'signature_user_agent' => 'Golapp Portal Signature Test/1.0',
+        ]);
+    }
+
     public function test_portal_requires_and_accepts_guardian_email_verification(): void
     {
         Notification::fake();

@@ -94,7 +94,14 @@ class InscriptionsController extends Controller
 
             DB::beginTransaction();
 
-            InscriptionsPipeline::execute($request->validated());
+            $data = $request->validated();
+
+            if (filled($data['signatureTutor'] ?? null) || filled($data['signatureAlumno'] ?? null)) {
+                $data['signature_ip_address'] = $request->ip();
+                $data['signature_user_agent'] = mb_substr((string) $request->userAgent(), 0, 500);
+            }
+
+            InscriptionsPipeline::execute($data);
 
             DB::commit();
 
