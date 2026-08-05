@@ -7,15 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 class PaymentReceived extends Model
 {
     protected $table = 'payments_received';
+
     protected $fillable = [
         'invoice_id',
+        'idempotency_key',
         'amount',
         'payment_method',
         'reference',
         'payment_date',
         'notes',
         'school_id',
-        'created_by'
+        'created_by',
     ];
 
     protected $casts = [

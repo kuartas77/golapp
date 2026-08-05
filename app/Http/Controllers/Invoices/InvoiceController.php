@@ -24,9 +24,9 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         return datatables()->of($this->invoice_repository->query())
-        ->filterColumn('training_group_id', fn ($query, $keyword) => $query->where('training_group_id', $keyword))
-        ->filterColumn('created_at', fn ($query, $keyword) => $this->filterCreatedAtColumn($query, $keyword))
-        ->toJson();
+            ->filterColumn('training_group_id', fn ($query, $keyword) => $query->where('training_group_id', $keyword))
+            ->filterColumn('created_at', fn ($query, $keyword) => $this->filterCreatedAtColumn($query, $keyword))
+            ->toJson();
     }
 
     private function filterCreatedAtColumn($query, string $keyword)
@@ -74,6 +74,13 @@ class InvoiceController extends Controller
 
         if (is_null($result['id'])) {
             Alert::error(env('APP_NAME'), 'Factura no creada.');
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'No fue posible crear la factura. Verifica que los conceptos sigan disponibles e intenta nuevamente.',
+                ], 422);
+            }
+
             return redirect()->route('invoices.index');
         }
 
@@ -98,9 +105,15 @@ class InvoiceController extends Controller
 
     public function addPayment(InvoiceAddPaymentRequest $request, $invoiceId)
     {
-        $this->invoice_repository->addPayment($request, $invoiceId);
+        $result = $this->invoice_repository->addPayment($request, $invoiceId);
 
-        Alert::success(env('APP_NAME'), 'Pago registrado exitosamente.');
+        if ($result['created']) {
+            Alert::success(env('APP_NAME'), 'Pago registrado exitosamente.');
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json($result);
+        }
 
         return back();
     }
@@ -108,6 +121,7 @@ class InvoiceController extends Controller
     public function update($invoiceId, $paymentRequestId)
     {
         $this->invoice_repository->addPaymentButton($invoiceId, $paymentRequestId);
+
         return response()->json(['success' => true]);
     }
 
@@ -136,14 +150,12 @@ class InvoiceController extends Controller
             ->schoolId()
             ->firstWhere('invoice_number', $id);
 
-
         abort_if(is_null($invoice), 404, 'not found');
 
         $data = [];
         $data['school'] = getSchool(auth()->user());
         $data['invoice'] = $invoice;
         $data['tutor'] = $invoice->inscription->player->people->firstWhere('tutor', 1);
-
 
         // view()->share('school', $data['school']);
         // view()->share('invoice', $data['invoice']);
@@ -152,8 +164,9 @@ class InvoiceController extends Controller
 
         $filename = "Factura #{$invoice->invoice_number}.pdf";
         // $this->setConfigurationMpdf(['format' => [140, 200], 'mode' => 'utf-8', 'default_font' => 'dejavusans',]);
-        $this->setConfigurationMpdf(['format' => 'A4','default_font' => 'dejavusans']);
+        $this->setConfigurationMpdf(['format' => 'A4', 'default_font' => 'dejavusans']);
         $this->createPDF($data, 'invoice.blade.php');
+
         return $this->stream($filename);
     }
 }

@@ -1,6 +1,22 @@
 <template>
     <div class="layout-px-spacing">
-        <div class="row layout-top-spacing">
+        <ContentState
+            v-if="loading"
+            type="loading"
+            title="Cargando factura"
+            message="Estamos consultando el detalle, los conceptos y el historial de pagos."
+            class="layout-top-spacing"
+        />
+        <ContentState
+            v-else-if="loadError"
+            type="error"
+            title="No fue posible cargar la factura"
+            :message="loadError"
+            action-label="Reintentar"
+            class="layout-top-spacing"
+            @action="loadInvoice"
+        />
+        <div v-else class="row layout-top-spacing">
 
             <div class="col-md-8">
                 <!-- Información de la factura -->
@@ -184,10 +200,13 @@
                         <h5 class="mb-0"><i class="fa fa-money-bill-wave"></i> Registrar Pago</h5>
                         <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                             <i class="fa-regular fa-circle-question me-2"></i>
-                            Guia
+                            Guía
                         </button>
                     </div>
                     <div class="card-body col-md-12">
+                        <div v-if="actionError" class="alert alert-danger" role="alert">
+                            {{ actionError }}
+                        </div>
                         <form @submit.prevent="submitPayment">
                             <div class="row">
                                 <div class="col-md-12">
@@ -305,8 +324,10 @@
                                         <i class="fa fa-print"></i> Imprimir
                                     </a>
                                     <button v-if="canDeleteInvoice(invoice)" type="button" @click="confirmDelete"
-                                        class="btn btn-danger btn-block">
-                                        <i class="fa fa-trash"></i> Eliminar Factura
+                                        class="btn btn-outline-danger btn-block" :disabled="deleteLoading">
+                                        <span v-if="deleteLoading" class="spinner-border spinner-border-sm"></span>
+                                        <i v-else class="fa fa-ban"></i>
+                                        {{ deleteLoading ? 'Anulando...' : 'Anular factura' }}
                                     </button>
 
                                 </div>
@@ -340,6 +361,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, reactive, watch } from 'vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/utils/axios'
@@ -366,12 +388,23 @@ const todayDate = dayjs().format('YYYY-MM-DD')
 // Estado reactivo
 const invoice = ref({ items: [], payments: [] })
 const loading = ref(true)
+const loadError = ref('')
+const actionError = ref('')
 const paymentLoading = ref(false)
-const canDelete = ref(true)
+const deleteLoading = ref(false)
 const proofModalElement = ref(null)
 const selectedProof = ref({ url: '', title: '' })
 
 let proofModalInstance = null
+
+const createIdempotencyKey = (prefix) => {
+    const randomValue = globalThis.crypto?.randomUUID?.()
+        ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
+
+    return `${prefix}-${invoiceId}-${randomValue}`.slice(0, 64)
+}
+
+const paymentIdempotencyKey = ref(createIdempotencyKey('invoice-payment'))
 
 // Formulario de pago
 const payment = reactive({
@@ -409,9 +442,12 @@ const calculatedAmount = computed(() => {
 })
 
 // Métodos
-const loadInvoice = async () => {
+const loadInvoice = async (showLoader = true) => {
     try {
-        loading.value = true
+        if (showLoader) {
+            loading.value = true
+        }
+        loadError.value = ''
         const response = await api.get(`/api/v2/invoices/${invoiceId}`)
         invoice.value = response.data
 
@@ -423,9 +459,17 @@ const loadInvoice = async () => {
 
     } catch (error) {
         console.error('Error al cargar factura:', error)
-        showMessage('Error al cargar la factura', 'error')
+        const message = error.response?.data?.message || 'No fue posible cargar la factura. Intenta nuevamente.'
+
+        if (showLoader) {
+            loadError.value = message
+        } else {
+            actionError.value = message
+        }
     } finally {
-        loading.value = false
+        if (showLoader) {
+            loading.value = false
+        }
     }
 }
 
@@ -435,6 +479,10 @@ const updatePaymentAmount = () => {
 }
 
 const submitPayment = async () => {
+    if (paymentLoading.value) {
+        return
+    }
+
     if (payment.paid_items.length === 0) {
         showMessage('Debe seleccionar al menos un ítem para pagar', 'warning')
         return
@@ -453,8 +501,10 @@ const submitPayment = async () => {
 
     try {
         paymentLoading.value = true
+        actionError.value = ''
 
         const response = await api.post(`/api/v2/invoices/${invoiceId}/payment`, {
+            idempotency_key: paymentIdempotencyKey.value,
             amount: payment.amount,
             payment_method: payment.payment_method,
             issue_date: payment.issue_date,
@@ -465,16 +515,17 @@ const submitPayment = async () => {
         })
 
         // Recargar la factura para actualizar datos
-        await loadInvoice()
+        await loadInvoice(false)
 
         // Resetear formulario
         resetPaymentForm()
 
-        showMessage('Pago registrado exitosamente')
+        paymentIdempotencyKey.value = createIdempotencyKey('invoice-payment')
+        showMessage(response.data.created === false ? 'El pago ya estaba registrado.' : 'Pago registrado exitosamente')
 
     } catch (error) {
         console.error('Error al registrar pago:', error)
-        showMessage('Error al registrar el pago', 'error')
+        actionError.value = error.response?.data?.message || 'No fue posible registrar el pago. Revisa los datos e intenta nuevamente.'
     } finally {
         paymentLoading.value = false
     }
@@ -495,24 +546,36 @@ const canDeleteInvoice = (invoice) => {
 }
 
 const confirmDelete = async () => {
+    if (deleteLoading.value) {
+        return
+    }
 
-    Swal.fire({
-        title: "¿Está seguro de eliminar esta factura?",
+    const result = await Swal.fire({
+        title: `¿Anular la factura #${invoice.value.invoice_number}?`,
+        text: 'La factura dejará de estar disponible para la operación diaria. Esta acción no registra un pago.',
+        icon: 'warning',
         showDenyButton: false,
         showCancelButton: true,
-        confirmButtonText: "Sí",
-        denyButtonText: `No`,
-    }).then(async(result) => {
-        if (result.isConfirmed) {
-            try {
-                await api.delete(`/api/v2/invoices/${invoiceId}`)
-                router.push('/facturas')
-            } catch (error) {
-                console.error('Error al eliminar factura:', error)
-                showMessage('Error al eliminar la factura', 'error')
-            }
-        }
-    });
+        confirmButtonText: 'Sí, anular factura',
+        cancelButtonText: 'Conservar factura',
+        focusCancel: true,
+    })
+
+    if (!result.isConfirmed) {
+        return
+    }
+
+    try {
+        deleteLoading.value = true
+        actionError.value = ''
+        await api.delete(`/api/v2/invoices/${invoiceId}`)
+        router.push('/facturas')
+    } catch (error) {
+        console.error('Error al anular factura:', error)
+        actionError.value = error.response?.data?.message || 'No fue posible anular la factura. Intenta nuevamente.'
+    } finally {
+        deleteLoading.value = false
+    }
 }
 
 const openProofModal = (paymentRequest) => {

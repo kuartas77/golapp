@@ -19,6 +19,7 @@ class InvoiceStoreRequest extends FormRequest
             'year' => 'required|digits:4',
             'due_date' => 'required|date',
             'student_name' => 'required|string|max:255',
+            'idempotency_key' => 'nullable|string|max:64',
             'items' => 'required|array|min:1',
             'items.*.type' => 'required|in:monthly,enrollment,additional',
             'items.*.description' => 'required|string|max:255',
@@ -36,7 +37,7 @@ class InvoiceStoreRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => getSchool(auth()->user())->id
+            'school_id' => getSchool(auth()->user())->id,
         ]);
     }
 }

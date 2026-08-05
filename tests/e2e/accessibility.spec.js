@@ -312,6 +312,97 @@ test('invoices announces a failed load and recovers with accessible row actions'
     expect(invoicesRequestCount).toBe(2);
 });
 
+test('invoice detail announces a failed load and recovers in place', async ({ page }) => {
+    let detailRequestCount = 0;
+
+    await page.route('**/api/v2/user', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+            data: {
+                id: 1,
+                name: 'Escuela E2E',
+                email: 'e2e@golapp.local',
+                school_id: 1,
+                school_name: 'Escuela E2E',
+                roles: ['school'],
+                permissions: [],
+                school_permissions: {
+                    'school.module.billing': true,
+                },
+            },
+        }),
+    }));
+
+    await page.route('**/api/v2/admin/info_campus', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ is_school: true, schools: [], school_selected: 1 }),
+    }));
+
+    await page.route('**/api/v2/settings/general', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ current_school_id: 1 }),
+    }));
+
+    await page.route('**/api/v2/invoices/42', async route => {
+        detailRequestCount += 1;
+
+        if (detailRequestCount === 1) {
+            await route.fulfill({
+                status: 503,
+                contentType: 'application/json',
+                body: JSON.stringify({ message: 'No fue posible consultar la factura FAC-0042.' }),
+            });
+            return;
+        }
+
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                id: 42,
+                invoice_number: 'FAC-0042',
+                student_name: 'Deportista E2E',
+                status: 'pending',
+                year: 2026,
+                issue_date: '2026-08-01',
+                due_date: '2026-08-15',
+                total_amount: 50000,
+                paid_amount: 0,
+                url_print: '/api/v2/invoices/FAC-0042/print',
+                training_group: { name: 'Sub 12' },
+                creator: { name: 'Administrador E2E' },
+                items: [{
+                    id: 8,
+                    type: 'monthly',
+                    description: 'Mensualidad agosto',
+                    quantity: 1,
+                    unit_price: 50000,
+                    total: 50000,
+                    is_paid: false,
+                }],
+                payments: [],
+                payment_requests: [],
+            }),
+        });
+    });
+
+    await page.goto('/facturas/42');
+
+    const errorState = page.getByRole('alert').filter({
+        hasText: 'No fue posible consultar la factura FAC-0042.',
+    });
+    await expect(errorState).toBeVisible();
+    await errorState.getByRole('button', { name: 'Reintentar' }).click();
+
+    await expect(errorState).toBeHidden();
+    await expect(page.getByRole('heading', { name: 'Factura #FAC-0042' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Anular factura' })).toBeVisible();
+    expect(detailRequestCount).toBe(2);
+});
+
 test('invoice items and custom charges recover from failed table requests', async ({ page }) => {
     let itemRequestCount = 0;
     let chargeRequestCount = 0;

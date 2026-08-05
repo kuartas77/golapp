@@ -40,30 +40,36 @@ import InvoiceCreate from '@/pages/invoices/InvoiceCreate.vue';
 
 const wrappers = [];
 
-const mountPage = async () => {
+const loadPayload = {
+    data: {
+        inscription: {
+            id: 1,
+            training_group_id: 10,
+            player: {
+                full_names: 'Jugador Demo',
+            },
+            training_group: {
+                name: 'Sub 10',
+            },
+        },
+        pendingMonths: [],
+        pendingUniformRequests: [],
+        customCharges: [],
+    },
+};
+
+const mountPage = async ({ configureGet } = {}) => {
     vi.stubGlobal('moneyFormat', (value) => `$${value}`);
     vi.stubGlobal('showMessage', vi.fn());
     vi.stubGlobal('Swal', {
         fire: vi.fn().mockResolvedValue({ isConfirmed: false }),
     });
 
-    axiosMock.get.mockResolvedValue({
-        data: {
-            inscription: {
-                id: 1,
-                training_group_id: 10,
-                player: {
-                    full_names: 'Jugador Demo',
-                },
-                training_group: {
-                    name: 'Sub 10',
-                },
-            },
-            pendingMonths: [],
-            pendingUniformRequests: [],
-            customCharges: [],
-        },
-    });
+    if (configureGet) {
+        configureGet(axiosMock.get);
+    } else {
+        axiosMock.get.mockResolvedValue(loadPayload);
+    }
 
     axiosMock.post.mockResolvedValue({
         data: {
@@ -142,6 +148,7 @@ describe('InvoiceCreate', () => {
         await state.submitInvoice();
 
         expect(axiosMock.post).toHaveBeenCalledWith('/api/v2/invoices', expect.objectContaining({
+            idempotency_key: expect.stringMatching(/^invoice-create-1-/),
             items: [
                 expect.objectContaining({
                     description: 'Canillera',
@@ -167,5 +174,50 @@ describe('InvoiceCreate', () => {
             focusConfirm: true,
             confirmButtonText: '¡Sí, guardar!',
         }));
+    });
+
+    it('announces an initial load failure and recovers without leaving the page', async () => {
+        const wrapper = await mountPage({
+            configureGet: get => get
+                .mockRejectedValueOnce({ response: { data: { message: 'Los conceptos no están disponibles.' } } })
+                .mockResolvedValueOnce(loadPayload),
+        });
+
+        const alert = wrapper.get('[role="alert"]');
+        expect(alert.text()).toContain('Los conceptos no están disponibles.')
+
+        await alert.get('button').trigger('click');
+        await flushPromises();
+
+        expect(axiosMock.get).toHaveBeenCalledTimes(2);
+        expect(wrapper.text()).toContain('Jugador Demo');
+        expect(wrapper.find('[role="alert"]').exists()).toBe(false);
+    });
+
+    it('keeps invoice inputs and the idempotency key after a failed save', async () => {
+        const wrapper = await mountPage();
+        const state = wrapper.vm.$.setupState;
+
+        state.addAdditionalItem();
+        state.additionalItems[0].include = true;
+        state.additionalItems[0].description = 'Balón';
+        state.additionalItems[0].quantity = 1;
+        state.additionalItems[0].unit_price = 45000;
+        axiosMock.post.mockRejectedValueOnce({
+            response: { data: { message: 'El cargo ya fue facturado.' } },
+        });
+
+        await state.submitInvoice();
+        const firstKey = axiosMock.post.mock.calls[0][1].idempotency_key;
+
+        expect(wrapper.get('[role="alert"]').text()).toContain('El cargo ya fue facturado.');
+        expect(state.additionalItems[0].description).toBe('Balón');
+
+        axiosMock.post.mockRejectedValueOnce({
+            response: { data: { message: 'Intenta nuevamente.' } },
+        });
+        await state.submitInvoice();
+
+        expect(axiosMock.post.mock.calls[1][1].idempotency_key).toBe(firstKey);
     });
 });

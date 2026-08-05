@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Dto\AssistDTO;
-use App\Http\Requests\CompetitionUpdateRequest;
 use App\Http\Requests\CompetitionStoreRequest;
+use App\Http\Requests\CompetitionUpdateRequest;
 use App\Models\Assist;
 use App\Models\CompetitionGroup;
 use App\Models\CompetitionGroupInscription;
@@ -20,20 +20,21 @@ use App\Models\PaymentChangeLog;
 use App\Models\PaymentReceived;
 use App\Models\PaymentRequest;
 use App\Models\Player;
-use App\Models\PlayerTopicNotification;
 use App\Models\Schedule;
 use App\Models\SchoolUser;
 use App\Models\SkillsControl;
+use App\Models\TopicNotification;
 use App\Models\Tournament;
 use App\Models\TournamentPayout;
-use App\Models\TopicNotification;
 use App\Models\TrainingGroup;
 use App\Models\TrainingSession;
+use App\Models\UniformRequest;
 use App\Models\User;
 use App\Notifications\RegisterNotification;
 use App\Repositories\AssistRepository;
 use App\Repositories\BaseRepository;
 use App\Repositories\CompetitionGroupRepository;
+use App\Repositories\GameRepository;
 use App\Repositories\IncidentRepository;
 use App\Repositories\InvoiceRepository;
 use App\Repositories\PaymentRepository;
@@ -48,11 +49,13 @@ use App\Repositories\TrainingGroupRepository;
 use App\Repositories\TrainingSessionRepository;
 use App\Repositories\UniformRequestRepository;
 use App\Repositories\UserRepository;
-use App\Repositories\GameRepository;
-use Illuminate\Http\UploadedFile;
+use App\Service\Assist\AssistService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
@@ -69,11 +72,11 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         parent::tearDown();
     }
 
-    public function testBaseRepositoryAndPeopleRepositoryBasicFlows(): void
+    public function test_base_repository_and_people_repository_basic_flows(): void
     {
         $this->actingAs($this->user);
 
-        $baseRepository = new BaseRepository(new Schedule());
+        $baseRepository = new BaseRepository(new Schedule);
         $schedule = Schedule::query()->create([
             'schedule' => '08:00 - 09:00',
             'school_id' => $this->school['id'],
@@ -121,7 +124,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ]);
     }
 
-    public function testScheduleRepositoryStoreUpdateAndAll(): void
+    public function test_schedule_repository_store_update_and_all(): void
     {
         $this->actingAs($this->user);
         $repository = app(ScheduleRepository::class);
@@ -138,13 +141,13 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ], $schedule);
 
         $all = $repository->all();
-        $this->assertTrue($all->contains(fn(Schedule $item) => $item->id === $schedule->id));
+        $this->assertTrue($all->contains(fn (Schedule $item) => $item->id === $schedule->id));
     }
 
-    public function testUniformRequestRepositoryStoreAndCancel(): void
+    public function test_uniform_request_repository_store_and_cancel(): void
     {
         $player = $this->createTestPlayer();
-        app('request')->setUserResolver(fn() => $player);
+        app('request')->setUserResolver(fn () => $player);
 
         $repository = app(UniformRequestRepository::class);
         $created = $repository->store([
@@ -162,7 +165,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertSame('CANCELLED', $created->fresh()->status);
     }
 
-    public function testPaymentRepositorySetPayPaymentsByStatusAndGraphics(): void
+    public function test_payment_repository_set_pay_payments_by_status_and_graphics(): void
     {
         $this->actingAs($this->user);
         $this->createPaymentsReportDetailViewForSqlite();
@@ -205,7 +208,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         DB::statement("CREATE VIEW vw_payments_report_detail AS {$monthlySelects}");
     }
 
-    public function testPaymentRepositorySetPaySupportsColumnScopedNormalization(): void
+    public function test_payment_repository_set_pay_supports_column_scoped_normalization(): void
     {
         $this->actingAs($this->user);
         [, $payment] = $this->createInscriptionAndPayment();
@@ -254,7 +257,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ]);
     }
 
-    public function testPaymentRepositoryFiltersDecoratesAndQueriesDuePayments(): void
+    public function test_payment_repository_filters_decorates_and_queries_due_payments(): void
     {
         $this->actingAs($this->user);
         DB::connection()->getPdo()->sqliteCreateFunction(
@@ -313,10 +316,10 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         )->get();
 
         $this->assertTrue($due->contains('id', $payment->id));
-        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $paidOrDue);
+        $this->assertInstanceOf(Collection::class, $paidOrDue);
     }
 
-    public function testPaymentBulkUpdateMarksOnlyActiveLoadedPayments(): void
+    public function test_payment_bulk_update_marks_only_active_loaded_payments(): void
     {
         $this->actingAs($this->user);
         [, $activePayment, $trainingGroup] = $this->createInscriptionAndPayment();
@@ -357,7 +360,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ]);
     }
 
-    public function testPaymentRepositoryDoesNotAuditNoOpPaymentUpdate(): void
+    public function test_payment_repository_does_not_audit_no_op_payment_update(): void
     {
         $this->actingAs($this->user);
         [, $payment] = $this->createInscriptionAndPayment();
@@ -379,7 +382,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             ->count());
     }
 
-    public function testPaymentHistoryEndpointReturnsReadableAuditRows(): void
+    public function test_payment_history_endpoint_returns_readable_audit_rows(): void
     {
         $this->actingAs($this->user);
         [, $payment] = $this->createInscriptionAndPayment();
@@ -402,7 +405,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             ->assertJsonPath('data.0.changed_by', $this->user->id);
     }
 
-    public function testPaymentListIncludesHistoryCountsWithoutLoadingHistoryRows(): void
+    public function test_payment_list_includes_history_counts_without_loading_history_rows(): void
     {
         $this->actingAs($this->user);
         [$inscription, $payment] = $this->createInscriptionAndPayment();
@@ -428,7 +431,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertArrayNotHasKey('february', $response['rows']->first()->history_fields);
     }
 
-    public function testPlayerRepositoryLookupListsAndBirthdayFlows(): void
+    public function test_player_repository_lookup_lists_and_birthday_flows(): void
     {
         $this->actingAs($this->user);
         $repository = app(PlayerRepository::class);
@@ -478,7 +481,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertSame($inscription->id, data_get($reactivation, 'reactivation_inscription.id'));
     }
 
-    public function testPaymentUpdateAcceptsColumnScopedPayloadWithoutFullRow(): void
+    public function test_payment_update_accepts_column_scoped_payload_without_full_row(): void
     {
         $this->actingAs($this->user);
         [, $payment] = $this->createInscriptionAndPayment();
@@ -517,7 +520,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ]);
     }
 
-    public function testTrainingSessionRepositoryStoreUpdateAndList(): void
+    public function test_training_session_repository_store_update_and_list(): void
     {
         $this->actingAs($this->user);
         $trainingGroup = TrainingGroup::query()->where('school_id', $this->school['id'])->firstOrFail();
@@ -535,10 +538,10 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertSame('Conos y escaleras', $stored->fresh()->material);
 
         $list = $repository->list();
-        $this->assertTrue($list->contains(fn(TrainingSession $item) => $item->id === $stored->id));
+        $this->assertTrue($list->contains(fn (TrainingSession $item) => $item->id === $stored->id));
     }
 
-    public function testAssistRepositoryUpsertBranches(): void
+    public function test_assist_repository_upsert_branches(): void
     {
         $this->actingAs($this->user);
         [$inscription] = $this->createInscriptionAndPayment();
@@ -586,17 +589,15 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ]);
     }
 
-    public function testIncidentAndTournamentPayoutRepositories(): void
+    public function test_incident_and_tournament_payout_repositories(): void
     {
         $this->actingAs($this->user);
         [$inscription] = $this->createInscriptionAndPayment();
         $incidentRepository = app(IncidentRepository::class);
 
-        $incidentRequest = new class ((int) $this->user->id)
+        $incidentRequest = new class((int) $this->user->id)
         {
-            public function __construct(private int $userIncidentId)
-            {
-            }
+            public function __construct(private int $userIncidentId) {}
 
             public function input(string $key): int
             {
@@ -656,7 +657,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertSame('1', $payout->fresh()->status);
     }
 
-    public function testPaymentRequestRepositoryCreatePaymentRequest(): void
+    public function test_payment_request_repository_create_payment_request(): void
     {
         $this->actingAs($this->user);
         Storage::fake('public');
@@ -664,11 +665,11 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         [$inscription, , $trainingGroup] = $this->createInscriptionAndPayment($player);
 
         $invoice = Invoice::query()->create([
-            'invoice_number' => 'FAC-TEST-' . now()->format('YmdHis'),
+            'invoice_number' => 'FAC-TEST-'.now()->format('YmdHis'),
             'inscription_id' => $inscription->id,
             'training_group_id' => $trainingGroup->id,
             'year' => now()->year,
-            'student_name' => $player->names . ' ' . $player->last_names,
+            'student_name' => $player->names.' '.$player->last_names,
             'issue_date' => now()->toDateString(),
             'due_date' => now()->addWeek()->toDateString(),
             'status' => 'pending',
@@ -676,7 +677,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'created_by' => $this->user->id,
         ]);
 
-        app('request')->setUserResolver(fn() => $player);
+        app('request')->setUserResolver(fn () => $player);
         $repository = app(PaymentRequestRepository::class);
 
         $result = $repository->createPaymentRequest([
@@ -697,7 +698,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ]);
     }
 
-    public function testTopicNotificationRepositoryMarkReadAndMarkReadAllWithMocks(): void
+    public function test_topic_notification_repository_mark_read_and_mark_read_all_with_mocks(): void
     {
         $repository = app(TopicNotificationRepository::class);
 
@@ -712,7 +713,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $player = Mockery::mock();
         $player->shouldReceive('notifications')->andReturn($relation);
 
-        app('request')->setUserResolver(fn() => $player);
+        app('request')->setUserResolver(fn () => $player);
 
         $repository->markRead(15);
         $repository->markReadAll();
@@ -720,7 +721,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function testSchoolRepositoryGetAllAndSchoolsInfo(): void
+    public function test_school_repository_get_all_and_schools_info(): void
     {
         $this->actingAs($this->user);
         $repository = app(SchoolRepository::class);
@@ -734,7 +735,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertSame((int) $this->school['id'], (int) $schoolInfo->id);
     }
 
-    public function testUserRepositoryGetAllTrashAndRestore(): void
+    public function test_user_repository_get_all_trash_and_restore(): void
     {
         $this->actingAs($this->user);
         $repository = app(UserRepository::class);
@@ -751,28 +752,28 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ]);
 
         $all = $repository->getAll()->get();
-        $this->assertTrue($all->contains(fn(User $item) => $item->id === $user->id));
+        $this->assertTrue($all->contains(fn (User $item) => $item->id === $user->id));
 
         $user->delete();
         $trash = $repository->getAllTrash()->get();
-        $this->assertTrue($trash->contains(fn(User $item) => $item->id === $user->id));
+        $this->assertTrue($trash->contains(fn (User $item) => $item->id === $user->id));
 
         $restored = $repository->restore($user->id);
         $this->assertSame(1, $restored);
     }
 
-    public function testInvoiceRepositoryCoreQueriesAndPlayerStats(): void
+    public function test_invoice_repository_core_queries_and_player_stats(): void
     {
         $this->actingAs($this->user);
         $player = $this->createTestPlayer();
         [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment($player);
 
         $invoice = Invoice::query()->create([
-            'invoice_number' => 'FAC-COV-' . now()->format('YmdHis'),
+            'invoice_number' => 'FAC-COV-'.now()->format('YmdHis'),
             'inscription_id' => $inscription->id,
             'training_group_id' => $trainingGroup->id,
             'year' => now()->year,
-            'student_name' => $player->names . ' ' . $player->last_names,
+            'student_name' => $player->names.' '.$player->last_names,
             'issue_date' => now()->toDateString(),
             'due_date' => now()->addWeek()->toDateString(),
             'status' => 'pending',
@@ -788,7 +789,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertSame($inscription->id, $inscriptionData->id);
         $this->assertIsArray($pendingMonths);
 
-        app('request')->setUserResolver(fn() => $player);
+        app('request')->setUserResolver(fn () => $player);
         $playerInvoices = $repository->invoicesPlayer();
         $stats = $repository->statisticsPlayer();
         $this->assertGreaterThan(0, $playerInvoices->count());
@@ -798,7 +799,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertInstanceOf(Builder::class, $itemsQuery);
     }
 
-    public function testInvoicePaymentRegistrationUpdatesIssueDate(): void
+    public function test_invoice_payment_registration_updates_issue_date(): void
     {
         $this->actingAs($this->user);
         [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
@@ -807,7 +808,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         try {
             $invoice = Invoice::query()->create([
-                'invoice_number' => 'FAC-PAY-' . now()->format('YmdHis'),
+                'invoice_number' => 'FAC-PAY-'.now()->format('YmdHis'),
                 'inscription_id' => $inscription->id,
                 'training_group_id' => $trainingGroup->id,
                 'year' => now()->year,
@@ -831,8 +832,11 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
                 'is_paid' => false,
             ]);
 
+            $idempotencyKey = 'invoice-payment-test-'.$invoice->id;
+
             $response = $this->from(route('invoices.show', $invoice->id))
                 ->post(route('invoices.addPayment', $invoice->id), [
+                    'idempotency_key' => $idempotencyKey,
                     'amount' => '50000',
                     'payment_method' => 'cash',
                     'issue_date' => '2026-04-15',
@@ -851,6 +855,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             $paymentReceived = PaymentReceived::query()->firstWhere('invoice_id', $invoice->id);
 
             $this->assertNotNull($paymentReceived);
+            $this->assertSame($idempotencyKey, $paymentReceived->idempotency_key);
             $this->assertSame('2026-04-15', $invoice->issue_date->toDateString());
             $this->assertSame('2026-04-20', $paymentReceived->payment_date->toDateString());
             $this->assertSame('paid', $invoice->status);
@@ -858,12 +863,27 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             $this->assertTrue($item->is_paid);
             $this->assertSame($paymentReceived->id, $item->payment_received_id);
             $this->assertSame('1', (string) $payment->january);
+
+            $this->from(route('invoices.show', $invoice->id))
+                ->post(route('invoices.addPayment', $invoice->id), [
+                    'idempotency_key' => $idempotencyKey,
+                    'amount' => '50000',
+                    'payment_method' => 'cash',
+                    'issue_date' => '2026-04-15',
+                    'payment_date' => '2026-04-20',
+                    'reference' => 'REF-50000',
+                    'notes' => 'Reintento del mismo pago',
+                    'paid_items' => [$item->id],
+                ])
+                ->assertRedirect(route('invoices.show', $invoice->id));
+
+            $this->assertSame(1, PaymentReceived::query()->where('invoice_id', $invoice->id)->count());
         } finally {
             Schema::enableForeignKeyConstraints();
         }
     }
 
-    public function testInvoicePaymentMarksMonthlyItemPaymentByPaymentId(): void
+    public function test_invoice_payment_rejects_an_amount_that_does_not_match_selected_items(): void
     {
         $this->actingAs($this->user);
         [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
@@ -872,7 +892,58 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         try {
             $invoice = Invoice::query()->create([
-                'invoice_number' => 'FAC-PAY-ID-' . now()->format('YmdHis'),
+                'invoice_number' => 'FAC-PAY-MISMATCH-'.now()->format('YmdHis'),
+                'inscription_id' => $inscription->id,
+                'training_group_id' => $trainingGroup->id,
+                'year' => now()->year,
+                'student_name' => $inscription->player->full_names,
+                'total_amount' => 50000,
+                'paid_amount' => 0,
+                'issue_date' => '2026-04-01',
+                'due_date' => now()->addWeek()->toDateString(),
+                'status' => 'pending',
+                'school_id' => $this->school['id'],
+                'created_by' => $this->user->id,
+            ]);
+
+            $item = $invoice->items()->create([
+                'type' => 'monthly',
+                'description' => 'Mensualidad Enero',
+                'quantity' => 1,
+                'unit_price' => 50000,
+                'month' => 'january',
+                'payment_id' => $payment->id,
+                'is_paid' => false,
+            ]);
+
+            $this->postJson(route('invoices.addPayment', $invoice->id), [
+                'idempotency_key' => 'invoice-payment-mismatch-'.$invoice->id,
+                'amount' => '40000',
+                'payment_method' => 'cash',
+                'issue_date' => '2026-04-15',
+                'payment_date' => '2026-04-20',
+                'paid_items' => [$item->id],
+            ])
+                ->assertStatus(422)
+                ->assertJsonPath('message', 'El monto del pago no coincide con el total de los conceptos seleccionados.');
+
+            $this->assertFalse($item->fresh()->is_paid);
+            $this->assertFalse(PaymentReceived::query()->where('invoice_id', $invoice->id)->exists());
+        } finally {
+            Schema::enableForeignKeyConstraints();
+        }
+    }
+
+    public function test_invoice_payment_marks_monthly_item_payment_by_payment_id(): void
+    {
+        $this->actingAs($this->user);
+        [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
+
+        Schema::disableForeignKeyConstraints();
+
+        try {
+            $invoice = Invoice::query()->create([
+                'invoice_number' => 'FAC-PAY-ID-'.now()->format('YmdHis'),
                 'inscription_id' => $inscription->id,
                 'training_group_id' => $trainingGroup->id,
                 'year' => now()->addYear()->year,
@@ -908,7 +979,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         }
     }
 
-    public function testPaymentRequestApprovalStoresCurrentUserOnPaymentHistory(): void
+    public function test_payment_request_approval_stores_current_user_on_payment_history(): void
     {
         $this->actingAs($this->user);
         [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
@@ -917,7 +988,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         try {
             $invoice = Invoice::query()->create([
-                'invoice_number' => 'FAC-REQ-' . now()->format('YmdHis'),
+                'invoice_number' => 'FAC-REQ-'.now()->format('YmdHis'),
                 'inscription_id' => $inscription->id,
                 'training_group_id' => $trainingGroup->id,
                 'year' => now()->year,
@@ -963,14 +1034,14 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         }
     }
 
-    public function testInvoiceShowIncludesPaymentHistoryCreatorAndPaymentRequests(): void
+    public function test_invoice_show_includes_payment_history_creator_and_payment_requests(): void
     {
         Storage::fake('public');
         $this->actingAs($this->user);
         [$inscription, , $trainingGroup] = $this->createInscriptionAndPayment();
 
         $invoice = Invoice::query()->create([
-            'invoice_number' => 'FAC-SHOW-' . now()->format('YmdHis'),
+            'invoice_number' => 'FAC-SHOW-'.now()->format('YmdHis'),
             'inscription_id' => $inscription->id,
             'training_group_id' => $trainingGroup->id,
             'year' => now()->year,
@@ -1018,7 +1089,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             ]));
     }
 
-    public function testStoreInvoicePersistsItemTotalsAndKeepsPendingStatus(): void
+    public function test_store_invoice_persists_item_totals_and_keeps_pending_status(): void
     {
         // if (DB::getDriverName() === 'sqlite') {
         //     $this->markTestSkipped('SQLite invoice_items schema differs from the runtime MySQL table for payment_received_id.');
@@ -1031,6 +1102,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         try {
             $result = app(InvoiceRepository::class)->storeInvoice([
+                'idempotency_key' => 'invoice-create-test-'.$inscription->id,
                 'inscription_id' => $inscription->id,
                 'training_group_id' => $trainingGroup->id,
                 'year' => now()->year,
@@ -1076,9 +1148,19 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertCount(2, $invoice->items);
         $this->assertSame('2000.00', $invoice->items[0]->total);
         $this->assertSame('3000.00', $invoice->items[1]->total);
+
+        $retryResult = app(InvoiceRepository::class)->storeInvoice([
+            'idempotency_key' => 'invoice-create-test-'.$inscription->id,
+        ]);
+
+        $this->assertFalse($retryResult['created']);
+        $this->assertSame($invoice->id, $retryResult['id']);
+        $this->assertSame(1, Invoice::query()
+            ->where('idempotency_key', 'invoice-create-test-'.$inscription->id)
+            ->count());
     }
 
-    public function testStoreInvoiceLinksDueCustomChargeAndPaymentMarksOnlyPaidCharge(): void
+    public function test_store_invoice_links_due_custom_charge_and_payment_marks_only_paid_charge(): void
     {
         $this->actingAs($this->user);
         [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
@@ -1166,7 +1248,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertSame(InscriptionCustomCharge::STATUS_DUE, $secondCharge->fresh()->status);
     }
 
-    public function testGameRepositoryDatatableAndExportMatchDetail(): void
+    public function test_game_repository_datatable_and_export_match_detail(): void
     {
         $this->actingAs($this->user);
         [$inscription] = $this->createInscriptionAndPayment();
@@ -1201,13 +1283,13 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         $repository = app(GameRepository::class);
         $datatable = $repository->getDatatable(now()->year)->get();
-        $this->assertTrue($datatable->contains(fn(Game $item) => $item->id === $game->id));
+        $this->assertTrue($datatable->contains(fn (Game $item) => $item->id === $game->id));
 
         $details = $repository->exportMatchDetail($competitionGroup->id);
         $this->assertGreaterThan(0, $details->count());
     }
 
-    public function testCompetitionGroupRepositoryMainFlows(): void
+    public function test_competition_group_repository_main_flows(): void
     {
         $this->actingAs($this->user);
         [$inscription] = $this->createInscriptionAndPayment();
@@ -1229,10 +1311,10 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertNotNull($group->id);
 
         $enabled = $repository->listGroupEnabled()->get();
-        $this->assertTrue($enabled->contains(fn(CompetitionGroup $item) => $item->id === $group->id));
+        $this->assertTrue($enabled->contains(fn (CompetitionGroup $item) => $item->id === $group->id));
 
         $fullName = $repository->getListGroupFullName();
-        $this->assertTrue($fullName->contains(fn(CompetitionGroup $item) => $item->id === $group->id));
+        $this->assertTrue($fullName->contains(fn (CompetitionGroup $item) => $item->id === $group->id));
 
         $yearGroups = $repository->getGroupsYear((string) now()->year);
         $this->assertArrayHasKey($group->id, $yearGroups->toArray());
@@ -1253,10 +1335,10 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         $group->delete();
         $disabled = $repository->listGroupDisabled();
-        $this->assertTrue($disabled->contains(fn(CompetitionGroup $item) => $item->id === $group->id));
+        $this->assertTrue($disabled->contains(fn (CompetitionGroup $item) => $item->id === $group->id));
     }
 
-    public function testTrainingGroupRepositoryFlows(): void
+    public function test_training_group_repository_flows(): void
     {
         $this->actingAs($this->user);
         $repository = app(TrainingGroupRepository::class);
@@ -1276,7 +1358,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         $request = Mockery::mock(FormRequest::class);
         $request->shouldReceive('input')
-            ->andReturnUsing(fn(string $key, $default = null) => data_get($payload, $key, $default));
+            ->andReturnUsing(fn (string $key, $default = null) => data_get($payload, $key, $default));
         $request->shouldReceive('boolean')
             ->with('is_complementary')
             ->andReturn(false);
@@ -1293,10 +1375,10 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertGreaterThan(0, $loadedGroup->years->count());
 
         $listByUser = $repository->getListGroupsSchedule(false, $this->user->id);
-        $this->assertTrue($listByUser->contains(fn(TrainingGroup $item) => $item->id === $group->id));
+        $this->assertTrue($listByUser->contains(fn (TrainingGroup $item) => $item->id === $group->id));
 
-        $listFiltered = $repository->getListGroupsSchedule(false, null, fn($items) => $items->filter(fn($item) => $item->id === $group->id));
-        $this->assertTrue($listFiltered->contains(fn(TrainingGroup $item) => $item->id === $group->id));
+        $listFiltered = $repository->getListGroupsSchedule(false, null, fn ($items) => $items->filter(fn ($item) => $item->id === $group->id));
+        $this->assertTrue($listFiltered->contains(fn (TrainingGroup $item) => $item->id === $group->id));
 
         $groupsYear = $repository->getGroupsYear('2010');
         $this->assertArrayHasKey($group->id, $groupsYear->toArray());
@@ -1329,10 +1411,10 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             ->update(['assigned_year' => $year - 1]);
 
         $disabled = $repository->listGroupDisabled();
-        $this->assertTrue($disabled->contains(fn(TrainingGroup $item) => $item->id === $group->id));
+        $this->assertTrue($disabled->contains(fn (TrainingGroup $item) => $item->id === $group->id));
     }
 
-    public function testTournamentPayoutsRepositoryCreateAndSearch(): void
+    public function test_tournament_payouts_repository_create_and_search(): void
     {
         $this->actingAs($this->user);
         [$inscription] = $this->createInscriptionAndPayment();
@@ -1385,17 +1467,13 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $table['count']);
     }
 
-    public function testUserRepositoryCreateAndUpdate(): void
+    public function test_user_repository_create_and_update(): void
     {
         $this->actingAs($this->user);
         Notification::fake();
         $repository = app(UserRepository::class);
 
-        $createRequest = new class ([
-            'name' => 'Repo User',
-            'email' => fake()->unique()->safeEmail(),
-            'password' => 'secret123',
-        ], 3) extends FormRequest
+        $createRequest = new class(['name' => 'Repo User', 'email' => fake()->unique()->safeEmail(), 'password' => 'secret123'], 3) extends FormRequest
         {
             public string $password;
 
@@ -1431,10 +1509,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertTrue($created->fresh()->hasRole(User::INSTRUCTOR));
         Notification::assertSentTo([$created], RegisterNotification::class);
 
-        $updateRequest = new class ([
-            'name' => 'Repo User Updated',
-            'email' => $created->email,
-        ], 2) extends FormRequest
+        $updateRequest = new class(['name' => 'Repo User Updated', 'email' => $created->email], 2) extends FormRequest
         {
             public function __construct(private array $data, private int $roleId)
             {
@@ -1462,7 +1537,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertTrue($created->hasRole(User::SCHOOL));
     }
 
-    public function testGameRepositoryExtendedFlows(): void
+    public function test_game_repository_extended_flows(): void
     {
         $this->actingAs($this->user);
 
@@ -1599,7 +1674,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             'place' => 'Cancha D',
         ]);
 
-        $pdfRepository = Mockery::mock(GameRepository::class, [new Game()])
+        $pdfRepository = Mockery::mock(GameRepository::class, [new Game])
             ->makePartial()
             ->shouldAllowMockingProtectedMethods();
         $pdfRepository->shouldReceive('setConfigurationMpdf')->once();
@@ -1610,11 +1685,11 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertSame('pdf-stream', $pdfResult);
     }
 
-    public function testGameRepositoryCreateUpdateAndLoadDataCoverRemainingBranches(): void
+    public function test_game_repository_create_update_and_load_data_cover_remaining_branches(): void
     {
         $this->actingAs($this->user);
 
-        if (!Schema::hasColumn('skills_control', 'goal_assists')) {
+        if (! Schema::hasColumn('skills_control', 'goal_assists')) {
             Schema::table('skills_control', function ($table): void {
                 $table->smallInteger('goal_assists')->default(0);
                 $table->smallInteger('goal_saves')->default(0);
@@ -1782,11 +1857,11 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertGreaterThan(0, $loadedData['skills_controls']->count());
     }
 
-    public function testGameRepositoryCreateAndUpdateHandleExceptions(): void
+    public function test_game_repository_create_and_update_handle_exceptions(): void
     {
         $this->actingAs($this->user);
 
-        $repository = Mockery::mock(GameRepository::class, [new Game()])->makePartial();
+        $repository = Mockery::mock(GameRepository::class, [new Game])->makePartial();
         $repository->shouldReceive('logError')->twice();
 
         $failedCreate = $repository->createMatchSkill($this->makeCompetitionStoreRequest([
@@ -1854,17 +1929,13 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertFalse($failedUpdate);
     }
 
-    public function testUserRepositoryCreateAndUpdateHandleExceptions(): void
+    public function test_user_repository_create_and_update_handle_exceptions(): void
     {
         $this->actingAs($this->user);
-        $repository = Mockery::mock(UserRepository::class, [new User()])->makePartial();
+        $repository = Mockery::mock(UserRepository::class, [new User])->makePartial();
         $repository->shouldReceive('logError')->twice();
 
-        $duplicateCreateRequest = new class ([
-            'name' => 'Duplicate Email User',
-            'email' => (string) $this->user->email,
-            'password' => 'secret123',
-        ], 3) extends FormRequest
+        $duplicateCreateRequest = new class(['name' => 'Duplicate Email User', 'email' => (string) $this->user->email, 'password' => 'secret123'], 3) extends FormRequest
         {
             public string $password;
 
@@ -1906,10 +1977,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ]);
         $existingEmailOwner->syncRoles([User::INSTRUCTOR]);
 
-        $duplicateUpdateRequest = new class ([
-            'name' => 'Debe Mantenerse',
-            'email' => (string) $existingEmailOwner->email,
-        ], 3) extends FormRequest
+        $duplicateUpdateRequest = new class(['name' => 'Debe Mantenerse', 'email' => (string) $existingEmailOwner->email], 3) extends FormRequest
         {
             public function __construct(private array $data, private int $roleId)
             {
@@ -1936,18 +2004,19 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertSame($originalName, $userToUpdate->fresh()->name);
     }
 
-    public function testAssistRepositorySearchCreateUpdateAndBulkBranches(): void
+    public function test_assist_repository_search_create_update_and_bulk_branches(): void
     {
         $this->actingAs($this->user);
         $repository = app(AssistRepository::class);
 
-        $serviceMock = Mockery::mock(\App\Service\Assist\AssistService::class);
+        $serviceMock = Mockery::mock(AssistService::class);
         $serviceMock->shouldReceive('generateTable')
             ->once()
             ->andReturnUsing(function ($assists, TrainingGroup $group, array $data, bool $deleted): array {
                 $this->assertInstanceOf(Builder::class, $assists);
                 $this->assertFalse($deleted);
                 $this->assertSame((int) now()->year, (int) $data['year']);
+
                 return ['count' => 0, 'table' => '', 'group_name' => $group->full_schedule_group, 'url_print' => '', 'url_print_excel' => ''];
             });
 
@@ -1964,13 +2033,14 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ]);
         $this->assertIsArray($searchResult);
 
-        $serviceMockDeleted = Mockery::mock(\App\Service\Assist\AssistService::class);
+        $serviceMockDeleted = Mockery::mock(AssistService::class);
         $serviceMockDeleted->shouldReceive('generateTable')
             ->once()
             ->andReturnUsing(function ($assists, TrainingGroup $groupArg, array $data, bool $deleted) use ($group): array {
                 $this->assertTrue($deleted);
                 $this->assertSame($group->id, $groupArg->id);
                 $this->assertSame((string) (now()->year - 1), (string) $data['year']);
+
                 return ['count' => 0, 'table' => '', 'group_name' => '', 'url_print' => '', 'url_print_excel' => ''];
             });
         $serviceProperty->setValue($repository, $serviceMockDeleted);
@@ -2126,11 +2196,11 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function testAssistRepositoryErrorBranches(): void
+    public function test_assist_repository_error_branches(): void
     {
         $this->actingAs($this->user);
 
-        $createRepository = Mockery::mock(AssistRepository::class, [new Assist()])->makePartial();
+        $createRepository = Mockery::mock(AssistRepository::class, [new Assist])->makePartial();
         $createRepository->shouldReceive('logError')->once();
         $createResult = $createRepository->create(['training_group_id' => 1]);
         $this->assertSame([], $createResult);
@@ -2147,7 +2217,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $inscription = Inscription::query()->create([
             'school_id' => $this->school['id'],
             'player_id' => $this->createTestPlayer()->id,
-            'unique_code' => 'RC-ERR-' . fake()->unique()->numberBetween(1000, 9999),
+            'unique_code' => 'RC-ERR-'.fake()->unique()->numberBetween(1000, 9999),
             'year' => now()->year,
             'start_date' => now()->startOfYear()->format('Y-m-d'),
             'category' => '2010-2011',
@@ -2162,7 +2232,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             ['school_id', $this->school['id']],
         ])->firstOrFail();
 
-        $upsertRepository = Mockery::mock(AssistRepository::class, [new Assist()])->makePartial();
+        $upsertRepository = Mockery::mock(AssistRepository::class, [new Assist])->makePartial();
         $upsertRepository->shouldReceive('logError')->once();
         $failedUpsert = $upsertRepository->upsert(AssistDTO::fromArray([
             'school_id' => $this->school['id'],
@@ -2177,9 +2247,9 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ]));
         $this->assertFalse($failedUpsert);
 
-        $updateRepository = Mockery::mock(AssistRepository::class, [new Assist()])->makePartial();
+        $updateRepository = Mockery::mock(AssistRepository::class, [new Assist])->makePartial();
         $updateRepository->shouldReceive('logError')->once();
-        $assistMock = Mockery::mock(new Assist())->makePartial();
+        $assistMock = Mockery::mock(new Assist)->makePartial();
         $assistMock->shouldReceive('update')->once()->andThrow(new \Exception('forced update error'));
         $failedUpdate = $updateRepository->update($assistMock, [
             'assistance_one' => 'as',
@@ -2187,14 +2257,14 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertFalse($failedUpdate);
     }
 
-    public function testTopicNotificationRepositoryAllBranches(): void
+    public function test_topic_notification_repository_all_branches(): void
     {
         $this->actingAs($this->user);
         $repository = app(TopicNotificationRepository::class);
 
         $topicId = DB::table('topic_notifications')->insertGetId([
             'school_id' => $this->school['id'],
-            'topics' => 'general-' . $this->school['id'],
+            'topics' => 'general-'.$this->school['id'],
             'type' => 'GENERAL',
             'priority' => 'NORMAL',
             'title' => 'Aviso',
@@ -2206,7 +2276,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $mockPlayer = Mockery::mock();
         $mockPlayer->notifications = collect([$topic]);
         $mockPlayer->shouldReceive('load')->times(2)->with('notifications');
-        app('request')->setUserResolver(fn() => $mockPlayer);
+        app('request')->setUserResolver(fn () => $mockPlayer);
 
         $playerNotifications = $repository->getPlayerNotifications();
         $this->assertGreaterThan(0, $playerNotifications->count());
@@ -2221,13 +2291,13 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         $singleTopicQuery = $repository->getNotificationByTopic([
             'school_id' => $this->school['id'],
-            'topic' => 'general-' . $this->school['id'],
+            'topic' => 'general-'.$this->school['id'],
         ]);
         $this->assertStringContainsString('topics', $singleTopicQuery->toSql());
 
         $arrayTopicQuery = $repository->getNotificationByTopic([
             'school_id' => $this->school['id'],
-            'topic' => ['general-' . $this->school['id'], 'team-' . $this->school['id']],
+            'topic' => ['general-'.$this->school['id'], 'team-'.$this->school['id']],
         ]);
         $this->assertStringContainsString('or', strtolower($arrayTopicQuery->toSql()));
 
@@ -2242,15 +2312,15 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $playerForException = Mockery::mock();
         $playerForException->shouldReceive('notifications')->andReturn($relation);
 
-        app('request')->setUserResolver(fn() => $playerForException);
+        app('request')->setUserResolver(fn () => $playerForException);
         $repository->markRead(9999999);
     }
 
-    public function testUniformRequestRepositoryRemainingBranchesAndErrors(): void
+    public function test_uniform_request_repository_remaining_branches_and_errors(): void
     {
         $this->actingAs($this->user);
         $player = $this->createTestPlayer();
-        app('request')->setUserResolver(fn() => $player);
+        app('request')->setUserResolver(fn () => $player);
 
         $repository = app(UniformRequestRepository::class);
         $stored = $repository->store([
@@ -2281,7 +2351,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ]);
 
         $queryTableResponse = $repository->queryTable();
-        $this->assertInstanceOf(\Illuminate\Http\JsonResponse::class, $queryTableResponse);
+        $this->assertInstanceOf(JsonResponse::class, $queryTableResponse);
 
         $dataTableEngine = Mockery::mock();
         $dataTableEngine->shouldReceive('filterColumn')
@@ -2310,7 +2380,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->app->instance('datatables', $dataTablesFacade);
 
         $callbackCoverageResponse = $repository->queryTable();
-        $this->assertInstanceOf(\Illuminate\Http\JsonResponse::class, $callbackCoverageResponse);
+        $this->assertInstanceOf(JsonResponse::class, $callbackCoverageResponse);
 
         $errorRepository = Mockery::mock(UniformRequestRepository::class)->makePartial();
         $errorRepository->shouldReceive('logError')->once();
@@ -2324,7 +2394,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         $cancelErrorRepository = Mockery::mock(UniformRequestRepository::class)->makePartial();
         $cancelErrorRepository->shouldReceive('logError')->once();
-        $uniformRequestMock = Mockery::mock(new \App\Models\UniformRequest())->makePartial();
+        $uniformRequestMock = Mockery::mock(new UniformRequest)->makePartial();
         $uniformRequestMock->status = 'PENDING';
         $uniformRequestMock->additional_notes = 'X';
         $uniformRequestMock->shouldReceive('save')->once()->andThrow(new \Exception('forced cancel error'));
@@ -2336,13 +2406,13 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
     {
         return Player::factory()->create([
             'school_id' => $this->school['id'],
-            'unique_code' => 'RC-' . fake()->unique()->numberBetween(1000, 9999),
+            'unique_code' => 'RC-'.fake()->unique()->numberBetween(1000, 9999),
         ]);
     }
 
     private function makeCompetitionStoreRequest(array $data): CompetitionStoreRequest
     {
-        return new class ($data) extends CompetitionStoreRequest
+        return new class($data) extends CompetitionStoreRequest
         {
             public function __construct(private array $payload)
             {
@@ -2352,8 +2422,8 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             public function only($keys): array
             {
                 return collect((array) $keys)
-                    ->mapWithKeys(fn(string $key) => [$key => data_get($this->payload, $key)])
-                    ->filter(fn($value) => !is_null($value))
+                    ->mapWithKeys(fn (string $key) => [$key => data_get($this->payload, $key)])
+                    ->filter(fn ($value) => ! is_null($value))
                     ->all();
             }
 
@@ -2368,7 +2438,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
     private function makeCompetitionUpdateRequest(array $data): CompetitionUpdateRequest
     {
-        return new class ($data) extends CompetitionUpdateRequest
+        return new class($data) extends CompetitionUpdateRequest
         {
             public function __construct(private array $payload)
             {
@@ -2378,8 +2448,8 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             public function only($keys): array
             {
                 return collect((array) $keys)
-                    ->mapWithKeys(fn(string $key) => [$key => data_get($this->payload, $key)])
-                    ->filter(fn($value) => !is_null($value))
+                    ->mapWithKeys(fn (string $key) => [$key => data_get($this->payload, $key)])
+                    ->filter(fn ($value) => ! is_null($value))
                     ->all();
             }
 

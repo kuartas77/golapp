@@ -13,16 +13,34 @@
                         </div>
                         <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                             <i class="fa-regular fa-circle-question me-2"></i>
-                            Guia
+                            Guía
                         </button>
                     </div>
 
                     <div class="card-body">
-                        <form @submit.prevent="confirmCreate">
+                        <ContentState
+                            v-if="isLoadingData"
+                            type="loading"
+                            title="Preparando la factura"
+                            message="Estamos consultando las mensualidades y los conceptos disponibles."
+                        />
+                        <ContentState
+                            v-else-if="loadError"
+                            type="error"
+                            title="No fue posible preparar la factura"
+                            :message="loadError"
+                            action-label="Reintentar"
+                            @action="loadData"
+                        />
+                        <form v-else @submit.prevent="confirmCreate">
                             <input type="hidden" name="inscription_id" :value="inscriptionId">
                             <input type="hidden" name="training_group_id" :value="inscription?.training_group_id">
                             <input type="hidden" name="year" :value="currentYear">
                             <input type="hidden" name="student_name" :value="inscription?.player?.full_names">
+
+                            <div v-if="createError" class="alert alert-danger" role="alert">
+                                {{ createError }}
+                            </div>
 
                             <div class="row">
                                 <div class="col-lg-8">
@@ -335,6 +353,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/utils/axios'
@@ -364,10 +383,22 @@ const additionalItems = ref([])
 const dueDate = ref(dayjs().add(15, 'day').format('YYYY-MM-DD'))
 const notes = ref('')
 const loading = ref(false)
+const isLoadingData = ref(true)
+const loadError = ref('')
+const createError = ref('')
 const selectAllMonts = ref(true)
 const selectAllAdditionalItems = ref(true)
 // Fecha actual
 const currentYear = new Date().getFullYear()
+
+const createIdempotencyKey = () => {
+    const randomValue = globalThis.crypto?.randomUUID?.()
+        ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
+
+    return `invoice-create-${inscriptionId}-${randomValue}`.slice(0, 64)
+}
+
+const invoiceIdempotencyKey = ref(createIdempotencyKey())
 
 const normalizeQuantity = (value) => {
     const quantity = Math.trunc(Number(value))
@@ -425,7 +456,8 @@ const selectedItemsCount = computed(() => {
 // Métodos
 const loadData = async () => {
     try {
-        loading.value = true
+        isLoadingData.value = true
+        loadError.value = ''
         const response = await api.get(`/api/v2/invoices/create/${inscriptionId}`)
 
         inscription.value = response.data.inscription
@@ -464,9 +496,9 @@ const loadData = async () => {
 
     } catch (error) {
         console.error('Error al cargar datos:', error)
-        showMessage('Error al cargar los datos del estudiante', 'error')
+        loadError.value = error.response?.data?.message || 'No fue posible cargar los datos para crear la factura. Intenta nuevamente.'
     } finally {
-        loading.value = false
+        isLoadingData.value = false
     }
 }
 
@@ -518,8 +550,13 @@ const confirmCreate = async () => {
 }
 
 const submitInvoice = async () => {
+    if (loading.value) {
+        return
+    }
+
     try {
         loading.value = true
+        createError.value = ''
 
         // Preparar datos para enviar
         const data = {
@@ -527,6 +564,7 @@ const submitInvoice = async () => {
             training_group_id: inscription.value.training_group_id,
             year: currentYear,
             student_name: inscription.value.player.full_names,
+            idempotency_key: invoiceIdempotencyKey.value,
             due_date: dueDate.value,
             notes: notes.value,
             items: []
@@ -571,7 +609,7 @@ const submitInvoice = async () => {
 
     } catch (error) {
         console.error('Error al crear factura:', error)
-        showMessage('Error al crear la factura: ' + (error.response?.data?.message || error.message), 'error')
+        createError.value = error.response?.data?.message || 'No fue posible crear la factura. Revisa los conceptos e intenta nuevamente.'
     } finally {
         loading.value = false
     }
