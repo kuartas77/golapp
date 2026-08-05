@@ -15,6 +15,16 @@
 
                     <div class="card-body">
                         <div class="table-responsive-sm" data-tour="custom-charges-table">
+                            <ContentState
+                                v-if="globalError"
+                                type="error"
+                                title="No fue posible cargar los cargos personalizados"
+                                :message="globalError"
+                                action-label="Reintentar"
+                                class="mb-3"
+                                @action="reloadTable"
+                            />
+                            <div v-show="!globalError">
                             <DatatableTemplate
                                 id="custom-charges-table"
                                 ref="custom_charges_table"
@@ -42,6 +52,7 @@
                                     </div>
                                 </template>
                             </DatatableTemplate>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -55,7 +66,7 @@
                 <form @submit.prevent="submitForm">
                     <div class="modal-header">
                         <h5 class="modal-title">Editar cargo personalizado</h5>
-                        <button type="button" class="btn-close" :disabled="saving" @click="closeModal"></button>
+                        <button type="button" class="btn-close" aria-label="Cerrar" :disabled="saving" @click="closeModal"></button>
                     </div>
                     <div class="modal-body">
                         <div v-if="formMessage" class="alert alert-danger py-2">{{ formMessage }}</div>
@@ -117,6 +128,7 @@ import { onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import api from '@/utils/axios'
 import CurrencyInput from '@/components/general/CurrencyInput'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import useInscriptionCustomChargesList from '@/composables/invoices/inscriptionCustomChargesList'
 import flatPickr from 'vue-flatpickr-component'
 import { Spanish } from 'flatpickr/dist/l10n/es.js'
@@ -131,7 +143,7 @@ const tutorial = usePageTutorial(customChargesTutorial)
 const deletingId = ref(null)
 const modalElement = ref(null)
 const formMessage = ref('')
-const { options, reloadTable } = useInscriptionCustomChargesList()
+const { options, reloadTable, globalError } = useInscriptionCustomChargesList()
 
 const form = reactive({
     id: null,

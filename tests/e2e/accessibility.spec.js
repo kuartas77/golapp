@@ -311,3 +311,129 @@ test('invoices announces a failed load and recovers with accessible row actions'
     await expect(page.getByText('Totales de esta página:')).toBeVisible();
     expect(invoicesRequestCount).toBe(2);
 });
+
+test('invoice items and custom charges recover from failed table requests', async ({ page }) => {
+    let itemRequestCount = 0;
+    let chargeRequestCount = 0;
+
+    await page.route('**/api/v2/user', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+            data: {
+                id: 1,
+                name: 'Escuela E2E',
+                email: 'e2e@golapp.local',
+                school_id: 1,
+                school_name: 'Escuela E2E',
+                roles: ['school'],
+                permissions: [],
+                school_permissions: {
+                    'school.module.billing': true,
+                },
+            },
+        }),
+    }));
+
+    await page.route('**/api/v2/admin/info_campus', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ is_school: true, schools: [], school_selected: 1 }),
+    }));
+
+    await page.route('**/api/v2/settings/general', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ current_school_id: 1 }),
+    }));
+
+    await page.route('**/api/v2/invoices/items/invoices**', async route => {
+        itemRequestCount += 1;
+
+        if (itemRequestCount === 1) {
+            await route.fulfill({
+                status: 503,
+                contentType: 'application/json',
+                body: JSON.stringify({ message: 'No se pudieron consultar los conceptos.' }),
+            });
+            return;
+        }
+
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                data: [{
+                    id: 71,
+                    invoice: { invoice_number: 'FAC-ITEM-1', student_name: 'Deportista E2E' },
+                    created_at: '2026-08-05T12:00:00Z',
+                    type: 'monthly',
+                    description: 'Mensualidad agosto',
+                    payment_method: null,
+                    quantity: 1,
+                    unit_price: 100000,
+                    total: 100000,
+                    is_paid: false,
+                }],
+                recordsTotal: 1,
+                recordsFiltered: 1,
+            }),
+        });
+    });
+
+    await page.goto('/facturas/items');
+    await expect(page).toHaveURL(/\/facturas\/items$/);
+
+    const itemError = page.getByRole('alert').filter({ hasText: 'No se pudieron consultar los conceptos.' });
+    await expect(itemError).toBeVisible();
+    await itemError.getByRole('button', { name: 'Reintentar' }).click();
+    await expect(itemError).toBeHidden();
+    await expect(page.getByText('FAC-ITEM-1')).toBeVisible();
+    await expect(page.getByText('Totales de esta página:')).toBeVisible();
+
+    await page.route('**/api/v2/admin/inscription-custom-charges**', async route => {
+        chargeRequestCount += 1;
+
+        if (chargeRequestCount === 1) {
+            await route.fulfill({
+                status: 503,
+                contentType: 'application/json',
+                body: JSON.stringify({ message: 'No se pudieron consultar los cargos.' }),
+            });
+            return;
+        }
+
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                data: [{
+                    id: 81,
+                    player_name: 'Deportista Cargo E2E',
+                    player_unique_code: 'DEP-81',
+                    inscription_year: 2026,
+                    name: 'Transporte',
+                    value: 25000,
+                    status: 'pending',
+                    due_date: '2026-08-20',
+                    invoice_number: null,
+                    invoice_item_id: null,
+                }],
+                recordsTotal: 1,
+                recordsFiltered: 1,
+            }),
+        });
+    });
+
+    await page.goto('/facturas/cargos-personalizados');
+
+    const chargeError = page.getByRole('alert').filter({ hasText: 'No se pudieron consultar los cargos.' });
+    await expect(chargeError).toBeVisible();
+    await chargeError.getByRole('button', { name: 'Reintentar' }).click();
+    await expect(chargeError).toBeHidden();
+    await expect(page.getByText('Deportista Cargo E2E')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Editar' })).toBeVisible();
+
+    expect(itemRequestCount).toBe(2);
+    expect(chargeRequestCount).toBe(2);
+});

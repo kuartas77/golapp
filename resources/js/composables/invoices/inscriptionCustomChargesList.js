@@ -1,7 +1,7 @@
 import configLanguaje from '@/utils/datatableUtils'
 import api from '@/utils/axios'
 import dayjs from '@/utils/dayjs'
-import { useTemplateRef } from 'vue'
+import { ref, useTemplateRef } from 'vue'
 
 const STATUS_LABELS = {
     pending: 'Pendiente',
@@ -67,6 +67,7 @@ const createTextFilter = (column, placeholder, type = 'search') => {
     input.placeholder = placeholder
     input.className = 'form-control form-control-sm'
     input.autocomplete = 'off'
+    input.setAttribute('aria-label', `Filtrar por ${placeholder.toLowerCase()}`)
     input.addEventListener(type === 'date' ? 'change' : 'input', function () {
         drawFilteredColumn(column, this.value)
     })
@@ -83,6 +84,7 @@ const createTextFilter = (column, placeholder, type = 'search') => {
 const createSelectFilter = (column, options) => {
     const select = document.createElement('select')
     select.className = 'form-select form-select-sm'
+    select.setAttribute('aria-label', `Filtrar por ${options[0].label.toLowerCase()}`)
 
     options.forEach((optionData) => {
         const option = document.createElement('option')
@@ -100,11 +102,12 @@ const createSelectFilter = (column, options) => {
 
 export default function useInscriptionCustomChargesList() {
     const table = useTemplateRef('custom_charges_table')
+    const globalError = ref('')
 
     const columns = [
         {
             data: 'player_name',
-            title: 'Jugador',
+            title: 'Deportista',
             name: 'player_name',
             defaultContent: 'N/D',
             render: (data, type, row) => {
@@ -189,6 +192,7 @@ export default function useInscriptionCustomChargesList() {
         ajax: async (data, callback) => {
             try {
                 const response = await api.get('/api/v2/admin/inscription-custom-charges', { params: data })
+                globalError.value = ''
 
                 callback({
                     draw: data.draw,
@@ -196,7 +200,8 @@ export default function useInscriptionCustomChargesList() {
                     recordsTotal: response.data.recordsTotal ?? 0,
                     recordsFiltered: response.data.recordsFiltered ?? 0,
                 })
-            } catch {
+            } catch (error) {
+                globalError.value = error.response?.data?.message || 'Intenta nuevamente. Si el problema continúa, comunícate con soporte.'
                 callback(emptyDataTableResponse(data.draw))
             }
         },
@@ -211,7 +216,7 @@ export default function useInscriptionCustomChargesList() {
         initComplete: function () {
             const api = this.api()
 
-            createTextFilter(api.column(0), 'Jugador')
+            createTextFilter(api.column(0), 'Deportista')
             createTextFilter(api.column(1), 'Año')
             createTextFilter(api.column(2), 'Cargo')
             createSelectFilter(api.column(4), STATUS_OPTIONS)
@@ -222,6 +227,7 @@ export default function useInscriptionCustomChargesList() {
     }
 
     const reloadTable = () => {
+        globalError.value = ''
         const dt = table.value?.table?.dt
 
         if (dt) {
@@ -234,5 +240,6 @@ export default function useInscriptionCustomChargesList() {
         options,
         table,
         reloadTable,
+        globalError,
     }
 }

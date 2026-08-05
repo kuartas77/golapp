@@ -2,7 +2,7 @@ import configLanguaje from '@/utils/datatableUtils';
 import api from '@/utils/axios';
 import dayjs from '@/utils/dayjs';
 import { usePageTitle } from '@/composables/use-meta';
-import { onMounted, useTemplateRef } from 'vue';
+import { onMounted, ref, useTemplateRef } from 'vue';
 
 const TYPE_LABELS = {
     monthly: 'Mensualidad',
@@ -42,6 +42,7 @@ function createTextFilter(column, placeholder, type = 'search') {
     input.type = type;
     input.placeholder = placeholder;
     input.className = 'form-control form-control-sm';
+    input.setAttribute('aria-label', `Filtrar por ${placeholder.toLowerCase()}`);
 
     const handler = function () {
         if (column.search() !== this.value) {
@@ -62,6 +63,7 @@ function createTextFilter(column, placeholder, type = 'search') {
 function createSelectFilter(column, options) {
     const select = document.createElement('select');
     select.className = 'form-select form-select-sm';
+    select.setAttribute('aria-label', `Filtrar por ${options[0].label.toLowerCase()}`);
 
     for (const optionData of options) {
         const option = document.createElement('option');
@@ -81,6 +83,7 @@ function createSelectFilter(column, options) {
 
 export default function useInvoiceItemsList() {
     const invoiceItemsTable = useTemplateRef('invoice_items_table');
+    const globalError = ref('');
 
     const columns = [
         {
@@ -179,6 +182,7 @@ export default function useInvoiceItemsList() {
         ajax: async (data, callback) => {
             try {
                 const response = await api.get('/api/v2/invoices/items/invoices', { params: data });
+                globalError.value = '';
 
                 callback({
                     draw: data.draw,
@@ -187,6 +191,7 @@ export default function useInvoiceItemsList() {
                     recordsFiltered: response.data.recordsFiltered ?? 0,
                 });
             } catch (error) {
+                globalError.value = error.response?.data?.message || 'Intenta nuevamente. Si el problema continúa, comunícate con soporte.';
                 callback({
                     draw: data.draw,
                     data: [],
@@ -225,11 +230,23 @@ export default function useInvoiceItemsList() {
     };
 
     onMounted(() => {
-        usePageTitle('Items Facturas');
+        usePageTitle('Ítems de factura');
     });
+
+    const reloadTable = () => {
+        globalError.value = '';
+        const dt = invoiceItemsTable.value?.table?.dt;
+
+        if (dt) {
+            dt.clearPipeline();
+            dt.ajax.reload(null, false);
+        }
+    };
 
     return {
         invoiceItemsTable,
         options,
+        globalError,
+        reloadTable,
     };
 }

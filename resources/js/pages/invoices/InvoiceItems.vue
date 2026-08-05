@@ -3,7 +3,7 @@
         <template #body>
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3" data-tour="invoice-items-filters">
                 <p class="mb-0">
-                    En esta página podrás encontrar los items de todas las facturas.
+                    Consulta aquí los ítems incluidos en las facturas de la escuela.
                 </p>
                 <a
                     :href="exportUrl"
@@ -18,6 +18,16 @@
             </div>
 
             <div class="table-responsive-md" data-tour="invoice-items-table">
+                <ContentState
+                    v-if="globalError"
+                    type="error"
+                    title="No fue posible cargar los ítems facturados"
+                    :message="globalError"
+                    action-label="Reintentar"
+                    class="mb-3"
+                    @action="reloadTable"
+                />
+                <div v-show="!globalError">
                 <DatatableTemplate
                     id="invoice_items_table"
                     ref="invoice_items_table"
@@ -40,7 +50,7 @@
                         </thead>
                         <tfoot>
                             <tr>
-                                <th>Totales:</th>
+                                <th>Totales de esta página:</th>
                                 <th></th>
                                 <th></th>
                                 <th></th>
@@ -54,22 +64,24 @@
                         </tfoot>
                     </template>
                 </DatatableTemplate>
+                </div>
             </div>
         </template>
     </panel>
 
     <PageTutorialOverlay :tutorial="tutorial" />
-    <breadcrumb :parent="'Plataforma'" :current="'Items Facturas'" />
+    <breadcrumb :parent="'Plataforma'" :current="'Ítems de factura'" />
 </template>
 
 <script setup>
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue';
+import ContentState from '@/components/general/ContentState.vue';
 import useInvoiceItemsList from '@/composables/invoices/invoiceItemsList';
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue';
 import { usePageTutorial } from '@/composables/usePageTutorial';
 import { invoiceItemsTutorial } from '@/tutorials/invoices';
 
-const { options } = useInvoiceItemsList();
+const { options, globalError, reloadTable } = useInvoiceItemsList();
 const tutorial = usePageTutorial(invoiceItemsTutorial);
 
 const exportUrl = '/api/v2/invoices/items/invoices/export-pending';
