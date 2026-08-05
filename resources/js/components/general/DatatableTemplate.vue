@@ -1,14 +1,8 @@
 <template>
-    <div
-        class="app-datatable-shell"
-        role="region"
-        :aria-label="`${ariaLabel}. Tabla desplazable horizontalmente en pantallas pequeñas.`"
-        tabindex="0"
-    >
     <DataTable
         :options="resolvedOptions"
         :data="data"
-        :class="['table table-bordered table-sm', $attrs.class]"
+        class="table table-bordered table-sm"
         :id="id"
         :aria-label="ariaLabel"
         ref="table"
@@ -98,7 +92,6 @@
         </template>
 
     </DataTable>
-    </div>
 </template>
 <script>
 export default {
@@ -165,63 +158,3 @@ defineExpose({
     table // Expone la referencia de la entrada
 });
 </script>
-
-<style scoped>
-.app-datatable-shell {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scrollbar-gutter: stable;
-}
-
-.app-datatable-shell:focus-visible {
-    outline: 3px solid currentColor;
-    outline-offset: 2px;
-}
-
-:deep(.dt-container),
-:deep(.dt-layout-table),
-:deep(.dt-layout-cell) {
-    min-width: 0;
-    max-width: 100%;
-}
-
-:deep(table.dataTable) {
-    width: 100% !important;
-}
-
-@media (max-width: 575.98px) {
-    :deep(.dt-layout-row) {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.75rem;
-    }
-
-    :deep(.dt-layout-cell) {
-        width: 100%;
-        text-align: start !important;
-    }
-
-    :deep(.dt-length select),
-    :deep(.dt-search input) {
-        min-height: 44px;
-    }
-
-    :deep(table.dataTable > thead > tr > th),
-    :deep(table.dataTable > tbody > tr > td) {
-        white-space: nowrap;
-    }
-
-    :deep(table.dataTable > tbody > tr.child td),
-    :deep(table.dataTable > tbody > tr.child .dtr-details) {
-        white-space: normal;
-        overflow-wrap: anywhere;
-    }
-
-    :deep(.pagination) {
-        flex-wrap: wrap;
-    }
-}
-</style>

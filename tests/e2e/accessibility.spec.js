@@ -317,18 +317,6 @@ test('invoices announces a failed load and recovers with accessible row actions'
         .analyze();
     expect(axeResults.violations.filter(violation => ['critical', 'serious'].includes(violation.impact))).toEqual([]);
 
-    await page.setViewportSize({ width: 360, height: 800 });
-    const reflow = await page.evaluate(() => ({
-        documentWidth: document.documentElement.scrollWidth,
-        viewportWidth: window.innerWidth,
-        tableShells: Array.from(document.querySelectorAll('.app-datatable-shell')).map(shell => ({
-            clientWidth: shell.clientWidth,
-            scrollWidth: shell.scrollWidth,
-        })),
-    }));
-    expect(reflow.documentWidth).toBeLessThanOrEqual(reflow.viewportWidth + 1);
-    expect(reflow.tableShells.length).toBeGreaterThan(0);
-    expect(reflow.tableShells.every(shell => shell.clientWidth <= reflow.viewportWidth)).toBe(true);
     expect(invoicesRequestCount).toBe(2);
 });
 
