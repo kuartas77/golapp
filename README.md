@@ -178,7 +178,7 @@ Servicios definidos en `docker-compose.yml`:
 | --- | --- | --- |
 | `php` | PHP-FPM y ejecucion de Artisan/Composer dentro del contenedor. | `9000` |
 | `mysql` | Base de datos MySQL 8. | `${FORWARD_DB_PORT:-3306}:3306` |
-| `nginx` | Servidor web local y proxy hacia PHP/Vite. | `80`, `${VITE_PORT:-5173}` |
+| `nginx` | Servidor web local y proxy hacia PHP. | `80` |
 | `mailpit` | Captura de correos en desarrollo. | `1025`, `8025` |
 
 Preparacion recomendada:

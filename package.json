@@ -1,7 +1,8 @@
 {
     "private": true,
     "scripts": {
-        "dev": "vite",
+        "predev": "fuser -k 5173/tcp 2>/dev/null || true",
+        "dev": "vite --port 5173 --strictPort",
         "build": "vite build",
         "boneyard:build": "boneyard-js build",
         "test:vue": "vitest run",
