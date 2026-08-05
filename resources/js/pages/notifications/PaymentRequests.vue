@@ -4,12 +4,22 @@
             <div class="d-flex justify-content-end mb-3">
                 <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                     <i class="fa-regular fa-circle-question me-2"></i>
-                    Guia
+                    Guía
                 </button>
             </div>
             <p data-tour="payment-requests-intro">Podrás encontrar todos los comprobantes de pago subidos desde la App GOLAPPLINK.</p>
 
             <div class="table-responsive-md" data-tour="payment-requests-table">
+                <ContentState
+                    v-if="globalError"
+                    type="error"
+                    title="No fue posible cargar los comprobantes de pago"
+                    :message="globalError"
+                    action-label="Reintentar"
+                    class="mb-3"
+                    @action="reloadTable"
+                />
+                <div v-show="!globalError">
                 <DatatableTemplate :options="options" id="payment_requests_table" ref="paymentRequestsTable"
                     @click="handleTableClick">
                     <template #thead>
@@ -24,11 +34,12 @@
                                 <th>Referencia</th>
                                 <th class="text-right">Monto Comprobante</th>
                                 <th>Comprobante</th>
-                                <th>Marcar cómo pagada</th>
+                                <th>Registrar pago</th>
                             </tr>
                         </thead>
                     </template>
                 </DatatableTemplate>
+                </div>
             </div>
         </template>
     </panel>
@@ -55,6 +66,7 @@
 <script setup>
 import { onMounted, ref, useTemplateRef } from 'vue'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
 import dayjs from '@/utils/dayjs'
@@ -62,6 +74,7 @@ import configLanguaje from '@/utils/datatableUtils'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from '@/composables/use-meta'
 import { paymentRequestsTutorial } from '@/tutorials/notifications'
+import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 
 usePageTitle('Comprobantes de Pago')
 
@@ -69,10 +82,20 @@ const paymentRequestsTable = useTemplateRef('paymentRequestsTable')
 const imageModalElement = ref(null)
 const selectedImage = ref({ url: '', title: '' })
 const tutorial = usePageTutorial(paymentRequestsTutorial)
+const { globalError, clearError, handleError, reloadTable } = useRecoverableDataTable(
+    paymentRequestsTable,
+    'Intenta nuevamente. Si el problema continúa, comunícate con soporte.',
+)
 
 let imageModalInstance = null
 
 const formatMoney = (amount) => window.moneyFormat ? window.moneyFormat(Number(amount) || 0) : amount
+const escapeHtml = (value) => String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;')
 
 const options = {
     ...configLanguaje,
@@ -85,16 +108,20 @@ const options = {
     ajax: async (data, callback) => {
         try {
             const response = await api.get('/api/v2/notifications/payment-requests', { params: data })
+            clearError()
             callback({
                 data: response.data.data,
                 recordsTotal: response.data.recordsTotal,
                 recordsFiltered: response.data.recordsFiltered,
             })
-        } catch {
+        } catch (error) {
+            handleError(error)
             callback({ data: [], recordsTotal: 0, recordsFiltered: 0 })
         }
     },
     columnDefs: [
+        { responsivePriority: 1, targets: 9 },
+        { responsivePriority: 2, targets: 8 },
         { targets: [3, 7], className: 'dt-body-right' },
         { targets: [8, 9], className: 'dt-body-center' },
     ],
@@ -104,7 +131,7 @@ const options = {
             name: 'invoice_number',
             searchable: true,
             orderable: true,
-            render: (data, type, row) => `<a href="/facturas/${row.invoice_id}" target="_blank">${data}</a>`,
+            render: (data, type, row) => `<a href="/facturas/${row.invoice_id}" target="_blank" rel="noopener noreferrer" aria-label="Ver factura ${escapeHtml(data)}">${escapeHtml(data)}</a>`,
         },
         {
             data: 'player.full_names',
@@ -127,7 +154,7 @@ const options = {
             data: 'created_at',
             searchable: false,
             orderable: false,
-            render: (data) => dayjs(data).format('DD-MM-YYYY'),
+            render: (data) => dayjs(data).format('DD/MM/YYYY'),
         },
         {
             data: 'payment_method',
@@ -168,9 +195,9 @@ const options = {
                     type="button"
                     class="btn btn-sm btn-info"
                     data-action="view-proof"
-                    data-image-url="${row.url_image}"
-                    data-reference="${row.reference_number ?? ''}">
-                    Ver
+                    data-image-url="${escapeHtml(row.url_image)}"
+                    data-reference="${escapeHtml(row.reference_number)}">
+                    Ver comprobante
                 </button>
             `,
         },
@@ -185,20 +212,11 @@ const options = {
                     data-action="mark-paid"
                     data-invoice-id="${row.invoice_id}"
                     data-payment-request-id="${row.id}">
-                    Pagar
+                    Registrar pago
                 </button>
             `,
         },
     ],
-}
-
-const reloadTable = () => {
-    const dt = paymentRequestsTable.value?.table?.dt
-
-    if (dt) {
-        dt.clearPipeline()
-        dt.ajax.reload(null, false)
-    }
 }
 
 const openImageModal = (imageUrl, reference) => {
@@ -212,7 +230,7 @@ const openImageModal = (imageUrl, reference) => {
 const markAsPaid = async (invoiceId, paymentRequestId) => {
     const result = await Swal.fire({
         title: window.__APP_CONFIG__?.appName ?? 'GOLAPP',
-        text: '¿Pagar factura?',
+        text: '¿Registrar el pago de esta factura?',
         icon: 'warning',
         allowOutsideClick: false,
         allowEscapeKey: false,
@@ -225,15 +243,23 @@ const markAsPaid = async (invoiceId, paymentRequestId) => {
         return
     }
 
-    await api.put(`/api/v2/notifications/invoice/${invoiceId}/payment-request/${paymentRequestId}`)
+    try {
+        await api.put(`/api/v2/notifications/invoice/${invoiceId}/payment-request/${paymentRequestId}`)
 
-    await Swal.fire({
-        title: window.__APP_CONFIG__?.appName ?? 'GOLAPP',
-        text: 'Pago de factura realizado',
-        icon: 'success',
-    })
+        await Swal.fire({
+            title: window.__APP_CONFIG__?.appName ?? 'GOLAPP',
+            text: 'Pago registrado correctamente.',
+            icon: 'success',
+        })
 
-    reloadTable()
+        reloadTable()
+    } catch (error) {
+        await Swal.fire({
+            title: window.__APP_CONFIG__?.appName ?? 'GOLAPP',
+            text: error.response?.data?.message || 'No fue posible registrar el pago.',
+            icon: 'error',
+        })
+    }
 }
 
 const handleTableClick = async (event) => {

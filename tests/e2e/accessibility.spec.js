@@ -437,3 +437,179 @@ test('invoice items and custom charges recover from failed table requests', asyn
     expect(itemRequestCount).toBe(2);
     expect(chargeRequestCount).toBe(2);
 });
+
+test('notification lists announce failures and recover without leaving the page', async ({ page }) => {
+    const requestCounts = {
+        payments: 0,
+        uniforms: 0,
+        topics: 0,
+    };
+
+    await page.route('**/api/v2/user', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+            data: {
+                id: 1,
+                name: 'Escuela E2E',
+                email: 'e2e@golapp.local',
+                school_id: 1,
+                school_name: 'Escuela E2E',
+                roles: ['school'],
+                permissions: [],
+                school_permissions: {
+                    'school.module.billing': true,
+                    'school.feature.system_notify': true,
+                },
+            },
+        }),
+    }));
+
+    await page.route('**/api/v2/admin/info_campus', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ is_school: true, schools: [], school_selected: 1 }),
+    }));
+
+    await page.route('**/api/v2/settings/general', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ current_school_id: 1 }),
+    }));
+
+    await page.route('**/api/v2/notifications/header-summary', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ payment_requests: 0, uniform_requests: 0, total: 0 }),
+    }));
+
+    await page.route('**/api/v2/notifications/payment-requests**', async route => {
+        requestCounts.payments += 1;
+
+        if (requestCounts.payments === 1) {
+            await route.fulfill({
+                status: 503,
+                contentType: 'application/json',
+                body: JSON.stringify({ message: 'No se pudieron consultar los comprobantes.' }),
+            });
+            return;
+        }
+
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                data: [{
+                    id: 91,
+                    invoice_id: 42,
+                    invoice: { invoice_number: 'FAC-PAGO-91', total_amount: 120000 },
+                    player: { full_names: 'Deportista Pago E2E' },
+                    name: 'Sub 12',
+                    created_at: '2026-08-05T12:00:00Z',
+                    payment_method: 'transfer',
+                    reference_number: 'REF-91',
+                    amount: 120000,
+                    url_image: '/api/v2/notifications/payment-requests/91/proof',
+                }],
+                recordsTotal: 1,
+                recordsFiltered: 1,
+            }),
+        });
+    });
+
+    await page.goto('/facturas/comprobantes-pago');
+    await expect.poll(() => requestCounts.payments).toBe(1);
+    const paymentError = page.getByRole('alert').filter({ hasText: 'No se pudieron consultar los comprobantes.' });
+    await expect(paymentError).toBeVisible();
+    await paymentError.getByRole('button', { name: 'Reintentar' }).click();
+    await expect(paymentError).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Ver comprobante' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Registrar pago' })).toBeVisible();
+
+    await page.route('**/api/v2/notifications/uniform-requests**', async route => {
+        requestCounts.uniforms += 1;
+
+        if (requestCounts.uniforms === 1) {
+            await route.fulfill({
+                status: 503,
+                contentType: 'application/json',
+                body: JSON.stringify({ message: 'No se pudieron consultar las solicitudes.' }),
+            });
+            return;
+        }
+
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                data: [{
+                    id: 101,
+                    inscription_id: 501,
+                    full_names: 'Deportista Uniforme E2E',
+                    type: 'UNIFORM',
+                    status: 'PENDING',
+                    quantity: 1,
+                    size: 'M',
+                    additional_notes: 'Uniforme completo',
+                    created_at: '2026-08-05T12:00:00Z',
+                }],
+                recordsTotal: 1,
+                recordsFiltered: 1,
+            }),
+        });
+    });
+
+    await page.goto('/facturas/solicitudes-uniformes');
+    await expect.poll(() => requestCounts.uniforms).toBe(1);
+    const uniformError = page.getByRole('alert').filter({ hasText: 'No se pudieron consultar las solicitudes.' });
+    await expect(uniformError).toBeVisible();
+    await uniformError.getByRole('button', { name: 'Reintentar' }).click();
+    await expect(uniformError).toBeHidden();
+    await expect(page.getByRole('link', { name: 'Crear factura para Deportista Uniforme E2E' })).toBeVisible();
+
+    await page.route('**/api/v2/notifications/topics**', async route => {
+        requestCounts.topics += 1;
+
+        if (requestCounts.topics === 1) {
+            await route.fulfill({
+                status: 503,
+                contentType: 'application/json',
+                body: JSON.stringify({ message: 'No se pudieron consultar las notificaciones.' }),
+            });
+            return;
+        }
+
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                data: [{
+                    id: 111,
+                    topics: 'Todos los deportistas activos',
+                    title: 'Entrenamiento',
+                    body: 'Cambio de horario',
+                    created_at: '2026-08-05T12:00:00Z',
+                }],
+                recordsTotal: 1,
+                recordsFiltered: 1,
+            }),
+        });
+    });
+
+    await page.route('**/api/v2/notifications/topics/options', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ categories: [], training_groups: [], competition_groups: [], players: [] }),
+    }));
+
+    await page.goto('/notificaciones');
+    await expect.poll(() => requestCounts.topics).toBe(1);
+    const topicError = page.getByRole('alert').filter({ hasText: 'No se pudieron consultar las notificaciones.' });
+    await expect(topicError).toBeVisible();
+    await topicError.getByRole('button', { name: 'Reintentar' }).click();
+    await expect(topicError).toBeHidden();
+    await expect(page.getByRole('cell', { name: 'Todos los deportistas activos' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Destinatarios' })).toBeVisible();
+
+    expect(requestCounts).toEqual({ payments: 2, uniforms: 2, topics: 2 });
+});

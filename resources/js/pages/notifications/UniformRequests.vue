@@ -4,7 +4,7 @@
             <div class="d-flex justify-content-end mb-3">
                 <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                     <i class="fa-regular fa-circle-question me-2"></i>
-                    Guia
+                    Guía
                 </button>
             </div>
             <p>Podrás encontrar las solicitudes pendientes de uniformes generadas desde la App GOLAPPLINK.</p>
@@ -30,6 +30,16 @@
             </div>
 
             <div class="table-responsive-md" data-tour="uniform-requests-table">
+                <ContentState
+                    v-if="globalError"
+                    type="error"
+                    title="No fue posible cargar las solicitudes"
+                    :message="globalError"
+                    action-label="Reintentar"
+                    class="mb-3"
+                    @action="reloadTable"
+                />
+                <div v-show="!globalError">
                 <DatatableTemplate :options="options" id="uniform_requests_table" ref="uniformRequestsTable">
                     <template #thead>
                         <thead>
@@ -47,6 +57,7 @@
                         </thead>
                     </template>
                 </DatatableTemplate>
+                </div>
             </div>
         </template>
     </panel>
@@ -58,6 +69,7 @@
 <script setup>
 import { onMounted, useTemplateRef } from 'vue'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
 import dayjs from '@/utils/dayjs'
@@ -65,11 +77,16 @@ import configLanguaje from '@/utils/datatableUtils'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from '@/composables/use-meta'
 import { uniformRequestsTutorial } from '@/tutorials/notifications'
+import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 
 usePageTitle('Solicitudes de Uniformes')
 
 const uniformRequestsTable = useTemplateRef('uniformRequestsTable')
 const tutorial = usePageTutorial(uniformRequestsTutorial)
+const { globalError, clearError, handleError, reloadTable } = useRecoverableDataTable(
+    uniformRequestsTable,
+    'Intenta nuevamente. Si el problema continúa, comunícate con soporte.',
+)
 
 const typeLabels = {
     UNIFORM: 'Uniforme',
@@ -88,6 +105,13 @@ const statusLabels = {
     CANCELLED: { text: 'Cancelada', className: 'badge badge-danger' },
 }
 
+const escapeHtml = (value) => String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;')
+
 const options = {
     ...configLanguaje,
     lengthMenu: [[10, 30, 50, 70, 100], [10, 30, 50, 70, 100]],
@@ -99,16 +123,19 @@ const options = {
     ajax: async (data, callback) => {
         try {
             const response = await api.get('/api/v2/notifications/uniform-requests', { params: data })
+            clearError()
             callback({
                 data: response.data.data,
                 recordsTotal: response.data.recordsTotal,
                 recordsFiltered: response.data.recordsFiltered,
             })
-        } catch {
+        } catch (error) {
+            handleError(error)
             callback({ data: [], recordsTotal: 0, recordsFiltered: 0 })
         }
     },
     columnDefs: [
+        { responsivePriority: 1, targets: 8 },
         { targets: [8], className: 'dt-body-center' },
     ],
     columns: [
@@ -159,15 +186,15 @@ const options = {
             data: 'created_at',
             searchable: false,
             orderable: true,
-            render: (data) => dayjs(data).format('DD-MM-YYYY'),
+            render: (data) => dayjs(data).format('DD/MM/YYYY'),
         },
         {
             data: 'inscription_id',
             searchable: false,
             orderable: false,
-            render: (data) => `
-                <a href="/facturas/crear/${data}" class="btn btn-success btn-sm" title="Crear factura">
-                    <i class="fas fa-file-alt"></i>
+            render: (data, type, row) => `
+                <a href="/facturas/crear/${data}" class="btn btn-success btn-sm" title="Crear factura" aria-label="Crear factura para ${escapeHtml(row.full_names)}">
+                    <i class="fas fa-file-alt" aria-hidden="true"></i>
                 </a>
             `,
         },

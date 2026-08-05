@@ -3,7 +3,7 @@
         <template #body>
             <p>Podrás encontrar todas las notificaciones generadas para la App GOLAPPLINK.</p>
             <span class="text-muted d-block mb-3">
-                Las notificaciones se mostrarán en GOLAPPLINK sólo hasta después de 8 días de haber sido creadas.
+                Las notificaciones permanecerán visibles en GOLAPPLINK durante los 8 días posteriores a su creación.
             </span>
 
             <div class="d-flex justify-content-end mb-3 gap-2" data-tour="topic-notifications-actions">
@@ -13,17 +13,27 @@
                 </button>
                 <button type="button" class="btn btn-info" @click="tutorial.start()">
                     <i class="fa-regular fa-circle-question me-2"></i>
-                    Guia
+                    Guía
                 </button>
             </div>
 
             <div class="table-responsive-md" data-tour="topic-notifications-table">
+                <ContentState
+                    v-if="globalError"
+                    type="error"
+                    title="No fue posible cargar las notificaciones"
+                    :message="globalError"
+                    action-label="Reintentar"
+                    class="mb-3"
+                    @action="reloadTable"
+                />
+                <div v-show="!globalError">
                 <DatatableTemplate :options="options" id="topic_notifications_table" ref="notificationsTable">
                     <template #thead>
                         <thead>
                             <tr>
                                 <th class="text-center">ID</th>
-                                <th>Topic</th>
+                                <th>Destinatarios</th>
                                 <th>Título</th>
                                 <th>Mensaje</th>
                                 <th>Creada</th>
@@ -32,6 +42,7 @@
                         </thead>
                     </template>
                 </DatatableTemplate>
+                </div>
             </div>
         </template>
     </panel>
@@ -113,7 +124,7 @@
                                 </div>
 
                                 <div v-if="form.notification_type === 'players'" class="mb-3">
-                                    <label class="form-label" for="players">Jugadores</label>
+                                    <label class="form-label" for="players">Deportistas</label>
                                     <CustomSelect2
                                         id="players"
                                         v-model="form.players"
@@ -163,6 +174,7 @@
 <script setup>
 import { onMounted, reactive, ref, useTemplateRef, watch } from 'vue'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
 import dayjs from '@/utils/dayjs'
@@ -170,6 +182,7 @@ import configLanguaje from '@/utils/datatableUtils'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from '@/composables/use-meta'
 import { topicNotificationsTutorial } from '@/tutorials/notifications'
+import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 
 usePageTitle('Notificaciones')
 
@@ -179,15 +192,19 @@ const validationErrors = ref({})
 const backendError = ref('')
 const submitting = ref(false)
 const tutorial = usePageTutorial(topicNotificationsTutorial)
+const { globalError, clearError, handleError, reloadTable } = useRecoverableDataTable(
+    notificationsTable,
+    'Intenta nuevamente. Si el problema continúa, comunícate con soporte.',
+)
 
 let modalInstance = null
 
 const notificationTypes = [
-    { value: 'general', label: 'General "Todos los jugadores activos"' },
+    { value: 'general', label: 'General "Todos los deportistas activos"' },
     { value: 'categories', label: 'Categorías' },
     { value: 'training_groups', label: 'Grupos de Entrenamiento' },
     { value: 'competition_groups', label: 'Grupos de Competencia' },
-    { value: 'players', label: 'Jugadores' },
+    { value: 'players', label: 'Deportistas' },
 ]
 
 const optionGroups = reactive({
@@ -220,12 +237,14 @@ const options = {
     ajax: async (data, callback) => {
         try {
             const response = await api.get('/api/v2/notifications/topics', { params: data })
+            clearError()
             callback({
                 data: response.data.data,
                 recordsTotal: response.data.recordsTotal,
                 recordsFiltered: response.data.recordsFiltered,
             })
-        } catch {
+        } catch (error) {
+            handleError(error)
             callback({ data: [], recordsTotal: 0, recordsFiltered: 0 })
         }
     },
@@ -257,7 +276,7 @@ const options = {
             data: 'created_at',
             searchable: false,
             orderable: true,
-            render: (data) => dayjs(data).format('DD-MM-YYYY hh:mm:ss a'),
+            render: (data) => dayjs(data).format('DD/MM/YYYY h:mm:ss a'),
         },
         {
             data: 'id',
@@ -280,15 +299,6 @@ const resetTopicSelections = () => {
     form.training_groups = []
     form.competition_groups = []
     form.players = []
-}
-
-const reloadTable = () => {
-    const dt = notificationsTable.value?.table?.dt
-
-    if (dt) {
-        dt.clearPipeline()
-        dt.ajax.reload(null, false)
-    }
 }
 
 const getError = (field) => validationErrors.value?.[field]?.[0] ?? ''
