@@ -20,9 +20,15 @@
                         <div class="input-group">
                             <flat-pickr :config="flatpickrConfig" class="form-control form-control-sm flatpickr"
                         id="filterDate" v-model="filterDate" placeholder="Rango fecha facturación"></flat-pickr>
-                            <span class="input-group-text" @click="clearDate">
-                                <i class="fa-solid fa-x" ></i>
-                            </span>
+                            <button
+                                type="button"
+                                class="input-group-text"
+                                aria-label="Limpiar rango de fechas"
+                                title="Limpiar rango de fechas"
+                                @click="clearDate"
+                            >
+                                <i class="fa-solid fa-x" aria-hidden="true"></i>
+                            </button>
 
                         </div>
                     </div>
@@ -30,12 +36,22 @@
                 <div class="col-md-2">
                     <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                         <i class="fa-regular fa-circle-question me-2"></i>
-                        Guia
+                        Guía
                     </button>
                 </div>
             </div>
 
             <div v-if="groupOptionsLoaded" data-tour="invoices-index-table">
+                <ContentState
+                    v-if="globalError"
+                    type="error"
+                    title="No fue posible cargar las facturas"
+                    :message="globalError"
+                    action-label="Reintentar"
+                    class="mb-3"
+                    @action="reloadTable"
+                />
+                <div v-show="!globalError">
                 <DatatableTemplate :options="options" :id="'invoives_table'" ref="invoives_table" @click="onClickRow">
                 <template #thead>
                     <thead>
@@ -91,12 +107,12 @@
                             <th class="text-right">Pagado</th>
                             <th class="text-center">Estado</th>
                             <th>Fecha</th>
-                            <th></th>
+                            <th><span class="visually-hidden">Acciones</span></th>
                         </tr>
                     </thead>
                     <tfoot>
                         <tr>
-                            <th>Totales:</th>
+                            <th>Totales de esta página:</th>
                             <th></th>
                             <th></th>
                             <th class="text-right"></th>
@@ -108,6 +124,7 @@
                     </tfoot>
                 </template>
                 </DatatableTemplate>
+                </div>
             </div>
 
         </template>
@@ -121,6 +138,7 @@
 
 <script setup>
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useInvoicesList from '@/composables/invoices/invoicesList'
 import { usePageTutorial } from '@/composables/usePageTutorial'
@@ -150,6 +168,7 @@ const {
     trainingGroupFilter,
     groupOptions,
     groupOptionsLoaded,
+    globalError,
     applyInvoiceNumberFilter,
     applyStudentNameFilter,
     applyTrainingGroupFilter,

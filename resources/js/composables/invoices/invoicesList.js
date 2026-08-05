@@ -13,6 +13,7 @@ export default function useInvoicesList() {
     const trainingGroupFilter = ref('')
     const groupOptions = ref([])
     const groupOptionsLoaded = ref(false)
+    const globalError = ref('')
     let filterTimeout = null
     let tableFiltersReady = false
 
@@ -35,15 +36,16 @@ export default function useInvoicesList() {
                 return badge
             }, searchable: true, orderable: false
         },
-        { data: 'created_at', searchable: true, render: (data, type, row) => dayjs(data).format('YYYY-M-D') },
+        { data: 'created_at', searchable: true, render: (data, type, row) => dayjs(data).format('DD/MM/YYYY') },
         {
             data: 'id', searchable: false, orderable: false, render: function (data, type, row) {
-                const buttonEye = `<button class="btn btn-sm btn-info" data-item-id="${row.id}" data-type="show"><i class="fa fa-eye fa-lg" data-type="show" data-item-id="${row.id}"></i></button>`
-                const buttonPrint = `<a href="${row.url_print}" target="_blank" class="btn btn-success btn-sm"><i class="fa fa-print fa-lg" aria-hidden="true"></i></a>`
+                const invoiceLabel = escapeHtml(row.invoice_number ?? row.id)
+                const buttonEye = `<button type="button" class="btn btn-sm btn-info" data-item-id="${row.id}" data-type="show" aria-label="Ver factura ${invoiceLabel}" title="Ver factura"><i class="fa fa-eye fa-lg" aria-hidden="true" data-type="show" data-item-id="${row.id}"></i></button>`
+                const buttonPrint = `<a href="${row.url_print}" target="_blank" rel="noopener noreferrer" class="btn btn-success btn-sm" aria-label="Imprimir factura ${invoiceLabel}" title="Imprimir factura"><i class="fa fa-print fa-lg" aria-hidden="true"></i></a>`
                 let buttonDelete = ''
 
                 if (['pending', 'partial'].includes(row.status)) {
-                    buttonDelete = `<button class="btn btn-danger btn-sm" data-item-id="${row.id}" data-type="delete"><i class="fa fa-trash fa-lg" data-type="delete" data-item-id="${row.id}"></i></button>`
+                    buttonDelete = `<button type="button" class="btn btn-danger btn-sm" data-item-id="${row.id}" data-type="delete" aria-label="Revisar anulación de factura ${invoiceLabel}" title="Revisar anulación"><i class="fa fa-trash fa-lg" aria-hidden="true" data-type="delete" data-item-id="${row.id}"></i></button>`
                 }
 
                 return `<div class="btn-group">${buttonEye} ${buttonPrint} ${buttonDelete}</div>`
@@ -73,12 +75,14 @@ export default function useInvoicesList() {
         ajax: async (data, callback, settings) => {
             try {
                 const response = await api.get('/api/v2/invoices', { params: data }); // Adjust endpoint and method
+                globalError.value = ''
                 callback({
                     data: response.data.data, // Adjust based on your API response structure
                     recordsTotal: response.data.recordsTotal,
                     recordsFiltered: response.data.recordsFiltered,
                 });
             } catch (error) {
+                globalError.value = error.response?.data?.message || 'Intenta nuevamente. Si el problema continúa, comunícate con soporte.'
                 callback({ data: [], recordsTotal: 0, recordsFiltered: 0 });
             }
         },
@@ -110,6 +114,13 @@ export default function useInvoicesList() {
     };
 
     const getDataTable = () => invoives_table.value?.table?.dt
+
+    const escapeHtml = (value) => String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
 
     const drawWithFreshPipeline = (dt) => {
         if (!dt) {
@@ -180,6 +191,7 @@ export default function useInvoicesList() {
     }
 
     const reloadTable = () => {
+        globalError.value = ''
         const dt = getDataTable()
         if (dt) {
             dt.clearPipeline()
@@ -250,6 +262,7 @@ export default function useInvoicesList() {
         trainingGroupFilter,
         groupOptions,
         groupOptionsLoaded,
+        globalError,
         applyInvoiceNumberFilter,
         applyStudentNameFilter,
         applyTrainingGroupFilter,

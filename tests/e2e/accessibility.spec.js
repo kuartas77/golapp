@@ -227,3 +227,87 @@ test('monthly payments starts with guidance instead of an empty table', async ({
     await expect(page.getByText('Selecciona un grupo o una categoría y presiona Buscar')).toBeVisible();
     await expect(page.locator('[data-tour="monthly-payments-table"] table')).toHaveCount(0);
 });
+
+test('invoices announces a failed load and recovers with accessible row actions', async ({ page }) => {
+    let invoicesRequestCount = 0;
+
+    await page.route('**/api/v2/user', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+            data: {
+                id: 1,
+                name: 'Escuela E2E',
+                email: 'e2e@golapp.local',
+                school_id: 1,
+                school_name: 'Escuela E2E',
+                roles: ['school'],
+                permissions: [],
+                school_permissions: {
+                    'school.module.billing': true,
+                },
+            },
+        }),
+    }));
+
+    await page.route('**/api/v2/admin/info_campus', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ is_school: true, schools: [], school_selected: 1 }),
+    }));
+
+    await page.route('**/api/v2/settings/general', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+            current_school_id: 1,
+            normal_training_groups: [{ id: 10, name: 'Sub 12', full_group: 'Sub 12' }],
+        }),
+    }));
+
+    await page.route('**/api/v2/invoices**', async route => {
+        invoicesRequestCount += 1;
+
+        if (invoicesRequestCount === 1) {
+            await route.fulfill({
+                status: 503,
+                contentType: 'application/json',
+                body: JSON.stringify({ message: 'El servicio de facturación no está disponible.' }),
+            });
+            return;
+        }
+
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                data: [{
+                    id: 42,
+                    invoice_number: 'FAC-0042',
+                    student_name: 'Deportista E2E',
+                    training_group: { name: 'Sub 12' },
+                    total_amount: 120000,
+                    paid_amount: 0,
+                    status: 'pending',
+                    created_at: '2026-08-05T12:00:00Z',
+                    url_print: '/facturas/42/imprimir',
+                }],
+                recordsTotal: 1,
+                recordsFiltered: 1,
+            }),
+        });
+    });
+
+    await page.goto('/facturas');
+
+    const errorState = page.getByRole('alert').filter({ hasText: 'El servicio de facturación no está disponible.' });
+    await expect(errorState).toBeVisible();
+    await errorState.getByRole('button', { name: 'Reintentar' }).click();
+
+    await expect(errorState).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Ver factura FAC-0042' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Imprimir factura FAC-0042' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Revisar anulación de factura FAC-0042' })).toBeVisible();
+    await expect(page.getByText('Totales de esta página:')).toBeVisible();
+    expect(invoicesRequestCount).toBe(2);
+});
