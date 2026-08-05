@@ -1,9 +1,15 @@
 import configLanguaje from '@/utils/datatableUtils';
 import { ref } from 'vue';
 import api from '@/utils/axios'
+import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 
 export default function useSchoolList() {
     const table = ref(null)
+    const tableRecovery = useRecoverableDataTable(
+        table,
+        'No fue posible cargar las escuelas.',
+        'schools_table'
+    )
 
     const columns = [
         { data: 'logo_file', width: '1%', render: '#photo', searchable: false, orderable: false},
@@ -19,12 +25,14 @@ export default function useSchoolList() {
     const ajaxConfig = async (data, callback, settings) => {
         try {
             const response = await api.get('/api/v2/datatables/schools', { params: data }); // Adjust endpoint and method
+            tableRecovery.clearError()
             callback({
                 data: response.data.data, // Adjust based on your API response structure
                 recordsTotal: response.data.recordsTotal,
                 recordsFiltered: response.data.recordsFiltered,
             });
         } catch (error) {
+            tableRecovery.handleError(error)
             callback({ data: [], recordsTotal: 0, recordsFiltered: 0 });
         }
     }
@@ -48,5 +56,11 @@ export default function useSchoolList() {
         columns: columns
     };
 
-    return { table, options }
+    return {
+        table,
+        options,
+        listError: tableRecovery.globalError,
+        tableKey: tableRecovery.tableKey,
+        reloadTable: tableRecovery.reloadTable,
+    }
 }

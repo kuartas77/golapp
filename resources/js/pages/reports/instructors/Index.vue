@@ -74,8 +74,18 @@
                                 </div>
                             </div>
 
-                            <div class="table-responsive-sm" data-tour="instructor-activity-table">
+                            <ContentState
+                                v-if="tableError"
+                                type="error"
+                                title="No fue posible cargar la actividad"
+                                :message="tableError"
+                                action-label="Reintentar"
+                                class="mb-3"
+                                @action="retryTable"
+                            />
+                            <div v-show="!tableError" class="table-responsive-sm" data-tour="instructor-activity-table">
                                 <DatatableTemplate
+                                    :key="tableKey"
                                     id="instructor-activity-report-table"
                                     ref="instructorActivityTable"
                                     :options="options">
@@ -113,6 +123,7 @@ export default {
 
 <script setup>
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import useInstructorActivityReport from '@/composables/reports/instructor-activity-report'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
@@ -132,6 +143,9 @@ const {
     options,
     pdfUrl,
     search,
+    tableError,
+    tableKey,
+    retryTable,
     years,
 } = useInstructorActivityReport()
 </script>

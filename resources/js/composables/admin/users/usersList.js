@@ -3,11 +3,17 @@ import { getCurrentInstance, ref, useTemplateRef, onMounted } from 'vue'
 import { usePageTitle } from "@/composables/use-meta"
 import api from '@/utils/axios'
 import * as yup from 'yup'
+import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 
 export default function useUsersList() {
 
     const table = useTemplateRef('table')
     const form = useTemplateRef('form')
+    const tableRecovery = useRecoverableDataTable(
+        table,
+        'No fue posible cargar los usuarios.',
+        'users_table'
+    )
 
     const columns = [
         { data: 'user_name', title: 'Nombres', searchable: true, orderable: true },
@@ -35,12 +41,14 @@ export default function useUsersList() {
         ajax: async (data, callback, settings) => {
             try {
                 const response = await api.get('/api/v2/datatables/users_enabled', { params: data }) // Adjust endpoint and method
+                tableRecovery.clearError()
                 callback({
                     data: response.data.data, // Adjust based on your API response structure
                     recordsTotal: response.data.recordsTotal,
                     recordsFiltered: response.data.recordsFiltered,
                 })
             } catch (error) {
+                tableRecovery.handleError(error)
                 callback({ data: [], recordsTotal: 0, recordsFiltered: 0 })
             }
         },
@@ -88,11 +96,7 @@ export default function useUsersList() {
                 await api.post(`/api/v2/admin/users`, userData)
             }
 
-            if (table.value) {
-                let dt = table.value.table.dt;
-                dt.clearPipeline()
-                dt.ajax.reload(null, false)
-            }
+            await tableRecovery.reloadTable()
 
             modalHidden()
             composeModalUser.value.hide()
@@ -173,6 +177,9 @@ export default function useUsersList() {
         profileLoading,
         profileError,
         globalError,
+        listError: tableRecovery.globalError,
+        tableKey: tableRecovery.tableKey,
+        reloadTable: tableRecovery.reloadTable,
         showProfile,
         closeProfile,
     }

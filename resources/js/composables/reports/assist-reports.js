@@ -4,6 +4,7 @@ import configLanguaje from '@/utils/datatableUtils'
 import { usePageTitle } from '@/composables/use-meta'
 import api from '@/utils/axios'
 import { useSetting } from '@/store/settings-store'
+import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 
 const emptyDataTableResponse = (draw = 0) => ({
     draw,
@@ -61,6 +62,21 @@ export default function useAssistReports() {
     const monthlyPlayerTable = useTemplateRef('monthlyPlayerTable')
     const monthlyGroupTable = useTemplateRef('monthlyGroupTable')
     const annualConsolidatedTable = useTemplateRef('annualConsolidatedTable')
+    const monthlyPlayerRecovery = useRecoverableDataTable(
+        monthlyPlayerTable,
+        'No fue posible cargar el reporte mensual por jugador.',
+        'monthly-player-report-table'
+    )
+    const monthlyGroupRecovery = useRecoverableDataTable(
+        monthlyGroupTable,
+        'No fue posible cargar el reporte mensual por grupo.',
+        'monthly-group-report-table'
+    )
+    const annualRecovery = useRecoverableDataTable(
+        annualConsolidatedTable,
+        'No fue posible cargar el reporte anual consolidado.',
+        'annual-consolidated-report-table'
+    )
 
     const isReady = ref(false)
     const isLoading = ref(false)
@@ -137,7 +153,7 @@ export default function useAssistReports() {
         { data: 'porcentaje_asistencia', name: 'porcentaje_asistencia', title: '% Asistencia' },
     ]
 
-    const createTableOptions = (endpoint, filters, columns, order = [[0, 'asc']]) => ({
+    const createTableOptions = (endpoint, filters, columns, recovery, order = [[0, 'asc']]) => ({
         ...configLanguaje,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         pageLength: 10,
@@ -157,8 +173,10 @@ export default function useAssistReports() {
                     },
                 })
 
+                recovery.clearError()
                 callback(response.data)
-            } catch {
+            } catch (error) {
+                recovery.handleError(error)
                 callback(emptyDataTableResponse(data.draw))
             }
         },
@@ -175,19 +193,22 @@ export default function useAssistReports() {
     const monthlyPlayerOptions = createTableOptions(
         '/api/v2/reports/attendance/monthly-by-player',
         monthlyPlayerFilters,
-        monthlyPlayerColumns
+        monthlyPlayerColumns,
+        monthlyPlayerRecovery
     )
 
     const monthlyGroupOptions = createTableOptions(
         '/api/v2/reports/attendance/monthly-by-group',
         monthlyGroupFilters,
-        monthlyGroupColumns
+        monthlyGroupColumns,
+        monthlyGroupRecovery
     )
 
     const annualConsolidatedOptions = createTableOptions(
         '/api/v2/reports/attendance/annual-consolidated',
         annualConsolidatedFilters,
-        annualConsolidatedColumns
+        annualConsolidatedColumns,
+        annualRecovery
     )
 
     const reloadTable = (tableRef) => {
@@ -199,9 +220,18 @@ export default function useAssistReports() {
         }
     }
 
-    const searchMonthlyPlayer = () => reloadTable(monthlyPlayerTable)
-    const searchMonthlyGroup = () => reloadTable(monthlyGroupTable)
-    const searchAnnualConsolidated = () => reloadTable(annualConsolidatedTable)
+    const reloadReport = (tableRef, recovery) => {
+        recovery.clearError()
+        reloadTable(tableRef)
+
+        if (!tableRef.value?.table?.dt) {
+            recovery.reloadTable()
+        }
+    }
+
+    const searchMonthlyPlayer = () => reloadReport(monthlyPlayerTable, monthlyPlayerRecovery)
+    const searchMonthlyGroup = () => reloadReport(monthlyGroupTable, monthlyGroupRecovery)
+    const searchAnnualConsolidated = () => reloadReport(annualConsolidatedTable, annualRecovery)
 
     const monthlyPlayerExcelUrl = computed(() =>
         buildExportUrl('monthly-player', 'xlsx', monthlyPlayerFilters)
@@ -307,5 +337,14 @@ export default function useAssistReports() {
         searchMonthlyPlayer,
         years,
         annualConsolidatedTable,
+        annualConsolidatedError: annualRecovery.globalError,
+        annualConsolidatedTableKey: annualRecovery.tableKey,
+        retryAnnualConsolidated: annualRecovery.reloadTable,
+        monthlyGroupError: monthlyGroupRecovery.globalError,
+        monthlyGroupTableKey: monthlyGroupRecovery.tableKey,
+        retryMonthlyGroup: monthlyGroupRecovery.reloadTable,
+        monthlyPlayerError: monthlyPlayerRecovery.globalError,
+        monthlyPlayerTableKey: monthlyPlayerRecovery.tableKey,
+        retryMonthlyPlayer: monthlyPlayerRecovery.reloadTable,
     }
 }

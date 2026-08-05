@@ -15,7 +15,7 @@
 
             <Form :validation-schema="schema" :initial-values="formData" class="row align-items-end" data-tour="monthly-receipts-filters" @submit="searchReceipts">
                 <div class="col-xl-2 col-lg-3 col-sm-6 mb-2">
-                    <label for="receipt_unique_code" class="form-label">Codigo unico</label>
+                    <label for="receipt_unique_code" class="form-label">Código único</label>
                     <Field
                         id="receipt_unique_code"
                         name="unique_code"
@@ -45,7 +45,7 @@
                     />
                 </div>
                 <div class="col-xl-2 col-lg-2 col-sm-6 mb-2">
-                    <label for="receipt_category" class="form-label">Categoria</label>
+                    <label for="receipt_category" class="form-label">Categoría</label>
                     <Field
                         id="receipt_category"
                         name="category"
@@ -80,8 +80,18 @@
                 <span class="badge outline-badge-info">Total página {{ moneyFormat(totalAmount) }}</span>
             </div>
 
-            <div class="table-responsive-md" data-tour="monthly-receipts-table">
+            <ContentState
+                v-if="tableError"
+                type="error"
+                title="No fue posible cargar los recibos"
+                :message="tableError"
+                action-label="Reintentar"
+                class="mb-3"
+                @action="reloadTable"
+            />
+            <div v-show="!tableError" class="table-responsive-md" data-tour="monthly-receipts-table">
                 <DatatableTemplate
+                    :key="tableKey"
                     id="monthly-payment-receipts-table"
                     ref="receiptsTable"
                     :options="tableOptions"
@@ -114,10 +124,12 @@ import api from '@/utils/axios'
 import { useSetting } from '@/store/settings-store'
 import { usePageTitle } from '@/composables/use-meta'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import configLanguaje from '@/utils/datatableUtils'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { monthlyPaymentReceiptsTutorial } from '@/tutorials/operations'
+import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 
 const currentYear = new Date().getFullYear()
 const tutorial = usePageTutorial(monthlyPaymentReceiptsTutorial)
@@ -151,6 +163,17 @@ const receiptCount = ref(0)
 const currentPageAmount = ref(0)
 const isLoading = ref(false)
 const receiptsTable = useTemplateRef('receiptsTable')
+const {
+    globalError: tableError,
+    tableKey,
+    clearError: clearTableError,
+    handleError: handleTableError,
+    reloadTable,
+} = useRecoverableDataTable(
+    receiptsTable,
+    'No fue posible consultar los recibos.',
+    'monthly-payment-receipts-table'
+)
 const filters = reactive({
     year: null,
     unique_code: null,
@@ -201,6 +224,7 @@ const tableOptions = computed(() => ({
             })
 
             const payload = response.data
+            clearTableError()
             receiptCount.value = payload.recordsFiltered ?? 0
             currentPageAmount.value = (payload.data ?? []).reduce((sum, receipt) => sum + Number(receipt.amount || 0), 0)
             callback({
@@ -212,7 +236,7 @@ const tableOptions = computed(() => ({
         } catch (error) {
             receiptCount.value = 0
             currentPageAmount.value = 0
-            showMessage(error.response?.data?.message || 'No fue posible consultar los recibos', 'error')
+            handleTableError(error)
             callback(emptyDataTableResponse(data.draw))
         } finally {
             isLoading.value = false
@@ -275,12 +299,16 @@ const searchReceipts = async (values) => {
         training_group_id: values.training_group_id || null,
         category: values.category || null,
     })
+    clearTableError()
 
     const dt = receiptsTable.value?.table?.dt
 
     if (dt) {
         dt.clearPipeline().draw()
+        return
     }
+
+    reloadTable()
 }
 
 onMounted(() => {

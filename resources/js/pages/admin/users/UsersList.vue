@@ -15,15 +15,24 @@
                 <div class="col-md-auto ms-md-auto">
                     <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                         <i class="fa-regular fa-circle-question me-2"></i>
-                        Guia
+                        Guía
                     </button>
                 </div>
             </div>
         </template>
         <template #body>
 
-            <div data-tour="admin-users-table">
-                <DatatableTemplate :options="options" :id="'users_table'" ref="table">
+            <ContentState
+                v-if="listError"
+                type="error"
+                title="No fue posible cargar los usuarios"
+                :message="listError"
+                action-label="Reintentar"
+                class="mb-3"
+                @action="reloadTable"
+            />
+            <div v-show="!listError" data-tour="admin-users-table">
+                <DatatableTemplate :key="tableKey" :options="options" :id="'users_table'" ref="table">
                     <template #actions="props">
                         <button
                             type="button"
@@ -54,7 +63,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="userModal">Usuario</h5>
-                        <button type="button" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"
+                        <button type="button" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Cerrar"
                             class="btn-close" @click="onCancel"></button>
                     </div>
                     <div class="modal-body">
@@ -101,7 +110,7 @@
                             {{ selectedProfile.user.name }} · {{ selectedProfile.user.email }}
                         </small>
                     </div>
-                    <button type="button" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"
+                    <button type="button" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Cerrar"
                         class="btn-close" @click="closeProfile"></button>
                 </div>
                 <div class="modal-body">
@@ -154,11 +163,12 @@
         </div>
     </div>
 
-    <breadcrumb :parent="'Adminstración'" :current="'Cuentas de usuarios'" />
+    <breadcrumb :parent="'Administración'" :current="'Cuentas de usuarios'" />
     <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useUsersList from '@/composables/admin/users/usersList'
 import { usePageTutorial } from '@/composables/usePageTutorial'
@@ -179,6 +189,9 @@ const {
     profileLoading,
     profileError,
     globalError,
+    listError,
+    tableKey,
+    reloadTable,
     showProfile,
     closeProfile,
 } = useUsersList()

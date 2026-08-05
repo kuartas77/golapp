@@ -16,12 +16,12 @@ describe('useRecoverableDataTable', () => {
 
     it('uses the fallback and reloads with a fresh pipeline', async () => {
         const clearPipeline = vi.fn()
-        const reload = vi.fn()
+        const draw = vi.fn()
+        clearPipeline.mockReturnValue({ draw })
         const table = ref({
             table: {
                 dt: {
                     clearPipeline,
-                    ajax: { reload },
                 },
             },
         })
@@ -33,7 +33,7 @@ describe('useRecoverableDataTable', () => {
         await state.reloadTable()
         expect(state.globalError.value).toBe('')
         expect(clearPipeline).toHaveBeenCalledOnce()
-        expect(reload).toHaveBeenCalledWith(null, false)
+        expect(draw).toHaveBeenCalledWith(false)
     })
 
     it('keeps an actionable error when the table is not ready to reload', async () => {

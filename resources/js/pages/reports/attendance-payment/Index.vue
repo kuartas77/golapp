@@ -73,8 +73,18 @@
                                     </div>
                                 </div>
 
-                                <div class="table-responsive-sm">
+                                <ContentState
+                                    v-if="summaryTableError"
+                                    type="error"
+                                    title="No fue posible cargar el resumen"
+                                    :message="summaryTableError"
+                                    action-label="Reintentar"
+                                    class="mb-3"
+                                    @action="retrySummaryTable"
+                                />
+                                <div v-show="!summaryTableError" class="table-responsive-sm">
                                     <DatatableTemplate
+                                        :key="summaryTableKey"
                                         id="attendance-payment-summary-table"
                                         ref="summaryTable"
                                         :options="summaryOptions">
@@ -115,8 +125,18 @@
                                     Si una fila aparece con inscripción <strong>Retirada</strong>, el dato se muestra solo con fines históricos.
                                 </div>
 
-                                <div class="table-responsive-sm">
+                                <ContentState
+                                    v-if="playerTableError"
+                                    type="error"
+                                    title="No fue posible cargar el detalle"
+                                    :message="playerTableError"
+                                    action-label="Reintentar"
+                                    class="mb-3"
+                                    @action="retryPlayerTable"
+                                />
+                                <div v-show="!playerTableError" class="table-responsive-sm">
                                     <DatatableTemplate
+                                        :key="playerTableKey"
                                         id="attendance-payment-player-table"
                                         ref="playerTable"
                                         :options="playerOptions">
@@ -155,6 +175,7 @@ export default {
 
 <script setup>
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import useAttendancePaymentReport from '@/composables/reports/attendance-payment-report'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
@@ -174,12 +195,18 @@ const {
     playerOptions,
     playerPdfUrl,
     playerTable,
+    playerTableError,
+    playerTableKey,
+    retryPlayerTable,
     searchReports,
     summaryColumns,
     summaryExcelUrl,
     summaryOptions,
     summaryPdfUrl,
     summaryTable,
+    summaryTableError,
+    summaryTableKey,
+    retrySummaryTable,
     years,
 } = useAttendancePaymentReport()
 </script>

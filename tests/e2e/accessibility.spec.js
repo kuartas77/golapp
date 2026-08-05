@@ -769,9 +769,13 @@ test('sports operation lists announce failures and expose accessible recovery co
         await expect(errorState).toBeVisible();
         await page.locator(`#${list.tableId}_wrapper`).waitFor({ state: 'attached' });
         const failedRequestCount = requestCounts[list.endpoint];
-        await expect(page.getByRole('button', { name: 'Reintentar' })).toBeVisible();
         await page.evaluate(endpoint => window.enableSportsListRecovery(endpoint), list.endpoint);
-        await page.reload();
+        await page.evaluate(() => {
+            const retryButton = [...document.querySelectorAll('button')]
+                .find(button => button.textContent.trim() === 'Reintentar');
+
+            retryButton?.click();
+        });
         await expect.poll(
             () => requestCounts[list.endpoint],
             { message: `El listado ${list.endpoint} debe cargar una respuesta correcta` },
@@ -784,4 +788,93 @@ test('sports operation lists announce failures and expose accessible recovery co
             await expect(page.getByRole('button', { name: 'Eliminar Torneo E2E' })).toBeVisible();
         }
     }
+});
+
+test('monthly receipts retries a failed DataTable request in place', async ({ page }) => {
+    let requestCount = 0;
+
+    await page.addInitScript(() => {
+        localStorage.setItem('auth-user', JSON.stringify({
+            user: {
+                id: 1,
+                name: 'Escuela E2E',
+                email: 'e2e@golapp.local',
+                school_id: 1,
+                school_name: 'Escuela E2E',
+            },
+            initialized: true,
+            roles: ['school'],
+            permissions: [],
+            schoolPermissions: {
+                'school.module.payments': true,
+            },
+        }));
+    });
+
+    await page.route('**/api/v2/user', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+            data: {
+                id: 1,
+                name: 'Escuela E2E',
+                email: 'e2e@golapp.local',
+                school_id: 1,
+                school_name: 'Escuela E2E',
+                roles: ['school'],
+                permissions: [],
+                school_permissions: {
+                    'school.module.payments': true,
+                },
+            },
+        }),
+    }));
+
+    await page.route('**/api/v2/admin/info_campus', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ is_school: true, schools: [], school_selected: 1 }),
+    }));
+
+    await page.route('**/api/v2/settings/general', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+            current_school_id: 1,
+            normal_training_groups: [],
+            all_t_groups: [],
+            t_groups: [],
+            inscription_years: [{ value: 2026, label: '2026' }],
+            categories: [],
+        }),
+    }));
+
+    await page.route('**/api/v2/payments/monthly-receipts**', async route => {
+        requestCount += 1;
+
+        await route.fulfill({
+            status: requestCount === 1 ? 503 : 200,
+            contentType: 'application/json',
+            body: JSON.stringify(requestCount === 1
+                ? { message: 'Los recibos están temporalmente no disponibles.' }
+                : {
+                    data: [],
+                    recordsTotal: 0,
+                    recordsFiltered: 0,
+                }),
+        });
+    });
+
+    await page.goto('/mensualidades/recibos');
+
+    const errorState = page.getByRole('alert').filter({
+        hasText: 'Los recibos están temporalmente no disponibles.',
+    });
+    await expect(errorState).toBeVisible();
+    await page.locator('#monthly-payment-receipts-table_wrapper').waitFor({ state: 'attached' });
+    await errorState.getByRole('button', { name: 'Reintentar' }).click();
+
+    await expect.poll(() => requestCount).toBe(2);
+    await expect(errorState).toBeHidden();
+    await expect(page.getByText('Mostrando 0 recibos.')).toBeVisible();
 });

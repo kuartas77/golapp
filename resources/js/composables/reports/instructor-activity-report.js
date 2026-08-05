@@ -3,6 +3,7 @@ import { useRoute } from 'vue-router'
 import configLanguaje from '@/utils/datatableUtils'
 import { usePageTitle } from '@/composables/use-meta'
 import api from '@/utils/axios'
+import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 
 const emptyDataTableResponse = (draw = 0) => ({
     draw,
@@ -57,6 +58,11 @@ export default function useInstructorActivityReport() {
 
     const route = useRoute()
     const table = useTemplateRef('instructorActivityTable')
+    const tableRecovery = useRecoverableDataTable(
+        table,
+        'No fue posible cargar la actividad de los instructores.',
+        'instructor-activity-report-table'
+    )
 
     const isReady = ref(false)
     const isLoading = ref(false)
@@ -103,8 +109,10 @@ export default function useInstructorActivityReport() {
                     },
                 })
 
+                tableRecovery.clearError()
                 callback(response.data)
-            } catch {
+            } catch (error) {
+                tableRecovery.handleError(error)
                 callback(emptyDataTableResponse(data.draw))
             }
         },
@@ -122,10 +130,15 @@ export default function useInstructorActivityReport() {
     const pdfUrl = computed(() => buildExportUrl('pdf', filters))
 
     const search = () => {
+        tableRecovery.clearError()
         const dt = table.value?.table?.dt
 
         if (dt) {
             dt.clearPipeline().draw()
+        }
+
+        if (!dt) {
+            tableRecovery.reloadTable()
         }
     }
 
@@ -181,6 +194,9 @@ export default function useInstructorActivityReport() {
         pdfUrl,
         search,
         table,
+        tableError: tableRecovery.globalError,
+        tableKey: tableRecovery.tableKey,
+        retryTable: tableRecovery.reloadTable,
         years,
     }
 }

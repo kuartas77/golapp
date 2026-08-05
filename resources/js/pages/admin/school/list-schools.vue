@@ -18,15 +18,24 @@
                         </router-link>
                         <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                             <i class="fa-regular fa-circle-question me-2"></i>
-                            Guia
+                            Guía
                         </button>
                     </div>
                 </div>
             </div>
         </template>
         <template #body>
-            <div data-tour="admin-schools-table">
-                <DatatableTemplate :options="options" :id="'schools_table'" ref="table">
+            <ContentState
+                v-if="listError"
+                type="error"
+                title="No fue posible cargar las escuelas"
+                :message="listError"
+                action-label="Reintentar"
+                class="mb-3"
+                @action="reloadTable"
+            />
+            <div v-show="!listError" data-tour="admin-schools-table">
+                <DatatableTemplate :key="tableKey" :options="options" :id="'schools_table'" ref="table">
                 <template #actions="props">
                     <div class="d-flex flex-column flex-md-row gap-2 justify-content-center">
                         <button
@@ -89,7 +98,7 @@
                     <button
                         type="button"
                         class="btn-close"
-                        aria-label="Close"
+                        aria-label="Cerrar"
                         :disabled="isSavingPermissions"
                         @click="closeModal"
                     ></button>
@@ -287,12 +296,13 @@
         </div>
     </div>
 
-    <breadcrumb :parent="'Adminstración'" :current="'Escuelas'" />
+    <breadcrumb :parent="'Administración'" :current="'Escuelas'" />
     <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import api from '@/utils/axios'
 import useSchoolList from '@/composables/admin/school/schoolList'
@@ -304,7 +314,7 @@ import { schoolsListTutorial } from '@/tutorials/admin'
 
 usePageTitle('Escuelas')
 
-const { table, options } = useSchoolList()
+const { table, options, listError, tableKey, reloadTable } = useSchoolList()
 const tutorial = usePageTutorial(schoolsListTutorial)
 const router = useRouter()
 const auth = useAuthUser()
@@ -343,14 +353,6 @@ const enabledPermissionsCount = computed(() => (
 ))
 
 const totalPermissionsCount = computed(() => permissionCatalog.value.length)
-
-const reloadTable = () => {
-    const dataTable = table.value?.table?.dt
-    if (dataTable) {
-        dataTable.clearPipeline()
-        dataTable.ajax.reload(null, false)
-    }
-}
 
 const resetModalState = () => {
     modalError.value = ''

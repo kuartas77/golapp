@@ -17,7 +17,7 @@
                                     </p>
                                 </div>
                                 <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
-                                    Guia
+                                    Guía
                                 </button>
                             </div>
 
@@ -75,8 +75,18 @@
                                     </div>
                                 </div>
 
-                                <div class="table-responsive-sm">
+                                <ContentState
+                                    v-if="monthlyPlayerError"
+                                    type="error"
+                                    title="No fue posible cargar el reporte por jugador"
+                                    :message="monthlyPlayerError"
+                                    action-label="Reintentar"
+                                    class="mb-3"
+                                    @action="retryMonthlyPlayer"
+                                />
+                                <div v-show="!monthlyPlayerError" class="table-responsive-sm">
                                     <DatatableTemplate
+                                        :key="monthlyPlayerTableKey"
                                         id="monthly-player-report-table"
                                         ref="monthlyPlayerTable"
                                         :options="monthlyPlayerOptions">
@@ -147,8 +157,18 @@
                                     </div>
                                 </div>
 
-                                <div class="table-responsive-sm">
+                                <ContentState
+                                    v-if="monthlyGroupError"
+                                    type="error"
+                                    title="No fue posible cargar el reporte por grupo"
+                                    :message="monthlyGroupError"
+                                    action-label="Reintentar"
+                                    class="mb-3"
+                                    @action="retryMonthlyGroup"
+                                />
+                                <div v-show="!monthlyGroupError" class="table-responsive-sm">
                                     <DatatableTemplate
+                                        :key="monthlyGroupTableKey"
                                         id="monthly-group-report-table"
                                         ref="monthlyGroupTable"
                                         :options="monthlyGroupOptions">
@@ -211,8 +231,18 @@
                                     </div>
                                 </div>
 
-                                <div class="table-responsive-sm mt-4">
+                                <ContentState
+                                    v-if="annualConsolidatedError"
+                                    type="error"
+                                    title="No fue posible cargar el consolidado anual"
+                                    :message="annualConsolidatedError"
+                                    action-label="Reintentar"
+                                    class="mt-4"
+                                    @action="retryAnnualConsolidated"
+                                />
+                                <div v-show="!annualConsolidatedError" class="table-responsive-sm mt-4">
                                     <DatatableTemplate
+                                        :key="annualConsolidatedTableKey"
                                         id="annual-consolidated-report-table"
                                         ref="annualConsolidatedTable"
                                         :options="annualConsolidatedOptions">
@@ -251,6 +281,7 @@ export default {
 
 <script setup>
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useAssistReports from '@/composables/reports/assist-reports'
 import { usePageTutorial } from '@/composables/usePageTutorial'
@@ -263,6 +294,9 @@ const {
     annualConsolidatedOptions,
     annualConsolidatedPdfUrl,
     annualConsolidatedTable,
+    annualConsolidatedError,
+    annualConsolidatedTableKey,
+    retryAnnualConsolidated,
     groupOptions,
     isLoading,
     isReady,
@@ -273,12 +307,18 @@ const {
     monthlyGroupOptions,
     monthlyGroupPdfUrl,
     monthlyGroupTable,
+    monthlyGroupError,
+    monthlyGroupTableKey,
+    retryMonthlyGroup,
     monthlyPlayerColumns,
     monthlyPlayerExcelUrl,
     monthlyPlayerFilters,
     monthlyPlayerOptions,
     monthlyPlayerPdfUrl,
     monthlyPlayerTable,
+    monthlyPlayerError,
+    monthlyPlayerTableKey,
+    retryMonthlyPlayer,
     months,
     searchAnnualConsolidated,
     searchMonthlyGroup,

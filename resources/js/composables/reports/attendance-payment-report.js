@@ -3,6 +3,7 @@ import { useRoute } from 'vue-router'
 import configLanguaje from '@/utils/datatableUtils'
 import { usePageTitle } from '@/composables/use-meta'
 import api from '@/utils/axios'
+import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 
 const emptyDataTableResponse = (draw = 0) => ({
     draw,
@@ -58,6 +59,16 @@ export default function useAttendancePaymentReport() {
 
     const summaryTable = useTemplateRef('summaryTable')
     const playerTable = useTemplateRef('playerTable')
+    const summaryRecovery = useRecoverableDataTable(
+        summaryTable,
+        'No fue posible cargar el resumen por grupo.',
+        'attendance-payment-summary-table'
+    )
+    const playerRecovery = useRecoverableDataTable(
+        playerTable,
+        'No fue posible cargar el detalle por deportista.',
+        'attendance-payment-player-table'
+    )
 
     const isReady = ref(false)
     const isLoading = ref(false)
@@ -96,7 +107,7 @@ export default function useAttendancePaymentReport() {
         { data: 'flag_reason', name: 'flag_reason', title: 'Motivo' },
     ]
 
-    const createTableOptions = (endpoint, columns, order = [[0, 'asc']]) => ({
+    const createTableOptions = (endpoint, columns, recovery, order = [[0, 'asc']]) => ({
         ...configLanguaje,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         pageLength: 10,
@@ -114,8 +125,10 @@ export default function useAttendancePaymentReport() {
                     },
                 })
 
+                recovery.clearError()
                 callback(response.data)
-            } catch {
+            } catch (error) {
+                recovery.handleError(error)
                 callback(emptyDataTableResponse(data.draw))
             }
         },
@@ -131,12 +144,14 @@ export default function useAttendancePaymentReport() {
     const summaryOptions = createTableOptions(
         '/api/v2/reports/attendance-payment/monthly-by-group',
         summaryColumns,
+        summaryRecovery,
         [[4, 'desc']]
     )
 
     const playerOptions = createTableOptions(
         '/api/v2/reports/attendance-payment/monthly-by-player',
         playerColumns,
+        playerRecovery,
         [[1, 'asc']]
     )
 
@@ -150,8 +165,18 @@ export default function useAttendancePaymentReport() {
     }
 
     const searchReports = () => {
+        summaryRecovery.clearError()
+        playerRecovery.clearError()
         reloadTable(summaryTable)
         reloadTable(playerTable)
+
+        if (!summaryTable.value?.table?.dt) {
+            summaryRecovery.reloadTable()
+        }
+
+        if (!playerTable.value?.table?.dt) {
+            playerRecovery.reloadTable()
+        }
     }
 
     const summaryExcelUrl = computed(() =>
@@ -239,12 +264,18 @@ export default function useAttendancePaymentReport() {
         playerOptions,
         playerPdfUrl,
         playerTable,
+        playerTableError: playerRecovery.globalError,
+        playerTableKey: playerRecovery.tableKey,
+        retryPlayerTable: playerRecovery.reloadTable,
         searchReports,
         summaryColumns,
         summaryExcelUrl,
         summaryOptions,
         summaryPdfUrl,
         summaryTable,
+        summaryTableError: summaryRecovery.globalError,
+        summaryTableKey: summaryRecovery.tableKey,
+        retrySummaryTable: summaryRecovery.reloadTable,
         groups,
         years,
     }

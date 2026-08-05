@@ -45,8 +45,7 @@ export function useRecoverableDataTable(table, fallbackMessage, tableId = '') {
 
         if (dt) {
             clearError()
-            dt.clearPipeline()
-            dt.ajax.reload(null, false)
+            dt.clearPipeline().draw(false)
             return
         }
 
