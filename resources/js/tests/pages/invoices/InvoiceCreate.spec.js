@@ -134,6 +134,7 @@ describe('InvoiceCreate', () => {
         const wrapper = await mountPage();
         const state = wrapper.vm.$.setupState;
 
+        expect(wrapper.get('h1').text()).toBe('Crear factura');
         state.addAdditionalItem();
         state.additionalItems[0].include = true;
         state.additionalItems[0].description = 'Canillera';

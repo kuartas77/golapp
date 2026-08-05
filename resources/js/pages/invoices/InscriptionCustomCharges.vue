@@ -3,15 +3,24 @@
         <div class="row layout-top-spacing">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" data-tour="custom-charges-actions">
-                        <div>
-                            <h4 class="mb-1"><i class="fa fa-receipt"></i> Cargos Personalizados</h4>
-                            <small class="text-muted">Cargos asignados a inscripciones antes de facturarse.</small>
-                        </div>
-                        <div class="d-flex gap-2"><button type="button" class="btn btn-outline-primary btn-sm" @click="reloadTable">
-                            <i class="fa fa-sync"></i> Actualizar
-                        </button><button type="button" class="btn btn-info btn-sm" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button></div>
-                    </div>
+                    <AppPageHeader
+                        class="card-header"
+                        title="Cargos personalizados"
+                        subtitle="Cargos asignados a inscripciones antes de facturarse."
+                        icon="fa fa-receipt"
+                        data-tour="custom-charges-actions"
+                    >
+                        <template #actions>
+                            <AppButton variant="outline-primary" size="sm" @click="reloadTable">
+                                <i class="fa fa-sync" aria-hidden="true"></i>
+                                Actualizar
+                            </AppButton>
+                            <AppButton variant="info" size="sm" @click="tutorial.start()">
+                                <i class="fa-regular fa-circle-question" aria-hidden="true"></i>
+                                Guía
+                            </AppButton>
+                        </template>
+                    </AppPageHeader>
 
                     <div class="card-body">
                         <div class="table-responsive-sm" data-tour="custom-charges-table">
@@ -32,23 +41,24 @@
                             >
                                 <template #actions="props">
                                     <div class="d-inline-flex gap-2">
-                                        <button
-                                            type="button"
-                                            class="btn btn-outline-primary btn-sm"
+                                        <AppButton
+                                            variant="outline-primary"
+                                            size="sm"
                                             :disabled="props.rowData.status === 'paid' || deletingId === props.rowData.id"
                                             @click="openEditModal(props.rowData)"
                                         >
                                             Editar
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="btn btn-outline-danger btn-sm"
+                                        </AppButton>
+                                        <AppButton
+                                            variant="outline-danger"
+                                            size="sm"
                                             :disabled="!canDeleteCharge(props.rowData) || deletingId === props.rowData.id"
+                                            :loading="deletingId === props.rowData.id"
+                                            loading-label="Eliminando..."
                                             @click="confirmDelete(props.rowData)"
                                         >
-                                            <span v-if="deletingId === props.rowData.id" class="spinner-border spinner-border-sm me-1"></span>
                                             Eliminar
-                                        </button>
+                                        </AppButton>
                                     </div>
                                 </template>
                             </DatatableTemplate>
@@ -108,13 +118,12 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" :disabled="saving" @click="closeModal">
+                        <AppButton variant="secondary" :disabled="saving" @click="closeModal">
                             Cerrar
-                        </button>
-                        <button type="submit" class="btn btn-primary" :disabled="saving">
-                            <span v-if="saving" class="spinner-border spinner-border-sm me-1"></span>
+                        </AppButton>
+                        <AppButton type="submit" :loading="saving" loading-label="Guardando...">
                             Guardar cambios
-                        </button>
+                        </AppButton>
                     </div>
                 </form>
             </div>
@@ -129,6 +138,8 @@ import api from '@/utils/axios'
 import CurrencyInput from '@/components/general/CurrencyInput'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import ContentState from '@/components/general/ContentState.vue'
+import AppButton from '@/components/general/AppButton.vue'
+import AppPageHeader from '@/components/general/AppPageHeader.vue'
 import useInscriptionCustomChargesList from '@/composables/invoices/inscriptionCustomChargesList'
 import flatPickr from 'vue-flatpickr-component'
 import { Spanish } from 'flatpickr/dist/l10n/es.js'

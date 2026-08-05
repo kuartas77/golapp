@@ -44,7 +44,7 @@ function mountPage() {
     return mount(Invoices, {
         global: {
             stubs: {
-                panel: { template: '<section><slot name="body" /></section>' },
+                panel: { template: '<section><slot name="header" /><slot name="body" /></section>' },
                 breadcrumb: { template: '<div />' },
                 PageTutorialOverlay: { template: '<div />' },
                 DatatableTemplate: DatatableStub,
@@ -63,6 +63,7 @@ describe('Invoices list states', () => {
     it('announces load errors, offers retry and explains page-scoped totals', async () => {
         const wrapper = mountPage()
 
+        expect(wrapper.get('h1').text()).toBe('Facturas')
         const alert = wrapper.get('[role="alert"]')
         expect(alert.text()).toContain('El servicio de facturación no está disponible.')
         await alert.get('button').trigger('click')

@@ -1,22 +1,30 @@
 <template>
     <panel>
+        <template #header>
+            <AppPageHeader
+                title="Ítems de factura"
+                subtitle="Consulta los conceptos incluidos en las facturas de la escuela."
+                icon="fa fa-list-check"
+                data-tour="invoice-items-filters"
+            >
+                <template #actions>
+                    <a
+                        :href="exportUrl"
+                        class="btn btn-info btn-sm"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        <i class="fa fa-print me-2" aria-hidden="true"></i>
+                        Exportar pendientes en PDF
+                    </a>
+                    <AppButton variant="info" size="sm" @click="tutorial.start()">
+                        <i class="fa-regular fa-circle-question" aria-hidden="true"></i>
+                        Guía
+                    </AppButton>
+                </template>
+            </AppPageHeader>
+        </template>
         <template #body>
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3" data-tour="invoice-items-filters">
-                <p class="mb-0">
-                    Consulta aquí los ítems incluidos en las facturas de la escuela.
-                </p>
-                <a
-                    :href="exportUrl"
-                    class="btn btn-info btn-sm align-self-md-start"
-                    target="_blank"
-                    rel="noopener"
-                >
-                    <i class="fa fa-print me-2" aria-hidden="true"></i>
-                    Exportar pendientes en PDF
-                </a>
-                <button type="button" class="btn btn-info btn-sm align-self-md-start" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button>
-            </div>
-
             <div class="table-responsive-md" data-tour="invoice-items-table">
                 <ContentState
                     v-if="globalError"
@@ -76,6 +84,8 @@
 <script setup>
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue';
 import ContentState from '@/components/general/ContentState.vue';
+import AppButton from '@/components/general/AppButton.vue';
+import AppPageHeader from '@/components/general/AppPageHeader.vue';
 import useInvoiceItemsList from '@/composables/invoices/invoiceItemsList';
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue';
 import { usePageTutorial } from '@/composables/usePageTutorial';

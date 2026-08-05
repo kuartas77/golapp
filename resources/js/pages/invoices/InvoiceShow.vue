@@ -21,12 +21,16 @@
             <div class="col-md-8">
                 <!-- Información de la factura -->
                 <div class="card mb-4" data-tour="invoice-show-summary">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="fa fa-file-invoice"></i> Factura #{{ invoice.invoice_number }}
-                        </h5>
-                        <AppStatus :value="invoice.status" context="invoice" class="text-uppercase" />
-                    </div>
+                    <AppPageHeader
+                        class="card-header"
+                        :title="`Factura #${invoice.invoice_number}`"
+                        subtitle="Detalle financiero, conceptos incluidos e historial de pagos."
+                        icon="fa fa-file-invoice"
+                    >
+                        <template #actions>
+                            <AppStatus :value="invoice.status" context="invoice" class="text-uppercase" />
+                        </template>
+                    </AppPageHeader>
                     <div class="card-body">
                         <div class="row mb-4">
                             <div class="col-md-6">
@@ -194,10 +198,10 @@
                 <div class="card mb-4" data-tour="invoice-show-payment-form">
                     <div class="card-header d-flex justify-content-md-between">
                         <h5 class="mb-0"><i class="fa fa-money-bill-wave"></i> Registrar Pago</h5>
-                        <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
-                            <i class="fa-regular fa-circle-question me-2"></i>
+                        <AppButton variant="info" size="sm" @click="tutorial.start()">
+                            <i class="fa-regular fa-circle-question" aria-hidden="true"></i>
                             Guía
-                        </button>
+                        </AppButton>
                     </div>
                     <div class="card-body col-md-12">
                         <div v-if="actionError" class="alert alert-danger" role="alert">
@@ -361,6 +365,8 @@ import ContentState from '@/components/general/ContentState.vue'
 import AppDate from '@/components/general/AppDate.vue'
 import AppMoney from '@/components/general/AppMoney.vue'
 import AppStatus from '@/components/general/AppStatus.vue'
+import AppButton from '@/components/general/AppButton.vue'
+import AppPageHeader from '@/components/general/AppPageHeader.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/utils/axios'

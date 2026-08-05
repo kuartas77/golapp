@@ -1,5 +1,19 @@
 <template>
     <panel>
+        <template #header>
+            <AppPageHeader
+                title="Facturas"
+                subtitle="Consulta montos, pagos, estados y accesos al detalle de cada factura."
+                icon="fa fa-file-invoice"
+            >
+                <template #actions>
+                    <AppButton variant="info" size="sm" @click="tutorial.start()">
+                        <i class="fa-regular fa-circle-question" aria-hidden="true"></i>
+                        Guía
+                    </AppButton>
+                </template>
+            </AppPageHeader>
+        </template>
         <template #body>
 
 
@@ -32,12 +46,6 @@
 
                         </div>
                     </div>
-                </div>
-                <div class="col-md-2">
-                    <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
-                        <i class="fa-regular fa-circle-question me-2"></i>
-                        Guía
-                    </button>
                 </div>
             </div>
 
@@ -139,6 +147,8 @@
 <script setup>
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import ContentState from '@/components/general/ContentState.vue'
+import AppButton from '@/components/general/AppButton.vue'
+import AppPageHeader from '@/components/general/AppPageHeader.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useInvoicesList from '@/composables/invoices/invoicesList'
 import { usePageTutorial } from '@/composables/usePageTutorial'

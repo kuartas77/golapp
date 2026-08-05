@@ -300,6 +300,7 @@ test('invoices announces a failed load and recovers with accessible row actions'
 
     await page.goto('/facturas');
 
+    await expect(page.getByRole('heading', { level: 1, name: 'Facturas' })).toBeVisible();
     const errorState = page.getByRole('alert').filter({ hasText: 'El servicio de facturación no está disponible.' });
     await expect(errorState).toBeVisible();
     await errorState.getByRole('button', { name: 'Reintentar' }).click();
@@ -474,6 +475,7 @@ test('invoice items and custom charges recover from failed table requests', asyn
 
     await page.goto('/facturas/items');
     await expect(page).toHaveURL(/\/facturas\/items$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Ítems de factura' })).toBeVisible();
 
     const itemError = page.getByRole('alert').filter({ hasText: 'No se pudieron consultar los conceptos.' });
     await expect(itemError).toBeVisible();
@@ -518,6 +520,7 @@ test('invoice items and custom charges recover from failed table requests', asyn
 
     await page.goto('/facturas/cargos-personalizados');
 
+    await expect(page.getByRole('heading', { level: 1, name: 'Cargos personalizados' })).toBeVisible();
     const chargeError = page.getByRole('alert').filter({ hasText: 'No se pudieron consultar los cargos.' });
     await expect(chargeError).toBeVisible();
     await chargeError.getByRole('button', { name: 'Reintentar' }).click();

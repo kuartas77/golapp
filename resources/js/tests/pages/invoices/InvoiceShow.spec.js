@@ -131,6 +131,7 @@ describe('InvoiceShow financial recovery', () => {
         await flushPromises()
 
         expect(axiosMock.get).toHaveBeenCalledTimes(2)
+        expect(wrapper.get('h1').text()).toBe('Factura #FAC-E2E-91')
         expect(wrapper.text()).toContain('Factura #FAC-E2E-91')
         expect(wrapper.find('[role="alert"]').exists()).toBe(false)
     })

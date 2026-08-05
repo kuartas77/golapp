@@ -3,19 +3,20 @@
         <div class="row layout-top-spacing">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap"
-                        data-tour="invoice-create-header">
-                        <div class="mb-2 mb-md-0">
-                            <h4 class="mb-1"><i class="fa fa-file-invoice"></i> Crear Factura</h4>
-                            <small class="text-muted">
-                                Revisa el contexto, selecciona los conceptos y confirma el total antes de guardar.
-                            </small>
-                        </div>
-                        <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
-                            <i class="fa-regular fa-circle-question me-2"></i>
-                            Guía
-                        </button>
-                    </div>
+                    <AppPageHeader
+                        class="card-header"
+                        title="Crear factura"
+                        subtitle="Revisa el contexto, selecciona los conceptos y confirma el total antes de guardar."
+                        icon="fa fa-file-invoice"
+                        data-tour="invoice-create-header"
+                    >
+                        <template #actions>
+                            <AppButton variant="info" size="sm" @click="tutorial.start()">
+                                <i class="fa-regular fa-circle-question" aria-hidden="true"></i>
+                                Guía
+                            </AppButton>
+                        </template>
+                    </AppPageHeader>
 
                     <div class="card-body">
                         <ContentState
@@ -317,19 +318,21 @@
                                         <div class="card-body">
                                             <div class="row">
                                                 <div class="col-sm-6 mb-2">
-                                                    <button type="button" class="btn btn-secondary btn-block"
-                                                        @click="cancel">
+                                                    <AppButton variant="secondary" full @click="cancel">
                                                         <i class="fa fa-times"></i> Cancelar
-                                                    </button>
+                                                    </AppButton>
                                                 </div>
                                                 <div class="col-sm-6 mb-2">
-                                                    <button type="submit" class="btn btn-primary btn-block"
-                                                        :disabled="loading || total == 0">
-                                                        <span v-if="loading"
-                                                            class="spinner-border spinner-border-sm"></span>
-                                                        <i v-else class="fa fa-save"></i>
-                                                        {{ loading ? 'Guardando...' : 'Guardar Factura' }}
-                                                    </button>
+                                                    <AppButton
+                                                        type="submit"
+                                                        full
+                                                        :disabled="total == 0"
+                                                        :loading="loading"
+                                                        loading-label="Guardando..."
+                                                    >
+                                                        <i class="fa fa-save" aria-hidden="true"></i>
+                                                        Guardar factura
+                                                    </AppButton>
                                                 </div>
                                             </div>
                                             <small class="text-muted d-block">
@@ -355,6 +358,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import ContentState from '@/components/general/ContentState.vue'
 import AppMoney from '@/components/general/AppMoney.vue'
+import AppButton from '@/components/general/AppButton.vue'
+import AppPageHeader from '@/components/general/AppPageHeader.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/utils/axios'
