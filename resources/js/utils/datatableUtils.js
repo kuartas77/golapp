@@ -3,10 +3,10 @@ import { DataTablesCore } from '@/plugins/datatables';
 const configLanguaje = {
     info: true,
     language: {
-        sProcessing: 'Procesando...',
+        sProcessing: 'Cargando registros...',
         sLengthMenu: 'Mostrar _MENU_ registros',
-        sZeroRecords: 'No se encontraron resultados',
-        sEmptyTable: 'Ningún dato disponible en esta tabla',
+        sZeroRecords: 'No encontramos resultados con los filtros aplicados.',
+        sEmptyTable: 'Aún no hay registros para mostrar.',
         sInfo: 'Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros',
         sInfoEmpty: 'Mostrando registros del 0 al 0 de un total de 0 registros',
         sInfoFiltered: '(filtrado de un total de _MAX_ registros)',
@@ -15,7 +15,7 @@ const configLanguaje = {
         // searchPlaceholder: 'proba',
         // sUrl: '',
         sInfoThousands: ',',
-        sLoadingRecords: 'Cargando...',
+        sLoadingRecords: 'Cargando registros...',
         paginate: {
             first: 'Primera',
             last: 'Última',

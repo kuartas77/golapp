@@ -25,13 +25,16 @@
             </div>
         </template>
         <template #body>
-            <div v-if="globalError" class="alert alert-danger d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
-                <span>{{ globalError }}</span>
-                <button type="button" class="btn btn-sm btn-danger" @click="reloadTable">
-                    Reintentar
-                </button>
-            </div>
-            <div data-tour="players-list-table">
+            <ContentState
+                v-if="globalError"
+                type="error"
+                title="No fue posible cargar los deportistas"
+                :message="globalError"
+                action-label="Reintentar"
+                class="mb-3"
+                @action="reloadTable"
+            />
+            <div v-show="!globalError" data-tour="players-list-table">
                 <DatatableTemplate :options="options" :id="'players_table'" ref="table">
                     <template #actions="props">
                         <div class="d-inline-flex gap-1">
@@ -117,6 +120,7 @@
 </template>
 <script setup>
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import usePlayerList from '@/composables/player/playersList'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'

@@ -169,3 +169,61 @@ test('attendance page explains the initial state before the first search', async
     await expect(page.getByText('Elige un grupo y presiona Buscar para mostrar sus días de entrenamiento')).toBeVisible();
     await expect(page.locator('#attendance_table')).toHaveCount(0);
 });
+
+test('monthly payments starts with guidance instead of an empty table', async ({ page }) => {
+    await page.route('**/api/v2/user', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+            data: {
+                id: 1,
+                name: 'Escuela E2E',
+                email: 'e2e@golapp.local',
+                school_id: 1,
+                school_name: 'Escuela E2E',
+                roles: ['school'],
+                permissions: [],
+                school_permissions: {
+                    'school.module.payments': true,
+                },
+            },
+        }),
+    }));
+
+    await page.route('**/api/v2/admin/info_campus', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ is_school: true, schools: [], school_selected: 1 }),
+    }));
+
+    await page.route('**/api/v2/settings/general', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+            current_school_id: 1,
+            all_t_groups: [{ id: 10, name: 'Sub 12', full_group: 'Sub 12' }],
+            t_groups: [{ id: 10, name: 'Sub 12', full_group: 'Sub 12' }],
+            normal_training_groups: [{ id: 10, name: 'Sub 12', full_group: 'Sub 12' }],
+            categories: [{ category: 'Sub 12' }],
+            inscription_years: [{ id: 2026, year: 2026 }],
+            type_payments: [{ value: 2, label: 'Debe' }],
+        }),
+    }));
+
+    await page.route('**/api/v2/payments/status-catalog', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+            statuses: [{ value: '2', label: 'Debe' }],
+            groups: { paid: [], debt: [2], player_credit: [] },
+            months: [],
+        }),
+    }));
+
+    await page.goto('/mensualidades');
+
+    await expect(page).toHaveURL(/\/mensualidades$/);
+    await expect(page.getByRole('heading', { name: 'Consulta las mensualidades' })).toBeVisible();
+    await expect(page.getByText('Selecciona un grupo o una categoría y presiona Buscar')).toBeVisible();
+    await expect(page.locator('[data-tour="monthly-payments-table"] table')).toHaveCount(0);
+});

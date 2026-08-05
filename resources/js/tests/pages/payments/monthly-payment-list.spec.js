@@ -122,6 +122,90 @@ describe('monthly payment list', () => {
         wrapper.unmount()
     })
 
+    it('starts in guidance mode without mounting payment results', () => {
+        const wrapper = mountComposable()
+
+        expect(wrapper.vm.hasSearched).toBe(false)
+        expect(wrapper.vm.groupPayments).toEqual([])
+        expect(wrapper.vm.globalError).toBe('')
+
+        wrapper.unmount()
+    })
+
+    it('keeps an empty successful search distinct from the initial state', async () => {
+        const wrapper = mountComposable()
+        apiMock.get.mockImplementation((url) => {
+            if (url === '/api/v2/payments/status-catalog') {
+                return Promise.resolve({ data: statusCatalogFixture() })
+            }
+
+            return Promise.resolve({
+                data: {
+                    rows: [],
+                    count: 0,
+                    filter_options: { categories: [], groups: [] },
+                },
+            })
+        })
+
+        await wrapper.vm.handleSearch({
+            year: 2026,
+            training_group_id: 10,
+            category: null,
+            month: 'january',
+            status: '',
+        })
+
+        expect(wrapper.vm.hasSearched).toBe(true)
+        expect(wrapper.vm.groupPayments).toEqual([])
+        expect(wrapper.vm.globalError).toBe('')
+
+        wrapper.unmount()
+    })
+
+    it('exposes and retries a failed payment search', async () => {
+        const wrapper = mountComposable()
+        let paymentRequests = 0
+
+        apiMock.get.mockImplementation((url) => {
+            if (url === '/api/v2/payments/status-catalog') {
+                return Promise.resolve({ data: statusCatalogFixture() })
+            }
+
+            paymentRequests += 1
+            if (paymentRequests === 1) {
+                return Promise.reject({
+                    response: { data: { message: 'No fue posible consultar cartera.' } },
+                })
+            }
+
+            return Promise.resolve({
+                data: {
+                    rows: [],
+                    count: 0,
+                    filter_options: { categories: [], groups: [] },
+                },
+            })
+        })
+
+        await wrapper.vm.handleSearch({
+            year: 2026,
+            training_group_id: 10,
+            category: null,
+            month: 'january',
+            status: '',
+        })
+
+        expect(wrapper.vm.globalError).toBe('No fue posible consultar cartera.')
+
+        await wrapper.vm.retryLastSearch()
+
+        expect(paymentRequests).toBe(2)
+        expect(wrapper.vm.globalError).toBe('')
+
+        wrapper.unmount()
+    })
+
     it('restores every loaded row when the player search is cleared', async () => {
         const wrapper = mountComposable()
 

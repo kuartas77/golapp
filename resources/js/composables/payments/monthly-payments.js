@@ -74,7 +74,9 @@ export default function useMonthlyPayments() {
     const selected_group = ref(null)
     const groupPayments = ref([])
     const playerSearchTerm = ref('')
-    const globalError = ref(null)
+    const globalError = ref('')
+    const lastSearchValues = ref(null)
+    const hasSearched = computed(() => Boolean(lastSearchValues.value))
     const export_excel = ref(null)
     const export_pdf = ref(null)
     const modelGroup = ref(null)
@@ -142,11 +144,13 @@ export default function useMonthlyPayments() {
         (payPlayer) => Boolean(payPlayer.inscription_deleted)
     ).length)
 
-    const handleSearch = async (values, actions) => {
+    const handleSearch = async (values, actions = null) => {
         try {
             groupPayments.value = []
             playerSearchTerm.value = ''
             isLoading.value = true
+            globalError.value = ''
+            lastSearchValues.value = { ...values }
             const selectedMonth = values.month ?? formData.value.month ?? defaultMonthField
             formData.value = {
                 ...formData.value,
@@ -199,8 +203,22 @@ export default function useMonthlyPayments() {
             groupPayments.value = []
             export_excel.value = null
             export_pdf.value = null
-            proxy.$handleBackendErrors(error, actions.setErrors, (msg) => (globalError.value = msg))
+            globalError.value = error.response?.data?.message || 'No fue posible consultar las mensualidades.'
+
+            if (actions?.setErrors) {
+                proxy.$handleBackendErrors(error, actions.setErrors, (message) => {
+                    if (message) {
+                        globalError.value = message
+                    }
+                })
+            }
             isLoading.value = false
+        }
+    }
+
+    const retryLastSearch = async () => {
+        if (lastSearchValues.value) {
+            await handleSearch(lastSearchValues.value)
         }
     }
 
@@ -625,12 +643,15 @@ export default function useMonthlyPayments() {
 
     return {
         handleSearch,
+        retryLastSearch,
         editRow,
         cancelEdition,
         handleSelectChange,
         saveField,
         exportFile,
         isLoading,
+        globalError,
+        hasSearched,
         isHistoryLoading,
         player_count,
         selected_group,

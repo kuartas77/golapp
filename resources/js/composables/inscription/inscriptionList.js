@@ -10,6 +10,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
     const isCreateModalOpen = ref(false)
     const selectedAttendanceQrCode = ref(null)
     const disableUrlSelected = ref(null)
+    const globalError = ref('')
     const currentYear = new Date().getFullYear()
     const canManageSelectedYear = computed(() => {
         const year = Number(selectedYear?.value ?? currentYear)
@@ -193,12 +194,14 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
                         inscription_year: selectedYear?.value ?? currentYear,
                     },
                 });
+                globalError.value = ''
                 callback({
                     data: response.data.data,
                     recordsTotal: response.data.recordsTotal,
                     recordsFiltered: response.data.recordsFiltered,
                 });
             } catch (error) {
+                globalError.value = error.response?.data?.message || 'No fue posible cargar el listado de inscripciones.'
                 callback({ data: [], recordsTotal: 0, recordsFiltered: 0 });
             }
         },
@@ -208,6 +211,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
     const getDataTable = () => inscription_table.value?.table?.dt ?? null
 
     const reloadTable = async () => {
+        globalError.value = ''
         await nextTick()
 
         const dt = getDataTable()
@@ -339,6 +343,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         options,
         inscription_table,
         reloadTable,
+        globalError,
         selectedInscriptionId,
         isCreateModalOpen,
         selectedAttendanceQrCode,

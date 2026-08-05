@@ -74,7 +74,17 @@
                 </span>
             </div>
 
-            <div data-tour="inscriptions-table">
+            <ContentState
+                v-if="globalError"
+                type="error"
+                title="No fue posible cargar las inscripciones"
+                :message="globalError"
+                action-label="Reintentar"
+                class="mb-3"
+                @action="reloadTable"
+            />
+
+            <div v-show="!globalError" data-tour="inscriptions-table">
                 <DatatableTemplate :id="'inscription_table'" :options="options" ref="inscription_table"
                     @click="resolveRouteFromClick($event)">
                     <template #thead>
@@ -147,6 +157,7 @@
 <script setup>
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue';
+import ContentState from '@/components/general/ContentState.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useSetting } from '@/store/settings-store';
 import { useAuthUser } from '@/store/auth-user';
@@ -227,6 +238,7 @@ const {
     inscription_table,
     options,
     reloadTable,
+    globalError,
     selectedInscriptionId,
     isCreateModalOpen,
     selectedAttendanceQrCode,

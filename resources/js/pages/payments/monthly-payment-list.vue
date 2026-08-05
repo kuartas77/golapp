@@ -190,6 +190,7 @@
                 </div>
 
                 <div
+                    v-if="hasSearched"
                     class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto mb-2">
                     <div class="dt-info">
                         Mostrando {{ visiblePlayerCount }}<template v-if="playerSearchTerm.trim()"> de {{ player_count }}</template> Deportistas.
@@ -234,7 +235,49 @@
                 Hay {{ retiredRowsCount }} fila(s) con inscripción retirada. Se muestran solo como referencia histórica y permanecen en solo lectura.
             </div>
 
-            <div v-if="viewMode === 'monthly' && filteredGroupPayments.length"
+            <ContentState
+                v-if="isLoading && groupPayments.length === 0"
+                type="loading"
+                title="Cargando mensualidades"
+                message="Estamos consultando los deportistas y su estado de cartera."
+                data-tour="monthly-payments-table"
+            />
+
+            <ContentState
+                v-else-if="globalError"
+                type="error"
+                title="No fue posible consultar las mensualidades"
+                :message="globalError"
+                action-label="Reintentar"
+                data-tour="monthly-payments-table"
+                @action="retryLastSearch"
+            />
+
+            <ContentState
+                v-else-if="!hasSearched"
+                type="empty"
+                title="Consulta las mensualidades"
+                message="Selecciona un grupo o una categoría y presiona Buscar para mostrar el estado de cartera."
+                data-tour="monthly-payments-table"
+            />
+
+            <ContentState
+                v-else-if="groupPayments.length === 0"
+                type="empty"
+                title="No encontramos mensualidades"
+                message="No hay deportistas que coincidan con los filtros de la consulta."
+                data-tour="monthly-payments-table"
+            />
+
+            <ContentState
+                v-else-if="filteredGroupPayments.length === 0"
+                type="empty"
+                title="No encontramos deportistas"
+                message="Prueba con otro nombre o código, o limpia la búsqueda para ver todos los resultados."
+                data-tour="monthly-payments-table"
+            />
+
+            <div v-else-if="viewMode === 'monthly'"
                 class="table-responsive"
                 data-tour="monthly-payments-table"
             >
@@ -540,6 +583,7 @@ export default {
 <script setup>
 import { nextTick, ref, watch } from 'vue'
 import CurrencyInput from '@/components/general/CurrencyInput';
+import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useMonthlyPayments from '@/composables/payments/monthly-payments';
 import { usePageTutorial } from '@/composables/usePageTutorial'
@@ -548,12 +592,15 @@ import { monthlyPaymentsTutorial } from '@/tutorials/payments'
 
 const {
     handleSearch,
+    retryLastSearch,
     editRow,
     cancelEdition,
     handleSelectChange,
     saveField,
     exportFile,
     isLoading,
+    globalError,
+    hasSearched,
     isHistoryLoading,
     player_count,
     selected_group,
