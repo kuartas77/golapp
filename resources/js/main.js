@@ -26,6 +26,7 @@ import i18n from '@/i18n';
 import errorHandler from '@/plugins/errorHandler';
 import VueWizardSteps from '@/plugins/wizard';
 import router from '@/router';
+import { formatAppMoney } from '@/utils/appFormatters';
 
 import '@/assets/sass/components/custom-modal.scss';
 import '@/assets/sass/font-icons/fontawesome/css/fontawesome.css';
@@ -44,13 +45,6 @@ const SWEET_ALERT_OPTIONS = {
         }
     }
 };
-
-const COP_CURRENCY_FORMATTER = new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-});
 
 const GLOBAL_DIRECTIVES = {
     tooltip: tooltipDirective
@@ -91,7 +85,7 @@ function showMessage(msg = '', type = 'success') {
 }
 
 function moneyFormat(amount) {
-    return COP_CURRENCY_FORMATTER.format(amount);
+    return formatAppMoney(amount);
 }
 
 async function registerPlugins(app, pinia, head, appConfig) {

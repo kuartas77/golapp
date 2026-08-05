@@ -303,12 +303,12 @@
                                             </div>
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <span class="text-muted">Subtotal</span>
-                                                <strong>{{ moneyFormat(subtotal) }}</strong>
+                                                <strong><AppMoney :value="subtotal" /></strong>
                                             </div>
                                             <hr>
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <h6 class="mb-0">Total Factura</h6>
-                                                <h4 class="mb-0">{{ moneyFormat(total) }}</h4>
+                                                <h4 class="mb-0"><AppMoney :value="total" /></h4>
                                             </div>
                                         </div>
                                     </div>
@@ -354,6 +354,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import ContentState from '@/components/general/ContentState.vue'
+import AppMoney from '@/components/general/AppMoney.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/utils/axios'
@@ -364,6 +365,7 @@ import 'flatpickr/dist/flatpickr.css';
 import "@/assets/sass/forms/custom-flatpickr.css";
 import CurrencyInput from '@/components/general/CurrencyInput';
 import { invoiceCreateTutorial } from '@/tutorials/invoices'
+import { formatAppMoney } from '@/utils/appFormatters'
 
 const route = useRoute()
 const router = useRouter()
@@ -534,7 +536,7 @@ const removeAdditionalItem = (index) => {
 
 const confirmCreate = async () => {
     Swal.fire({
-        title: `¿Guardar factura por: ${moneyFormat(total.value)} ?`,
+        title: `¿Guardar factura por: ${formatAppMoney(total.value)} ?`,
         text: "¡Puedes cancelar y verificar la factura!",
         icon: "warning",
         showCancelButton: true,

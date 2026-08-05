@@ -52,6 +52,8 @@ describe('useInvoiceItemsList', () => {
         const wrapper = mount(Harness)
 
         expect(wrapper.vm.options.columns[1].render('2026-08-05T10:00:00Z')).toBe('05/08/2026')
+        expect(wrapper.vm.options.columns[9].render(true)).toContain('Pagado')
+        expect(wrapper.vm.options.columns[8].render(90000)).toContain('90.000')
         wrapper.unmount()
     })
 })

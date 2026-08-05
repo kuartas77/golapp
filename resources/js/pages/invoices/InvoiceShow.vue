@@ -25,9 +25,7 @@
                         <h5 class="mb-0">
                             <i class="fa fa-file-invoice"></i> Factura #{{ invoice.invoice_number }}
                         </h5>
-                        <span :class="`text-uppercase badge badge-${getStatusClass(invoice.status)}`">
-                            {{ getStatusLabel(invoice.status) }}
-                        </span>
+                        <AppStatus :value="invoice.status" context="invoice" class="text-uppercase" />
                     </div>
                     <div class="card-body">
                         <div class="row mb-4">
@@ -39,8 +37,8 @@
                             </div>
                             <div class="col-md-6 text-right">
                                 <h5>Detalles de Factura</h5>
-                                <p><strong>Fecha Emisión:</strong> {{ formatDate(invoice.issue_date) }}</p>
-                                <p><strong>Fecha Vencimiento:</strong> {{ formatDate(invoice.due_date) }}</p>
+                                <p><strong>Fecha Emisión:</strong> <AppDate :value="invoice.issue_date" /></p>
+                                <p><strong>Fecha Vencimiento:</strong> <AppDate :value="invoice.due_date" /></p>
                                 <p><strong>Creada por:</strong> {{ invoice.creator?.name || 'Sistema' }}</p>
                             </div>
                         </div>
@@ -67,12 +65,10 @@
                                         </td>
                                         <td>{{ item.description }}</td>
                                         <td class="text-center">{{ item.quantity }}</td>
-                                        <td class="text-right">{{ moneyFormat(item.unit_price) }}</td>
-                                        <td class="text-right">{{ moneyFormat(item.total) }}</td>
+                                        <td class="text-right"><AppMoney :value="item.unit_price" /></td>
+                                        <td class="text-right"><AppMoney :value="item.total" /></td>
                                         <td class="text-center">
-                                            <span :class="`badge badge-${item.is_paid ? 'success' : 'warning'}`">
-                                                {{ item.is_paid ? 'Pagado' : 'Pendiente' }}
-                                            </span>
+                                            <AppStatus :value="item.is_paid" context="invoice-item" />
                                         </td>
                                     </tr>
                                 </tbody>
@@ -80,14 +76,14 @@
                                     <tr>
                                         <td colspan="4" class="text-right"><strong>Total Factura:</strong></td>
                                         <td class="text-right">
-                                            <strong>{{ moneyFormat(invoice.total_amount) }}</strong>
+                                            <strong><AppMoney :value="invoice.total_amount" /></strong>
                                         </td>
                                         <td></td>
                                     </tr>
                                     <tr>
                                         <td colspan="4" class="text-right"><strong>Pagado:</strong></td>
                                         <td class="text-right">
-                                            <strong>{{ moneyFormat(invoice.paid_amount) }}</strong>
+                                            <strong><AppMoney :value="invoice.paid_amount" /></strong>
                                         </td>
                                         <td></td>
                                     </tr>
@@ -95,7 +91,7 @@
                                         <td colspan="4" class="text-right"><strong>Saldo Pendiente:</strong></td>
                                         <td class="text-right">
                                             <strong :class="balance > 0 ? 'text-danger' : 'text-success'">
-                                                {{ moneyFormat(balance) }}
+                                                <AppMoney :value="balance" />
                                             </strong>
                                         </td>
                                         <td></td>
@@ -131,7 +127,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="paymentRequest in paymentRequests" :key="paymentRequest.id">
-                                        <td>{{ formatDate(paymentRequest.created_at) }}</td>
+                                        <td><AppDate :value="paymentRequest.created_at" /></td>
                                         <td>
                                             <span
                                                 :class="`badge badge-${getPaymentMethodClass(paymentRequest.payment_method)}`">
@@ -139,7 +135,7 @@
                                             </span>
                                         </td>
                                         <td>{{ paymentRequest.reference_number || 'N/A' }}</td>
-                                        <td class="text-right">{{ moneyFormat(paymentRequest.amount) }}</td>
+                                        <td class="text-right"><AppMoney :value="paymentRequest.amount" /></td>
                                         <td class="text-center">
                                             <button
                                                 type="button"
@@ -175,7 +171,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="payment in invoice.payments" :key="payment.id">
-                                        <td>{{ formatDate(payment.payment_date) }}</td>
+                                        <td><AppDate :value="payment.payment_date" /></td>
                                         <td>
                                             <span
                                                 :class="`badge badge-${getPaymentMethodClass(payment.payment_method)}`">
@@ -183,7 +179,7 @@
                                             </span>
                                         </td>
                                         <td>{{ payment.reference || 'N/A' }}</td>
-                                        <td class="text-right">{{ moneyFormat(payment.amount) }}</td>
+                                        <td class="text-right"><AppMoney :value="payment.amount" /></td>
                                         <td>{{ payment.creator?.name || 'Sistema' }}</td>
                                     </tr>
                                 </tbody>
@@ -227,7 +223,7 @@
                                                         <small class="text-muted">({{ getItemTypeLabel(item.type)
                                                         }})</small>
                                                     </span>
-                                                    <span class="font-weight-bold">{{ moneyFormat(item.total) }}</span>
+                                                    <span class="font-weight-bold"><AppMoney :value="item.total" /></span>
                                                 </label>
                                             </div>
                                         </div>
@@ -245,7 +241,7 @@
                                             <label>Monto a Pagar <span class="text-danger">&nbsp;(*)</span></label>
                                             <div class="input-group">
                                                 <input type="text" class="form-control form-control-sm"
-                                                    :value="moneyFormat(calculatedAmount)" disabled
+                                                    :value="formatAppMoney(calculatedAmount)" disabled
                                                     style="background-color: #f8f9fa; font-weight: bold;">
                                                 <div class="input-group-append">
                                                     <span class="input-group-text"
@@ -317,7 +313,7 @@
                                         <span v-if="paymentLoading" class="spinner-border spinner-border-sm"></span>
                                         <i v-else class="fas fa-check-circle"></i>
                                         {{ paymentLoading ? 'Registrando...' : `Pagar
-                                        ${moneyFormat(calculatedAmount)}` }}
+                                        ${formatAppMoney(calculatedAmount)}` }}
                                     </button>
 
                                     <a :href="invoice.url_print" class="btn btn-info btn-block " target="_blank">
@@ -362,6 +358,9 @@
 import { ref, computed, onMounted, onBeforeUnmount, reactive, watch } from 'vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import ContentState from '@/components/general/ContentState.vue'
+import AppDate from '@/components/general/AppDate.vue'
+import AppMoney from '@/components/general/AppMoney.vue'
+import AppStatus from '@/components/general/AppStatus.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/utils/axios'
@@ -371,6 +370,7 @@ import flatPickr from 'vue-flatpickr-component';
 import 'flatpickr/dist/flatpickr.css';
 import "@/assets/sass/forms/custom-flatpickr.css";
 import { invoiceShowTutorial } from '@/tutorials/invoices'
+import { formatAppMoney } from '@/utils/appFormatters'
 
 const flatpickrConfig = {
     wrap: true,
@@ -588,36 +588,12 @@ const openProofModal = (paymentRequest) => {
 }
 
 // Métodos de utilidad
-const formatDate = (dateString) => {
-    return dayjs(dateString).format('YYYY-MM-DD')
-}
-
 const toPickerDate = (dateValue) => {
     if (!dateValue) {
         return todayDate
     }
 
     return dayjs(dateValue).format('YYYY-MM-DD')
-}
-
-const getStatusClass = (status) => {
-    const classes = {
-        'paid': 'success',
-        'partial': 'warning',
-        'pending': 'danger',
-        'cancelled': 'secondary'
-    }
-    return classes[status] || 'secondary'
-}
-
-const getStatusLabel = (status) => {
-    const classes = {
-        'paid': 'Pagado',
-        'partial': 'Parcial',
-        'pending': 'Pendiente',
-        'cancelled': 'Cancelada'
-    }
-    return classes[status] || 'secondary'
 }
 
 const getItemTypeClass = (type) => {

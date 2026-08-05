@@ -50,6 +50,8 @@ describe('useInscriptionCustomChargesList', () => {
         const wrapper = mount(Harness)
 
         expect(wrapper.vm.options.columns[0].title).toBe('Deportista')
+        expect(wrapper.vm.options.columns[4].render('due')).toContain('Debe')
+        expect(wrapper.vm.options.columns[5].render(null)).toBe('N/D')
         wrapper.unmount()
     })
 })

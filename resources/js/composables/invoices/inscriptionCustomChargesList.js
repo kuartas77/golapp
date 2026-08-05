@@ -1,19 +1,7 @@
 import configLanguaje from '@/utils/datatableUtils'
 import api from '@/utils/axios'
-import dayjs from '@/utils/dayjs'
+import { formatAppDate, formatAppMoney, renderAppStatus, resolveAppStatus } from '@/utils/appFormatters'
 import { ref, useTemplateRef } from 'vue'
-
-const STATUS_LABELS = {
-    pending: 'Pendiente',
-    due: 'Debe',
-    paid: 'Pagado',
-}
-
-const STATUS_BADGES = {
-    pending: 'badge-warning',
-    due: 'badge-danger',
-    paid: 'badge-success',
-}
 
 const STATUS_OPTIONS = [
     { value: '', label: 'Estado' },
@@ -36,18 +24,9 @@ const escapeHtml = (value) => String(value ?? '')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;')
 
-const formatDate = (value) => {
-    if (!value) {
-        return 'N/D'
-    }
+export const statusLabel = (status) => resolveAppStatus(status, { context: 'custom-charge' }).label
 
-    const formatted = dayjs(value).format('DD/MM/YYYY')
-    return formatted === 'Invalid Date' ? 'N/D' : formatted
-}
-
-export const statusLabel = (status) => STATUS_LABELS[status] ?? status
-
-export const statusClass = (status) => STATUS_BADGES[status] ?? 'badge-light'
+export const statusClass = (status) => `badge-${resolveAppStatus(status, { context: 'custom-charge' }).variant}`
 
 const replaceHeaderContent = (header, element) => {
     header.replaceChildren(element)
@@ -142,19 +121,19 @@ export default function useInscriptionCustomChargesList() {
             title: 'Valor',
             name: 'inscription_custom_charges.value',
             searchable: false,
-            render: data => moneyFormat(Number(data || 0)),
+            render: data => formatAppMoney(Number(data || 0)),
         },
         {
             data: 'status',
             title: 'Estado',
             name: 'inscription_custom_charges.status',
-            render: data => `<span class="badge ${statusClass(data)}">${escapeHtml(statusLabel(data))}</span>`,
+            render: (data, type) => renderAppStatus(data, { context: 'custom-charge', type: type ?? 'display' }),
         },
         {
             data: 'due_date',
             title: 'Vence',
             name: 'inscription_custom_charges.due_date',
-            render: data => formatDate(data),
+            render: data => formatAppDate(data, { fallback: 'N/D' }),
         },
         {
             data: 'invoice_number',

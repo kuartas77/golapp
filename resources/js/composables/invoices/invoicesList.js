@@ -3,7 +3,7 @@ import { nextTick, ref, useTemplateRef, onMounted, watch } from 'vue';
 import api from '@/utils/axios'
 import { usePageTitle } from "@/composables/use-meta";
 import { useRouter } from 'vue-router'
-import dayjs from '@/utils/dayjs';
+import { formatAppDate, formatAppMoney, renderAppStatus } from '@/utils/appFormatters';
 
 export default function useInvoicesList() {
     const router = useRouter()
@@ -21,22 +21,15 @@ export default function useInvoicesList() {
         { data: 'invoice_number', name: 'invoice_number', searchable: true, orderable: false },
         { data: 'student_name', name: 'student_name', searchable: true, orderable: false },
         { data: 'training_group.name', name: 'training_group_id', searchable: true, orderable: false },
-        { data: 'total_amount', searchable: false, orderable: false, render: (data, type, row) => `${moneyFormat(data)}` },
-        { data: 'paid_amount', searchable: false, orderable: false, render: (data, type, row) => `${moneyFormat(data)}` },
+        { data: 'total_amount', searchable: false, orderable: false, render: data => formatAppMoney(data) },
+        { data: 'paid_amount', searchable: false, orderable: false, render: data => formatAppMoney(data) },
         {
-            data: 'status', render: function (data, type, row) {
-                let badge = '<span class="badge badge-secondary">Cancelada</span>'
-                if (data === 'paid') {
-                    badge = '<span class="badge badge-success">Pagada</span>'
-                } else if (data === 'partial') {
-                    badge = '<span class="badge badge-warning">Parcial</span>'
-                } else if (data === 'pending') {
-                    badge = '<span class="badge badge-danger">Pendiente</span>'
-                }
-                return badge
-            }, searchable: true, orderable: false
+            data: 'status',
+            render: (data, type) => renderAppStatus(data, { context: 'invoice', type: type ?? 'display' }),
+            searchable: true,
+            orderable: false,
         },
-        { data: 'created_at', searchable: true, render: (data, type, row) => dayjs(data).format('DD/MM/YYYY') },
+        { data: 'created_at', searchable: true, render: data => formatAppDate(data) },
         {
             data: 'id', searchable: false, orderable: false, render: function (data, type, row) {
                 const invoiceLabel = escapeHtml(row.invoice_number ?? row.id)
@@ -108,8 +101,8 @@ export default function useInvoicesList() {
                 .data()
                 .reduce((a, b) => intVal(a) + intVal(b), 0);
 
-            api.column(3).footer().innerHTML = `${moneyFormat(total)}`;
-            api.column(4).footer().innerHTML = `${moneyFormat(payment)}`;
+            api.column(3).footer().textContent = formatAppMoney(total);
+            api.column(4).footer().textContent = formatAppMoney(payment);
         }
     };
 

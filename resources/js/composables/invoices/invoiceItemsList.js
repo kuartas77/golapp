@@ -1,6 +1,6 @@
 import configLanguaje from '@/utils/datatableUtils';
 import api from '@/utils/axios';
-import dayjs from '@/utils/dayjs';
+import { formatAppDate, formatAppMoney, renderAppStatus } from '@/utils/appFormatters';
 import { usePageTitle } from '@/composables/use-meta';
 import { onMounted, ref, useTemplateRef } from 'vue';
 
@@ -97,7 +97,7 @@ export default function useInvoiceItemsList() {
             name: 'invoice_items.created_at',
             searchable: true,
             orderable: false,
-            render: data => dayjs(data).format('DD/MM/YYYY'),
+            render: data => formatAppDate(data),
         },
         {
             data: 'invoice.student_name',
@@ -142,27 +142,21 @@ export default function useInvoiceItemsList() {
             name: 'unit_price',
             searchable: false,
             orderable: false,
-            render: data => moneyFormat(Number(data) || 0),
+            render: data => formatAppMoney(Number(data) || 0),
         },
         {
             data: 'total',
             name: 'total',
             searchable: false,
             orderable: false,
-            render: data => moneyFormat(Number(data) || 0),
+            render: data => formatAppMoney(Number(data) || 0),
         },
         {
             data: 'is_paid',
             name: 'is_paid',
             searchable: true,
             orderable: false,
-            render: data => {
-                if (data === true || data === 1 || data === '1') {
-                    return '<span class="badge badge-success">Pagada</span>';
-                }
-
-                return '<span class="badge badge-warning">Pendiente</span>';
-            },
+            render: (data, type) => renderAppStatus(data, { context: 'invoice-item', type: type ?? 'display' }),
         },
     ];
 
@@ -224,8 +218,8 @@ export default function useInvoiceItemsList() {
             const unitPriceTotal = currentRows.reduce((sum, row) => sum + (Number(row.unit_price) || 0), 0);
             const itemsTotal = currentRows.reduce((sum, row) => sum + (Number(row.total) || 0), 0);
 
-            api.column(7).footer().innerHTML = moneyFormat(unitPriceTotal);
-            api.column(8).footer().innerHTML = moneyFormat(itemsTotal);
+            api.column(7).footer().textContent = formatAppMoney(unitPriceTotal);
+            api.column(8).footer().textContent = formatAppMoney(itemsTotal);
         },
     };
 

@@ -9,7 +9,7 @@
             </div>
         </template>
         <template #date="props">
-            {{ dayjs(props.cellData).format('YYYY-M-D') }}
+            <AppDate :value="props.cellData" />
         </template>
         <template #check="props">
             <template v-if="props.cellData">
@@ -92,7 +92,7 @@ export default {
 }
 </script>
 <script setup>
-import dayjs from "@/utils/dayjs";
+import AppDate from '@/components/general/AppDate.vue';
 import DataTable, { dataTablePipeline } from '@/plugins/datatables';
 import { computed, useSlots, useTemplateRef } from 'vue';
 const props = defineProps({

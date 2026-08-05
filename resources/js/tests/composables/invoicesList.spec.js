@@ -65,6 +65,8 @@ describe('useInvoicesList', () => {
         }
 
         expect(columns[6].render('2026-08-05T15:00:00Z')).toBe('05/08/2026')
+        expect(columns[5].render('cancelled')).toContain('Anulada')
+        expect(columns[3].render(125000)).toContain('125.000')
 
         const actions = columns[7].render(42, 'display', row)
         expect(actions).toContain('aria-label="Ver factura FAC-0042"')
