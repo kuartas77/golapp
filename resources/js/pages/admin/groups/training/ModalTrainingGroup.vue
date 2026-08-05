@@ -2,7 +2,7 @@
     <div class="modal fade" id="composeModalTrainigG" tabindex="-1" role="dialog" aria-labelledby="modalTrainigG"
         aria-hidden="false" aria-modal="true">
         <div class="modal-dialog modal-lg" role="document">
-            <Form ref="form" :validation-schema="schema" @submit="submit" :initial-values="initialData">
+            <Form ref="form" v-slot="{ isSubmitting }" :validation-schema="schema" @submit="submit" :initial-values="initialData">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="modalTrainigG">Grupo de entrenamiento</h5>
@@ -10,6 +10,9 @@
                             class="btn-close" @click="onCancel"></button>
                     </div>
                     <div class="modal-body">
+                        <div v-if="globalError" class="alert alert-danger" role="alert">
+                            {{ globalError }}
+                        </div>
                         <div class="col-lg-12">
                             <div class="row">
                                 <div class="col-md-6">
@@ -110,12 +113,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn" @click="onCancel">
-                            <i class="flaticon-cancel-12"></i> Cerrar
-                        </button>
-                        <button type="submit" class="btn btn-primary">Guardar</button>
-                    </div>
+                    <FormSubmitActions :submitting="isSubmitting" @cancel="onCancel" />
                 </div>
             </Form>
         </div>
@@ -132,6 +130,7 @@ import { ErrorMessage, Field, Form } from "vee-validate";
 import * as yup from "yup";
 import api from "@/utils/axios";
 import { useSettingGroups } from "@/store/settings-store";
+import FormSubmitActions from "@/components/form/FormSubmitActions.vue";
 
 const url = "/api/v2/admin/training_groups";
 const props = defineProps({
@@ -249,6 +248,8 @@ const schema = yup.object().shape({
 });
 
 const submit = async (values, actions) => {
+    globalError.value = null;
+
     try {
         let formData = {
             days: values.days.map((day) => day.value),
@@ -278,7 +279,7 @@ const submit = async (values, actions) => {
             resetFormState();
         }
         if (response.data.success === false) {
-            showMessage('Algo salió mal', 'error');
+            globalError.value = response.data.message || 'No fue posible guardar el grupo de entrenamiento.';
         }
     } catch (error) {
         proxy.$handleBackendErrors(

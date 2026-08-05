@@ -70,11 +70,14 @@ export default function useUsersList() {
     })
 
     const onCancel = () => {
+        globalError.value = null
         modalHidden()
         composeModalUser.value.hide()
         form.value.resetForm()
     }
     const submit = async (values, actions) => {
+        globalError.value = null
+
         try {
             let userData = { ...values }
 
@@ -94,10 +97,9 @@ export default function useUsersList() {
             modalHidden()
             composeModalUser.value.hide()
             showMessage('Guardado correctamente')
+            form.value.resetForm()
         } catch (error) {
             proxy.$handleBackendErrors(error, actions.setErrors, (msg) => (globalError.value = msg))
-        } finally {
-            form.value.resetForm()
         }
     }
 
@@ -105,6 +107,7 @@ export default function useUsersList() {
         if (!itemId) {
             return
         }
+        globalError.value = null
         const response = await api.get(`/api/v2/admin/users/${itemId}`)
 
         const data = {
@@ -169,6 +172,7 @@ export default function useUsersList() {
         selectedProfile,
         profileLoading,
         profileError,
+        globalError,
         showProfile,
         closeProfile,
     }

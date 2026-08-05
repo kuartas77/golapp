@@ -90,24 +90,25 @@ export default function useFormSchool() {
         form.value.setValues(data)
     });
 
-    const submit = (values, actions) => {
+    const submit = async (values, actions) => {
+        globalError.value = null
 
-        Swal.fire({
+        const result = await Swal.fire({
             title: "¿Quieres guardar los cambios?",
             showDenyButton: true,
             showCancelButton: true,
             confirmButtonText: "Sí",
             denyButtonText: `No`,
-        }).then((result) => {
-            if (result.isConfirmed) {
-                sendRequest(values, actions)
-            } else if (result.isDenied) {
-                showMessage('Cancelado correctamente.')
-            }
-        });
+        })
+
+        if (result.isConfirmed) {
+            await sendRequest(values, actions)
+        } else if (result.isDenied) {
+            showMessage('No se realizaron cambios.')
+        }
     }
 
-    const sendRequest = (values, actions) => {
+    const sendRequest = async (values, actions) => {
         try {
             const formData = new FormData();
             formData.append('_method', 'PUT')
@@ -123,17 +124,17 @@ export default function useFormSchool() {
                 }
             }
 
-            api.post(`/api/v2/admin/school/${values.slug}`, formData, {
+            const response = await api.post(`/api/v2/admin/school/${values.slug}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
-            }).then(resp => {
-                if (resp.data.success) {
-                    showMessage('Guardado correctamente.')
-                } else {
-                    showMessage('Algo salió mal.', 'error')
-                }
             })
+
+            if (response.data.success) {
+                showMessage('Guardado correctamente.')
+            } else {
+                globalError.value = response.data.message || 'No fue posible guardar la configuración de la escuela.'
+            }
         } catch (error) {
             proxy.$handleBackendErrors(error, actions.setErrors, (msg) => (globalError.value = msg))
         }
@@ -143,5 +144,5 @@ export default function useFormSchool() {
         form.value.resetForm()
     }
 
-    return { form, formData, schema, submit, reset, uniformRequestTypes }
+    return { form, formData, schema, submit, reset, uniformRequestTypes, globalError }
 }

@@ -3,11 +3,15 @@
         <template #body>
             <Form
                 ref="form"
-                v-slot="{ values }"
+                v-slot="{ values, isSubmitting }"
                 :validation-schema="schema"
                 :initial-values="formData"
                 @submit="submit"
             >
+                <div v-if="globalError" class="alert alert-danger" role="alert">
+                    {{ globalError }}
+                </div>
+
                 <div class="d-flex justify-content-end mb-3">
                     <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                         <i class="fa-regular fa-circle-question me-2"></i>
@@ -24,22 +28,22 @@
 
                     <div class="col-md-4" data-tour="admin-school-brand">
                         <div class="form-group">
-                            <inputField label="Nombre Escuela" name="name" />
+                            <inputField label="Nombre Escuela" name="name" :is-required="true" />
                         </div>
                         <div class="form-group">
-                            <inputField label="Correo Escuela" type="email" name="email" readonly="true" />
+                            <inputField label="Correo Escuela" type="email" name="email" readonly="true" :is-required="true" />
                         </div>
                         <div class="form-group">
-                            <inputField label="Representante" name="agent" />
+                            <inputField label="Representante" name="agent" :is-required="true" />
                         </div>
                     </div>
 
                     <div class="col-md-4" data-tour="admin-school-brand">
                         <div class="form-group">
-                            <inputField label="Dirección" name="address" />
+                            <inputField label="Dirección" name="address" :is-required="true" />
                         </div>
                         <div class="form-group">
-                            <inputField label="Teléfono(s)" name="phone" />
+                            <inputField label="Teléfono(s)" name="phone" :is-required="true" />
                         </div>
                     </div>
                 </div>
@@ -62,37 +66,37 @@
                             <div class="row g-3">
                                 <div class="col-md-6 col-xl-4">
                                     <div class="form-group">
-                                        <inputField label="Precio de la Matricula/Inscripción" name="INSCRIPTION_AMOUNT" :currency="true" />
+                                        <inputField label="Precio de la Matricula/Inscripción" name="INSCRIPTION_AMOUNT" :currency="true" :is-required="true" />
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-xl-4">
                                     <div class="form-group">
-                                        <inputField label="Precio de la Mensualidad" name="MONTHLY_PAYMENT" :currency="true" />
+                                        <inputField label="Precio de la Mensualidad" name="MONTHLY_PAYMENT" :currency="true" :is-required="true" />
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-xl-4">
                                     <div class="form-group">
-                                        <inputField label="Precio Mensualidad Hermano" name="BROTHER_MONTHLY_PAYMENT" :currency="true" />
+                                        <inputField label="Precio Mensualidad Hermano" name="BROTHER_MONTHLY_PAYMENT" :currency="true" :is-required="true" />
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-xl-4">
                                     <div class="form-group">
-                                        <inputField label="Mensualidad 5 dias" name="MONTHLY_PAYMENT_OPTION_1" :currency="true" />
+                                        <inputField label="Mensualidad 5 días" name="MONTHLY_PAYMENT_OPTION_1" :currency="true" :is-required="true" />
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-xl-4">
                                     <div class="form-group">
-                                        <inputField label="Mensualidad 4 dias" name="MONTHLY_PAYMENT_OPTION_2" :currency="true" />
+                                        <inputField label="Mensualidad 4 días" name="MONTHLY_PAYMENT_OPTION_2" :currency="true" :is-required="true" />
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-xl-4">
                                     <div class="form-group">
-                                        <inputField label="Mensualidad 3 dias" name="MONTHLY_PAYMENT_OPTION_3" :currency="true" />
+                                        <inputField label="Mensualidad 3 días" name="MONTHLY_PAYMENT_OPTION_3" :currency="true" :is-required="true" />
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-xl-4">
                                     <div class="form-group mb-0">
-                                        <inputField label="Precio de la Anualidad / Mes" name="ANNUITY" :currency="true" />
+                                        <inputField label="Precio de la Anualidad / Mes" name="ANNUITY" :currency="true" :is-required="true" />
                                     </div>
                                 </div>
                             </div>
@@ -103,7 +107,7 @@
                         <div class="border rounded p-3 h-100">
                             <h6 class="mb-3">Notificaciones de deuda</h6>
                             <div class="form-group mb-2">
-                                <inputField label="Día de notificación" type="number" name="NOTIFY_PAYMENT_DAY" />
+                                <inputField label="Día de notificación" type="number" name="NOTIFY_PAYMENT_DAY" :is-required="true" />
                             </div>
                             <p class="small text-muted mb-0">
                                 Este es el día del mes en que se enviarán por correo electrónico las notificaciones de deudas que tengan las inscripciones.
@@ -168,9 +172,12 @@
                     </div>
                 </div>
 
-                <div class="text-center mt-4" data-tour="admin-school-actions">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                </div>
+                <FormSubmitActions
+                    :submitting="isSubmitting"
+                    :show-cancel="false"
+                    wrapper-class="text-center mt-4"
+                    data-tour="admin-school-actions"
+                />
             </Form>
 
             <div v-if="canBilling" class="mt-4">
@@ -190,9 +197,10 @@ import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from '@/composables/use-meta'
 import InvoiceCustomItemsCard from './InvoiceCustomItemsCard.vue'
 import { updateSchoolTutorial } from '@/tutorials/admin'
+import FormSubmitActions from '@/components/form/FormSubmitActions.vue'
 
 usePageTitle('Escuela')
-const { form, formData, schema, submit, uniformRequestTypes } = useFormSchool()
+const { form, formData, schema, submit, uniformRequestTypes, globalError } = useFormSchool()
 const { access } = useBackofficeAccess()
 const tutorial = usePageTutorial(updateSchoolTutorial)
 const canBilling = access.billing

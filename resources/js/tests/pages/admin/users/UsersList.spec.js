@@ -36,12 +36,24 @@ const DatatableTemplateStub = defineComponent({
 })
 
 const FormStub = defineComponent({
-    template: '<form><slot /></form>',
+    inheritAttrs: false,
+    emits: ['submit'],
+    template: '<form @submit.prevent="$emit(\'submit\', values, actions)"><slot :isSubmitting="false" /></form>',
     setup(props, { expose }) {
         expose({
             resetForm: formResetMock,
             setValues: formSetValuesMock,
         })
+
+        return {
+            values: {
+                id: null,
+                name: 'Usuario Demo',
+                email: 'demo@example.com',
+                rol_id: 3,
+            },
+            actions: { setErrors: vi.fn() },
+        }
     },
 })
 
@@ -55,6 +67,13 @@ function mountPage() {
 
     return mount(UsersList, {
         global: {
+            config: {
+                globalProperties: {
+                    $handleBackendErrors: (error, setErrors, setGlobalError) => {
+                        setGlobalError(error.response?.data?.message || 'No fue posible guardar el usuario.')
+                    },
+                },
+            },
             stubs: {
                 panel: { template: '<section><slot name="header" /><slot name="body" /></section>' },
                 breadcrumb: { template: '<div />' },
@@ -72,6 +91,7 @@ function mountPage() {
 describe('UsersList profile modal', () => {
     beforeEach(() => {
         axiosMock.get.mockReset()
+        axiosMock.post.mockReset()
         modalShowMock.mockReset()
         modalHideMock.mockReset()
         formResetMock.mockReset()
@@ -144,6 +164,28 @@ describe('UsersList profile modal', () => {
             rol_id: 3,
         })
         expect(modalShowMock).toHaveBeenCalled()
+        wrapper.unmount()
+    })
+
+    it('keeps the entered form data and shows the server error after a failed save', async () => {
+        axiosMock.post.mockRejectedValue({
+            response: { data: { message: 'El correo ya está registrado.' } },
+        })
+
+        const wrapper = mountPage()
+        formResetMock.mockClear()
+
+        await wrapper.get('#composeModalUser form').trigger('submit')
+        await flushPromises()
+
+        expect(axiosMock.post).toHaveBeenCalledWith('/api/v2/admin/users', {
+            id: null,
+            name: 'Usuario Demo',
+            email: 'demo@example.com',
+            rol_id: 3,
+        })
+        expect(wrapper.text()).toContain('El correo ya está registrado.')
+        expect(formResetMock).not.toHaveBeenCalled()
         wrapper.unmount()
     })
 })

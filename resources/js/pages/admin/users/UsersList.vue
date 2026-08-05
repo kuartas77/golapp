@@ -50,7 +50,7 @@
     <div class="modal fade" id="composeModalUser" tabindex="-1" role="dialog" aria-labelledby="userModal"
         aria-hidden="false" aria-modal="true">
         <div class="modal-dialog modal-md" role="document">
-            <Form ref="form" :validation-schema="schema" @submit="submit" :initial-values="initialData">
+            <Form ref="form" v-slot="{ isSubmitting }" :validation-schema="schema" @submit="submit" :initial-values="initialData">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="userModal">Usuario</h5>
@@ -59,17 +59,21 @@
                     </div>
                     <div class="modal-body">
 
+                        <div v-if="globalError" class="alert alert-danger" role="alert">
+                            {{ globalError }}
+                        </div>
+
                         <div class="mt-0">
                             <div class="form-group">
-                                <inputField label="Nombres" name="name" />
+                                <inputField label="Nombres" name="name" :is-required="true" />
                             </div>
                             <div class="form-group">
-                                <inputField label="Correo" name="email" type="email" />
+                                <inputField label="Correo" name="email" type="email" :is-required="true" />
                             </div>
                             <div class="form-group">
                                 <Field name="rol_id" v-slot="{ field, handleChange, handleBlur }">
-                                    <label class="form-label">Rol</label>
-                                    <select class="form-select" v-bind="field" @change="handleChange"
+                                    <label for="rol_id" class="form-label">Rol <span class="text-danger">(*)</span></label>
+                                    <select id="rol_id" class="form-select" v-bind="field" @change="handleChange"
                                         @blur="handleBlur">
                                         <option value="2">School</option>
                                         <option value="3">Instructor</option>
@@ -80,11 +84,7 @@
                         </div>
 
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn" @click="onCancel">
-                            <i class="flaticon-cancel-12"></i> Cerrar</button>
-                        <button type="submit" class="btn btn-primary">Guardar</button>
-                    </div>
+                    <FormSubmitActions :submitting="isSubmitting" @cancel="onCancel" />
                 </div>
             </Form>
         </div>
@@ -165,6 +165,7 @@ import { usePageTutorial } from '@/composables/usePageTutorial'
 import { computed } from 'vue'
 import { ErrorMessage, Field, Form } from 'vee-validate'
 import { usersListTutorial } from '@/tutorials/admin'
+import FormSubmitActions from '@/components/form/FormSubmitActions.vue'
 
 const {
     table,
@@ -177,6 +178,7 @@ const {
     selectedProfile,
     profileLoading,
     profileError,
+    globalError,
     showProfile,
     closeProfile,
 } = useUsersList()
