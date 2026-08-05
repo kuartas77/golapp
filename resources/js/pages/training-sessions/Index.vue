@@ -17,7 +17,14 @@
         </template>
 
         <template #body>
-            <div data-tour="training-sessions-table"><DatatableTemplate
+            <ContentState
+                v-if="globalError"
+                type="error"
+                :message="globalError"
+                action-label="Reintentar"
+                @action="reloadDataTable"
+            />
+            <div v-show="!globalError" data-tour="training-sessions-table"><DatatableTemplate
                 ref="table"
                 id="training-sessions-table"
                 :options="options"
@@ -71,6 +78,7 @@
 <script setup>
 import { computed, ref, useTemplateRef } from 'vue'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { trainingSessionsTutorial } from '@/tutorials/training'
@@ -79,6 +87,7 @@ import TrainingSessionModal from './TrainingSessionModal.vue'
 import api from '@/utils/axios'
 import configLanguaje from '@/utils/datatableUtils'
 import { useAuthUser } from '@/store/auth-user'
+import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 
 usePageTitle('Sesiones de entrenamiento')
 const tutorial = usePageTutorial(trainingSessionsTutorial)
@@ -88,6 +97,12 @@ const table = useTemplateRef('table')
 const selectedId = ref(null)
 const isModalOpen = ref(false)
 const canDelete = computed(() => auth.hasAnyRole(['super-admin', 'school']))
+const {
+    globalError,
+    clearError,
+    handleError,
+    reloadTable: reloadDataTable,
+} = useRecoverableDataTable(table, 'No fue posible cargar las sesiones de entrenamiento.')
 
 const emptyDataTableResponse = (draw = 0) => ({
     draw,
@@ -124,6 +139,7 @@ const options = {
             const response = await api.get('/api/v2/datatables/training_sessions_enabled', {
                 params: data,
             })
+            clearError()
 
             callback({
                 draw: data.draw,
@@ -131,7 +147,8 @@ const options = {
                 recordsTotal: response.data.recordsTotal ?? 0,
                 recordsFiltered: response.data.recordsFiltered ?? 0,
             })
-        } catch {
+        } catch (error) {
+            handleError(error)
             callback(emptyDataTableResponse(data.draw))
         }
     },
@@ -163,12 +180,7 @@ const closeModal = () => {
 const reloadTable = () => {
     closeModal()
 
-    const dt = table.value?.table?.dt
-
-    if (dt) {
-        dt.clearPipeline()
-        dt.ajax.reload(null, false)
-    }
+    reloadDataTable()
 }
 
 const notify = (message, type = 'success') => {

@@ -613,3 +613,153 @@ test('notification lists announce failures and recover without leaving the page'
 
     expect(requestCounts).toEqual({ payments: 2, uniforms: 2, topics: 2 });
 });
+
+test('sports operation lists announce failed requests and recover in place', async ({ page }) => {
+    const lists = [
+        {
+            path: '/configuracion/g-entrenamiento',
+            endpoint: 'training_groups_enabled',
+            tableId: 'training_table',
+            message: 'No se pudieron consultar los grupos de entrenamiento.',
+        },
+        {
+            path: '/configuracion/g-competencia',
+            endpoint: 'competition_groups_enabled',
+            tableId: 'competition_table',
+            message: 'No se pudieron consultar los grupos de competencia.',
+        },
+        {
+            path: '/control-competencias',
+            endpoint: 'matches',
+            tableId: 'matches_table',
+            message: 'No se pudieron consultar las competencias.',
+        },
+        {
+            path: '/metodologia',
+            endpoint: 'methodology_records',
+            tableId: 'methodology-records-table',
+            message: 'No se pudieron consultar los registros metodológicos.',
+        },
+        {
+            path: '/sesiones-entrenamiento',
+            endpoint: 'training_sessions_enabled',
+            tableId: 'training-sessions-table',
+            message: 'No se pudieron consultar las sesiones de entrenamiento.',
+        },
+    ];
+    const requestCounts = Object.fromEntries(lists.map(({ endpoint }) => [endpoint, 0]));
+    let recoveryEndpoint = '';
+
+    await page.addInitScript(() => {
+        localStorage.setItem('auth-user', JSON.stringify({
+            user: {
+                id: 1,
+                name: 'Escuela E2E',
+                email: 'e2e@golapp.local',
+                school_id: 1,
+                school_name: 'Escuela E2E',
+            },
+            initialized: true,
+            roles: ['school'],
+            permissions: [],
+            schoolPermissions: {
+                'school.module.training_groups': true,
+                'school.module.competition_groups': true,
+                'school.module.matches': true,
+                'school.module.methodology': true,
+                'school.module.training_sessions': true,
+            },
+        }));
+    });
+
+    await page.exposeFunction('enableSportsListRecovery', endpoint => {
+        recoveryEndpoint = endpoint;
+    });
+
+    await page.route('**/api/v2/user', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+            data: {
+                id: 1,
+                name: 'Escuela E2E',
+                email: 'e2e@golapp.local',
+                school_id: 1,
+                school_name: 'Escuela E2E',
+                roles: ['school'],
+                permissions: [],
+                school_permissions: {
+                    'school.module.training_groups': true,
+                    'school.module.competition_groups': true,
+                    'school.module.matches': true,
+                    'school.module.methodology': true,
+                    'school.module.training_sessions': true,
+                },
+            },
+        }),
+    }));
+
+    await page.route('**/api/v2/admin/info_campus', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ is_school: true, schools: [], school_selected: 1 }),
+    }));
+
+    await page.route('**/api/v2/settings/general', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+            current_school_id: 1,
+            competition_groups: [],
+            normal_training_groups: [],
+            complementary_training_groups: [],
+        }),
+    }));
+
+    await page.route('**/api/v2/training_groups', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [] }),
+    }));
+
+    await page.route('**/api/v2/methodology-records/filters', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: { creators: [], training_groups: [] } }),
+    }));
+
+    for (const list of lists) {
+        const endpointPattern = `**/api/v2/datatables/${list.endpoint}**`;
+
+        await page.route(endpointPattern, async route => {
+            requestCounts[list.endpoint] += 1;
+            const recoveryEnabled = recoveryEndpoint === list.endpoint;
+
+            await route.fulfill({
+                status: recoveryEnabled ? 200 : 503,
+                contentType: 'application/json',
+                body: JSON.stringify(recoveryEnabled
+                    ? { data: [], recordsTotal: 0, recordsFiltered: 0 }
+                    : { message: list.message }),
+            });
+        });
+    }
+
+    for (const list of lists) {
+        await page.goto(list.path);
+        await expect(page).toHaveURL(new RegExp(`${list.path}$`));
+
+        const errorState = page.getByRole('alert').filter({ hasText: list.message });
+        await expect(errorState).toBeVisible();
+        await page.locator(`#${list.tableId}_wrapper`).waitFor({ state: 'attached' });
+        await errorState.getByRole('button', { name: 'Reintentar' }).evaluate(async (button, endpoint) => {
+            await window.enableSportsListRecovery(endpoint);
+            button.click();
+        }, list.endpoint);
+        await expect.poll(
+            () => requestCounts[list.endpoint],
+            { message: `El listado ${list.endpoint} debe volver a consultar el API` },
+        ).toBeGreaterThanOrEqual(2);
+        await expect(errorState).toBeHidden();
+    }
+});

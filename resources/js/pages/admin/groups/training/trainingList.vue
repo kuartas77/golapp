@@ -15,19 +15,26 @@
                     </router-link>
                 </div>
                 <div class="col-md-8">
-                    <p>Grupos de entrenamiento, son parte fundamental del sistema, ya que con ellos se pueden buscar las inscripciones, pagos y asistencias.</p>
+                    <p>Los grupos de entrenamiento organizan las inscripciones, los pagos y las asistencias de cada equipo.</p>
                 </div>
                 <div class="col-md-auto ms-md-auto">
                     <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                         <i class="fa-regular fa-circle-question me-2"></i>
-                        Guia
+                        Guía
                     </button>
                 </div>
             </div>
         </template>
         <template #body>
 
-            <div data-tour="admin-training-groups-table">
+            <ContentState
+                v-if="globalError"
+                type="error"
+                :message="globalError"
+                action-label="Reintentar"
+                @action="reloadTable"
+            />
+            <div v-show="!globalError" data-tour="admin-training-groups-table">
                 <DatatableTemplate :options="options" :id="'training_table'" ref="table" @click="onClickRow"/>
             </div>
         </template>
@@ -35,16 +42,20 @@
 
     <ModalTrainingGroup :id="selectedId" @update="reloadTable" @cancel="onCancel"/>
 
-    <breadcrumb :parent="'Adminstración'" :current="'Grupos de entrenamiento'" />
+    <breadcrumb :parent="'Administración'" :current="'Grupos de entrenamiento'" />
     <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useTrainingList from '@/composables/admin/groups/trainingList'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import ModalTrainingGroup from './ModalTrainingGroup.vue';
 import { trainingGroupsTutorial } from '@/tutorials/admin'
-const { table, options, selectedId, onClickRow, reloadTable, onCancel } = useTrainingList()
+import { useTemplateRef } from 'vue'
+
+const table = useTemplateRef('table')
+const { options, selectedId, globalError, onClickRow, reloadTable, onCancel } = useTrainingList(table)
 const tutorial = usePageTutorial(trainingGroupsTutorial)
 </script>

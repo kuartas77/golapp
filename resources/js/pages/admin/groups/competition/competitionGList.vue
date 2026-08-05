@@ -16,19 +16,26 @@
                     </router-link>
                 </div>
                 <div class="col-md-8">
-                    <p>Estos grupos cómo su nombre lo dice se crean para poder gestionar las competencias y así obtener los datos de las estadísticos de los deportistas.</p>
+                    <p>Los grupos de competencia organizan los torneos y permiten consultar las estadísticas de los deportistas.</p>
                 </div>
                 <div class="col-md-auto ms-md-auto">
                     <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                         <i class="fa-regular fa-circle-question me-2"></i>
-                        Guia
+                        Guía
                     </button>
                 </div>
             </div>
         </template>
         <template #body>
 
-            <div data-tour="admin-competition-groups-table">
+            <ContentState
+                v-if="globalError"
+                type="error"
+                :message="globalError"
+                action-label="Reintentar"
+                @action="reloadTable"
+            />
+            <div v-show="!globalError" data-tour="admin-competition-groups-table">
                 <DatatableTemplate :options="options" :id="'competition_table'" ref="table" @click="onClickRow">
                 <template #date="props">
                     <div class="text-center">
@@ -42,18 +49,21 @@
 
         </template>
     </panel>
-    <breadcrumb :parent="'Adminstración'" :current="'Grupos de competencia'" />
+    <breadcrumb :parent="'Administración'" :current="'Grupos de competencia'" />
     <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import dayjs from "@/utils/dayjs";
 import useCompetitionGList from '@/composables/admin/groups/competitionGList'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import ModalCompetitionGroup from "./ModalCompetitionGroup.vue";
 import { competitionGroupsTutorial } from '@/tutorials/admin'
+import { useTemplateRef } from 'vue'
 
-const { table, options, selectedId, onClickRow, reloadTable, onCancel } = useCompetitionGList()
+const table = useTemplateRef('table')
+const { options, selectedId, globalError, onClickRow, reloadTable, onCancel } = useCompetitionGList(table)
 const tutorial = usePageTutorial(competitionGroupsTutorial)
 </script>

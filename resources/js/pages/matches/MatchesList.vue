@@ -14,11 +14,18 @@
                     </select>
                     <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                         <i class="fa-regular fa-circle-question me-2"></i>
-                        Guia
+                        Guía
                     </button>
                 </div>
             </div>
-            <div data-tour="matches-list-table">
+            <ContentState
+                v-if="globalError"
+                type="error"
+                :message="globalError"
+                action-label="Reintentar"
+                @action="reloadMatchesTable"
+            />
+            <div v-show="!globalError" data-tour="matches-list-table">
                 <DatatableTemplate :id="'matches_table'" :options="options" ref="matches_table" class="table-hover"/>
             </div>
         </template>
@@ -29,6 +36,7 @@
 </template>
 <script setup>
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import { usePageTitle } from "@/composables/use-meta"
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import configLanguaje from '@/utils/datatableUtils';
@@ -38,12 +46,19 @@ import api from '@/utils/axios'
 import { useRouter } from 'vue-router'
 import { useSetting } from '@/store/settings-store';
 import { matchesListTutorial } from '@/tutorials/matches'
+import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 
 const settings = useSetting()
 const matches_table = useTemplateRef('matches_table')
 const router = useRouter()
 const tutorial = usePageTutorial(matchesListTutorial)
 const statusFilter = ref('')
+const {
+    globalError,
+    clearError,
+    handleError,
+    reloadTable: reloadMatchesDataTable,
+} = useRecoverableDataTable(matches_table, 'No fue posible cargar las competencias.')
 
 const columns = [
     { data: 'tournament_name', title: 'Torneo', name: 'tournaments.name', render: (data) => `<small>${data}</small>`, searchable: true },
@@ -96,12 +111,14 @@ const options = {
         try {
             data.status = statusFilter.value || undefined
             const response = await api.get('/api/v2/datatables/matches', { params: data }); // Adjust endpoint and method
+            clearError()
             callback({
                 data: response.data.data, // Adjust based on your API response structure
                 recordsTotal: response.data.recordsTotal,
                 recordsFiltered: response.data.recordsFiltered,
             });
         } catch (error) {
+            handleError(error)
             callback({ data: [], recordsTotal: 0, recordsFiltered: 0 });
         }
     },
@@ -153,14 +170,7 @@ const options = {
 }
 
 const reloadMatchesTable = () => {
-    const dt = matches_table.value?.table?.dt
-
-    if (!dt) {
-        return
-    }
-
-    dt.clearPipeline()
-    dt.ajax.reload(null, false)
+    reloadMatchesDataTable()
 }
 
 const openGroupSelection = () => {

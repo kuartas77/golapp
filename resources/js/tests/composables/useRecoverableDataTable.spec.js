@@ -14,7 +14,7 @@ describe('useRecoverableDataTable', () => {
         expect(state.globalError.value).toBe('')
     })
 
-    it('uses the fallback and reloads with a fresh pipeline', () => {
+    it('uses the fallback and reloads with a fresh pipeline', async () => {
         const clearPipeline = vi.fn()
         const reload = vi.fn()
         const table = ref({
@@ -30,9 +30,17 @@ describe('useRecoverableDataTable', () => {
         state.handleError({})
         expect(state.globalError.value).toBe('No fue posible cargar el listado.')
 
-        state.reloadTable()
+        await state.reloadTable()
         expect(state.globalError.value).toBe('')
         expect(clearPipeline).toHaveBeenCalledOnce()
         expect(reload).toHaveBeenCalledWith(null, false)
+    })
+
+    it('keeps an actionable error when the table is not ready to reload', async () => {
+        const state = useRecoverableDataTable(ref(null), 'No fue posible cargar el listado.')
+
+        await state.reloadTable()
+
+        expect(state.globalError.value).toBe('No fue posible cargar el listado.')
     })
 })

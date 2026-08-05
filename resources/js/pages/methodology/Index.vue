@@ -30,7 +30,14 @@
                 </li>
             </ul>
 
-            <div data-tour="methodology-table"><DatatableTemplate
+            <ContentState
+                v-if="globalError"
+                type="error"
+                :message="globalError"
+                action-label="Reintentar"
+                @action="reloadMethodologyDataTable"
+            />
+            <div v-show="!globalError" data-tour="methodology-table"><DatatableTemplate
                 v-if="filtersReady"
                 ref="table"
                 id="methodology-records-table"
@@ -516,6 +523,7 @@
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref, useTemplateRef } from 'vue'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
+import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { methodologyTutorial } from '@/tutorials/training'
@@ -527,6 +535,7 @@ import { useSetting } from '@/store/settings-store'
 import api from '@/utils/axios'
 import configLanguaje from '@/utils/datatableUtils'
 import SoccerFieldDiagramEditor from './SoccerFieldDiagramEditor.vue'
+import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 import {
     METHODOLOGY_TYPES,
     createBlankDiagrams,
@@ -554,6 +563,12 @@ const trainingGroupFilter = ref('')
 const isSaving = ref(false)
 const selectedId = ref(null)
 const formError = ref('')
+const {
+    globalError,
+    clearError,
+    handleError,
+    reloadTable: reloadMethodologyDataTable,
+} = useRecoverableDataTable(table, 'No fue posible cargar los registros metodológicos.')
 
 const form = reactive({
     title: '',
@@ -648,6 +663,7 @@ const options = {
                     type: activeType.value,
                 },
             })
+            clearError()
 
             callback({
                 draw: data.draw,
@@ -655,7 +671,8 @@ const options = {
                 recordsTotal: response.data.recordsTotal ?? 0,
                 recordsFiltered: response.data.recordsFiltered ?? 0,
             })
-        } catch {
+        } catch (error) {
+            handleError(error)
             callback(emptyDataTableResponse(data.draw))
         }
     },
@@ -985,6 +1002,7 @@ function applyColumnFilter(columnIndex, value) {
 }
 
 function reloadTable(resetPaging = false) {
+    clearError()
     const dt = table.value?.table?.dt
 
     if (dt) {

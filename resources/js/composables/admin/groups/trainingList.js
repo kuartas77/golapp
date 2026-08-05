@@ -1,19 +1,25 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { useTemplateRef, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import api from '@/utils/axios'
 import { usePageTitle } from "@/composables/use-meta";
+import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 
-export default function useTrainingList() {
+export default function useTrainingList(table) {
 
-    const table = useTemplateRef('table')
     const selectedId = ref(null)
+    const {
+        globalError,
+        clearError,
+        handleError,
+        reloadTable: reloadDataTable,
+    } = useRecoverableDataTable(table, 'No fue posible cargar los grupos de entrenamiento.')
 
     const columns = [
         { data: 'id', width: '1%', title: 'ID', render: '#link', searchable: false, orderable: true },
         { data: 'name', title: 'Nombre', searchable: true, orderable: true },
         { data: 'stage', title: 'Escenario', name: 'roles.name', searchable: true, orderable: true },
         { data: 'is_complementary', title: 'Tipo', searchable: false, orderable: true, render: (data) => data ? '<span class="badge bg-info">Complementario</span>' : '<span class="badge bg-secondary">Principal</span>' },
-        { data: 'category', title: 'Categorias', searchable: true, orderable: false },
+        { data: 'category', title: 'Categorías', searchable: true, orderable: false },
         { data: 'members_count', title: 'Integrantes', searchable: false, orderable: true },
         { data: 'instructors_names', title: 'Instructor(es)', searchable: false, orderable: true },
         { data: 'days', title: 'Días', searchable: false, orderable: false },
@@ -37,12 +43,14 @@ export default function useTrainingList() {
         ajax: async (data, callback, settings) => {
             try {
                 const response = await api.get('/api/v2/datatables/training_groups_enabled', { params: data }); // Adjust endpoint and method
+                clearError()
                 callback({
                     data: response.data.data, // Adjust based on your API response structure
                     recordsTotal: response.data.recordsTotal,
                     recordsFiltered: response.data.recordsFiltered,
                 });
             } catch (error) {
+                handleError(error)
                 callback({ data: [], recordsTotal: 0, recordsFiltered: 0 });
             }
         },
@@ -61,11 +69,7 @@ export default function useTrainingList() {
 
     const reloadTable = () => {
         selectedId.value = null
-        if (table.value) {
-            let dt = table.value.table.dt;
-            dt.clearPipeline()
-            dt.ajax.reload(null, false)
-        }
+        reloadDataTable()
     }
 
     const onCancel = () => {
@@ -73,8 +77,8 @@ export default function useTrainingList() {
     }
 
     onMounted(() => {
-        usePageTitle('G. Entrenamiento')
+        usePageTitle('Grupos de entrenamiento')
     })
 
-    return { table, options, selectedId, onClickRow, reloadTable, onCancel }
+    return { table, options, selectedId, globalError, onClickRow, reloadTable, onCancel }
 }
