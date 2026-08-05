@@ -26,7 +26,7 @@
                 @action="reloadMatchesTable"
             />
             <div v-show="!globalError" data-tour="matches-list-table">
-                <DatatableTemplate :id="'matches_table'" :options="options" ref="matches_table" class="table-hover"/>
+                <DatatableTemplate :key="tableKey" :id="'matches_table'" :options="options" ref="matches_table" class="table-hover"/>
             </div>
         </template>
     </panel>
@@ -55,10 +55,18 @@ const tutorial = usePageTutorial(matchesListTutorial)
 const statusFilter = ref('')
 const {
     globalError,
+    tableKey,
     clearError,
     handleError,
     reloadTable: reloadMatchesDataTable,
-} = useRecoverableDataTable(matches_table, 'No fue posible cargar las competencias.')
+} = useRecoverableDataTable(matches_table, 'No fue posible cargar las competencias.', 'matches_table')
+
+const escapeHtml = (value) => String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;')
 
 const columns = [
     { data: 'tournament_name', title: 'Torneo', name: 'tournaments.name', render: (data) => `<small>${data}</small>`, searchable: true },
@@ -74,14 +82,15 @@ const columns = [
     { data: 'final_score', title: 'Marcador', render: (data, type, row) => row.status === 'played' && data ? `<small>${data.soccer} - ${data.rival}</small>` : '<small class="text-muted">Pendiente</small>', searchable: false, orderable: false },
     {
         data: 'id', title: '#', render: (data, type, row, meta) => {
+            const competitionName = escapeHtml(row.tournament_name || `#${data}`)
             const pdfAction = row.status === 'played'
-                ? `<a class="btn btn-sm btn-success print-btn" href="${row.url_show}" target="_blank"><i href="${row.url_show}" class="fa-solid fa-file-pdf fa-lg"></i></a>`
+                ? `<a class="btn btn-sm btn-success print-btn" href="${escapeHtml(row.url_show)}" target="_blank" rel="noopener noreferrer" aria-label="Exportar PDF de ${competitionName}"><i class="fa-solid fa-file-pdf fa-lg" aria-hidden="true"></i></a>`
                 : ''
 
             return `<div class="btn-group">
                 ${pdfAction}
-                <button class="btn btn-sm btn-info edit-btn" data-item-id="${data}"><i data-item-id="${data}" class="fa fa-edit fa-lg"></i></button>
-                <button class="btn btn-sm btn-danger delete-btn" data-item-id="${data}"><i data-item-id="${data}" class="fa fa-trash fa-lg"></i></button>
+                <button class="btn btn-sm btn-info edit-btn" data-item-id="${data}" aria-label="Editar ${competitionName}"><i data-item-id="${data}" class="fa fa-edit fa-lg" aria-hidden="true"></i></button>
+                <button class="btn btn-sm btn-danger delete-btn" data-item-id="${data}" aria-label="Eliminar ${competitionName}"><i data-item-id="${data}" class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
 
             </div>`
         }, searchable: false, orderable: false

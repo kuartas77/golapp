@@ -35,7 +35,7 @@
                 @action="reloadTable"
             />
             <div v-show="!globalError" data-tour="admin-training-groups-table">
-                <DatatableTemplate :options="options" :id="'training_table'" ref="table" @click="onClickRow"/>
+                <DatatableTemplate :key="tableKey" :options="options" :id="'training_table'" ref="table" @click="onClickRow"/>
             </div>
         </template>
     </panel>
@@ -56,6 +56,6 @@ import { trainingGroupsTutorial } from '@/tutorials/admin'
 import { useTemplateRef } from 'vue'
 
 const table = useTemplateRef('table')
-const { options, selectedId, globalError, onClickRow, reloadTable, onCancel } = useTrainingList(table)
+const { tableKey, options, selectedId, globalError, onClickRow, reloadTable, onCancel } = useTrainingList(table)
 const tutorial = usePageTutorial(trainingGroupsTutorial)
 </script>

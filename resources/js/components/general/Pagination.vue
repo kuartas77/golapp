@@ -1,5 +1,5 @@
 <template>
-<nav aria-label="navigation">
+<nav aria-label="Paginación">
     <ul class="pagination justify-content-center">
         <li v-if="pagination.current_page > 1" class="page-item">
             <a class="page-link"
@@ -13,7 +13,9 @@
         <li v-for="page in pages" :key="page" :class="[page == pagination.current_page ? 'active':'', 'page-item']" >
             <a class="page-link" 
                href="#"
-               @click.stop="change(page)"
+               :aria-label="`Ir a la página ${page}`"
+               :aria-current="page == pagination.current_page ? 'page' : undefined"
+               @click.prevent="change(page)"
             >
                 {{ page }}
             </a>

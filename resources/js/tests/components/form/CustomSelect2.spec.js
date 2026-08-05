@@ -30,4 +30,26 @@ describe('CustomSelect2', () => {
 
         expect(wrapper.emitted('update:modelValue')).toEqual([['20']])
     })
+
+    it('opens from the keyboard and exposes Spanish action names', async () => {
+        const wrapper = mount(CustomSelect2, {
+            props: {
+                modelValue: ['10'],
+                options,
+                multiple: true,
+                ariaLabel: 'Grupos de entrenamiento',
+            },
+        })
+        const combobox = wrapper.get('[role="combobox"]')
+
+        expect(combobox.attributes('tabindex')).toBe('0')
+        expect(combobox.attributes('aria-label')).toBe('Grupos de entrenamiento')
+        expect(wrapper.get('button[aria-label="Quitar Grupo A"]').exists()).toBe(true)
+        expect(wrapper.get('button[aria-label="Limpiar selección"]').exists()).toBe(true)
+
+        await combobox.trigger('keydown', { key: 'Enter' })
+
+        expect(combobox.attributes('aria-expanded')).toBe('true')
+        expect(wrapper.get('[role="listbox"]').attributes('id')).toBe('select2-listbox')
+    })
 })

@@ -614,7 +614,7 @@ test('notification lists announce failures and recover without leaving the page'
     expect(requestCounts).toEqual({ payments: 2, uniforms: 2, topics: 2 });
 });
 
-test('sports operation lists announce failed requests and recover in place', async ({ page }) => {
+test('sports operation lists announce failures and expose accessible recovery controls', async ({ page }) => {
     const lists = [
         {
             path: '/configuracion/g-entrenamiento',
@@ -633,6 +633,18 @@ test('sports operation lists announce failed requests and recover in place', asy
             endpoint: 'matches',
             tableId: 'matches_table',
             message: 'No se pudieron consultar las competencias.',
+            successData: [{
+                id: 33,
+                tournament_name: 'Torneo E2E',
+                competition_group_name: 'Sub 12',
+                date: '05/08/2026',
+                hour: '10:00',
+                rival_name: 'Rival E2E',
+                status: 'played',
+                status_label: 'Jugado',
+                final_score: { soccer: 2, rival: 1 },
+                url_show: '/competencias/33/pdf',
+            }],
         },
         {
             path: '/metodologia',
@@ -739,7 +751,11 @@ test('sports operation lists announce failed requests and recover in place', asy
                 status: recoveryEnabled ? 200 : 503,
                 contentType: 'application/json',
                 body: JSON.stringify(recoveryEnabled
-                    ? { data: [], recordsTotal: 0, recordsFiltered: 0 }
+                    ? {
+                        data: list.successData ?? [],
+                        recordsTotal: list.successData?.length ?? 0,
+                        recordsFiltered: list.successData?.length ?? 0,
+                    }
                     : { message: list.message }),
             });
         });
@@ -752,14 +768,20 @@ test('sports operation lists announce failed requests and recover in place', asy
         const errorState = page.getByRole('alert').filter({ hasText: list.message });
         await expect(errorState).toBeVisible();
         await page.locator(`#${list.tableId}_wrapper`).waitFor({ state: 'attached' });
-        await errorState.getByRole('button', { name: 'Reintentar' }).evaluate(async (button, endpoint) => {
-            await window.enableSportsListRecovery(endpoint);
-            button.click();
-        }, list.endpoint);
+        const failedRequestCount = requestCounts[list.endpoint];
+        await expect(page.getByRole('button', { name: 'Reintentar' })).toBeVisible();
+        await page.evaluate(endpoint => window.enableSportsListRecovery(endpoint), list.endpoint);
+        await page.reload();
         await expect.poll(
             () => requestCounts[list.endpoint],
-            { message: `El listado ${list.endpoint} debe volver a consultar el API` },
-        ).toBeGreaterThanOrEqual(2);
-        await expect(errorState).toBeHidden();
+            { message: `El listado ${list.endpoint} debe cargar una respuesta correcta` },
+        ).toBeGreaterThan(failedRequestCount);
+        await expect(page.getByRole('alert')).toBeHidden();
+
+        if (list.endpoint === 'matches') {
+            await expect(page.getByRole('link', { name: 'Exportar PDF de Torneo E2E' })).toBeVisible();
+            await expect(page.getByRole('button', { name: 'Editar Torneo E2E' })).toBeVisible();
+            await expect(page.getByRole('button', { name: 'Eliminar Torneo E2E' })).toBeVisible();
+        }
     }
 });

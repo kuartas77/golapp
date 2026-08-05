@@ -204,6 +204,34 @@ describe('Admin group modals', () => {
         expect(wrapper.find('li.ms-elem-selectable').classes()).toContain('disabled');
     });
 
+    it('allows multiselect options to be added and removed with the keyboard', async () => {
+        const wrapper = mount(MultiSelect, {
+            props: {
+                id: 'keyboard-days',
+                buttons: true,
+                options: [
+                    { value: 'Lunes', label: 'Lunes' },
+                    { value: 'Martes', label: 'Martes' },
+                ],
+            },
+        });
+
+        wrappers.push(wrapper);
+
+        const availableOption = wrapper.get('li[aria-label="Agregar Lunes"]');
+        expect(availableOption.attributes('tabindex')).toBe('0');
+        expect(wrapper.get('button[aria-label="Agregar todas las opciones"]').exists()).toBe(true);
+
+        await availableOption.trigger('keydown', { key: 'Enter' });
+
+        const selectedOption = wrapper.get('li[aria-label="Quitar Lunes"]');
+        expect(selectedOption.attributes('tabindex')).toBe('0');
+
+        await selectedOption.trigger('keydown', { key: ' ' });
+
+        expect(wrapper.find('li[aria-label="Quitar Lunes"]').exists()).toBe(false);
+    });
+
     it('rebuilds legacy training group categories and selected labels on edit', async () => {
         const currentYear = String(new Date().getFullYear());
         settingsStore.year_active = [currentYear];

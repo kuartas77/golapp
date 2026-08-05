@@ -1,16 +1,26 @@
 <template>
     <div class="position-relative" ref="root">
         <div class="form-select form-select-sm d-flex align-items-center justify-content-between flex-wrap"
-            :class="{ 'dropdown-toggle': true, disabled: disabled }" role="combobox" :aria-expanded="isOpen.toString()"
-            @click="toggleDropdown">
+            :class="{ 'dropdown-toggle': true, disabled: disabled }" role="combobox"
+            :tabindex="disabled ? -1 : 0"
+            :aria-label="ariaLabel || placeholder"
+            :aria-controls="`${id}-listbox`"
+            :aria-disabled="disabled.toString()"
+            :aria-expanded="isOpen.toString()"
+            aria-haspopup="listbox"
+            @click="toggleDropdown"
+            @keydown.enter.prevent="toggleDropdown"
+            @keydown.space.prevent="toggleDropdown"
+            @keydown.down.prevent="openDropdown"
+            @keydown.esc.stop.prevent="closeDropdown">
             <div class="d-flex flex-wrap gap-1 align-items-center flex-grow-1"
                 :style="multiple ? 'overflow-x: auto;' : ''">
                 <template v-if="multiple">
                     <template v-if="selected.length">
                         <span v-for="opt in selected" :key="opt.value"
-                            class="badge bg-primary d-flex align-items-center" :title="selected?.label">
+                            class="badge bg-primary d-flex align-items-center" :title="opt.label">
                             {{ opt.label }}
-                            <button type="button" class="btn-close btn-close-white btn-sm ms-1" aria-label="Remove"
+                            <button type="button" class="btn-close btn-close-white btn-sm ms-1" :aria-label="`Quitar ${opt.label}`"
                                 @click.stop="removeTag(opt.value)"></button>
                         </span>
                     </template>
@@ -31,7 +41,7 @@
 
             <div class="d-flex align-items-center ms-auto">
                 <button v-if="clearable && hasValue && !disabled" type="button" class="btn-clear btn-close btn-sm ms-1"
-                    @click.stop="clearSelection" aria-label="Clear selection">
+                    @click.stop="clearSelection" aria-label="Limpiar selección">
                 </button>
             </div>
         </div>
@@ -39,15 +49,18 @@
         <div class="dropdown-menu w-100 p-2" :class="{ show: isOpen }" style="max-height: 260px; overflow: auto;"
             @click.stop>
             <input ref="searchInput" :id="id" type="search" class="form-control mb-2" :placeholder="searchPlaceholder"
+                :aria-label="searchPlaceholder"
+                :aria-controls="`${id}-listbox`"
+                :aria-activedescendant="focusedIndex >= 0 ? `${id}-option-${focusedIndex}` : undefined"
                 v-model="query" @keydown.down.prevent="focusNext" @keydown.up.prevent="focusPrev"
-                @keydown.enter.prevent="selectFocused" />
+                @keydown.enter.prevent="selectFocused" @keydown.esc.stop.prevent="closeDropdown" />
 
             <template v-if="filtered.length === 0">
                 <div class="text-muted small p-2">No hay resultados</div>
             </template>
 
-            <ul class="list-group list-group-flush">
-                <li v-for="(opt, idx) in filtered" :key="opt.value"
+            <ul :id="`${id}-listbox`" class="list-group list-group-flush" role="listbox">
+                <li v-for="(opt, idx) in filtered" :id="`${id}-option-${idx}`" :key="opt.value"
                     class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                     :class="{ active: idx === focusedIndex }" @mouseenter="focusedIndex = idx"
                     @mouseleave="focusedIndex = -1" @click="selectOption(opt)" role="option"
@@ -73,6 +86,7 @@ const props = defineProps({
     options: { type: Array, default: () => [] },
     placeholder: { type: String, default: 'Selecciona...' },
     searchPlaceholder: { type: String, default: 'Buscar...' },
+    ariaLabel: { type: String, default: '' },
     clearable: { type: Boolean, default: true },
     disabled: { type: Boolean, default: false },
     filterFunction: { type: Function, default: null },

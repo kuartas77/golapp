@@ -9,10 +9,11 @@ export default function useTrainingList(table) {
     const selectedId = ref(null)
     const {
         globalError,
+        tableKey,
         clearError,
         handleError,
         reloadTable: reloadDataTable,
-    } = useRecoverableDataTable(table, 'No fue posible cargar los grupos de entrenamiento.')
+    } = useRecoverableDataTable(table, 'No fue posible cargar los grupos de entrenamiento.', 'training_table')
 
     const columns = [
         { data: 'id', width: '1%', title: 'ID', render: '#link', searchable: false, orderable: true },
@@ -80,5 +81,5 @@ export default function useTrainingList(table) {
         usePageTitle('Grupos de entrenamiento')
     })
 
-    return { table, options, selectedId, globalError, onClickRow, reloadTable, onCancel }
+    return { table, tableKey, options, selectedId, globalError, onClickRow, reloadTable, onCancel }
 }

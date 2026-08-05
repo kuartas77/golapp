@@ -36,7 +36,7 @@
                 @action="reloadTable"
             />
             <div v-show="!globalError" data-tour="admin-competition-groups-table">
-                <DatatableTemplate :options="options" :id="'competition_table'" ref="table" @click="onClickRow">
+                <DatatableTemplate :key="tableKey" :options="options" :id="'competition_table'" ref="table" @click="onClickRow">
                 <template #date="props">
                     <div class="text-center">
                         {{ dayjs(props.cellData).format('l') }}
@@ -64,6 +64,6 @@ import { competitionGroupsTutorial } from '@/tutorials/admin'
 import { useTemplateRef } from 'vue'
 
 const table = useTemplateRef('table')
-const { options, selectedId, globalError, onClickRow, reloadTable, onCancel } = useCompetitionGList(table)
+const { tableKey, options, selectedId, globalError, onClickRow, reloadTable, onCancel } = useCompetitionGList(table)
 const tutorial = usePageTutorial(competitionGroupsTutorial)
 </script>

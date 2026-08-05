@@ -22,6 +22,9 @@
                     <button
                         type="button"
                         class="nav-link"
+                        role="tab"
+                        :aria-selected="(activeType === tab.type).toString()"
+                        :tabindex="activeType === tab.type ? 0 : -1"
                         :class="{ active: activeType === tab.type }"
                         @click="selectType(tab.type)"
                     >
@@ -39,6 +42,7 @@
             />
             <div v-show="!globalError" data-tour="methodology-table"><DatatableTemplate
                 v-if="filtersReady"
+                :key="tableKey"
                 ref="table"
                 id="methodology-records-table"
                 :options="options"
@@ -93,28 +97,32 @@
                         <a
                             :href="props.rowData.export_pdf_url"
                             target="_blank"
+                            rel="noopener noreferrer"
                             class="btn btn-info btn-sm"
                             title="Exportar PDF"
+                            :aria-label="`Exportar PDF de ${props.rowData.title}`"
                         >
-                            <i class="fa-solid fa-file-pdf fa-width-auto me-2" aria-hidden="true"></i>
+                            <i class="fa-solid fa-file-pdf fa-width-auto" aria-hidden="true"></i>
                         </a>
                         <button
                             type="button"
                             class="btn btn-warning btn-sm"
                             :title="props.rowData.period_locked ? 'Periodo cerrado' : 'Editar'"
+                            :aria-label="props.rowData.period_locked ? `${props.rowData.title}: periodo cerrado` : `Editar ${props.rowData.title}`"
                             :disabled="props.rowData.period_locked"
                             @click="openEdit(props.rowData.id)"
                         >
-                            <i class="fa fa-edit fa-width-auto me-2" aria-hidden="true"></i>
+                            <i class="fa fa-edit fa-width-auto" aria-hidden="true"></i>
                         </button>
                         <button
                             type="button"
                             class="btn btn-danger btn-sm"
                             :title="props.rowData.period_locked ? 'Periodo cerrado' : 'Eliminar'"
+                            :aria-label="props.rowData.period_locked ? `${props.rowData.title}: periodo cerrado` : `Eliminar ${props.rowData.title}`"
                             :disabled="props.rowData.period_locked"
                             @click="confirmDelete(props.rowData)"
                         >
-                            <i class="fa fa-trash fa-width-auto me-2" aria-hidden="true"></i>
+                            <i class="fa fa-trash fa-width-auto" aria-hidden="true"></i>
                         </button>
                     </div>
                 </template>
@@ -565,10 +573,11 @@ const selectedId = ref(null)
 const formError = ref('')
 const {
     globalError,
+    tableKey,
     clearError,
     handleError,
     reloadTable: reloadMethodologyDataTable,
-} = useRecoverableDataTable(table, 'No fue posible cargar los registros metodológicos.')
+} = useRecoverableDataTable(table, 'No fue posible cargar los registros metodológicos.', 'methodology-records-table')
 
 const form = reactive({
     title: '',

@@ -9,10 +9,16 @@
 
         <div class="ms-selectable d-flex flex-column flex-fill" :class="{ 'ms-focus': activeList === 'available' }"
             @click="setActive('available')">
-            <ul class="ms-list flex-grow-1">
+            <ul class="ms-list flex-grow-1" aria-label="Opciones disponibles">
                 <li v-for="option in sortedAvailable" :key="option.value" class="ms-elem-selectable"
                     :class="{ disabled: isMaxSelectionReached }"
-                    @click.stop="addSelection(option)">
+                    role="button"
+                    :tabindex="isMaxSelectionReached ? -1 : 0"
+                    :aria-disabled="isMaxSelectionReached.toString()"
+                    :aria-label="`Agregar ${option.label}`"
+                    @click.stop="addSelection(option)"
+                    @keydown.enter.stop.prevent="addSelection(option)"
+                    @keydown.space.stop.prevent="addSelection(option)">
                     {{ option.label }}
                 </li>
             </ul>
@@ -20,17 +26,23 @@
             <div v-if="buttons" class="ms-buttons text-center p-2">
                 <button type="button" class="btn btn-primary btn-sm" @click.stop="addAll"
                     :disabled="sortedAvailable.length === 0 || isMaxSelectionReached" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                    title="Agregar todos!">
-                    >>
+                    title="Agregar todas"
+                    aria-label="Agregar todas las opciones">
+                    <span aria-hidden="true">&gt;&gt;</span>
                 </button>
             </div>
         </div>
 
         <div class="ms-selection d-flex flex-column flex-fill" :class="{ 'ms-focus': activeList === 'selected' }"
             @click="setActive('selected')">
-            <ul class="ms-list flex-grow-1">
+            <ul class="ms-list flex-grow-1" aria-label="Opciones seleccionadas">
                 <li v-for="option in sortedSelected" :key="option.value" class="ms-elem-selection"
-                    @click.stop="removeSelection(option)">
+                    role="button"
+                    tabindex="0"
+                    :aria-label="`Quitar ${option.label}`"
+                    @click.stop="removeSelection(option)"
+                    @keydown.enter.stop.prevent="removeSelection(option)"
+                    @keydown.space.stop.prevent="removeSelection(option)">
                     {{ option.label }}
                 </li>
             </ul>
@@ -38,8 +50,10 @@
             <div v-if="buttons" class="ms-buttons text-center p-2">
                 <button type="button" class="btn btn-primary btn-sm" @click.stop="removeAll"
                     :disabled="sortedSelected.length === 0" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                    title="Quitar todos!">
-                    << </button>
+                    title="Quitar todas"
+                    aria-label="Quitar todas las opciones">
+                    <span aria-hidden="true">&lt;&lt;</span>
+                </button>
             </div>
         </div>
     </div>

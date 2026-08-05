@@ -43,4 +43,14 @@ describe('useRecoverableDataTable', () => {
 
         expect(state.globalError.value).toBe('No fue posible cargar el listado.')
     })
+
+    it('remounts an identified table when its DataTables instance is not ready', async () => {
+        const state = useRecoverableDataTable(ref(null), 'No fue posible cargar el listado.', 'delayed-table')
+
+        state.handleError({})
+        await state.reloadTable()
+
+        expect(state.globalError.value).toBe('')
+        expect(state.tableKey.value).toBe(1)
+    })
 })

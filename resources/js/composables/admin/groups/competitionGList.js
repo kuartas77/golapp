@@ -9,10 +9,11 @@ export default function useCompetitionGList(table) {
     const selectedId = ref(null)
     const {
         globalError,
+        tableKey,
         clearError,
         handleError,
         reloadTable: reloadDataTable,
-    } = useRecoverableDataTable(table, 'No fue posible cargar los grupos de competencia.')
+    } = useRecoverableDataTable(table, 'No fue posible cargar los grupos de competencia.', 'competition_table')
 
     const columns = [
         { data: 'id', width: '1%', title: 'ID', render:'#link',searchable: false, orderable: true },
@@ -78,5 +79,5 @@ export default function useCompetitionGList(table) {
         usePageTitle('Grupos de competencia')
     })
 
-    return { table, options, selectedId, globalError, onClickRow, reloadTable, onCancel }
+    return { table, tableKey, options, selectedId, globalError, onClickRow, reloadTable, onCancel }
 }
