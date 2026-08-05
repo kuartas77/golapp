@@ -244,6 +244,44 @@ Verificacion manual recomendada:
 - Para reportes/exportaciones, descargar un archivo real y validar contenido basico.
 - Para cambios con DataTables, probar busqueda, paginacion, filtros y acciones por fila.
 
+## Cierre de la Auditoria de Calidad Percibida
+
+La auditoria integral de UI/UX, consistencia y calidad percibida se ejecuto por olas y se dio por finalizada el 5 de agosto de 2026. El informe de diagnostico y priorizacion se conserva en `Auditoría integral de GOLAPP.md`.
+
+El trabajo implementado cubre:
+
+- Estados de carga, vacio, error y reintento reutilizables mediante `ContentState` y `useRecoverableDataTable`.
+- Mensajes recuperables en asistencias, deportistas, inscripciones, mensualidades, facturas, comprobantes, uniformes, notificaciones, grupos, partidos, metodologia, sesiones, escuelas, usuarios, recibos y reportes.
+- Flujo inicial de `/asistencias` sin tabla prematura: primero solicita seleccionar un grupo y despues muestra los dias de entrenamiento disponibles.
+- Formularios con acciones consistentes, validacion visible y proteccion de cambios sin guardar en deportistas, inscripciones y evaluaciones.
+- Facturacion con mensajes especificos, reintentos de carga, acciones accesibles y protecciones de idempotencia para evitar registros financieros duplicados.
+- Formatos compartidos para fechas, dinero y estados con `AppDate`, `AppMoney`, `AppStatus` y los formateadores comunes.
+- Jerarquia visual compartida con `AppPageHeader` y adopcion gradual de `AppButton`, iniciada en las pantallas de facturacion.
+- Accesibilidad de teclado en selectores, paginacion, formularios y modales, incluyendo control de foco y restauracion del elemento que abre un dialogo.
+- Cobertura automatizada preparada con Axe y Playwright para los flujos priorizados, junto con pruebas Vitest de componentes, composables y regresiones funcionales.
+- Lint independiente, build de produccion y presupuestos versionados para JavaScript, CSS y SCSS heredado.
+
+### Decision sobre DataTables
+
+Los DataTables conservan su presentacion natural anterior. `DatatableTemplate` no debe envolver todas las tablas en un contenedor que fuerce scroll horizontal o vertical, ni imponer globalmente `white-space: nowrap`, alturas o reflujo movil. Cualquier adaptacion responsive futura debe validarse en la pantalla concreta y no cambiar el comportamiento compartido de todas las tablas.
+
+Al modificar un DataTable se deben revisar, como minimo, la carga inicial, los estados vacio/error, busqueda, filtros, ordenamiento, paginacion, acciones por fila y el layout existente. Esto evita regresiones causadas por opciones o estilos globales.
+
+### Calidad frontend
+
+Los controles son independientes del despliegue y pueden ejecutarse manualmente:
+
+| Alcance | Comando |
+| --- | --- |
+| Lint frontend y E2E | `pnpm lint` |
+| Build, presupuestos y lint | `pnpm quality:static` |
+| Presupuestos solamente | `pnpm quality:budgets` |
+| Vitest | `pnpm test:vue` |
+| Playwright | `pnpm test:e2e` |
+| Verificacion completa previa al despliegue | `pnpm quality:predeploy` |
+
+Los presupuestos se configuran en `config/frontend-budgets.json` y su explicacion operativa vive en `docs/frontend-quality.md`. El cierre de las olas se valido con build, presupuestos y lint; la ejecucion integral de Vitest y Playwright queda reservada para el control manual previo a un futuro despliegue. La auditoria no modifico los workflows ni los archivos de despliegue.
+
 ## Convenciones Utiles
 
 ### Permisos
@@ -296,6 +334,7 @@ Antes de modificar comandos operativos, revisar tests existentes y casos de camb
 
 | Documento | Uso recomendado |
 | --- | --- |
+| `Auditoría integral de GOLAPP.md` | Diagnostico, evidencia y priorizacion que originaron las olas de mejora de calidad percibida. |
 | `MODULE-QR.md` | Referencia funcional y tecnica del modulo de asistencia QR. |
 | `estructura-notify.md` | Borrador de estructura para una app movil/Kotlin. No es fuente principal para el proyecto Laravel/Vue actual. |
 
