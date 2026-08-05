@@ -1,16 +1,20 @@
 <template>
     <section class="container portal-school-show position-relative">
-        <Loader :is-loading="loading" loading-text="Cargando escuela..." />
+        <ContentState
+            v-if="loading"
+            type="loading"
+            title="Cargando escuela"
+            message="Estamos preparando la información y las opciones de inscripción."
+        />
 
-        <div v-if="errorMessage" class="card shadow-sm">
-            <div class="card-body">
-                <h1 class="h3 mb-3">No fue posible cargar la escuela</h1>
-                <p class="text-muted mb-4">{{ errorMessage }}</p>
-                <!-- <router-link :to="{ name: 'portal-school-index' }" class="btn btn-outline-primary">
-                    Volver al listado
-                </router-link> -->
-            </div>
-        </div>
+        <ContentState
+            v-else-if="errorMessage"
+            type="error"
+            title="No fue posible cargar la escuela"
+            :message="errorMessage"
+            action-label="Reintentar"
+            @action="retryFetchSchool"
+        />
 
         <div v-else-if="school" class="row g-4 align-items-start">
             <div class="col-12 col-lg-4">
@@ -153,7 +157,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import Loader from '@/components/general/Loader.vue';
+import ContentState from '@/components/general/ContentState.vue';
 import PortalSchoolInscriptionModal from '@/pages/portal/PortalSchoolInscriptionModal.vue';
 import api from '@/utils/axios';
 import { usePageTitle } from '@/composables/use-meta';
@@ -240,6 +244,8 @@ const fetchSchool = async (slug) => {
         loading.value = false;
     }
 };
+
+const retryFetchSchool = () => fetchSchool(String(route.params.slug ?? ''));
 
 watch(
     () => route.params.slug,

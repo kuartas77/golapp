@@ -189,6 +189,54 @@ describe('attendance-list composable', () => {
         expect(showMessage).toHaveBeenCalledWith('Asistencias creadas correctamente.')
     })
 
+    it('exposes a recoverable error when class days cannot be loaded', async () => {
+        const wrapper = mountComposable()
+        await flushPromises()
+
+        apiMock.get
+            .mockRejectedValueOnce({ response: { data: { message: 'No hay conexión con el servicio.' } } })
+            .mockResolvedValueOnce({ data: [] })
+
+        await wrapper.vm.handleSearchClassdays({ training_group_id: 10, month: 1 })
+
+        expect(wrapper.vm.hasSearched).toBe(true)
+        expect(wrapper.vm.globalError).toBe('No hay conexión con el servicio.')
+
+        await wrapper.vm.retryLastRequest()
+
+        expect(apiMock.get).toHaveBeenCalledTimes(2)
+        expect(wrapper.vm.globalError).toBe('')
+    })
+
+    it('retries the selected class day after an attendance load error', async () => {
+        const wrapper = mountComposable()
+        await flushPromises()
+
+        const classDay = {
+            id: '101',
+            group_id: 10,
+            month: 1,
+            year: 2026,
+            column: 'assistance_one',
+        }
+
+        apiMock.get
+            .mockRejectedValueOnce({ response: { data: { message: 'No fue posible abrir la clase.' } } })
+            .mockResolvedValueOnce({
+                data: { rows: [activeRow()], url_print: '/pdf', url_print_excel: '/excel' },
+            })
+
+        await wrapper.vm.clickClassDay(classDay)
+
+        expect(wrapper.vm.globalError).toBe('No fue posible abrir la clase.')
+
+        await wrapper.vm.retryLastRequest()
+
+        expect(apiMock.get).toHaveBeenCalledTimes(2)
+        expect(wrapper.vm.globalError).toBe('')
+        expect(wrapper.vm.attendancesGroup).toHaveLength(1)
+    })
+
     it('indexes player name, code and category for local DataTable search', async () => {
         const wrapper = mountComposable()
         await flushPromises()

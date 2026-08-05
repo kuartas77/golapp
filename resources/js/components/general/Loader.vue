@@ -17,7 +17,7 @@ const props = defineProps({
     fullscreen: { type: Boolean, default: false }
 })
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 .loading-overlay {
     position: absolute;
     inset: 0;
@@ -41,8 +41,8 @@ const props = defineProps({
 .spinner {
     width: 48px;
     height: 48px;
-    border: 4px solid #ddd;
-    border-top-color: #0F1C46;
+    border: 4px solid rgba(15, 28, 70, 0.18);
+    border-top-color: #0f1c46;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 0.5rem;
@@ -50,7 +50,7 @@ const props = defineProps({
 
 .loading-text {
     font-weight: 500;
-    color: #333;
+    color: var(--golapp-text-body, #515365);
 }
 
 @keyframes spin {
@@ -59,18 +59,24 @@ const props = defineProps({
     }
 }
 
-.dark {
+:global(body.dark) {
     .loading-overlay {
-        background: rgba(49, 49, 49, 0.85);
+        background: rgba(6, 8, 24, 0.88);
     }
 
     .spinner {
-        border: 4px solid #ddd;
-        border-top-color: #009688;
+        border-color: rgba(255, 255, 255, 0.2);
+        border-top-color: #ffca00;
     }
 
     .loading-text {
-        color: #009688;
+        color: var(--golapp-text-body, #e0e6ed);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .spinner {
+        animation-duration: 1.5s;
     }
 }
 </style>

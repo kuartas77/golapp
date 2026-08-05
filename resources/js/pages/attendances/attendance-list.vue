@@ -47,16 +47,6 @@
                                             </template>
                                         </button>
                                     </div>
-                                    <div v-if="classDays.length" class="mb-3">
-                                        <button
-                                            type="button"
-                                            class="btn btn-success w-100"
-                                            :disabled="isLoading"
-                                            @click="createMissingAttendances"
-                                        >
-                                            Crear asistencias
-                                        </button>
-                                    </div>
                                 </Form>
                             </div>
 
@@ -119,7 +109,53 @@
                                 Marcar asistencia a todos
                             </button>
                         </div>
-                        <div class="row" data-tour="attendance-table">
+                        <ContentState
+                            v-if="isLoading && attendancesGroup.length === 0"
+                            type="loading"
+                            title="Cargando asistencias"
+                            message="Estamos consultando las clases y los deportistas del periodo seleccionado."
+                            data-tour="attendance-table"
+                        />
+                        <ContentState
+                            v-else-if="globalError"
+                            type="error"
+                            title="No fue posible cargar las asistencias"
+                            :message="globalError"
+                            action-label="Reintentar"
+                            data-tour="attendance-table"
+                            @action="retryLastRequest"
+                        />
+                        <ContentState
+                            v-else-if="!hasSearched"
+                            type="empty"
+                            title="Selecciona un grupo"
+                            message="Elige un grupo y presiona Buscar para mostrar sus días de entrenamiento en el mes seleccionado."
+                            data-tour="attendance-table"
+                        />
+                        <ContentState
+                            v-else-if="classDays.length === 0"
+                            type="empty"
+                            title="No hay días de entrenamiento"
+                            :message="`No encontramos clases para ${modelGroup?.full_group || 'el grupo'} en ${modelMonth?.label || 'el periodo seleccionado'}.`"
+                            data-tour="attendance-table"
+                        />
+                        <ContentState
+                            v-else-if="!classDaySelected"
+                            type="empty"
+                            title="Selecciona un día de entrenamiento"
+                            message="Elige una de las fechas disponibles para consultar y registrar la asistencia."
+                            data-tour="attendance-table"
+                        />
+                        <ContentState
+                            v-else-if="attendancesGroup.length === 0"
+                            type="empty"
+                            title="No hay deportistas en esta clase"
+                            message="Puedes crear los registros de asistencia faltantes para el grupo y periodo seleccionados."
+                            action-label="Crear asistencias"
+                            data-tour="attendance-table"
+                            @action="createMissingAttendances"
+                        />
+                        <div v-else class="row" data-tour="attendance-table">
                             <DataTable :options="options" :data="filteredAttendancesGroup" class="table table-bordered table-sm"
                                 id="attendance_table" ref="attendance_table">
 
@@ -266,6 +302,7 @@ export default {
 import { useTemplateRef } from 'vue'
 import { ErrorMessage, Field, Form } from "vee-validate";
 import DataTable from '@/plugins/datatables'
+import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useAttendances from '@/composables/attendances/attendances'
 import { usePageTutorial } from '@/composables/usePageTutorial'
@@ -287,6 +324,8 @@ const {
     classDays,
     classDaySelected,
     attendancesGroup,
+    globalError,
+    hasSearched,
     filteredAttendancesGroup,
     takeAttendance,
     retiredRowsCount,
@@ -297,6 +336,7 @@ const {
     options,
     attendanceRowReadOnly,
     handleSearchClassdays,
+    retryLastRequest,
     createMissingAttendances,
     clickClassDay,
     markAttendanceForAllLoaded,

@@ -92,4 +92,53 @@ describe('PortalSchoolShow', () => {
         expect(wrapper.text()).not.toContain('Realizar Inscripción');
         expect(wrapper.find('[data-test="inscription-modal"]').exists()).toBe(false);
     });
+
+    it('muestra un error recuperable y vuelve a consultar la escuela', async () => {
+        apiMock.get
+            .mockRejectedValueOnce({
+                response: { data: { message: 'El servicio no está disponible temporalmente.' } },
+            })
+            .mockResolvedValueOnce({
+                data: {
+                    data: {
+                        school: {
+                            id: 10,
+                            name: 'Escuela Recuperada',
+                            slug: 'escuela-sin-cupos',
+                            inscriptions_enabled: false,
+                            tutor_platform: false,
+                            create_contract: false,
+                            send_documents: false,
+                        },
+                        year: 2026,
+                        inscriptionLimit: { is_full: false },
+                        contracts: { available: [] },
+                        links: {},
+                        endpoints: {},
+                        assets: {},
+                        options: {},
+                        recaptcha: { enabled: false },
+                    },
+                },
+            });
+
+        const wrapper = mount(PortalSchoolShow, {
+            global: {
+                stubs: {
+                    PortalSchoolInscriptionModal: true,
+                },
+            },
+        });
+
+        await flushPromises();
+
+        expect(wrapper.get('[role="alert"]').text()).toContain('El servicio no está disponible temporalmente.');
+
+        await wrapper.get('[role="alert"] button').trigger('click');
+        await flushPromises();
+
+        expect(apiMock.get).toHaveBeenCalledTimes(2);
+        expect(wrapper.text()).toContain('Escuela Recuperada');
+        expect(wrapper.find('.content-state--error').exists()).toBe(false);
+    });
 });

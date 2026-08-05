@@ -17,3 +17,6 @@
 
 /*custom css*/
 @include meta.load-css('style.scss');
+
+/* Shared accessibility foundations must load after the legacy theme. */
+@include meta.load-css('accessibility.scss');

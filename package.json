@@ -5,6 +5,7 @@
         "dev": "vite --port 5173 --strictPort",
         "build": "vite build",
         "boneyard:build": "boneyard-js build",
+        "test:e2e": "playwright test",
         "test:vue": "vitest run",
         "test:vue:watch": "vitest"
     },
@@ -52,6 +53,7 @@
         "yup": "^1.7.1"
     },
     "devDependencies": {
+        "@playwright/test": "^1.62.1",
         "@rollup/plugin-alias": "5.1.1",
         "@vitejs/plugin-vue": "^5.2.4",
         "@vue/test-utils": "^2.4.11",

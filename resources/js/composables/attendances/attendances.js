@@ -34,7 +34,7 @@ export default function useAttendances() {
         month: new Date().getMonth() + 1,
     })
 
-    const globalError = ref(null)
+    const globalError = ref('')
     const { proxy } = getCurrentInstance()
 
     const modelGroup = ref(null)
@@ -45,6 +45,7 @@ export default function useAttendances() {
     const classDaySelected = ref(null)
     const attendancesGroup = ref([])
     const lastSearchValues = ref(null)
+    const hasSearched = computed(() => Boolean(lastSearchValues.value))
     const playerSearchTerm = ref('')
     const takeAttendance = ref(null)
     const retiredRowsCount = computed(() => attendancesGroup.value.filter((row) => Boolean(row.inscription_deleted)).length)
@@ -208,6 +209,7 @@ export default function useAttendances() {
         try {
             classDaySelected.value = null
             isLoading.value = true
+            globalError.value = ''
             attendancesGroup.value = []
             playerSearchTerm.value = ''
             export_pdf.value = null
@@ -225,14 +227,18 @@ export default function useAttendances() {
             }
         } catch (error) {
             classDays.value = []
+            globalError.value = error.response?.data?.message || 'No fue posible consultar los días de entrenamiento.'
+
             if (actions?.setErrors) {
                 proxy.$handleBackendErrors(
                     error,
                     actions.setErrors,
-                    (msg) => (globalError.value = msg)
+                    (message) => {
+                        if (message) {
+                            globalError.value = message
+                        }
+                    }
                 )
-            } else {
-                showMessage("No fue posible consultar los días de entrenamiento.", 'error')
             }
         } finally {
             isLoading.value = false
@@ -242,6 +248,7 @@ export default function useAttendances() {
     const clickClassDay = async (classDay) => {
         try {
             isLoading.value = true
+            globalError.value = ''
             attendancesGroup.value = []
             playerSearchTerm.value = ''
             classDaySelected.value = classDay
@@ -270,9 +277,20 @@ export default function useAttendances() {
             attendancesGroup.value = []
             export_pdf.value = null
             export_excel.value = null
-            showMessage("Algo salió mal", 'error')
+            globalError.value = error.response?.data?.message || 'No fue posible cargar las asistencias de la clase.'
         } finally {
             isLoading.value = false
+        }
+    }
+
+    const retryLastRequest = async () => {
+        if (classDaySelected.value) {
+            await clickClassDay(classDaySelected.value)
+            return
+        }
+
+        if (lastSearchValues.value) {
+            await handleSearchClassdays(lastSearchValues.value)
         }
     }
 
@@ -510,6 +528,8 @@ export default function useAttendances() {
         classDays,
         classDaySelected,
         attendancesGroup,
+        globalError,
+        hasSearched,
         filteredAttendancesGroup,
         takeAttendance,
         retiredRowsCount,
@@ -521,6 +541,7 @@ export default function useAttendances() {
         attendanceRowReadOnly,
         applyPlayerSearch,
         handleSearchClassdays,
+        retryLastRequest,
         createMissingAttendances,
         clickClassDay,
         markAttendanceForAllLoaded,

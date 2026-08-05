@@ -1,0 +1,30 @@
+/*
+ * Cross-theme accessibility foundations.
+ *
+ * This file intentionally loads after the legacy theme so keyboard focus is
+ * not removed by component-specific rules.
+ */
+:root {
+    --golapp-text-body: #515365;
+    --golapp-text-muted: #5f6475;
+    --golapp-focus-ring: #0f1c46;
+}
+
+body.dark {
+    --golapp-text-body: #e0e6ed;
+    --golapp-text-muted: #bfc9d4;
+    --golapp-focus-ring: #ffca00;
+}
+
+body {
+    color: var(--golapp-text-body);
+}
+
+.text-muted {
+    color: var(--golapp-text-muted) !important;
+}
+
+:focus-visible {
+    outline: 3px solid var(--golapp-focus-ring) !important;
+    outline-offset: 2px !important;
+}
