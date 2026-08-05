@@ -71,7 +71,7 @@
         </div>
     </div>
 
-    <div ref="modalElement" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div ref="modalElement" class="modal fade custom-charge-modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <form @submit.prevent="submitForm">
@@ -241,7 +241,7 @@ onMounted(() => {
     if (modalElement.value) {
         modalInstance = new window.bootstrap.Modal(modalElement.value, {
             backdrop: 'static',
-            keyboard: false,
+            keyboard: true,
         })
     }
 })
@@ -250,3 +250,15 @@ onBeforeUnmount(() => {
     modalInstance?.dispose()
 })
 </script>
+
+<style scoped>
+:global(body:not(.dark) .custom-charge-modal .flatpickr-input[readonly]) {
+    background-color: #fff !important;
+    color: #515365 !important;
+}
+
+:global(body:not(.dark) .custom-charge-modal .btn-outline-secondary) {
+    border-color: #5f6475 !important;
+    color: #5f6475 !important;
+}
+</style>

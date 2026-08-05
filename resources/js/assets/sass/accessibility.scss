@@ -24,6 +24,11 @@ body {
     color: var(--golapp-text-muted) !important;
 }
 
+/* Keep small danger badges readable against their white label text (WCAG AA). */
+.badge-danger {
+    background-color: #cc3741;
+}
+
 :focus-visible {
     outline: 3px solid var(--golapp-focus-ring) !important;
     outline-offset: 2px !important;

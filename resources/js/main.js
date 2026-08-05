@@ -105,8 +105,12 @@ function modalHidden() {
 
     document.addEventListener('shown.bs.modal', (event) => {
         const modal = event.target;
+        const activeElement = document.activeElement;
 
-        if (!(modal instanceof HTMLElement) || modal.contains(document.activeElement)) {
+        if (
+            !(modal instanceof HTMLElement)
+            || (activeElement instanceof HTMLElement && activeElement !== modal && modal.contains(activeElement))
+        ) {
             return;
         }
 

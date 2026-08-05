@@ -33,20 +33,20 @@ for (const mode of ['light', 'dark']) {
 
         const colors = await page.evaluate(() => {
             const fixture = document.createElement('div');
-            fixture.style.backgroundColor = document.body.classList.contains('dark') ? '#060818' : '#f1f2f3';
             fixture.innerHTML = '<span class="text-muted">Texto secundario</span>';
             document.body.append(fixture);
 
             const bodyStyles = getComputedStyle(document.body);
-            const fixtureStyles = getComputedStyle(fixture);
             const mutedStyles = getComputedStyle(fixture.firstElementChild);
 
             return {
                 bodyText: bodyStyles.color,
-                background: fixtureStyles.backgroundColor,
+                background: bodyStyles.backgroundColor,
                 mutedText: mutedStyles.color,
             };
         });
+
+        expect(colors.background).toBe(mode === 'dark' ? 'rgb(6, 8, 24)' : 'rgb(255, 255, 255)');
 
         expect(contrastRatio(colors.bodyText, colors.background)).toBeGreaterThanOrEqual(4.5);
         expect(contrastRatio(colors.mutedText, colors.background)).toBeGreaterThanOrEqual(4.5);
