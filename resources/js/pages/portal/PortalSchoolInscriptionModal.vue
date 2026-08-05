@@ -752,7 +752,7 @@ const emailVerificationError = ref('');
 const verifiedEmailContext = ref('');
 const resendSeconds = ref(0);
 const appName = window.__APP_CONFIG__?.appName ?? 'Golapp';
-const recaptcha = useReCaptcha();
+const recaptchaClient = useReCaptcha();
 const appConfig = window.__APP_CONFIG__ ?? {};
 const autocomplete = ref({
     school: [],
@@ -1420,13 +1420,13 @@ const executeRecaptcha = async () => {
         return null;
     }
 
-    if (!recaptcha?.executeRecaptcha || !recaptcha?.recaptchaLoaded) {
+    if (!recaptchaClient?.executeRecaptcha || !recaptchaClient?.recaptchaLoaded) {
         throw new Error('No pudimos validar el captcha. Recarga la página e inténtalo nuevamente.');
     }
 
-    await recaptcha.recaptchaLoaded();
+    await recaptchaClient.recaptchaLoaded();
 
-    return recaptcha.executeRecaptcha(props.recaptcha.action || 'inscriptions');
+    return recaptchaClient.executeRecaptcha(props.recaptcha.action || 'inscriptions');
 };
 
 const buildFormData = (payload, recaptchaToken) => {

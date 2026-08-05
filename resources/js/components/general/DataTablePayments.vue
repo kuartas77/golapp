@@ -10,7 +10,7 @@
         <tbody>
 
             <tr v-for="row in rows" :key="row.id" class="text-center">
-                <td v-for="column in columns" :key="`cell-${row.id}`" >
+                <td v-for="column in columns" :key="`cell-${row.id}-${column.name}`" >
 
                     <slot v-if="getType(column, row) == 'payments-select'" name="cell" v-bind="{ column, row }">
                         <template v-if="select_type == 'tournament'">

@@ -135,7 +135,7 @@ export default defineConfig(({ mode }) => ({
         },
     },
     build: {
-        chunkSizeWarningLimit: 710,
+        chunkSizeWarningLimit: 600,
         sourcemap: mode !== 'production',
         reportCompressedSize: false,
         rollupOptions: {

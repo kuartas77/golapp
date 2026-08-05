@@ -9,7 +9,7 @@
         <tbody>
 
             <tr v-for="row in rows" :key="row.id">
-                <td v-for="column in columns" :key="`cell-${row.id}`">
+                <td v-for="column in columns" :key="`cell-${row.id}-${column.name}`">
                     <slot name="cell" v-bind="{ column, row }">
                         {{column.value(row)}}
                     </slot>

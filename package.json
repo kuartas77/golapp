@@ -1,10 +1,15 @@
 {
     "private": true,
+    "type": "module",
     "scripts": {
         "predev": "fuser -k 5173/tcp 2>/dev/null || true",
         "dev": "vite --port 5173 --strictPort",
         "build": "vite build",
         "boneyard:build": "boneyard-js build",
+        "lint": "eslint resources/js tests/e2e --max-warnings=0",
+        "quality:budgets": "node scripts/check-frontend-budgets.mjs",
+        "quality:static": "vite build && node scripts/check-frontend-budgets.mjs && eslint resources/js tests/e2e --max-warnings=0",
+        "quality:predeploy": "vite build && node scripts/check-frontend-budgets.mjs && eslint resources/js tests/e2e --max-warnings=0 && vitest run && playwright test",
         "test:e2e": "playwright test",
         "test:vue": "vitest run",
         "test:vue:watch": "vitest"
@@ -59,6 +64,9 @@
         "@vitejs/plugin-vue": "^5.2.4",
         "@vue/test-utils": "^2.4.11",
         "autoprefixer": "^10.4.21",
+        "eslint": "^10.8.0",
+        "eslint-plugin-vue": "^10.10.0",
+        "globals": "^17.9.0",
         "jsdom": "^29.1.1",
         "laravel-vite-plugin": "^1.3.0",
         "path": "^0.12.7",

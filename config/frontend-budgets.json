@@ -1,0 +1,9 @@
+{
+    "mainEntryJavascriptBytes": 327680,
+    "mainEntryJavascriptGzipBytes": 112640,
+    "initialJavascriptBytes": 675840,
+    "largestJavascriptChunkBytes": 614400,
+    "mainEntryCssBytes": 727040,
+    "mainEntryCssGzipBytes": 128000,
+    "legacyScssSourceBytes": 901120
+}
