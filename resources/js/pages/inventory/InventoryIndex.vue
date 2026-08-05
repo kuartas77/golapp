@@ -109,13 +109,13 @@
     </panel>
     <PageTutorialOverlay :tutorial="tutorial" />
 
-    <div v-if="showProductModal" class="modal fade show d-block" tabindex="-1" aria-modal="true" role="dialog">
+    <div v-if="showProductModal" ref="productDialog" class="modal fade show d-block" tabindex="-1" aria-modal="true" role="dialog" aria-labelledby="inventory-product-dialog-title">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <form @submit.prevent="saveProduct">
                     <div class="modal-header">
-                        <h5 class="modal-title">{{ productForm.id ? 'Editar producto' : 'Nuevo producto' }}</h5>
-                        <button type="button" class="btn-close" :disabled="isSaving" @click="closeProductForm"></button>
+                        <h5 id="inventory-product-dialog-title" class="modal-title">{{ productForm.id ? 'Editar producto' : 'Nuevo producto' }}</h5>
+                        <button type="button" class="btn-close" aria-label="Cerrar" :disabled="isSaving" @click="closeProductForm"></button>
                     </div>
                     <div class="modal-body">
                         <div v-if="formMessage" class="alert alert-danger" role="alert">{{ formMessage }}</div>
@@ -181,16 +181,16 @@
         </div>
     </div>
 
-    <div v-if="showMovementModal" class="modal fade show d-block" tabindex="-1" aria-modal="true" role="dialog">
+    <div v-if="showMovementModal" ref="movementDialog" class="modal fade show d-block" tabindex="-1" aria-modal="true" role="dialog" aria-labelledby="inventory-movement-dialog-title">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <form @submit.prevent="saveMovement">
                     <div class="modal-header">
                         <div>
-                            <h5 class="modal-title mb-0">Registrar movimiento</h5>
+                            <h5 id="inventory-movement-dialog-title" class="modal-title mb-0">Registrar movimiento</h5>
                             <small class="text-muted">{{ selectedProduct?.name }} | Stock actual {{ selectedProduct?.stock_quantity }}</small>
                         </div>
-                        <button type="button" class="btn-close" :disabled="isSaving" @click="closeMovementForm"></button>
+                        <button type="button" class="btn-close" aria-label="Cerrar" :disabled="isSaving" @click="closeMovementForm"></button>
                     </div>
                     <div class="modal-body">
                         <div v-if="formMessage" class="alert alert-danger" role="alert">{{ formMessage }}</div>
@@ -289,6 +289,7 @@ import { usePageTitle } from '@/composables/use-meta'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { inventoryTutorial } from '@/tutorials/operations'
+import { useDialogFocusTrap } from '@/composables/useDialogFocusTrap'
 
 const props = defineProps({
     initialTab: { type: String, default: 'products' },
@@ -305,6 +306,8 @@ const formMessage = ref('')
 const formErrors = reactive({})
 const showProductModal = ref(false)
 const showMovementModal = ref(false)
+const productDialog = ref(null)
+const movementDialog = ref(null)
 const isSaving = ref(false)
 const selectedProduct = ref(null)
 
@@ -608,6 +611,9 @@ function closeMovementForm() {
     showMovementModal.value = false
     selectedProduct.value = null
 }
+
+useDialogFocusTrap(productDialog, showProductModal, { onEscape: closeProductForm })
+useDialogFocusTrap(movementDialog, showMovementModal, { onEscape: closeMovementForm })
 
 async function saveProduct() {
     resetErrors()

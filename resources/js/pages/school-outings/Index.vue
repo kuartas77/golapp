@@ -62,13 +62,13 @@
     </panel>
     <PageTutorialOverlay :tutorial="tutorial" />
 
-    <div v-if="showForm" class="modal fade show d-block" tabindex="-1" aria-modal="true" role="dialog">
+    <div v-if="showForm" ref="outingDialog" class="modal fade show d-block" tabindex="-1" aria-modal="true" role="dialog" aria-labelledby="outing-form-title">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <form @submit.prevent="saveOuting">
                     <div class="modal-header">
-                        <h5 class="modal-title">{{ form.id ? 'Editar salida' : 'Nueva salida' }}</h5>
-                        <button type="button" class="btn-close" :disabled="saving" @click="closeForm"></button>
+                        <h5 id="outing-form-title" class="modal-title">{{ form.id ? 'Editar salida' : 'Nueva salida' }}</h5>
+                        <button type="button" class="btn-close" aria-label="Cerrar" :disabled="saving" @click="closeForm"></button>
                     </div>
                     <div class="modal-body">
                         <div v-if="formMessage" class="alert alert-danger" role="alert">{{ formMessage }}</div>
@@ -117,6 +117,7 @@ import configLanguaje from '@/utils/datatableUtils'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { schoolOutingsTutorial } from '@/tutorials/operations'
+import { useDialogFocusTrap } from '@/composables/useDialogFocusTrap'
 
 const router = useRouter()
 const tutorial = usePageTutorial(schoolOutingsTutorial)
@@ -125,6 +126,7 @@ const loading = ref(false)
 const saving = ref(false)
 const tableVersion = ref(0)
 const showForm = ref(false)
+const outingDialog = ref(null)
 const globalError = ref('')
 const formMessage = ref('')
 const formErrors = reactive({})
@@ -286,6 +288,12 @@ const openForm = (outing = null) => {
 const closeForm = () => {
     showForm.value = false
 }
+
+useDialogFocusTrap(outingDialog, showForm, {
+    onEscape: () => {
+        if (!saving.value) closeForm()
+    },
+})
 
 const goToOuting = (outing) => {
     router.push({ name: 'school-outings.show', params: { id: outing.id } })

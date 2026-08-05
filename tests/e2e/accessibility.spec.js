@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 const CHANNEL_PATTERN = /[\d.]+/g;
 
@@ -310,6 +311,24 @@ test('invoices announces a failed load and recovers with accessible row actions'
     await expect(page.getByRole('link', { name: 'Imprimir factura FAC-0042' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Revisar anulación de factura FAC-0042' })).toBeVisible();
     await expect(page.getByText('Totales de esta página:')).toBeVisible();
+
+    const axeResults = await new AxeBuilder({ page })
+        .include('[data-tour="invoices-index-table"]')
+        .analyze();
+    expect(axeResults.violations.filter(violation => ['critical', 'serious'].includes(violation.impact))).toEqual([]);
+
+    await page.setViewportSize({ width: 360, height: 800 });
+    const reflow = await page.evaluate(() => ({
+        documentWidth: document.documentElement.scrollWidth,
+        viewportWidth: window.innerWidth,
+        tableShells: Array.from(document.querySelectorAll('.app-datatable-shell')).map(shell => ({
+            clientWidth: shell.clientWidth,
+            scrollWidth: shell.scrollWidth,
+        })),
+    }));
+    expect(reflow.documentWidth).toBeLessThanOrEqual(reflow.viewportWidth + 1);
+    expect(reflow.tableShells.length).toBeGreaterThan(0);
+    expect(reflow.tableShells.every(shell => shell.clientWidth <= reflow.viewportWidth)).toBe(true);
     expect(invoicesRequestCount).toBe(2);
 });
 
@@ -526,7 +545,23 @@ test('invoice items and custom charges recover from failed table requests', asyn
     await chargeError.getByRole('button', { name: 'Reintentar' }).click();
     await expect(chargeError).toBeHidden();
     await expect(page.getByText('Deportista Cargo E2E')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Editar' })).toBeVisible();
+    const editChargeButton = page.getByRole('button', { name: 'Editar' });
+    await expect(editChargeButton).toBeVisible();
+    await editChargeButton.click();
+
+    const chargeDialog = page.getByRole('dialog', { name: 'Editar cargo personalizado' });
+    await expect(chargeDialog).toBeVisible();
+    await expect(chargeDialog).toHaveAttribute('aria-modal', 'true');
+    await expect(chargeDialog.locator(':focus')).toHaveCount(1);
+
+    const modalAxeResults = await new AxeBuilder({ page })
+        .include('.modal.show')
+        .analyze();
+    expect(modalAxeResults.violations.filter(violation => ['critical', 'serious'].includes(violation.impact))).toEqual([]);
+
+    await page.keyboard.press('Escape');
+    await expect(chargeDialog).toBeHidden();
+    await expect(editChargeButton).toBeFocused();
 
     expect(itemRequestCount).toBe(2);
     expect(chargeRequestCount).toBe(2);

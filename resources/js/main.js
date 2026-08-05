@@ -61,11 +61,85 @@ const GLOBAL_COMPONENTS = {
     Can
 };
 
+const modalFocusOrigins = new WeakMap();
+let modalAccessibilityInstalled = false;
+let modalTitleSequence = 0;
+
 function modalHidden() {
-    document.querySelectorAll('.modal').forEach((modal) => {
-        modal.addEventListener('hide.bs.modal', () => {
-            document.activeElement?.blur();
+    if (modalAccessibilityInstalled) {
+        return;
+    }
+
+    modalAccessibilityInstalled = true;
+
+    document.addEventListener('show.bs.modal', (event) => {
+        const modal = event.target;
+
+        if (!(modal instanceof HTMLElement) || !modal.classList.contains('modal')) {
+            return;
+        }
+
+        const activeElement = document.activeElement;
+        if (activeElement instanceof HTMLElement && activeElement !== document.body) {
+            modalFocusOrigins.set(modal, activeElement);
+        }
+
+        modal.setAttribute('role', modal.getAttribute('role') || 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+
+        if (!modal.hasAttribute('aria-label') && !modal.hasAttribute('aria-labelledby')) {
+            const title = modal.querySelector('.modal-title');
+            if (title) {
+                if (!title.id) {
+                    modalTitleSequence += 1;
+                    title.id = `app-modal-title-${modalTitleSequence}`;
+                }
+                modal.setAttribute('aria-labelledby', title.id);
+            }
+        }
+
+        modal.querySelectorAll('.btn-close:not([aria-label])').forEach((button) => {
+            button.setAttribute('aria-label', 'Cerrar');
         });
+    });
+
+    document.addEventListener('shown.bs.modal', (event) => {
+        const modal = event.target;
+
+        if (!(modal instanceof HTMLElement) || modal.contains(document.activeElement)) {
+            return;
+        }
+
+        const focusTarget = modal.querySelector(
+            '[autofocus], .btn-close, button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href]'
+        );
+
+        if (focusTarget instanceof HTMLElement) {
+            focusTarget.focus({ preventScroll: true });
+        }
+    });
+
+    document.addEventListener('hide.bs.modal', (event) => {
+        const modal = event.target;
+
+        if (modal instanceof HTMLElement && modal.contains(document.activeElement)) {
+            document.activeElement?.blur();
+        }
+    });
+
+    document.addEventListener('hidden.bs.modal', (event) => {
+        const modal = event.target;
+
+        if (!(modal instanceof HTMLElement)) {
+            return;
+        }
+
+        const focusOrigin = modalFocusOrigins.get(modal);
+        modalFocusOrigins.delete(modal);
+
+        if (focusOrigin?.isConnected) {
+            focusOrigin.focus({ preventScroll: true });
+        }
     });
 }
 
@@ -155,6 +229,7 @@ async function bootstrapApp() {
     registerGlobals(app, appConfig);
 
     app.mount('#app');
+    modalHidden();
 }
 
 bootstrapApp();

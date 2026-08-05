@@ -36,6 +36,7 @@
                             <div v-show="!globalError">
                             <DatatableTemplate
                                 id="custom-charges-table"
+                                aria-label="Cargos personalizados"
                                 ref="custom_charges_table"
                                 :options="options"
                             >

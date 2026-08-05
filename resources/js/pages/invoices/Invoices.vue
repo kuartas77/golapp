@@ -60,7 +60,7 @@
                     @action="reloadTable"
                 />
                 <div v-show="!globalError">
-                <DatatableTemplate :options="options" :id="'invoives_table'" ref="invoives_table" @click="onClickRow">
+                <DatatableTemplate :options="options" :id="'invoives_table'" aria-label="Facturas" ref="invoives_table" @click="onClickRow">
                 <template #thead>
                     <thead>
                         <tr>

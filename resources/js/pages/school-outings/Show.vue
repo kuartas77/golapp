@@ -226,13 +226,13 @@
         </template>
     </panel>
 
-    <div v-if="showContributionModal" class="modal fade show d-block" tabindex="-1" aria-modal="true" role="dialog">
+    <div v-if="showContributionModal" ref="contributionDialog" class="modal fade show d-block" tabindex="-1" aria-modal="true" role="dialog" aria-labelledby="contribution-dialog-title">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <form @submit.prevent="saveContribution">
                     <div class="modal-header">
-                        <h5 class="modal-title">Registrar abono</h5>
-                        <button type="button" class="btn-close" :disabled="savingContribution" @click="closeContribution"></button>
+                        <h5 id="contribution-dialog-title" class="modal-title">Registrar abono</h5>
+                        <button type="button" class="btn-close" aria-label="Cerrar" :disabled="savingContribution" @click="closeContribution"></button>
                     </div>
                     <div class="modal-body">
                         <div v-if="contributionMessage" class="alert alert-danger" role="alert">{{ contributionMessage }}</div>
@@ -280,6 +280,7 @@ import { useRoute } from 'vue-router'
 import api from '@/utils/axios'
 import CurrencyInput from '@/components/general/CurrencyInput'
 import CustomSelect2 from '@/components/form/CustomSelect2.vue'
+import { useDialogFocusTrap } from '@/composables/useDialogFocusTrap'
 
 const route = useRoute()
 const outing = ref(null)
@@ -291,6 +292,7 @@ const addingParticipants = ref(false)
 const savingActivity = ref(false)
 const savingContribution = ref(false)
 const showContributionModal = ref(false)
+const contributionDialog = ref(null)
 const contributionParticipant = ref(null)
 const globalError = ref('')
 const contributionMessage = ref('')
@@ -482,6 +484,12 @@ const openContribution = (participant) => {
 const closeContribution = () => {
     showContributionModal.value = false
 }
+
+useDialogFocusTrap(contributionDialog, showContributionModal, {
+    onEscape: () => {
+        if (!savingContribution.value) closeContribution()
+    },
+})
 
 const saveContribution = async () => {
     savingContribution.value = true

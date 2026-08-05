@@ -38,6 +38,7 @@
                 <div v-show="!globalError">
                 <DatatableTemplate
                     id="invoice_items_table"
+                    aria-label="Ítems de factura"
                     ref="invoice_items_table"
                     :options="options"
                 >
