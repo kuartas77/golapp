@@ -282,7 +282,7 @@ function applySuggestion(formation) {
     }
 }
 
-:global(.dark) .selector-label {
+:global(.dark .selector-label) {
     color: #b8d0c2;
 }
 </style>

@@ -652,7 +652,7 @@ defineExpose({
     }
 }
 
-:global(.dark) .field-card {
+:global(.dark .field-card) {
     background:
         radial-gradient(circle at top left, rgba(60, 150, 108, 0.18), transparent 30%),
         linear-gradient(180deg, #17221c 0%, #101813 100%);
@@ -660,40 +660,40 @@ defineExpose({
     box-shadow: 0 24px 54px rgba(0, 0, 0, 0.32);
 }
 
-:global(.dark) .section-kicker,
-:global(.dark) .field-copy,
-:global(.dark) .legend-item,
-:global(.dark) .stat-chip span {
+:global(.dark .section-kicker),
+:global(.dark .field-copy),
+:global(.dark .legend-item),
+:global(.dark .stat-chip span) {
     color: #a7c3b3;
 }
 
-:global(.dark) .field-title,
-:global(.dark) .stat-chip strong {
+:global(.dark .field-title),
+:global(.dark .stat-chip strong) {
     color: #eef8f1;
 }
 
-:global(.dark) .stat-chip {
+:global(.dark .stat-chip) {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(194, 227, 209, 0.1);
 }
 
-:global(.dark) .hint-pill {
+:global(.dark .hint-pill) {
     background: rgba(235, 244, 239, 0.1);
     color: #edf7f1;
     border: 1px solid rgba(199, 226, 210, 0.12);
 }
 
-:global(.dark) .field-wrapper {
+:global(.dark .field-wrapper) {
     background: #08110c;
     box-shadow: 0 28px 52px rgba(0, 0, 0, 0.42);
 }
 
-:global(.dark) .overlay-label {
+:global(.dark .overlay-label) {
     background: rgba(5, 13, 9, 0.8);
     border-color: rgba(255, 255, 255, 0.12);
 }
 
-:global(.dark) .overlay-subtitle {
+:global(.dark .overlay-subtitle) {
     color: rgba(231, 243, 236, 0.82);
 }
 </style>

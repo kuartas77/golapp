@@ -1048,8 +1048,8 @@ function reloadTable(resetPaging = false) {
     --methodology-muted: #{color_variables.$m-color_6};
 }
 
-:global(.dark) .methodology-empty,
-:global(body.dark) .methodology-empty {
+:global(.dark .methodology-empty),
+:global(body.dark .methodology-empty) {
     --methodology-border: #{color_variables.$m-color_12};
     --methodology-border-strong: #{color_variables.$m-color_12};
     --methodology-heading-bg: #{color_variables.$m-color_18};
@@ -1060,8 +1060,8 @@ function reloadTable(resetPaging = false) {
 }
 
 .methodology-modal--dark,
-:global(.dark) .methodology-modal,
-:global(body.dark) .methodology-modal,
+:global(.dark .methodology-modal),
+:global(body.dark .methodology-modal),
 .methodology-modal--dark .methodology-section {
     --methodology-border: #{color_variables.$m-color_12};
     --methodology-border-strong: #{color_variables.$m-color_12};

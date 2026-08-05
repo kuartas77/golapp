@@ -59,19 +59,17 @@ const props = defineProps({
     }
 }
 
-:global(body.dark) {
-    .loading-overlay {
-        background: rgba(6, 8, 24, 0.88);
-    }
+:global(body.dark .loading-overlay) {
+    background: rgba(6, 8, 24, 0.88);
+}
 
-    .spinner {
-        border-color: rgba(255, 255, 255, 0.2);
-        border-top-color: #ffca00;
-    }
+:global(body.dark .loading-overlay .spinner) {
+    border-color: rgba(255, 255, 255, 0.2);
+    border-top-color: #ffca00;
+}
 
-    .loading-text {
-        color: var(--golapp-text-body, #e0e6ed);
-    }
+:global(body.dark .loading-overlay .loading-text) {
+    color: var(--golapp-text-body, #e0e6ed);
 }
 
 @media (prefers-reduced-motion: reduce) {

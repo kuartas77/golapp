@@ -416,21 +416,21 @@ const tutorial = usePageTutorial(playerStatsDetailTutorial)
     text-align: center;
 }
 
-:global(.dark) .surface-card {
+:global(.dark .surface-card) {
     background: rgba(27, 46, 75, 0.4);
     border-color: #1b2e4b;
     box-shadow: none;
 }
 
-:global(.dark) .surface-card-header {
+:global(.dark .surface-card-header) {
     border-bottom-color: rgba(136, 142, 168, 0.18);
 }
 
-:global(.dark) .summary-item {
+:global(.dark .summary-item) {
     background: rgba(255, 255, 255, 0.05);
 }
 
-:global(.dark) .theme-chip {
+:global(.dark .theme-chip) {
     background: rgba(0, 150, 136, 0.16);
     border-color: rgba(37, 213, 228, 0.2);
     color: #25d5e4;

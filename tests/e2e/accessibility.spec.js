@@ -232,6 +232,10 @@ test('monthly payments starts with guidance instead of an empty table', async ({
 test('invoices announces a failed load and recovers with accessible row actions', async ({ page }) => {
     let invoicesRequestCount = 0;
 
+    await page.addInitScript(() => {
+        localStorage.setItem('dark_mode', 'dark');
+    });
+
     await page.route('**/api/v2/user', route => route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -302,6 +306,17 @@ test('invoices announces a failed load and recovers with accessible row actions'
     await page.goto('/facturas');
 
     await expect(page.getByRole('heading', { level: 1, name: 'Facturas' })).toBeVisible();
+    await expect(page.locator('body')).toHaveClass(/dark/);
+    await expect.poll(() => page.locator('body').evaluate(element => getComputedStyle(element).backgroundColor))
+        .toBe('rgb(6, 8, 24)');
+    await expect.poll(() => page.locator('.sidebar-wrapper').evaluate(element => getComputedStyle(element).backgroundColor))
+        .not.toBe('rgb(255, 255, 255)');
+
+    await page.evaluate(() => {
+        localStorage.setItem('dark_mode', 'light');
+        document.body.classList.remove('dark');
+    });
+    await expect(page.locator('body')).not.toHaveClass(/dark/);
     const errorState = page.getByRole('alert').filter({ hasText: 'El servicio de facturación no está disponible.' });
     await expect(errorState).toBeVisible();
     await errorState.getByRole('button', { name: 'Reintentar' }).click();

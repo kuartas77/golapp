@@ -342,6 +342,21 @@ onMounted(async () => {
     border-color: #f3b8b8;
 }
 
+:global(body.dark .inscription-limit-banner) {
+    background: #142b25;
+    border-color: #2b6b51;
+    color: #e0e6ed;
+}
+
+:global(body.dark .inscription-limit-banner .text-muted) {
+    color: #bfc9d4 !important;
+}
+
+:global(body.dark .inscription-limit-banner.is-full) {
+    background: #2b1720;
+    border-color: #713442;
+}
+
 @media (max-width: 575.98px) {
     .inscription-limit-banner {
         align-items: flex-start;

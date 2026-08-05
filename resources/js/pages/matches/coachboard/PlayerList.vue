@@ -119,26 +119,26 @@ function onSelectPlayer(player) {
     cursor: -webkit-grabbing;
 }
 
-:global(.dark) .player-card {
+:global(.dark .player-card) {
     background: rgba(255, 255, 255, 0.04);
 }
 
-:global(.dark) .selected-player-banner {
+:global(.dark .selected-player-banner) {
     background: rgba(170, 214, 189, 0.08);
     border-color: rgba(170, 214, 189, 0.16) !important;
     color: #eef8f1;
 }
 
-:global(.dark) .player-card.is-selected {
+:global(.dark .player-card.is-selected) {
     background: rgba(170, 214, 189, 0.12);
     border-color: rgba(170, 214, 189, 0.34) !important;
 }
 
-:global(.dark) .player-card:hover {
+:global(.dark .player-card:hover) {
     box-shadow: 0 16px 28px rgba(0, 0, 0, 0.22);
 }
 
-:global(.dark) .empty-state {
+:global(.dark .empty-state) {
     background: rgba(255, 255, 255, 0.04);
 }
 </style>

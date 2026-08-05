@@ -416,26 +416,26 @@ const tutorial = usePageTutorial(topPlayersTutorial)
     text-align: center;
 }
 
-:global(.dark) .surface-card,
-:global(.dark) .rated-card {
+:global(.dark .surface-card),
+:global(.dark .rated-card) {
     background: rgba(27, 46, 75, 0.4);
     border-color: #1b2e4b;
     box-shadow: none;
 }
 
-:global(.dark) .surface-card-header {
+:global(.dark .surface-card-header) {
     border-bottom-color: rgba(136, 142, 168, 0.18);
 }
 
-:global(.dark) .podium-row {
+:global(.dark .podium-row) {
     background: rgba(25, 135, 84, 0.14);
 }
 
-:global(.dark) .rank-chip {
+:global(.dark .rank-chip) {
     background: rgba(13, 110, 253, 0.18);
 }
 
-:global(.dark) .rank-chip-info {
+:global(.dark .rank-chip-info) {
     background: rgba(13, 202, 240, 0.2);
 }
 </style>

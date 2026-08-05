@@ -43,11 +43,11 @@ const props = defineProps({ bench: { type: Array, required: true } })
     border-radius: 50%;
 }
 
-:global(.dark) .bench-player {
+:global(.dark .bench-player) {
     background: rgba(255, 255, 255, 0.04);
 }
 
-:global(.dark) .bench-empty {
+:global(.dark .bench-empty) {
     background: rgba(255, 255, 255, 0.04);
 }
 </style>

@@ -120,13 +120,13 @@ const summaryCards = computed(() => [
     text-align: center;
 }
 
-:global(.dark) .surface-card {
+:global(.dark .surface-card) {
     background: rgba(27, 46, 75, 0.4);
     border-color: #1b2e4b;
     box-shadow: none;
 }
 
-:global(.dark) .surface-card-header {
+:global(.dark .surface-card-header) {
     border-bottom-color: rgba(136, 142, 168, 0.18);
 }
 </style>

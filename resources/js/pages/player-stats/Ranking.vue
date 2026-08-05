@@ -372,22 +372,22 @@ const tutorial = usePageTutorial(playerStatsRankingTutorial)
     text-align: center;
 }
 
-:global(.dark) .surface-card {
+:global(.dark .surface-card) {
     background: rgba(27, 46, 75, 0.4);
     border-color: #1b2e4b;
     box-shadow: none;
 }
 
-:global(.dark) .surface-card-header {
+:global(.dark .surface-card-header) {
     border-bottom-color: rgba(136, 142, 168, 0.18);
 }
 
-:global(.dark) .rule-pill {
+:global(.dark .rule-pill) {
     background: rgba(13, 110, 253, 0.12);
     border-color: rgba(37, 213, 228, 0.18);
 }
 
-:global(.dark) .theme-chip {
+:global(.dark .theme-chip) {
     background: rgba(0, 150, 136, 0.16);
     border-color: rgba(37, 213, 228, 0.2);
     color: #25d5e4;

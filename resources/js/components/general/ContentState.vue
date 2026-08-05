@@ -143,23 +143,23 @@ const iconClass = computed(() => icons[props.type] ?? '');
     margin-top: 0.9rem;
 }
 
-:global(body.dark) .content-state {
+:global(body.dark .content-state) {
     --content-state-accent: #ffca00;
     --content-state-background: #161a2d;
     --content-state-border: #343a55;
 }
 
-:global(body.dark) .content-state__icon {
+:global(body.dark .content-state__icon) {
     background: rgba(255, 202, 0, 0.1);
 }
 
-:global(body.dark) .content-state--error {
+:global(body.dark .content-state--error) {
     --content-state-accent: #ff9da8;
     --content-state-background: #2b1720;
     --content-state-border: #713442;
 }
 
-:global(body.dark) .content-state--error .content-state__icon {
+:global(body.dark .content-state--error .content-state__icon) {
     background: rgba(255, 157, 168, 0.12);
 }
 

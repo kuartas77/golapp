@@ -1095,8 +1095,8 @@ onBeforeUnmount(revokePhotoPreview);
     --guardian-player-detail-secondary-border: #d3d6d8;
 }
 
-:global(.dark) .guardian-player-detail,
-:global(body.dark) .guardian-player-detail {
+:global(.dark .guardian-player-detail),
+:global(body.dark .guardian-player-detail) {
     --guardian-player-detail-surface: rgba(27, 46, 75, 0.42);
     --guardian-player-detail-surface-soft: rgba(27, 46, 75, 0.34);
     --guardian-player-detail-surface-subtle: rgba(16, 27, 45, 0.88);

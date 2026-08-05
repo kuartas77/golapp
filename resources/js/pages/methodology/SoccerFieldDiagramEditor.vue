@@ -564,8 +564,8 @@ function normalizeRotation(rotation) {
     gap: 0.5rem;
 }
 
-:global(.dark) .field-editor,
-:global(body.dark) .field-editor {
+:global(.dark .field-editor),
+:global(body.dark .field-editor) {
     --field-editor-border: #{color_variables.$m-color_12};
     --field-editor-label: #{color_variables.$m-color_4};
     --field-editor-surface: #{color_variables.$m-color_10};
