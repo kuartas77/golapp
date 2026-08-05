@@ -488,6 +488,10 @@
                             >
                                 Cambiar selección
                             </button>
+                            <span v-if="isEvaluationDirty" class="text-warning align-self-center" role="status">
+                                <i class="fa fa-circle-exclamation me-1" aria-hidden="true"></i>
+                                Cambios sin guardar
+                            </span>
                         </div>
 
                         <div class="d-flex flex-wrap gap-2">
@@ -533,6 +537,7 @@ import {
     toQueryObject,
 } from '@/pages/player-evaluations/utils'
 import { playerEvaluationsEditorTutorial } from '@/tutorials/playerEvaluations'
+import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
 
 const route = useRoute()
 const router = useRouter()
@@ -588,6 +593,7 @@ const form = reactive({
 
 const scoreForm = reactive({})
 const expandedDimensions = ref([])
+const savedEvaluationSignature = ref('')
 
 const isEditMode = computed(() => Boolean(route.params.id))
 const tutorial = usePageTutorial(playerEvaluationsEditorTutorial, {
@@ -595,6 +601,17 @@ const tutorial = usePageTutorial(playerEvaluationsEditorTutorial, {
     isEditMode,
 })
 const isReadOnly = computed(() => Boolean(loadedEvaluation.value?.is_closed || loadedEvaluation.value?.period_locked))
+const evaluationSignature = () => JSON.stringify(buildPayload())
+const isEvaluationDirty = computed(() => (
+    formReady.value
+    && !isReadOnly.value
+    && evaluationSignature() !== savedEvaluationSignature.value
+))
+const { confirmDiscardChanges, skipGuardOnce } = useUnsavedChangesGuard({
+    isDirty: isEvaluationDirty,
+    isSaving: isSubmitting,
+    message: 'Los puntajes, comentarios y cambios de la evaluación se perderán.',
+})
 
 const dimensionEntries = computed(() => Object.entries(formContext.criteria_by_dimension || {}))
 
@@ -726,6 +743,7 @@ function resetFormState() {
     formContext.template = null
     formContext.criteria_by_dimension = {}
     expandedDimensions.value = []
+    savedEvaluationSignature.value = ''
 
     form.evaluation_type = 'periodic'
     form.status = 'draft'
@@ -834,6 +852,7 @@ function applyPayload(payload) {
     initializeScores(formContext.criteria_by_dimension, payload.existingScores || {})
     resetExpandedDimensions(formContext.criteria_by_dimension)
     formReady.value = true
+    savedEvaluationSignature.value = evaluationSignature()
 }
 
 async function loadCreateForm() {
@@ -912,7 +931,11 @@ function resetSetup() {
     })
 }
 
-function changeSelection() {
+async function changeSelection() {
+    if (!await confirmDiscardChanges()) {
+        return
+    }
+
     resetSetup()
 }
 
@@ -982,6 +1005,7 @@ async function submitEvaluation() {
 
         const evaluationId = response.data?.data?.id || route.params.id
         showMessage(isEditMode.value ? 'Evaluación actualizada correctamente.' : 'Evaluación creada correctamente.')
+        skipGuardOnce()
         router.push({ name: 'player-evaluations.show', params: { id: evaluationId } })
     } catch (error) {
         showMessage(getValidationMessage(error, 'No se pudo guardar la evaluación.'), 'error')

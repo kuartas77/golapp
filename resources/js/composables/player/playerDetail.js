@@ -6,6 +6,7 @@ import { usePageTitle } from "@/composables/use-meta";
 import api from "@/utils/axios";
 import { Spanish } from "flatpickr/dist/l10n/es.js"
 import { useRoute, useRouter } from 'vue-router'
+import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
 
 export default function usePlayerDetail() {
     const DEFAULT_GUARDIAN_RELATIONSHIP = '30'
@@ -177,6 +178,12 @@ export default function usePlayerDetail() {
     // Computed: schema by step
     const schema = computed(() => schemas[step.value])
     const hasGeneralErrors = computed(() => Boolean(globalError.value) || formErrorSummary.value.length > 0)
+    const hasUnsavedChanges = computed(() => Boolean(formPlayer.value?.meta?.dirty))
+    const { skipGuardOnce } = useUnsavedChangesGuard({
+        isDirty: hasUnsavedChanges,
+        isSaving: isLoading,
+        message: 'Los cambios realizados en la información del deportista se perderán.',
+    })
 
     // Configuration wizard
     const wizardOptions = (validateFn) => ({
@@ -357,6 +364,7 @@ export default function usePlayerDetail() {
 
             if (response.data.success) {
                 showMessage('Guardado correctamente.')
+                skipGuardOnce()
                 router.push({ name: 'players' })
             }
 
@@ -442,6 +450,8 @@ export default function usePlayerDetail() {
                     business_0: guardian?.business ?? null,
                 })
             }
+
+            formPlayer.value?.resetForm({ values: { ...formPlayer.value.values } })
         } catch (error) {
             console.warn(error)
             globalError.value = error.response?.data?.message || 'No fue posible cargar la información del deportista.'
@@ -468,6 +478,7 @@ export default function usePlayerDetail() {
         globalError,
         formErrorSummary,
         hasGeneralErrors,
+        hasUnsavedChanges,
         goToStep,
     }
 }

@@ -27,7 +27,11 @@
                         <h6 class="d-flex block-helper justify-content-center">Los campos con <span
                                 class="text-danger">&ensp;(*)&ensp;</span> son requeridos.</h6>
 
-                        <div class="d-flex justify-content-end ">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <span v-if="hasUnsavedChanges" class="text-warning" role="status">
+                                <i class="fa fa-circle-exclamation me-1" aria-hidden="true"></i>
+                                Cambios sin guardar
+                            </span>
                             <div class="d-flex flex-wrap gap-2">
                                 <button type="button" class="btn btn-success btn-sm" :disabled="isGeneratingClearance"
                                     @click="generateFinancialClearance(playerUniqueCode)">
@@ -266,7 +270,7 @@ const route = useRoute()
 const showAttendanceQr = ref(false)
 const playerUniqueCode = computed(() => String(route.params.unique_code || ''))
 const { isGeneratingClearance, generateFinancialClearance } = useFinancialClearance()
-const { globalError, onSubmit, wizardOptions, currentTextPlayer, step, initialValues, flatpickrConfig, settings, schema, degrees, loadingText, isLoading, guardianPortalEnabled, formErrorSummary, hasGeneralErrors, goToStep } = usePlayerDetail()
+const { globalError, onSubmit, wizardOptions, currentTextPlayer, step, initialValues, flatpickrConfig, settings, schema, degrees, loadingText, isLoading, guardianPortalEnabled, formErrorSummary, hasGeneralErrors, hasUnsavedChanges, goToStep } = usePlayerDetail()
 const tutorial = usePageTutorial(playerDetailTutorial, {
     goToStep,
 })

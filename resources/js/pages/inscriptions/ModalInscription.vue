@@ -6,7 +6,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="modalInscription">{{ isEditing ? 'Modificar inscripción' : 'Inscripción' }}</h5>
-                        <button type="button" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"
+                        <button type="button" aria-label="Cerrar"
                             class="btn-close" @click="onCancel"></button>
                     </div>
                     <div class="modal-body">
@@ -283,6 +283,10 @@
                         </div>
                     </div>
                     <div class="modal-footer">
+                        <span v-if="isInscriptionDirty" class="text-warning me-auto" role="status">
+                            <i class="fa fa-circle-exclamation me-1" aria-hidden="true"></i>
+                            Cambios sin guardar
+                        </span>
                         <button type="button" class="btn" :disabled="isSubmitting" @click="onCancel">Cerrar</button>
                         <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
                             {{ isSubmitting ? 'Guardando...' : 'Guardar' }}
@@ -313,6 +317,7 @@ import { useSetting } from "@/store/settings-store";
 import { useAuthUser } from '@/store/auth-user'
 import { SCHOOL_PERMISSION_KEYS } from '@/config/school-permissions'
 import CurrencyInput from '@/components/general/CurrencyInput';
+import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard';
 
 const props = defineProps({
     inscription_id: {
@@ -350,6 +355,8 @@ const customChargeRows = ref([]);
 const customChargesLoading = ref(false);
 const customChargesDueDate = ref(dayjs().add(15, 'day').format('YYYY-MM-DD'));
 const customChargeRemovalIds = ref([]);
+const customChargeBaseline = ref('');
+const isModalOpen = ref(false);
 const editIdentifier = computed(() => props.inscription_id ?? props.unique_code);
 const isEditing = computed(() => editIdentifier.value !== null);
 const canManageCustomCharges = computed(() => auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.billing));
@@ -549,6 +556,33 @@ const defaultValues = () => ({
 
 const initialData = defaultValues();
 
+const customChargeSignature = computed(() => JSON.stringify({
+    dueDate: customChargesDueDate.value,
+    removalIds: [...customChargeRemovalIds.value].sort((left, right) => left - right),
+    rows: customChargeRows.value.map((row) => ({
+        id: row.id,
+        catalogId: row.invoice_custom_item_id,
+        selected: Boolean(row.selected),
+        value: Number(row.value || 0),
+        status: row.status,
+    })),
+}));
+const isInscriptionDirty = computed(() => (
+    isModalOpen.value
+    && (
+        Boolean(form.value?.meta?.dirty)
+        || customChargeSignature.value !== customChargeBaseline.value
+    )
+));
+const { confirmDiscardChanges } = useUnsavedChangesGuard({
+    isDirty: isInscriptionDirty,
+    message: 'Los cambios realizados en la inscripción y sus cargos personalizados se perderán.',
+});
+
+const markCurrentStateAsSaved = () => {
+    customChargeBaseline.value = customChargeSignature.value
+}
+
 const schema = yup.object().shape({
     player_id: yup.string().nullable(),
     unique_code: yup.string().required('Ingresa un código único'),
@@ -579,15 +613,21 @@ const resetFormState = () => {
     customChargeRemovalIds.value = []
     customChargesDueDate.value = dayjs().add(15, 'day').format('YYYY-MM-DD')
     rebuildCustomChargeRows()
+    markCurrentStateAsSaved()
     globalError.value = null
 }
 
 const closeModal = () => {
+    isModalOpen.value = false
     modalHidden()
     composeModalInscription.value?.hide()
 }
 
-const onCancel = () => {
+const onCancel = async () => {
+    if (!await confirmDiscardChanges()) {
+        return
+    }
+
     resetFormState()
     closeModal()
     emit("cancel")
@@ -605,9 +645,11 @@ const search = async (query) => {
     return response.data.data ?? []
 }
 
-const openCreateModal = () => {
+const openCreateModal = async () => {
     resetFormState()
-    loadCustomChargeData()
+    await loadCustomChargeData()
+    markCurrentStateAsSaved()
+    isModalOpen.value = true
     composeModalInscription.value?.show()
 }
 
@@ -648,6 +690,9 @@ const loadInscriptionForEdit = async (inscriptionId) => {
             pre_inscription: normalizeBoolean(data.pre_inscription),
         })
 
+        form.value.resetForm({ values: { ...form.value.values } })
+        markCurrentStateAsSaved()
+        isModalOpen.value = true
         composeModalInscription.value?.show()
     } catch (error) {
         showMessage("No se pudo cargar la inscripción.", 'error')
@@ -995,6 +1040,7 @@ onMounted(async () => {
     await settings.getSettings()
     await loadCustomChargeCatalog()
     rebuildCustomChargeRows()
+    markCurrentStateAsSaved()
 })
 
 onBeforeUnmount(() => {
