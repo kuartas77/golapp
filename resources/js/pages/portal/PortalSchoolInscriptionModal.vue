@@ -637,6 +637,7 @@ import * as yup from 'yup';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { ErrorMessage, Field, useForm } from 'vee-validate';
 import { useReCaptcha } from 'vue-recaptcha-v3';
+import dayjs from '@/utils/dayjs';
 import Loader from '@/components/general/Loader.vue';
 import InputField from '@/components/form/Input.vue';
 import InputFileImage from '@/components/form/FileInputImage.vue';
@@ -887,20 +888,6 @@ const parseDate = (value) => {
     return new Date(year, month - 1, day);
 };
 
-const formatDate = (value) => {
-    const date = value instanceof Date ? value : new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return '';
-    }
-
-    const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, '0');
-    const day = `${date.getDate()}`.padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
-};
-
 const normalizeDate = (value) => {
     const match = String(value ?? '').match(/^(\d{4}-\d{2}-\d{2})/);
     return match ? match[1] : '';
@@ -934,11 +921,11 @@ const toOptions = (options, { useArrayIndexAsValue = false } = {}) => {
     }));
 };
 
-const today = new Date();
-const minBirthDateValue = new Date(today.getFullYear() - 20, today.getMonth(), today.getDate());
-const maxBirthDateValue = new Date(today.getFullYear() - 3, today.getMonth(), today.getDate());
-const minBirthDate = formatDate(minBirthDateValue);
-const maxBirthDate = formatDate(maxBirthDateValue);
+const today = dayjs();
+const minBirthDateValue = today.subtract(20, 'year').startOf('year').toDate();
+const maxBirthDateValue = today.subtract(3, 'year').endOf('year').toDate();
+const minBirthDate = dayjs(minBirthDateValue).format('YYYY-MM-DD');
+const maxBirthDate = dayjs(maxBirthDateValue).format('YYYY-MM-DD');
 
 const fileExtension = (file) => {
     const fileName = String(file?.name ?? '');

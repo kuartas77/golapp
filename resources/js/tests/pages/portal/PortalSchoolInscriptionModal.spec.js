@@ -389,6 +389,15 @@ describe('PortalSchoolInscriptionModal', () => {
         vi.useRealTimers();
     });
 
+    it('permite fechas de nacimiento de los años límite completos', async () => {
+        const { wrapper } = await mountModal();
+        const currentYear = new Date().getFullYear();
+        const dateBirthInput = wrapper.get('input[name="date_birth"]');
+
+        expect(dateBirthInput.attributes('min')).toBe(`${currentYear - 20}-01-01`);
+        expect(dateBirthInput.attributes('max')).toBe(`${currentYear - 3}-12-31`);
+    });
+
     it('siempre muestra la autorización de tratamiento de datos aunque no haya contratos', async () => {
         const { wrapper } = await mountModal();
 
