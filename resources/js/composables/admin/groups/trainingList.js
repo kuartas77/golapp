@@ -18,7 +18,7 @@ export default function useTrainingList(table) {
     const columns = [
         { data: 'id', width: '1%', title: 'ID', render: '#link', searchable: false, orderable: true },
         { data: 'name', title: 'Nombre', searchable: true, orderable: true },
-        { data: 'stage', title: 'Escenario', name: 'roles.name', searchable: true, orderable: true },
+        { data: 'stage', title: 'Escenario', name: 'training_groups.stage', searchable: true, orderable: true },
         { data: 'is_complementary', title: 'Tipo', searchable: false, orderable: true, render: (data) => data ? '<span class="badge bg-info">Complementario</span>' : '<span class="badge bg-secondary">Principal</span>' },
         { data: 'category', title: 'Categorías', searchable: true, orderable: false },
         { data: 'members_count', title: 'Integrantes', searchable: false, orderable: true },

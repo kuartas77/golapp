@@ -16,7 +16,7 @@ export default function useUsersList() {
     )
 
     const columns = [
-        { data: 'user_name', title: 'Nombres', searchable: true, orderable: true },
+        { data: 'user_name', title: 'Nombres', name: 'users.name', searchable: true, orderable: true },
         { data: 'role_name', title: 'Perfil', name: 'roles.name', searchable: true, orderable: true },
         { data: 'email', title: 'Correo', searchable: true, orderable: false },
         { data: 'created_at', title: 'Registro', name: 'users.created_at', render: '#date', searchable: false, orderable: false },
