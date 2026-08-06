@@ -567,7 +567,10 @@ describe('PortalSchoolInscriptionModal', () => {
         await fillGeneralStep(wrapper);
         await setWizardStep(wrapper, 2);
 
-        expect(wrapper.find('input[name="tutor_doc_exp"]').exists()).toBe(true);
+        const documentExpeditionInput = wrapper.get('input[name="tutor_doc_exp"]');
+
+        expect(documentExpeditionInput.attributes('list')).toBe('place-birth-list');
+        expect(wrapper.get('#place-birth-list option').attributes('value')).toBe('Bogota');
 
         await setFieldValue(wrapper, 'tutor_name', 'Acudiente Demo');
         await setFieldValue(wrapper, 'tutor_num_doc', '90123456');
