@@ -9,10 +9,93 @@ use App\Models\InscriptionCustomCharge;
 use App\Models\InvoiceCustomItem;
 use App\Models\Player;
 use App\Models\School;
+use App\Service\Inscription\InscriptionCustomChargeService;
 use Tests\TestCase;
 
 final class InscriptionCustomChargesTest extends TestCase
 {
+    public function test_service_creates_each_active_catalog_charge_only_once(): void
+    {
+        $school = School::query()->findOrFail($this->school['id']);
+        $existingCharge = $this->createCharge(
+            $school,
+            now()->year,
+            InscriptionCustomCharge::STATUS_PENDING,
+            'Cargo inicial'
+        );
+        $catalogItem = InvoiceCustomItem::query()->create([
+            'type' => 'OTHER',
+            'name' => 'Transporte',
+            'unit_price' => 35000,
+            'school_id' => $school->id,
+        ]);
+        $payload = [[
+            'invoice_custom_item_id' => $catalogItem->id,
+            'value' => 32000,
+            'due_date' => now()->addDays(10)->toDateString(),
+        ]];
+
+        $this->actingAs($this->user);
+        $service = app(InscriptionCustomChargeService::class);
+        $service->sync($existingCharge->inscription, $payload);
+        $service->sync($existingCharge->inscription, $payload);
+
+        $this->assertDatabaseCount('inscription_custom_charges', 2);
+        $this->assertDatabaseHas('inscription_custom_charges', [
+            'school_id' => $school->id,
+            'inscription_id' => $existingCharge->inscription_id,
+            'invoice_custom_item_id' => $catalogItem->id,
+            'name' => 'Transporte',
+            'value' => 32000,
+            'status' => InscriptionCustomCharge::STATUS_PENDING,
+        ]);
+    }
+
+    public function test_service_updates_and_deletes_only_mutable_charges(): void
+    {
+        $school = School::query()->findOrFail($this->school['id']);
+        $pendingCharge = $this->createCharge(
+            $school,
+            now()->year,
+            InscriptionCustomCharge::STATUS_PENDING,
+            'Cargo editable'
+        );
+        $paidCharge = $this->createCharge(
+            $school,
+            now()->year,
+            InscriptionCustomCharge::STATUS_PAID,
+            'Cargo pagado'
+        );
+
+        $this->actingAs($this->user);
+        $service = app(InscriptionCustomChargeService::class);
+        $service->sync($pendingCharge->inscription, [[
+            'id' => $pendingCharge->id,
+            'value' => 41000,
+            'due_date' => now()->addMonth()->toDateString(),
+        ]]);
+        $service->sync($pendingCharge->inscription, [[
+            'id' => $pendingCharge->id,
+            '_delete' => true,
+        ]]);
+        $service->sync($paidCharge->inscription, [[
+            'id' => $paidCharge->id,
+            'value' => 1,
+            '_delete' => true,
+        ]]);
+
+        $this->assertSoftDeleted('inscription_custom_charges', [
+            'id' => $pendingCharge->id,
+            'value' => 41000,
+        ]);
+        $this->assertDatabaseHas('inscription_custom_charges', [
+            'id' => $paidCharge->id,
+            'value' => 25000,
+            'status' => InscriptionCustomCharge::STATUS_PAID,
+            'deleted_at' => null,
+        ]);
+    }
+
     public function test_index_returns_datatable_payload_with_visible_custom_charges(): void
     {
         $school = School::query()->findOrFail($this->school['id']);
