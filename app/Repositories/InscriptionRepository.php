@@ -231,6 +231,8 @@ class InscriptionRepository
                 $this->preserveMonthlyPaymentData($requestData, $inscription);
             }
 
+            $shouldApplyScholarshipPayments = ! (bool) $inscription->scholarship
+                && (bool) data_get($requestData, 'scholarship', false);
             $customCharges = $requestData['custom_charges'] ?? [];
             $complementaryGroupIds = $requestData['complementary_group_ids'] ?? [];
             unset($requestData['custom_charges'], $requestData['custom_charges_due_date'], $requestData['recalculate_monthly_payments'], $requestData['complementary_group_ids']);
@@ -245,8 +247,14 @@ class InscriptionRepository
             $result = $inscription->update($requestData);
             $this->syncComplementaryGroupIds($inscription->fresh(), $complementaryGroupIds);
 
-            if ($result && $shouldRecalculateMonthlyPayments) {
-                $this->recalculateCollectibleMonthlyPaymentAmounts($inscription->fresh());
+            if ($result) {
+                $freshInscription = $inscription->fresh();
+
+                if ($shouldApplyScholarshipPayments) {
+                    $this->applyScholarshipMonthlyPayments($freshInscription);
+                } elseif ($shouldRecalculateMonthlyPayments) {
+                    $this->recalculateCollectibleMonthlyPaymentAmounts($freshInscription);
+                }
             }
 
             $this->syncCustomCharges($inscription->fresh(), $customCharges);
@@ -268,6 +276,89 @@ class InscriptionRepository
         $requestData['monthly_payment_type'] = $inscription->monthly_payment_type;
         $requestData['monthly_payment_amount'] = $inscription->monthly_payment_amount;
         $requestData['brother_payment'] = $inscription->brother_payment;
+    }
+
+    private function applyScholarshipMonthlyPayments(Inscription $inscription): void
+    {
+        $payment = $inscription->payments()
+            ->where('year', $inscription->year)
+            ->first();
+
+        if (! $payment) {
+            return;
+        }
+
+        $startDate = Carbon::parse($inscription->start_date);
+        $preservedStatuses = [
+            Payment::$paid,
+            Payment::$paid_cash,
+            Payment::$paid_deposit,
+            Payment::$annuity_payment_deposit,
+            Payment::$annuity_payment_cash,
+            Payment::$paid_player_credit,
+            Payment::$temporary_retirement,
+            Payment::$permanent_retirement,
+        ];
+        $changes = [];
+
+        $this->collectScholarshipPaymentChange($payment, 'enrollment', $preservedStatuses, $changes);
+
+        foreach (config('variables.KEY_INDEX_MONTHS', []) as $monthNumber => $field) {
+            if ((int) $payment->year === (int) $startDate->year && (int) $monthNumber < (int) $startDate->month) {
+                continue;
+            }
+
+            $this->collectScholarshipPaymentChange($payment, $field, $preservedStatuses, $changes);
+        }
+
+        if ($changes === []) {
+            return;
+        }
+
+        $payment->save();
+
+        foreach ($changes as $field => $change) {
+            PaymentChangeLog::query()->create([
+                'school_id' => $payment->school_id,
+                'payment_id' => $payment->id,
+                'inscription_id' => $payment->inscription_id,
+                'changed_by' => auth()->id(),
+                'year' => $payment->year,
+                'field' => $field,
+                'old_status' => $change['old_status'],
+                'new_status' => Payment::$scholarship_recipient,
+                'old_amount' => $change['old_amount'],
+                'new_amount' => 0,
+                'source' => 'inscription_scholarship',
+            ]);
+        }
+    }
+
+    private function collectScholarshipPaymentChange(Payment $payment, string $field, array $preservedStatuses, array &$changes): void
+    {
+        if (in_array((int) $payment->{$field}, $preservedStatuses, true)) {
+            return;
+        }
+
+        $amountField = Payment::amountFieldFor($field);
+
+        if (! $amountField) {
+            return;
+        }
+
+        $oldStatus = (int) $payment->{$field};
+        $oldAmount = (int) $payment->{$amountField};
+
+        if ($oldStatus === Payment::$scholarship_recipient && $oldAmount === 0) {
+            return;
+        }
+
+        $changes[$field] = [
+            'old_status' => $oldStatus,
+            'old_amount' => $oldAmount,
+        ];
+        $payment->{$field} = Payment::$scholarship_recipient;
+        $payment->{$amountField} = 0;
     }
 
     private function recalculateCollectibleMonthlyPaymentAmounts(Inscription $inscription): void

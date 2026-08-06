@@ -119,7 +119,7 @@ class PaymentMutationService
             ->map(fn (PaymentChangeLog $log) => [
                 'id' => $log->id,
                 'field' => $log->field,
-                'month_label' => config("variables.KEY_INDEX_MONTHS_LABEL.{$log->field}", $log->field),
+                'month_label' => $this->paymentFieldLabel($log->field),
                 'old_status' => $log->old_status,
                 'new_status' => $log->new_status,
                 'old_status_label' => config("variables.KEY_PAYMENTS_SELECT.{$log->old_status}", (string) $log->old_status),
@@ -423,6 +423,13 @@ class PaymentMutationService
         return $field === 'enrollment'
             ? $defaults['inscription']
             : $defaults['monthly'];
+    }
+
+    private function paymentFieldLabel(string $field): string
+    {
+        return $field === 'enrollment'
+            ? 'Matrícula'
+            : config("variables.KEY_INDEX_MONTHS_LABEL.{$field}", $field);
     }
 
     private function normalizeStatusValue($status): int

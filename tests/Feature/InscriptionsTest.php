@@ -1010,6 +1010,119 @@ final class InscriptionsTest extends TestCase
         ]);
     }
 
+    public function test_update_inscription_as_scholarship_marks_existing_monthly_payments_as_scholarship(): void
+    {
+        Mail::fake();
+        Notification::fake();
+        Carbon::setTestNow('2026-03-15 10:00:00');
+
+        try {
+            $school = School::query()->findOrFail($this->school['id']);
+            $school->settingsValues()->where('setting_key', Setting::MONTHLY_PAYMENT)->update(['value' => '50000']);
+
+            $player = Player::factory()->create();
+            $inscription = Inscription::factory()->create([
+                'player_id' => $player->id,
+                'unique_code' => $player->unique_code,
+                'year' => 2026,
+                'training_group_id' => 1,
+                'competition_group_id' => null,
+                'start_date' => '2026-03-10',
+                'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+                'school_id' => $this->school['id'],
+                'scholarship' => false,
+                'brother_payment' => false,
+                'monthly_payment_type' => Setting::MONTHLY_PAYMENT,
+                'monthly_payment_amount' => 50000,
+            ]);
+
+            $payment = Payment::query()->where('inscription_id', $inscription->id)->firstOrFail();
+            $preservedMonths = collect(config('variables.KEY_INDEX_MONTHS'))
+                ->mapWithKeys(fn (string $field) => [
+                    $field => Payment::$paid_cash,
+                    "{$field}_amount" => 50000,
+                ])
+                ->all();
+
+            $payment->forceFill(array_merge($preservedMonths, [
+                'enrollment' => Payment::$debt,
+                'enrollment_amount' => 70000,
+                'january' => Payment::$no_application,
+                'january_amount' => 0,
+                'february' => Payment::$no_application,
+                'february_amount' => 0,
+                'march' => Payment::$debt,
+                'march_amount' => 50000,
+                'april' => Payment::$pending,
+                'april_amount' => 50000,
+                'may' => Payment::$no_application,
+                'may_amount' => 0,
+                'june' => Payment::$paid_cash,
+                'june_amount' => 50000,
+                'july' => Payment::$permanent_retirement,
+                'july_amount' => 50000,
+            ]))->save();
+
+            $this->actingAs($this->user);
+
+            $this->post(route('inscriptions.update', [$inscription->id]), [
+                'unique_code' => $player->unique_code,
+                'player_id' => $player->id,
+                'start_date' => '2026-03-10',
+                'scholarship' => true,
+                '_method' => 'PATCH',
+            ])->assertStatus(200);
+
+            $inscription->refresh();
+            $payment->refresh();
+
+            $this->assertTrue((bool) $inscription->scholarship);
+            $this->assertSame(Payment::$scholarship_recipient, (int) $payment->enrollment);
+            $this->assertSame(Payment::$no_application, (int) $payment->january);
+            $this->assertSame(Payment::$no_application, (int) $payment->february);
+            $this->assertSame(Payment::$scholarship_recipient, (int) $payment->march);
+            $this->assertSame(Payment::$scholarship_recipient, (int) $payment->april);
+            $this->assertSame(Payment::$scholarship_recipient, (int) $payment->may);
+            $this->assertSame(Payment::$paid_cash, (int) $payment->june);
+            $this->assertSame(Payment::$permanent_retirement, (int) $payment->july);
+            $this->assertSame(0, (int) $payment->enrollment_amount);
+            $this->assertSame(0, (int) $payment->march_amount);
+            $this->assertSame(0, (int) $payment->april_amount);
+            $this->assertSame(0, (int) $payment->may_amount);
+            $this->assertSame(50000, (int) $payment->june_amount);
+
+            $this->assertSame(4, PaymentChangeLog::query()
+                ->where('payment_id', $payment->id)
+                ->where('source', 'inscription_scholarship')
+                ->count());
+            $this->assertDatabaseHas('payment_change_logs', [
+                'payment_id' => $payment->id,
+                'field' => 'enrollment',
+                'old_status' => Payment::$debt,
+                'new_status' => Payment::$scholarship_recipient,
+                'old_amount' => 70000,
+                'new_amount' => 0,
+                'source' => 'inscription_scholarship',
+            ]);
+            $this->assertDatabaseHas('payment_change_logs', [
+                'payment_id' => $payment->id,
+                'field' => 'march',
+                'old_status' => Payment::$debt,
+                'new_status' => Payment::$scholarship_recipient,
+                'old_amount' => 50000,
+                'new_amount' => 0,
+                'source' => 'inscription_scholarship',
+            ]);
+            $this->assertDatabaseMissing('payment_change_logs', [
+                'payment_id' => $payment->id,
+                'field' => 'june',
+                'source' => 'inscription_scholarship',
+            ]);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
     public function test_assigning_complementary_group_does_not_rewrite_existing_debt_month_amounts(): void
     {
         Mail::fake();

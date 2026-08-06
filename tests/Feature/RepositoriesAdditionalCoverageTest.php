@@ -388,6 +388,12 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         [, $payment] = $this->createInscriptionAndPayment();
 
         app(PaymentRepository::class)->setPay([
+            'column' => 'enrollment',
+            'enrollment' => Payment::$paid_cash,
+            'enrollment_amount' => 0,
+        ], $payment->fresh());
+
+        app(PaymentRepository::class)->setPay([
             'column' => 'january',
             'january' => Payment::$paid_cash,
             'january_amount' => 0,
@@ -402,7 +408,9 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             ->assertJsonPath('data.0.old_status_label', 'Debe')
             ->assertJsonPath('data.0.new_status_label', 'Pagó - Efectivo')
             ->assertJsonPath('data.0.source', 'manual')
-            ->assertJsonPath('data.0.changed_by', $this->user->id);
+            ->assertJsonPath('data.0.changed_by', $this->user->id)
+            ->assertJsonPath('data.1.field', 'enrollment')
+            ->assertJsonPath('data.1.month_label', 'Matrícula');
     }
 
     public function test_payment_list_includes_history_counts_without_loading_history_rows(): void
