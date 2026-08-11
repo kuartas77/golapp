@@ -236,7 +236,12 @@ export default function useMonthlyPayments() {
         return !payPlayer.inscription_deleted
     }
 
-    const canShowPaymentHistory = (payPlayer, field) => {
+    const canShowPaymentHistory = (payPlayer, field = null) => {
+        if (!field) {
+            return Object.values(payPlayer?.history_fields ?? {})
+                .some((count) => Number(count ?? 0) > 0)
+        }
+
         return Number(payPlayer?.history_fields?.[field] ?? 0) > 0
     }
 

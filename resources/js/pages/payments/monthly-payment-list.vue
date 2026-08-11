@@ -299,6 +299,13 @@
                                     <span v-if="row.payPlayer.inscription_deleted" class="badge bg-warning text-dark ms-2">
                                         Inscripción retirada
                                     </span>
+                                    <span v-if="canShowPaymentHistory(row.payPlayer)"
+                                        class="badge badge-info btn btn-sm clickable ms-1"
+                                        title="Historial"
+                                        v-tooltip.top="'Historial de pagos'"
+                                        @click="openHistoryModal(row.payPlayer)">
+                                        <i class="fa fa-history"></i>
+                                    </span>
                                 </small>
                                 <p class="mb-0">
                                     <small class="text-muted">
@@ -352,13 +359,6 @@
                                     @click="editRow(row.payPlayer, row.field)">
                                     <i class="far fa-edit"></i>
                                 </span>
-                                <span v-if="canShowPaymentHistory(row.payPlayer, row.field)"
-                                    class="badge badge-info btn btn-sm clickable ms-1"
-                                    title="Historial"
-                                    v-tooltip.top="'Historial de mensualidad'"
-                                    @click="openHistoryModal(row.payPlayer)">
-                                    <i class="fa fa-history"></i>
-                                </span>
                             </td>
                         </tr>
                     </tbody>
@@ -408,6 +408,13 @@
                                                         {{ payPlayer.player.full_names }}
                                                         <span v-if="payPlayer.inscription_deleted" class="badge bg-warning text-dark ms-2">
                                                             Inscripción retirada
+                                                        </span>
+                                                        <span v-if="canShowPaymentHistory(payPlayer)"
+                                                            class="badge badge-info btn btn-sm clickable ms-1"
+                                                            title="Historial"
+                                                            v-tooltip.top="'Historial de pagos'"
+                                                            @click="openHistoryModal(payPlayer)">
+                                                            <i class="fa fa-history"></i>
                                                         </span>
                                                     </small>
                                                     <p>
@@ -474,13 +481,6 @@
                                             class="badge badge-light btn btn-sm clickable"
                                             @click="editRow(payPlayer, field)">
                                             <i class="far fa-edit"></i>
-                                        </span>
-                                        <span v-if="canShowPaymentHistory(payPlayer, field)"
-                                            class="badge badge-info btn btn-sm clickable ms-1"
-                                            title="Historial"
-                                            v-tooltip.top="'Historial de mensualidad'"
-                                            @click="openHistoryModal(payPlayer)">
-                                            <i class="fa fa-history"></i>
                                         </span>
                                     </template>
                                 </td>

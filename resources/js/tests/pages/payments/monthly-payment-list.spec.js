@@ -250,17 +250,21 @@ describe('monthly payment list', () => {
         wrapper.unmount()
     })
 
-    it('hides payment history affordance for pending monthly cells', () => {
+    it('shows payment history affordance once per row when any field has history', () => {
         const wrapper = mountComposable()
 
         expect(wrapper.vm.canShowPaymentHistory({
             ...paymentRowWithStatus(2),
             history_fields: {},
-        }, 'january')).toBe(false)
+        })).toBe(false)
         expect(wrapper.vm.canShowPaymentHistory({
             ...paymentRowWithStatus(0),
             history_fields: { january: 1 },
-        }, 'january')).toBe(true)
+        })).toBe(true)
+        expect(wrapper.vm.canShowPaymentHistory({
+            ...paymentRowWithStatus(0),
+            history_fields: { january: 0, enrollment: 2 },
+        })).toBe(true)
 
         wrapper.unmount()
     })
