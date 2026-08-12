@@ -218,7 +218,8 @@ final class CompetitionMatchesTest extends TestCase
         )->assertOk();
 
         $editResponse = $this->getJson('/api/v2/matches/'.$storeResponse->json('match_id'))
-            ->assertOk();
+            ->assertOk()
+            ->assertJsonPath('skills_controls.0.is_retired_player', false);
 
         $this->assertStringContainsString(
             $photoPath,
@@ -246,6 +247,7 @@ final class CompetitionMatchesTest extends TestCase
         $this->getJson('/api/v2/matches/'.$storeResponse->json('match_id'))
             ->assertOk()
             ->assertJsonPath('skills_controls.0.inscription_id', $inscription->id)
+            ->assertJsonPath('skills_controls.0.is_retired_player', true)
             ->assertJsonPath('skills_controls.0.player.id', $player->id);
     }
 

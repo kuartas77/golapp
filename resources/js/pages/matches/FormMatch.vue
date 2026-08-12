@@ -281,6 +281,10 @@
                                                                 <span class="match-player-code">
                                                                     {{ skill_control.player?.unique_code || 'Sin código' }}
                                                                 </span>
+                                                                <span v-if="skill_control.is_retired_player"
+                                                                    class="badge bg-warning text-dark match-player-retired-badge">
+                                                                    Jugador retirado
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -1041,6 +1045,13 @@ onMounted(() => {
     border-radius: 999px;
     background: rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.06);
     font-size: 0.72rem;
+    line-height: 1.2;
+}
+
+.match-player-retired-badge {
+    display: table;
+    margin-top: 0.35rem;
+    font-size: 0.68rem;
     line-height: 1.2;
 }
 

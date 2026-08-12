@@ -116,16 +116,18 @@ class GameRepository
                 'inscription',
                 fn ($q) => $q
                     ->withTrashed()
-                    ->select(['id', 'player_id'])
+                    ->select(['id', 'player_id', 'deleted_at'])
                     ->with([
                         'player' => fn ($q) => $q
                             ->withTrashed()
-                            ->select(['id', 'names', 'last_names', 'unique_code', 'photo']),
+                            ->select(['id', 'names', 'last_names', 'unique_code', 'photo', 'deleted_at']),
                     ])
             ),
         ]);
 
         foreach ($match->skillsControls as $skilControl) {
+            $skilControl->is_retired_player = $skilControl->inscription->trashed()
+                || $skilControl->inscription->player?->trashed();
             $skilControl->player = $skilControl->inscription->player;
             unset($skilControl->inscription);
         }
