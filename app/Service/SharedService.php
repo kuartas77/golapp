@@ -129,8 +129,13 @@ class SharedService
 
     private function ensureComplementaryAssist(Inscription $inscription, Carbon $startDate): void
     {
-        $groupIds = $inscription->complementaryGroups()
-            ->pluck('training_groups.id')
+        $groupIds = match (true) {
+            $inscription->relationLoaded('complementaryGroups') => $inscription->complementaryGroups->pluck('id'),
+            $inscription->wasRecentlyCreated => collect(),
+            default => $inscription->complementaryGroups()->pluck('training_groups.id'),
+        };
+
+        $groupIds = $groupIds
             ->push($inscription->complementary_group_id)
             ->filter()
             ->map(fn ($groupId) => (int) $groupId)

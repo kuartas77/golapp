@@ -12,10 +12,53 @@ use App\Service\Reports\DebtorReportService;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 final class NPlusOneRegressionTest extends TestCase
 {
+    public function test_inscription_mutations_load_complementary_groups_only_once_per_request(): void
+    {
+        Notification::fake();
+
+        $player = Player::factory()->create([
+            'school_id' => $this->school['id'],
+            'unique_code' => 'N1-COMPLEMENTARY-GROUPS',
+        ]);
+        $group = TrainingGroup::query()->where('school_id', $this->school['id'])->firstOrFail();
+        $relationQueries = 0;
+
+        DB::listen(function (QueryExecuted $query) use (&$relationQueries): void {
+            $sql = str_replace(['`', '"'], '', strtolower($query->sql));
+
+            if (str_contains($sql, 'from training_groups inner join complementary_training_group_inscription')) {
+                $relationQueries++;
+            }
+        });
+
+        $this->actingAs($this->user)
+            ->postJson(route('inscriptions.store'), [
+                'unique_code' => $player->unique_code,
+                'player_id' => $player->id,
+                'start_date' => now()->format('Y-m-d'),
+                'training_group_id' => $group->id,
+            ])
+            ->assertOk();
+
+        $inscription = Inscription::query()->where('player_id', $player->id)->firstOrFail();
+
+        $this->actingAs($this->user)
+            ->putJson(route('inscriptions.update', $inscription), [
+                'unique_code' => $player->unique_code,
+                'player_id' => $player->id,
+                'start_date' => now()->format('Y-m-d'),
+                'training_group_id' => $group->id,
+            ])
+            ->assertOk();
+
+        $this->assertSame(1, $relationQueries);
+    }
+
     public function test_inscription_updates_do_not_duplicate_the_generated_payment(): void
     {
         $player = Player::factory()->create([

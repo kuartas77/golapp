@@ -46,13 +46,7 @@ class InscriptionGroupService
             ->unique()
             ->values();
 
-        $currentGroupIds = $inscription->complementaryGroups()
-            ->pluck('training_groups.id')
-            ->map(fn ($groupId) => (int) $groupId);
-
-        if ($inscription->complementary_group_id) {
-            $currentGroupIds->push((int) $inscription->complementary_group_id);
-        }
+        $currentGroupIds = $this->complementaryGroupIdsFor($inscription);
 
         $removedGroupIds = $currentGroupIds->unique()->diff($groupIds)->values();
         $year = (int) Carbon::parse($inscription->start_date)->year;
@@ -87,8 +81,13 @@ class InscriptionGroupService
 
     private function complementaryGroupIdsFor(Inscription $inscription): Collection
     {
-        return $inscription->complementaryGroups()
-            ->pluck('training_groups.id')
+        $groupIds = match (true) {
+            $inscription->relationLoaded('complementaryGroups') => $inscription->complementaryGroups->pluck('id'),
+            $inscription->wasRecentlyCreated => collect(),
+            default => $inscription->complementaryGroups()->pluck('training_groups.id'),
+        };
+
+        return $groupIds
             ->push($inscription->complementary_group_id)
             ->filter()
             ->map(fn ($groupId) => (int) $groupId)

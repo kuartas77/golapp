@@ -125,10 +125,11 @@ class InscriptionMutationService
 
             DB::beginTransaction();
 
+            $inscription->loadMissing('complementaryGroups');
             $this->groupService->syncCompetitionGroups($inscription, $requestData);
 
             $result = $inscription->update($requestData);
-            $this->groupService->syncComplementaryGroups($inscription->fresh(), $complementaryGroupIds);
+            $this->groupService->syncComplementaryGroups($inscription, $complementaryGroupIds);
 
             if ($result) {
                 $freshInscription = $inscription->fresh();
@@ -182,6 +183,7 @@ class InscriptionMutationService
     /** @param array<string, mixed> $requestData */
     private function reactivate(Inscription $inscription, array $requestData): Inscription
     {
+        $inscription->loadMissing('complementaryGroups');
         $requestData['start_date'] = $inscription->start_date;
         $requestData['unique_code'] = $inscription->unique_code;
         $requestData['deleted_at'] = null;
@@ -192,12 +194,12 @@ class InscriptionMutationService
         $this->restoreLegacyRelations($inscription);
         $this->paymentService->restoreRetiredPendingMonths($inscription);
         $this->ensureReactivationBaseRecords($inscription);
-        $this->groupService->syncComplementaryGroups($inscription, $requestData['complementary_group_ids'] ?? []);
 
         return $inscription->fresh([
             'player',
             'school',
             'competitionGroup',
+            'complementaryGroups',
         ]);
     }
 
