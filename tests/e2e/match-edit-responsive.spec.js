@@ -137,6 +137,19 @@ test('match edition groups fields, becomes mobile cards and preserves its payloa
     await expect(page.getByLabel('Goles')).toHaveCount(1)
     await expect(page.getByLabel('Observación')).toHaveCount(1)
 
+    const playerFilter = page.getByLabel('Filtrar jugadores')
+    await playerFilter.click()
+    await page.getByLabel('Buscar jugador...').fill('E2E-015')
+    const playerOptions = page.locator('#match-player-filter-listbox').getByRole('option')
+    await expect(playerOptions).toHaveCount(1)
+    await playerOptions.click()
+    await expect(page.locator('.match-player-row')).toBeVisible()
+    await expect(page.getByLabel('Goles')).toHaveCount(1)
+
+    const generalConceptHeight = await page.getByLabel('Concepto General')
+        .evaluate(element => element.getBoundingClientRect().height)
+    expect(generalConceptHeight).toBeGreaterThanOrEqual(160)
+
     const columnLayout = await page.locator('.match-player-row').evaluate(row => ({
         playerWidth: row.querySelector('.match-player-cell').getBoundingClientRect().width,
         positionWidth: row.querySelector('.match-position-cell').getBoundingClientRect().width,

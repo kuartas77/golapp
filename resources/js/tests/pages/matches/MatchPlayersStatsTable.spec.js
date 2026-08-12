@@ -26,14 +26,26 @@ const skillControl = {
     },
 }
 
+const secondSkillControl = {
+    ...skillControl,
+    id: 72,
+    inscription_id: 22,
+    player: {
+        ...skillControl.player,
+        id: 16,
+        full_names: 'Segunda Deportista',
+        unique_code: 'E2E-016',
+    },
+}
+
 function mountTable(onSubmit = vi.fn()) {
     return {
         onSubmit,
         wrapper: mount({
             components: { Form, MatchPlayersStatsTable },
             data: () => ({
-                initialValues: { skill_controls: [skillControl] },
-                players: [skillControl],
+                initialValues: { skill_controls: [skillControl, secondSkillControl] },
+                players: [skillControl, secondSkillControl],
                 positions: [{ value: 'Defensa (Central)', label: 'Defensa central' }],
             }),
             methods: { onSubmit },
@@ -57,6 +69,16 @@ describe('MatchPlayersStatsTable', () => {
         expect(wrapper.findAll('thead th')).toHaveLength(6)
         expect(wrapper.findAll('[name="skill_controls[0].goals"]')).toHaveLength(1)
         expect(wrapper.findAll('[name="skill_controls[0].observation"]')).toHaveLength(1)
+
+        const playerFilter = wrapper.get('[aria-label="Filtrar jugadores"]')
+        await playerFilter.trigger('click')
+        await wrapper.findAll('[role="option"]')[2].trigger('click')
+        expect(wrapper.findAll('.match-player-row')[0].attributes('style')).toContain('display: none')
+        expect(wrapper.findAll('.match-player-row')[1].attributes('style') ?? '').not.toContain('display: none')
+        expect(wrapper.findAll('[name="skill_controls[0].goals"]')).toHaveLength(1)
+        await playerFilter.trigger('click')
+        await wrapper.findAll('[role="option"]')[0].trigger('click')
+        expect(wrapper.findAll('.match-player-row')[0].attributes('style') ?? '').not.toContain('display: none')
 
         const minuteOptions = wrapper.findAll('[name="skill_controls[0].played_approx"] option')
         expect(minuteOptions.at(0).attributes('value')).toBe('0')

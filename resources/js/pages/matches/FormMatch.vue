@@ -199,7 +199,7 @@
                                         <div class="form-group mt-3">
                                             <label for="general_concept" class="form-label">Concepto General</label>
                                             <Field name="general_concept" as="textarea" id="general_concept"
-                                                class="form-control form-control-sm" rows="3"
+                                                class="form-control form-control-sm match-general-concept" rows="7"
                                                 placeholder="Concepto General" />
                                             <ErrorMessage name="general_concept" class="invalid-feedback d-block" />
                                         </div>
@@ -726,6 +726,12 @@ onMounted(() => {
     font-weight: 700;
     text-transform: uppercase;
     color: var(--bs-secondary-color, rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.7));
+}
+
+.match-general-concept {
+    min-height: 10rem;
+    line-height: 1.5;
+    resize: vertical;
 }
 
 .match-board-wrapper {

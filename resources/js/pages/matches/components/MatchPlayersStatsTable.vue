@@ -6,9 +6,23 @@
                 Actualiza minutos, desempeño y observaciones del partido.
             </small>
         </div>
-        <span class="match-table-count">
-            Total <strong>{{ skillsControls.length }}</strong>
-        </span>
+        <div class="match-table-actions">
+            <div class="match-player-filter">
+                <CustomSelect2
+                    id="match-player-filter"
+                    v-model="selectedPlayerIndex"
+                    :options="playerOptions"
+                    placeholder="Todos los jugadores"
+                    search-placeholder="Buscar jugador..."
+                    aria-label="Filtrar jugadores"
+                    :clearable="false"
+                />
+            </div>
+            <span class="match-table-count" aria-live="polite">
+                <template v-if="hasPlayerFilter">{{ visiblePlayersCount }} de </template>
+                <span v-else>Total&nbsp;</span><strong>{{ skillsControls.length }}</strong>
+            </span>
+        </div>
     </div>
 
     <div class="match-table-wrapper table-responsive no-print">
@@ -27,6 +41,7 @@
                 <template v-if="skillsControls.length">
                     <tr v-for="(skillControl, index) in skillsControls"
                         :key="skillControl.id ?? skillControl.player?.id ?? index"
+                        v-show="visiblePlayerIndexes.has(index)"
                         class="match-player-row">
                         <td class="match-player-cell" data-section="Deportista">
                             <div class="match-player-meta">
@@ -213,9 +228,11 @@
 
 <script setup>
 import Checkbox from '@/components/form/Checkbox.vue'
+import CustomSelect2 from '@/components/form/CustomSelect2.vue'
 import { ErrorMessage, Field } from 'vee-validate'
+import { computed, ref } from 'vue'
 
-defineProps({
+const props = defineProps({
     skillsControls: {
         type: Array,
         default: () => [],
@@ -225,6 +242,27 @@ defineProps({
         default: () => [],
     },
 })
+
+const ALL_PLAYERS = 'all'
+const selectedPlayerIndex = ref(ALL_PLAYERS)
+const playerOptions = computed(() => [
+    { value: ALL_PLAYERS, label: 'Todos los jugadores' },
+    ...props.skillsControls.map((skillControl, index) => {
+        const name = skillControl.player?.full_names || 'Jugador sin datos'
+        const code = skillControl.player?.unique_code || 'Sin código'
+
+        return {
+            value: String(index),
+            label: `${name} · ${code}`,
+            meta: code,
+        }
+    }),
+])
+const hasPlayerFilter = computed(() => selectedPlayerIndex.value !== ALL_PLAYERS)
+const visiblePlayerIndexes = computed(() => hasPlayerFilter.value
+    ? new Set([Number(selectedPlayerIndex.value)])
+    : new Set(props.skillsControls.map((_, index) => index)))
+const visiblePlayersCount = computed(() => visiblePlayerIndexes.value.size)
 </script>
 
 <style lang="scss" scoped>
@@ -252,6 +290,18 @@ defineProps({
     background: var(--match-surface-strong);
     font-size: 0.78rem;
     font-weight: 700;
+}
+
+.match-table-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.match-player-filter {
+    min-width: min(250px, 70vw);
 }
 
 .match-table-wrapper {
@@ -569,6 +619,15 @@ defineProps({
 }
 
 @media (max-width: 575.98px) {
+    .match-table-actions,
+    .match-player-filter {
+        width: 100%;
+    }
+
+    .match-table-count {
+        margin-left: auto;
+    }
+
     .match-player-row {
         grid-template-columns: minmax(0, 1fr);
     }
