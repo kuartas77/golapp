@@ -87,7 +87,23 @@
                                     </option>
                                 </select>
                             </th>
-                            <th>Fecha sesión</th>
+                            <th>
+                                <select
+                                    v-model="sessionDateFilter"
+                                    class="form-select form-select-sm form-select-custom methodology-table-filter"
+                                    aria-label="Filtrar por fecha de sesión"
+                                    @change="applyColumnFilter(3, sessionDateFilter)"
+                                    @click.stop
+                                >
+                                    <option
+                                        v-for="option in sessionDateFilterOptions"
+                                        :key="option.value"
+                                        :value="option.value"
+                                    >
+                                        {{ option.label }}
+                                    </option>
+                                </select>
+                            </th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -568,6 +584,7 @@ const creatorOptions = ref([])
 const filtersReady = ref(false)
 const creatorFilter = ref('')
 const trainingGroupFilter = ref('')
+const sessionDateFilter = ref('')
 const isSaving = ref(false)
 const selectedId = ref(null)
 const formError = ref('')
@@ -631,6 +648,28 @@ const planningStructureFields = [
     { key: 'cognitive', label: 'Cognitiva' },
     { key: 'conditional', label: 'Condicional' },
     { key: 'emotional_volitional', label: 'Emotivo-volitiva' },
+]
+
+const sessionDateFilterOptions = [
+    { value: '', label: 'Todas las fechas' },
+    { value: 'semester:1', label: 'Semestre 1' },
+    { value: 'semester:2', label: 'Semestre 2' },
+    { value: 'quarter:1', label: 'Trimestre 1' },
+    { value: 'quarter:2', label: 'Trimestre 2' },
+    { value: 'quarter:3', label: 'Trimestre 3' },
+    { value: 'quarter:4', label: 'Trimestre 4' },
+    { value: 'month:1', label: 'Enero' },
+    { value: 'month:2', label: 'Febrero' },
+    { value: 'month:3', label: 'Marzo' },
+    { value: 'month:4', label: 'Abril' },
+    { value: 'month:5', label: 'Mayo' },
+    { value: 'month:6', label: 'Junio' },
+    { value: 'month:7', label: 'Julio' },
+    { value: 'month:8', label: 'Agosto' },
+    { value: 'month:9', label: 'Septiembre' },
+    { value: 'month:10', label: 'Octubre' },
+    { value: 'month:11', label: 'Noviembre' },
+    { value: 'month:12', label: 'Diciembre' },
 ]
 
 const emptyDataTableResponse = (draw = 0) => ({

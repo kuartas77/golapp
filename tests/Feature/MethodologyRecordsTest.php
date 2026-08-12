@@ -249,6 +249,70 @@ final class MethodologyRecordsTest extends TestCase
         );
     }
 
+    public function test_methodology_datatable_filters_session_date_by_month_quarter_and_semester(): void
+    {
+        $julyRecord = $this->createRecord((int) $this->school['id'], $this->user, [
+            'title' => 'Julio',
+            'fields' => ['session_date' => '2025-07-15'],
+        ]);
+        $augustRecord = $this->createRecord((int) $this->school['id'], $this->user, [
+            'title' => 'Agosto',
+            'fields' => ['session_date' => '2026-08-20'],
+        ]);
+        $februaryRecord = $this->createRecord((int) $this->school['id'], $this->user, [
+            'title' => 'Febrero',
+            'fields' => ['session_date' => '2026-02-10'],
+        ]);
+        $otherSchool = School::factory()->create([
+            'email' => 'methodology-date-other@example.com',
+            'slug' => 'methodology-date-other',
+        ]);
+        $this->createRecord($otherSchool->id, $this->user, [
+            'title' => 'Agosto oculto',
+            'fields' => ['session_date' => '2026-08-21'],
+        ]);
+
+        $monthResponse = $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson($this->methodologyDatatableUrl('month:7'))
+            ->assertOk();
+
+        $this->assertSame([$julyRecord->id], collect($monthResponse->json('data'))->pluck('id')->all());
+
+        $quarterResponse = $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson($this->methodologyDatatableUrl('quarter:3'))
+            ->assertOk();
+
+        $quarterIds = collect($quarterResponse->json('data'))->pluck('id')->all();
+        $this->assertContains($julyRecord->id, $quarterIds);
+        $this->assertContains($augustRecord->id, $quarterIds);
+        $this->assertNotContains($februaryRecord->id, $quarterIds);
+
+        $semesterResponse = $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson($this->methodologyDatatableUrl('semester:2'))
+            ->assertOk();
+
+        $semesterIds = collect($semesterResponse->json('data'))->pluck('id')->all();
+        $this->assertContains($julyRecord->id, $semesterIds);
+        $this->assertContains($augustRecord->id, $semesterIds);
+        $this->assertNotContains($februaryRecord->id, $semesterIds);
+
+        $instructor = $this->createSchoolScopedUser((int) $this->school['id'], ['instructor'], 'methodology-date-instructor@example.com');
+        $ownInstructorRecord = $this->createRecord((int) $this->school['id'], $instructor, [
+            'title' => 'Agosto instructor',
+            'fields' => ['session_date' => '2026-08-22'],
+        ]);
+
+        $instructorResponse = $this->actingAs($instructor)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson($this->methodologyDatatableUrl('month:8'))
+            ->assertOk();
+
+        $this->assertSame([$ownInstructorRecord->id], collect($instructorResponse->json('data'))->pluck('id')->all());
+    }
+
     public function test_non_planning_records_drop_diagrams(): void
     {
         $response = $this->actingAs($this->user)
@@ -292,6 +356,27 @@ final class MethodologyRecordsTest extends TestCase
             'fields' => ['objective' => 'Trabajo técnico'],
             'diagrams' => ['initial_phase' => []],
         ], $overrides));
+    }
+
+    private function methodologyDatatableUrl(string $sessionDateFilter): string
+    {
+        return '/api/v2/datatables/methodology_records?' . http_build_query([
+            'draw' => 1,
+            'start' => 0,
+            'length' => 10,
+            'type' => MethodologyRecord::TYPE_PLANNING,
+            'columns' => [
+                ['data' => 'title', 'name' => 'title', 'searchable' => 'true', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']],
+                ['data' => 'creator_name', 'name' => 'creator_name', 'searchable' => 'true', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']],
+                ['data' => 'training_group_name', 'name' => 'training_group_name', 'searchable' => 'true', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']],
+                ['data' => 'session_date', 'name' => 'session_date', 'searchable' => 'true', 'orderable' => 'true', 'search' => ['value' => $sessionDateFilter, 'regex' => 'false']],
+                ['data' => 'id', 'name' => '', 'searchable' => 'false', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']],
+            ],
+            'order' => [
+                ['column' => 3, 'dir' => 'desc'],
+            ],
+            'search' => ['value' => '', 'regex' => 'false'],
+        ]);
     }
 
     private function createSchoolScopedUser(int $schoolId, array $roles, string $email): User

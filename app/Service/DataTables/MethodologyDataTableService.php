@@ -19,6 +19,7 @@ class MethodologyDataTableService
             ->filterColumn('title', fn ($query, $keyword) => $query->where('methodology_records.title', 'like', "%{$keyword}%"))
             ->filterColumn('creator_name', fn ($query, $keyword) => $query->where('users.name', 'like', "%{$keyword}%"))
             ->filterColumn('training_group_name', fn ($query, $keyword) => $query->where('training_groups.name', 'like', "%{$keyword}%"))
+            ->filterColumn('session_date', fn ($query, $keyword) => $this->filterBySessionDatePeriod($query, (string) $keyword))
             ->orderColumn('title', 'methodology_records.title $1')->orderColumn('creator_name', 'users.name $1')
             ->orderColumn('training_group_name', 'training_groups.name $1')
             ->orderColumn('session_date', fn ($query, $order) => $this->orderBySessionDate($query, $order))
@@ -96,11 +97,47 @@ class MethodologyDataTableService
     private function orderBySessionDate($query, string $order): void
     {
         $direction = strtolower($order) === 'asc' ? 'asc' : 'desc';
+        $query->orderByRaw("{$this->sessionDateExpression($query)} {$direction}");
+    }
+
+    private function filterBySessionDatePeriod($query, string $keyword): void
+    {
+        [$period, $value] = array_pad(explode(':', $keyword, 2), 2, null);
+        $value = (int) $value;
+        $monthExpression = $this->sessionDateMonthExpression($query);
+
+        if ($period === 'month' && $value >= 1 && $value <= 12) {
+            $query->whereRaw("{$monthExpression} = ?", [$value]);
+            return;
+        }
+
+        if ($period === 'quarter' && $value >= 1 && $value <= 4) {
+            $start = (($value - 1) * 3) + 1;
+            $query->whereRaw("{$monthExpression} BETWEEN ? AND ?", [$start, $start + 2]);
+            return;
+        }
+
+        if ($period === 'semester' && $value >= 1 && $value <= 2) {
+            $start = $value === 1 ? 1 : 7;
+            $query->whereRaw("{$monthExpression} BETWEEN ? AND ?", [$start, $start + 5]);
+        }
+    }
+
+    private function sessionDateExpression($query): string
+    {
         $driver = $query->getConnection()->getDriverName();
-        $expression = $driver === 'sqlite'
+
+        return $driver === 'sqlite'
             ? "COALESCE(json_extract(methodology_records.fields, '$.session_date'), date(methodology_records.created_at))"
             : "COALESCE(JSON_UNQUOTE(JSON_EXTRACT(methodology_records.fields, '$.session_date')), DATE(methodology_records.created_at))";
+    }
 
-        $query->orderByRaw("{$expression} {$direction}");
+    private function sessionDateMonthExpression($query): string
+    {
+        $dateExpression = $this->sessionDateExpression($query);
+
+        return $query->getConnection()->getDriverName() === 'sqlite'
+            ? "CAST(strftime('%m', {$dateExpression}) AS INTEGER)"
+            : "MONTH({$dateExpression})";
     }
 }
