@@ -298,7 +298,7 @@ final class SchoolPermissionsTest extends TestCase
 
             $mock->shouldReceive('getTopPlayersPayload')
                 ->once()
-                ->with($school->id)
+                ->with($school->id, null)
                 ->andReturn(['top_scorers' => [['player_id' => $player->id]]]);
 
             $mock->shouldReceive('getPlayerDetailPayload')

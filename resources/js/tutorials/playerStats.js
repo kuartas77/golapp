@@ -10,7 +10,7 @@ export const playerStatsRankingTutorial = {
             id: 'player-stats-ranking-filters',
             selector: '[data-tour="player-stats-ranking-filters"]',
             title: 'Filtra el ranking',
-            text: 'Usa posicion y categoria para quedarte solo con el grupo de jugadores que quieres revisar.',
+            text: 'Usa año, posicion y categoria para quedarte solo con el grupo de jugadores que quieres revisar.',
         },
         {
             id: 'player-stats-ranking-rules',
@@ -39,13 +39,13 @@ export const topPlayersTutorial = {
             id: 'top-players-actions',
             selector: '[data-tour="top-players-actions"]',
             title: 'Alterna entre destacados y ranking',
-            text: 'Desde aqui puedes volver al ranking general o recargar la informacion del modulo.',
+            text: 'Desde aqui puedes elegir el año, volver al ranking general o recargar la informacion del modulo.',
         },
         {
             id: 'top-players-spotlight',
             selector: '[data-tour="top-players-spotlight"]',
             title: 'Revisa el jugador foco',
-            text: 'Esta tarjeta destaca rapidamente al jugador mas visible segun el rendimiento reciente.',
+            text: 'Esta tarjeta destaca rapidamente al jugador mas visible durante el periodo seleccionado.',
         },
         {
             id: 'top-players-scorers',

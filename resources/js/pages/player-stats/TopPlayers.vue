@@ -5,11 +5,26 @@
                 <div>
                     <h3 class="mb-1">Jugadores destacados</h3>
                     <p class="text-muted mb-0">
-                        Reconocimiento a quienes lideran las métricas ofensivas, defensivas y de rendimiento.
+                        Reconocimiento a quienes lideran las métricas ofensivas, defensivas y de rendimiento en el periodo seleccionado.
                     </p>
                 </div>
                 <div class="d-flex flex-wrap gap-2">
-                    <router-link :to="{ name: 'player-stats.index' }" class="btn btn-primary btn-sm">
+                    <div>
+                        <label for="top-players-year" class="visually-hidden">Año</label>
+                        <select
+                            id="top-players-year"
+                            v-model="season"
+                            class="form-select form-select-sm"
+                            aria-label="Filtrar destacados por año"
+                            @change="applyYearFilter"
+                        >
+                            <option value="all">Histórico completo</option>
+                            <option v-for="year in availableYears" :key="year" :value="String(year)">
+                                {{ year }}
+                            </option>
+                        </select>
+                    </div>
+                    <router-link :to="{ name: 'player-stats.index', query: { year: season } }" class="btn btn-primary btn-sm">
                         Ver ranking
                     </router-link>
                     <button type="button" class="btn btn-secondary btn-sm" @click="loadTopPlayers">
@@ -33,7 +48,7 @@
                             <div class="surface-card-body">
                                 <div class="section-label mb-2">Jugador foco</div>
                                 <p class="text-muted mb-0">
-                                    Referencia rápida del módulo según rendimiento reciente y evaluación promedio.
+                                    Referencia rápida del módulo según rendimiento y evaluación promedio del periodo.
                                 </p>
 
                                 <div v-if="spotlightPlayer" class="d-flex align-items-center gap-3 mt-3">
@@ -70,8 +85,8 @@
                         <div class="surface-card mini-stat h-100">
                             <div class="surface-card-body">
                                 <span class="mini-stat-label">Temporada</span>
-                                <strong>{{ season || '-' }}</strong>
-                                <small>Resumen de la campaña vigente</small>
+                                <strong>{{ season === 'all' ? 'Histórico' : season }}</strong>
+                                <small>{{ season === 'all' ? 'Todos los años con registros' : 'Resumen del año seleccionado' }}</small>
                             </div>
                         </div>
                     </div>
@@ -298,6 +313,8 @@ import { usePageTutorial } from '@/composables/usePageTutorial'
 import { topPlayersTutorial } from '@/tutorials/playerStats'
 
 const {
+    applyYearFilter,
+    availableYears,
     formatDate,
     formatDecimal,
     formatNumber,

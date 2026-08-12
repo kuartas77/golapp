@@ -34,8 +34,10 @@ class PlayerStatsService
             'positions' => collect($this->getPositions())
                 ->map(fn ($label, $value) => ['value' => $value, 'label' => $label])
                 ->values(),
-            'categories' => $this->getCategories($schoolId)->values(),
+            'categories' => $this->getCategories($schoolId, $normalizedFilters['year'])->values(),
+            'available_years' => $this->getAvailableYears($schoolId),
             'filters' => [
+                'year' => $normalizedFilters['year'],
                 'position' => $normalizedFilters['position'],
                 'player_id' => $normalizedFilters['player_id'],
                 'category' => $normalizedFilters['category'],
@@ -43,12 +45,13 @@ class PlayerStatsService
         ];
     }
 
-    public function getTopPlayersPayload(int $schoolId): array
+    public function getTopPlayersPayload(int $schoolId, mixed $year = null): array
     {
-        $topScorers = $this->getTopScorers($schoolId);
-        $topAssists = $this->getTopAssists($schoolId);
-        $topGoalSaves = $this->getTopGoalSaves($schoolId);
-        $topRated = $this->getTopRated($schoolId);
+        $normalizedYear = $this->normalizeYear($year);
+        $topScorers = $this->getTopScorers($schoolId, $normalizedYear);
+        $topAssists = $this->getTopAssists($schoolId, $normalizedYear);
+        $topGoalSaves = $this->getTopGoalSaves($schoolId, $normalizedYear);
+        $topRated = $this->getTopRated($schoolId, $normalizedYear);
 
         $this->enrichPlayersWithPhotos($topScorers);
         $this->enrichPlayersWithPhotos($topAssists);
@@ -57,7 +60,8 @@ class PlayerStatsService
 
         return [
             'updated_at' => now()->toDateString(),
-            'season' => now()->year,
+            'season' => $normalizedYear,
+            'available_years' => $this->getAvailableYears($schoolId),
             'top_scorers' => $topScorers,
             'top_assists' => $topAssists,
             'top_goal_saves' => $topGoalSaves,
@@ -85,11 +89,24 @@ class PlayerStatsService
     private function normalizeRankingFilters(array $filters): array
     {
         return [
-            'year' => isset($filters['year']) && $filters['year'] !== '' ? (int) $filters['year'] : null,
+            'year' => $this->normalizeYear($filters['year'] ?? null),
             'position' => isset($filters['position']) && $filters['position'] !== '' ? $filters['position'] : null,
             'player_id' => isset($filters['player_id']) && $filters['player_id'] !== '' ? (int) $filters['player_id'] : null,
             'category' => isset($filters['category']) && $filters['category'] !== '' ? $filters['category'] : null,
         ];
+    }
+
+    private function normalizeYear(mixed $year): ?int
+    {
+        if ($year === 'all') {
+            return null;
+        }
+
+        if ($year === null || $year === '') {
+            return now()->year;
+        }
+
+        return filter_var($year, FILTER_VALIDATE_INT) !== false ? (int) $year : now()->year;
     }
 
     private function getPositions(): array
@@ -106,21 +123,52 @@ class PlayerStatsService
         ]);
     }
 
-    private function getCategories(int $schoolId)
+    private function getCategories(int $schoolId, ?int $year)
     {
-        return Cache::remember("KEY_CATEGORIES_SELECT_{$schoolId}_PLUCK", now()->addMinutes(5), function () use ($schoolId) {
-            return DB::table('inscriptions')
+        $cacheYear = $year ?? 'all';
+
+        return Cache::remember("KEY_CATEGORIES_SELECT_{$schoolId}_{$cacheYear}_PLUCK", now()->addMinutes(5), function () use ($schoolId, $year) {
+            $query = DB::table('inscriptions')
                 ->where('school_id', $schoolId)
-                ->where('year', now()->year)
                 ->orderBy('category')
                 ->groupBy('category')
-                ->pluck('category');
+                ->whereNotNull('category');
+
+            if ($year !== null) {
+                $query->where('year', $year);
+            }
+
+            return $query->pluck('category');
         });
     }
 
-    private function getTopScorers(int $schoolId)
+    private function getAvailableYears(int $schoolId)
     {
-        return $this->topPlayersBaseQuery($schoolId)
+        $years = DB::table('skills_control as sc')
+            ->join('games as g', 'sc.game_id', '=', 'g.id')
+            ->join('inscriptions as i', 'sc.inscription_id', '=', 'i.id')
+            ->whereNull('sc.deleted_at')
+            ->whereNull('g.deleted_at')
+            ->where('g.status', Game::STATUS_PLAYED)
+            ->where('sc.assistance', 1)
+            ->where('sc.school_id', $schoolId)
+            ->whereNotNull('i.year')
+            ->distinct()
+            ->orderByDesc('i.year')
+            ->pluck('i.year')
+            ->map(fn ($year) => (int) $year)
+            ->values();
+
+        return $years
+            ->push(now()->year)
+            ->unique()
+            ->sortDesc()
+            ->values();
+    }
+
+    private function getTopScorers(int $schoolId, ?int $year)
+    {
+        return $this->topPlayersBaseQuery($schoolId, $year)
             ->selectRaw("
                 i.player_id,
                 CONCAT(p.names, ' ', p.last_names) as player_name,
@@ -151,9 +199,9 @@ class PlayerStatsService
             ->get();
     }
 
-    private function getTopAssists(int $schoolId)
+    private function getTopAssists(int $schoolId, ?int $year)
     {
-        return $this->topPlayersBaseQuery($schoolId)
+        return $this->topPlayersBaseQuery($schoolId, $year)
             ->selectRaw("
                 i.player_id,
                 CONCAT(p.names, ' ', p.last_names) as player_name,
@@ -176,9 +224,9 @@ class PlayerStatsService
             ->get();
     }
 
-    private function getTopGoalSaves(int $schoolId)
+    private function getTopGoalSaves(int $schoolId, ?int $year)
     {
-        return $this->topPlayersBaseQuery($schoolId)
+        return $this->topPlayersBaseQuery($schoolId, $year)
             ->selectRaw("
                 i.player_id,
                 CONCAT(p.names, ' ', p.last_names) as player_name,
@@ -202,9 +250,9 @@ class PlayerStatsService
             ->get();
     }
 
-    private function getTopRated(int $schoolId)
+    private function getTopRated(int $schoolId, ?int $year)
     {
-        return $this->topPlayersBaseQuery($schoolId)
+        return $this->topPlayersBaseQuery($schoolId, $year)
             ->selectRaw("
                 i.player_id,
                 CONCAT(p.names, ' ', p.last_names) as player_name,
@@ -230,9 +278,9 @@ class PlayerStatsService
             ->get();
     }
 
-    private function topPlayersBaseQuery(int $schoolId): Builder
+    private function topPlayersBaseQuery(int $schoolId, ?int $year): Builder
     {
-        return DB::table('skills_control as sc')
+        $query = DB::table('skills_control as sc')
             ->join('games as g', 'sc.game_id', '=', 'g.id')
             ->join('inscriptions as i', 'sc.inscription_id', '=', 'i.id')
             ->join('players as p', 'i.player_id', '=', 'p.id')
@@ -242,6 +290,12 @@ class PlayerStatsService
             ->where('g.status', Game::STATUS_PLAYED)
             ->where('sc.assistance', 1)
             ->where('sc.school_id', $schoolId);
+
+        if ($year !== null) {
+            $query->where('i.year', $year);
+        }
+
+        return $query;
     }
 
     private function findPlayerStats(int $playerId, int $schoolId): ?object

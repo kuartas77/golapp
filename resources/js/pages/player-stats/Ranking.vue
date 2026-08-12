@@ -9,7 +9,7 @@
                     </p>
                 </div>
                 <div class="d-flex flex-wrap gap-2">
-                    <router-link :to="{ name: 'player-stats.top' }" class="btn btn-primary btn-sm">
+                    <router-link :to="{ name: 'player-stats.top', query: { year: filters.year } }" class="btn btn-primary btn-sm">
                         Ver destacados
                     </router-link>
                     <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
@@ -30,11 +30,21 @@
                             <div class="surface-card-body">
                                 <div class="section-label mb-2">Filtros del ranking</div>
                                 <p class="text-muted mb-3">
-                                    Ajusta la vista por posición o categoría sin salir del módulo.
+                                    Ajusta la vista por año, posición o categoría sin salir del módulo.
                                 </p>
 
                                 <div class="row g-3 align-items-end">
-                                    <div class="col-md-5">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Año</label>
+                                        <select v-model="filters.year" class="form-select form-select-sm">
+                                            <option value="all">Histórico completo</option>
+                                            <option v-for="year in availableYears" :key="year" :value="String(year)">
+                                                {{ year }}
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-3">
                                         <label class="form-label">Posición</label>
                                         <select v-model="filters.position" class="form-select form-select-sm">
                                             <option :value="null">Todas las posiciones</option>
@@ -48,7 +58,7 @@
                                         </select>
                                     </div>
 
-                                    <div class="col-md-5">
+                                    <div class="col-md-4">
                                         <label class="form-label">Categoría</label>
                                         <select v-model="filters.category" class="form-select form-select-sm">
                                             <option :value="null">Todas las categorías</option>
@@ -136,7 +146,7 @@
                         <div class="surface-card stat-card">
                             <span class="stat-label">Filtros activos</span>
                             <strong class="stat-value">{{ hasActiveFilters ? 'Sí' : 'No' }}</strong>
-                            <span class="stat-help">Posición y categoría opcionales</span>
+                            <span class="stat-help">Año, posición y categoría opcionales</span>
                         </div>
                     </div>
                 </div>
@@ -244,6 +254,7 @@ import { usePageTutorial } from '@/composables/usePageTutorial'
 import { playerStatsRankingTutorial } from '@/tutorials/playerStats'
 
 const {
+    availableYears,
     categories,
     filters,
     formatDecimal,

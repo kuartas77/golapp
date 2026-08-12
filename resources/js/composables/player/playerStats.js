@@ -1,4 +1,4 @@
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { usePageTitle } from '@/composables/use-meta'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/utils/axios'
@@ -72,8 +72,10 @@ export function usePlayerStatsRanking() {
     const players = ref([])
     const positions = ref([])
     const categories = ref([])
+    const availableYears = ref([])
     const school = ref(null)
     const filters = ref({
+        year: String(dayjs().year()),
         position: null,
         category: null,
     })
@@ -84,6 +86,9 @@ export function usePlayerStatsRanking() {
 
     const syncFiltersFromRoute = () => {
         filters.value = {
+            year: route.query.year === 'all'
+                ? 'all'
+                : String(toNumber(route.query.year, dayjs().year())),
             position: typeof route.query.position === 'string' ? route.query.position : null,
             category: typeof route.query.category === 'string' ? route.query.category : null,
         }
@@ -99,6 +104,7 @@ export function usePlayerStatsRanking() {
             players.value = response.data.players ?? []
             positions.value = response.data.positions ?? []
             categories.value = response.data.categories ?? []
+            availableYears.value = response.data.available_years ?? []
             school.value = response.data.school ?? null
         } catch (error) {
             globalError.value = error.response?.data?.message || 'No fue posible cargar el escalafón de jugadores.'
@@ -121,26 +127,32 @@ export function usePlayerStatsRanking() {
     }
 
     const resetFilters = async () => {
-        await router.push({ name: 'player-stats.index', query: {} })
+        await router.push({ name: 'player-stats.index', query: { year: String(dayjs().year()) } })
     }
 
     const reload = async () => {
-        await loadRanking(buildQuery(route.query))
+        await loadRanking(buildQuery(filters.value))
     }
 
-    const hasActiveFilters = computed(() => Object.keys(buildQuery(filters.value)).length > 0)
+    const hasActiveFilters = computed(() =>
+        filters.value.year === 'all'
+        || filters.value.year !== String(dayjs().year())
+        || Boolean(filters.value.position)
+        || Boolean(filters.value.category)
+    )
     const leader = computed(() => players.value[0] ?? null)
 
     watch(
         () => route.query,
         async () => {
             syncFiltersFromRoute()
-            await loadRanking(buildQuery(route.query))
+            await loadRanking(buildQuery(filters.value))
         },
         { immediate: true }
     )
 
     return {
+        availableYears,
         categories,
         filters,
         formatDecimal,
@@ -162,30 +174,41 @@ export function usePlayerStatsRanking() {
 }
 
 export function useTopPlayers() {
+    const route = useRoute()
+    const router = useRouter()
+    const availableYears = ref([])
     const topScorers = ref([])
     const topAssists = ref([])
     const topGoalSaves = ref([])
     const topRated = ref([])
     const updatedAt = ref(null)
-    const season = ref(null)
+    const season = ref(String(dayjs().year()))
     const isLoading = ref(false)
     const globalError = ref(null)
 
     usePageTitle('Jugadores destacados')
+
+    const syncYearFromRoute = () => {
+        season.value = route.query.year === 'all'
+            ? 'all'
+            : String(toNumber(route.query.year, dayjs().year()))
+    }
 
     const loadTopPlayers = async () => {
         isLoading.value = true
         globalError.value = null
 
         try {
-            const response = await api.get('/api/v2/top-players')
+            const response = await api.get('/api/v2/top-players', {
+                params: buildQuery({ year: season.value }),
+            })
 
             topScorers.value = response.data.top_scorers ?? []
             topAssists.value = response.data.top_assists ?? []
             topGoalSaves.value = response.data.top_goal_saves ?? []
             topRated.value = response.data.top_rated ?? []
+            availableYears.value = response.data.available_years ?? []
             updatedAt.value = response.data.updated_at ?? null
-            season.value = response.data.season ?? null
         } catch (error) {
             globalError.value = error.response?.data?.message || 'No fue posible cargar los jugadores destacados.'
             topScorers.value = []
@@ -206,11 +229,29 @@ export function useTopPlayers() {
 
     const spotlightPlayer = computed(() => topRated.value[0] ?? topScorers.value[0] ?? null)
 
-    onMounted(async () => {
-        await loadTopPlayers()
-    })
+    const applyYearFilter = async () => {
+        const nextQuery = { year: season.value }
+
+        if (route.query.year === season.value) {
+            await loadTopPlayers()
+            return
+        }
+
+        await router.push({ name: 'player-stats.top', query: nextQuery })
+    }
+
+    watch(
+        () => route.query.year,
+        async () => {
+            syncYearFromRoute()
+            await loadTopPlayers()
+        },
+        { immediate: true }
+    )
 
     return {
+        applyYearFilter,
+        availableYears,
         formatDate,
         formatDecimal,
         formatNumber,

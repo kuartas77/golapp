@@ -25,11 +25,13 @@ class PlayerStatsController extends Controller
         );
     }
 
-    public function topPlayers(): JsonResponse
+    public function topPlayers(Request $request): JsonResponse
     {
         $school = getSchool(auth()->user());
 
-        return response()->json($this->playerStatsService->getTopPlayersPayload($school->id));
+        return response()->json(
+            $this->playerStatsService->getTopPlayersPayload($school->id, $request->input('year'))
+        );
     }
 
     public function playerDetail(int $id): JsonResponse

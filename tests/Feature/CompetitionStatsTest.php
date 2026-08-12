@@ -151,6 +151,52 @@ final class CompetitionStatsTest extends TestCase
         $this->assertCount(1, $detail['recent_matches']);
     }
 
+    public function test_top_players_defaults_to_current_year_and_can_include_the_full_history(): void
+    {
+        DB::connection()->getPdo()->sqliteCreateFunction(
+            'regexp',
+            fn (string $pattern, mixed $value): int => preg_match('/'.str_replace('/', '\\/', $pattern).'/', (string) $value),
+        );
+        $tournament = $this->createTournament((int) $this->school['id']);
+        $group = $this->createGroup($tournament, $this->user->id, 'Temporadas');
+        $player = Player::factory()->create(['school_id' => $this->school['id']]);
+        $currentInscription = Inscription::query()->create([
+            'school_id' => $this->school['id'],
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => now()->year,
+            'start_date' => now()->startOfYear()->toDateString(),
+            'category' => '2010-2011',
+            'training_group_id' => $this->schoolTrainingGroupId(),
+        ]);
+        $historicalInscription = Inscription::query()->create([
+            'school_id' => $this->school['id'],
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => now()->subYear()->year,
+            'start_date' => now()->subYear()->startOfYear()->toDateString(),
+            'category' => '2012-2013',
+            'training_group_id' => $this->schoolTrainingGroupId(),
+        ]);
+        $currentGame = $this->createGame($group, ['soccer' => 2, 'rival' => 0], Game::STATUS_PLAYED);
+        $historicalGame = $this->createGame($group, ['soccer' => 5, 'rival' => 0], Game::STATUS_PLAYED);
+        $this->createSkillControl($currentGame, $currentInscription, 2);
+        $this->createSkillControl($historicalGame, $historicalInscription, 5);
+
+        $service = app(PlayerStatsService::class);
+        $current = $service->getTopPlayersPayload((int) $this->school['id']);
+        $historical = $service->getTopPlayersPayload((int) $this->school['id'], 'all');
+
+        $this->assertSame(now()->year, $current['season']);
+        $this->assertSame('2', (string) $current['top_scorers']->first()->total_goles);
+        $this->assertNull($historical['season']);
+        $this->assertSame('7', (string) $historical['top_scorers']->first()->total_goles);
+        $this->assertSame(
+            [now()->year, now()->subYear()->year],
+            $current['available_years']->all(),
+        );
+    }
+
     private function createTournament(int $schoolId, string $name = 'Torneo'): Tournament
     {
         return Tournament::query()->create([
