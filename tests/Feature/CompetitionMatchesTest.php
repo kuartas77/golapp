@@ -344,7 +344,7 @@ final class CompetitionMatchesTest extends TestCase
             ->assertJsonValidationErrors(['date', 'final_score.soccer']);
     }
 
-    public function test_played_match_can_return_to_scheduled_without_losing_draft_data(): void
+    public function test_complete_score_automatically_changes_a_scheduled_match_to_played(): void
     {
         [$inscription] = $this->createInscriptionAndPayment();
         $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
@@ -356,8 +356,8 @@ final class CompetitionMatchesTest extends TestCase
             'num_match' => '9',
             'place' => 'Cancha Principal',
             'rival_name' => 'Rival Estado',
-            'status' => Game::STATUS_PLAYED,
-            'final_score' => ['soccer' => 3, 'rival' => 1],
+            'status' => Game::STATUS_SCHEDULED,
+            'final_score' => null,
             'school_id' => $this->school['id'],
         ]);
         $payload = $this->validMatchPayload($competitionGroup->tournament, $competitionGroup, $inscription, true, $match->id);
@@ -368,12 +368,62 @@ final class CompetitionMatchesTest extends TestCase
         $this->actingAs($this->user)
             ->putJson("/api/v2/matches/{$match->id}", $payload)
             ->assertOk()
-            ->assertJsonPath('success', true);
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('status', Game::STATUS_PLAYED);
 
         $match->refresh();
-        $this->assertSame(Game::STATUS_SCHEDULED, $match->status);
+        $this->assertSame(Game::STATUS_PLAYED, $match->status);
         $this->assertSame('3', (string) $match->final_score_array->soccer);
         $this->assertSame('1', (string) $match->final_score_array->rival);
+    }
+
+    public function test_zero_zero_score_also_changes_a_scheduled_match_to_played(): void
+    {
+        [$inscription] = $this->createInscriptionAndPayment();
+        $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
+        $match = $this->createMatchForSchool($this->school['id'], $this->user->id, ['soccer' => 0, 'rival' => 0]);
+        $match->update(['status' => Game::STATUS_SCHEDULED]);
+        $payload = $this->validMatchPayload($competitionGroup->tournament, $competitionGroup, $inscription, true, $match->id);
+        $payload['status'] = Game::STATUS_SCHEDULED;
+        $payload['final_score_school'] = '0';
+        $payload['final_score_rival'] = '0';
+
+        $this->actingAs($this->user)
+            ->putJson("/api/v2/matches/{$match->id}", $payload)
+            ->assertOk()
+            ->assertJsonPath('status', Game::STATUS_PLAYED);
+
+        $this->assertSame(Game::STATUS_PLAYED, $match->refresh()->status);
+    }
+
+    public function test_scored_games_migration_repairs_current_and_legacy_scores_only(): void
+    {
+        $currentScore = $this->createMatchForSchool(
+            $this->school['id'],
+            $this->user->id,
+            ['soccer' => 0, 'rival' => 0]
+        );
+        $legacyScore = $this->createMatchForSchool(
+            $this->school['id'],
+            $this->user->id,
+            ['local' => 2, 'visitor' => 1]
+        );
+        $partialScore = $this->createMatchForSchool(
+            $this->school['id'],
+            $this->user->id,
+            ['soccer' => 3]
+        );
+
+        Game::query()
+            ->whereKey([$currentScore->id, $legacyScore->id, $partialScore->id])
+            ->update(['status' => Game::STATUS_SCHEDULED]);
+
+        $migration = require database_path('migrations/2026_08_12_000001_mark_scored_games_as_played.php');
+        $migration->up();
+
+        $this->assertSame(Game::STATUS_PLAYED, $currentScore->refresh()->status);
+        $this->assertSame(Game::STATUS_PLAYED, $legacyScore->refresh()->status);
+        $this->assertSame(Game::STATUS_SCHEDULED, $partialScore->refresh()->status);
     }
 
     private function validMatchPayload(

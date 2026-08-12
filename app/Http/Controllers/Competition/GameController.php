@@ -66,6 +66,7 @@ class GameController extends Controller
 
         $response = [];
         $response['success'] = $this->repository->updateMatchSkill($request, $match);
+        $response['status'] = $response['success'] ? $match->refresh()->status : $match->status;
         return response()->json($response);
     }
 

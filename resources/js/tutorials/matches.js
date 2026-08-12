@@ -12,7 +12,7 @@ export const matchesListTutorial = {
             id: 'matches-list-stats-notice',
             selector: '[data-tour="matches-list-stats-notice"]',
             title: 'Activa las estadísticas al finalizar',
-            text: 'Las competencias programadas no cuentan en las estadísticas. Registra el resultado y cambia el estado a Jugado cuando termine el partido.',
+            text: 'Las competencias programadas no cuentan en las estadísticas. Al guardar el marcador completo, el sistema cambia automáticamente el estado a Jugado.',
         },
         {
             id: 'matches-list-table',

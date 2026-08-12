@@ -72,7 +72,10 @@ class CompetitionUpdateRequest extends FormRequest
             : ['soccer' => $schoolScore, 'rival' => $rivalScore];
         $match = $this->route('match');
         $gameId = is_object($match) ? $match->id : $match;
-        $status = $this->input('status', is_object($match) ? $match->status : Game::STATUS_SCHEDULED);
+        $requestedStatus = $this->input('status', is_object($match) ? $match->status : Game::STATUS_SCHEDULED);
+        $hasCompleteScore = $schoolScore !== null && $schoolScore !== ''
+            && $rivalScore !== null && $rivalScore !== '';
+        $status = $hasCompleteScore ? Game::STATUS_PLAYED : $requestedStatus;
         $skillControls = collect($this->input('skill_controls', []))
             ->map(function ($skillControl) use ($gameId) {
                 $skillControl['game_id'] = $gameId;

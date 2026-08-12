@@ -149,7 +149,9 @@
                                                         <option value="played">Jugado</option>
                                                     </Field>
                                                     <ErrorMessage name="status" class="invalid-feedback d-block" />
-                                                    <small class="text-muted d-block mt-1">Solo los partidos jugados alimentan las estadísticas.</small>
+                                                    <small class="text-muted d-block mt-1">
+                                                        Al guardar un marcador completo, el estado cambia automáticamente a Jugado.
+                                                    </small>
                                                 </div>
                                             </div>
                                         </div>
@@ -465,6 +467,14 @@ const mergeCoachBoardPayload = (skillControls, lineupPayload) => {
 
 const handleSubmit = async (values, actions) => {
     try {
+        const hasCompleteScore = values.final_score_school !== null && values.final_score_school !== ''
+            && values.final_score_rival !== null && values.final_score_rival !== ''
+
+        if (props.isEdition && hasCompleteScore && values.status === 'scheduled') {
+            values.status = 'played'
+            formMatches.value?.setFieldValue?.('status', 'played')
+        }
+
         if (props.isEdition && originalStatus.value === 'played' && values.status === 'scheduled') {
             const confirmation = await Swal.fire({
                 title: '¿Volver a Programado?',
@@ -507,8 +517,14 @@ const handleSubmit = async (values, actions) => {
         const response = await api.post(url, data)
 
         if (response.data.success) {
-            showMessage('Guardado correctamente.')
-            originalStatus.value = values.status
+            const effectiveStatus = response.data.status || values.status
+            formMatches.value?.setFieldValue?.('status', effectiveStatus)
+            showMessage(
+                effectiveStatus === 'played' && values.status !== originalStatus.value
+                    ? 'Guardado correctamente. La competencia ahora cuenta en las estadísticas.'
+                    : 'Guardado correctamente.'
+            )
+            originalStatus.value = effectiveStatus
 
             if (!props.isEdition && response.data.match_id) {
                 await router.replace({

@@ -15,7 +15,7 @@ const match = {
     hour: '09:30 AM',
     num_match: 8,
     rival_name: 'Rival E2E',
-    status: 'played',
+    status: 'scheduled',
     final_score: { soccer: 2, rival: 1 },
     general_concept: 'Partido de prueba',
     skills_controls: [{
@@ -224,6 +224,7 @@ test('match edition groups fields, becomes mobile cards and preserves its payloa
         goals: '3',
         observation: 'Observación actualizada desde la tarjeta',
     })
+    expect(submittedPayload.status).toBe('played')
 })
 
 test('matches list explains which statuses feed competition statistics', async ({ page }) => {

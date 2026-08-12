@@ -26,7 +26,7 @@
                     <strong>Solo cuentan los partidos jugados</strong>
                     <p>
                         Las competencias en estado <strong>Programado</strong> no se incluyen en las estadísticas.
-                        Cuando el resultado esté listo, edita la competencia y cambia su estado a
+                        Al guardar el marcador completo, su estado cambia automáticamente a
                         <strong>Jugado</strong>.
                     </p>
                 </div>
