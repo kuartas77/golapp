@@ -112,7 +112,17 @@ class GameRepository
     {
         $match->loadMissing([
             'competitionGroup' => fn ($q) => $q->with(['tournament:id,name', 'professor:id,name']),
-            'skillsControls' => fn ($q) => $q->with('inscription', fn ($q) => $q->select(['id', 'player_id'])->with('player:id,names,last_names,unique_code,photo')),
+            'skillsControls' => fn ($q) => $q->with(
+                'inscription',
+                fn ($q) => $q
+                    ->withTrashed()
+                    ->select(['id', 'player_id'])
+                    ->with([
+                        'player' => fn ($q) => $q
+                            ->withTrashed()
+                            ->select(['id', 'names', 'last_names', 'unique_code', 'photo']),
+                    ])
+            ),
         ]);
 
         foreach ($match->skillsControls as $skilControl) {

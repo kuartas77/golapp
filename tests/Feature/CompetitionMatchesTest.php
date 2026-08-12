@@ -226,6 +226,29 @@ final class CompetitionMatchesTest extends TestCase
         );
     }
 
+    public function test_edit_match_includes_soft_deleted_inscription_and_player(): void
+    {
+        $player = $this->createTestPlayer();
+        [$inscription] = $this->createInscriptionAndPayment($player);
+        $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
+
+        $storeResponse = $this->actingAs($this->user)
+            ->postJson(
+                '/api/v2/matches',
+                $this->validMatchPayload($competitionGroup->tournament, $competitionGroup, $inscription)
+            )
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $inscription->delete();
+        $player->delete();
+
+        $this->getJson('/api/v2/matches/'.$storeResponse->json('match_id'))
+            ->assertOk()
+            ->assertJsonPath('skills_controls.0.inscription_id', $inscription->id)
+            ->assertJsonPath('skills_controls.0.player.id', $player->id);
+    }
+
     public function test_final_score_array_accessor_supports_current_and_legacy_formats(): void
     {
         $competitionGroup = $this->createCompetitionGroupForSchool($this->school['id'], $this->user->id);
