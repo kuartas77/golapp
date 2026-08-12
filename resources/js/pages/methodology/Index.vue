@@ -185,12 +185,13 @@
                             >
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label" for="methodology-session-date">Fecha de la sesión</label>
+                            <label class="form-label" for="methodology-session-date">{{ currentDateLabel }}</label>
                             <input
                                 id="methodology-session-date"
                                 v-model="form.fields.session_date"
                                 type="date"
                                 class="form-control"
+                                required
                             >
                         </div>
                         <div class="col-md-4">
@@ -299,7 +300,7 @@
                                 <label>Categoría</label>
                                 <input v-model="form.fields.category" type="text" class="form-control">
                                 <label>Mes correspondiente al informe</label>
-                                <input v-model="form.fields.report_month" type="text" class="form-control">
+                                <input v-model="form.fields.report_month" type="text" class="form-control" readonly>
                             </div>
 
                             <div class="table-responsive">
@@ -335,7 +336,7 @@
                                 <label>Categoría</label>
                                 <input v-model="form.fields.category" type="text" class="form-control">
                                 <label>Mes correspondiente al informe</label>
-                                <input v-model="form.fields.report_month" type="text" class="form-control">
+                                <input v-model="form.fields.report_month" type="text" class="form-control" readonly>
                             </div>
 
                             <div class="table-responsive">
@@ -545,7 +546,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, reactive, ref, useTemplateRef } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, useTemplateRef, watch } from 'vue'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
@@ -565,8 +566,11 @@ import {
     createBlankDiagrams,
     createBlankFields,
     getTabByType,
+    isMonthlyMethodologyReport,
+    methodologyDateLabel,
     methodologyFieldGroups,
     methodologyTabs,
+    reportMonthFromSessionDate,
 } from './methodology-form-definitions'
 
 usePageTitle('Metodología')
@@ -637,6 +641,7 @@ const isPlanning = computed(() => activeType.value === METHODOLOGY_TYPES.plannin
 const isCharacterization = computed(() => activeType.value === METHODOLOGY_TYPES.characterizationSheet)
 const isMonthlyReport = computed(() => activeType.value === METHODOLOGY_TYPES.monthlyReport)
 const isCategoryMonthlyReport = computed(() => activeType.value === METHODOLOGY_TYPES.categoryMonthlyReport)
+const currentDateLabel = computed(() => methodologyDateLabel(activeType.value))
 const planningHeaderFields = [
     { key: 'category', label: 'Categoría' },
     { key: 'coach', label: 'Entrenador' },
@@ -864,12 +869,16 @@ function resetForm(record = null) {
         ...(record?.fields ?? {}),
     }
 
-    if (!fields.session_date) {
-        fields.session_date = record?.session_date ?? todayDate()
+    if (!fields.session_date && record?.session_date) {
+        fields.session_date = record.session_date
     }
 
     if ('coach' in fields && !fields.coach) {
         fields.coach = authenticatedUserName.value
+    }
+
+    if (isMonthlyMethodologyReport(activeType.value)) {
+        fields.report_month = reportMonthFromSessionDate(fields.session_date)
     }
 
     form.title = record?.title ?? tab.title
@@ -975,16 +984,10 @@ function normalizeFields(fields) {
     )
 }
 
-function todayDate() {
-    const date = new Date()
-    date.setMinutes(date.getMinutes() - date.getTimezoneOffset())
-
-    return date.toISOString().slice(0, 10)
-}
-
 async function saveRecord() {
     isSaving.value = true
     formError.value = ''
+    syncReportMonthFromDate()
 
     const payload = {
         training_group_id: form.training_group_id ? Number(form.training_group_id) : null,
@@ -1012,6 +1015,16 @@ async function saveRecord() {
         isSaving.value = false
     }
 }
+
+function syncReportMonthFromDate() {
+    if (!isMonthlyMethodologyReport(activeType.value)) {
+        return
+    }
+
+    form.fields.report_month = reportMonthFromSessionDate(form.fields.session_date)
+}
+
+watch(() => form.fields.session_date, syncReportMonthFromDate)
 
 onMounted(async () => {
     modalInstance.value = new window.bootstrap.Modal(modalRef.value, {

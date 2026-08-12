@@ -5,7 +5,9 @@ import {
     createBlankDiagrams,
     createBlankFields,
     getTabByType,
+    methodologyDateLabel,
     methodologyTabs,
+    reportMonthFromSessionDate,
 } from '@/pages/methodology/methodology-form-definitions'
 
 describe('methodology form definitions', () => {
@@ -89,5 +91,14 @@ describe('methodology form definitions', () => {
         expect(createBlankFields(METHODOLOGY_TYPES.monthlyReport)).not.toHaveProperty('signature')
         expect(createBlankFields(METHODOLOGY_TYPES.monthlyReport)).not.toHaveProperty('signer_name')
         expect(createBlankFields(METHODOLOGY_TYPES.monthlyReport)).not.toHaveProperty('signer_document')
+    })
+
+    it('derives monthly report labels from the selected report date', () => {
+        expect(methodologyDateLabel(METHODOLOGY_TYPES.monthlyReport)).toBe('Fecha del informe')
+        expect(methodologyDateLabel(METHODOLOGY_TYPES.categoryMonthlyReport)).toBe('Fecha del informe')
+        expect(methodologyDateLabel(METHODOLOGY_TYPES.planning)).toBe('Fecha de la sesión')
+        expect(reportMonthFromSessionDate('2026-05-12')).toBe('Mayo')
+        expect(reportMonthFromSessionDate('2026-12-01')).toBe('Diciembre')
+        expect(reportMonthFromSessionDate('')).toBe('')
     })
 })

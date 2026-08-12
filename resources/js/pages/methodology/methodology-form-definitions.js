@@ -35,6 +35,38 @@ export const planningDiagramKeys = [
     'central_phase_three',
 ]
 
+export const methodologyMonthLabels = [
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre',
+]
+
+export function isMonthlyMethodologyReport(type) {
+    return [
+        METHODOLOGY_TYPES.monthlyReport,
+        METHODOLOGY_TYPES.categoryMonthlyReport,
+    ].includes(type)
+}
+
+export function methodologyDateLabel(type) {
+    return isMonthlyMethodologyReport(type) ? 'Fecha del informe' : 'Fecha de la sesión'
+}
+
+export function reportMonthFromSessionDate(date) {
+    const month = Number(String(date ?? '').slice(5, 7))
+
+    return methodologyMonthLabels[month - 1] ?? ''
+}
+
 export const methodologyFieldGroups = {
     [METHODOLOGY_TYPES.planning]: [
         {

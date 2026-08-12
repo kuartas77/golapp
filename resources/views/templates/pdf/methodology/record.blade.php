@@ -84,6 +84,10 @@
         $fieldValue = fn (string $key) => data_get($fields, $key, '');
         $diagramItems = fn (string $key) => data_get($diagrams, $key, []);
         $sessionDate = $fieldValue('session_date') ?: $record->created_at?->format('Y-m-d');
+        $dateLabel = in_array($record->type, [
+            \App\Models\MethodologyRecord::TYPE_MONTHLY_REPORT,
+            \App\Models\MethodologyRecord::TYPE_CATEGORY_MONTHLY_REPORT,
+        ], true) ? 'Fecha del informe' : 'Fecha sesión';
     @endphp
 
     <table class="table-full title">
@@ -108,7 +112,7 @@
             <td>{{ $record->user?->name }}</td>
             <td class="field-label">Grupo</td>
             <td>{{ $record->trainingGroup?->name ?? 'Sin grupo' }}</td>
-            <td class="field-label">Fecha sesión</td>
+            <td class="field-label">{{ $dateLabel }}</td>
             <td>{{ $sessionDate }}</td>
         </tr>
     </table>

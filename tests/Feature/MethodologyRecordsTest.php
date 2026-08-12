@@ -52,7 +52,7 @@ final class MethodologyRecordsTest extends TestCase
             ->getJson('/api/v2/datatables/methodology_records?draw=1&start=0&length=10&type=planning')
             ->assertOk()
             ->assertJsonPath('data.0.id', $recordId)
-            ->assertJsonPath('data.0.creator_name', $this->user->name)
+            ->assertJsonPath('data.0.creator_name', e($this->user->name))
             ->assertJsonPath('data.0.session_date', '2026-07-15')
             ->assertJsonPath('data.0.export_pdf_url', route('methodology.records.pdf', ['id' => $recordId]));
 
@@ -311,6 +311,69 @@ final class MethodologyRecordsTest extends TestCase
             ->assertOk();
 
         $this->assertSame([$ownInstructorRecord->id], collect($instructorResponse->json('data'))->pluck('id')->all());
+    }
+
+    public function test_monthly_reports_derive_report_month_from_report_date(): void
+    {
+        $monthlyResponse = $this->actingAs($this->user)
+            ->postJson('/api/v2/methodology-records', $this->payload([
+                'type' => MethodologyRecord::TYPE_MONTHLY_REPORT,
+                'title' => 'Informe mensual mayo',
+                'fields' => [
+                    'session_date' => '2026-05-10',
+                    'report_month' => 'Enero',
+                ],
+            ]))
+            ->assertCreated();
+
+        $this->assertSame('Mayo', $monthlyResponse->json('data.fields.report_month'));
+
+        $categoryRecord = $this->createRecord((int) $this->school['id'], $this->user, [
+            'type' => MethodologyRecord::TYPE_CATEGORY_MONTHLY_REPORT,
+            'title' => 'Informe categoría',
+            'fields' => [
+                'session_date' => '2026-01-15',
+                'report_month' => 'Enero',
+            ],
+        ]);
+
+        $this->actingAs($this->user)
+            ->putJson("/api/v2/methodology-records/{$categoryRecord->id}", $this->payload([
+                'type' => MethodologyRecord::TYPE_CATEGORY_MONTHLY_REPORT,
+                'title' => 'Informe categoría actualizado',
+                'fields' => [
+                    'session_date' => '2026-08-20',
+                    'report_month' => 'Enero',
+                ],
+            ]))
+            ->assertOk()
+            ->assertJsonPath('data.fields.report_month', 'Agosto');
+    }
+
+    public function test_methodology_records_require_date(): void
+    {
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/methodology-records', $this->payload([
+                'type' => MethodologyRecord::TYPE_PLANNING,
+                'title' => 'Planificación sin fecha',
+                'fields' => [
+                    'session_date' => '',
+                ],
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('fields.session_date');
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/methodology-records', $this->payload([
+                'type' => MethodologyRecord::TYPE_CATEGORY_MONTHLY_REPORT,
+                'title' => 'Informe categoría sin fecha',
+                'fields' => [
+                    'session_date' => '',
+                    'report_month' => 'Enero',
+                ],
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('fields.session_date');
     }
 
     public function test_non_planning_records_drop_diagrams(): void

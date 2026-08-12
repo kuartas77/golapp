@@ -30,7 +30,7 @@ class MethodologyRecordRequest extends FormRequest
             'type' => ['required', 'string', Rule::in(MethodologyRecord::TYPES)],
             'title' => ['required', 'string', 'max:255'],
             'fields' => ['nullable', 'array'],
-            'fields.session_date' => ['nullable', 'date_format:Y-m-d'],
+            'fields.session_date' => ['required', 'date_format:Y-m-d'],
             'fields.*' => ['nullable'],
             'diagrams' => ['nullable', 'array'],
         ];
@@ -39,11 +39,12 @@ class MethodologyRecordRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $type = (string) $this->input('type');
+        $fields = $this->normalizeFields($this->input('fields', []));
 
         $this->merge([
             'training_group_id' => $this->filled('training_group_id') ? (int) $this->input('training_group_id') : null,
             'title' => $this->normalizeString($this->input('title')),
-            'fields' => $this->normalizeFields($this->input('fields', [])),
+            'fields' => $this->normalizeReportMonth($type, $fields),
             'diagrams' => $type === MethodologyRecord::TYPE_PLANNING
                 ? $this->input('diagrams', [])
                 : null,
@@ -59,6 +60,21 @@ class MethodologyRecordRequest extends FormRequest
         return collect($fields)
             ->map(fn ($value) => is_array($value) ? $this->normalizeFields($value) : $this->normalizeString($value))
             ->all();
+    }
+
+    private function normalizeReportMonth(string $type, array $fields): array
+    {
+        if (! in_array($type, [
+            MethodologyRecord::TYPE_MONTHLY_REPORT,
+            MethodologyRecord::TYPE_CATEGORY_MONTHLY_REPORT,
+        ], true)) {
+            return $fields;
+        }
+
+        $month = (int) substr((string) ($fields['session_date'] ?? ''), 5, 2);
+        $fields['report_month'] = config("variables.KEY_MONTHS_INDEX.{$month}");
+
+        return $fields;
     }
 
     private function normalizeString(mixed $value): ?string
