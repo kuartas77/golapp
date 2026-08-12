@@ -17,6 +17,8 @@ class CategoryFormatService
 
     public const BIRTH_YEAR = 'birth_year';
 
+    public const BIRTH_YEAR_PREFIX = 'CAT-';
+
     public const FORMATS = [
         self::SUB_AGE,
         self::BIRTH_YEAR,
@@ -34,7 +36,7 @@ class CategoryFormatService
     public function formatBirthYearForMode(int $birthYear, string $mode, ?int $referenceYear = null): string
     {
         if ($mode === self::BIRTH_YEAR) {
-            return 'Categoria-'.$birthYear;
+            return self::BIRTH_YEAR_PREFIX.$birthYear;
         }
 
         return 'SUB-'.abs($birthYear - ($referenceYear ?? now()->year));
@@ -87,7 +89,7 @@ class CategoryFormatService
             return ($referenceYear ?? now()->year) - (int) $matches[1];
         }
 
-        if (preg_match('/^Categoria-(\d{4})$/', $category, $matches) === 1) {
+        if (preg_match('/^(?:CAT|Categoria)-(\d{4})$/', $category, $matches) === 1) {
             return (int) $matches[1];
         }
 

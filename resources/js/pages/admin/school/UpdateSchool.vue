@@ -152,7 +152,7 @@
                                     <label for="CATEGORY_FORMAT" class="form-label">Formato</label>
                                     <Field id="CATEGORY_FORMAT" name="CATEGORY_FORMAT" as="select" class="form-select">
                                         <option value="sub_age">SUB-11</option>
-                                        <option value="birth_year">Categoria-2017</option>
+                                        <option value="birth_year">CAT-2017</option>
                                     </Field>
                                 </div>
                                 <div class="col-md-7">

@@ -22,8 +22,9 @@ final class CategoryFormatServiceTest extends TestCase
         $formatter = new CategoryFormatService;
 
         $this->assertSame('SUB-9', $formatter->formatBirthYearForMode(2017, CategoryFormatService::SUB_AGE));
-        $this->assertSame('Categoria-2017', $formatter->formatBirthYearForMode(2017, CategoryFormatService::BIRTH_YEAR));
-        $this->assertSame('Categoria-2015', $formatter->convertLabel('SUB-11', CategoryFormatService::BIRTH_YEAR));
+        $this->assertSame('CAT-2017', $formatter->formatBirthYearForMode(2017, CategoryFormatService::BIRTH_YEAR));
+        $this->assertSame('CAT-2015', $formatter->convertLabel('SUB-11', CategoryFormatService::BIRTH_YEAR));
+        $this->assertSame('SUB-9', $formatter->convertLabel('CAT-2017', CategoryFormatService::SUB_AGE));
         $this->assertSame('SUB-9', $formatter->convertLabel('Categoria-2017', CategoryFormatService::SUB_AGE));
         $this->assertSame('Todas las categorías', $formatter->convertLabel('Todas las categorías', CategoryFormatService::BIRTH_YEAR));
     }

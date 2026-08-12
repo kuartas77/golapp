@@ -193,11 +193,11 @@ final class SchoolProfileTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true);
 
-        $this->assertSame('Categoria-2017', $player->fresh()->category);
-        $this->assertSame('Categoria-2017', Inscription::query()->withTrashed()->findOrFail($inscription->id)->category);
-        $this->assertSame(['Categoria-2017', 'Categoria-2016'], $trainingGroup->fresh()->category);
-        $this->assertSame(['Categoria-2017', 'Categoria-2016'], $competitionGroup->fresh()->categories);
-        $this->assertSame('Categoria-2017, Categoria-2016', $competitionGroup->fresh()->category);
+        $this->assertSame('CAT-2017', $player->fresh()->category);
+        $this->assertSame('CAT-2017', Inscription::query()->withTrashed()->findOrFail($inscription->id)->category);
+        $this->assertSame(['CAT-2017', 'CAT-2016'], $trainingGroup->fresh()->category);
+        $this->assertSame(['CAT-2017', 'CAT-2016'], $competitionGroup->fresh()->categories);
+        $this->assertSame('CAT-2017, CAT-2016', $competitionGroup->fresh()->category);
         $this->assertSame('SUB-9', $otherPlayer->fresh()->category);
         $this->assertDatabaseHas('setting_values', [
             'school_id' => $school->id,
@@ -208,7 +208,7 @@ final class SchoolProfileTest extends TestCase
         $catalogResponse = $this->actingAs($this->user)
             ->getJson('/api/v2/settings/groups')
             ->assertOk();
-        $this->assertStringStartsWith('Categoria-', $catalogResponse->json('categories.0.id'));
+        $this->assertStringStartsWith('CAT-', $catalogResponse->json('categories.0.id'));
     }
 
     public function test_category_format_change_rolls_back_when_conversion_fails(): void
