@@ -143,6 +143,26 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="col-12">
+                        <div class="border rounded p-3">
+                            <h6 class="mb-3">Formato de categorías deportivas</h6>
+                            <div class="row align-items-start g-3">
+                                <div class="col-md-5">
+                                    <label for="CATEGORY_FORMAT" class="form-label">Formato</label>
+                                    <Field id="CATEGORY_FORMAT" name="CATEGORY_FORMAT" as="select" class="form-select">
+                                        <option value="sub_age">SUB-11</option>
+                                        <option value="birth_year">Categoria-2017</option>
+                                    </Field>
+                                </div>
+                                <div class="col-md-7">
+                                    <div class="alert alert-warning mb-0 py-2" role="alert">
+                                        Al cambiar el formato se convertirán las categorías existentes de deportistas, inscripciones y grupos de esta escuela.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div v-if="values.inscriptions_enabled && values.slug" class="border rounded-3 p-3 mt-4">
@@ -189,7 +209,7 @@
     <PageTutorialOverlay :tutorial="tutorial" />
 </template>
 <script setup>
-import { Form } from 'vee-validate'
+import { Field, Form } from 'vee-validate'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useFormSchool from '@/composables/admin/school/formSchool'
 import { useBackofficeAccess } from '@/composables/useBackofficeAccess'

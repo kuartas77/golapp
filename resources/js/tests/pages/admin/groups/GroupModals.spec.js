@@ -304,5 +304,26 @@ describe('Admin group modals', () => {
 
         expect(wrapper.get('[data-select-id="user_id"]').text()).toContain('Profesor Retirado');
         expect(wrapper.get('[data-select-id="tournament_id"]').text()).toContain('Copa Antigua');
+        expect(wrapper.get('[data-select-id="categories"]').text()).toContain('SUB-17');
+        expect(wrapper.get('[data-select-id="categories"]').text()).toContain('"maxSelections":12');
+    });
+
+    it('submits competition group categories as an array of values', async () => {
+        apiMock.post.mockResolvedValue({ data: { success: true } });
+        const wrapper = await mountModal(ModalCompetitionGroup);
+
+        await wrapper.vm.$.setupState.submit({
+            name: 'Selección múltiple',
+            user_id: '7',
+            tournament_id: '8',
+            categories: [
+                { value: 'SUB-9', label: 'SUB-9' },
+                { value: 'SUB-10', label: 'SUB-10' },
+            ],
+        }, { setErrors: vi.fn() });
+
+        expect(apiMock.post).toHaveBeenCalledWith('/api/v2/admin/competition_groups', expect.objectContaining({
+            categories: ['SUB-9', 'SUB-10'],
+        }));
     });
 });

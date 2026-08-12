@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Observers\CompetitionGroupObserver;
+use App\Service\Category\CategoryFormatService;
 use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,10 +16,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * @property mixed category
- * @property mixed year
- * @property mixed name
- * @property mixed inscriptions
+ * @property mixed $category
+ * @property array<int, string>|null $categories
+ * @property mixed $year
+ * @property mixed $name
+ * @property mixed $inscriptions
  *
  * @method onlyTrashedRelations()
  */
@@ -36,11 +38,12 @@ class CompetitionGroup extends Model
         'tournament_id',
         'user_id',
         'category',
+        'categories',
         'school_id',
     ];
 
     protected $casts = [
-
+        'categories' => 'array',
     ];
 
     protected $appends = [
@@ -54,6 +57,23 @@ class CompetitionGroup extends Model
 
     protected static function booted(): void
     {
+        self::saving(function (self $group): void {
+            $categories = $group->categories;
+            $hasExplicitCategories = is_array($categories) && $categories !== [];
+
+            if (! $hasExplicitCategories) {
+                $categories = explode(',', (string) $group->category);
+            }
+
+            $categories = app(CategoryFormatService::class)->normalizeCategories($categories);
+            $group->categories = $categories;
+            $group->category = implode(', ', $categories);
+
+            if ($hasExplicitCategories) {
+                $group->year = $categories[0] ?? (string) $group->year;
+            }
+        });
+
         self::observe(CompetitionGroupObserver::class);
     }
 
@@ -100,9 +120,6 @@ class CompetitionGroup extends Model
         return $this->hasMany(Game::class);
     }
 
-    /**
-     * @return HasMany
-     */
     public function inscriptions(): BelongsToMany
     {
         return $this->belongsToMany(Inscription::class)->using(CompetitionGroupInscription::class)->where('inscriptions.year', now()->year);

@@ -112,7 +112,7 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
             'identification_document' => $this->rowValue($row, 'numero_de_documento'),
             'rh' => $this->rowValue($row, 'rh'),
             'photo' => null,
-            'category' => categoriesName($dateBirth->year),
+            'category' => categoriesName($dateBirth->year, $this->school_id),
             'position_field' => null,
             'dominant_profile' => null,
             'school' => $this->rowValue($row, 'escuela_o_colegio_donde_estudia'),
@@ -169,6 +169,7 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
 
         if ($this->activeInscriptionPlayerIds->contains($player->id)) {
             $this->skippedInscriptions++;
+
             return;
         }
 

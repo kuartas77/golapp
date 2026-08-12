@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Service\Category\CategoryFormatService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,14 +13,14 @@ class SettingValue extends Model
 {
     use HasFactory;
 
-    protected $table = "setting_values";
+    protected $table = 'setting_values';
 
     protected $fillable = [
-        'setting_key', 'school_id', 'value'
+        'setting_key', 'school_id', 'value',
     ];
 
     /**
-     * @param int $school_id assign settings to school
+     * @param  int  $school_id  assign settings to school
      */
     public static function settingsDefault(int $school_id): array
     {
@@ -27,73 +28,78 @@ class SettingValue extends Model
             [
                 'setting_key' => Setting::MAX_USERS,
                 'school_id' => $school_id,
-                'value' => 2
+                'value' => 2,
             ],
             [
                 'setting_key' => Setting::MAX_GROUPS,
                 'school_id' => $school_id,
-                'value' => 5
+                'value' => 5,
             ],
             [
                 'setting_key' => Setting::MAX_PLAYERS,
                 'school_id' => $school_id,
-                'value' => 20
+                'value' => 20,
             ],
             [
                 'setting_key' => Setting::MAX_INSCRIPTIONS,
                 'school_id' => $school_id,
-                'value' => 200
+                'value' => 200,
             ],
             [
                 'setting_key' => Setting::INSCRIPTION_AMOUNT,
                 'school_id' => $school_id,
-                'value' => 70000
+                'value' => 70000,
             ],
             [
                 'setting_key' => Setting::MONTHLY_PAYMENT,
                 'school_id' => $school_id,
-                'value' => 50000
+                'value' => 50000,
             ],
             [
                 'setting_key' => Setting::BROTHER_MONTHLY_PAYMENT,
                 'school_id' => $school_id,
-                'value' => 50000
+                'value' => 50000,
             ],
             [
                 'setting_key' => Setting::MONTHLY_PAYMENT_OPTION_1,
                 'school_id' => $school_id,
-                'value' => 50000
+                'value' => 50000,
             ],
             [
                 'setting_key' => Setting::MONTHLY_PAYMENT_OPTION_2,
                 'school_id' => $school_id,
-                'value' => 50000
+                'value' => 50000,
             ],
             [
                 'setting_key' => Setting::MONTHLY_PAYMENT_OPTION_3,
                 'school_id' => $school_id,
-                'value' => 50000
+                'value' => 50000,
             ],
             [
                 'setting_key' => Setting::NOTIFY_PAYMENT_DAY,
                 'school_id' => $school_id,
-                'value' => 16
+                'value' => 16,
             ],
             [
                 'setting_key' => Setting::ANNUITY,
                 'school_id' => $school_id,
-                'value' => 48333
+                'value' => 48333,
             ],
             [
                 'setting_key' => Setting::SYSTEM_NOTIFY,
                 'school_id' => $school_id,
-                'value' => false
+                'value' => false,
             ],
             [
                 'setting_key' => Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED,
                 'school_id' => $school_id,
-                'value' => false
-            ]
+                'value' => false,
+            ],
+            [
+                'setting_key' => Setting::CATEGORY_FORMAT,
+                'school_id' => $school_id,
+                'value' => CategoryFormatService::SUB_AGE,
+            ],
         ];
     }
 

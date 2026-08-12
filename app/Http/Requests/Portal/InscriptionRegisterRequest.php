@@ -169,9 +169,13 @@ class InscriptionRegisterRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $school = School::firstWhere('slug', request()->segments()[3]);
+
         $this->merge([
-            'category' => categoriesName(Carbon::parse($this->date_birth)->year),
-            'school_data' => School::firstWhere('slug', request()->segments()[3]),
+            'category' => $school
+                ? categoriesName(Carbon::parse($this->date_birth)->year, $school)
+                : categoriesName(Carbon::parse($this->date_birth)->year),
+            'school_data' => $school,
             'tutor_doc' => $this->tutor_num_doc,
             'tutor_email' => filled($this->tutor_email) ? mb_strtolower(trim((string) $this->tutor_email)) : null,
         ]);

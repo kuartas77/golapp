@@ -101,6 +101,24 @@ final class CompetitionStatsTest extends TestCase
             ->assertJsonPath('groups.0.is_retired', true);
     }
 
+    public function test_ranking_filters_and_lists_each_category_from_multicategory_groups(): void
+    {
+        $tournament = $this->createTournament((int) $this->school['id']);
+        $group = $this->createGroup($tournament, $this->user->id, 'Multicategoría');
+        $group->update(['categories' => ['SUB-9', 'SUB-10']]);
+        $this->createGame($group, ['soccer' => 2, 'rival' => 0], Game::STATUS_PLAYED);
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/v2/competition-stats?year='.now()->year.'&category=SUB-10')
+            ->assertOk()
+            ->assertJsonPath('summary.played', 1)
+            ->assertJsonPath('groups.0.categories.0', 'SUB-9')
+            ->assertJsonPath('groups.0.categories.1', 'SUB-10');
+
+        $this->assertContains('SUB-9', $response->json('options.categories'));
+        $this->assertContains('SUB-10', $response->json('options.categories'));
+    }
+
     public function test_player_statistics_ignore_skill_controls_from_scheduled_matches(): void
     {
         DB::connection()->getPdo()->sqliteCreateFunction(

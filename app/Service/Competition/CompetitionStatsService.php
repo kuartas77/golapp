@@ -64,6 +64,7 @@ class CompetitionStatsService
                 'id' => $group->id,
                 'name' => $group->name,
                 'category' => $group->category,
+                'categories' => $group->categories ?? [],
                 'instructor_name' => $group->professor?->name,
                 'is_retired' => $group->trashed(),
             ],
@@ -93,6 +94,7 @@ class CompetitionStatsService
                 'games.final_score',
                 'competition_groups.name as competition_group_name',
                 'competition_groups.category',
+                'competition_groups.categories as competition_group_categories',
                 'competition_groups.deleted_at as group_deleted_at',
                 'users.name as instructor_name',
                 'tournaments.name as tournament_name',
@@ -110,7 +112,7 @@ class CompetitionStatsService
         return $query
             ->whereYear('games.date', $filters['year'])
             ->when($filters['tournament_id'], fn (Builder $builder, int $id) => $builder->where('games.tournament_id', $id))
-            ->when($filters['category'] ?? null, fn (Builder $builder, string $category) => $builder->where('competition_groups.category', $category));
+            ->when($filters['category'] ?? null, fn (Builder $builder, string $category) => $builder->whereJsonContains('competition_groups.categories', $category));
     }
 
     private function normalizeFilters(array $filters, bool $withCategory = true): array
@@ -175,6 +177,7 @@ class CompetitionStatsService
             'id' => $first->competition_group_id,
             'name' => $first->competition_group_name,
             'category' => $first->category,
+            'categories' => $this->decodeCategories($first->competition_group_categories, $first->category),
             'instructor_name' => $first->instructor_name,
             'is_retired' => $first->group_deleted_at !== null,
             'tournaments' => $matches->pluck('tournament_name')->filter()->unique()->values(),
@@ -241,10 +244,36 @@ class CompetitionStatsService
         ];
 
         if ($withCategories) {
-            $options['categories'] = $rows->pluck('category')->filter()->unique()->sort()->values();
+            $options['categories'] = $rows
+                ->flatMap(fn ($row) => $this->decodeCategories($row->competition_group_categories, $row->category))
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values();
         }
 
         return $options;
+    }
+
+    private function decodeCategories(mixed $categories, mixed $fallback): array
+    {
+        if (is_array($categories)) {
+            return array_values($categories);
+        }
+
+        if (is_string($categories) && $categories !== '') {
+            $decoded = json_decode($categories, true);
+
+            if (is_array($decoded)) {
+                return array_values($decoded);
+            }
+        }
+
+        return collect(explode(',', (string) $fallback))
+            ->map(fn (string $category) => trim($category))
+            ->filter()
+            ->values()
+            ->all();
     }
 
     private function rankingComparator(): callable

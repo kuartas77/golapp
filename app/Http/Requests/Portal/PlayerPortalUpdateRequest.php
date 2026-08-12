@@ -43,9 +43,11 @@ class PlayerPortalUpdateRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $schoolId = (int) auth()->user()->school_id;
+
         $this->merge([
-            'category' => categoriesName(Carbon::parse($this->date_birth)->year),
-            'school_id' => auth()->user()->school_id
+            'category' => categoriesName(Carbon::parse($this->date_birth)->year, $schoolId),
+            'school_id' => $schoolId,
         ]);
     }
 }

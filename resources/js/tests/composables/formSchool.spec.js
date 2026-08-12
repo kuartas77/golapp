@@ -24,6 +24,7 @@ const validValues = {
     slug: 'escuela-demo',
     name: 'Escuela Demo',
     logo: null,
+    CATEGORY_FORMAT: 'sub_age',
 }
 
 describe('useFormSchool submit lifecycle', () => {
@@ -68,6 +69,19 @@ describe('useFormSchool submit lifecycle', () => {
         await wrapper.vm.submit(validValues, { setErrors: vi.fn() })
 
         expect(wrapper.vm.globalError).toBe('La configuración no pudo guardarse.')
+        wrapper.unmount()
+    })
+
+    it('warns when the category format will convert existing data', async () => {
+        axiosMock.post.mockResolvedValue({ data: { success: true } })
+        const wrapper = mount(Harness)
+
+        await wrapper.vm.submit({ ...validValues, CATEGORY_FORMAT: 'birth_year' }, { setErrors: vi.fn() })
+
+        expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({
+            title: '¿Quieres cambiar el formato de categorías?',
+            text: 'Las categorías existentes de esta escuela se convertirán al nuevo formato.',
+        }))
         wrapper.unmount()
     })
 })

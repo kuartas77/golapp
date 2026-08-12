@@ -12,8 +12,6 @@ class InscriptionUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -22,8 +20,6 @@ class InscriptionUpdateRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -87,9 +83,6 @@ class InscriptionUpdateRequest extends FormRequest
         ];
     }
 
-    /**
-     *
-     */
     protected function prepareForValidation(): void
     {
         $dateBirth = Player::find($this->player_id)->date_birth;
@@ -97,11 +90,13 @@ class InscriptionUpdateRequest extends FormRequest
         $monthlyPaymentType = $this->resolveMonthlyPaymentType();
         $complementaryGroupIds = $this->normalizeComplementaryGroupIds();
 
+        $school = getSchool(auth()->user());
+
         $this->merge([
-            'school_id' => getSchool(auth()->user())->id,
+            'school_id' => $school->id,
             'year' => $startDate->year,
             'start_date' => $startDate,
-            'category' => categoriesName(Carbon::parse($dateBirth)->year),
+            'category' => categoriesName(Carbon::parse($dateBirth)->year, $school),
             'photos' => $this->input('photos', false),
             'copy_identification_document' => $this->input('copy_identification_document', false),
             'eps_certificate' => $this->input('eps_certificate', false),

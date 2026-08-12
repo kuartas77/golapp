@@ -8,6 +8,7 @@ use App\Models\Tournament;
 use App\Models\TrainingGroup;
 use App\Repositories\CompetitionGroupRepository;
 use App\Repositories\TrainingGroupRepository;
+use App\Service\Category\CategoryFormatService;
 use App\Service\Groups\GroupCatalogCache;
 use App\Service\Groups\TrainingGroupYearFilter;
 use Closure;
@@ -16,7 +17,12 @@ use Illuminate\Support\Facades\DB;
 
 class SettingsCatalogService
 {
-    public function __construct(private TrainingGroupRepository $trainingGroups, private CompetitionGroupRepository $competitionGroups, private GroupCatalogCache $catalogCache) {}
+    public function __construct(
+        private TrainingGroupRepository $trainingGroups,
+        private CompetitionGroupRepository $competitionGroups,
+        private GroupCatalogCache $catalogCache,
+        private CategoryFormatService $categoryFormatter,
+    ) {}
 
     public function general(School $school, int $userId, bool $instructor, bool $admin): array
     {
@@ -36,7 +42,9 @@ class SettingsCatalogService
         }, $instructorId);
         $allGroups = collect($groups->all());
         $firstGroup = TrainingGroup::orderBy('id')->firstWhere('school_id', $schoolId);
-        if (!$instructor && $firstGroup && !$allGroups->contains('id', $firstGroup->id)) $allGroups->prepend($firstGroup);
+        if (! $instructor && $firstGroup && ! $allGroups->contains('id', $firstGroup->id)) {
+            $allGroups->prepend($firstGroup);
+        }
 
         return [
             'all_t_groups' => $allGroups, 't_groups' => $groups,
@@ -74,12 +82,30 @@ class SettingsCatalogService
     public function groups(School $school): array
     {
         $id = (int) $school->id;
-        $years = Cache::remember("KEY_YEARS_{$id}", now()->addDay(), function () { $now = now(); $years = [$now->format('Y') => $now->format('Y')]; if (in_array($now->month, [10, 11, 12])) $years[$now->addYear()->format('Y')] = $now->format('Y'); return $years; });
+        $years = Cache::remember("KEY_YEARS_{$id}", now()->addDay(), function () {
+            $now = now();
+            $years = [$now->format('Y') => $now->format('Y')];
+            if (in_array($now->month, [10, 11, 12])) {
+                $years[$now->addYear()->format('Y')] = $now->format('Y');
+            }
+
+return $years;
+        });
+
         return [
             'users' => Cache::remember("KEY_USERS_{$id}", now()->addMinute(), fn () => $school->users()->get(['users.id', 'users.name'])->map(fn ($user) => ['id' => $user->id, 'name' => $user->name])),
             'year_active' => $years,
             'schedules' => Cache::remember("SCHEDULES_{$id}", now()->addMinute(), fn () => Schedule::query()->schoolId()->get(['schedule']))->map(fn ($item) => ['id' => $item->schedule, 'name' => $item->schedule]),
-            'categories' => Cache::remember("KEY_CATEGORIES_{$id}", now()->addDay(), fn () => collect(range(now()->subYears(18)->year, now()->subYears(2)->year))->map(fn ($year) => ['id' => categoriesName($year), 'name' => categoriesName($year)])),
+            'categories' => Cache::remember(
+                "KEY_CATEGORIES_{$id}",
+                now()->addDay(),
+                fn () => collect(range(now()->subYears(18)->year, now()->subYears(2)->year))
+                    ->map(function ($year) use ($school) {
+                        $category = $this->categoryFormatter->formatBirthYear($year, $school);
+
+                        return ['id' => $category, 'name' => $category];
+                    })
+            ),
             'tournaments' => Cache::remember("KEY_TOURNAMENT_{$id}", now()->addMinutes(2), fn () => Tournament::orderBy('name')->schoolId()->get(['name', 'id'])->map(fn ($item) => ['id' => $item->id, 'name' => $item->name])),
         ];
     }

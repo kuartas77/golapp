@@ -21,6 +21,7 @@ export default function useFormSchool() {
         send_documents: false,
         send_monthly_payment_receipts: false,
         INSTRUCTOR_MONTH_LOCK_ENABLED: false,
+        CATEGORY_FORMAT: 'sub_age',
         tutor_platform: false,
         sign_player: false,
         inscriptions_enabled: false,
@@ -48,6 +49,7 @@ export default function useFormSchool() {
         MONTHLY_PAYMENT_OPTION_2: yup.string().required(),
         MONTHLY_PAYMENT_OPTION_3: yup.string().required(),
         ANNUITY: yup.string().required(),
+        CATEGORY_FORMAT: yup.string().oneOf(['sub_age', 'birth_year']).required(),
         logo: yup.mixed(),
         // create_contract: yup.boolean().oneOf([true]),
         // send_documents: yup.boolean().oneOf([true]),
@@ -72,6 +74,7 @@ export default function useFormSchool() {
             send_documents: response.data.send_documents,
             send_monthly_payment_receipts: response.data.send_monthly_payment_receipts,
             INSTRUCTOR_MONTH_LOCK_ENABLED: Boolean(Number(response.data.settings.INSTRUCTOR_MONTH_LOCK_ENABLED ?? 0)),
+            CATEGORY_FORMAT: response.data.settings.CATEGORY_FORMAT ?? 'sub_age',
             tutor_platform: response.data.tutor_platform,
             sign_player: response.data.sign_player,
             inscriptions_enabled: response.data.inscriptions_enabled,
@@ -93,8 +96,14 @@ export default function useFormSchool() {
     const submit = async (values, actions) => {
         globalError.value = null
 
+        const categoryFormatChanged = values.CATEGORY_FORMAT !== formData.value.CATEGORY_FORMAT
         const result = await Swal.fire({
-            title: "¿Quieres guardar los cambios?",
+            title: categoryFormatChanged
+                ? "¿Quieres cambiar el formato de categorías?"
+                : "¿Quieres guardar los cambios?",
+            text: categoryFormatChanged
+                ? "Las categorías existentes de esta escuela se convertirán al nuevo formato."
+                : undefined,
             showDenyButton: true,
             showCancelButton: true,
             confirmButtonText: "Sí",
@@ -132,6 +141,7 @@ export default function useFormSchool() {
 
             if (response.data.success) {
                 showMessage('Guardado correctamente.')
+                formData.value = { ...formData.value, ...values }
             } else {
                 globalError.value = response.data.message || 'No fue posible guardar la configuración de la escuela.'
             }

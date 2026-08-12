@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\School;
 use App\Models\TrainingGroup;
 use App\Models\User;
+use App\Service\Category\CategoryFormatService;
 use App\Service\School\CurrentSchoolContext;
 use App\Service\StopWatch;
 use Carbon\Carbon;
@@ -179,9 +180,16 @@ if (! function_exists('percent')) {
 }
 
 if (! function_exists('categoriesName')) {
-    function categoriesName($value): string
+    function categoriesName($value, School|int|null $school = null): string
     {
-        return 'SUB-'.abs((int) $value - now()->year);
+        if ($school === null) {
+            return app(CategoryFormatService::class)->formatBirthYearForMode(
+                (int) $value,
+                CategoryFormatService::SUB_AGE
+            );
+        }
+
+        return app(CategoryFormatService::class)->formatBirthYear((int) $value, $school);
     }
 }
 
@@ -229,6 +237,7 @@ if (! function_exists('getSchool')) {
     {
         /** @var User $user */
         $user = $user ?? Auth::user();
+
         return app(CurrentSchoolContext::class)->current($user);
     }
 }

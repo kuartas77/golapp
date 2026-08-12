@@ -11,11 +11,9 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use RealRashid\SweetAlert\Facades\Alert;
 
 class CompetitionGroupController extends Controller
 {
-
     /**
      * @var CompetitionGroupRepository
      */
@@ -38,7 +36,6 @@ class CompetitionGroupController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     *
      */
     public function create()
     {
@@ -53,7 +50,7 @@ class CompetitionGroupController extends Controller
         $competitionGroup = $this->repository->createOrUpdateTeam(
             $request->only([
                 'name', 'year', 'tournament_id',
-                'user_id', 'category', 'school_id'
+                'user_id', 'category', 'categories', 'school_id',
             ])
         );
         $response = [];
@@ -69,9 +66,6 @@ class CompetitionGroupController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param CompetitionGroup $competitionGroup
-     * @return JsonResponse
      */
     public function show(CompetitionGroup $competitionGroup): JsonResponse
     {
@@ -83,9 +77,6 @@ class CompetitionGroupController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param CompetitionGroup $competitionGroup
-     * @return JsonResponse
      */
     public function edit(CompetitionGroup $competitionGroup): JsonResponse
     {
@@ -97,14 +88,13 @@ class CompetitionGroupController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
      */
     public function update(CompetitionGroupRequest $request, CompetitionGroup $competitionGroup): JsonResponse
     {
         $competitionGroup = $this->repository->createOrUpdateTeam(
             $request->only([
                 'name', 'year', 'tournament_id',
-                'user_id', 'category', 'school_id'
+                'user_id', 'category', 'categories', 'school_id',
             ]),
             false,
             $competitionGroup
@@ -122,18 +112,12 @@ class CompetitionGroupController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param CompetitionGroup $competitionGroup
      */
     public function destroy(CompetitionGroup $competitionGroup)
     {
         abort(404);
     }
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function filterGroupYear(Request $request): JsonResponse
     {
         return response()->json($this->repository->getGroupsYear($request->input('year')));
@@ -142,6 +126,7 @@ class CompetitionGroupController extends Controller
     public function availabilityGroup(CompetitionGroup $competitionGroup): JsonResponse
     {
         $competitionGroup->loadCount('inscriptions');
+
         return response()->json(['data' => $competitionGroup->inscriptions_count]);
     }
 }

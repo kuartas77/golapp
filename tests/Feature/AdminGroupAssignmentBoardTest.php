@@ -15,7 +15,7 @@ use Tests\TestCase;
 
 final class AdminGroupAssignmentBoardTest extends TestCase
 {
-    public function testTrainingBoardReturnsSelectorsAndPanelsForSchoolUser(): void
+    public function test_training_board_returns_selectors_and_panels_for_school_user(): void
     {
         $this->actingAs($this->user);
 
@@ -45,7 +45,7 @@ final class AdminGroupAssignmentBoardTest extends TestCase
         ]);
     }
 
-    public function testTrainingMoveUpdatesTheInscriptionTrainingGroup(): void
+    public function test_training_move_updates_the_inscription_training_group(): void
     {
         $this->actingAs($this->user);
 
@@ -67,7 +67,7 @@ final class AdminGroupAssignmentBoardTest extends TestCase
         $this->assertSame($destinationGroup->id, $inscription->fresh()->training_group_id);
     }
 
-    public function testCompetitionBoardReturnsAvailablePoolAndSelectedGroupMembers(): void
+    public function test_competition_board_returns_available_pool_and_selected_group_members(): void
     {
         $this->actingAs($this->user);
 
@@ -77,6 +77,7 @@ final class AdminGroupAssignmentBoardTest extends TestCase
 
         $selectedInscription = $this->createInscription(null, 'David', 'Ruiz');
         $poolInscription = $this->createInscription(null, 'Carlos', 'Mora');
+        $poolInscription->update(['category' => 'SUB-18']);
 
         $selectedGroup->inscriptions()->attach($selectedInscription->id);
 
@@ -103,7 +104,7 @@ final class AdminGroupAssignmentBoardTest extends TestCase
         ]);
     }
 
-    public function testCompetitionMoveAssignsAndDetachesMembers(): void
+    public function test_competition_move_assigns_and_detaches_members(): void
     {
         $this->actingAs($this->user);
 
@@ -137,7 +138,7 @@ final class AdminGroupAssignmentBoardTest extends TestCase
         ]);
     }
 
-    public function testInstructorCannotAccessTheAdminGroupAssignmentApi(): void
+    public function test_instructor_cannot_access_the_admin_group_assignment_api(): void
     {
         $instructor = $this->createSchoolScopedUser(
             (int) $this->school['id'],

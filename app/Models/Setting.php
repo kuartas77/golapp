@@ -46,10 +46,12 @@ class Setting extends Model
 
     public const INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED = 'INSTRUCTOR_MONTH_LOCK_ENABLED';
 
-    protected $table = "settings";
+    public const CATEGORY_FORMAT = 'CATEGORY_FORMAT';
+
+    protected $table = 'settings';
 
     protected $fillable = [
-        'key', 'public'
+        'key', 'public',
     ];
 
     public static function monthlyPaymentTypes(): array

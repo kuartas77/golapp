@@ -44,10 +44,15 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="year" class="form-label">Categoria</label><span
+                                        <label for="categories" class="form-label">Categorías</label><span
                                             class="text-danger">*</span>
-                                        <Field name="year" as="CustomSelect2" id="year" :options="categoryOptions" />
-                                        <ErrorMessage name="year" class="custom-error" />
+                                        <Field name="categories" v-slot="{ field, handleChange, handleBlur }">
+                                            <CustomMultiSelect v-bind="field" :buttons="true" :max-selections="12"
+                                                :options="categoryOptions" @change="handleChange"
+                                                @blur="handleBlur" id="categories" />
+                                        </Field>
+                                        <small class="text-muted d-block mt-1">Selecciona entre 1 y 12 categorías.</small>
+                                        <ErrorMessage name="categories" class="custom-error" />
                                     </div>
                                 </div>
                             </div>
@@ -96,7 +101,7 @@ const buildDefaultValues = () => ({
     name: null,
     user_id: null,
     tournament_id: null,
-    year: null,
+    categories: [],
 });
 const initialData = ref(buildDefaultValues());
 
@@ -131,6 +136,12 @@ const findOptionByValue = (options, value) => {
     return options.find((option) => option.value === String(value)) ?? null;
 };
 
+const resolveSelectedOptions = (options, values) => values.map((value) => {
+    const normalized = normalizeOption(value?.value ?? value, value?.label ?? value);
+
+    return findOptionByValue(options, normalized.value) ?? normalized;
+});
+
 const userOptions = computed(() => mergeOptionLists(settingsGroup.users, selectedUserOptions.value));
 const tournamentOptions = computed(() => mergeOptionLists(settingsGroup.tournaments, selectedTournamentOptions.value));
 const categoryOptions = computed(() => mergeOptionLists(settingsGroup.categories, selectedCategoryOptions.value));
@@ -151,7 +162,11 @@ const schema = yup.object().shape({
     name: yup.string().required(),
     user_id: yup.string().required(),
     tournament_id: yup.string().required(),
-    year: yup.string().required()
+    categories: yup
+        .array()
+        .min(1, "Selecciona al menos una categoría")
+        .max(12, "No puedes seleccionar más de 12 categorías")
+        .required()
 });
 
 const submit = async (values, actions) => {
@@ -164,7 +179,12 @@ const submit = async (values, actions) => {
             urlAction = `${url}/${props.id}`;
         }
 
-        const response = await api.post(urlAction, values);
+        const payload = {
+            ...values,
+            categories: values.categories.map((category) => category.value),
+        };
+
+        const response = await api.post(urlAction, payload);
 
         if (response.data.success === true) {
             const message = props.id ? 'Modifiado correctamente' : 'Guardado correctamente';
@@ -204,6 +224,8 @@ const onLoadData = async () => {
             tournament_id,
             user_id,
             year,
+            category,
+            categories,
             professor,
             tournament,
         } = response.data.data;
@@ -214,16 +236,17 @@ const onLoadData = async () => {
         selectedTournamentOptions.value = tournament_id
             ? [normalizeOption(tournament_id, tournament?.name ?? tournament_id)]
             : [];
-        selectedCategoryOptions.value = year
-            ? [normalizeOption(year, year)]
-            : [];
+        const selectedCategories = Array.isArray(categories) && categories.length
+            ? categories
+            : [category ?? year].filter(Boolean);
+        selectedCategoryOptions.value = selectedCategories.map((item) => normalizeOption(item));
 
         const data = {
             id: id,
             name: name,
             tournament_id: findOptionByValue(tournamentOptions.value, tournament_id)?.value ?? String(tournament_id),
             user_id: findOptionByValue(userOptions.value, user_id)?.value ?? String(user_id),
-            year: findOptionByValue(categoryOptions.value, year)?.value ?? String(year),
+            categories: resolveSelectedOptions(categoryOptions.value, selectedCategories),
         };
 
         form.value.resetForm({ values: data });

@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Tests;
 
-use App\Models\User;
 use App\Models\School;
-use App\Models\Setting;
 use App\Models\SchoolUser;
-use Spatie\Permission\Models\Role;
-use Illuminate\Testing\TestResponse;
+use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Foundation\Testing\WithFaker;
+use Spatie\Permission\Models\Role;
 
 trait WithLogin
 {
@@ -36,6 +35,7 @@ trait WithLogin
             Setting::SYSTEM_NOTIFY,
             Setting::MULTIPLE_SCHOOLS,
             Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED,
+            Setting::CATEGORY_FORMAT,
         ] as $key) {
             Setting::query()->firstOrCreate(['key' => $key], ['public' => false]);
         }
@@ -53,6 +53,7 @@ trait WithLogin
         $user = User::factory()->create($attributes + ['password' => 'password']);
         $user->syncRoles($roles);
         $user->profile()->create();
+
         return $user;
     }
 
@@ -75,19 +76,20 @@ trait WithLogin
             'days' => 'Grupo predeterminado',
             'schedules' => '10:00AM - 11:00AM',
         ]);
+
         return $school->toArray();
     }
 
-    protected function createSchoolAndUser( array $attributes = [], array $roles = [User::SCHOOL]): array
+    protected function createSchoolAndUser(array $attributes = [], array $roles = [User::SCHOOL]): array
     {
         $school = $this->createSchool($attributes);
 
         $user = $this->createUser([
             'email' => $school['email'],
-            'school_id' => $school['id']
+            'school_id' => $school['id'],
         ], roles: $roles);
 
-        $schoolUser = new SchoolUser();
+        $schoolUser = new SchoolUser;
         $schoolUser->user_id = $user->id;
         $schoolUser->school_id = $school['id'];
         $schoolUser->save();

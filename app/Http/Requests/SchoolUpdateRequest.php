@@ -3,7 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Models\Setting;
+use App\Service\Category\CategoryFormatService;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class SchoolUpdateRequest extends FormRequest
 {
@@ -14,7 +16,7 @@ class SchoolUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        return (isSchool() || isAdmin());
+        return isSchool() || isAdmin();
     }
 
     /**
@@ -46,6 +48,7 @@ class SchoolUpdateRequest extends FormRequest
             'sign_player' => ['nullable', 'boolean'],
             'inscriptions_enabled' => ['nullable', 'boolean'],
             Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED => ['nullable', 'boolean'],
+            Setting::CATEGORY_FORMAT => ['sometimes', Rule::in(CategoryFormatService::FORMATS)],
         ];
     }
 
@@ -82,6 +85,6 @@ class SchoolUpdateRequest extends FormRequest
 
     private function cleanString($value)
     {
-        return preg_replace("/[^0-9]/", "", $value);
+        return preg_replace('/[^0-9]/', '', $value);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Service\Category\CategoryFormatService;
 use App\Service\School\CurrentSchoolContext;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -18,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->scoped(CurrentSchoolContext::class, fn () => new CurrentSchoolContext);
+        $this->app->scoped(CategoryFormatService::class, fn () => new CategoryFormatService);
     }
 
     /**
@@ -33,12 +35,12 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-            LogViewer::auth(function ($request) {
-                return $request->user()
-                    && in_array($request->user()->email, [
-                        'kuartas77@gmail.com',
-                    ]);
-            });
+        LogViewer::auth(function ($request) {
+            return $request->user()
+                && in_array($request->user()->email, [
+                    'kuartas77@gmail.com',
+                ]);
+        });
     }
 
     private function ensureTestingDatabaseIsIsolated(): void

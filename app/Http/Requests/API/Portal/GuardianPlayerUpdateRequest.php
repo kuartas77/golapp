@@ -49,7 +49,9 @@ class GuardianPlayerUpdateRequest extends FormRequest
 
         $this->merge([
             'email' => filled($this->email) ? mb_strtolower(trim((string) $this->email)) : null,
-            'category' => categoriesName($year),
+            'category' => $player?->school_id
+                ? categoriesName($year, (int) $player->school_id)
+                : categoriesName($year),
             'school_id' => $player?->school_id,
         ]);
     }

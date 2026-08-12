@@ -18,8 +18,7 @@ export default function useCompetitionGList(table) {
     const columns = [
         { data: 'id', width: '1%', title: 'ID', render:'#link',searchable: false, orderable: true },
         { data: 'name', title: 'Nombre', searchable: true, orderable: true },
-        { data: 'category', title: 'Categoría', searchable: true, orderable: true },
-        { data: 'year', title: 'Año', searchable: true, orderable: false },
+        { data: 'category', title: 'Categorías', searchable: true, orderable: true },
         { data: 'tournament.name', title: 'Torneo', searchable: false, orderable: false },
         { data: 'professor.name', title: 'Instructor', searchable: false, orderable: false },
     ];

@@ -22,10 +22,13 @@ class UpdateCategoryPlayers extends Command
     public function handle(): int
     {
         try {
-            Player::query()->whereRelation('inscriptions', 'year', '>=', now()->year)->chunkByIdDesc(50, function($players){
-                DB::transaction(function() use($players){
+            Player::query()->whereRelation('inscriptions', 'year', '>=', now()->year)->chunkByIdDesc(50, function ($players) {
+                DB::transaction(function () use ($players) {
                     foreach ($players as $player) {
-                        $categoryName = categoriesName(Carbon::parse($player->date_birth)->year);
+                        $categoryName = categoriesName(
+                            Carbon::parse($player->date_birth)->year,
+                            (int) $player->school_id
+                        );
                         $player->category = $categoryName;
                         $player->save();
                         Inscription::query()

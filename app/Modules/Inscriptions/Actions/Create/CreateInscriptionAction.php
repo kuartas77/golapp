@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Inscriptions\Actions\Create;
 
-use Closure;
-use App\Modules\Inscriptions\Actions\Create\Passable;
-use App\Models\TrainingGroup;
-use App\Models\School;
-use App\Models\Player;
 use App\Models\Inscription;
+use App\Models\Player;
+use App\Models\School;
+use App\Models\TrainingGroup;
 use App\Service\InscriptionLimitService;
 use Carbon\Carbon;
+use Closure;
 
 final class CreateInscriptionAction implements IContractPassable
 {
@@ -23,9 +22,7 @@ final class CreateInscriptionAction implements IContractPassable
 
     private array $attributes;
 
-    public function __construct(private InscriptionLimitService $inscriptionLimitService)
-    {
-    }
+    public function __construct(private InscriptionLimitService $inscriptionLimitService) {}
 
     public function handle(Passable $passable, Closure $next)
     {
@@ -47,7 +44,7 @@ final class CreateInscriptionAction implements IContractPassable
         $existingInscription = Inscription::query()->withTrashed()->firstWhere([
             'unique_code' => $this->attributes['unique_code'],
             'year' => $this->attributes['year'],
-            'school_id' => $this->school->id
+            'school_id' => $this->school->id,
         ]);
 
         if (! $existingInscription || $existingInscription->trashed()) {
@@ -60,10 +57,10 @@ final class CreateInscriptionAction implements IContractPassable
         $this->inscription = Inscription::query()->withTrashed()->updateOrCreate([
             'unique_code' => $this->attributes['unique_code'],
             'year' => $this->attributes['year'],
-            'school_id' => $this->school->id
+            'school_id' => $this->school->id,
         ], $this->attributes);
 
-        if($this->inscription->trashed()){
+        if ($this->inscription->trashed()) {
             $this->inscription->restore();
         }
     }
@@ -77,7 +74,7 @@ final class CreateInscriptionAction implements IContractPassable
             'unique_code' => $this->player->unique_code,
             'year' => $startDate->year,
             'start_date' => $startDate->format('Y-m-d'),
-            'category' => categoriesName(Carbon::parse($this->player->date_birth)->year),
+            'category' => categoriesName(Carbon::parse($this->player->date_birth)->year, $this->school),
             'training_group_id' => TrainingGroup::query()
                 ->orderBy('id')
                 ->where('school_id', $this->school->id)

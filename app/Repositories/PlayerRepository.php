@@ -4,25 +4,24 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-
-use Exception;
-use Carbon\Carbon;
-use App\Models\Master;
+use App\Http\Requests\Player\PlayerCreateRequest;
+use App\Http\Requests\Player\PlayerUpdateRequest;
 use App\Models\Inscription;
+use App\Models\Master;
 use App\Models\Player;
+use App\Notifications\RegisterPlayerNotification;
+use App\Service\Player\PlayerExportService;
 use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
 use App\Traits\UploadFile;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Maatwebsite\Excel\HeadingRowImport;
-use App\Service\Player\PlayerExportService;
+use Carbon\Carbon;
+use Exception;
 use Illuminate\Database\Eloquent\Collection;
-use App\Http\Requests\Player\PlayerCreateRequest;
-use App\Http\Requests\Player\PlayerUpdateRequest;
-use App\Notifications\RegisterPlayerNotification;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Maatwebsite\Excel\HeadingRowImport;
 
 class PlayerRepository
 {
@@ -30,9 +29,7 @@ class PlayerRepository
     use PDFTrait;
     use UploadFile;
 
-    public function __construct(private Player $player, private PeopleRepository $peopleRepository)
-    {
-    }
+    public function __construct(private Player $player, private PeopleRepository $peopleRepository) {}
 
     public function getPlayersPeople()
     {
@@ -69,7 +66,7 @@ class PlayerRepository
             $dataPlayer = $playerCreateRequest->validated();
             $school_id = $dataPlayer['school_id'];
 
-            if(!isset($dataPlayer['unique_code'])){
+            if (! isset($dataPlayer['unique_code'])) {
                 $dataPlayer['unique_code'] = createUniqueCode($dataPlayer['school_id']);
             }
 
@@ -90,7 +87,7 @@ class PlayerRepository
             $peopleIds = $this->peopleRepository->getPeopleIds($playerCreateRequest->input('people'));
             $player->people()->sync($peopleIds);
 
-            !checkEmail($player->email) ?: $player->notify(new RegisterPlayerNotification($player));
+            ! checkEmail($player->email) ?: $player->notify(new RegisterPlayerNotification($player));
 
             DB::commit();
 
@@ -102,7 +99,7 @@ class PlayerRepository
                 'unique_code' => $dataPlayer['unique_code'] ?? null,
                 'email' => $dataPlayer['email'] ?? null,
             ]);
-            Cache::forget('KEY_LAST_UNIQUE_CODE.' . $school_id);
+            Cache::forget('KEY_LAST_UNIQUE_CODE.'.$school_id);
             $result = false;
         }
 
@@ -115,14 +112,16 @@ class PlayerRepository
     }
 
     /**
-     * @param string $method
-     * @param $request
-     * @param Player|null $player
+     * @param  string  $method
+     * @param  $request
      */
     private function setAttributes(array $dataPlayer, ?Player $player = null, bool $shouldUpdatePassword = true): array
     {
         $dataPlayer['date_birth'] = Carbon::parse($dataPlayer['date_birth']);
-        $dataPlayer['category'] = categoriesName($dataPlayer['date_birth']->year);
+        $dataPlayer['category'] = categoriesName(
+            $dataPlayer['date_birth']->year,
+            (int) ($dataPlayer['school_id'] ?? $player?->school_id)
+        );
         $dataPlayer['unique_code'] = ($dataPlayer['unique_code'] ?? optional($player)->unique_code);
         if ($shouldUpdatePassword) {
             $dataPlayer['password'] = Hash::make($dataPlayer['identification_document']);
@@ -162,6 +161,7 @@ class PlayerRepository
                 'player_id' => $player->id,
                 'unique_code' => $player->unique_code,
             ]);
+
             return false;
         }
     }
@@ -182,12 +182,13 @@ class PlayerRepository
             DB::commit();
 
             return $save;
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             DB::rollBack();
             $this->logError('PlayerRepository updatePlayerPortal failed', $exception, [
                 'player_id' => $player->id,
                 'unique_code' => $player->unique_code,
             ]);
+
             return false;
         }
     }
@@ -199,18 +200,19 @@ class PlayerRepository
             'people',
             'inscriptions' => fn ($q) => $q
                 ->with([
-                    'trainingGroup' => fn($q) => $q->withTrashed(),
-                    'complementaryGroup' => fn($q) => $q->withTrashed(),
+                    'trainingGroup' => fn ($q) => $q->withTrashed(),
+                    'complementaryGroup' => fn ($q) => $q->withTrashed(),
                 ])
-                ->withTrashedRelations()
+                ->withTrashedRelations(),
         ]);
         $player->inscriptions->setAppends(['format_average']);
         PlayerExportService::loadClassDays($player);
+
         return $player;
     }
 
     /**
-     * @param $request
+     * @param  $request
      */
     public function checkDocumentExists(string $doc): bool
     {
@@ -218,7 +220,7 @@ class PlayerRepository
     }
 
     /**
-     * @param $request
+     * @param  $request
      */
     public function checkUniqueCode(string $unique_code): bool
     {
@@ -232,7 +234,7 @@ class PlayerRepository
             ->schoolId()
             ->firstWhere('unique_code', $fields['unique_code']);
 
-        if (!$player) {
+        if (! $player) {
             return null;
         }
 
@@ -293,7 +295,7 @@ class PlayerRepository
         $query = request()->input('query');
         $year = (int) request()->input('year', now()->year);
 
-        return $this->player->query()->where('unique_code', 'LIKE', '%' . $query )
+        return $this->player->query()->where('unique_code', 'LIKE', '%'.$query)
             ->schoolId()
             ->whereDoesntHave('inscriptions', fn ($inscriptionQuery) => $inscriptionQuery
                 ->where('school_id', getSchool(auth()->user())->id)
@@ -315,7 +317,8 @@ class PlayerRepository
     public function birthdayToday(): Collection
     {
         $school_id = getSchool(auth()->user())->id;
-        return Cache::remember('BIRTHDAYS_' . $school_id, Carbon::now()->addDay()->startOfDay(), function () {
+
+        return Cache::remember('BIRTHDAYS_'.$school_id, Carbon::now()->addDay()->startOfDay(), function () {
             return $this->player->query()->schoolId()->whereHas('inscription')
                 ->whereDay('date_birth', Carbon::now()->day)->whereMonth('date_birth', Carbon::now()->month)
                 ->get();
@@ -324,7 +327,7 @@ class PlayerRepository
 
     public function validateImport($file)
     {
-        $headings = (new HeadingRowImport())->toCollection($file);
+        $headings = (new HeadingRowImport)->toCollection($file);
         $headers = $headings->first()->first();
 
         $headers_validation = collect([
@@ -333,16 +336,17 @@ class PlayerRepository
             'barrio', 'correo_electronico', 'numero_de_celular', 'eps', 'nombres_y_apellidos',
             'numero_de_telefono', 'profesion', 'empresa', 'cargo',
         ]);
+
         return $headers->diff($headers_validation)->implode(',');
     }
 
     public function getPlayerInfo(string $doc, $school_id): array
     {
         $player = $this->player->query()
-        ->where('identification_document', $doc)
-        ->where('school_id', $school_id)
-        //->whereDoesntHave('inscription', fn($q) => $q->where('year', getYearInscription()))
-        ->first();
+            ->where('identification_document', $doc)
+            ->where('school_id', $school_id)
+        // ->whereDoesntHave('inscription', fn($q) => $q->where('year', getYearInscription()))
+            ->first();
 
         return isset($player) ? [
             'names' => $player->names,
