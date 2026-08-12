@@ -9,10 +9,16 @@ export const matchesListTutorial = {
             text: 'Desde este boton eliges el grupo de competencia y entras al formulario del partido.',
         },
         {
+            id: 'matches-list-stats-notice',
+            selector: '[data-tour="matches-list-stats-notice"]',
+            title: 'Activa las estadísticas al finalizar',
+            text: 'Las competencias programadas no cuentan en las estadísticas. Registra el resultado y cambia el estado a Jugado cuando termine el partido.',
+        },
+        {
             id: 'matches-list-table',
             selector: '[data-tour="matches-list-table"]',
             title: 'Administra los partidos',
-            text: 'La tabla muestra torneo, grupo, fecha, rival y acciones para editar o imprimir.',
+            text: 'La tabla muestra torneo, grupo, fecha, rival y acciones para editar o imprimir. Solo los partidos en estado Jugado alimentan las estadisticas.',
         },
     ],
 }
@@ -47,7 +53,7 @@ export const matchFormTutorial = {
                     id: 'match-form-stats',
                     selector: '[data-tour="match-form-stats"]',
                     title: 'Diligencia las estadisticas por deportista',
-                    text: 'Esta tabla captura asistencia, posicion, minutos, goles, tarjetas y observaciones del partido.',
+                    text: 'Cada fila agrupa participacion, posicion, rendimiento, disciplina y evaluacion para que puedas registrar el partido con menos desplazamiento.',
                 },
             )
         } else {

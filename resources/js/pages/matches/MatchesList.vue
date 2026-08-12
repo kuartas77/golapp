@@ -18,6 +18,19 @@
                     </button>
                 </div>
             </div>
+            <div class="matches-stats-notice" role="note" data-tour="matches-list-stats-notice">
+                <span class="matches-stats-notice__icon" aria-hidden="true">
+                    <i class="fa-solid fa-chart-line"></i>
+                </span>
+                <div>
+                    <strong>Solo cuentan los partidos jugados</strong>
+                    <p>
+                        Las competencias en estado <strong>Programado</strong> no se incluyen en las estadísticas.
+                        Cuando el resultado esté listo, edita la competencia y cambia su estado a
+                        <strong>Jugado</strong>.
+                    </p>
+                </div>
+            </div>
             <ContentState
                 v-if="globalError"
                 type="error"
@@ -232,3 +245,60 @@ onMounted(() => {
     usePageTitle('Competencias')
 })
 </script>
+
+<style lang="scss" scoped>
+.matches-stats-notice {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(13, 202, 240, 0.32);
+    border-radius: 0.85rem;
+    background: rgba(13, 202, 240, 0.08);
+}
+
+.matches-stats-notice__icon {
+    display: inline-flex;
+    flex: 0 0 2.15rem;
+    width: 2.15rem;
+    height: 2.15rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(13, 202, 240, 0.16);
+    color: #087990;
+}
+
+.matches-stats-notice strong {
+    font-size: 0.88rem;
+}
+
+.matches-stats-notice p {
+    margin: 0.2rem 0 0;
+    color: var(--bs-secondary-color, rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.72));
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+:global(body.dark .matches-stats-notice) {
+    border-color: rgba(13, 202, 240, 0.38);
+    background: rgba(13, 202, 240, 0.11);
+    color: #f4f7ff;
+}
+
+:global(body.dark .matches-stats-notice__icon) {
+    background: rgba(13, 202, 240, 0.2);
+    color: #6edff6;
+}
+
+:global(body.dark .matches-stats-notice p) {
+    color: #c7d0e3;
+}
+
+@media (max-width: 575.98px) {
+    .matches-stats-notice {
+        padding: 0.8rem;
+    }
+}
+</style>

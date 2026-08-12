@@ -212,263 +212,11 @@
                         <div class="col-12 col-lg-8 col-xl-9">
                             <div class="card match-players-card h-100">
                                 <div class="card-body match-card-body">
-                                    <template v-if="isEdition">
+                                    <MatchPlayersStatsTable v-if="isEdition"
+                                        :skills-controls="skills_controls"
+                                        :position-options="positionOptions" />
 
-                                        <div class="match-table-toolbar no-print" data-tour="match-form-stats">
-                                            <div>
-                                                <h4 class="match-table-title">Jugadores</h4>
-                                                <small class="text-muted">
-                                                    Actualiza minutos, desempeño y observaciones del partido.
-                                                </small>
-                                            </div>
-                                            <span class="match-table-count">
-                                                Total <strong>{{ skills_controls.length }}</strong>
-                                            </span>
-                                        </div>
-
-                                        <div class="match-table-wrapper table-responsive no-print">
-                                            <table class="table table-bordered table-sm dataTable align-middle match-table">
-                                        <thead>
-                                            <tr>
-                                                <th class="dt-head-center" style="width: 15%;">deportista</th>
-                                                <th class="dt-head-center" style="width: 2%;" v-tooltip.top="'Asistio?'">A
-                                                </th>
-                                                <th class="dt-head-center" style="width: 2%;" v-tooltip.top="'Titular?'">T
-                                                </th>
-                                                <th class="dt-head-center" style="width: 6%;"
-                                                    v-tooltip.top="'Tiempo Jugado'">
-                                                    ⏱️ MIN
-                                                </th>
-                                                <th class="dt-head-center" style="width: 12%;" v-tooltip.top="''">posición
-                                                </th>
-                                                <th class="dt-head-center" style="width: 1%" v-tooltip.top="'Goles'">⚽ G
-                                                </th>
-                                                <th class="dt-head-center" style="width: 1%"
-                                                    v-tooltip.top="'Asistencias de Gol'">
-                                                    🎯 A.G
-                                                </th>
-                                                <th class="dt-head-center" style="width: 1%" v-tooltip.top="'Atajadas'">🧤 A
-                                                </th>
-                                                <th class="dt-head-center" style="width: 1%"
-                                                    v-tooltip.top="'Tarjetas Amarillas'">
-                                                    🟨 t.a
-                                                </th>
-                                                <th class="dt-head-center" style="width: 1%"
-                                                    v-tooltip.top="'Tarjetas Rojas'">
-                                                    🟥t.r
-                                                </th>
-                                                <th class="dt-head-center" style="width: 1%;"
-                                                    v-tooltip.top="'Calificación'">
-                                                    ⭐ CAL
-                                                </th>
-                                                <th class="dt-head-center" style="width: 15%;">
-                                                    observación</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-
-                                            <template v-if="skills_controls.length">
-                                                <tr v-for="(skill_control, index) in skills_controls"
-                                                    :key="skill_control.id ?? skill_control.player?.id ?? index">
-                                                    <td class="match-player-cell">
-                                                        <div class="match-player-meta">
-                                                            <img :src="skill_control.player?.photo_url || '/img/user.webp'" alt="avatar"
-                                                                class="player-avatar match-player-avatar" />
-                                                            <div>
-                                                                <span class="match-player-name">
-                                                                    {{ skill_control.player?.full_names || 'Jugador sin datos' }}
-                                                                </span>
-                                                                <span class="match-player-code">
-                                                                    {{ skill_control.player?.unique_code || 'Sin código' }}
-                                                                </span>
-                                                                <span v-if="skill_control.is_retired_player"
-                                                                    class="badge bg-warning text-dark match-player-retired-badge">
-                                                                    Jugador retirado
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td class="match-metric-cell">
-                                                        <checkbox :name="`skill_controls[${index}].assistance`"
-                                                            return-value-type="number" />
-                                                    </td>
-                                                    <td class="match-metric-cell">
-                                                        <checkbox :name="`skill_controls[${index}].titular`"
-                                                            return-value-type="number" />
-                                                    </td>
-                                                    <td class="match-metric-cell">
-                                                        <Field :name="`skill_controls[${index}].played_approx`"
-                                                            v-slot="{ field, errorMessage, meta }">
-                                                            <select v-bind="field"
-                                                                :id="`skill_controls[${index}].played_approx`"
-                                                                class="form-select form-select-sm"
-                                                                :class="{ 'is-invalid': meta.touched && errorMessage }">
-                                                                <option :value="ind" v-for="(num, ind) in 91" :key="`${ind}_${index}`">{{ ind }} MIN</option>
-
-                                                            </select>
-                                                        </Field>
-
-                                                        <ErrorMessage :name="`skill_controls[${index}].played_approx`"
-                                                            class="invalid-feedback d-block" />
-                                                    </td>
-                                                    <td class="match-position-cell">
-
-                                                        <Field :name="`skill_controls[${index}].position`"
-                                                            v-slot="{ field, errorMessage, meta }">
-                                                            <select
-                                                                v-bind="field"
-                                                                :id="`skill_controls[${index}].position`"
-                                                                class="form-select form-select-sm"
-                                                                :class="{ 'is-invalid': meta.touched && errorMessage }">
-                                                                <option value="">Selecciona...</option>
-                                                                <option
-                                                                    v-for="position in positionOptions"
-                                                                    :key="position.value"
-                                                                    :value="position.value">
-                                                                    {{ position.label }}
-                                                                </option>
-                                                            </select>
-                                                        </Field>
-
-
-                                                    </td>
-                                                    <td class="match-metric-cell">
-                                                        <Field :name="`skill_controls[${index}].goals`" as="select"
-                                                            :id="`skill_controls[${index}].goals`"
-                                                            class="form-select form-select-sm">
-                                                            <option value="0">0</option>
-                                                            <option value="1">1</option>
-                                                            <option value="2">2</option>
-                                                            <option value="3">3</option>
-                                                            <option value="4">4</option>
-                                                            <option value="5">5</option>
-                                                            <option value="6">6</option>
-                                                            <option value="7">7</option>
-                                                            <option value="8">8</option>
-                                                            <option value="9">9</option>
-                                                            <option value="10">10</option>
-                                                        </Field>
-
-                                                        <ErrorMessage :name="`skill_controls[${index}].goals`"
-                                                            class="invalid-feedback d-block" />
-                                                    </td>
-                                                    <td class="match-metric-cell">
-                                                        <Field :name="`skill_controls[${index}].goal_assists`" as="select"
-                                                            :id="`skill_controls[${index}].goal_assists`"
-                                                            class="form-select form-select-sm">
-                                                            <option value="0">0</option>
-                                                            <option value="1">1</option>
-                                                            <option value="2">2</option>
-                                                            <option value="3">3</option>
-                                                            <option value="4">4</option>
-                                                            <option value="5">5</option>
-                                                            <option value="6">6</option>
-                                                            <option value="7">7</option>
-                                                            <option value="8">8</option>
-                                                            <option value="9">9</option>
-                                                            <option value="10">10</option>
-                                                        </Field>
-
-                                                        <ErrorMessage :name="`skill_controls[${index}].goal_assists`"
-                                                            class="invalid-feedback d-block" />
-                                                    </td>
-                                                    <td class="match-metric-cell">
-                                                        <Field :name="`skill_controls[${index}].goal_saves`" as="select"
-                                                            :id="`skill_controls[${index}].goal_saves`"
-                                                            class="form-select form-select-sm">
-                                                            <option value="0">0</option>
-                                                            <option value="1">1</option>
-                                                            <option value="2">2</option>
-                                                            <option value="3">3</option>
-                                                            <option value="4">4</option>
-                                                            <option value="5">5</option>
-                                                            <option value="6">6</option>
-                                                            <option value="7">7</option>
-                                                            <option value="8">8</option>
-                                                            <option value="9">9</option>
-                                                            <option value="10">10</option>
-                                                        </Field>
-
-                                                        <ErrorMessage :name="`skill_controls[${index}].goal_saves`"
-                                                            class="invalid-feedback d-block" />
-                                                    </td>
-                                                    <td class="match-metric-cell">
-                                                        <Field :name="`skill_controls[${index}].yellow_cards`" as="select"
-                                                            :id="`skill_controls[${index}].yellow_cards`"
-                                                            class="form-select form-select-sm">
-                                                            <option value="0">0</option>
-                                                            <option value="1">1</option>
-                                                            <option value="2">2</option>
-                                                        </Field>
-
-                                                        <ErrorMessage :name="`skill_controls[${index}].yellow_cards`"
-                                                            class="invalid-feedback d-block" />
-
-                                                    </td>
-                                                    <td class="match-metric-cell">
-                                                        <Field :name="`skill_controls[${index}].red_cards`" as="select"
-                                                            :id="`skill_controls[${index}].red_cards`"
-                                                            class="form-select form-select-sm">
-                                                            <option value="0">0</option>
-                                                            <option value="1">1</option>
-                                                        </Field>
-
-                                                        <ErrorMessage :name="`skill_controls[${index}].red_cards`"
-                                                            class="invalid-feedback d-block" />
-
-                                                    </td>
-                                                    <td class="match-metric-cell">
-                                                        <Field :name="`skill_controls[${index}].qualification`" as="select"
-                                                            :id="`skill_controls[${index}].qualification`"
-                                                            class="form-select form-select-sm">
-                                                            <option value="">Selecciona...</option>
-                                                            <option value="1">1</option>
-                                                            <option value="2">2</option>
-                                                            <option value="3">3</option>
-                                                            <option value="4">4</option>
-                                                            <option value="5">5</option>
-                                                        </Field>
-
-                                                        <ErrorMessage :name="`skill_controls[${index}].qualification`"
-                                                            class="invalid-feedback d-block" />
-
-                                                    </td>
-                                                    <td class="match-observation-cell">
-                                                        <Field :name="`skill_controls[${index}].observation`"
-                                                            :id="`skill_controls[${index}].observation`" as="textarea"
-                                                            class="form-control form-control-sm match-observation-field"
-                                                            rows="2" />
-                                                        <ErrorMessage :name="`skill_controls[${index}].observation`"
-                                                            class="invalid-feedback d-block" />
-                                                    </td>
-                                                </tr>
-                                            </template>
-                                            <template v-else>
-                                                <tr>
-                                                    <td colspan="13" class="dt-body-center">
-                                                        El grupo no cuenta con integrantes
-                                                    </td>
-                                                </tr>
-                                            </template>
-
-                                        </tbody>
-                                    </table>
-                                        </div>
-
-                                    </template>
                                     <template v-else>
-                                        <!-- <div class="match-table-toolbar no-print" data-tour="match-form-board">
-                                            <div>
-                                                <h4 class="match-table-title">Coachboard</h4>
-                                                <small class="text-muted">
-                                                    Organiza titulares y posiciones en la pizarra táctica.
-                                                </small>
-                                            </div>
-                                            <span class="match-table-count">
-                                                Plantilla <strong>{{ skills_controls.length }}</strong>
-                                            </span>
-                                        </div> -->
-
                                         <div class="match-board-wrapper no-print">
                                             <CoachBoard ref="coach_board" :initialPlayers="skills_controls" />
                                         </div>
@@ -510,6 +258,7 @@ import flatPickr from 'vue-flatpickr-component'
 import Loader from '@/components/general/Loader'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import CoachBoard from "./coachboard/CoachBoard.vue"
+import MatchPlayersStatsTable from './components/MatchPlayersStatsTable.vue'
 
 import api from '@/utils/axios'
 import { usePageTitle } from "@/composables/use-meta"
@@ -849,7 +598,20 @@ onMounted(() => {
 </script>
 <style lang="scss" scoped>
 .match-page-shell {
+    --match-surface: var(--bs-body-bg, #fff);
+    --match-surface-soft: rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.045);
+    --match-surface-strong: rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.08);
+    --match-border: rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.12);
+    --match-muted: var(--bs-secondary-color, rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.7));
     min-height: 18rem;
+}
+
+:global(body.dark .match-page-shell) {
+    --match-surface: #101426;
+    --match-surface-soft: rgba(255, 255, 255, 0.045);
+    --match-surface-strong: rgba(255, 255, 255, 0.08);
+    --match-border: rgba(255, 255, 255, 0.13);
+    --match-muted: rgba(255, 255, 255, 0.72);
 }
 
 .match-layout {
@@ -858,10 +620,16 @@ onMounted(() => {
 
 .match-sidebar-card,
 .match-players-card {
-    border: 1px solid rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.08);
+    border: 1px solid var(--match-border);
     border-radius: 1rem;
     box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
     overflow: hidden;
+}
+
+:global(body.dark .match-sidebar-card),
+:global(body.dark .match-players-card) {
+    background: var(--match-surface);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
 }
 
 .match-sticky-card {
@@ -960,123 +728,6 @@ onMounted(() => {
     color: var(--bs-secondary-color, rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.7));
 }
 
-.match-table-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-}
-
-.match-table-title {
-    margin-bottom: 0.2rem;
-    font-size: 1rem;
-    font-weight: 700;
-}
-
-.match-table-count {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.35rem 0.75rem;
-    border-radius: 999px;
-    background: rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.08);
-    font-size: 0.78rem;
-    font-weight: 700;
-}
-
-.match-table-wrapper {
-    border: 1px solid rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.12);
-    border-radius: 0.9rem;
-    overflow: auto;
-}
-
-.match-table {
-    min-width: 1120px;
-    margin-bottom: 0;
-}
-
-.match-table thead th {
-    border-top: 0;
-    white-space: nowrap;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    background: rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.05);
-}
-
-.match-table td {
-    padding: 0.5rem 0.4rem;
-    vertical-align: middle;
-}
-
-.match-player-cell {
-    min-width: 240px;
-}
-
-.match-player-meta {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    min-width: 220px;
-}
-
-.match-player-avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 0.75rem;
-    object-fit: cover;
-    flex-shrink: 0;
-}
-
-.match-player-name {
-    display: block;
-    font-weight: 600;
-    line-height: 1.3;
-}
-
-.match-player-code {
-    display: inline-flex;
-    align-items: center;
-    margin-top: 0.35rem;
-    padding: 0.15rem 0.55rem;
-    border-radius: 999px;
-    background: rgba(var(--bs-body-color-rgb, 33, 37, 41), 0.06);
-    font-size: 0.72rem;
-    line-height: 1.2;
-}
-
-.match-player-retired-badge {
-    display: table;
-    margin-top: 0.35rem;
-    font-size: 0.68rem;
-    line-height: 1.2;
-}
-
-.match-metric-cell {
-    min-width: 82px;
-}
-
-.match-position-cell {
-    min-width: 150px;
-}
-
-.match-observation-cell {
-    min-width: 200px;
-}
-
-.match-observation-field {
-    min-width: 190px;
-    resize: vertical;
-}
-
-.match-table :deep(.form-control-sm),
-.match-table :deep(.form-select-sm) {
-    min-width: 72px;
-}
-
 .match-board-wrapper {
     padding-top: 0.25rem;
 }
@@ -1101,5 +752,6 @@ onMounted(() => {
         padding-top: 0;
         text-align: center;
     }
+
 }
 </style>
