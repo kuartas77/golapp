@@ -90,6 +90,11 @@ final class AdminGroupAssignmentBoardTest extends TestCase
         $response->assertJsonPath('data.panels.source.count', 1);
         $response->assertJsonPath('data.panels.destination.count', 1);
         $response->assertJsonPath('data.panels.source.items.0.full_names', $poolInscription->player->full_names);
+        $response->assertJsonPath('data.panels.source.items.0.unique_code', (string) $poolInscription->player->unique_code);
+        $this->assertStringContainsString(
+            (string) $poolInscription->player->unique_code,
+            $response->json('data.panels.source.items.0.search_text')
+        );
         $response->assertJsonPath('data.panels.destination.items.0.full_names', $selectedInscription->player->full_names);
         $response->assertJsonFragment([
             'value' => (string) $sameYearGroup->id,

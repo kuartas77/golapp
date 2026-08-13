@@ -21,14 +21,16 @@ class GroupAssignmentItemResource extends JsonResource
     {
         $player = $this->player;
         $fullNames = $player?->full_names ?? 'Sin nombre';
+        $uniqueCode = (string) ($player?->unique_code ?? $this->unique_code ?? '');
         $category = (string) ($this->category ?? '');
 
         return [
             'id' => $this->id,
             'full_names' => $fullNames,
             'photo_url' => $player?->photo_url ?? url('img/user.webp'),
+            'unique_code' => $uniqueCode,
             'category' => $category,
-            'search_text' => trim(sprintf('%s %s', $fullNames, $category)),
+            'search_text' => trim(sprintf('%s %s %s', $fullNames, $uniqueCode, $category)),
         ];
     }
 }

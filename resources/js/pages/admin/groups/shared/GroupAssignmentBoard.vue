@@ -44,21 +44,15 @@
             <template v-else>
                 <div class="col-lg-8">
                     <label class="form-label form-label-sm" for="competition_group_id">Grupo de competencia</label>
-                    <select
+                    <CustomSelect2
                         id="competition_group_id"
                         v-model="selectedCompetitionGroupId"
-                        class="form-select form-select-sm"
+                        :options="selectors.groups"
+                        placeholder="Selecciona..."
+                        search-placeholder="Buscar grupo..."
+                        aria-label="Grupo de competencia"
                         @change="onCompetitionGroupChange"
-                    >
-                        <option value="">Selecciona...</option>
-                        <option
-                            v-for="group in selectors.groups"
-                            :key="group.value"
-                            :value="group.value"
-                        >
-                            {{ group.label }}
-                        </option>
-                    </select>
+                    />
                 </div>
 
                 <div class="col-lg-4 d-flex align-items-end">
@@ -123,17 +117,26 @@
                                 >
                                     <article class="card border shadow-sm h-100">
                                         <div class="card-body p-3">
-                                            <div class="d-flex align-items-center gap-3">
+                                            <div class="media d-flex align-items-center gap-2 text-start">
                                                 <img
                                                     :src="element.photo_url"
                                                     :alt="element.full_names"
                                                     class="assignment-avatar rounded-circle"
                                                 >
-                                                <div class="min-w-0">
-                                                    <h6 class="mb-1 text-truncate">{{ element.full_names }}</h6>
-                                                    <p class="mb-0 small text-muted text-truncate">
-                                                        Categoría: {{ element.category || 'Sin categoría' }}
-                                                    </p>
+                                                <div class="media-body min-w-0">
+                                                    <template v-if="isCompetition">
+                                                        <small class="d-block text-truncate">{{ element.full_names }}</small>
+                                                        <p class="mb-0 small text-muted text-truncate">
+                                                            {{ element.unique_code || 'Sin código' }}
+                                                            <span>| {{ element.category || 'Sin categoría' }}</span>
+                                                        </p>
+                                                    </template>
+                                                    <template v-else>
+                                                        <h6 class="mb-1 text-truncate">{{ element.full_names }}</h6>
+                                                        <p class="mb-0 small text-muted text-truncate">
+                                                            Categoría: {{ element.category || 'Sin categoría' }}
+                                                        </p>
+                                                    </template>
                                                 </div>
                                             </div>
                                         </div>
@@ -194,17 +197,26 @@
                                 >
                                     <article class="card border shadow-sm h-100">
                                         <div class="card-body p-3">
-                                            <div class="d-flex align-items-center gap-3">
+                                            <div class="media d-flex align-items-center gap-2 text-start">
                                                 <img
                                                     :src="element.photo_url"
                                                     :alt="element.full_names"
                                                     class="assignment-avatar rounded-circle"
                                                 >
-                                                <div class="min-w-0">
-                                                    <h6 class="mb-1 text-truncate">{{ element.full_names }}</h6>
-                                                    <p class="mb-0 small text-muted text-truncate">
-                                                        Categoría: {{ element.category || 'Sin categoría' }}
-                                                    </p>
+                                                <div class="media-body min-w-0">
+                                                    <template v-if="isCompetition">
+                                                        <small class="d-block text-truncate">{{ element.full_names }}</small>
+                                                        <p class="mb-0 small text-muted text-truncate">
+                                                            {{ element.unique_code || 'Sin código' }}
+                                                            <span>| {{ element.category || 'Sin categoría' }}</span>
+                                                        </p>
+                                                    </template>
+                                                    <template v-else>
+                                                        <h6 class="mb-1 text-truncate">{{ element.full_names }}</h6>
+                                                        <p class="mb-0 small text-muted text-truncate">
+                                                            Categoría: {{ element.category || 'Sin categoría' }}
+                                                        </p>
+                                                    </template>
                                                 </div>
                                             </div>
                                         </div>
@@ -227,6 +239,7 @@
 </template>
 <script setup>
 import { computed } from 'vue'
+import CustomSelect2 from '@/components/form/CustomSelect2.vue'
 import Loader from '@/components/general/Loader.vue'
 import { VueDraggableNext as draggable } from 'vue-draggable-next'
 import useGroupAssignmentBoard from '@/composables/admin/groups/useGroupAssignmentBoard'
@@ -245,6 +258,7 @@ const {
     destinationSearch,
     destinationVisibleCount,
     globalError,
+    isCompetition,
     isLoading,
     isTraining,
     loadBoard,

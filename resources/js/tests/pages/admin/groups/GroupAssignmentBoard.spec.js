@@ -106,9 +106,10 @@ describe('GroupAssignmentBoard', () => {
                             items: [{
                                 id: 12,
                                 full_names: 'Carlos Mora',
+                                unique_code: 'DEP-1200',
                                 category: 'SUB-13',
                                 photo_url: '/img/user.webp',
-                                search_text: 'Carlos Mora SUB-13',
+                                search_text: 'Carlos Mora DEP-1200 SUB-13',
                             }],
                         },
                         destination: {
@@ -118,9 +119,10 @@ describe('GroupAssignmentBoard', () => {
                             items: [{
                                 id: 14,
                                 full_names: 'David Ruiz',
+                                unique_code: 'DEP-1400',
                                 category: 'SUB-13',
                                 photo_url: '/img/user.webp',
-                                search_text: 'David Ruiz SUB-13',
+                                search_text: 'David Ruiz DEP-1400 SUB-13',
                             }],
                         },
                     },
@@ -141,10 +143,18 @@ describe('GroupAssignmentBoard', () => {
 
         expect(apiMock.get).toHaveBeenCalledWith('/api/v2/admin/competition-groups/board', expect.any(Object));
         expect(wrapper.find('#competition_group_id').exists()).toBe(true);
+        expect(wrapper.find('input[placeholder="Buscar grupo..."]').exists()).toBe(true);
         expect(wrapper.find('#origin_group_id').exists()).toBe(false);
         expect(wrapper.findAll('input[placeholder="Buscar..."]')).toHaveLength(2);
         expect(wrapper.text()).toContain('Deportistas disponibles');
         expect(wrapper.text()).toContain('Equipo Azul (SUB-13)');
         expect(wrapper.text()).toContain('David Ruiz');
+        expect(wrapper.text()).toContain('DEP-1400');
+        expect(wrapper.text()).toContain('| SUB-13');
+
+        const sourceSearch = wrapper.findAll('input[placeholder="Buscar..."]')[0];
+        await sourceSearch.setValue('DEP-1200');
+
+        expect(wrapper.find('[data-inscription-id="12"]').isVisible()).toBe(true);
     });
 });
