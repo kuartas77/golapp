@@ -47,7 +47,7 @@
                             <div class="match-player-meta">
                                 <img :src="skillControl.player?.photo_url || '/img/user.webp'"
                                     :alt="`Foto de ${skillControl.player?.full_names || 'jugador'}`"
-                                    class="player-avatar match-player-avatar" />
+                                    class="player-avatar" />
                                 <div class="match-player-identity">
                                     <span class="match-player-name">
                                         {{ skillControl.player?.full_names || 'Jugador sin datos' }}
@@ -366,14 +366,6 @@ const visiblePlayersCount = computed(() => visiblePlayerIndexes.value.size)
 
 .match-player-identity {
     min-width: 0;
-}
-
-.match-player-avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 0.75rem;
-    object-fit: cover;
-    flex-shrink: 0;
 }
 
 .match-player-name {

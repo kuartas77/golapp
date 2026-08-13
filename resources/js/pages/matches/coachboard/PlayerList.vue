@@ -32,7 +32,7 @@
                         tabindex="0"
                         :aria-pressed="p.id === selectedPlayerId"
                     >
-                        <img :src="p.img" :alt="p.name" width="56" height="56" class="player-avatar" />
+                        <img :src="p.img" :alt="p.name" class="player-avatar" />
                         <div class="min-w-0">
                             <div class="small fw-semibold text-break">{{ p.name }}</div>
                             <small class="text-muted player-hint">
@@ -101,12 +101,6 @@ function onSelectPlayer(player) {
     border-color: rgba(24, 107, 66, 0.55) !important;
     background: rgba(36, 125, 80, 0.08);
     box-shadow: 0 16px 28px rgba(17, 56, 36, 0.12);
-}
-
-.player-avatar {
-    object-fit: cover;
-    border-radius: 50%;
-    flex-shrink: 0;
 }
 
 .player-hint {

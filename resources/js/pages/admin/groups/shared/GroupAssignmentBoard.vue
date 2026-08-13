@@ -121,7 +121,7 @@
                                                 <img
                                                     :src="element.photo_url"
                                                     :alt="element.full_names"
-                                                    class="assignment-avatar rounded-circle"
+                                                    class="player-avatar"
                                                 >
                                                 <div class="media-body min-w-0">
                                                     <template v-if="isCompetition">
@@ -201,7 +201,7 @@
                                                 <img
                                                     :src="element.photo_url"
                                                     :alt="element.full_names"
-                                                    class="assignment-avatar rounded-circle"
+                                                    class="player-avatar"
                                                 >
                                                 <div class="media-body min-w-0">
                                                     <template v-if="isCompetition">
@@ -340,13 +340,6 @@ function matchesSearch(item, query) {
 
 .assignment-list__item + .assignment-list__item {
     margin-top: 0.75rem;
-}
-
-.assignment-avatar {
-    width: 3rem;
-    height: 3rem;
-    object-fit: cover;
-    flex-shrink: 0;
 }
 
 .assignment-empty {

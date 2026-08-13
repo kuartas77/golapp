@@ -42,7 +42,7 @@
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-body d-flex flex-column gap-3">
                             <div class="d-flex align-items-center gap-3">
-                                <img :src="player.photo_url" :alt="player.full_names" class="guardian-dashboard__photo">
+                                <img :src="player.photo_url" :alt="player.full_names" class="player-avatar">
                                 <div>
                                     <h3 class="h5 mb-1">{{ player.full_names }}</h3>
                                     <p class="text-muted mb-1">Código {{ player.unique_code }}</p>
@@ -90,12 +90,4 @@ defineProps({
     color: rgba(255, 255, 255, 0.8) !important;
 }
 
-.guardian-dashboard__photo {
-    width: 72px;
-    height: 72px;
-    border-radius: 18px;
-    object-fit: cover;
-    background: #f3f5fa;
-    border: 1px solid rgba(15, 28, 70, 0.08);
-}
 </style>

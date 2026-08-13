@@ -151,6 +151,8 @@ describe('GroupAssignmentBoard', () => {
         expect(wrapper.text()).toContain('David Ruiz');
         expect(wrapper.text()).toContain('DEP-1400');
         expect(wrapper.text()).toContain('| SUB-13');
+        expect(wrapper.findAll('img.player-avatar')).toHaveLength(2);
+        expect(wrapper.find('img.rounded-circle').exists()).toBe(false);
 
         const sourceSearch = wrapper.findAll('input[placeholder="Buscar..."]')[0];
         await sourceSearch.setValue('DEP-1200');

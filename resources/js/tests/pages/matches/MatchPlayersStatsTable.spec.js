@@ -67,6 +67,8 @@ describe('MatchPlayersStatsTable', () => {
         const { wrapper, onSubmit } = mountTable()
 
         expect(wrapper.findAll('thead th')).toHaveLength(6)
+        expect(wrapper.findAll('img.player-avatar')).toHaveLength(2)
+        expect(wrapper.find('img.player-avatar--competition-creation').exists()).toBe(false)
         expect(wrapper.findAll('[name="skill_controls[0].goals"]')).toHaveLength(1)
         expect(wrapper.findAll('[name="skill_controls[0].observation"]')).toHaveLength(1)
 

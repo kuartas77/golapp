@@ -52,7 +52,7 @@
                                 </p>
 
                                 <div v-if="spotlightPlayer" class="d-flex align-items-center gap-3 mt-3">
-                                    <img :src="spotlightPlayer.photo" :alt="spotlightPlayer.player_name" class="spotlight-avatar" />
+                                    <img :src="spotlightPlayer.photo" :alt="spotlightPlayer.player_name" class="player-avatar" />
                                     <div>
                                         <router-link
                                             :to="{ name: 'player-stats.detail', params: { id: spotlightPlayer.player_id } }"
@@ -265,7 +265,7 @@
                             <div v-for="player in topRated" :key="player.player_id" class="col-12 col-md-6 col-xl-4">
                                 <div class="rated-card h-100">
                                     <div class="d-flex align-items-center gap-3">
-                                        <img :src="player.photo" :alt="player.player_name" class="player-avatar player-avatar-lg" />
+                                        <img :src="player.photo" :alt="player.player_name" class="player-avatar" />
                                         <div>
                                             <router-link
                                                 :to="{ name: 'player-stats.detail', params: { id: player.player_id } }"
@@ -369,20 +369,6 @@ const tutorial = usePageTutorial(topPlayersTutorial)
 
 .accent-card {
     border-top: 3px solid #0d6efd;
-}
-
-.spotlight-avatar,
-.player-avatar {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid rgba(13, 110, 253, 0.14);
-}
-
-.player-avatar-lg {
-    width: 60px;
-    height: 60px;
 }
 
 .mini-stat strong,

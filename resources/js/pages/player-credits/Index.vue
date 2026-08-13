@@ -34,7 +34,7 @@
 
                         <template #player-credit-player="props">
                             <div class="d-flex align-items-center gap-2">
-                                <img :src="props.rowData.photo_url" alt="avatar" class="player-credit-avatar" />
+                                <img :src="props.rowData.photo_url" alt="avatar" class="player-avatar" />
                                 <div>
                                     <div>{{ props.rowData.full_names }}</div>
                                     <small class="text-muted">{{ props.rowData.unique_code }} | {{ props.rowData.category || 'Sin categoría' }}</small>
@@ -215,13 +215,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.player-credit-avatar {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
 .player-credit-side {
     border-left: 1px solid var(--bs-border-color, #e0e6ed);
     padding-left: 16px;

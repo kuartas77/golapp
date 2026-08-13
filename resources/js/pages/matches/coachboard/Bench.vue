@@ -12,7 +12,7 @@
             <div class="row g-2">
                 <div v-for="p in bench" :key="p.id" class="col-lg-4 col-md-4 col-sm-6 col-6">
                     <div class="bench-player border rounded-3 p-2 text-center h-100">
-                        <img :src="p.img" :alt="p.name" width="52" height="52" class="bench-avatar mb-2" />
+                        <img :src="p.img" :alt="p.name" class="player-avatar mb-2" />
                         <div class="small fw-semibold text-break">{{ p.name }}</div>
                     </div>
                 </div>
@@ -36,11 +36,6 @@ const props = defineProps({ bench: { type: Array, required: true } })
 .bench-player:hover {
     transform: translateY(-2px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
-}
-
-.bench-avatar {
-    object-fit: cover;
-    border-radius: 50%;
 }
 
 :global(.dark .bench-player) {
