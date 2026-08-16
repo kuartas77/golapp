@@ -15,12 +15,8 @@ class GuardianProfileController extends Controller
     {
         $guardian = auth('guardians')->user();
         $validated = $request->validated();
-        $emailChanged = $guardian->email !== $validated['email'];
 
-        $guardian->forceFill([
-            ...$validated,
-            'email_verified_at' => $emailChanged ? null : ($guardian->email_verified_at ?? now()),
-        ])->save();
+        $guardian->forceFill($validated)->save();
 
         return response()->json([
             'message' => 'Perfil actualizado correctamente.',

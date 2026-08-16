@@ -203,7 +203,10 @@ final class InstructorMonthlyEditLockTest extends TestCase
                 'training_group_id' => null,
                 'type' => MethodologyRecord::TYPE_PLANNING,
                 'title' => 'Plan actualizado',
-                'fields' => ['objective' => 'Cambio'],
+                'fields' => [
+                    'session_date' => '2026-06-20',
+                    'objective' => 'Cambio',
+                ],
                 'diagrams' => ['initial_phase' => []],
             ])
             ->assertUnprocessable()

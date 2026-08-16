@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Portal;
 
 use App\Models\School;
+use App\Rules\Base64Image;
 use App\Rules\UniqueGuardianEmail;
 use App\Service\Contracts\ContractTemplateService;
 use App\Service\Portal\GuardianEmailVerificationService;
@@ -97,8 +98,8 @@ class InscriptionRegisterRequest extends FormRequest
 
             'year' => ['required', 'string'],
 
-            'signatureTutor' => ['nullable', 'string'],
-            'signatureAlumno' => ['nullable', 'string'],
+            'signatureTutor' => ['nullable', 'string', 'max:1500000', new Base64Image],
+            'signatureAlumno' => ['nullable', 'string', 'max:1500000', new Base64Image],
             'school_data' => [
                 'required',
                 function (string $attribute, mixed $value, Closure $fail): void {
@@ -129,11 +130,11 @@ class InscriptionRegisterRequest extends FormRequest
             }
 
             if ($contractTemplateService->requiresTutorSignature($availableContracts)) {
-                $rules['signatureTutor'] = ['required', 'string'];
+                $rules['signatureTutor'] = ['required', 'string', 'max:1500000', new Base64Image];
             }
 
             if ($contractTemplateService->requiresPlayerSignature($availableContracts)) {
-                $rules['signatureAlumno'] = ['required', 'string'];
+                $rules['signatureAlumno'] = ['required', 'string', 'max:1500000', new Base64Image];
             }
         }
 
@@ -150,7 +151,8 @@ class InscriptionRegisterRequest extends FormRequest
                 $school,
                 (string) $this->input('tutor_num_doc'),
                 (string) $this->input('tutor_email'),
-                is_string($token) ? $token : null
+                is_string($token) ? $token : null,
+                (string) $this->ip()
             )) {
                 $validator->errors()->add(
                     'guardian_email_verification_token',
@@ -183,8 +185,6 @@ class InscriptionRegisterRequest extends FormRequest
 
     private function shouldValidateRecaptcha(): bool
     {
-        return ! app()->environment('local')
-            && filled(config('recaptchav3.sitekey'))
-            && filled(config('recaptchav3.secret'));
+        return ! app()->environment(['local', 'testing']);
     }
 }

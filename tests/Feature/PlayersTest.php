@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use App\Repositories\PlayerRepository;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Hash;
 use App\Notifications\RegisterPlayerNotification;
 use Illuminate\Testing\TestResponse;
 
@@ -48,6 +49,8 @@ final class PlayersTest extends TestCase
         $spy->shouldReceive('createPlayer')->andReturn($player);
         Notification::assertSentTo([$player], RegisterPlayerNotification::class);
         Mail::assertNotSent(ErrorLog::class);
+        $this->assertNotNull($player?->password);
+        $this->assertFalse(Hash::check($dataPlayer['identification_document'], (string) $player?->password));
         return $dataPlayer;
     }
 

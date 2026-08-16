@@ -15,6 +15,9 @@ use App\Models\User;
 use App\Modules\Inscriptions\Actions\Create\CreateContractAction;
 use App\Modules\Inscriptions\Actions\Create\Passable;
 use App\Modules\Inscriptions\Notifications\InscriptionToSchoolNotification;
+use App\Notifications\GuardianEmailVerificationCodeNotification;
+use App\Service\Portal\GuardianEmailVerificationService;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 use ZipArchive;
@@ -422,15 +425,17 @@ final class ContractsTest extends TestCase
         $missingResponse->assertStatus(422);
         $missingResponse->assertJsonValidationErrors(['tutor_doc_exp']);
 
+        $payload = $this->portalInscriptionPayload([
+            'identification_document' => '1002003999',
+            'email' => 'jugador.exp@example.com',
+            'tutor_num_doc' => '900800799',
+            'tutor_email' => 'acudiente.exp@example.com',
+            'tutor_doc_exp' => 'Bogota',
+        ]);
+
         $this->postJson(
             route('api.v2.portal.school.inscription.store', [$school->slug]),
-            $this->portalInscriptionPayload([
-                'identification_document' => '1002003999',
-                'email' => 'jugador.exp@example.com',
-                'tutor_num_doc' => '900800799',
-                'tutor_email' => 'acudiente.exp@example.com',
-                'tutor_doc_exp' => 'Bogota',
-            ])
+            $this->withGuardianVerificationToken($school, $payload)
         )->assertOk();
 
         $this->assertDatabaseHas('peoples', [
@@ -553,4 +558,33 @@ final class ContractsTest extends TestCase
         return $payload;
     }
 
+    private function withGuardianVerificationToken(School $school, array $payload): array
+    {
+        Notification::fake();
+
+        $service = app(GuardianEmailVerificationService::class);
+        $service->requestCode($school, $payload['tutor_num_doc'], $payload['tutor_email'], '127.0.0.1');
+
+        $code = null;
+        Notification::assertSentOnDemand(
+            GuardianEmailVerificationCodeNotification::class,
+            function (GuardianEmailVerificationCodeNotification $notification) use (&$code): bool {
+                $code = $notification->code;
+
+                return true;
+            }
+        );
+
+        $confirmation = $service->confirmCode(
+            $school,
+            $payload['tutor_num_doc'],
+            $payload['tutor_email'],
+            (string) $code,
+            '127.0.0.1'
+        );
+
+        return array_merge($payload, [
+            'guardian_email_verification_token' => $confirmation['token'],
+        ]);
+    }
 }

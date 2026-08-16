@@ -102,17 +102,6 @@ class MasterController extends Controller
 
     public function searchDoc(Request $request): JsonResponse
     {
-        $response = [];
-
-        abort_unless($request->ajax(), 401);
-
-        $validated = $request->validate([
-            'doc' => ['required', 'numeric']
-        ]);
-
-        if($validated){
-            $response = $this->playerRepository->getPlayerInfo($request->input('doc'), $request->input('school_id'));
-        }
-        return $this->responseJson($response);
+        abort(404);
     }
 }

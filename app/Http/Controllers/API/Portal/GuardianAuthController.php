@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class GuardianAuthController extends Controller
@@ -38,7 +39,7 @@ class GuardianAuthController extends Controller
 
         if ($guardians->count() !== 1) {
             throw ValidationException::withMessages([
-                'email' => ['No fue posible identificar una cuenta única para este correo.'],
+                'email' => ['Las credenciales son incorrectas o la cuenta no está disponible.'],
             ]);
         }
 
@@ -47,13 +48,13 @@ class GuardianAuthController extends Controller
 
         if (blank($guardian->password) || !Hash::check((string) $request->validated('password'), $guardian->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Las credenciales proporcionadas son incorrectas.'],
+                'email' => ['Las credenciales son incorrectas o la cuenta no está disponible.'],
             ]);
         }
 
         if (!$this->guardianAccessService->hasEligiblePlayers($guardian)) {
             throw ValidationException::withMessages([
-                'email' => ['Tu acceso está temporalmente bloqueado porque no tienes jugadores vigentes este año o se ha deshabilitado la plataforma de acudientes.'],
+                'email' => ['Las credenciales son incorrectas o la cuenta no está disponible.'],
             ]);
         }
 
@@ -113,9 +114,11 @@ class GuardianAuthController extends Controller
         $status = Password::broker('guardians')->reset(
             $request->validated(),
             function (People $guardian, string $password) {
+                $guardian->tokens()->delete();
                 $guardian->forceFill([
                     'password' => $password,
                     'email_verified_at' => $guardian->email_verified_at ?? now(),
+                    'remember_token' => Str::random(60),
                 ])->save();
             }
         );

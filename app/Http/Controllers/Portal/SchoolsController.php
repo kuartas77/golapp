@@ -108,7 +108,6 @@ class SchoolsController extends Controller
                 'guardianEmailVerificationConfirm' => route('api.v2.portal.school.inscription.guardian-email.confirm', [$school->slug], false),
                 'clientError' => route('api.v2.portal.inscription.client-error', [], false),
                 'autocomplete' => route('api.v2.portal.autocomplete.fields', [], false),
-                'searchDoc' => route('api.v2.portal.autocomplete.search_doc', [], false),
             ],
             'assets' => [
                 'defaultUserPhoto' => asset('img/user.png'),
@@ -128,9 +127,7 @@ class SchoolsController extends Controller
                 'jornada' => Cache::remember('KEY_JORNADA_TYPES', now()->addYear(), fn() => config('variables.KEY_JORNADA')),
             ],
             'recaptcha' => [
-                'enabled' => !app()->environment('local')
-                    && filled(config('recaptchav3.sitekey'))
-                    && filled(config('recaptchav3.secret')),
+                'enabled' => ! app()->environment(['local', 'testing']),
                 'action' => 'inscriptions',
             ],
         ]);

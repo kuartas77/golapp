@@ -52,13 +52,12 @@
                                 <label for="guardian-profile-email" class="form-label">Correo electrónico</label>
                                 <input
                                     id="guardian-profile-email"
-                                    v-model.trim="form.email"
+                                    :value="form.email"
                                     type="email"
                                     class="form-control form-control-sm"
-                                    :class="{ 'is-invalid': fieldErrors.email }"
-                                    required
+                                    readonly
                                 >
-                                <div v-if="fieldErrors.email" class="invalid-feedback d-block">{{ fieldErrors.email }}</div>
+                                <small class="text-muted">Por seguridad, solicita a la escuela cualquier cambio del correo de acceso.</small>
                             </div>
 
                             <div class="col-12 col-md-6">

@@ -17,12 +17,17 @@ Route::prefix('portal')->name('portal.')->group(function () {
     Route::get('escuelas/{school}/contracts/{contractTypeCode}', [PortalContract::class, 'show'])->name('school.contract.show');
 
     Route::post('inscription-client-errors', [PortalInscription::class, 'clientError'])
+        ->middleware('throttle:portal-client-errors')
         ->name('inscription.client-error');
     Route::post('{school}/inscripcion/verificar-correo/solicitar', [PortalInscription::class, 'requestGuardianEmailCode'])
+        ->middleware('throttle:portal-otp-request')
         ->name('school.inscription.guardian-email.request');
     Route::post('{school}/inscripcion/verificar-correo/confirmar', [PortalInscription::class, 'confirmGuardianEmailCode'])
+        ->middleware('throttle:portal-otp-confirm')
         ->name('school.inscription.guardian-email.confirm');
-    Route::post('{school}/inscripcion', [PortalInscription::class, 'store'])->name('school.inscription.store');
+    Route::post('{school}/inscripcion', [PortalInscription::class, 'store'])
+        ->middleware('throttle:portal-inscription')
+        ->name('school.inscription.store');
 
     Route::prefix('autocomplete')->group(function () {
         Route::get('autocomplete', [MasterController::class, 'autoComplete'])->name('autocomplete.fields');
@@ -32,9 +37,9 @@ Route::prefix('portal')->name('portal.')->group(function () {
     Route::get('dynamic/{file}', [FileController::class, 'fileStorageServe'])->where(['file' => '.*'])->name('player.images');
 
     Route::prefix('acudientes')->name('guardians.')->group(function () {
-        Route::post('login', [GuardianAuthController::class, 'login'])->name('login');
-        Route::post('forgot-password', [GuardianAuthController::class, 'forgotPassword'])->name('forgot-password');
-        Route::post('reset-password', [GuardianAuthController::class, 'resetPassword'])->name('reset-password');
+        Route::post('login', [GuardianAuthController::class, 'login'])->middleware('throttle:auth-login')->name('login');
+        Route::post('forgot-password', [GuardianAuthController::class, 'forgotPassword'])->middleware('throttle:password-recovery')->name('forgot-password');
+        Route::post('reset-password', [GuardianAuthController::class, 'resetPassword'])->middleware('throttle:password-reset')->name('reset-password');
 
         Route::middleware(['auth:sanctum', 'ensure.guardian'])->group(function () {
             Route::get('me', [GuardianAuthController::class, 'me'])->name('me');

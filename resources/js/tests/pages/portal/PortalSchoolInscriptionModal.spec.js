@@ -46,7 +46,6 @@ const defaultProps = {
     storageKey: 'portal-inscription-modal-test',
     endpoints: {
         autocomplete: '/api/autocomplete',
-        searchDoc: '/api/search-doc',
         store: '/api/store',
         clientError: '/api/inscription-client-errors',
         guardianEmailVerificationRequest: '/api/guardian-email/request',
@@ -170,7 +169,7 @@ const mountModal = async (props = {}, options = {}) => {
         ?? vi.fn().mockResolvedValue(options.postResponse ?? { data: { data: {} } });
     apiMock.post.mockImplementation((url, ...args) => {
         if (url === resolvedProps.endpoints.guardianEmailVerificationRequest) {
-            return Promise.resolve(options.verificationRequestResponse ?? { data: { already_verified: true } });
+            return Promise.resolve(options.verificationRequestResponse ?? { data: { already_verified: false, expires_in: 600 } });
         }
 
         if (url === resolvedProps.endpoints.guardianEmailVerificationConfirm) {
@@ -250,7 +249,7 @@ const fillGeneralStep = async (wrapper) => {
     await setFieldValue(wrapper, 'jornada', 'morning');
 };
 
-const fillFamilyStep = async (wrapper, expectPreviouslyVerified = true) => {
+const fillFamilyStep = async (wrapper, confirmCode = true) => {
     await setFieldValue(wrapper, 'tutor_name', 'Acudiente Demo');
     await setFieldValue(wrapper, 'tutor_num_doc', '90123456');
     await setFieldValue(wrapper, 'tutor_doc_exp', 'Bogota');
@@ -261,7 +260,10 @@ const fillFamilyStep = async (wrapper, expectPreviouslyVerified = true) => {
     await setFieldValue(wrapper, 'tutor_email', 'ACUDIENTE@EXAMPLE.COM');
     await wrapper.findAll('button').find((button) => button.text().trim() === 'Enviar código').trigger('click');
     await flushPromises();
-    if (expectPreviouslyVerified) {
+    if (confirmCode) {
+        await wrapper.get('#guardian_email_verification_code').setValue('123456');
+        await wrapper.findAll('button').find((button) => button.text().trim() === 'Verificar correo').trigger('click');
+        await flushPromises();
         expect(wrapper.text()).toContain('Correo del acudiente verificado.');
     }
 };
@@ -614,83 +616,24 @@ describe('PortalSchoolInscriptionModal', () => {
         expect(persistedValues).not.toHaveProperty('signatureTutor');
     });
 
-    it('consulta el documento y rellena los datos del deportista', async () => {
+    it('no consulta datos personales al escribir el documento del deportista', async () => {
         vi.useFakeTimers();
-
-        const getImplementation = (props) => (url) => {
-            if (url === props.endpoints.autocomplete) {
-                return Promise.resolve(buildAutocompleteResponse());
-            }
-
-            if (url === props.endpoints.searchDoc) {
-                return Promise.resolve({
-                    data: {
-                        data: {
-                            names: 'Juan',
-                            last_names: 'Perez',
-                            date_birth: '2010-05-10T00:00:00.000000Z',
-                            place_birth: 'Bogota',
-                            document_type: 'CC',
-                            gender: 'M',
-                            email: 'JUAN@MAIL.COM',
-                            mobile: '3001112233',
-                            medical_history: 'Ninguno',
-                            address: 'Calle 1',
-                            municipality: 'Bogota',
-                            neighborhood: 'Centro',
-                            rh: 'O+',
-                            eps: 'Sura',
-                            student_insurance: 'Mapfre',
-                            school: 'Colegio Demo',
-                            degree: 7,
-                            jornada: 'morning',
-                        },
-                    },
-                });
-            }
-
-            return Promise.resolve({ data: { data: {} } });
-        };
-
-        const { wrapper, props } = await mountModal({}, {
-            getImplementation: getImplementation(buildProps()),
-        });
+        const { wrapper, props } = await mountModal();
 
         await setFieldValue(wrapper, 'identification_document', '12345678');
 
         vi.advanceTimersByTime(450);
         await flushPromises();
 
-        expect(apiMock.get).toHaveBeenCalledWith(props.endpoints.searchDoc, {
-            params: {
-                doc: '12345678',
-                school_id: props.school.id,
-            },
-        });
-        expect(wrapper.get('input[name="names"]').element.value).toBe('Juan');
-        expect(wrapper.get('input[name="last_names"]').element.value).toBe('Perez');
-        expect(wrapper.get('input[name="date_birth"]').element.value).toBe('2010-05-10');
-        expect(wrapper.get('input[name="email"]').element.value).toBe('juan@mail.com');
+        expect(props.endpoints.searchDoc).toBeUndefined();
+        expect(apiMock.get).toHaveBeenCalledTimes(1);
+        expect(wrapper.get('input[name="names"]').element.value).toBe('');
     });
 
     it('conserva los datos escritos cuando la consulta del documento no encuentra deportista', async () => {
         vi.useFakeTimers();
 
-        const getImplementation = (props) => (url) => {
-            if (url === props.endpoints.autocomplete) {
-                return Promise.resolve(buildAutocompleteResponse());
-            }
-
-            if (url === props.endpoints.searchDoc) {
-                return Promise.resolve({ data: { data: {} } });
-            }
-
-            return Promise.resolve({ data: { data: {} } });
-        };
-
-        const { wrapper } = await mountModal({}, {
-            getImplementation: getImplementation(buildProps()),
-        });
+        const { wrapper } = await mountModal();
 
         await setFieldValue(wrapper, 'names', 'Maria');
         await setFieldValue(wrapper, 'last_names', 'Lopez');
@@ -729,9 +672,9 @@ describe('PortalSchoolInscriptionModal', () => {
             text: '¿Deseas enviar el formulario y crear una inscripción?',
             icon: 'warning',
         }));
-        expect(apiMock.post).toHaveBeenCalledTimes(2);
+        expect(apiMock.post).toHaveBeenCalledTimes(3);
 
-        const [storeUrl, formData, requestConfig] = apiMock.post.mock.calls[1];
+        const [storeUrl, formData, requestConfig] = apiMock.post.mock.calls[2];
 
         expect(storeUrl).toBe(props.endpoints.store);
         expect(requestConfig).toEqual({
@@ -778,7 +721,7 @@ describe('PortalSchoolInscriptionModal', () => {
         await setFieldValue(wrapper, 'data_processing_policy_accepted', true);
         await submitVisibleWizard(wrapper);
 
-        expect(apiMock.post).toHaveBeenCalledTimes(2);
+        expect(apiMock.post).toHaveBeenCalledTimes(3);
         expect(wrapper.getComponent({ name: 'Wizard' }).props('modelValue')).toBe(1);
         expect(wrapper.text()).toContain('Revisa la información enviada.');
         expect(wrapper.text()).toContain('La dirección no es válida.');
@@ -804,9 +747,9 @@ describe('PortalSchoolInscriptionModal', () => {
         await setFieldValue(wrapper, 'data_processing_policy_accepted', true);
         await submitVisibleWizard(wrapper);
 
-        expect(apiMock.post).toHaveBeenCalledTimes(3);
-        expect(apiMock.post.mock.calls[2][0]).toBe(props.endpoints.clientError);
-        expect(apiMock.post.mock.calls[2][1]).toEqual(expect.objectContaining({
+        expect(apiMock.post).toHaveBeenCalledTimes(4);
+        expect(apiMock.post.mock.calls[3][0]).toBe(props.endpoints.clientError);
+        expect(apiMock.post.mock.calls[3][1]).toEqual(expect.objectContaining({
             school_slug: props.school.slug,
             endpoint: props.endpoints.store,
             error_code: 'ERR_NETWORK',
@@ -816,7 +759,7 @@ describe('PortalSchoolInscriptionModal', () => {
             elapsed_ms: expect.any(Number),
             client_timed_out: false,
         }));
-        expect(apiMock.post.mock.calls[2][1]).not.toHaveProperty('form');
+        expect(apiMock.post.mock.calls[3][1]).not.toHaveProperty('form');
         expect(swalFireMock).toHaveBeenLastCalledWith(expect.objectContaining({
             icon: 'error',
             text: 'Network Error',
@@ -866,7 +809,7 @@ describe('PortalSchoolInscriptionModal', () => {
         expect(recaptchaLoadedMock).toHaveBeenCalledTimes(1);
         expect(executeRecaptchaMock).toHaveBeenCalledWith('portal-inscription');
 
-        const [, formData] = apiMock.post.mock.calls[1];
+        const [, formData] = apiMock.post.mock.calls[2];
 
         expect(formData.get('signatureTutor')).toBe('data:image/png;base64,signature-test');
         expect(formData.get('signatureAlumno')).toBe('data:image/png;base64,signature-test');

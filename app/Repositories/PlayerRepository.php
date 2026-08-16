@@ -21,6 +21,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\HeadingRowImport;
 
 class PlayerRepository
@@ -80,6 +81,7 @@ class PlayerRepository
 
             Master::saveAutoComplete($playerCreateRequest->all());
             $player = $this->player->create($dataPlayer);
+            $player->forceFill(['password' => $dataPlayer['password']])->save();
 
             $dataPeople = $playerCreateRequest->input('people', []);
             throw_unless($dataPeople, Exception::class, 'not provide people data.');
@@ -124,7 +126,7 @@ class PlayerRepository
         );
         $dataPlayer['unique_code'] = ($dataPlayer['unique_code'] ?? optional($player)->unique_code);
         if ($shouldUpdatePassword) {
-            $dataPlayer['password'] = Hash::make($dataPlayer['identification_document']);
+            $dataPlayer['password'] = Hash::make(Str::random(64));
         }
 
         return $dataPlayer;

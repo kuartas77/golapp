@@ -65,12 +65,6 @@ export const useGuardianEmailVerification = ({ api, endpoints, values, normalize
             });
 
             verifiedEmailContext.value = currentEmailContext();
-            if (response.data?.already_verified) {
-                emailVerified.value = true;
-                emailCodeRequested.value = false;
-                return;
-            }
-
             emailCodeRequested.value = true;
             emailVerificationCode.value = '';
             startResendCountdown();

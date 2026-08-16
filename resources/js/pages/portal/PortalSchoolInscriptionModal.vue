@@ -491,10 +491,6 @@ const { resetWizard, restorePersistedValues } = useInscriptionPersistence({
 const { autocomplete, fetchAutocompleteOptions } = usePlayerDocumentLookup({
     api,
     endpoints: props.endpoints,
-    schoolId: props.school.id,
-    values,
-    setFieldValue,
-    normalizeEmail,
 });
 
 const { cancelWizard, finishWizard } = useInscriptionSubmission({
@@ -507,6 +503,7 @@ const { cancelWizard, finishWizard } = useInscriptionSubmission({
     recaptchaClient,
     checkboxFields,
     guardianEmailVerificationToken: emailVerificationToken,
+    clearGuardianEmailVerification: clearEmailVerification,
     handleSubmit,
     steps,
     currentStep,

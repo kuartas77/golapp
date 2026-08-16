@@ -54,7 +54,8 @@ class InscriptionsController extends Controller
             $school,
             $validated['tutor_num_doc'],
             $validated['tutor_email'],
-            $validated['verification_code']
+            $validated['verification_code'],
+            (string) $request->ip()
         ));
     }
 
@@ -92,11 +93,20 @@ class InscriptionsController extends Controller
     {
         $response = [];
         $code = 200;
+        $verificationConsumed = false;
         try {
 
             DB::beginTransaction();
 
             $data = $request->validated();
+            $verificationService->consumeVerified(
+                $data['school_data'],
+                $data['tutor_doc'],
+                $data['tutor_email'],
+                $data['guardian_email_verification_token'] ?? null,
+                (string) $request->ip()
+            );
+            $verificationConsumed = true;
             $policyEvidence = $policyService->evidenceFor($data['school_data']);
             $data['data_processing_policy_accepted_at'] = now();
             $data['data_processing_policy_version'] = $policyEvidence['version'];
@@ -111,21 +121,26 @@ class InscriptionsController extends Controller
 
             DB::commit();
 
-            $verificationService->consume($request->input('guardian_email_verification_token'));
-
             $response = ['ok'];
         } catch (ValidationException $th) {
             DB::rollBack();
             Cache::forget('KEY_LAST_UNIQUE_CODE');
+            $errors = $th->errors();
+
+            if ($verificationConsumed) {
+                $errors['guardian_email_verification_token'] = [
+                    'La verificación del correo fue utilizada. Solicita un código nuevo antes de reenviar la inscripción.',
+                ];
+            }
             Log::warning('Portal inscription rejected by business validation', [
                 'school_slug' => $request->route('school'),
-                'error_fields' => array_keys($th->errors()),
+                'error_fields' => array_keys($errors),
                 'ip' => $request->ip(),
                 'user_agent' => mb_substr((string) $request->userAgent(), 0, 500),
             ]);
             $response = [
                 'message' => $th->getMessage(),
-                'errors' => $th->errors(),
+                'errors' => $errors,
             ];
             $code = 422;
         } catch (\Throwable $th) {
@@ -139,7 +154,7 @@ class InscriptionsController extends Controller
                 'user_agent' => mb_substr((string) $request->userAgent(), 0, 500),
             ]);
             report($th);
-            $response = ['message' => $th->getMessage()];
+            $response = ['message' => 'No fue posible completar la inscripción. Inténtalo nuevamente o contacta a la escuela.'];
             $code = 500;
         }
 

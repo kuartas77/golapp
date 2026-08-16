@@ -13,6 +13,7 @@ export const useInscriptionSubmission = ({
     recaptchaClient,
     checkboxFields,
     guardianEmailVerificationToken,
+    clearGuardianEmailVerification,
     handleSubmit,
     steps,
     currentStep,
@@ -166,6 +167,11 @@ export const useInscriptionSubmission = ({
 
             const response = error.response;
             const backendErrors = response?.data?.errors ?? {};
+
+            if (backendErrors.guardian_email_verification_token || Number(response?.status) >= 500) {
+                clearGuardianEmailVerification();
+            }
+
             const fieldErrors = Object.fromEntries(
                 Object.entries(backendErrors).map(([key, value]) => [
                     key,

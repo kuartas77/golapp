@@ -7,6 +7,7 @@ namespace App\Http\Requests\API\Portal;
 use App\Models\Player;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\File;
 
 class GuardianPlayerUpdateRequest extends FormRequest
 {
@@ -18,7 +19,13 @@ class GuardianPlayerUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'photo' => ['nullable', 'file', 'mimetypes:image/png,image/jpeg'],
+            'photo' => [
+                'nullable',
+                File::image()
+                    ->types(['jpg', 'jpeg', 'png'])
+                    ->extensions(['jpg', 'jpeg', 'png'])
+                    ->max(3 * 1024),
+            ],
             'names' => ['required', 'string', 'max:50'],
             'last_names' => ['required', 'string', 'max:50'],
             'date_birth' => ['required', 'date_format:Y-m-d'],

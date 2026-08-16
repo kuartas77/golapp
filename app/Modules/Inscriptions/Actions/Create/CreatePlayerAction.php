@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Inscriptions\Actions\Create;
 
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Http\UploadedFile;
 use Closure;
 use App\Traits\UploadFile;
@@ -75,9 +76,12 @@ final class CreatePlayerAction implements IContractPassable
             'medical_history' => $passable->getPropertyFromData('medical_history'),
             'jornada' => $passable->getPropertyFromData('jornada'),
             'student_insurance' => $passable->getPropertyFromData('student_insurance'),
-            'password' => Hash::make($this->player->identification_document),
             'school_id' => $this->school->id
         ];
+
+        if (! $this->player->exists) {
+            $this->attributes['password'] = Hash::make(Str::random(64));
+        }
     }
 
     private function createUniqueCode(Passable $passable): mixed
@@ -100,5 +104,9 @@ final class CreatePlayerAction implements IContractPassable
             'unique_code' => $this->attributes['unique_code'],
             'school_id' => $this->attributes['school_id']
         ], $this->attributes);
+
+        if (isset($this->attributes['password'])) {
+            $this->player->forceFill(['password' => $this->attributes['password']])->save();
+        }
     }
 }

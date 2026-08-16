@@ -26,7 +26,7 @@ class LoginGuardianController extends Controller
 
         if ($guardians->count() !== 1) {
             throw ValidationException::withMessages([
-                'email' => ['No fue posible identificar una cuenta única para este correo.'],
+                'email' => ['Las credenciales son incorrectas o la cuenta no está disponible.'],
             ]);
         }
 
@@ -35,13 +35,13 @@ class LoginGuardianController extends Controller
 
         if (blank($guardian->password) || ! Hash::check((string) $request->validated('password'), $guardian->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Las credenciales proporcionadas son incorrectas.'],
+                'email' => ['Las credenciales son incorrectas o la cuenta no está disponible.'],
             ]);
         }
 
         if (! $this->guardianAccessService->hasEligiblePlayers($guardian)) {
             throw ValidationException::withMessages([
-                'email' => ['Tu acceso está temporalmente bloqueado porque no tienes jugadores vigentes este año o se ha deshabilitado la plataforma de acudientes.'],
+                'email' => ['Las credenciales son incorrectas o la cuenta no está disponible.'],
             ]);
         }
 

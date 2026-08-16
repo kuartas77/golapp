@@ -54,6 +54,7 @@ class AuthControllerSPA extends Controller
         $status = Password::broker('users')->reset(
             $request->validated(),
             function (User $user, string $password) {
+                $user->tokens()->delete();
                 $user->forceFill([
                     'password' => $password,
                     'remember_token' => Str::random(60),

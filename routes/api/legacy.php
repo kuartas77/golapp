@@ -7,7 +7,7 @@ use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\FileController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('login', [LoginController::class, 'login']);
+Route::post('login', [LoginController::class, 'login'])->middleware('throttle:auth-login');
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('logout', [LoginController::class, 'logout']);

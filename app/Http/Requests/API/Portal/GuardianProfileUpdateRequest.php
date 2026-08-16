@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\API\Portal;
 
-use App\Rules\UniqueGuardianEmail;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class GuardianProfileUpdateRequest extends FormRequest
 {
@@ -27,7 +27,7 @@ class GuardianProfileUpdateRequest extends FormRequest
                 'string',
                 'email:rfc',
                 'max:50',
-                new UniqueGuardianEmail(ignoreGuardianId: $guardian?->id),
+                Rule::in([(string) $guardian?->email]),
             ],
             'profession' => ['nullable', 'string', 'max:50'],
             'business' => ['nullable', 'string', 'max:50'],
@@ -40,5 +40,12 @@ class GuardianProfileUpdateRequest extends FormRequest
         $this->merge([
             'email' => filled($this->email) ? mb_strtolower(trim((string) $this->email)) : null,
         ]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.in' => 'El correo de acceso no se puede cambiar desde el perfil. Contacta a la escuela para actualizarlo de forma segura.',
+        ];
     }
 }

@@ -97,6 +97,15 @@ final class LoginTest extends TestCase
         $testResponse->assertJson(['success' => true]);
     }
 
+    public function testLegacyPlayerLoginIsRetired(): void
+    {
+        $this->postJson('/api/notify/login', [
+            'email' => 'player@example.com',
+            'password' => '1002003004',
+        ])->assertStatus(410)
+            ->assertJsonPath('message', 'Este acceso fue retirado. Ingresa mediante el Portal de Acudientes.');
+    }
+
     private function loginByApi(User $user): TestResponse
     {
         return $this->postJson('/api/login', [

@@ -15,6 +15,8 @@ use App\Modules\Inscriptions\Actions\Create\Passable;
 use App\Notifications\GuardianPasswordResetNotification;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -27,10 +29,11 @@ final class PortalGuardiansTest extends TestCase
             'password' => 'secret-guardian',
         ]);
 
-        $loginResponse = $this->postJson('/api/v2/portal/acudientes/login', [
-            'email' => 'guardian@example.com',
-            'password' => 'secret-guardian',
-        ]);
+        $loginResponse = $this->withHeader('Origin', 'http://localhost')
+            ->postJson('/api/v2/portal/acudientes/login', [
+                'email' => 'guardian@example.com',
+                'password' => 'secret-guardian',
+            ]);
 
         $loginResponse->assertOk();
         $this->assertDatabaseHas('peoples', [
@@ -39,7 +42,6 @@ final class PortalGuardiansTest extends TestCase
         ]);
         $this->assertNotNull($guardian->fresh()->last_login_at);
 
-        $this->actingAs($guardian, 'guardians');
         $meResponse = $this->getJson('/api/v2/portal/acudientes/me');
 
         $meResponse->assertOk();
@@ -245,6 +247,84 @@ final class PortalGuardiansTest extends TestCase
         $this->assertNotEmpty($savedPhotoPath);
         Storage::disk('public')->assertExists($savedPhotoPath);
         $response->assertJsonPath('data.id', $player->id);
+    }
+
+    public function testGuardianCannotChangeAccessEmailFromProfile(): void
+    {
+        [$guardian] = $this->createGuardianScenario([
+            'email' => 'immutable.guardian@example.com',
+            'password' => 'immutable-secret',
+        ]);
+
+        $this->actingAs($guardian, 'guardians')
+            ->putJson('/api/v2/portal/acudientes/profile', [
+                'names' => $guardian->names,
+                'email' => 'attacker@example.com',
+                'phone' => $guardian->phone,
+                'mobile' => $guardian->mobile,
+                'profession' => $guardian->profession,
+                'business' => $guardian->business,
+                'position' => $guardian->position,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['email']);
+
+        $this->assertSame('immutable.guardian@example.com', $guardian->fresh()->email);
+    }
+
+    public function testGuardianLoginUsesGenericErrorsAndIsRateLimitedPerIdentity(): void
+    {
+        [$guardian] = $this->createGuardianScenario([
+            'email' => 'limited.guardian@example.com',
+            'password' => 'limited-secret',
+        ]);
+
+        $invalidPasswordMessage = $this->postJson('/api/v2/portal/acudientes/login', [
+            'email' => $guardian->email,
+            'password' => 'wrong-secret',
+        ])->assertUnprocessable()->json('errors.email.0');
+
+        $missingAccountMessage = $this->postJson('/api/v2/portal/acudientes/login', [
+            'email' => 'missing.guardian@example.com',
+            'password' => 'wrong-secret',
+        ])->assertUnprocessable()->json('errors.email.0');
+
+        $this->assertSame($invalidPasswordMessage, $missingAccountMessage);
+
+        for ($attempt = 2; $attempt <= 5; $attempt++) {
+            $this->postJson('/api/v2/portal/acudientes/login', [
+                'email' => $guardian->email,
+                'password' => 'wrong-secret',
+            ])->assertUnprocessable();
+        }
+
+        $this->postJson('/api/v2/portal/acudientes/login', [
+            'email' => $guardian->email,
+            'password' => 'wrong-secret',
+        ])->assertTooManyRequests();
+    }
+
+    public function testGuardianPasswordResetRevokesExistingApiTokens(): void
+    {
+        [$guardian] = $this->createGuardianScenario([
+            'email' => 'reset.guardian@example.com',
+            'password' => 'reset-old-secret',
+        ]);
+        $guardian->createToken('existing-guardian-token');
+        $token = Password::broker('guardians')->createToken($guardian);
+
+        $this->postJson('/api/v2/portal/acudientes/reset-password', [
+            'token' => $token,
+            'email' => $guardian->email,
+            'password' => 'NuevaClave123',
+            'password_confirmation' => 'NuevaClave123',
+        ])->assertOk();
+
+        $this->assertTrue(Hash::check('NuevaClave123', (string) $guardian->fresh()->password));
+        $this->assertDatabaseMissing('personal_access_tokens', [
+            'tokenable_type' => People::class,
+            'tokenable_id' => $guardian->id,
+        ]);
     }
 
     public function testBackfillInvitesOnlyUniqueEligibleGuardiansWithoutPassword(): void

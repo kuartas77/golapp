@@ -63,32 +63,42 @@ trait UploadFile
 
     private function uploadSignImage($data, $folder = 'player', bool $resize = true)
     {
-        $path = null;
-        $encoded_image = explode(",", $data)[1];
-        $decoded_image = base64_decode($encoded_image);
-        $tmpFilePath = sys_get_temp_dir() . '/' . Str::uuid()->toString();
-        file_put_contents($tmpFilePath, $decoded_image);
+        $parts = explode(',', (string) $data, 2);
+        $decoded_image = isset($parts[1]) ? base64_decode($parts[1], true) : false;
 
-        // this just to help us get file info.
-        $tmpFile = new File($tmpFilePath);
-
-        $file = new UploadedFile(
-            $tmpFile->getPathname(),
-            $tmpFile->getFilename(),
-            $tmpFile->getMimeType(),
-            0,
-            false
-        );
-
-        $path = $file->hashName($folder);
-
-        $img = Image::make($file);
-        if($resize) {
-            $img->resize(200, 200)->orientate();
+        if ($decoded_image === false || strlen($decoded_image) > 1048576) {
+            throw new \InvalidArgumentException('Invalid signature image.');
         }
 
-        Storage::disk('local')->put($path, (string)$img->encode(), 'public');
+        $tmpFilePath = sys_get_temp_dir() . '/' . Str::uuid()->toString();
 
-        return $path;
+        try {
+            if (file_put_contents($tmpFilePath, $decoded_image) === false) {
+                throw new \RuntimeException('Unable to create signature image.');
+            }
+
+            $tmpFile = new File($tmpFilePath);
+            $file = new UploadedFile(
+                $tmpFile->getPathname(),
+                $tmpFile->getFilename(),
+                $tmpFile->getMimeType(),
+                0,
+                false
+            );
+            $path = $file->hashName($folder);
+            $img = Image::make($file);
+
+            if ($resize) {
+                $img->resize(200, 200)->orientate();
+            }
+
+            Storage::disk('local')->put($path, (string) $img->encode(), 'public');
+
+            return $path;
+        } finally {
+            if (is_file($tmpFilePath)) {
+                unlink($tmpFilePath);
+            }
+        }
     }
 }

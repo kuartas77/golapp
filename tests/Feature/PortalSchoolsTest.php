@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Notifications\GuardianEmailVerificationCodeNotification;
+use App\Service\Portal\GuardianEmailVerificationService;
 use Tests\TestCase;
 
 final class PortalSchoolsTest extends TestCase
@@ -121,7 +122,10 @@ final class PortalSchoolsTest extends TestCase
 
         $response = $this->postJson(
             route('api.v2.portal.school.inscription.store', [$school->slug]),
-            $this->portalInscriptionPayload($school->slug)
+            $this->withGuardianVerificationToken(
+                $school->slug,
+                $this->portalInscriptionPayload($school->slug)
+            )
         );
 
         $response->assertStatus(422);
@@ -185,10 +189,15 @@ final class PortalSchoolsTest extends TestCase
                 'data.endpoints.autocomplete',
                 route('api.v2.portal.autocomplete.fields', [], false)
             )
-            ->assertJsonPath(
-                'data.endpoints.searchDoc',
-                route('api.v2.portal.autocomplete.search_doc', [], false)
-            );
+            ->assertJsonMissingPath('data.endpoints.searchDoc');
+    }
+
+    public function test_portal_document_lookup_does_not_expose_player_data(): void
+    {
+        $this->getJson(route('api.v2.portal.autocomplete.search_doc', [
+            'doc' => '1002003004',
+            'school_id' => 1,
+        ]))->assertNotFound();
     }
 
     public function test_portal_accepts_sanitized_browser_failure_reports(): void
@@ -243,17 +252,23 @@ final class PortalSchoolsTest extends TestCase
 
         $this->postJson(
             route('api.v2.portal.school.inscription.store', [$school->slug]),
-            $this->portalInscriptionPayload($school->slug)
+            $this->withGuardianVerificationToken(
+                $school->slug,
+                $this->portalInscriptionPayload($school->slug)
+            )
         )->assertOk();
 
+        $this->travel(61)->seconds();
+
+        $secondPayload = array_merge($this->portalInscriptionPayload($school->slug), [
+            'names' => 'Segundo',
+            'last_names' => 'Deportista',
+            'identification_document' => '1002003005',
+            'email' => 'segundo.deportista@example.com',
+        ]);
         $this->postJson(
             route('api.v2.portal.school.inscription.store', [$school->slug]),
-            array_merge($this->portalInscriptionPayload($school->slug), [
-                'names' => 'Segundo',
-                'last_names' => 'Deportista',
-                'identification_document' => '1002003005',
-                'email' => 'segundo.deportista@example.com',
-            ])
+            $this->withGuardianVerificationToken($school->slug, $secondPayload)
         )->assertOk();
 
         $guardian = People::query()
@@ -282,18 +297,22 @@ final class PortalSchoolsTest extends TestCase
 
         $this->postJson(
             route('api.v2.portal.school.inscription.store', [$school->slug]),
-            $this->portalInscriptionPayload($school->slug)
+            $this->withGuardianVerificationToken(
+                $school->slug,
+                $this->portalInscriptionPayload($school->slug)
+            )
         )->assertOk();
 
+        $conflictingPayload = array_merge($this->portalInscriptionPayload($school->slug), [
+            'names' => 'Otro',
+            'last_names' => 'Acudido',
+            'identification_document' => '1002003006',
+            'email' => 'otro.acudido@example.com',
+            'tutor_num_doc' => '900800701',
+        ]);
         $response = $this->postJson(
             route('api.v2.portal.school.inscription.store', [$school->slug]),
-            array_merge($this->portalInscriptionPayload($school->slug), [
-                'names' => 'Otro',
-                'last_names' => 'Acudido',
-                'identification_document' => '1002003006',
-                'email' => 'otro.acudido@example.com',
-                'tutor_num_doc' => '900800701',
-            ])
+            $this->withGuardianVerificationToken($school->slug, $conflictingPayload)
         );
 
         $response->assertStatus(422);
@@ -314,7 +333,10 @@ final class PortalSchoolsTest extends TestCase
 
         $response = $this->withHeader('Accept', 'application/json')->post(
             route('api.v2.portal.school.inscription.store', [$school['slug']]),
-            array_merge($this->portalInscriptionPayload($school['slug']), $this->validPortalDocuments())
+            $this->withGuardianVerificationToken(
+                $school['slug'],
+                array_merge($this->portalInscriptionPayload($school['slug']), $this->validPortalDocuments())
+            )
         );
 
         $response->assertOk();
@@ -332,15 +354,21 @@ final class PortalSchoolsTest extends TestCase
             'inscriptions_enabled' => true,
         ]);
 
+        $payload = $this->withGuardianVerificationToken(
+            $school['slug'],
+            array_merge($this->portalInscriptionPayload($school['slug']), [
+                'signatureTutor' => 'data:image/png;base64,'.base64_encode((string) file_get_contents(public_path('img/user.png'))),
+                'signature_ip_address' => '198.51.100.10',
+                'signature_user_agent' => 'Spoofed client value',
+            ]),
+            '203.0.113.42'
+        );
+
         $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.42'])
             ->withHeader('User-Agent', 'Golapp Portal Signature Test/1.0')
             ->postJson(
                 route('api.v2.portal.school.inscription.store', [$school['slug']]),
-                array_merge($this->portalInscriptionPayload($school['slug']), [
-                    'signatureTutor' => 'data:image/png;base64,c2lnbmF0dXJl',
-                    'signature_ip_address' => '198.51.100.10',
-                    'signature_user_agent' => 'Spoofed client value',
-                ])
+                $payload
             )
             ->assertOk();
 
@@ -430,6 +458,14 @@ final class PortalSchoolsTest extends TestCase
                 'guardian_email_verification_token' => $confirmation->json('token'),
             ])
         )->assertOk();
+
+        $this->postJson(
+            route('api.v2.portal.school.inscription.store', [$school->slug]),
+            array_merge($payload, [
+                'identification_document' => '1002003999',
+                'guardian_email_verification_token' => $confirmation->json('token'),
+            ])
+        )->assertJsonValidationErrors(['guardian_email_verification_token']);
 
         $this->assertDatabaseHas('peoples', [
             'identification_card' => $document,
@@ -541,18 +577,38 @@ final class PortalSchoolsTest extends TestCase
             'slug' => $schoolSlug,
         ];
 
-        People::query()->updateOrCreate(
-            ['identification_card' => $payload['tutor_num_doc']],
-            [
-                'names' => $payload['tutor_name'],
-                'tutor' => true,
-                'relationship' => People::MOTHER,
-                'email' => $payload['tutor_email'],
-                'email_verified_at' => now(),
-            ]
+        return $payload;
+    }
+
+    private function withGuardianVerificationToken(string $schoolSlug, array $payload, string $ip = '127.0.0.1'): array
+    {
+        Notification::fake();
+
+        $school = School::query()->firstWhere('slug', $schoolSlug);
+        $service = app(GuardianEmailVerificationService::class);
+        $service->requestCode($school, $payload['tutor_num_doc'], $payload['tutor_email'], $ip);
+
+        $code = null;
+        Notification::assertSentOnDemand(
+            GuardianEmailVerificationCodeNotification::class,
+            function (GuardianEmailVerificationCodeNotification $notification) use (&$code): bool {
+                $code = $notification->code;
+
+                return true;
+            }
         );
 
-        return $payload;
+        $confirmation = $service->confirmCode(
+            $school,
+            $payload['tutor_num_doc'],
+            $payload['tutor_email'],
+            (string) $code,
+            $ip
+        );
+
+        return array_merge($payload, [
+            'guardian_email_verification_token' => $confirmation['token'],
+        ]);
     }
 
     private function validPortalDocuments(): array

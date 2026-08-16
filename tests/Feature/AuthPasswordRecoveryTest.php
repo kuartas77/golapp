@@ -48,6 +48,7 @@ final class AuthPasswordRecoveryTest extends TestCase
 
     public function testUserCanResetPasswordFromRecoveryToken(): void
     {
+        $this->user->createToken('existing-access-token');
         $token = Password::broker('users')->createToken($this->user);
 
         $response = $this->postJson('/api/v2/reset-password', [
@@ -60,5 +61,9 @@ final class AuthPasswordRecoveryTest extends TestCase
         $response->assertOk();
         $response->assertJsonPath('message', 'La contraseña fue actualizada correctamente.');
         $this->assertTrue(Hash::check('NuevaClave123', (string) $this->user->fresh()->password));
+        $this->assertDatabaseMissing('personal_access_tokens', [
+            'tokenable_type' => $this->user::class,
+            'tokenable_id' => $this->user->id,
+        ]);
     }
 }

@@ -3,66 +3,16 @@
 namespace App\Http\Controllers\API\Notifications;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\API\LoginPlayerResource;
-use App\Models\Player;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Http\JsonResponse;
 
 class LoginPlayerController extends Controller
 {
 
-    protected function guard()
+    public function login(Request $request): JsonResponse
     {
-        return Auth::guard('players');
-    }
-    /**
-     * @throws ValidationException
-     */
-    public function login(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        $player = Player::query()
-            ->where('email', $request->input('email'))
-            ->where('identification_document', $request->input('password'))
-            ->whereHas('inscription')->first();
-
-        if(!$player || !Hash::check($request->input('password'), $player->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
-        }
-
-        return $this->generateResponse($player);
-    }
-
-    public function refresh(Request $request): LoginPlayerResource
-    {
-        $player = $request->user();
-        $player->tokens()->delete();
-        return $this->generateResponse($player);
-    }
-
-    private function generateResponse(Player $player): LoginPlayerResource
-    {
-        $player->tokens()->delete();
-
-
-        $player->abilities = [
-            'notification-index',
-            'request-index',
-            'request-store',
-            'payment-index',
-            'payment-update',
-        ];
-
-        $player->load(['schoolData', 'inscription.trainingGroup']);
-
-        return new LoginPlayerResource($player);
+        return response()->json([
+            'message' => 'Este acceso fue retirado. Ingresa mediante el Portal de Acudientes.',
+        ], 410);
     }
 }
