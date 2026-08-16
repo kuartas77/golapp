@@ -93,10 +93,25 @@ class People extends Authenticatable
             : (string) $value;
     }
 
-    public function getRelationshipNameattribute()
+    public function getRelationshipNameAttribute(): string
     {
-        $relationship = config('variables.KEY_RELATIONSHIPS_SELECT');
-        return array_key_exists((integer)$this->relationship, $relationship) ? $relationship[(integer)$this->relationship] : '';
+        $relationships = config('variables.KEY_RELATIONSHIPS_SELECT', [])
+            + config('variables.KEY_RELATIONSHIPS_LEGACY', []);
+        $relationship = trim((string) $this->relationship);
+
+        if (is_numeric($relationship) && array_key_exists((int) $relationship, $relationships)) {
+            return $relationships[(int) $relationship];
+        }
+
+        $relationshipId = array_search(mb_strtoupper($relationship), $relationships, true);
+
+        if ($relationshipId === false) {
+            $relationshipId = config('variables.KEY_RELATIONSHIPS_ALIASES.'.mb_strtoupper($relationship));
+        }
+
+        return $relationshipId === false || ! array_key_exists($relationshipId, $relationships)
+            ? ''
+            : $relationships[$relationshipId];
     }
 
     public function players(): BelongsToMany

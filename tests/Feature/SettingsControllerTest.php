@@ -30,9 +30,17 @@ final class SettingsControllerTest extends TestCase
 
         $this->assertIsArray($response->json('relationships'));
         $this->assertSame([
-            'value' => '30',
-            'label' => 'ACUDIENTE',
-        ], collect($response->json('relationships'))->firstWhere('value', '30'));
+            ['value' => '15', 'label' => 'MADRE'],
+            ['value' => '20', 'label' => 'PADRE'],
+            ['value' => '1', 'label' => 'ABUELA'],
+            ['value' => '2', 'label' => 'ABUELO'],
+            ['value' => '11', 'label' => 'HERMANA'],
+            ['value' => '12', 'label' => 'HERMANO'],
+            ['value' => '26', 'label' => 'TÍA'],
+            ['value' => '27', 'label' => 'TÍO'],
+            ['value' => '10', 'label' => 'OTRO FAMILIAR'],
+            ['value' => '30', 'label' => 'ACUDIENTE'],
+        ], $response->json('relationships'));
 
         $this->assertIsArray($response->json('type_payments'));
         $this->assertSame([

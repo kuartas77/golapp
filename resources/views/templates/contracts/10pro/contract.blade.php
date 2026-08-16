@@ -39,7 +39,7 @@
                     @if($people->tutor)
                     ACUDIENTE
                     @else
-                    {{config('variables.KEY_RELATIONSHIPS_SELECT')[$people->relationship]}}:
+                    {{$people->relationship_name}}:
                     @endif
                 </strong>
             </td>

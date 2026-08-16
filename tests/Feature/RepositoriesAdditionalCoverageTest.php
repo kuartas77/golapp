@@ -19,6 +19,7 @@ use App\Models\Payment;
 use App\Models\PaymentChangeLog;
 use App\Models\PaymentReceived;
 use App\Models\PaymentRequest;
+use App\Models\People;
 use App\Models\Player;
 use App\Models\Schedule;
 use App\Models\SchoolUser;
@@ -121,6 +122,25 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertDatabaseHas('peoples', [
             'identification_card' => 'DOC-101',
             'relationship' => '2',
+        ]);
+
+        $legacyRelationship = People::factory()->create(['relationship' => '3']);
+
+        $this->assertSame('AMIGA', $legacyRelationship->relationship_name);
+
+        $peopleRepository->getPeopleIds([
+            [
+                'tutor' => 'true',
+                'relationship' => 'MAMA',
+                'names' => 'Madre Uno',
+                'identification_card' => 'DOC-102',
+                'phone' => '3001234567',
+            ],
+        ]);
+
+        $this->assertDatabaseHas('peoples', [
+            'identification_card' => 'DOC-102',
+            'relationship' => '15',
         ]);
     }
 

@@ -121,7 +121,7 @@ class SchoolsController extends Controller
             ],
             'options' => [
                 'genders' => Cache::remember('KEY_GENDERS', now()->addYear(), fn() => config('variables.KEY_GENDERS')),
-                'relationships' => Cache::remember('KEY_RELATIONSHIPS_SELECT', now()->addYear(), fn() => config('variables.KEY_RELATIONSHIPS_SELECT')),
+                'relationships' => $this->cachedConfigOptions('KEY_RELATIONSHIPS_SELECT'),
                 'bloodTypes' => Cache::remember('KEY_BLOOD_TYPES', now()->addYear(), fn() => config('variables.KEY_BLOOD_TYPES')),
                 'documentTypes' => Cache::remember('KEY_DOCUMENT_TYPES', now()->addYear(), fn() => config('variables.KEY_DOCUMENT_TYPES')),
                 'jornada' => Cache::remember('KEY_JORNADA_TYPES', now()->addYear(), fn() => config('variables.KEY_JORNADA')),
@@ -131,6 +131,14 @@ class SchoolsController extends Controller
                 'action' => 'inscriptions',
             ],
         ]);
+    }
+
+    private function cachedConfigOptions(string $key): array
+    {
+        $options = config("variables.{$key}", []);
+        $cacheKey = $key.'_'.md5(json_encode($options));
+
+        return Cache::remember($cacheKey, now()->addYear(), fn () => $options);
     }
 
     public function dataProcessingPolicy(School $school)

@@ -72,7 +72,8 @@ class PeopleRepository
 
     private function normalizeRelationship($relationship): string
     {
-        $relationships = config('variables.KEY_RELATIONSHIPS_SELECT', []);
+        $relationships = config('variables.KEY_RELATIONSHIPS_SELECT', [])
+            + config('variables.KEY_RELATIONSHIPS_LEGACY', []);
 
         if (array_key_exists($relationship, $relationships)) {
             return (string) $relationship;
@@ -81,6 +82,12 @@ class PeopleRepository
         $normalizedRelationship = mb_strtoupper(trim((string) $relationship));
         $relationshipId = array_search($normalizedRelationship, $relationships, true);
 
-        return $relationshipId === false ? (string) $relationship : (string) $relationshipId;
+        if ($relationshipId === false) {
+            $relationshipId = config("variables.KEY_RELATIONSHIPS_ALIASES.{$normalizedRelationship}");
+        }
+
+        return $relationshipId === false || $relationshipId === null
+            ? (string) $relationship
+            : (string) $relationshipId;
     }
 }
