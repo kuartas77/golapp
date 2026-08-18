@@ -1,8 +1,7 @@
-import configLanguaje from '@/utils/datatableUtils'
 import { useSetting } from '@/store/settings-store'
 import { usePageTitle } from "@/composables/use-meta"
 import api from "@/utils/axios"
-import { computed, getCurrentInstance, useTemplateRef, nextTick, onMounted, ref } from "vue"
+import { computed, getCurrentInstance, onMounted, ref } from "vue"
 import * as yup from 'yup'
 
 export default function useAttendances() {
@@ -12,7 +11,6 @@ export default function useAttendances() {
     const isLoading = ref(false)
     const isBulkUpdating = ref(false)
     const settings = useSetting()
-    const attendance_table = useTemplateRef('attendance_table')
 
     const attendanceGroups = computed(() => (
         settings.attendance_training_groups?.length
@@ -43,15 +41,6 @@ export default function useAttendances() {
     const export_excel = ref(null)
     const classDays = ref([])
     const classDaySelected = ref(null)
-    const attendanceTableKey = computed(() => {
-        const classDay = classDaySelected.value
-
-        if (! classDay) {
-            return 'attendance-table-empty'
-        }
-
-        return [classDay.group_id, classDay.year, classDay.month, classDay.column].join('-')
-    })
     const attendancesGroup = ref([])
     const lastSearchValues = ref(null)
     const hasSearched = computed(() => Boolean(lastSearchValues.value))
@@ -99,69 +88,15 @@ export default function useAttendances() {
 
         return attendancesGroup.value.filter((row) => buildPlayerSearchText(row).toLocaleLowerCase().includes(searchTerm))
     })
-    const playerSearchTitle = `
-        <input
-            type="search"
-            class="form-control form-control-sm"
-            placeholder="Buscar deportista"
-            aria-label="Buscar deportista"
-            data-attendance-player-search="true"
-        />
-    `
-
-    const options = {
-        ...configLanguaje,
-        columnDefs: [
-            { responsivePriority: 1, targets: 1 },
-            {
-                targets: [0, 1],
-                width: '30%'
-            },
-            {
-                targets: ['_all'],
-                className: 'dt-head-center dt-body-center',
-            },
-        ],
-        layout: {
-            topStart: null,
-            topEnd: null,
-            bottomStart: 'info',
-            bottomEnd: null
-        },
-        paging: false,
-        ordering: false,
-        serverSide: false,
-        processing: true,
-        order: [[1, 'desc']],
-        ajax: null,
-        columns: [
-            {
-                data: buildPlayerSearchText,
-                title: playerSearchTitle,
-                render: '#player-photo',
-                searchable: true,
-                with: '50%'
-            },
-            {
-                data: 'id',
-                title: 'Asistencia',
-                render: '#attendance-select',
-                searchable: false,
-                with: '20%'
-            },
-            {
-                data: 'id',
-                title: 'Observación',
-                render: '#observations',
-                searchable: false,
-                with: '40%'
-            },
-        ]
-    }
-
     const isTruthyFlag = (value) => value === true || value === 1 || value === '1'
 
     const attendanceRowReadOnly = (row) => isTruthyFlag(row?.inscription_deleted) || isTruthyFlag(row?.period_locked)
+
+    const attendanceValueFor = (row) => {
+        const column = classDaySelected.value?.column
+
+        return column ? (row?.[column] ?? '') : ''
+    }
 
     const attendanceRowReadOnlyMessage = (row) => {
         if (isTruthyFlag(row?.period_locked)) {
@@ -173,17 +108,6 @@ export default function useAttendances() {
 
     const applyPlayerSearch = (searchValue) => {
         playerSearchTerm.value = searchValue?.target ? searchValue.target.value : (searchValue ?? '')
-    }
-
-    const bindPlayerSearchInput = () => {
-        const searchInput = document.querySelector('#attendance_table thead input[data-attendance-player-search="true"]')
-
-        if (! searchInput) {
-            return
-        }
-
-        searchInput.oninput = (event) => applyPlayerSearch(event)
-        searchInput.onclick = (event) => event.stopPropagation()
     }
 
     const buildAttendanceDate = () => {
@@ -274,8 +198,6 @@ export default function useAttendances() {
                 attendancesGroup.value = response.data.rows
                 export_pdf.value = response.data.url_print
                 export_excel.value = response.data.url_print_excel
-                await nextTick()
-                bindPlayerSearchInput()
 
                 if (response.data.rows.length === 0) {
                     showMessage("No se encontraron resultados para el grupo en este mes.", 'warning')
@@ -518,12 +440,9 @@ export default function useAttendances() {
     onMounted(async () => {
         await settings.getSettings()
         initModals()
-        await nextTick()
-        bindPlayerSearchInput()
     })
 
     return {
-        attendance_table,
         isLoading,
         isBulkUpdating,
         groups,
@@ -535,10 +454,10 @@ export default function useAttendances() {
         export_excel,
         classDays,
         classDaySelected,
-        attendanceTableKey,
         attendancesGroup,
         globalError,
         hasSearched,
+        playerSearchTerm,
         filteredAttendancesGroup,
         takeAttendance,
         retiredRowsCount,
@@ -546,8 +465,8 @@ export default function useAttendances() {
         canBulkMarkAttendance,
         optionsMonths,
         attendanceTypes,
-        options,
         attendanceRowReadOnly,
+        attendanceValueFor,
         applyPlayerSearch,
         handleSearchClassdays,
         retryLastRequest,

@@ -156,32 +156,50 @@
                             @action="createMissingAttendances"
                         />
                         <div v-else class="row" data-tour="attendance-table">
-                            <DataTable :key="attendanceTableKey" :options="options" :data="filteredAttendancesGroup" class="table table-bordered table-sm"
-                                id="attendance_table" ref="attendance_table">
-
-                                <template #player-photo="props">
+                            <div class="table-responsive">
+                                <table id="attendance_table" class="table table-bordered table-sm align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="w-50">
+                                                <input
+                                                    type="search"
+                                                    class="form-control form-control-sm"
+                                                    placeholder="Buscar deportista"
+                                                    aria-label="Buscar deportista"
+                                                    data-attendance-player-search="true"
+                                                    :value="playerSearchTerm"
+                                                    @input="applyPlayerSearch"
+                                                />
+                                            </th>
+                                            <th class="text-center">Asistencia</th>
+                                            <th class="text-center">Observación</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr v-for="row in filteredAttendancesGroup" :key="`${classDaySelected.column}-${row.id}`">
+                                        <td>
                                     <div class="media d-md-flex d-block text-sm-start text-center">
                                         <div class="media-aside align-self-start avatar avatar-sm me-1">
-                                            <img :src="props.rowData.inscription.player.photo_url" alt="avatar"
+                                            <img :src="row.inscription.player.photo_url" alt="avatar"
                                                 class="player-avatar" />
                                         </div>
                                         <div class="media-body">
                                             <div class="d-xl-flex d-block justify-content-between">
                                                 <div>
                                                     <small>
-                                                        {{ props.rowData.inscription.player.full_names }}
-                                                        <span v-if="props.rowData.inscription_deleted" class="badge bg-warning text-dark ms-2">
+                                                        {{ row.inscription.player.full_names }}
+                                                        <span v-if="row.inscription_deleted" class="badge bg-warning text-dark ms-2">
                                                             Inscripción retirada
                                                         </span>
-                                                        <span v-if="props.rowData.period_locked" class="badge bg-secondary ms-2">
+                                                        <span v-if="row.period_locked" class="badge bg-secondary ms-2">
                                                             Periodo cerrado
                                                         </span>
                                                     </small>
                                                     <p>
                                                         <small>
-                                                            {{ props.rowData.inscription.player.unique_code }}
+                                                            {{ row.inscription.player.unique_code }}
                                                             <span>
-                                                                | {{ props.rowData.inscription.player.category }}
+                                                                | {{ row.inscription.player.category }}
                                                             </span>
                                                         </small>
                                                     </p>
@@ -189,16 +207,15 @@
                                             </div>
                                         </div>
                                     </div>
-                                </template>
-
-                                <template #attendance-select="props">
+                                        </td>
+                                        <td class="text-center">
                                     <select
                                         class="form-select form-select-sm"
-                                        :value="props.rowData[classDaySelected.column] ?? ''"
-                                        :disabled="attendanceRowReadOnly(props.rowData)"
-                                        :id="props.rowData.id"
+                                        :value="attendanceValueFor(row)"
+                                        :disabled="attendanceRowReadOnly(row)"
+                                        :id="row.id"
                                         data-tour="attendance-status-select"
-                                        @change="onChangeAttendance(props.rowData, $event.target.value)"
+                                        @change="onChangeAttendance(row, $event.target.value)"
                                     >
                                         <option value="">Selecciona...</option>
                                         <option
@@ -209,20 +226,22 @@
                                             {{ label }}
                                         </option>
                                     </select>
-                                </template>
-
-                                <template #observations="props">
+                                        </td>
+                                        <td class="text-center">
                                     <button
                                         type="button"
                                         class="badge badge-primary btn btn-sm m-1"
                                         data-tour="attendance-observation-button"
-                                        :disabled="attendanceRowReadOnly(props.rowData)"
-                                        @click="onClickOpenModalObservation(props.rowData)"
+                                        :disabled="attendanceRowReadOnly(row)"
+                                        @click="onClickOpenModalObservation(row)"
                                     >
                                         Observación
                                     </button>
-                                </template>
-                            </DataTable>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -301,7 +320,6 @@ export default {
 <script setup>
 import { useTemplateRef } from 'vue'
 import { ErrorMessage, Field, Form } from "vee-validate";
-import DataTable from '@/plugins/datatables'
 import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import useAttendances from '@/composables/attendances/attendances'
@@ -311,7 +329,6 @@ import { attendancesTutorial } from '@/tutorials/attendances'
 const form = useTemplateRef('form')
 
 const {
-    attendance_table,
     isLoading,
     isBulkUpdating,
     groups,
@@ -323,10 +340,10 @@ const {
     export_excel,
     classDays,
     classDaySelected,
-    attendanceTableKey,
     attendancesGroup,
     globalError,
     hasSearched,
+    playerSearchTerm,
     filteredAttendancesGroup,
     takeAttendance,
     retiredRowsCount,
@@ -334,8 +351,9 @@ const {
     canBulkMarkAttendance,
     optionsMonths,
     attendanceTypes,
-    options,
     attendanceRowReadOnly,
+    attendanceValueFor,
+    applyPlayerSearch,
     handleSearchClassdays,
     retryLastRequest,
     createMissingAttendances,

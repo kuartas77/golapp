@@ -99,9 +99,8 @@ describe('attendance-list composable', () => {
         }
     })
 
-    it('filters players locally without redrawing the DataTable instance', async () => {
-        const columnMock = vi.fn()
-        const wrapper = mountComposable({ column: columnMock })
+    it('filters players locally without an additional API request', async () => {
+        const wrapper = mountComposable()
 
         await flushPromises()
 
@@ -132,7 +131,6 @@ describe('attendance-list composable', () => {
 
         expect(wrapper.vm.filteredAttendancesGroup).toHaveLength(1)
         expect(wrapper.vm.filteredAttendancesGroup[0].id).toBe(1)
-        expect(columnMock).not.toHaveBeenCalled()
         expect(apiMock.get).not.toHaveBeenCalled()
     })
 
@@ -237,7 +235,7 @@ describe('attendance-list composable', () => {
         expect(wrapper.vm.attendancesGroup).toHaveLength(1)
     })
 
-    it('changes the DataTable instance key when selecting another training day', async () => {
+    it('reads each status from the newly selected training day', async () => {
         const wrapper = mountComposable()
         await flushPromises()
 
@@ -273,45 +271,11 @@ describe('attendance-list composable', () => {
             })
 
         await wrapper.vm.clickClassDay(firstClassDay)
-        expect(wrapper.vm.attendanceTableKey).toBe('10-2026-1-assistance_one')
+        expect(wrapper.vm.attendanceValueFor(wrapper.vm.attendancesGroup[0])).toBe(2)
 
         await wrapper.vm.clickClassDay(secondClassDay)
-        expect(wrapper.vm.attendanceTableKey).toBe('10-2026-1-assistance_two')
         expect(wrapper.vm.classDaySelected.column).toBe('assistance_two')
-        expect(wrapper.vm.attendancesGroup[0].assistance_two).toBeNull()
-    })
-
-    it('indexes player name, code and category for local DataTable search', async () => {
-        const wrapper = mountComposable()
-        await flushPromises()
-
-        const searchText = wrapper.vm.options.columns[0].data(activeRow({
-            inscription: {
-                player: {
-                    full_names: 'Ana Perez',
-                    unique_code: 'AP-10',
-                    category: 'Sub 10',
-                },
-            },
-        }))
-
-        expect(searchText).toBe('Ana Perez AP-10 Sub 10')
-    })
-
-    it('renders the player search input from the DataTable column title', async () => {
-        const wrapper = mountComposable()
-        await flushPromises()
-
-        expect(wrapper.vm.options.columns[0].title).toContain('data-attendance-player-search="true"')
-        expect(wrapper.vm.options.columns[0].title).toContain('Buscar deportista')
-    })
-
-    it('shows every loaded player without paginating the attendance table', async () => {
-        const wrapper = mountComposable()
-        await flushPromises()
-
-        expect(wrapper.vm.options.paging).toBe(false)
-        expect(wrapper.vm.options.layout.bottomEnd).toBeNull()
+        expect(wrapper.vm.attendanceValueFor(wrapper.vm.attendancesGroup[0])).toBe('')
     })
 
     it('treats string zero retired flags as editable active rows', async () => {
