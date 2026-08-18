@@ -208,6 +208,21 @@
         </div>
         <h1>Factura #{{ $invoice->invoice_number }}</h1>
 
+        @if($invoice->numbering_type === 'electronic' && $invoice->numberRange)
+            <div style="text-align: center; margin: -10px 0 15px; color: #5D6975; font-size: 9pt;">
+                Resolución {{ $invoice->numberRange->resolution_number }} del
+                {{ \Carbon\Carbon::parse($invoice->numberRange->resolution_date)->format('d/m/Y') }} ·
+                Rango {{ $invoice->numberRange->prefix }}{{ $invoice->numberRange->range_start }} a
+                {{ $invoice->numberRange->prefix }}{{ $invoice->numberRange->range_end }} ·
+                Vigencia {{ \Carbon\Carbon::parse($invoice->numberRange->valid_from)->format('d/m/Y') }} a
+                {{ \Carbon\Carbon::parse($invoice->numberRange->valid_until)->format('d/m/Y') }}
+            </div>
+        @elseif($invoice->numbering_type === 'internal')
+            <div style="text-align: center; margin: -10px 0 15px; color: #5D6975; font-size: 9pt;">
+                Numeración interna de la escuela
+            </div>
+        @endif
+
         <!-- TABLA para alinear perfectamente cliente y empresa -->
         <table class="header-table">
             <tr>

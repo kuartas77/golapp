@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest'
 
 import { backofficeAccessRequirements, hasBackofficeAccess } from '@/composables/useBackofficeAccess'
 
-function makeAuth({ roles = [], schoolPermissions = {} } = {}) {
+function makeAuth({ roles = [], schoolPermissions = {}, electronicInvoicingEnabled = false } = {}) {
     return {
+        user: {
+            electronic_invoicing_enabled: electronicInvoicingEnabled,
+        },
         hasRole(role) {
             return roles.includes(role)
         },
@@ -95,5 +98,25 @@ describe('hasBackofficeAccess', () => {
 
         expect(hasBackofficeAccess(auth, backofficeAccessRequirements.documentPlanning)).toBe(true)
         expect(hasBackofficeAccess(auth, backofficeAccessRequirements.clubDocuments)).toBe(false)
+    })
+
+    it('shows invoice numbering to enabled schools and always keeps it available to super-admin', () => {
+        const permission = { 'school.module.billing': true }
+
+        expect(hasBackofficeAccess(makeAuth({
+            roles: ['school'],
+            schoolPermissions: permission,
+            electronicInvoicingEnabled: true,
+        }), backofficeAccessRequirements.invoiceNumbering)).toBe(true)
+
+        expect(hasBackofficeAccess(makeAuth({
+            roles: ['school'],
+            schoolPermissions: permission,
+        }), backofficeAccessRequirements.invoiceNumbering)).toBe(false)
+
+        expect(hasBackofficeAccess(makeAuth({
+            roles: ['super-admin'],
+            schoolPermissions: permission,
+        }), backofficeAccessRequirements.invoiceNumbering)).toBe(true)
     })
 })

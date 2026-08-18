@@ -3,26 +3,25 @@
 namespace App\Observers;
 
 use App\Models\School;
+use App\Models\SchoolInvoiceSequence;
 use App\Service\Auth\AuthUserContext;
 
 class SchoolObserver
 {
     /**
      * Handle the skills control "created" event.
-     *
-     * @param School $school
-     * @return void
      */
     public function created(School $school): void
     {
         $school->configDefault();
+        SchoolInvoiceSequence::query()->firstOrCreate(
+            ['school_id' => $school->id],
+            ['next_number' => 1]
+        );
     }
 
     /**
      * Handle the skills control "updated" event.
-     *
-     * @param School $school
-     * @return void
      */
     public function updated(School $school): void
     {
@@ -32,9 +31,6 @@ class SchoolObserver
 
     /**
      * Handle the skills control "deleted" event.
-     *
-     * @param School $school
-     * @return void
      */
     public function deleted(School $school): void
     {
@@ -43,9 +39,6 @@ class SchoolObserver
 
     /**
      * Handle the skills control "restored" event.
-     *
-     * @param School $school
-     * @return void
      */
     public function restored(School $school): void
     {
@@ -55,7 +48,6 @@ class SchoolObserver
     /**
      * Handle the skills control "force deleted" event.
      *
-     * @param School $school
      * @return void
      */
     public function forceDeleted(School $school)

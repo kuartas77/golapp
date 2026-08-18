@@ -41,6 +41,14 @@ class AppController extends Controller
                 }
             }
 
+            if (
+                ($rule['requires_electronic_invoicing'] ?? false)
+                && ! $user->hasRole('super-admin')
+                && ! $this->electronicInvoicingEnabled($request)
+            ) {
+                abort(403);
+            }
+
             return;
         }
     }
@@ -57,6 +65,19 @@ class AppController extends Controller
         $freshSchool = School::query()->find($school->id);
 
         return (bool) $freshSchool?->hasSchoolPermission($permission);
+    }
+
+    private function electronicInvoicingEnabled(Request $request): bool
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        $school = getSchool($user);
+
+        return (bool) School::query()->find($school->id)?->electronic_invoicing_enabled;
     }
 
     private function spaAccessRules(): array
@@ -84,6 +105,16 @@ class AppController extends Controller
             'evaluaciones-deportistas' => ['permissions' => ['school.module.evaluations']],
             'configuracion/escuela' => ['roles' => ['super-admin', 'school'], 'permissions' => ['school.module.school_profile']],
             'configuracion/contratos' => ['roles' => ['super-admin', 'school'], 'permissions' => ['school.module.contracts']],
+            'configuracion/numeracion-facturacion' => [
+                'roles' => ['super-admin', 'school'],
+                'permissions' => ['school.module.billing'],
+                'requires_electronic_invoicing' => true,
+            ],
+            'administracion/numeracion-facturacion' => [
+                'roles' => ['super-admin', 'school'],
+                'permissions' => ['school.module.billing'],
+                'requires_electronic_invoicing' => true,
+            ],
             'configuracion/documentos-club' => ['roles' => ['super-admin', 'school'], 'permissions' => ['school.module.club_documents']],
             'configuracion/usuarios' => ['roles' => ['super-admin', 'school'], 'permissions' => ['school.module.user_management']],
             'configuracion/g-entrenamiento' => ['roles' => ['super-admin', 'school'], 'permissions' => ['school.module.training_groups']],

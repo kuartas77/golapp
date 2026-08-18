@@ -10,11 +10,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Invoice extends Model
 {
-    use SoftDeletes;
     use GeneralScopes;
+    use SoftDeletes;
 
     protected $fillable = [
         'invoice_number',
+        'numbering_type',
+        'consecutive_number',
+        'invoice_number_range_id',
         'inscription_id',
         'training_group_id',
         'year',
@@ -27,7 +30,7 @@ class Invoice extends Model
         'notes',
         'school_id',
         'created_by',
-        'idempotency_key'
+        'idempotency_key',
     ];
 
     protected $casts = [
@@ -35,9 +38,10 @@ class Invoice extends Model
         'paid_amount' => 'decimal:2',
         'issue_date' => 'date',
         'due_date' => 'date',
+        'consecutive_number' => 'integer',
     ];
 
-    protected $appends = ['url_print', /*'url_destroy'*/];
+    protected $appends = ['url_print'/* 'url_destroy' */];
 
     public function getUrlDestroyAttribute(): string
     {
@@ -67,6 +71,11 @@ class Invoice extends Model
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
+    }
+
+    public function numberRange(): BelongsTo
+    {
+        return $this->belongsTo(InvoiceNumberRange::class, 'invoice_number_range_id');
     }
 
     /**
@@ -99,7 +108,7 @@ class Invoice extends Model
             ->where('year', $this->year)
             ->first();
 
-        if (!$payment) {
+        if (! $payment) {
             return collect();
         }
 
@@ -116,7 +125,7 @@ class Invoice extends Model
             'september' => 'Septiembre',
             'october' => 'Octubre',
             'november' => 'Noviembre',
-            'december' => 'Diciembre'
+            'december' => 'Diciembre',
         ];
 
         $pending = [];
@@ -125,8 +134,8 @@ class Invoice extends Model
                 $pending[] = [
                     'month' => $key,
                     'name' => $name,
-                    'amount' => $payment->{$key . '_amount'},
-                    'payment_id' => $payment->id
+                    'amount' => $payment->{$key.'_amount'},
+                    'payment_id' => $payment->id,
                 ];
             }
         }
@@ -147,8 +156,13 @@ class Invoice extends Model
 
     private function calculateStatus($total, $paid)
     {
-        if ($paid >= $total) return 'paid';
-        if ($paid > 0) return 'partial';
+        if ($paid >= $total) {
+            return 'paid';
+        }
+        if ($paid > 0) {
+            return 'partial';
+        }
+
         return 'pending';
     }
 
@@ -196,7 +210,7 @@ class Invoice extends Model
             ->where('year', $this->year)
             ->first();
 
-        if (!$payment) {
+        if (! $payment) {
             return;
         }
 

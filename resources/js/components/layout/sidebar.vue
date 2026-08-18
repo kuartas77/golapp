@@ -134,6 +134,11 @@
                         <li v-if="canContracts">
                             <router-link :to="{ name: 'contracts' }" @click="toggleMobileMenu">Contratos</router-link>
                         </li>
+                        <li v-if="canInvoiceNumbering">
+                            <router-link :to="{ name: 'invoices.numbering' }" @click="toggleMobileMenu">
+                                Numeración
+                            </router-link>
+                        </li>
                         <li v-if="canClubDocuments">
                             <router-link :to="{ name: 'club-documents.index' }" @click="toggleMobileMenu">
                                 Documentos del club
@@ -539,6 +544,7 @@ const canMatches = access.matches
 const canPayments = access.payments
 const canReports = access.reports
 const canBilling = access.billing
+const canInvoiceNumbering = access.invoiceNumbering
 const canInventory = access.inventory
 const canSchoolOutings = access.schoolOutings
 const canPlayerCredits = access.playerCredits
@@ -563,6 +569,7 @@ const showSuperAdminMenu = computed(() => canEvaluationTemplates.value)
 const showConfigurationMenu = computed(() => (
     canSchoolProfile.value
     || canContracts.value
+    || canInvoiceNumbering.value
     || canUserManagement.value
     || canTrainingGroups.value
     || canCompetitionGroups.value

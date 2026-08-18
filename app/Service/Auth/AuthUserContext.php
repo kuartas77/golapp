@@ -66,6 +66,7 @@ final class AuthUserContext
             'school_name' => $school->name,
             'school_slug' => $school->slug,
             'school_logo' => $school->logo_file,
+            'electronic_invoicing_enabled' => (bool) $school->electronic_invoicing_enabled,
             'roles' => $user->getRoleNames()->values()->all(),
             'permissions' => $permissions,
             'school_permissions' => $schoolPermissions,

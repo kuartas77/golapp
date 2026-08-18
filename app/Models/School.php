@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Cache;
@@ -36,7 +37,7 @@ class School extends Model
 
     public const CACHE_PREFIX_SCHOOL = 'school.';
 
-    protected $table = "schools";
+    protected $table = 'schools';
 
     protected $fillable = [
         'name',
@@ -57,6 +58,7 @@ class School extends Model
         'short_name',
         'email_info',
         'auto_invoice',
+        'electronic_invoicing_enabled',
         'deletion_status',
         'deletion_error',
         'deletion_requested_at',
@@ -72,12 +74,13 @@ class School extends Model
         'inscriptions_enabled' => 'bool',
         'school_permissions' => 'array',
         'auto_invoice' => 'bool',
+        'electronic_invoicing_enabled' => 'bool',
         'deletion_requested_at' => 'datetime',
     ];
 
     protected $appends = [
         'logo_file',
-        'settings'
+        'settings',
     ];
 
     protected $with = ['settingsValues'];
@@ -110,7 +113,7 @@ class School extends Model
         $defaults = self::defaultSchoolPermissions();
 
         foreach ($defaults as $key => $default) {
-            if (!array_key_exists($key, $permissions)) {
+            if (! array_key_exists($key, $permissions)) {
                 continue;
             }
 
@@ -124,10 +127,10 @@ class School extends Model
     public static function cacheKeyFor(string $prefixKey, int $schoolId): string
     {
         if ($prefixKey === '') {
-            return self::KEY_SCHOOL_CACHE . $schoolId;
+            return self::KEY_SCHOOL_CACHE.$schoolId;
         }
 
-        return self::KEY_SCHOOL_CACHE . sprintf('_%s_%s', $prefixKey, $schoolId);
+        return self::KEY_SCHOOL_CACHE.sprintf('_%s_%s', $prefixKey, $schoolId);
     }
 
     public static function cacheKeysFor(int $schoolId): array
@@ -153,8 +156,8 @@ class School extends Model
 
     public function setLogoAttribute($value): void
     {
-        if (!empty($value)) {
-            if (!empty($this->attributes['logo'])) {
+        if (! empty($value)) {
+            if (! empty($this->attributes['logo'])) {
                 Storage::disk('public')->delete($this->attributes['logo']);
             }
 
@@ -164,7 +167,7 @@ class School extends Model
 
     public function getLogoFileAttribute(): string
     {
-        if (!empty($this->attributes['logo']) && Storage::disk('public')->exists($this->attributes['logo'])) {
+        if (! empty($this->attributes['logo']) && Storage::disk('public')->exists($this->attributes['logo'])) {
             return route('images', $this->attributes['logo']);
         }
 
@@ -183,7 +186,7 @@ class School extends Model
 
     public function getUrlShowAttribute(): string
     {
-        return ""; //route('public.school.show', [$this->attributes['slug']]);
+        return ''; // route('public.school.show', [$this->attributes['slug']]);
     }
 
     public function getUrlDestroyAttribute(): string
@@ -213,6 +216,21 @@ class School extends Model
     public function players(): HasMany
     {
         return $this->hasMany(Player::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function invoiceNumberRanges(): HasMany
+    {
+        return $this->hasMany(InvoiceNumberRange::class);
+    }
+
+    public function invoiceSequence(): HasOne
+    {
+        return $this->hasOne(SchoolInvoiceSequence::class);
     }
 
     public function inscriptions(): HasMany
@@ -274,23 +292,23 @@ class School extends Model
     {
         $schedules = [
             ['schedule' => '07:00AM - 08:00AM'],
-            ['schedule' => "08:00AM - 09:00AM"],
-            ['schedule' => "09:00AM - 10:00AM"],
-            ['schedule' => "10:00AM - 11:00AM"],
-            ['schedule' => "11:00AM - 12:00M"],
-            ['schedule' => "12:00M  - 01:00PM"],
-            ['schedule' => "01:00PM - 02:00PM"],
-            ['schedule' => "02:00PM - 03:00PM"],
-            ['schedule' => "03:00PM - 04:00PM"],
-            ['schedule' => "04:00PM - 05:00PM"],
-            ['schedule' => "05:00PM - 06:00PM"],
-            ['schedule' => "06:00PM - 07:00PM"],
-            ['schedule' => "07:00PM - 08:00PM"],
-            ['schedule' => "08:00PM - 09:00PM"],
-            ['schedule' => "09:00PM - 10:00PM"],
+            ['schedule' => '08:00AM - 09:00AM'],
+            ['schedule' => '09:00AM - 10:00AM'],
+            ['schedule' => '10:00AM - 11:00AM'],
+            ['schedule' => '11:00AM - 12:00M'],
+            ['schedule' => '12:00M  - 01:00PM'],
+            ['schedule' => '01:00PM - 02:00PM'],
+            ['schedule' => '02:00PM - 03:00PM'],
+            ['schedule' => '03:00PM - 04:00PM'],
+            ['schedule' => '04:00PM - 05:00PM'],
+            ['schedule' => '05:00PM - 06:00PM'],
+            ['schedule' => '06:00PM - 07:00PM'],
+            ['schedule' => '07:00PM - 08:00PM'],
+            ['schedule' => '08:00PM - 09:00PM'],
+            ['schedule' => '09:00PM - 10:00PM'],
         ];
 
-        if (!$this->schedules()->exists()) {
+        if (! $this->schedules()->exists()) {
             $this->schedules()->createMany($schedules);
         }
 
@@ -361,5 +379,4 @@ class School extends Model
 
         return array_key_exists($key, $permissions) && (bool) $permissions[$key];
     }
-
 }

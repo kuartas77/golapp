@@ -4,6 +4,7 @@ use App\Http\Controllers\API\Admin\ContractController as AdminContractController
 use App\Http\Controllers\API\Admin\GroupAssignmentController;
 use App\Http\Controllers\API\Admin\InscriptionCustomChargeController;
 use App\Http\Controllers\API\Admin\InvoiceCustomItemController as AdminInvoiceCustomItemController;
+use App\Http\Controllers\API\Admin\InvoiceNumberRangeController;
 use App\Http\Controllers\API\Admin\ScheduleController as AdminScheduleController;
 use App\Http\Controllers\API\Admin\SchoolController;
 use App\Http\Controllers\API\Admin\SchoolDataExportController;
@@ -27,6 +28,13 @@ Route::prefix('admin')->middleware(['role:super-admin|school'])->group(function 
     });
 
     Route::middleware('school.permission:school.module.billing')->group(function () {
+        Route::get('invoice-number-ranges', [InvoiceNumberRangeController::class, 'index']);
+        Route::post('invoice-number-ranges', [InvoiceNumberRangeController::class, 'store']);
+        Route::put('invoice-number-ranges/{range}', [InvoiceNumberRangeController::class, 'update']);
+        Route::delete('invoice-number-ranges/{range}', [InvoiceNumberRangeController::class, 'destroy']);
+        Route::patch('invoice-number-ranges/{range}/activate', [InvoiceNumberRangeController::class, 'activate']);
+        Route::patch('invoice-number-ranges/{range}/deactivate', [InvoiceNumberRangeController::class, 'deactivate']);
+        Route::patch('invoice-numbering/electronic-mode', [InvoiceNumberRangeController::class, 'updateElectronicMode']);
         Route::apiResource('invoice-items-custom', AdminInvoiceCustomItemController::class)
             ->names('billing.invoice-items-custom');
         Route::get('inscription-custom-charges', [InscriptionCustomChargeController::class, 'index']);

@@ -168,6 +168,15 @@ const routes = [
                         meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.contracts] }
                     },
                     {
+                        path: 'numeracion-facturacion',
+                        name: 'invoices.numbering',
+                        component: () => import('@/pages/invoices/InvoiceNumbering.vue'),
+                        meta: {
+                            requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.billing],
+                            requiresElectronicInvoicing: true,
+                        }
+                    },
+                    {
                         path: 'documentos-club',
                         name: 'club-documents.index',
                         component: () => import('@/pages/documents/Index.vue'),

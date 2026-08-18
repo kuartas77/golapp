@@ -72,6 +72,7 @@ export const useAuthUser = defineStore('auth-user', {
                     school_name: data.data.school_name,
                     school_slug: data.data.school_slug,
                     school_logo: data.data.school_logo,
+                    electronic_invoicing_enabled: Boolean(data.data.electronic_invoicing_enabled),
                     system_notify: data.data.system_notify,
                 };
                 this.roles = data.data.roles

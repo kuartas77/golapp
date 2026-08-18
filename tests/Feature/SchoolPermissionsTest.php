@@ -110,6 +110,7 @@ final class SchoolPermissionsTest extends TestCase
         $payload = $context->get($user);
 
         $this->assertSame($user->name, $payload['name']);
+        $this->assertFalse($payload['electronic_invoicing_enabled']);
         $this->assertTrue(Cache::has(sprintf(
             'auth-user-context:%d:%d:u1:s1',
             $user->id,

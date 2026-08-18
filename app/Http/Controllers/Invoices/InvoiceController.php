@@ -95,6 +95,7 @@ class InvoiceController extends Controller
             'inscription.player',
             'trainingGroup',
             'creator',
+            'numberRange',
             'paymentRequests' => fn ($query) => $query->latest(),
         ])
             ->schoolId()
@@ -146,7 +147,7 @@ class InvoiceController extends Controller
 
     public function print($id)
     {
-        $invoice = Invoice::with(['school', 'items', 'payments.creator', 'inscription.player.people', 'trainingGroup', 'creator'])
+        $invoice = Invoice::with(['school', 'items', 'payments.creator', 'inscription.player.people', 'trainingGroup', 'creator', 'numberRange'])
             ->schoolId()
             ->firstWhere('invoice_number', $id);
 

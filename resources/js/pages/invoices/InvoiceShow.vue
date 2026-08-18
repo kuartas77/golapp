@@ -47,6 +47,19 @@
                             </div>
                         </div>
 
+                        <div v-if="invoice.numbering_type === 'electronic' && invoice.number_range" class="alert alert-info">
+                            <div class="fw-semibold mb-1">Numeración electrónica autorizada</div>
+                            <div>Resolución {{ invoice.number_range.resolution_number }} del {{ invoice.number_range.resolution_date }}</div>
+                            <div>
+                                Rango {{ invoice.number_range.prefix || '' }}{{ invoice.number_range.range_start }}
+                                a {{ invoice.number_range.prefix || '' }}{{ invoice.number_range.range_end }} ·
+                                Vigencia {{ invoice.number_range.valid_from }} a {{ invoice.number_range.valid_until }}
+                            </div>
+                        </div>
+                        <div v-else-if="invoice.numbering_type === 'internal'" class="alert alert-secondary py-2">
+                            Esta factura utiliza numeración interna de la escuela.
+                        </div>
+
                         <!-- Ítems de la factura -->
                         <div class="table-responsive">
                             <table class="table table-bordered table-sm">
@@ -285,8 +298,9 @@
                                                 class="form-control form-control-sm flatpickr"
                                                 id="invoiceIssueDate"
                                                 v-model="payment.issue_date"
+                                                :disabled="invoice.numbering_type === 'electronic'"
                                                 required
-                                                v-tooltip.top="'Puedes cambiar la fecha de emisión de la factura'"
+                                                v-tooltip.top="invoice.numbering_type === 'electronic' ? 'La fecha de una factura electrónica es inmutable' : 'Puedes cambiar la fecha de emisión de la factura'"
                                             />
                                         </div>
                                     </div>

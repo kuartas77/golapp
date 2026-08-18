@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest'
 
 import { canAccessRoute } from '@/utils/routeAccess'
 
-function makeAuth({ roles = [], schoolPermissions = {} } = {}) {
+function makeAuth({ roles = [], schoolPermissions = {}, electronicInvoicingEnabled = false } = {}) {
     return {
         roles,
+        user: {
+            electronic_invoicing_enabled: electronicInvoicingEnabled,
+        },
         hasSchoolPermission(permission) {
             return Boolean(schoolPermissions[permission])
         },
@@ -124,5 +127,32 @@ describe('canAccessRoute', () => {
         })
 
         expect(canAccessRoute(route, auth)).toBe(true)
+    })
+
+    it('protects invoice numbering by the school electronic invoicing mode', () => {
+        const route = {
+            matched: [{
+                meta: {
+                    requiresRole: ['super-admin', 'school'],
+                    requiresSchoolPermission: ['school.module.billing'],
+                    requiresElectronicInvoicing: true,
+                },
+            }],
+        }
+        const permission = { 'school.module.billing': true }
+
+        expect(canAccessRoute(route, makeAuth({
+            roles: ['school'],
+            schoolPermissions: permission,
+            electronicInvoicingEnabled: true,
+        }))).toBe(true)
+        expect(canAccessRoute(route, makeAuth({
+            roles: ['school'],
+            schoolPermissions: permission,
+        }))).toBe(false)
+        expect(canAccessRoute(route, makeAuth({
+            roles: ['super-admin'],
+            schoolPermissions: permission,
+        }))).toBe(true)
     })
 })

@@ -56,6 +56,12 @@ export const backofficeAccessRequirements = {
         anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.billing],
     },
+    invoiceNumbering: {
+        roles: ['super-admin', 'school'],
+        anyRole: true,
+        schoolPermissions: [SCHOOL_PERMISSION_KEYS.billing],
+        requiresElectronicInvoicing: true,
+    },
     inventory: {
         roles: ['super-admin', 'school'],
         anyRole: true,
@@ -142,7 +148,11 @@ export function hasBackofficeAccess(auth, requirements = {}) {
             ? schoolPermissions.some((permission) => auth.hasSchoolPermission(permission))
             : schoolPermissions.every((permission) => auth.hasSchoolPermission(permission))
 
-    return hasRoles && hasSchoolPermissions
+    const hasElectronicInvoicing = !requirements.requiresElectronicInvoicing
+        || auth.hasRole('super-admin')
+        || Boolean(auth.user?.electronic_invoicing_enabled)
+
+    return hasRoles && hasSchoolPermissions && hasElectronicInvoicing
 }
 
 export function useBackofficeAccess() {

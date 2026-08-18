@@ -13,17 +13,21 @@ use App\Models\PaymentRequest;
 use App\Models\Player;
 use App\Models\School;
 use App\Models\UniformRequest;
+use App\Service\Invoice\InvoiceNumberAllocator;
 use App\Traits\PDFTrait;
 use App\Traits\UploadFile;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class InvoiceRepository
 {
     use PDFTrait;
     use UploadFile;
+
+    public function __construct(private InvoiceNumberAllocator $invoiceNumberAllocator) {}
 
     public function invoicesPlayer()
     {
@@ -173,20 +177,17 @@ class InvoiceRepository
                     }
                 }
 
-                $invoiceNumber = 'FAC-'.strtoupper(Str::random(6)).'-'.date('Ymd');
-
-                while (Invoice::where('invoice_number', $invoiceNumber)->exists()) {
-                    $invoiceNumber = 'FAC-'.strtoupper(Str::random(6)).'-'.date('Ymd');
-                }
+                $issueDate = now();
+                $numbering = $this->invoiceNumberAllocator->allocate((int) $validated['school_id'], $issueDate);
 
                 $invoice = Invoice::create([
-                    'invoice_number' => $invoiceNumber,
+                    ...$numbering,
                     'idempotency_key' => $idempotencyKey,
                     'inscription_id' => $validated['inscription_id'],
                     'training_group_id' => $validated['training_group_id'],
                     'year' => $validated['year'],
                     'student_name' => $validated['student_name'],
-                    'issue_date' => now()->toDateString(),
+                    'issue_date' => $issueDate->toDateString(),
                     'due_date' => $validated['due_date'],
                     'status' => 'pending',
                     'school_id' => $validated['school_id'],
@@ -247,6 +248,8 @@ class InvoiceRepository
                     'created' => true,
                 ];
             });
+        } catch (ValidationException $exception) {
+            throw $exception;
         } catch (\Throwable $th) {
             report($th);
 
@@ -304,7 +307,16 @@ class InvoiceRepository
                 'El monto del pago no coincide con el total de los conceptos seleccionados.'
             );
 
-            $invoice->issue_date = $request->validated('issue_date');
+            if ($invoice->numbering_type === 'electronic'
+                && $invoice->issue_date->toDateString() !== $request->validated('issue_date')) {
+                throw ValidationException::withMessages([
+                    'issue_date' => ['La fecha de emisión de una factura electrónica no se puede modificar.'],
+                ]);
+            }
+
+            if ($invoice->numbering_type !== 'electronic') {
+                $invoice->issue_date = $request->validated('issue_date');
+            }
 
             $paymentReceived = PaymentReceived::query()->create([
                 'invoice_id' => $invoice->id,

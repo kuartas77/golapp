@@ -176,4 +176,27 @@ describe('InvoiceShow financial recovery', () => {
         }))
         expect(axiosMock.delete).not.toHaveBeenCalled()
     })
+
+    it('shows the authorized range and locks the issue date for an electronic invoice', async () => {
+        const wrapper = await mountPage({
+            configureGet: get => get.mockResolvedValue({
+                data: {
+                    ...invoicePayload,
+                    numbering_type: 'electronic',
+                    number_range: {
+                        resolution_number: '18764012345678',
+                        resolution_date: '2026-01-01',
+                        prefix: 'FE',
+                        range_start: 1,
+                        range_end: 500,
+                        valid_from: '2026-01-01',
+                        valid_until: '2026-12-31',
+                    },
+                },
+            }),
+        })
+
+        expect(wrapper.text()).toContain('Resolución 18764012345678')
+        expect(wrapper.get('#invoiceIssueDate').attributes('disabled')).toBeDefined()
+    })
 })

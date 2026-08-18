@@ -34,6 +34,14 @@ export function canAccessRoute(route, auth) {
                 return false
             }
         }
+
+        if (
+            routeRecord.meta?.requiresElectronicInvoicing
+            && !userRoles.includes('super-admin')
+            && !auth.user?.electronic_invoicing_enabled
+        ) {
+            return false
+        }
     }
 
     return true
