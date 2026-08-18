@@ -156,7 +156,7 @@
                             @action="createMissingAttendances"
                         />
                         <div v-else class="row" data-tour="attendance-table">
-                            <DataTable :options="options" :data="filteredAttendancesGroup" class="table table-bordered table-sm"
+                            <DataTable :key="attendanceTableKey" :options="options" :data="filteredAttendancesGroup" class="table table-bordered table-sm"
                                 id="attendance_table" ref="attendance_table">
 
                                 <template #player-photo="props">
@@ -323,6 +323,7 @@ const {
     export_excel,
     classDays,
     classDaySelected,
+    attendanceTableKey,
     attendancesGroup,
     globalError,
     hasSearched,

@@ -237,6 +237,50 @@ describe('attendance-list composable', () => {
         expect(wrapper.vm.attendancesGroup).toHaveLength(1)
     })
 
+    it('changes the DataTable instance key when selecting another training day', async () => {
+        const wrapper = mountComposable()
+        await flushPromises()
+
+        const firstClassDay = {
+            id: '101',
+            group_id: 10,
+            month: 1,
+            year: 2026,
+            column: 'assistance_one',
+        }
+        const secondClassDay = {
+            id: '103',
+            group_id: 10,
+            month: 1,
+            year: 2026,
+            column: 'assistance_two',
+        }
+
+        apiMock.get
+            .mockResolvedValueOnce({
+                data: {
+                    rows: [activeRow({ assistance_one: 2, assistance_two: null })],
+                    url_print: '/pdf',
+                    url_print_excel: '/excel',
+                },
+            })
+            .mockResolvedValueOnce({
+                data: {
+                    rows: [activeRow({ assistance_one: 2, assistance_two: null })],
+                    url_print: '/pdf',
+                    url_print_excel: '/excel',
+                },
+            })
+
+        await wrapper.vm.clickClassDay(firstClassDay)
+        expect(wrapper.vm.attendanceTableKey).toBe('10-2026-1-assistance_one')
+
+        await wrapper.vm.clickClassDay(secondClassDay)
+        expect(wrapper.vm.attendanceTableKey).toBe('10-2026-1-assistance_two')
+        expect(wrapper.vm.classDaySelected.column).toBe('assistance_two')
+        expect(wrapper.vm.attendancesGroup[0].assistance_two).toBeNull()
+    })
+
     it('indexes player name, code and category for local DataTable search', async () => {
         const wrapper = mountComposable()
         await flushPromises()
@@ -260,6 +304,14 @@ describe('attendance-list composable', () => {
 
         expect(wrapper.vm.options.columns[0].title).toContain('data-attendance-player-search="true"')
         expect(wrapper.vm.options.columns[0].title).toContain('Buscar deportista')
+    })
+
+    it('shows every loaded player without paginating the attendance table', async () => {
+        const wrapper = mountComposable()
+        await flushPromises()
+
+        expect(wrapper.vm.options.paging).toBe(false)
+        expect(wrapper.vm.options.layout.bottomEnd).toBeNull()
     })
 
     it('treats string zero retired flags as editable active rows', async () => {

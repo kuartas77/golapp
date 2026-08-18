@@ -43,6 +43,15 @@ export default function useAttendances() {
     const export_excel = ref(null)
     const classDays = ref([])
     const classDaySelected = ref(null)
+    const attendanceTableKey = computed(() => {
+        const classDay = classDaySelected.value
+
+        if (! classDay) {
+            return 'attendance-table-empty'
+        }
+
+        return [classDay.group_id, classDay.year, classDay.month, classDay.column].join('-')
+    })
     const attendancesGroup = ref([])
     const lastSearchValues = ref(null)
     const hasSearched = computed(() => Boolean(lastSearchValues.value))
@@ -102,7 +111,6 @@ export default function useAttendances() {
 
     const options = {
         ...configLanguaje,
-        lengthMenu: [[8, 20, 30, 50], [8, 20, 30, 50]],
         columnDefs: [
             { responsivePriority: 1, targets: 1 },
             {
@@ -118,9 +126,9 @@ export default function useAttendances() {
             topStart: null,
             topEnd: null,
             bottomStart: 'info',
-            bottomEnd: 'paging'
+            bottomEnd: null
         },
-        paging: true,
+        paging: false,
         ordering: false,
         serverSide: false,
         processing: true,
@@ -527,6 +535,7 @@ export default function useAttendances() {
         export_excel,
         classDays,
         classDaySelected,
+        attendanceTableKey,
         attendancesGroup,
         globalError,
         hasSearched,
