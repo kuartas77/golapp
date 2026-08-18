@@ -21,6 +21,7 @@ const defaultValues = () => ({
     send_documents: false,
     send_monthly_payment_receipts: false,
     instructor_monthly_edit_lock_enabled: false,
+    category_format: 'sub_age',
 })
 
 export default function useSuperAdminSchoolForm(mode = 'create') {
@@ -65,6 +66,7 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
         send_documents: yup.boolean().default(false),
         send_monthly_payment_receipts: yup.boolean().default(false),
         instructor_monthly_edit_lock_enabled: yup.boolean().default(false),
+        category_format: yup.string().oneOf(['sub_age', 'birth_year']).required(),
         multiple_schools: yup.array()
             .of(yup.number().integer())
             .when('is_campus', {
@@ -100,6 +102,7 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
         send_documents: Boolean(payload.send_documents),
         send_monthly_payment_receipts: Boolean(payload.send_monthly_payment_receipts),
         instructor_monthly_edit_lock_enabled: Boolean(payload.instructor_monthly_edit_lock_enabled),
+        category_format: payload.category_format ?? 'sub_age',
     })
 
     const loadCreateOptions = async () => {
@@ -155,6 +158,25 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
 
     const submit = async (values, actions) => {
         globalError.value = ''
+
+        const categoryFormatChanged = isEditMode.value
+            && values.category_format !== initialValues.value.category_format
+
+        if (categoryFormatChanged) {
+            const result = await Swal.fire({
+                title: '¿Cambiar el formato de categorías?',
+                text: 'Se convertirán las categorías existentes de deportistas, inscripciones y grupos de esta escuela.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, convertir',
+                cancelButtonText: 'Cancelar',
+            })
+
+            if (!result.isConfirmed) {
+                return
+            }
+        }
+
         isSaving.value = true
 
         try {

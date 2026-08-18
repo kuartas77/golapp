@@ -198,6 +198,25 @@
                     </div>
                 </div>
 
+                <div class="border rounded-3 p-3 p-lg-4 mt-4">
+                    <div class="row align-items-start g-3">
+                        <div class="col-md-5">
+                            <h5 class="mb-2">Formato de categorías deportivas</h5>
+                            <label for="category_format" class="form-label">Formato</label>
+                            <Field id="category_format" name="category_format" as="select" class="form-select">
+                                <option value="sub_age">SUB-11</option>
+                                <option value="birth_year">CAT-2017</option>
+                            </Field>
+                            <ErrorMessage name="category_format" class="custom-error" as="div" />
+                        </div>
+                        <div class="col-md-7">
+                            <div class="alert alert-warning mb-0" role="alert">
+                                Al cambiar el formato se convertirán las categorías existentes de deportistas, inscripciones y grupos de esta escuela.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="d-flex flex-column flex-md-row justify-content-end gap-2 mt-4">
                     <button type="button" class="btn btn-outline-secondary" :disabled="isSaving" @click="onCancel">
                         Cancelar

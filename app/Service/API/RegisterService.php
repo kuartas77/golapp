@@ -5,16 +5,12 @@ namespace App\Service\API;
 use App\Models\School;
 use App\Models\SchoolUser;
 use App\Models\Setting;
-use App\Models\SettingValue;
 use App\Models\User;
 use App\Notifications\RegisterNotification;
 use App\Service\Auth\AuthUserContext;
-use App\Service\Category\CategoryConversionService;
-use App\Service\Category\CategoryFormatService;
 use App\Traits\UploadFile;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -25,11 +21,6 @@ use Throwable;
 class RegisterService
 {
     use UploadFile;
-
-    public function __construct(
-        private readonly CategoryFormatService $categoryFormatter,
-        private readonly CategoryConversionService $categoryConversion,
-    ) {}
 
     /**
      * @throws ValidationException
@@ -96,21 +87,7 @@ class RegisterService
         $success = true;
 
         try {
-            $currentCategoryFormat = $this->categoryFormatter->modeForSchool($school);
-
             $validated = $request->only(['name', 'email', 'agent', 'address', 'phone']);
-            foreach ([
-                'create_contract',
-                'send_documents',
-                'send_monthly_payment_receipts',
-                'tutor_platform',
-                'sign_player',
-                'inscriptions_enabled',
-            ] as $field) {
-                if ($request->has($field)) {
-                    $validated[$field] = $request->boolean($field);
-                }
-            }
 
             if ($request->hasFile('logo')) {
                 $request->merge(['school_id' => $school->id]);
@@ -145,35 +122,10 @@ class RegisterService
             if ($annuity && $request->has('ANNUITY')) {
                 $annuity->update(['value' => $request->ANNUITY]);
             }
-            if ($request->has(Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED)) {
-                $this->updateLoadedSetting(
-                    $settings,
-                    (int) $school->id,
-                    Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED,
-                    $request->boolean(Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED) ? '1' : '0'
-                );
-            }
-            if ($request->has(Setting::CATEGORY_FORMAT)) {
-                $newCategoryFormat = (string) $request->input(Setting::CATEGORY_FORMAT);
-
-                $this->updateLoadedSetting(
-                    $settings,
-                    (int) $school->id,
-                    Setting::CATEGORY_FORMAT,
-                    $newCategoryFormat
-                );
-
-                if ($currentCategoryFormat !== $newCategoryFormat) {
-                    $this->categoryConversion->convertSchool($school, $newCategoryFormat);
-                }
-            }
-
             DB::commit();
 
             School::forgetCachedSchool($school->id);
             Cache::forget('admin.schools');
-            $this->categoryFormatter->forgetSchool((int) $school->id);
-            $this->categoryConversion->clearSchoolCaches((int) $school->id);
 
         } catch (Throwable $th) {
             DB::rollBack();
@@ -182,23 +134,5 @@ class RegisterService
         }
 
         return $success;
-    }
-
-    /** @param Collection<int, SettingValue> $settings */
-    private function updateLoadedSetting(Collection $settings, int $schoolId, string $key, string $value): void
-    {
-        $setting = $settings->firstWhere('setting_key', $key);
-
-        if ($setting instanceof SettingValue) {
-            $setting->update(['value' => $value]);
-
-            return;
-        }
-
-        $settings->push(SettingValue::query()->create([
-            'school_id' => $schoolId,
-            'setting_key' => $key,
-            'value' => $value,
-        ]));
     }
 }

@@ -11,6 +11,8 @@ use App\Models\SettingValue;
 use App\Models\User;
 use App\Notifications\RegisterNotification;
 use App\Service\Auth\AuthUserContext;
+use App\Service\Category\CategoryConversionService;
+use App\Service\Category\CategoryFormatService;
 use App\Service\InscriptionLimitService;
 use App\Traits\UploadFile;
 use Illuminate\Foundation\Http\FormRequest;
@@ -21,6 +23,11 @@ use Illuminate\Support\Facades\DB;
 class SuperAdminSchoolService
 {
     use UploadFile;
+
+    public function __construct(
+        private readonly CategoryFormatService $categoryFormatter,
+        private readonly CategoryConversionService $categoryConversion,
+    ) {}
 
     public function options(?School $exclude = null): array
     {
@@ -58,16 +65,17 @@ class SuperAdminSchoolService
                 'tutor_platform' => $school->tutor_platform,
                 'sign_player' => $school->sign_player,
                 'inscriptions_enabled' => $school->inscriptions_enabled,
-                'is_campus' => !empty($this->campusIdsForForm($school)),
+                'is_campus' => ! empty($this->campusIdsForForm($school)),
                 'max_inscriptions' => (int) data_get(
                     $school,
-                    'settings.' . Setting::MAX_INSCRIPTIONS,
+                    'settings.'.Setting::MAX_INSCRIPTIONS,
                     InscriptionLimitService::DEFAULT_LIMIT
                 ),
                 'instructor_monthly_edit_lock_enabled' => filter_var(
-                    data_get($school, 'settings.' . Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED, false),
+                    data_get($school, 'settings.'.Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED, false),
                     FILTER_VALIDATE_BOOLEAN
                 ),
+                'category_format' => $this->categoryFormatter->modeForSchool($school),
             ],
             'multiple_schools' => $this->campusIdsForForm($school),
             ...$this->options($school),
@@ -104,6 +112,11 @@ class SuperAdminSchoolService
                 $school,
                 $request->boolean('instructor_monthly_edit_lock_enabled')
             );
+            $this->syncCategoryFormat(
+                $school,
+                (string) $request->input('category_format', CategoryFormatService::SUB_AGE),
+                false
+            );
 
             if ($shouldNotify && $password !== null) {
                 $user->notify(new RegisterNotification($user, $password));
@@ -137,6 +150,9 @@ class SuperAdminSchoolService
                     $school,
                     $request->boolean('instructor_monthly_edit_lock_enabled')
                 );
+            }
+            if ($request->has('category_format')) {
+                $this->syncCategoryFormat($school, (string) $request->input('category_format'), true);
             }
 
             $this->flushCaches([$school->id]);
@@ -176,7 +192,7 @@ class SuperAdminSchoolService
 
     private function resolveAdminUser(FormRequest $request): array
     {
-        if (!$request->boolean('is_campus')) {
+        if (! $request->boolean('is_campus')) {
             $password = randomPassword();
             $user = User::query()->create([
                 'name' => $request->string('agent')->toString(),
@@ -249,15 +265,15 @@ class SuperAdminSchoolService
     {
         $school->loadMissing('settingsValues');
 
-        $multipleSchools = data_get($school, 'settings.' . Setting::MULTIPLE_SCHOOLS);
+        $multipleSchools = data_get($school, 'settings.'.Setting::MULTIPLE_SCHOOLS);
 
-        if (!is_string($multipleSchools) || $multipleSchools === '') {
+        if (! is_string($multipleSchools) || $multipleSchools === '') {
             return [];
         }
 
         $decoded = json_decode($multipleSchools, true);
 
-        if (!is_array($decoded)) {
+        if (! is_array($decoded)) {
             return [];
         }
 
@@ -332,6 +348,31 @@ class SuperAdminSchoolService
                 'value' => $enabled ? '1' : '0',
             ]
         );
+    }
+
+    private function syncCategoryFormat(School $school, string $mode, bool $convertExistingData): void
+    {
+        $currentMode = $this->categoryFormatter->modeForSchool($school);
+
+        Setting::query()->firstOrCreate(
+            ['key' => Setting::CATEGORY_FORMAT],
+            ['public' => false]
+        );
+
+        SettingValue::query()->updateOrCreate(
+            [
+                'school_id' => $school->id,
+                'setting_key' => Setting::CATEGORY_FORMAT,
+            ],
+            ['value' => $mode]
+        );
+
+        if ($convertExistingData && $currentMode !== $mode) {
+            $this->categoryConversion->convertSchool($school, $mode);
+        }
+
+        $this->categoryFormatter->forgetSchool((int) $school->id);
+        $this->categoryConversion->clearSchoolCaches((int) $school->id);
     }
 
     private function flushCaches(array $schoolIds): void

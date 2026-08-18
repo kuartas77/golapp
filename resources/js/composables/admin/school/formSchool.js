@@ -2,6 +2,24 @@ import { getCurrentInstance, ref, onMounted } from 'vue'
 import * as yup from 'yup'
 import api from "@/utils/axios";
 
+const editableFields = [
+    'slug',
+    'name',
+    'email',
+    'agent',
+    'address',
+    'phone',
+    'logo',
+    'NOTIFY_PAYMENT_DAY',
+    'INSCRIPTION_AMOUNT',
+    'MONTHLY_PAYMENT',
+    'BROTHER_MONTHLY_PAYMENT',
+    'MONTHLY_PAYMENT_OPTION_1',
+    'MONTHLY_PAYMENT_OPTION_2',
+    'MONTHLY_PAYMENT_OPTION_3',
+    'ANNUITY',
+]
+
 export default function useFormSchool() {
     const form = ref(null)
     const { proxy } = getCurrentInstance()
@@ -96,14 +114,8 @@ export default function useFormSchool() {
     const submit = async (values, actions) => {
         globalError.value = null
 
-        const categoryFormatChanged = values.CATEGORY_FORMAT !== formData.value.CATEGORY_FORMAT
         const result = await Swal.fire({
-            title: categoryFormatChanged
-                ? "¿Quieres cambiar el formato de categorías?"
-                : "¿Quieres guardar los cambios?",
-            text: categoryFormatChanged
-                ? "Las categorías existentes de esta escuela se convertirán al nuevo formato."
-                : undefined,
+            title: "¿Quieres guardar los cambios?",
             showDenyButton: true,
             showCancelButton: true,
             confirmButtonText: "Sí",
@@ -121,7 +133,7 @@ export default function useFormSchool() {
         try {
             const formData = new FormData();
             formData.append('_method', 'PUT')
-            for (const key in values) {
+            for (const key of editableFields) {
                 if (Object.prototype.hasOwnProperty.call(values, key)) {
                     const value = values[key];
                     // Append files or other data to FormData

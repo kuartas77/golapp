@@ -117,28 +117,31 @@
 
                     <div class="col-12" data-tour="admin-school-flags">
                         <div class="border rounded p-3">
-                            <h6 class="mb-3">Opciones de plataforma</h6>
+                            <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mb-3">
+                                <h6 class="mb-0">Opciones de plataforma</h6>
+                                <span class="badge text-bg-secondary align-self-start">Solo lectura · Solicitar cambios al super-admin</span>
+                            </div>
                             <div class="row">
                                 <div class="col-md-6 col-xl">
-                                    <checkbox label="Inscripciones habilitadas" name="inscriptions_enabled" v-tooltip.top="'Habilita las inscripciones por medio del enlace.'" />
+                                    <checkbox label="Inscripciones habilitadas" name="inscriptions_enabled" disabled />
                                 </div>
                                 <div class="col-md-6 col-xl">
-                                    <checkbox label="Plataforma Tutores?" name="tutor_platform" v-tooltip.top="'Permite el ingreso de los acudientes a la plataforma, sólo podrá ver información del deportista.'" />
+                                    <checkbox label="Plataforma Tutores?" name="tutor_platform" disabled />
                                 </div>
                                 <div class="col-md-6 col-xl">
-                                    <checkbox label="Firma Deportistas?" name="sign_player" v-tooltip.top="'Sí firma el acudiente y el deportista ó sólo el acudiente.'" />
+                                    <checkbox label="Firma Deportistas?" name="sign_player" disabled />
                                 </div>
                                 <div class="col-md-6 col-xl">
-                                    <checkbox label="Creación de contratos?" name="create_contract" v-tooltip.top="'Se requiere el formato del contrato.'" />
+                                    <checkbox label="Creación de contratos?" name="create_contract" disabled />
                                 </div>
                                 <div class="col-md-6 col-xl">
-                                    <checkbox label="Envio documentos?" name="send_documents" v-tooltip.top="'Los documentos que adjuntan en la inscripción serán enviados al correo de la escuela.'" />
+                                    <checkbox label="Envio documentos?" name="send_documents" disabled />
                                 </div>
                                 <div class="col-md-6 col-xl">
-                                    <checkbox label="Enviar recibos de mensualidad?" name="send_monthly_payment_receipts" v-tooltip.top="'Envía al acudiente tutor el recibo PDF cuando una mensualidad cambia a pagada.'" />
+                                    <checkbox label="Enviar recibos de mensualidad?" name="send_monthly_payment_receipts" disabled />
                                 </div>
                                 <div class="col-md-6 col-xl">
-                                    <checkbox label="Limitar edición de instructores al mes actual" name="INSTRUCTOR_MONTH_LOCK_ENABLED" v-tooltip.top="'Cuando está activo, los instructores sólo pueden modificar registros operativos del mes calendario actual.'" />
+                                    <checkbox label="Limitar edición de instructores al mes actual" name="INSTRUCTOR_MONTH_LOCK_ENABLED" disabled />
                                 </div>
                             </div>
                         </div>
@@ -146,18 +149,21 @@
 
                     <div class="col-12">
                         <div class="border rounded p-3">
-                            <h6 class="mb-3">Formato de categorías deportivas</h6>
+                            <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mb-3">
+                                <h6 class="mb-0">Formato de categorías deportivas</h6>
+                                <span class="badge text-bg-secondary align-self-start">Solo lectura · Solicitar cambios al super-admin</span>
+                            </div>
                             <div class="row align-items-start g-3">
                                 <div class="col-md-5">
                                     <label for="CATEGORY_FORMAT" class="form-label">Formato</label>
-                                    <Field id="CATEGORY_FORMAT" name="CATEGORY_FORMAT" as="select" class="form-select">
+                                    <Field id="CATEGORY_FORMAT" name="CATEGORY_FORMAT" as="select" class="form-select" disabled>
                                         <option value="sub_age">SUB-11</option>
                                         <option value="birth_year">CAT-2017</option>
                                     </Field>
                                 </div>
                                 <div class="col-md-7">
-                                    <div class="alert alert-warning mb-0 py-2" role="alert">
-                                        Al cambiar el formato se convertirán las categorías existentes de deportistas, inscripciones y grupos de esta escuela.
+                                    <div class="alert alert-info mb-0 py-2" role="status">
+                                        Este formato solo puede ser modificado por el super-admin, previa solicitud de la escuela.
                                     </div>
                                 </div>
                             </div>

@@ -3,9 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Setting;
-use App\Service\Category\CategoryFormatService;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class SchoolUpdateRequest extends FormRequest
 {
@@ -41,14 +39,14 @@ class SchoolUpdateRequest extends FormRequest
             'MONTHLY_PAYMENT_OPTION_2' => ['required', 'string'],
             'MONTHLY_PAYMENT_OPTION_3' => ['required', 'string'],
             'ANNUITY' => ['required', 'string'],
-            'create_contract' => ['nullable', 'boolean'],
-            'send_documents' => ['nullable', 'boolean'],
-            'send_monthly_payment_receipts' => ['nullable', 'boolean'],
-            'tutor_platform' => ['nullable', 'boolean'],
-            'sign_player' => ['nullable', 'boolean'],
-            'inscriptions_enabled' => ['nullable', 'boolean'],
-            Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED => ['nullable', 'boolean'],
-            Setting::CATEGORY_FORMAT => ['sometimes', Rule::in(CategoryFormatService::FORMATS)],
+            'create_contract' => ['prohibited'],
+            'send_documents' => ['prohibited'],
+            'send_monthly_payment_receipts' => ['prohibited'],
+            'tutor_platform' => ['prohibited'],
+            'sign_player' => ['prohibited'],
+            'inscriptions_enabled' => ['prohibited'],
+            Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED => ['prohibited'],
+            Setting::CATEGORY_FORMAT => ['prohibited'],
         ];
     }
 
@@ -65,20 +63,6 @@ class SchoolUpdateRequest extends FormRequest
             'ANNUITY' => $this->cleanString($this->ANNUITY),
             'logo' => $this->hasFile('logo') ? $this->logo : null,
         ];
-
-        foreach ([
-            'create_contract',
-            'send_documents',
-            'send_monthly_payment_receipts',
-            'tutor_platform',
-            'sign_player',
-            'inscriptions_enabled',
-            Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED,
-        ] as $field) {
-            if ($this->has($field)) {
-                $data[$field] = $this->boolean($field);
-            }
-        }
 
         $this->merge($data);
     }

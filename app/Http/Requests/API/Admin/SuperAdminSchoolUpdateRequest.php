@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\API\Admin;
 
 use App\Models\School;
+use App\Service\Category\CategoryFormatService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
@@ -39,6 +40,7 @@ class SuperAdminSchoolUpdateRequest extends FormRequest
             'sign_player' => ['nullable', 'boolean'],
             'inscriptions_enabled' => ['nullable', 'boolean'],
             'instructor_monthly_edit_lock_enabled' => ['nullable', 'boolean'],
+            'category_format' => ['sometimes', Rule::in(CategoryFormatService::FORMATS)],
             'multiple_schools' => array_values(array_filter([
                 $isCampus ? 'required' : 'nullable',
                 'array',

@@ -4,12 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\CompetitionGroup;
+use App\Models\Inscription;
+use App\Models\Player;
 use App\Models\School;
 use App\Models\SchoolUser;
 use App\Models\Setting;
 use App\Models\SettingValue;
+use App\Models\Tournament;
+use App\Models\TrainingGroup;
 use App\Models\User;
 use App\Notifications\RegisterNotification;
+use App\Service\Category\CategoryConversionService;
+use App\Service\Category\CategoryFormatService;
+use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
@@ -24,7 +32,13 @@ final class SuperAdminSchoolsTest extends TestCase
         $this->withoutVite();
     }
 
-    public function testSuperAdminCanCreateRegularSchool(): void
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
+    }
+
+    public function test_super_admin_can_create_regular_school(): void
     {
         Notification::fake();
         Storage::fake('public');
@@ -87,7 +101,7 @@ final class SuperAdminSchoolsTest extends TestCase
         $response->assertJsonPath('school.slug', $school->slug);
     }
 
-    public function testSuperAdminCanConfigureSchoolMaxInscriptions(): void
+    public function test_super_admin_can_configure_school_max_inscriptions(): void
     {
         Notification::fake();
 
@@ -140,7 +154,7 @@ final class SuperAdminSchoolsTest extends TestCase
         ]);
     }
 
-    public function testSuperAdminCanConfigurePlatformOptions(): void
+    public function test_super_admin_can_configure_platform_options(): void
     {
         Notification::fake();
 
@@ -218,7 +232,101 @@ final class SuperAdminSchoolsTest extends TestCase
         $this->assertFalse($school->send_monthly_payment_receipts);
     }
 
-    public function testSchoolDefaultsAreIdempotentWhenConfigDefaultRunsAgain(): void
+    public function test_super_admin_can_change_category_format_and_convert_existing_data(): void
+    {
+        Carbon::setTestNow(Carbon::create(2026, 8, 12));
+        $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
+        $school = School::query()->findOrFail($this->school['id']);
+        $player = Player::factory()->create([
+            'school_id' => $school->id,
+            'date_birth' => '2017-03-10',
+            'category' => 'SUB-9',
+        ]);
+        $inscription = Inscription::factory()->create([
+            'school_id' => $school->id,
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'training_group_id' => TrainingGroup::query()->where('school_id', $school->id)->value('id'),
+            'competition_group_id' => null,
+            'year' => 2025,
+            'category' => 'SUB-9',
+        ]);
+        $inscription->delete();
+        $trainingGroup = TrainingGroup::query()->create([
+            'name' => 'Formativo super-admin',
+            'school_id' => $school->id,
+            'year_active' => 2026,
+            'category' => ['SUB-9', 'SUB-10'],
+        ]);
+        $tournament = Tournament::query()->create([
+            'name' => 'Copa Formatos Super Admin',
+            'school_id' => $school->id,
+        ]);
+        $competitionGroup = CompetitionGroup::query()->create([
+            'name' => 'Competencia Formatos Super Admin',
+            'year' => 'SUB-9',
+            'category' => 'SUB-9',
+            'categories' => ['SUB-9', 'SUB-10'],
+            'tournament_id' => $tournament->id,
+            'user_id' => $superAdmin->id,
+            'school_id' => $school->id,
+        ]);
+
+        $this->actingAs($superAdmin)
+            ->putJson("/api/v2/admin/schools/{$school->slug}", $this->superAdminSchoolPayload($school, [
+                'category_format' => CategoryFormatService::BIRTH_YEAR,
+            ]))
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertSame('CAT-2017', $player->fresh()->category);
+        $this->assertSame('CAT-2017', Inscription::query()->withTrashed()->findOrFail($inscription->id)->category);
+        $this->assertSame(['CAT-2017', 'CAT-2016'], $trainingGroup->fresh()->category);
+        $this->assertSame(['CAT-2017', 'CAT-2016'], $competitionGroup->fresh()->categories);
+        $this->assertSame('CAT-2017, CAT-2016', $competitionGroup->fresh()->category);
+        $this->assertDatabaseHas('setting_values', [
+            'school_id' => $school->id,
+            'setting_key' => Setting::CATEGORY_FORMAT,
+            'value' => CategoryFormatService::BIRTH_YEAR,
+        ]);
+
+        $this->actingAs($superAdmin)
+            ->getJson("/api/v2/admin/schools/{$school->slug}")
+            ->assertOk()
+            ->assertJsonPath('school.category_format', CategoryFormatService::BIRTH_YEAR);
+    }
+
+    public function test_super_admin_category_format_change_is_validated_and_transactional(): void
+    {
+        $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
+        $school = School::query()->findOrFail($this->school['id']);
+
+        $this->mock(CategoryConversionService::class)
+            ->shouldReceive('convertSchool')
+            ->once()
+            ->andThrow(new \RuntimeException('Conversion failed'));
+
+        $this->actingAs($superAdmin)
+            ->putJson("/api/v2/admin/schools/{$school->slug}", $this->superAdminSchoolPayload($school, [
+                'category_format' => 'custom',
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('category_format');
+
+        $this->actingAs($superAdmin)
+            ->putJson("/api/v2/admin/schools/{$school->slug}", $this->superAdminSchoolPayload($school, [
+                'category_format' => CategoryFormatService::BIRTH_YEAR,
+            ]))
+            ->assertServerError();
+
+        $this->assertDatabaseHas('setting_values', [
+            'school_id' => $school->id,
+            'setting_key' => Setting::CATEGORY_FORMAT,
+            'value' => CategoryFormatService::SUB_AGE,
+        ]);
+    }
+
+    public function test_school_defaults_are_idempotent_when_config_default_runs_again(): void
     {
         $school = School::factory()->create([
             'email' => 'observer-idempotent@example.com',
@@ -246,7 +354,7 @@ final class SuperAdminSchoolsTest extends TestCase
             ->value('value'));
     }
 
-    public function testSuperAdminCanCreateCampusSchoolAndSyncMultipleSchoolsGroup(): void
+    public function test_super_admin_can_create_campus_school_and_sync_multiple_schools_group(): void
     {
         Notification::fake();
 
@@ -289,7 +397,7 @@ final class SuperAdminSchoolsTest extends TestCase
         Notification::assertNothingSent();
     }
 
-    public function testSuperAdminCanFetchSchoolFormData(): void
+    public function test_super_admin_can_fetch_school_form_data(): void
     {
         $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
         $secondarySchool = School::query()->findOrFail($this->createSchool([
@@ -308,7 +416,7 @@ final class SuperAdminSchoolsTest extends TestCase
         $this->assertNotContains($this->school['id'], array_column($response->json('schools'), 'value'));
     }
 
-    public function testSuperAdminCanUpdateSchoolAndResyncCampusGroup(): void
+    public function test_super_admin_can_update_school_and_resync_campus_group(): void
     {
         $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
         $secondarySchool = School::query()->findOrFail($this->createSchool([
@@ -361,7 +469,7 @@ final class SuperAdminSchoolsTest extends TestCase
         ]);
     }
 
-    public function testSuperAdminCanUpdateLegacySlugSchoolAndRemoveCampusGroup(): void
+    public function test_super_admin_can_update_legacy_slug_school_and_remove_campus_group(): void
     {
         $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
         $secondarySchool = School::query()->findOrFail($this->createSchool([
@@ -397,7 +505,7 @@ final class SuperAdminSchoolsTest extends TestCase
         }
     }
 
-    public function testSuperAdminValidatesCampusCreationPayload(): void
+    public function test_super_admin_validates_campus_creation_payload(): void
     {
         $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
 
@@ -417,7 +525,7 @@ final class SuperAdminSchoolsTest extends TestCase
             ->assertJsonValidationErrors(['email', 'multiple_schools']);
     }
 
-    public function testSuperAdminValidatesMultipleSchoolIdsOnUpdate(): void
+    public function test_super_admin_validates_multiple_school_ids_on_update(): void
     {
         $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
 
@@ -451,6 +559,20 @@ final class SuperAdminSchoolsTest extends TestCase
         ]);
 
         return $user;
+    }
+
+    private function superAdminSchoolPayload(School $school, array $overrides = []): array
+    {
+        return array_merge([
+            'name' => $school->name,
+            'agent' => $school->agent,
+            'address' => $school->address,
+            'phone' => $school->phone,
+            'email' => $school->email,
+            'is_enable' => $school->is_enable,
+            'is_campus' => false,
+            'category_format' => CategoryFormatService::SUB_AGE,
+        ], $overrides);
     }
 
     private function multipleSchoolsGroupFor(int $schoolId): array

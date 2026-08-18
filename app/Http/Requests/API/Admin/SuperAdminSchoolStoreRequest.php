@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\API\Admin;
 
+use App\Service\Category\CategoryFormatService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -46,6 +47,7 @@ class SuperAdminSchoolStoreRequest extends FormRequest
             'sign_player' => ['nullable', 'boolean'],
             'inscriptions_enabled' => ['nullable', 'boolean'],
             'instructor_monthly_edit_lock_enabled' => ['nullable', 'boolean'],
+            'category_format' => ['required', Rule::in(CategoryFormatService::FORMATS)],
             'multiple_schools' => array_values(array_filter([
                 $isCampus ? 'required' : 'nullable',
                 'array',
@@ -65,6 +67,7 @@ class SuperAdminSchoolStoreRequest extends FormRequest
                 Arr::wrap($this->input('multiple_schools', [])),
                 static fn ($value) => $value !== null && $value !== ''
             )),
+            'category_format' => $this->input('category_format', CategoryFormatService::SUB_AGE),
         ]);
 
         $this->merge($this->booleanPlatformOptions());

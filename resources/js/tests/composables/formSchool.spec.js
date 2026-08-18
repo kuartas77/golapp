@@ -24,7 +24,6 @@ const validValues = {
     slug: 'escuela-demo',
     name: 'Escuela Demo',
     logo: null,
-    CATEGORY_FORMAT: 'sub_age',
 }
 
 describe('useFormSchool submit lifecycle', () => {
@@ -72,16 +71,23 @@ describe('useFormSchool submit lifecycle', () => {
         wrapper.unmount()
     })
 
-    it('warns when the category format will convert existing data', async () => {
+    it('does not submit super-admin-only options from the school form', async () => {
         axiosMock.post.mockResolvedValue({ data: { success: true } })
         const wrapper = mount(Harness)
 
-        await wrapper.vm.submit({ ...validValues, CATEGORY_FORMAT: 'birth_year' }, { setErrors: vi.fn() })
+        await wrapper.vm.submit({
+            ...validValues,
+            CATEGORY_FORMAT: 'birth_year',
+            tutor_platform: true,
+            inscriptions_enabled: true,
+            INSTRUCTOR_MONTH_LOCK_ENABLED: true,
+        }, { setErrors: vi.fn() })
 
-        expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({
-            title: '¿Quieres cambiar el formato de categorías?',
-            text: 'Las categorías existentes de esta escuela se convertirán al nuevo formato.',
-        }))
+        const payload = axiosMock.post.mock.calls[0][1]
+        expect(payload.has('CATEGORY_FORMAT')).toBe(false)
+        expect(payload.has('tutor_platform')).toBe(false)
+        expect(payload.has('inscriptions_enabled')).toBe(false)
+        expect(payload.has('INSTRUCTOR_MONTH_LOCK_ENABLED')).toBe(false)
         wrapper.unmount()
     })
 })
