@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InvoiceItem extends Model
 {
@@ -28,22 +29,22 @@ class InvoiceItem extends Model
         'is_paid' => 'boolean',
     ];
 
-    public function invoice()
+    public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
     }
 
-    public function originalPayment()
+    public function originalPayment(): BelongsTo
     {
         return $this->belongsTo(Payment::class, 'payment_id');
     }
 
-    public function paymentReceived()
+    public function paymentReceived(): BelongsTo
     {
         return $this->belongsTo(PaymentReceived::class, 'payment_received_id');
     }
 
-    public function customCharge()
+    public function customCharge(): BelongsTo
     {
         return $this->belongsTo(InscriptionCustomCharge::class, 'custom_charge_id');
     }

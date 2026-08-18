@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Invoice extends Model
@@ -52,37 +54,40 @@ class Invoice extends Model
         return route('invoices.show', [$this->attributes['id']]);
     }
 
-    public function inscription()
+    public function inscription(): BelongsTo
     {
         return $this->belongsTo(Inscription::class);
     }
 
-    public function trainingGroup()
+    public function trainingGroup(): BelongsTo
     {
         return $this->belongsTo(TrainingGroup::class);
     }
 
-    public function school()
+    public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    public function items()
+    /**
+     * @return HasMany<InvoiceItem, $this>
+     */
+    public function items(): HasMany
     {
         return $this->hasMany(InvoiceItem::class);
     }
 
-    public function payments()
+    public function payments(): HasMany
     {
         return $this->hasMany(PaymentReceived::class);
     }
 
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function paymentRequests()
+    public function paymentRequests(): HasMany
     {
         return $this->hasMany(PaymentRequest::class);
     }

@@ -65,7 +65,7 @@ class TrainingSession extends Model
         return $this->belongsTo(TrainingGroup::class, 'training_group_id', 'id');
     }
 
-    public function tasks()
+    public function tasks(): HasMany
     {
         return $this->hasMany(TrainingSessionDetail::class, 'training_session_id', 'id');
     }

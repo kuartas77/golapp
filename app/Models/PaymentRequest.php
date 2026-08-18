@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
 class PaymentRequest extends Model
@@ -28,17 +29,17 @@ class PaymentRequest extends Model
 
     protected $appends = ['url_image'];
 
-    public function invoice()
+    public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
     }
 
-    public function school()
+    public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    public function player()
+    public function player(): BelongsTo
     {
         return $this->belongsTo(Player::class);
     }

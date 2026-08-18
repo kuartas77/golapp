@@ -140,7 +140,7 @@ class Payment extends Model
 
     public static $paid_player_credit = 15;
 
-    public function creditMovements()
+    public function creditMovements(): HasMany
     {
         return $this->hasMany(PlayerCreditMovement::class);
     }

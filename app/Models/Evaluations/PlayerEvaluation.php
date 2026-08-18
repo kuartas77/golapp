@@ -38,7 +38,7 @@ class PlayerEvaluation extends Model
 
     protected $appends = ['is_closed', 'is_completed'];
 
-    public function school()
+    public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }

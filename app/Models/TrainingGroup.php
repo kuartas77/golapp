@@ -11,6 +11,7 @@ use App\Observers\TrainingGroupObserver;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -277,12 +278,12 @@ class TrainingGroup extends Model
             ->whereRelation('instructors', 'assigned_year', $year ?: now()->year);
     }
 
-    public function members()
+    public function members(): HasManyThrough
     {
         return $this->hasManyThrough(Player::class, Inscription::class, 'training_group_id', 'id', 'id', 'player_id')->where('inscriptions.year', now()->year);
     }
 
-    public function complementaryMembers()
+    public function complementaryMembers(): HasManyThrough
     {
         return $this->hasManyThrough(Player::class, Inscription::class, 'complementary_group_id', 'id', 'id', 'player_id')->where('inscriptions.year', now()->year);
     }

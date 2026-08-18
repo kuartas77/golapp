@@ -27,6 +27,7 @@
     "require-dev": {
         "beyondcode/laravel-query-detector": "^2.0",
         "fakerphp/faker": "^1.9.1",
+        "larastan/larastan": "^3.0",
         "laravel/pint": "^1.0",
         "laravel/sail": "^1.18",
         "mockery/mockery": "^1.4.4",

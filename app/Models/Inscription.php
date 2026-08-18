@@ -220,17 +220,17 @@ class Inscription extends Model
         return $this->hasMany(Assist::class);
     }
 
-    public function school()
+    public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    public function tournament_payouts()
+    public function tournament_payouts(): HasMany
     {
         return $this->hasMany(TournamentPayout::class);
     }
 
-    public function invoices()
+    public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
     }
