@@ -271,6 +271,22 @@ test('invoices announces a failed load and recovers with accessible row actions'
     }));
 
     await page.route('**/api/v2/invoices**', async route => {
+        if (new URL(route.request().url()).pathname.endsWith('/creation-inscriptions')) {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    data: [{
+                        id: 91,
+                        unique_code: 'INS-E2E-91',
+                        player_name: 'Deportista Facturable E2E',
+                        training_group_name: 'Sub 12',
+                    }],
+                }),
+            });
+            return;
+        }
+
         invoicesRequestCount += 1;
 
         if (invoicesRequestCount === 1) {
@@ -306,6 +322,9 @@ test('invoices announces a failed load and recovers with accessible row actions'
     await page.goto('/facturas');
 
     await expect(page.getByRole('heading', { level: 1, name: 'Facturas' })).toBeVisible();
+    const pageSubtitle = page.getByText('Consulta montos, pagos, estados y accesos al detalle de cada factura.');
+    await expect(pageSubtitle).toBeVisible();
+    await expect.poll(() => pageSubtitle.evaluate(element => getComputedStyle(element).maxWidth)).toBe('none');
     await expect(page.locator('body')).toHaveClass(/dark/);
     await expect.poll(() => page.locator('body').evaluate(element => getComputedStyle(element).backgroundColor))
         .toBe('rgb(6, 8, 24)');
@@ -326,6 +345,44 @@ test('invoices announces a failed load and recovers with accessible row actions'
     await expect(page.getByRole('link', { name: 'Imprimir factura FAC-0042' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Revisar anulación de factura FAC-0042' })).toBeVisible();
     await expect(page.getByText('Totales de esta página:')).toBeVisible();
+
+    const statusFilter = page.getByLabel('Estado');
+    const dateFilter = page.getByLabel('Rango fecha facturación');
+    const createInvoiceButton = page.getByRole('button', { name: 'Crear factura' });
+    const guideButton = page.getByRole('button', { name: 'Guía' });
+    await expect(statusFilter).toBeVisible();
+    await expect(dateFilter).toBeVisible();
+    await expect(createInvoiceButton).toBeVisible();
+    await expect(guideButton).toBeVisible();
+
+    const desktopFilterPositions = await Promise.all([
+        statusFilter.boundingBox(),
+        dateFilter.boundingBox(),
+    ]);
+    const desktopActionPositions = await Promise.all([
+        createInvoiceButton.boundingBox(),
+        guideButton.boundingBox(),
+    ]);
+    expect([...desktopFilterPositions, ...desktopActionPositions].every(position => position !== null)).toBe(true);
+    expect(Math.abs(desktopFilterPositions[0].y - desktopFilterPositions[1].y)).toBeLessThan(4);
+    expect(Math.abs(desktopActionPositions[0].y - desktopActionPositions[1].y)).toBeLessThan(4);
+
+    await createInvoiceButton.click();
+    const createDialog = page.getByRole('dialog', { name: 'Crear factura' });
+    await expect(createDialog).toBeVisible();
+    await createDialog.getByRole('combobox', { name: 'Inscripción para crear la factura' }).click();
+    await createDialog.getByRole('option', { name: /Deportista Facturable E2E/ }).click();
+    await expect(createDialog.getByRole('button', { name: 'Continuar' })).toBeEnabled();
+    await createDialog.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(createDialog).toBeHidden();
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const mobileDatePosition = await dateFilter.boundingBox();
+    const mobileCreatePosition = await createInvoiceButton.boundingBox();
+    const mobileGuidePosition = await guideButton.boundingBox();
+    expect(mobileDatePosition.y).toBeGreaterThan(mobileGuidePosition.y);
+    expect(mobileGuidePosition.y).toBeGreaterThan(mobileCreatePosition.y);
+    expect(Math.abs(mobileCreatePosition.width - mobileGuidePosition.width)).toBeLessThan(2);
 
     const axeResults = await new AxeBuilder({ page })
         .include('[data-tour="invoices-index-table"]')

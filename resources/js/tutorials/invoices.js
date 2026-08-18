@@ -1,10 +1,16 @@
 export const invoicesIndexTutorial = {
     steps: [
         {
+            id: 'invoices-index-actions',
+            selector: '[data-tour="invoices-index-actions"]',
+            title: 'Crea una factura',
+            text: 'Usa Crear factura para seleccionar una inscripción vigente e iniciar el formulario.',
+        },
+        {
             id: 'invoices-index-filters',
             selector: '[data-tour="invoices-index-filters"]',
             title: 'Filtra las facturas',
-            text: 'Puedes consultar por estado y rango de fechas para recortar el listado.',
+            text: 'Consulta por estado o rango de fechas para recortar el listado.',
         },
         {
             id: 'invoices-index-table',

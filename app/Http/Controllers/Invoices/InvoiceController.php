@@ -10,6 +10,7 @@ use App\Repositories\InvoiceRepository;
 use App\Traits\PDFTrait;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class InvoiceController extends Controller
@@ -27,6 +28,38 @@ class InvoiceController extends Controller
             ->filterColumn('training_group_id', fn ($query, $keyword) => $query->where('training_group_id', $keyword))
             ->filterColumn('created_at', fn ($query, $keyword) => $this->filterCreatedAtColumn($query, $keyword))
             ->toJson();
+    }
+
+    public function creationInscriptions()
+    {
+        $school = getSchool(auth()->user());
+
+        $inscriptions = DB::table('inscriptions')
+            ->select([
+                'inscriptions.id',
+                'inscriptions.unique_code',
+                'players.names as player_names',
+                'players.last_names as player_last_names',
+                'training_groups.name as training_group_name',
+            ])
+            ->join('players', 'players.id', '=', 'inscriptions.player_id')
+            ->leftJoin('training_groups', 'training_groups.id', '=', 'inscriptions.training_group_id')
+            ->where('inscriptions.school_id', $school->id)
+            ->where('inscriptions.year', now()->year)
+            ->whereNull('inscriptions.deleted_at')
+            ->whereNull('players.deleted_at')
+            ->orderBy('players.last_names')
+            ->orderBy('players.names')
+            ->get()
+            ->map(fn ($inscription) => [
+                'id' => $inscription->id,
+                'unique_code' => $inscription->unique_code,
+                'player_name' => trim("{$inscription->player_names} {$inscription->player_last_names}"),
+                'training_group_name' => $inscription->training_group_name,
+            ])
+            ->values();
+
+        return response()->json(['data' => $inscriptions]);
     }
 
     private function filterCreatedAtColumn($query, string $keyword)

@@ -201,6 +201,7 @@ Route::prefix('tournament-payouts')->group(function () {
 
 Route::middleware('school.permission:school.module.billing')->prefix('invoices')->group(function () {
     Route::get('', [InvoiceController::class, 'index']);
+    Route::get('creation-inscriptions', [InvoiceController::class, 'creationInscriptions']);
     Route::post('', [InvoiceController::class, 'store']);
     Route::get('create/{inscription}', [InvoiceController::class, 'create']);
     Route::get('{invoice}', [InvoiceController::class, 'show']);

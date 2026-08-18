@@ -59,7 +59,6 @@ const slots = useSlots()
 }
 
 .app-page-header__subtitle {
-    max-width: 68ch;
     line-height: 1.5;
 }
 
