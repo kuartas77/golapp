@@ -376,6 +376,84 @@ final class ServicesCoverageTest extends TestCase
         $this->assertSame('player-stream', $streamMock->makePDFPlayer($enabledPlayer->fresh(), true));
     }
 
+    public function test_player_export_excel_excludes_payments_from_other_schools_with_the_same_unique_code(): void
+    {
+        $this->actingAs($this->user);
+        $year = now()->year;
+        $uniqueCode = 'SHARED-EXPORT-001';
+        $localGroup = $this->createTrainingGroup('Local Export Group');
+        $localPlayer = Player::factory()->create([
+            'school_id' => $this->school['id'],
+            'unique_code' => $uniqueCode,
+        ]);
+        $localInscription = $this->createInscription($localPlayer, $localGroup);
+        $localPayment = $localInscription->payment()->firstOrFail();
+
+        $otherSchool = $this->createSchool();
+        $otherGroup = TrainingGroup::query()
+            ->where('school_id', $otherSchool['id'])
+            ->firstOrFail();
+        $otherPlayer = Player::factory()->create([
+            'school_id' => $otherSchool['id'],
+            'unique_code' => 'OTHER-EXPORT-001',
+        ]);
+        $otherInscription = Inscription::query()->create([
+            'school_id' => $otherSchool['id'],
+            'player_id' => $otherPlayer->id,
+            'unique_code' => $otherPlayer->unique_code,
+            'year' => $year,
+            'start_date' => now()->startOfYear()->format('Y-m-d'),
+            'category' => '2010-2011',
+            'training_group_id' => $otherGroup->id,
+            'competition_group_id' => null,
+        ]);
+        $otherInscription->payment()->firstOrFail()->update(['unique_code' => $uniqueCode]);
+
+        $exportedPlayer = (new PlayerExportService)
+            ->getExcel($year)['enabled']
+            ->firstWhere('id', $localPlayer->id);
+
+        $this->assertSame([$localPayment->id], $exportedPlayer->payments->pluck('id')->all());
+    }
+
+    public function test_player_export_excel_classifies_players_using_only_current_school_inscriptions(): void
+    {
+        $this->actingAs($this->user);
+        $year = now()->year;
+        $localPlayer = Player::factory()->create([
+            'school_id' => $this->school['id'],
+            'unique_code' => 'LOCAL-WITH-FOREIGN-INSCRIPTION',
+        ]);
+
+        $otherSchool = $this->createSchool();
+        $otherGroup = TrainingGroup::query()
+            ->where('school_id', $otherSchool['id'])
+            ->firstOrFail();
+        Inscription::query()->create([
+            'school_id' => $otherSchool['id'],
+            'player_id' => $localPlayer->id,
+            'unique_code' => 'FOREIGN-INSCRIPTION-001',
+            'year' => $year,
+            'start_date' => now()->startOfYear()->format('Y-m-d'),
+            'category' => '2010-2011',
+            'training_group_id' => $otherGroup->id,
+            'competition_group_id' => null,
+        ]);
+
+        $export = (new PlayerExportService)->getExcel($year);
+        $enabledPlayer = $export['enabled']->firstWhere('id', $localPlayer->id);
+        $disabledPlayer = $export['disabled']->firstWhere('id', $localPlayer->id);
+        $exportedPlayer = $enabledPlayer ?: $disabledPlayer;
+
+        $this->assertSame([
+            'sheet' => 'disabled',
+            'inscription_ids' => [],
+        ], [
+            'sheet' => $enabledPlayer ? 'enabled' : 'disabled',
+            'inscription_ids' => $exportedPlayer->inscriptions->pluck('id')->all(),
+        ]);
+    }
+
     public function testSharedServiceAssignTrainingGroupBranches(): void
     {
         $this->actingAs($this->user);

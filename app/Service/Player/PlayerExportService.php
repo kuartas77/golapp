@@ -5,7 +5,8 @@ namespace App\Service\Player;
 use App\Models\Player;
 use App\Traits\PDFTrait;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
 use Mpdf\MpdfException;
 
 class PlayerExportService
@@ -137,36 +138,44 @@ class PlayerExportService
         return $stream ? $this->stream($filename) : $this->output($filename);
     }
 
+    /**
+     * @return Collection<string, EloquentCollection<int, Player>>
+     */
     public function getExcel(?int $year = null): Collection
     {
         $year = $year ?: now()->year;
-        $collection = new Collection(['enabled' => collect(), 'disabled' => collect()]);
+        $schoolId = (int) getSchool(auth()->user())->id;
         $inscriptionRelation = [
-            'inscriptions' => fn($q) => $q
+            'inscriptions' => fn ($q) => $q
+                ->where('school_id', $schoolId)
                 ->where('year', $year)
                 ->with(['trainingGroup' => fn ($query) => $query->withTrashed()]),
         ];
 
         $playersEnabled = Player::query()->schoolId()
-            ->whereHas('inscriptions', fn($q) => $q->where('year', $year))
+            ->whereHas('inscriptions', fn ($q) => $q
+                ->where('school_id', $schoolId)
+                ->where('year', $year))
             ->with([
                 ...$inscriptionRelation,
                 'people',
-                'payments' => fn($q) => $q->withTrashed()
+                'payments' => fn ($q) => $q->where('school_id', $schoolId)->withTrashed(),
             ])->get();
 
         $playersDisabled = Player::query()->schoolId()
-            ->whereDoesntHave('inscriptions', fn($q) => $q->where('year', $year))
+            ->whereDoesntHave('inscriptions', fn ($q) => $q
+                ->where('school_id', $schoolId)
+                ->where('year', $year))
             ->with([
                 ...$inscriptionRelation,
                 'people',
-                'payments' => fn($q) => $q->withTrashed()
+                'payments' => fn ($q) => $q->where('school_id', $schoolId)->withTrashed(),
             ])->get();
 
-        $collection['enabled'] = $playersEnabled;
-        $collection['disabled'] = $playersDisabled;
-
-        return $collection;
+        return collect([
+            'enabled' => $playersEnabled,
+            'disabled' => $playersDisabled,
+        ]);
     }
 
     public static function loadClassDays(&$player)

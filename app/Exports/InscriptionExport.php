@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-
+use App\Models\Player;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromView;
@@ -13,9 +13,14 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 
 class InscriptionExport implements FromView, WithTitle, ShouldAutoSize, WithEvents
 {
+    /** @var Collection<int, Player> */
     public Collection $players;
+
     public bool $trash;
 
+    /**
+     * @param Collection<int, Player> $players
+     */
     public function __construct(Collection $players, bool $trash = false)
     {
         $this->players = $players;
