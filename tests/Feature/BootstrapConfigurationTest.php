@@ -19,6 +19,7 @@ use App\Http\Middleware\VerifyCsrfToken;
 use App\Http\Middleware\VerifySchool;
 use App\Mail\ErrorLog;
 use App\Models\User;
+use App\Providers\EventServiceProvider;
 use Bepsvpt\SecureHeaders\SecureHeadersMiddleware;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernelContract;
@@ -137,9 +138,14 @@ class BootstrapConfigurationTest extends TestCase
 
     public function test_event_bootstrap_does_not_duplicate_or_reactivate_legacy_listeners(): void
     {
+        $listenersBeforeCompatibilityProvider = $this->app['events']->getRawListeners();
+
+        $this->app->register(EventServiceProvider::class, force: true);
+
         $listeners = $this->app['events']->getRawListeners();
 
         $this->assertCount(1, $listeners[Registered::class] ?? []);
         $this->assertArrayNotHasKey(MessageSent::class, $listeners);
+        $this->assertSame($listenersBeforeCompatibilityProvider, $listeners);
     }
 }
