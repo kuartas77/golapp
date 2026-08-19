@@ -5,12 +5,16 @@ use App\Http\Controllers\Reports\ReportAttendancePaymentController;
 use App\Http\Controllers\Reports\ReportDebtorController;
 use App\Http\Controllers\Reports\ReportInstructorActivityController;
 use App\Http\Controllers\Reports\ReportPaymentController;
+use App\Http\Controllers\Reports\ReportReceivedPaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('school.permission:school.module.reports')->prefix('reports')->name('reports.')->group(function () {
     Route::get('assists', [ReportAssistsController::class, 'metadata'])->name('assists.metadata');
     Route::get('payments', [ReportPaymentController::class, 'metadata'])->name('payments.metadata');
     Route::post('payments', [ReportPaymentController::class, 'report'])->name('payments.report');
+    Route::get('received-payments', [ReportReceivedPaymentController::class, 'metadata'])->name('received-payments.metadata');
+    Route::post('received-payments', [ReportReceivedPaymentController::class, 'requestReport'])->name('received-payments.request');
+    Route::get('received-payments/pdf', [ReportReceivedPaymentController::class, 'pdf'])->name('received-payments.pdf');
     Route::get('debtors', [ReportDebtorController::class, 'metadata'])->name('debtors.metadata');
     Route::get('debtors/pdf', [ReportDebtorController::class, 'pdf'])->name('debtors.pdf');
     Route::middleware('role:super-admin|school')->prefix('instructors')->group(function () {

@@ -44,6 +44,14 @@ export const paymentReportTutorial = {
     ],
 }
 
+export const receivedPaymentReportTutorial = {
+    steps: [
+        { id: 'received-payment-report-context', selector: '[data-tour="received-payment-report-context"]', title: 'Consulta los pagos aplicados', text: 'Este informe consolida por deportista los valores pagados y abonados del año seleccionado.' },
+        { id: 'received-payment-report-filters', selector: '[data-tour="received-payment-report-filters"]', title: 'Define el alcance', text: 'Selecciona el año, el grupo y, si lo necesitas, busca un deportista por su nombre o código único.' },
+        { id: 'received-payment-report-actions', selector: '[data-tour="received-payment-report-actions"]', title: 'Genera el documento', text: 'Un solo grupo se descarga inmediatamente. Todos los grupos se procesan en segundo plano para evitar lentitud y el PDF se envía a tu correo cuando termina.' },
+    ],
+}
+
 export const instructorActivityReportTutorial = {
     steps: [
         { id: 'instructor-activity-actions', selector: '[data-tour="instructor-activity-actions"]', title: 'Consulta y exporta actividad', text: 'La cabecera resume el informe y ofrece sus exportaciones.' },

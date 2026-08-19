@@ -38,7 +38,7 @@ return [
             'driver' => 'database',
             'table' => 'jobs_golapp',
             'queue' => env('QUEUE_NAME', 'golapp_default'),
-            'retry_after' => 90,
+            'retry_after' => (int) env('QUEUE_RETRY_AFTER', 1200),
             'after_commit' => true,
         ],
 

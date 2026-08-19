@@ -346,6 +346,11 @@ const routes = [
                         component: () => import('@/pages/reports/payments/Index.vue')
                     },
                     {
+                        path: 'pagos-recibidos',
+                        name: 'reports.received-payments',
+                        component: () => import('@/pages/reports/received-payments/Index.vue')
+                    },
+                    {
                         path: 'deudores',
                         name: 'reports.debtors',
                         component: () => import('@/pages/reports/debtors/Index.vue')

@@ -389,6 +389,11 @@
                                 </router-link>
                             </li>
                             <li>
+                                <router-link :to="{ name: 'reports.received-payments' }" @click="toggleMobileMenu">
+                                    Pagos
+                                </router-link>
+                            </li>
+                            <li>
                                 <router-link :to="{ name: 'reports.debtors' }" @click="toggleMobileMenu">
                                     Deudores
                                 </router-link>
