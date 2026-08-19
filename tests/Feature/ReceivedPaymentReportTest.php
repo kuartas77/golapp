@@ -59,8 +59,11 @@ final class ReceivedPaymentReportTest extends TestCase
             ReceivedPaymentReportNotification::class,
             function (ReceivedPaymentReportNotification $notification): bool {
                 $message = $notification->toMail($this->user);
+                $renderedMessage = $message->render()->toHtml();
 
                 $this->assertSame('Informe de pagos listo', $message->subject);
+                $this->assertStringContainsString('Saludos,', $renderedMessage);
+                $this->assertStringNotContainsString('Regards,', $renderedMessage);
                 $this->assertCount(1, $message->rawAttachments);
                 $this->assertSame('application/pdf', $message->rawAttachments[0]['options']['mime']);
                 $this->assertStringStartsWith('%PDF', $message->rawAttachments[0]['data']);

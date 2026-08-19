@@ -52,7 +52,7 @@ class TournamentController extends Controller
             Alert::success(env('APP_NAME'), __('messages.tournament_stored'));
             Cache::forget("KEY_TOURNAMENT_{$request->input('school_id')}");
         } else {
-            Alert::error(env('APP_NAME'), __('match_fail'));
+            Alert::error(env('APP_NAME'), __('messages.match_fail'));
         }
         return back();
 
@@ -101,7 +101,7 @@ class TournamentController extends Controller
             Alert::success(env('APP_NAME'), __('messages.tournament_updated'));
             Cache::forget("KEY_TOURNAMENT_{$request->input('school_id')}");
         } else {
-            Alert::error(env('APP_NAME'), __('match_fail'));
+            Alert::error(env('APP_NAME'), __('messages.match_fail'));
         }
         return back();
     }

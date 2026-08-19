@@ -3,6 +3,7 @@
 return [
     'Profile' => 'Perfil',
     'denied' => 'No Puedes Acceder.',
+    'error' => 'Error',
 
     'error_general' => 'Se Ha Presentado Un Error',
     'user_updated' => 'Usuario :user_name Actualizado Exitosamente.',
