@@ -8,6 +8,7 @@
                             Cargando opciones del informe...
                         </div>
 
+
                         <template v-else>
                             <div class="row g-4 align-items-start">
                                 <div class="col-lg-5" data-tour="received-payment-report-context">
