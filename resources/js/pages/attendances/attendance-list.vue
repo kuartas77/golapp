@@ -351,7 +351,7 @@ const tutorial = usePageTutorial(attendancesTutorial, {
     gap: 0.75rem;
 }
 
-:global(body.dark) .attendance-search__icon {
+:global(body.dark .attendance-search__icon) {
     color: #bfc9d4;
 }
 

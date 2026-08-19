@@ -539,8 +539,6 @@ export default function useMonthlyPayments() {
     }))
     const debtorCount = computed(() => filteredGroupPayments.value.filter((payPlayer) => Object.values(paymentFields)
         .some((field) => statsDeb.value.includes(payPlayer[field]))).length)
-    const receiptableCount = computed(() => filteredGroupPayments.value.reduce((count, payPlayer) => count + Object.values(paymentFields)
-        .filter((field) => statusPay.value.includes(payPlayer[field])).length, 0))
     const bulkEligibleRows = computed(() => filteredGroupPayments.value.filter((payPlayer) => canEditPaymentRow(payPlayer, selectedMonthField.value)))
     const bulkStatusOptions = computed(() => statusOptions.value.filter((option) => option.value !== ''))
 
@@ -697,7 +695,6 @@ export default function useMonthlyPayments() {
         selectedMonthField,
         selectedMonthLabel,
         debtorCount,
-        receiptableCount,
         retiredRowsCount,
         totalsFooter,
         totalByType,

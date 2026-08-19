@@ -209,24 +209,44 @@ const statusFieldId = computed(() => `attendance-status-${props.row.id}`)
     white-space: nowrap;
 }
 
-:global(body.dark) .attendance-player-card__meta,
-:global(body.dark) .attendance-player-card__label {
+:global(body.dark .attendance-player-card__meta),
+:global(body.dark .attendance-player-card__label) {
     color: #bfc9d4;
 }
 
-:global(body.dark) .attendance-player-card {
+:global(body.dark .attendance-player-card) {
     border-color: #2b3c52;
     border-left-color: var(--attendance-status-color);
+    color: #e2e8f0;
     background: #172235;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
 }
 
-:global(body.dark) .attendance-player-card:hover {
+:global(body.dark .attendance-player-card:hover) {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
 }
 
-:global(body.dark) .attendance-player-card--readonly {
+:global(body.dark .attendance-player-card--readonly) {
     background: #111b2c;
+}
+
+:global(body.dark .attendance-player-card__observation) {
+    border-color: #6ea8fe;
+    color: #9ec5fe;
+    background: rgba(110, 168, 254, 0.08);
+}
+
+:global(body.dark .attendance-player-card__observation:hover),
+:global(body.dark .attendance-player-card__observation:focus-visible) {
+    border-color: #6ea8fe;
+    color: #0e1726;
+    background: #9ec5fe;
+}
+
+:global(body.dark .attendance-player-card__observation:disabled) {
+    border-color: #52657d;
+    color: #9aa8ba;
+    background: rgba(82, 101, 125, 0.12);
 }
 
 @media (max-width: 767.98px) {
@@ -252,7 +272,7 @@ const statusFieldId = computed(() => `attendance-status-${props.row.id}`)
         width: auto;
     }
 
-    :global(body.dark) .attendance-player-card__actions {
+    :global(body.dark .attendance-player-card__actions) {
         border-top-color: #2b3c52;
     }
 }

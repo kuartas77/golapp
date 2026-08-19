@@ -95,9 +95,6 @@
                             <span class="badge outline-badge-danger me-1">
                                 Deudores {{ debtorCount }}
                             </span>
-                            <span class="badge outline-badge-success me-1">
-                                Recibos {{ receiptableCount }}
-                            </span>
                             <!-- <span class="badge outline-badge-info  me-1">
                                 Otros {{ moneyFormat(totalByType.others) }}
                             </span> -->
@@ -299,19 +296,19 @@
                                     <span v-if="row.payPlayer.inscription_deleted" class="badge bg-warning text-dark ms-2">
                                         Inscripción retirada
                                     </span>
+                                </small>
+                                <p class="mb-0 d-flex align-items-center justify-content-between gap-2">
+                                    <small class="text-muted">
+                                        {{ row.payPlayer.player.unique_code }}
+                                        <span>| {{ row.payPlayer.player.category }}</span>
+                                    </small>
                                     <span v-if="canShowPaymentHistory(row.payPlayer)"
-                                        class="badge badge-info btn btn-sm clickable ms-1"
+                                        class="badge badge-info btn btn-sm clickable flex-shrink-0"
                                         title="Historial"
                                         v-tooltip.top="'Historial de pagos'"
                                         @click="openHistoryModal(row.payPlayer)">
                                         <i class="fa fa-history"></i>
                                     </span>
-                                </small>
-                                <p class="mb-0">
-                                    <small class="text-muted">
-                                        {{ row.payPlayer.player.unique_code }}
-                                        <span>| {{ row.payPlayer.player.category }}</span>
-                                    </small>
                                 </p>
                             </td>
                             <td class="dt-head-center dt-body-center">{{ selectedMonthLabel }}</td>
@@ -409,21 +406,21 @@
                                                         <span v-if="payPlayer.inscription_deleted" class="badge bg-warning text-dark ms-2">
                                                             Inscripción retirada
                                                         </span>
-                                                        <span v-if="canShowPaymentHistory(payPlayer)"
-                                                            class="badge badge-info btn btn-sm clickable ms-1"
-                                                            title="Historial"
-                                                            v-tooltip.top="'Historial de pagos'"
-                                                            @click="openHistoryModal(payPlayer)">
-                                                            <i class="fa fa-history"></i>
-                                                        </span>
                                                     </small>
-                                                    <p>
+                                                    <p class="mb-0 d-flex align-items-center justify-content-between gap-2">
                                                         <small>
                                                             {{ payPlayer.player.unique_code }}
                                                             <span>
                                                                 | {{ payPlayer.player.category }}
                                                             </span>
                                                         </small>
+                                                        <span v-if="canShowPaymentHistory(payPlayer)"
+                                                            class="badge badge-info btn btn-sm clickable flex-shrink-0"
+                                                            title="Historial"
+                                                            v-tooltip.top="'Historial de pagos'"
+                                                            @click="openHistoryModal(payPlayer)">
+                                                            <i class="fa fa-history"></i>
+                                                        </span>
                                                     </p>
                                                 </div>
                                             </div>
@@ -639,7 +636,6 @@ const {
     monthlyRows,
     selectedMonthLabel,
     debtorCount,
-    receiptableCount,
     retiredRowsCount,
     totalsFooter,
     totalByType
