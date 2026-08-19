@@ -105,6 +105,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ->withoutOverlapping(5);
 
         $schedule->command('auth:clear-resets')->dailyAt('00:01')->withoutOverlapping();
+        $schedule->command('sanctum:prune-expired --hours=24')->daily()->withoutOverlapping();
         $schedule->command('inscription:status')->dailyAt('05:05')->withoutOverlapping();
         $schedule->command('check:categories')->weeklyOn(0, '01:05')->withoutOverlapping();
         $schedule->command('assists:month')->lastDayOfMonth('23:00')->withoutOverlapping();
