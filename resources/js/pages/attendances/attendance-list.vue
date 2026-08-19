@@ -81,8 +81,8 @@
                 </div>
             </div>
             <div class="layout-spacing col-xl-9 col-lg-9 col-sm-12">
-                <div class="panel br-6 p-2" data-tour="attendance-table-panel">
-                    <div class="panel-body">
+                <div class="attendance-results" data-tour="attendance-table-panel">
+                    <div class="attendance-results__body">
                         <div data-tour="attendance-session-summary">
                             <h5 v-if="modelGroup">{{ modelGroup.full_group }}</h5>
                             <h6 v-if="classDaySelected">
@@ -155,92 +155,31 @@
                             data-tour="attendance-table"
                             @action="createMissingAttendances"
                         />
-                        <div v-else class="row" data-tour="attendance-table">
-                            <div class="table-responsive">
-                                <table id="attendance_table" class="table table-bordered table-sm align-middle mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th class="w-50">
-                                                <input
-                                                    type="search"
-                                                    class="form-control form-control-sm"
-                                                    placeholder="Buscar deportista"
-                                                    aria-label="Buscar deportista"
-                                                    data-attendance-player-search="true"
-                                                    :value="playerSearchTerm"
-                                                    @input="applyPlayerSearch"
-                                                />
-                                            </th>
-                                            <th class="text-center">Asistencia</th>
-                                            <th class="text-center">Observación</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr v-for="row in filteredAttendancesGroup" :key="`${classDaySelected.column}-${row.id}`">
-                                        <td>
-                                    <div class="media d-md-flex d-block text-sm-start text-center">
-                                        <div class="media-aside align-self-start avatar avatar-sm me-1">
-                                            <img :src="row.inscription.player.photo_url" alt="avatar"
-                                                class="player-avatar" />
-                                        </div>
-                                        <div class="media-body">
-                                            <div class="d-xl-flex d-block justify-content-between">
-                                                <div>
-                                                    <small>
-                                                        {{ row.inscription.player.full_names }}
-                                                        <span v-if="row.inscription_deleted" class="badge bg-warning text-dark ms-2">
-                                                            Inscripción retirada
-                                                        </span>
-                                                        <span v-if="row.period_locked" class="badge bg-secondary ms-2">
-                                                            Periodo cerrado
-                                                        </span>
-                                                    </small>
-                                                    <p>
-                                                        <small>
-                                                            {{ row.inscription.player.unique_code }}
-                                                            <span>
-                                                                | {{ row.inscription.player.category }}
-                                                            </span>
-                                                        </small>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                        </td>
-                                        <td class="text-center">
-                                    <select
-                                        class="form-select form-select-sm"
-                                        :value="attendanceValueFor(row)"
-                                        :disabled="attendanceRowReadOnly(row)"
-                                        :id="row.id"
-                                        data-tour="attendance-status-select"
-                                        @change="onChangeAttendance(row, $event.target.value)"
-                                    >
-                                        <option value="">Selecciona...</option>
-                                        <option
-                                            v-for="(label, value) in attendanceTypes"
-                                            :key="value"
-                                            :value="value"
-                                        >
-                                            {{ label }}
-                                        </option>
-                                    </select>
-                                        </td>
-                                        <td class="text-center">
-                                    <button
-                                        type="button"
-                                        class="badge badge-primary btn btn-sm m-1"
-                                        data-tour="attendance-observation-button"
-                                        :disabled="attendanceRowReadOnly(row)"
-                                        @click="onClickOpenModalObservation(row)"
-                                    >
-                                        Observación
-                                    </button>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
+                        <div v-else data-tour="attendance-table">
+                            <div class="attendance-search mb-3">
+                                <i class="fa-solid fa-magnifying-glass attendance-search__icon" aria-hidden="true"></i>
+                                <input
+                                    type="search"
+                                    class="form-control form-control-sm attendance-search__input"
+                                    placeholder="Buscar deportista"
+                                    aria-label="Buscar deportista"
+                                    data-attendance-player-search="true"
+                                    :value="playerSearchTerm"
+                                    @input="applyPlayerSearch"
+                                />
+                            </div>
+
+                            <div class="attendance-card-list" role="list">
+                                <AttendancePlayerCard
+                                    v-for="row in filteredAttendancesGroup"
+                                    :key="`${classDaySelected.column}-${row.id}`"
+                                    :row="row"
+                                    :attendance-types="attendanceTypes"
+                                    :attendance-value="attendanceValueFor(row)"
+                                    :read-only="attendanceRowReadOnly(row)"
+                                    @attendance-change="onChangeAttendance(row, $event)"
+                                    @open-observation="onClickOpenModalObservation(row)"
+                                />
                             </div>
                         </div>
                     </div>
@@ -322,6 +261,7 @@ import { useTemplateRef } from 'vue'
 import { ErrorMessage, Field, Form } from "vee-validate";
 import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
+import AttendancePlayerCard from '@/pages/attendances/components/AttendancePlayerCard.vue'
 import useAttendances from '@/composables/attendances/attendances'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { attendancesTutorial } from '@/tutorials/attendances'
@@ -383,3 +323,41 @@ const tutorial = usePageTutorial(attendancesTutorial, {
     },
 })
 </script>
+
+<style scoped>
+.attendance-search {
+    position: relative;
+    max-width: 28rem;
+}
+
+.attendance-search__icon {
+    position: absolute;
+    top: 50%;
+    left: 0.8rem;
+    z-index: 1;
+    color: #6b7280;
+    font-size: 0.8rem;
+    pointer-events: none;
+    transform: translateY(-50%);
+}
+
+.attendance-search__input {
+    min-height: 2.4rem;
+    padding-left: 2.25rem;
+}
+
+.attendance-card-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+:global(body.dark) .attendance-search__icon {
+    color: #bfc9d4;
+}
+
+@media (max-width: 767.98px) {
+    .attendance-search {
+        max-width: none;
+    }
+}
+</style>
