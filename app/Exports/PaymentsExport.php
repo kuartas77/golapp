@@ -125,7 +125,9 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
             'otros' => 0
         ];
 
-        $queryWhereAccumulates = app(PaymentRepository::class)->filterSelectRaw($this->params, $this->deleted);
+        $queryWhereAccumulates = app(PaymentRepository::class)
+            ->filterSelectRaw($this->params, $this->deleted)
+            ->reorder();
 
         foreach ($months as $key) {
             $result = $queryWhereAccumulates->select([

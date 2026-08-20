@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Dto\AssistDTO;
+use App\Exports\PaymentsExport;
 use App\Http\Requests\CompetitionStoreRequest;
 use App\Http\Requests\CompetitionUpdateRequest;
 use App\Models\Assist;
@@ -337,6 +338,30 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         $this->assertTrue($due->contains('id', $payment->id));
         $this->assertInstanceOf(Collection::class, $paidOrDue);
+    }
+
+    public function test_payment_export_accumulates_totals_without_listing_order(): void
+    {
+        $this->actingAs($this->user);
+        $this->createInscriptionAndPayment();
+        $queries = [];
+
+        DB::listen(function ($query) use (&$queries): void {
+            $queries[] = $query->sql;
+        });
+
+        (new PaymentsExport([
+            'school_id' => $this->school['id'],
+            'year' => now()->year,
+        ], false))->view();
+
+        $aggregateQueries = collect($queries)
+            ->filter(fn (string $query): bool => str_contains($query, 'COALESCE(SUM'));
+
+        $this->assertNotEmpty($aggregateQueries);
+        $this->assertTrue($aggregateQueries->every(
+            fn (string $query): bool => ! str_contains(strtolower($query), 'order by')
+        ));
     }
 
     public function test_payment_bulk_update_marks_only_active_loaded_payments(): void
