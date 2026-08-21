@@ -62,6 +62,7 @@ final class SchoolProfileTest extends TestCase
                 'tutor_platform' => 'true',
                 'inscriptions_enabled' => 'true',
                 'send_monthly_payment_receipts' => 'true',
+                'send_debt_notifications' => 'true',
                 Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED => true,
                 Setting::CATEGORY_FORMAT => 'birth_year',
             ]))
@@ -70,6 +71,7 @@ final class SchoolProfileTest extends TestCase
                 'tutor_platform',
                 'inscriptions_enabled',
                 'send_monthly_payment_receipts',
+                'send_debt_notifications',
                 Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED,
                 Setting::CATEGORY_FORMAT,
             ]);
@@ -79,6 +81,7 @@ final class SchoolProfileTest extends TestCase
             'tutor_platform' => false,
             'inscriptions_enabled' => false,
             'send_monthly_payment_receipts' => false,
+            'send_debt_notifications' => false,
         ]);
 
         $this->actingAs($this->user)
@@ -86,7 +89,8 @@ final class SchoolProfileTest extends TestCase
             ->assertOk()
             ->assertJsonPath('tutor_platform', false)
             ->assertJsonPath('inscriptions_enabled', false)
-            ->assertJsonPath('send_monthly_payment_receipts', false);
+            ->assertJsonPath('send_monthly_payment_receipts', false)
+            ->assertJsonPath('send_debt_notifications', false);
     }
 
     public function test_school_profile_update_does_not_query_loaded_settings_individually(): void

@@ -135,6 +135,9 @@
                                     <checkbox label="Creación de contratos?" name="create_contract" disabled />
                                 </div>
                                 <div class="col-md-6 col-xl">
+                                    <checkbox label="Enviar notificaciones de deuda automáticamente" name="send_debt_notifications" disabled />
+                                </div>
+                                <div class="col-md-6 col-xl">
                                     <checkbox label="Envio documentos?" name="send_documents" disabled />
                                 </div>
                                 <div class="col-md-6 col-xl">

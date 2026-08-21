@@ -176,6 +176,7 @@ final class SuperAdminSchoolsTest extends TestCase
                 'create_contract' => '1',
                 'send_documents' => '1',
                 'send_monthly_payment_receipts' => '1',
+                'send_debt_notifications' => '1',
             ])
             ->assertCreated()
             ->assertJsonPath('success', true);
@@ -189,6 +190,7 @@ final class SuperAdminSchoolsTest extends TestCase
         $this->assertTrue($school->create_contract);
         $this->assertTrue($school->send_documents);
         $this->assertTrue($school->send_monthly_payment_receipts);
+        $this->assertTrue($school->send_debt_notifications);
 
         $response = $this->actingAs($superAdmin)
             ->getJson("/api/v2/admin/schools/{$school->slug}")
@@ -199,7 +201,8 @@ final class SuperAdminSchoolsTest extends TestCase
             ->assertJsonPath('school.sign_player', true)
             ->assertJsonPath('school.create_contract', true)
             ->assertJsonPath('school.send_documents', true)
-            ->assertJsonPath('school.send_monthly_payment_receipts', true);
+            ->assertJsonPath('school.send_monthly_payment_receipts', true)
+            ->assertJsonPath('school.send_debt_notifications', true);
 
         $this->actingAs($superAdmin)
             ->withHeader('Accept', 'application/json')
@@ -218,6 +221,7 @@ final class SuperAdminSchoolsTest extends TestCase
                 'create_contract' => '0',
                 'send_documents' => '0',
                 'send_monthly_payment_receipts' => '0',
+                'send_debt_notifications' => '0',
             ])
             ->assertOk()
             ->assertJsonPath('success', true);
@@ -230,6 +234,7 @@ final class SuperAdminSchoolsTest extends TestCase
         $this->assertFalse($school->create_contract);
         $this->assertFalse($school->send_documents);
         $this->assertFalse($school->send_monthly_payment_receipts);
+        $this->assertFalse($school->send_debt_notifications);
     }
 
     public function test_super_admin_can_change_category_format_and_convert_existing_data(): void

@@ -40,6 +40,7 @@ class SchoolUpdateRequest extends FormRequest
             'MONTHLY_PAYMENT_OPTION_3' => ['required', 'string'],
             'ANNUITY' => ['required', 'string'],
             'create_contract' => ['prohibited'],
+            'send_debt_notifications' => ['prohibited'],
             'send_documents' => ['prohibited'],
             'send_monthly_payment_receipts' => ['prohibited'],
             'tutor_platform' => ['prohibited'],

@@ -24,11 +24,12 @@ use App\Http\Controllers\Invoices\ItemInvoicesController;
 use App\Http\Controllers\Notifications\PaymentRequestController;
 use App\Http\Controllers\Notifications\TopicNotificationsController;
 use App\Http\Controllers\Notifications\UniformRequestsController;
+use App\Http\Controllers\Payments\DebtNotificationController;
 use App\Http\Controllers\Payments\MonthlyPaymentReceiptController;
 use App\Http\Controllers\Payments\PaymentController;
 use App\Http\Controllers\Payments\TournamentPayoutsController;
-use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\PlayerCredits\PlayerCreditController;
+use App\Http\Controllers\Players\PlayerController;
 use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\SchoolOutings\SchoolOutingController;
 use Illuminate\Support\Facades\Route;
@@ -47,6 +48,10 @@ Route::middleware([
 });
 
 Route::middleware('school.permission:school.module.payments')->group(function () {
+    Route::get('payments/debt-notifications', [DebtNotificationController::class, 'index'])
+        ->name('payments.debt-notifications.index');
+    Route::post('payments/debt-notifications/send', [DebtNotificationController::class, 'send'])
+        ->name('payments.debt-notifications.send');
     Route::get('payments/monthly-receipts', [MonthlyPaymentReceiptController::class, 'index'])
         ->name('payments.monthly-receipts.index');
     Route::get('payments/status-catalog', [PaymentController::class, 'statusCatalog'])

@@ -108,6 +108,10 @@
                                 class="btn btn-primary btn-sm me-1">
                                 <i class="far fa-file-pdf me-1"></i>Recibos
                             </router-link>
+                            <router-link :to="{ name: 'payments.debt-notifications' }"
+                                class="btn btn-primary btn-sm me-1">
+                                <i class="far fa-envelope me-1"></i>Notificaciones de deuda
+                            </router-link>
                             <a v-if="export_pdf" :href="export_pdf" target="_blank"
                                 class="badge badge-info btn btn-sm me-1" @click="exportFile($event)">
                                 <i class="far fa-file-pdf fa-lg"></i>PDF

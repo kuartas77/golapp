@@ -165,6 +165,9 @@ class Payment extends Model
         return self::FIELD_AMOUNT_MAP[$field] ?? null;
     }
 
+    /**
+     * @return BelongsTo<Inscription, $this>
+     */
     public function inscription(): BelongsTo
     {
         return $this->belongsTo(Inscription::class, 'inscription_id', 'id')->withTrashed();

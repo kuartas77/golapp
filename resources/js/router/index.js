@@ -137,6 +137,7 @@ const routes = [
                 children: [
                     { path: '', name: 'payments', component: () => import('@/pages/payments/monthly-payment-list.vue') },
                     { path: 'recibos', name: 'payments.receipts', component: () => import('@/pages/payments/MonthlyPaymentReceipts.vue') },
+                    { path: 'notificaciones-deuda', name: 'payments.debt-notifications', component: () => import('@/pages/payments/DebtNotifications.vue') },
                 ]
             },
             {

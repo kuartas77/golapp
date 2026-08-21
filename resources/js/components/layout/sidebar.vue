@@ -204,7 +204,10 @@
 
                 <Can :roles="['super-admin', 'school']" any-role>
                     <li v-if="canPayments" class="menu">
-                        <router-link :to="{ name: 'payments' }" class="dropdown-toggle" @click="toggleMobileMenu">
+                        <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#payments"
+                            aria-controls="payments" :aria-expanded="isPaymentsRoute ? 'true' : 'false'"
+                            :data-active="isPaymentsRoute ? 'true' : null"
+                            :class="{active: isPaymentsRoute}">
                             <div class="">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -214,7 +217,28 @@
                                 </svg>
                                 <span>Mensualidades</span>
                             </div>
-                        </router-link>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="feather feather-chevron-right">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </div>
+                        </a>
+                        <ul id="payments" class="collapse submenu list-unstyled" :class="{ show: isPaymentsRoute }"
+                            data-bs-parent="#sidebar">
+                            <li>
+                                <router-link :to="{ name: 'payments' }" @click="toggleMobileMenu">Cartera</router-link>
+                            </li>
+                            <li>
+                                <router-link :to="{ name: 'payments.receipts' }" @click="toggleMobileMenu">Recibos</router-link>
+                            </li>
+                            <li>
+                                <router-link :to="{ name: 'payments.debt-notifications' }" @click="toggleMobileMenu">
+                                    Notificaciones de deuda
+                                </router-link>
+                            </li>
+                        </ul>
                     </li>
                     <li v-if="canBilling" class="menu">
                         <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#billing"
@@ -617,6 +641,7 @@ const isConfigurationRoute = computed(() => !isSuperAdminRoute.value && (
     || route.path.startsWith('/administracion')
 ));
 const isReportsRoute = computed(() => route.path.startsWith('/informes'));
+const isPaymentsRoute = computed(() => route.path.startsWith('/mensualidades'));
 const isBillingRoute = computed(() => route.path.startsWith('/facturas'));
 const isInventoryRoute = computed(() => route.path.startsWith('/inventario'));
 
