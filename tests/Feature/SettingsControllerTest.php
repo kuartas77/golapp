@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\School;
+use App\Models\TrainingGroup;
 use Tests\TestCase;
 
 final class SettingsControllerTest extends TestCase
@@ -67,5 +69,33 @@ final class SettingsControllerTest extends TestCase
             'value' => 'PASE',
             'label' => 'PASE',
         ], collect($response->json('training_session_contents'))->firstWhere('value', 'PASE'));
+    }
+
+    public function test_settings_expose_group_pricing_flag_and_tariffs(): void
+    {
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->update(['training_group_monthly_payment_enabled' => true]);
+        $group = TrainingGroup::query()->create([
+            'school_id' => $school->id,
+            'name' => 'Grupo catálogo tarifa',
+            'year_active' => now()->year,
+            'monthly_payment_amount' => 87000,
+        ]);
+        $group->instructors()->syncWithPivotValues([$this->user->id], [
+            'assigned_year' => now()->year,
+        ]);
+
+        $general = $this->actingAs($this->user)
+            ->getJson('/api/v2/settings/general')
+            ->assertOk()
+            ->assertJsonPath('training_group_monthly_payment_enabled', true);
+
+        $catalogGroup = collect($general->json('normal_training_groups'))->firstWhere('id', $group->id);
+        $this->assertSame(87000, $catalogGroup['monthly_payment_amount']);
+
+        $this->actingAs($this->user)
+            ->getJson('/api/v2/settings/groups')
+            ->assertOk()
+            ->assertJsonPath('training_group_monthly_payment_enabled', true);
     }
 }

@@ -2,16 +2,13 @@
 
 namespace App\Http\Resources\API\Groups;
 
-use Carbon\Carbon;
-use JsonSerializable;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use App\Models\TrainingGroup;
-use Illuminate\Support\Collection;
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\API\Players\PlayersCollection;
+use App\Models\TrainingGroup;
 use App\Repositories\TrainingGroupRepository;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use JsonSerializable;
 
 class TrainingGroupResource extends JsonResource
 {
@@ -25,23 +22,26 @@ class TrainingGroupResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @param Request $request
-     * @return array|Arrayable|JsonSerializable
+     * @param  Request  $request
      */
     public function toArray($request): array|JsonSerializable|Arrayable
     {
         $request->merge(['group_id' => $this->id]);
+
         return [
             'id' => $this->id,
             'name' => $this->name,
             'days' => $this->days,
             'is_complementary' => (bool) $this->is_complementary,
+            'monthly_payment_amount' => $this->monthly_payment_amount === null
+                ? null
+                : (int) $this->monthly_payment_amount,
             'explode_schedules' => $this->schedules,
             'full_schedule_group' => $this->full_schedule_group,
             'full_group' => $this->full_group,
             'player_count' => $this->inscriptions_count,
             'class_days' => TrainingGroupRepository::getClassDays($this),
-            'players' => $this->whenLoaded('members', new PlayersCollection($this->members))
+            'players' => $this->whenLoaded('members', new PlayersCollection($this->members)),
         ];
     }
 }

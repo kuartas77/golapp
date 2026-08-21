@@ -63,6 +63,7 @@ final class SchoolProfileTest extends TestCase
                 'inscriptions_enabled' => 'true',
                 'send_monthly_payment_receipts' => 'true',
                 'send_debt_notifications' => 'true',
+                'training_group_monthly_payment_enabled' => 'true',
                 Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED => true,
                 Setting::CATEGORY_FORMAT => 'birth_year',
             ]))
@@ -72,6 +73,7 @@ final class SchoolProfileTest extends TestCase
                 'inscriptions_enabled',
                 'send_monthly_payment_receipts',
                 'send_debt_notifications',
+                'training_group_monthly_payment_enabled',
                 Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED,
                 Setting::CATEGORY_FORMAT,
             ]);
@@ -82,6 +84,7 @@ final class SchoolProfileTest extends TestCase
             'inscriptions_enabled' => false,
             'send_monthly_payment_receipts' => false,
             'send_debt_notifications' => false,
+            'training_group_monthly_payment_enabled' => false,
         ]);
 
         $this->actingAs($this->user)
@@ -90,7 +93,8 @@ final class SchoolProfileTest extends TestCase
             ->assertJsonPath('tutor_platform', false)
             ->assertJsonPath('inscriptions_enabled', false)
             ->assertJsonPath('send_monthly_payment_receipts', false)
-            ->assertJsonPath('send_debt_notifications', false);
+            ->assertJsonPath('send_debt_notifications', false)
+            ->assertJsonPath('training_group_monthly_payment_enabled', false);
     }
 
     public function test_school_profile_update_does_not_query_loaded_settings_individually(): void
@@ -112,6 +116,44 @@ final class SchoolProfileTest extends TestCase
             ->assertJsonPath('success', true);
 
         $this->assertSame(0, $individualSettingQueries);
+    }
+
+    public function test_school_profile_preserves_legacy_tariffs_when_group_pricing_is_enabled(): void
+    {
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->update(['training_group_monthly_payment_enabled' => true]);
+        $payload = $this->schoolProfilePayload($school, [
+            'BROTHER_MONTHLY_PAYMENT' => '66000',
+        ]);
+        unset(
+            $payload['MONTHLY_PAYMENT_OPTION_1'],
+            $payload['MONTHLY_PAYMENT_OPTION_2'],
+            $payload['MONTHLY_PAYMENT_OPTION_3']
+        );
+
+        $this->actingAs($this->user)
+            ->putJson("/api/v2/admin/school/{$school->slug}", $payload)
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('setting_values', [
+            'school_id' => $school->id,
+            'setting_key' => Setting::MONTHLY_PAYMENT_OPTION_1,
+            'value' => '50000',
+        ]);
+        $this->assertDatabaseHas('setting_values', [
+            'school_id' => $school->id,
+            'setting_key' => Setting::BROTHER_MONTHLY_PAYMENT,
+            'value' => '66000',
+        ]);
+
+        $this->actingAs($this->user)
+            ->putJson("/api/v2/admin/school/{$school->slug}", [
+                ...$payload,
+                'MONTHLY_PAYMENT_OPTION_1' => '99999',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('MONTHLY_PAYMENT_OPTION_1');
     }
 
     private function schoolProfilePayload(School $school, array $overrides = []): array

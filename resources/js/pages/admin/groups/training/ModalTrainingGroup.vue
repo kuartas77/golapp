@@ -2,7 +2,7 @@
     <div class="modal fade" id="composeModalTrainigG" tabindex="-1" role="dialog" aria-labelledby="modalTrainigG"
         aria-hidden="false" aria-modal="true">
         <div class="modal-dialog modal-lg" role="document">
-            <Form ref="form" v-slot="{ isSubmitting }" :validation-schema="schema" @submit="submit" :initial-values="initialData">
+            <Form ref="form" v-slot="{ isSubmitting, values }" :validation-schema="schema" @submit="submit" :initial-values="initialData">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="modalTrainigG">Grupo de entrenamiento</h5>
@@ -54,6 +54,22 @@
                                         <checkbox label="Grupo complementario" name="is_complementary" />
                                         <small class="text-muted d-block">
                                             Úsalo para entrenamientos adicionales que no generan mensualidad.
+                                        </small>
+                                    </div>
+                                </div>
+                                <div
+                                    v-if="settingsGroup.training_group_monthly_payment_enabled && !values.is_complementary"
+                                    class="col-md-6"
+                                >
+                                    <div class="form-group">
+                                        <inputField
+                                            label="Tarifa mensual"
+                                            name="monthly_payment_amount"
+                                            :currency="true"
+                                            :is-required="true"
+                                        />
+                                        <small class="text-muted d-block">
+                                            Este valor se aplicará a las nuevas inscripciones del grupo.
                                         </small>
                                     </div>
                                 </div>
@@ -174,6 +190,7 @@ const buildDefaultValues = () => ({
     user_id: [],
     years: [],
     is_complementary: false,
+    monthly_payment_amount: null,
 });
 const initialData = ref(buildDefaultValues());
 
@@ -241,6 +258,15 @@ const schema = yup.object().shape({
     schedules: yup.array().min(1, "Selecciona al menos un horario").required(),
     user_id: yup.array().min(1, "Selecciona al menos un instructor").required(),
     is_complementary: yup.boolean().default(false),
+    monthly_payment_amount: yup.number()
+        .nullable()
+        .min(1, "La tarifa mensual debe ser mayor que cero")
+        .when("is_complementary", {
+            is: false,
+            then: (currentSchema) => settingsGroup.training_group_monthly_payment_enabled
+                ? currentSchema.required("La tarifa mensual es obligatoria")
+                : currentSchema,
+        }),
     years: yup
         .array()
         .max(12, "No puedes seleccionar más de 12 categorías")
@@ -260,6 +286,7 @@ const submit = async (values, actions) => {
             stage: values.stage,
             year_active: values.year_active,
             is_complementary: Boolean(values.is_complementary),
+            monthly_payment_amount: values.is_complementary ? null : values.monthly_payment_amount,
         };
 
         let urlAction = url
@@ -314,6 +341,7 @@ const onLoadData = async () => {
             instructors,
             category,
             is_complementary,
+            monthly_payment_amount,
         } = response.data.data;
 
         if (name === "Provisional") {
@@ -339,6 +367,7 @@ const onLoadData = async () => {
             user_id: resolveSelectedOptions(userOptions.value, instructors ?? []),
             years: resolveSelectedOptions(categoryOptions.value, selectedCategories),
             is_complementary: Boolean(is_complementary),
+            monthly_payment_amount: monthly_payment_amount == null ? null : Number(monthly_payment_amount),
         };
 
         form.value.resetForm({ values: data });

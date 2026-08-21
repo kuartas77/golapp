@@ -42,6 +42,7 @@ const { apiMock, settingsStore, authStore } = vi.hoisted(() => ({
             MONTHLY_PAYMENT_OPTION_2: 0,
             MONTHLY_PAYMENT_OPTION_3: 65000,
         },
+        training_group_monthly_payment_enabled: false,
         getSettings: vi.fn().mockResolvedValue(undefined),
     },
     authStore: {
@@ -200,6 +201,12 @@ describe('ModalInscription', () => {
         apiMock.post.mockReset();
         authStore.hasSchoolPermission.mockReset();
         settingsStore.getSettings.mockClear();
+        settingsStore.training_group_monthly_payment_enabled = false;
+        settingsStore.normal_training_groups = [
+            { id: 1, name: 'Provisional' },
+            { id: 2, name: 'Grupo definitivo' },
+        ];
+        settingsStore.groups = [...settingsStore.normal_training_groups];
     });
 
     afterEach(() => {
@@ -426,6 +433,43 @@ describe('ModalInscription', () => {
             { value: 'MONTHLY_PAYMENT_OPTION_1', label: 'Mensualidad 5 dias - $ 55.000' },
             { value: 'MONTHLY_PAYMENT_OPTION_3', label: 'Mensualidad 3 dias - $ 65.000' },
         ]);
+    });
+
+    it('replaces the tariff selector with the readonly group tariff when group pricing is enabled', async () => {
+        settingsStore.training_group_monthly_payment_enabled = true;
+        settingsStore.normal_training_groups = [
+            { id: 1, name: 'Provisional', monthly_payment_amount: null },
+            { id: 2, name: 'Grupo definitivo', monthly_payment_amount: 85000 },
+        ];
+        settingsStore.groups = [...settingsStore.normal_training_groups];
+
+        const wrapper = await mountModal({ inscription_id: null, create_open: true, selected_year: 2026 });
+
+        wrapper.vm.$.setupState.onTrainingGroupChange('2');
+        await flushPromises();
+
+        expect(wrapper.find('#monthly_payment_type').exists()).toBe(false);
+        expect(wrapper.get('#training_group_monthly_payment').element.value).toContain('85.000');
+        expect(wrapper.text()).toContain('La tarifa se toma del grupo principal seleccionado.');
+    });
+
+    it('shows the historical applied tariff while editing in group pricing mode', async () => {
+        settingsStore.training_group_monthly_payment_enabled = true;
+        settingsStore.normal_training_groups = [
+            { id: 1, name: 'Provisional', monthly_payment_amount: null },
+            { id: 2, name: 'Grupo definitivo', monthly_payment_amount: 85000 },
+        ];
+        settingsStore.groups = [...settingsStore.normal_training_groups];
+
+        const wrapper = await mountModal({ inscription_id: null, create_open: false, selected_year: 2026 });
+
+        await wrapper.setProps({ inscription_id: 1 });
+        await flushPromises();
+        await flushPromises();
+
+        expect(wrapper.get('#training_group_monthly_payment').element.value).toContain('55.000');
+        expect(wrapper.text()).toContain('Se conserva la tarifa histórica de esta inscripción.');
+        expect(wrapper.find('#recalculate_monthly_payments').exists()).toBe(false);
     });
 
     it('normalizes the training group id so the select can show its label when editing', async () => {

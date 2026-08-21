@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Traits\GeneralScopes;
-use Illuminate\Support\Collection;
-use Illuminate\Database\Eloquent\Model;
 use App\Observers\TrainingGroupObserver;
+use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 
 /**
  * @method static onlyTrashedRelations()
+ *
  * @property mixed year_five
  * @property mixed year_four
  * @property mixed year
@@ -38,9 +39,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  */
 class TrainingGroup extends Model
 {
-    use SoftDeletes;
     use GeneralScopes;
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'training_groups';
 
@@ -66,10 +67,12 @@ class TrainingGroup extends Model
         'school_id',
         'year_active',
         'is_complementary',
+        'monthly_payment_amount',
     ];
 
     protected $casts = [
         'is_complementary' => 'boolean',
+        'monthly_payment_amount' => 'integer',
     ];
 
     protected $appends = [
@@ -82,7 +85,7 @@ class TrainingGroup extends Model
         // 'url_show',
         // 'url_destroy',
         'instructors_names',
-        'instructors_ids'
+        'instructors_ids',
     ];
 
     protected static function booted(): void
@@ -93,41 +96,42 @@ class TrainingGroup extends Model
     public function scopeOnlyTrashedRelations($query)
     {
         return $query->with([
-            'instructors' => fn($query) => $query->withTrashed()
+            'instructors' => fn ($query) => $query->withTrashed(),
         ])->withTrashed();
     }
 
     public function scopeOnlyTrashedRelationsFilter($query)
     {
         return $query->with([
-            'instructors' => fn($query) => $query->withTrashed(),
-            'assists' => fn($query) => $query->select('training_group_id', 'year')
+            'instructors' => fn ($query) => $query->withTrashed(),
+            'assists' => fn ($query) => $query->select('training_group_id', 'year')
                 ->distinct()
                 ->where('year', '<', now()->year)
                 ->orderBy('year', 'desc')
-                ->withTrashed()
+                ->withTrashed(),
         ])->withTrashed();
     }
 
     public function scopeOnlyTrashedRelationsPayments($query)
     {
         return $query->with([
-            'payments' => fn($query) => $query->select('training_group_id', 'year')
+            'payments' => fn ($query) => $query->select('training_group_id', 'year')
                 ->distinct()
                 ->where('year', '<', now()->year)
                 ->orderBy('year', 'desc')
-                ->withTrashed()
+                ->withTrashed(),
         ])->withTrashed();
     }
 
     public function getExplodeNameAttribute(): Collection
     {
-        if(property_exists($this, 'days') && $this->days !== null) {
+        if (property_exists($this, 'days') && $this->days !== null) {
 
-            $explode = explode(",", $this->days);
+            $explode = explode(',', $this->days);
+
             return collect([
                 'days' => $explode,
-                'count_days' => count($explode)
+                'count_days' => count($explode),
             ]);
         }
 
@@ -216,6 +220,7 @@ class TrainingGroup extends Model
         if ($this->relationLoaded('instructors')) {
             return $this->instructors->implode('name', ', ');
         }
+
         return '';
     }
 
@@ -224,6 +229,7 @@ class TrainingGroup extends Model
         if ($this->relationLoaded('instructors')) {
             return $this->instructors->pluck('id');
         }
+
         return [];
     }
 
@@ -287,5 +293,4 @@ class TrainingGroup extends Model
     {
         return $this->hasManyThrough(Player::class, Inscription::class, 'complementary_group_id', 'id', 'id', 'player_id')->where('inscriptions.year', now()->year);
     }
-
 }

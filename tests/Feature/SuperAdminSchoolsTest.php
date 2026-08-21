@@ -237,6 +237,60 @@ final class SuperAdminSchoolsTest extends TestCase
         $this->assertFalse($school->send_debt_notifications);
     }
 
+    public function test_group_monthly_payment_option_requires_tariffs_for_billable_groups(): void
+    {
+        $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
+        $school = School::query()->findOrFail($this->school['id']);
+        $group = TrainingGroup::query()->create([
+            'school_id' => $school->id,
+            'name' => 'Grupo sin tarifa',
+            'year_active' => now()->year,
+            'is_complementary' => false,
+        ]);
+        TrainingGroup::query()->create([
+            'school_id' => $school->id,
+            'name' => 'Complementario sin tarifa',
+            'year_active' => now()->year,
+            'is_complementary' => true,
+        ]);
+        TrainingGroup::query()->create([
+            'school_id' => $school->id,
+            'name' => 'Grupo anterior sin tarifa',
+            'year_active' => now()->year - 1,
+            'is_complementary' => false,
+        ]);
+
+        $payload = [
+            '_method' => 'PUT',
+            'name' => $school->name,
+            'agent' => $school->agent,
+            'address' => $school->address,
+            'phone' => $school->phone,
+            'email' => $school->email,
+            'is_enable' => '1',
+            'is_campus' => false,
+            'training_group_monthly_payment_enabled' => '1',
+        ];
+
+        $this->actingAs($superAdmin)
+            ->withHeader('Accept', 'application/json')
+            ->post("/api/v2/admin/schools/{$school->slug}", $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('training_group_monthly_payment_enabled')
+            ->assertJsonMissing(['Complementario sin tarifa'])
+            ->assertJsonMissing(['Grupo anterior sin tarifa']);
+
+        $group->update(['monthly_payment_amount' => 85000]);
+
+        $this->actingAs($superAdmin)
+            ->withHeader('Accept', 'application/json')
+            ->post("/api/v2/admin/schools/{$school->slug}", $payload)
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertTrue($school->fresh()->training_group_monthly_payment_enabled);
+    }
+
     public function test_super_admin_can_change_category_format_and_convert_existing_data(): void
     {
         Carbon::setTestNow(Carbon::create(2026, 8, 12));

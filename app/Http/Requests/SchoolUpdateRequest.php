@@ -24,6 +24,11 @@ class SchoolUpdateRequest extends FormRequest
      */
     public function rules()
     {
+        $groupPricingEnabled = (bool) getSchool(auth()->user())->training_group_monthly_payment_enabled;
+        $legacyOptionRules = $groupPricingEnabled
+            ? ['prohibited']
+            : ['required', 'string'];
+
         return [
             'name' => ['required', 'string'],
             'agent' => ['required', 'string'],
@@ -35,14 +40,15 @@ class SchoolUpdateRequest extends FormRequest
             'INSCRIPTION_AMOUNT' => ['required', 'string'],
             'MONTHLY_PAYMENT' => ['required', 'string'],
             'BROTHER_MONTHLY_PAYMENT' => ['required', 'string'],
-            'MONTHLY_PAYMENT_OPTION_1' => ['required', 'string'],
-            'MONTHLY_PAYMENT_OPTION_2' => ['required', 'string'],
-            'MONTHLY_PAYMENT_OPTION_3' => ['required', 'string'],
+            'MONTHLY_PAYMENT_OPTION_1' => $legacyOptionRules,
+            'MONTHLY_PAYMENT_OPTION_2' => $legacyOptionRules,
+            'MONTHLY_PAYMENT_OPTION_3' => $legacyOptionRules,
             'ANNUITY' => ['required', 'string'],
             'create_contract' => ['prohibited'],
             'send_debt_notifications' => ['prohibited'],
             'send_documents' => ['prohibited'],
             'send_monthly_payment_receipts' => ['prohibited'],
+            'training_group_monthly_payment_enabled' => ['prohibited'],
             'tutor_platform' => ['prohibited'],
             'sign_player' => ['prohibited'],
             'inscriptions_enabled' => ['prohibited'],
@@ -58,12 +64,17 @@ class SchoolUpdateRequest extends FormRequest
             'INSCRIPTION_AMOUNT' => $this->cleanString($this->INSCRIPTION_AMOUNT),
             'MONTHLY_PAYMENT' => $this->cleanString($this->MONTHLY_PAYMENT),
             'BROTHER_MONTHLY_PAYMENT' => $this->cleanString($this->BROTHER_MONTHLY_PAYMENT),
-            'MONTHLY_PAYMENT_OPTION_1' => $this->cleanString($this->MONTHLY_PAYMENT_OPTION_1),
-            'MONTHLY_PAYMENT_OPTION_2' => $this->cleanString($this->MONTHLY_PAYMENT_OPTION_2),
-            'MONTHLY_PAYMENT_OPTION_3' => $this->cleanString($this->MONTHLY_PAYMENT_OPTION_3),
             'ANNUITY' => $this->cleanString($this->ANNUITY),
             'logo' => $this->hasFile('logo') ? $this->logo : null,
         ];
+
+        if (! getSchool(auth()->user())->training_group_monthly_payment_enabled) {
+            $data += [
+                'MONTHLY_PAYMENT_OPTION_1' => $this->cleanString($this->MONTHLY_PAYMENT_OPTION_1),
+                'MONTHLY_PAYMENT_OPTION_2' => $this->cleanString($this->MONTHLY_PAYMENT_OPTION_2),
+                'MONTHLY_PAYMENT_OPTION_3' => $this->cleanString($this->MONTHLY_PAYMENT_OPTION_3),
+            ];
+        }
 
         $this->merge($data);
     }

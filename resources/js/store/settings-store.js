@@ -60,6 +60,7 @@ export const useSetting = defineStore('settings-store', {
         training_session_specific_goals: [],
         training_session_contents: [],
         training_session_tasks: [],
+        training_group_monthly_payment_enabled: false,
         settings: {},
     }),
     getters: {
@@ -112,6 +113,7 @@ export const useSetting = defineStore('settings-store', {
             this.training_session_specific_goals = normalizeOptionList(data.training_session_specific_goals)
             this.training_session_contents = normalizeOptionList(data.training_session_contents)
             this.training_session_tasks = normalizeOptionList(data.training_session_tasks)
+            this.training_group_monthly_payment_enabled = Boolean(data.training_group_monthly_payment_enabled)
             this.settings = data.settings ?? {}
         }
     }
@@ -120,6 +122,7 @@ export const useSetting = defineStore('settings-store', {
 
 export const useSettingGroups = defineStore('settings-groups-store', {
     state: () => ({
+        training_group_monthly_payment_enabled: false,
         users: [],
         year_active: [],
         schedules: [],
@@ -133,6 +136,7 @@ export const useSettingGroups = defineStore('settings-groups-store', {
         },
         async getGroupSettings()  {
             const response = await api.get('/api/v2/settings/groups')
+            this.training_group_monthly_payment_enabled = Boolean(response.data.training_group_monthly_payment_enabled)
             const data = response?.data ?? {}
 
             this.users = normalizeOptionList(data.users)

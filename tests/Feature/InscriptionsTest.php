@@ -584,6 +584,131 @@ final class InscriptionsTest extends TestCase
         }
     }
 
+    public function test_group_pricing_uses_backend_group_tariff_and_preserves_the_snapshot_on_later_group_changes(): void
+    {
+        Mail::fake();
+        Notification::fake();
+        Carbon::setTestNow('2026-03-15 10:00:00');
+
+        try {
+            $school = School::query()->findOrFail($this->school['id']);
+            $school->update(['training_group_monthly_payment_enabled' => true]);
+            $firstGroup = TrainingGroup::query()->create([
+                'school_id' => $school->id,
+                'name' => 'Grupo tarifa 85',
+                'year_active' => 2026,
+                'monthly_payment_amount' => 85000,
+            ]);
+            $secondGroup = TrainingGroup::query()->create([
+                'school_id' => $school->id,
+                'name' => 'Grupo tarifa 95',
+                'year_active' => 2026,
+                'monthly_payment_amount' => 95000,
+            ]);
+            $player = Player::factory()->create(['school_id' => $school->id]);
+
+            $this->actingAs($this->user)
+                ->postJson(route('inscriptions.store'), [
+                    'unique_code' => $player->unique_code,
+                    'player_id' => $player->id,
+                    'start_date' => '2026-03-15',
+                    'training_group_id' => $firstGroup->id,
+                    'monthly_payment_type' => Setting::BROTHER_MONTHLY_PAYMENT,
+                ])
+                ->assertOk()
+                ->assertJsonPath('success', true);
+
+            $inscription = Inscription::query()->where('player_id', $player->id)->firstOrFail();
+            $payment = $inscription->payments()->firstOrFail();
+
+            $this->assertSame(Inscription::TRAINING_GROUP_MONTHLY_PAYMENT, $inscription->monthly_payment_type);
+            $this->assertSame(85000, $inscription->monthly_payment_amount);
+            $this->assertSame(85000, (int) $payment->march_amount);
+
+            $this->actingAs($this->user)
+                ->putJson(route('inscriptions.update', $inscription), [
+                    'unique_code' => $player->unique_code,
+                    'player_id' => $player->id,
+                    'start_date' => '2026-03-15',
+                    'training_group_id' => $secondGroup->id,
+                    'recalculate_monthly_payments' => true,
+                ])
+                ->assertOk()
+                ->assertJsonPath('success', true);
+
+            $this->assertSame(85000, $inscription->fresh()->monthly_payment_amount);
+            $this->assertSame(85000, (int) $payment->fresh()->march_amount);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_assigning_a_definitive_group_initializes_a_provisional_group_tariff_once(): void
+    {
+        Mail::fake();
+        Notification::fake();
+        Carbon::setTestNow('2026-03-15 10:00:00');
+
+        try {
+            $school = School::query()->findOrFail($this->school['id']);
+            $school->update(['training_group_monthly_payment_enabled' => true]);
+            $group = TrainingGroup::query()->create([
+                'school_id' => $school->id,
+                'name' => 'Grupo definitivo tarifa',
+                'year_active' => 2026,
+                'monthly_payment_amount' => 88000,
+            ]);
+            $player = Player::factory()->create(['school_id' => $school->id]);
+
+            $this->actingAs($this->user)
+                ->postJson(route('inscriptions.store'), [
+                    'unique_code' => $player->unique_code,
+                    'player_id' => $player->id,
+                    'start_date' => '2026-03-15',
+                ])
+                ->assertOk();
+
+            $inscription = Inscription::query()->where('player_id', $player->id)->firstOrFail();
+            $payment = $inscription->payments()->firstOrFail();
+            $payment->forceFill([
+                'april' => Payment::$pending,
+                'april_amount' => 0,
+                'may' => Payment::$paid,
+                'may_amount' => 12345,
+            ])->save();
+
+            $this->assertNull($inscription->monthly_payment_amount);
+            $this->assertSame(0, (int) $payment->march_amount);
+
+            $this->actingAs($this->user)
+                ->putJson(route('inscriptions.update', $inscription), [
+                    'unique_code' => $player->unique_code,
+                    'player_id' => $player->id,
+                    'start_date' => '2026-03-15',
+                    'training_group_id' => $group->id,
+                ])
+                ->assertOk()
+                ->assertJsonPath('success', true);
+
+            $inscription->refresh();
+            $payment->refresh();
+
+            $this->assertSame(Inscription::TRAINING_GROUP_MONTHLY_PAYMENT, $inscription->monthly_payment_type);
+            $this->assertSame(88000, $inscription->monthly_payment_amount);
+            $this->assertSame(88000, (int) $payment->march_amount);
+            $this->assertSame(88000, (int) $payment->april_amount);
+            $this->assertSame(12345, (int) $payment->may_amount);
+            $this->assertDatabaseHas('payment_change_logs', [
+                'payment_id' => $payment->id,
+                'field' => 'march',
+                'source' => 'inscription_group_tariff',
+                'new_amount' => 88000,
+            ]);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
     public function test_create_inscription_allows_manual_pre_inscription_outside_provisional_group(): void
     {
         Mail::fake();

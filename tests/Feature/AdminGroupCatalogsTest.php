@@ -246,6 +246,59 @@ final class AdminGroupCatalogsTest extends TestCase
             ->assertJsonPath('data.is_complementary', true);
     }
 
+    public function test_training_group_tariff_can_be_preconfigured_and_is_required_when_enabled(): void
+    {
+        $payload = [
+            'name' => 'Grupo con tarifa',
+            'stage' => 'Cancha Norte',
+            'users_id' => [$this->user->id],
+            'categories' => [],
+            'schedules' => ['07:00AM - 08:00AM'],
+            'days' => ['Lunes'],
+            'year_active' => now()->year,
+            'is_complementary' => false,
+            'monthly_payment_amount' => '$ 85.000',
+        ];
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/training_groups', $payload)
+            ->assertOk();
+
+        $group = TrainingGroup::query()->where('name', 'Grupo con tarifa')->firstOrFail();
+        $this->assertSame(85000, $group->monthly_payment_amount);
+
+        $this->actingAs($this->user)
+            ->getJson("/api/v2/admin/training_groups/{$group->id}")
+            ->assertOk()
+            ->assertJsonPath('data.monthly_payment_amount', 85000);
+
+        School::query()->findOrFail($this->school['id'])
+            ->update(['training_group_monthly_payment_enabled' => true]);
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/training_groups', [
+                ...$payload,
+                'name' => 'Grupo sin tarifa activo',
+                'monthly_payment_amount' => null,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('monthly_payment_amount');
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/training_groups', [
+                ...$payload,
+                'name' => 'Complementario activo',
+                'is_complementary' => true,
+                'monthly_payment_amount' => 99999,
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseHas('training_groups', [
+            'name' => 'Complementario activo',
+            'monthly_payment_amount' => null,
+        ]);
+    }
+
     public function test_training_group_creation_clears_school_group_cache_keys(): void
     {
         $schoolId = $this->school['id'];

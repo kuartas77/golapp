@@ -21,6 +21,7 @@ const defaultValues = () => ({
     send_documents: false,
     send_monthly_payment_receipts: false,
     send_debt_notifications: false,
+    training_group_monthly_payment_enabled: false,
     instructor_monthly_edit_lock_enabled: false,
     category_format: 'sub_age',
 })
@@ -67,6 +68,7 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
         send_documents: yup.boolean().default(false),
         send_monthly_payment_receipts: yup.boolean().default(false),
         send_debt_notifications: yup.boolean().default(false),
+        training_group_monthly_payment_enabled: yup.boolean().default(false),
         instructor_monthly_edit_lock_enabled: yup.boolean().default(false),
         category_format: yup.string().oneOf(['sub_age', 'birth_year']).required(),
         multiple_schools: yup.array()
@@ -104,6 +106,7 @@ export default function useSuperAdminSchoolForm(mode = 'create') {
         send_documents: Boolean(payload.send_documents),
         send_monthly_payment_receipts: Boolean(payload.send_monthly_payment_receipts),
         send_debt_notifications: Boolean(payload.send_debt_notifications),
+        training_group_monthly_payment_enabled: Boolean(payload.training_group_monthly_payment_enabled),
         instructor_monthly_edit_lock_enabled: Boolean(payload.instructor_monthly_edit_lock_enabled),
         category_format: payload.category_format ?? 'sub_age',
     })

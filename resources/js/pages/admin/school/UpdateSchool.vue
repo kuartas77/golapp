@@ -81,17 +81,17 @@
                                 </div>
                                 <div class="col-md-6 col-xl-4">
                                     <div class="form-group">
-                                        <inputField label="Mensualidad 5 días" name="MONTHLY_PAYMENT_OPTION_1" :currency="true" :is-required="true" />
+                                        <inputField label="Mensualidad 5 días" name="MONTHLY_PAYMENT_OPTION_1" :currency="true" :is-required="!values.training_group_monthly_payment_enabled" :disabled="values.training_group_monthly_payment_enabled" />
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-xl-4">
                                     <div class="form-group">
-                                        <inputField label="Mensualidad 4 días" name="MONTHLY_PAYMENT_OPTION_2" :currency="true" :is-required="true" />
+                                        <inputField label="Mensualidad 4 días" name="MONTHLY_PAYMENT_OPTION_2" :currency="true" :is-required="!values.training_group_monthly_payment_enabled" :disabled="values.training_group_monthly_payment_enabled" />
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-xl-4">
                                     <div class="form-group">
-                                        <inputField label="Mensualidad 3 días" name="MONTHLY_PAYMENT_OPTION_3" :currency="true" :is-required="true" />
+                                        <inputField label="Mensualidad 3 días" name="MONTHLY_PAYMENT_OPTION_3" :currency="true" :is-required="!values.training_group_monthly_payment_enabled" :disabled="values.training_group_monthly_payment_enabled" />
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-xl-4">
@@ -142,6 +142,9 @@
                                 </div>
                                 <div class="col-md-6 col-xl">
                                     <checkbox label="Enviar recibos de mensualidad?" name="send_monthly_payment_receipts" disabled />
+                                </div>
+                                <div class="col-md-6 col-xl">
+                                    <checkbox label="Tarifa mensual por grupo" name="training_group_monthly_payment_enabled" disabled />
                                 </div>
                                 <div class="col-md-6 col-xl">
                                     <checkbox label="Limitar edición de instructores al mes actual" name="INSTRUCTOR_MONTH_LOCK_ENABLED" disabled />

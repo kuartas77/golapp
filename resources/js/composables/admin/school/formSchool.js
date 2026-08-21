@@ -14,9 +14,6 @@ const editableFields = [
     'INSCRIPTION_AMOUNT',
     'MONTHLY_PAYMENT',
     'BROTHER_MONTHLY_PAYMENT',
-    'MONTHLY_PAYMENT_OPTION_1',
-    'MONTHLY_PAYMENT_OPTION_2',
-    'MONTHLY_PAYMENT_OPTION_3',
     'ANNUITY',
 ]
 
@@ -39,6 +36,7 @@ export default function useFormSchool() {
         send_documents: false,
         send_monthly_payment_receipts: false,
         send_debt_notifications: false,
+        training_group_monthly_payment_enabled: false,
         INSTRUCTOR_MONTH_LOCK_ENABLED: false,
         CATEGORY_FORMAT: 'sub_age',
         tutor_platform: false,
@@ -64,9 +62,21 @@ export default function useFormSchool() {
         INSCRIPTION_AMOUNT: yup.string().required(),
         MONTHLY_PAYMENT: yup.string().required(),
         BROTHER_MONTHLY_PAYMENT: yup.string().required(),
-        MONTHLY_PAYMENT_OPTION_1: yup.string().required(),
-        MONTHLY_PAYMENT_OPTION_2: yup.string().required(),
-        MONTHLY_PAYMENT_OPTION_3: yup.string().required(),
+        MONTHLY_PAYMENT_OPTION_1: yup.string().when('training_group_monthly_payment_enabled', {
+            is: false,
+            then: (currentSchema) => currentSchema.required(),
+            otherwise: (currentSchema) => currentSchema.nullable(),
+        }),
+        MONTHLY_PAYMENT_OPTION_2: yup.string().when('training_group_monthly_payment_enabled', {
+            is: false,
+            then: (currentSchema) => currentSchema.required(),
+            otherwise: (currentSchema) => currentSchema.nullable(),
+        }),
+        MONTHLY_PAYMENT_OPTION_3: yup.string().when('training_group_monthly_payment_enabled', {
+            is: false,
+            then: (currentSchema) => currentSchema.required(),
+            otherwise: (currentSchema) => currentSchema.nullable(),
+        }),
         ANNUITY: yup.string().required(),
         CATEGORY_FORMAT: yup.string().oneOf(['sub_age', 'birth_year']).required(),
         logo: yup.mixed(),
@@ -93,6 +103,7 @@ export default function useFormSchool() {
             send_documents: response.data.send_documents,
             send_monthly_payment_receipts: response.data.send_monthly_payment_receipts,
             send_debt_notifications: response.data.send_debt_notifications,
+            training_group_monthly_payment_enabled: Boolean(response.data.training_group_monthly_payment_enabled),
             INSTRUCTOR_MONTH_LOCK_ENABLED: Boolean(Number(response.data.settings.INSTRUCTOR_MONTH_LOCK_ENABLED ?? 0)),
             CATEGORY_FORMAT: response.data.settings.CATEGORY_FORMAT ?? 'sub_age',
             tutor_platform: response.data.tutor_platform,
@@ -135,7 +146,11 @@ export default function useFormSchool() {
         try {
             const formData = new FormData();
             formData.append('_method', 'PUT')
-            for (const key of editableFields) {
+            const priceOptionFields = values.training_group_monthly_payment_enabled
+                ? []
+                : ['MONTHLY_PAYMENT_OPTION_1', 'MONTHLY_PAYMENT_OPTION_2', 'MONTHLY_PAYMENT_OPTION_3']
+
+            for (const key of [...editableFields, ...priceOptionFields]) {
                 if (Object.prototype.hasOwnProperty.call(values, key)) {
                     const value = values[key];
                     // Append files or other data to FormData

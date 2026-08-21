@@ -54,6 +54,14 @@ final class CreateInscriptionAction implements IContractPassable
             );
         }
 
+        if ($existingInscription?->monthly_payment_amount !== null) {
+            unset(
+                $this->attributes['monthly_payment_type'],
+                $this->attributes['monthly_payment_amount'],
+                $this->attributes['brother_payment']
+            );
+        }
+
         $this->inscription = Inscription::query()->withTrashed()->updateOrCreate([
             'unique_code' => $this->attributes['unique_code'],
             'year' => $this->attributes['year'],
@@ -69,7 +77,7 @@ final class CreateInscriptionAction implements IContractPassable
     {
         $startDate = in_array(now()->month, [11, 12]) ? now()->month(1)->day(15)->addYear() : now();
 
-        return [
+        $attributes = [
             'player_id' => $this->player->id,
             'unique_code' => $this->player->unique_code,
             'year' => $startDate->year,
@@ -107,5 +115,13 @@ final class CreateInscriptionAction implements IContractPassable
             'school_id' => $this->school->id,
             'delete_at' => null,
         ];
+
+        if ($this->school->training_group_monthly_payment_enabled) {
+            $attributes['monthly_payment_type'] = Inscription::TRAINING_GROUP_MONTHLY_PAYMENT;
+            $attributes['monthly_payment_amount'] = null;
+            $attributes['brother_payment'] = false;
+        }
+
+        return $attributes;
     }
 }

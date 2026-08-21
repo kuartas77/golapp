@@ -196,6 +196,9 @@
                             <checkbox label="Enviar notificaciones de deuda automáticamente" name="send_debt_notifications" v-tooltip.top="'Habilita el envío automático de correos de deuda en el día configurado por la escuela.'" />
                         </div>
                         <div class="col-md-6 col-xl">
+                            <checkbox label="Tarifa mensual por grupo" name="training_group_monthly_payment_enabled" v-tooltip.top="'Usa la tarifa del grupo principal para las nuevas inscripciones. Requiere que todos los grupos principales, excepto Provisional, tengan una tarifa configurada.'" />
+                        </div>
+                        <div class="col-md-6 col-xl">
                             <checkbox label="Limitar edición de instructores al mes actual" name="instructor_monthly_edit_lock_enabled" v-tooltip.top="'Cuando está activo, los instructores sólo pueden modificar registros operativos del mes calendario actual.'" />
                         </div>
                     </div>

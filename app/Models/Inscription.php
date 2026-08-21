@@ -44,12 +44,14 @@ use Illuminate\Support\Collection;
  */
 class Inscription extends Model
 {
-    use SoftDeletes;
+    public const TRAINING_GROUP_MONTHLY_PAYMENT = 'TRAINING_GROUP_MONTHLY_PAYMENT';
+
+    use CustomModelLogic;
     use GeneralScopes;
     use HasFactory;
-    use CustomModelLogic;
+    use SoftDeletes;
 
-    protected $table = "inscriptions";
+    protected $table = 'inscriptions';
 
     protected $fillable = [
         'id',
@@ -93,8 +95,8 @@ class Inscription extends Model
     ];
 
     protected $casts = [
-        'start_date' => "datetime:Y-m-d",
-        'created_at' => "datetime:Y-m-d",
+        'start_date' => 'datetime:Y-m-d',
+        'created_at' => 'datetime:Y-m-d',
         'scholarship' => 'boolean',
         'pre_inscription' => 'boolean',
         'brother_payment' => 'boolean',
@@ -108,10 +110,10 @@ class Inscription extends Model
         'player_document',
         'medical_certificate',
         'tutor_document',
-        'payment_receipt'
+        'payment_receipt',
     ];
 
-    protected $appends = [/*'url_edit','url_update','url_show', */'url_impression', 'url_destroy', 'url_invoice'];
+    protected $appends = [/* 'url_edit','url_update','url_show', */ 'url_impression', 'url_destroy', 'url_invoice'];
 
     protected static function booted()
     {
@@ -131,12 +133,12 @@ class Inscription extends Model
     public function scopeWithTrashedRelations($query)
     {
         return $query->withTrashed()->with([
-            'payments' => fn($query) => $query->withTrashed(),
-            'assistance' => fn($query) => $query
+            'payments' => fn ($query) => $query->withTrashed(),
+            'assistance' => fn ($query) => $query
                 ->with(['trainingGroup' => fn ($groupQuery) => $groupQuery->withTrashed()])
                 ->orderByRaw("MONTH(CONCAT('2000-', assists.month, '-01')) asc")
                 ->withTrashed(),
-            'skillsControls' => fn($query) => $query->withTrashed()
+            'skillsControls' => fn ($query) => $query->withTrashed(),
         ]);
     }
 
@@ -271,6 +273,6 @@ class Inscription extends Model
 
     public function scopeYear($query, ?int $year = null): void
     {
-        $query->where('year', ($year !== null && $year !== 0 ? $year : now()->year) );
+        $query->where('year', ($year !== null && $year !== 0 ? $year : now()->year));
     }
 }

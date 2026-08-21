@@ -73,7 +73,13 @@ class PaymentAmountResolver
     {
         $inscription->loadMissing('school.settingsValues');
 
-        if (!$inscription->school) {
+        if ($inscription->monthly_payment_type === Inscription::TRAINING_GROUP_MONTHLY_PAYMENT) {
+            return $inscription->monthly_payment_amount === null
+                ? 0
+                : $this->normalizeAmountValue($inscription->monthly_payment_amount);
+        }
+
+        if (! $inscription->school) {
             return self::DEFAULT_MONTHLY_PAYMENT;
         }
 

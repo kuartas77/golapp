@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Groups;
 
+use App\Models\Inscription;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
-use App\Models\Inscription;
 
 class TrainingGroupRequest extends FormRequest
 {
@@ -35,6 +35,7 @@ class TrainingGroupRequest extends FormRequest
             'school_id' => ['required'],
             'year_active' => ['required'],
             'is_complementary' => ['nullable', 'boolean'],
+            'monthly_payment_amount' => ['nullable', 'integer', 'min:1'],
             // 'years' => ['required', 'array'],
             // 'year_two' => ['nullable'],
             // 'year_three' => ['nullable'],
@@ -60,12 +61,27 @@ class TrainingGroupRequest extends FormRequest
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
             'is_complementary' => $this->boolean('is_complementary'),
+            'monthly_payment_amount' => $this->normalizeMonthlyPaymentAmount(),
         ]);
     }
 
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
+            $school = getSchool(auth()->user());
+
+            if (
+                $school->training_group_monthly_payment_enabled
+                && ! $this->boolean('is_complementary')
+                && $this->input('name') !== 'Provisional'
+                && ! $this->input('monthly_payment_amount')
+            ) {
+                $validator->errors()->add(
+                    'monthly_payment_amount',
+                    'La tarifa mensual es obligatoria mientras la tarifa por grupo esté activa.'
+                );
+            }
+
             if (! $this->boolean('is_complementary')) {
                 return;
             }
@@ -90,5 +106,16 @@ class TrainingGroupRequest extends FormRequest
                 );
             }
         });
+    }
+
+    private function normalizeMonthlyPaymentAmount(): ?int
+    {
+        if ($this->boolean('is_complementary') || $this->input('name') === 'Provisional') {
+            return null;
+        }
+
+        $amount = preg_replace('/[^0-9]/', '', (string) $this->input('monthly_payment_amount'));
+
+        return $amount === '' ? null : (int) $amount;
     }
 }

@@ -99,6 +99,7 @@ class TrainingGroupRepository
             'school_id' => $formRequest->input('school_id'),
             'year_active' => $formRequest->input('year_active'),
             'is_complementary' => $formRequest->boolean('is_complementary'),
+            'monthly_payment_amount' => $formRequest->input('monthly_payment_amount'),
         ];
 
         if (Schema::hasColumn('training_groups', 'user_id') && ! blank($formRequest->input('user_id'))) {
@@ -172,7 +173,7 @@ class TrainingGroupRepository
             'schedules', 'days', 'year_two', 'year_three',
             'year_four', 'year_five', 'year_six', 'year_seven',
             'year_eight', 'year_nine', 'year_ten', 'year_eleven',
-            'year_twelve', 'year_active', 'is_complementary',
+            'year_twelve', 'year_active', 'is_complementary', 'monthly_payment_amount',
         ])->withCount('members');
         if ($deleted) {
             $query->onlyTrashedRelations()

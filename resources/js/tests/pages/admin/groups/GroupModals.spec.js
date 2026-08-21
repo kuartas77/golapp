@@ -15,6 +15,7 @@ const { apiMock, settingsStore } = vi.hoisted(() => ({
         },
     },
     settingsStore: {
+        training_group_monthly_payment_enabled: false,
         users: [],
         year_active: [],
         schedules: [],
@@ -103,6 +104,7 @@ describe('Admin group modals', () => {
         apiMock.get.mockReset();
         apiMock.post.mockReset();
         settingsStore.getGroupSettings.mockClear();
+        settingsStore.training_group_monthly_payment_enabled = false;
         settingsStore.users = [];
         settingsStore.year_active = [];
         settingsStore.schedules = [];
@@ -146,6 +148,26 @@ describe('Admin group modals', () => {
         expect(wrapper.find('input[aria-label="Escenario"]').exists()).toBe(true);
         expect(wrapper.find('input[aria-label="Lugar de entrenamiento"]').exists()).toBe(false);
         expect(wrapper.find('label[for="years"] + span.text-danger').exists()).toBe(false);
+    });
+
+    it('shows the group tariff only for principal groups and marks it required when enabled', async () => {
+        settingsStore.training_group_monthly_payment_enabled = true;
+
+        const wrapper = await mountModal(ModalTrainingGroup);
+
+        expect(wrapper.find('#monthly_payment_amount').exists()).toBe(true);
+        expect(wrapper.get('label[for="monthly_payment_amount"]').text()).toContain('(*)');
+
+        wrapper.vm.$.setupState.form.setFieldValue('is_complementary', true);
+        await flushPromises();
+
+        expect(wrapper.find('#monthly_payment_amount').exists()).toBe(false);
+    });
+
+    it('hides the group tariff when the platform option is disabled', async () => {
+        const wrapper = await mountModal(ModalTrainingGroup);
+
+        expect(wrapper.find('#monthly_payment_amount').exists()).toBe(false);
     });
 
     it('submits training groups without selected categories', async () => {

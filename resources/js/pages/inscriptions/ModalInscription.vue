@@ -68,17 +68,33 @@
 
                                     <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
-                                    <label for="monthly_payment_type">Tarifa mensual:</label>
-                                    <Field name="monthly_payment_type" v-slot="{ field, handleChange }">
-                                        <CustomSelect2
-                                            id="monthly_payment_type"
-                                            :options="monthlyPaymentOptions"
-                                            :modelValue="field.value"
-                                            :clearable="false"
-                                            @update:modelValue="handleChange"
-                                        />
-                                    </Field>
-                                    <ErrorMessage name="monthly_payment_type" class="custom-error" />
+                                    <template v-if="isTrainingGroupPricingEnabled">
+                                        <label for="training_group_monthly_payment">
+                                            {{ isEditing || isReactivationMode ? 'Tarifa mensual aplicada:' : 'Tarifa mensual:' }}
+                                        </label>
+                                        <input
+                                            id="training_group_monthly_payment"
+                                            class="form-control form-control-sm"
+                                            :value="groupMonthlyPaymentDisplay"
+                                            readonly
+                                        >
+                                        <small class="form-text text-muted">
+                                            {{ groupMonthlyPaymentHelp }}
+                                        </small>
+                                    </template>
+                                    <template v-else>
+                                        <label for="monthly_payment_type">Tarifa mensual:</label>
+                                        <Field name="monthly_payment_type" v-slot="{ field, handleChange }">
+                                            <CustomSelect2
+                                                id="monthly_payment_type"
+                                                :options="monthlyPaymentOptions"
+                                                :modelValue="field.value"
+                                                :clearable="false"
+                                                @update:modelValue="handleChange"
+                                            />
+                                        </Field>
+                                        <ErrorMessage name="monthly_payment_type" class="custom-error" />
+                                    </template>
                                     <div
                                         v-if="showRecalculateMonthlyPaymentsOption"
                                         class="custom-control custom-checkbox mt-2"
@@ -171,8 +187,8 @@
                                     <strong>Pre-Inscripción</strong>
                                 </h6>
                                 <div
-                                    class="rounded border p-2 mb-2"
-                                    :class="preInscriptionAutoReason ? 'bg-light border-warning' : 'bg-light border-secondary'"
+                                    class="inscription-status-card rounded border p-2 mb-2"
+                                    :class="preInscriptionAutoReason ? 'border-warning' : 'border-secondary'"
                                 >
                                     <small class="d-block text-uppercase fw-semibold mb-1">
                                         {{ preInscriptionStatusTitle }}
@@ -348,6 +364,7 @@ const composeModalInscription = ref(null);
 const currentTrainingGroupId = ref(null);
 const currentPreInscription = ref(false);
 const originalMonthlyPaymentType = ref(null);
+const appliedMonthlyPaymentAmount = ref(null);
 const reactivationCandidate = ref(null);
 const customChargeCatalog = ref([]);
 const existingCustomCharges = ref([]);
@@ -367,6 +384,7 @@ const selectedInscriptionYear = computed(() => {
     return Number.isInteger(year) && year > 0 ? year : dayjs().year()
 });
 const isReactivationMode = computed(() => !isEditing.value && Boolean(reactivationCandidate.value?.id));
+const isTrainingGroupPricingEnabled = computed(() => settings.training_group_monthly_payment_enabled);
 const monthlyPaymentDefinitions = [
     { value: 'MONTHLY_PAYMENT', label: 'Mensualidad por defecto' },
     { value: 'BROTHER_MONTHLY_PAYMENT', label: 'Mensualidad hermano' },
@@ -393,7 +411,8 @@ const monthlyPaymentOptions = computed(() => monthlyPaymentDefinitions
     })));
 const selectedMonthlyPaymentType = computed(() => form.value?.values?.monthly_payment_type ?? null);
 const showRecalculateMonthlyPaymentsOption = computed(() => (
-    isEditing.value
+    !isTrainingGroupPricingEnabled.value
+    && isEditing.value
     && originalMonthlyPaymentType.value !== null
     && selectedMonthlyPaymentType.value !== null
     && selectedMonthlyPaymentType.value !== originalMonthlyPaymentType.value
@@ -410,11 +429,38 @@ const isProvisionalTrainingGroup = (trainingGroupId) => (
 const mapTrainingGroupOption = (group) => ({
     value: String(group.value ?? group.id),
     label: group.label ?? group.name ?? group.full_schedule_group ?? group.full_group ?? String(group.value ?? group.id),
+    ...(Object.prototype.hasOwnProperty.call(group, 'monthly_payment_amount')
+        ? { monthly_payment_amount: group.monthly_payment_amount == null ? null : Number(group.monthly_payment_amount) }
+        : {}),
 })
 const trainingGroups = computed(() => (settings.normal_training_groups.length ? settings.normal_training_groups : settings.groups)
     .filter((group) => !isProvisionalTrainingGroup(group.value ?? group.id))
     .map(mapTrainingGroupOption));
 const complementaryTrainingGroups = computed(() => settings.complementary_training_groups.map(mapTrainingGroupOption));
+const selectedTrainingGroup = computed(() => trainingGroups.value.find(
+    (group) => String(group.value) === String(currentTrainingGroupId.value)
+));
+const displayedGroupMonthlyPaymentAmount = computed(() => {
+    if ((isEditing.value || isReactivationMode.value) && appliedMonthlyPaymentAmount.value !== null) {
+        return Number(appliedMonthlyPaymentAmount.value)
+    }
+
+    return selectedTrainingGroup.value?.monthly_payment_amount ?? null
+});
+const groupMonthlyPaymentDisplay = computed(() => displayedGroupMonthlyPaymentAmount.value > 0
+    ? formatMoney(displayedGroupMonthlyPaymentAmount.value)
+    : '');
+const groupMonthlyPaymentHelp = computed(() => {
+    if ((isEditing.value || isReactivationMode.value) && appliedMonthlyPaymentAmount.value !== null) {
+        return 'Se conserva la tarifa histórica de esta inscripción.'
+    }
+
+    if (!selectedTrainingGroup.value) {
+        return 'Sin tarifa hasta asignar un grupo definitivo.'
+    }
+
+    return 'La tarifa se toma del grupo principal seleccionado.'
+});
 const hasTrainingGroupSelected = computed(() => ![null, '', undefined].includes(currentTrainingGroupId.value));
 const preInscriptionAutoReason = computed(() => {
     if (!hasTrainingGroupSelected.value) {
@@ -502,6 +548,21 @@ const resolveMonthlyPaymentType = (type, brotherPayment = false) => {
     }
 
     return options[0]?.value ?? null
+}
+
+const resolveAppliedMonthlyPaymentAmount = (inscription) => {
+    if (inscription?.monthly_payment_amount != null) {
+        return Number(inscription.monthly_payment_amount)
+    }
+
+    if (inscription?.monthly_payment_type === 'TRAINING_GROUP_MONTHLY_PAYMENT') {
+        return null
+    }
+
+    const type = resolveMonthlyPaymentType(inscription?.monthly_payment_type, inscription?.brother_payment)
+    const amount = Number(settings.settings?.[type] ?? 0)
+
+    return amount > 0 ? amount : null
 }
 
 const normalizeTrainingGroupId = (value) => [null, '', undefined].includes(value) ? null : String(value)
@@ -608,6 +669,7 @@ const resetFormState = () => {
     currentTrainingGroupId.value = null
     currentPreInscription.value = false
     originalMonthlyPaymentType.value = null
+    appliedMonthlyPaymentAmount.value = null
     reactivationCandidate.value = null
     existingCustomCharges.value = []
     customChargeRemovalIds.value = []
@@ -668,6 +730,7 @@ const loadInscriptionForEdit = async (inscriptionId) => {
         currentTrainingGroupId.value = trainingGroupId
         currentPreInscription.value = normalizeBoolean(data.pre_inscription)
         originalMonthlyPaymentType.value = resolveMonthlyPaymentType(data.monthly_payment_type, data.brother_payment)
+        appliedMonthlyPaymentAmount.value = resolveAppliedMonthlyPaymentAmount(data)
         form.value.setValues({
             ...defaultValues(),
             id: data.id,
@@ -850,6 +913,7 @@ const selectedCustomChargesPayload = () => [
 const loadPlayerByUniqueCode = async (uniqueCode) => {
     if (!uniqueCode) {
         reactivationCandidate.value = null
+        appliedMonthlyPaymentAmount.value = null
         currentTrainingGroupId.value = null
         currentPreInscription.value = false
         form.value?.setValues({
@@ -870,6 +934,7 @@ const loadPlayerByUniqueCode = async (uniqueCode) => {
 
         if (!data) {
             reactivationCandidate.value = null
+            appliedMonthlyPaymentAmount.value = null
             currentTrainingGroupId.value = null
             currentPreInscription.value = false
             form.value?.setValues({
@@ -882,6 +947,7 @@ const loadPlayerByUniqueCode = async (uniqueCode) => {
 
         const reactivationInscription = data.reactivation_inscription ?? null
         reactivationCandidate.value = reactivationInscription
+        appliedMonthlyPaymentAmount.value = resolveAppliedMonthlyPaymentAmount(reactivationInscription)
 
         form.value.setValues({
             ...defaultValues(),
@@ -910,6 +976,7 @@ const loadPlayerByUniqueCode = async (uniqueCode) => {
         currentPreInscription.value = normalizeBoolean(reactivationInscription?.pre_inscription)
     } catch (error) {
         reactivationCandidate.value = null
+        appliedMonthlyPaymentAmount.value = null
         currentTrainingGroupId.value = null
         currentPreInscription.value = false
         form.value?.setValues({
@@ -926,7 +993,12 @@ const submit = async (values, actions) => {
         let response = null
         const data = { ...values }
 
-        if (!isEditing.value || data.recalculate_monthly_payments !== true) {
+        if (isTrainingGroupPricingEnabled.value) {
+            delete data.monthly_payment_type
+            delete data.recalculate_monthly_payments
+        }
+
+        if (!isTrainingGroupPricingEnabled.value && (!isEditing.value || data.recalculate_monthly_payments !== true)) {
             delete data.recalculate_monthly_payments
         }
 
@@ -1082,6 +1154,16 @@ onBeforeUnmount(() => {
 
 .custom-charge-date {
     width: 130px;
+}
+
+.inscription-status-card {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+:global(.dark .inscription-status-card) {
+    background-color: #253247;
+    color: #f1f5f9;
 }
 
 @media (max-width: 1199.98px) {

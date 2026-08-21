@@ -39,7 +39,6 @@ class InscriptionMutationService
 
         try {
             $this->groupService->prepareTrainingGroupData($requestData);
-            $this->paymentService->prepareMonthlyPaymentData($requestData);
             $sendNotification = $requestData['send_notification'] ?? true;
             $customCharges = $requestData['custom_charges'] ?? [];
             $complementaryGroupIds = $requestData['complementary_group_ids'] ?? [];
@@ -60,6 +59,19 @@ class InscriptionMutationService
                 ]);
             }
 
+            $shouldInitializeGroupTariff = $existingInscription?->trashed()
+                && $this->paymentService->shouldInitializeGroupTariff($requestData, $existingInscription);
+
+            if (
+                $existingInscription?->trashed()
+                && $existingInscription->monthly_payment_amount !== null
+                && ! $shouldInitializeGroupTariff
+            ) {
+                $this->paymentService->preserveMonthlyPaymentData($requestData, $existingInscription);
+            } else {
+                $this->paymentService->prepareMonthlyPaymentData($requestData);
+            }
+
             $this->inscriptionLimitService->assertCanCreate(
                 School::query()->with('settingsValues')->findOrFail($requestData['school_id']),
                 (int) $requestData['year']
@@ -75,6 +87,13 @@ class InscriptionMutationService
             $this->groupService->syncComplementaryGroups($inscription, $complementaryGroupIds);
             $this->groupService->syncCompetitionGroups($inscription, $requestData);
             $this->customChargeService->sync($inscription, $customCharges);
+
+            if ($shouldInitializeGroupTariff) {
+                $this->paymentService->recalculateCollectibleMonthlyPaymentAmounts(
+                    $inscription->fresh(),
+                    'inscription_group_tariff'
+                );
+            }
 
             $inscription->load(['player', 'school']);
 
@@ -106,9 +125,13 @@ class InscriptionMutationService
 
         try {
             $this->groupService->prepareTrainingGroupData($requestData);
-            $shouldRecalculateMonthlyPayments = (bool) data_get($requestData, 'recalculate_monthly_payments', false);
+            $school = School::query()->findOrFail($requestData['school_id']);
+            $shouldInitializeGroupTariff = $this->paymentService
+                ->shouldInitializeGroupTariff($requestData, $inscription);
+            $shouldRecalculateMonthlyPayments = ! $school->training_group_monthly_payment_enabled
+                && (bool) data_get($requestData, 'recalculate_monthly_payments', false);
 
-            if ($shouldRecalculateMonthlyPayments) {
+            if ($shouldInitializeGroupTariff || $shouldRecalculateMonthlyPayments) {
                 $this->paymentService->prepareMonthlyPaymentData($requestData);
             } else {
                 $this->paymentService->preserveMonthlyPaymentData($requestData, $inscription);
@@ -136,6 +159,11 @@ class InscriptionMutationService
 
                 if ($shouldApplyScholarshipPayments) {
                     $this->paymentService->applyScholarshipMonthlyPayments($freshInscription);
+                } elseif ($shouldInitializeGroupTariff) {
+                    $this->paymentService->recalculateCollectibleMonthlyPaymentAmounts(
+                        $freshInscription,
+                        'inscription_group_tariff'
+                    );
                 } elseif ($shouldRecalculateMonthlyPayments) {
                     $this->paymentService->recalculateCollectibleMonthlyPaymentAmounts($freshInscription);
                 }

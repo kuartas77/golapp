@@ -11,6 +11,7 @@ use App\Models\School;
 use App\Models\Setting;
 use App\Service\PaymentAmountResolver;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class InscriptionPaymentService
 {
@@ -22,6 +23,32 @@ class InscriptionPaymentService
         $school = School::query()
             ->with('settingsValues')
             ->findOrFail($requestData['school_id']);
+
+        if ($school->training_group_monthly_payment_enabled) {
+            $trainingGroup = $school->trainingGroups()
+                ->where('is_complementary', false)
+                ->find($requestData['training_group_id']);
+
+            if (! $trainingGroup) {
+                throw ValidationException::withMessages([
+                    'training_group_id' => 'Selecciona un grupo principal válido para definir la tarifa mensual.',
+                ]);
+            }
+
+            if ($trainingGroup->name !== 'Provisional' && ! $trainingGroup->monthly_payment_amount) {
+                throw ValidationException::withMessages([
+                    'training_group_id' => 'El grupo seleccionado no tiene una tarifa mensual configurada.',
+                ]);
+            }
+
+            $requestData['monthly_payment_type'] = Inscription::TRAINING_GROUP_MONTHLY_PAYMENT;
+            $requestData['monthly_payment_amount'] = $trainingGroup->name === 'Provisional'
+                ? null
+                : (int) $trainingGroup->monthly_payment_amount;
+            $requestData['brother_payment'] = false;
+
+            return;
+        }
 
         $type = $this->paymentAmountResolver->normalizeMonthlyPaymentType(
             data_get($requestData, 'monthly_payment_type'),
@@ -40,6 +67,31 @@ class InscriptionPaymentService
         $requestData['monthly_payment_type'] = $inscription->monthly_payment_type;
         $requestData['monthly_payment_amount'] = $inscription->monthly_payment_amount;
         $requestData['brother_payment'] = $inscription->brother_payment;
+    }
+
+    /** @param array<string, mixed> $requestData */
+    public function shouldInitializeGroupTariff(array $requestData, Inscription $inscription): bool
+    {
+        if ($inscription->monthly_payment_amount !== null) {
+            return false;
+        }
+
+        $school = School::query()->find($requestData['school_id']);
+
+        if (! $school?->training_group_monthly_payment_enabled) {
+            return false;
+        }
+
+        $originalGroup = $school->trainingGroups()
+            ->withTrashed()
+            ->find($inscription->training_group_id);
+        $newGroup = $school->trainingGroups()
+            ->where('is_complementary', false)
+            ->find($requestData['training_group_id']);
+
+        return $originalGroup?->name === 'Provisional'
+            && $newGroup?->name !== 'Provisional'
+            && (int) $newGroup?->monthly_payment_amount > 0;
     }
 
     public function applyScholarshipMonthlyPayments(Inscription $inscription): void
@@ -98,8 +150,10 @@ class InscriptionPaymentService
         }
     }
 
-    public function recalculateCollectibleMonthlyPaymentAmounts(Inscription $inscription): void
-    {
+    public function recalculateCollectibleMonthlyPaymentAmounts(
+        Inscription $inscription,
+        string $source = 'inscription_tariff'
+    ): void {
         $payment = $inscription->payments()
             ->where('year', $inscription->year)
             ->first();
@@ -156,7 +210,7 @@ class InscriptionPaymentService
                 'new_status' => $change['status'],
                 'old_amount' => $change['old_amount'],
                 'new_amount' => $change['new_amount'],
-                'source' => 'inscription_tariff',
+                'source' => $source,
             ]);
         }
     }
