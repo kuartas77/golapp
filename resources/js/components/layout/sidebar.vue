@@ -234,8 +234,9 @@
                                 <router-link :to="{ name: 'payments.receipts' }" @click="toggleMobileMenu">Recibos</router-link>
                             </li>
                             <li>
-                                <router-link :to="{ name: 'payments.debt-notifications' }" @click="toggleMobileMenu">
-                                    Notificaciones de deuda
+                                <router-link :to="{ name: 'payments.debt-notifications' }" @click="toggleMobileMenu"
+                                v-tooltip.right="'Notificaciones de deuda'">
+                                    Not deuda
                                 </router-link>
                             </li>
                         </ul>
