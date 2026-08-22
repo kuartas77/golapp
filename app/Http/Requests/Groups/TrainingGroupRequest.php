@@ -74,6 +74,7 @@ class TrainingGroupRequest extends FormRequest
                 $school->training_group_monthly_payment_enabled
                 && ! $this->boolean('is_complementary')
                 && $this->input('name') !== 'Provisional'
+                && (int) $this->input('year_active') >= now()->year
                 && ! $this->input('monthly_payment_amount')
             ) {
                 $validator->errors()->add(
@@ -112,6 +113,14 @@ class TrainingGroupRequest extends FormRequest
     {
         if ($this->boolean('is_complementary') || $this->input('name') === 'Provisional') {
             return null;
+        }
+
+        $school = getSchool(auth()->user());
+
+        if (! $school->training_group_monthly_payment_enabled) {
+            $trainingGroup = $this->route('training_group') ?? $this->route('trainingGroup');
+
+            return $trainingGroup?->monthly_payment_amount;
         }
 
         $amount = preg_replace('/[^0-9]/', '', (string) $this->input('monthly_payment_amount'));

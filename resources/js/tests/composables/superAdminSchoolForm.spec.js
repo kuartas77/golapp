@@ -27,6 +27,13 @@ const Harness = defineComponent({
     template: '<div />',
 })
 
+const CreateHarness = defineComponent({
+    setup() {
+        return useSuperAdminSchoolForm('create')
+    },
+    template: '<div />',
+})
+
 describe('useSuperAdminSchoolForm category format', () => {
     beforeEach(() => {
         axiosMock.get.mockReset()
@@ -81,6 +88,32 @@ describe('useSuperAdminSchoolForm category format', () => {
         }, { setErrors: vi.fn() })
 
         expect(axiosMock.post).not.toHaveBeenCalled()
+        wrapper.unmount()
+    })
+
+    it('submits the selected group pricing mode when creating a school', async () => {
+        axiosMock.get.mockResolvedValue({ data: { schools: [] } })
+
+        const wrapper = mount(CreateHarness)
+        await nextTick()
+        await nextTick()
+
+        await wrapper.vm.submit({
+            ...wrapper.vm.initialValues,
+            name: 'Escuela Tarifas',
+            address: 'Calle 123',
+            phone: '3001234567',
+            agent: 'Administradora',
+            email: 'tarifas@example.com',
+            is_enable: '1',
+            training_group_monthly_payment_enabled: true,
+        }, { setErrors: vi.fn() })
+
+        expect(axiosMock.post).toHaveBeenCalledWith(
+            '/api/v2/admin/schools',
+            expect.any(FormData)
+        )
+        expect(axiosMock.post.mock.calls[0][1].get('training_group_monthly_payment_enabled')).toBe('1')
         wrapper.unmount()
     })
 })

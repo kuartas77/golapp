@@ -7,9 +7,11 @@ use App\Models\Inscription;
 use App\Models\Payment;
 use App\Models\TrainingGroup;
 use App\Service\Groups\GroupCatalogCache;
+use App\Service\Inscription\TrainingGroupAssignmentService;
 use App\Traits\ErrorTrait;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class SharedService
@@ -18,11 +20,16 @@ class SharedService
 
     private GroupCatalogCache $groupCatalogCache;
 
+    private TrainingGroupAssignmentService $trainingGroupAssignmentService;
+
     public function __construct(
         private PaymentAmountResolver $paymentAmountResolver,
         ?GroupCatalogCache $groupCatalogCache = null,
+        ?TrainingGroupAssignmentService $trainingGroupAssignmentService = null,
     ) {
         $this->groupCatalogCache = $groupCatalogCache ?? app(GroupCatalogCache::class);
+        $this->trainingGroupAssignmentService = $trainingGroupAssignmentService
+            ?? app(TrainingGroupAssignmentService::class);
     }
 
     private array $searchPayment;
@@ -214,26 +221,20 @@ class SharedService
     public function assignTrainingGroup($inscription_id, $request): bool
     {
         try {
-            $origin_group = $request->input('origin_group', null);
             $target_group = $request->input('target_group', null);
-            $inscription = Inscription::query()->findOrFail($inscription_id);
 
             if (! is_null($target_group)) {
-
-                DB::beginTransaction();
-
-                $state = $inscription->update(['training_group_id' => $target_group]);
-
-                DB::commit();
-                $this->groupCatalogCache->invalidateSchool((int) $inscription->school_id);
-
-                return $state;
+                return $this->trainingGroupAssignmentService->assignForSchool(
+                    (int) $inscription_id,
+                    (int) $target_group,
+                    (int) getSchool(auth()->user())->id
+                );
             }
 
             return false;
-
+        } catch (ValidationException $exception) {
+            throw $exception;
         } catch (Throwable $th) {
-            DB::rollBack();
             $this->logError('SharedService assignTrainingGroup failed', $th, [
                 'inscription_id' => $inscription_id,
             ]);

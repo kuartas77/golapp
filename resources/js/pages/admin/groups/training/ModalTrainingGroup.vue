@@ -66,7 +66,7 @@
                                             label="Tarifa mensual"
                                             name="monthly_payment_amount"
                                             :currency="true"
-                                            :is-required="true"
+                                            :is-required="Number(values.year_active) >= Number(currentYear)"
                                         />
                                         <small class="text-muted d-block">
                                             Este valor se aplicará a las nuevas inscripciones del grupo.
@@ -261,8 +261,11 @@ const schema = yup.object().shape({
     monthly_payment_amount: yup.number()
         .nullable()
         .min(1, "La tarifa mensual debe ser mayor que cero")
-        .when("is_complementary", {
-            is: false,
+        .when(["is_complementary", "year_active"], {
+            is: (isComplementary, yearActive) => (
+                !isComplementary
+                && Number(yearActive) >= Number(currentYear)
+            ),
             then: (currentSchema) => settingsGroup.training_group_monthly_payment_enabled
                 ? currentSchema.required("La tarifa mensual es obligatoria")
                 : currentSchema,

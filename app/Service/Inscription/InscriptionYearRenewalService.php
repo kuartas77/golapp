@@ -42,7 +42,11 @@ class InscriptionYearRenewalService
                 ->first();
             throw_if(is_null($trainingGroup), Exception::class, 'Training group not found');
 
-            $inscriptions = $this->inscription->where('year', $actualYear)->schoolId()->get();
+            $inscriptions = $this->inscription
+                ->with('school')
+                ->where('year', $actualYear)
+                ->schoolId()
+                ->get();
 
             DB::beginTransaction();
 
@@ -75,6 +79,35 @@ class InscriptionYearRenewalService
                     'monthly_payment_amount' => $inscription->monthly_payment_amount,
                     'training_group_id' => $trainingGroup->id,
                 ];
+
+                if ($inscription->school?->training_group_monthly_payment_enabled) {
+                    if ($trainingGroup->name !== 'Provisional' && ! $trainingGroup->monthly_payment_amount) {
+                        throw new Exception('Training group monthly payment amount not found');
+                    }
+
+                    $inscriptionData['pre_inscription'] = $trainingGroup->name === 'Provisional';
+                    $inscriptionData['brother_payment'] = false;
+                    $inscriptionData['monthly_payment_type'] = Inscription::TRAINING_GROUP_MONTHLY_PAYMENT;
+                    $inscriptionData['monthly_payment_amount'] = $trainingGroup->name === 'Provisional'
+                        ? null
+                        : (int) $trainingGroup->monthly_payment_amount;
+                }
+
+                $existingInscription = $this->inscription
+                    ->withTrashed()
+                    ->firstWhere([
+                        'unique_code' => $inscriptionData['unique_code'],
+                        'year' => $inscriptionData['year'],
+                        'school_id' => $inscriptionData['school_id'],
+                    ]);
+
+                if ($existingInscription?->monthly_payment_amount !== null) {
+                    unset(
+                        $inscriptionData['monthly_payment_type'],
+                        $inscriptionData['monthly_payment_amount'],
+                        $inscriptionData['brother_payment']
+                    );
+                }
 
                 $this->inscription->withTrashed()->updateOrCreate([
                     'unique_code' => $inscriptionData['unique_code'],

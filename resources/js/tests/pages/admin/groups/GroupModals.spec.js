@@ -158,6 +158,11 @@ describe('Admin group modals', () => {
         expect(wrapper.find('#monthly_payment_amount').exists()).toBe(true);
         expect(wrapper.get('label[for="monthly_payment_amount"]').text()).toContain('(*)');
 
+        wrapper.vm.$.setupState.form.setFieldValue('year_active', String(new Date().getFullYear() - 1));
+        await flushPromises();
+
+        expect(wrapper.get('label[for="monthly_payment_amount"]').text()).not.toContain('(*)');
+
         wrapper.vm.$.setupState.form.setFieldValue('is_complementary', true);
         await flushPromises();
 

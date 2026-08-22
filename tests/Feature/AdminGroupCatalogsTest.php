@@ -246,7 +246,7 @@ final class AdminGroupCatalogsTest extends TestCase
             ->assertJsonPath('data.is_complementary', true);
     }
 
-    public function test_training_group_tariff_can_be_preconfigured_and_is_required_when_enabled(): void
+    public function test_training_group_tariff_is_ignored_when_disabled_and_required_for_current_groups_when_enabled(): void
     {
         $payload = [
             'name' => 'Grupo con tarifa',
@@ -265,15 +265,24 @@ final class AdminGroupCatalogsTest extends TestCase
             ->assertOk();
 
         $group = TrainingGroup::query()->where('name', 'Grupo con tarifa')->firstOrFail();
-        $this->assertSame(85000, $group->monthly_payment_amount);
+        $this->assertNull($group->monthly_payment_amount);
 
         $this->actingAs($this->user)
             ->getJson("/api/v2/admin/training_groups/{$group->id}")
             ->assertOk()
-            ->assertJsonPath('data.monthly_payment_amount', 85000);
+            ->assertJsonPath('data.monthly_payment_amount', null);
 
         School::query()->findOrFail($this->school['id'])
             ->update(['training_group_monthly_payment_enabled' => true]);
+
+        $this->actingAs($this->user)
+            ->postJson("/api/v2/admin/training_groups/{$group->id}", [
+                ...$payload,
+                '_method' => 'PUT',
+            ])
+            ->assertOk();
+
+        $this->assertSame(85000, $group->fresh()->monthly_payment_amount);
 
         $this->actingAs($this->user)
             ->postJson('/api/v2/admin/training_groups', [
@@ -283,6 +292,15 @@ final class AdminGroupCatalogsTest extends TestCase
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('monthly_payment_amount');
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/training_groups', [
+                ...$payload,
+                'name' => 'Grupo histórico sin tarifa',
+                'year_active' => now()->year - 1,
+                'monthly_payment_amount' => null,
+            ])
+            ->assertOk();
 
         $this->actingAs($this->user)
             ->postJson('/api/v2/admin/training_groups', [
@@ -297,6 +315,19 @@ final class AdminGroupCatalogsTest extends TestCase
             'name' => 'Complementario activo',
             'monthly_payment_amount' => null,
         ]);
+
+        School::query()->findOrFail($this->school['id'])
+            ->update(['training_group_monthly_payment_enabled' => false]);
+
+        $this->actingAs($this->user)
+            ->postJson("/api/v2/admin/training_groups/{$group->id}", [
+                ...$payload,
+                '_method' => 'PUT',
+                'monthly_payment_amount' => 99000,
+            ])
+            ->assertOk();
+
+        $this->assertSame(85000, $group->fresh()->monthly_payment_amount);
     }
 
     public function test_training_group_creation_clears_school_group_cache_keys(): void

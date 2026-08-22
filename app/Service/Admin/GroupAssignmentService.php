@@ -10,7 +10,7 @@ use App\Models\Inscription;
 use App\Models\TrainingGroup;
 use App\Repositories\CompetitionGroupRepository;
 use App\Repositories\TrainingGroupRepository;
-use App\Service\Groups\GroupCatalogCache;
+use App\Service\Inscription\TrainingGroupAssignmentService;
 use Illuminate\Support\Collection;
 
 class GroupAssignmentService
@@ -18,7 +18,7 @@ class GroupAssignmentService
     public function __construct(
         private readonly TrainingGroupRepository $trainingGroupRepository,
         private readonly CompetitionGroupRepository $competitionGroupRepository,
-        private readonly GroupCatalogCache $groupCatalogCache,
+        private readonly TrainingGroupAssignmentService $trainingGroupAssignmentService,
     ) {}
 
     public function getTrainingBoard(?int $originGroupId, ?int $targetGroupId): array
@@ -43,24 +43,15 @@ class GroupAssignmentService
 
     public function moveTraining(int $inscriptionId, int $targetGroupId): bool
     {
-        TrainingGroup::query()
-            ->schoolId()
-            ->where('is_complementary', false)
-            ->findOrFail($targetGroupId);
-
         $inscription = Inscription::query()
             ->schoolId()
             ->findOrFail($inscriptionId);
+        $targetGroup = $this->trainingGroupAssignmentService->findTargetGroup(
+            (int) $inscription->school_id,
+            $targetGroupId
+        );
 
-        $updated = (bool) $inscription->update([
-            'training_group_id' => $targetGroupId,
-        ]);
-
-        if ($updated) {
-            $this->groupCatalogCache->invalidateSchool((int) $inscription->school_id);
-        }
-
-        return $updated;
+        return $this->trainingGroupAssignmentService->assign($inscription, $targetGroup);
     }
 
     public function getCompetitionBoard(?int $competitionGroupId): array

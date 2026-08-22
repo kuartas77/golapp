@@ -68,7 +68,7 @@
 
                                     <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
                                 <div class="form-group">
-                                    <template v-if="isTrainingGroupPricingEnabled">
+                                    <template v-if="usesReadonlyGroupTariff">
                                         <label for="training_group_monthly_payment">
                                             {{ isEditing || isReactivationMode ? 'Tarifa mensual aplicada:' : 'Tarifa mensual:' }}
                                         </label>
@@ -364,6 +364,7 @@ const composeModalInscription = ref(null);
 const currentTrainingGroupId = ref(null);
 const currentPreInscription = ref(false);
 const originalMonthlyPaymentType = ref(null);
+const appliedMonthlyPaymentType = ref(null);
 const appliedMonthlyPaymentAmount = ref(null);
 const reactivationCandidate = ref(null);
 const customChargeCatalog = ref([]);
@@ -385,6 +386,14 @@ const selectedInscriptionYear = computed(() => {
 });
 const isReactivationMode = computed(() => !isEditing.value && Boolean(reactivationCandidate.value?.id));
 const isTrainingGroupPricingEnabled = computed(() => settings.training_group_monthly_payment_enabled);
+const hasHistoricalGroupTariff = computed(() => (
+    (isEditing.value || isReactivationMode.value)
+    && appliedMonthlyPaymentType.value === 'TRAINING_GROUP_MONTHLY_PAYMENT'
+    && appliedMonthlyPaymentAmount.value !== null
+));
+const usesReadonlyGroupTariff = computed(() => (
+    isTrainingGroupPricingEnabled.value || hasHistoricalGroupTariff.value
+));
 const monthlyPaymentDefinitions = [
     { value: 'MONTHLY_PAYMENT', label: 'Mensualidad por defecto' },
     { value: 'BROTHER_MONTHLY_PAYMENT', label: 'Mensualidad hermano' },
@@ -411,7 +420,7 @@ const monthlyPaymentOptions = computed(() => monthlyPaymentDefinitions
     })));
 const selectedMonthlyPaymentType = computed(() => form.value?.values?.monthly_payment_type ?? null);
 const showRecalculateMonthlyPaymentsOption = computed(() => (
-    !isTrainingGroupPricingEnabled.value
+    !usesReadonlyGroupTariff.value
     && isEditing.value
     && originalMonthlyPaymentType.value !== null
     && selectedMonthlyPaymentType.value !== null
@@ -669,6 +678,7 @@ const resetFormState = () => {
     currentTrainingGroupId.value = null
     currentPreInscription.value = false
     originalMonthlyPaymentType.value = null
+    appliedMonthlyPaymentType.value = null
     appliedMonthlyPaymentAmount.value = null
     reactivationCandidate.value = null
     existingCustomCharges.value = []
@@ -730,6 +740,7 @@ const loadInscriptionForEdit = async (inscriptionId) => {
         currentTrainingGroupId.value = trainingGroupId
         currentPreInscription.value = normalizeBoolean(data.pre_inscription)
         originalMonthlyPaymentType.value = resolveMonthlyPaymentType(data.monthly_payment_type, data.brother_payment)
+        appliedMonthlyPaymentType.value = data.monthly_payment_type ?? null
         appliedMonthlyPaymentAmount.value = resolveAppliedMonthlyPaymentAmount(data)
         form.value.setValues({
             ...defaultValues(),
@@ -913,6 +924,7 @@ const selectedCustomChargesPayload = () => [
 const loadPlayerByUniqueCode = async (uniqueCode) => {
     if (!uniqueCode) {
         reactivationCandidate.value = null
+        appliedMonthlyPaymentType.value = null
         appliedMonthlyPaymentAmount.value = null
         currentTrainingGroupId.value = null
         currentPreInscription.value = false
@@ -934,6 +946,7 @@ const loadPlayerByUniqueCode = async (uniqueCode) => {
 
         if (!data) {
             reactivationCandidate.value = null
+            appliedMonthlyPaymentType.value = null
             appliedMonthlyPaymentAmount.value = null
             currentTrainingGroupId.value = null
             currentPreInscription.value = false
@@ -947,6 +960,7 @@ const loadPlayerByUniqueCode = async (uniqueCode) => {
 
         const reactivationInscription = data.reactivation_inscription ?? null
         reactivationCandidate.value = reactivationInscription
+        appliedMonthlyPaymentType.value = reactivationInscription?.monthly_payment_type ?? null
         appliedMonthlyPaymentAmount.value = resolveAppliedMonthlyPaymentAmount(reactivationInscription)
 
         form.value.setValues({
@@ -976,6 +990,7 @@ const loadPlayerByUniqueCode = async (uniqueCode) => {
         currentPreInscription.value = normalizeBoolean(reactivationInscription?.pre_inscription)
     } catch (error) {
         reactivationCandidate.value = null
+        appliedMonthlyPaymentType.value = null
         appliedMonthlyPaymentAmount.value = null
         currentTrainingGroupId.value = null
         currentPreInscription.value = false
@@ -993,12 +1008,12 @@ const submit = async (values, actions) => {
         let response = null
         const data = { ...values }
 
-        if (isTrainingGroupPricingEnabled.value) {
+        if (usesReadonlyGroupTariff.value) {
             delete data.monthly_payment_type
             delete data.recalculate_monthly_payments
         }
 
-        if (!isTrainingGroupPricingEnabled.value && (!isEditing.value || data.recalculate_monthly_payments !== true)) {
+        if (!usesReadonlyGroupTariff.value && (!isEditing.value || data.recalculate_monthly_payments !== true)) {
             delete data.recalculate_monthly_payments
         }
 

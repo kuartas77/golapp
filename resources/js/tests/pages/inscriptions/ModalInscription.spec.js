@@ -106,8 +106,8 @@ const mountModal = async (
                     start_date: '2026-04-10',
                     scholarship: '0',
                     brother_payment: 'false',
-                    monthly_payment_type: 'MONTHLY_PAYMENT_OPTION_1',
-                    monthly_payment_amount: 55000,
+                    monthly_payment_type: options.editMonthlyPaymentType ?? 'MONTHLY_PAYMENT_OPTION_1',
+                    monthly_payment_amount: options.editMonthlyPaymentAmount ?? 55000,
                     training_group_id: 2,
                     complementary_group_id: 3,
                     complementary_group_ids: ['3'],
@@ -467,6 +467,27 @@ describe('ModalInscription', () => {
         await flushPromises();
         await flushPromises();
 
+        expect(wrapper.get('#training_group_monthly_payment').element.value).toContain('55.000');
+        expect(wrapper.text()).toContain('Se conserva la tarifa histórica de esta inscripción.');
+        expect(wrapper.find('#recalculate_monthly_payments').exists()).toBe(false);
+    });
+
+    it('keeps a historical group tariff readonly after the school returns to normal pricing', async () => {
+        settingsStore.training_group_monthly_payment_enabled = false;
+
+        const wrapper = await mountModal(
+            { inscription_id: null, create_open: false, selected_year: 2026 },
+            {
+                editMonthlyPaymentType: 'TRAINING_GROUP_MONTHLY_PAYMENT',
+                editMonthlyPaymentAmount: 55000,
+            }
+        );
+
+        await wrapper.setProps({ inscription_id: 1 });
+        await flushPromises();
+        await flushPromises();
+
+        expect(wrapper.find('#monthly_payment_type').exists()).toBe(false);
         expect(wrapper.get('#training_group_monthly_payment').element.value).toContain('55.000');
         expect(wrapper.text()).toContain('Se conserva la tarifa histórica de esta inscripción.');
         expect(wrapper.find('#recalculate_monthly_payments').exists()).toBe(false);

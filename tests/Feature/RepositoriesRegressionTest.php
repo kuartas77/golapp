@@ -17,7 +17,7 @@ use Tests\TestCase;
 
 final class RepositoriesRegressionTest extends TestCase
 {
-    public function testCreateInscriptionByYearAcceptsNumericFutureYearAndPersistsRecords(): void
+    public function test_create_inscription_by_year_accepts_numeric_future_year_and_persists_records(): void
     {
         $this->actingAs($this->user);
 
@@ -57,7 +57,48 @@ final class RepositoriesRegressionTest extends TestCase
         ]);
     }
 
-    public function testGetGroupsYearRespectsSchoolScopeWhenUsingOrFilters(): void
+    public function test_group_pricing_year_renewal_starts_in_provisional_without_copying_the_previous_tariff(): void
+    {
+        $this->actingAs($this->user);
+
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->update(['training_group_monthly_payment_enabled' => true]);
+        $provisionalGroup = $school->trainingGroups()->where('name', 'Provisional')->firstOrFail();
+        $player = Player::factory()->create([
+            'school_id' => $school->id,
+            'unique_code' => 'RC-GROUP-1001',
+        ]);
+        $actualYear = now()->year;
+        $futureYear = now()->addYear()->year;
+
+        Inscription::query()->create([
+            'school_id' => $school->id,
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'year' => $actualYear,
+            'start_date' => now()->startOfYear()->format('Y-m-d'),
+            'category' => 'SUB-13',
+            'training_group_id' => $provisionalGroup->id,
+            'competition_group_id' => null,
+            'monthly_payment_type' => Inscription::TRAINING_GROUP_MONTHLY_PAYMENT,
+            'monthly_payment_amount' => 85000,
+        ]);
+
+        app(InscriptionRepository::class)->createInscriptionByYear($actualYear, $futureYear);
+
+        $renewedInscription = Inscription::query()
+            ->where('school_id', $school->id)
+            ->where('player_id', $player->id)
+            ->where('year', $futureYear)
+            ->firstOrFail();
+
+        $this->assertSame($provisionalGroup->id, $renewedInscription->training_group_id);
+        $this->assertTrue($renewedInscription->pre_inscription);
+        $this->assertSame(Inscription::TRAINING_GROUP_MONTHLY_PAYMENT, $renewedInscription->monthly_payment_type);
+        $this->assertNull($renewedInscription->monthly_payment_amount);
+    }
+
+    public function test_get_groups_year_respects_school_scope_when_using_or_filters(): void
     {
         $this->actingAs($this->user);
 
@@ -88,7 +129,7 @@ final class RepositoriesRegressionTest extends TestCase
         $this->assertArrayNotHasKey($otherGroup->id, $groups->toArray());
     }
 
-    public function testApiUserRepositoryPaginatesByAuthenticatedUsersSchool(): void
+    public function test_api_user_repository_paginates_by_authenticated_users_school(): void
     {
         $this->actingAs($this->user);
 
@@ -98,7 +139,7 @@ final class RepositoriesRegressionTest extends TestCase
         User::factory()->create(['school_id' => $otherSchool['id']]);
 
         $request = Request::create('/api/users', 'GET', ['per_page' => 50]);
-        $request->setUserResolver(fn() => $requestUser);
+        $request->setUserResolver(fn () => $requestUser);
 
         $repository = app(ApiUserRepository::class);
         $result = $repository->getUsersPaginate($request);
@@ -106,12 +147,12 @@ final class RepositoriesRegressionTest extends TestCase
         $this->assertGreaterThan(0, $result->count());
         $this->assertTrue(
             $result->getCollection()->every(
-                fn(User $user) => (int) $user->school_id === (int) $requestUser->school_id
+                fn (User $user) => (int) $user->school_id === (int) $requestUser->school_id
             )
         );
     }
 
-    public function testApiUserRepositoryUsesExplicitSchoolFilterAndPerPageClamp(): void
+    public function test_api_user_repository_uses_explicit_school_filter_and_per_page_clamp(): void
     {
         $this->actingAs($this->user);
 
@@ -125,7 +166,7 @@ final class RepositoriesRegressionTest extends TestCase
             'school_id' => $otherSchool['id'],
             'per_page' => 999,
         ]);
-        $request->setUserResolver(fn() => $requestUser);
+        $request->setUserResolver(fn () => $requestUser);
 
         $repository = app(ApiUserRepository::class);
         $result = $repository->getUsersPaginate($request);
@@ -134,7 +175,7 @@ final class RepositoriesRegressionTest extends TestCase
         $this->assertGreaterThan(0, $result->count());
         $this->assertTrue(
             $result->getCollection()->every(
-                fn(User $user) => (int) $user->school_id === (int) $otherSchool['id']
+                fn (User $user) => (int) $user->school_id === (int) $otherSchool['id']
             )
         );
     }

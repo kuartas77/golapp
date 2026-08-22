@@ -9,7 +9,6 @@ use App\Service\Category\CategoryFormatService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator;
 
 class SuperAdminSchoolUpdateRequest extends FormRequest
 {
@@ -64,34 +63,6 @@ class SuperAdminSchoolUpdateRequest extends FormRequest
         ]);
 
         $this->merge($this->booleanPlatformOptions());
-    }
-
-    public function withValidator(Validator $validator): void
-    {
-        $validator->after(function (Validator $validator): void {
-            if (! $this->boolean('training_group_monthly_payment_enabled')) {
-                return;
-            }
-
-            /** @var School $school */
-            $school = $this->route('school');
-            $groupsWithoutTariff = $school->trainingGroups()
-                ->where('is_complementary', false)
-                ->where('name', '!=', 'Provisional')
-                ->where('year_active', '>=', now()->year)
-                ->where(fn ($query) => $query
-                    ->whereNull('monthly_payment_amount')
-                    ->orWhere('monthly_payment_amount', '<=', 0))
-                ->orderBy('name')
-                ->pluck('name');
-
-            if ($groupsWithoutTariff->isNotEmpty()) {
-                $validator->errors()->add(
-                    'training_group_monthly_payment_enabled',
-                    'Configura una tarifa mensual para estos grupos antes de activar la opción: '.$groupsWithoutTariff->join(', ').'.'
-                );
-            }
-        });
     }
 
     private function booleanPlatformOptions(): array

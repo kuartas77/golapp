@@ -605,6 +605,12 @@ final class InscriptionsTest extends TestCase
                 'year_active' => 2026,
                 'monthly_payment_amount' => 95000,
             ]);
+            $groupWithoutTariff = TrainingGroup::query()->create([
+                'school_id' => $school->id,
+                'name' => 'Grupo tarifa pendiente',
+                'year_active' => 2026,
+                'monthly_payment_amount' => null,
+            ]);
             $player = Player::factory()->create(['school_id' => $school->id]);
 
             $this->actingAs($this->user)
@@ -636,6 +642,36 @@ final class InscriptionsTest extends TestCase
                 ->assertOk()
                 ->assertJsonPath('success', true);
 
+            $this->assertSame(85000, $inscription->fresh()->monthly_payment_amount);
+            $this->assertSame(85000, (int) $payment->fresh()->march_amount);
+
+            $this->actingAs($this->user)
+                ->putJson(route('inscriptions.update', $inscription), [
+                    'unique_code' => $player->unique_code,
+                    'player_id' => $player->id,
+                    'start_date' => '2026-03-15',
+                    'training_group_id' => $groupWithoutTariff->id,
+                ])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors('training_group_id');
+
+            $this->assertSame($secondGroup->id, $inscription->fresh()->training_group_id);
+
+            $school->update(['training_group_monthly_payment_enabled' => false]);
+
+            $this->actingAs($this->user)
+                ->putJson(route('inscriptions.update', $inscription), [
+                    'unique_code' => $player->unique_code,
+                    'player_id' => $player->id,
+                    'start_date' => '2026-03-15',
+                    'training_group_id' => $secondGroup->id,
+                    'monthly_payment_type' => Setting::MONTHLY_PAYMENT_OPTION_1,
+                    'recalculate_monthly_payments' => true,
+                ])
+                ->assertOk()
+                ->assertJsonPath('success', true);
+
+            $this->assertSame(Inscription::TRAINING_GROUP_MONTHLY_PAYMENT, $inscription->fresh()->monthly_payment_type);
             $this->assertSame(85000, $inscription->fresh()->monthly_payment_amount);
             $this->assertSame(85000, (int) $payment->fresh()->march_amount);
         } finally {

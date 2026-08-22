@@ -23,7 +23,8 @@ class InscriptionMutationService
         private InscriptionLimitService $inscriptionLimitService,
         private InscriptionCustomChargeService $customChargeService,
         private InscriptionGroupService $groupService,
-        private InscriptionPaymentService $paymentService
+        private InscriptionPaymentService $paymentService,
+        private TrainingGroupAssignmentService $trainingGroupAssignmentService,
     ) {}
 
     /**
@@ -124,11 +125,26 @@ class InscriptionMutationService
         $result = false;
 
         try {
+            DB::beginTransaction();
+
             $this->groupService->prepareTrainingGroupData($requestData);
             $school = School::query()->findOrFail($requestData['school_id']);
+
+            if ((int) $requestData['training_group_id'] !== (int) $inscription->training_group_id) {
+                $targetGroup = $this->trainingGroupAssignmentService->findTargetGroup(
+                    (int) $school->id,
+                    (int) $requestData['training_group_id']
+                );
+                $this->trainingGroupAssignmentService
+                    ->assertGroupCanReceiveInscription($school, $targetGroup);
+            }
+
             $shouldInitializeGroupTariff = $this->paymentService
                 ->shouldInitializeGroupTariff($requestData, $inscription);
+            $hasHistoricalGroupTariff = $inscription->monthly_payment_type === Inscription::TRAINING_GROUP_MONTHLY_PAYMENT
+                && $inscription->monthly_payment_amount !== null;
             $shouldRecalculateMonthlyPayments = ! $school->training_group_monthly_payment_enabled
+                && ! $hasHistoricalGroupTariff
                 && (bool) data_get($requestData, 'recalculate_monthly_payments', false);
 
             if ($shouldInitializeGroupTariff || $shouldRecalculateMonthlyPayments) {
@@ -145,8 +161,6 @@ class InscriptionMutationService
             $requestData['deleted_at'] = null;
             $requestData['unique_code'] = $inscription->unique_code;
             $requestData['start_date'] = $inscription->start_date;
-
-            DB::beginTransaction();
 
             $inscription->loadMissing('complementaryGroups');
             $this->groupService->syncCompetitionGroups($inscription, $requestData);
@@ -173,6 +187,9 @@ class InscriptionMutationService
 
             DB::commit();
             app(GroupCatalogCache::class)->invalidateSchool((int) $inscription->school_id);
+        } catch (ValidationException $exception) {
+            DB::rollBack();
+            throw $exception;
         } catch (Throwable $throwable) {
             DB::rollBack();
             report($throwable);

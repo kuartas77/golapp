@@ -6,7 +6,9 @@ namespace Tests\Feature;
 
 use App\Models\CompetitionGroup;
 use App\Models\Inscription;
+use App\Models\Payment;
 use App\Models\Player;
+use App\Models\School;
 use App\Models\SchoolUser;
 use App\Models\Tournament;
 use App\Models\TrainingGroup;
@@ -65,6 +67,77 @@ final class AdminGroupAssignmentBoardTest extends TestCase
             ->assertJsonPath('success', true);
 
         $this->assertSame($destinationGroup->id, $inscription->fresh()->training_group_id);
+    }
+
+    public function test_training_move_initializes_group_tariff_and_rejects_groups_without_tariff(): void
+    {
+        $this->actingAs($this->user);
+
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->update(['training_group_monthly_payment_enabled' => true]);
+        $provisionalGroup = $school->trainingGroups()->where('name', 'Provisional')->firstOrFail();
+        $destinationGroup = $this->createTrainingGroup('Tarifa configurada', 88000);
+        $groupWithoutTariff = $this->createTrainingGroup('Tarifa pendiente');
+        $inscription = $this->createInscription($provisionalGroup, 'Lucia', 'Torres');
+        $inscription->forceFill([
+            'monthly_payment_type' => Inscription::TRAINING_GROUP_MONTHLY_PAYMENT,
+            'monthly_payment_amount' => null,
+        ])->save();
+        $payment = $inscription->payments()->firstOrFail();
+        $monthField = config('variables.KEY_INDEX_MONTHS.'.now()->month);
+
+        $this->postJson('/api/v2/admin/training-groups/move', [
+            'inscription_id' => $inscription->id,
+            'target_group_id' => $groupWithoutTariff->id,
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('training_group_id');
+
+        $this->assertSame($provisionalGroup->id, $inscription->fresh()->training_group_id);
+
+        $this->postJson('/api/v2/admin/training-groups/move', [
+            'inscription_id' => $inscription->id,
+            'target_group_id' => $destinationGroup->id,
+        ])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $inscription->refresh();
+        $payment->refresh();
+
+        $this->assertSame($destinationGroup->id, $inscription->training_group_id);
+        $this->assertSame(Inscription::TRAINING_GROUP_MONTHLY_PAYMENT, $inscription->monthly_payment_type);
+        $this->assertSame(88000, $inscription->monthly_payment_amount);
+        $this->assertSame(88000, (int) $payment->{Payment::amountFieldFor($monthField)});
+        $this->assertDatabaseHas('payment_change_logs', [
+            'payment_id' => $payment->id,
+            'field' => $monthField,
+            'source' => 'inscription_group_tariff',
+            'new_amount' => 88000,
+        ]);
+    }
+
+    public function test_legacy_training_move_uses_the_same_group_tariff_rules(): void
+    {
+        $this->actingAs($this->user);
+
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->update(['training_group_monthly_payment_enabled' => true]);
+        $provisionalGroup = $school->trainingGroups()->where('name', 'Provisional')->firstOrFail();
+        $destinationGroup = $this->createTrainingGroup('Tarifa ruta anterior', 91000);
+        $inscription = $this->createInscription($provisionalGroup, 'Mateo', 'Rios');
+        $inscription->forceFill([
+            'monthly_payment_type' => Inscription::TRAINING_GROUP_MONTHLY_PAYMENT,
+            'monthly_payment_amount' => null,
+        ])->save();
+
+        $this->post(route('ins_training.assign', $inscription->id), [
+            'target_group' => $destinationGroup->id,
+        ], ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()
+            ->assertJsonPath('data', true);
+
+        $this->assertSame(91000, $inscription->fresh()->monthly_payment_amount);
     }
 
     public function test_competition_board_returns_available_pool_and_selected_group_members(): void
@@ -211,7 +284,7 @@ final class AdminGroupAssignmentBoardTest extends TestCase
         return $user;
     }
 
-    private function createTrainingGroup(string $name): TrainingGroup
+    private function createTrainingGroup(string $name, ?int $monthlyPaymentAmount = null): TrainingGroup
     {
         $group = TrainingGroup::query()->create([
             'name' => $name,
@@ -222,6 +295,7 @@ final class AdminGroupAssignmentBoardTest extends TestCase
             'schedules' => '10:00AM - 11:00AM',
             'school_id' => $this->school['id'],
             'year_active' => now()->year,
+            'monthly_payment_amount' => $monthlyPaymentAmount,
         ]);
 
         $group->instructors()->attach($this->user->id, [
