@@ -9,6 +9,21 @@
 
         <div class="ms-selectable d-flex flex-column flex-fill" :class="{ 'ms-focus': activeList === 'available' }"
             @click="setActive('available')">
+            <label v-if="searchable" class="visually-hidden" :for="`${id}-search`">Buscar opciones disponibles</label>
+            <input
+                v-if="searchable"
+                :id="`${id}-search`"
+                v-model="searchTerm"
+                type="search"
+                class="form-control form-control-sm ms-search"
+                placeholder="Buscar opciones..."
+                autocomplete="off"
+                @click.stop
+                @input.stop
+                @change.stop
+                @search.stop
+                @focus="setActive('available')">
+
             <ul class="ms-list flex-grow-1" aria-label="Opciones disponibles">
                 <li v-for="option in sortedAvailable" :key="option.value" class="ms-elem-selectable"
                     :class="{ disabled: isMaxSelectionReached }"
@@ -20,6 +35,9 @@
                     @keydown.enter.stop.prevent="addSelection(option)"
                     @keydown.space.stop.prevent="addSelection(option)">
                     {{ option.label }}
+                </li>
+                <li v-if="sortedAvailable.length === 0" class="ms-empty" aria-live="polite">
+                    No se encontraron opciones
                 </li>
             </ul>
 
@@ -84,6 +102,10 @@ const props = defineProps({
         type: Boolean,
         default: false
     },
+    searchable: {
+        type: Boolean,
+        default: false
+    },
     maxSelections: {
         type: Number,
         default: null
@@ -93,13 +115,33 @@ const emit = defineEmits(['update:modelValue', 'update:value'])
 
 const selectedOptions = ref([])
 const activeList = ref(null)
+const searchTerm = ref('')
 
 const availableOptions = computed(() =>
     props.options.filter(opt => !selectedOptions.value.some(sel => sel.value === opt.value))
 )
 
+const normalizeSearchText = value => String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase()
+
+const filteredAvailable = computed(() => {
+    const query = props.searchable
+        ? normalizeSearchText(searchTerm.value.trim())
+        : ''
+
+    if (!query) {
+        return availableOptions.value
+    }
+
+    return availableOptions.value.filter(option =>
+        normalizeSearchText(option.label).includes(query)
+    )
+})
+
 const sortedAvailable = computed(() =>
-    [...availableOptions.value].sort((a, b) => a.value - b.value)
+    [...filteredAvailable.value].sort((a, b) => a.value - b.value)
 )
 
 const sortedSelected = computed(() =>
@@ -139,13 +181,13 @@ function removeSelection(item) {
 
 function addAll() {
     if (props.maxSelections === null) {
-        selectedOptions.value = [...props.options]
+        selectedOptions.value = [...selectedOptions.value, ...sortedAvailable.value]
         emitUpdates()
         return
     }
 
     const remainingSlots = props.maxSelections - selectedOptions.value.length
-    const optionsToAdd = availableOptions.value.slice(0, Math.max(remainingSlots, 0))
+    const optionsToAdd = sortedAvailable.value.slice(0, Math.max(remainingSlots, 0))
 
     selectedOptions.value = [...selectedOptions.value, ...optionsToAdd]
     emitUpdates()
@@ -162,20 +204,28 @@ function setActive(list) {
 
 // Carga inicial correcta (tanto de modelValue como de value)
 onMounted(() => {
-    const initial = props.modelValue.length ? props.modelValue : props.value
+    const initial = props.modelValue.length
+        ? props.modelValue
+        : (Array.isArray(props.value) ? props.value : [])
     selectedOptions.value = [...initial]
 })
 
 // Reacciona cuando cambia desde fuera
 watch(() => props.modelValue, (val) => {
-    if (val && val !== selectedOptions.value) {
+    if (Array.isArray(val) && val !== selectedOptions.value) {
         selectedOptions.value = [...val]
     }
 })
 
 watch(() => props.value, (val) => {
-    if (val && val !== selectedOptions.value) {
+    if (Array.isArray(val) && val !== selectedOptions.value) {
         selectedOptions.value = [...val]
+    }
+})
+
+watch(() => props.searchable, (enabled) => {
+    if (!enabled) {
+        searchTerm.value = ''
     }
 })
 </script>
@@ -207,6 +257,17 @@ watch(() => props.value, (val) => {
     flex-grow: 1;
     overflow-y: auto;
     min-height: 200px;
+}
+
+.ms-search {
+    margin-bottom: 0.5rem;
+}
+
+.ms-empty {
+    color: #6c757d;
+    cursor: default;
+    font-style: italic;
+    padding: 0.5rem 0.75rem;
 }
 
 .ms-elem-selectable.disabled {
