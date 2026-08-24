@@ -77,12 +77,29 @@ class GuardianAccessService
         return $inscription;
     }
 
+    public function findEvaluationEnabledInscription(People $guardian, int $inscriptionId): Inscription
+    {
+        $inscription = $this->findEligibleInscription($guardian, $inscriptionId);
+        $inscription->loadMissing('school');
+
+        if (! $inscription->school?->hasSchoolPermission('school.module.evaluations')) {
+            throw (new ModelNotFoundException)->setModel(Inscription::class, [$inscriptionId]);
+        }
+
+        return $inscription;
+    }
+
     public function findEligibleEvaluation(People $guardian, int $evaluationId): PlayerEvaluation
     {
-        $evaluation = $this->eligibleEvaluationsQuery($guardian)->find($evaluationId);
+        $evaluation = $this->eligibleEvaluationsQuery($guardian)
+            ->with('school')
+            ->find($evaluationId);
 
-        if (!$evaluation instanceof PlayerEvaluation) {
-            throw (new ModelNotFoundException())->setModel(PlayerEvaluation::class, [$evaluationId]);
+        if (
+            ! $evaluation instanceof PlayerEvaluation
+            || ! $evaluation->school?->hasSchoolPermission('school.module.evaluations')
+        ) {
+            throw (new ModelNotFoundException)->setModel(PlayerEvaluation::class, [$evaluationId]);
         }
 
         return $evaluation;

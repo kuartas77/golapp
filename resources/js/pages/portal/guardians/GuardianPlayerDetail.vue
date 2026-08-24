@@ -70,7 +70,31 @@
                 </div>
             </div>
 
-            <div class="col-12 col-xl-7">
+            <div class="col-12">
+                <nav class="card border-0 shadow-sm guardian-player-detail__navigation" aria-label="Secciones del deportista">
+                    <div class="card-body p-2">
+                        <ul class="nav guardian-player-detail__main-tabs" role="tablist">
+                            <li v-for="tab in portalTabs" :key="tab.key" class="nav-item" role="presentation">
+                                <button
+                                    type="button"
+                                    class="nav-link"
+                                    :class="{ active: activePortalTab === tab.key }"
+                                    role="tab"
+                                    :aria-selected="activePortalTab === tab.key"
+                                    @click="activePortalTab = tab.key"
+                                >
+                                    {{ tab.label }}
+                                    <span v-if="tab.count !== null" class="badge rounded-pill guardian-player-detail__badge guardian-player-detail__badge--neutral ms-1">
+                                        {{ tab.count }}
+                                    </span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+
+            <div v-show="activePortalTab === 'profile'" class="col-12 col-xl-7">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-4">
@@ -291,9 +315,9 @@
                 </div>
             </div>
 
-            <div class="col-12 col-xl-5">
+            <div :class="activePortalTab === 'profile' ? 'col-12 col-xl-5' : 'col-12'">
                 <div class="d-flex flex-column gap-4">
-                    <div class="card border-0 shadow-sm">
+                    <div v-show="activePortalTab === 'profile'" class="card border-0 shadow-sm">
                         <div class="card-body">
                             <h2 class="h4 mb-3">Resumen deportivo actual</h2>
                             <div class="row g-3">
@@ -308,7 +332,7 @@
                         </div>
                     </div>
 
-                    <div class="card border-0 shadow-sm" v-if="historicalInscriptions.length">
+                    <div v-if="historicalInscriptions.length" v-show="activePortalTab === 'profile'" class="card border-0 shadow-sm">
                         <div class="card-body">
                             <h2 class="h4 mb-1">Inscripciones anteriores</h2>
                             <p class="text-muted mb-3">Exporta el PDF de cada año anterior.</p>
@@ -327,34 +351,13 @@
                         </div>
                     </div>
 
-                    <div class="card border-0 shadow-sm" v-if="currentInscription">
+                    <div v-if="currentInscription" v-show="activePortalTab !== 'profile'" class="card border-0 shadow-sm">
                         <div class="card-body">
-                            <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
-                                <div>
-                                    <h2 class="h4 mb-1">Actividad</h2>
-                                    <p class="text-muted mb-0">Consulta pagos, asistencias y evaluaciones del año actual.</p>
+                            <div v-show="activePortalTab === 'payments'">
+                                <div class="mb-4">
+                                    <h2 class="h4 mb-1">Pagos</h2>
+                                    <p class="text-muted mb-0">Estado de las mensualidades de la inscripción actual.</p>
                                 </div>
-                            </div>
-
-                            <ul class="nav nav-tabs guardian-player-detail__main-tabs mb-4" role="tablist" aria-label="Actividad del deportista">
-                                <li v-for="tab in activityTabs" :key="tab.key" class="nav-item" role="presentation">
-                                    <button
-                                        type="button"
-                                        class="nav-link"
-                                        :class="{ active: activeActivityTab === tab.key }"
-                                        role="tab"
-                                        :aria-selected="activeActivityTab === tab.key"
-                                        @click="activeActivityTab = tab.key"
-                                    >
-                                        {{ tab.label }}
-                                        <span class="badge rounded-pill guardian-player-detail__badge guardian-player-detail__badge--neutral ms-1">
-                                            {{ tab.count }}
-                                        </span>
-                                    </button>
-                                </li>
-                            </ul>
-
-                            <div v-show="activeActivityTab === 'payments'">
                                 <div
                                     v-if="currentInscription.payments?.length > 1"
                                     class="guardian-player-detail__payment-tabs mb-4"
@@ -400,7 +403,11 @@
                                 <p v-else class="text-muted mb-0">No hay pagos registrados para esta inscripción.</p>
                             </div>
 
-                            <div v-show="activeActivityTab === 'attendance'">
+                            <div v-show="activePortalTab === 'attendance'">
+                                <div class="mb-4">
+                                    <h2 class="h4 mb-1">Asistencias</h2>
+                                    <p class="text-muted mb-0">Selecciona un mes y grupo para consultar el detalle.</p>
+                                </div>
                                 <div v-if="currentInscription.attendance?.length" class="guardian-player-detail__attendance-tabs mb-4" role="tablist" aria-label="Meses de asistencia">
                                     <button
                                         v-for="assist in currentInscription.attendance"
@@ -445,7 +452,16 @@
                                 <p v-else class="text-muted mb-0">No hay asistencias registradas para esta inscripción.</p>
                             </div>
 
-                            <div v-show="activeActivityTab === 'evaluations'">
+                            <GuardianFeedbackPanel
+                                v-if="activePortalTab === 'feedback'"
+                                :entries="currentInscription.feedback || []"
+                            />
+
+                            <div v-show="activePortalTab === 'evaluations'">
+                                <div class="mb-4">
+                                    <h2 class="h4 mb-1">Evaluaciones</h2>
+                                    <p class="text-muted mb-0">Consulta los resultados y compara períodos del proceso.</p>
+                                </div>
                                 <template v-if="currentInscription.evaluations?.length">
                                     <div v-for="evaluation in currentInscription.evaluations" :key="evaluation.id" class="mb-3 pb-3 border-bottom">
                                         <div class="d-flex justify-content-between gap-2 flex-wrap">
@@ -587,6 +603,7 @@ import AttendanceQrModal from '@/components/attendances/AttendanceQrModal.vue';
 import Loader from '@/components/general/Loader.vue';
 import api from '@/utils/axios';
 import { usePageTitle } from '@/composables/use-meta';
+import GuardianFeedbackPanel from '@/pages/portal/guardians/components/GuardianFeedbackPanel.vue';
 import GuardianPlayerDetailSkeletonFixture from '@/pages/portal/guardians/components/GuardianPlayerDetailSkeletonFixture.vue';
 
 const route = useRoute();
@@ -601,7 +618,7 @@ const photoInput = ref(null);
 const photoFile = ref(null);
 const photoPreviewUrl = ref('');
 const rotatingPhoto = ref(false);
-const activeActivityTab = ref('payments');
+const activePortalTab = ref('profile');
 const activePaymentId = ref(null);
 const activeAttendanceId = ref(null);
 const player = ref(null);
@@ -673,7 +690,13 @@ const historicalInscriptions = computed(() => player.value?.historical_inscripti
 const playerDisplayPhotoUrl = computed(() => photoPreviewUrl.value || player.value?.photo_url || '/img/user.webp');
 const hasSelectedPhoto = computed(() => photoFile.value instanceof File);
 const selectedPhotoName = computed(() => photoFile.value?.name ?? '');
-const activityTabs = computed(() => [
+const evaluationsEnabled = computed(() => player.value?.modules?.evaluations === true);
+const portalTabs = computed(() => [
+    {
+        key: 'profile',
+        label: 'Datos del deportista',
+        count: null,
+    },
     {
         key: 'payments',
         label: 'Pagos',
@@ -685,10 +708,15 @@ const activityTabs = computed(() => [
         count: currentInscription.value?.attendance?.length ?? 0,
     },
     {
+        key: 'feedback',
+        label: 'Retroalimentación',
+        count: currentInscription.value?.feedback?.length ?? 0,
+    },
+    ...(evaluationsEnabled.value ? [{
         key: 'evaluations',
         label: 'Evaluaciones',
         count: currentInscription.value?.evaluations?.length ?? 0,
-    },
+    }] : []),
 ]);
 const activePayment = computed(() => {
     const payments = currentInscription.value?.payments ?? [];
@@ -839,6 +867,11 @@ const rotateSelectedPhoto = async (degrees) => {
 
 const applyPlayer = (playerData) => {
     player.value = playerData;
+
+    if (!portalTabs.value.some((tab) => tab.key === activePortalTab.value)) {
+        activePortalTab.value = 'profile';
+    }
+
     form.names = playerData?.names ?? '';
     form.last_names = playerData?.last_names ?? '';
     form.date_birth = playerData?.date_birth ?? '';
@@ -1186,6 +1219,7 @@ onBeforeUnmount(revokePhotoPreview);
 
 .guardian-player-detail__main-tabs {
     flex-wrap: nowrap;
+    gap: 0.35rem;
     overflow-x: auto;
     overflow-y: hidden;
 }
@@ -1195,11 +1229,22 @@ onBeforeUnmount(revokePhotoPreview);
     align-items: center;
     white-space: nowrap;
     color: var(--guardian-player-detail-text-muted);
+    border-radius: 0.85rem;
+    padding: 0.7rem 0.9rem;
+    font-weight: 650;
+    transition: color 0.2s ease, background 0.2s ease;
 }
 
 .guardian-player-detail__main-tabs .nav-link.active {
-    color: var(--guardian-player-detail-primary-strong);
+    color: #fff;
+    background: var(--guardian-player-detail-primary-strong);
     font-weight: 700;
+}
+
+.guardian-player-detail__main-tabs .nav-link.active .guardian-player-detail__badge {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .guardian-player-detail__attendance-tabs {

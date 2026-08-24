@@ -20,6 +20,10 @@ class GuardianPlayerDetailResource extends JsonResource
         /** @var Inscription|null $inscription */
         $inscription = $this->inscriptions->first();
         $historicalInscriptions = collect($this->historical_inscriptions ?? []);
+        $evaluationsEnabled = $this->schoolData?->hasSchoolPermission('school.module.evaluations') ?? false;
+        $evaluations = $evaluationsEnabled && $inscription
+            ? $inscription->playerEvaluations
+            : collect();
 
         return [
             'id' => $this->id,
@@ -46,6 +50,9 @@ class GuardianPlayerDetailResource extends JsonResource
             'rh' => $this->rh,
             'eps' => $this->eps,
             'student_insurance' => $this->student_insurance,
+            'modules' => [
+                'evaluations' => $evaluationsEnabled,
+            ],
             'school_data' => $this->whenLoaded('schoolData', fn () => [
                 'id' => $this->schoolData->id,
                 'name' => $this->schoolData->name,
@@ -145,7 +152,8 @@ class GuardianPlayerDetailResource extends JsonResource
                         'registers' => $registers,
                     ];
                 })->values(),
-                'evaluations' => $inscription->playerEvaluations->map(fn ($evaluation) => [
+                'feedback' => collect($inscription->portal_feedback ?? [])->values(),
+                'evaluations' => $evaluations->map(fn ($evaluation) => [
                     'id' => $evaluation->id,
                     'status' => $evaluation->status,
                     'evaluation_type' => $evaluation->evaluation_type,
@@ -159,7 +167,7 @@ class GuardianPlayerDetailResource extends JsonResource
                     ] : null,
                     'pdf_url' => route('api.v2.portal.guardians.evaluations.pdf', $evaluation->id),
                 ])->values(),
-                'comparison_periods' => $inscription->playerEvaluations
+                'comparison_periods' => $evaluations
                     ->filter(fn ($evaluation) => $evaluation->period)
                     ->map(fn ($evaluation) => [
                         'id' => $evaluation->period->id,

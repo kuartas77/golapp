@@ -112,7 +112,7 @@ class GuardianPlayerController extends Controller
             'period_b_id' => ['required', 'integer', 'exists:evaluation_periods,id', 'different:period_a_id'],
         ])->validate();
 
-        $inscriptionModel = $this->guardianAccessService->findEligibleInscription($guardian, $inscription);
+        $inscriptionModel = $this->guardianAccessService->findEvaluationEnabledInscription($guardian, $inscription);
         $inscriptionModel->loadMissing(['player', 'trainingGroup']);
 
         return response()->json([

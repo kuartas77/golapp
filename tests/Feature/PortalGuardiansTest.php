@@ -5,14 +5,20 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Assist;
+use App\Models\CompetitionGroup;
+use App\Models\Game;
 use App\Models\Inscription;
 use App\Models\People;
 use App\Models\Player;
 use App\Models\School;
+use App\Models\SkillsControl;
+use App\Models\Tournament;
 use App\Models\TrainingGroup;
 use App\Modules\Inscriptions\Actions\Create\InviteGuardianAction;
 use App\Modules\Inscriptions\Actions\Create\Passable;
 use App\Notifications\GuardianPasswordResetNotification;
+use App\Service\Portal\GuardianAccessService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Hash;
@@ -146,6 +152,95 @@ final class PortalGuardiansTest extends TestCase
             ->assertJsonPath('data.current_inscription.attendance.0.id', $assist->id)
             ->assertJsonPath('data.current_inscription.attendance.0.registers.0.status', 1)
             ->assertJsonPath('data.current_inscription.attendance.0.registers.0.label', 'Asistencia');
+    }
+
+    public function testGuardianPlayerDetailDisablesEvaluationsWhenSchoolModuleIsDisabled(): void
+    {
+        [$guardian, $player, $inscription] = $this->createGuardianScenario([
+            'email' => 'evaluations-disabled.guardian@example.com',
+            'password' => 'evaluations-disabled-secret',
+        ], schoolAttributes: [
+            'school_permissions' => School::normalizeSchoolPermissions([
+                'school.module.evaluations' => false,
+            ]),
+        ]);
+
+        $this->actingAs($guardian, 'guardians')
+            ->getJson("/api/v2/portal/acudientes/players/{$player->id}")
+            ->assertOk()
+            ->assertJsonPath('data.modules.evaluations', false)
+            ->assertJsonCount(0, 'data.current_inscription.evaluations')
+            ->assertJsonCount(0, 'data.current_inscription.comparison_periods');
+
+        $this->expectException(ModelNotFoundException::class);
+
+        app(GuardianAccessService::class)->findEvaluationEnabledInscription($guardian, $inscription->id);
+    }
+
+    public function testGuardianPlayerDetailReturnsOnlyMeaningfulAttendanceAndCompetitionFeedback(): void
+    {
+        [$guardian, $player, $inscription, $school] = $this->createGuardianScenario([
+            'email' => 'feedback.guardian@example.com',
+            'password' => 'feedback-secret',
+        ]);
+
+        $assist = Assist::query()
+            ->where('inscription_id', $inscription->id)
+            ->firstOrFail();
+        $assist->update([
+            'observations' => (object) [
+                '2026-03-11' => '  Llegó con buena disposición.  ',
+                '2026-03-12' => '   ',
+            ],
+        ]);
+
+        $tournament = Tournament::query()->create([
+            'name' => 'Torneo Apertura',
+            'school_id' => $school->id,
+        ]);
+        $competitionGroup = CompetitionGroup::query()->create([
+            'name' => 'Sub 14',
+            'year' => (string) now()->year,
+            'tournament_id' => $tournament->id,
+            'user_id' => $this->user->id,
+            'category' => '2012',
+            'school_id' => $school->id,
+        ]);
+        $game = Game::query()->create([
+            'tournament_id' => $tournament->id,
+            'competition_group_id' => $competitionGroup->id,
+            'date' => '2026-03-10',
+            'hour' => '08:00 AM',
+            'num_match' => '4',
+            'place' => 'Cancha principal',
+            'rival_name' => 'Academia Norte',
+            'final_score' => ['soccer' => 3, 'rival' => 3],
+            'general_concept' => '  El grupo sostuvo el plan de juego.  ',
+            'status' => Game::STATUS_PLAYED,
+            'school_id' => $school->id,
+        ]);
+        SkillsControl::query()->create([
+            'game_id' => $game->id,
+            'inscription_id' => $inscription->id,
+            'position' => 'Volante (Ofensivo Central)',
+            'observation' => '  Mostró buena lectura de juego.  ',
+            'school_id' => $school->id,
+        ]);
+
+        $response = $this->actingAs($guardian, 'guardians')
+            ->getJson("/api/v2/portal/acudientes/players/{$player->id}")
+            ->assertOk()
+            ->assertJsonCount(2, 'data.current_inscription.feedback');
+
+        $feedback = collect($response->json('data.current_inscription.feedback'))->keyBy('source');
+
+        $this->assertSame('Llegó con buena disposición.', $feedback['attendance']['observation']);
+        $this->assertSame('2026-03-11', $feedback['attendance']['event_date']);
+        $this->assertSame('Mostró buena lectura de juego.', $feedback['competition']['player_observation']);
+        $this->assertSame('El grupo sostuvo el plan de juego.', $feedback['competition']['group_observation']);
+        $this->assertSame('Volante (Ofensivo Central)', $feedback['competition']['position']);
+        $this->assertSame(['team' => 3, 'rival' => 3], $feedback['competition']['score']);
+        $this->assertSame('Torneo Apertura', $feedback['competition']['tournament_name']);
     }
 
     public function testGuardianSeesComplementaryGroupAttendanceIdentifiedByGroup(): void

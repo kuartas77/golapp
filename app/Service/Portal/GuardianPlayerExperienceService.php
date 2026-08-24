@@ -12,8 +12,10 @@ use Illuminate\Http\Request;
 
 class GuardianPlayerExperienceService
 {
-    public function __construct(private GuardianAccessService $guardianAccessService)
-    {
+    public function __construct(
+        private GuardianAccessService $guardianAccessService,
+        private GuardianPlayerFeedbackService $feedbackService
+    ) {
     }
 
     public function portalDetailPayload(People $guardian, int $playerId, Request $request): array
@@ -69,22 +71,28 @@ class GuardianPlayerExperienceService
 
     public function loadPlayerDetail(Player $player): Player
     {
+        $player->load('schoolData');
+
+        $inscriptionRelations = [
+            'trainingGroup' => fn ($trainingQuery) => $trainingQuery->withTrashed(),
+            'complementaryGroup' => fn ($trainingQuery) => $trainingQuery->withTrashed(),
+            'complementaryGroups' => fn ($trainingQuery) => $trainingQuery->withTrashed(),
+            'payments',
+            'assistance' => fn ($assistQuery) => $assistQuery
+                ->with(['trainingGroup' => fn ($groupQuery) => $groupQuery->withTrashed()])
+                ->orderBy('month')
+                ->orderBy('training_group_id'),
+            'skillsControls',
+        ];
+
+        if ($player->schoolData?->hasSchoolPermission('school.module.evaluations')) {
+            $inscriptionRelations[] = 'playerEvaluations.period';
+        }
+
         $player->load([
-            'schoolData',
             'inscriptions' => fn ($query) => $query
                 ->where('year', now()->year)
-                ->with([
-                    'trainingGroup' => fn ($trainingQuery) => $trainingQuery->withTrashed(),
-                    'complementaryGroup' => fn ($trainingQuery) => $trainingQuery->withTrashed(),
-                    'complementaryGroups' => fn ($trainingQuery) => $trainingQuery->withTrashed(),
-                    'payments',
-                    'assistance' => fn ($assistQuery) => $assistQuery
-                        ->with(['trainingGroup' => fn ($groupQuery) => $groupQuery->withTrashed()])
-                        ->orderBy('month')
-                        ->orderBy('training_group_id'),
-                    'skillsControls',
-                    'playerEvaluations.period',
-                ]),
+                ->with($inscriptionRelations),
         ]);
 
         $player->historical_inscriptions = $player->inscriptions()
@@ -94,6 +102,9 @@ class GuardianPlayerExperienceService
             ->get();
 
         $player->inscriptions->setAppends(['format_average']);
+        $player->inscriptions->each(function ($inscription): void {
+            $inscription->setAttribute('portal_feedback', $this->feedbackService->forInscription($inscription));
+        });
         PlayerExportService::loadClassDays($player);
 
         return $player;

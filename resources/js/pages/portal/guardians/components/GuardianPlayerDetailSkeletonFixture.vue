@@ -27,6 +27,20 @@
             </div>
         </div>
 
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-2">
+                    <ul class="nav guardian-player-detail-fixture__tabs">
+                        <li v-for="tab in tabs" :key="tab" class="nav-item">
+                            <button type="button" class="nav-link" :class="{ active: tab === 'Datos del deportista' }">
+                                {{ tab }}
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
         <div class="col-12 col-xl-7">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body p-4">
@@ -87,36 +101,6 @@
                     </div>
                 </div>
 
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h4 mb-1">Actividad</h2>
-                        <p class="text-muted mb-3">Consulta pagos, asistencias y evaluaciones del año actual.</p>
-
-                        <ul class="nav nav-tabs mb-4">
-                            <li v-for="tab in tabs" :key="tab" class="nav-item">
-                                <button type="button" class="nav-link" :class="{ active: tab === 'Pagos' }">
-                                    {{ tab }} <span class="badge rounded-pill guardian-player-detail-fixture__badge ms-1">1</span>
-                                </button>
-                            </li>
-                        </ul>
-
-                        <div class="guardian-player-detail-fixture__payment-panel">
-                            <div class="d-flex justify-content-between gap-2 flex-wrap mb-3">
-                                <strong>Año 2026</strong>
-                                <span class="badge guardian-player-detail-fixture__badge">8 mes(es) al día</span>
-                            </div>
-
-                            <div class="row g-2">
-                                <div v-for="month in months" :key="month" class="col-12 col-sm-6">
-                                    <div class="guardian-player-detail-fixture__payment-month">
-                                        <span>{{ month }}</span>
-                                        <strong>Pagado</strong>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -154,8 +138,7 @@ const stats = [
     { label: 'Calificación', value: 4.5 },
 ];
 
-const tabs = ['Pagos', 'Asistencias', 'Evaluaciones'];
-const months = ['Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'];
+const tabs = ['Datos del deportista', 'Pagos', 'Asistencias', 'Retroalimentación', 'Evaluaciones'];
 
 const fieldValue = (field) => ({
     Nombres: 'Mateo Andrés',
@@ -179,6 +162,25 @@ const fieldValue = (field) => ({
 .guardian-player-detail-fixture__hero .text-muted,
 .guardian-player-detail-fixture__hero .small {
     color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.guardian-player-detail-fixture__tabs {
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+    overflow-x: auto;
+}
+
+.guardian-player-detail-fixture__tabs .nav-link {
+    white-space: nowrap;
+    border-radius: 0.85rem;
+    color: #5f6b85;
+    padding: 0.7rem 0.9rem;
+}
+
+.guardian-player-detail-fixture__tabs .nav-link.active {
+    color: #fff;
+    background: #0f1c46;
+    font-weight: 700;
 }
 
 .guardian-player-detail-fixture__photo {
