@@ -2,7 +2,9 @@
 
 namespace App\Notifications;
 
+use App\Models\School;
 use App\Models\User;
+use App\Support\Mail\SchoolMailFrom;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -26,16 +28,24 @@ class UserPasswordResetNotification extends Notification implements ShouldQueue
 
     public function toMail($notifiable): MailMessage
     {
-        $resetUrl = url('/ingreso/restablecer-contrasena') . '?' . http_build_query([
+        $resetUrl = url('/ingreso/restablecer-contrasena').'?'.http_build_query([
             'token' => $this->token,
             'email' => $this->user->email,
         ]);
 
-        return (new MailMessage)
+        $message = (new MailMessage)
             ->subject('Restablece tu contraseña de GOLAPP')
             ->markdown('emails.auth.user-password-reset', [
                 'user' => $this->user,
                 'resetUrl' => $resetUrl,
             ]);
+
+        $school = School::query()->find($this->user->school_id);
+
+        if ($school instanceof School) {
+            SchoolMailFrom::apply($message, $school->name);
+        }
+
+        return $message;
     }
 }

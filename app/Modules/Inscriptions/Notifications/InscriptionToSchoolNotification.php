@@ -7,6 +7,7 @@ namespace App\Modules\Inscriptions\Notifications;
 use App\Jobs\DeleteTempZipAndPlayerFolder;
 use App\Models\Inscription;
 use App\Models\School;
+use App\Support\Mail\SchoolMailFrom;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -41,18 +42,20 @@ class InscriptionToSchoolNotification extends Notification implements ShouldQueu
      * Get the mail representation of the notification.
      *
      * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
+     * @return MailMessage
      */
     public function toMail($notifiable)
     {
         $mailMessage = (new MailMessage)
-            ->subject("Notificación de Registro.")
+            ->subject('Notificación de Registro.')
             ->markdown('emails.inscriptions.new_school', ['inscription' => $this->inscription, 'school' => $this->school, 'sendContract' => true]);
+
+        SchoolMailFrom::apply($mailMessage, $this->school->name);
 
         [$zipAbsolute, $zipRelative, $playerFolder] = $this->attachment();
 
         $mailMessage->attach($zipAbsolute, [
-            'as' => $this->inscription->unique_code . '.zip',
+            'as' => $this->inscription->unique_code.'.zip',
             'mime' => 'application/zip',
         ]);
 
@@ -81,16 +84,16 @@ class InscriptionToSchoolNotification extends Notification implements ShouldQueu
     {
         $folderDocuments = $this->school->slug;
         $short = data_get($this->school, 'short_name', 'tmp');
-        $playerFolder = 'tmp'. DIRECTORY_SEPARATOR .$folderDocuments . DIRECTORY_SEPARATOR . sprintf('%s-%s', $short, $this->inscription->unique_code);
+        $playerFolder = 'tmp'.DIRECTORY_SEPARATOR.$folderDocuments.DIRECTORY_SEPARATOR.sprintf('%s-%s', $short, $this->inscription->unique_code);
 
-        $zipName = $folderDocuments. '-'.$this->inscription->unique_code . '.zip';
-        $zipRelative = 'tmp/zips/' . $zipName;
+        $zipName = $folderDocuments.'-'.$this->inscription->unique_code.'.zip';
+        $zipRelative = 'tmp/zips/'.$zipName;
         $zipAbsolute = Storage::disk('local')->path($zipRelative);
         $zipDirectory = dirname($zipAbsolute);
 
         File::ensureDirectoryExists($zipDirectory, 0775, true);
 
-        $zipArchive = new \ZipArchive();
+        $zipArchive = new \ZipArchive;
 
         $status = $zipArchive->open($zipAbsolute, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
 
@@ -109,6 +112,4 @@ class InscriptionToSchoolNotification extends Notification implements ShouldQueu
 
         return [$zipAbsolute, $zipRelative, $playerFolder];
     }
-
-
 }

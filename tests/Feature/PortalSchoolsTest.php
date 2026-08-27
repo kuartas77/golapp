@@ -9,12 +9,12 @@ use App\Models\People;
 use App\Models\Player;
 use App\Models\School;
 use App\Models\Setting;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use App\Notifications\GuardianEmailVerificationCodeNotification;
 use App\Service\Portal\GuardianEmailVerificationService;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 final class PortalSchoolsTest extends TestCase
@@ -437,8 +437,14 @@ final class PortalSchoolsTest extends TestCase
         $code = null;
         Notification::assertSentOnDemand(
             GuardianEmailVerificationCodeNotification::class,
-            function (GuardianEmailVerificationCodeNotification $notification) use (&$code): bool {
+            function (GuardianEmailVerificationCodeNotification $notification) use (&$code, $school): bool {
                 $code = $notification->code;
+
+                $this->assertSame(
+                    [config('mail.from.address'), $school->name],
+                    $notification->toMail(new \stdClass)->from,
+                );
+
                 return true;
             }
         );

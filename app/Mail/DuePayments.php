@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Support\Mail\SchoolMailFrom;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -21,8 +22,7 @@ class DuePayments extends Mailable implements ShouldQueue
         public string $month,
         public $payments,
         public string $reportDate
-    )
-    {
+    ) {
         //
     }
 
@@ -33,7 +33,11 @@ class DuePayments extends Mailable implements ShouldQueue
      */
     public function build()
     {
-        return $this->subject("Mensualidades en deuda - {$this->schoolName} - {$this->month}")
+        $message = $this->subject("Mensualidades en deuda - {$this->schoolName} - {$this->month}")
             ->markdown('emails.admin.due_payments');
+
+        SchoolMailFrom::apply($message, $this->schoolName);
+
+        return $message;
     }
 }

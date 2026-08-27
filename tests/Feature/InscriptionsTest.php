@@ -53,7 +53,19 @@ final class InscriptionsTest extends TestCase
 
         $testResponse->assertStatus(200);
         Mail::assertNotSent(ErrorLog::class);
-        Notification::assertSentTo($player, InscriptionNotification::class);
+        Notification::assertSentTo(
+            $player,
+            InscriptionNotification::class,
+            function (InscriptionNotification $notification) use ($player): bool {
+                $message = $notification->toMail($player);
+                $this->assertSame(
+                    [config('mail.from.address'), $this->school['name']],
+                    $message->from,
+                );
+
+                return true;
+            },
+        );
         $this->assertDatabaseHas('inscriptions', [
             'player_id' => $player->id,
             'monthly_payment_type' => Setting::MONTHLY_PAYMENT,

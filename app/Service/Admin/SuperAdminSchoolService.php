@@ -121,7 +121,7 @@ class SuperAdminSchoolService
             );
 
             if ($shouldNotify && $password !== null) {
-                $user->notify(new RegisterNotification($user, $password));
+                $user->notify(new RegisterNotification($user, $password, $school->name));
             }
 
             $this->flushCaches([$school->id]);

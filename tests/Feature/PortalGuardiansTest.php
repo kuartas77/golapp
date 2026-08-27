@@ -20,8 +20,8 @@ use App\Notifications\GuardianPasswordResetNotification;
 use App\Service\Portal\GuardianAccessService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -516,6 +516,7 @@ final class PortalGuardiansTest extends TestCase
 
         $mail = (new GuardianPasswordResetNotification($guardian, 'test-token', true))->toMail($guardian);
 
+        $this->assertSame([config('mail.from.address'), $school->name], $mail->from);
         $this->assertContains("Escuela: {$school->name}", $mail->introLines);
     }
 
@@ -531,7 +532,7 @@ final class PortalGuardiansTest extends TestCase
                 'tutor_platform' => true,
             ], $schoolAttributes));
 
-        if (!$school->trainingGroups()->exists()) {
+        if (! $school->trainingGroups()->exists()) {
             $school->schedules()->create([
                 'schedule' => '10:00AM - 11:00AM',
             ]);

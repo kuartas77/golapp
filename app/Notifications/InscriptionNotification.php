@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Inscription;
+use App\Support\Mail\SchoolMailFrom;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -13,12 +14,6 @@ class InscriptionNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * Create a new notification instance.
-     *
-     * @param User $user
-     * @param $pass
-     */
     public function __construct(private Inscription $inscription, private ?array $pathContracts = [])
     {
         $this->afterCommit();
@@ -27,7 +22,7 @@ class InscriptionNotification extends Notification implements ShouldQueue
     /**
      * Get the notification's delivery channels.
      *
-     * @param mixed $notifiable
+     * @param  mixed  $notifiable
      * @return array
      */
     public function via($notifiable)
@@ -38,16 +33,18 @@ class InscriptionNotification extends Notification implements ShouldQueue
     /**
      * Get the mail representation of the notification.
      *
-     * @param mixed $notifiable
-     * @return MailMessage
+     * @param  mixed  $notifiable
      */
     public function toMail($notifiable): MailMessage
     {
-        $sendContracts = !empty($this->pathContracts);
+        $sendContracts = ! empty($this->pathContracts);
+        $schoolName = (string) data_get($this->inscription, 'school.name', '');
 
         $mailMessage = (new MailMessage)
-            ->subject("{$this->inscription->school->name} Notificación de inscripción.")
+            ->subject("{$schoolName} Notificación de inscripción.")
             ->markdown('emails.inscriptions.added', ['inscription' => $this->inscription, 'sendContract' => $sendContracts]);
+
+        SchoolMailFrom::apply($mailMessage, $schoolName);
 
         if ($sendContracts) {
             foreach ($this->pathContracts as $key => $contract) {
@@ -71,8 +68,7 @@ class InscriptionNotification extends Notification implements ShouldQueue
     /**
      * Get the array representation of the notification.
      *
-     * @param mixed $notifiable
-     * @return array
+     * @param  mixed  $notifiable
      */
     public function toArray($notifiable): array
     {

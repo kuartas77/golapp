@@ -40,6 +40,6 @@ final class GenerateReceivedPaymentReport implements ShouldQueue
             $school,
         );
 
-        $user->notify(new ReceivedPaymentReportNotification($attachment));
+        $user->notify(new ReceivedPaymentReportNotification($attachment, $school->name));
     }
 }

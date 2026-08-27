@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Support\Mail\SchoolMailFrom;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -25,12 +26,16 @@ class GuardianEmailVerificationCodeNotification extends Notification implements 
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        $message = (new MailMessage)
             ->subject('Código de verificación para tu inscripción')
             ->greeting('Verifica el correo del acudiente')
             ->line("Estás realizando una inscripción en {$this->schoolName}.")
             ->line("Tu código de verificación es: {$this->code}")
             ->line('El código vence en 10 minutos y solo puede usarse para esta inscripción.')
             ->line('Si no solicitaste este código, puedes ignorar este mensaje.');
+
+        SchoolMailFrom::apply($message, $this->schoolName);
+
+        return $message;
     }
 }

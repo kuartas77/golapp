@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Inscription;
-use App\Models\People;
 use App\Models\Payment;
+use App\Models\People;
 use App\Models\Player;
 use App\Models\School;
 use App\Models\TrainingGroup;
@@ -319,9 +319,11 @@ final class MonthlyPaymentReceiptsTest extends TestCase
         ]);
         $guardian = $this->attachTutor($inscription);
 
-        $message = (new MonthlyPaymentReceiptNotification($payment, 'january', getSchool($this->user)))
+        $school = getSchool($this->user);
+        $message = (new MonthlyPaymentReceiptNotification($payment, 'january', $school))
             ->toMail($guardian);
 
+        $this->assertSame([config('mail.from.address'), $school->name], $message->from);
         $this->assertCount(1, $message->rawAttachments);
         $this->assertSame('application/pdf', $message->rawAttachments[0]['options']['mime']);
         $this->assertStringStartsWith('%PDF', $message->rawAttachments[0]['data']);

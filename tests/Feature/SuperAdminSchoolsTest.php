@@ -97,7 +97,16 @@ final class SuperAdminSchoolsTest extends TestCase
             'value' => '200',
         ]);
 
-        Notification::assertSentTo($user, RegisterNotification::class);
+        Notification::assertSentTo(
+            $user,
+            RegisterNotification::class,
+            function (RegisterNotification $notification) use ($school, $user): bool {
+                $message = $notification->toMail($user);
+                $this->assertSame([config('mail.from.address'), $school->name], $message->from);
+
+                return true;
+            },
+        );
         $response->assertJsonPath('school.slug', $school->slug);
     }
 

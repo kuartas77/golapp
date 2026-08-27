@@ -47,7 +47,19 @@ final class PlayersTest extends TestCase
         $testResponse->assertStatus(302);
         $spy = $this->spy(PlayerRepository::class);
         $spy->shouldReceive('createPlayer')->andReturn($player);
-        Notification::assertSentTo([$player], RegisterPlayerNotification::class);
+        Notification::assertSentTo(
+            [$player],
+            RegisterPlayerNotification::class,
+            function (RegisterPlayerNotification $notification) use ($player): bool {
+                $message = $notification->toMail($player);
+                $this->assertSame(
+                    [config('mail.from.address'), $player->schoolData->name],
+                    $message->from,
+                );
+
+                return true;
+            },
+        );
         Mail::assertNotSent(ErrorLog::class);
         $this->assertNotNull($player?->password);
         $this->assertFalse(Hash::check($dataPlayer['identification_document'], (string) $player?->password));

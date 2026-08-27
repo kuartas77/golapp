@@ -30,8 +30,9 @@ class UserRepository
     public function getAll()
     {
         $school = getSchool(auth()->user());
+
         return User::query()->with(['roles', 'profile'])
-        ->select(['users.*','users.name as user_name', 'roles.name as role_name', 'roles.id as role_id'])
+            ->select(['users.*', 'users.name as user_name', 'roles.name as role_name', 'roles.id as role_id'])
             ->join('schools_user', 'schools_user.user_id', 'users.id')
             ->join('model_has_roles', 'model_has_roles.model_id', 'users.id')
             ->join('roles', 'model_has_roles.role_id', 'roles.id')
@@ -56,14 +57,14 @@ class UserRepository
             AuthUserContext::forgetUser($user->id);
             $user->profile()->create();
 
-            $schoolUser = new SchoolUser();
+            $schoolUser = new SchoolUser;
             $schoolUser->user_id = $user->id;
             $schoolUser->school_id = $school->id;
             $schoolUser->save();
 
-            $user->notify(new RegisterNotification($user, $password));
+            $user->notify(new RegisterNotification($user, $password, $school->name));
             DB::commit();
-            Cache::forget('KEY_USERS_' . $school->id);
+            Cache::forget('KEY_USERS_'.$school->id);
 
             Alert::success(__('messages.user_stored_success'));
 
@@ -75,6 +76,7 @@ class UserRepository
                 'school_id' => $school->id ?? null,
             ]);
             Alert::error(__('messages.error'));
+
             return $this->user;
         }
     }
@@ -87,7 +89,7 @@ class UserRepository
             $user->update($formRequest->validated());
             $user->syncRoles([$this->resolveRoleName($formRequest)]);
             AuthUserContext::forgetUser($user->id);
-            Cache::forget('KEY_USERS_' . $user->school_id);
+            Cache::forget('KEY_USERS_'.$user->school_id);
             DB::commit();
 
             Alert::success(config('app.name'), __('messages.user_updated', ['user_name' => $user->name]));

@@ -7,6 +7,7 @@ namespace App\Notifications;
 use App\Models\Payment;
 use App\Models\School;
 use App\Service\Payment\MonthlyPaymentReceiptService;
+use App\Support\Mail\SchoolMailFrom;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -38,7 +39,7 @@ class MonthlyPaymentReceiptNotification extends Notification implements ShouldQu
 
         $monthLabel = config("variables.KEY_INDEX_MONTHS_LABEL.{$this->month}", ucfirst($this->month));
 
-        return (new MailMessage)
+        $message = (new MailMessage)
             ->subject("Recibo de mensualidad {$this->school->name}")
             ->greeting("Hola {$notifiable->names}")
             ->line("Adjuntamos el comprobante de pago de mensualidad de {$this->payment->inscription->player->full_names}.")
@@ -47,5 +48,9 @@ class MonthlyPaymentReceiptNotification extends Notification implements ShouldQu
             ->attachData($attachment['content'], $attachment['filename'], [
                 'mime' => $attachment['mime'],
             ]);
+
+        SchoolMailFrom::apply($message, $this->school->name);
+
+        return $message;
     }
 }

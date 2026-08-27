@@ -2,9 +2,10 @@
 
 namespace App\Notifications;
 
+use App\Support\Mail\SchoolMailFrom;
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
 
 class ExportClaimNotification extends Notification
 {
@@ -12,15 +13,18 @@ class ExportClaimNotification extends Notification
 
     public string $filename;
 
+    private string $schoolName = '';
+
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct(string $filename)
+    public function __construct(string $filename, string $schoolName = '')
     {
         //
         $this->filename = $filename;
+        $this->schoolName = $schoolName;
     }
 
     /**
@@ -38,16 +42,20 @@ class ExportClaimNotification extends Notification
      * Get the mail representation of the notification.
      *
      * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
+     * @return MailMessage
      */
     public function toMail($notifiable)
     {
-        return (new MailMessage)->subject("Archivo Exportado GOLAPP.")->greeting('Hola!')
+        $message = (new MailMessage)->subject('Archivo Exportado GOLAPP.')->greeting('Hola!')
             ->line("Adjunto se encuentra el archivo {$this->filename}.")
             ->attach(storage_path("app/public/exports/{$this->filename}"), [
                 'as' => $this->filename,
                 'mime' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             ]);
+
+        SchoolMailFrom::apply($message, $this->schoolName);
+
+        return $message;
     }
 
     /**

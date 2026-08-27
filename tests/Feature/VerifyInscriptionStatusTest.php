@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Mail\PreinscriptionsProvitional;
 use App\Models\Inscription;
 use App\Models\Player;
+use App\Models\School;
 use App\Models\TrainingGroup;
 use App\Models\User;
 use Illuminate\Console\Command;
@@ -42,8 +43,12 @@ final class VerifyInscriptionStatusTest extends TestCase
 
         $this->artisan('inscription:status')->assertExitCode(Command::SUCCESS);
 
-        Mail::assertSent(PreinscriptionsProvitional::class, function (PreinscriptionsProvitional $mail): bool {
-            return $mail->hasTo($this->user->email);
+        Mail::assertSent(PreinscriptionsProvitional::class, function (PreinscriptionsProvitional $mail) use ($schoolId): bool {
+            $school = School::query()->findOrFail($schoolId);
+            $mail->build();
+
+            return $mail->hasTo($this->user->email)
+                && $mail->hasFrom(config('mail.from.address'), $school->name);
         });
         Mail::assertNotSent(PreinscriptionsProvitional::class, function (PreinscriptionsProvitional $mail): bool {
             return $mail->hasTo('correo-invalido');

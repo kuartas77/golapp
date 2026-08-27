@@ -51,7 +51,8 @@ class ReportPaymentController extends Controller
             $date = now()->format('U');
             $year = $request->input('year');
             $groupName = ' ';
-            $request->merge(['school_id' => getSchool(auth()->user())->id]);
+            $school = getSchool(auth()->user());
+            $request->merge(['school_id' => $school->id]);
 
             if ($request->filled('training_group_id') && $request->training_group_id != 0) {
                 $groupName = TrainingGroup::find($request->training_group_id)?->name;
@@ -64,7 +65,7 @@ class ReportPaymentController extends Controller
             $filename = "Pagos del año {$year}{$groupName}{$date}.xlsx";
 
             (new PaymentsExport($request->all(), $request->input('deleted', false)))->queue($filename, 'export')->chain([
-                new NotifyUserOfCompletedExport(auth()->user(), $filename),
+                new NotifyUserOfCompletedExport(auth()->user(), $filename, $school->name),
             ]);
 
             if ($request->expectsJson()) {

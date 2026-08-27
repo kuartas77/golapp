@@ -62,6 +62,7 @@ final class ReceivedPaymentReportTest extends TestCase
                 $renderedMessage = $message->render()->toHtml();
 
                 $this->assertSame('Informe de pagos listo', $message->subject);
+                $this->assertSame([config('mail.from.address'), $this->school['name']], $message->from);
                 $this->assertStringContainsString('Saludos,', $renderedMessage);
                 $this->assertStringNotContainsString('Regards,', $renderedMessage);
                 $this->assertCount(1, $message->rawAttachments);

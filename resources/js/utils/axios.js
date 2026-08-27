@@ -42,6 +42,14 @@ const refreshCsrfCookie = async () => {
 api.interceptors.request.use(
     async (config) => {
         const appState = useAppState()
+        const currentRoute = router.currentRoute.value
+
+        if (
+            !config.__authRedirectPath
+            && !currentRoute.matched.some(route => route.meta.guest || route.meta.public)
+        ) {
+            config.__authRedirectPath = currentRoute.fullPath
+        }
 
         if (shouldTrackGlobalLoader(config)) {
             appState.startGlobalLoading()
@@ -99,6 +107,7 @@ api.interceptors.response.use(
         const originalRequest = error.config ?? {}
         const skipAuthRedirect = Boolean(error.config?.skipAuthRedirect)
         const skipCsrfRetry = Boolean(error.config?.skipCsrfRetry)
+        const authRedirectPath = originalRequest.__authRedirectPath || router.currentRoute.value.fullPath
         const currentRoute = router.currentRoute.value
         const currentPath = String(currentRoute.path ?? '')
         const isGuardianArea = currentPath.startsWith('/portal/acudientes')
@@ -137,7 +146,7 @@ api.interceptors.response.use(
                     await router.push({
                         name: 'guardian-login',
                         query: currentPath !== '/portal/acudientes/login'
-                            ? { redirect: currentRoute.fullPath }
+                            ? { redirect: authRedirectPath }
                             : undefined,
                     })
                 }
@@ -149,7 +158,10 @@ api.interceptors.response.use(
                 auth.clearState()
 
                 if (!['login', 'forgot-password', 'reset-password'].includes(String(router.currentRoute.value.name ?? ''))) {
-                    await router.push({ name: 'login' })
+                    await router.push({
+                        name: 'login',
+                        query: { redirect: authRedirectPath },
+                    })
                 }
             }
         }

@@ -221,6 +221,7 @@ final class DebtNotificationsTest extends TestCase
         $html = $message->render()->toHtml();
 
         $this->assertSame("Notificación pagos de mensualidades {$school->name}.", $message->subject);
+        $this->assertSame([config('mail.from.address'), $school->name], $message->from);
         $this->assertStringContainsString('Enero', $html);
         $this->assertStringContainsString('Febrero', $html);
         $this->assertStringContainsString('Esperamos que te pongas al día con las obligaciones.', $html);

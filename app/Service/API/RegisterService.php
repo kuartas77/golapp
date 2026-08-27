@@ -63,7 +63,7 @@ class RegisterService
             $relationSchool->save();
 
             if (! $request->is_campus) {
-                $user->notify(new RegisterNotification($user, $password));
+                $user->notify(new RegisterNotification($user, $password, $school->name));
             }
 
             DB::commit();

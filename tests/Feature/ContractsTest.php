@@ -358,7 +358,8 @@ final class ContractsTest extends TestCase
         $this->assertStringNotContainsString('signature_ip_address', $manifest);
         $this->assertStringNotContainsString('signature_user_agent', $manifest);
 
-        (new InscriptionToSchoolNotification($inscription, $school))->toMail(new \stdClass());
+        $message = (new InscriptionToSchoolNotification($inscription, $school))->toMail(new \stdClass());
+        $this->assertSame([config('mail.from.address'), $school->name], $message->from);
 
         $zipPath = Storage::disk('local')->path(
             "tmp/zips/{$school->slug}-{$inscription->unique_code}.zip"

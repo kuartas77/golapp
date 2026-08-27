@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Support\Mail\SchoolMailFrom;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -28,6 +29,10 @@ class PreinscriptionsProvitional extends Mailable
      */
     public function build()
     {
-        return $this->markdown('emails.admin.preinscriptions')->subject("{$this->schoolName} - Listado de preinscripciones y/o grupo provicional.");
+        $message = $this->markdown('emails.admin.preinscriptions')->subject("{$this->schoolName} - Listado de preinscripciones y/o grupo provicional.");
+
+        SchoolMailFrom::apply($message, $this->schoolName);
+
+        return $message;
     }
 }

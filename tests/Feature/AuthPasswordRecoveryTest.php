@@ -39,10 +39,10 @@ final class AuthPasswordRecoveryTest extends TestCase
 
     public function testUserPasswordRecoveryEmailRendersASingleLogo(): void
     {
-        $html = (string) (new UserPasswordResetNotification($this->user, 'test-token'))
-            ->toMail($this->user)
-            ->render();
+        $message = (new UserPasswordResetNotification($this->user, 'test-token'))->toMail($this->user);
+        $html = (string) $message->render();
 
+        $this->assertSame([config('mail.from.address'), $this->school['name']], $message->from);
         $this->assertSame(1, substr_count($html, 'img/logo-light.svg'));
     }
 
