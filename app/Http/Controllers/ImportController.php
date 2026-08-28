@@ -62,11 +62,11 @@ class ImportController extends Controller
 
         } catch (ValidationException $exception) {
             if ($this->expectsJsonResponse($request)) {
-                $message = $exception->validator->errors()->first('file');
-                if (str_starts_with($message, 'Error en las columnas:')) {
-                    return response()->json(['success' => false, 'message' => $message], Response::HTTP_UNPROCESSABLE_ENTITY);
-                }
-                throw $exception;
+                return response()->json([
+                    'success' => false,
+                    'message' => $exception->validator->errors()->first(),
+                    'errors' => $exception->errors(),
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
 
             Alert::error(env('APP_NAME'), $exception->validator->errors()->first());

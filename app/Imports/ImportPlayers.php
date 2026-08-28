@@ -13,6 +13,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
@@ -38,6 +39,8 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
 
     private int $skippedInscriptions = 0;
 
+    private int $processedSpreadsheetRows = 0;
+
     public function __construct(
         private int $school_id,
         private PlayerRepository $playerRepository,
@@ -51,6 +54,9 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
 
     public function collection(Collection $rows)
     {
+        $this->validateGuardianRows($rows);
+        $this->processedSpreadsheetRows += $rows->count();
+
         try {
             $rows = $this->filterBlankRows($rows);
             $this->warmChunkLookups($rows);
@@ -58,13 +64,14 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
             foreach ($rows as $row) {
                 DB::beginTransaction();
                 $dataPeople = $this->setAttributesPeople($row);
-
-                $people = $this->storePeople($dataPeople);
+                $people = $dataPeople === null ? null : $this->storePeople($dataPeople);
 
                 $dataPlayer = $this->setAttributesPlayer($row);
                 $player = $this->storePlayer($dataPlayer);
 
-                $player->people()->sync([$people->id]);
+                if ($people !== null) {
+                    $player->people()->sync([$people->id]);
+                }
                 DB::commit();
 
                 $this->createImportedInscription($player);
@@ -81,12 +88,17 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
         }
     }
 
-    private function setAttributesPeople($row): array
+    private function setAttributesPeople($row): ?array
     {
-        $phone = $this->firstRowValue($row, ['numero_de_telefono', 'telefonos', 'numero_de_celular']);
+        $names = $this->rowValue($row, 'nombres_y_apellidos');
+        $phone = $this->guardianPhone($row);
+
+        if ($names === '' && $phone === '') {
+            return null;
+        }
 
         return [
-            'names' => Str::upper($this->rowValue($row, 'nombres_y_apellidos')),
+            'names' => Str::upper($names),
             'identification_card' => $phone,
             'tutor' => true,
             'relationship' => 30,
@@ -95,6 +107,7 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
             'profession' => $this->rowValue($row, 'profesion') ?: null,
             'business' => $this->rowValue($row, 'empresa') ?: null,
             'position' => $this->rowValue($row, 'cargo') ?: null,
+            'email' => $this->rowValue($row, 'correo_electronico'),
         ];
     }
 
@@ -285,6 +298,29 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
         });
     }
 
+    private function validateGuardianRows(Collection $rows): void
+    {
+        foreach ($rows->values() as $index => $row) {
+            if (collect($row)->filter(fn ($value) => filled($value))->isEmpty()) {
+                continue;
+            }
+
+            $names = $this->rowValue($row, 'nombres_y_apellidos');
+            $phone = $this->guardianPhone($row);
+
+            if (($names === '') === ($phone === '')) {
+                continue;
+            }
+
+            $missingField = $names === '' ? 'nombres_y_apellidos' : 'numero_de_telefono';
+            $spreadsheetRow = $this->processedSpreadsheetRows + $index + 2;
+
+            throw ValidationException::withMessages([
+                'file' => "Fila {$spreadsheetRow}: completa {$missingField} del acudiente o deja ambos campos vacíos.",
+            ]);
+        }
+    }
+
     public function summary(): array
     {
         return [
@@ -313,6 +349,11 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
         }
 
         return '';
+    }
+
+    private function guardianPhone($row): string
+    {
+        return $this->firstRowValue($row, ['numero_de_telefono', 'telefonos']);
     }
 
     private function parseBirthDate(string $value): Carbon

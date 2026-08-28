@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Imports\ImportPlayers;
 use App\Models\Inscription;
+use App\Models\People;
 use App\Models\Player;
 use App\Notifications\InscriptionNotification;
 use App\Repositories\InscriptionRepository;
@@ -125,6 +126,109 @@ final class ImportPlayersTest extends TestCase
             'year' => getYearInscription(),
         ]);
         Notification::assertNotSentTo($player, InscriptionNotification::class);
+    }
+
+    public function test_imported_player_can_be_created_without_a_guardian(): void
+    {
+        Notification::fake();
+
+        $this->actingAs($this->user)
+            ->post('/api/v2/import/players', [
+                'file' => $this->makeImportFile($this->playerRow([
+                    'numero_de_documento' => 'DOC-IMPORT-SIN-ACUDIENTE',
+                    'nombres_y_apellidos' => '',
+                    'numero_de_telefono' => '',
+                ])),
+            ], ['Accept' => 'application/json'])
+            ->assertOk()
+            ->assertJsonPath('summary.created_players', 1)
+            ->assertJsonPath('summary.created_inscriptions', 1);
+
+        $player = Player::query()
+            ->where('school_id', $this->school['id'])
+            ->where('identification_document', 'DOC-IMPORT-SIN-ACUDIENTE')
+            ->firstOrFail();
+
+        $this->assertFalse($player->people()->exists());
+        $this->assertDatabaseHas('inscriptions', [
+            'player_id' => $player->id,
+            'school_id' => $this->school['id'],
+            'year' => getYearInscription(),
+        ]);
+        $this->assertSame(0, People::query()->count());
+    }
+
+    public function test_import_rejects_partial_guardian_data_without_creating_the_player(): void
+    {
+        $this->actingAs($this->user)
+            ->post('/api/v2/import/players', [
+                'file' => $this->makeImportFile($this->playerRow([
+                    'numero_de_documento' => 'DOC-IMPORT-ACUDIENTE-PARCIAL',
+                    'nombres_y_apellidos' => 'Acudiente Incompleto',
+                    'numero_de_telefono' => '',
+                ])),
+            ], ['Accept' => 'application/json'])
+            ->assertUnprocessable()
+            ->assertJsonPath(
+                'message',
+                'Fila 2: completa numero_de_telefono del acudiente o deja ambos campos vacíos.'
+            )
+            ->assertJsonValidationErrors(['file']);
+
+        $this->assertDatabaseMissing('players', [
+            'school_id' => $this->school['id'],
+            'identification_document' => 'DOC-IMPORT-ACUDIENTE-PARCIAL',
+        ]);
+    }
+
+    public function test_import_rejects_guardian_phone_without_guardian_name(): void
+    {
+        $this->actingAs($this->user)
+            ->post('/api/v2/import/players', [
+                'file' => $this->makeImportFile($this->playerRow([
+                    'numero_de_documento' => 'DOC-IMPORT-ACUDIENTE-SIN-NOMBRE',
+                    'nombres_y_apellidos' => '',
+                    'numero_de_telefono' => '6049876543',
+                ])),
+            ], ['Accept' => 'application/json'])
+            ->assertUnprocessable()
+            ->assertJsonPath(
+                'message',
+                'Fila 2: completa nombres_y_apellidos del acudiente o deja ambos campos vacíos.'
+            )
+            ->assertJsonValidationErrors(['file']);
+
+        $this->assertDatabaseMissing('players', [
+            'school_id' => $this->school['id'],
+            'identification_document' => 'DOC-IMPORT-ACUDIENTE-SIN-NOMBRE',
+        ]);
+    }
+
+    public function test_reimport_without_guardian_data_preserves_existing_guardian(): void
+    {
+        $guardian = People::factory()->create([
+            'names' => 'ACUDIENTE EXISTENTE',
+            'identification_card' => 'ACUDIENTE-EXISTENTE-1',
+            'tutor' => true,
+        ]);
+        $player = Player::factory()->create([
+            'school_id' => $this->school['id'],
+            'identification_document' => 'DOC-IMPORT-CONSERVA-ACUDIENTE',
+        ]);
+        $player->people()->attach($guardian);
+
+        $this->actingAs($this->user)
+            ->post('/api/v2/import/players', [
+                'file' => $this->makeImportFile($this->playerRow([
+                    'numero_de_documento' => 'DOC-IMPORT-CONSERVA-ACUDIENTE',
+                    'nombres_y_apellidos' => '',
+                    'numero_de_telefono' => '',
+                ])),
+            ], ['Accept' => 'application/json'])
+            ->assertOk()
+            ->assertJsonPath('summary.updated_players', 1);
+
+        $this->assertTrue($player->people()->whereKey($guardian->id)->exists());
     }
 
     public function test_reimporting_player_updates_data_without_creating_duplicate_inscription(): void
@@ -291,5 +395,30 @@ final class ImportPlayersTest extends TestCase
             mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             test: true
         );
+    }
+
+    private function playerRow(array $overrides = []): array
+    {
+        return array_replace([
+            'fecha_de_nacimiento' => ExcelDate::PHPToExcel(now()->subYears(12)->startOfDay()),
+            'numero_de_documento' => 'DOC-IMPORT-BASE',
+            'nombres' => 'Deportista',
+            'apellidos' => 'Importado',
+            'genero' => 'M',
+            'lugar_de_nacimiento' => 'Medellin',
+            'rh' => 'O+',
+            'escuela_o_colegio_donde_estudia' => 'Colegio Demo',
+            'direccion_de_residencia' => 'Calle 1',
+            'municipio' => 'Medellin',
+            'barrio' => 'Centro',
+            'correo_electronico' => 'deportista.importado@example.com',
+            'numero_de_celular' => '3001234567',
+            'eps' => 'Sura',
+            'nombres_y_apellidos' => 'Acudiente Importado',
+            'numero_de_telefono' => '6041234567',
+            'profesion' => '',
+            'empresa' => '',
+            'cargo' => '',
+        ], $overrides);
     }
 }
