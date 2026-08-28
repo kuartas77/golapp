@@ -77,8 +77,8 @@
                                 <th>SKU</th>
                                 <th class="text-center">Tipo</th>
                                 <th class="text-center">Cantidad</th>
-                                <th class="text-end">Entrada</th>
-                                <th class="text-end">Venta</th>
+                                <th class="text-end">Costo unitario</th>
+                                <th class="text-end">Venta unitaria</th>
                                 <th class="text-end">Margen</th>
                                 <th class="text-center">Antes</th>
                                 <th class="text-center">Después</th>
@@ -88,7 +88,7 @@
                         </thead>
                         <tfoot>
                             <tr>
-                                <th>Totales:</th>
+                                <th>Totales filtrados:</th>
                                 <th></th>
                                 <th></th>
                                 <th></th>
@@ -104,6 +104,11 @@
                         </tfoot>
                     </template>
                 </DatatableTemplate>
+                <div v-if="movementTotals.missing_cost_exits > 0" class="alert alert-warning py-2 mt-3 mb-0" role="status">
+                    {{ movementTotals.missing_cost_exits }}
+                    {{ movementTotals.missing_cost_exits === 1 ? 'salida no se incluyó' : 'salidas no se incluyeron' }}
+                    en el costo ni en el margen porque no tienen costo de entrada registrado.
+                </div>
             </div>
         </template>
     </panel>
@@ -225,7 +230,8 @@
                                     </div>
                                     <div v-if="movementForm.type === 'exit'" class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center">
                                         <span class="text-muted">Margen estimado de esta salida</span>
-                                        <strong :class="{ 'text-danger': projectedMargin < 0, 'text-success': projectedMargin > 0 }">{{ money(projectedMargin) }}</strong>
+                                        <strong v-if="projectedMargin !== null" :class="{ 'text-danger': projectedMargin < 0, 'text-success': projectedMargin > 0 }">{{ money(projectedMargin) }}</strong>
+                                        <span v-else class="text-warning">Sin costo registrado</span>
                                     </div>
                                 </div>
                             </div>
@@ -310,6 +316,13 @@ const productDialog = ref(null)
 const movementDialog = ref(null)
 const isSaving = ref(false)
 const selectedProduct = ref(null)
+const movementTotals = reactive({
+    stock_delta: 0,
+    exit_cost: '0.00',
+    exit_sale: '0.00',
+    profit_margin: '0.00',
+    missing_cost_exits: 0,
+})
 
 const emptyProductForm = () => ({
     id: null,
@@ -357,6 +370,10 @@ const projectedStock = computed(() => {
 const projectedMargin = computed(() => {
     if (movementForm.type !== 'exit') {
         return 0
+    }
+
+    if (selectedEntryPrice.value <= 0) {
+        return null
     }
 
     return (selectedSalePrice.value - selectedEntryPrice.value) * Number(movementForm.quantity || 0)
@@ -433,6 +450,28 @@ function renderType(data) {
     return `<span class="badge ${cssClass}">${label}</span>`
 }
 
+function renderStockDelta(data, type, row) {
+    const delta = Number(row.stock_delta) || 0
+
+    if (type !== 'display') {
+        return delta
+    }
+
+    return delta > 0 ? `+${delta}` : String(delta)
+}
+
+function renderProfitMargin(data, type, row = { type: 'exit' }) {
+    if (row.type !== 'exit') {
+        return type === 'display' ? '<span class="text-muted">-</span>' : 0
+    }
+
+    if (data === null || data === undefined) {
+        return type === 'display' ? '<span class="text-warning">Sin costo</span>' : null
+    }
+
+    return type === 'display' ? money(data) : Number(data)
+}
+
 const productColumns = [
     { data: 'name', name: 'name', orderable: false },
     { data: 'sku', name: 'sku', orderable: false, render: data => data || '<span class="text-muted">-</span>' },
@@ -486,10 +525,10 @@ const movementColumns = [
     { data: 'product_name', name: 'product_name', orderable: false },
     { data: 'product_sku', name: 'product_sku', render: data => data || '<span class="text-muted">-</span>' },
     { data: 'type', name: 'type', orderable: false, render: renderType, className: 'dt-head-center dt-body-center' },
-    { data: 'quantity', name: 'quantity', searchable: false, className: 'dt-head-center dt-body-center' },
+    { data: 'stock_delta', name: 'stock_delta', searchable: false, orderable: false, render: renderStockDelta, className: 'dt-head-center dt-body-center' },
     { data: 'entry_price_snapshot', name: 'entry_price_snapshot', searchable: false, render: data => money(data), className: 'dt-body-right' },
     { data: 'sale_price_snapshot', name: 'sale_price_snapshot', searchable: false, render: data => money(data), className: 'dt-body-right' },
-    { data: 'profit_margin', name: 'profit_margin', searchable: false, render: data => money(data), className: 'dt-body-right' },
+    { data: 'profit_margin', name: 'profit_margin', searchable: false, render: renderProfitMargin, className: 'dt-body-right' },
     { data: 'stock_before', name: 'stock_before', searchable: false, className: 'dt-head-center dt-body-center' },
     { data: 'stock_after', name: 'stock_after', searchable: false, className: 'dt-head-center dt-body-center' },
     { data: 'user_name', name: 'user_name', orderable: false },
@@ -512,9 +551,23 @@ const movementOptions = {
         try {
             globalError.value = ''
             const response = await api.get('/api/v2/datatables/inventory_movements', { params: data })
+            Object.assign(movementTotals, response.data.totals || {
+                stock_delta: 0,
+                exit_cost: '0.00',
+                exit_sale: '0.00',
+                profit_margin: '0.00',
+                missing_cost_exits: 0,
+            })
             callback(response.data)
         } catch (error) {
             globalError.value = 'No fue posible cargar los movimientos de inventario.'
+            Object.assign(movementTotals, {
+                stock_delta: 0,
+                exit_cost: '0.00',
+                exit_sale: '0.00',
+                profit_margin: '0.00',
+                missing_cost_exits: 0,
+            })
             callback({ draw: data.draw, data: [], recordsTotal: 0, recordsFiltered: 0 })
         }
     },
@@ -533,25 +586,23 @@ const movementOptions = {
     },
     footerCallback: function () {
         const tableApi = this.api()
-        const currentRows = tableApi.rows({ page: 'current' }).data().toArray()
-        const exitRows = currentRows.filter(row => row.type === 'exit')
-        const quantityTotal = currentRows.reduce((sum, row) => sum + (Number(row.quantity) || 0), 0)
-        const entryTotal = exitRows.reduce((sum, row) => sum + ((Number(row.quantity) || 0) * (Number(row.entry_price_snapshot) || 0)), 0)
-        const saleTotal = exitRows.reduce((sum, row) => sum + ((Number(row.quantity) || 0) * (Number(row.sale_price_snapshot) || 0)), 0)
-        const marginTotal = exitRows.reduce((sum, row) => sum + (Number(row.profit_margin) || 0), 0)
-        tableApi.column(4).footer().innerHTML = String(quantityTotal)
-        tableApi.column(5).footer().innerHTML = money(entryTotal)
-        tableApi.column(6).footer().innerHTML = money(saleTotal)
-        tableApi.column(7).footer().innerHTML = money(marginTotal)
+        tableApi.column(4).footer().innerHTML = String(movementTotals.stock_delta)
+        tableApi.column(5).footer().innerHTML = money(movementTotals.exit_cost)
+        tableApi.column(6).footer().innerHTML = money(movementTotals.exit_sale)
+        tableApi.column(7).footer().innerHTML = money(movementTotals.profit_margin)
     },
 }
 
 function reloadProducts() {
-    productsTable.value?.table?.dt?.ajax?.reload(null, false)
+    const dataTable = productsTable.value?.table?.dt
+    dataTable?.clearPipeline?.()
+    dataTable?.ajax?.reload(null, false)
 }
 
 function reloadMovements() {
-    movementsTable.value?.table?.dt?.ajax?.reload(null, false)
+    const dataTable = movementsTable.value?.table?.dt
+    dataTable?.clearPipeline?.()
+    dataTable?.ajax?.reload(null, false)
 }
 
 function setActiveTab(tab) {

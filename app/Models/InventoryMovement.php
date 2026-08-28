@@ -47,6 +47,7 @@ class InventoryMovement extends Model
     ];
 
     protected $appends = [
+        'stock_delta',
         'profit_margin',
     ];
 
@@ -60,10 +61,19 @@ class InventoryMovement extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function getProfitMarginAttribute(): float
+    public function getStockDeltaAttribute(): int
+    {
+        return (int) $this->stock_after - (int) $this->stock_before;
+    }
+
+    public function getProfitMarginAttribute(): ?float
     {
         if ($this->type !== self::TYPE_EXIT) {
             return 0.0;
+        }
+
+        if ((float) $this->entry_price_snapshot <= 0) {
+            return null;
         }
 
         return ((float) $this->sale_price_snapshot - (float) $this->entry_price_snapshot) * (int) $this->quantity;

@@ -4,6 +4,7 @@ namespace App\Service\DataTables;
 
 use App\Models\InventoryMovement;
 use App\Models\InventoryProduct;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 
 class InventoryDataTableService
@@ -13,8 +14,12 @@ class InventoryDataTableService
         return datatables()->eloquent(InventoryProduct::query()->where('school_id', $schoolId))
             ->filterColumn('is_active', fn ($query, $keyword) => $query->where('is_active', $keyword))
             ->filterColumn('is_low_stock', function ($query, $keyword) {
-                if ($keyword === '1') $query->whereColumn('stock_quantity', '<=', 'minimum_stock');
-                if ($keyword === '0') $query->whereColumn('stock_quantity', '>', 'minimum_stock');
+                if ($keyword === '1') {
+                    $query->whereColumn('stock_quantity', '<=', 'minimum_stock');
+                }
+                if ($keyword === '0') {
+                    $query->whereColumn('stock_quantity', '>', 'minimum_stock');
+                }
             })
             ->filterColumn('category', fn ($query, $keyword) => $query->where('category', 'like', "%{$keyword}%"))
             ->orderColumn('is_low_stock', 'stock_quantity $1')
@@ -38,6 +43,47 @@ class InventoryDataTableService
             ->addColumn('product_name', fn (InventoryMovement $movement) => $movement->product?->name ?? '')
             ->addColumn('product_sku', fn (InventoryMovement $movement) => $movement->product?->sku ?? '')
             ->addColumn('user_name', fn (InventoryMovement $movement) => $movement->user?->name ?? '')
-            ->addColumn('profit_margin', fn (InventoryMovement $movement) => $movement->profit_margin)->toJson();
+            ->addColumn('profit_margin', fn (InventoryMovement $movement) => $movement->profit_margin)
+            ->withQuery('totals', fn (Builder $filteredQuery) => $this->movementTotals($filteredQuery))
+            ->toJson();
+    }
+
+    private function movementTotals(Builder $filteredQuery): array
+    {
+        $totals = $filteredQuery->toBase()
+            ->cloneWithout(['columns', 'orders', 'limit', 'offset'])
+            ->cloneWithoutBindings(['select', 'order'])
+            ->selectRaw(<<<'SQL'
+                COALESCE(SUM(inventory_movements.stock_after - inventory_movements.stock_before), 0) AS stock_delta,
+                COALESCE(SUM(CASE
+                    WHEN inventory_movements.type = 'exit' AND inventory_movements.entry_price_snapshot > 0
+                    THEN inventory_movements.quantity * inventory_movements.entry_price_snapshot
+                    ELSE 0
+                END), 0) AS exit_cost,
+                COALESCE(SUM(CASE
+                    WHEN inventory_movements.type = 'exit'
+                    THEN inventory_movements.quantity * inventory_movements.sale_price_snapshot
+                    ELSE 0
+                END), 0) AS exit_sale,
+                COALESCE(SUM(CASE
+                    WHEN inventory_movements.type = 'exit' AND inventory_movements.entry_price_snapshot > 0
+                    THEN inventory_movements.quantity * (inventory_movements.sale_price_snapshot - inventory_movements.entry_price_snapshot)
+                    ELSE 0
+                END), 0) AS profit_margin,
+                COALESCE(SUM(CASE
+                    WHEN inventory_movements.type = 'exit' AND inventory_movements.entry_price_snapshot <= 0
+                    THEN 1
+                    ELSE 0
+                END), 0) AS missing_cost_exits
+                SQL)
+            ->first();
+
+        return [
+            'stock_delta' => (int) $totals->stock_delta,
+            'exit_cost' => number_format((float) $totals->exit_cost, 2, '.', ''),
+            'exit_sale' => number_format((float) $totals->exit_sale, 2, '.', ''),
+            'profit_margin' => number_format((float) $totals->profit_margin, 2, '.', ''),
+            'missing_cost_exits' => (int) $totals->missing_cost_exits,
+        ];
     }
 }

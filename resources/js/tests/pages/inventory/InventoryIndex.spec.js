@@ -2,12 +2,20 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, nextTick } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { axiosMock, productReloadMock, movementReloadMock } = vi.hoisted(() => ({
+const {
+    axiosMock,
+    productClearPipelineMock,
+    movementClearPipelineMock,
+    productReloadMock,
+    movementReloadMock,
+} = vi.hoisted(() => ({
     axiosMock: {
         get: vi.fn(),
         post: vi.fn(),
         put: vi.fn(),
     },
+    productClearPipelineMock: vi.fn(),
+    movementClearPipelineMock: vi.fn(),
     productReloadMock: vi.fn(),
     movementReloadMock: vi.fn(),
 }))
@@ -28,6 +36,9 @@ const DatatableTemplateStub = defineComponent({
         expose({
             table: {
                 dt: {
+                    clearPipeline: props.id === 'inventory_movements_table'
+                        ? movementClearPipelineMock
+                        : productClearPipelineMock,
                     ajax: {
                         reload: props.id === 'inventory_movements_table'
                             ? movementReloadMock
@@ -67,6 +78,8 @@ describe('InventoryIndex', () => {
         axiosMock.get.mockReset()
         axiosMock.post.mockReset()
         axiosMock.put.mockReset()
+        productClearPipelineMock.mockReset()
+        movementClearPipelineMock.mockReset()
         productReloadMock.mockReset()
         movementReloadMock.mockReset()
     })
@@ -107,6 +120,39 @@ describe('InventoryIndex', () => {
             unit_price: 75000,
             stock_quantity: 10,
         }))
+        expect(productClearPipelineMock).toHaveBeenCalledOnce()
+        expect(movementClearPipelineMock).toHaveBeenCalledOnce()
+        expect(productReloadMock).toHaveBeenCalledWith(null, false)
+        expect(movementReloadMock).toHaveBeenCalledWith(null, false)
+        wrapper.unmount()
+        vi.unstubAllGlobals()
+    })
+
+    it('clears both table pipelines after recording a movement', async () => {
+        axiosMock.get.mockResolvedValue({
+            data: {
+                data: {
+                    id: 8,
+                    name: 'Camiseta',
+                    entry_price: '35000.00',
+                    unit_price: '60000.00',
+                    stock_quantity: 3,
+                    minimum_stock: 1,
+                },
+            },
+        })
+        axiosMock.post.mockResolvedValue({ data: { data: { id: 25 } } })
+        const wrapper = mountPage()
+        const state = wrapper.vm.$.setupState
+
+        await state.openMovementForm(8)
+        state.movementForm.type = 'exit'
+        state.movementForm.quantity = 1
+        state.movementForm.movement_date = '2026-06-05'
+        await state.saveMovement()
+
+        expect(productClearPipelineMock).toHaveBeenCalledOnce()
+        expect(movementClearPipelineMock).toHaveBeenCalledOnce()
         expect(productReloadMock).toHaveBeenCalledWith(null, false)
         expect(movementReloadMock).toHaveBeenCalledWith(null, false)
         wrapper.unmount()
@@ -194,31 +240,41 @@ describe('InventoryIndex', () => {
         vi.unstubAllGlobals()
     })
 
-    it('calculates movement financial totals only from exits', () => {
+    it('renders signed stock changes and identifies exits without cost', () => {
         const wrapper = mountPage()
         const state = wrapper.vm.$.setupState
+
+        expect(state.renderStockDelta(null, 'display', { stock_delta: 3 })).toContain('+3')
+        expect(state.renderStockDelta(null, 'display', { stock_delta: -2 })).toContain('-2')
+        expect(state.renderProfitMargin(null, 'display')).toContain('Sin costo')
+        wrapper.unmount()
+        vi.unstubAllGlobals()
+    })
+
+    it('renders totals supplied by the server for all filtered movements', async () => {
+        axiosMock.get.mockResolvedValue({
+            data: {
+                draw: 1,
+                recordsTotal: 20,
+                recordsFiltered: 12,
+                data: [{ type: 'exit', stock_delta: -2 }],
+                totals: {
+                    stock_delta: -3,
+                    exit_cost: '60000.00',
+                    exit_sale: '150000.00',
+                    profit_margin: '40000.00',
+                    missing_cost_exits: 1,
+                },
+            },
+        })
+        const wrapper = mountPage()
+        const state = wrapper.vm.$.setupState
+        const callback = vi.fn()
+
+        await state.movementOptions.ajax({ draw: 1 }, callback)
+
         const footers = Array.from({ length: 12 }, () => ({ innerHTML: '' }))
         const tableApi = {
-            rows: vi.fn(() => ({
-                data: () => ({
-                    toArray: () => [
-                        {
-                            type: 'adjustment',
-                            quantity: 100,
-                            entry_price_snapshot: 45000,
-                            sale_price_snapshot: 50000,
-                            profit_margin: 0,
-                        },
-                        {
-                            type: 'exit',
-                            quantity: 10,
-                            entry_price_snapshot: 45000,
-                            sale_price_snapshot: 50000,
-                            profit_margin: 50000,
-                        },
-                    ],
-                }),
-            })),
             column: vi.fn(index => ({
                 footer: () => footers[index],
             })),
@@ -226,10 +282,14 @@ describe('InventoryIndex', () => {
 
         state.movementOptions.footerCallback.call({ api: () => tableApi })
 
-        expect(footers[4].innerHTML).toBe('110')
-        expect(footers[5].innerHTML).toBe('$450000')
-        expect(footers[6].innerHTML).toBe('$500000')
-        expect(footers[7].innerHTML).toBe('$50000')
+        expect(callback).toHaveBeenCalledWith(expect.objectContaining({ recordsFiltered: 12 }))
+        expect(footers[4].innerHTML).toBe('-3')
+        expect(footers[5].innerHTML).toBe('$60000')
+        expect(footers[6].innerHTML).toBe('$150000')
+        expect(footers[7].innerHTML).toBe('$40000')
+        expect(state.movementTotals.missing_cost_exits).toBe(1)
+        await nextTick()
+        expect(wrapper.text()).toContain('salida no se incluyó')
         wrapper.unmount()
         vi.unstubAllGlobals()
     })

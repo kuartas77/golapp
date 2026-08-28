@@ -8,7 +8,6 @@ use App\Models\InventoryMovement;
 use App\Models\InventoryProduct;
 use App\Models\School;
 use App\Models\SchoolUser;
-use App\Models\User;
 use Tests\TestCase;
 
 final class InventoryTest extends TestCase
@@ -189,6 +188,26 @@ final class InventoryTest extends TestCase
         $this->assertSame(2, $product->fresh()->stock_quantity);
     }
 
+    public function test_exit_without_registered_entry_cost_does_not_report_profit(): void
+    {
+        $product = InventoryProduct::factory()->create([
+            'school_id' => $this->school['id'],
+            'entry_price' => 0,
+            'unit_price' => 50000,
+            'stock_quantity' => 5,
+        ]);
+
+        $this->actingAs($this->user)
+            ->postJson("/api/v2/inventory/products/{$product->id}/movements", [
+                'type' => InventoryMovement::TYPE_EXIT,
+                'quantity' => 2,
+                'movement_date' => '2026-06-05',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.stock_delta', -2)
+            ->assertJsonPath('data.profit_margin', null);
+    }
+
     public function test_inventory_datatables_only_return_school_records(): void
     {
         $otherSchool = School::factory()->create([
@@ -232,6 +251,80 @@ final class InventoryTest extends TestCase
 
         $this->assertSame('Guayos', $movementsResponse->json('data.0.product_name'));
         $this->assertSame(80000, $movementsResponse->json('data.0.profit_margin'));
+    }
+
+    public function test_inventory_movement_datatable_totals_cover_all_filtered_rows(): void
+    {
+        $product = InventoryProduct::factory()->create([
+            'school_id' => $this->school['id'],
+            'name' => 'Producto totalizable',
+        ]);
+        $otherProduct = InventoryProduct::factory()->create([
+            'school_id' => $this->school['id'],
+            'name' => 'Producto excluido',
+        ]);
+
+        InventoryMovement::factory()->create([
+            'school_id' => $this->school['id'],
+            'inventory_product_id' => $product->id,
+            'type' => InventoryMovement::TYPE_ENTRY,
+            'quantity' => 10,
+            'entry_price_snapshot' => 30000,
+            'sale_price_snapshot' => 50000,
+            'stock_before' => 0,
+            'stock_after' => 10,
+        ]);
+        InventoryMovement::factory()->create([
+            'school_id' => $this->school['id'],
+            'inventory_product_id' => $product->id,
+            'type' => InventoryMovement::TYPE_EXIT,
+            'quantity' => 2,
+            'entry_price_snapshot' => 30000,
+            'sale_price_snapshot' => 50000,
+            'stock_before' => 10,
+            'stock_after' => 8,
+        ]);
+        InventoryMovement::factory()->create([
+            'school_id' => $this->school['id'],
+            'inventory_product_id' => $product->id,
+            'type' => InventoryMovement::TYPE_EXIT,
+            'quantity' => 1,
+            'entry_price_snapshot' => 0,
+            'sale_price_snapshot' => 50000,
+            'stock_before' => 8,
+            'stock_after' => 7,
+        ]);
+        InventoryMovement::factory()->create([
+            'school_id' => $this->school['id'],
+            'inventory_product_id' => $otherProduct->id,
+            'type' => InventoryMovement::TYPE_EXIT,
+            'quantity' => 4,
+            'entry_price_snapshot' => 10000,
+            'sale_price_snapshot' => 20000,
+            'stock_before' => 4,
+            'stock_after' => 0,
+        ]);
+
+        $query = http_build_query([
+            'draw' => 1,
+            'start' => 0,
+            'length' => 1,
+            'columns' => [
+                ['data' => 'movement_date', 'name' => 'movement_date', 'searchable' => 'true', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']],
+                ['data' => 'product_name', 'name' => 'product_name', 'searchable' => 'true', 'orderable' => 'false', 'search' => ['value' => 'totalizable', 'regex' => 'false']],
+            ],
+        ]);
+
+        $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson("/api/v2/datatables/inventory_movements?{$query}")
+            ->assertOk()
+            ->assertJsonPath('recordsFiltered', 3)
+            ->assertJsonPath('totals.stock_delta', 7)
+            ->assertJsonPath('totals.exit_cost', '60000.00')
+            ->assertJsonPath('totals.exit_sale', '150000.00')
+            ->assertJsonPath('totals.profit_margin', '40000.00')
+            ->assertJsonPath('totals.missing_cost_exits', 1);
     }
 
     private function setInventoryPermission(School $school, bool $enabled): void
