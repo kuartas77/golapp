@@ -20,6 +20,25 @@ describe('SoccerFieldDiagramEditor', () => {
         expect(wrapper.find('.field-editor').classes()).toContain('field-editor--compact')
     })
 
+    it('switches to image mode and shows an image preview', async () => {
+        const wrapper = mount(SoccerFieldDiagramEditor, {
+            props: {
+                modelValue: [],
+                visualMode: 'diagram',
+                imageUrl: '/img/dynamic/school/methodology/phase.jpg',
+            },
+        })
+
+        await wrapper.findAll('button').find((button) => button.text().includes('Imagen')).trigger('click')
+
+        expect(wrapper.emitted('update:visualMode').at(-1)[0]).toBe('image')
+
+        await wrapper.setProps({ visualMode: 'image' })
+
+        expect(wrapper.find('svg').exists()).toBe(false)
+        expect(wrapper.find('img.profile-preview').attributes('src')).toBe('/img/dynamic/school/methodology/phase.jpg')
+    })
+
     it('adds, moves, edits and deletes field items', async () => {
         const wrapper = mount(SoccerFieldDiagramEditor, {
             props: {

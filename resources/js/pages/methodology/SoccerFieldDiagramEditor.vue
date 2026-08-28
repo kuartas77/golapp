@@ -1,5 +1,41 @@
 <template>
     <div class="field-editor" :class="`field-editor--${size}`">
+        <div class="visual-mode-selector" role="radiogroup" aria-label="Recurso visual de la fase">
+            <button
+                type="button"
+                class="btn btn-sm"
+                :class="visualMode === 'diagram' ? 'btn-primary' : 'btn-outline-primary'"
+                @click="setVisualMode('diagram')"
+            >
+                <i class="fa fa-vector-square fa-width-auto" aria-hidden="true"></i>
+                <span>Diagrama</span>
+            </button>
+            <button
+                type="button"
+                class="btn btn-sm"
+                :class="visualMode === 'image' ? 'btn-primary' : 'btn-outline-primary'"
+                @click="setVisualMode('image')"
+            >
+                <i class="fa fa-image fa-width-auto" aria-hidden="true"></i>
+                <span>Imagen</span>
+            </button>
+        </div>
+
+        <FileInputImage
+            v-if="visualMode === 'image'"
+            :name="imageInputName"
+            :model-value="imageModelValue"
+            label=""
+            alt="Imagen de la fase"
+            preview-size="large"
+            :max-size-mb="5"
+            :allow-remove="true"
+            standalone
+            @update:model-value="updateImage"
+            @removed="removeImage"
+        />
+
+        <template v-if="visualMode === 'diagram'">
         <div class="field-drawing-tools" role="toolbar" aria-label="Herramientas de dibujo libre">
             <button
                 v-for="mode in interactionModes"
@@ -122,11 +158,13 @@
                 <text v-else :x="item.x" :y="item.y" class="field-label">{{ item.label || 'Texto' }}</text>
             </g>
         </svg>
+        </template>
     </div>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
+import FileInputImage from '@/components/form/FileInputImage.vue'
 
 const props = defineProps({
     modelValue: {
@@ -138,9 +176,26 @@ const props = defineProps({
         default: 'default',
         validator: (value) => ['default', 'compact'].includes(value),
     },
+    visualMode: {
+        type: String,
+        default: 'diagram',
+        validator: (value) => ['diagram', 'image'].includes(value),
+    },
+    imageFile: {
+        type: null,
+        default: null,
+    },
+    imageUrl: {
+        type: String,
+        default: null,
+    },
+    imageInputName: {
+        type: String,
+        default: 'field-diagram-image',
+    },
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'update:visualMode', 'update:imageFile', 'update:imageUrl', 'update:imageRemoved'])
 
 const svgRef = ref(null)
 const selectedKey = ref(null)
@@ -190,11 +245,27 @@ const items = computed({
 const selectedItem = computed(() => items.value.find((item, index) => itemKey(item, index) === selectedKey.value))
 const selectedItemAllowsLabel = computed(() => ['player_token', 'text'].includes(selectedItem.value?.type))
 const selectedItemIsDirectional = computed(() => directionalTypes.includes(selectedItem.value?.type))
+const imageModelValue = computed(() => props.imageFile || props.imageUrl || null)
 const activeModeHelp = computed(() => ({
     select: 'Selecciona y arrastra figuras. El botón Eliminar quita la figura seleccionada.',
     pencil: 'Dibuja trazos libres sobre la cancha. Los trazos se guardan con la planificación.',
     eraser: 'Borra trazos completos hechos con el lápiz al tocarlos; no borra partes del trazo ni elimina jugadores, flechas, fichas o texto.',
 })[activeMode.value])
+
+function setVisualMode(mode) {
+    emit('update:visualMode', mode)
+}
+
+function updateImage(file) {
+    emit('update:imageFile', file)
+    emit('update:imageRemoved', false)
+}
+
+function removeImage() {
+    emit('update:imageFile', null)
+    emit('update:imageUrl', null)
+    emit('update:imageRemoved', true)
+}
 
 function itemKey(item, index) {
     return item.id ?? `item-${index}`
@@ -586,6 +657,18 @@ function normalizeRotation(rotation) {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+}
+
+.visual-mode-selector {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.visual-mode-selector .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
 }
 
 .field-drawing-tools {

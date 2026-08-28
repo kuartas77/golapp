@@ -74,6 +74,13 @@
             color: #555;
             font-size: 8px;
         }
+
+        .visual-resource-image {
+            height: 122px;
+            max-width: 190px;
+            object-fit: contain;
+            width: 190px;
+        }
     </style>
 </head>
 
@@ -81,8 +88,10 @@
     @php
         $fields = $record->fields ?? [];
         $diagrams = $record->diagrams ?? [];
+        $diagramMedia = $record->diagram_media ?? [];
         $fieldValue = fn (string $key) => data_get($fields, $key, '');
         $diagramItems = fn (string $key) => data_get($diagrams, $key, []);
+        $visualMedia = fn (string $key) => data_get($diagramMedia, $key, []);
         $sessionDate = $fieldValue('session_date') ?: $record->created_at?->format('Y-m-d');
         $dateLabel = in_array($record->type, [
             \App\Models\MethodologyRecord::TYPE_MONTHLY_REPORT,
@@ -153,8 +162,10 @@
                 <tr>
                     <td class="phase-field">
                         {{--<div class="text-center bold">{{ $phase['label'] }}</div>--}}
-                        @include('templates.pdf.methodology.partials.field-diagram', [
+                        @include('templates.pdf.methodology.partials.visual-resource', [
                             'items' => $diagramItems($phase['key']),
+                            'mode' => data_get($visualMedia($phase['key']), 'mode', 'diagram'),
+                            'imagePath' => data_get($visualMedia($phase['key']), 'path'),
                         ])
                     </td>
                     <td class="phase-time field-value">{{ $fieldValue($phase['time']) }}</td>

@@ -9,6 +9,7 @@ use App\Http\Requests\API\SessionPlanningUpsertRequest;
 use App\Models\TrainingSession;
 use App\Repositories\TrainingSessionRepository;
 use App\Service\InstructorPeriodEditPolicy;
+use App\Service\Methodology\VisualResourceImageService;
 use App\Service\TrainigSession\TrainingSessionAttendanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,13 +22,19 @@ class SessionPlanningController extends Controller
         private TrainingSessionRepository $repository,
         private TrainingSessionAttendanceService $attendanceService,
         private InstructorPeriodEditPolicy $periodEditPolicy,
+        private VisualResourceImageService $visualImages,
     ) {}
 
     public function store(SessionPlanningUpsertRequest $request): JsonResponse
     {
         $this->periodEditPolicy->assertCanMutateDate($request->input('date'), 'date');
         $this->repository->findAccessibleTrainingGroupOrFail($request->integer('training_group_id'), $request->integer('year'));
-        $session = $this->repository->storePlanned($request->validated());
+        [$payload, $newPaths] = $this->visualImages->sessionPayload($request->validated(), $request->all(), $request->allFiles());
+        $session = $this->repository->storePlanned($payload);
+
+        if (! $session) {
+            $this->visualImages->deleteMany($newPaths);
+        }
 
         return $session
             ? response()->json(['message' => 'Planificación creada.', 'data' => $this->serialize($this->repository->findAccessiblePlannedOrFail($session->id))], Response::HTTP_CREATED)
@@ -45,12 +52,20 @@ class SessionPlanningController extends Controller
         $this->periodEditPolicy->assertCanMutateDate($model->date, 'date');
         $this->periodEditPolicy->assertCanMutateDate($request->input('date'), 'date');
         $this->repository->findAccessibleTrainingGroupOrFail($request->integer('training_group_id'), $request->integer('year'));
-        $payload = $request->validated();
+        [$payload, $newPaths, $deleteAfterCommit] = $this->visualImages->sessionPayload($request->validated(), $request->all(), $request->allFiles(), $model);
         unset($payload['user_id']);
 
-        return $this->repository->updatePlanned($model, $payload)
-            ? response()->json(['message' => 'Planificación actualizada.', 'data' => $this->serialize($this->repository->findAccessiblePlannedOrFail($model->id))])
-            : response()->json(['message' => __('messages.error_general')], Response::HTTP_INTERNAL_SERVER_ERROR);
+        $updated = $this->repository->updatePlanned($model, $payload);
+
+        if (! $updated) {
+            $this->visualImages->deleteMany($newPaths);
+
+            return response()->json(['message' => __('messages.error_general')], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        $this->visualImages->deleteMany($deleteAfterCommit);
+
+        return response()->json(['message' => 'Planificación actualizada.', 'data' => $this->serialize($this->repository->findAccessiblePlannedOrFail($model->id))]);
     }
 
     public function destroy(int $sessionPlanning): JsonResponse
@@ -58,10 +73,15 @@ class SessionPlanningController extends Controller
         $model = $this->repository->findAccessiblePlannedForMutationOrFail($sessionPlanning);
         $this->periodEditPolicy->assertCanMutateDate($model->date, 'date');
         abort_unless(isSchool() || isAdmin(), 403);
+        $deleteAfterCommit = $model->phases()->pluck('image_path')->filter()->all();
 
-        return $this->repository->destroy($model)
-            ? response()->json(['message' => 'Planificación eliminada.'])
-            : response()->json(['message' => __('messages.error_general')], 500);
+        if (! $this->repository->destroy($model)) {
+            return response()->json(['message' => __('messages.error_general')], 500);
+        }
+
+        $this->visualImages->deleteMany($deleteAfterCommit);
+
+        return response()->json(['message' => 'Planificación eliminada.']);
     }
 
     public function attendanceContext(Request $request): JsonResponse
@@ -93,7 +113,10 @@ class SessionPlanningController extends Controller
             'incidents' => $session->incidents, 'feedback' => $session->feedback,
             'created_at' => $session->created_at?->format('Y-m-d'),
             'export_pdf_url' => route('session-plannings.pdf', $session->id),
-            'phases' => $session->phases->map->only(['position', 'name', 'time', 'dosage', 'description', 'diagram'])->values(),
+            'phases' => $session->phases->map(fn ($phase) => [
+                ...$phase->only(['position', 'name', 'time', 'dosage', 'description', 'diagram', 'visual_mode', 'image_path']),
+                'image_url' => $this->visualImages->url($phase->image_path),
+            ])->values(),
         ];
     }
 }

@@ -33,6 +33,11 @@ class MethodologyRecordRequest extends FormRequest
             'fields.session_date' => ['required', 'date_format:Y-m-d'],
             'fields.*' => ['nullable'],
             'diagrams' => ['nullable', 'array'],
+            'diagram_media' => ['nullable', 'array'],
+            'diagram_media.*.mode' => ['nullable', 'string', Rule::in(['diagram', 'image'])],
+            'diagram_media.*.image_remove' => ['nullable', 'boolean'],
+            'diagram_images' => ['nullable', 'array'],
+            'diagram_images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ];
     }
 
@@ -47,6 +52,9 @@ class MethodologyRecordRequest extends FormRequest
             'fields' => $this->normalizeReportMonth($type, $fields),
             'diagrams' => $type === MethodologyRecord::TYPE_PLANNING
                 ? $this->input('diagrams', [])
+                : null,
+            'diagram_media' => $type === MethodologyRecord::TYPE_PLANNING
+                ? $this->input('diagram_media', [])
                 : null,
         ]);
     }

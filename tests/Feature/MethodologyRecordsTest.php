@@ -9,6 +9,8 @@ use App\Models\School;
 use App\Models\SchoolUser;
 use App\Models\TrainingGroup;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 final class MethodologyRecordsTest extends TestCase
@@ -77,6 +79,51 @@ final class MethodologyRecordsTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.title', 'Planificación actualizada')
             ->assertJsonPath('data.fields.objective', 'Mejorar presión');
+    }
+
+    public function test_planning_record_can_store_phase_image_visual_resource(): void
+    {
+        Storage::fake('public');
+
+        $group = TrainingGroup::query()->where('school_id', $this->school['id'])->firstOrFail();
+        $response = $this->actingAs($this->user)
+            ->withHeader('Accept', 'application/json')
+            ->post('/api/v2/methodology-records', array_replace_recursive($this->payload([
+                'training_group_id' => $group->id,
+            ]), [
+                'diagram_media' => [
+                    'initial_phase' => ['mode' => 'image', 'image_remove' => '0'],
+                ],
+                'diagram_images' => [
+                    'initial_phase' => UploadedFile::fake()->image('fase-inicial.jpg')->size(512),
+                ],
+            ]))
+            ->assertCreated()
+            ->assertJsonPath('data.diagram_media.initial_phase.mode', 'image');
+
+        $path = MethodologyRecord::findOrFail((int) $response->json('data.id'))->diagram_media['initial_phase']['path'];
+
+        $this->assertStringStartsWith(School::findOrFail($this->school['id'])->slug . '/methodology/', $path);
+        Storage::disk('public')->assertExists($path);
+        $this->assertSame(route('images', $path), $response->json('data.diagram_media.initial_phase.image_url'));
+    }
+
+    public function test_methodology_phase_image_cannot_exceed_five_megabytes(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->user)
+            ->withHeader('Accept', 'application/json')
+            ->post('/api/v2/methodology-records', array_replace_recursive($this->payload(), [
+                'diagram_media' => [
+                    'initial_phase' => ['mode' => 'image', 'image_remove' => '0'],
+                ],
+                'diagram_images' => [
+                    'initial_phase' => UploadedFile::fake()->image('fase-grande.jpg')->size(5121),
+                ],
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('diagram_images.initial_phase');
     }
 
     public function test_records_are_scoped_by_selected_school(): void

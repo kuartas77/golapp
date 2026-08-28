@@ -27,7 +27,16 @@
 
                 <section v-for="(phase, index) in form.phases" :key="index" v-show="step === index + 1">
                     <h6>Fase {{ index + 1 }}</h6><div class="session-phase-layout">
-                        <div class="session-phase-field"><SoccerFieldDiagramEditor v-model="phase.diagram" /></div>
+                        <div class="session-phase-field">
+                            <SoccerFieldDiagramEditor
+                                v-model="phase.diagram"
+                                v-model:visual-mode="phase.visual_mode"
+                                v-model:image-file="phase.image_file"
+                                v-model:image-url="phase.image_url"
+                                v-model:image-removed="phase.image_removed"
+                                :image-input-name="`session-phase-${index}-image`"
+                            />
+                        </div>
                         <div class="session-phase-fields">
                             <div class="row g-3">
                                 <div class="col-md-8"><label class="form-label">Nombre *</label><input v-model.trim="phase.name" class="form-control" maxlength="100" list="session-planning-phase-name-list"></div>
@@ -72,7 +81,7 @@ const props = defineProps({ show: Boolean, sessionId: { type: [Number, String], 
 const emit = defineEmits(['updated', 'cancel'])
 const modalRef = ref(), modal = ref(), settings = useSetting(), step = ref(0), loading = ref(false), saving = ref(false), error = ref(null)
 const classDays = ref([]), attendance = ref(null), identityLocked = ref(false), periodLocked = ref(false)
-const blankPhase = () => ({ name: '', time: '', dosage: '', description: '', diagram: [] })
+const blankPhase = () => ({ name: '', time: '', dosage: '', description: '', diagram: [], visual_mode: 'diagram', image_file: null, image_url: null, image_removed: false })
 const blank = () => ({ training_group_id: null, month: new Date().getMonth() + 1, period: '', session: '', date: '', hour: '02:00 PM', training_ground: '', material: '', warm_up: '', back_to_calm: '', players: '', absence_inscription_ids: [], incidents: '', feedback: '', phases: [blankPhase()] })
 const form = reactive(blank())
 const monthOptions = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'].map((label, index) => ({ value: index + 1, label }))
@@ -93,8 +102,40 @@ async function changePhaseCount(count, event = null) { const current = form.phas
 function validate(index) { error.value = null; if (index === 0 && (!form.training_group_id || !form.period || !form.session || !form.date)) error.value = 'Completa grupo, periodo, sesión y día de entrenamiento.'; else if (index > 0 && index <= form.phases.length && !form.phases[index - 1].name) error.value = `El nombre de la fase ${index} es obligatorio.`; return !error.value }
 function next() { if (validate(step.value)) step.value++ }
 function goTo(index) { if (index <= step.value) { step.value = index; return } for (let current = step.value; current < index; current++) { if (!validate(current)) { step.value = current; return } } step.value = index }
-async function prepare() { reset(); loading.value = true; try { if (!settings.groups.length || !settings.training_session_tasks.length) await settings.getSettings(); await nextTick(); if (props.sessionId) { const { data: response } = await api.get(`/api/v2/session-plannings/${props.sessionId}`); const data = response.data; reset({ ...data, training_group_id: String(data.training_group_id), month: Number(data.date.slice(5, 7)), absence_inscription_ids: [], phases: data.phases.map(phase => ({ ...blankPhase(), ...phase, diagram: phase.diagram ?? [] })) }); identityLocked.value = data.attendance_synced; periodLocked.value = data.period_locked; await loadDays(); await loadAttendance(data.attendance_synced ? data.absence_inscription_ids : null) } modal.value.show() } catch (e) { error.value = e.response?.data?.message ?? 'No fue posible cargar la planificación.' } finally { loading.value = false } }
-async function save() { for (let index = 0; index <= form.phases.length; index++) { if (!validate(index)) { step.value = index; return } } saving.value = true; error.value = null; try { const payload = { ...form, training_group_id: Number(form.training_group_id), sync_attendance: true, absence_inscription_ids: form.absence_inscription_ids.map(option => Number(option?.value ?? option)).filter(Number.isInteger), phases: form.phases.map((phase, index) => ({ ...phase, position: index + 1 })) }; if (props.sessionId) await api.put(`/api/v2/session-plannings/${props.sessionId}`, payload); else await api.post('/api/v2/session-plannings', payload); modal.value.hide(); emit('updated') } catch (e) { error.value = Object.values(e.response?.data?.errors ?? {}).flat()[0] ?? e.response?.data?.message ?? 'No fue posible guardar.' } finally { saving.value = false } }
+async function prepare() { reset(); loading.value = true; try { if (!settings.groups.length || !settings.training_session_tasks.length) await settings.getSettings(); await nextTick(); if (props.sessionId) { const { data: response } = await api.get(`/api/v2/session-plannings/${props.sessionId}`); const data = response.data; reset({ ...data, training_group_id: String(data.training_group_id), month: Number(data.date.slice(5, 7)), absence_inscription_ids: [], phases: data.phases.map(phase => ({ ...blankPhase(), ...phase, diagram: phase.diagram ?? [], visual_mode: phase.visual_mode === 'image' ? 'image' : 'diagram', image_file: null, image_url: phase.image_url ?? null, image_removed: false })) }); identityLocked.value = data.attendance_synced; periodLocked.value = data.period_locked; await loadDays(); await loadAttendance(data.attendance_synced ? data.absence_inscription_ids : null) } modal.value.show() } catch (e) { error.value = e.response?.data?.message ?? 'No fue posible cargar la planificación.' } finally { loading.value = false } }
+async function save() { for (let index = 0; index <= form.phases.length; index++) { if (!validate(index)) { step.value = index; return } } saving.value = true; error.value = null; try { const payload = buildPayload(); if (props.sessionId) { payload.append('_method', 'PUT'); await api.post(`/api/v2/session-plannings/${props.sessionId}`, payload) } else await api.post('/api/v2/session-plannings', payload); modal.value.hide(); emit('updated') } catch (e) { error.value = Object.values(e.response?.data?.errors ?? {}).flat()[0] ?? e.response?.data?.message ?? 'No fue posible guardar.' } finally { saving.value = false } }
+function buildPayload() {
+    const payload = new FormData()
+    appendFormData(payload, {
+        ...form,
+        training_group_id: Number(form.training_group_id),
+        sync_attendance: true,
+        absence_inscription_ids: form.absence_inscription_ids.map(option => Number(option?.value ?? option)).filter(Number.isInteger),
+        phases: form.phases.map((phase, index) => ({
+            name: phase.name,
+            time: phase.time,
+            dosage: phase.dosage,
+            description: phase.description,
+            diagram: phase.diagram,
+            visual_mode: phase.visual_mode === 'image' ? 'image' : 'diagram',
+            image_remove: phase.image_removed ? 1 : 0,
+            position: index + 1,
+        })),
+    })
+    form.phases.forEach((phase, index) => {
+        if (phase.image_file instanceof File) {
+            payload.append(`phases[${index}][image]`, phase.image_file, phase.image_file.name)
+        }
+    })
+    return payload
+}
+function appendFormData(formData, value, prefix = '') {
+    if (value === null || value === undefined) { if (prefix) formData.append(prefix, ''); return }
+    if (value instanceof File) { formData.append(prefix, value, value.name); return }
+    if (Array.isArray(value)) { value.forEach((item, index) => appendFormData(formData, item, `${prefix}[${index}]`)); return }
+    if (typeof value === 'object') { Object.entries(value).forEach(([key, item]) => appendFormData(formData, item, prefix ? `${prefix}[${key}]` : key)); return }
+    formData.append(prefix, value)
+}
 function close() { modal.value.hide(); emit('cancel') }
 watch(() => [props.show, props.sessionId], ([show]) => { if (modal.value) show ? prepare() : modal.value.hide() })
 onMounted(() => { modal.value = new window.bootstrap.Modal(modalRef.value, { backdrop: 'static', keyboard: false, focus: false }) })

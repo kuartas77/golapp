@@ -36,11 +36,13 @@ class MethodologyRecord extends Model
         'title',
         'fields',
         'diagrams',
+        'diagram_media',
     ];
 
     protected $casts = [
         'fields' => 'array',
         'diagrams' => 'array',
+        'diagram_media' => 'array',
     ];
 
     public function school(): BelongsTo

@@ -13,6 +13,8 @@ use App\Models\TrainingGroup;
 use App\Models\TrainingSession;
 use App\Models\TrainingSessionDetail;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 final class TrainingSessionsTest extends TestCase
@@ -107,6 +109,34 @@ final class TrainingSessionsTest extends TestCase
             ->assertCreated();
 
         $this->assertSame($symbols, collect($response->json('data.phases.0.diagram'))->pluck('type')->all());
+    }
+
+    public function testSessionPlanningCanStorePhaseImageVisualResource(): void
+    {
+        Storage::fake('public');
+
+        $school = School::findOrFail($this->school['id']);
+        $school->forceFill(['school_permissions' => School::normalizeSchoolPermissions([
+            ...$school->getResolvedSchoolPermissions(), 'school.module.session_planning' => true,
+        ])])->save();
+        $group = $this->createTrainingGroup($school->id, $this->user, suffix: 'Imagen');
+        $payload = $this->plannedPayload($group->id, [[
+            'name' => 'Fase con imagen',
+            'diagram' => [],
+            'visual_mode' => 'image',
+            'image' => UploadedFile::fake()->image('fase.jpg')->size(512),
+        ]]);
+
+        $response = $this->actingAs($this->user)
+            ->post('/api/v2/session-plannings', $payload)
+            ->assertCreated()
+            ->assertJsonPath('data.phases.0.visual_mode', 'image');
+
+        $path = TrainingSession::findOrFail((int) $response->json('data.id'))->phases()->firstOrFail()->image_path;
+
+        $this->assertStringStartsWith($school->slug . '/methodology/', $path);
+        Storage::disk('public')->assertExists($path);
+        $this->assertSame(route('images', $path), $response->json('data.phases.0.image_url'));
     }
 
     public function testSchoolUserCanListShowStoreUpdateAndExportTrainingSessions(): void

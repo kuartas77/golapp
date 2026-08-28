@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TrainingSessionPhase extends Model
 {
-    protected $fillable = ['position', 'name', 'time', 'dosage', 'description', 'diagram'];
+    protected $fillable = ['position', 'name', 'time', 'dosage', 'description', 'diagram', 'visual_mode', 'image_path'];
 
     protected $casts = ['diagram' => 'array'];
 

@@ -10,6 +10,7 @@ use App\Models\MethodologyRecord;
 use App\Repositories\MethodologyRecordRepository;
 use App\Service\DataTables\MethodologyDataTableService;
 use App\Service\InstructorPeriodEditPolicy;
+use App\Service\Methodology\VisualResourceImageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -20,6 +21,7 @@ class MethodologyRecordController extends Controller
     public function __construct(
         private MethodologyRecordRepository $repository,
         private InstructorPeriodEditPolicy $periodEditPolicy,
+        private VisualResourceImageService $visualImages,
     )
     {
     }
@@ -40,7 +42,18 @@ class MethodologyRecordController extends Controller
 
     public function store(MethodologyRecordRequest $request): JsonResponse
     {
-        $record = $this->repository->create($request->validated());
+        [$payload, $newPaths] = $this->visualImages->methodologyPayload(
+            $request->validated(),
+            $request->all(),
+            $request->allFiles(),
+        );
+
+        try {
+            $record = $this->repository->create($payload);
+        } catch (\Throwable $throwable) {
+            $this->visualImages->deleteMany($newPaths);
+            throw $throwable;
+        }
 
         return response()->json([
             'message' => 'Registro metodológico creado correctamente.',
@@ -59,7 +72,21 @@ class MethodologyRecordController extends Controller
     {
         $record = $this->repository->findAccessibleOrFail($methodologyRecord);
         $this->periodEditPolicy->assertCanMutateDate($this->recordDate($record), 'period');
-        $record = $this->repository->update($record, $request->validated());
+        [$payload, $newPaths, $deleteAfterCommit] = $this->visualImages->methodologyPayload(
+            $request->validated(),
+            $request->all(),
+            $request->allFiles(),
+            $record,
+        );
+
+        try {
+            $record = $this->repository->update($record, $payload);
+        } catch (\Throwable $throwable) {
+            $this->visualImages->deleteMany($newPaths);
+            throw $throwable;
+        }
+
+        $this->visualImages->deleteMany($deleteAfterCommit);
 
         return response()->json([
             'message' => 'Registro metodológico actualizado correctamente.',
@@ -71,7 +98,9 @@ class MethodologyRecordController extends Controller
     {
         $record = $this->repository->findAccessibleOrFail($methodologyRecord);
         $this->periodEditPolicy->assertCanMutateDate($this->recordDate($record), 'period');
+        $deleteAfterCommit = collect($record->diagram_media ?? [])->pluck('path')->filter()->all();
         $this->repository->destroy($record);
+        $this->visualImages->deleteMany($deleteAfterCommit);
 
         return response()->json([
             'message' => 'Registro metodológico eliminado correctamente.',
@@ -98,6 +127,7 @@ class MethodologyRecordController extends Controller
             'title' => $record->title,
             'fields' => $record->fields ?? [],
             'diagrams' => $record->diagrams ?? [],
+            'diagram_media' => $this->serializeDiagramMedia($record->diagram_media ?? []),
             'session_date' => $this->recordDate($record),
             'created_at' => $record->created_at?->format('Y-m-d'),
             'updated_at' => $record->updated_at?->format('Y-m-d'),
@@ -109,5 +139,20 @@ class MethodologyRecordController extends Controller
     private function recordDate(MethodologyRecord $record): ?string
     {
         return data_get($record->fields ?? [], 'session_date') ?: $record->created_at?->format('Y-m-d');
+    }
+
+    private function serializeDiagramMedia(array $media): array
+    {
+        return collect($media)->map(function ($item): array {
+            $path = is_array($item) ? ($item['path'] ?? null) : null;
+
+            return [
+                'mode' => (is_array($item) && ($item['mode'] ?? null) === VisualResourceImageService::MODE_IMAGE)
+                    ? VisualResourceImageService::MODE_IMAGE
+                    : VisualResourceImageService::MODE_DIAGRAM,
+                'path' => $path,
+                'image_url' => $this->visualImages->url($path),
+            ];
+        })->all();
     }
 }

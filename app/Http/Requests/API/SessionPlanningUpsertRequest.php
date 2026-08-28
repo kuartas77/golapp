@@ -60,6 +60,9 @@ class SessionPlanningUpsertRequest extends FormRequest
             'phases.*.dosage' => ['nullable', 'string'],
             'phases.*.description' => ['nullable', 'string'],
             'phases.*.diagram' => ['nullable', 'array'],
+            'phases.*.visual_mode' => ['nullable', 'string', Rule::in(['diagram', 'image'])],
+            'phases.*.image_remove' => ['nullable', 'boolean'],
+            'phases.*.image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'phases.*.diagram.*.type' => ['required', Rule::in(self::DIAGRAM_TYPES)],
             'phases.*.diagram.*.x' => ['nullable', 'numeric', 'between:0,100'],
             'phases.*.diagram.*.y' => ['nullable', 'numeric', 'between:0,64'],
@@ -79,6 +82,7 @@ class SessionPlanningUpsertRequest extends FormRequest
             'dosage' => $this->normalizeString($phase['dosage'] ?? null),
             'description' => $this->normalizeString($phase['description'] ?? null),
             'diagram' => array_values($phase['diagram'] ?? []),
+            'visual_mode' => ($phase['visual_mode'] ?? null) === 'image' ? 'image' : 'diagram',
         ])->all();
 
         $this->merge([

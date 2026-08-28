@@ -447,7 +447,14 @@
                             <div v-for="phase in planningFieldPhaseSections" :key="phase.key" class="planning-phase-row">
                                 <div class="planning-phase-title">{{ phase.label }}</div>
                                 <div class="planning-phase-field">
-                                    <SoccerFieldDiagramEditor v-model="form.diagrams[phase.key]" />
+                                    <SoccerFieldDiagramEditor
+                                        v-model="form.diagrams[phase.key]"
+                                        v-model:visual-mode="form.diagram_media[phase.key].mode"
+                                        v-model:image-file="form.diagram_media[phase.key].image_file"
+                                        v-model:image-url="form.diagram_media[phase.key].image_url"
+                                        v-model:image-removed="form.diagram_media[phase.key].image_removed"
+                                        :image-input-name="`methodology-${phase.key}-image`"
+                                    />
                                 </div>
                                 <div class="planning-phase-fields">
                                     <div class="planning-cell-grid planning-time-grid">
@@ -592,6 +599,7 @@ const sessionDateFilter = ref('')
 const isSaving = ref(false)
 const selectedId = ref(null)
 const formError = ref('')
+const planningPhaseKeys = ['initial_phase', 'central_phase_one', 'central_phase_two', 'central_phase_three']
 const {
     globalError,
     tableKey,
@@ -605,6 +613,7 @@ const form = reactive({
     training_group_id: null,
     fields: createBlankFields(activeType.value),
     diagrams: createBlankDiagrams(),
+    diagram_media: createBlankDiagramMedia(),
 })
 
 const activeTab = computed(() => getTabByType(activeType.value))
@@ -862,6 +871,13 @@ const planningFieldPhaseSections = [
     },
 ]
 
+function createBlankDiagramMedia() {
+    return Object.fromEntries(planningPhaseKeys.map((key) => [
+        key,
+        { mode: 'diagram', image_file: null, image_url: null, image_removed: false },
+    ]))
+}
+
 function resetForm(record = null) {
     const tab = getTabByType(activeType.value)
     const fields = {
@@ -888,6 +904,20 @@ function resetForm(record = null) {
         ...createBlankDiagrams(),
         ...(record?.diagrams ?? {}),
     }
+    form.diagram_media = createBlankDiagramMedia()
+
+    Object.entries(record?.diagram_media ?? {}).forEach(([key, media]) => {
+        if (!form.diagram_media[key]) {
+            return
+        }
+
+        form.diagram_media[key] = {
+            mode: media?.mode === 'image' ? 'image' : 'diagram',
+            image_file: null,
+            image_url: media?.image_url ?? null,
+            image_removed: false,
+        }
+    })
 }
 
 async function loadGroups() {
@@ -989,17 +1019,16 @@ async function saveRecord() {
     formError.value = ''
     syncReportMonthFromDate()
 
-    const payload = {
-        training_group_id: form.training_group_id ? Number(form.training_group_id) : null,
-        type: activeType.value,
-        title: form.title,
-        fields: normalizeFields(form.fields),
-        diagrams: isPlanning.value ? form.diagrams : null,
-    }
+    const payload = buildPayload()
 
     try {
         if (selectedId.value) {
-            await api.put(`/api/v2/methodology-records/${selectedId.value}`, payload)
+            if (payload instanceof FormData) {
+                payload.append('_method', 'PUT')
+                await api.post(`/api/v2/methodology-records/${selectedId.value}`, payload)
+            } else {
+                await api.put(`/api/v2/methodology-records/${selectedId.value}`, payload)
+            }
         } else {
             await api.post('/api/v2/methodology-records', payload)
         }
@@ -1014,6 +1043,61 @@ async function saveRecord() {
     } finally {
         isSaving.value = false
     }
+}
+
+function buildPayload() {
+    const payload = {
+        training_group_id: form.training_group_id ? Number(form.training_group_id) : null,
+        type: activeType.value,
+        title: form.title,
+        fields: normalizeFields(form.fields),
+        diagrams: isPlanning.value ? form.diagrams : null,
+    }
+
+    if (!isPlanning.value) {
+        return payload
+    }
+
+    const formData = new FormData()
+    appendFormData(formData, payload)
+
+    planningFieldPhaseSections.forEach((phase) => {
+        const media = form.diagram_media[phase.key] ?? {}
+        formData.append(`diagram_media[${phase.key}][mode]`, media.mode === 'image' ? 'image' : 'diagram')
+        formData.append(`diagram_media[${phase.key}][image_remove]`, media.image_removed ? '1' : '0')
+
+        if (media.image_file instanceof File) {
+            formData.append(`diagram_images[${phase.key}]`, media.image_file, media.image_file.name)
+        }
+    })
+
+    return formData
+}
+
+function appendFormData(formData, value, prefix = '') {
+    if (value === null || value === undefined) {
+        if (prefix) {
+            formData.append(prefix, '')
+        }
+        return
+    }
+
+    if (value instanceof File) {
+        formData.append(prefix, value, value.name)
+        return
+    }
+
+    if (Array.isArray(value)) {
+        value.forEach((item, index) => appendFormData(formData, item, `${prefix}[${index}]`))
+        return
+    }
+
+    if (typeof value === 'object') {
+        Object.entries(value).forEach(([key, item]) => appendFormData(formData, item, prefix ? `${prefix}[${key}]` : key))
+        return
+    }
+
+    formData.append(prefix, value)
 }
 
 function syncReportMonthFromDate() {

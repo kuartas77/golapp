@@ -49,6 +49,7 @@ class FileController extends Controller
         }
 
         return preg_match('#^[^/]+/players/[^/]+$#', $filePath) === 1
+            || preg_match('#^[^/]+/methodology/[^/]+$#', $filePath) === 1
             || preg_match('#^[^/]+/[^/]+$#', $filePath) === 1;
     }
 }

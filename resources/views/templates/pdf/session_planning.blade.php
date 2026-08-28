@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8"><title>PLANIFICACIÓN DE SESIÓN</title>
-<link rel="stylesheet" href="{{ public_path('css/dompdf.css') }}"><link rel="stylesheet" href="{{ public_path('css/dompdf-overrides.css') }}"></head>
+<link rel="stylesheet" href="{{ public_path('css/dompdf.css') }}"><link rel="stylesheet" href="{{ public_path('css/dompdf-overrides.css') }}"><style>.visual-resource-image{height:122px;max-width:190px;object-fit:contain;width:190px;}</style></head>
 <body>
 <table class="table-full title"><tr><td width="20%"><img src="{{ $school->logo_local }}" width="70" height="70"></td><td class="text-center school-title" width="60%">{{ $school->name }}<br>PLANIFICACIÓN DE SESIÓN</td><td width="20%"></td></tr></table>
 <table class="table-full detail detail-lines"><tbody>
@@ -11,7 +11,7 @@
 @foreach($phases as $phase)
 <table class="table-full detail detail-lines"><tbody>
 <tr class="tr-tit"><td class="center texto bold" colspan="2">Fase {{ $phase->position }}: {{ $phase->name }}</td></tr>
-<tr><td width="45%" rowspan="3" class="center">@include('templates.pdf.methodology.partials.field-diagram', ['items' => $phase->diagram])</td><td class="texto bold">Tiempo: {{ $phase->time }}</td></tr>
+<tr><td width="45%" rowspan="3" class="center">@include('templates.pdf.methodology.partials.visual-resource', ['items' => $phase->diagram, 'mode' => $phase->visual_mode, 'imagePath' => $phase->image_path])</td><td class="texto bold">Tiempo: {{ $phase->time }}</td></tr>
 <tr><td class="texto bold">Dosificación: {{ $phase->dosage }}</td></tr><tr><td class="texto bold">Descripción: {{ $phase->description }}</td></tr>
 </tbody></table>
 @endforeach
