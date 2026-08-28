@@ -171,7 +171,7 @@ final class ImportPlayersTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonPath(
                 'message',
-                'Fila 2: completa numero_de_telefono del acudiente o deja ambos campos vacíos.'
+                'Fila 2: completa numero_de_telefono del acudiente o deja los datos del acudiente vacíos.'
             )
             ->assertJsonValidationErrors(['file']);
 
@@ -194,13 +194,57 @@ final class ImportPlayersTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonPath(
                 'message',
-                'Fila 2: completa nombres_y_apellidos del acudiente o deja ambos campos vacíos.'
+                'Fila 2: completa nombres_y_apellidos del acudiente o deja los datos del acudiente vacíos.'
             )
             ->assertJsonValidationErrors(['file']);
 
         $this->assertDatabaseMissing('players', [
             'school_id' => $this->school['id'],
             'identification_document' => 'DOC-IMPORT-ACUDIENTE-SIN-NOMBRE',
+        ]);
+    }
+
+    public function test_import_accepts_identification_card_as_the_guardian_document(): void
+    {
+        $this->actingAs($this->user)
+            ->post('/api/v2/import/players', [
+                'file' => $this->makeImportFile($this->playerRow([
+                    'numero_de_documento' => 'DOC-IMPORT-DOCUMENTO-ACUDIENTE',
+                    'nombres_y_apellidos' => 'Acudiente Con Documento',
+                    'numero_de_telefono' => '6041112233',
+                    'identification_card' => 'CC-987654321',
+                ])),
+            ], ['Accept' => 'application/json'])
+            ->assertOk();
+
+        $this->assertDatabaseHas('peoples', [
+            'names' => 'ACUDIENTE CON DOCUMENTO',
+            'phone' => '6041112233',
+            'identification_card' => 'CC-987654321',
+        ]);
+    }
+
+    public function test_import_rejects_guardian_document_without_name_and_phone(): void
+    {
+        $this->actingAs($this->user)
+            ->post('/api/v2/import/players', [
+                'file' => $this->makeImportFile($this->playerRow([
+                    'numero_de_documento' => 'DOC-IMPORT-SOLO-DOCUMENTO-ACUDIENTE',
+                    'nombres_y_apellidos' => '',
+                    'numero_de_telefono' => '',
+                    'identification_card' => 'CC-123456789',
+                ])),
+            ], ['Accept' => 'application/json'])
+            ->assertUnprocessable()
+            ->assertJsonPath(
+                'message',
+                'Fila 2: completa nombres_y_apellidos y numero_de_telefono del acudiente o deja los datos del acudiente vacíos.'
+            )
+            ->assertJsonValidationErrors(['file']);
+
+        $this->assertDatabaseMissing('players', [
+            'school_id' => $this->school['id'],
+            'identification_document' => 'DOC-IMPORT-SOLO-DOCUMENTO-ACUDIENTE',
         ]);
     }
 

@@ -106,7 +106,8 @@
                         <div class="form-text">
                             El acudiente es opcional. Si lo incluyes, completa tanto
                             <strong>nombres_y_apellidos</strong> como <strong>numero_de_telefono</strong>;
-                            de lo contrario, deja ambos campos vacíos y podrás agregarlo después.
+                            <strong>identification_card</strong> es su documento y es opcional.
+                            De lo contrario, deja los datos del acudiente vacíos y podrás agregarlo después.
                         </div>
                     </div>
                 </div>

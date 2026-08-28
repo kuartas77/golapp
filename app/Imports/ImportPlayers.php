@@ -92,14 +92,15 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
     {
         $names = $this->rowValue($row, 'nombres_y_apellidos');
         $phone = $this->guardianPhone($row);
+        $identificationCard = $this->guardianIdentificationCard($row);
 
-        if ($names === '' && $phone === '') {
+        if ($names === '' && $phone === '' && $identificationCard === '') {
             return null;
         }
 
         return [
             'names' => Str::upper($names),
-            'identification_card' => $phone,
+            'identification_card' => $identificationCard ?: $phone,
             'tutor' => true,
             'relationship' => 30,
             'phone' => $phone ?: null,
@@ -250,7 +251,7 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
             ->values();
 
         $peopleIdentifications = $rows
-            ->map(fn ($row) => $this->firstRowValue($row, ['numero_de_telefono', 'telefonos', 'numero_de_celular']))
+            ->map(fn ($row) => $this->guardianIdentificationCard($row) ?: $this->guardianPhone($row))
             ->filter()
             ->unique()
             ->values();
@@ -307,16 +308,25 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
 
             $names = $this->rowValue($row, 'nombres_y_apellidos');
             $phone = $this->guardianPhone($row);
+            $identificationCard = $this->guardianIdentificationCard($row);
 
-            if (($names === '') === ($phone === '')) {
+            if ($names === '' && $phone === '' && $identificationCard === '') {
                 continue;
             }
 
-            $missingField = $names === '' ? 'nombres_y_apellidos' : 'numero_de_telefono';
+            $missingFields = collect([
+                $names === '' ? 'nombres_y_apellidos' : null,
+                $phone === '' ? 'numero_de_telefono' : null,
+            ])->filter()->implode(' y ');
+
+            if ($missingFields === '') {
+                continue;
+            }
+
             $spreadsheetRow = $this->processedSpreadsheetRows + $index + 2;
 
             throw ValidationException::withMessages([
-                'file' => "Fila {$spreadsheetRow}: completa {$missingField} del acudiente o deja ambos campos vacíos.",
+                'file' => "Fila {$spreadsheetRow}: completa {$missingFields} del acudiente o deja los datos del acudiente vacíos.",
             ]);
         }
     }
@@ -354,6 +364,11 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
     private function guardianPhone($row): string
     {
         return $this->firstRowValue($row, ['numero_de_telefono', 'telefonos']);
+    }
+
+    private function guardianIdentificationCard($row): string
+    {
+        return $this->rowValue($row, 'identification_card');
     }
 
     private function parseBirthDate(string $value): Carbon
