@@ -22,9 +22,15 @@ vi.mock('vue-router', () => ({
 
 import useInscriptionConfig from '@/composables/inscription/inscriptionList';
 
-const mountComposable = () => mount(defineComponent({
+const mountComposable = ({ canManage = true, canCreateInvoice = null, canAddCustomCharges = null } = {}) => mount(defineComponent({
     setup() {
-        return useInscriptionConfig(ref('2026'), ref(true));
+        return useInscriptionConfig(
+            ref('2026'),
+            ref(canManage),
+            null,
+            canCreateInvoice === null ? null : ref(canCreateInvoice),
+            canAddCustomCharges === null ? null : ref(canAddCustomCharges),
+        );
     },
     template: '<div />',
 }));
@@ -56,6 +62,31 @@ describe('inscription list states', () => {
         await wrapper.vm.options.ajax({ draw: 2 }, callback);
 
         expect(wrapper.vm.globalError).toBe('');
+        wrapper.unmount();
+    });
+
+    it('renders only read actions and custom charges when inscriptions cannot be managed', () => {
+        const wrapper = mountComposable({
+            canManage: false,
+            canCreateInvoice: false,
+            canAddCustomCharges: true,
+        });
+        const actionsColumn = wrapper.vm.options.columns.at(-1);
+        const html = actionsColumn.render(1, 'display', {
+            id: 1,
+            unique_code: 'PLY-1',
+            url_destroy: '/inscriptions/1',
+            url_impression: '/export/inscription/1',
+            url_show: '/inscriptions/1',
+        });
+
+        expect(html).toContain('Agregar cargos');
+        expect(html).toContain('Imprimir inscripción');
+        expect(html).not.toContain('Modificar inscripción');
+        expect(html).not.toContain('Retirar inscripción');
+        expect(html).not.toContain('Crear factura');
+        expect(html).not.toContain('QR asistencia');
+
         wrapper.unmount();
     });
 });

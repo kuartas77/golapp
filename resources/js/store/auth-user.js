@@ -130,7 +130,7 @@ export const useAuthUser = defineStore('auth-user', {
         },
 
         hasAnyRole(roles) {
-            return this.roles.some(p => this.hasRole(p))
+            return roles.some(role => this.hasRole(role))
         }
     },
     persist: true,

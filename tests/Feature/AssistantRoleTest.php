@@ -239,6 +239,27 @@ final class AssistantRoleTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_assistant_can_query_receipts_and_invoice_details_but_not_mutate_invoices(): void
+    {
+        $this->actingAs($this->assistant)
+            ->getJson('/api/v2/payments/monthly-receipts')
+            ->assertOk();
+
+        // A missing invoice reaches the read controller; mutation routes stop at authorization.
+        $this->actingAs($this->assistant)
+            ->getJson('/api/v2/invoices/999999')
+            ->assertNotFound();
+        $this->actingAs($this->assistant)
+            ->postJson('/api/v2/invoices', [])
+            ->assertForbidden();
+        $this->actingAs($this->assistant)
+            ->postJson('/api/v2/invoices/999999/payment', [])
+            ->assertForbidden();
+        $this->actingAs($this->assistant)
+            ->deleteJson('/api/v2/invoices/999999')
+            ->assertForbidden();
+    }
+
     private function paymentFixture(): array
     {
         $group = getSchool($this->assistant)->trainingGroups()->firstOrFail();
