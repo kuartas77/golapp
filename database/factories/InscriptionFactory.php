@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 
 class InscriptionFactory extends Factory
 {
@@ -19,6 +18,7 @@ class InscriptionFactory extends Factory
             'category' => categoriesName(now()->subYears(4)->year),
             'photos' => false,
             'scholarship' => false,
+            'scholarship_percentage' => null,
             'copy_identification_document' => false,
             'eps_certificate' => false,
             'medic_certificate' => false,
@@ -36,5 +36,4 @@ class InscriptionFactory extends Factory
             'school_id' => 1,
         ];
     }
-
 }

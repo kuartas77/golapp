@@ -46,6 +46,15 @@ class Inscription extends Model
 {
     public const TRAINING_GROUP_MONTHLY_PAYMENT = 'TRAINING_GROUP_MONTHLY_PAYMENT';
 
+    public const PARTIAL_SCHOLARSHIP_PERCENTAGE = 50;
+
+    public const FULL_SCHOLARSHIP_PERCENTAGE = 100;
+
+    public const SCHOLARSHIP_PERCENTAGES = [
+        self::PARTIAL_SCHOLARSHIP_PERCENTAGE,
+        self::FULL_SCHOLARSHIP_PERCENTAGE,
+    ];
+
     use CustomModelLogic;
     use GeneralScopes;
     use HasFactory;
@@ -65,6 +74,7 @@ class Inscription extends Model
         'category',
         'photos',
         'scholarship',
+        'scholarship_percentage',
         'copy_identification_document',
         'eps_certificate',
         'medic_certificate',
@@ -98,6 +108,7 @@ class Inscription extends Model
         'start_date' => 'datetime:Y-m-d',
         'created_at' => 'datetime:Y-m-d',
         'scholarship' => 'boolean',
+        'scholarship_percentage' => 'integer',
         'pre_inscription' => 'boolean',
         'brother_payment' => 'boolean',
         'monthly_payment_amount' => 'integer',

@@ -102,6 +102,7 @@ final class CreateInscriptionAction implements IContractPassable
             'competition_uniform' => false,
             'tournament_pay' => false,
             'scholarship' => false,
+            'scholarship_percentage' => null,
             'period_one' => null,
             'period_two' => null,
             'period_three' => null,

@@ -311,10 +311,18 @@ export default function useMonthlyPayments() {
 
     const getDefaultAmountByField = (field, payPlayer = null) => {
         if (field === 'enrollment') {
-            return enrollment_amount.value
+            const rowEnrollmentAmount = payPlayer?.default_enrollment_amount
+
+            return rowEnrollmentAmount === null || rowEnrollmentAmount === undefined
+                ? enrollment_amount.value
+                : Number(rowEnrollmentAmount)
         }
 
-        return Number(payPlayer?.default_monthly_amount) || monthly_amount.value
+        const rowMonthlyAmount = payPlayer?.default_monthly_amount
+
+        return rowMonthlyAmount === null || rowMonthlyAmount === undefined
+            ? monthly_amount.value
+            : Number(rowMonthlyAmount)
     }
 
     const paymentRuleHandlers = {

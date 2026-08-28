@@ -124,6 +124,57 @@ class PaymentAmountResolver
         return self::DEFAULT_MONTHLY_PAYMENT;
     }
 
+    public function payableInscriptionAmountForInscription(Inscription $inscription): int
+    {
+        $inscription->loadMissing('school.settingsValues');
+        $school = $inscription->school;
+
+        return $this->applyScholarship(
+            $school instanceof School
+                ? $this->inscriptionAmountForSchool($school)
+                : self::DEFAULT_INSCRIPTION_AMOUNT,
+            $inscription
+        );
+    }
+
+    public function payableMonthlyAmountForInscription(Inscription $inscription): int
+    {
+        return $this->applyScholarship(
+            $this->monthlyAmountForInscription($inscription),
+            $inscription
+        );
+    }
+
+    public function payableMonthlyAmountForPayment(Payment $payment): int
+    {
+        if ($payment->inscription_id) {
+            $payment->loadMissing('inscription.school.settingsValues');
+        }
+
+        $inscription = $payment->inscription;
+        if ($inscription instanceof Inscription) {
+            return $this->payableMonthlyAmountForInscription($inscription);
+        }
+
+        return $this->monthlyAmountForPayment($payment);
+    }
+
+    public function applyScholarship(int $baseAmount, Inscription $inscription): int
+    {
+        $scholarshipPercentage = $inscription->scholarship
+            ? (int) $inscription->scholarship_percentage
+            : 0;
+
+        if (! in_array($scholarshipPercentage, Inscription::SCHOLARSHIP_PERCENTAGES, true)) {
+            return $baseAmount;
+        }
+
+        // El porcentaje de beca representa la parte condonada; el valor cobrable usa el porcentaje restante.
+        $payablePercentage = 100 - $scholarshipPercentage;
+
+        return max(0, (int) round($baseAmount * $payablePercentage / 100));
+    }
+
     private function settingValue(School $school, string $key, $default = null)
     {
         $school->loadMissing('settingsValues');

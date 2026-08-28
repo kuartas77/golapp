@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Inscription;
 
+use App\Models\Inscription;
 use App\Models\Player;
 use App\Models\Setting;
 use Carbon\Carbon;
@@ -70,6 +71,12 @@ class InscriptionUpdateRequest extends FormRequest
             'period_three' => ['nullable'],
             'period_four' => ['nullable'],
             'scholarship' => ['nullable', 'boolean'],
+            'scholarship_percentage' => [
+                'nullable',
+                'required_if:scholarship,true',
+                'integer',
+                Rule::in(Inscription::SCHOLARSHIP_PERCENTAGES),
+            ],
             'pre_inscription' => ['nullable', 'boolean'],
             'brother_payment' => ['nullable', 'boolean'],
             'monthly_payment_type' => ['nullable', 'string', Rule::in(Setting::monthlyPaymentTypes())],
@@ -108,7 +115,10 @@ class InscriptionUpdateRequest extends FormRequest
             'presentation_uniform' => $this->input('presentation_uniform', false),
             'competition_uniform' => $this->input('competition_uniform', false),
             'tournament_pay' => $this->input('tournament_pay', false),
-            'scholarship' => $this->input('scholarship', false),
+            'scholarship' => $this->boolean('scholarship'),
+            'scholarship_percentage' => $this->boolean('scholarship')
+                ? $this->input('scholarship_percentage')
+                : null,
             'monthly_payment_type' => $monthlyPaymentType,
             'brother_payment' => $monthlyPaymentType === Setting::BROTHER_MONTHLY_PAYMENT,
             'recalculate_monthly_payments' => $this->boolean('recalculate_monthly_payments'),

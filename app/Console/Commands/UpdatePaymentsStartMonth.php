@@ -37,10 +37,8 @@ class UpdatePaymentsStartMonth extends Command
 
     /**
      * Execute the console command.
-     *
-     * @return int
      */
-    public function handle(): Int
+    public function handle(): int
     {
         $currentDate = now();
 
@@ -64,7 +62,7 @@ class UpdatePaymentsStartMonth extends Command
                             ->with(['inscription.school.settingsValues'])
                             ->whereHas(
                                 'inscription',
-                                fn($query) => $query
+                                fn ($query) => $query
                                     ->where('year', $targetYear)
                                     ->where('school_id', $school->id)
                             )
@@ -78,7 +76,7 @@ class UpdatePaymentsStartMonth extends Command
                                     $payment->{$month} = Payment::$debt;
 
                                     if ((int) $payment->{$amountColumn} === 0) {
-                                        $payment->{$amountColumn} = $this->paymentAmountResolver->monthlyAmountForPayment($payment);
+                                        $payment->{$amountColumn} = $this->paymentAmountResolver->payableMonthlyAmountForPayment($payment);
                                     }
 
                                     $payment->save();
@@ -107,6 +105,6 @@ class UpdatePaymentsStartMonth extends Command
 
     private function getMonth(Collection $months, int $month): string
     {
-        return $months->first(fn($_, $key) => $key === $month);
+        return $months->first(fn ($_, $key) => $key === $month);
     }
 }

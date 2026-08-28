@@ -253,6 +253,27 @@ describe('monthly payment list', () => {
         wrapper.unmount()
     })
 
+    it('uses scholarship-adjusted row defaults for enrollment and monthly payments', () => {
+        const wrapper = mountComposable()
+        const row = {
+            ...paymentRowWithStatus(2),
+            enrollment: 1,
+            enrollment_amount: 0,
+            january: 2,
+            january_amount: 0,
+            default_enrollment_amount: 35000,
+            default_monthly_amount: 25000,
+        }
+
+        wrapper.vm.handleSelectChange(row, 'enrollment')
+        wrapper.vm.handleSelectChange(row, 'january')
+
+        expect(row.enrollment_amount).toBe(35000)
+        expect(row.january_amount).toBe(25000)
+
+        wrapper.unmount()
+    })
+
     it('limits assistant editing to due monthly cells and allowed destinations', async () => {
         authStore.hasRole.mockImplementation((role) => role === 'assistant')
         apiMock.get.mockImplementation((url) => {

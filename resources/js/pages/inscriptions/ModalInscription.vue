@@ -1,229 +1,238 @@
 <template>
     <div class="modal fade" id="composeModalInscription" tabindex="-1" role="dialog" aria-labelledby="modalInscription"
         aria-hidden="false" aria-modal="true">
-        <div class="modal-dialog" :class="hasCustomChargeRows ? 'modal-xl inscription-modal-wide' : 'modal-lg'" role="document">
-            <Form ref="form" :validation-schema="schema" @submit="submit" :initial-values="initialData" v-slot="{ isSubmitting }">
+        <div class="modal-dialog" :class="hasCustomChargeRows ? 'modal-xl inscription-modal-wide' : 'modal-lg'"
+            role="document">
+            <Form ref="form" :validation-schema="schema" @submit="submit" :initial-values="initialData"
+                v-slot="{ isSubmitting }">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="modalInscription">{{ isEditing ? 'Modificar inscripción' : 'Inscripción' }}</h5>
-                        <button type="button" aria-label="Cerrar"
-                            class="btn-close" @click="onCancel"></button>
+                        <h5 class="modal-title" id="modalInscription">{{ isEditing ? 'Modificar inscripción' :
+                            'Inscripción' }}</h5>
+                        <button type="button" aria-label="Cerrar" class="btn-close" @click="onCancel"></button>
                     </div>
                     <div class="modal-body">
                         <div v-if="globalError" class="alert alert-danger" role="alert">
                             {{ globalError }}
                         </div>
                         <div v-if="isReactivationMode" class="alert alert-warning py-2" role="alert">
-                            Se reactivará una inscripción retirada del año {{ selectedInscriptionYear }}. La fecha de inicio original se conservará y podrás ajustar los demás datos antes de guardar.
+                            Se reactivará una inscripción retirada del año {{ selectedInscriptionYear }}. La fecha de
+                            inicio original se conservará y podrás ajustar los demás datos antes de guardar.
                         </div>
                         <div class="inscription-modal-layout" :class="{ 'has-custom-charges': hasCustomChargeRows }">
                             <div class="inscription-form-panel">
                                 <div class="row col-12 ">
                                     <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
-                                <div class="form-group">
-                                    <label for="unique_code">Código único</label><span class="text-danger">(*)</span>:
-                                    <Field v-if="isEditing" name="unique_code" as="input" id="unique_code" readonly
-                                        class="form-control form-control-sm" />
-                                    <Field v-else name="unique_code" v-slot="{ field }">
-                                        <TypeAhead inputClass="form-control form-control-sm"
-                                            dropdownClass="dropdown custom-dropdown-icon"
-                                            dropdownMenuClass="dropdown-menu w-100" id="unique_code" :items="search"
-                                            :itemProjection="item => item" :modelValue="field.value"
-                                            @update:modelValue="field.onChange($event);onChangeCode($event)"/>
-                                    </Field>
+                                        <div class="form-group">
+                                            <label for="unique_code">Código único</label><span
+                                                class="text-danger">(*)</span>:
+                                            <Field v-if="isEditing" name="unique_code" as="input" id="unique_code"
+                                                readonly class="form-control form-control-sm" />
+                                            <Field v-else name="unique_code" v-slot="{ field }">
+                                                <TypeAhead inputClass="form-control form-control-sm"
+                                                    dropdownClass="dropdown custom-dropdown-icon"
+                                                    dropdownMenuClass="dropdown-menu w-100" id="unique_code"
+                                                    :items="search" :itemProjection="item => item"
+                                                    :modelValue="field.value"
+                                                    @update:modelValue="field.onChange($event); onChangeCode($event)" />
+                                            </Field>
 
-                                    <small v-if="isEditing" class="form-text text-muted">El jugador no se puede modificar desde este formulario.</small>
-                                    <small v-else class="form-text text-muted">Buscará deportistas sin inscripción activa en el año {{ selectedInscriptionYear }}.</small>
-                                </div>
-                            </div>
-
-                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
-                                <div class="form-group">
-                                    <label for="player_name">Jugador:</label>
-                                    <Field name="player_name" as="input" id="player_name" readonly
-                                        class="form-control-plaintext">
-                                    </Field>
-                                </div>
-                            </div>
-
-                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
-                                <div class="form-group">
-                                    <label for="start_date">Fecha de inicio</label><span class="text-danger">(*)</span>:
-                                    <Field v-if="isEditing || isReactivationMode" name="start_date" as="input" id="start_date" readonly
-                                        class="form-control form-control-sm" />
-                                    <Field v-else name="start_date" v-slot="{ field }" id="start_date">
-                                        <flat-pickr v-bind="field" v-model="field.value" :config="flatpickrConfigDate"
-                                            class="form-control form-control-sm flatpickr" id="start_date" />
-                                    </Field>
-                                    <ErrorMessage name="start_date" class="custom-error" />
-                                    <small v-if="isEditing || isReactivationMode" class="form-text text-muted">La fecha de inicio se conserva para evitar desajustes con pagos y asistencias.</small>
-                                </div>
-                            </div>
-
-                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
-                                <small class="form-text text-muted mt-4">Al ser becado, todas las mensualidades del año
-                                    se estableceran cómo: "<span class="text-warning">Becado</span>"</small>
-                                <checkbox label="¿ Becado ?" name="scholarship" />
-                            </div>
-
-                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
-                                <div class="form-group">
-                                    <template v-if="usesReadonlyGroupTariff">
-                                        <label for="training_group_monthly_payment">
-                                            {{ isEditing || isReactivationMode ? 'Tarifa mensual aplicada:' : 'Tarifa mensual:' }}
-                                        </label>
-                                        <input
-                                            id="training_group_monthly_payment"
-                                            class="form-control form-control-sm"
-                                            :value="groupMonthlyPaymentDisplay"
-                                            readonly
-                                        >
-                                        <small class="form-text text-muted">
-                                            {{ groupMonthlyPaymentHelp }}
-                                        </small>
-                                    </template>
-                                    <template v-else>
-                                        <label for="monthly_payment_type">Tarifa mensual:</label>
-                                        <Field name="monthly_payment_type" v-slot="{ field, handleChange }">
-                                            <CustomSelect2
-                                                id="monthly_payment_type"
-                                                :options="monthlyPaymentOptions"
-                                                :modelValue="field.value"
-                                                :clearable="false"
-                                                @update:modelValue="handleChange"
-                                            />
-                                        </Field>
-                                        <ErrorMessage name="monthly_payment_type" class="custom-error" />
-                                    </template>
-                                    <div
-                                        v-if="showRecalculateMonthlyPaymentsOption"
-                                        class="custom-control custom-checkbox mt-2"
-                                    >
-                                        <Field name="recalculate_monthly_payments" type="checkbox" v-slot="{ field, handleChange }">
-                                            <input
-                                                id="recalculate_monthly_payments"
-                                                type="checkbox"
-                                                class="custom-control-input"
-                                                :checked="field.value"
-                                                @change="handleChange($event.target.checked)"
-                                            >
-                                        </Field>
-                                        <label
-                                            class="custom-control-label"
-                                            for="recalculate_monthly_payments"
-                                            title="Por defecto se conservan los valores actuales. Si activas esta opción, se actualizarán solo mensualidades cobrables y quedará historial del cambio."
-                                        >
-                                            Actualizar mensualidades existentes
-                                        </label>
+                                            <small v-if="isEditing" class="form-text text-muted">El jugador no se puede
+                                                modificar desde este formulario.</small>
+                                            <small v-else class="form-text text-muted">Buscará deportistas sin
+                                                inscripción activa en el año {{ selectedInscriptionYear }}.</small>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
 
                                     <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
-                                <div class="form-group">
-                                    <label for="training_group_id">Grupo de entrenamiento:</label>
-                                    <Field name="training_group_id" v-slot="{ field, handleChange }">
-                                        <CustomSelect2
-                                            id="training_group_id"
-                                            :options="trainingGroups"
-                                            :modelValue="field.value"
-                                            @update:modelValue="(value) => { handleChange(value); onTrainingGroupChange(value) }"
-                                        />
-                                    </Field>
-                                    <ErrorMessage name="training_group_id" class="custom-error" as="div" />
-                                    <small class="form-text text-muted">Si no se selecciona, se agregará al grupo
-                                        "Provisional"</small>
-                                </div>
-                            </div>
+                                        <div class="form-group">
+                                            <label for="player_name">Jugador:</label>
+                                            <Field name="player_name" as="input" id="player_name" readonly
+                                                class="form-control-plaintext">
+                                            </Field>
+                                        </div>
+                                    </div>
 
                                     <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
-                                <div class="form-group">
-                                    <label for="complementary_group_ids">Grupos complementarios:</label>
-                                    <Field name="complementary_group_ids" v-slot="{ field, handleChange }">
-                                        <CustomSelect2
-                                            id="complementary_group_ids"
-                                            :options="complementaryTrainingGroups"
-                                            :modelValue="field.value"
-                                            :multiple="true"
-                                            :clearable="true"
-                                            @update:modelValue="handleChange"
-                                        />
-                                    </Field>
-                                    <ErrorMessage name="complementary_group_ids" class="custom-error" as="div" />
-                                    <small class="form-text text-muted">Opcional. No generan mensualidad adicional.</small>
-                                </div>
-                            </div>
+                                        <div class="form-group">
+                                            <label for="start_date">Fecha de inicio</label><span
+                                                class="text-danger">(*)</span>:
+                                            <Field v-if="isEditing || isReactivationMode" name="start_date" as="input"
+                                                id="start_date" readonly class="form-control form-control-sm" />
+                                            <Field v-else name="start_date" v-slot="{ field }" id="start_date">
+                                                <flat-pickr v-bind="field" v-model="field.value"
+                                                    :config="flatpickrConfigDate"
+                                                    class="form-control form-control-sm flatpickr" id="start_date" />
+                                            </Field>
+                                            <ErrorMessage name="start_date" class="custom-error" />
+                                            <small v-if="isEditing || isReactivationMode"
+                                                class="form-text text-muted">La fecha de inicio se conserva para evitar
+                                                desajustes con pagos y asistencias.</small>
+                                        </div>
+                                    </div>
 
                                     <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
-                                <div class="form-group">
-                                    <label for="competition_groups">Grupo de competencia:</label>
-                                    <Field name="competition_groups" v-slot="{ field, handleChange }">
-                                        <CustomSelect2
-                                            id="competition_groups"
-                                            :modelValue="field.value"
-                                            :options="competitionGroups"
-                                            :multiple="true"
-                                            @update:modelValue="handleChange"
-                                        />
-                                    </Field>
-                                    <ErrorMessage name="competition_groups" class="custom-error" />
-                                </div>
-                            </div>
-                                </div>
-                                <div class="row col-12">
-                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
-                                <h6 class="text-center text-uppercase text-muted"><strong>Documentos</strong></h6>
-                                <div class="check col">
-                                    <checkbox label="Fotos" name="photos" />
-                                    <checkbox label="Fotocopia Doc. Identidad" name="copy_identification_document" />
-                                    <checkbox label="Certificado de Salud" name="eps_certificate" />
-                                    <checkbox label="Certificado Médico" name="medic_certificate" />
-                                    <checkbox label="Fotocopia Doc. Acudiente" name="study_certificate" />
-                                </div>
-                            </div>
+                                        <small class="form-text text-muted mt-4">
+                                            La beca del 50 % conserva el saldo restante por cobrar; la del 100 %
+                                            establece matrícula y mensualidades como "<span
+                                                class="text-warning">Becado</span>".
+                                        </small>
+                                        <checkbox label="¿ Becado ?" name="scholarship" />
+                                        <div v-if="normalizeBoolean(form?.values?.scholarship)" class="mt-2">
+                                            <span class="form-label d-block mb-1">Porcentaje de beca<span
+                                                    class="text-danger">(*)</span>:</span>
+                                            <Field name="scholarship_percentage" v-slot="{ field, handleChange }">
+                                                <div class="btn-group w-100" role="radiogroup"
+                                                    aria-label="Porcentaje de beca">
+                                                    <template v-for="percentage in scholarshipPercentages"
+                                                        :key="percentage">
+                                                        <input :id="`scholarship_percentage_${percentage}`"
+                                                            class="btn-check" type="radio" name="scholarship_percentage"
+                                                            :value="percentage"
+                                                            :checked="Number(field.value) === percentage"
+                                                            @change="handleChange(percentage)">
+                                                        <label class="btn btn-outline-primary btn-sm"
+                                                            :for="`scholarship_percentage_${percentage}`">
+                                                            {{ percentage }} %
+                                                        </label>
+                                                    </template>
+                                                </div>
+                                            </Field>
+                                            <ErrorMessage name="scholarship_percentage" class="custom-error" as="div" />
+                                        </div>
+                                    </div>
 
                                     <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
-                                <h6 class="text-center text-uppercase text-muted">
-                                    <strong>Pre-Inscripción</strong>
-                                </h6>
-                                <div
-                                    class="inscription-status-card rounded border p-2 mb-2"
-                                    :class="preInscriptionAutoReason ? 'border-warning' : 'border-secondary'"
-                                >
-                                    <small class="d-block text-uppercase fw-semibold mb-1">
-                                        {{ preInscriptionStatusTitle }}
-                                    </small>
-                                    <small class="d-block">
-                                        {{ preInscriptionStatusMessage }}
-                                    </small>
-                                </div>
-                                <Field name="pre_inscription" v-slot="{ value, handleChange }">
-                                    <div class="form-group mt-2">
-                                        <div class="form-check ps-0">
-                                            <div class="custom-control custom-checkbox checkbox-primary">
-                                                <input
-                                                    id="pre_inscription"
-                                                    type="checkbox"
-                                                    class="custom-control-input"
-                                                    :checked="normalizeBoolean(value)"
-                                                    @change="(event) => onPreInscriptionInput(event, handleChange)"
-                                                />
-                                                <label
-                                                    class="custom-control-label"
-                                                    for="pre_inscription"
-                                                    @click.prevent="onPreInscriptionLabelClick(value, handleChange)"
-                                                >
-                                                    Marcar como preinscripción
+                                        <div class="form-group">
+                                            <template v-if="usesReadonlyGroupTariff">
+                                                <label for="training_group_monthly_payment">
+                                                    {{ isEditing || isReactivationMode ? 'Tarifa mensual aplicada:' :
+                                                    'Tarifa mensual:' }}
+                                                </label>
+                                                <input id="training_group_monthly_payment"
+                                                    class="form-control form-control-sm"
+                                                    :value="groupMonthlyPaymentDisplay" readonly>
+                                                <small class="form-text text-muted">
+                                                    {{ groupMonthlyPaymentHelp }}
+                                                </small>
+                                            </template>
+                                            <template v-else>
+                                                <label for="monthly_payment_type">Tarifa mensual:</label>
+                                                <Field name="monthly_payment_type" v-slot="{ field, handleChange }">
+                                                    <CustomSelect2 id="monthly_payment_type"
+                                                        :options="monthlyPaymentOptions" :modelValue="field.value"
+                                                        :clearable="false" @update:modelValue="handleChange" />
+                                                </Field>
+                                                <ErrorMessage name="monthly_payment_type" class="custom-error" />
+                                            </template>
+                                            <div v-if="showRecalculateMonthlyPaymentsOption"
+                                                class="custom-control custom-checkbox mt-2">
+                                                <Field name="recalculate_monthly_payments" type="checkbox"
+                                                    v-slot="{ field, handleChange }">
+                                                    <input id="recalculate_monthly_payments" type="checkbox"
+                                                        class="custom-control-input" :checked="field.value"
+                                                        @change="handleChange($event.target.checked)">
+                                                </Field>
+                                                <label class="custom-control-label" for="recalculate_monthly_payments"
+                                                    title="Por defecto se conservan los valores actuales. Si activas esta opción, se actualizarán solo mensualidades cobrables y quedará historial del cambio.">
+                                                    Actualizar mensualidades existentes
                                                 </label>
                                             </div>
                                         </div>
                                     </div>
-                                </Field>
-                                <small class="form-text text-muted">
-                                    Marca esta opción solo si la inscripción aún está pendiente de documentación.
-                                </small>
-                                <ErrorMessage name="pre_inscription" class="custom-error" as="div" />
-                            </div>
+
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                        <div class="form-group">
+                                            <label for="training_group_id">Grupo de entrenamiento:</label>
+                                            <Field name="training_group_id" v-slot="{ field, handleChange }">
+                                                <CustomSelect2 id="training_group_id" :options="trainingGroups"
+                                                    :modelValue="field.value"
+                                                    @update:modelValue="(value) => { handleChange(value); onTrainingGroupChange(value) }" />
+                                            </Field>
+                                            <ErrorMessage name="training_group_id" class="custom-error" as="div" />
+                                            <small class="form-text text-muted">Si no se selecciona, se agregará al
+                                                grupo
+                                                "Provisional"</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                        <div class="form-group">
+                                            <label for="complementary_group_ids">Grupos complementarios:</label>
+                                            <Field name="complementary_group_ids" v-slot="{ field, handleChange }">
+                                                <CustomSelect2 id="complementary_group_ids"
+                                                    :options="complementaryTrainingGroups" :modelValue="field.value"
+                                                    :multiple="true" :clearable="true"
+                                                    @update:modelValue="handleChange" />
+                                            </Field>
+                                            <ErrorMessage name="complementary_group_ids" class="custom-error"
+                                                as="div" />
+                                            <small class="form-text text-muted">Opcional. No generan mensualidad
+                                                adicional.</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                        <div class="form-group">
+                                            <label for="competition_groups">Grupo de competencia:</label>
+                                            <Field name="competition_groups" v-slot="{ field, handleChange }">
+                                                <CustomSelect2 id="competition_groups" :modelValue="field.value"
+                                                    :options="competitionGroups" :multiple="true"
+                                                    @update:modelValue="handleChange" />
+                                            </Field>
+                                            <ErrorMessage name="competition_groups" class="custom-error" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row col-12">
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                        <h6 class="text-center text-uppercase text-muted"><strong>Documentos</strong>
+                                        </h6>
+                                        <div class="check col">
+                                            <checkbox label="Fotos" name="photos" />
+                                            <checkbox label="Fotocopia Doc. Identidad"
+                                                name="copy_identification_document" />
+                                            <checkbox label="Certificado de Salud" name="eps_certificate" />
+                                            <checkbox label="Certificado Médico" name="medic_certificate" />
+                                            <checkbox label="Fotocopia Doc. Acudiente" name="study_certificate" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 col-sm-6 col-lg-6 col-xs-12">
+                                        <h6 class="text-center text-uppercase text-muted">
+                                            <strong>Pre-Inscripción</strong>
+                                        </h6>
+                                        <div class="inscription-status-card rounded border p-2 mb-2"
+                                            :class="preInscriptionAutoReason ? 'border-warning' : 'border-secondary'">
+                                            <small class="d-block text-uppercase fw-semibold mb-1">
+                                                {{ preInscriptionStatusTitle }}
+                                            </small>
+                                            <small class="d-block">
+                                                {{ preInscriptionStatusMessage }}
+                                            </small>
+                                        </div>
+                                        <Field name="pre_inscription" v-slot="{ value, handleChange }">
+                                            <div class="form-group mt-2">
+                                                <div class="form-check ps-0">
+                                                    <div class="custom-control custom-checkbox checkbox-primary">
+                                                        <input id="pre_inscription" type="checkbox"
+                                                            class="custom-control-input"
+                                                            :checked="normalizeBoolean(value)"
+                                                            @change="(event) => onPreInscriptionInput(event, handleChange)" />
+                                                        <label class="custom-control-label" for="pre_inscription"
+                                                            @click.prevent="onPreInscriptionLabelClick(value, handleChange)">
+                                                            Marcar como preinscripción
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Field>
+                                        <small class="form-text text-muted">
+                                            Marca esta opción solo si la inscripción aún está pendiente de
+                                            documentación.
+                                        </small>
+                                        <ErrorMessage name="pre_inscription" class="custom-error" as="div" />
+                                    </div>
                                 </div>
                             </div>
                             <div v-if="canManageCustomCharges" class="custom-charges-panel mt-3">
@@ -234,11 +243,9 @@
                                         </h6>
                                         <div class="d-flex align-items-center gap-2">
                                             <small class="text-muted">Vencimiento nuevos</small>
-                                            <flat-pickr
-                                                v-model="customChargesDueDate"
+                                            <flat-pickr v-model="customChargesDueDate"
                                                 :config="flatpickrConfigDateIssue"
-                                                class="form-control form-control-sm custom-charge-date"
-                                            />
+                                                class="form-control form-control-sm custom-charge-date" />
                                         </div>
                                     </div>
 
@@ -246,7 +253,8 @@
                                         <span class="spinner-border spinner-border-sm text-primary"></span>
                                     </div>
 
-                                    <div v-else-if="customChargeRows.length" class="table-responsive custom-charges-table">
+                                    <div v-else-if="customChargeRows.length"
+                                        class="table-responsive custom-charges-table">
                                         <table class="table table-sm align-middle mb-0">
                                             <thead>
                                                 <tr>
@@ -265,26 +273,21 @@
                                                         </small>
                                                     </td>
                                                     <td>
-                                                        <span class="badge" :class="customChargeStatusClass(charge.status)">
+                                                        <span class="badge"
+                                                            :class="customChargeStatusClass(charge.status)">
                                                             {{ customChargeStatusLabel(charge.status) }}
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        <CurrencyInput
-                                                            v-model="charge.value"
+                                                        <CurrencyInput v-model="charge.value"
                                                             class="form-control form-control-sm"
                                                             :disabled="charge.disabled || !charge.selected"
-                                                            autocomplete="off"
-                                                        />
+                                                            autocomplete="off" />
                                                     </td>
                                                     <td class="text-center">
-                                                        <input
-                                                            type="checkbox"
-                                                            class="form-check-input"
-                                                            v-model="charge.selected"
-                                                            :disabled="charge.disabled"
-                                                            @change="onCustomChargeToggle(charge, $event)"
-                                                        >
+                                                        <input type="checkbox" class="form-check-input"
+                                                            v-model="charge.selected" :disabled="charge.disabled"
+                                                            @change="onCustomChargeToggle(charge, $event)">
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -394,6 +397,7 @@ const hasHistoricalGroupTariff = computed(() => (
 const usesReadonlyGroupTariff = computed(() => (
     isTrainingGroupPricingEnabled.value || hasHistoricalGroupTariff.value
 ));
+const scholarshipPercentages = [50, 100];
 const monthlyPaymentDefinitions = [
     { value: 'MONTHLY_PAYMENT', label: 'Mensualidad por defecto' },
     { value: 'BROTHER_MONTHLY_PAYMENT', label: 'Mensualidad hermano' },
@@ -610,6 +614,7 @@ const defaultValues = () => ({
     player_name: null,
     start_date: resolveDefaultStartDate(),
     scholarship: false,
+    scholarship_percentage: null,
     brother_payment: false,
     monthly_payment_type: resolveMonthlyPaymentType(),
     recalculate_monthly_payments: false,
@@ -659,6 +664,15 @@ const schema = yup.object().shape({
     player_name: yup.string().required('Ingresa un código único'),
     start_date: yup.date().required('La Fecha de inicio es requerida'),
     scholarship: yup.boolean().default(false),
+    scholarship_percentage: yup.number()
+        .nullable()
+        .when('scholarship', {
+            is: true,
+            then: (schema) => schema
+                .required('Selecciona el porcentaje de beca')
+                .oneOf(scholarshipPercentages, 'Selecciona 50 % o 100 %'),
+            otherwise: (schema) => schema.nullable(),
+        }),
     brother_payment: yup.boolean().default(false),
     monthly_payment_type: yup.string().nullable().oneOf(monthlyPaymentDefinitions.map((option) => option.value)).default('MONTHLY_PAYMENT'),
     recalculate_monthly_payments: yup.boolean().default(false),
@@ -750,6 +764,9 @@ const loadInscriptionForEdit = async (inscriptionId) => {
             player_name: data.player.full_names,
             start_date: data.start_date,
             scholarship: normalizeBoolean(data.scholarship),
+            scholarship_percentage: normalizeBoolean(data.scholarship)
+                ? Number(data.scholarship_percentage ?? 100)
+                : null,
             brother_payment: normalizeBoolean(data.brother_payment),
             monthly_payment_type: originalMonthlyPaymentType.value,
             recalculate_monthly_payments: false,
@@ -914,11 +931,11 @@ const selectedCustomChargesPayload = () => [
     ...customChargeRows.value
         .filter((charge) => charge.selected && !charge.disabled)
         .map((charge) => ({
-        id: charge.id,
-        invoice_custom_item_id: charge.invoice_custom_item_id,
-        value: Number(charge.value || 0),
-        due_date: customChargesDueDate.value,
-    })),
+            id: charge.id,
+            invoice_custom_item_id: charge.invoice_custom_item_id,
+            value: Number(charge.value || 0),
+            due_date: customChargesDueDate.value,
+        })),
 ]
 
 const loadPlayerByUniqueCode = async (uniqueCode) => {
@@ -970,6 +987,9 @@ const loadPlayerByUniqueCode = async (uniqueCode) => {
             player_name: data.full_names,
             start_date: reactivationInscription?.start_date || resolveDefaultStartDate(),
             scholarship: normalizeBoolean(reactivationInscription?.scholarship),
+            scholarship_percentage: normalizeBoolean(reactivationInscription?.scholarship)
+                ? Number(reactivationInscription?.scholarship_percentage ?? 100)
+                : null,
             brother_payment: normalizeBoolean(reactivationInscription?.brother_payment),
             monthly_payment_type: resolveMonthlyPaymentType(reactivationInscription?.monthly_payment_type, reactivationInscription?.brother_payment),
             recalculate_monthly_payments: false,
@@ -1071,6 +1091,15 @@ watch(showRecalculateMonthlyPaymentsOption, (isVisible) => {
         form.value?.setFieldValue('recalculate_monthly_payments', false)
     }
 })
+
+watch(
+    () => form.value?.values?.scholarship,
+    (isScholarship) => {
+        if (!normalizeBoolean(isScholarship)) {
+            form.value?.setFieldValue('scholarship_percentage', null)
+        }
+    }
+)
 
 const onChangeCode = (uniqueCode) => {
     loadPlayerByUniqueCode(uniqueCode)

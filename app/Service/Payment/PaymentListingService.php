@@ -18,8 +18,7 @@ class PaymentListingService
     public function __construct(
         private Payment $payment,
         private PaymentAmountResolver $paymentAmountResolver
-    ) {
-    }
+    ) {}
 
     public function filter($request, bool $deleted = false, $raw = false): array
     {
@@ -65,6 +64,7 @@ class PaymentListingService
             ->when($paymentStatus != null, function ($q) use ($paymentStatus, $month): void {
                 if ($month && Payment::amountFieldFor((string) $month)) {
                     $q->where($month, $paymentStatus);
+
                     return;
                 }
 
@@ -102,6 +102,7 @@ class PaymentListingService
             ->when($paymentStatus != null, function ($q) use ($paymentStatus, $month): void {
                 if ($month && Payment::amountFieldFor((string) $month)) {
                     $q->where($month, $paymentStatus);
+
                     return;
                 }
 
@@ -265,6 +266,7 @@ class PaymentListingService
 
         return $payments->map(function (Payment $payment) use ($school, $historyFieldsByPayment): Payment {
             $inscription = $payment->inscription;
+            $inscription = $inscription instanceof Inscription ? $inscription : null;
             $player = $inscription?->player;
 
             if ((int) $payment->school_id === (int) $school->id) {
@@ -281,7 +283,13 @@ class PaymentListingService
 
             $payment->setAttribute(
                 'default_monthly_amount',
-                $this->paymentAmountResolver->monthlyAmountForPayment($payment)
+                $this->paymentAmountResolver->payableMonthlyAmountForPayment($payment)
+            );
+            $payment->setAttribute(
+                'default_enrollment_amount',
+                $inscription
+                    ? $this->paymentAmountResolver->payableInscriptionAmountForInscription($inscription)
+                    : $this->paymentAmountResolver->inscriptionAmountForSchool($school)
             );
             $payment->setAttribute('inscription_deleted', (bool) $inscription?->trashed());
             $payment->setAttribute(

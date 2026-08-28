@@ -48,8 +48,8 @@ class InscriptionSummaryService
                 'print' => route('export.inscription', [$inscription->player_id, $inscription->id]),
             ],
             'amounts' => [
-                'enrollment' => $this->paymentAmountResolver->inscriptionAmountForSchool(getSchool(auth()->user())),
-                'monthly' => $this->paymentAmountResolver->monthlyAmountForInscription($inscription),
+                'enrollment' => $this->paymentAmountResolver->payableInscriptionAmountForInscription($inscription),
+                'monthly' => $this->paymentAmountResolver->payableMonthlyAmountForInscription($inscription),
                 'annuity' => $this->paymentAmountResolver->annuityAmountForSchool(getSchool(auth()->user())),
             ],
         ];
@@ -110,6 +110,8 @@ class InscriptionSummaryService
             'status' => $status['value'],
             'status_label' => $status['label'],
             'pre_inscription' => (bool) $inscription->pre_inscription,
+            'scholarship' => (bool) $inscription->scholarship,
+            'scholarship_percentage' => $inscription->scholarship_percentage,
             'brother_payment' => (bool) $inscription->brother_payment,
             'documents' => [
                 'photos' => (bool) $inscription->photos,
@@ -202,7 +204,9 @@ class InscriptionSummaryService
                 'training_group_id' => $payment->training_group_id,
                 'unique_code' => $payment->unique_code,
                 'inscription_deleted' => (bool) $inscription->trashed(),
-                'default_monthly_amount' => $this->paymentAmountResolver->monthlyAmountForPayment($payment),
+                'default_monthly_amount' => $this->paymentAmountResolver->payableMonthlyAmountForPayment($payment),
+                'default_enrollment_amount' => $this->paymentAmountResolver
+                    ->payableInscriptionAmountForInscription($inscription),
             ];
 
             foreach (Payment::FIELD_AMOUNT_MAP as $field => $amountField) {

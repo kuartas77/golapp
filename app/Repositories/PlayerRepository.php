@@ -277,6 +277,9 @@ class PlayerRepository
                     ->values()
                     ->all(),
                 'scholarship' => (bool) $reactivationInscription->scholarship,
+                'scholarship_percentage' => $reactivationInscription->scholarship
+                    ? ($reactivationInscription->scholarship_percentage ?: Inscription::FULL_SCHOLARSHIP_PERCENTAGE)
+                    : null,
                 'brother_payment' => (bool) $reactivationInscription->brother_payment,
                 'monthly_payment_type' => $reactivationInscription->monthly_payment_type,
                 'monthly_payment_amount' => $reactivationInscription->monthly_payment_amount,

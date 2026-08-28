@@ -97,6 +97,7 @@
                                     <dt>Grupo</dt><dd>{{ inscription.training_group?.name || '—' }}</dd>
                                     <dt>Grupos complementarios</dt><dd>{{ complementaryGroupNames }}</dd>
                                     <dt>Preinscripción</dt><dd>{{ yesNo(inscription.pre_inscription) }}</dd>
+                                    <dt>Beca</dt><dd>{{ inscription.scholarship ? `${inscription.scholarship_percentage} %` : 'No' }}</dd>
                                     <dt>Hermano</dt><dd>{{ yesNo(inscription.brother_payment) }}</dd>
                                 </dl>
                             </div>

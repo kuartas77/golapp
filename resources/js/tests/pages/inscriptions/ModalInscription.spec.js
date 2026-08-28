@@ -104,7 +104,8 @@ const mountModal = async (
                         full_names: 'Jugador Demo',
                     },
                     start_date: '2026-04-10',
-                    scholarship: '0',
+                    scholarship: options.editScholarship ?? '0',
+                    scholarship_percentage: options.editScholarshipPercentage ?? null,
                     brother_payment: 'false',
                     monthly_payment_type: options.editMonthlyPaymentType ?? 'MONTHLY_PAYMENT_OPTION_1',
                     monthly_payment_amount: options.editMonthlyPaymentAmount ?? 55000,
@@ -237,6 +238,54 @@ describe('ModalInscription', () => {
 
         expect(['1', 'true', 'yes', 'on', 1, true].every(normalizeBoolean)).toBe(true);
         expect(['0', 'false', 'no', 'off', 0, false, null, undefined].some(normalizeBoolean)).toBe(false);
+    });
+
+    it('requires and submits one of the two scholarship percentages', async () => {
+        const wrapper = await mountModal();
+
+        expect(wrapper.find('#scholarship_percentage_50').exists()).toBe(false);
+        wrapper.vm.$.setupState.form.setFieldValue('scholarship', true);
+        await flushPromises();
+
+        expect(wrapper.find('#scholarship_percentage_50').exists()).toBe(true);
+        expect(wrapper.find('#scholarship_percentage_100').exists()).toBe(true);
+
+        const invalidResult = await wrapper.vm.$.setupState.form.validate();
+        expect(invalidResult.errors.scholarship_percentage).toBe('Selecciona el porcentaje de beca');
+
+        wrapper.vm.$.setupState.form.setFieldValue('scholarship_percentage', 50);
+        wrapper.vm.$.setupState.form.setFieldValue('scholarship', false);
+        await flushPromises();
+        expect(wrapper.vm.$.setupState.form.values.scholarship_percentage).toBeUndefined();
+
+        wrapper.vm.$.setupState.form.setFieldValue('scholarship', true);
+        wrapper.vm.$.setupState.form.setFieldValue('scholarship_percentage', 50);
+        await wrapper.vm.$.setupState.submit({
+            ...wrapper.vm.$.setupState.form.values,
+            player_id: 25,
+            unique_code: 'ABC123',
+            player_name: 'Jugador Demo',
+        }, { setErrors: vi.fn() });
+
+        expect(apiMock.post).toHaveBeenCalledWith('/api/v2/inscriptions', expect.objectContaining({
+            scholarship: true,
+            scholarship_percentage: 50,
+        }));
+    });
+
+    it('loads a persisted partial scholarship when editing', async () => {
+        const wrapper = await mountModal(
+            { inscription_id: null, create_open: false, selected_year: 2026 },
+            { editScholarship: true, editScholarshipPercentage: 50 },
+        );
+
+        await wrapper.setProps({ inscription_id: 1 });
+        await flushPromises();
+        await flushPromises();
+
+        expect(wrapper.vm.$.setupState.form.values.scholarship).toBe(true);
+        expect(wrapper.vm.$.setupState.form.values.scholarship_percentage).toBe(50);
+        expect(wrapper.get('#scholarship_percentage_50').element.checked).toBe(true);
     });
 
     it('opens explicitly in create mode', async () => {

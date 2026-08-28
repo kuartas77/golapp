@@ -74,6 +74,9 @@ class InscriptionYearRenewalService
                     'period_three' => $inscription->period_three,
                     'period_four' => $inscription->period_four,
                     'scholarship' => $inscription->scholarship,
+                    'scholarship_percentage' => $inscription->scholarship
+                        ? ($inscription->scholarship_percentage ?: Inscription::FULL_SCHOLARSHIP_PERCENTAGE)
+                        : null,
                     'brother_payment' => $inscription->brother_payment,
                     'monthly_payment_type' => $inscription->monthly_payment_type,
                     'monthly_payment_amount' => $inscription->monthly_payment_amount,

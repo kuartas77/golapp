@@ -74,6 +74,8 @@ function summaryPayload(overrides = {}) {
                 status_label: 'Activa',
                 start_date: '2026-01-10',
                 pre_inscription: false,
+                scholarship: true,
+                scholarship_percentage: 50,
                 brother_payment: false,
                 documents: {
                     photos: true,
@@ -232,6 +234,7 @@ describe('InscriptionSummary', () => {
         expect(wrapper.text()).toContain('Jugador Demo')
         expect(wrapper.text()).toContain('ABC123')
         expect(wrapper.text()).toContain('Editable')
+        expect(wrapper.text()).toContain('50 %')
         expect(apiMock.get).toHaveBeenCalledWith('/api/v2/inscriptions/1/summary')
     })
 

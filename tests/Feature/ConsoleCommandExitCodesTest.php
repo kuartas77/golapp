@@ -92,6 +92,47 @@ class ConsoleCommandExitCodesTest extends TestCase
         }
     }
 
+    public function test_update_payments_uses_partial_scholarship_monthly_amount(): void
+    {
+        Carbon::setTestNow('2026-01-31 00:02:00');
+
+        try {
+            $school = School::query()->findOrFail($this->school['id']);
+            $school->forceFill(['is_enable' => true])->save();
+            $trainingGroup = $school->trainingGroups()
+                ->where('is_complementary', false)
+                ->firstOrFail();
+            $player = Player::factory()->create();
+            $inscription = Inscription::factory()->create([
+                'player_id' => $player->id,
+                'unique_code' => $player->unique_code,
+                'year' => 2026,
+                'training_group_id' => $trainingGroup->id,
+                'competition_group_id' => null,
+                'start_date' => '2026-01-01',
+                'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+                'school_id' => $school->id,
+                'scholarship' => true,
+                'scholarship_percentage' => Inscription::PARTIAL_SCHOLARSHIP_PERCENTAGE,
+                'monthly_payment_type' => Setting::MONTHLY_PAYMENT,
+                'monthly_payment_amount' => 57001,
+            ]);
+            $payment = Payment::query()->where('inscription_id', $inscription->id)->firstOrFail();
+            $payment->forceFill([
+                'february' => Payment::$pending,
+                'february_amount' => 0,
+            ])->save();
+
+            $this->artisan('update:payments')->assertExitCode(Command::SUCCESS);
+
+            $payment->refresh();
+            $this->assertSame(Payment::$debt, $payment->february);
+            $this->assertSame(28501, $payment->february_amount);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
     public function test_optimize_if_changed_returns_success_after_generating_caches(): void
     {
         try {

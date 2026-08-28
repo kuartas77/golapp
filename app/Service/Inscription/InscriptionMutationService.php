@@ -60,6 +60,10 @@ class InscriptionMutationService
                 ]);
             }
 
+            $previousScholarshipPercentage = $existingInscription
+                ? $this->normalizedScholarshipPercentage($existingInscription)
+                : null;
+
             $shouldInitializeGroupTariff = $existingInscription?->trashed()
                 && $this->paymentService->shouldInitializeGroupTariff($requestData, $existingInscription);
 
@@ -94,6 +98,13 @@ class InscriptionMutationService
                     $inscription->fresh(),
                     'inscription_group_tariff'
                 );
+            }
+
+            if (
+                $existingInscription?->trashed()
+                && $previousScholarshipPercentage !== $this->normalizedScholarshipPercentage($inscription)
+            ) {
+                $this->paymentService->syncScholarshipPayments($inscription->fresh());
             }
 
             $inscription->load(['player', 'school']);
@@ -143,9 +154,15 @@ class InscriptionMutationService
                 ->shouldInitializeGroupTariff($requestData, $inscription);
             $hasHistoricalGroupTariff = $inscription->monthly_payment_type === Inscription::TRAINING_GROUP_MONTHLY_PAYMENT
                 && $inscription->monthly_payment_amount !== null;
-            $shouldRecalculateMonthlyPayments = ! $school->training_group_monthly_payment_enabled
+            $hasIncompleteGroupTariff = $inscription->monthly_payment_type === Inscription::TRAINING_GROUP_MONTHLY_PAYMENT
+                && $inscription->monthly_payment_amount === null;
+            // Un snapshot de grupo sin valor solo es válido mientras la inscripción sigue provisional.
+            // Si el cobro por grupo ya está desactivado, se reemplaza por la tarifa global seleccionada.
+            $shouldReplaceIncompleteGroupTariff = ! $school->training_group_monthly_payment_enabled
+                && $hasIncompleteGroupTariff;
+            $shouldRecalculateMonthlyPayments = $shouldReplaceIncompleteGroupTariff || (! $school->training_group_monthly_payment_enabled
                 && ! $hasHistoricalGroupTariff
-                && (bool) data_get($requestData, 'recalculate_monthly_payments', false);
+                && (bool) data_get($requestData, 'recalculate_monthly_payments', false));
 
             if ($shouldInitializeGroupTariff || $shouldRecalculateMonthlyPayments) {
                 $this->paymentService->prepareMonthlyPaymentData($requestData);
@@ -153,8 +170,11 @@ class InscriptionMutationService
                 $this->paymentService->preserveMonthlyPaymentData($requestData, $inscription);
             }
 
-            $shouldApplyScholarshipPayments = ! (bool) $inscription->scholarship
-                && (bool) data_get($requestData, 'scholarship', false);
+            $previousScholarshipPercentage = $this->normalizedScholarshipPercentage($inscription);
+            $requestedScholarshipPercentage = data_get($requestData, 'scholarship')
+                ? (int) data_get($requestData, 'scholarship_percentage')
+                : null;
+            $shouldSyncScholarshipPayments = $previousScholarshipPercentage !== $requestedScholarshipPercentage;
             $customCharges = $requestData['custom_charges'] ?? [];
             $complementaryGroupIds = $requestData['complementary_group_ids'] ?? [];
             unset($requestData['custom_charges'], $requestData['custom_charges_due_date'], $requestData['recalculate_monthly_payments'], $requestData['complementary_group_ids']);
@@ -171,8 +191,8 @@ class InscriptionMutationService
             if ($result) {
                 $freshInscription = $inscription->fresh();
 
-                if ($shouldApplyScholarshipPayments) {
-                    $this->paymentService->applyScholarshipMonthlyPayments($freshInscription);
+                if ($shouldSyncScholarshipPayments) {
+                    $this->paymentService->syncScholarshipPayments($freshInscription);
                 } elseif ($shouldInitializeGroupTariff) {
                     $this->paymentService->recalculateCollectibleMonthlyPaymentAmounts(
                         $freshInscription,
@@ -287,5 +307,15 @@ class InscriptionMutationService
         }
 
         $this->groupService->ensureInitialAssists($inscription);
+    }
+
+    private function normalizedScholarshipPercentage(Inscription $inscription): ?int
+    {
+        if (! $inscription->scholarship) {
+            return null;
+        }
+
+        return (int) ($inscription->scholarship_percentage
+            ?: Inscription::FULL_SCHOLARSHIP_PERCENTAGE);
     }
 }

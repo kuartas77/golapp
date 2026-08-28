@@ -2,6 +2,7 @@
 
 namespace App\Service\Payment;
 
+use App\Models\Inscription;
 use App\Models\Payment;
 use App\Models\PaymentChangeLog;
 use App\Notifications\MonthlyPaymentReceiptNotification;
@@ -18,8 +19,7 @@ class PaymentMutationService
     public function __construct(
         private PaymentAmountResolver $paymentAmountResolver,
         private PlayerCreditService $playerCreditService
-    ) {
-    }
+    ) {}
 
     public function setPay(array $values, Payment $payment, string $source = 'manual'): bool
     {
@@ -38,6 +38,7 @@ class PaymentMutationService
 
             if ($this->paymentBelongsToDeletedInscription($payment)) {
                 DB::rollBack();
+
                 return false;
             }
 
@@ -460,11 +461,14 @@ class PaymentMutationService
 
         $school = getSchool(auth()->user());
         $school->loadMissing('settingsValues');
+        $inscription = $payment?->inscription;
 
         return [
-            'inscription' => $this->paymentAmountResolver->inscriptionAmountForSchool($school),
+            'inscription' => $inscription instanceof Inscription
+                ? $this->paymentAmountResolver->payableInscriptionAmountForInscription($inscription)
+                : $this->paymentAmountResolver->inscriptionAmountForSchool($school),
             'monthly' => $payment
-                ? $this->paymentAmountResolver->monthlyAmountForPayment($payment)
+                ? $this->paymentAmountResolver->payableMonthlyAmountForPayment($payment)
                 : $this->paymentAmountResolver->monthlyAmountForSchool($school),
             'annuity' => $this->paymentAmountResolver->annuityAmountForSchool($school),
         ];

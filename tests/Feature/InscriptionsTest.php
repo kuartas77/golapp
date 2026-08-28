@@ -99,6 +99,84 @@ final class InscriptionsTest extends TestCase
         $this->assertSame(50000, (int) $payment->march_amount);
     }
 
+    public function test_create_partial_scholarship_discounts_enrollment_and_monthly_payment(): void
+    {
+        Mail::fake();
+        Notification::fake();
+        Carbon::setTestNow('2026-03-15 10:00:00');
+
+        try {
+            $school = School::query()->findOrFail($this->school['id']);
+            $school->settingsValues()->where('setting_key', Setting::INSCRIPTION_AMOUNT)->update(['value' => '70001']);
+            $school->settingsValues()->where('setting_key', Setting::MONTHLY_PAYMENT)->update(['value' => '50001']);
+            $player = Player::factory()->create();
+
+            $this->actingAs($this->user)
+                ->postJson(route('inscriptions.store'), [
+                    'unique_code' => $player->unique_code,
+                    'player_id' => $player->id,
+                    'start_date' => '2026-03-15',
+                    'scholarship' => true,
+                    'scholarship_percentage' => Inscription::PARTIAL_SCHOLARSHIP_PERCENTAGE,
+                ])
+                ->assertOk()
+                ->assertJsonPath('success', true);
+
+            $inscription = Inscription::query()->where('player_id', $player->id)->firstOrFail();
+            $payment = Payment::query()->where('inscription_id', $inscription->id)->firstOrFail();
+
+            $this->assertTrue($inscription->scholarship);
+            $this->assertSame(Inscription::PARTIAL_SCHOLARSHIP_PERCENTAGE, $inscription->scholarship_percentage);
+            $this->assertSame(50001, $inscription->monthly_payment_amount);
+            $this->assertSame(Payment::$debt, $payment->enrollment);
+            $this->assertSame(35001, $payment->enrollment_amount);
+            $this->assertSame(Payment::$debt, $payment->march);
+            $this->assertSame(25001, $payment->march_amount);
+            $this->assertSame(Payment::$pending, $payment->april);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_scholarship_percentage_is_required_and_normalized_when_scholarship_is_disabled(): void
+    {
+        Mail::fake();
+        Notification::fake();
+        $this->actingAs($this->user);
+
+        $missingPercentagePlayer = Player::factory()->create();
+        $this->postJson(route('inscriptions.store'), [
+            'unique_code' => $missingPercentagePlayer->unique_code,
+            'player_id' => $missingPercentagePlayer->id,
+            'start_date' => now()->format('Y-m-d'),
+            'scholarship' => true,
+        ])->assertUnprocessable()->assertJsonValidationErrors(['scholarship_percentage']);
+
+        $invalidPercentagePlayer = Player::factory()->create();
+        $this->postJson(route('inscriptions.store'), [
+            'unique_code' => $invalidPercentagePlayer->unique_code,
+            'player_id' => $invalidPercentagePlayer->id,
+            'start_date' => now()->format('Y-m-d'),
+            'scholarship' => true,
+            'scholarship_percentage' => 75,
+        ])->assertUnprocessable()->assertJsonValidationErrors(['scholarship_percentage']);
+
+        $regularPlayer = Player::factory()->create();
+        $this->postJson(route('inscriptions.store'), [
+            'unique_code' => $regularPlayer->unique_code,
+            'player_id' => $regularPlayer->id,
+            'start_date' => now()->format('Y-m-d'),
+            'scholarship' => false,
+            'scholarship_percentage' => Inscription::FULL_SCHOLARSHIP_PERCENTAGE,
+        ])->assertOk();
+
+        $this->assertDatabaseHas('inscriptions', [
+            'player_id' => $regularPlayer->id,
+            'scholarship' => false,
+            'scholarship_percentage' => null,
+        ]);
+    }
+
     public function test_create_inscription_accepts_multiple_complementary_training_groups_without_affecting_payments(): void
     {
         Mail::fake();
@@ -757,6 +835,79 @@ final class InscriptionsTest extends TestCase
         }
     }
 
+    public function test_update_repairs_an_incomplete_provisional_group_tariff_before_applying_partial_scholarship(): void
+    {
+        Mail::fake();
+        Notification::fake();
+        Carbon::setTestNow('2026-03-15 10:00:00');
+
+        try {
+            $school = School::query()->findOrFail($this->school['id']);
+            $school->update(['training_group_monthly_payment_enabled' => false]);
+            $school->settingsValues()->where('setting_key', Setting::MONTHLY_PAYMENT)->update(['value' => '50000']);
+            $group = TrainingGroup::query()->create([
+                'school_id' => $school->id,
+                'name' => 'Grupo definitivo sin cobro por grupo',
+                'year_active' => 2026,
+                'monthly_payment_amount' => 80000,
+            ]);
+            $player = Player::factory()->create(['school_id' => $school->id]);
+            $inscription = Inscription::factory()->create([
+                'player_id' => $player->id,
+                'unique_code' => $player->unique_code,
+                'year' => 2026,
+                'training_group_id' => 1,
+                'competition_group_id' => null,
+                'start_date' => '2026-03-10',
+                'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+                'school_id' => $school->id,
+                'scholarship' => false,
+                'monthly_payment_type' => Inscription::TRAINING_GROUP_MONTHLY_PAYMENT,
+                'monthly_payment_amount' => null,
+            ]);
+            $payment = $inscription->payments()->firstOrFail();
+            $payment->forceFill([
+                'enrollment' => Payment::$debt,
+                'enrollment_amount' => 70000,
+                'march' => Payment::$debt,
+                'march_amount' => 0,
+                'april' => Payment::$pending,
+                'april_amount' => 0,
+            ])->save();
+
+            $this->actingAs($this->user)
+                ->putJson(route('inscriptions.update', $inscription), [
+                    'unique_code' => $player->unique_code,
+                    'player_id' => $player->id,
+                    'start_date' => '2026-03-10',
+                    'training_group_id' => $group->id,
+                    'monthly_payment_type' => Setting::MONTHLY_PAYMENT,
+                    'scholarship' => true,
+                    'scholarship_percentage' => Inscription::PARTIAL_SCHOLARSHIP_PERCENTAGE,
+                ])
+                ->assertOk()
+                ->assertJsonPath('success', true);
+
+            $inscription->refresh();
+            $payment->refresh();
+
+            $this->assertSame(Setting::MONTHLY_PAYMENT, $inscription->monthly_payment_type);
+            $this->assertSame(50000, $inscription->monthly_payment_amount);
+            $this->assertSame(35000, $payment->enrollment_amount);
+            $this->assertSame(25000, $payment->march_amount);
+            $this->assertSame(25000, $payment->april_amount);
+            $this->assertDatabaseHas('payment_change_logs', [
+                'payment_id' => $payment->id,
+                'field' => 'march',
+                'old_amount' => 0,
+                'new_amount' => 25000,
+                'source' => 'inscription_scholarship',
+            ]);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
     public function test_create_inscription_allows_manual_pre_inscription_outside_provisional_group(): void
     {
         Mail::fake();
@@ -1243,6 +1394,7 @@ final class InscriptionsTest extends TestCase
                 'player_id' => $player->id,
                 'start_date' => '2026-03-10',
                 'scholarship' => true,
+                'scholarship_percentage' => Inscription::FULL_SCHOLARSHIP_PERCENTAGE,
                 '_method' => 'PATCH',
             ])->assertStatus(200);
 
@@ -1289,6 +1441,118 @@ final class InscriptionsTest extends TestCase
             $this->assertDatabaseMissing('payment_change_logs', [
                 'payment_id' => $payment->id,
                 'field' => 'june',
+                'source' => 'inscription_scholarship',
+            ]);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_scholarship_percentage_transitions_recalculate_only_eligible_obligations(): void
+    {
+        Mail::fake();
+        Notification::fake();
+        Carbon::setTestNow('2026-03-15 10:00:00');
+
+        try {
+            $school = School::query()->findOrFail($this->school['id']);
+            $school->settingsValues()->where('setting_key', Setting::INSCRIPTION_AMOUNT)->update(['value' => '70000']);
+            $school->settingsValues()->where('setting_key', Setting::MONTHLY_PAYMENT)->update(['value' => '50000']);
+            $player = Player::factory()->create();
+            $inscription = Inscription::factory()->create([
+                'player_id' => $player->id,
+                'unique_code' => $player->unique_code,
+                'year' => 2026,
+                'training_group_id' => 1,
+                'competition_group_id' => null,
+                'start_date' => '2026-03-10',
+                'category' => categoriesName(Carbon::parse($player->date_birth)->year),
+                'school_id' => $school->id,
+                'monthly_payment_type' => Setting::MONTHLY_PAYMENT,
+                'monthly_payment_amount' => 50000,
+            ]);
+            $payment = Payment::query()->where('inscription_id', $inscription->id)->firstOrFail();
+            $payment->forceFill([
+                'enrollment' => Payment::$debt,
+                'enrollment_amount' => 70000,
+                'january' => Payment::$no_application,
+                'january_amount' => 0,
+                'february' => Payment::$no_application,
+                'february_amount' => 0,
+                'march' => Payment::$debt,
+                'march_amount' => 50000,
+                'april' => Payment::$pending,
+                'april_amount' => 50000,
+                'may' => Payment::$paid_cash,
+                'may_amount' => 50000,
+                'june' => Payment::$permanent_retirement,
+                'june_amount' => 50000,
+            ])->save();
+
+            $this->actingAs($this->user);
+            $payload = [
+                'unique_code' => $player->unique_code,
+                'player_id' => $player->id,
+                'start_date' => '2026-03-10',
+                '_method' => 'PATCH',
+            ];
+
+            $this->post(route('inscriptions.update', [$inscription->id]), $payload + [
+                'scholarship' => true,
+                'scholarship_percentage' => Inscription::PARTIAL_SCHOLARSHIP_PERCENTAGE,
+            ])->assertOk();
+
+            $payment->refresh();
+            $this->assertSame(Payment::$debt, $payment->enrollment);
+            $this->assertSame(35000, $payment->enrollment_amount);
+            $this->assertSame(Payment::$debt, $payment->march);
+            $this->assertSame(25000, $payment->march_amount);
+            $this->assertSame(Payment::$pending, $payment->april);
+            $this->assertSame(25000, $payment->april_amount);
+            $this->assertSame(Payment::$paid_cash, $payment->may);
+            $this->assertSame(50000, $payment->may_amount);
+            $this->assertSame(Payment::$permanent_retirement, $payment->june);
+
+            $this->post(route('inscriptions.update', [$inscription->id]), $payload + [
+                'scholarship' => true,
+                'scholarship_percentage' => Inscription::FULL_SCHOLARSHIP_PERCENTAGE,
+            ])->assertOk();
+
+            $payment->refresh();
+            $this->assertSame(Payment::$scholarship_recipient, $payment->enrollment);
+            $this->assertSame(0, $payment->enrollment_amount);
+            $this->assertSame(Payment::$scholarship_recipient, $payment->march);
+            $this->assertSame(Payment::$scholarship_recipient, $payment->april);
+            $this->assertSame(Payment::$paid_cash, $payment->may);
+            $this->assertSame(Payment::$permanent_retirement, $payment->june);
+
+            $this->post(route('inscriptions.update', [$inscription->id]), $payload + [
+                'scholarship' => true,
+                'scholarship_percentage' => Inscription::PARTIAL_SCHOLARSHIP_PERCENTAGE,
+            ])->assertOk();
+
+            $payment->refresh();
+            $this->assertSame(Payment::$debt, $payment->enrollment);
+            $this->assertSame(Payment::$debt, $payment->march);
+            $this->assertSame(Payment::$pending, $payment->april);
+            $this->assertSame(25000, $payment->march_amount);
+            $this->assertSame(25000, $payment->april_amount);
+
+            $this->post(route('inscriptions.update', [$inscription->id]), $payload + [
+                'scholarship' => false,
+                'scholarship_percentage' => Inscription::FULL_SCHOLARSHIP_PERCENTAGE,
+            ])->assertOk();
+
+            $inscription->refresh();
+            $payment->refresh();
+            $this->assertFalse($inscription->scholarship);
+            $this->assertNull($inscription->scholarship_percentage);
+            $this->assertSame(70000, $payment->enrollment_amount);
+            $this->assertSame(50000, $payment->march_amount);
+            $this->assertSame(50000, $payment->april_amount);
+            $this->assertDatabaseHas('payment_change_logs', [
+                'payment_id' => $payment->id,
+                'field' => 'march',
                 'source' => 'inscription_scholarship',
             ]);
         } finally {

@@ -65,7 +65,10 @@ class SharedService
                     $inscription->save();
                 }
 
-                $paymentValue = $inscription->scholarship ? '8' : '0';
+                // Una beca parcial conserva estados cobrables; solo la beca completa usa el estado Becado.
+                $isFullScholarship = $inscription->scholarship
+                    && (int) $inscription->scholarship_percentage === Inscription::FULL_SCHOLARSHIP_PERCENTAGE;
+                $paymentValue = $isFullScholarship ? '8' : '0';
 
                 $dataPayment = [
                     'inscription_id' => $inscription->id,
@@ -92,7 +95,7 @@ class SharedService
                     $this->checkMonthValue($start_date->month, $paymentValue, $dataPayment);
                 }
 
-                if (! $inscription->scholarship) {
+                if (! $isFullScholarship) {
                     $this->debtMonth($inscription, $start_date->month, $dataPayment);
                 }
 
@@ -202,8 +205,8 @@ class SharedService
     private function debtMonth(Inscription $inscription, int $actualMonth, &$dataPayment)
     {
         $school = $inscription->school;
-        $inscriptionAmount = data_get($school->settings, 'INSCRIPTION_AMOUNT', 70000);
-        $monthlyAmount = $this->paymentAmountResolver->monthlyAmountForInscription($inscription);
+        $inscriptionAmount = $this->paymentAmountResolver->payableInscriptionAmountForInscription($inscription);
+        $monthlyAmount = $this->paymentAmountResolver->payableMonthlyAmountForInscription($inscription);
 
         $dataPayment['enrollment'] = '2';
         $dataPayment['enrollment_amount'] = $inscriptionAmount;

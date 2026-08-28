@@ -41,6 +41,8 @@ final class RepositoriesRegressionTest extends TestCase
             'training_group_id' => $trainingGroup->id,
             'competition_group_id' => null,
             'brother_payment' => true,
+            'scholarship' => true,
+            'scholarship_percentage' => Inscription::PARTIAL_SCHOLARSHIP_PERCENTAGE,
         ]);
 
         $repository = app(InscriptionRepository::class);
@@ -54,6 +56,8 @@ final class RepositoriesRegressionTest extends TestCase
             'start_date' => sprintf('%d-01-01', $futureYear),
             'training_group_id' => $trainingGroup->id,
             'brother_payment' => true,
+            'scholarship' => true,
+            'scholarship_percentage' => Inscription::PARTIAL_SCHOLARSHIP_PERCENTAGE,
         ]);
     }
 
