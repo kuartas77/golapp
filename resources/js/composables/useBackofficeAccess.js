@@ -4,7 +4,7 @@ import { SCHOOL_PERMISSION_KEYS } from '@/config/school-permissions'
 
 export const backofficeAccessRequirements = {
     players: {
-        roles: ['super-admin', 'school'],
+        roles: ['super-admin', 'school', 'assistant'],
         anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.players],
     },
@@ -19,35 +19,47 @@ export const backofficeAccessRequirements = {
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.matches],
     },
     inscriptions: {
-        roles: ['super-admin', 'school'],
+        roles: ['super-admin', 'school', 'assistant'],
         anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.inscriptions],
     },
     evaluations: {
+        roles: ['super-admin', 'school', 'instructor'],
+        anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.evaluations],
     },
     attendances: {
+        roles: ['super-admin', 'school', 'instructor'],
+        anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.attendances],
     },
     trainingSessions: {
+        roles: ['super-admin', 'school', 'instructor'],
+        anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.trainingSessions],
     },
     sessionPlanning: {
+        roles: ['super-admin', 'school', 'instructor'],
+        anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.sessionPlanning],
     },
     methodology: {
+        roles: ['super-admin', 'school', 'instructor'],
+        anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.methodology],
     },
     matches: {
+        roles: ['super-admin', 'school', 'instructor'],
+        anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.matches],
     },
     payments: {
-        roles: ['super-admin', 'school'],
+        roles: ['super-admin', 'school', 'assistant'],
         anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.payments],
     },
     reports: {
-        roles: ['super-admin', 'school'],
+        roles: ['super-admin', 'school', 'assistant'],
         anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.reports],
     },

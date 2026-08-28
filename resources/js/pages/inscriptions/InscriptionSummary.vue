@@ -39,10 +39,11 @@
                         <router-link :to="{ name: 'inscriptions' }" class="btn btn-secondary btn-sm">
                             Volver
                         </router-link>
-                        <router-link :to="{ name: 'player-stats.detail', params: { id: player.id } }" class="btn btn-primary btn-sm">
+                        <router-link v-if="capabilities.can_view_sports" :to="{ name: 'player-stats.detail', params: { id: player.id } }" class="btn btn-primary btn-sm">
                             Estadísticas
                         </router-link>
                         <button
+                            v-if="capabilities.can_generate_financial_clearance"
                             type="button"
                             class="btn btn-success btn-sm"
                             :disabled="isGeneratingClearance"
@@ -127,36 +128,10 @@
                             <tr v-for="payment in payments" :key="payment.id">
                                 <td>{{ payment.year }}</td>
                                 <td v-for="field in paymentFields" :key="`${payment.id}-${field.key}`">
-                                    <template v-if="isEditingPayment(payment, field.key)">
-                                        <select v-model="payment[field.key]" class="form-select form-select-sm mb-1">
-                                            <option v-for="type in paymentTypes" :key="type.value" :value="Number(type.value)">
-                                                {{ type.label }}
-                                            </option>
-                                        </select>
-                                        <CurrencyInput v-model="payment[`${field.key}_amount`]" class="form-control form-control-sm mb-1" />
-                                        <div class="d-flex justify-content-center gap-1">
-                                            <button type="button" class="btn btn-success btn-sm" @click="savePayment(payment, field.key)">
-                                                Guardar
-                                            </button>
-                                            <button type="button" class="btn btn-secondary btn-sm" @click="cancelPaymentEdit">
-                                                Cancelar
-                                            </button>
-                                        </div>
-                                    </template>
-                                    <template v-else>
-                                        <span class="badge" :class="`payments-c-${payment[field.key]}`">
-                                            {{ paymentTypeLabels[String(payment[field.key])] || payment[field.key] }}
-                                        </span>
-                                        <div class="small text-muted">{{ formatMoney(payment[`${field.key}_amount`]) }}</div>
-                                        <button
-                                            v-if="summary.can_edit && canEditPayment(payment, field.key)"
-                                            type="button"
-                                            class="btn btn-link btn-sm p-0"
-                                            @click="editPayment(payment, field.key)"
-                                        >
-                                           <i class="far fa-edit"></i>
-                                        </button>
-                                    </template>
+                                    <span class="badge" :class="`payments-c-${payment[field.key]}`">
+                                        {{ paymentTypeLabels[String(payment[field.key])] || payment[field.key] }}
+                                    </span>
+                                    <div class="small text-muted">{{ formatMoney(payment[`${field.key}_amount`]) }}</div>
                                 </td>
                             </tr>
                             <tr v-if="!payments.length">
@@ -164,6 +139,21 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <div v-if="activeTab === 'custom-charges'">
+                    <div class="d-flex justify-content-end mb-2">
+                        <button v-if="capabilities.can_add_custom_charges" type="button" class="btn btn-primary btn-sm" @click="showChargesModal = true">
+                            <i class="fa fa-plus me-1"></i>Agregar cargos
+                        </button>
+                    </div>
+                    <div class="table-responsive"><table class="table table-bordered table-sm align-middle">
+                        <thead><tr><th>Concepto</th><th>Vencimiento</th><th>Valor</th><th>Estado</th><th>Factura</th></tr></thead>
+                        <tbody>
+                            <tr v-for="charge in customCharges" :key="charge.id"><td>{{ charge.name }}</td><td>{{ charge.due_date || '—' }}</td><td>{{ formatMoney(charge.value) }}</td><td>{{ customChargeStatus(charge.status) }}</td><td>{{ charge.invoice_number || '—' }}</td></tr>
+                            <tr v-if="!customCharges.length"><td colspan="5" class="text-muted">No hay cargos personalizados.</td></tr>
+                        </tbody>
+                    </table></div>
                 </div>
 
                 <div v-if="activeTab === 'attendance'" class="d-flex flex-column gap-3">
@@ -326,15 +316,21 @@
     </panel>
 
     <breadcrumb :parent="'Inscripciones'" :current="'Resumen'" />
+    <AddInscriptionChargesModal
+        v-if="showChargesModal"
+        :model-value="showChargesModal"
+        :inscription-id="Number(inscription.id)"
+        @saved="onChargesSaved"
+        @update:model-value="showChargesModal = $event"
+    />
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import cloneDeep from 'lodash.clonedeep'
 import api from '@/utils/axios'
 import Loader from '@/components/general/Loader.vue'
-import CurrencyInput from '@/components/general/CurrencyInput.vue'
+import AddInscriptionChargesModal from './AddInscriptionChargesModal.vue'
 import { useSetting } from '@/store/settings-store'
 import { usePageTitle } from '@/composables/use-meta'
 import useFinancialClearance from '@/composables/player/useFinancialClearance'
@@ -350,13 +346,13 @@ const { isGeneratingClearance, generateFinancialClearance } = useFinancialCleara
 const summary = ref(null)
 const isLoading = ref(false)
 const activeTab = ref('summary')
-const editingPayment = ref(null)
-const paymentBackup = ref(null)
+const showChargesModal = ref(false)
 const selectedAttendanceMonth = ref('')
 
 const baseTabs = [
     { key: 'summary', label: 'Resumen' },
     { key: 'payments', label: 'Pagos' },
+    { key: 'custom-charges', label: 'Cargos personalizados' },
     { key: 'attendance', label: 'Asistencias' },
     { key: 'invoices', label: 'Facturas' },
     { key: 'evaluations', label: 'Evaluaciones' },
@@ -393,9 +389,8 @@ const invoiceStatusLabels = {
     cancelled: 'Cancelada',
 }
 
-const readOnlyPaymentTypes = [14]
-
 const inscription = computed(() => summary.value?.inscription || {})
+const capabilities = computed(() => summary.value?.capabilities || {})
 const player = computed(() => summary.value?.player || {})
 const payments = computed(() => summary.value?.payments || [])
 const attendance = computed(() => summary.value?.attendance || [])
@@ -430,10 +425,19 @@ const filteredAttendance = computed(() => {
     return attendance.value.filter((assist) => String(assist.month) === String(selectedAttendanceMonth.value))
 })
 const invoices = computed(() => summary.value?.invoices || [])
+const customCharges = computed(() => summary.value?.custom_charges || [])
 const evaluations = computed(() => summary.value?.evaluations || [])
 const tabs = computed(() => baseTabs.filter((tab) => {
     if (tab.key === 'invoices') {
-        return invoices.value.length > 0
+        return capabilities.value.can_view_invoices
+    }
+
+    if (tab.key === 'custom-charges') {
+        return capabilities.value.can_view_custom_charges
+    }
+
+    if (['attendance', 'evaluations'].includes(tab.key)) {
+        return capabilities.value.can_view_sports
     }
 
     if (tab.key === 'evaluations') {
@@ -442,7 +446,6 @@ const tabs = computed(() => baseTabs.filter((tab) => {
 
     return true
 }))
-const paymentTypes = computed(() => settings.paymentTypeOptions || [])
 const paymentTypeLabels = computed(() => settings.paymentTypeLabels || {})
 const documents = computed(() => {
     const documentMap = [
@@ -486,27 +489,6 @@ function invoiceStatusLabel(status) {
     return invoiceStatusLabels[status] || status || '—'
 }
 
-function canEditPayment(payment, field) {
-    return !payment.inscription_deleted && !readOnlyPaymentTypes.includes(Number(payment[field]))
-}
-
-function isEditingPayment(payment, field) {
-    return editingPayment.value?.payment?.id === payment.id && editingPayment.value?.field === field
-}
-
-function editPayment(payment, field) {
-    paymentBackup.value = cloneDeep(payment)
-    editingPayment.value = { payment, field }
-}
-
-function cancelPaymentEdit() {
-    if (paymentBackup.value && editingPayment.value?.payment) {
-        Object.assign(editingPayment.value.payment, paymentBackup.value)
-    }
-    editingPayment.value = null
-    paymentBackup.value = null
-}
-
 function saveErrorMessage(error, fallback) {
     const backendErrors = error.response?.data?.errors
     const firstError = backendErrors ? Object.values(backendErrors).flat()[0] : null
@@ -514,29 +496,11 @@ function saveErrorMessage(error, fallback) {
     return firstError || error.response?.data?.message || fallback
 }
 
-async function savePayment(payment, field) {
-    const amountField = `${field}_amount`
-
-    try {
-        isLoading.value = true
-        const { data } = await api.post(`/api/v2/payments/${payment.id}`, {
-            _method: 'PUT',
-            column: field,
-            [field]: payment[field],
-            [amountField]: payment[amountField],
-        })
-
-        if (data?.data) {
-            Object.assign(payment, data.data)
-        }
-        editingPayment.value = null
-        paymentBackup.value = null
-        notify('Mensualidad guardada correctamente')
-    } catch (error) {
-        notify(saveErrorMessage(error, 'No fue posible guardar la mensualidad.'), 'error')
-    } finally {
-        isLoading.value = false
-    }
+const customChargeStatus = (status) => ({ pending: 'Pendiente', due: 'Debe', paid: 'Pagado' }[status] || status)
+async function onChargesSaved() {
+    showChargesModal.value = false
+    await loadSummary()
+    activeTab.value = 'custom-charges'
 }
 
 async function saveAttendance(assist, register) {
@@ -587,8 +551,7 @@ watch(tabs, (visibleTabs) => {
 
 watch(() => route.params.id, () => {
     activeTab.value = 'summary'
-    editingPayment.value = null
-    paymentBackup.value = null
+    showChargesModal.value = false
     loadSummary()
 })
 

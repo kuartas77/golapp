@@ -55,6 +55,15 @@ function summaryPayload(overrides = {}) {
     return {
         data: {
             can_edit: true,
+            capabilities: {
+                can_edit_attendance: true,
+                can_edit_payments: false,
+                can_view_sports: true,
+                can_view_invoices: true,
+                can_view_custom_charges: true,
+                can_add_custom_charges: true,
+                can_generate_financial_clearance: true,
+            },
             current_year: 2026,
             inscription: {
                 id: 1,
@@ -241,11 +250,11 @@ describe('InscriptionSummary', () => {
         )
     })
 
-    it('shows inline payment and attendance actions for current year inscriptions', async () => {
+    it('keeps summary payments read only while attendance remains editable', async () => {
         const wrapper = await mountPage()
 
         await wrapper.findAll('button').find((button) => button.text() === 'Pagos').trigger('click')
-        expect(wrapper.find('.fa-edit').exists()).toBe(true)
+        expect(wrapper.find('.fa-edit').exists()).toBe(false)
 
         await wrapper.findAll('button').find((button) => button.text() === 'Asistencias').trigger('click')
         expect(wrapper.text()).toContain('Guardar')
@@ -278,6 +287,28 @@ describe('InscriptionSummary', () => {
 
         await wrapper.findAll('button').find((button) => button.text() === 'Pagos').trigger('click')
         expect(wrapper.text()).not.toContain('Editar')
+    })
+
+    it('shows only administrative summary tabs for the assistant', async () => {
+        const wrapper = await mountPage(summaryPayload({
+            can_edit: false,
+            capabilities: {
+                can_edit_attendance: false,
+                can_edit_payments: false,
+                can_view_sports: false,
+                can_view_invoices: true,
+                can_view_custom_charges: true,
+                can_add_custom_charges: true,
+                can_generate_financial_clearance: false,
+            },
+            attendance: [],
+            evaluations: [],
+        }))
+
+        const tabLabels = wrapper.findAll('.nav-link').map((tab) => tab.text())
+        expect(tabLabels).toEqual(['Resumen', 'Pagos', 'Cargos personalizados', 'Facturas'])
+        expect(wrapper.text()).not.toContain('Generar paz y salvo')
+        expect(wrapper.text()).not.toContain('Estadísticas')
     })
 
     it('navigates between inscription years', async () => {

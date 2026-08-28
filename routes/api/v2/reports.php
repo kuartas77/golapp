@@ -8,16 +8,12 @@ use App\Http\Controllers\Reports\ReportPaymentController;
 use App\Http\Controllers\Reports\ReportReceivedPaymentController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('school.permission:school.module.reports')->prefix('reports')->name('reports.')->group(function () {
+Route::middleware([
+    'role:super-admin|school',
+    'school.permission:school.module.reports',
+])->prefix('reports')->name('reports.')->group(function () {
     Route::get('assists', [ReportAssistsController::class, 'metadata'])->name('assists.metadata');
-    Route::get('payments', [ReportPaymentController::class, 'metadata'])->name('payments.metadata');
-    Route::post('payments', [ReportPaymentController::class, 'report'])->name('payments.report');
-    Route::get('received-payments', [ReportReceivedPaymentController::class, 'metadata'])->name('received-payments.metadata');
-    Route::post('received-payments', [ReportReceivedPaymentController::class, 'requestReport'])->name('received-payments.request');
-    Route::get('received-payments/pdf', [ReportReceivedPaymentController::class, 'pdf'])->name('received-payments.pdf');
-    Route::get('debtors', [ReportDebtorController::class, 'metadata'])->name('debtors.metadata');
-    Route::get('debtors/pdf', [ReportDebtorController::class, 'pdf'])->name('debtors.pdf');
-    Route::middleware('role:super-admin|school')->prefix('instructors')->group(function () {
+    Route::prefix('instructors')->group(function () {
         Route::get('activity/metadata', [ReportInstructorActivityController::class, 'metadata'])
             ->name('instructors.activity.metadata');
         Route::get('activity', [ReportInstructorActivityController::class, 'activity'])
@@ -29,4 +25,17 @@ Route::middleware('school.permission:school.module.reports')->prefix('reports')-
     Route::get('attendance/monthly-by-player', [ReportAssistsController::class, 'monthlyByPlayer'])->name('assists.monthly-by-player');
     Route::get('attendance/monthly-by-group', [ReportAssistsController::class, 'monthlyByGroup'])->name('assists.monthly-by-group');
     Route::get('attendance/annual-consolidated', [ReportAssistsController::class, 'annualConsolidated'])->name('assists.annual-consolidated');
+});
+
+Route::middleware([
+    'role:super-admin|school|assistant',
+    'school.permission:school.module.reports',
+])->prefix('reports')->name('reports.')->group(function () {
+    Route::get('payments', [ReportPaymentController::class, 'metadata'])->name('payments.metadata');
+    Route::post('payments', [ReportPaymentController::class, 'report'])->name('payments.report');
+    Route::get('received-payments', [ReportReceivedPaymentController::class, 'metadata'])->name('received-payments.metadata');
+    Route::post('received-payments', [ReportReceivedPaymentController::class, 'requestReport'])->name('received-payments.request');
+    Route::get('received-payments/pdf', [ReportReceivedPaymentController::class, 'pdf'])->name('received-payments.pdf');
+    Route::get('debtors', [ReportDebtorController::class, 'metadata'])->name('debtors.metadata');
+    Route::get('debtors/pdf', [ReportDebtorController::class, 'pdf'])->name('debtors.pdf');
 });

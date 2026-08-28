@@ -108,7 +108,7 @@
                                 class="btn btn-primary btn-sm me-1">
                                 <i class="far fa-file-pdf me-1"></i>Recibos
                             </router-link>
-                            <router-link :to="{ name: 'payments.debt-notifications' }"
+                            <router-link v-if="!isAssistant" :to="{ name: 'payments.debt-notifications' }"
                                 class="btn btn-primary btn-sm me-1">
                                 <i class="far fa-envelope me-1"></i>Notificaciones de deuda
                             </router-link>
@@ -320,13 +320,13 @@
                                 :data-payment-id="row.payPlayer.id"
                                 :data-payment-field="row.field">
                                 <template
-                                    v-if="editingCell?.payPlayer === row.payPlayer && editingCell?.field === row.field && canEditPaymentRow(row.payPlayer, row.field)">
+                                    v-if="isEditingPaymentRow(row.payPlayer, row.field)">
                                     <select v-model="row.payPlayer[row.field]"
                                         :id="`select_${row.field}_${row.payPlayer.id}`"
                                         :name="`select_${row.field}_${row.payPlayer.id}`" autocomplete="off"
                                         @change="handleSelectChange(row.payPlayer, row.field)"
                                         class="form-select form-select-sm">
-                                        <option v-for="type in type_payments" :key="type.value"
+                                        <option v-for="type in editablePaymentTypes" :key="type.value"
                                             :value="type.value">{{ type.label }}</option>
                                     </select>
                                 </template>
@@ -336,7 +336,7 @@
                             </td>
                             <td class="dt-head-center dt-body-center">
                                 <template
-                                    v-if="editingCell?.payPlayer === row.payPlayer && editingCell?.field === row.field && canEditPaymentRow(row.payPlayer, row.field)">
+                                    v-if="isEditingPaymentRow(row.payPlayer, row.field)">
                                     <CurrencyInput class="form-control form-control-sm"
                                         v-model="row.payPlayer[`${row.field}_amount`]"
                                         :id="`input_${row.field}_${row.payPlayer.id}`"
@@ -347,7 +347,7 @@
                             </td>
                             <td class="dt-head-center dt-body-center">
                                 <template
-                                    v-if="editingCell?.payPlayer === row.payPlayer && editingCell?.field === row.field && canEditPaymentRow(row.payPlayer, row.field)">
+                                    v-if="isEditingPaymentRow(row.payPlayer, row.field)">
                                     <span class="badge badge-success clickable me-1" @click="saveField" title="Guardar">
                                         <i class="far fa-check-square fa-lg"></i>
                                     </span>
@@ -441,13 +441,13 @@
                                 >
 
                                     <template
-                                        v-if="editingCell?.payPlayer === payPlayer && editingCell?.field === field && canEditPaymentRow(payPlayer, field)">
+                                        v-if="isEditingPaymentRow(payPlayer, field)">
                                         <div class="d-flex flex-column gap-1">
                                             <select v-model="payPlayer[field]" :id="`select_${field}_${payPlayer.id}`"
                                                 :name="`select_${field}_${payPlayer.id}`" autocomplete="off"
                                                 @change="handleSelectChange(payPlayer, field)"
                                                 class="form-select form-select-sm mb-1">
-                                                <option v-for="type in type_payments" :key="type.value"
+                                                <option v-for="type in editablePaymentTypes" :key="type.value"
                                                     :value="type.value">{{ type.label }}</option>
                                             </select>
                                             <CurrencyInput class="form-control form-control-sm mb-1"
@@ -557,7 +557,7 @@
                                         <small>{{ moneyFormat(item.new_amount) }}</small>
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">{{ item.source === 'bulk' ? 'Masivo' : 'Manual' }}</span>
+                                        <span class="badge bg-secondary">{{ item.source === 'bulk' ? 'Masivo' : (item.source === 'assistant' ? 'Auxiliar' : 'Manual') }}</span>
                                     </td>
                                     <td>{{ item.changed_by_name || 'Sistema' }}</td>
                                 </tr>
@@ -595,6 +595,7 @@ const {
     handleSearch,
     retryLastSearch,
     editRow,
+    isEditingPaymentRow,
     cancelEdition,
     handleSelectChange,
     saveField,
@@ -623,6 +624,8 @@ const {
     categories,
     type_payments,
     canUsePlayerCredits,
+    isAssistant,
+    editablePaymentTypes,
     paymentTypeLabels,
     monthOptions,
     statusOptions,

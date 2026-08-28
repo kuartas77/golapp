@@ -213,6 +213,10 @@ const roleLabel = computed(() => {
         return 'Administrador de escuela'
     }
 
+    if (authUser.roles.includes('assistant')) {
+        return 'Auxiliar administrativo'
+    }
+
     return 'Usuario operativo'
 })
 
@@ -228,6 +232,9 @@ const hasAdministrativeReach = computed(() => (
 ))
 
 const focusLabel = computed(() => {
+    if (authUser.hasRole('assistant')) {
+        return 'Gestión administrativa y recaudo'
+    }
     if (hasAdministrativeReach.value) {
         return 'Gestion deportiva y administrativa'
     }

@@ -43,6 +43,7 @@ Route::prefix('admin')->middleware(['role:super-admin|school'])->group(function 
     });
 
     Route::middleware('school.permission:school.module.user_management')->group(function () {
+        Route::get('users/role-options', [UsersController::class, 'roleOptions']);
         Route::get('users/{user}/profile', [UsersController::class, 'profile']);
         Route::apiResource('users', UsersController::class);
     });

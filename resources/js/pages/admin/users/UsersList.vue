@@ -84,8 +84,10 @@
                                     <label for="rol_id" class="form-label">Rol <span class="text-danger">(*)</span></label>
                                     <select id="rol_id" class="form-select" v-bind="field" @change="handleChange"
                                         @blur="handleBlur">
-                                        <option value="2">School</option>
-                                        <option value="3">Instructor</option>
+                                        <option value="">Selecciona...</option>
+                                        <option v-for="role in roleOptions" :key="role.name" :value="role.value">
+                                            {{ role.label }}
+                                        </option>
                                     </select>
                                 </Field>
                                 <ErrorMessage name="rol_id" class="custom-error" />
@@ -194,6 +196,7 @@ const {
     reloadTable,
     showProfile,
     closeProfile,
+    roleOptions,
 } = useUsersList()
 const tutorial = usePageTutorial(usersListTutorial)
 

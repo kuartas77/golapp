@@ -41,10 +41,10 @@
                             <button
                                 type="button"
                                 class="btn btn-outline-primary btn-sm"
-                                title="Editar deportista"
+                                :title="isAssistant ? 'Ver deportista' : 'Editar deportista'"
                                 @click.stop="editPlayer(props.rowData.unique_code)"
                             >
-                                <i class="fa fa-edit"></i>
+                                <i :class="isAssistant ? 'fa fa-eye' : 'fa fa-edit'"></i>
                             </button>
                             <button
                                 type="button"
@@ -148,6 +148,7 @@ let importModal = null
 
 const isSuperAdmin = computed(() => auth.hasRole('super-admin'))
 const canImportPlayers = computed(() => auth.hasAnyRole(['super-admin', 'school']))
+const isAssistant = computed(() => auth.hasRole('assistant'))
 const canSubmitImport = computed(() => {
     return !importing.value
         && Boolean(importFile.value)

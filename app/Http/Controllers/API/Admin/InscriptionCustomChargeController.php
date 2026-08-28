@@ -4,13 +4,18 @@ namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\InscriptionCustomChargeUpdateRequest;
+use App\Http\Requests\StoreInscriptionCustomChargesRequest;
 use App\Models\Inscription;
 use App\Models\InscriptionCustomCharge;
+use App\Models\InvoiceCustomItem;
+use App\Service\Inscription\InscriptionCustomChargeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
 class InscriptionCustomChargeController extends Controller
 {
+    public function __construct(private InscriptionCustomChargeService $service) {}
+
     public function index(): JsonResponse
     {
         $currentYear = now()->year;
@@ -68,6 +73,27 @@ class InscriptionCustomChargeController extends Controller
             ->get();
 
         return response()->json($charges);
+    }
+
+    public function options(Inscription $inscription): JsonResponse
+    {
+        $schoolId = (int) getSchool(auth()->user())->id;
+        abort_unless((int) $inscription->school_id === $schoolId, 404);
+
+        return response()->json(InvoiceCustomItem::query()
+            ->where('school_id', $schoolId)
+            ->orderBy('name')
+            ->get(['id', 'name', 'unit_price']));
+    }
+
+    public function store(StoreInscriptionCustomChargesRequest $request, Inscription $inscription): JsonResponse
+    {
+        abort_unless((int) $inscription->school_id === (int) getSchool(auth()->user())->id, 404);
+
+        return response()->json([
+            'message' => 'Cargos agregados correctamente.',
+            'data' => $this->service->add($inscription, $request->validated('charges')),
+        ], 201);
     }
 
     public function update(

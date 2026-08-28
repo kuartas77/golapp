@@ -17,6 +17,7 @@ const { apiMock, settingsStore, authStore } = vi.hoisted(() => ({
     },
     authStore: {
         hasSchoolPermission: vi.fn(() => true),
+        hasRole: vi.fn(() => false),
     },
 }))
 
@@ -91,6 +92,8 @@ describe('monthly payment list', () => {
         apiMock.post.mockReset()
         authStore.hasSchoolPermission.mockReset()
         authStore.hasSchoolPermission.mockReturnValue(true)
+        authStore.hasRole.mockReset()
+        authStore.hasRole.mockReturnValue(false)
         globalThis.Swal = {
             fire: vi.fn(() => Promise.resolve({ isConfirmed: true })),
         }
@@ -246,6 +249,48 @@ describe('monthly payment list', () => {
 
         expect(wrapper.vm.canEditPaymentRow(paymentRowWithStatus(14), 'january')).toBe(true)
         expect(wrapper.vm.canEditPaymentRow(paymentRowWithStatus(14, true), 'january')).toBe(false)
+
+        wrapper.unmount()
+    })
+
+    it('limits assistant editing to due monthly cells and allowed destinations', async () => {
+        authStore.hasRole.mockImplementation((role) => role === 'assistant')
+        apiMock.get.mockImplementation((url) => {
+            if (url === '/api/v2/payments/status-catalog') {
+                return Promise.resolve({
+                    data: {
+                        ...statusCatalogFixture(),
+                        capabilities: {
+                            fields: ['january', 'february'],
+                            source_statuses: [2],
+                            target_statuses: [1, 3, 9, 10],
+                            bulk_update: false,
+                        },
+                    },
+                })
+            }
+
+            return Promise.resolve({ data: {} })
+        })
+        const wrapper = mountComposable()
+        await new Promise((resolve) => setTimeout(resolve, 0))
+
+        expect(wrapper.vm.canEditPaymentRow(paymentRowWithStatus(2), 'january')).toBe(true)
+        expect(wrapper.vm.canEditPaymentRow(paymentRowWithStatus(1), 'january')).toBe(false)
+        expect(wrapper.vm.canEditPaymentRow(paymentRowWithStatus(2), 'enrollment')).toBe(false)
+        expect(wrapper.vm.editablePaymentTypes.every((option) => [1, 3, 9, 10].includes(Number(option.value)))).toBe(true)
+
+        const duePayment = paymentRowWithStatus(2)
+        wrapper.vm.groupPayments = [duePayment]
+        wrapper.vm.editRow(duePayment, 'january')
+        duePayment.january = 9
+        await nextTick()
+
+        expect(wrapper.vm.canEditPaymentRow(duePayment, 'january')).toBe(false)
+        expect(wrapper.vm.isEditingPaymentRow(duePayment, 'january')).toBe(true)
+
+        wrapper.vm.cancelEdition()
+        expect(duePayment.january).toBe(2)
 
         wrapper.unmount()
     })

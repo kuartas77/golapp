@@ -18,7 +18,7 @@
         />
         <div v-else class="row layout-top-spacing">
 
-            <div class="col-md-8">
+            <div :class="isAssistant ? 'col-12' : 'col-md-8'">
                 <!-- Información de la factura -->
                 <div class="card mb-4" data-tour="invoice-show-summary">
                     <AppPageHeader
@@ -126,7 +126,7 @@
                 </div>
 
                 <!-- Comprobantes de pago -->
-                <div v-if="paymentRequests.length > 0" class="card mb-4" data-tour="invoice-show-payment-requests">
+                <div v-if="!isAssistant && paymentRequests.length > 0" class="card mb-4" data-tour="invoice-show-payment-requests">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="fa fa-receipt"></i> Comprobantes de Pago</h5>
                     </div>
@@ -207,7 +207,7 @@
             </div>
 
             <!-- Panel de pagos -->
-            <div class="col-md-4">
+            <div v-if="!isAssistant" class="col-md-4">
                 <div class="card mb-4" data-tour="invoice-show-payment-form">
                     <div class="card-header d-flex justify-content-md-between">
                         <h5 class="mb-0"><i class="fa fa-money-bill-wave"></i> Registrar Pago</h5>
@@ -391,6 +391,7 @@ import 'flatpickr/dist/flatpickr.css';
 import "@/assets/sass/forms/custom-flatpickr.css";
 import { invoiceShowTutorial } from '@/tutorials/invoices'
 import { formatAppMoney } from '@/utils/appFormatters'
+import { useAuthUser } from '@/store/auth-user'
 
 const flatpickrConfig = {
     wrap: true,
@@ -401,6 +402,8 @@ const flatpickrConfig = {
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthUser()
+const isAssistant = computed(() => auth.hasRole('assistant'))
 const invoiceId = route.params.id
 const tutorial = usePageTutorial(invoiceShowTutorial)
 const todayDate = dayjs().format('YYYY-MM-DD')

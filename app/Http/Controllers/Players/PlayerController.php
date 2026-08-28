@@ -59,7 +59,25 @@ class PlayerController extends Controller
      */
     public function show($uniqueCode): JsonResponse
     {
-        $player = Player::where('unique_code', $uniqueCode)->where('school_id', getSchool(auth()->user())->id)->first();
+        $player = Player::where('unique_code', $uniqueCode)
+            ->where('school_id', getSchool(auth()->user())->id)
+            ->firstOrFail();
+
+        if (isAssistant()) {
+            $player->load([
+                'people',
+                'inscriptions' => fn ($query) => $query
+                    ->withTrashed()
+                    ->with([
+                        'trainingGroup' => fn ($groupQuery) => $groupQuery->withTrashed(),
+                        'complementaryGroup' => fn ($groupQuery) => $groupQuery->withTrashed(),
+                    ])
+                    ->orderByDesc('year'),
+            ]);
+
+            return response()->json($player);
+        }
+
         $player = $this->repository->loadShow($player);
 
         return response()->json($player);

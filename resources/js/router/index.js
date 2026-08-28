@@ -59,7 +59,7 @@ const routes = [
             { path: 'competition-stats/groups/:id', name: 'competition-stats.detail', component: () => import('@/pages/competition-stats/Detail.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.matches] } },
             {
                 path: 'evaluaciones-deportistas',
-                meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.evaluations] },
+                meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.evaluations] },
                 component: { render: () => h(RouterView) },
                 children: [
                     { path: '', name: 'player-evaluations.index', component: () => import('@/pages/player-evaluations/Index.vue') },
@@ -72,16 +72,16 @@ const routes = [
             { path: 'perfil/usuario', name: 'user-profile', component: () => import('@/pages/profile/UserProfile.vue'), },
             {
                 path: 'deportistas',
-                meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] },
+                meta: { requiresRole: ['super-admin', 'school', 'assistant'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.players] },
                 component: { render: () => h(RouterView) },
                 children: [
                     { path: '', name: 'players', component: () => import('@/pages/players/PlayersList.vue') },
-                    { path: ':unique_code', name: 'player-detail', component: () => import('@/pages/players/PlayerDetail.vue') },
+                    { path: ':unique_code', name: 'player-detail', component: () => import('@/pages/players/PlayerEntry.vue') },
                 ]
             },
             {
                 path: 'inscripciones',
-                meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.inscriptions] },
+                meta: { requiresRole: ['super-admin', 'school', 'assistant'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.inscriptions] },
                 component: { render: () => h(RouterView) },
                 children: [
                     { path: '', name: 'inscriptions', component: () => import('@/pages/inscriptions/InscriptionsList.vue') },
@@ -90,7 +90,7 @@ const routes = [
             },
             {
                 path: 'asistencias',
-                meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.attendances] },
+                meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.attendances] },
                 component: { render: () => h(RouterView) },
                 children: [
                     { path: '', name: 'attendances', component: () => import('@/pages/attendances/attendance-list.vue') },
@@ -101,19 +101,19 @@ const routes = [
             {
                 path: 'sesiones-entrenamiento',
                 name: 'training-sessions',
-                meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.trainingSessions] },
+                meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.trainingSessions] },
                 component: () => import('@/pages/training-sessions/Index.vue')
             },
             {
                 path: 'planificacion-sesiones',
                 name: 'session-plannings',
-                meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.sessionPlanning] },
+                meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.sessionPlanning] },
                 component: () => import('@/pages/session-plannings/Index.vue')
             },
             {
                 path: 'metodologia',
                 name: 'methodology.index',
-                meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.methodology] },
+                meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.methodology] },
                 component: () => import('@/pages/methodology/Index.vue')
             },
             {
@@ -130,19 +130,19 @@ const routes = [
             {
                 path: 'mensualidades',
                 meta: {
-                    requiresRole: ['super-admin', 'school'],
+                    requiresRole: ['super-admin', 'school', 'assistant'],
                     requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.payments],
                 },
                 component: { render: () => h(RouterView) },
                 children: [
                     { path: '', name: 'payments', component: () => import('@/pages/payments/monthly-payment-list.vue') },
                     { path: 'recibos', name: 'payments.receipts', component: () => import('@/pages/payments/MonthlyPaymentReceipts.vue') },
-                    { path: 'notificaciones-deuda', name: 'payments.debt-notifications', component: () => import('@/pages/payments/DebtNotifications.vue') },
+                    { path: 'notificaciones-deuda', name: 'payments.debt-notifications', component: () => import('@/pages/payments/DebtNotifications.vue'), meta: { requiresRole: ['super-admin', 'school'] } },
                 ]
             },
             {
                 path: 'control-competencias',
-                meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.matches] },
+                meta: { requiresRole: ['super-admin', 'school', 'instructor'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.matches] },
                 component: { render: () => h(RouterView) },
                 children: [
                     { path: '', name: 'matches', component: () => import('@/pages/matches/MatchesList.vue') },
@@ -256,28 +256,28 @@ const routes = [
             {
                 path: '/facturas',
                 meta: {
-                    requiresRole: ['super-admin', 'school'],
+                    requiresRole: ['super-admin', 'school', 'assistant'],
                     requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.billing],
                 },
                 name: 'invoices',
                 component: { render: () => h(RouterView) },
                 children: [
-                    { path: '', name: 'invoices.index', component: () => import('@/pages/invoices/Invoices.vue') },
-                    { path: 'items', name: 'invoices.items.index', component: () => import('@/pages/invoices/InvoiceItems.vue') },
-                    { path: 'cargos-personalizados', name: 'invoices.custom-charges.index', component: () => import('@/pages/invoices/InscriptionCustomCharges.vue') },
+                    { path: '', name: 'invoices.index', component: () => import('@/pages/invoices/Invoices.vue'), meta: { requiresRole: ['super-admin', 'school'] } },
+                    { path: 'items', name: 'invoices.items.index', component: () => import('@/pages/invoices/InvoiceItems.vue'), meta: { requiresRole: ['super-admin', 'school'] } },
+                    { path: 'cargos-personalizados', name: 'invoices.custom-charges.index', component: () => import('@/pages/invoices/InscriptionCustomCharges.vue'), meta: { requiresRole: ['super-admin', 'school'] } },
                     {
                         path: 'comprobantes-pago',
                         name: 'payment-requests.index',
                         component: () => import('@/pages/notifications/PaymentRequests.vue'),
-                        meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.systemNotify] }
+                        meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.systemNotify] }
                     },
                     {
                         path: 'solicitudes-uniformes',
                         name: 'uniform-requests.index',
                         component: () => import('@/pages/notifications/UniformRequests.vue'),
-                        meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.systemNotify] }
+                        meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.systemNotify] }
                     },
-                    { path: 'crear/:inscription', name: 'invoices.create', component: () => import('@/pages/invoices/InvoiceCreate.vue') },
+                    { path: 'crear/:inscription', name: 'invoices.create', component: () => import('@/pages/invoices/InvoiceCreate.vue'), meta: { requiresRole: ['super-admin', 'school'] } },
                     { path: ':id', name: 'invoices.show', component: () => import('@/pages/invoices/InvoiceShow.vue') },
                 ]
             },
@@ -326,7 +326,7 @@ const routes = [
             {
                 path: 'informes',
                 meta: {
-                    requiresRole: ['super-admin', 'school'],
+                    requiresRole: ['super-admin', 'school', 'assistant'],
                     requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.reports],
                 },
                 component: { render: () => h(RouterView) },
@@ -334,12 +334,14 @@ const routes = [
                     {
                         path: 'asistencias',
                         name: 'reports.assists',
-                        component: () => import('@/pages/reports/assists/Index.vue')
+                        component: () => import('@/pages/reports/assists/Index.vue'),
+                        meta: { requiresRole: ['super-admin', 'school'] }
                     },
                     {
                         path: 'actividad-instructores',
                         name: 'reports.instructor-activity',
-                        component: () => import('@/pages/reports/instructors/Index.vue')
+                        component: () => import('@/pages/reports/instructors/Index.vue'),
+                        meta: { requiresRole: ['super-admin', 'school'] }
                     },
                     {
                         path: 'pagos',
@@ -359,7 +361,8 @@ const routes = [
                     {
                         path: 'mensualidades-asistencias',
                         name: 'reports.attendance-payment',
-                        component: () => import('@/pages/reports/attendance-payment/Index.vue')
+                        component: () => import('@/pages/reports/attendance-payment/Index.vue'),
+                        meta: { requiresRole: ['super-admin', 'school'] }
                     },
                 ]
             },

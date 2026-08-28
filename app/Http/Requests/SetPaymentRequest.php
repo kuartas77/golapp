@@ -15,7 +15,7 @@ class SetPaymentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return isAdmin() || isSchool();
+        return isAdmin() || isSchool() || isAssistant();
     }
 
     /**
@@ -26,12 +26,18 @@ class SetPaymentRequest extends FormRequest
     public function rules(): array
     {
         $validation = [
-            'column' => ['nullable', 'string', Rule::in(Payment::paymentFields())],
+            'column' => [isAssistant() ? 'required' : 'nullable', 'string', Rule::in(Payment::paymentFields())],
         ];
 
         foreach (Payment::FIELD_AMOUNT_MAP as $field => $amountField) {
             $statusRules = ['nullable', 'integer', Rule::in(Payment::STATUS_VALUES)];
             $amountRules = ['nullable', 'integer', 'min:0'];
+
+            if (isAssistant() && $this->input('column') !== $field) {
+                $validation[$field] = ['prohibited'];
+                $validation[$amountField] = ['prohibited'];
+                continue;
+            }
 
             if (!$this->filled('column')) {
                 $amountRules[0] = 'required';
@@ -39,6 +45,16 @@ class SetPaymentRequest extends FormRequest
 
             if ($this->input('column') === $field) {
                 $statusRules[0] = 'required';
+            }
+
+            if (isAssistant() && $this->input('column') === $field) {
+                $statusRules[] = Rule::in([
+                    Payment::$paid,
+                    Payment::$paid_cash,
+                    Payment::$paid_deposit,
+                    Payment::$paid_,
+                ]);
+                $amountRules = ['required', 'integer', 'min:1'];
             }
 
             $validation[$field] = $statusRules;

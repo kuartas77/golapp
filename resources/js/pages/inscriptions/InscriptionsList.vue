@@ -60,7 +60,7 @@
                 </div>
             </div>
 
-            <div class="inscription-limit-banner mb-3" :class="{ 'is-full': inscriptionLimit.is_full }">
+            <div v-if="canManageSelectedYear" class="inscription-limit-banner mb-3" :class="{ 'is-full': inscriptionLimit.is_full }">
                 <div>
                     <strong>
                         Inscripciones {{ inscriptionLimit.current }} / {{ inscriptionLimit.limit }}
@@ -150,6 +150,13 @@
         subtitle="Compártelo o descárgalo para la toma rápida desde el celular."
         @update:model-value="onAttendanceQrModalToggle"
     />
+    <AddInscriptionChargesModal
+        v-if="selectedCustomChargeInscriptionId"
+        :model-value="Boolean(selectedCustomChargeInscriptionId)"
+        :inscription-id="selectedCustomChargeInscriptionId"
+        @saved="onCustomChargesSaved"
+        @update:model-value="onCustomChargeModalToggle"
+    />
     <PageTutorialOverlay :tutorial="tutorial" />
 
     <breadcrumb :parent="'Plataforma'" :current="'Inscripciones'" />
@@ -169,6 +176,7 @@ import { usePageTutorial } from '@/composables/usePageTutorial';
 import { usePageTitle } from "@/composables/use-meta";
 import { inscriptionsTutorial } from '@/tutorials/inscriptions';
 import ModalInscription from './ModalInscription.vue';
+import AddInscriptionChargesModal from './AddInscriptionChargesModal.vue';
 import { SCHOOL_PERMISSION_KEYS } from '@/config/school-permissions';
 
 usePageTitle('Inscripciones')
@@ -201,6 +209,9 @@ const selectedYear = ref(String(route.query.inscription_year || currentYear))
 const exportExcelUrl = computed(() => `/export/inscriptions/excel?inscription_year=${encodeURIComponent(selectedYear.value || currentYear)}`)
 const canManageSelectedYear = computed(() => canExportInscriptions.value && Number(selectedYear.value || currentYear) >= Number(currentYear))
 const canCreateInvoice = computed(() => canManageSelectedYear.value && auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.billing))
+const canAddCustomCharges = computed(() => auth.hasRole('assistant')
+    && auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.billing)
+    && Number(selectedYear.value) === Number(currentYear))
 const inscriptionLimit = ref({
     year: Number(selectedYear.value || currentYear),
     current: 0,
@@ -242,6 +253,7 @@ const {
     selectedInscriptionId,
     isCreateModalOpen,
     selectedAttendanceQrCode,
+    selectedCustomChargeInscriptionId,
     triggerCreateModal,
     onGroupFilterChange,
     onCategoryFilterChange,
@@ -250,7 +262,7 @@ const {
     onAttendanceQrModalToggle,
     onCancelModal,
     onSuccessModal,
-} = useInscriptionConfig(selectedYear, canExportInscriptions, loadLimitSummary, canCreateInvoice)
+} = useInscriptionConfig(selectedYear, canExportInscriptions, loadLimitSummary, canCreateInvoice, canAddCustomCharges)
 const tutorial = usePageTutorial(inscriptionsTutorial, {
     canExportInscriptions,
 })
@@ -314,6 +326,15 @@ onMounted(async () => {
     await settings.getSettings()
     await loadLimitSummary()
 })
+
+function onCustomChargeModalToggle(isOpen) {
+    if (!isOpen) selectedCustomChargeInscriptionId.value = null
+}
+
+function onCustomChargesSaved() {
+    selectedCustomChargeInscriptionId.value = null
+    reloadTable()
+}
 </script>
 
 <style scoped>

@@ -57,6 +57,7 @@ export default function useUsersList() {
 
     const { proxy } = getCurrentInstance()
     const globalError = ref(null)
+    const roleOptions = ref([])
 
     const composeModalUser = ref(null)
     const profileModal = ref(null)
@@ -151,7 +152,7 @@ export default function useUsersList() {
         profileError.value = ''
     }
 
-    onMounted(() => {
+    onMounted(async () => {
         usePageTitle('Usuarios')
         composeModalUser.value = new window.bootstrap.Modal(document.getElementById("composeModalUser"), {
             backdrop: 'static', // Prevents closing the modal by clicking outside
@@ -163,6 +164,12 @@ export default function useUsersList() {
             keyboard: true,
             focus: true
         })
+        try {
+            const response = await api.get('/api/v2/admin/users/role-options')
+            roleOptions.value = response?.data?.data ?? []
+        } catch (error) {
+            globalError.value = error.response?.data?.message || 'No fue posible cargar los roles disponibles.'
+        }
     })
 
     return {
@@ -182,5 +189,6 @@ export default function useUsersList() {
         reloadTable: tableRecovery.reloadTable,
         showProfile,
         closeProfile,
+        roleOptions,
     }
 }

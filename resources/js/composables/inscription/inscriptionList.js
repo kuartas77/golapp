@@ -3,12 +3,13 @@ import { computed, nextTick, ref, useTemplateRef } from 'vue';
 import api from '@/utils/axios'
 import { useRouter } from 'vue-router'
 
-export default function useInscriptionConfig(selectedYear, canManageInscriptions, onDataChanged = null, canCreateInvoice = null) {
+export default function useInscriptionConfig(selectedYear, canManageInscriptions, onDataChanged = null, canCreateInvoice = null, canAddCustomCharges = null) {
     const router = useRouter()
     const inscription_table = useTemplateRef('inscription_table')
     const selectedInscriptionId = ref(null)
     const isCreateModalOpen = ref(false)
     const selectedAttendanceQrCode = ref(null)
+    const selectedCustomChargeInscriptionId = ref(null)
     const disableUrlSelected = ref(null)
     const globalError = ref('')
     const currentYear = new Date().getFullYear()
@@ -116,6 +117,9 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
                         </button>
                     `
                     : ''
+                const addChargesAction = Boolean(canAddCustomCharges?.value)
+                    ? `<li><button class="dropdown-item" data-item-id="${row.id}" data-type="custom-charges" type="button"><i class="fa fa-plus-circle fa-width-auto me-2" data-item-id="${row.id}" data-type="custom-charges"></i>Agregar cargos</button></li>`
+                    : ''
 
                 return `
                 <div class="d-inline-flex align-items-center gap-1 text-nowrap">
@@ -133,7 +137,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
                         </button>
 
                         <ul class="dropdown-menu dropdown-menu-end inscription-actions-menu">
-                            <li>
+                            ${canManageSelectedYear.value ? `<li>
                                 <button
                                     class="dropdown-item"
                                     data-item-id="${row.unique_code}"
@@ -148,7 +152,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
                                     ></i>
                                     QR asistencia
                                 </button>
-                            </li>
+                            </li>` : ''}
 
                             <li>
                                 <a
@@ -161,6 +165,8 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
                                     Imprimir inscripción
                                 </a>
                             </li>
+
+                            ${addChargesAction}
 
                             ${manageActions}
                         </ul>
@@ -269,6 +275,9 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
             case 'invoice':
                 router.push({ name: 'invoices.create', params: { inscription: itemId } })
                 break;
+            case 'custom-charges':
+                selectedCustomChargeInscriptionId.value = Number(itemId)
+                break;
             case 'disable':
                 disableUrlSelected.value = itemId
                 confirmDisable()
@@ -283,6 +292,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         selectedInscriptionId.value = null
         isCreateModalOpen.value = false
         disableUrlSelected.value = null
+        selectedCustomChargeInscriptionId.value = null
     }
 
     const onAttendanceQrModalToggle = (isOpen) => {
@@ -347,6 +357,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         selectedInscriptionId,
         isCreateModalOpen,
         selectedAttendanceQrCode,
+        selectedCustomChargeInscriptionId,
         triggerCreateModal,
         onGroupFilterChange,
         onCategoryFilterChange,

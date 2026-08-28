@@ -16,19 +16,34 @@ class InscriptionSummaryService
     public function payload(Inscription $inscription): array
     {
         $this->loadSummaryRelations($inscription);
+        $school = getSchool(auth()->user());
+        $canViewInvoices = $school->hasSchoolPermission('school.module.billing');
+        $canViewSports = ! isAssistant();
 
         return [
             'can_edit' => $this->canEdit($inscription),
+            'capabilities' => [
+                'can_edit_attendance' => $this->canEdit($inscription),
+                'can_edit_payments' => false,
+                'can_view_sports' => $canViewSports,
+                'can_view_invoices' => $canViewInvoices,
+                'can_view_custom_charges' => $canViewInvoices,
+                'can_add_custom_charges' => $canViewInvoices
+                    && (int) $inscription->year === (int) now()->year
+                    && ! $inscription->trashed(),
+                'can_generate_financial_clearance' => ! isAssistant(),
+            ],
             'current_year' => now()->year,
             'inscription' => $this->serializeInscription($inscription),
             'player' => $this->serializePlayer($inscription),
             'years' => $this->serializeYears($inscription),
             'payments' => $this->serializePayments($inscription),
-            'attendance' => $this->serializeAttendance($inscription),
-            'invoices' => $this->serializeInvoices($inscription),
-            'evaluations' => $this->serializeEvaluations($inscription),
+            'attendance' => $canViewSports ? $this->serializeAttendance($inscription) : [],
+            'invoices' => $canViewInvoices ? $this->serializeInvoices($inscription) : [],
+            'custom_charges' => $canViewInvoices ? $this->serializeCustomCharges($inscription) : [],
+            'evaluations' => $canViewSports ? $this->serializeEvaluations($inscription) : [],
             'links' => [
-                'stats' => url("/player/{$inscription->player_id}/detail"),
+                'stats' => $canViewSports ? url("/player/{$inscription->player_id}/detail") : null,
                 'player' => url("/deportistas/{$inscription->unique_code}"),
                 'print' => route('export.inscription', [$inscription->player_id, $inscription->id]),
             ],
@@ -42,22 +57,35 @@ class InscriptionSummaryService
 
     private function loadSummaryRelations(Inscription $inscription): void
     {
-        $inscription->load([
+        $relations = [
             'player',
             'trainingGroup' => fn ($query) => $query->withTrashed(),
             'complementaryGroup' => fn ($query) => $query->withTrashed(),
             'complementaryGroups' => fn ($query) => $query->withTrashed(),
             'payments' => fn ($query) => $query->withTrashed()->orderBy('year'),
-            'assistance' => fn ($query) => $query
-                ->withTrashed()
-                ->with(['trainingGroup' => fn ($groupQuery) => $groupQuery->withTrashed()])
-                ->orderBy('month')
-                ->orderBy('training_group_id'),
-            'invoices' => fn ($query) => $query->with(['items'])->latest('id'),
-            'playerEvaluations.period',
-            'playerEvaluations.template',
-            'skillsControls',
-        ]);
+        ];
+
+        if (getSchool(auth()->user())->hasSchoolPermission('school.module.billing')) {
+            $relations = array_merge($relations, [
+                'invoices' => fn ($query) => $query->with(['items'])->latest('id'),
+                'customCharges' => fn ($query) => $query->with(['invoiceItem.invoice'])->latest('id'),
+            ]);
+        }
+
+        if (! isAssistant()) {
+            $relations = array_merge($relations, [
+                'assistance' => fn ($query) => $query
+                    ->withTrashed()
+                    ->with(['trainingGroup' => fn ($groupQuery) => $groupQuery->withTrashed()])
+                    ->orderBy('month')
+                    ->orderBy('training_group_id'),
+                'playerEvaluations.period',
+                'playerEvaluations.template',
+                'skillsControls',
+            ]);
+        }
+
+        $inscription->load($relations);
 
         $inscription->setAppends(['format_average']);
     }
@@ -105,7 +133,7 @@ class InscriptionSummaryService
                 'name' => $group->name,
                 'full_group' => $group->full_group ?? $group->name,
             ])->values()->all(),
-            'stats' => $inscription->format_average,
+            'stats' => isAssistant() ? null : $inscription->format_average,
         ];
     }
 
@@ -248,6 +276,20 @@ class InscriptionSummaryService
             'url_show' => url("/facturas/{$invoice->id}"),
             'url_print' => $invoice->url_print,
             'items_count' => $invoice->items->count(),
+        ])->values()->all();
+    }
+
+    private function serializeCustomCharges(Inscription $inscription): array
+    {
+        return $inscription->customCharges->map(fn ($charge) => [
+            'id' => $charge->id,
+            'invoice_custom_item_id' => $charge->invoice_custom_item_id,
+            'name' => $charge->name,
+            'value' => $charge->value,
+            'status' => $charge->status,
+            'due_date' => optional($charge->due_date)->format('Y-m-d'),
+            'invoice_id' => $charge->invoiceItem?->invoice?->id,
+            'invoice_number' => $charge->invoiceItem?->invoice?->invoice_number,
         ])->values()->all();
     }
 

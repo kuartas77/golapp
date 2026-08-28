@@ -43,9 +43,10 @@ trait WithLogin
 
     protected function createRoles()
     {
-        Role::create(['name' => 'super-admin']);
-        Role::create(['name' => 'school']);
-        Role::create(['name' => 'instructor']);
+        Role::query()->firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
+        Role::query()->firstOrCreate(['name' => 'school', 'guard_name' => 'web']);
+        Role::query()->firstOrCreate(['name' => 'instructor', 'guard_name' => 'web']);
+        Role::query()->firstOrCreate(['name' => User::ASSISTANT, 'guard_name' => 'web']);
     }
 
     protected function createUser(array $attributes = [], array $roles = [User::SCHOOL])

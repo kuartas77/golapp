@@ -168,7 +168,7 @@
                     </ul>
                 </li>
 
-                <Can :roles="['super-admin', 'school']" any-role>
+                <Can :roles="['super-admin', 'school', 'assistant']" any-role>
                     <li v-if="canPlayers" class="menu">
                         <router-link :to="{ name: 'players' }" class="dropdown-toggle" @click="toggleMobileMenu">
                             <div class="">
@@ -202,7 +202,7 @@
                     </li>
                 </Can>
 
-                <Can :roles="['super-admin', 'school']" any-role>
+                <Can :roles="['super-admin', 'school', 'assistant']" any-role>
                     <li v-if="canPayments" class="menu">
                         <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#payments"
                             aria-controls="payments" :aria-expanded="isPaymentsRoute ? 'true' : 'false'"
@@ -233,7 +233,7 @@
                             <li>
                                 <router-link :to="{ name: 'payments.receipts' }" @click="toggleMobileMenu">Recibos</router-link>
                             </li>
-                            <li>
+                            <li v-if="!isAssistant">
                                 <router-link :to="{ name: 'payments.debt-notifications' }" @click="toggleMobileMenu"
                                 v-tooltip.right="'Notificaciones de deuda'">
                                     Not deuda
@@ -397,12 +397,12 @@
                         </a>
                         <ul id="reports" class="collapse submenu list-unstyled" :class="{ show: isReportsRoute }"
                             data-bs-parent="#sidebar">
-                            <li>
+                            <li v-if="!isAssistant">
                                 <router-link :to="{ name: 'reports.assists' }" @click="toggleMobileMenu">
                                     Asistencias
                                 </router-link>
                             </li>
-                            <li>
+                            <li v-if="!isAssistant">
                                 <router-link :to="{ name: 'reports.instructor-activity' }" @click="toggleMobileMenu"
                                     v-tooltip.right="'Actividad de instructores'">
                                     Act. de instructores
@@ -423,7 +423,7 @@
                                     Deudores
                                 </router-link>
                             </li>
-                            <li>
+                            <li v-if="!isAssistant">
                                 <router-link :to="{ name: 'reports.attendance-payment' }" @click="toggleMobileMenu"
                                     v-tooltip.right="'Mensualidades vs. asistencias'">
                                     Mens. vs. asist.
@@ -558,9 +558,12 @@ import { useRoute } from 'vue-router';
 import { useAppState } from '@/store/app-state'
 import Can from '@/components/general/Can.vue'
 import { useBackofficeAccess } from '@/composables/useBackofficeAccess'
+import { useAuthUser } from '@/store/auth-user'
 
 const appState = useAppState();
 const route = useRoute();
+const auth = useAuthUser();
+const isAssistant = computed(() => auth.hasRole('assistant'))
 const { access } = useBackofficeAccess()
 
 const canPlayers = access.players

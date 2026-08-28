@@ -64,9 +64,25 @@ class PaymentControllerService
     {
         $school = getSchool(auth()->user());
 
-        return PaymentStatusCatalog::toArray(
+        $catalog = PaymentStatusCatalog::toArray(
             $school->hasSchoolPermission('school.module.player_credits')
         );
+
+        $catalog['capabilities'] = isAssistant()
+            ? [
+                'fields' => array_values(array_diff(Payment::paymentFields(), ['enrollment'])),
+                'source_statuses' => [Payment::$debt],
+                'target_statuses' => [Payment::$paid, Payment::$paid_cash, Payment::$paid_deposit, Payment::$paid_],
+                'bulk_update' => false,
+            ]
+            : [
+                'fields' => Payment::paymentFields(),
+                'source_statuses' => Payment::STATUS_VALUES,
+                'target_statuses' => Payment::STATUS_VALUES,
+                'bulk_update' => true,
+            ];
+
+        return $catalog;
     }
 
     public function bulkUpdate(array $validated): array
@@ -117,7 +133,8 @@ class PaymentControllerService
             ];
         }
 
-        if (! $this->repository->setPay($validated, $payment)) {
+        $source = isAssistant() ? 'assistant' : 'manual';
+        if (! $this->repository->setPay($validated, $payment, $source)) {
             return [
                 'payload' => false,
                 'status' => 200,

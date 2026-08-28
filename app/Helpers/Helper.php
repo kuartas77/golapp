@@ -232,6 +232,16 @@ if (! function_exists('isInstructor')) {
     }
 }
 
+if (! function_exists('isAssistant')) {
+    function isAssistant(): bool
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        return $user->hasAnyRole([User::ASSISTANT]);
+    }
+}
+
 if (! function_exists('getSchool')) {
     function getSchool($user = null): School
     {

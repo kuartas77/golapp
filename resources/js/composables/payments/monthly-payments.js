@@ -39,7 +39,8 @@ export default function useMonthlyPayments() {
     const type_payments = computed(() => settings.paymentTypeOptions.filter((option) => (
         option.value !== '15' || auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.playerCredits)
     )))
-    const canUsePlayerCredits = computed(() => auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.playerCredits))
+    const isAssistant = computed(() => auth.hasRole('assistant'))
+    const canUsePlayerCredits = computed(() => !isAssistant.value && auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.playerCredits))
     const paymentTypeLabels = computed(() => settings.paymentTypeLabels)
     const statusCatalog = ref({
         statuses: [],
@@ -49,6 +50,12 @@ export default function useMonthlyPayments() {
             player_credit: [15],
         },
         months: [],
+        capabilities: null,
+    })
+    const editablePaymentTypes = computed(() => {
+        if (!isAssistant.value) return type_payments.value
+        const targets = statusCatalog.value.capabilities?.target_statuses || []
+        return type_payments.value.filter((option) => targets.includes(Number(option.value)))
     })
     const monthOptions = computed(() => (
         statusCatalog.value.months?.length ? statusCatalog.value.months : [
@@ -222,19 +229,32 @@ export default function useMonthlyPayments() {
         }
     }
 
+    const canEditPaymentRow = (payPlayer, field) => {
+        if (payPlayer.inscription_deleted) return false
+        if (!isAssistant.value) return true
+
+        const capabilities = statusCatalog.value.capabilities
+        return Boolean(capabilities)
+            && capabilities.fields.includes(field)
+            && capabilities.source_statuses.includes(Number(payPlayer[field]))
+    }
+
+    const isEditingPaymentRow = (payPlayer, field) => (
+        editingCell.value?.payPlayer?.id === payPlayer?.id
+        && editingCell.value?.field === field
+    )
+
     const editRow = (payPlayer, field) => {
         if (payPlayer.inscription_deleted) {
             showMessage('La inscripción está retirada; reactívala antes de modificar pagos.', 'warning')
             return
         }
 
+        if (!canEditPaymentRow(payPlayer, field)) return
+
         editingCell.value = { payPlayer, field }
         backupCell.value = cloneDeep(toRaw(payPlayer));
     };
-
-    const canEditPaymentRow = (payPlayer) => {
-        return !payPlayer.inscription_deleted
-    }
 
     const canShowPaymentHistory = (payPlayer, field = null) => {
         if (!field) {
@@ -648,6 +668,7 @@ export default function useMonthlyPayments() {
         handleSearch,
         retryLastSearch,
         editRow,
+        isEditingPaymentRow,
         cancelEdition,
         handleSelectChange,
         saveField,
@@ -676,6 +697,8 @@ export default function useMonthlyPayments() {
         categories,
         type_payments,
         canUsePlayerCredits,
+        isAssistant,
+        editablePaymentTypes,
         paymentTypeLabels,
         statusCatalog,
         monthOptions,

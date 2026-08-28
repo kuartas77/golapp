@@ -122,15 +122,20 @@ class InvoiceController extends Controller
 
     public function show($id)
     {
-        $invoice = Invoice::with([
+        $relations = [
             'items',
             'payments.creator',
             'inscription.player',
             'trainingGroup',
             'creator',
             'numberRange',
-            'paymentRequests' => fn ($query) => $query->latest(),
-        ])
+        ];
+
+        if (! isAssistant()) {
+            $relations['paymentRequests'] = fn ($query) => $query->latest();
+        }
+
+        $invoice = Invoice::with($relations)
             ->schoolId()
             ->findOrFail($id);
 

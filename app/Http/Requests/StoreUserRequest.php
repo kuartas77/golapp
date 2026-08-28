@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreUserRequest extends FormRequest
 {
@@ -26,6 +28,13 @@ class StoreUserRequest extends FormRequest
         return [
             'name' => ['required'],
             'email' => ['required', 'string', 'email:rfc,dns'],
+            'rol_id' => [
+                'required',
+                'integer',
+                Rule::exists('roles', 'id')->where(
+                    fn ($query) => $query->whereIn('name', ['school', 'instructor', User::ASSISTANT])
+                ),
+            ],
         ];
     }
 }

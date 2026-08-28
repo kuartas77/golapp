@@ -9,6 +9,7 @@ use App\Repositories\PaymentRepository;
 use App\Service\PaymentAmountResolver;
 use App\Service\PlayerCredits\PlayerCreditService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
@@ -24,11 +25,22 @@ class PaymentMutationService
     {
         $isPay = false;
         try {
+            DB::beginTransaction();
+            if (isAssistant()) {
+                $payment = Payment::query()
+                    ->withTrashed()
+                    ->whereKey($payment->id)
+                    ->where('school_id', getSchool(auth()->user())->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                $this->validateAssistantUpdate($payment, $values);
+            }
+
             if ($this->paymentBelongsToDeletedInscription($payment)) {
+                DB::rollBack();
                 return false;
             }
 
-            DB::beginTransaction();
             $normalizedValues = $this->normalizePaymentUpdate($payment, $values);
             $previousValues = $this->paymentValuesSnapshot($payment, $normalizedValues);
             $previousStatuses = $this->monthlyStatuses($payment);
@@ -44,7 +56,7 @@ class PaymentMutationService
         } catch (Throwable $throwable) {
             DB::rollBack();
 
-            if ($throwable instanceof HttpExceptionInterface) {
+            if ($throwable instanceof HttpExceptionInterface || $throwable instanceof ValidationException) {
                 throw $throwable;
             }
 
@@ -53,6 +65,46 @@ class PaymentMutationService
         }
 
         return $isPay;
+    }
+
+    private function validateAssistantUpdate(Payment $payment, array $values): void
+    {
+        $column = data_get($values, 'column');
+        $monthlyFields = array_values(array_diff(Payment::paymentFields(), ['enrollment']));
+        $amountField = is_string($column) ? Payment::amountFieldFor($column) : null;
+        $targetStatus = is_string($column) ? (int) data_get($values, $column, -1) : -1;
+        $amount = $amountField ? (int) data_get($values, $amountField, 0) : 0;
+
+        $payment->loadMissing('inscription');
+        if ($payment->trashed() || $payment->inscription?->trashed()) {
+            throw ValidationException::withMessages([
+                'payment' => [PaymentRepository::RETIRED_INSCRIPTION_MESSAGE],
+            ]);
+        }
+
+        if (! is_string($column) || ! in_array($column, $monthlyFields, true)) {
+            throw ValidationException::withMessages([
+                'column' => ['El auxiliar sólo puede modificar mensualidades de enero a diciembre.'],
+            ]);
+        }
+
+        if ((int) $payment->{$column} !== Payment::$debt) {
+            throw ValidationException::withMessages([
+                $column => ['La mensualidad cambió o ya no está en estado Debe. Actualiza la información.'],
+            ]);
+        }
+
+        if (! in_array($targetStatus, [Payment::$paid, Payment::$paid_cash, Payment::$paid_deposit, Payment::$paid_], true)) {
+            throw ValidationException::withMessages([
+                $column => ['El estado de destino no está permitido para el auxiliar.'],
+            ]);
+        }
+
+        if ($amount <= 0) {
+            throw ValidationException::withMessages([
+                $amountField => ['El monto debe ser mayor que cero.'],
+            ]);
+        }
     }
 
     public function bulkUpdate(array $validated): array

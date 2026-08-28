@@ -27,21 +27,41 @@ class PlayerExportService
 
         $this->quarter($quarter, $from, $to, $quarter_text, $year, $months);
 
-        $player = Player::query()->with([
-            'schoolData',
-            'inscriptions' => fn($q) => $q->where('id', $inscription_id)->with([
-                'trainingGroup' => fn ($query) => $query->withTrashed(),
-                'complementaryGroup' => fn ($query) => $query->withTrashed(),
-                'complementaryGroups' => fn ($query) => $query->withTrashed(),
+        $inscriptionRelations = [
+            'trainingGroup' => fn ($query) => $query->withTrashed(),
+            'complementaryGroup' => fn ($query) => $query->withTrashed(),
+            'complementaryGroups' => fn ($query) => $query->withTrashed(),
+            'payments',
+        ];
+
+        if (! isAssistant()) {
+            $inscriptionRelations = array_merge($inscriptionRelations, [
                 'assistance' => fn($q) => $q
                     ->with(['trainingGroup' => fn ($query) => $query->withTrashed()])
                     ->when($months, fn($q) => $q->whereIn('month', $months))
                     ->orderByRaw("MONTH(CONCAT('2000-', assists.month, '-01')) asc")
                     ->orderBy('training_group_id'),
-                'payments',
-                'skillsControls' => fn($q) => $q->when(($from && $to), fn($q) => $q->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to))
-            ])
-        ])->find($player_id);
+                'skillsControls' => fn($q) => $q->when(($from && $to), fn($q) => $q->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to)),
+            ]);
+        }
+
+        $schoolId = getSchool(auth()->user())->id;
+        $player = Player::query()->with([
+            'schoolData',
+            'inscriptions' => fn($q) => $q
+                ->where('id', $inscription_id)
+                ->where('school_id', $schoolId)
+                ->with($inscriptionRelations),
+        ])->where('school_id', $schoolId)->findOrFail($player_id);
+
+        abort_if($player->inscriptions->isEmpty(), 404);
+
+        if (isAssistant()) {
+            $player->inscriptions->each(function ($inscription): void {
+                $inscription->setRelation('assistance', collect());
+                $inscription->setRelation('skillsControls', collect());
+            });
+        }
 
         $player->inscriptions->each(function ($inscription) use (&$observations_assists, &$observations_skills) {
             $observations_assists = $inscription->assistance->where('observations', '<>', null);
@@ -67,7 +87,9 @@ class PlayerExportService
             }
         });
 
-        $player->inscriptions->setAppends(['format_average']);
+        if (! isAssistant()) {
+            $player->inscriptions->setAppends(['format_average']);
+        }
         $data['player'] = $player;
         $data['school'] = $player->schoolData;
         $data['show_payments_assists'] = !($from && $to);

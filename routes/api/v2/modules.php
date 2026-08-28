@@ -34,8 +34,10 @@ use App\Http\Controllers\PlayerStatsController;
 use App\Http\Controllers\SchoolOutings\SchoolOutingController;
 use Illuminate\Support\Facades\Route;
 
-Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);
-Route::get('training_group/classdays', [TrainingGroupController::class, 'getClassDays']);
+Route::middleware('role:super-admin|school|instructor')->group(function () {
+    Route::apiResource('training_groups', GroupsController::class, ['only' => ['index', 'show']]);
+    Route::get('training_group/classdays', [TrainingGroupController::class, 'getClassDays']);
+});
 
 Route::middleware([
     'role:super-admin|school',
@@ -44,20 +46,36 @@ Route::middleware([
     Route::post('import/players', [ImportController::class, 'importPlayers']);
     Route::get('players/{player}/financial-clearance', [PlayerController::class, 'financialClearanceStatus']);
     Route::get('players/{player}/financial-clearance/pdf', [PlayerController::class, 'financialClearancePdf']);
-    Route::apiResource('players', PlayerController::class, ['only' => ['edit', 'show', 'update']]);
+    Route::apiResource('players', PlayerController::class, ['only' => ['edit', 'update']]);
 });
 
-Route::middleware('school.permission:school.module.payments')->group(function () {
+Route::middleware([
+    'role:super-admin|school|assistant',
+    'school.permission:school.module.players',
+])->group(function () {
+    Route::apiResource('players', PlayerController::class, ['only' => ['show']]);
+});
+
+Route::middleware([
+    'role:super-admin|school',
+    'school.permission:school.module.payments',
+])->group(function () {
     Route::get('payments/debt-notifications', [DebtNotificationController::class, 'index'])
         ->name('payments.debt-notifications.index');
     Route::post('payments/debt-notifications/send', [DebtNotificationController::class, 'send'])
         ->name('payments.debt-notifications.send');
+    Route::post('payments/bulk-update', [PaymentController::class, 'bulkUpdate'])
+        ->name('payments.bulk-update');
+});
+
+Route::middleware([
+    'role:super-admin|school|assistant',
+    'school.permission:school.module.payments',
+])->group(function () {
     Route::get('payments/monthly-receipts', [MonthlyPaymentReceiptController::class, 'index'])
         ->name('payments.monthly-receipts.index');
     Route::get('payments/status-catalog', [PaymentController::class, 'statusCatalog'])
         ->name('payments.status-catalog');
-    Route::post('payments/bulk-update', [PaymentController::class, 'bulkUpdate'])
-        ->name('payments.bulk-update');
     Route::get('payments/{payment}/history', [PaymentController::class, 'history'])
         ->name('payments.history');
     Route::apiResource('payments', PaymentController::class)->only(['index', 'update', 'show']);
@@ -91,7 +109,7 @@ Route::middleware([
     Route::post('{player:id}/movements', [PlayerCreditController::class, 'storeMovement']);
 });
 
-Route::middleware('school.permission:school.module.attendances')->group(function () {
+Route::middleware(['role:super-admin|school|instructor', 'school.permission:school.module.attendances'])->group(function () {
     Route::post('assists/bulk-update', [AssistController::class, 'bulkUpdate']);
     Route::apiResource('assists', AssistController::class)->except(['create', 'edit', 'destroy']);
 });
@@ -105,16 +123,26 @@ Route::middleware([
 });
 
 Route::middleware([
+    'role:super-admin|school|assistant',
+    'school.permission:school.module.inscriptions',
+])->group(function () {
+    Route::get('inscriptions/{inscription}/summary', [InscriptionSummaryController::class, 'show']);
+    Route::middleware('school.permission:school.module.billing')->group(function () {
+        Route::get('inscriptions/{inscription}/custom-charges', [InscriptionCustomChargeController::class, 'byInscription']);
+        Route::get('inscriptions/{inscription}/custom-charge-options', [InscriptionCustomChargeController::class, 'options']);
+        Route::post('inscriptions/{inscription}/custom-charges', [InscriptionCustomChargeController::class, 'store']);
+    });
+});
+
+Route::middleware([
     'role:super-admin|school',
     'school.permission:school.module.inscriptions',
 ])->group(function () {
     Route::get('inscriptions/limit-summary', InscriptionLimitController::class);
-    Route::get('inscriptions/{inscription}/summary', [InscriptionSummaryController::class, 'show']);
-    Route::get('inscriptions/{inscription}/custom-charges', [InscriptionCustomChargeController::class, 'byInscription']);
     Route::resource('inscriptions', WebInscriptions::class)->except(['index', 'create', 'show']);
 });
 
-Route::middleware('school.permission:school.module.matches')->group(function () {
+Route::middleware(['role:super-admin|school|instructor', 'school.permission:school.module.matches'])->group(function () {
     Route::apiResource('matches', GameController::class)->except(['index', 'edit', 'create']);
 });
 
@@ -126,7 +154,7 @@ Route::middleware([
     Route::get('groups/{group}', [CompetitionStatsController::class, 'show']);
 });
 
-Route::middleware('school.permission:school.module.training_sessions')->prefix('training-sessions')->group(function () {
+Route::middleware(['role:super-admin|school|instructor', 'school.permission:school.module.training_sessions'])->prefix('training-sessions')->group(function () {
     Route::post('', [ApiTrainingSessionsController::class, 'store']);
     Route::get('attendance-context', [ApiTrainingSessionsController::class, 'attendanceContext']);
     Route::get('{trainingSession}', [ApiTrainingSessionsController::class, 'show']);
@@ -135,7 +163,7 @@ Route::middleware('school.permission:school.module.training_sessions')->prefix('
         ->middleware('role:super-admin|school');
 });
 
-Route::middleware('school.permission:school.module.session_planning')->prefix('session-plannings')->group(function () {
+Route::middleware(['role:super-admin|school|instructor', 'school.permission:school.module.session_planning'])->prefix('session-plannings')->group(function () {
     Route::post('', [SessionPlanningController::class, 'store']);
     Route::get('attendance-context', [SessionPlanningController::class, 'attendanceContext']);
     Route::get('{sessionPlanning}', [SessionPlanningController::class, 'show']);
@@ -143,7 +171,7 @@ Route::middleware('school.permission:school.module.session_planning')->prefix('s
     Route::delete('{sessionPlanning}', [SessionPlanningController::class, 'destroy']);
 });
 
-Route::middleware('school.permission:school.module.methodology')->prefix('methodology-records')->group(function () {
+Route::middleware(['role:super-admin|school|instructor', 'school.permission:school.module.methodology'])->prefix('methodology-records')->group(function () {
     Route::get('', [MethodologyRecordController::class, 'index']);
     Route::get('filters', [MethodologyRecordController::class, 'filters']);
     Route::post('', [MethodologyRecordController::class, 'store']);
@@ -173,6 +201,7 @@ Route::middleware([
 });
 
 Route::middleware([
+    'role:super-admin|school',
     'school.permission:school.module.billing',
     'school.permission:school.feature.system_notify',
 ])->prefix('notifications')->group(function () {
@@ -183,7 +212,7 @@ Route::middleware([
     Route::put('invoice/{invoice}/payment-request/{paymentRequest}', [InvoiceController::class, 'update']);
 });
 
-Route::middleware('school.permission:school.feature.system_notify')->prefix('notifications/topics')->group(function () {
+Route::middleware(['role:super-admin|school', 'school.permission:school.feature.system_notify'])->prefix('notifications/topics')->group(function () {
     Route::get('', [TopicNotificationsController::class, 'index']);
     Route::get('options', [TopicNotificationsController::class, 'options']);
     Route::post('', [TopicNotificationsController::class, 'store']);
@@ -198,26 +227,35 @@ Route::middleware([
     Route::get('/player/{id}/detail', [PlayerStatsController::class, 'playerDetail']);
 });
 
-Route::prefix('tournament-payouts')->group(function () {
+Route::middleware('role:super-admin|school')->prefix('tournament-payouts')->group(function () {
     Route::get('', [TournamentPayoutsController::class, 'searchRaw']);
     Route::post('', [TournamentPayoutsController::class, 'store']);
     Route::put('{tournamentpayout}', [TournamentPayoutsController::class, 'update']);
 });
 
-Route::middleware('school.permission:school.module.billing')->prefix('invoices')->group(function () {
+Route::middleware([
+    'role:super-admin|school',
+    'school.permission:school.module.billing',
+])->prefix('invoices')->group(function () {
     Route::get('', [InvoiceController::class, 'index']);
     Route::get('creation-inscriptions', [InvoiceController::class, 'creationInscriptions']);
     Route::post('', [InvoiceController::class, 'store']);
     Route::get('create/{inscription}', [InvoiceController::class, 'create']);
-    Route::get('{invoice}', [InvoiceController::class, 'show']);
     Route::delete('{invoice}', [InvoiceController::class, 'destroy']);
     Route::post('{invoice}/payment', [InvoiceController::class, 'addPayment']);
-    Route::get('{invoice}/print', [InvoiceController::class, 'print']);
     Route::get('items/invoices', [ItemInvoicesController::class, 'index']);
     Route::get('items/invoices/export-pending', [ItemInvoicesController::class, 'exportPending']);
 });
 
-Route::middleware('school.permission:school.module.evaluations')->prefix('player-evaluations')->group(function () {
+Route::middleware([
+    'role:super-admin|school|assistant',
+    'school.permission:school.module.billing',
+])->prefix('invoices')->group(function () {
+    Route::get('{invoice}', [InvoiceController::class, 'show']);
+    Route::get('{invoice}/print', [InvoiceController::class, 'print']);
+});
+
+Route::middleware(['role:super-admin|school|instructor', 'school.permission:school.module.evaluations'])->prefix('player-evaluations')->group(function () {
     Route::get('options', [PlayerEvaluationController::class, 'options']);
     Route::get('comparison', [PlayerEvaluationComparisonController::class, 'index']);
     Route::get('create', [PlayerEvaluationController::class, 'create']);

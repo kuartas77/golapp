@@ -32,6 +32,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public const INSTRUCTOR = 3;
 
+    public const ASSISTANT = 'assistant';
+
     /**
      * The attributes that are mass assignable.
      *

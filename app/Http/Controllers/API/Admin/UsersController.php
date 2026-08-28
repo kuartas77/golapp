@@ -14,6 +14,8 @@ use App\Http\Resources\API\UserResource;
 use App\Http\Resources\API\UserCollection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 
 class UsersController extends Controller
 {
@@ -52,6 +54,28 @@ class UsersController extends Controller
         return new UserResource($user);
     }
 
+    public function roleOptions(): JsonResponse
+    {
+        $labels = [
+            'school' => 'School',
+            'instructor' => 'Instructor',
+            User::ASSISTANT => 'Auxiliar administrativo',
+        ];
+
+        $roles = Role::query()
+            ->whereIn('name', array_keys($labels))
+            ->orderByRaw("CASE name WHEN 'school' THEN 1 WHEN 'instructor' THEN 2 ELSE 3 END")
+            ->get(['id', 'name'])
+            ->map(fn (Role $role) => [
+                'value' => $role->id,
+                'name' => $role->name,
+                'label' => $labels[$role->name],
+            ])
+            ->values();
+
+        return response()->json(['data' => $roles]);
+    }
+
     /**
      * Display the specified resource.
      *
@@ -60,14 +84,14 @@ class UsersController extends Controller
      */
     public function show(User $user): UserResource
     {
+        $this->authorizeCurrentSchoolUser($user);
+
         return new UserResource($user->load(['profile', 'school', 'roles']));
     }
 
     public function profile(User $user): JsonResponse
     {
-        if (isSchool()) {
-            abort_unless((int) $user->school_id === (int) getSchool(auth()->user())->id, 403);
-        }
+        $this->authorizeCurrentSchoolUser($user);
 
         $profile = $user->profile()->firstOrCreate([]);
 
@@ -85,6 +109,7 @@ class UsersController extends Controller
      */
     public function update(UpdateUserRequest $request, User $user): UserResource
     {
+        $this->authorizeCurrentSchoolUser($user);
         $this->userRepository->update($user, $request);
         return new UserResource($user->load(['profile', 'school', 'roles']));
     }
@@ -97,7 +122,21 @@ class UsersController extends Controller
      */
     public function destroy(User $user): Response
     {
+        $this->authorizeCurrentSchoolUser($user);
         $user->delete();
         return response()->noContent();
+    }
+
+    private function authorizeCurrentSchoolUser(User $user): void
+    {
+        $schoolId = (int) getSchool(auth()->user())->id;
+
+        abort_unless(
+            DB::table('schools_user')
+                ->where('school_id', $schoolId)
+                ->where('user_id', $user->id)
+                ->exists(),
+            403
+        );
     }
 }

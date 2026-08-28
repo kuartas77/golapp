@@ -22,6 +22,9 @@ vi.mock('@/composables/usePageTutorial', () => ({
     usePageTutorial: () => ({ start: vi.fn() }),
 }))
 vi.mock('@/tutorials/invoices', () => ({ invoiceShowTutorial: [] }))
+vi.mock('@/store/auth-user', () => ({
+    useAuthUser: () => ({ hasRole: () => false }),
+}))
 
 import InvoiceShow from '@/pages/invoices/InvoiceShow.vue'
 

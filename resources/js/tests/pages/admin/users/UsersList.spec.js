@@ -99,7 +99,7 @@ describe('UsersList profile modal', () => {
     })
 
     it('opens a readonly profile modal from the users table action', async () => {
-        axiosMock.get.mockResolvedValue({
+        axiosMock.get.mockResolvedValueOnce({ data: { data: [] } }).mockResolvedValue({
             data: {
                 data: {
                     user: {
@@ -142,7 +142,7 @@ describe('UsersList profile modal', () => {
     })
 
     it('loads the selected user role when opening the edit modal', async () => {
-        axiosMock.get.mockResolvedValue({
+        axiosMock.get.mockResolvedValueOnce({ data: { data: [] } }).mockResolvedValue({
             data: {
                 data: {
                     name: 'Instructor Uno',
@@ -168,6 +168,7 @@ describe('UsersList profile modal', () => {
     })
 
     it('keeps the entered form data and shows the server error after a failed save', async () => {
+        axiosMock.get.mockResolvedValue({ data: { data: [] } })
         axiosMock.post.mockRejectedValue({
             response: { data: { message: 'El correo ya está registrado.' } },
         })

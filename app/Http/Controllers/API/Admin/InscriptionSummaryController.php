@@ -15,7 +15,7 @@ class InscriptionSummaryController extends Controller
 
     public function show(Inscription $inscription): JsonResponse
     {
-        abort_unless(isAdmin() || isSchool(), 401);
+        abort_unless(isAdmin() || isSchool() || isAssistant(), 403);
         abort_if((int) $inscription->school_id !== (int) getSchool(auth()->user())->id, 404);
 
         return response()->json([

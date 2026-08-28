@@ -56,7 +56,7 @@ class PaymentController extends Controller
 
     public function show($id, Request $request)
     {
-        abort_unless($request->ajax(), 401);
+        abort_unless($request->ajax() || $request->is('api/*'), 401);
         return $this->responseJson($this->payments->decoratedPayment((int) $id));
     }
 
@@ -66,7 +66,7 @@ class PaymentController extends Controller
      */
     public function update(SetPaymentRequest $request, $id): JsonResponse
     {
-        abort_unless($request->ajax(), 401);
+        abort_unless($request->ajax() || $request->is('api/*'), 401);
         $result = $this->payments->update((int) $id, $request->validated());
 
         if ($result['wrap_data']) {
