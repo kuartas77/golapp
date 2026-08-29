@@ -349,6 +349,8 @@ const onLoadData = async () => {
 
         if (name === "Provisional") {
             showMessage("El grupo Provisional no se puede modificar.", "warning");
+            resetFormState();
+            emit("cancel");
             return;
         }
 

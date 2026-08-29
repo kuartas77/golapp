@@ -4,7 +4,7 @@
             <div class="row">
                 <div class="col-md-auto d-flex gap-2 flex-wrap" data-tour="admin-training-groups-actions">
                     <a data-bs-toggle="modal" data-bs-target="#composeModalTrainigG" id="btn-compose-user"
-                        class="btn btn-block btn-primary" href="javascript:void(0);">
+                        class="btn btn-block btn-primary" href="javascript:void(0);" @click="openCreate">
                         Crear Grupo
                     </a>
                     <router-link :to="{ name: 'training-schedules' }" class="btn btn-outline-info">
@@ -56,6 +56,6 @@ import { trainingGroupsTutorial } from '@/tutorials/admin'
 import { useTemplateRef } from 'vue'
 
 const table = useTemplateRef('table')
-const { tableKey, options, selectedId, globalError, onClickRow, reloadTable, onCancel } = useTrainingList(table)
+const { tableKey, options, selectedId, globalError, onClickRow, openCreate, reloadTable, onCancel } = useTrainingList(table)
 const tutorial = usePageTutorial(trainingGroupsTutorial)
 </script>

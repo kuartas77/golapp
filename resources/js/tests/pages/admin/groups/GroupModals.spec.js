@@ -302,6 +302,62 @@ describe('Admin group modals', () => {
         expect(wrapper.vm.$.setupState.form.values.is_complementary).toBe(true);
     });
 
+    it('clears edit mode after trying to open the provisional training group', async () => {
+        const currentYear = String(new Date().getFullYear());
+        settingsStore.year_active = [currentYear];
+        apiMock.post.mockResolvedValue({ data: { success: true } });
+        apiMock.get.mockImplementation((url) => {
+            if (url === '/api/v2/admin/training_groups/1') {
+                return Promise.resolve({
+                    data: {
+                        data: {
+                            id: 1,
+                            name: 'Provisional',
+                            stage: '',
+                            year_active: Number(currentYear),
+                            years: [],
+                            category: [],
+                            explode_days: [],
+                            explode_schedules: [],
+                            instructors: [],
+                            is_complementary: false,
+                        },
+                    },
+                });
+            }
+
+            return Promise.reject(new Error(`Unexpected GET ${url}`));
+        });
+
+        const wrapper = await mountModal(ModalTrainingGroup);
+
+        await wrapper.setProps({ id: '1' });
+        await flushPromises();
+        await flushPromises();
+
+        expect(showMessage).toHaveBeenCalledWith('El grupo Provisional no se puede modificar.', 'warning');
+        expect(wrapper.emitted('cancel')).toHaveLength(1);
+
+        await wrapper.setProps({ id: null });
+        await wrapper.vm.$.setupState.submit({
+            name: 'Grupo Nuevo',
+            stage: '',
+            year_active: currentYear,
+            days: [{ value: 'Lunes', label: 'Lunes' }],
+            schedules: [],
+            user_id: [{ value: '7', label: 'Instructor Principal' }],
+            years: [],
+            is_complementary: false,
+            monthly_payment_amount: null,
+        }, {
+            setErrors: vi.fn(),
+        });
+
+        expect(apiMock.post).toHaveBeenCalledWith('/api/v2/admin/training_groups', expect.not.objectContaining({
+            _method: 'PUT',
+        }));
+    });
+
     it('keeps competition group labels available even when the active catalog no longer has them', async () => {
         settingsStore.categories = [{ value: 'SUB-17', label: 'SUB-17' }];
 

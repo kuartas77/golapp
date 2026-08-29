@@ -68,6 +68,10 @@ export default function useTrainingList(table) {
         selectedId.value = itemId
     }
 
+    const openCreate = () => {
+        selectedId.value = null
+    }
+
     const reloadTable = () => {
         selectedId.value = null
         reloadDataTable()
@@ -81,5 +85,5 @@ export default function useTrainingList(table) {
         usePageTitle('Grupos de entrenamiento')
     })
 
-    return { table, tableKey, options, selectedId, globalError, onClickRow, reloadTable, onCancel }
+    return { table, tableKey, options, selectedId, globalError, onClickRow, openCreate, reloadTable, onCancel }
 }

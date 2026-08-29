@@ -256,6 +256,31 @@ final class AdminGroupCatalogsTest extends TestCase
         $this->assertNull($trainingGroup->fresh()->schedules);
     }
 
+    public function test_provisional_training_group_cannot_be_updated(): void
+    {
+        $provisionalGroup = School::query()
+            ->findOrFail($this->school['id'])
+            ->trainingGroups()
+            ->where('name', 'Provisional')
+            ->firstOrFail();
+
+        $this->actingAs($this->user)
+            ->putJson("/api/v2/admin/training_groups/{$provisionalGroup->id}", [
+                'name' => 'Grupo Modificado',
+                'stage' => 'Cancha Norte',
+                'users_id' => [$this->user->id],
+                'categories' => [],
+                'schedules' => [],
+                'days' => ['Lunes'],
+                'year_active' => now()->year,
+                'is_complementary' => false,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('name');
+
+        $this->assertSame('Provisional', $provisionalGroup->fresh()->name);
+    }
+
     public function test_training_group_can_be_marked_as_complementary(): void
     {
         $payload = [

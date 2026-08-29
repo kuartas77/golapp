@@ -69,6 +69,14 @@ class TrainingGroupRequest extends FormRequest
     {
         $validator->after(function (Validator $validator): void {
             $school = getSchool(auth()->user());
+            $trainingGroup = $this->route('training_group') ?? $this->route('trainingGroup');
+
+            if ($trainingGroup?->name === 'Provisional') {
+                $validator->errors()->add(
+                    'name',
+                    'El grupo Provisional no se puede modificar.'
+                );
+            }
 
             if (
                 $school->training_group_monthly_payment_enabled
@@ -86,8 +94,6 @@ class TrainingGroupRequest extends FormRequest
             if (! $this->boolean('is_complementary')) {
                 return;
             }
-
-            $trainingGroup = $this->route('training_group') ?? $this->route('trainingGroup');
 
             if (! $trainingGroup) {
                 return;
