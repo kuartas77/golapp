@@ -101,7 +101,7 @@ class SettingsCatalogService
             'categories' => Cache::remember(
                 "KEY_CATEGORIES_{$id}",
                 now()->addDay(),
-                fn () => collect(range(now()->subYears(18)->year, now()->subYears(2)->year))
+                fn () => collect(range(now()->subYears(20)->year, now()->subYears(2)->year))
                     ->map(function ($year) use ($school) {
                         $category = $this->categoryFormatter->formatBirthYear($year, $school);
 
