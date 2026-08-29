@@ -148,6 +148,7 @@ describe('Admin group modals', () => {
         expect(wrapper.find('input[aria-label="Escenario"]').exists()).toBe(true);
         expect(wrapper.find('input[aria-label="Lugar de entrenamiento"]').exists()).toBe(false);
         expect(wrapper.find('label[for="years"] + span.text-danger').exists()).toBe(false);
+        expect(wrapper.find('label[for="schedules"] + span.text-danger').exists()).toBe(false);
     });
 
     it('shows the group tariff only for principal groups and marks it required when enabled', async () => {
@@ -187,7 +188,7 @@ describe('Admin group modals', () => {
             stage: '',
             year_active: currentYear,
             days: [{ value: 'Lunes', label: 'Lunes' }],
-            schedules: [{ value: '08:00 AM - 09:00 AM', label: '08:00 AM - 09:00 AM' }],
+            schedules: [],
             user_id: [{ value: '7', label: 'Instructor Principal' }],
             years: [],
             is_complementary: true,
@@ -198,6 +199,7 @@ describe('Admin group modals', () => {
 
         expect(apiMock.post).toHaveBeenCalledWith('/api/v2/admin/training_groups', expect.objectContaining({
             categories: [],
+            schedules: [],
             stage: '',
             is_complementary: true,
         }));

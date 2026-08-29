@@ -145,15 +145,19 @@ class TrainingGroup extends Model
 
     private function nameGroup(bool $full = false): string
     {
-        $name = filled($this->stage)
+        $parts = [filled($this->stage)
             ? sprintf('%s - %s', $this->name, $this->stage)
-            : (string) $this->name;
+            : (string) $this->name];
 
         if ($full && $this->name !== 'Provisional') {
-            $name .= sprintf(' %s %s', $this->days, $this->schedules);
+            $parts[] = $this->days;
+            $parts[] = $this->schedules;
         }
 
-        return trim($name);
+        return collect($parts)
+            ->filter(fn ($part) => filled($part))
+            ->map(fn ($part) => trim((string) $part))
+            ->implode(' ');
     }
 
     public function getFullScheduleGroupAttribute(): string
@@ -186,8 +190,12 @@ class TrainingGroup extends Model
     public function setSchedulesAttribute($value): void
     {
         if (is_array($value)) {
-            $this->attributes['schedules'] = implode(',', $value);
+            $value = collect($value)
+                ->filter(fn ($schedule) => filled($schedule))
+                ->implode(',');
         }
+
+        $this->attributes['schedules'] = filled($value) ? $value : null;
     }
 
     public function setDaysAttribute($value): void
@@ -212,7 +220,10 @@ class TrainingGroup extends Model
 
     public function getExplodeSchedulesAttribute()
     {
-        return explode(',', ($this->attributes['schedules'] ?? ''));
+        return collect(explode(',', ($this->attributes['schedules'] ?? '')))
+            ->filter(fn ($schedule) => filled($schedule))
+            ->values()
+            ->all();
     }
 
     public function getInstructorsNamesAttribute()

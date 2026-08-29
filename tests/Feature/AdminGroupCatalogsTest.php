@@ -211,6 +211,51 @@ final class AdminGroupCatalogsTest extends TestCase
         ]);
     }
 
+    public function test_training_group_schedule_is_optional_and_can_be_cleared(): void
+    {
+        $payload = [
+            'name' => 'Grupo Sin Horario',
+            'stage' => 'Cancha Norte',
+            'users_id' => [$this->user->id],
+            'categories' => [],
+            'days' => ['Lunes', 'Miércoles'],
+            'year_active' => now()->year,
+        ];
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/training_groups', $payload)
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $trainingGroup = TrainingGroup::query()
+            ->where('school_id', $this->school['id'])
+            ->where('name', 'Grupo Sin Horario')
+            ->firstOrFail();
+
+        $this->assertNull($trainingGroup->schedules);
+        $this->assertSame(
+            'Grupo Sin Horario - Cancha Norte Lunes,Miércoles',
+            $trainingGroup->full_schedule_group
+        );
+
+        $this->actingAs($this->user)
+            ->getJson("/api/v2/admin/training_groups/{$trainingGroup->id}")
+            ->assertOk()
+            ->assertJsonPath('data.explode_schedules', []);
+
+        $trainingGroup->update(['schedules' => ['07:00AM - 08:00AM']]);
+
+        $this->actingAs($this->user)
+            ->putJson("/api/v2/admin/training_groups/{$trainingGroup->id}", [
+                ...$payload,
+                'schedules' => null,
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertNull($trainingGroup->fresh()->schedules);
+    }
+
     public function test_training_group_can_be_marked_as_complementary(): void
     {
         $payload = [

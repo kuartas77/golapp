@@ -94,7 +94,7 @@ class TrainingGroupRepository
             'name' => $formRequest->input('name'),
             'stage' => $formRequest->input('stage'),
             'category' => $formRequest->input('categories', []),
-            'schedules' => $formRequest->input('schedules', []),
+            'schedules' => $formRequest->input('schedules'),
             'days' => $formRequest->input('days', []),
             'school_id' => $formRequest->input('school_id'),
             'year_active' => $formRequest->input('year_active'),

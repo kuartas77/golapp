@@ -93,7 +93,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <Field name="schedules" v-slot="{ field, handleChange, handleBlur }">
-                                            <label for="schedules">Horario(s)</label><span class="text-danger">*</span>
+                                            <label for="schedules">Horario(s)</label>
                                             <CustomMultiSelect v-bind="field" :buttons="true"
                                                 :options="scheduleOptions" @change="handleChange"
                                                 @blur="handleBlur" id="schedules" />
@@ -255,7 +255,7 @@ const schema = yup.object().shape({
         .min(1, "Selecciona al menos un día")
         .max(maxTrainingDays, `No puedes seleccionar más de ${maxTrainingDays} días`)
         .required(),
-    schedules: yup.array().min(1, "Selecciona al menos un horario").required(),
+    schedules: yup.array().default([]),
     user_id: yup.array().min(1, "Selecciona al menos un instructor").required(),
     is_complementary: yup.boolean().default(false),
     monthly_payment_amount: yup.number()
@@ -282,7 +282,7 @@ const submit = async (values, actions) => {
     try {
         let formData = {
             days: values.days.map((day) => day.value),
-            schedules: values.schedules.map((day) => day.value),
+            schedules: (values.schedules ?? []).map((schedule) => schedule.value),
             users_id: values.user_id.map((user) => user.value),
             categories: values.years.map((year) => year.value),
             name: values.name,
