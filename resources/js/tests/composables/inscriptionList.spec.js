@@ -89,4 +89,17 @@ describe('inscription list states', () => {
 
         wrapper.unmount();
     });
+
+    it('removes the global search control while preserving column searching', () => {
+        const wrapper = mountComposable();
+
+        expect(wrapper.vm.options.layout.topEnd).toBeNull();
+        expect(wrapper.vm.options.columns[5]).toMatchObject({
+            name: 'full_names',
+            searchable: true,
+        });
+        expect(wrapper.vm.onNameFilterChange).toBeTypeOf('function');
+
+        wrapper.unmount();
+    });
 });

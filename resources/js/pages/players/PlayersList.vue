@@ -25,6 +25,29 @@
             </div>
         </template>
         <template #body>
+            <div
+                v-if="activeImport"
+                class="alert d-flex align-items-start gap-2"
+                :class="importStatusClass"
+                role="status"
+            >
+                <span
+                    v-if="['pending', 'processing'].includes(activeImport.status)"
+                    class="spinner-border spinner-border-sm mt-1"
+                    aria-hidden="true"
+                ></span>
+                <div class="flex-grow-1">
+                    <strong>{{ importStatusTitle }}</strong>
+                    <div>{{ importStatusMessage }}</div>
+                </div>
+                <button
+                    v-if="['completed', 'failed'].includes(activeImport.status)"
+                    type="button"
+                    class="btn-close"
+                    aria-label="Cerrar estado de importación"
+                    @click="activeImport = null"
+                ></button>
+            </div>
             <ContentState
                 v-if="globalError"
                 type="error"
@@ -145,12 +168,14 @@ const importFile = ref(null)
 const importing = ref(false)
 const loadingSchools = ref(false)
 const importError = ref('')
+const activeImport = ref(null)
 const schoolOptions = ref([])
 const importForm = reactive({
     school_id: '',
 })
 
 let importModal = null
+let importPollTimer = null
 
 const isSuperAdmin = computed(() => auth.hasRole('super-admin'))
 const canImportPlayers = computed(() => auth.hasAnyRole(['super-admin', 'school']))
@@ -159,6 +184,33 @@ const canSubmitImport = computed(() => {
     return !importing.value
         && Boolean(importFile.value)
         && (!isSuperAdmin.value || Boolean(importForm.school_id))
+})
+const importStatusClass = computed(() => ({
+    'alert-info': ['pending', 'processing'].includes(activeImport.value?.status),
+    'alert-success': activeImport.value?.status === 'completed',
+    'alert-danger': activeImport.value?.status === 'failed',
+}))
+const importStatusTitle = computed(() => {
+    const titles = {
+        pending: 'Importación en cola',
+        processing: 'Importando deportistas',
+        completed: 'Importación completada',
+        failed: 'La importación no pudo completarse',
+    }
+
+    return titles[activeImport.value?.status] || 'Estado de importación'
+})
+const importStatusMessage = computed(() => {
+    if (activeImport.value?.status === 'completed') {
+        const summary = activeImport.value.summary ?? {}
+        return `${summary.created_players ?? 0} creados, ${summary.updated_players ?? 0} actualizados y ${summary.created_inscriptions ?? 0} inscripciones creadas.`
+    }
+
+    if (activeImport.value?.status === 'failed') {
+        return activeImport.value.error_message || 'Consulta los logs para conocer el error.'
+    }
+
+    return `Archivo: ${activeImport.value?.filename || 'deportistas'}. Puedes continuar usando la plataforma.`
 })
 
 const openImportModal = async () => {
@@ -216,17 +268,90 @@ const submitImport = async () => {
 
     try {
         const { data } = await api.post('/api/v2/import/players', payload)
+        activeImport.value = data.import
         closeImportModal()
-        reloadTable()
         await window.Swal?.fire({
-            icon: 'success',
-            title: data.message || 'Deportistas importados correctamente.',
+            icon: 'info',
+            title: data.message || 'La importación quedó en cola.',
+            text: 'Puedes continuar usando la plataforma mientras termina el proceso.',
             confirmButtonText: 'Entendido',
         })
+        scheduleImportPoll()
     } catch (error) {
+        if (error.response?.status === 409 && error.response?.data?.import) {
+            activeImport.value = error.response.data.import
+            scheduleImportPoll()
+        }
         importError.value = error.response?.data?.message || 'No fue posible importar los deportistas.'
     } finally {
         importing.value = false
+    }
+}
+
+const stopImportPoll = () => {
+    if (importPollTimer !== null) {
+        window.clearTimeout(importPollTimer)
+        importPollTimer = null
+    }
+}
+
+const scheduleImportPoll = () => {
+    stopImportPoll()
+
+    if (!activeImport.value?.id || !['pending', 'processing'].includes(activeImport.value.status)) {
+        return
+    }
+
+    importPollTimer = window.setTimeout(pollImportStatus, 3000)
+}
+
+const pollImportStatus = async () => {
+    if (!activeImport.value?.id) {
+        return
+    }
+
+    try {
+        const { data } = await api.get(`/api/v2/import/players/${activeImport.value.id}`, {
+            skipGlobalLoader: true,
+        })
+        activeImport.value = data.import
+
+        if (activeImport.value.status === 'completed') {
+            reloadTable()
+            await window.Swal?.fire({
+                icon: 'success',
+                title: 'Importación completada',
+                text: importStatusMessage.value,
+                confirmButtonText: 'Entendido',
+            })
+            return
+        }
+
+        if (activeImport.value.status === 'failed') {
+            await window.Swal?.fire({
+                icon: 'error',
+                title: 'La importación no pudo completarse',
+                text: importStatusMessage.value,
+                confirmButtonText: 'Entendido',
+            })
+            return
+        }
+    } catch {
+        // Un fallo temporal de consulta no cancela el proceso que sigue ejecutándose en el servidor.
+    }
+
+    scheduleImportPoll()
+}
+
+const loadActiveImport = async () => {
+    try {
+        const { data } = await api.get('/api/v2/import/players/latest', {
+            skipGlobalLoader: true,
+        })
+        activeImport.value = data.import
+        scheduleImportPoll()
+    } catch {
+        // El listado principal puede seguir funcionando aunque no se recupere este estado auxiliar.
     }
 }
 
@@ -237,9 +362,12 @@ onMounted(() => {
             keyboard: false,
         })
     }
+
+    loadActiveImport()
 })
 
 onBeforeUnmount(() => {
+    stopImportPoll()
     importModal?.dispose()
 })
 

@@ -336,7 +336,7 @@ class PlayerRepository
         $headers = $headings->first()->first();
 
         $headers_validation = collect([
-            'fecha_de_nacimiento', 'numero_de_documento', 'nombres', 'apellidos', 'genero', 'lugar_de_nacimiento',
+            'fecha_de_nacimiento', 'numero_de_documento', 'tipo_documento', 'nombres', 'apellidos', 'genero', 'lugar_de_nacimiento',
             'numero_de_documento', 'rh', 'escuela_o_colegio_donde_estudia', 'direccion_de_residencia', 'municipio',
             'barrio', 'correo_electronico', 'numero_de_celular', 'eps', 'nombres_y_apellidos',
             'numero_de_telefono', 'identification_card', 'profesion', 'empresa', 'cargo',

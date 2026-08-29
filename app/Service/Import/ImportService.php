@@ -17,19 +17,27 @@ class ImportService
 
     public function matchDetail(UploadedFile $file): array
     {
-        $import = new ImportMatchDetail();
+        $import = new ImportMatchDetail;
         Excel::import($import, $file);
+
         return $this->games->loadDataFromFile($import->getData());
     }
 
     public function players(UploadedFile $file, int $schoolId): array
     {
+        $this->validatePlayersFile($file);
+
+        $import = new ImportPlayers($schoolId, $this->players, $this->inscriptions);
+        Excel::import($import, $file);
+
+        return $import->summary();
+    }
+
+    public function validatePlayersFile(UploadedFile $file): void
+    {
         $diff = $this->players->validateImport($file);
         if ($diff !== '') {
             throw ValidationException::withMessages(['file' => "Error en las columnas: {$diff}"]);
         }
-        $import = new ImportPlayers($schoolId, $this->players, $this->inscriptions);
-        Excel::import($import, $file);
-        return $import->summary();
     }
 }

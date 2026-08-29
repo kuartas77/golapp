@@ -1,5 +1,5 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { computed, nextTick, ref, useTemplateRef } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef } from 'vue';
 import api from '@/utils/axios'
 import { useRouter } from 'vue-router'
 
@@ -12,6 +12,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
     const selectedCustomChargeInscriptionId = ref(null)
     const disableUrlSelected = ref(null)
     const globalError = ref('')
+    let nameFilterTimeout = null
     const currentYear = new Date().getFullYear()
     const canManageSelectedYear = computed(() => {
         const year = Number(selectedYear?.value ?? currentYear)
@@ -45,7 +46,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         { data: 'training_group.name', name: 'training_group_id', orderable: false, searchable: true },
         { data: 'player.category', name: 'inscriptions.category', orderable: false, searchable: true },
         { data: 'player.gender', name: 'player.gender', orderable: false, searchable: false },
-        { data: 'player.full_names', render: '#inscription', name: 'player.last_names', orderable: false, searchable: true  },
+        { data: 'player.full_names', render: '#inscription', name: 'full_names', orderable: false, searchable: true  },
         {
             data: 'pre_inscription',
             name: 'inscriptions.pre_inscription',
@@ -180,6 +181,12 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
     const options = {
         ...configLanguaje,
         lengthMenu: [[10, 20, 30, 50, 100], [10, 20, 30, 50, 100]],
+        layout: {
+            topStart: 'pageLength',
+            topEnd: null,
+            bottomStart: 'info',
+            bottomEnd: 'paging',
+        },
         columnDefs: [
             { responsivePriority: 1, targets: columns.length - 1 },
             { targets: [6], visible: false },
@@ -250,9 +257,20 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         applyColumnFilter(3, event?.target?.value ?? '')
     }
 
+    const onNameFilterChange = (event) => {
+        window.clearTimeout(nameFilterTimeout)
+        nameFilterTimeout = window.setTimeout(() => {
+            applyColumnFilter(5, String(event?.target?.value ?? '').trim())
+        }, 300)
+    }
+
     const onPreInscriptionFilterChange = (event) => {
         applyColumnFilter(6, event?.target?.value ?? '')
     }
+
+    onBeforeUnmount(() => {
+        window.clearTimeout(nameFilterTimeout)
+    })
 
     const resolveRouteFromClick = (e) => {
         const type = e.target.dataset.type
@@ -361,6 +379,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
         triggerCreateModal,
         onGroupFilterChange,
         onCategoryFilterChange,
+        onNameFilterChange,
         onPreInscriptionFilterChange,
         resolveRouteFromClick,
         onAttendanceQrModalToggle,

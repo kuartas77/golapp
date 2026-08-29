@@ -5,15 +5,21 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Imports\ImportPlayers;
+use App\Jobs\ProcessPlayerImport;
 use App\Models\Inscription;
 use App\Models\People;
 use App\Models\Player;
+use App\Models\PlayerImport;
 use App\Notifications\InscriptionNotification;
 use App\Repositories\InscriptionRepository;
 use App\Repositories\PlayerRepository;
+use App\Service\Import\ImportService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -76,11 +82,13 @@ final class ImportPlayersTest extends TestCase
         Notification::assertNotSentTo($player, InscriptionNotification::class);
     }
 
-    public function test_api_import_players_endpoint_creates_inscriptions(): void
+    public function test_api_import_players_endpoint_queues_and_tracks_the_import(): void
     {
         Notification::fake();
+        Queue::fake();
+        Storage::fake('local');
 
-        $this->actingAs($this->user)
+        $response = $this->actingAs($this->user)
             ->post('/api/v2/import/players', [
                 'file' => $this->makeImportFile([
                     'fecha_de_nacimiento' => ExcelDate::PHPToExcel(now()->subYears(11)->startOfDay()),
@@ -104,16 +112,22 @@ final class ImportPlayersTest extends TestCase
                     'cargo' => 'Coordinador',
                 ]),
             ], ['Accept' => 'application/json'])
-            ->assertOk()
-            ->assertJson([
-                'success' => true,
-                'summary' => [
-                    'created_players' => 1,
-                    'updated_players' => 0,
-                    'created_inscriptions' => 1,
-                    'skipped_inscriptions' => 0,
-                ],
-            ]);
+            ->assertAccepted()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('import.status', PlayerImport::STATUS_PENDING);
+
+        $playerImport = PlayerImport::query()->firstOrFail();
+        Storage::disk('local')->assertExists($playerImport->path);
+        Queue::assertPushed(ProcessPlayerImport::class, fn (ProcessPlayerImport $job) => $job->playerImportId === $playerImport->id);
+
+        $job = Queue::pushed(ProcessPlayerImport::class)->first();
+        $job->handle(app(ImportService::class));
+
+        $playerImport->refresh();
+        $this->assertSame(PlayerImport::STATUS_COMPLETED, $playerImport->status);
+        $this->assertSame(1, $playerImport->summary['created_players']);
+        $this->assertSame(1, $playerImport->summary['created_inscriptions']);
+        Storage::disk('local')->assertMissing($playerImport->path);
 
         $player = Player::query()
             ->where('school_id', $this->school['id'])
@@ -126,23 +140,95 @@ final class ImportPlayersTest extends TestCase
             'year' => getYearInscription(),
         ]);
         Notification::assertNotSentTo($player, InscriptionNotification::class);
+
+        $this->actingAs($this->user)
+            ->getJson("/api/v2/import/players/{$response->json('import.id')}")
+            ->assertOk()
+            ->assertJsonPath('import.status', PlayerImport::STATUS_COMPLETED)
+            ->assertJsonPath('import.summary.created_players', 1);
+    }
+
+    public function test_queued_import_exposes_validation_failure_and_removes_the_file(): void
+    {
+        Queue::fake();
+        Storage::fake('local');
+
+        $response = $this->actingAs($this->user)
+            ->post('/api/v2/import/players', [
+                'file' => $this->makeImportFile($this->playerRow([
+                    'numero_de_documento' => 'DOC-IMPORT-JOB-INVALIDO',
+                    'nombres_y_apellidos' => 'Acudiente Incompleto',
+                    'numero_de_telefono' => '',
+                ])),
+            ], ['Accept' => 'application/json'])
+            ->assertAccepted();
+
+        $playerImport = PlayerImport::query()->firstOrFail();
+        $job = Queue::pushed(ProcessPlayerImport::class)->first();
+
+        try {
+            $job->handle(app(ImportService::class));
+            $this->fail('The queued import should have failed validation.');
+        } catch (ValidationException) {
+            // The job persists a safe validation message before letting the queue mark it as failed.
+        }
+
+        $playerImport->refresh();
+        $this->assertSame(PlayerImport::STATUS_FAILED, $playerImport->status);
+        $this->assertSame(
+            'Fila 2: completa numero_de_telefono del acudiente o deja los datos del acudiente vacíos.',
+            $playerImport->error_message
+        );
+        Storage::disk('local')->assertMissing($playerImport->path);
+
+        $this->actingAs($this->user)
+            ->getJson("/api/v2/import/players/{$response->json('import.id')}")
+            ->assertOk()
+            ->assertJsonPath('import.status', PlayerImport::STATUS_FAILED)
+            ->assertJsonPath('import.error_message', $playerImport->error_message);
+    }
+
+    public function test_a_school_cannot_queue_two_player_imports_at_the_same_time(): void
+    {
+        Queue::fake();
+        Storage::fake('local');
+
+        $firstResponse = $this->actingAs($this->user)
+            ->post('/api/v2/import/players', [
+                'file' => $this->makeImportFile($this->playerRow([
+                    'numero_de_documento' => 'DOC-IMPORT-EN-COLA-1',
+                ])),
+            ], ['Accept' => 'application/json'])
+            ->assertAccepted();
+
+        $this->actingAs($this->user)
+            ->post('/api/v2/import/players', [
+                'file' => $this->makeImportFile($this->playerRow([
+                    'numero_de_documento' => 'DOC-IMPORT-EN-COLA-2',
+                ])),
+            ], ['Accept' => 'application/json'])
+            ->assertConflict()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('import.id', $firstResponse->json('import.id'));
+
+        $this->assertDatabaseCount('player_imports', 1);
+        Queue::assertPushed(ProcessPlayerImport::class, 1);
     }
 
     public function test_imported_player_can_be_created_without_a_guardian(): void
     {
         Notification::fake();
 
-        $this->actingAs($this->user)
-            ->post('/api/v2/import/players', [
-                'file' => $this->makeImportFile($this->playerRow([
-                    'numero_de_documento' => 'DOC-IMPORT-SIN-ACUDIENTE',
-                    'nombres_y_apellidos' => '',
-                    'numero_de_telefono' => '',
-                ])),
-            ], ['Accept' => 'application/json'])
-            ->assertOk()
-            ->assertJsonPath('summary.created_players', 1)
-            ->assertJsonPath('summary.created_inscriptions', 1);
+        $summary = $this->importRows([
+            $this->playerRow([
+                'numero_de_documento' => 'DOC-IMPORT-SIN-ACUDIENTE',
+                'nombres_y_apellidos' => '',
+                'numero_de_telefono' => '',
+            ]),
+        ]);
+
+        $this->assertSame(1, $summary['created_players']);
+        $this->assertSame(1, $summary['created_inscriptions']);
 
         $player = Player::query()
             ->where('school_id', $this->school['id'])
@@ -160,20 +246,14 @@ final class ImportPlayersTest extends TestCase
 
     public function test_import_rejects_partial_guardian_data_without_creating_the_player(): void
     {
-        $this->actingAs($this->user)
-            ->post('/api/v2/import/players', [
-                'file' => $this->makeImportFile($this->playerRow([
-                    'numero_de_documento' => 'DOC-IMPORT-ACUDIENTE-PARCIAL',
-                    'nombres_y_apellidos' => 'Acudiente Incompleto',
-                    'numero_de_telefono' => '',
-                ])),
-            ], ['Accept' => 'application/json'])
-            ->assertUnprocessable()
-            ->assertJsonPath(
-                'message',
-                'Fila 2: completa numero_de_telefono del acudiente o deja los datos del acudiente vacíos.'
-            )
-            ->assertJsonValidationErrors(['file']);
+        $this->assertImportValidationError(
+            $this->playerRow([
+                'numero_de_documento' => 'DOC-IMPORT-ACUDIENTE-PARCIAL',
+                'nombres_y_apellidos' => 'Acudiente Incompleto',
+                'numero_de_telefono' => '',
+            ]),
+            'Fila 2: completa numero_de_telefono del acudiente o deja los datos del acudiente vacíos.'
+        );
 
         $this->assertDatabaseMissing('players', [
             'school_id' => $this->school['id'],
@@ -183,20 +263,14 @@ final class ImportPlayersTest extends TestCase
 
     public function test_import_rejects_guardian_phone_without_guardian_name(): void
     {
-        $this->actingAs($this->user)
-            ->post('/api/v2/import/players', [
-                'file' => $this->makeImportFile($this->playerRow([
-                    'numero_de_documento' => 'DOC-IMPORT-ACUDIENTE-SIN-NOMBRE',
-                    'nombres_y_apellidos' => '',
-                    'numero_de_telefono' => '6049876543',
-                ])),
-            ], ['Accept' => 'application/json'])
-            ->assertUnprocessable()
-            ->assertJsonPath(
-                'message',
-                'Fila 2: completa nombres_y_apellidos del acudiente o deja los datos del acudiente vacíos.'
-            )
-            ->assertJsonValidationErrors(['file']);
+        $this->assertImportValidationError(
+            $this->playerRow([
+                'numero_de_documento' => 'DOC-IMPORT-ACUDIENTE-SIN-NOMBRE',
+                'nombres_y_apellidos' => '',
+                'numero_de_telefono' => '6049876543',
+            ]),
+            'Fila 2: completa nombres_y_apellidos del acudiente o deja los datos del acudiente vacíos.'
+        );
 
         $this->assertDatabaseMissing('players', [
             'school_id' => $this->school['id'],
@@ -206,16 +280,14 @@ final class ImportPlayersTest extends TestCase
 
     public function test_import_accepts_identification_card_as_the_guardian_document(): void
     {
-        $this->actingAs($this->user)
-            ->post('/api/v2/import/players', [
-                'file' => $this->makeImportFile($this->playerRow([
-                    'numero_de_documento' => 'DOC-IMPORT-DOCUMENTO-ACUDIENTE',
-                    'nombres_y_apellidos' => 'Acudiente Con Documento',
-                    'numero_de_telefono' => '6041112233',
-                    'identification_card' => 'CC-987654321',
-                ])),
-            ], ['Accept' => 'application/json'])
-            ->assertOk();
+        $this->importRows([
+            $this->playerRow([
+                'numero_de_documento' => 'DOC-IMPORT-DOCUMENTO-ACUDIENTE',
+                'nombres_y_apellidos' => 'Acudiente Con Documento',
+                'numero_de_telefono' => '6041112233',
+                'identification_card' => 'CC-987654321',
+            ]),
+        ]);
 
         $this->assertDatabaseHas('peoples', [
             'names' => 'ACUDIENTE CON DOCUMENTO',
@@ -226,21 +298,15 @@ final class ImportPlayersTest extends TestCase
 
     public function test_import_rejects_guardian_document_without_name_and_phone(): void
     {
-        $this->actingAs($this->user)
-            ->post('/api/v2/import/players', [
-                'file' => $this->makeImportFile($this->playerRow([
-                    'numero_de_documento' => 'DOC-IMPORT-SOLO-DOCUMENTO-ACUDIENTE',
-                    'nombres_y_apellidos' => '',
-                    'numero_de_telefono' => '',
-                    'identification_card' => 'CC-123456789',
-                ])),
-            ], ['Accept' => 'application/json'])
-            ->assertUnprocessable()
-            ->assertJsonPath(
-                'message',
-                'Fila 2: completa nombres_y_apellidos y numero_de_telefono del acudiente o deja los datos del acudiente vacíos.'
-            )
-            ->assertJsonValidationErrors(['file']);
+        $this->assertImportValidationError(
+            $this->playerRow([
+                'numero_de_documento' => 'DOC-IMPORT-SOLO-DOCUMENTO-ACUDIENTE',
+                'nombres_y_apellidos' => '',
+                'numero_de_telefono' => '',
+                'identification_card' => 'CC-123456789',
+            ]),
+            'Fila 2: completa nombres_y_apellidos y numero_de_telefono del acudiente o deja los datos del acudiente vacíos.'
+        );
 
         $this->assertDatabaseMissing('players', [
             'school_id' => $this->school['id'],
@@ -261,17 +327,15 @@ final class ImportPlayersTest extends TestCase
         ]);
         $player->people()->attach($guardian);
 
-        $this->actingAs($this->user)
-            ->post('/api/v2/import/players', [
-                'file' => $this->makeImportFile($this->playerRow([
-                    'numero_de_documento' => 'DOC-IMPORT-CONSERVA-ACUDIENTE',
-                    'nombres_y_apellidos' => '',
-                    'numero_de_telefono' => '',
-                ])),
-            ], ['Accept' => 'application/json'])
-            ->assertOk()
-            ->assertJsonPath('summary.updated_players', 1);
+        $summary = $this->importRows([
+            $this->playerRow([
+                'numero_de_documento' => 'DOC-IMPORT-CONSERVA-ACUDIENTE',
+                'nombres_y_apellidos' => '',
+                'numero_de_telefono' => '',
+            ]),
+        ]);
 
+        $this->assertSame(1, $summary['updated_players']);
         $this->assertTrue($player->people()->whereKey($guardian->id)->exists());
     }
 
@@ -325,7 +389,7 @@ final class ImportPlayersTest extends TestCase
         $this->assertSame(1, Inscription::query()->where('player_id', $player->id)->where('year', getYearInscription())->count());
     }
 
-    public function test_api_import_players_endpoint_reports_bulk_summary(): void
+    public function test_bulk_import_reports_summary(): void
     {
         Notification::fake();
 
@@ -358,63 +422,57 @@ final class ImportPlayersTest extends TestCase
             'tournament_pay' => false,
         ]);
 
-        $this->actingAs($this->user)
-            ->post('/api/v2/import/players', [
-                'file' => $this->makeImportFile([
-                    [
-                        'fecha_de_nacimiento' => ExcelDate::PHPToExcel(now()->subYears(11)->startOfDay()),
-                        'numero_de_documento' => 'DOC-IMPORT-BULK-1',
-                        'nombres' => 'Actualizado',
-                        'apellidos' => 'Uno',
-                        'genero' => 'M',
-                        'lugar_de_nacimiento' => 'Medellin',
-                        'rh' => 'O+',
-                        'escuela_o_colegio_donde_estudia' => 'Colegio Bulk',
-                        'direccion_de_residencia' => 'Calle 1',
-                        'municipio' => 'Medellin',
-                        'barrio' => 'Centro',
-                        'correo_electronico' => 'bulk1@example.com',
-                        'numero_de_celular' => '3000000001',
-                        'eps' => 'Sura',
-                        'nombres_y_apellidos' => 'Acudiente Bulk',
-                        'numero_de_telefono' => '6040000001',
-                        'profesion' => '',
-                        'empresa' => '',
-                        'cargo' => '',
-                    ],
-                    [
-                        'fecha_de_nacimiento' => ExcelDate::PHPToExcel(now()->subYears(12)->startOfDay()),
-                        'numero_de_documento' => 'DOC-IMPORT-BULK-2',
-                        'nombres' => 'Nuevo',
-                        'apellidos' => 'Dos',
-                        'genero' => 'F',
-                        'lugar_de_nacimiento' => 'Cali',
-                        'rh' => 'A+',
-                        'escuela_o_colegio_donde_estudia' => 'Colegio Bulk',
-                        'direccion_de_residencia' => 'Calle 2',
-                        'municipio' => 'Cali',
-                        'barrio' => 'Sur',
-                        'correo_electronico' => 'bulk2@example.com',
-                        'numero_de_celular' => '3000000002',
-                        'eps' => 'Sanitas',
-                        'nombres_y_apellidos' => 'Acudiente Bulk',
-                        'numero_de_telefono' => '6040000001',
-                        'profesion' => '',
-                        'empresa' => '',
-                        'cargo' => '',
-                    ],
-                ]),
-            ], ['Accept' => 'application/json'])
-            ->assertOk()
-            ->assertJson([
-                'success' => true,
-                'summary' => [
-                    'created_players' => 1,
-                    'updated_players' => 1,
-                    'created_inscriptions' => 1,
-                    'skipped_inscriptions' => 1,
-                ],
-            ]);
+        $summary = $this->importRows([
+            [
+                'fecha_de_nacimiento' => ExcelDate::PHPToExcel(now()->subYears(11)->startOfDay()),
+                'numero_de_documento' => 'DOC-IMPORT-BULK-1',
+                'nombres' => 'Actualizado',
+                'apellidos' => 'Uno',
+                'genero' => 'M',
+                'lugar_de_nacimiento' => 'Medellin',
+                'rh' => 'O+',
+                'escuela_o_colegio_donde_estudia' => 'Colegio Bulk',
+                'direccion_de_residencia' => 'Calle 1',
+                'municipio' => 'Medellin',
+                'barrio' => 'Centro',
+                'correo_electronico' => 'bulk1@example.com',
+                'numero_de_celular' => '3000000001',
+                'eps' => 'Sura',
+                'nombres_y_apellidos' => 'Acudiente Bulk',
+                'numero_de_telefono' => '6040000001',
+                'profesion' => '',
+                'empresa' => '',
+                'cargo' => '',
+            ],
+            [
+                'fecha_de_nacimiento' => ExcelDate::PHPToExcel(now()->subYears(12)->startOfDay()),
+                'numero_de_documento' => 'DOC-IMPORT-BULK-2',
+                'nombres' => 'Nuevo',
+                'apellidos' => 'Dos',
+                'genero' => 'F',
+                'lugar_de_nacimiento' => 'Cali',
+                'rh' => 'A+',
+                'escuela_o_colegio_donde_estudia' => 'Colegio Bulk',
+                'direccion_de_residencia' => 'Calle 2',
+                'municipio' => 'Cali',
+                'barrio' => 'Sur',
+                'correo_electronico' => 'bulk2@example.com',
+                'numero_de_celular' => '3000000002',
+                'eps' => 'Sanitas',
+                'nombres_y_apellidos' => 'Acudiente Bulk',
+                'numero_de_telefono' => '6040000001',
+                'profesion' => '',
+                'empresa' => '',
+                'cargo' => '',
+            ],
+        ]);
+
+        $this->assertSame([
+            'created_players' => 1,
+            'updated_players' => 1,
+            'created_inscriptions' => 1,
+            'skipped_inscriptions' => 1,
+        ], $summary);
 
         $this->assertSame('ACTUALIZADO', $existing->refresh()->names);
         $this->assertSame(1, Inscription::query()->where('player_id', $existing->id)->where('year', getYearInscription())->count());
@@ -439,6 +497,29 @@ final class ImportPlayersTest extends TestCase
             mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             test: true
         );
+    }
+
+    private function importRows(array $rows): array
+    {
+        $import = new ImportPlayers(
+            (int) $this->school['id'],
+            app(PlayerRepository::class),
+            app(InscriptionRepository::class)
+        );
+
+        $import->collection(collect($rows)->map(fn (array $row) => new Collection($row)));
+
+        return $import->summary();
+    }
+
+    private function assertImportValidationError(array $row, string $expectedMessage): void
+    {
+        try {
+            $this->importRows([$row]);
+            $this->fail('The import should have failed validation.');
+        } catch (ValidationException $exception) {
+            $this->assertSame($expectedMessage, $exception->validator->errors()->first('file'));
+        }
     }
 
     private function playerRow(array $overrides = []): array

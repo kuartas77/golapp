@@ -123,7 +123,18 @@
                                     </select>
                                 </th>
                                 <th>Genero</th>
-                                <th>Nombres</th>
+                                <th>
+                                    <input
+                                        type="text"
+                                        class="form-control form-control-sm form-control-custom"
+                                        id="full_names"
+                                        name="full_names"
+                                        placeholder="Nombres..."
+                                        aria-label="Filtrar por nombres"
+                                        @input="onNameFilterChange"
+                                        @click.stop
+                                    >
+                                </th>
                                 <th></th>
                                 <th>Cert. Médico</th>
                                 <th>F.Inicio</th>
@@ -257,6 +268,7 @@ const {
     triggerCreateModal,
     onGroupFilterChange,
     onCategoryFilterChange,
+    onNameFilterChange,
     onPreInscriptionFilterChange,
     resolveRouteFromClick,
     onAttendanceQrModalToggle,
