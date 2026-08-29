@@ -117,7 +117,6 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
         $dateBirth = $this->parseBirthDate($this->rowValue($row, 'fecha_de_nacimiento'));
 
         return [
-            'unique_code' => createUniqueCode($this->school_id),
             'names' => Str::upper($this->rowValue($row, 'nombres')),
             'last_names' => Str::upper($this->rowValue($row, 'apellidos')),
             'gender' => $this->checkGender($this->rowValue($row, 'genero')),
@@ -163,6 +162,7 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
         $player = $this->playersByDocument->get($dataPlayer['identification_document']);
 
         if (! $player) {
+            $dataPlayer['unique_code'] = createUniqueCode((string) $this->school_id);
             $player = Player::query()->create($dataPlayer);
             $this->createdPlayers++;
             $this->playersByDocument->put($player->identification_document, $player);

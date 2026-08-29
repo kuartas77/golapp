@@ -16,6 +16,7 @@ use App\Repositories\PlayerRepository;
 use App\Service\Import\ImportService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
@@ -387,6 +388,27 @@ final class ImportPlayersTest extends TestCase
         $this->assertSame($originalUniqueCode, $player->unique_code);
         $this->assertSame(1, Player::query()->where('identification_document', 'DOC-IMPORT-2')->count());
         $this->assertSame(1, Inscription::query()->where('player_id', $player->id)->where('year', getYearInscription())->count());
+    }
+
+    public function test_reimporting_an_existing_player_does_not_consume_a_unique_code(): void
+    {
+        $year = (string) now()->year;
+        $schoolId = (int) $this->school['id'];
+
+        Player::factory()->create([
+            'school_id' => $schoolId,
+            'identification_document' => 'DOC-IMPORT-CODIGO-EXISTENTE',
+            'unique_code' => $year.'0283',
+        ]);
+        Cache::forget('KEY_LAST_UNIQUE_CODE_'.$schoolId);
+
+        $this->importRows([
+            $this->playerRow([
+                'numero_de_documento' => 'DOC-IMPORT-CODIGO-EXISTENTE',
+            ]),
+        ]);
+
+        $this->assertSame($year.'0284', (string) createUniqueCode((string) $schoolId));
     }
 
     public function test_bulk_import_reports_summary(): void
