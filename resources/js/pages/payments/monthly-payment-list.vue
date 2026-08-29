@@ -59,6 +59,21 @@
                             <ErrorMessage name="status" class="custom-error" />
                         </div>
                         <div class="col-sm-4 col-lg-2">
+                            <div class="form-check text-start mb-2">
+                                <Field
+                                    id="include_retired"
+                                    name="include_retired"
+                                    type="checkbox"
+                                    class="form-check-input"
+                                    :value="true"
+                                    :unchecked-value="false"
+                                />
+                                <label class="form-check-label" for="include_retired">
+                                    Incluir retirados
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 col-lg-2">
                             <button type="submit" class="btn btn-primary w-100" :disabled="isLoading">
                                 Buscar
                                 <template v-if="isLoading">

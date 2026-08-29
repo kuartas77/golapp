@@ -105,6 +105,7 @@ export default function useMonthlyPayments() {
         player_search: yup.string().max(150).nullable().optional(),
         month: yup.string().nullable().optional(),
         status: yup.string().nullable().optional(),
+        include_retired: yup.boolean().optional(),
     })
     const formData = ref({
         year: defaultYear,
@@ -113,6 +114,7 @@ export default function useMonthlyPayments() {
         player_search: '',
         month: defaultMonthField,
         status: '',
+        include_retired: false,
     })
     const viewMode = ref('annual')
     const bulkStatus = ref('')
@@ -155,6 +157,7 @@ export default function useMonthlyPayments() {
                 training_group_id: values.training_group_id,
                 month: selectedMonth || null,
                 status: values.status || null,
+                include_retired: Boolean(values.include_retired),
                 dataRaw: true
             }
             const response = await api.get(`/api/v2/payments`, { params: params })

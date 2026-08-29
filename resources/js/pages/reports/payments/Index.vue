@@ -11,7 +11,7 @@
                         <template v-else>
                         <div class="row g-4 align-items-start">
                             <div class="col-lg-5" data-tour="payment-report-intro">
-                                <h4 class="mb-2">Informe de pagos</h4>
+                                <h4 class="mb-2">Informe de mensualidades</h4>
                                 <p class="text-muted mb-3">
                                     Solicita el consolidado por año o por año y grupo y recíbelo por correo cuando esté listo.
                                 </p>

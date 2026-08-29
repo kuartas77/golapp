@@ -16,7 +16,7 @@ const parseQueryNumber = (value) => {
 }
 
 export default function usePaymentReport() {
-    usePageTitle('Informe de pagos')
+    usePageTitle('Informe de mensualidades')
 
     const route = useRoute()
 

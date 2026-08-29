@@ -147,7 +147,7 @@ class PaymentListingService
             'inscription_amount' => $this->paymentAmountResolver->inscriptionAmountForSchool($school),
             'monthly_payment' => $this->paymentAmountResolver->monthlyAmountForSchool($school),
             'annuity' => $this->paymentAmountResolver->annuityAmountForSchool($school),
-            'filter_options' => $this->filterOptions((int) $school->id, $year),
+            'filter_options' => $this->filterOptions((int) $school->id, $year, $deleted),
         ];
 
         return $this->generateResponse($payments, $payments->count(), $urlExportExcel, $urlExportPDF, $extra);
@@ -246,12 +246,16 @@ class PaymentListingService
         return $query->orderByRaw("CAST(SUBSTRING_INDEX(category, '-', -1) AS UNSIGNED) ASC");
     }
 
-    private function filterOptions(int $schoolId, int $year): array
+    private function filterOptions(int $schoolId, int $year, bool $includeDeleted = false): array
     {
         $payments = Payment::query()
             ->where('school_id', $schoolId)
             ->where('year', $year)
-            ->whereNull('deleted_at');
+            ->when(
+                $includeDeleted,
+                fn (Builder $query) => $query->withTrashed(),
+                fn (Builder $query) => $query->whereNull('deleted_at')
+            );
 
         $categories = Inscription::withTrashed()
             ->where('school_id', $schoolId)

@@ -364,6 +364,60 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         ));
     }
 
+    public function test_monthly_payment_list_and_export_include_retired_inscriptions(): void
+    {
+        $this->actingAs($this->user);
+        [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
+        $payment->forceFill([
+            'january' => Payment::$paid_cash,
+            'january_amount' => 64000,
+        ])->save();
+        $payment->delete();
+        $inscription->delete();
+
+        $this
+            ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+            ->getJson('/api/v2/payments?'.http_build_query([
+                'year' => now()->year,
+                'training_group_id' => $trainingGroup->id,
+                'dataRaw' => true,
+            ]))
+            ->assertOk()
+            ->assertJsonCount(0, 'rows');
+
+        $response = $this
+            ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+            ->getJson('/api/v2/payments?'.http_build_query([
+                'year' => now()->year,
+                'training_group_id' => $trainingGroup->id,
+                'include_retired' => true,
+                'dataRaw' => true,
+            ]));
+
+        $response
+            ->assertOk()
+            ->assertJsonCount(1, 'rows')
+            ->assertJsonPath('rows.0.id', $payment->id)
+            ->assertJsonPath('rows.0.inscription_deleted', true);
+        $this->assertStringContainsString('deleted=1', (string) $response->json('url_export_excel'));
+
+        $view = (new PaymentsExport([
+            'school_id' => $this->school['id'],
+            'year' => now()->year,
+            'training_group_id' => $trainingGroup->id,
+        ], true))->view();
+        $data = $view->getData();
+
+        $this->assertTrue($data['payments']->contains('id', $payment->id));
+        $this->assertSame(64000, (int) $data['accumulate']['pago_efectivo']);
+        $this->assertStringContainsString('Inscripción retirada', $view->render());
+
+        $this->getJson('/api/v2/reports/payments?year='.now()->year)
+            ->assertOk()
+            ->assertJsonFragment(['value' => now()->year, 'label' => (string) now()->year])
+            ->assertJsonFragment(['value' => $trainingGroup->id, 'label' => $trainingGroup->name]);
+    }
+
     public function test_payment_bulk_update_marks_only_active_loaded_payments(): void
     {
         $this->actingAs($this->user);

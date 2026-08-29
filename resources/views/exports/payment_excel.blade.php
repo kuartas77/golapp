@@ -25,7 +25,12 @@
         <tr>
             <td>{{$payment->year}}</td>
             <td>{{$payment->unique_code}}</td>
-            <td>{{$payment->inscription->player->full_names}}</td>
+            <td>
+                {{$payment->inscription->player->full_names}}
+                @if($payment->inscription->trashed())
+                    (Inscripción retirada)
+                @endif
+            </td>
             <td>{{$payment->category}}</td>
             @include('templates.payments.color',['amount' => getAmount($payment->enrollment_amount), 'value' => $payment->enrollment])
             @include('templates.payments.color',['amount' => getAmount($payment->january_amount), 'value' => $payment->january])

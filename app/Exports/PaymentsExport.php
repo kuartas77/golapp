@@ -2,21 +2,21 @@
 
 namespace App\Exports;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Contracts\View\View;
 use App\Repositories\PaymentRepository;
-use Maatwebsite\Excel\Concerns\FromView;
-use Maatwebsite\Excel\Events\AfterSheet;
-use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\Exportable;
-use Maatwebsite\Excel\Concerns\WithEvents;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Concerns\Exportable;
+use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnFormatting, ShouldAutoSize, WithEvents
+class PaymentsExport implements FromView, ShouldAutoSize, ShouldQueue, WithColumnFormatting, WithEvents, WithTitle
 {
     use Exportable;
 
@@ -33,13 +33,13 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
 
         return view('exports.payment_excel', [
             'payments' => $queryPayments->get(),
-            'accumulate' => $accumulate
+            'accumulate' => $accumulate,
         ]);
     }
 
     public function title(): string
     {
-        return "Pagos";
+        return 'Mensualidades';
     }
 
     public function columnFormats(): array
@@ -65,43 +65,43 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
     public function registerEvents(): array
     {
         return [
-            AfterSheet::class => function(AfterSheet $event) {
+            AfterSheet::class => function (AfterSheet $event) {
                 $lastRow = $event->sheet->getHighestRow();
-                $lastCell = ($lastRow-3);
-                $lastCellSum = ($lastRow-4);
+                $lastCell = ($lastRow - 3);
+                $lastCellSum = ($lastRow - 4);
 
                 // $event->sheet->setCellValue('C'. ($lastCell), 'Totales:');
-                $event->sheet->setCellValue('D'. ($lastCell), 'Totales:');
-                $event->sheet->setCellValue('E'. ($lastCell), '=SUM(E2:E'.($lastCellSum).')');
-                $event->sheet->setCellValue('F'. ($lastCell), '=SUM(F2:F'.($lastCellSum).')');
-                $event->sheet->setCellValue('G'. ($lastCell), '=SUM(G2:G'.($lastCellSum).')');
-                $event->sheet->setCellValue('H'. ($lastCell), '=SUM(H2:H'.($lastCellSum).')');
-                $event->sheet->setCellValue('I'. ($lastCell), '=SUM(I2:I'.($lastCellSum).')');
-                $event->sheet->setCellValue('J'. ($lastCell), '=SUM(J2:J'.($lastCellSum).')');
-                $event->sheet->setCellValue('K'. ($lastCell), '=SUM(K2:K'.($lastCellSum).')');
-                $event->sheet->setCellValue('L'. ($lastCell), '=SUM(L2:L'.($lastCellSum).')');
-                $event->sheet->setCellValue('M'. ($lastCell), '=SUM(M2:M'.($lastCellSum).')');
-                $event->sheet->setCellValue('N'. ($lastCell), '=SUM(N2:N'.($lastCellSum).')');
-                $event->sheet->setCellValue('O'. ($lastCell), '=SUM(O2:O'.($lastCellSum).')');
-                $event->sheet->setCellValue('P'. ($lastCell), '=SUM(P2:P'.($lastCellSum).')');
-                $event->sheet->setCellValue('Q'. ($lastCell), '=SUM(Q2:Q'.($lastCellSum).')');
+                $event->sheet->setCellValue('D'.($lastCell), 'Totales:');
+                $event->sheet->setCellValue('E'.($lastCell), '=SUM(E2:E'.($lastCellSum).')');
+                $event->sheet->setCellValue('F'.($lastCell), '=SUM(F2:F'.($lastCellSum).')');
+                $event->sheet->setCellValue('G'.($lastCell), '=SUM(G2:G'.($lastCellSum).')');
+                $event->sheet->setCellValue('H'.($lastCell), '=SUM(H2:H'.($lastCellSum).')');
+                $event->sheet->setCellValue('I'.($lastCell), '=SUM(I2:I'.($lastCellSum).')');
+                $event->sheet->setCellValue('J'.($lastCell), '=SUM(J2:J'.($lastCellSum).')');
+                $event->sheet->setCellValue('K'.($lastCell), '=SUM(K2:K'.($lastCellSum).')');
+                $event->sheet->setCellValue('L'.($lastCell), '=SUM(L2:L'.($lastCellSum).')');
+                $event->sheet->setCellValue('M'.($lastCell), '=SUM(M2:M'.($lastCellSum).')');
+                $event->sheet->setCellValue('N'.($lastCell), '=SUM(N2:N'.($lastCellSum).')');
+                $event->sheet->setCellValue('O'.($lastCell), '=SUM(O2:O'.($lastCellSum).')');
+                $event->sheet->setCellValue('P'.($lastCell), '=SUM(P2:P'.($lastCellSum).')');
+                $event->sheet->setCellValue('Q'.($lastCell), '=SUM(Q2:Q'.($lastCellSum).')');
 
-                $event->sheet->setCellValue('R'. ($lastCell), '=SUM(E'.($lastCell).':Q'.($lastCell).')');
-                $event->sheet->setCellValue('R'. ($lastCell+3), '=SUM(E'.($lastRow).':Q'.($lastRow).')');
+                $event->sheet->setCellValue('R'.($lastCell), '=SUM(E'.($lastCell).':Q'.($lastCell).')');
+                $event->sheet->setCellValue('R'.($lastCell + 3), '=SUM(E'.($lastRow).':Q'.($lastRow).')');
 
                 $lastColumn = $event->sheet->getHighestColumn();
 
-                $range = 'A1:' . $lastColumn . $lastRow;
+                $range = 'A1:'.$lastColumn.$lastRow;
 
                 $event->sheet->getStyle($range)->applyFromArray([
                     'borders' => [
                         'allBorders' => [
-                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'borderStyle' => Border::BORDER_THIN,
                             'color' => ['argb' => '#000000'],
                         ],
                     ],
                 ]);
-            }
+            },
         ];
     }
 
@@ -122,7 +122,7 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
             'incapacidad' => 0,
             'becado' => 0,
             'definitivo' => 0,
-            'otros' => 0
+            'otros' => 0,
         ];
 
         $queryWhereAccumulates = app(PaymentRepository::class)
@@ -160,6 +160,7 @@ class PaymentsExport implements ShouldQueue, FromView, WithTitle, WithColumnForm
             $sums['definitivo'] += $result->definitivo;
             $sums['otros'] += $result->otros;
         }
+
         return $sums;
     }
 }

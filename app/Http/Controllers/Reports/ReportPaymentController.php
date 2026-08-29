@@ -22,6 +22,7 @@ class ReportPaymentController extends Controller
     public function metadata(Request $request): JsonResponse
     {
         $years = Payment::query()
+            ->withTrashed()
             ->select('year')
             ->schoolId()
             ->distinct()
@@ -62,9 +63,9 @@ class ReportPaymentController extends Controller
             $file = new Filesystem;
             $file->cleanDirectory(storage_path('app/public/exports'));
 
-            $filename = "Pagos del año {$year}{$groupName}{$date}.xlsx";
+            $filename = "Mensualidades del año {$year}{$groupName}{$date}.xlsx";
 
-            (new PaymentsExport($request->all(), $request->input('deleted', false)))->queue($filename, 'export')->chain([
+            (new PaymentsExport($request->all(), true))->queue($filename, 'export')->chain([
                 new NotifyUserOfCompletedExport(auth()->user(), $filename, $school->name),
             ]);
 
@@ -93,7 +94,8 @@ class ReportPaymentController extends Controller
 
     private function paymentGroupOptions(int $year)
     {
-        return TrainingGroup::whereRelation('payments', 'year', '=', $year)
+        return TrainingGroup::withTrashed()
+            ->whereHas('payments', fn ($query) => $query->withTrashed()->where('year', $year))
             ->schoolId()
             ->orderBy('name')
             ->get()

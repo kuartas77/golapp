@@ -27,7 +27,7 @@ export const paymentReportTutorial = {
             id: 'payment-report-intro',
             selector: '[data-tour="payment-report-intro"]',
             title: 'Solicita el informe por correo',
-            text: 'Este modulo genera el informe de pagos en segundo plano y lo envia al correo del usuario.',
+            text: 'Este modulo genera el informe de mensualidades en segundo plano y lo envia al correo del usuario.',
         },
         {
             id: 'payment-report-filters',

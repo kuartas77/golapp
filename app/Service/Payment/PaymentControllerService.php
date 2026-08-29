@@ -16,6 +16,10 @@ class PaymentControllerService
             $request->merge(['dataRaw' => $request->boolean('dataRaw')]);
         }
 
+        if ($request->has('include_retired')) {
+            $request->merge(['include_retired' => $request->boolean('include_retired')]);
+        }
+
         $validated = $request->validate([
             'year' => ['required', 'integer'],
             'training_group_id' => ['nullable', 'integer'],
@@ -24,6 +28,7 @@ class PaymentControllerService
             'month' => ['nullable', 'string', 'in:'.implode(',', Payment::paymentFields())],
             'status' => ['nullable', 'string'],
             'dataRaw' => ['nullable', 'boolean'],
+            'include_retired' => ['nullable', 'boolean'],
         ]);
 
         if ((int) $validated['year'] === (int) now()->year
@@ -46,7 +51,11 @@ class PaymentControllerService
         $request->merge(['school_id' => getSchool(auth()->user())->id]);
 
         return [
-            'payload' => $this->repository->filter($request, false, $request->filled('dataRaw')),
+            'payload' => $this->repository->filter(
+                $request,
+                (bool) ($validated['include_retired'] ?? false),
+                $request->filled('dataRaw')
+            ),
             'status' => 200,
         ];
     }

@@ -262,6 +262,26 @@ describe('monthly payment list', () => {
         wrapper.unmount()
     })
 
+    it('includes retired inscriptions only when the optional filter is enabled', async () => {
+        const wrapper = mountComposable()
+
+        await wrapper.vm.handleSearch({
+            year: 2026,
+            training_group_id: 10,
+            category: null,
+            player_search: '',
+            month: 'january',
+            status: '',
+            include_retired: true,
+        })
+
+        expect(apiMock.get).toHaveBeenCalledWith('/api/v2/payments', {
+            params: expect.objectContaining({ include_retired: true }),
+        })
+
+        wrapper.unmount()
+    })
+
     it('allows editing no aplica payments when the inscription is active', () => {
         const wrapper = mountComposable()
 
@@ -490,6 +510,7 @@ describe('monthly payment list', () => {
                 training_group_id: null,
                 month: currentMonthField(),
                 status: null,
+                include_retired: false,
                 dataRaw: true,
             },
         })
