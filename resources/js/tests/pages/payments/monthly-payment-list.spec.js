@@ -107,20 +107,39 @@ describe('monthly payment list', () => {
         })
     })
 
-    it('filters the loaded backend result locally by player name', async () => {
+    it('sends the full player name to the backend without requiring a group', async () => {
         const wrapper = mountComposable()
+        apiMock.get.mockImplementation((url) => {
+            if (url === '/api/v2/payments/status-catalog') {
+                return Promise.resolve({ data: statusCatalogFixture() })
+            }
 
-        wrapper.vm.groupPayments = [
-            paymentRow(1, 'María José Pérez'),
-            paymentRow(2, 'Carlos Gómez'),
-        ]
-        wrapper.vm.playerSearchTerm = 'maria jose'
-        await nextTick()
+            return Promise.resolve({
+                data: {
+                    rows: [paymentRow(1, 'María José Pérez')],
+                    count: 1,
+                    filter_options: { categories: [], groups: [] },
+                },
+            })
+        })
 
-        expect(wrapper.vm.filteredGroupPayments).toHaveLength(1)
-        expect(wrapper.vm.filteredGroupPayments[0].id).toBe(1)
-        expect(wrapper.vm.visiblePlayerCount).toBe(1)
-        expect(apiMock.get).not.toHaveBeenCalledWith('/api/v2/payments', expect.anything())
+        await wrapper.vm.handleSearch({
+            year: 2026,
+            training_group_id: null,
+            category: null,
+            player_search: '  María José Pérez  ',
+            month: 'january',
+            status: '',
+        })
+
+        expect(apiMock.get).toHaveBeenCalledWith('/api/v2/payments', {
+            params: expect.objectContaining({
+                training_group_id: null,
+                category: null,
+                player_search: 'María José Pérez',
+            }),
+        })
+        expect(wrapper.vm.groupPayments).toHaveLength(1)
 
         wrapper.unmount()
     })
@@ -209,16 +228,13 @@ describe('monthly payment list', () => {
         wrapper.unmount()
     })
 
-    it('restores every loaded row when the player search is cleared', async () => {
+    it('keeps all rows returned by the backend', async () => {
         const wrapper = mountComposable()
 
         wrapper.vm.groupPayments = [
             paymentRow(1, 'María José Pérez'),
             paymentRow(2, 'Carlos Gómez'),
         ]
-        wrapper.vm.playerSearchTerm = 'carlos'
-        await nextTick()
-        wrapper.vm.playerSearchTerm = ''
         await nextTick()
 
         expect(wrapper.vm.filteredGroupPayments).toHaveLength(2)
@@ -227,19 +243,21 @@ describe('monthly payment list', () => {
         wrapper.unmount()
     })
 
-    it('filters the loaded backend result locally by player code', async () => {
+    it('includes the player code in the backend search parameter', async () => {
         const wrapper = mountComposable()
 
-        wrapper.vm.groupPayments = [
-            paymentRow(1, 'María José Pérez'),
-            paymentRow(2, 'Carlos Gómez'),
-        ]
-        wrapper.vm.playerSearchTerm = 'ply-2'
-        await nextTick()
+        await wrapper.vm.handleSearch({
+            year: 2026,
+            training_group_id: null,
+            category: null,
+            player_search: 'PLY-2',
+            month: 'january',
+            status: '',
+        })
 
-        expect(wrapper.vm.filteredGroupPayments).toHaveLength(1)
-        expect(wrapper.vm.filteredGroupPayments[0].id).toBe(2)
-        expect(apiMock.get).not.toHaveBeenCalledWith('/api/v2/payments', expect.anything())
+        expect(apiMock.get).toHaveBeenCalledWith('/api/v2/payments', {
+            params: expect.objectContaining({ player_search: 'PLY-2' }),
+        })
 
         wrapper.unmount()
     })
@@ -467,6 +485,7 @@ describe('monthly payment list', () => {
         expect(apiMock.get).toHaveBeenCalledWith('/api/v2/payments', {
             params: {
                 category: null,
+                player_search: null,
                 year: 2025,
                 training_group_id: null,
                 month: currentMonthField(),
@@ -486,14 +505,15 @@ describe('monthly payment list', () => {
         wrapper.unmount()
     })
 
-    it('requires group or category for the current year and allows either filter', async () => {
+    it('requires group, category or player for the current year and allows each filter', async () => {
         const wrapper = mountComposable()
 
         await expect(wrapper.vm.schema.validate({
             year: 2026,
             training_group_id: null,
             category: null,
-        })).rejects.toThrow('Para el año actual selecciona un grupo o una categoría.')
+            player_search: '',
+        })).rejects.toThrow('Para el año actual selecciona un grupo, una categoría o busca un deportista.')
 
         await expect(wrapper.vm.schema.validate({
             year: 2026,
@@ -505,6 +525,13 @@ describe('monthly payment list', () => {
             year: 2026,
             training_group_id: null,
             category: 'Sub 10',
+        })).resolves.toBeTruthy()
+
+        await expect(wrapper.vm.schema.validate({
+            year: 2026,
+            training_group_id: null,
+            category: null,
+            player_search: 'María José Pérez',
         })).resolves.toBeTruthy()
 
         wrapper.unmount()

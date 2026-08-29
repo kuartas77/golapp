@@ -80,7 +80,6 @@ export default function useMonthlyPayments() {
     ])
     const selected_group = ref(null)
     const groupPayments = ref([])
-    const playerSearchTerm = ref('')
     const globalError = ref('')
     const lastSearchValues = ref(null)
     const hasSearched = computed(() => Boolean(lastSearchValues.value))
@@ -94,14 +93,16 @@ export default function useMonthlyPayments() {
         category: yup.string().nullable().optional(),
         training_group_id: yup.string().nullable().test(
             'current-year-filter-required',
-            'Para el año actual selecciona un grupo o una categoría.',
+            'Para el año actual selecciona un grupo, una categoría o busca un deportista.',
             function (value) {
                 const selectedYear = Number(this.parent.year)
                 const category = this.parent.category
+                const playerSearch = this.parent.player_search
 
-                return selectedYear !== currentDate.getFullYear() || Boolean(value || category)
+                return selectedYear !== currentDate.getFullYear() || Boolean(value || category || playerSearch?.trim())
             }
         ),
+        player_search: yup.string().max(150).nullable().optional(),
         month: yup.string().nullable().optional(),
         status: yup.string().nullable().optional(),
     })
@@ -109,6 +110,7 @@ export default function useMonthlyPayments() {
         year: defaultYear,
         training_group_id: null,
         category: null,
+        player_search: '',
         month: defaultMonthField,
         status: '',
     })
@@ -127,25 +129,7 @@ export default function useMonthlyPayments() {
     const monthly_amount = ref(0)
     const player_count = ref(0)
     const paymentFieldNames = Object.values(paymentFields)
-    const normalizePlayerName = (value) => String(value ?? '')
-        .normalize('NFD')
-        .replace(/\p{Diacritic}/gu, '')
-        .toLocaleLowerCase()
-
-    const filteredGroupPayments = computed(() => {
-        const searchTerm = normalizePlayerName(playerSearchTerm.value.trim())
-
-        if (!searchTerm) {
-            return groupPayments.value
-        }
-
-        return groupPayments.value.filter((payPlayer) => {
-            const playerName = normalizePlayerName(payPlayer?.player?.full_names)
-            const uniqueCode = normalizePlayerName(payPlayer?.player?.unique_code ?? payPlayer?.unique_code)
-
-            return playerName.includes(searchTerm) || uniqueCode.includes(searchTerm)
-        })
-    })
+    const filteredGroupPayments = computed(() => groupPayments.value)
     const visiblePlayerCount = computed(() => filteredGroupPayments.value.length)
     const retiredRowsCount = computed(() => filteredGroupPayments.value.filter(
         (payPlayer) => Boolean(payPlayer.inscription_deleted)
@@ -154,7 +138,6 @@ export default function useMonthlyPayments() {
     const handleSearch = async (values, actions = null) => {
         try {
             groupPayments.value = []
-            playerSearchTerm.value = ''
             isLoading.value = true
             globalError.value = ''
             lastSearchValues.value = { ...values }
@@ -167,6 +150,7 @@ export default function useMonthlyPayments() {
             }
             const params = {
                 category: values.category,
+                player_search: values.player_search?.trim() || null,
                 year: values.year ?? defaultYear,
                 training_group_id: values.training_group_id,
                 month: selectedMonth || null,
@@ -692,7 +676,6 @@ export default function useMonthlyPayments() {
         modelGroup,
         modelCategory,
         groupPayments,
-        playerSearchTerm,
         filteredGroupPayments,
         visiblePlayerCount,
         schema,

@@ -12,7 +12,7 @@
                                 Filtros de consulta
                                 <i
                                     class="fa-regular fa-circle-question ms-1"
-                                    v-tooltip.top="'Para el año actual selecciona al menos un grupo o una categoría. En años anteriores puedes consultar sólo por año o combinar filtros. El mes define la vista mensual y el filtro de estado.'"
+                                v-tooltip.top="'Para el año actual selecciona un grupo, una categoría o busca un deportista. En años anteriores puedes consultar sólo por año o combinar filtros. El mes define la vista mensual y el filtro de estado.'"
                                 ></i>
                             </small>
                         </div>
@@ -27,6 +27,18 @@
                             <Field name="category" as="CustomSelect2" :options="categories" id="category"
                                 placeholder="Categoría" />
                             <ErrorMessage name="category" class="custom-error" />
+                        </div>
+                        <div class="col-sm-6 col-lg-4">
+                            <label for="player_search" class="sr-only">Deportista</label>
+                            <Field
+                                id="player_search"
+                                name="player_search"
+                                type="search"
+                                class="form-control form-control-sm"
+                                placeholder="Nombre completo o código"
+                                autocomplete="off"
+                            />
+                            <ErrorMessage name="player_search" class="custom-error" />
                         </div>
                         <div class="col-sm-4 col-lg-2">
                             <label for="year" class="sr-only">Año</label>
@@ -178,23 +190,11 @@
                     </div>
                 </div>
 
-                <div v-if="groupPayments.length" class="col-md-4 col-lg-3 mb-2">
-                    <label for="player_search" class="sr-only">Buscar por nombre o código de deportista</label>
-                    <input
-                        id="player_search"
-                        v-model="playerSearchTerm"
-                        type="search"
-                        class="form-control form-control-sm"
-                        placeholder="Buscar por nombre o código"
-                        autocomplete="off"
-                    />
-                </div>
-
                 <div
                     v-if="hasSearched"
                     class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto mb-2">
                     <div class="dt-info">
-                        Mostrando {{ visiblePlayerCount }}<template v-if="playerSearchTerm.trim()"> de {{ player_count }}</template> Deportistas.
+                        Mostrando {{ visiblePlayerCount }} Deportistas.
                     </div>
                 </div>
 
@@ -267,14 +267,6 @@
                 type="empty"
                 title="No encontramos mensualidades"
                 message="No hay deportistas que coincidan con los filtros de la consulta."
-                data-tour="monthly-payments-table"
-            />
-
-            <ContentState
-                v-else-if="filteredGroupPayments.length === 0"
-                type="empty"
-                title="No encontramos deportistas"
-                message="Prueba con otro nombre o código, o limpia la búsqueda para ver todos los resultados."
                 data-tour="monthly-payments-table"
             />
 
@@ -611,7 +603,6 @@ const {
     modelGroup,
     modelCategory,
     groupPayments,
-    playerSearchTerm,
     filteredGroupPayments,
     visiblePlayerCount,
     schema,

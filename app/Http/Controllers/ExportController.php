@@ -10,9 +10,9 @@ use App\Repositories\AssistRepository;
 use App\Repositories\GameRepository;
 use App\Repositories\IncidentRepository;
 use App\Repositories\InscriptionRepository;
+use App\Repositories\MethodologyRecordRepository;
 use App\Repositories\PaymentRepository;
 use App\Repositories\TournamentPayoutsRepository;
-use App\Repositories\MethodologyRecordRepository;
 use App\Repositories\TrainingSessionRepository;
 use App\Service\Assist\AssistExportService;
 use App\Service\Methodology\MethodologyRecordExportService;
@@ -65,6 +65,8 @@ class ExportController extends Controller
 
     public function exportPaymentsExcel(Request $request): BinaryFileResponse
     {
+        $this->ensurePlayerSearchIsNotExported($request);
+
         $date = now()->timestamp;
         $request->merge(['school_id' => getSchool(auth()->user())->id]);
 
@@ -73,10 +75,21 @@ class ExportController extends Controller
 
     public function exportPaymentsPDF(Request $request, PaymentExportService $paymentExportService)
     {
+        $this->ensurePlayerSearchIsNotExported($request);
+
         $request->merge(['school_id' => getSchool(auth()->user())->id]);
         $payments = $this->paymentRepository->filterSelect($request->all(), $request->boolean('deleted'))->get();
 
         return $paymentExportService->paymentsPdfByGroup($payments, $request, true);
+    }
+
+    private function ensurePlayerSearchIsNotExported(Request $request): void
+    {
+        abort_if(
+            $request->filled('player_search'),
+            422,
+            'No se permite exportar la consulta cuando se busca por deportista.'
+        );
     }
 
     public function exportTournamentPayoutsExcel(Request $request): BinaryFileResponse
@@ -136,6 +149,7 @@ class ExportController extends Controller
     public function exportSessionPlanning(int $id, TrainingSessionExportService $service, TrainingSessionRepository $repository)
     {
         $repository->findAccessiblePlannedOrFail($id);
+
         return $service->exportPlannedSessionPDF($id);
     }
 

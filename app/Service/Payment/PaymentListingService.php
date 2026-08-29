@@ -39,6 +39,7 @@ class PaymentListingService
         $year = data_get($params, 'year', now()->year);
         $month = data_get($params, 'month');
         $trainingGroupId = data_get($params, 'training_group_id', 0);
+        $playerSearch = trim((string) data_get($params, 'player_search', ''));
         $paymentStatus = $this->normalizePaymentStatus(data_get($params, 'status'));
 
         $query = $this->payment->query()
@@ -57,6 +58,7 @@ class PaymentListingService
             ->where('year', $year)
             ->whereHas('inscription.player')
             ->whereHas('inscription', fn ($inscriptionQuery) => $inscriptionQuery->where('year', $year))
+            ->when($playerSearch !== '', fn ($query) => $this->applyPlayerSearch($query, $playerSearch))
             ->when($trainingGroupId != 0, fn ($q) => $q->where('training_group_id', $trainingGroupId))
             ->when($category, fn ($q) => $q->whereHas('inscription', fn ($inscription) => $inscription
                 ->where('year', $year)
@@ -81,6 +83,7 @@ class PaymentListingService
         $year = data_get($params, 'year', now()->year);
         $month = data_get($params, 'month');
         $trainingGroupId = data_get($params, 'training_group_id', 0);
+        $playerSearch = trim((string) data_get($params, 'player_search', ''));
         $paymentStatus = $this->normalizePaymentStatus(data_get($params, 'status'));
 
         $query = $this->payment->query()
@@ -95,6 +98,7 @@ class PaymentListingService
             ->where('year', $year)
             ->whereHas('inscription.player')
             ->whereHas('inscription', fn ($inscriptionQuery) => $inscriptionQuery->where('year', $year))
+            ->when($playerSearch !== '', fn ($query) => $this->applyPlayerSearch($query, $playerSearch))
             ->when($trainingGroupId != 0, fn ($q) => $q->where('training_group_id', $trainingGroupId))
             ->when($category, fn ($q) => $q->whereHas('inscription', fn ($inscription) => $inscription
                 ->where('year', $year)
@@ -182,6 +186,10 @@ class PaymentListingService
 
     private function generateLinks($payments, $deleted): array
     {
+        if (request()->filled('player_search')) {
+            return [null, null];
+        }
+
         $queryParams = request()->query();
         if ($deleted) {
             $queryParams['deleted'] = true;
@@ -212,6 +220,21 @@ class PaymentListingService
         }
 
         return $paymentStatus;
+    }
+
+    private function applyPlayerSearch(Builder $query, string $playerSearch): void
+    {
+        $query->whereHas('inscription.player', function (Builder $playerQuery) use ($playerSearch): void {
+            $fullNameExpression = $playerQuery->getConnection()->getDriverName() === 'sqlite'
+                ? "TRIM(COALESCE(players.names, '') || ' ' || COALESCE(players.last_names, ''))"
+                : "TRIM(CONCAT(COALESCE(players.names, ''), ' ', COALESCE(players.last_names, '')))";
+
+            $playerQuery->where(function (Builder $searchQuery) use ($fullNameExpression, $playerSearch): void {
+                $searchQuery
+                    ->whereRaw("{$fullNameExpression} LIKE ?", ["%{$playerSearch}%"])
+                    ->orWhere('players.unique_code', 'like', "%{$playerSearch}%");
+            });
+        });
     }
 
     private function orderByCategory(Builder $query): Builder

@@ -218,15 +218,46 @@ final class InscriptionSummaryTest extends TestCase
             ->assertJsonPath('filter_options.groups.0.value', $inscription->training_group_id);
     }
 
-    public function test_current_year_payments_require_group_or_category_filter(): void
+    public function test_current_year_payments_require_group_category_or_player_filter(): void
     {
-        [, $inscription, $payment] = $this->createSummaryFixture(now()->year);
+        [$player, $inscription, $payment] = $this->createSummaryFixture(now()->year);
+        $player->forceFill([
+            'names' => 'MARÍA JOSÉ',
+            'last_names' => 'PÉREZ GÓMEZ',
+        ])->save();
+
+        $this->createSummaryFixture(now()->year);
 
         $this->actingAs($this->user)
             ->withHeader('X-Requested-With', 'XMLHttpRequest')
             ->getJson('/api/v2/payments?year='.now()->year.'&dataRaw=true')
             ->assertUnprocessable()
-            ->assertJsonPath('errors.training_group_id.0', 'Para el año actual selecciona un grupo o una categoría.');
+            ->assertJsonPath(
+                'errors.training_group_id.0',
+                'Para el año actual selecciona un grupo, una categoría o busca un deportista.'
+            );
+
+        $this->actingAs($this->user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/api/v2/payments?'.http_build_query([
+                'year' => now()->year,
+                'player_search' => 'MARÍA JOSÉ PÉREZ',
+                'dataRaw' => true,
+            ]))
+            ->assertOk()
+            ->assertJsonPath('count', 1)
+            ->assertJsonPath('rows.0.id', $payment->id)
+            ->assertJsonPath('url_export_excel', null)
+            ->assertJsonPath('url_export_pdf', null);
+
+        foreach (['excel', 'pdf'] as $format) {
+            $this->actingAs($this->user)
+                ->get('/export/payments/'.$format.'?'.http_build_query([
+                    'year' => now()->year,
+                    'player_search' => 'MARÍA JOSÉ PÉREZ',
+                ]))
+                ->assertUnprocessable();
+        }
 
         $this->actingAs($this->user)
             ->withHeader('X-Requested-With', 'XMLHttpRequest')

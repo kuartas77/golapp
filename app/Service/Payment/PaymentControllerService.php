@@ -8,9 +8,7 @@ use Illuminate\Http\Request;
 
 class PaymentControllerService
 {
-    public function __construct(private PaymentRepository $repository)
-    {
-    }
+    public function __construct(private PaymentRepository $repository) {}
 
     public function filter(Request $request)
     {
@@ -22,19 +20,23 @@ class PaymentControllerService
             'year' => ['required', 'integer'],
             'training_group_id' => ['nullable', 'integer'],
             'category' => ['nullable', 'string'],
-            'month' => ['nullable', 'string', 'in:' . implode(',', Payment::paymentFields())],
+            'player_search' => ['nullable', 'string', 'max:150'],
+            'month' => ['nullable', 'string', 'in:'.implode(',', Payment::paymentFields())],
             'status' => ['nullable', 'string'],
             'dataRaw' => ['nullable', 'boolean'],
         ]);
 
         if ((int) $validated['year'] === (int) now()->year
             && empty($validated['training_group_id'])
-            && empty($validated['category'])) {
+            && empty($validated['category'])
+            && empty($validated['player_search'])) {
+            $message = 'Para el año actual selecciona un grupo, una categoría o busca un deportista.';
+
             return [
                 'payload' => [
-                    'message' => 'Para el año actual selecciona un grupo o una categoría.',
+                    'message' => $message,
                     'errors' => [
-                        'training_group_id' => ['Para el año actual selecciona un grupo o una categoría.'],
+                        'training_group_id' => [$message],
                     ],
                 ],
                 'status' => 422,
