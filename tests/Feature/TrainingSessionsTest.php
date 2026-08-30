@@ -89,7 +89,7 @@ final class TrainingSessionsTest extends TestCase
             ...$school->getResolvedSchoolPermissions(), 'school.module.session_planning' => true,
         ])])->save();
         $group = $this->createTrainingGroup($school->id, $this->user, suffix: 'Símbolos');
-        $symbols = ['player_token', 'hoop', 'pass', 'dribble', 'off_ball_run', 'cross', 'freehand'];
+        $symbols = ['player_token', 'hoop', 'pass', 'dribble', 'off_ball_run', 'cross', 'agility_hurdle', 'stick', 'freehand'];
         $phases = [[
             'name' => 'Símbolos',
             'diagram' => collect($symbols)->map(fn ($type, $index) => [
@@ -99,7 +99,11 @@ final class TrainingSessionsTest extends TestCase
                     ? ['points' => [['x' => 12, 'y' => 14], ['x' => 18, 'y' => 20]]]
                     : ['x' => 50, 'y' => 32]),
                 'label' => $type === 'player_token' ? '9' : '',
-                'color' => $type === 'player_token' ? 'red' : 'blue',
+                'color' => match ($type) {
+                    'player_token' => 'red',
+                    'agility_hurdle' => 'green',
+                    default => 'blue',
+                },
                 'rotation' => 45,
             ])->all(),
         ]];
@@ -109,6 +113,34 @@ final class TrainingSessionsTest extends TestCase
             ->assertCreated();
 
         $this->assertSame($symbols, collect($response->json('data.phases.0.diagram'))->pluck('type')->all());
+        $response->assertJsonPath('data.phases.0.diagram.0.color', 'red')
+            ->assertJsonPath('data.phases.0.diagram.0.rotation', 45)
+            ->assertJsonPath('data.phases.0.diagram.6.type', 'agility_hurdle')
+            ->assertJsonPath('data.phases.0.diagram.6.color', 'green')
+            ->assertJsonPath('data.phases.0.diagram.6.rotation', 45);
+
+        $this->actingAs($this->user)
+            ->putJson('/api/v2/session-plannings/' . $response->json('data.id'), $this->plannedPayload($group->id, $phases))
+            ->assertOk()
+            ->assertJsonPath('data.phases.0.diagram.6.type', 'agility_hurdle')
+            ->assertJsonPath('data.phases.0.diagram.6.color', 'green')
+            ->assertJsonPath('data.phases.0.diagram.6.rotation', 45)
+            ->assertJsonPath('data.phases.0.diagram.7.type', 'stick')
+            ->assertJsonPath('data.phases.0.diagram.7.rotation', 45);
+    }
+
+    public function testDiagramPdfRendersRotatedTrainingEquipment(): void
+    {
+        $html = view('templates.pdf.methodology.partials.field-diagram', [
+            'items' => [
+                ['type' => 'agility_hurdle', 'x' => 40, 'y' => 20, 'rotation' => 30, 'color' => 'green'],
+                ['type' => 'stick', 'x' => 60, 'y' => 30, 'rotation' => 45],
+            ],
+        ])->render();
+
+        $this->assertStringContainsString('translate(40 20) rotate(30)', $html);
+        $this->assertStringContainsString('translate(60 30) rotate(45)', $html);
+        $this->assertStringContainsString('#16a34a', $html);
     }
 
     public function testSessionPlanningCanStorePhaseImageVisualResource(): void

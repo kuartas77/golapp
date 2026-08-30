@@ -3,6 +3,7 @@
     $number = fn ($value, $default = 50) => is_numeric($value) ? max(0, min(100, (float) $value)) : $default;
     $color = fn ($value, $default = 'blue') => match ($value ?: $default) {
         'red' => '#dc2626',
+        'green' => '#16a34a',
         'orange' => '#f97316',
         'black' => '#111827',
         'yellow' => '#d4a60f',
@@ -30,7 +31,12 @@
             $label = (string) data_get($item, 'label', '');
             $rotation = is_numeric(data_get($item, 'rotation')) ? fmod((float) data_get($item, 'rotation'), 360) : 0;
             $rotation = $rotation < 0 ? $rotation + 360 : $rotation;
-            $itemColor = $color(data_get($item, 'color'), $type === 'cone' ? 'orange' : ($type === 'ball' ? 'black' : 'blue'));
+            $itemColor = $color(data_get($item, 'color'), match ($type) {
+                'cone', 'agility_hurdle' => 'orange',
+                'stick' => 'yellow',
+                'ball' => 'black',
+                default => 'blue',
+            });
             $tokenLabel = $label !== '' ? $label : '1';
             $tokenLength = strlen($tokenLabel);
             $tokenIsShort = $tokenLength <= 3;
@@ -49,9 +55,21 @@
         @endphp
 
         @if($type === 'cone')
-            <path d="M {{ $x }} {{ $y - 3 }} L {{ $x - 3 }} {{ $y + 3 }} L {{ $x + 3 }} {{ $y + 3 }} Z" fill="#f97316" />
+            <path d="M {{ $x }} {{ $y - 3 }} L {{ $x - 3 }} {{ $y + 3 }} L {{ $x + 3 }} {{ $y + 3 }} Z" fill="{{ $itemColor }}" transform="rotate({{ $rotation }} {{ $x }} {{ $y }})" />
+        @elseif($type === 'agility_hurdle')
+            <g transform="translate({{ $x }} {{ $y }}) rotate({{ $rotation }})" fill="none" stroke="{{ $itemColor }}" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M -4.2 2.5 L -2.8 -2.5 L 2.8 -2.5 L 4.2 2.5" stroke-width="0.8" />
+                <line x1="-3" y1="-0.7" x2="3" y2="-0.7" stroke-width="1.15" />
+                <line x1="-2.5" y1="2.5" x2="2.5" y2="2.5" stroke-width="0.8" />
+            </g>
+        @elseif($type === 'stick')
+            <g transform="translate({{ $x }} {{ $y }}) rotate({{ $rotation }})" stroke="{{ $itemColor }}" fill="{{ $itemColor }}" stroke-linecap="round">
+                <line x1="-5" y1="0" x2="5" y2="0" stroke-width="1.1" />
+                <circle cx="-5" cy="0" r="0.8" />
+                <circle cx="5" cy="0" r="0.8" />
+            </g>
         @elseif($type === 'ball')
-            <circle cx="{{ $x }}" cy="{{ $y }}" r="2.2" fill="#111827" />
+            <circle cx="{{ $x }}" cy="{{ $y }}" r="2.2" fill="{{ $itemColor }}" />
         @elseif($type === 'hoop')
             <circle cx="{{ $x }}" cy="{{ $y }}" r="3.2" fill="none" stroke="{{ $itemColor }}" stroke-width="1.05" />
         @elseif($type === 'player_token')
@@ -63,8 +81,8 @@
             @endif
         @elseif($type === 'arrow')
             <g transform="rotate({{ $rotation }} {{ $x }} {{ $y }})">
-                <line x1="{{ $x - 4 }}" y1="{{ $y + 2.4 }}" x2="{{ $x + 3.15 }}" y2="{{ $y - 1.9 }}" stroke="#b91c1c" stroke-width="1.1" stroke-linecap="round" />
-                <path d="M {{ $x + 4.6 }} {{ $y - 2.75 }} L {{ $x + 1.85 }} {{ $y - 2.95 }} L {{ $x + 3.15 }} {{ $y - 0.75 }} Z" fill="#b91c1c" />
+                <line x1="{{ $x - 4 }}" y1="{{ $y + 2.4 }}" x2="{{ $x + 3.15 }}" y2="{{ $y - 1.9 }}" stroke="{{ $itemColor }}" stroke-width="1.1" stroke-linecap="round" />
+                <path d="M {{ $x + 4.6 }} {{ $y - 2.75 }} L {{ $x + 1.85 }} {{ $y - 2.95 }} L {{ $x + 3.15 }} {{ $y - 0.75 }} Z" fill="{{ $itemColor }}" />
             </g>
         @elseif($type === 'pass')
             <g transform="rotate({{ $rotation }} {{ $x }} {{ $y }})">
@@ -87,12 +105,12 @@
                 <path d="M {{ $x + 5.1 }} {{ $y - 3.1 }} L {{ $x + 2.55 }} {{ $y - 5 }} L {{ $x + 2.8 }} {{ $y - 1.1 }} Z" fill="{{ $itemColor }}" />
             </g>
         @elseif($type === 'xmark')
-            <line x1="{{ $x - 1.2 }}" y1="{{ $y - 1.2 }}" x2="{{ $x + 1.2 }}" y2="{{ $y + 1.2 }}" stroke="#111827" stroke-width="1.05" stroke-linecap="round" />
-            <line x1="{{ $x + 1.2 }}" y1="{{ $y - 1.2 }}" x2="{{ $x - 1.2 }}" y2="{{ $y + 1.2 }}" stroke="#111827" stroke-width="1.05" stroke-linecap="round" />
+            <line x1="{{ $x - 1.2 }}" y1="{{ $y - 1.2 }}" x2="{{ $x + 1.2 }}" y2="{{ $y + 1.2 }}" stroke="{{ $itemColor }}" stroke-width="1.05" stroke-linecap="round" />
+            <line x1="{{ $x + 1.2 }}" y1="{{ $y - 1.2 }}" x2="{{ $x - 1.2 }}" y2="{{ $y + 1.2 }}" stroke="{{ $itemColor }}" stroke-width="1.05" stroke-linecap="round" />
         @elseif($type === 'freehand' && $freehandPath !== '')
-            <path d="{{ $freehandPath }}" fill="none" stroke="#111827" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="{{ $freehandPath }}" fill="none" stroke="{{ $itemColor }}" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" />
         @elseif($type === 'text')
-            <text x="{{ $x }}" y="{{ $y }}" fill="#111827" font-size="4" font-weight="700" dominant-baseline="middle" text-anchor="middle">{{ $label !== '' ? $label : 'Texto' }}</text>
+            <text x="{{ $x }}" y="{{ $y }}" fill="{{ $itemColor }}" font-size="4" font-weight="700" dominant-baseline="middle" text-anchor="middle">{{ $label !== '' ? $label : 'Texto' }}</text>
         @else
             <circle cx="{{ $x }}" cy="{{ $y }}" r="2.8" fill="{{ $itemColor }}" />
         @endif

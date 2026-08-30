@@ -54,6 +54,27 @@
             {{ activeModeHelp }}
         </div>
 
+        <div class="field-color-selector" role="radiogroup" aria-label="Color de la figura">
+            <span>Color</span>
+            <label
+                v-for="color in selectableColors"
+                :key="color.key"
+                class="field-color-option"
+                :class="{ 'field-color-option--active': selectedColor === color.key }"
+                :title="color.label"
+            >
+                <input
+                    class="visually-hidden"
+                    type="radio"
+                    :value="color.key"
+                    :checked="selectedColor === color.key"
+                    :aria-label="`Color ${color.label}`"
+                    @change="setSelectedColor(color.key)"
+                >
+                <span :style="{ backgroundColor: color.value }" aria-hidden="true"></span>
+            </label>
+        </div>
+
         <div class="field-toolbar" role="toolbar" aria-label="Figuras y simbología de cancha">
             <button
                 v-for="tool in tools"
@@ -76,16 +97,17 @@
             <input :value="selectedItem.label" type="text" class="form-control form-control-sm" @input="updateSelectedLabel">
         </label>
 
-        <div v-if="selectedItemIsDirectional" class="field-arrow-controls" aria-label="Orientación de flecha">
-            <span>Orientación</span>
-            <button type="button" class="btn btn-secondary btn-sm" @click="rotateSelectedDirectional(-45)">
+        <div v-if="selectedItemIsRotatable" class="field-arrow-controls" aria-label="Orientación del elemento">
+            <span>Orientación ({{ Math.round(selectedItem.rotation || 0) }}°)</span>
+            <button type="button" class="btn btn-secondary btn-sm" @click="rotateSelected(-15)">
                 <i class="fa fa-rotate-left fa-width-auto" aria-hidden="true"></i>
-                <span>Izquierda</span>
+                <span>-15°</span>
             </button>
-            <button type="button" class="btn btn-secondary btn-sm" @click="rotateSelectedDirectional(45)">
+            <button type="button" class="btn btn-secondary btn-sm" @click="rotateSelected(15)">
                 <i class="fa fa-rotate-right fa-width-auto" aria-hidden="true"></i>
-                <span>Derecha</span>
+                <span>+15°</span>
             </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" @click="resetSelectedRotation">0°</button>
         </div>
 
         <svg
@@ -127,35 +149,54 @@
                     <circle :cx="item.x" :cy="item.y" r="3.4" class="player-token" :style="{ fill: itemColor(item) }" />
                     <text :x="item.x" :y="item.y" class="player-token-label">{{ item.label || '1' }}</text>
                 </g>
-                <path v-else-if="item.type === 'cone'" :d="conePath(item)" class="cone" />
-                <circle v-else-if="item.type === 'ball'" :cx="item.x" :cy="item.y" r="2.2" class="ball" />
+                <path v-else-if="item.type === 'cone'" :d="conePath()" :transform="localElementTransform(item)" class="cone" :style="{ fill: itemColor(item) }" />
+                <circle v-else-if="item.type === 'ball'" :cx="item.x" :cy="item.y" r="2.2" class="ball" :style="{ fill: itemColor(item) }" />
                 <circle v-else-if="item.type === 'hoop'" :cx="item.x" :cy="item.y" r="3.2" class="hoop" :style="{ stroke: itemColor(item) }" />
-                <g v-else-if="item.type === 'arrow'" :transform="arrowTransform(item)">
-                    <line :x1="item.x - 4" :y1="item.y + 2.4" :x2="item.x + 3.15" :y2="item.y - 1.9" class="arrow-line" />
-                    <path :d="arrowHeadPath(item)" class="arrow-head" />
+                <g v-else-if="item.type === 'agility_hurdle'" :transform="localElementTransform(item)">
+                    <path d="M -4.2 2.5 L -2.8 -2.5 L 2.8 -2.5 L 4.2 2.5" class="hurdle-frame" :style="{ stroke: itemColor(item) }" />
+                    <line x1="-3" y1="-0.7" x2="3" y2="-0.7" class="hurdle-bar" :style="{ stroke: itemColor(item) }" />
+                    <line x1="-2.5" y1="2.5" x2="2.5" y2="2.5" class="hurdle-base" :style="{ stroke: itemColor(item) }" />
                 </g>
-                <g v-else-if="item.type === 'pass'" :transform="arrowTransform(item)">
-                    <line :x1="item.x - 5" :y1="item.y" :x2="item.x + 4" :y2="item.y" class="tactical-line" :style="{ stroke: itemColor(item) }" />
-                    <path :d="straightArrowHeadPath(item)" class="tactical-head" :style="{ fill: itemColor(item) }" />
+                <g v-else-if="item.type === 'stick'" :transform="localElementTransform(item)">
+                    <line x1="-5" y1="0" x2="5" y2="0" class="training-stick" :style="{ stroke: itemColor(item) }" />
+                    <circle cx="-5" cy="0" r="0.8" class="training-stick-end" :style="{ fill: itemColor(item) }" />
+                    <circle cx="5" cy="0" r="0.8" class="training-stick-end" :style="{ fill: itemColor(item) }" />
                 </g>
-                <g v-else-if="item.type === 'dribble'" :transform="arrowTransform(item)">
-                    <polyline :points="dribblePoints(item)" class="tactical-line" :style="{ stroke: itemColor(item) }" />
-                    <path :d="straightArrowHeadPath(item)" class="tactical-head" :style="{ fill: itemColor(item) }" />
+                <g v-else-if="item.type === 'arrow'" :transform="localElementTransform(item)">
+                    <line x1="-4" y1="2.4" x2="3.15" y2="-1.9" class="arrow-line" :style="{ stroke: itemColor(item) }" />
+                    <path :d="arrowHeadPath()" class="arrow-head" :style="{ fill: itemColor(item) }" />
                 </g>
-                <g v-else-if="item.type === 'off_ball_run'" :transform="arrowTransform(item)">
-                    <line :x1="item.x - 5" :y1="item.y" :x2="item.x + 4" :y2="item.y" class="tactical-line tactical-line--dashed" :style="{ stroke: itemColor(item) }" />
-                    <path :d="straightArrowHeadPath(item)" class="tactical-head" :style="{ fill: itemColor(item) }" />
+                <g v-else-if="item.type === 'pass'" :transform="localElementTransform(item)">
+                    <line x1="-5" y1="0" x2="4" y2="0" class="tactical-line" :style="{ stroke: itemColor(item) }" />
+                    <path :d="straightArrowHeadPath()" class="tactical-head" :style="{ fill: itemColor(item) }" />
                 </g>
-                <g v-else-if="item.type === 'cross'" :transform="arrowTransform(item)">
-                    <path :d="crossPath(item)" class="tactical-line tactical-line--curve" :style="{ stroke: itemColor(item) }" />
-                    <path :d="crossArrowHeadPath(item)" class="tactical-head" :style="{ fill: itemColor(item) }" />
+                <g v-else-if="item.type === 'dribble'" :transform="localElementTransform(item)">
+                    <polyline :points="dribblePoints()" class="tactical-line" :style="{ stroke: itemColor(item) }" />
+                    <path :d="straightArrowHeadPath()" class="tactical-head" :style="{ fill: itemColor(item) }" />
+                </g>
+                <g v-else-if="item.type === 'off_ball_run'" :transform="localElementTransform(item)">
+                    <line x1="-5" y1="0" x2="4" y2="0" class="tactical-line tactical-line--dashed" :style="{ stroke: itemColor(item) }" />
+                    <path :d="straightArrowHeadPath()" class="tactical-head" :style="{ fill: itemColor(item) }" />
+                </g>
+                <g v-else-if="item.type === 'cross'" :transform="localElementTransform(item)">
+                    <path :d="crossPath()" class="tactical-line tactical-line--curve" :style="{ stroke: itemColor(item) }" />
+                    <path :d="crossArrowHeadPath()" class="tactical-head" :style="{ fill: itemColor(item) }" />
                 </g>
                 <g v-else-if="item.type === 'xmark'">
-                    <line :x1="item.x - 1.2" :y1="item.y - 1.2" :x2="item.x + 1.2" :y2="item.y + 1.2" class="xmark-line" />
-                    <line :x1="item.x + 1.2" :y1="item.y - 1.2" :x2="item.x - 1.2" :y2="item.y + 1.2" class="xmark-line" />
+                    <line :x1="item.x - 1.2" :y1="item.y - 1.2" :x2="item.x + 1.2" :y2="item.y + 1.2" class="xmark-line" :style="{ stroke: itemColor(item) }" />
+                    <line :x1="item.x + 1.2" :y1="item.y - 1.2" :x2="item.x - 1.2" :y2="item.y + 1.2" class="xmark-line" :style="{ stroke: itemColor(item) }" />
                 </g>
-                <path v-else-if="item.type === 'freehand'" :d="freehandPath(item)" class="freehand-line" />
-                <text v-else :x="item.x" :y="item.y" class="field-label">{{ item.label || 'Texto' }}</text>
+                <path v-else-if="item.type === 'freehand'" :d="freehandPath(item)" class="freehand-line" :style="{ stroke: itemColor(item) }" />
+                <text v-else :x="item.x" :y="item.y" class="field-label" :style="{ fill: itemColor(item) }">{{ item.label || 'Texto' }}</text>
+                <g
+                    v-if="itemKey(item, index) === selectedKey && isRotatable(item)"
+                    class="rotation-control"
+                    @pointerdown.stop="startRotation(item, index, $event)"
+                >
+                    <line :x1="item.x" :y1="item.y - 7" :x2="item.x" :y2="item.y - 5" class="rotation-line" />
+                    <circle :cx="item.x" :cy="item.y - 7" r="1.5" class="rotation-handle" />
+                    <circle :cx="item.x" :cy="item.y - 7" r="3.2" class="rotation-hit-area" />
+                </g>
             </g>
         </svg>
         </template>
@@ -200,6 +241,7 @@ const emit = defineEmits(['update:modelValue', 'update:visualMode', 'update:imag
 const svgRef = ref(null)
 const selectedKey = ref(null)
 const dragState = ref(null)
+const rotationState = ref(null)
 const activeMode = ref('select')
 const drawingState = ref(null)
 const erasingState = ref(null)
@@ -207,12 +249,23 @@ const erasingState = ref(null)
 const colorPalette = {
     blue: '#2563eb',
     red: '#dc2626',
+    green: '#16a34a',
     orange: '#f97316',
     black: '#111827',
     yellow: '#d4a60f',
 }
 
+const selectableColors = [
+    { key: 'red', label: 'Rojo', value: colorPalette.red },
+    { key: 'green', label: 'Verde', value: colorPalette.green },
+    { key: 'blue', label: 'Azul', value: colorPalette.blue },
+    { key: 'yellow', label: 'Amarillo', value: colorPalette.yellow },
+]
+const selectableColorKeys = selectableColors.map((color) => color.key)
+const selectedColor = ref('blue')
+
 const directionalTypes = ['arrow', 'pass', 'dribble', 'off_ball_run', 'cross']
+const rotatableTypes = [...directionalTypes, 'cone', 'agility_hurdle', 'stick']
 
 const interactionModes = [
     { key: 'select', label: 'Seleccionar', icon: 'fa fa-mouse-pointer fa-width-auto' },
@@ -221,17 +274,17 @@ const interactionModes = [
 ]
 
 const tools = [
-    { key: 'player', type: 'player', label: 'Jugador', icon: 'fa fa-user fa-width-auto', color: 'blue' },
-    { key: 'player-token-blue', type: 'player_token', label: 'Ficha azul', icon: 'fa fa-circle fa-width-auto', color: 'blue', labelValue: '1' },
-    { key: 'player-token-red', type: 'player_token', label: 'Ficha roja', icon: 'fa fa-circle fa-width-auto', color: 'red', labelValue: '1' },
-    { key: 'player-token-black', type: 'player_token', label: 'Ficha negra', icon: 'fa fa-circle fa-width-auto', color: 'black', labelValue: '1' },
-    { key: 'pass', type: 'pass', label: 'Pase', icon: 'fa fa-arrow-right fa-width-auto', color: 'black' },
-    { key: 'dribble', type: 'dribble', label: 'Conducción', icon: 'fa fa-wave-square fa-width-auto', color: 'orange' },
-    { key: 'off-ball-run', type: 'off_ball_run', label: 'Recorrido', icon: 'fa fa-ellipsis-h fa-width-auto', color: 'blue' },
-    { key: 'cross', type: 'cross', label: 'Centro', icon: 'fa fa-share fa-width-auto', color: 'blue' },
-    { key: 'cone', type: 'cone', label: 'Cono', icon: 'fa fa-warning fa-width-auto', color: 'orange' },
-    { key: 'ball', type: 'ball', label: 'Balón', icon: 'fa fa-futbol fa-width-auto', color: 'black' },
-    { key: 'hoop', type: 'hoop', label: 'Aro', icon: 'fa fa-circle-o fa-width-auto', color: 'red' },
+    { key: 'player', type: 'player', label: 'Jugador', icon: 'fa fa-user fa-width-auto' },
+    { key: 'player-token', type: 'player_token', label: 'Ficha', icon: 'fa fa-circle fa-width-auto', labelValue: '1' },
+    { key: 'pass', type: 'pass', label: 'Pase', icon: 'fa fa-arrow-right fa-width-auto' },
+    { key: 'dribble', type: 'dribble', label: 'Conducción', icon: 'fa fa-wave-square fa-width-auto' },
+    { key: 'off-ball-run', type: 'off_ball_run', label: 'Recorrido', icon: 'fa fa-ellipsis-h fa-width-auto' },
+    { key: 'cross', type: 'cross', label: 'Centro', icon: 'fa fa-share fa-width-auto' },
+    { key: 'cone', type: 'cone', label: 'Cono', icon: 'fa fa-warning fa-width-auto' },
+    { key: 'agility-hurdle', type: 'agility_hurdle', label: 'Valla', icon: 'fa fa-bars fa-width-auto' },
+    { key: 'stick', type: 'stick', label: 'Bastón', icon: 'fa fa-minus fa-width-auto' },
+    { key: 'ball', type: 'ball', label: 'Balón', icon: 'fa fa-futbol fa-width-auto' },
+    { key: 'hoop', type: 'hoop', label: 'Aro', icon: 'fa fa-circle-o fa-width-auto' },
     { key: 'arrow', type: 'arrow', label: 'Flecha', icon: 'fa fa-arrow-right fa-width-auto' },
     { key: 'xmark', type: 'xmark', label: 'X', icon: 'fa fa-xmark fa-width-auto' },
     { key: 'text', type: 'text', label: 'Texto', icon: 'fa fa-font fa-width-auto', labelValue: 'Texto' },
@@ -244,10 +297,10 @@ const items = computed({
 
 const selectedItem = computed(() => items.value.find((item, index) => itemKey(item, index) === selectedKey.value))
 const selectedItemAllowsLabel = computed(() => ['player_token', 'text'].includes(selectedItem.value?.type))
-const selectedItemIsDirectional = computed(() => directionalTypes.includes(selectedItem.value?.type))
+const selectedItemIsRotatable = computed(() => isRotatable(selectedItem.value))
 const imageModelValue = computed(() => props.imageFile || props.imageUrl || null)
 const activeModeHelp = computed(() => ({
-    select: 'Selecciona y arrastra figuras. El botón Eliminar quita la figura seleccionada.',
+    select: 'Selecciona y arrastra figuras. Usa el círculo superior o Shift + arrastre para girar los elementos compatibles.',
     pencil: 'Dibuja trazos libres sobre la cancha. Los trazos se guardan con la planificación.',
     eraser: 'Borra trazos completos hechos con el lápiz al tocarlos; no borra partes del trazo ni elimina jugadores, flechas, fichas o texto.',
 })[activeMode.value])
@@ -267,6 +320,27 @@ function removeImage() {
     emit('update:imageRemoved', true)
 }
 
+function normalizedSelectedColor() {
+    return selectableColorKeys.includes(selectedColor.value) ? selectedColor.value : 'blue'
+}
+
+function setSelectedColor(color) {
+    if (!selectableColorKeys.includes(color)) {
+        return
+    }
+
+    selectedColor.value = color
+
+    if (!selectedKey.value) {
+        return
+    }
+
+    items.value = items.value.map((item, index) => itemKey(item, index) === selectedKey.value
+        ? { ...item, color }
+        : item
+    )
+}
+
 function itemKey(item, index) {
     return item.id ?? `item-${index}`
 }
@@ -284,8 +358,8 @@ function addItem(tool) {
         x: 50,
         y: 32,
         label: tool.labelValue ?? '',
-        ...(tool.color ? { color: tool.color } : {}),
-        ...(directionalTypes.includes(tool.type) ? { rotation: 0 } : {}),
+        color: normalizedSelectedColor(),
+        ...(rotatableTypes.includes(tool.type) ? { rotation: 0 } : {}),
     }
 
     items.value = [...items.value, item]
@@ -295,6 +369,7 @@ function addItem(tool) {
 function setActiveMode(mode) {
     activeMode.value = mode
     dragState.value = null
+    rotationState.value = null
     drawingState.value = null
     erasingState.value = null
 
@@ -315,9 +390,9 @@ function updateSelectedLabel(event) {
     )
 }
 
-function rotateSelectedDirectional(delta) {
+function rotateSelected(delta) {
     items.value = items.value.map((item, index) => {
-        if (itemKey(item, index) !== selectedKey.value || !directionalTypes.includes(item.type)) {
+        if (itemKey(item, index) !== selectedKey.value || !isRotatable(item)) {
             return item
         }
 
@@ -326,6 +401,17 @@ function rotateSelectedDirectional(delta) {
             rotation: normalizeRotation(Number(item.rotation ?? 0) + delta),
         }
     })
+}
+
+function resetSelectedRotation() {
+    items.value = items.value.map((item, index) => itemKey(item, index) === selectedKey.value && isRotatable(item)
+        ? { ...item, rotation: 0 }
+        : item
+    )
+}
+
+function isRotatable(item) {
+    return Boolean(item && rotatableTypes.includes(item.type))
 }
 
 function handleCanvasPointerDown(event) {
@@ -357,6 +443,11 @@ function handleItemPointerDown(item, index, event) {
         return
     }
 
+    if (event.shiftKey && isRotatable(item)) {
+        startHorizontalRotation(item, index, event)
+        return
+    }
+
     startDrag(item, index, event)
 }
 
@@ -366,6 +457,7 @@ function selectItem(item, index) {
     }
 
     selectedKey.value = itemKey(item, index)
+    selectedColor.value = selectableColorKeys.includes(item.color) ? item.color : null
 }
 
 function startDrag(item, index, event) {
@@ -406,6 +498,18 @@ function moveSelected(event) {
         return
     }
 
+    if (rotationState.value) {
+        event.preventDefault()
+
+        if (!isPointerActive(event)) {
+            stopCanvasInteraction(event)
+            return
+        }
+
+        updateRotation(event)
+        return
+    }
+
     if (!dragState.value || !svgRef.value) {
         return
     }
@@ -420,8 +524,77 @@ function moveSelected(event) {
 function stopCanvasInteraction(event = null) {
     releasePointerCapture(event)
     dragState.value = null
+    rotationState.value = null
     drawingState.value = null
     erasingState.value = null
+}
+
+function startRotation(item, index, event) {
+    event.preventDefault()
+    const point = eventPoint(event)
+    const key = itemKey(item, index)
+
+    selectedKey.value = key
+    rotationState.value = {
+        key,
+        pointerId: event.pointerId,
+        centerX: item.x,
+        centerY: item.y,
+        startAngle: angleFromCenter(item.x, item.y, point.x, point.y),
+        initialRotation: Number(item.rotation ?? 0),
+    }
+    event.currentTarget.setPointerCapture?.(event.pointerId)
+}
+
+function startHorizontalRotation(item, index, event) {
+    const key = itemKey(item, index)
+
+    selectedKey.value = key
+    rotationState.value = {
+        key,
+        pointerId: event.pointerId,
+        horizontal: true,
+        startClientX: event.clientX,
+        initialRotation: Number(item.rotation ?? 0),
+    }
+    event.currentTarget.setPointerCapture?.(event.pointerId)
+}
+
+function updateRotation(event) {
+    const state = rotationState.value
+
+    if (!state) {
+        return
+    }
+
+    let rotation = state.initialRotation
+
+    if (state.horizontal) {
+        rotation += (event.clientX - state.startClientX) * 0.8
+    } else {
+        const point = eventPoint(event)
+        rotation += normalizeSignedAngle(
+            angleFromCenter(state.centerX, state.centerY, point.x, point.y) - state.startAngle
+        )
+    }
+
+    items.value = items.value.map((item, index) => itemKey(item, index) === state.key
+        ? { ...item, rotation: normalizeRotation(rotation) }
+        : item
+    )
+}
+
+function angleFromCenter(centerX, centerY, x, y) {
+    return Math.atan2(y - centerY, x - centerX) * (180 / Math.PI)
+}
+
+function normalizeSignedAngle(angle) {
+    let result = angle % 360
+
+    if (result > 180) result -= 360
+    if (result < -180) result += 360
+
+    return result
 }
 
 function startFreehand(event) {
@@ -437,7 +610,7 @@ function startFreehand(event) {
         id: makeId(),
         type: 'freehand',
         points: [point],
-        color: 'black',
+        color: normalizedSelectedColor(),
         strokeWidth: 1.1,
     }
 
@@ -505,7 +678,7 @@ function isPointerActive(event) {
 }
 
 function releasePointerCapture(event) {
-    const pointerId = event?.pointerId ?? drawingState.value?.pointerId ?? erasingState.value?.pointerId ?? dragState.value?.pointerId
+    const pointerId = event?.pointerId ?? rotationState.value?.pointerId ?? drawingState.value?.pointerId ?? erasingState.value?.pointerId ?? dragState.value?.pointerId
 
     if (pointerId === undefined || !svgRef.value?.hasPointerCapture?.(pointerId)) {
         return
@@ -514,39 +687,39 @@ function releasePointerCapture(event) {
     svgRef.value.releasePointerCapture?.(pointerId)
 }
 
-function conePath(item) {
-    return `M ${item.x} ${item.y - 3} L ${item.x - 3} ${item.y + 3} L ${item.x + 3} ${item.y + 3} Z`
+function conePath() {
+    return 'M 0 -3 L -3 3 L 3 3 Z'
 }
 
-function arrowHeadPath(item) {
-    return `M ${item.x + 4.6} ${item.y - 2.75} L ${item.x + 1.85} ${item.y - 2.95} L ${item.x + 3.15} ${item.y - 0.55} Z`
+function arrowHeadPath() {
+    return 'M 4.6 -2.75 L 1.85 -2.95 L 3.15 -0.55 Z'
 }
 
-function straightArrowHeadPath(item) {
-    return `M ${item.x + 5.1} ${item.y} L ${item.x + 2.6} ${item.y - 1.45} L ${item.x + 2.6} ${item.y + 1.45} Z`
+function straightArrowHeadPath() {
+    return 'M 5.1 0 L 2.6 -1.45 L 2.6 1.45 Z'
 }
 
-function crossArrowHeadPath(item) {
-    return `M ${item.x + 5.1} ${item.y - 3.1} L ${item.x + 2.55} ${item.y - 5} L ${item.x + 2.8} ${item.y - 1.1} Z`
+function crossArrowHeadPath() {
+    return 'M 5.1 -3.1 L 2.55 -5 L 2.8 -1.1 Z'
 }
 
-function dribblePoints(item) {
+function dribblePoints() {
     return [
-        [item.x - 5, item.y + 1],
-        [item.x - 3.3, item.y + 1],
-        [item.x - 3.3, item.y - 1],
-        [item.x - 1.6, item.y - 1],
-        [item.x - 1.6, item.y + 1],
-        [item.x + 0.1, item.y + 1],
-        [item.x + 0.1, item.y - 1],
-        [item.x + 1.8, item.y - 1],
-        [item.x + 1.8, item.y],
-        [item.x + 3.6, item.y],
+        [-5, 1],
+        [-3.3, 1],
+        [-3.3, -1],
+        [-1.6, -1],
+        [-1.6, 1],
+        [0.1, 1],
+        [0.1, -1],
+        [1.8, -1],
+        [1.8, 0],
+        [3.6, 0],
     ].map((point) => point.join(',')).join(' ')
 }
 
-function crossPath(item) {
-    return `M ${item.x - 5} ${item.y + 3} Q ${item.x - 0.8} ${item.y - 4.3} ${item.x + 4.1} ${item.y - 3}`
+function crossPath() {
+    return 'M -5 3 Q -0.8 -4.3 4.1 -3'
 }
 
 function freehandPath(item) {
@@ -596,8 +769,8 @@ function distanceToSegment(point, start, end) {
     })
 }
 
-function arrowTransform(item) {
-    return `rotate(${normalizeRotation(Number(item.rotation ?? 0))} ${item.x} ${item.y})`
+function localElementTransform(item) {
+    return `translate(${item.x} ${item.y}) rotate(${normalizeRotation(Number(item.rotation ?? 0))})`
 }
 
 function itemColor(item) {
@@ -699,6 +872,38 @@ function normalizeRotation(rotation) {
     padding: 0.35rem 0.5rem;
 }
 
+.field-color-selector {
+    align-items: center;
+    color: var(--field-editor-label);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.field-color-option {
+    align-items: center;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-flex;
+    padding: 2px;
+}
+
+.field-color-option > span {
+    border: 1px solid var(--field-editor-border);
+    border-radius: 50%;
+    display: block;
+    height: 1.35rem;
+    width: 1.35rem;
+}
+
+.field-color-option--active,
+.field-color-option:focus-within {
+    border-color: var(--field-selected-shadow);
+}
+
 .field-text-input {
     color: var(--field-editor-label);
     max-width: 280px;
@@ -784,6 +989,10 @@ function normalizeRotation(rotation) {
 .field-item.selected .player,
 .field-item.selected .player-token,
 .field-item.selected .cone,
+.field-item.selected .hurdle-frame,
+.field-item.selected .hurdle-bar,
+.field-item.selected .hurdle-base,
+.field-item.selected .training-stick,
 .field-item.selected .ball,
 .field-item.selected .hoop,
 .field-item.selected .arrow-line,
@@ -801,6 +1010,52 @@ function normalizeRotation(rotation) {
 
 .cone {
     fill: var(--field-cone-color);
+}
+
+.hurdle-frame,
+.hurdle-base {
+    fill: none;
+    stroke: var(--field-cone-color);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 0.8;
+}
+
+.hurdle-bar {
+    stroke: var(--field-cone-color);
+    stroke-linecap: round;
+    stroke-width: 1.15;
+}
+
+.training-stick {
+    stroke: #d4a60f;
+    stroke-linecap: round;
+    stroke-width: 1.1;
+}
+
+.training-stick-end {
+    fill: #d4a60f;
+}
+
+.rotation-control {
+    cursor: grab;
+}
+
+.rotation-line {
+    stroke: var(--field-selected-shadow);
+    stroke-dasharray: 0.8 0.8;
+    stroke-width: 0.45;
+}
+
+.rotation-handle {
+    fill: var(--field-editor-surface);
+    stroke: var(--field-selected-shadow);
+    stroke-width: 0.55;
+}
+
+.rotation-hit-area {
+    fill: transparent;
+    pointer-events: all;
 }
 
 .ball {

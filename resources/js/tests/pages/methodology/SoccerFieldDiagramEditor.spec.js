@@ -115,15 +115,22 @@ describe('SoccerFieldDiagramEditor', () => {
         }))
 
         await wrapper.setProps({ modelValue: value })
-        await wrapper.findAll('button').find((button) => button.text().includes('Derecha')).trigger('click')
+        expect(wrapper.find('.arrow-line').attributes('x1')).toBe('-4')
+        expect(wrapper.find('.arrow-line').element.parentElement.getAttribute('transform'))
+            .toContain('translate(50 32) rotate(0)')
+
+        await wrapper.findAll('button').find((button) => button.text().includes('+15°')).trigger('click')
         value = latestModelValue(wrapper)
 
         expect(value[1]).toEqual(expect.objectContaining({
-            rotation: 45,
+            rotation: 15,
         }))
 
         await wrapper.setProps({ modelValue: value })
-        await wrapper.findAll('button').find((button) => button.text().includes('Izquierda')).trigger('click')
+        expect(wrapper.find('.arrow-line').element.parentElement.getAttribute('transform'))
+            .toContain('translate(50 32) rotate(15)')
+
+        await wrapper.findAll('button').find((button) => button.text().includes('-15°')).trigger('click')
         value = latestModelValue(wrapper)
 
         expect(value[1]).toEqual(expect.objectContaining({
@@ -138,7 +145,9 @@ describe('SoccerFieldDiagramEditor', () => {
             },
         })
 
-        await wrapper.findAll('button').find((button) => button.text().includes('Ficha roja')).trigger('click')
+        expect(wrapper.findAll('.field-color-option')).toHaveLength(4)
+        await wrapper.find('input[aria-label="Color Rojo"]').trigger('change')
+        await wrapper.findAll('button').find((button) => button.text().includes('Ficha')).trigger('click')
         let value = latestModelValue(wrapper)
 
         expect(value).toHaveLength(1)
@@ -151,7 +160,7 @@ describe('SoccerFieldDiagramEditor', () => {
         }))
 
         await wrapper.setProps({ modelValue: value })
-        await wrapper.find('input').setValue('9')
+        await wrapper.find('.field-text-input input').setValue('9')
         value = latestModelValue(wrapper)
 
         expect(value[0]).toEqual(expect.objectContaining({
@@ -178,18 +187,72 @@ describe('SoccerFieldDiagramEditor', () => {
         expect(value.map((item) => item.type)).toEqual(['pass', 'dribble', 'off_ball_run', 'cross'])
         expect(value.every((item) => item.rotation === 0)).toBe(true)
 
-        await wrapper.findAll('button').find((button) => button.text().includes('Derecha')).trigger('click')
+        await wrapper.findAll('button').find((button) => button.text().includes('+15°')).trigger('click')
         value = latestModelValue(wrapper)
 
         expect(value[3]).toEqual(expect.objectContaining({
             type: 'cross',
-            rotation: 45,
+            rotation: 15,
         }))
 
         await wrapper.setProps({ modelValue: value })
         await wrapper.findAll('button').find((button) => button.text().includes('Eliminar')).trigger('click')
 
         expect(latestModelValue(wrapper).map((item) => item.type)).toEqual(['pass', 'dribble', 'off_ball_run'])
+    })
+
+    it('adds positioned training equipment and rotates it with shift drag', async () => {
+        const wrapper = mount(SoccerFieldDiagramEditor, {
+            props: {
+                modelValue: [],
+            },
+        })
+
+        await wrapper.findAll('button').find((button) => button.text().includes('Valla')).trigger('click')
+        let value = latestModelValue(wrapper)
+        await wrapper.setProps({ modelValue: value })
+
+        expect(value[0]).toEqual(expect.objectContaining({
+            type: 'agility_hurdle',
+            rotation: 0,
+        }))
+        expect(wrapper.find('.hurdle-frame').element.parentElement.getAttribute('transform'))
+            .toContain('translate(50 32)')
+
+        await wrapper.find('input[aria-label="Color Verde"]').trigger('change')
+        value = latestModelValue(wrapper)
+
+        expect(value[0]).toEqual(expect.objectContaining({
+            type: 'agility_hurdle',
+            color: 'green',
+            rotation: 0,
+        }))
+
+        await wrapper.setProps({ modelValue: value })
+        wrapper.find('.field-item').element.dispatchEvent(makePointerEvent('pointerdown', {
+            pointerId: 2,
+            clientX: 10,
+            shiftKey: true,
+            buttons: 1,
+        }))
+        wrapper.find('svg').element.dispatchEvent(makePointerEvent('pointermove', {
+            pointerId: 2,
+            clientX: 60,
+            buttons: 1,
+        }))
+        await nextTick()
+        value = latestModelValue(wrapper)
+
+        expect(value[0].rotation).toBe(40)
+
+        await wrapper.setProps({ modelValue: value })
+        await wrapper.findAll('button').find((button) => button.text().includes('Bastón')).trigger('click')
+        value = latestModelValue(wrapper)
+
+        expect(value[1]).toEqual(expect.objectContaining({
+            type: 'stick',
+            rotation: 0,
+        }))
     })
 
     it('moves only the selected item when loaded diagram items do not have ids', async () => {
@@ -248,6 +311,7 @@ describe('SoccerFieldDiagramEditor', () => {
         })
         svg.setPointerCapture = () => {}
 
+        await wrapper.find('input[aria-label="Color Amarillo"]').trigger('change')
         await wrapper.findAll('button').find((button) => button.text().includes('Lápiz')).trigger('click')
         wrapper.find('svg').element.dispatchEvent(makePointerEvent('pointerdown', { pointerId: 1, clientX: 12, clientY: 14 }))
         await nextTick()
@@ -255,6 +319,7 @@ describe('SoccerFieldDiagramEditor', () => {
 
         expect(value[0]).toEqual(expect.objectContaining({
             type: 'freehand',
+            color: 'yellow',
             points: [{ x: 12, y: 14 }],
         }))
 
