@@ -2,7 +2,7 @@
     <panel>
         <template #header>
             <div class="row g-3 align-items-center" data-tour="training-sessions-actions">
-                <div class="col-md-auto">
+                <div v-if="!isReadOnly" class="col-md-auto">
                     <button type="button" class="btn btn-primary" @click="openCreate">
                         Nueva sesión
                     </button>
@@ -44,6 +44,7 @@
                         </a>
 
                         <button
+                            v-if="!isReadOnly"
                             type="button"
                             class="btn btn-warning btn-sm"
                             title="Editar sesión"
@@ -102,6 +103,7 @@ const table = useTemplateRef('table')
 const selectedId = ref(null)
 const isModalOpen = ref(false)
 const canDelete = computed(() => auth.hasAnyRole(['super-admin', 'school']))
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 const {
     globalError,
     tableKey,

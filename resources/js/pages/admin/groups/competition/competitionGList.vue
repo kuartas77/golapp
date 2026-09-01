@@ -4,14 +4,14 @@
         <template #header>
             <div class="row">
                 <div class="col-md-auto d-flex gap-2 flex-wrap" data-tour="admin-competition-groups-actions">
-                    <a data-bs-toggle="modal" data-bs-target="#composeModalCompetitionG"
+                    <a v-if="!isReadOnly" data-bs-toggle="modal" data-bs-target="#composeModalCompetitionG"
                         class="btn btn-block btn-primary" href="javascript:void(0);">
                         Crear Grupo
                     </a>
                     <router-link :to="{ name: 'competition-tournaments' }" class="btn btn-outline-info">
                         Torneos
                     </router-link>
-                    <router-link :to="{ name: 'competition-groups-admin' }" class="btn btn-info">
+                    <router-link v-if="!isReadOnly" :to="{ name: 'competition-groups-admin' }" class="btn btn-info">
                         Administrar Grupos
                     </router-link>
                 </div>
@@ -36,7 +36,7 @@
                 @action="reloadTable"
             />
             <div v-show="!globalError" data-tour="admin-competition-groups-table">
-                <DatatableTemplate :key="tableKey" :options="options" :id="'competition_table'" ref="table" @click="onClickRow">
+                <DatatableTemplate :key="tableKey" :options="options" :id="'competition_table'" ref="table" @click="!isReadOnly && onClickRow($event)">
                 <template #date="props">
                     <div class="text-center">
                         {{ dayjs(props.cellData).format('l') }}
@@ -61,7 +61,11 @@ import useCompetitionGList from '@/composables/admin/groups/competitionGList'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import ModalCompetitionGroup from "./ModalCompetitionGroup.vue";
 import { competitionGroupsTutorial } from '@/tutorials/admin'
-import { useTemplateRef } from 'vue'
+import { computed, useTemplateRef } from 'vue'
+import { useAuthUser } from '@/store/auth-user'
+
+const auth = useAuthUser()
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 
 const table = useTemplateRef('table')
 const { tableKey, options, selectedId, globalError, onClickRow, reloadTable, onCancel } = useCompetitionGList(table)

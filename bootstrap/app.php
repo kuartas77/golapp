@@ -6,6 +6,7 @@ use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\CheckSettingNotification;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\EnsureGuardian;
+use App\Http\Middleware\EnsureSchoolModuleView;
 use App\Http\Middleware\EnsureSchoolPermission;
 use App\Http\Middleware\HttpRedirect;
 use App\Http\Middleware\PreventRequestsDuringMaintenance;
@@ -89,6 +90,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ensure.guardian' => EnsureGuardian::class,
             'role' => RoleMiddleware::class,
             'school.permission' => EnsureSchoolPermission::class,
+            'school.module.view' => EnsureSchoolModuleView::class,
             'verified_school' => VerifySchool::class,
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,

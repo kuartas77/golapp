@@ -6,7 +6,7 @@
                     <h4 class="mb-1">{{ pageTitle }}</h4>
                     <p class="mb-0 text-muted">{{ pageDescription }}</p>
                 </div>
-                <button type="button" class="btn btn-primary" @click="openModal">
+                <button v-if="!isReadOnly" type="button" class="btn btn-primary" @click="openModal">
                     <i class="fa fa-plus me-1"></i> Agregar documento
                 </button>
             </div>
@@ -37,7 +37,7 @@
                         <button class="btn btn-info btn-sm" title="Descargar" @click="download(props.rowData)">
                             <i class="fa fa-download"></i>
                         </button>
-                        <button class="btn btn-danger btn-sm" title="Eliminar" @click="confirmDelete(props.rowData)">
+                        <button v-if="!isReadOnly" class="btn btn-danger btn-sm" title="Eliminar" @click="confirmDelete(props.rowData)">
                             <i class="fa fa-trash"></i>
                         </button>
                     </div>
@@ -97,8 +97,11 @@ import api from '@/utils/axios'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import configLanguaje from '@/utils/datatableUtils'
 import { usePageTitle } from '@/composables/use-meta'
+import { useAuthUser } from '@/store/auth-user'
 
 const route = useRoute()
+const auth = useAuthUser()
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 const documents = ref([])
 const tableKey = ref(0)
 const modalRef = ref(null)

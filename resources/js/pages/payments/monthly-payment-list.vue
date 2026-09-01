@@ -135,7 +135,7 @@
                                 class="btn btn-primary btn-sm me-1">
                                 <i class="far fa-file-pdf me-1"></i>Recibos
                             </router-link>
-                            <router-link v-if="!isAssistant" :to="{ name: 'payments.debt-notifications' }"
+                            <router-link v-if="!isAssistant && !isViewer" :to="{ name: 'payments.debt-notifications' }"
                                 class="btn btn-primary btn-sm me-1">
                                 <i class="far fa-envelope me-1"></i>Notificaciones de deuda
                             </router-link>
@@ -631,6 +631,7 @@ const {
     type_payments,
     canUsePlayerCredits,
     isAssistant,
+    isViewer,
     editablePaymentTypes,
     paymentTypeLabels,
     monthOptions,

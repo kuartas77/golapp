@@ -10,6 +10,7 @@
                 </div>
 
                 <button
+                    v-if="!readOnly"
                     type="button"
                     class="btn btn-info btn-sm flex-shrink-0"
                     :disabled="isLoading || !itemTypeOptions.length"
@@ -51,7 +52,7 @@
                                 <tr>
                                     <th>Item</th>
                                     <th>Precio</th>
-                                    <th class="text-end">Acciones</th>
+                                    <th v-if="!readOnly" class="text-end">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -61,7 +62,7 @@
                                         <small class="text-muted">{{ resolveTypeLabel(item.type) }}</small>
                                     </td>
                                     <td>{{ moneyFormat(Number(item.unit_price)) }}</td>
-                                    <td class="text-end">
+                                    <td v-if="!readOnly" class="text-end">
                                         <div class="d-inline-flex gap-2">
                                             <button
                                                 type="button"
@@ -232,7 +233,13 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    readOnly: {
+        type: Boolean,
+        default: false,
+    },
 })
+
+const readOnly = computed(() => props.readOnly)
 
 const items = ref([])
 const currentPage = ref(1)

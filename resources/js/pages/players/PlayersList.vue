@@ -64,10 +64,10 @@
                             <button
                                 type="button"
                                 class="btn btn-outline-primary btn-sm"
-                                :title="isAssistant ? 'Ver deportista' : 'Editar deportista'"
+                                :title="isReadOnly ? 'Ver deportista' : 'Editar deportista'"
                                 @click.stop="editPlayer(props.rowData.unique_code)"
                             >
-                                <i :class="isAssistant ? 'fa fa-eye' : 'fa fa-edit'"></i>
+                                <i :class="isReadOnly ? 'fa fa-eye' : 'fa fa-edit'"></i>
                             </button>
                             <button
                                 type="button"
@@ -180,6 +180,7 @@ let importPollTimer = null
 const isSuperAdmin = computed(() => auth.hasRole('super-admin'))
 const canImportPlayers = computed(() => auth.hasAnyRole(['super-admin', 'school']))
 const isAssistant = computed(() => auth.hasRole('assistant'))
+const isReadOnly = computed(() => isAssistant.value || auth.hasRole('viewer'))
 const canSubmitImport = computed(() => {
     return !importing.value
         && Boolean(importFile.value)

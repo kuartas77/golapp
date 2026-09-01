@@ -40,7 +40,8 @@ export default function useMonthlyPayments() {
         option.value !== '15' || auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.playerCredits)
     )))
     const isAssistant = computed(() => auth.hasRole('assistant'))
-    const canUsePlayerCredits = computed(() => !isAssistant.value && auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.playerCredits))
+    const isViewer = computed(() => auth.hasRole('viewer'))
+    const canUsePlayerCredits = computed(() => !isAssistant.value && !isViewer.value && auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.playerCredits))
     const paymentTypeLabels = computed(() => settings.paymentTypeLabels)
     const statusCatalog = ref({
         statuses: [],
@@ -218,6 +219,7 @@ export default function useMonthlyPayments() {
 
     const canEditPaymentRow = (payPlayer, field) => {
         if (payPlayer.inscription_deleted) return false
+        if (isViewer.value) return false
         if (!isAssistant.value) return true
 
         const capabilities = statusCatalog.value.capabilities
@@ -692,6 +694,7 @@ export default function useMonthlyPayments() {
         type_payments,
         canUsePlayerCredits,
         isAssistant,
+        isViewer,
         editablePaymentTypes,
         paymentTypeLabels,
         statusCatalog,

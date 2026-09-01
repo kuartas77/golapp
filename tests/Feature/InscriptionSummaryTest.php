@@ -9,8 +9,10 @@ use App\Models\Inscription;
 use App\Models\Payment;
 use App\Models\Player;
 use App\Models\School;
+use App\Models\SchoolUser;
 use App\Models\TrainingGroup;
 use App\Models\User;
+use App\Support\SchoolModuleAccess;
 use Tests\TestCase;
 
 final class InscriptionSummaryTest extends TestCase
@@ -129,6 +131,39 @@ final class InscriptionSummaryTest extends TestCase
         $this->actingAs($instructor)
             ->getJson("/api/v2/inscriptions/{$inscription->id}/summary")
             ->assertForbidden();
+    }
+
+    public function test_viewer_summary_filters_sections_from_unassigned_modules(): void
+    {
+        [$player, $inscription] = $this->createSummaryFixture(now()->year);
+        $player->forceFill([
+            'email' => 'private.player@gmail.com',
+            'mobile' => '3000000000',
+        ])->save();
+        $viewer = $this->createUser([
+            'school_id' => $this->school['id'],
+            'email' => 'summary.viewer@gmail.com',
+        ], [User::VIEWER]);
+        SchoolUser::query()->create([
+            'school_id' => $this->school['id'],
+            'user_id' => $viewer->id,
+        ]);
+        $viewer->givePermissionTo(SchoolModuleAccess::permissionName('school.module.inscriptions'));
+
+        $this->actingAs($viewer)
+            ->getJson("/api/v2/inscriptions/{$inscription->id}/summary")
+            ->assertOk()
+            ->assertJsonPath('data.can_edit', false)
+            ->assertJsonPath('data.payments', [])
+            ->assertJsonPath('data.attendance', [])
+            ->assertJsonPath('data.invoices', [])
+            ->assertJsonPath('data.evaluations', [])
+            ->assertJsonPath('data.amounts', null)
+            ->assertJsonPath('data.player.email', null)
+            ->assertJsonPath('data.player.mobile', null)
+            ->assertJsonPath('data.links.player', null)
+            ->assertJsonPath('data.links.stats', null)
+            ->assertJsonPath('data.links.print', null);
     }
 
     public function test_summary_does_not_expose_other_school_inscriptions(): void

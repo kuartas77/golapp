@@ -151,7 +151,7 @@
                             type="empty"
                             title="No hay deportistas en esta clase"
                             message="Puedes crear los registros de asistencia faltantes para el grupo y periodo seleccionados."
-                            action-label="Crear asistencias"
+                            :action-label="isReadOnly ? null : 'Crear asistencias'"
                             data-tour="attendance-table"
                             @action="createMissingAttendances"
                         />
@@ -228,7 +228,7 @@
                             <span class="bar"></span>
                             <textarea name="observations" id="single_observation" cols="30" rows="10"
                                 class="form-control form-control-sm" v-model="takeAttendance.observation"
-                                :disabled="takeAttendance.inscription_deleted"></textarea>
+                                :disabled="isReadOnly || takeAttendance.inscription_deleted"></textarea>
                         </div>
                     </div>
                 </div>
@@ -237,7 +237,7 @@
                     <button type="button" class="btn" @click="onCancelModalObservation">
                         <i class="flaticon-cancel-12"></i> Cerrar
                     </button>
-                    <button type="button" class="btn btn-primary" :disabled="takeAttendance.inscription_deleted" @click="onSaveModalObservation">
+                    <button v-if="!isReadOnly" type="button" class="btn btn-primary" :disabled="takeAttendance.inscription_deleted" @click="onSaveModalObservation">
                         Guardar
                     </button>
                 </div>
@@ -270,6 +270,7 @@ const form = useTemplateRef('form')
 
 const {
     isLoading,
+    isReadOnly,
     isBulkUpdating,
     groups,
     schema,

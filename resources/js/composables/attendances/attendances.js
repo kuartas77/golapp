@@ -3,6 +3,7 @@ import { usePageTitle } from "@/composables/use-meta"
 import api from "@/utils/axios"
 import { computed, getCurrentInstance, onMounted, ref } from "vue"
 import * as yup from 'yup'
+import { useAuthUser } from '@/store/auth-user'
 
 export default function useAttendances() {
     usePageTitle('Asistencias')
@@ -11,6 +12,8 @@ export default function useAttendances() {
     const isLoading = ref(false)
     const isBulkUpdating = ref(false)
     const settings = useSetting()
+    const auth = useAuthUser()
+    const isReadOnly = computed(() => auth.hasRole('viewer'))
 
     const attendanceGroups = computed(() => (
         settings.attendance_training_groups?.length
@@ -90,7 +93,7 @@ export default function useAttendances() {
     })
     const isTruthyFlag = (value) => value === true || value === 1 || value === '1'
 
-    const attendanceRowReadOnly = (row) => isTruthyFlag(row?.inscription_deleted) || isTruthyFlag(row?.period_locked)
+    const attendanceRowReadOnly = (row) => isReadOnly.value || isTruthyFlag(row?.inscription_deleted) || isTruthyFlag(row?.period_locked)
 
     const attendanceValueFor = (row) => {
         const column = classDaySelected.value?.column
@@ -99,6 +102,9 @@ export default function useAttendances() {
     }
 
     const attendanceRowReadOnlyMessage = (row) => {
+        if (isReadOnly.value) {
+            return 'Tu perfil permite consultar asistencias, pero no modificarlas.'
+        }
         if (isTruthyFlag(row?.period_locked)) {
             return 'Este periodo ya está cerrado para instructores. Solicita a la escuela una corrección administrativa.'
         }
@@ -444,6 +450,7 @@ export default function useAttendances() {
 
     return {
         isLoading,
+        isReadOnly,
         isBulkUpdating,
         groups,
         schema,

@@ -1,11 +1,14 @@
 import configLanguaje from '@/utils/datatableUtils'
-import { getCurrentInstance, ref, useTemplateRef, onMounted } from 'vue'
+import { computed, getCurrentInstance, ref, useTemplateRef, onMounted } from 'vue'
 import { usePageTitle } from "@/composables/use-meta"
 import api from '@/utils/axios'
 import * as yup from 'yup'
 import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
+import { useAuthUser } from '@/store/auth-user'
 
 export default function useUsersList() {
+    const auth = useAuthUser()
+    const isReadOnly = computed(() => auth.hasRole('viewer'))
 
     const table = useTemplateRef('table')
     const form = useTemplateRef('form')
@@ -58,6 +61,7 @@ export default function useUsersList() {
     const { proxy } = getCurrentInstance()
     const globalError = ref(null)
     const roleOptions = ref([])
+    const moduleOptions = ref([])
 
     const composeModalUser = ref(null)
     const profileModal = ref(null)
@@ -68,14 +72,20 @@ export default function useUsersList() {
         id: null,
         name: null,
         email: null,
-        rol_id: null
+        rol_id: null,
+        viewer_modules: [],
     })
 
     const schema = yup.object().shape({
         id: yup.mixed().nullable().optional(),
         name: yup.string().required(),
         email: yup.string().email().required(),
-        rol_id: yup.number().required()
+        rol_id: yup.number().required(),
+        viewer_modules: yup.array().when('rol_id', {
+            is: (roleId) => isViewerRole(roleId),
+            then: (rule) => rule.min(1, 'Selecciona al menos un módulo.').required(),
+            otherwise: (rule) => rule.default([]),
+        }),
     })
 
     const onCancel = () => {
@@ -119,7 +129,8 @@ export default function useUsersList() {
             id: itemId,
             name: response.data.data.name,
             email: response.data.data.email,
-            rol_id: response.data.data.role_id
+            rol_id: response.data.data.role_id,
+            viewer_modules: response.data.data.viewer_modules ?? [],
         }
 
         form.value.resetForm()
@@ -164,13 +175,24 @@ export default function useUsersList() {
             keyboard: true,
             focus: true
         })
+        if (isReadOnly.value) {
+            return
+        }
+
         try {
-            const response = await api.get('/api/v2/admin/users/role-options')
-            roleOptions.value = response?.data?.data ?? []
+            const [rolesResponse, modulesResponse] = await Promise.all([
+                api.get('/api/v2/admin/users/role-options'),
+                api.get('/api/v2/admin/users/module-options'),
+            ])
+            roleOptions.value = rolesResponse?.data?.data ?? []
+            moduleOptions.value = modulesResponse?.data?.data ?? []
         } catch (error) {
             globalError.value = error.response?.data?.message || 'No fue posible cargar los roles disponibles.'
         }
     })
+
+    const isViewerRole = (roleId) => roleOptions.value
+        .find((role) => String(role.value) === String(roleId))?.name === 'viewer'
 
     return {
         table,
@@ -190,5 +212,8 @@ export default function useUsersList() {
         showProfile,
         closeProfile,
         roleOptions,
+        moduleOptions,
+        isViewerRole,
+        isReadOnly,
     }
 }

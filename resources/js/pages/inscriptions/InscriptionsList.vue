@@ -125,7 +125,7 @@
                                 <th>Genero</th>
                                 <th>
                                     <input
-                                        type="text"
+                                        type="search"
                                         class="form-control form-control-sm form-control-custom"
                                         id="full_names"
                                         name="full_names"
@@ -215,10 +215,11 @@ const filterTrainingGroups = computed(() => {
 
     return Array.from(uniqueGroups.values())
 })
-const canExportInscriptions = computed(() => auth.hasAnyRole(['super-admin', 'school']))
+const canExportInscriptions = computed(() => auth.hasAnyRole(['super-admin', 'school', 'viewer']))
+const canManageInscriptions = computed(() => auth.hasAnyRole(['super-admin', 'school']))
 const selectedYear = ref(String(route.query.inscription_year || currentYear))
 const exportExcelUrl = computed(() => `/export/inscriptions/excel?inscription_year=${encodeURIComponent(selectedYear.value || currentYear)}`)
-const canManageSelectedYear = computed(() => canExportInscriptions.value && Number(selectedYear.value || currentYear) >= Number(currentYear))
+const canManageSelectedYear = computed(() => auth.hasAnyRole(['super-admin', 'school']) && Number(selectedYear.value || currentYear) >= Number(currentYear))
 const canCreateInvoice = computed(() => canManageSelectedYear.value && auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.billing))
 const canAddCustomCharges = computed(() => auth.hasRole('assistant')
     && auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.billing)
@@ -232,6 +233,10 @@ const inscriptionLimit = ref({
 })
 
 const loadLimitSummary = async () => {
+    if (!canManageSelectedYear.value) {
+        return
+    }
+
     try {
         const { data } = await api.get('/api/v2/inscriptions/limit-summary', {
             params: {
@@ -274,7 +279,7 @@ const {
     onAttendanceQrModalToggle,
     onCancelModal,
     onSuccessModal,
-} = useInscriptionConfig(selectedYear, canExportInscriptions, loadLimitSummary, canCreateInvoice, canAddCustomCharges)
+} = useInscriptionConfig(selectedYear, canManageInscriptions, loadLimitSummary, canCreateInvoice, canAddCustomCharges)
 const tutorial = usePageTutorial(inscriptionsTutorial, {
     canExportInscriptions,
 })

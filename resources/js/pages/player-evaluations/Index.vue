@@ -13,7 +13,7 @@
                     <router-link :to="{ name: 'player-evaluations.comparison' }" class="btn btn-primary btn-sm">
                         Comparativo
                     </router-link>
-                    <router-link :to="{ name: 'player-evaluations.create' }" class="btn btn-primary btn-sm">
+                    <router-link v-if="!isReadOnly" :to="{ name: 'player-evaluations.create' }" class="btn btn-primary btn-sm">
                         Nueva evaluación
                     </router-link>
                     <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
@@ -192,7 +192,7 @@
                                                 Ver
                                             </button>
                                         </li>
-                                        <li v-if="!props.rowData.is_closed">
+                                        <li v-if="!isReadOnly && !props.rowData.is_closed">
                                             <button
                                                 class="dropdown-item"
                                                 type="button"
@@ -213,7 +213,7 @@
                                                 PDF
                                             </a>
                                         </li>
-                                        <template v-if="!props.rowData.is_closed">
+                                        <template v-if="!isReadOnly && !props.rowData.is_closed">
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
                                                 <button
@@ -259,8 +259,11 @@ import {
     toQueryObject,
 } from '@/pages/player-evaluations/utils'
 import { playerEvaluationsIndexTutorial } from '@/tutorials/playerEvaluations'
+import { useAuthUser } from '@/store/auth-user'
 
 const router = useRouter()
+const auth = useAuthUser()
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 const tutorial = usePageTutorial(playerEvaluationsIndexTutorial)
 
 const isLoading = ref(true)

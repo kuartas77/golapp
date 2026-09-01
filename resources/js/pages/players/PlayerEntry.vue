@@ -1,5 +1,5 @@
 <template>
-    <PlayerReadonly v-if="isAssistant" />
+    <PlayerReadonly v-if="isReadOnly" />
     <PlayerDetail v-else />
 </template>
 
@@ -10,5 +10,5 @@ import PlayerDetail from './PlayerDetail.vue'
 import PlayerReadonly from './PlayerReadonly.vue'
 
 const auth = useAuthUser()
-const isAssistant = computed(() => auth.hasRole('assistant'))
+const isReadOnly = computed(() => auth.hasAnyRole(['assistant', 'viewer']))
 </script>

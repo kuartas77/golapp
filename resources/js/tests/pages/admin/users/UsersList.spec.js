@@ -30,6 +30,7 @@ vi.mock('@/tutorials/admin', () => ({
 }))
 
 import UsersList from '@/pages/admin/users/UsersList.vue'
+import { useAuthUser } from '@/store/auth-user'
 
 const DatatableTemplateStub = defineComponent({
     template: '<div><slot name="actions" :cellData="21" /></div>',
@@ -38,7 +39,7 @@ const DatatableTemplateStub = defineComponent({
 const FormStub = defineComponent({
     inheritAttrs: false,
     emits: ['submit'],
-    template: '<form @submit.prevent="$emit(\'submit\', values, actions)"><slot :isSubmitting="false" /></form>',
+    template: '<form @submit.prevent="$emit(\'submit\', values, actions)"><slot :values="values" :isSubmitting="false" /></form>',
     setup(props, { expose }) {
         expose({
             resetForm: formResetMock,
@@ -162,6 +163,7 @@ describe('UsersList profile modal', () => {
             name: 'Instructor Uno',
             email: 'instructor@example.com',
             rol_id: 3,
+            viewer_modules: [],
         })
         expect(modalShowMock).toHaveBeenCalled()
         wrapper.unmount()
@@ -187,6 +189,18 @@ describe('UsersList profile modal', () => {
         })
         expect(wrapper.text()).toContain('El correo ya está registrado.')
         expect(formResetMock).not.toHaveBeenCalled()
+        wrapper.unmount()
+    })
+
+    it('hides create and edit actions from viewers while keeping profile access', () => {
+        const auth = useAuthUser()
+        auth.roles = ['viewer']
+
+        const wrapper = mountPage()
+
+        expect(wrapper.find('#btn-compose-user').exists()).toBe(false)
+        expect(wrapper.find('button[title="Editar usuario"]').exists()).toBe(false)
+        expect(wrapper.find('button[title="Ver perfil"]').exists()).toBe(true)
         wrapper.unmount()
     })
 })

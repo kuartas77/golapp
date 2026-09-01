@@ -6,7 +6,7 @@
                     <h4 class="mb-1">Inventario</h4>
                     <p class="text-muted mb-0">Administra productos, stock y movimientos de inventario.</p>
                 </div>
-                <div class="d-flex gap-2"><button v-if="activeTab === 'products'" type="button" class="btn btn-info btn-sm" @click="openProductForm()">
+                <div class="d-flex gap-2"><button v-if="!isReadOnly && activeTab === 'products'" type="button" class="btn btn-info btn-sm" @click="openProductForm()">
                     <i class="fa fa-plus me-2" aria-hidden="true"></i>
                     Nuevo producto
                 </button><button type="button" class="btn btn-info btn-sm" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button></div>
@@ -47,7 +47,7 @@
                         </thead>
                     </template>
                     <template #actions="props">
-                        <div class="d-inline-flex gap-2">
+                        <div v-if="!isReadOnly" class="d-inline-flex gap-2">
                             <button
                                 type="button"
                                 class="btn btn-outline-primary btn-sm"
@@ -296,12 +296,15 @@ import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { inventoryTutorial } from '@/tutorials/operations'
 import { useDialogFocusTrap } from '@/composables/useDialogFocusTrap'
+import { useAuthUser } from '@/store/auth-user'
 
 const props = defineProps({
     initialTab: { type: String, default: 'products' },
 })
 
 usePageTitle('Inventario')
+const auth = useAuthUser()
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 
 const activeTab = ref(props.initialTab === 'movements' ? 'movements' : 'products')
 const tutorial = usePageTutorial(inventoryTutorial, { activeTab })

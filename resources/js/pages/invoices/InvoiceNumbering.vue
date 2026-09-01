@@ -7,7 +7,7 @@
                 icon="fa fa-hashtag"
             >
                 <template #actions>
-                    <AppButton variant="primary" size="sm" @click="openCreate">
+                    <AppButton v-if="!isReadOnly" variant="primary" size="sm" @click="openCreate">
                         <i class="fa fa-plus" aria-hidden="true"></i>
                         Nueva resolución
                     </AppButton>
@@ -133,7 +133,7 @@
                                 <td>{{ range.remaining_numbers }}</td>
                                 <td><span class="badge" :class="stateClass(range.state)">{{ stateLabel(range.state) }}</span></td>
                                 <td class="text-end">
-                                    <div class="d-inline-flex flex-wrap justify-content-end gap-1">
+                                    <div v-if="!isReadOnly" class="d-inline-flex flex-wrap justify-content-end gap-1">
                                         <button type="button" class="btn btn-outline-primary btn-sm" @click="openEdit(range)">Editar</button>
                                         <button v-if="range.is_active" type="button" class="btn btn-outline-warning btn-sm" @click="deactivate(range)">Desactivar</button>
                                         <button v-else-if="range.state === 'available'" type="button" class="btn btn-outline-success btn-sm" @click="activate(range)">Activar</button>
@@ -154,11 +154,15 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import api from '@/utils/axios'
 import AppButton from '@/components/general/AppButton.vue'
 import AppPageHeader from '@/components/general/AppPageHeader.vue'
 import ContentState from '@/components/general/ContentState.vue'
+import { useAuthUser } from '@/store/auth-user'
+
+const auth = useAuthUser()
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 
 const blankForm = () => ({
     resolution_number: '', resolution_date: '', prefix: '', range_start: 1, range_end: 1,

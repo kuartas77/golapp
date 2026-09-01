@@ -3,7 +3,7 @@
         <template #lateral />
         <template #header>
             <div class="row">
-                <div class="col-md-auto" data-tour="admin-users-actions">
+                <div v-if="!isReadOnly" class="col-md-auto" data-tour="admin-users-actions">
                     <a data-bs-toggle="modal" data-bs-target="#composeModalUser" id="btn-compose-user"
                         class="btn btn-block btn-primary" href="javascript:void(0);">
                         Crear usuario
@@ -35,6 +35,7 @@
                 <DatatableTemplate :key="tableKey" :options="options" :id="'users_table'" ref="table">
                     <template #actions="props">
                         <button
+                            v-if="!isReadOnly"
                             type="button"
                             class="btn btn-outline-primary btn-sm me-1"
                             title="Editar usuario"
@@ -59,7 +60,7 @@
     <div class="modal fade" id="composeModalUser" tabindex="-1" role="dialog" aria-labelledby="userModal"
         aria-hidden="false" aria-modal="true">
         <div class="modal-dialog modal-md" role="document">
-            <Form ref="form" v-slot="{ isSubmitting }" :validation-schema="schema" @submit="submit" :initial-values="initialData">
+            <Form ref="form" v-slot="{ isSubmitting, values }" :validation-schema="schema" @submit="submit" :initial-values="initialData">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="userModal">Usuario</h5>
@@ -91,6 +92,30 @@
                                     </select>
                                 </Field>
                                 <ErrorMessage name="rol_id" class="custom-error" />
+                            </div>
+                            <div v-if="isViewerRole(values.rol_id)" class="form-group mt-3">
+                                <label class="form-label">Módulos visibles <span class="text-danger">(*)</span></label>
+                                <p class="text-muted small mb-2">
+                                    El acceso también depende de que el módulo continúe habilitado para la escuela.
+                                </p>
+                                <div v-for="group in [...new Set(moduleOptions.map(option => option.group))]" :key="group" class="mb-3">
+                                    <strong class="d-block mb-2">{{ group }}</strong>
+                                    <div v-for="module in moduleOptions.filter(option => option.group === group)" :key="module.key" class="form-check">
+                                        <Field
+                                            :id="`viewer-module-${module.key}`"
+                                            name="viewer_modules"
+                                            type="checkbox"
+                                            :value="module.key"
+                                            :disabled="!module.school_enabled && !values.viewer_modules?.includes(module.key)"
+                                            class="form-check-input"
+                                        />
+                                        <label class="form-check-label" :for="`viewer-module-${module.key}`">
+                                            {{ module.label }}
+                                            <span v-if="!module.school_enabled" class="text-muted">(inactivo)</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <ErrorMessage name="viewer_modules" class="custom-error" />
                             </div>
                         </div>
 
@@ -197,6 +222,9 @@ const {
     showProfile,
     closeProfile,
     roleOptions,
+    moduleOptions,
+    isViewerRole,
+    isReadOnly,
 } = useUsersList()
 const tutorial = usePageTutorial(usersListTutorial)
 

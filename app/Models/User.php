@@ -23,9 +23,10 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens;
     use HasFactory;
+    use HasRoles;
     use Notifiable;
     use SoftDeletes;
-    use HasRoles;
+
     public const SUPER_ADMIN = 1;
 
     public const SCHOOL = 2;
@@ -33,6 +34,8 @@ class User extends Authenticatable implements MustVerifyEmail
     public const INSTRUCTOR = 3;
 
     public const ASSISTANT = 'assistant';
+
+    public const VIEWER = 'viewer';
 
     /**
      * The attributes that are mass assignable.
@@ -43,7 +46,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
-        'school_id'
+        'school_id',
     ];
 
     /**
@@ -66,7 +69,7 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     protected $appends = [
-        'url_activate'
+        'url_activate',
     ];
 
     protected static function booted(): void

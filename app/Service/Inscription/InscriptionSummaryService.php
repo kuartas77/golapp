@@ -8,6 +8,7 @@ use App\Models\Assist;
 use App\Models\Inscription;
 use App\Models\Payment;
 use App\Service\PaymentAmountResolver;
+use App\Support\SchoolModuleAccess;
 
 class InscriptionSummaryService
 {
@@ -17,41 +18,48 @@ class InscriptionSummaryService
     {
         $this->loadSummaryRelations($inscription);
         $school = getSchool(auth()->user());
-        $canViewInvoices = $school->hasSchoolPermission('school.module.billing');
-        $canViewSports = ! isAssistant();
+        $user = auth()->user();
+        $canViewInvoices = SchoolModuleAccess::canView($user, $school, 'school.module.billing');
+        $canViewPayments = SchoolModuleAccess::canView($user, $school, 'school.module.payments');
+        $canViewPlayerDetails = SchoolModuleAccess::canView($user, $school, 'school.module.players');
+        $canViewAttendance = ! isAssistant() && SchoolModuleAccess::canView($user, $school, 'school.module.attendances');
+        $canViewEvaluations = ! isAssistant() && SchoolModuleAccess::canView($user, $school, 'school.module.evaluations');
+        $canViewSports = ! isAssistant() && SchoolModuleAccess::canView($user, $school, 'school.module.matches');
 
         return [
             'can_edit' => $this->canEdit($inscription),
             'capabilities' => [
-                'can_edit_attendance' => $this->canEdit($inscription),
+                'can_edit_attendance' => $canViewAttendance && $this->canEdit($inscription),
                 'can_edit_payments' => false,
                 'can_view_sports' => $canViewSports,
                 'can_view_invoices' => $canViewInvoices,
                 'can_view_custom_charges' => $canViewInvoices,
-                'can_add_custom_charges' => $canViewInvoices
+                'can_add_custom_charges' => ! isViewer() && $canViewInvoices
                     && (int) $inscription->year === (int) now()->year
                     && ! $inscription->trashed(),
-                'can_generate_financial_clearance' => ! isAssistant(),
+                'can_generate_financial_clearance' => ! isAssistant() && $canViewPayments,
             ],
             'current_year' => now()->year,
             'inscription' => $this->serializeInscription($inscription),
-            'player' => $this->serializePlayer($inscription),
+            'player' => $this->serializePlayer($inscription, $canViewPlayerDetails),
             'years' => $this->serializeYears($inscription),
-            'payments' => $this->serializePayments($inscription),
-            'attendance' => $canViewSports ? $this->serializeAttendance($inscription) : [],
+            'payments' => $canViewPayments ? $this->serializePayments($inscription) : [],
+            'attendance' => $canViewAttendance ? $this->serializeAttendance($inscription) : [],
             'invoices' => $canViewInvoices ? $this->serializeInvoices($inscription) : [],
             'custom_charges' => $canViewInvoices ? $this->serializeCustomCharges($inscription) : [],
-            'evaluations' => $canViewSports ? $this->serializeEvaluations($inscription) : [],
+            'evaluations' => $canViewEvaluations ? $this->serializeEvaluations($inscription) : [],
             'links' => [
                 'stats' => $canViewSports ? url("/player/{$inscription->player_id}/detail") : null,
-                'player' => url("/deportistas/{$inscription->unique_code}"),
-                'print' => route('export.inscription', [$inscription->player_id, $inscription->id]),
+                'player' => $canViewPlayerDetails ? url("/deportistas/{$inscription->unique_code}") : null,
+                'print' => ! isViewer() || ($canViewPayments && $canViewAttendance && $canViewSports)
+                    ? route('export.inscription', [$inscription->player_id, $inscription->id])
+                    : null,
             ],
-            'amounts' => [
+            'amounts' => $canViewPayments ? [
                 'enrollment' => $this->paymentAmountResolver->payableInscriptionAmountForInscription($inscription),
                 'monthly' => $this->paymentAmountResolver->payableMonthlyAmountForInscription($inscription),
                 'annuity' => $this->paymentAmountResolver->annuityAmountForSchool(getSchool(auth()->user())),
-            ],
+            ] : null,
         ];
     }
 
@@ -65,24 +73,32 @@ class InscriptionSummaryService
             'payments' => fn ($query) => $query->withTrashed()->orderBy('year'),
         ];
 
-        if (getSchool(auth()->user())->hasSchoolPermission('school.module.billing')) {
+        $school = getSchool(auth()->user());
+        $user = auth()->user();
+
+        if (SchoolModuleAccess::canView($user, $school, 'school.module.billing')) {
             $relations = array_merge($relations, [
                 'invoices' => fn ($query) => $query->with(['items'])->latest('id'),
                 'customCharges' => fn ($query) => $query->with(['invoiceItem.invoice'])->latest('id'),
             ]);
         }
 
-        if (! isAssistant()) {
+        if (! isAssistant() && SchoolModuleAccess::canView($user, $school, 'school.module.attendances')) {
             $relations = array_merge($relations, [
                 'assistance' => fn ($query) => $query
                     ->withTrashed()
                     ->with(['trainingGroup' => fn ($groupQuery) => $groupQuery->withTrashed()])
                     ->orderBy('month')
                     ->orderBy('training_group_id'),
-                'playerEvaluations.period',
-                'playerEvaluations.template',
-                'skillsControls',
             ]);
+        }
+
+        if (! isAssistant() && SchoolModuleAccess::canView($user, $school, 'school.module.evaluations')) {
+            $relations = array_merge($relations, ['playerEvaluations.period', 'playerEvaluations.template']);
+        }
+
+        if (! isAssistant() && SchoolModuleAccess::canView($user, $school, 'school.module.matches')) {
+            $relations[] = 'skillsControls';
         }
 
         $inscription->load($relations);
@@ -135,11 +151,13 @@ class InscriptionSummaryService
                 'name' => $group->name,
                 'full_group' => $group->full_group ?? $group->name,
             ])->values()->all(),
-            'stats' => isAssistant() ? null : $inscription->format_average,
+            'stats' => ! isAssistant() && SchoolModuleAccess::canView(auth()->user(), getSchool(auth()->user()), 'school.module.matches')
+                ? $inscription->format_average
+                : null,
         ];
     }
 
-    private function serializePlayer(Inscription $inscription): array
+    private function serializePlayer(Inscription $inscription, bool $canViewDetails): array
     {
         $player = $inscription->player;
 
@@ -148,15 +166,15 @@ class InscriptionSummaryService
             'unique_code' => $player?->unique_code ?? $inscription->unique_code,
             'full_names' => $player?->full_names,
             'photo_url' => $player?->photo_url,
-            'gender' => $player?->gender,
-            'date_birth' => $player?->date_birth,
-            'identification_document' => $player?->identification_document,
-            'email' => $player?->email,
-            'mobile' => $player?->mobile,
-            'phones' => $player?->phones,
-            'eps' => $player?->eps,
-            'rh' => $player?->rh,
-            'address' => $player?->address,
+            'gender' => $canViewDetails ? $player?->gender : null,
+            'date_birth' => $canViewDetails ? $player?->date_birth : null,
+            'identification_document' => $canViewDetails ? $player?->identification_document : null,
+            'email' => $canViewDetails ? $player?->email : null,
+            'mobile' => $canViewDetails ? $player?->mobile : null,
+            'phones' => $canViewDetails ? $player?->phones : null,
+            'eps' => $canViewDetails ? $player?->eps : null,
+            'rh' => $canViewDetails ? $player?->rh : null,
+            'address' => $canViewDetails ? $player?->address : null,
         ];
     }
 

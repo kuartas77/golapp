@@ -8,13 +8,16 @@ use App\Models\SchoolUser;
 use App\Models\User;
 use App\Notifications\RegisterNotification;
 use App\Service\Auth\AuthUserContext;
+use App\Support\SchoolModuleAccess;
 use App\Traits\ErrorTrait;
 use Exception;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use RealRashid\SweetAlert\Facades\Alert;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class UserRepository
 {
@@ -53,7 +56,9 @@ class UserRepository
             $password = $formRequest->password ?? randomPassword();
             $attributes = $formRequest->validated() + ['school_id' => $school->id, 'password' => $password];
             $user = $this->user->query()->create($attributes);
-            $user->syncRoles([$this->resolveRoleName($formRequest)]);
+            $roleName = $this->resolveRoleName($formRequest);
+            $user->syncRoles([$roleName]);
+            $this->syncViewerModules($user, $formRequest, $roleName);
             AuthUserContext::forgetUser($user->id);
             $user->profile()->create();
 
@@ -87,7 +92,9 @@ class UserRepository
 
             DB::beginTransaction();
             $user->update($formRequest->validated());
-            $user->syncRoles([$this->resolveRoleName($formRequest)]);
+            $roleName = $this->resolveRoleName($formRequest);
+            $user->syncRoles([$roleName]);
+            $this->syncViewerModules($user, $formRequest, $roleName);
             AuthUserContext::forgetUser($user->id);
             Cache::forget('KEY_USERS_'.$user->school_id);
             DB::commit();
@@ -114,5 +121,24 @@ class UserRepository
         $roleId = $formRequest->input('rol_id');
 
         return Role::query()->whereKey($roleId)->value('name') ?? (string) $roleId;
+    }
+
+    private function syncViewerModules(User $user, FormRequest $formRequest, string $roleName): void
+    {
+        $viewerPermissions = Permission::query()
+            ->whereIn('name', SchoolModuleAccess::permissionNames())
+            ->get();
+
+        $user->permissions()->detach($viewerPermissions->modelKeys());
+
+        if ($roleName === User::VIEWER) {
+            $selectedPermissions = collect($formRequest->input('viewer_modules', []))
+                ->map(SchoolModuleAccess::permissionName(...))
+                ->all();
+
+            $user->givePermissionTo($selectedPermissions);
+        }
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }

@@ -10,8 +10,8 @@ use App\Repositories\ScheduleRepository;
 use App\Repositories\SchoolRepository;
 use App\Repositories\TrainingGroupRepository;
 use App\Repositories\UserRepository;
-use App\Service\DataTables\InventoryDataTableService;
 use App\Service\DataTables\CompetitionDataTableService;
+use App\Service\DataTables\InventoryDataTableService;
 use App\Service\DataTables\MethodologyDataTableService;
 use App\Service\DataTables\PlayerEvaluationDataTableService;
 use App\Service\DataTables\TrainingSessionDataTableService;
@@ -152,10 +152,9 @@ class DataTableController extends Controller
 
     public function matches(Request $request)
     {
-        abort_unless($request->ajax() && (isAdmin() || isSchool() || isInstructor()), 403);
+        abort_unless($request->ajax(), 403);
 
         return $this->competitionDataTables->matches();
-
     }
 
     public function trainingSessions(Request $request)
@@ -192,6 +191,7 @@ class DataTableController extends Controller
     public function inventoryProducts(Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 403);
+
         return $this->inventoryDataTables->products((int) getSchool(auth()->user())->id);
     }
 
@@ -201,5 +201,4 @@ class DataTableController extends Controller
 
         return $this->inventoryDataTables->movements((int) getSchool(auth()->user())->id);
     }
-
 }

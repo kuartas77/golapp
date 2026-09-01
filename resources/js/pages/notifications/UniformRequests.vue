@@ -52,7 +52,7 @@
                                 <th>Talla</th>
                                 <th>Notas</th>
                                 <th>Solicitado en</th>
-                                <th>Crear Factura</th>
+                                <th v-if="!isReadOnly">Crear Factura</th>
                             </tr>
                         </thead>
                     </template>
@@ -78,8 +78,11 @@ import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from '@/composables/use-meta'
 import { uniformRequestsTutorial } from '@/tutorials/notifications'
 import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
+import { useAuthUser } from '@/store/auth-user'
 
 usePageTitle('Solicitudes de Uniformes')
+const auth = useAuthUser()
+const isReadOnly = auth.isReadOnly()
 
 const uniformRequestsTable = useTemplateRef('uniformRequestsTable')
 const tutorial = usePageTutorial(uniformRequestsTutorial)
@@ -135,8 +138,10 @@ const options = {
         }
     },
     columnDefs: [
-        { responsivePriority: 1, targets: 8 },
-        { targets: [8], className: 'dt-body-center' },
+        ...(!isReadOnly ? [
+            { responsivePriority: 1, targets: 8 },
+            { targets: [8], className: 'dt-body-center' },
+        ] : []),
     ],
     columns: [
         {
@@ -188,7 +193,7 @@ const options = {
             orderable: true,
             render: (data) => dayjs(data).format('DD/MM/YYYY'),
         },
-        {
+        ...(!isReadOnly ? [{
             data: 'inscription_id',
             searchable: false,
             orderable: false,
@@ -197,7 +202,7 @@ const options = {
                     <i class="fas fa-file-alt" aria-hidden="true"></i>
                 </a>
             `,
-        },
+        }] : []),
     ],
 }
 

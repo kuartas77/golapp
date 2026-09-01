@@ -3,14 +3,14 @@
         <template #header>
             <div class="row">
                 <div class="col-md-auto d-flex gap-2 flex-wrap" data-tour="admin-training-groups-actions">
-                    <a data-bs-toggle="modal" data-bs-target="#composeModalTrainigG" id="btn-compose-user"
+                    <a v-if="!isReadOnly" data-bs-toggle="modal" data-bs-target="#composeModalTrainigG" id="btn-compose-user"
                         class="btn btn-block btn-primary" href="javascript:void(0);" @click="openCreate">
                         Crear Grupo
                     </a>
                     <router-link :to="{ name: 'training-schedules' }" class="btn btn-outline-info">
                         Horarios
                     </router-link>
-                    <router-link :to="{ name: 'training-groups-admin' }" class="btn btn-info">
+                    <router-link v-if="!isReadOnly" :to="{ name: 'training-groups-admin' }" class="btn btn-info">
                         Administrar Grupos
                     </router-link>
                 </div>
@@ -35,7 +35,7 @@
                 @action="reloadTable"
             />
             <div v-show="!globalError" data-tour="admin-training-groups-table">
-                <DatatableTemplate :key="tableKey" :options="options" :id="'training_table'" ref="table" @click="onClickRow"/>
+                <DatatableTemplate :key="tableKey" :options="options" :id="'training_table'" ref="table" @click="!isReadOnly && onClickRow($event)"/>
             </div>
         </template>
     </panel>
@@ -53,8 +53,11 @@ import useTrainingList from '@/composables/admin/groups/trainingList'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import ModalTrainingGroup from './ModalTrainingGroup.vue';
 import { trainingGroupsTutorial } from '@/tutorials/admin'
-import { useTemplateRef } from 'vue'
+import { computed, useTemplateRef } from 'vue'
+import { useAuthUser } from '@/store/auth-user'
 
+const auth = useAuthUser()
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 const table = useTemplateRef('table')
 const { tableKey, options, selectedId, globalError, onClickRow, openCreate, reloadTable, onCancel } = useTrainingList(table)
 const tutorial = usePageTutorial(trainingGroupsTutorial)

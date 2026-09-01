@@ -380,7 +380,10 @@ const customChargeBaseline = ref('');
 const isModalOpen = ref(false);
 const editIdentifier = computed(() => props.inscription_id ?? props.unique_code);
 const isEditing = computed(() => editIdentifier.value !== null);
-const canManageCustomCharges = computed(() => auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.billing));
+const canManageCustomCharges = computed(() => (
+    auth.hasAnyRole(['super-admin', 'school'])
+    && auth.hasSchoolPermission(SCHOOL_PERMISSION_KEYS.billing)
+));
 const hasCustomChargeRows = computed(() => canManageCustomCharges.value && customChargeRows.value.length > 0);
 const selectedInscriptionYear = computed(() => {
     const year = Number(props.selected_year ?? dayjs().year())

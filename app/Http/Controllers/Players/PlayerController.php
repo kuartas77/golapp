@@ -8,6 +8,7 @@ use App\Http\Requests\Player\PlayerUpdateRequest;
 use App\Models\Player;
 use App\Repositories\PlayerRepository;
 use App\Service\Player\PlayerFinancialClearanceService;
+use App\Support\SchoolModuleAccess;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\JsonResponse;
@@ -63,17 +64,20 @@ class PlayerController extends Controller
             ->where('school_id', getSchool(auth()->user())->id)
             ->firstOrFail();
 
-        if (isAssistant()) {
-            $player->load([
-                'people',
-                'inscriptions' => fn ($query) => $query
+        if (isAssistant() || isViewer()) {
+            $relations = ['people'];
+
+            if (! isViewer() || SchoolModuleAccess::canView(auth()->user(), getSchool(auth()->user()), 'school.module.inscriptions')) {
+                $relations['inscriptions'] = fn ($query) => $query
                     ->withTrashed()
                     ->with([
                         'trainingGroup' => fn ($groupQuery) => $groupQuery->withTrashed(),
                         'complementaryGroup' => fn ($groupQuery) => $groupQuery->withTrashed(),
                     ])
-                    ->orderByDesc('year'),
-            ]);
+                    ->orderByDesc('year');
+            }
+
+            $player->load($relations);
 
             return response()->json($player);
         }

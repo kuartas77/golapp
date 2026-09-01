@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { backofficeAccessRequirements, hasBackofficeAccess } from '@/composables/useBackofficeAccess'
 
-function makeAuth({ roles = [], schoolPermissions = {}, electronicInvoicingEnabled = false } = {}) {
+function makeAuth({ roles = [], schoolPermissions = {}, viewerModules = [], electronicInvoicingEnabled = false } = {}) {
     return {
         user: {
             electronic_invoicing_enabled: electronicInvoicingEnabled,
@@ -12,6 +12,10 @@ function makeAuth({ roles = [], schoolPermissions = {}, electronicInvoicingEnabl
         },
         hasSchoolPermission(permission) {
             return Boolean(schoolPermissions[permission])
+        },
+        canViewSchoolModule(permission) {
+            return Boolean(schoolPermissions[permission])
+                && (!roles.includes('viewer') || viewerModules.includes(permission))
         },
     }
 }
@@ -118,5 +122,21 @@ describe('hasBackofficeAccess', () => {
             roles: ['super-admin'],
             schoolPermissions: permission,
         }), backofficeAccessRequirements.invoiceNumbering)).toBe(true)
+    })
+
+    it('shows viewers only modules assigned directly and enabled for the school', () => {
+        const schoolPermissions = {
+            'school.module.inventory': true,
+            'school.module.players': true,
+        }
+
+        const auth = makeAuth({
+            roles: ['viewer'],
+            schoolPermissions,
+            viewerModules: ['school.module.inventory'],
+        })
+
+        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.inventory)).toBe(true)
+        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.players)).toBe(false)
     })
 })

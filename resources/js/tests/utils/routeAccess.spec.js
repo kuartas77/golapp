@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { canAccessRoute } from '@/utils/routeAccess'
 
-function makeAuth({ roles = [], schoolPermissions = {}, electronicInvoicingEnabled = false } = {}) {
+function makeAuth({ roles = [], schoolPermissions = {}, viewerModules = [], electronicInvoicingEnabled = false } = {}) {
     return {
         roles,
         user: {
@@ -10,6 +10,10 @@ function makeAuth({ roles = [], schoolPermissions = {}, electronicInvoicingEnabl
         },
         hasSchoolPermission(permission) {
             return Boolean(schoolPermissions[permission])
+        },
+        canViewSchoolModule(permission) {
+            return Boolean(schoolPermissions[permission])
+                && (!roles.includes('viewer') || viewerModules.includes(permission))
         },
     }
 }
@@ -177,5 +181,48 @@ describe('canAccessRoute', () => {
         expect(canAccessRoute(financialRoute, auth)).toBe(true)
         expect(canAccessRoute(sportsRoute, auth)).toBe(false)
         expect(canAccessRoute(financialRoute, makeAuth({ roles: ['assistant'] }))).toBe(false)
+    })
+
+    it('requires every assigned and school-enabled module for viewer composite routes', () => {
+        const route = {
+            matched: [{ meta: {
+                requiresRole: ['super-admin', 'school'],
+                requiresSchoolPermissionAll: ['school.module.reports', 'school.module.payments'],
+            } }],
+        }
+        const schoolPermissions = {
+            'school.module.reports': true,
+            'school.module.payments': true,
+        }
+
+        expect(canAccessRoute(route, makeAuth({
+            roles: ['viewer'],
+            schoolPermissions,
+            viewerModules: ['school.module.reports', 'school.module.payments'],
+        }))).toBe(true)
+
+        expect(canAccessRoute(route, makeAuth({
+            roles: ['viewer'],
+            schoolPermissions,
+            viewerModules: ['school.module.reports'],
+        }))).toBe(false)
+    })
+
+    it('does not let the viewer inherit a mutation-only child route from a readable parent', () => {
+        const route = {
+            matched: [
+                { meta: {
+                    requiresRole: ['super-admin', 'school', 'viewer'],
+                    requiresSchoolPermission: ['school.module.billing'],
+                } },
+                { meta: { requiresRole: ['super-admin', 'school'] } },
+            ],
+        }
+
+        expect(canAccessRoute(route, makeAuth({
+            roles: ['viewer'],
+            schoolPermissions: { 'school.module.billing': true },
+            viewerModules: ['school.module.billing'],
+        }))).toBe(false)
     })
 })

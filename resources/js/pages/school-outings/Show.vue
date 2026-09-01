@@ -76,12 +76,12 @@
                                 <input v-model.trim="filters.search" type="search" class="form-control" placeholder="Buscar por nombre o código" :disabled="outing.is_locked" @input="fetchEligible">
                             </div>
                         </div>
-                        <button type="button" class="btn btn-info btn-sm" :disabled="outing.is_locked || selectedInscriptions.length === 0 || addingParticipants" @click="addParticipants">
+                        <button v-if="!isReadOnly" type="button" class="btn btn-info btn-sm" :disabled="outing.is_locked || selectedInscriptions.length === 0 || addingParticipants" @click="addParticipants">
                             Agregar seleccionados
                         </button>
                     </div>
 
-                    <div v-if="eligible.length > 0 && !outing.is_locked" class="table-responsive-md mb-4">
+                    <div v-if="!isReadOnly && eligible.length > 0 && !outing.is_locked" class="table-responsive-md mb-4">
                         <table class="table table-bordered table-sm align-middle">
                             <thead>
                                 <tr>
@@ -138,10 +138,10 @@
                                     <td class="text-center">{{ participant.status_label }}</td>
                                     <td class="text-center">
                                         <div class="d-inline-flex gap-2">
-                                            <button type="button" class="btn btn-outline-info btn-sm" :disabled="outing.is_locked" @click="openContribution(participant)">
+                                            <button v-if="!isReadOnly" type="button" class="btn btn-outline-info btn-sm" :disabled="outing.is_locked" @click="openContribution(participant)">
                                                 Abono
                                             </button>
-                                            <button type="button" class="btn btn-outline-danger btn-sm" :disabled="outing.is_locked || Number(participant.raised_total || 0) > 0" @click="removeParticipant(participant)">
+                                            <button v-if="!isReadOnly" type="button" class="btn btn-outline-danger btn-sm" :disabled="outing.is_locked || Number(participant.raised_total || 0) > 0" @click="removeParticipant(participant)">
                                                 Quitar
                                             </button>
                                         </div>
@@ -153,7 +153,7 @@
                 </section>
 
                 <section v-show="activeTab === 'activities'">
-                    <form class="row g-2 mb-3" @submit.prevent="saveActivity">
+                    <form v-if="!isReadOnly" class="row g-2 mb-3" @submit.prevent="saveActivity">
                         <div class="col-md-8">
                             <input v-model.trim="activityForm.name" type="text" class="form-control" placeholder="Nombre de actividad" :disabled="outing.is_locked">
                         </div>
@@ -181,10 +181,10 @@
                                     <td class="text-center">{{ contributionsByActivity(activity.id).length }}</td>
                                     <td class="text-center">
                                         <div class="d-inline-flex gap-2">
-                                            <button type="button" class="btn btn-outline-primary btn-sm" :disabled="outing.is_locked" @click="editActivity(activity)">
+                                            <button v-if="!isReadOnly" type="button" class="btn btn-outline-primary btn-sm" :disabled="outing.is_locked" @click="editActivity(activity)">
                                                 Editar
                                             </button>
-                                            <button type="button" class="btn btn-outline-danger btn-sm" :disabled="outing.is_locked || contributionsByActivity(activity.id).length > 0" @click="deleteActivity(activity)">
+                                            <button v-if="!isReadOnly" type="button" class="btn btn-outline-danger btn-sm" :disabled="outing.is_locked || contributionsByActivity(activity.id).length > 0" @click="deleteActivity(activity)">
                                                 Eliminar
                                             </button>
                                         </div>
@@ -281,8 +281,11 @@ import api from '@/utils/axios'
 import CurrencyInput from '@/components/general/CurrencyInput'
 import CustomSelect2 from '@/components/form/CustomSelect2.vue'
 import { useDialogFocusTrap } from '@/composables/useDialogFocusTrap'
+import { useAuthUser } from '@/store/auth-user'
 
 const route = useRoute()
+const auth = useAuthUser()
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 const outing = ref(null)
 const eligible = ref([])
 const selectedInscriptions = ref([])

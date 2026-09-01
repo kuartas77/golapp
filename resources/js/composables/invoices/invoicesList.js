@@ -4,9 +4,11 @@ import api from '@/utils/axios'
 import { usePageTitle } from "@/composables/use-meta";
 import { useRouter } from 'vue-router'
 import { formatAppDate, formatAppMoney, renderAppStatus } from '@/utils/appFormatters';
+import { useAuthUser } from '@/store/auth-user'
 
 export default function useInvoicesList() {
     const router = useRouter()
+    const auth = useAuthUser()
     const invoives_table = useTemplateRef('invoives_table')
     const invoiceNumberFilter = ref('')
     const studentNameFilter = ref('')
@@ -37,7 +39,7 @@ export default function useInvoicesList() {
                 const buttonPrint = `<a href="${row.url_print}" target="_blank" rel="noopener noreferrer" class="btn btn-success btn-sm" aria-label="Imprimir factura ${invoiceLabel}" title="Imprimir factura"><i class="fa fa-print fa-lg" aria-hidden="true"></i></a>`
                 let buttonDelete = ''
 
-                if (['pending', 'partial'].includes(row.status)) {
+                if (!auth.hasRole('viewer') && ['pending', 'partial'].includes(row.status)) {
                     buttonDelete = `<button type="button" class="btn btn-danger btn-sm" data-item-id="${row.id}" data-type="delete" aria-label="Revisar anulación de factura ${invoiceLabel}" title="Revisar anulación"><i class="fa fa-trash fa-lg" aria-hidden="true" data-type="delete" data-item-id="${row.id}"></i></button>`
                 }
 

@@ -41,7 +41,7 @@
                                 :options="options"
                             >
                                 <template #actions="props">
-                                    <div class="d-inline-flex gap-2">
+                                    <div v-if="!isReadOnly" class="d-inline-flex gap-2">
                                         <AppButton
                                             variant="outline-primary"
                                             size="sm"
@@ -134,7 +134,7 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import api from '@/utils/axios'
 import CurrencyInput from '@/components/general/CurrencyInput'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
@@ -149,7 +149,10 @@ import '@/assets/sass/forms/custom-flatpickr.css'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { customChargesTutorial } from '@/tutorials/invoices'
+import { useAuthUser } from '@/store/auth-user'
 
+const auth = useAuthUser()
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 const saving = ref(false)
 const tutorial = usePageTutorial(customChargesTutorial)
 const deletingId = ref(null)

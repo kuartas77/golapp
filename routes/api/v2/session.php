@@ -12,7 +12,8 @@ Route::post('logout', [AuthControllerSPA::class, 'logout']);
 
 Route::prefix('settings')->group(function () {
     Route::get('general', [SettingsController::class, 'index']);
-    Route::get('groups', [SettingsController::class, 'configGroups']);
+    Route::get('groups', [SettingsController::class, 'configGroups'])
+        ->middleware('role:super-admin|school|instructor');
 });
 
 Route::get('dashboard', [DashboardController::class, 'index']);

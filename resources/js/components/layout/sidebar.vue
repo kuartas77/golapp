@@ -168,7 +168,7 @@
                     </ul>
                 </li>
 
-                <Can :roles="['super-admin', 'school', 'assistant']" any-role>
+                <Can :roles="['super-admin', 'school', 'assistant', 'viewer']" any-role>
                     <li v-if="canPlayers" class="menu">
                         <router-link :to="{ name: 'players' }" class="dropdown-toggle" @click="toggleMobileMenu">
                             <div class="">
@@ -202,7 +202,7 @@
                     </li>
                 </Can>
 
-                <Can :roles="['super-admin', 'school', 'assistant']" any-role>
+                <Can :roles="['super-admin', 'school', 'assistant', 'viewer']" any-role>
                     <li v-if="canPayments" class="menu">
                         <a class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#payments"
                             aria-controls="payments" :aria-expanded="isPaymentsRoute ? 'true' : 'false'"
@@ -233,7 +233,7 @@
                             <li>
                                 <router-link :to="{ name: 'payments.receipts' }" @click="toggleMobileMenu">Recibos</router-link>
                             </li>
-                            <li v-if="!isAssistant">
+                            <li v-if="!isAssistant && !isViewer">
                                 <router-link :to="{ name: 'payments.debt-notifications' }" @click="toggleMobileMenu"
                                 v-tooltip.right="'Notificaciones de deuda'">
                                     Not deuda
@@ -397,33 +397,33 @@
                         </a>
                         <ul id="reports" class="collapse submenu list-unstyled" :class="{ show: isReportsRoute }"
                             data-bs-parent="#sidebar">
-                            <li v-if="!isAssistant">
+                            <li v-if="canAttendanceReports">
                                 <router-link :to="{ name: 'reports.assists' }" @click="toggleMobileMenu">
                                     Asistencias
                                 </router-link>
                             </li>
-                            <li v-if="!isAssistant">
+                            <li v-if="canInstructorReports">
                                 <router-link :to="{ name: 'reports.instructor-activity' }" @click="toggleMobileMenu"
                                     v-tooltip.right="'Actividad de instructores'">
                                     Act. de instructores
                                 </router-link>
                             </li>
-                            <li>
+                            <li v-if="canPaymentReports">
                                 <router-link :to="{ name: 'reports.payments' }" @click="toggleMobileMenu">
                                     Mensualidades
                                 </router-link>
                             </li>
-                            <li>
+                            <li v-if="canPaymentReports">
                                 <router-link :to="{ name: 'reports.received-payments' }" @click="toggleMobileMenu">
                                     Pagos
                                 </router-link>
                             </li>
-                            <li>
+                            <li v-if="canPaymentReports">
                                 <router-link :to="{ name: 'reports.debtors' }" @click="toggleMobileMenu">
                                     Deudores
                                 </router-link>
                             </li>
-                            <li v-if="!isAssistant">
+                            <li v-if="canAttendancePaymentReports">
                                 <router-link :to="{ name: 'reports.attendance-payment' }" @click="toggleMobileMenu"
                                     v-tooltip.right="'Mensualidades vs. asistencias'">
                                     Mens. vs. asist.
@@ -564,6 +564,7 @@ const appState = useAppState();
 const route = useRoute();
 const auth = useAuthUser();
 const isAssistant = computed(() => auth.hasRole('assistant'))
+const isViewer = computed(() => auth.hasRole('viewer'))
 const { access } = useBackofficeAccess()
 
 const canPlayers = access.players
@@ -594,6 +595,10 @@ const canPlayerStats = access.playerStats
 const canCompetitionStats = access.competitionStats
 const canClubDocuments = access.clubDocuments
 const canDocumentPlanning = access.documentPlanning
+const canAttendanceReports = computed(() => canReports.value && canAttendances.value)
+const canInstructorReports = computed(() => canReports.value && canTrainingGroups.value)
+const canPaymentReports = computed(() => canReports.value && canPayments.value)
+const canAttendancePaymentReports = computed(() => canReports.value && canAttendances.value && canPayments.value)
 
 const showAttendanceQrMenu = false
 

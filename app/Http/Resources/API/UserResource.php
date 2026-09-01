@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\API;
 
+use App\Support\SchoolModuleAccess;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -12,8 +13,7 @@ class UserResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @param Request $request
-     * @return array|Arrayable|JsonSerializable
+     * @param  Request  $request
      */
     public function toArray($request): array|JsonSerializable|Arrayable
     {
@@ -25,6 +25,7 @@ class UserResource extends JsonResource
             'school_logo' => $this->school->logo_file,
             'roles' => $this->getRoleNames(),
             'role_id' => $this->whenLoaded('roles', fn () => $this->roles->first()?->id),
+            'viewer_modules' => SchoolModuleAccess::viewerModules($this->resource),
             'system_notify' => filter_var($this->school?->settings?->get('SYSTEM_NOTIFY'), FILTER_VALIDATE_BOOLEAN),
             // 'permissions' => $this->getAllPermissions()->pluck('name')
         ];

@@ -2,24 +2,24 @@
 
 namespace App\Http\Controllers\API\Admin;
 
-use App\Models\User;
-use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
-use App\Repositories\UserRepository;
 use App\Http\Requests\API\UserRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\API\ProfileResource;
-use App\Http\Resources\API\UserResource;
 use App\Http\Resources\API\UserCollection;
+use App\Http\Resources\API\UserResource;
+use App\Models\User;
+use App\Repositories\UserRepository;
+use App\Support\SchoolModuleAccess;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 
 class UsersController extends Controller
 {
-
     public function __construct(private UserRepository $userRepository)
     {
         //
@@ -44,13 +44,11 @@ class UsersController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param StoreUserRequest $request
-     * @return UserResource
      */
     public function store(StoreUserRequest $request): UserResource
     {
         $user = $this->userRepository->create($request);
+
         return new UserResource($user);
     }
 
@@ -60,11 +58,12 @@ class UsersController extends Controller
             'school' => 'School',
             'instructor' => 'Instructor',
             User::ASSISTANT => 'Auxiliar administrativo',
+            User::VIEWER => 'Visualizador',
         ];
 
         $roles = Role::query()
             ->whereIn('name', array_keys($labels))
-            ->orderByRaw("CASE name WHEN 'school' THEN 1 WHEN 'instructor' THEN 2 ELSE 3 END")
+            ->orderByRaw("CASE name WHEN 'school' THEN 1 WHEN 'instructor' THEN 2 WHEN 'assistant' THEN 3 ELSE 4 END")
             ->get(['id', 'name'])
             ->map(fn (Role $role) => [
                 'value' => $role->id,
@@ -76,17 +75,30 @@ class UsersController extends Controller
         return response()->json(['data' => $roles]);
     }
 
+    public function moduleOptions(): JsonResponse
+    {
+        $school = getSchool(auth()->user());
+
+        $modules = collect(SchoolModuleAccess::catalog())
+            ->map(fn (array $definition, string $key) => [
+                'key' => $key,
+                'label' => $definition['label'],
+                'group' => $definition['group'],
+                'school_enabled' => $school->hasSchoolPermission($key),
+            ])
+            ->values();
+
+        return response()->json(['data' => $modules]);
+    }
+
     /**
      * Display the specified resource.
-     *
-     * @param User $user
-     * @return UserResource
      */
     public function show(User $user): UserResource
     {
         $this->authorizeCurrentSchoolUser($user);
 
-        return new UserResource($user->load(['profile', 'school', 'roles']));
+        return new UserResource($user->load(['profile', 'school', 'roles', 'permissions']));
     }
 
     public function profile(User $user): JsonResponse
@@ -102,28 +114,23 @@ class UsersController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param UpdateUserRequest $request
-     * @param User $user
-     * @return UserResource
      */
     public function update(UpdateUserRequest $request, User $user): UserResource
     {
         $this->authorizeCurrentSchoolUser($user);
         $this->userRepository->update($user, $request);
-        return new UserResource($user->load(['profile', 'school', 'roles']));
+
+        return new UserResource($user->load(['profile', 'school', 'roles', 'permissions']));
     }
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param User $user
-     * @return Response
      */
     public function destroy(User $user): Response
     {
         $this->authorizeCurrentSchoolUser($user);
         $user->delete();
+
         return response()->noContent();
     }
 

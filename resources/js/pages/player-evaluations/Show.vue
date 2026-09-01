@@ -24,7 +24,7 @@
                         Volver
                     </router-link>
                     <router-link
-                        v-if="evaluation && !evaluation.is_closed"
+                        v-if="!isReadOnly && evaluation && !evaluation.is_closed"
                         :to="{ name: 'player-evaluations.edit', params: { id: evaluation.id } }"
                         class="btn btn-warning btn-sm"
                     >
@@ -40,7 +40,7 @@
                         Descargar PDF
                     </a>
                     <button
-                        v-if="evaluation && !evaluation.is_closed"
+                        v-if="!isReadOnly && evaluation && !evaluation.is_closed"
                         type="button"
                         class="btn btn-danger btn-sm"
                         @click="confirmDelete"
@@ -261,9 +261,12 @@ import {
     labelFromOptions,
 } from '@/pages/player-evaluations/utils'
 import { playerEvaluationsShowTutorial } from '@/tutorials/playerEvaluations'
+import { useAuthUser } from '@/store/auth-user'
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthUser()
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 const tutorial = usePageTutorial(playerEvaluationsShowTutorial)
 
 const isLoading = ref(true)

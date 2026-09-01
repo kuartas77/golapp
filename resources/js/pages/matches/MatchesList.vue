@@ -3,7 +3,7 @@
         <template #lateral/>
         <template #body>
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                <a class="btn btn-block btn-primary" href="javascript:void(0);" @click="openGroupSelection()" data-tour="matches-list-actions">
+                <a v-if="!isReadOnly" class="btn btn-block btn-primary" href="javascript:void(0);" @click="openGroupSelection()" data-tour="matches-list-actions">
                     Crear Competencia
                 </a>
                 <div class="d-flex align-items-center gap-2">
@@ -54,14 +54,17 @@ import { usePageTitle } from "@/composables/use-meta"
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import configLanguaje from '@/utils/datatableUtils';
 import { usePageTutorial } from '@/composables/usePageTutorial'
-import { useTemplateRef, onMounted, ref } from 'vue';
+import { computed, useTemplateRef, onMounted, ref } from 'vue';
 import api from '@/utils/axios'
 import { useRouter } from 'vue-router'
 import { useSetting } from '@/store/settings-store';
 import { matchesListTutorial } from '@/tutorials/matches'
 import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
+import { useAuthUser } from '@/store/auth-user'
 
 const settings = useSetting()
+const auth = useAuthUser()
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 const matches_table = useTemplateRef('matches_table')
 const router = useRouter()
 const tutorial = usePageTutorial(matchesListTutorial)
@@ -100,10 +103,13 @@ const columns = [
                 ? `<a class="btn btn-sm btn-success print-btn" href="${escapeHtml(row.url_show)}" target="_blank" rel="noopener noreferrer" aria-label="Exportar PDF de ${competitionName}"><i class="fa-solid fa-file-pdf fa-lg" aria-hidden="true"></i></a>`
                 : ''
 
+            const mutationActions = isReadOnly.value ? '' : `
+                <button class="btn btn-sm btn-info edit-btn" data-item-id="${data}" aria-label="Editar ${competitionName}"><i data-item-id="${data}" class="fa fa-edit fa-lg" aria-hidden="true"></i></button>
+                <button class="btn btn-sm btn-danger delete-btn" data-item-id="${data}" aria-label="Eliminar ${competitionName}"><i data-item-id="${data}" class="fa fa-trash fa-lg" aria-hidden="true"></i></button>`
+
             return `<div class="btn-group">
                 ${pdfAction}
-                <button class="btn btn-sm btn-info edit-btn" data-item-id="${data}" aria-label="Editar ${competitionName}"><i data-item-id="${data}" class="fa fa-edit fa-lg" aria-hidden="true"></i></button>
-                <button class="btn btn-sm btn-danger delete-btn" data-item-id="${data}" aria-label="Eliminar ${competitionName}"><i data-item-id="${data}" class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
+                ${mutationActions}
 
             </div>`
         }, searchable: false, orderable: false

@@ -13,7 +13,7 @@
                     <router-link :to="{ name: 'competition-groups' }" class="btn btn-outline-secondary">
                         Volver a grupos
                     </router-link>
-                    <button type="button" class="btn btn-primary" :disabled="isSaving" @click="openCreateModal">
+                    <button v-if="!isReadOnly" type="button" class="btn btn-primary" :disabled="isSaving" @click="openCreateModal">
                         Agregar torneo
                     </button>
                     <button type="button" class="btn btn-info" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button>
@@ -46,7 +46,7 @@
                                     <div class="fw-semibold">{{ item.name }}</div>
                                 </td>
                                 <td class="text-end">
-                                    <div class="d-inline-flex gap-2">
+                                    <div v-if="!isReadOnly" class="d-inline-flex gap-2">
                                         <button
                                             type="button"
                                             class="btn btn-outline-primary btn-sm"
@@ -160,7 +160,10 @@ import { usePageTitle } from '@/composables/use-meta'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { tournamentsTutorial } from '@/tutorials/competition'
+import { useAuthUser } from '@/store/auth-user'
 
+const auth = useAuthUser()
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 const items = ref([])
 const isLoading = ref(true)
 const listError = ref('')

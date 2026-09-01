@@ -27,9 +27,10 @@ class MethodologyDataTableService
             ->addColumn('training_group_name', fn (MethodologyRecord $record) => $record->trainingGroup?->name ?? '')
             ->addColumn('session_date', fn (MethodologyRecord $record) => $this->recordDate($record))
             ->editColumn('created_at', fn (MethodologyRecord $record) => $record->created_at?->format('Y-m-d'))
-            ->addColumn('period_locked', fn (MethodologyRecord $record) => !$this->periodPolicy->canMutateDate($this->recordDate($record)))
+            ->addColumn('period_locked', fn (MethodologyRecord $record) => ! $this->periodPolicy->canMutateDate($this->recordDate($record)))
             ->addColumn('export_pdf_url', fn (MethodologyRecord $record) => route('methodology.records.pdf', ['id' => $record->id]))->toJson();
         $payload = $response->getData(true);
+
         return response()->json($payload);
     }
 
@@ -46,7 +47,7 @@ class MethodologyDataTableService
             ->unique('name')
             ->map(fn (TrainingGroup $group) => [
                 'value' => $group->name,
-                'label' => $group->full_schedule_group ?: $group->full_group ?: $group->name,
+                'label' => $group->full_group ?: $group->name,
             ])
             ->values();
 
@@ -108,12 +109,14 @@ class MethodologyDataTableService
 
         if ($period === 'month' && $value >= 1 && $value <= 12) {
             $query->whereRaw("{$monthExpression} = ?", [$value]);
+
             return;
         }
 
         if ($period === 'quarter' && $value >= 1 && $value <= 4) {
             $start = (($value - 1) * 3) + 1;
             $query->whereRaw("{$monthExpression} BETWEEN ? AND ?", [$start, $start + 2]);
+
             return;
         }
 

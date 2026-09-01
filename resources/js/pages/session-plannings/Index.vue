@@ -1,11 +1,11 @@
 <template>
     <panel>
-        <template #header><div class="row g-3 align-items-center"><div class="col-md-auto"><button class="btn btn-primary" @click="openCreate">Nueva planificación</button></div><div class="col"><p class="mb-0">Planifica sesiones por fases con diagramas de cancha y registra la asistencia.</p></div></div></template>
+        <template #header><div class="row g-3 align-items-center"><div v-if="!isReadOnly" class="col-md-auto"><button class="btn btn-primary" @click="openCreate">Nueva planificación</button></div><div class="col"><p class="mb-0">Planifica sesiones por fases con diagramas de cancha y registra la asistencia.</p></div></div></template>
         <template #body>
             <DatatableTemplate ref="table" id="session-plannings-table" :options="options">
                 <template #actions="props"><div class="d-flex justify-content-center gap-1">
                     <a :href="props.rowData.export_pdf_url" target="_blank" class="btn btn-info btn-sm" title="Exportar PDF"><i class="fa-solid fa-file-pdf"></i></a>
-                    <button class="btn btn-warning btn-sm" :disabled="props.rowData.period_locked" @click="openEdit(props.rowData.id)"><i class="fa fa-edit"></i></button>
+                    <button v-if="!isReadOnly" class="btn btn-warning btn-sm" :disabled="props.rowData.period_locked" @click="openEdit(props.rowData.id)"><i class="fa fa-edit"></i></button>
                     <button v-if="canDelete" class="btn btn-danger btn-sm" :disabled="props.rowData.period_locked" @click="confirmDelete(props.rowData)"><i class="fa fa-trash"></i></button>
                 </div></template>
             </DatatableTemplate>
@@ -26,6 +26,7 @@ usePageTitle('Planificación de sesiones')
 const auth = useAuthUser(), table = useTemplateRef('table')
 const selectedId = ref(null), isModalOpen = ref(false)
 const canDelete = computed(() => auth.hasAnyRole(['super-admin', 'school']))
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 const columns = [
     { data: 'creator_name', title: 'Creado por' }, { data: 'training_group_name', title: 'Grupo' },
     { data: 'period', title: 'Periodo' }, { data: 'session', title: 'Sesión' }, { data: 'date', title: 'Fecha' },

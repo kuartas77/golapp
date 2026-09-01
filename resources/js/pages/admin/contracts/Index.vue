@@ -14,6 +14,7 @@
                         Recargar
                     </button>
                     <button
+                        v-if="!isReadOnly"
                         type="button"
                         class="btn btn-primary btn-sm"
                         :disabled="isLoading || isSaving || !selectedType"
@@ -151,6 +152,7 @@
                                                 class="form-control"
                                                 :class="{ 'is-invalid': Boolean(validationErrors.name) }"
                                                 placeholder="Nombre interno de la plantilla"
+                                                :readonly="isReadOnly"
                                             >
                                             <div v-if="validationErrors.name" class="invalid-feedback d-block">
                                                 {{ validationErrors.name }}
@@ -179,6 +181,7 @@
                                             v-model="form.header"
                                             :allow-page-break="false"
                                             :min-height="220"
+                                            :disabled="isReadOnly"
                                         />
                                         <div v-if="validationErrors.header" class="invalid-feedback d-block">
                                             {{ validationErrors.header }}
@@ -191,6 +194,7 @@
                                             v-model="form.body"
                                             :allow-page-break="true"
                                             :min-height="360"
+                                            :disabled="isReadOnly"
                                         />
                                         <div v-if="validationErrors.body" class="invalid-feedback d-block">
                                             {{ validationErrors.body }}
@@ -203,6 +207,7 @@
                                             v-model="form.footer"
                                             :allow-page-break="false"
                                             :min-height="220"
+                                            :disabled="isReadOnly"
                                         />
                                         <div v-if="validationErrors.footer" class="invalid-feedback d-block">
                                             {{ validationErrors.footer }}
@@ -295,9 +300,12 @@ import { usePageTitle } from '@/composables/use-meta'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { contractsTutorial } from '@/tutorials/admin'
+import { useAuthUser } from '@/store/auth-user'
 
 usePageTitle('Contratos')
 const tutorial = usePageTutorial(contractsTutorial)
+const auth = useAuthUser()
+const isReadOnly = auth.isReadOnly()
 
 const route = useRoute()
 const router = useRouter()

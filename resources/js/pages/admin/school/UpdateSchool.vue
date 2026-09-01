@@ -12,6 +12,12 @@
                     {{ globalError }}
                 </div>
 
+                <div v-if="isReadOnly" class="alert alert-info" role="status">
+                    Estás consultando la configuración de la escuela en modo de solo lectura.
+                </div>
+
+                <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0">
+
                 <div class="d-flex justify-content-end mb-3">
                     <button type="button" class="btn btn-info btn-sm" @click="tutorial.start()">
                         <i class="fa-regular fa-circle-question me-2"></i>
@@ -203,8 +209,10 @@
                         </button>
                     </div>
                 </div>
+                </fieldset>
 
                 <FormSubmitActions
+                    v-if="!isReadOnly"
                     :submitting="isSubmitting"
                     :show-cancel="false"
                     wrapper-class="text-center mt-4"
@@ -213,7 +221,7 @@
             </Form>
 
             <div v-if="canBilling" class="mt-4">
-                <InvoiceCustomItemsCard :item-types="uniformRequestTypes" />
+                <InvoiceCustomItemsCard :item-types="uniformRequestTypes" :read-only="isReadOnly" />
             </div>
         </template>
     </panel>
@@ -230,12 +238,15 @@ import { usePageTitle } from '@/composables/use-meta'
 import InvoiceCustomItemsCard from './InvoiceCustomItemsCard.vue'
 import { updateSchoolTutorial } from '@/tutorials/admin'
 import FormSubmitActions from '@/components/form/FormSubmitActions.vue'
+import { useAuthUser } from '@/store/auth-user'
 
 usePageTitle('Escuela')
 const { form, formData, schema, submit, uniformRequestTypes, globalError } = useFormSchool()
 const { access } = useBackofficeAccess()
 const tutorial = usePageTutorial(updateSchoolTutorial)
 const canBilling = access.billing
+const auth = useAuthUser()
+const isReadOnly = auth.isReadOnly()
 
 const buildPublicInscriptionLink = (slug) => {
     const encodedSlug = encodeURIComponent(slug)

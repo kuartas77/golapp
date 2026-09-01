@@ -242,6 +242,16 @@ if (! function_exists('isAssistant')) {
     }
 }
 
+if (! function_exists('isViewer')) {
+    function isViewer(): bool
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        return $user->hasAnyRole([User::VIEWER]);
+    }
+}
+
 if (! function_exists('getSchool')) {
     function getSchool($user = null): School
     {

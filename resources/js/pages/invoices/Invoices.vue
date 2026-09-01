@@ -8,7 +8,7 @@
                 data-tour="invoices-index-actions"
             >
                 <template #actions>
-                    <AppButton variant="primary" size="sm" class="invoice-toolbar-action" @click="openCreateInvoiceModal">
+                    <AppButton v-if="!isReadOnly" variant="primary" size="sm" class="invoice-toolbar-action" @click="openCreateInvoiceModal">
                         <i class="fa fa-plus" aria-hidden="true"></i>
                         Crear factura
                     </AppButton>
@@ -239,6 +239,10 @@ import flatPickr from 'vue-flatpickr-component';
 import 'flatpickr/dist/flatpickr.css';
 import "@/assets/sass/forms/custom-flatpickr.css";
 import { invoicesIndexTutorial } from '@/tutorials/invoices'
+import { useAuthUser } from '@/store/auth-user'
+
+const auth = useAuthUser()
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 
 const flatpickrConfig = {
     wrap: true,

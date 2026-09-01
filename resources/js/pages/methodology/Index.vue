@@ -2,7 +2,7 @@
     <panel>
         <template #header>
             <div class="row g-3 align-items-center" data-tour="methodology-actions">
-                <div class="col-md-auto">
+                <div v-if="!isReadOnly" class="col-md-auto">
                     <button type="button" class="btn btn-primary" @click="openCreate">
                         Nuevo registro
                     </button>
@@ -121,6 +121,7 @@
                             <i class="fa-solid fa-file-pdf fa-width-auto" aria-hidden="true"></i>
                         </a>
                         <button
+                            v-if="!isReadOnly"
                             type="button"
                             class="btn btn-warning btn-sm"
                             :title="props.rowData.period_locked ? 'Periodo cerrado' : 'Editar'"
@@ -131,6 +132,7 @@
                             <i class="fa fa-edit fa-width-auto" aria-hidden="true"></i>
                         </button>
                         <button
+                            v-if="!isReadOnly"
                             type="button"
                             class="btn btn-danger btn-sm"
                             :title="props.rowData.period_locked ? 'Periodo cerrado' : 'Eliminar'"
@@ -585,6 +587,7 @@ const tutorial = usePageTutorial(methodologyTutorial)
 
 const appState = useAppState()
 const authUser = useAuthUser()
+const isReadOnly = computed(() => authUser.hasRole('viewer'))
 const settings = useSetting()
 const modalRef = ref(null)
 const modalInstance = ref(null)

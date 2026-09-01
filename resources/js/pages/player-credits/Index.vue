@@ -66,7 +66,7 @@
                             Saldo disponible: <strong>{{ moneyFormat(detail.balance || selectedPlayer.balance || 0) }}</strong>
                         </div>
 
-                        <form class="row g-2 mb-3" @submit.prevent="submitMovement">
+                        <form v-if="!isReadOnly" class="row g-2 mb-3" @submit.prevent="submitMovement">
                             <div class="col-6">
                                 <label class="form-label">Tipo</label>
                                 <select v-model="form.type" class="form-select form-select-sm" required>
@@ -128,7 +128,10 @@ import CurrencyInput from '@/components/general/CurrencyInput'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import configLanguaje from '@/utils/datatableUtils'
 import { usePageTitle } from '@/composables/use-meta'
+import { useAuthUser } from '@/store/auth-user'
 
+const auth = useAuthUser()
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 const summary = ref({})
 const detail = ref({ movements: [], balance: 0 })
 const selectedPlayer = ref(null)

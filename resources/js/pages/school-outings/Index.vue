@@ -6,7 +6,7 @@
                     <h4 class="mb-1">Salidas</h4>
                     <p class="text-muted mb-0">Planea salidas y controla el avance de aportes por deportista.</p>
                 </div>
-                <div class="d-flex gap-2"><button type="button" class="btn btn-info btn-sm" @click="openForm()">
+                <div class="d-flex gap-2"><button v-if="!isReadOnly" type="button" class="btn btn-info btn-sm" @click="openForm()">
                     <i class="fa fa-plus me-2" aria-hidden="true"></i>
                     Nueva salida
                 </button><button type="button" class="btn btn-info btn-sm" @click="tutorial.start()"><i class="fa-regular fa-circle-question me-2"></i>Guía</button></div>
@@ -45,13 +45,13 @@
                             <button type="button" class="btn btn-outline-info btn-sm" @click="goToOuting(props.rowData)">
                                 Ver
                             </button>
-                            <button type="button" class="btn btn-outline-primary btn-sm" :disabled="props.rowData.is_locked" @click="openForm(props.rowData)">
+                            <button v-if="!isReadOnly" type="button" class="btn btn-outline-primary btn-sm" :disabled="props.rowData.is_locked" @click="openForm(props.rowData)">
                                 Editar
                             </button>
-                            <button type="button" class="btn btn-outline-success btn-sm" :disabled="props.rowData.is_locked" @click="changeStatus(props.rowData, 'closed')">
+                            <button v-if="!isReadOnly" type="button" class="btn btn-outline-success btn-sm" :disabled="props.rowData.is_locked" @click="changeStatus(props.rowData, 'closed')">
                                 Cerrar
                             </button>
-                            <button type="button" class="btn btn-outline-danger btn-sm" :disabled="props.rowData.is_locked" @click="changeStatus(props.rowData, 'cancelled')">
+                            <button v-if="!isReadOnly" type="button" class="btn btn-outline-danger btn-sm" :disabled="props.rowData.is_locked" @click="changeStatus(props.rowData, 'cancelled')">
                                 Cancelar
                             </button>
                         </div>
@@ -118,8 +118,11 @@ import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { schoolOutingsTutorial } from '@/tutorials/operations'
 import { useDialogFocusTrap } from '@/composables/useDialogFocusTrap'
+import { useAuthUser } from '@/store/auth-user'
 
 const router = useRouter()
+const auth = useAuthUser()
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 const tutorial = usePageTutorial(schoolOutingsTutorial)
 const outings = ref([])
 const loading = ref(false)

@@ -34,7 +34,7 @@
                                 <th>Referencia</th>
                                 <th class="text-right">Monto Comprobante</th>
                                 <th>Comprobante</th>
-                                <th>Registrar pago</th>
+                                <th v-if="!isReadOnly">Registrar pago</th>
                             </tr>
                         </thead>
                     </template>
@@ -75,8 +75,11 @@ import { usePageTutorial } from '@/composables/usePageTutorial'
 import { usePageTitle } from '@/composables/use-meta'
 import { paymentRequestsTutorial } from '@/tutorials/notifications'
 import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
+import { useAuthUser } from '@/store/auth-user'
 
 usePageTitle('Comprobantes de Pago')
+const auth = useAuthUser()
+const isReadOnly = auth.isReadOnly()
 
 const paymentRequestsTable = useTemplateRef('paymentRequestsTable')
 const imageModalElement = ref(null)
@@ -120,10 +123,10 @@ const options = {
         }
     },
     columnDefs: [
-        { responsivePriority: 1, targets: 9 },
+        { responsivePriority: 1, targets: isReadOnly ? 8 : 9 },
         { responsivePriority: 2, targets: 8 },
         { targets: [3, 7], className: 'dt-body-right' },
-        { targets: [8, 9], className: 'dt-body-center' },
+        { targets: isReadOnly ? [8] : [8, 9], className: 'dt-body-center' },
     ],
     columns: [
         {
@@ -186,7 +189,7 @@ const options = {
             orderable: false,
             render: (data) => formatMoney(data),
         },
-        {
+        ...(!isReadOnly ? [{
             data: 'id',
             searchable: false,
             orderable: false,
@@ -215,7 +218,7 @@ const options = {
                     Registrar pago
                 </button>
             `,
-        },
+        }] : []),
     ],
 }
 

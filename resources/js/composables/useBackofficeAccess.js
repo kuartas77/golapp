@@ -148,23 +148,32 @@ export function hasBackofficeAccess(auth, requirements = {}) {
     const roles = requirements.roles ?? []
     const schoolPermissions = requirements.schoolPermissions ?? []
 
+    const viewerModuleAccess = auth.hasRole('viewer')
+        && schoolPermissions.some((permission) => permission.startsWith('school.module.'))
+
     const hasRoles = roles.length === 0
         ? true
         : requirements.anyRole
             ? roles.some((role) => auth.hasRole(role))
             : roles.every((role) => auth.hasRole(role))
 
+    const hasAcceptedRole = hasRoles || viewerModuleAccess
+
     const hasSchoolPermissions = schoolPermissions.length === 0
         ? true
         : requirements.anySchoolPermission
-            ? schoolPermissions.some((permission) => auth.hasSchoolPermission(permission))
-            : schoolPermissions.every((permission) => auth.hasSchoolPermission(permission))
+            ? schoolPermissions.some((permission) => permission.startsWith('school.module.')
+                ? auth.canViewSchoolModule(permission)
+                : auth.hasSchoolPermission(permission))
+            : schoolPermissions.every((permission) => permission.startsWith('school.module.')
+                ? auth.canViewSchoolModule(permission)
+                : auth.hasSchoolPermission(permission))
 
     const hasElectronicInvoicing = !requirements.requiresElectronicInvoicing
         || auth.hasRole('super-admin')
         || Boolean(auth.user?.electronic_invoicing_enabled)
 
-    return hasRoles && hasSchoolPermissions && hasElectronicInvoicing
+    return hasAcceptedRole && hasSchoolPermissions && hasElectronicInvoicing
 }
 
 export function useBackofficeAccess() {

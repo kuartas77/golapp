@@ -64,8 +64,8 @@ const routes = [
                 children: [
                     { path: '', name: 'player-evaluations.index', component: () => import('@/pages/player-evaluations/Index.vue') },
                     { path: 'comparison', name: 'player-evaluations.comparison', component: () => import('@/pages/player-evaluations/Comparison.vue') },
-                    { path: 'create', name: 'player-evaluations.create', component: () => import('@/pages/player-evaluations/Editor.vue') },
-                    { path: ':id/edit', name: 'player-evaluations.edit', component: () => import('@/pages/player-evaluations/Editor.vue') },
+                    { path: 'create', name: 'player-evaluations.create', component: () => import('@/pages/player-evaluations/Editor.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'] } },
+                    { path: ':id/edit', name: 'player-evaluations.edit', component: () => import('@/pages/player-evaluations/Editor.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'] } },
                     { path: ':id', name: 'player-evaluations.show', component: () => import('@/pages/player-evaluations/Show.vue') },
                 ]
             },
@@ -94,8 +94,8 @@ const routes = [
                 component: { render: () => h(RouterView) },
                 children: [
                     { path: '', name: 'attendances', component: () => import('@/pages/attendances/attendance-list.vue') },
-                    { path: 'qr', name: 'attendances-qr', component: () => import('@/pages/attendances/qr/AttendanceQrLanding.vue') },
-                    { path: 'qr/:unique_code', name: 'attendances-qr-detail', component: () => import('@/pages/attendances/qr/AttendanceQrDetail.vue') },
+                    { path: 'qr', name: 'attendances-qr', component: () => import('@/pages/attendances/qr/AttendanceQrLanding.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'] } },
+                    { path: 'qr/:unique_code', name: 'attendances-qr-detail', component: () => import('@/pages/attendances/qr/AttendanceQrDetail.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'] } },
                 ]
             },
             {
@@ -146,15 +146,15 @@ const routes = [
                 component: { render: () => h(RouterView) },
                 children: [
                     { path: '', name: 'matches', component: () => import('@/pages/matches/MatchesList.vue') },
-                    { path: 'nuevo/:grupo_competencia', name: 'matches-create', component: () => import('@/pages/matches/NewMatch.vue') },
-                    { path: ':id', name: 'matches-edit', component: () => import('@/pages/matches/EditMatch.vue') },
+                    { path: 'nuevo/:grupo_competencia', name: 'matches-create', component: () => import('@/pages/matches/NewMatch.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'] } },
+                    { path: ':id', name: 'matches-edit', component: () => import('@/pages/matches/EditMatch.vue'), meta: { requiresRole: ['super-admin', 'school', 'instructor'] } },
                 ]
             },
             {
                 path: '/configuracion',
                 name: 'admin',
                 alias: '/administracion',
-                meta: { requiresRole: ['super-admin', 'school'] },
+                meta: { requiresRole: ['super-admin', 'school', 'viewer'] },
                 children: [
                     {
                         path: 'escuela',
@@ -202,7 +202,7 @@ const routes = [
                         path: 'g-entrenamiento/admin',
                         name: 'training-groups-admin',
                         component: () => import('@/pages/admin/groups/training/AdminTrainingGroup.vue'),
-                        meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.trainingGroups] }
+                        meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.trainingGroups] }
                     },
                     {
                         path: 'horarios',
@@ -220,7 +220,7 @@ const routes = [
                         path: 'g-competencia/admin',
                         name: 'competition-groups-admin',
                         component: () => import('@/pages/admin/groups/competition/AdminCompetitionGroup.vue'),
-                        meta: { requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.competitionGroups] }
+                        meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.competitionGroups] }
                     },
                     {
                         path: 'torneos',
@@ -256,26 +256,26 @@ const routes = [
             {
                 path: '/facturas',
                 meta: {
-                    requiresRole: ['super-admin', 'school', 'assistant'],
+                    requiresRole: ['super-admin', 'school', 'assistant', 'viewer'],
                     requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.billing],
                 },
                 name: 'invoices',
                 component: { render: () => h(RouterView) },
                 children: [
-                    { path: '', name: 'invoices.index', component: () => import('@/pages/invoices/Invoices.vue'), meta: { requiresRole: ['super-admin', 'school'] } },
-                    { path: 'items', name: 'invoices.items.index', component: () => import('@/pages/invoices/InvoiceItems.vue'), meta: { requiresRole: ['super-admin', 'school'] } },
-                    { path: 'cargos-personalizados', name: 'invoices.custom-charges.index', component: () => import('@/pages/invoices/InscriptionCustomCharges.vue'), meta: { requiresRole: ['super-admin', 'school'] } },
+                    { path: '', name: 'invoices.index', component: () => import('@/pages/invoices/Invoices.vue') },
+                    { path: 'items', name: 'invoices.items.index', component: () => import('@/pages/invoices/InvoiceItems.vue') },
+                    { path: 'cargos-personalizados', name: 'invoices.custom-charges.index', component: () => import('@/pages/invoices/InscriptionCustomCharges.vue') },
                     {
                         path: 'comprobantes-pago',
                         name: 'payment-requests.index',
                         component: () => import('@/pages/notifications/PaymentRequests.vue'),
-                        meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.systemNotify] }
+                        meta: { requiresRole: ['super-admin', 'school', 'viewer'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.systemNotify] }
                     },
                     {
                         path: 'solicitudes-uniformes',
                         name: 'uniform-requests.index',
                         component: () => import('@/pages/notifications/UniformRequests.vue'),
-                        meta: { requiresRole: ['super-admin', 'school'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.systemNotify] }
+                        meta: { requiresRole: ['super-admin', 'school', 'viewer'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.systemNotify] }
                     },
                     { path: 'crear/:inscription', name: 'invoices.create', component: () => import('@/pages/invoices/InvoiceCreate.vue'), meta: { requiresRole: ['super-admin', 'school'] } },
                     { path: ':id', name: 'invoices.show', component: () => import('@/pages/invoices/InvoiceShow.vue') },
@@ -284,7 +284,7 @@ const routes = [
             {
                 path: '/inventario',
                 meta: {
-                    requiresRole: ['super-admin', 'school'],
+                    requiresRole: ['super-admin', 'school', 'viewer'],
                     requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.inventory],
                 },
                 component: { render: () => h(RouterView) },
@@ -296,7 +296,7 @@ const routes = [
             {
                 path: '/salidas',
                 meta: {
-                    requiresRole: ['super-admin', 'school'],
+                    requiresRole: ['super-admin', 'school', 'viewer'],
                     requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.schoolOutings],
                 },
                 component: { render: () => h(RouterView) },
@@ -309,7 +309,7 @@ const routes = [
                 path: '/saldos-a-favor',
                 name: 'player-credits.index',
                 meta: {
-                    requiresRole: ['super-admin', 'school'],
+                    requiresRole: ['super-admin', 'school', 'viewer'],
                     requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.playerCredits],
                 },
                 component: () => import('@/pages/player-credits/Index.vue')
@@ -326,7 +326,7 @@ const routes = [
             {
                 path: 'informes',
                 meta: {
-                    requiresRole: ['super-admin', 'school', 'assistant'],
+                    requiresRole: ['super-admin', 'school', 'assistant', 'viewer'],
                     requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.reports],
                 },
                 component: { render: () => h(RouterView) },
@@ -335,34 +335,37 @@ const routes = [
                         path: 'asistencias',
                         name: 'reports.assists',
                         component: () => import('@/pages/reports/assists/Index.vue'),
-                        meta: { requiresRole: ['super-admin', 'school'] }
+                        meta: { requiresRole: ['super-admin', 'school', 'viewer'], requiresSchoolPermissionAll: [SCHOOL_PERMISSION_KEYS.reports, SCHOOL_PERMISSION_KEYS.attendances] }
                     },
                     {
                         path: 'actividad-instructores',
                         name: 'reports.instructor-activity',
                         component: () => import('@/pages/reports/instructors/Index.vue'),
-                        meta: { requiresRole: ['super-admin', 'school'] }
+                        meta: { requiresRole: ['super-admin', 'school', 'viewer'], requiresSchoolPermissionAll: [SCHOOL_PERMISSION_KEYS.reports, SCHOOL_PERMISSION_KEYS.trainingGroups] }
                     },
                     {
                         path: 'pagos',
                         name: 'reports.payments',
-                        component: () => import('@/pages/reports/payments/Index.vue')
+                        component: () => import('@/pages/reports/payments/Index.vue'),
+                        meta: { requiresSchoolPermissionAll: [SCHOOL_PERMISSION_KEYS.reports, SCHOOL_PERMISSION_KEYS.payments] }
                     },
                     {
                         path: 'pagos-recibidos',
                         name: 'reports.received-payments',
-                        component: () => import('@/pages/reports/received-payments/Index.vue')
+                        component: () => import('@/pages/reports/received-payments/Index.vue'),
+                        meta: { requiresSchoolPermissionAll: [SCHOOL_PERMISSION_KEYS.reports, SCHOOL_PERMISSION_KEYS.payments] }
                     },
                     {
                         path: 'deudores',
                         name: 'reports.debtors',
-                        component: () => import('@/pages/reports/debtors/Index.vue')
+                        component: () => import('@/pages/reports/debtors/Index.vue'),
+                        meta: { requiresSchoolPermissionAll: [SCHOOL_PERMISSION_KEYS.reports, SCHOOL_PERMISSION_KEYS.payments] }
                     },
                     {
                         path: 'mensualidades-asistencias',
                         name: 'reports.attendance-payment',
                         component: () => import('@/pages/reports/attendance-payment/Index.vue'),
-                        meta: { requiresRole: ['super-admin', 'school'] }
+                        meta: { requiresRole: ['super-admin', 'school', 'viewer'], requiresSchoolPermissionAll: [SCHOOL_PERMISSION_KEYS.reports, SCHOOL_PERMISSION_KEYS.attendances, SCHOOL_PERMISSION_KEYS.payments] }
                     },
                 ]
             },

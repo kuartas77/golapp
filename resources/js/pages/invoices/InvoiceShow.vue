@@ -18,7 +18,7 @@
         />
         <div v-else class="row layout-top-spacing">
 
-            <div :class="isAssistant ? 'col-12' : 'col-md-8'">
+            <div :class="isReadOnly ? 'col-12' : 'col-md-8'">
                 <!-- Información de la factura -->
                 <div class="card mb-4" data-tour="invoice-show-summary">
                     <AppPageHeader
@@ -126,7 +126,7 @@
                 </div>
 
                 <!-- Comprobantes de pago -->
-                <div v-if="!isAssistant && paymentRequests.length > 0" class="card mb-4" data-tour="invoice-show-payment-requests">
+                <div v-if="!isReadOnly && paymentRequests.length > 0" class="card mb-4" data-tour="invoice-show-payment-requests">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="fa fa-receipt"></i> Comprobantes de Pago</h5>
                     </div>
@@ -207,7 +207,7 @@
             </div>
 
             <!-- Panel de pagos -->
-            <div v-if="!isAssistant" class="col-md-4">
+            <div v-if="!isReadOnly" class="col-md-4">
                 <div class="card mb-4" data-tour="invoice-show-payment-form">
                     <div class="card-header d-flex justify-content-md-between">
                         <h5 class="mb-0"><i class="fa fa-money-bill-wave"></i> Registrar Pago</h5>
@@ -404,6 +404,7 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthUser()
 const isAssistant = computed(() => auth.hasRole('assistant'))
+const isReadOnly = computed(() => isAssistant.value || auth.hasRole('viewer'))
 const invoiceId = route.params.id
 const tutorial = usePageTutorial(invoiceShowTutorial)
 const todayDate = dayjs().format('YYYY-MM-DD')

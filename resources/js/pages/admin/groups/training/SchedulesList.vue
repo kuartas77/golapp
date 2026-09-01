@@ -17,6 +17,7 @@
                                     Volver
                                 </router-link>
                                 <button
+                                    v-if="!isReadOnly"
                                     type="button"
                                     class="btn btn-primary btn-sm"
                                     :disabled="isSaving"
@@ -56,7 +57,7 @@
                                     </template>
 
                                     <template #actions="props">
-                                        <div class="d-inline-flex gap-2">
+                                        <div v-if="!isReadOnly" class="d-inline-flex gap-2">
                                             <button
                                                 type="button"
                                                 class="btn btn-outline-primary btn-sm"
@@ -198,7 +199,10 @@ import { usePageTitle } from '@/composables/use-meta'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
 import { schedulesTutorial } from '@/tutorials/training'
+import { useAuthUser } from '@/store/auth-user'
 
+const auth = useAuthUser()
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 const items = ref([])
 const tutorial = usePageTutorial(schedulesTutorial)
 const isLoading = ref(true)

@@ -47,6 +47,7 @@ const { apiMock, settingsStore, authStore } = vi.hoisted(() => ({
     },
     authStore: {
         hasSchoolPermission: vi.fn(),
+        hasAnyRole: vi.fn(),
     },
 }));
 
@@ -73,6 +74,7 @@ const mountModal = async (
     options = {},
 ) => {
     authStore.hasSchoolPermission.mockReturnValue(options.hasBillingPermission ?? true);
+    authStore.hasAnyRole.mockReturnValue(options.canManageInscriptions ?? true);
 
     const bootstrapModal = {
         show: vi.fn(),
@@ -201,6 +203,7 @@ describe('ModalInscription', () => {
         apiMock.get.mockReset();
         apiMock.post.mockReset();
         authStore.hasSchoolPermission.mockReset();
+        authStore.hasAnyRole.mockReset();
         settingsStore.getSettings.mockClear();
         settingsStore.training_group_monthly_payment_enabled = false;
         settingsStore.normal_training_groups = [
@@ -333,6 +336,16 @@ describe('ModalInscription', () => {
         expect(apiMock.post).toHaveBeenCalledWith('/api/v2/inscriptions', expect.not.objectContaining({
             custom_charges: expect.anything(),
         }));
+    });
+
+    it('does not load custom charge catalogs for a read-only viewer', async () => {
+        const wrapper = await mountModal(
+            { inscription_id: null, create_open: false, selected_year: 2026 },
+            { hasBillingPermission: true, canManageInscriptions: false },
+        );
+
+        expect(wrapper.text()).not.toContain('Cargos personalizados');
+        expect(apiMock.get).not.toHaveBeenCalledWith('/api/v2/admin/invoice-items-custom');
     });
 
     it('uses the wide responsive layout only when custom charge rows exist', async () => {

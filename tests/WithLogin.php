@@ -8,7 +8,9 @@ use App\Models\School;
 use App\Models\SchoolUser;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\SchoolModuleAccess;
 use Illuminate\Foundation\Testing\WithFaker;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 trait WithLogin
@@ -47,6 +49,10 @@ trait WithLogin
         Role::query()->firstOrCreate(['name' => 'school', 'guard_name' => 'web']);
         Role::query()->firstOrCreate(['name' => 'instructor', 'guard_name' => 'web']);
         Role::query()->firstOrCreate(['name' => User::ASSISTANT, 'guard_name' => 'web']);
+        Role::query()->firstOrCreate(['name' => User::VIEWER, 'guard_name' => 'web']);
+        foreach (SchoolModuleAccess::permissionNames() as $permissionName) {
+            Permission::query()->firstOrCreate(['name' => $permissionName, 'guard_name' => 'web']);
+        }
     }
 
     protected function createUser(array $attributes = [], array $roles = [User::SCHOOL])

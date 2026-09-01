@@ -2,12 +2,15 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesViewerModules;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreUserRequest extends FormRequest
 {
+    use ValidatesViewerModules;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -32,9 +35,9 @@ class StoreUserRequest extends FormRequest
                 'required',
                 'integer',
                 Rule::exists('roles', 'id')->where(
-                    fn ($query) => $query->whereIn('name', ['school', 'instructor', User::ASSISTANT])
+                    fn ($query) => $query->whereIn('name', ['school', 'instructor', User::ASSISTANT, User::VIEWER])
                 ),
             ],
-        ];
+        ] + $this->viewerModuleRules();
     }
 }

@@ -125,13 +125,29 @@ export const useAuthUser = defineStore('auth-user', {
             return permissions.some((permission) => this.hasSchoolPermission(permission))
         },
 
+        moduleViewPermission(moduleKey) {
+            return `backoffice.module.${moduleKey.replace('school.module.', '')}.view`
+        },
+
+        canViewSchoolModule(moduleKey) {
+            if (!this.hasSchoolPermission(moduleKey)) {
+                return false
+            }
+
+            return !this.hasRole('viewer') || this.can(this.moduleViewPermission(moduleKey))
+        },
+
         hasRole(role) {
             return this.roles.includes(role)
         },
 
         hasAnyRole(roles) {
             return roles.some(role => this.hasRole(role))
-        }
+        },
+
+        isReadOnly() {
+            return this.hasRole('viewer')
+        },
     },
     persist: true,
 })
