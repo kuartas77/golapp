@@ -7,15 +7,18 @@
         </div>
 
         <div class="row layout-top-spacing">
-            <div class="layout-spacing col-xl-6 col-lg-12 col-sm-12">
-                <div class="panel br-6 h-100 kpi-chart-card" data-tour="kpi-payment-groups">
+            <div class="layout-spacing col-xl-6 col-lg-12 col-sm-12 d-flex">
+                <div class="panel br-6 h-100 w-100 kpi-chart-card" data-tour="kpi-payment-groups">
                     <div class="panel-body kpi-chart-card__body">
                         <template v-if="showPaymentGroupChart">
-                            <div class="kpi-chart-copy">
-                                <h5>{{ paymentGroupTitle }}</h5>
-                                <p>{{ paymentGroupDescription }}</p>
+                            <div class="kpi-chart-copy kpi-chart-copy--with-meta">
+                                <div>
+                                    <h5>{{ paymentGroupTitle }}</h5>
+                                    <p>{{ paymentGroupDescription }}</p>
+                                </div>
+                                <span class="kpi-chart-count">{{ formatGroupCount(paymentGroupCategories.length) }}</span>
                             </div>
-                            <div class="kpi-chart-scroll">
+                            <div class="kpi-chart-scroll kpi-chart-scroll--groups">
                                 <div class="kpi-chart-scroll__canvas">
                                     <apexchart
                                         :height="paymentGroupChartHeight"
@@ -32,76 +35,11 @@
                 </div>
             </div>
 
-            <div class="layout-spacing col-xl-6 col-lg-12 col-sm-12">
-                <div class="panel br-6 h-100 kpi-chart-card" data-tour="kpi-collection">
-                    <div class="panel-body kpi-chart-card__body d-flex flex-column gap-4">
-                        <template v-if="showAmountCollectionChart">
-                            <template v-if="isComplianceOnlyCollectionChart">
-                                <div class="kpi-chart-copy">
-                                    <h5>Cumplimiento por grupo</h5>
-                                    <p>Lectura aislada del cumplimiento para que se entienda rápido.</p>
-                                </div>
-                                <div class="kpi-chart-scroll">
-                                    <div class="kpi-chart-scroll__canvas">
-                                        <apexchart
-                                            :height="amountCollectionSingleChartHeight"
-                                            type="bar"
-                                            :options="amountCollectionComplianceOptions"
-                                            :series="amountCollectionSeries" />
-                                    </div>
-                                </div>
-                            </template>
-
-                            <template v-else-if="isCompactChartLayout">
-                                <div class="kpi-chart-copy">
-                                    <h5>Recaudo por grupo</h5>
-                                    <p>Montos de mensualidades e inscripciones por cada grupo.</p>
-                                </div>
-                                <div class="kpi-chart-scroll">
-                                    <div class="kpi-chart-scroll__canvas">
-                                        <apexchart
-                                            :height="amountCollectionRevenueChartHeight"
-                                            type="bar"
-                                            :options="amountCollectionRevenueOptions"
-                                            :series="amountCollectionRevenueSeries" />
-                                    </div>
-                                </div>
-
-                                <div class="kpi-chart-divider pt-4">
-                                    <div class="kpi-chart-copy">
-                                        <h5>% cumplimiento por grupo</h5>
-                                        <p>Porcentaje de cumplimiento separado de los montos.</p>
-                                    </div>
-                                    <div class="kpi-chart-scroll">
-                                        <div class="kpi-chart-scroll__canvas">
-                                            <apexchart
-                                                :height="amountCollectionComplianceChartHeight"
-                                                type="bar"
-                                                :options="amountCollectionComplianceOptions"
-                                                :series="amountCollectionComplianceSeries" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-
-                            <template v-else>
-                                <div class="kpi-chart-copy">
-                                    <h5>Recaudo y cumplimiento por grupo</h5>
-                                    <p>Cruza recaudo de mensualidades, inscripciones y porcentaje de cumplimiento.</p>
-                                </div>
-                                <apexchart
-                                    height="320"
-                                    type="line"
-                                    :options="amountCollectionOptions"
-                                    :series="amountCollectionSeries" />
-                            </template>
-                        </template>
-
-                        <ChartEmptyState v-else icon="fa-solid fa-chart-simple" title="Sin datos de recaudo">
-                            No hay datos de recaudo para el período seleccionado.
-                        </ChartEmptyState>
-                    </div>
-                </div>
+            <div class="layout-spacing col-xl-6 col-lg-12 col-sm-12 d-flex">
+                <KpiCollectionTable
+                    class="h-100 w-100"
+                    :can-view-monetary-values="canViewMonetaryValues"
+                    :report="amountPaymentGroupReport" />
             </div>
 
             <div class="layout-spacing col-xl-7 col-lg-12 col-sm-12">
@@ -161,7 +99,7 @@
             </div>
 
             <div class="layout-spacing col-xl-5 col-lg-12 col-sm-12">
-                <div class="panel br-6 h-100 kpi-chart-card" data-tour="kpi-attendance">
+                <div class="panel br-6 h-100 kpi-chart-card kpi-chart-card--attendance" data-tour="kpi-attendance">
                     <div class="panel-body kpi-chart-card__body">
                         <template v-if="showAttendanceMixChart">
                             <div class="kpi-chart-copy">
@@ -191,6 +129,7 @@ import apexchart from 'vue3-apexcharts'
 
 import { useAppState } from '@/store/app-state'
 
+import KpiCollectionTable from './KpiCollectionTable.vue'
 import { currencyFormatter, formatCompactCurrency, numberFormatter } from './kpiFormatters'
 
 const props = defineProps({
@@ -219,12 +158,15 @@ const ChartEmptyState = defineComponent({
 
 const appState = useAppState()
 const COMPACT_CHART_BREAKPOINT = 992
-const isCompactChartLayout = ref(false)
+const GROUP_CHART_BREAKPOINT = 1600
+const GROUP_DENSITY_THRESHOLD = 8
+const viewportWidth = ref(GROUP_CHART_BREAKPOINT + 1)
+const isCompactChartLayout = computed(() => viewportWidth.value < COMPACT_CHART_BREAKPOINT)
 const chartTheme = computed(() => (appState.is_dark_mode ? 'dark' : 'light'))
 
 const syncCompactChartLayout = () => {
     if (typeof window !== 'undefined') {
-        isCompactChartLayout.value = window.innerWidth < COMPACT_CHART_BREAKPOINT
+        viewportWidth.value = window.innerWidth
     }
 }
 
@@ -232,6 +174,7 @@ const abbreviateCategoryLabel = (label) => {
     const normalizedLabel = String(label ?? '')
     return normalizedLabel.length <= 4 ? normalizedLabel : normalizedLabel.slice(0, 3)
 }
+const formatGroupCount = (count) => `${count} ${count === 1 ? 'grupo' : 'grupos'}`
 
 const hasMultiSeriesData = (series) => Array.isArray(series)
     && series.length > 0
@@ -242,12 +185,13 @@ const buildHorizontalChartHeight = (count, rowHeight = 72, minHeight = 320, maxH
     Math.min(maxHeight, Math.max(minHeight, count * rowHeight))
 
 const paymentGroupSeries = computed(() => props.paymentGroupReport?.data ?? [])
-const amountCollectionSeries = computed(() => props.amountPaymentGroupReport?.data ?? [])
 const monthlyTrendSeries = computed(() => props.monthlyTrendReport?.data ?? [])
 const attendanceMixSeries = computed(() => props.attendanceMixReport?.data ?? [])
 const paymentGroupCategories = computed(() => props.paymentGroupReport?.categories ?? [])
-const amountCollectionCategories = computed(() => props.amountPaymentGroupReport?.categories ?? [])
-const amountCollectionMode = computed(() => props.amountPaymentGroupReport?.mode ?? 'default')
+const useHorizontalGroupLayout = computed(() => (
+    viewportWidth.value <= GROUP_CHART_BREAKPOINT
+    || paymentGroupCategories.value.length > GROUP_DENSITY_THRESHOLD
+))
 const monthlyTrendMode = computed(() => props.monthlyTrendReport?.mode ?? 'default')
 const monthlyTrendCategories = computed(() => (
     isCompactChartLayout.value
@@ -256,16 +200,14 @@ const monthlyTrendCategories = computed(() => (
 ))
 
 const showPaymentGroupChart = computed(() => hasMultiSeriesData(paymentGroupSeries.value) && paymentGroupCategories.value.length > 0)
-const showAmountCollectionChart = computed(() => hasMultiSeriesData(amountCollectionSeries.value) && amountCollectionCategories.value.length > 0)
 const showMonthlyTrendChart = computed(() => hasMultiSeriesData(monthlyTrendSeries.value) && (props.monthlyTrendReport?.categories?.length ?? 0) > 0)
 const showAttendanceMixChart = computed(() => hasSimpleSeriesData(attendanceMixSeries.value))
-const isComplianceOnlyCollectionChart = computed(() => amountCollectionMode.value === 'compliance_only')
 const isPaymentsOnlyTrendChart = computed(() => monthlyTrendMode.value === 'payments_only')
 const showSplitMonthlyTrend = computed(() => isCompactChartLayout.value && !isPaymentsOnlyTrendChart.value)
-const paymentGroupTitle = computed(() => isCompactChartLayout.value
+const paymentGroupTitle = computed(() => useHorizontalGroupLayout.value
     ? 'Mensualidades por grupo'
     : 'Mensualidades x grupo en el año')
-const paymentGroupDescription = computed(() => isCompactChartLayout.value
+const paymentGroupDescription = computed(() => useHorizontalGroupLayout.value
     ? 'Estados de las mensualidades por cada grupo.'
     : 'Contrasta mensualidades pagadas, deuda, becas y otros estados por grupo.')
 const monthlyTrendTitle = computed(() => isPaymentsOnlyTrendChart.value
@@ -275,28 +217,14 @@ const monthlyTrendDescription = computed(() => isPaymentsOnlyTrendChart.value
     ? 'Evolución de las mensualidades pagadas a lo largo del año.'
     : 'Evolución del valor recaudado y las mensualidades pagadas a lo largo del año.')
 
-const paymentGroupChartHeight = computed(() => isCompactChartLayout.value
-    ? buildHorizontalChartHeight(paymentGroupCategories.value.length, 76, 340, 720)
-    : 320)
-const amountCollectionRevenueChartHeight = computed(() =>
-    buildHorizontalChartHeight(amountCollectionCategories.value.length, 74, 300, 680))
-const amountCollectionComplianceChartHeight = computed(() =>
-    buildHorizontalChartHeight(amountCollectionCategories.value.length, 66, 260, 620))
-const amountCollectionSingleChartHeight = computed(() => isCompactChartLayout.value
-    ? buildHorizontalChartHeight(amountCollectionCategories.value.length, 66, 260, 620)
+const paymentGroupChartHeight = computed(() => useHorizontalGroupLayout.value
+    ? buildHorizontalChartHeight(paymentGroupCategories.value.length, 56, 340, 2400)
     : 320)
 const monthlyTrendChartHeight = computed(() => isCompactChartLayout.value ? 360 : 320)
 const monthlyTrendRevenueChartHeight = computed(() => isCompactChartLayout.value ? 300 : 320)
 const monthlyTrendPaymentsChartHeight = computed(() => isCompactChartLayout.value ? 280 : 320)
 const attendanceMixChartHeight = computed(() => isCompactChartLayout.value ? 380 : 320)
 
-const amountCollectionRevenueSeries = computed(() => amountCollectionSeries.value
-    .filter((series) => series.name !== '% de cumplimiento')
-    .map((series) => ({ ...series, type: 'bar' })))
-const amountCollectionComplianceSeries = computed(() => {
-    const series = amountCollectionSeries.value.find((item) => item.name === '% de cumplimiento')
-    return series ? [{ ...series, type: 'bar' }] : []
-})
 const monthlyTrendRevenueSeries = computed(() => monthlyTrendSeries.value
     .filter((series) => series.name !== 'Mensualidades pagadas')
     .map((series) => ({ ...series, type: 'bar' })))
@@ -315,11 +243,11 @@ const paymentGroupOptions = computed(() => ({
     theme: baseTheme.value,
     plotOptions: {
         bar: {
-            horizontal: isCompactChartLayout.value,
-            barHeight: isCompactChartLayout.value ? '58%' : undefined,
+            horizontal: useHorizontalGroupLayout.value,
+            barHeight: useHorizontalGroupLayout.value ? '58%' : undefined,
             dataLabels: {
                 total: {
-                    enabled: !isCompactChartLayout.value,
+                    enabled: !useHorizontalGroupLayout.value,
                     style: { fontSize: '13px', fontWeight: 900, color: '#8A8A8A' },
                 },
             },
@@ -327,103 +255,23 @@ const paymentGroupOptions = computed(() => ({
     },
     xaxis: {
         categories: paymentGroupCategories.value,
-        labels: { rotate: isCompactChartLayout.value ? 0 : -35, trim: true, hideOverlappingLabels: true },
+        labels: { rotate: useHorizontalGroupLayout.value ? 0 : -35, trim: true, hideOverlappingLabels: true },
     },
-    yaxis: isCompactChartLayout.value ? { labels: { maxWidth: 150, trim: true } } : undefined,
+    yaxis: useHorizontalGroupLayout.value
+        ? { labels: { maxWidth: isCompactChartLayout.value ? 140 : 220, trim: false } }
+        : undefined,
     fill: { opacity: 1 },
     legend: {
-        position: isCompactChartLayout.value ? 'bottom' : 'top',
+        position: useHorizontalGroupLayout.value ? 'bottom' : 'top',
         horizontalAlign: 'center',
         offsetY: 0,
-        fontSize: isCompactChartLayout.value ? '11px' : '12px',
+        fontSize: useHorizontalGroupLayout.value ? '11px' : '12px',
     },
-    grid: { padding: { left: isCompactChartLayout.value ? 12 : 0, right: 8 } },
+    grid: { padding: { left: useHorizontalGroupLayout.value ? 12 : 0, right: 8 } },
     tooltip: { theme: chartTheme.value },
     stroke: { width: 1 },
     colors: ['#00E396', '#FF4560', '#FEB019', '#546E7A'],
 }))
-
-const amountCollectionOptions = computed(() => ({
-    chart: { ...baseChart.value, stacked: false },
-    theme: baseTheme.value,
-    dataLabels: { enabled: false },
-    stroke: { width: [1, 1, 4] },
-    xaxis: {
-        categories: amountCollectionCategories.value,
-        labels: { rotate: -35, trim: true, hideOverlappingLabels: true },
-    },
-    yaxis: [
-        {
-            seriesName: 'Mensualidades',
-            axisTicks: { show: true },
-            axisBorder: { show: true, color: '#008FFB' },
-            labels: { style: { colors: '#008FFB' }, formatter: (value) => currencyFormatter.format(Number(value || 0)) },
-            title: { text: 'Mensualidades', style: { color: '#008FFB' } },
-        },
-        {
-            seriesName: 'Inscripciones',
-            opposite: true,
-            axisTicks: { show: true },
-            axisBorder: { show: true, color: '#00E396' },
-            labels: { style: { colors: '#00E396' }, formatter: (value) => currencyFormatter.format(Number(value || 0)) },
-            title: { text: 'Inscripciones', style: { color: '#00E396' } },
-        },
-        {
-            seriesName: '% de cumplimiento',
-            opposite: true,
-            axisTicks: { show: true },
-            axisBorder: { show: true, color: '#FEB019' },
-            labels: { style: { colors: '#FEB019' }, formatter: (value) => `${Number(value || 0).toFixed(2)}%` },
-            title: { text: '% cumplimiento', style: { color: '#FEB019' } },
-        },
-    ],
-    tooltip: { theme: chartTheme.value },
-    legend: { position: 'top', horizontalAlign: 'center', offsetY: 0 },
-}))
-
-const horizontalBarOptions = (isPercentage = false) => ({
-    chart: baseChart.value,
-    theme: baseTheme.value,
-    plotOptions: {
-        bar: {
-            horizontal: true,
-            barHeight: isPercentage ? '45%' : '55%',
-            distributed: isPercentage,
-        },
-    },
-    dataLabels: isPercentage
-        ? { enabled: true, formatter: (value) => `${Number(value || 0).toFixed(0)}%` }
-        : { enabled: false },
-    xaxis: {
-        categories: amountCollectionCategories.value,
-        ...(isPercentage ? { min: 0, max: 100 } : {}),
-        labels: {
-            formatter: (value) => isPercentage
-                ? `${Number(value || 0).toFixed(0)}%`
-                : currencyFormatter.format(Number(value || 0)),
-            rotate: -45,
-            trim: true,
-            hideOverlappingLabels: true,
-        },
-    },
-    yaxis: { labels: { maxWidth: 150, trim: true } },
-    legend: isPercentage
-        ? { show: false }
-        : { position: 'bottom', horizontalAlign: 'center', fontSize: '11px' },
-    tooltip: {
-        theme: chartTheme.value,
-        y: {
-            formatter: (value) => isPercentage
-                ? `${Number(value || 0).toFixed(2)}%`
-                : currencyFormatter.format(Number(value || 0)),
-        },
-    },
-    grid: { padding: { left: 12, right: 8 } },
-    colors: isPercentage ? ['#FEB019'] : ['#008FFB', '#00E396'],
-})
-
-const amountCollectionRevenueOptions = computed(() => horizontalBarOptions())
-const amountCollectionComplianceOptions = computed(() => horizontalBarOptions(true))
 
 const monthlyTrendOptions = computed(() => ({
     chart: baseChart.value,

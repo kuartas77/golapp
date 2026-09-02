@@ -90,6 +90,7 @@ const createPayload = (overrides = {}) => ({
         categories: ['Halcones'],
         data: [
             { type: 'column', name: 'Mensualidades', data: [120000] },
+            { type: 'column', name: 'Inscripciones', data: [45000] },
             { type: 'line', name: '% de cumplimiento', data: [75] },
         ],
     },
@@ -157,7 +158,7 @@ describe('KPI dashboard page', () => {
     beforeEach(() => {
         Object.defineProperty(window, 'innerWidth', {
             configurable: true,
-            value: 1024,
+            value: 1920,
             writable: true,
         })
         apiMock.get.mockReset()
@@ -196,7 +197,14 @@ describe('KPI dashboard page', () => {
         expect(wrapper.text()).toContain('Indicadores del backoffice')
         expect(wrapper.text()).toContain('Recaudo mensualidades')
         expect(wrapper.text()).toContain('% asistencia del mes')
-        expect(wrapper.findAll('.chart-stub')).toHaveLength(4)
+        expect(wrapper.findAll('.chart-stub')).toHaveLength(3)
+        const collectionTable = wrapper.get('[data-tour="kpi-collection"]')
+        expect(collectionTable.text()).toContain('Recaudo y cumplimiento por grupo')
+        expect(collectionTable.text()).toContain('Halcones')
+        expect(collectionTable.text()).toContain('$ 120.000')
+        expect(collectionTable.text()).toContain('$ 45.000')
+        expect(collectionTable.text()).toContain('75.00%')
+        expect(collectionTable.get('.kpi-collection-table__body').attributes('tabindex')).toBe('0')
 
         const filtersPanel = wrapper.getComponent(KpiFiltersPanel)
 
@@ -259,6 +267,11 @@ describe('KPI dashboard page', () => {
         expect(wrapper.text()).toContain('% cumplimiento global')
         expect(wrapper.text()).not.toContain('Recaudo mensualidades')
         expect(wrapper.text()).not.toContain('Recaudo inscripciones')
+        const collectionTable = wrapper.get('[data-tour="kpi-collection"]')
+        expect(collectionTable.text()).toContain('Cumplimiento por grupo')
+        expect(collectionTable.text()).not.toContain('Mensualidades')
+        expect(collectionTable.text()).not.toContain('Inscripciones')
+        expect(collectionTable.text()).toContain('75.00%')
     })
 
     it('splits the monthly trend scales into separate charts on small screens', async () => {
@@ -266,11 +279,51 @@ describe('KPI dashboard page', () => {
 
         const wrapper = await mountPage()
 
-        expect(wrapper.findAll('.chart-stub')).toHaveLength(6)
-        expect(wrapper.findAll('.kpi-chart-scroll')).toHaveLength(5)
+        expect(wrapper.findAll('.chart-stub')).toHaveLength(4)
+        expect(wrapper.findAll('.kpi-chart-scroll')).toHaveLength(3)
+        expect(wrapper.find('[data-tour="kpi-collection"] table').exists()).toBe(true)
         expect(wrapper.text()).toContain('Recaudo mensual')
         expect(wrapper.text()).toContain('Mensualidades pagadas')
         expect(wrapper.text()).toContain('Composición de asistencia del mes')
+    })
+
+    it('uses a horizontal status chart and a compact collection table at 1600 pixels', async () => {
+        window.innerWidth = 1600
+
+        const wrapper = await mountPage()
+
+        expect(wrapper.findAll('.chart-stub')).toHaveLength(3)
+        expect(wrapper.findAll('.kpi-chart-scroll--groups')).toHaveLength(1)
+        expect(wrapper.text()).toContain('1 grupo')
+        expect(wrapper.get('[data-tour="kpi-payment-groups"]').classes()).toContain('h-100')
+        const collectionTable = wrapper.get('[data-tour="kpi-collection"]')
+        expect(collectionTable.classes()).toContain('h-100')
+        expect(collectionTable.findAll('.chart-stub')).toHaveLength(0)
+        expect(collectionTable.findAll('tbody tr')).toHaveLength(1)
+        expect(collectionTable.findAll('thead th')).toHaveLength(4)
+    })
+
+    it('keeps the horizontal group layout on wide screens when the school has many groups', async () => {
+        const groupNames = Array.from({ length: 9 }, (_, index) => `Grupo ${index + 1}`)
+        const values = groupNames.map((_, index) => index + 1)
+        const wrapper = await mountPage(createPayload({
+            payment_group_report: {
+                categories: groupNames,
+                data: [{ name: 'Pagas', data: values }],
+            },
+            amount_payment_group_report: {
+                categories: groupNames,
+                data: [
+                    { type: 'column', name: 'Mensualidades', data: values },
+                    { type: 'line', name: '% de cumplimiento', data: values },
+                ],
+            },
+        }))
+
+        expect(wrapper.findAll('.chart-stub')).toHaveLength(3)
+        expect(wrapper.findAll('.kpi-chart-scroll--groups')).toHaveLength(1)
+        expect(wrapper.text()).toContain('9 grupos')
+        expect(wrapper.get('[data-tour="kpi-collection"]').findAll('tbody tr')).toHaveLength(9)
     })
 
     it('shows the billing revenue calculation breakdown returned by the API', async () => {
