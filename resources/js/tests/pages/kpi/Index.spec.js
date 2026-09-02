@@ -53,6 +53,7 @@ vi.mock('@/composables/use-meta', () => ({
 }))
 
 import KpiIndex from '@/pages/kpi/Index.vue'
+import KpiFiltersPanel from '@/components/kpi/KpiFiltersPanel.vue'
 
 const wrappers = []
 
@@ -154,6 +155,11 @@ const mountPage = async (payload = createPayload()) => {
 
 describe('KPI dashboard page', () => {
     beforeEach(() => {
+        Object.defineProperty(window, 'innerWidth', {
+            configurable: true,
+            value: 1024,
+            writable: true,
+        })
         apiMock.get.mockReset()
         routeMock.query = {
             year: '2026',
@@ -192,8 +198,11 @@ describe('KPI dashboard page', () => {
         expect(wrapper.text()).toContain('% asistencia del mes')
         expect(wrapper.findAll('.chart-stub')).toHaveLength(4)
 
-        state.filters.month = 5
-        state.filters.training_group_id = null
+        const filtersPanel = wrapper.getComponent(KpiFiltersPanel)
+
+        filtersPanel.vm.$emit('update:month', 5)
+        filtersPanel.vm.$emit('update:trainingGroupId', null)
+        await wrapper.vm.$nextTick()
 
         await state.applyFilters()
 
@@ -250,6 +259,18 @@ describe('KPI dashboard page', () => {
         expect(wrapper.text()).toContain('% cumplimiento global')
         expect(wrapper.text()).not.toContain('Recaudo mensualidades')
         expect(wrapper.text()).not.toContain('Recaudo inscripciones')
+    })
+
+    it('splits the monthly trend scales into separate charts on small screens', async () => {
+        window.innerWidth = 375
+
+        const wrapper = await mountPage()
+
+        expect(wrapper.findAll('.chart-stub')).toHaveLength(6)
+        expect(wrapper.findAll('.kpi-chart-scroll')).toHaveLength(5)
+        expect(wrapper.text()).toContain('Recaudo mensual')
+        expect(wrapper.text()).toContain('Mensualidades pagadas')
+        expect(wrapper.text()).toContain('Composición de asistencia del mes')
     })
 
     it('shows the billing revenue calculation breakdown returned by the API', async () => {
