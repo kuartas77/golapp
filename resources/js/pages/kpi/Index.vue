@@ -486,7 +486,7 @@ const paymentGroupOptions = computed(() => ({
     subtitle: {
         text: isCompactChartLayout.value
             ? 'Vista compacta para priorizar lectura en pantallas estrechas.'
-            : 'Contrasta pagos, deuda, becados y otros estados por grupo.',
+            : 'Contrasta mensualidades pagadas, deuda, becas y otros estados por grupo.',
         align: 'left',
     },
     plotOptions: {
@@ -711,17 +711,17 @@ const monthlyTrendOptions = computed(() => ({
     },
     title: {
         text: isPaymentsOnlyTrendChart.value
-            ? 'Pagos efectivos del año'
+            ? 'Mensualidades pagadas del año'
             : (isCompactChartLayout.value ? 'Tendencia mensual' : 'Tendencia mensual del año'),
         align: 'left',
     },
     subtitle: {
         text: isPaymentsOnlyTrendChart.value
-            ? 'Sigue la evolución de los pagos efectivos a lo largo del año.'
+            ? 'Sigue la evolución de las mensualidades pagadas a lo largo del año.'
             : (
                 isCompactChartLayout.value
                     ? 'Meses abreviados para una lectura más clara en mobile.'
-                    : 'Sigue la evolución del valor recaudado y los pagos efectivos a lo largo del año.'
+                    : 'Sigue la evolución del valor recaudado y las mensualidades pagadas a lo largo del año.'
             ),
         align: 'left',
     },
@@ -741,7 +741,7 @@ const monthlyTrendOptions = computed(() => ({
             labels: {
                 formatter: (value) => numberFormatter.format(Number(value || 0)),
             },
-            title: { text: isCompactChartLayout.value ? '' : 'Pagos' },
+            title: { text: isCompactChartLayout.value ? '' : 'Mensualidades pagadas' },
         }
         : [
             {
@@ -756,12 +756,12 @@ const monthlyTrendOptions = computed(() => ({
                 title: { text: isCompactChartLayout.value ? '' : 'Valor' },
             },
             {
-                seriesName: 'Pagos',
+                seriesName: 'Mensualidades pagadas',
                 opposite: true,
                 labels: {
                     formatter: (value) => numberFormatter.format(Number(value || 0)),
                 },
-                title: { text: isCompactChartLayout.value ? '' : 'Pagos' },
+                title: { text: isCompactChartLayout.value ? '' : 'Mensualidades pagadas' },
             },
         ],
     legend: {

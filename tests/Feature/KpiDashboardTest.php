@@ -163,7 +163,7 @@ final class KpiDashboardTest extends TestCase
             ->assertJsonPath('amount_payment_group_report.mode', 'compliance_only')
             ->assertJsonPath('amount_payment_group_report.data.0.name', '% de cumplimiento')
             ->assertJsonPath('monthly_trend_report.mode', 'payments_only')
-            ->assertJsonPath('monthly_trend_report.data.0.name', 'Pagos')
+            ->assertJsonPath('monthly_trend_report.data.0.name', 'Mensualidades pagadas')
             ->assertJsonPath('report_links.payments', null)
             ->assertJsonMissing(['label' => $groupB->name]);
     }
@@ -186,7 +186,7 @@ final class KpiDashboardTest extends TestCase
             'type' => 'monthly',
             'description' => 'Mensualidad abril',
             'quantity' => 1,
-            'unit_price' => 60000,
+            'unit_price' => 70000,
             'month' => 'april',
             'payment_id' => $payment->id,
             'is_paid' => true,
@@ -206,6 +206,21 @@ final class KpiDashboardTest extends TestCase
             'is_paid' => false,
         ]);
 
+        $higherPaymentInscription = $this->createInscription($this->makePlayer('KPI-BILLING-HIGHER-PAYMENT'), $group, $year);
+        $higherPayment = $this->createPaymentRecord($higherPaymentInscription, $group, $year, [
+            'may' => ['status' => Payment::$paid_cash, 'amount' => 50000],
+        ]);
+        $higherPaymentInvoice = $this->createInvoice($higherPaymentInscription, $group, 'FAC-KPI-HIGHER-PAYMENT');
+        $higherPaymentInvoice->items()->create([
+            'type' => 'monthly',
+            'description' => 'Mensualidad mayo con pago mayor',
+            'quantity' => 1,
+            'unit_price' => 40000,
+            'month' => 'may',
+            'payment_id' => $higherPayment->id,
+            'is_paid' => true,
+        ]);
+
         $cancelledInvoice = $this->createInvoice($inscription, $group, 'FAC-KPI-CANCELLED');
         $cancelledInvoice->items()->create([
             'type' => 'additional',
@@ -215,6 +230,37 @@ final class KpiDashboardTest extends TestCase
             'is_paid' => true,
         ]);
         $cancelledInvoice->forceFill(['status' => 'cancelled'])->save();
+
+        $debtInscription = $this->createInscription($this->makePlayer('KPI-BILLING-DEBT'), $group, $year);
+        $debtPayment = $this->createPaymentRecord($debtInscription, $group, $year, [
+            'may' => ['status' => Payment::$debt, 'amount' => 20000],
+        ]);
+        $debtInvoice = $this->createInvoice($debtInscription, $group, 'FAC-KPI-DEBT');
+        $debtInvoice->items()->create([
+            'type' => 'monthly',
+            'description' => 'Mensualidad mayo',
+            'quantity' => 1,
+            'unit_price' => 20000,
+            'month' => 'may',
+            'payment_id' => $debtPayment->id,
+            'is_paid' => true,
+        ]);
+
+        $retiredInscription = $this->createInscription($this->makePlayer('KPI-BILLING-RETIRED'), $group, $year);
+        $retiredPayment = $this->createPaymentRecord($retiredInscription, $group, $year, [
+            'june' => ['status' => Payment::$paid_cash, 'amount' => 15000],
+        ]);
+        $retiredInvoice = $this->createInvoice($retiredInscription, $group, 'FAC-KPI-RETIRED');
+        $retiredInvoice->items()->create([
+            'type' => 'monthly',
+            'description' => 'Mensualidad junio',
+            'quantity' => 1,
+            'unit_price' => 15000,
+            'month' => 'june',
+            'payment_id' => $retiredPayment->id,
+            'is_paid' => true,
+        ]);
+        $retiredInscription->delete();
 
         InscriptionCustomCharge::query()->create([
             'school_id' => $this->school['id'],
@@ -232,12 +278,44 @@ final class KpiDashboardTest extends TestCase
 
         $cards = collect($response->json('summary_cards'))->keyBy('key');
 
-        $this->assertSame(60000.0, (float) $cards['monthly_revenue']['value']);
+        $this->assertSame(125000.0, (float) $cards['monthly_revenue']['value']);
         $this->assertSame(20000.0, (float) $cards['enrollment_revenue']['value']);
         $this->assertSame(40000.0, (float) $cards['other_billing_revenue']['value']);
         $this->assertSame(20000.0, (float) $cards['enrollment_revenue']['breakdown']['included'][1]['amount']);
-        $this->assertSame(60000.0, (float) $cards['other_billing_revenue']['breakdown']['excluded'][0]['amount']);
-        $this->assertSame(40000.0, (float) $cards['other_billing_revenue']['breakdown']['excluded'][1]['amount']);
+        $this->assertSame(15000.0, (float) $cards['monthly_revenue']['breakdown']['included'][2]['amount']);
+        $this->assertSame('Histórico de inscripciones retiradas', $cards['monthly_revenue']['breakdown']['included'][2]['label']);
+        $excluded = collect($cards['other_billing_revenue']['breakdown']['excluded'])->keyBy('key');
+        $this->assertSame(125000.0, (float) $excluded['represented_in_payments']['amount']);
+        $this->assertSame(10000.0, (float) $excluded['invoice_amount_higher']['amount']);
+        $this->assertSame(10000.0, (float) $excluded['payment_amount_higher']['amount']);
+        $this->assertSame(20000.0, (float) $excluded['not_received_in_payments']['amount']);
+        $this->assertSame(40000.0, (float) $excluded['unpaid_additional']['amount']);
+        $this->assertFalse($excluded->contains(fn (array $item) => str_contains($item['label'], 'retiradas')));
+    }
+
+    public function test_provisional_group_is_included_in_kpi_options_and_revenue(): void
+    {
+        $this->actingAs($this->user);
+
+        $year = 2026;
+        $provisional = TrainingGroup::query()
+            ->where('school_id', $this->school['id'])
+            ->where('name', 'Provisional')
+            ->firstOrFail();
+        $inscription = $this->createInscription($this->makePlayer('KPI-PROVISIONAL'), $provisional, $year);
+        $this->createPaymentRecord($inscription, $provisional, $year, [
+            'april' => ['status' => Payment::$paid_cash, 'amount' => 25000],
+        ]);
+
+        $response = $this->getJson("/api/v2/kpis?year={$year}&month=4")
+            ->assertOk()
+            ->assertJsonFragment([
+                'value' => $provisional->id,
+                'label' => 'Provisional',
+            ]);
+        $cards = collect($response->json('summary_cards'))->keyBy('key');
+
+        $this->assertSame(25000.0, (float) $cards['monthly_revenue']['value']);
     }
 
     public function test_billing_kpi_is_omitted_when_the_school_module_is_disabled(): void

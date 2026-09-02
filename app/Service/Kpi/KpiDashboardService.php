@@ -12,6 +12,8 @@ use App\Models\Payment;
 use App\Models\TrainingGroup;
 use App\Models\User;
 use App\Support\SchoolModuleAccess;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
@@ -93,9 +95,11 @@ class KpiDashboardService
 
     private function buildFilterMetadata(int $schoolId, bool $includeBillingYears): array
     {
-        $paymentYears = Payment::query()
+        /** @var Builder<Payment> $paymentQuery */
+        $paymentQuery = Payment::query();
+        $paymentYears = $paymentQuery->withoutGlobalScope(SoftDeletingScope::class)
             ->where('school_id', $schoolId)
-            ->whereHas('inscription', fn ($query) => $query->whereNull('inscriptions.deleted_at'))
+            ->whereHas('inscription', fn ($query) => $query->withoutGlobalScope(SoftDeletingScope::class))
             ->distinct()
             ->pluck('year');
 
@@ -166,7 +170,7 @@ class KpiDashboardService
         $groupCatalog = $groupOptions->keyBy('value');
         $paymentMetrics = $this->buildPaymentMetrics($schoolId, $year, $selectedGroupId, $groupCatalog);
         $billingRevenue = $canViewBillingRevenue
-            ? $this->buildOtherBillingRevenue($schoolId, $year, $selectedGroupId)
+            ? $this->buildOtherBillingRevenue($schoolId, $year, $selectedGroupId, $groupCatalog)
             : null;
         $attendanceMetrics = $this->buildAttendanceMetrics($schoolId, $year, $month, $selectedGroupId, $groupCatalog);
         $flaggedMetrics = $this->buildFlaggedMetrics($schoolId, $year, $month, $selectedGroupId, $groupCatalog);
@@ -181,6 +185,7 @@ class KpiDashboardService
                 'breakdown' => $this->receivedBreakdown(
                     $paymentMetrics['summary']['total_raised'],
                     $paymentMetrics['summary']['monthly_partial_received'],
+                    $paymentMetrics['summary']['monthly_retired_received'],
                     'mensualidades'
                 ),
             ],
@@ -193,6 +198,7 @@ class KpiDashboardService
                 'breakdown' => $this->receivedBreakdown(
                     $paymentMetrics['summary']['total_enrollment'],
                     $paymentMetrics['summary']['enrollment_partial_received'],
+                    $paymentMetrics['summary']['enrollment_retired_received'],
                     'matrículas'
                 ),
             ],
@@ -267,7 +273,7 @@ class KpiDashboardService
                 'data' => [
                     [
                         'type' => 'line',
-                        'name' => 'Pagos',
+                        'name' => 'Mensualidades pagadas',
                         'data' => $paymentMetrics['monthly_trend_report']['data'][1]['data'] ?? [],
                     ],
                 ],
@@ -318,10 +324,13 @@ class KpiDashboardService
         ?int $selectedGroupId,
         Collection $groupCatalog
     ): array {
-        $payments = Payment::query()
+        /** @var Builder<Payment> $paymentQuery */
+        $paymentQuery = Payment::query();
+        $payments = $paymentQuery->withoutGlobalScope(SoftDeletingScope::class)
             ->where('school_id', $schoolId)
             ->where('year', $year)
-            ->whereHas('inscription', fn ($query) => $query->whereNull('inscriptions.deleted_at'))
+            ->whereHas('inscription', fn ($query) => $query->withoutGlobalScope(SoftDeletingScope::class))
+            ->with('inscription')
             ->when(
                 $selectedGroupId,
                 fn ($query, $groupId) => $query->where('training_group_id', $groupId),
@@ -343,6 +352,8 @@ class KpiDashboardService
             'total_compliance_percentage' => 0.0,
             'monthly_partial_received' => 0.0,
             'enrollment_partial_received' => 0.0,
+            'monthly_retired_received' => 0.0,
+            'enrollment_retired_received' => 0.0,
         ];
         $monthlyTrend = [];
 
@@ -378,7 +389,12 @@ class KpiDashboardService
                 ];
             }
 
-            $groupRows[$groupId]['inscription_ids'][$payment->inscription_id] = true;
+            $isRetiredInscription = $payment->trashed() || (bool) $payment->inscription?->trashed();
+
+            if (! $isRetiredInscription) {
+                $groupRows[$groupId]['inscription_ids'][$payment->inscription_id] = true;
+            }
+
             $enrollmentStatus = $payment->enrollment === null ? null : (int) $payment->enrollment;
             $enrollmentAmount = (float) ($payment->enrollment_amount ?? 0);
             $enrollmentReportAmount = $this->reportAmount($enrollmentStatus, $enrollmentAmount);
@@ -386,7 +402,9 @@ class KpiDashboardService
             $groupRows[$groupId]['total_enrollment'] += $enrollmentReportAmount;
             $summary['total_enrollment'] += $enrollmentReportAmount;
 
-            if ($enrollmentStatus === Payment::$paid_) {
+            if ($isRetiredInscription) {
+                $summary['enrollment_retired_received'] += $enrollmentReportAmount;
+            } elseif ($enrollmentStatus === Payment::$paid_) {
                 $summary['enrollment_partial_received'] += $enrollmentReportAmount;
             }
 
@@ -400,8 +418,14 @@ class KpiDashboardService
                 $summary['total_raised'] += $reportAmount;
                 $monthlyTrend[$field]['amount'] += $reportAmount;
 
-                if ($status === Payment::$paid_) {
+                if ($isRetiredInscription) {
+                    $summary['monthly_retired_received'] += $reportAmount;
+                } elseif ($status === Payment::$paid_) {
                     $summary['monthly_partial_received'] += $reportAmount;
+                }
+
+                if ($isRetiredInscription) {
+                    continue;
                 }
 
                 if ($this->statusSumsInReports($status)) {
@@ -462,6 +486,8 @@ class KpiDashboardService
         $summary['total_enrollment'] = round($summary['total_enrollment'], 2);
         $summary['monthly_partial_received'] = round($summary['monthly_partial_received'], 2);
         $summary['enrollment_partial_received'] = round($summary['enrollment_partial_received'], 2);
+        $summary['monthly_retired_received'] = round($summary['monthly_retired_received'], 2);
+        $summary['enrollment_retired_received'] = round($summary['enrollment_retired_received'], 2);
         $summary['total_compliance_percentage'] = $this->percentage(
             $summary['monthly_payments_paid'],
             $summary['compliance_denominator']
@@ -473,8 +499,8 @@ class KpiDashboardService
             'payment_group_report' => [
                 'categories' => $groupRowsCollection->pluck('label')->all(),
                 'data' => [
-                    ['name' => 'Pagas', 'data' => $groupRowsCollection->pluck('monthly_payments_paid')->all()],
-                    ['name' => 'Con Deuda', 'data' => $groupRowsCollection->pluck('monthly_payments_debt')->all()],
+                    ['name' => 'Mensualidades pagadas', 'data' => $groupRowsCollection->pluck('monthly_payments_paid')->all()],
+                    ['name' => 'Mensualidades con deuda', 'data' => $groupRowsCollection->pluck('monthly_payments_debt')->all()],
                     ['name' => 'Becados', 'data' => $groupRowsCollection->pluck('monthly_payments_scholarship')->all()],
                     ['name' => 'Otros', 'data' => $groupRowsCollection->pluck('monthly_payments_others')->all()],
                 ],
@@ -499,7 +525,7 @@ class KpiDashboardService
                     ],
                     [
                         'type' => 'line',
-                        'name' => 'Pagos',
+                        'name' => 'Mensualidades pagadas',
                         'data' => collect(array_keys($monthlyLabels))
                             ->map(fn ($field) => (int) ($monthlyTrend[$field]['payments'] ?? 0))
                             ->all(),
@@ -773,7 +799,6 @@ class KpiDashboardService
     {
         return TrainingGroup::withTrashed()
             ->where('school_id', $schoolId)
-            ->where('name', '!=', 'Provisional')
             ->where('is_complementary', false)
             ->when(
                 $this->isInstructor($user),
@@ -886,14 +911,22 @@ class KpiDashboardService
         return $status === Payment::$paid_ || $this->statusSumsInReports($status);
     }
 
-    private function buildOtherBillingRevenue(int $schoolId, int $year, ?int $selectedGroupId): array
-    {
-        $invoiceItems = InvoiceItem::query()
-            ->whereHas('invoice', fn ($query) => $query
-                ->where('school_id', $schoolId)
-                ->where('year', $year)
-                ->where('status', '!=', 'cancelled')
-                ->when($selectedGroupId, fn ($query, $groupId) => $query->where('training_group_id', $groupId)));
+    private function buildOtherBillingRevenue(
+        int $schoolId,
+        int $year,
+        ?int $selectedGroupId,
+        Collection $groupCatalog
+    ): array {
+        $invoiceItems = InvoiceItem::query()->whereHas(
+            'invoice',
+            fn ($query) => $this->scopeBillingInvoiceQuery(
+                $query,
+                $schoolId,
+                $year,
+                $selectedGroupId,
+                $groupCatalog
+            )
+        );
 
         $paidAdditional = (float) (clone $invoiceItems)
             ->where('type', 'additional')
@@ -903,10 +936,11 @@ class KpiDashboardService
             ->where('type', 'additional')
             ->where('is_paid', false)
             ->sum('total');
-        $categorizedRevenue = (float) (clone $invoiceItems)
+        $categorizedItems = (clone $invoiceItems)
             ->whereIn('type', ['monthly', 'enrollment'])
             ->where('is_paid', true)
-            ->sum('total');
+            ->get();
+        $categorizedRevenue = $this->reconcileCategorizedInvoiceItems($categorizedItems, $schoolId);
 
         $directCharges = InscriptionCustomCharge::query()
             ->join('inscriptions', 'inscriptions.id', '=', 'inscription_custom_charges.inscription_id')
@@ -914,7 +948,13 @@ class KpiDashboardService
             ->where('inscription_custom_charges.status', InscriptionCustomCharge::STATUS_PAID)
             ->whereNull('inscription_custom_charges.invoice_item_id')
             ->whereYear('inscription_custom_charges.due_date', $year)
-            ->when($selectedGroupId, fn ($query, $groupId) => $query->where('inscriptions.training_group_id', $groupId))
+            ->when(
+                $selectedGroupId,
+                fn ($query, $groupId) => $query->where('inscriptions.training_group_id', $groupId),
+                fn ($query) => $groupCatalog->isNotEmpty()
+                    ? $query->whereIn('inscriptions.training_group_id', $groupCatalog->keys()->all())
+                    : $query->whereRaw('1 = 0')
+            )
             ->sum('inscription_custom_charges.value');
 
         return [
@@ -926,16 +966,37 @@ class KpiDashboardService
                 ],
                 'excluded' => [
                     [
-                        'label' => 'Matrículas y mensualidades facturadas',
-                        'amount' => round($categorizedRevenue, 2),
-                        'reason' => 'Ya están incluidas en sus KPI de recaudo correspondientes.',
+                        'key' => 'represented_in_payments',
+                        'label' => 'Ya representado en recaudo de matrículas y mensualidades',
+                        'amount' => $categorizedRevenue['represented'],
+                        'reason' => 'Se conserva en los KPI existentes y no se suma nuevamente.',
                     ],
                     [
+                        'key' => 'invoice_amount_higher',
+                        'label' => 'Factura mayor que el pago registrado',
+                        'amount' => $categorizedRevenue['invoice_amount_higher'],
+                        'reason' => 'La factura registra un valor superior al monto recibido conservado en pagos.',
+                    ],
+                    [
+                        'key' => 'payment_amount_higher',
+                        'label' => 'Pago registrado mayor que la factura',
+                        'amount' => $categorizedRevenue['payment_amount_higher'],
+                        'reason' => 'El registro de pagos conserva un valor superior al ítem facturado.',
+                    ],
+                    [
+                        'key' => 'not_received_in_payments',
+                        'label' => 'Facturado como pagado, pero no registrado como recaudo',
+                        'amount' => $categorizedRevenue['not_received'],
+                        'reason' => 'El concepto vinculado conserva un estado no monetario, como Debe, o no tiene un registro válido.',
+                    ],
+                    [
+                        'key' => 'unpaid_additional',
                         'label' => 'Conceptos adicionales aún no pagados',
                         'amount' => round($pendingAdditional, 2),
                         'reason' => 'No representan dinero recibido.',
                     ],
                     [
+                        'key' => 'cancelled_or_deleted',
                         'label' => 'Facturas canceladas o eliminadas',
                         'amount' => null,
                         'reason' => 'No forman parte del recaudo vigente.',
@@ -945,12 +1006,86 @@ class KpiDashboardService
         ];
     }
 
-    private function receivedBreakdown(float $total, float $partial, string $concept): array
+    private function scopeBillingInvoiceQuery(
+        Builder $query,
+        int $schoolId,
+        int $year,
+        ?int $selectedGroupId,
+        Collection $groupCatalog
+    ): Builder {
+        return $query
+            ->where('school_id', $schoolId)
+            ->where('year', $year)
+            ->where('status', '!=', 'cancelled')
+            ->when(
+                $selectedGroupId,
+                fn ($query, $groupId) => $query->where('training_group_id', $groupId),
+                fn ($query) => $groupCatalog->isNotEmpty()
+                    ? $query->whereIn('training_group_id', $groupCatalog->keys()->all())
+                    : $query->whereRaw('1 = 0')
+            );
+    }
+
+    private function reconcileCategorizedInvoiceItems(Collection $items, int $schoolId): array
+    {
+        /** @var Builder<Payment> $paymentQuery */
+        $paymentQuery = Payment::query();
+        $payments = $paymentQuery->withoutGlobalScope(SoftDeletingScope::class)
+            ->where('school_id', $schoolId)
+            ->whereIn('id', $items->pluck('payment_id')->filter()->unique()->all())
+            ->get()
+            ->keyBy('id');
+        $totals = [
+            'represented' => 0.0,
+            'invoice_amount_higher' => 0.0,
+            'payment_amount_higher' => 0.0,
+            'not_received' => 0.0,
+        ];
+
+        $items
+            ->groupBy(fn (InvoiceItem $item) => $item->payment_id && $item->month
+                ? "{$item->payment_id}:{$item->month}"
+                : "item:{$item->id}")
+            ->each(function (Collection $group) use ($payments, &$totals): void {
+                /** @var InvoiceItem $item */
+                $item = $group->first();
+                $invoiceAmount = (float) $group->sum('total');
+
+                /** @var Payment|null $payment */
+                $payment = $item->payment_id ? $payments->get((int) $item->payment_id) : null;
+                $field = (string) $item->month;
+                $status = $payment && $field !== '' ? (int) $payment->{$field} : null;
+                $amountField = $field !== '' ? Payment::amountFieldFor($field) : null;
+
+                if (! $payment || ! $this->statusHasReceivedAmount($status) || ! $amountField) {
+                    $totals['not_received'] += $invoiceAmount;
+
+                    return;
+                }
+
+                $paymentAmount = (float) ($payment->{$amountField} ?? 0);
+                $totals['represented'] += $paymentAmount;
+                $difference = $invoiceAmount - $paymentAmount;
+
+                if ($difference >= 0) {
+                    $totals['invoice_amount_higher'] += $difference;
+                } else {
+                    $totals['payment_amount_higher'] += abs($difference);
+                }
+            });
+
+        return collect($totals)
+            ->map(fn (float $amount) => round($amount, 2))
+            ->all();
+    }
+
+    private function receivedBreakdown(float $total, float $partial, float $retired, string $concept): array
     {
         return [
             'included' => [
-                ['label' => ucfirst($concept).' pagadas', 'amount' => round($total - $partial, 2)],
-                ['label' => 'Abonos registrados', 'amount' => round($partial, 2)],
+                ['label' => ucfirst($concept).' pagadas de inscripciones activas', 'amount' => round($total - $partial - $retired, 2)],
+                ['label' => 'Abonos de inscripciones activas', 'amount' => round($partial, 2)],
+                ['label' => 'Histórico de inscripciones retiradas', 'amount' => round($retired, 2)],
             ],
             'excluded' => [
                 [
@@ -961,7 +1096,7 @@ class KpiDashboardService
                 [
                     'label' => ucfirst($concept).' incluidas en facturas',
                     'amount' => null,
-                    'reason' => 'No se suman nuevamente; permanecen en este KPI.',
+                    'reason' => 'Solo permanece aquí el importe registrado en mensualidades; las diferencias se explican en el KPI de facturación.',
                 ],
             ],
         ];

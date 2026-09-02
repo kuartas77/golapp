@@ -268,9 +268,14 @@ describe('KPI dashboard page', () => {
                         ],
                         excluded: [
                             {
-                                label: 'Matrículas y mensualidades facturadas',
+                                label: 'Ya representado en recaudo de matrículas y mensualidades',
                                 amount: 60000,
-                                reason: 'Ya están incluidas en sus KPI de recaudo correspondientes.',
+                                reason: 'Se conserva en los KPI existentes y no se suma nuevamente.',
+                            },
+                            {
+                                label: 'Diferencias entre factura y mensualidades',
+                                amount: 10000,
+                                reason: 'El valor de los ítems facturados no coincide con el monto actual registrado en mensualidades.',
                             },
                             {
                                 label: 'Facturas canceladas o eliminadas',
@@ -293,8 +298,9 @@ describe('KPI dashboard page', () => {
         expect(details.get('summary').text()).toBe('Cómo se calcula')
         expect(details.text()).toContain('Conceptos adicionales facturados y pagados')
         expect(details.text()).toContain('30.000')
-        expect(details.text()).toContain('Matrículas y mensualidades facturadas')
-        expect(details.text()).toContain('Ya están incluidas en sus KPI de recaudo correspondientes.')
+        expect(details.text()).toContain('Ya representado en recaudo de matrículas y mensualidades')
+        expect(details.text()).toContain('Se conserva en los KPI existentes y no se suma nuevamente.')
+        expect(details.text()).toContain('Diferencias entre factura y mensualidades')
         expect(details.text()).toContain('No forman parte del recaudo vigente.')
     })
 })
