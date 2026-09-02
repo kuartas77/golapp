@@ -68,6 +68,8 @@ const slots = useSlots()
 
 @media (max-width: 767.98px) {
     .app-page-header__actions {
+        flex-direction: column;
+        align-items: stretch !important;
         width: 100%;
     }
 }

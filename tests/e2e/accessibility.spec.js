@@ -232,6 +232,8 @@ test('monthly payments starts with guidance instead of an empty table', async ({
 test('invoices announces a failed load and recovers with accessible row actions', async ({ page }) => {
     let invoicesRequestCount = 0;
 
+    await page.setViewportSize({ width: 1280, height: 720 });
+
     await page.addInitScript(() => {
         localStorage.setItem('dark_mode', 'dark');
     });
@@ -851,28 +853,6 @@ test('sports operation lists announce failures and expose accessible recovery co
     const requestCounts = Object.fromEntries(lists.map(({ endpoint }) => [endpoint, 0]));
     let recoveryEndpoint = '';
 
-    await page.addInitScript(() => {
-        localStorage.setItem('auth-user', JSON.stringify({
-            user: {
-                id: 1,
-                name: 'Escuela E2E',
-                email: 'e2e@golapp.local',
-                school_id: 1,
-                school_name: 'Escuela E2E',
-            },
-            initialized: true,
-            roles: ['school'],
-            permissions: [],
-            schoolPermissions: {
-                'school.module.training_groups': true,
-                'school.module.competition_groups': true,
-                'school.module.matches': true,
-                'school.module.methodology': true,
-                'school.module.training_sessions': true,
-            },
-        }));
-    });
-
     await page.exposeFunction('enableSportsListRecovery', endpoint => {
         recoveryEndpoint = endpoint;
     });
@@ -917,6 +897,12 @@ test('sports operation lists announce failures and expose accessible recovery co
         }),
     }));
 
+    await page.route('**/api/v2/settings/groups', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ users: [], year_active: [], schedules: [], categories: [], tournaments: [] }),
+    }));
+
     await page.route('**/api/v2/training_groups', route => route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -956,15 +942,9 @@ test('sports operation lists announce failures and expose accessible recovery co
 
         const errorState = page.getByRole('alert').filter({ hasText: list.message });
         await expect(errorState).toBeVisible();
-        await page.locator(`#${list.tableId}_wrapper`).waitFor({ state: 'attached' });
         const failedRequestCount = requestCounts[list.endpoint];
         await page.evaluate(endpoint => window.enableSportsListRecovery(endpoint), list.endpoint);
-        await page.evaluate(() => {
-            const retryButton = [...document.querySelectorAll('button')]
-                .find(button => button.textContent.trim() === 'Reintentar');
-
-            retryButton?.click();
-        });
+        await errorState.getByRole('button', { name: 'Reintentar' }).click();
         await expect.poll(
             () => requestCounts[list.endpoint],
             { message: `El listado ${list.endpoint} debe cargar una respuesta correcta` },
