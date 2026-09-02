@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Observers\FinancialKpiObserver;
 use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,12 +11,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InscriptionCustomCharge extends Model
 {
-    use HasFactory;
     use GeneralScopes;
+    use HasFactory;
     use SoftDeletes;
 
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_DUE = 'due';
+
     public const STATUS_PAID = 'paid';
 
     protected $fillable = [
@@ -34,6 +37,11 @@ class InscriptionCustomCharge extends Model
         'value' => 'decimal:2',
         'due_date' => 'date:Y-m-d',
     ];
+
+    protected static function booted(): void
+    {
+        self::observe(FinancialKpiObserver::class);
+    }
 
     public function school(): BelongsTo
     {

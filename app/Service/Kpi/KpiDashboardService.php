@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\Service\Kpi;
 
 use App\Models\Assist;
+use App\Models\InscriptionCustomCharge;
+use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\Payment;
 use App\Models\TrainingGroup;
 use App\Models\User;
+use App\Support\SchoolModuleAccess;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
@@ -45,10 +49,14 @@ class KpiDashboardService
 
     public function resolve(User $user, array $filters = []): array
     {
-        $schoolId = (int) getSchool($user)->id;
+        $school = getSchool($user);
+        $schoolId = (int) $school->id;
+        $canViewBillingRevenue = ! $this->isInstructor($user)
+            && SchoolModuleAccess::canView($user, $school, 'school.module.billing');
         $filterMetadata = $this->cacheService->rememberFilters(
             $schoolId,
-            fn () => $this->buildFilterMetadata($schoolId)
+            fn () => $this->buildFilterMetadata($schoolId, $canViewBillingRevenue),
+            $canViewBillingRevenue
         );
 
         $year = (int) ($filters['year'] ?? $filterMetadata['defaultYear']);
@@ -58,11 +66,19 @@ class KpiDashboardService
 
         $payload = $this->cacheService->rememberPayload(
             $schoolId,
-            $this->scopeKey($user),
+            $this->scopeKey($user, $canViewBillingRevenue),
             $year,
             $month,
             $selectedGroupId,
-            fn () => $this->buildPayload($user, $schoolId, $year, $month, $selectedGroupId, $groupOptions)
+            fn () => $this->buildPayload(
+                $user,
+                $schoolId,
+                $year,
+                $month,
+                $selectedGroupId,
+                $groupOptions,
+                $canViewBillingRevenue
+            )
         );
 
         return array_merge($payload, [
@@ -75,7 +91,7 @@ class KpiDashboardService
         ]);
     }
 
-    private function buildFilterMetadata(int $schoolId): array
+    private function buildFilterMetadata(int $schoolId, bool $includeBillingYears): array
     {
         $paymentYears = Payment::query()
             ->where('school_id', $schoolId)
@@ -89,8 +105,28 @@ class KpiDashboardService
             ->distinct()
             ->pluck('year');
 
+        $billingYears = $includeBillingYears
+            ? Invoice::query()
+                ->where('school_id', $schoolId)
+                ->where('status', '!=', 'cancelled')
+                ->distinct()
+                ->pluck('year')
+            : collect();
+
+        $customChargeYears = $includeBillingYears
+            ? InscriptionCustomCharge::query()
+                ->where('school_id', $schoolId)
+                ->where('status', InscriptionCustomCharge::STATUS_PAID)
+                ->whereNull('invoice_item_id')
+                ->whereNotNull('due_date')
+                ->pluck('due_date')
+                ->map(fn ($date) => (int) substr((string) $date, 0, 4))
+            : collect();
+
         $years = $paymentYears
             ->merge($assistYears)
+            ->merge($billingYears)
+            ->merge($customChargeYears)
             ->push(now()->year)
             ->map(fn ($year) => (int) $year)
             ->filter(fn (int $year) => $year >= 2000 && $year <= 2100)
@@ -123,11 +159,15 @@ class KpiDashboardService
         int $year,
         int $month,
         ?int $selectedGroupId,
-        Collection $groupOptions
+        Collection $groupOptions,
+        bool $canViewBillingRevenue
     ): array {
         $canViewMonetaryValues = ! $this->isInstructor($user);
         $groupCatalog = $groupOptions->keyBy('value');
         $paymentMetrics = $this->buildPaymentMetrics($schoolId, $year, $selectedGroupId, $groupCatalog);
+        $billingRevenue = $canViewBillingRevenue
+            ? $this->buildOtherBillingRevenue($schoolId, $year, $selectedGroupId)
+            : null;
         $attendanceMetrics = $this->buildAttendanceMetrics($schoolId, $year, $month, $selectedGroupId, $groupCatalog);
         $flaggedMetrics = $this->buildFlaggedMetrics($schoolId, $year, $month, $selectedGroupId, $groupCatalog);
 
@@ -138,6 +178,11 @@ class KpiDashboardService
                 'value' => $paymentMetrics['summary']['total_raised'],
                 'format' => 'currency',
                 'helper' => 'Acumulado del año',
+                'breakdown' => $this->receivedBreakdown(
+                    $paymentMetrics['summary']['total_raised'],
+                    $paymentMetrics['summary']['monthly_partial_received'],
+                    'mensualidades'
+                ),
             ],
             [
                 'key' => 'enrollment_revenue',
@@ -145,6 +190,11 @@ class KpiDashboardService
                 'value' => $paymentMetrics['summary']['total_enrollment'],
                 'format' => 'currency',
                 'helper' => 'Acumulado del año',
+                'breakdown' => $this->receivedBreakdown(
+                    $paymentMetrics['summary']['total_enrollment'],
+                    $paymentMetrics['summary']['enrollment_partial_received'],
+                    'matrículas'
+                ),
             ],
             [
                 'key' => 'payment_compliance',
@@ -175,6 +225,18 @@ class KpiDashboardService
                 'helper' => 'Mes seleccionado',
             ],
         ])
+            ->when($billingRevenue !== null, function (Collection $cards) use ($billingRevenue): Collection {
+                $cards->splice(2, 0, [[
+                    'key' => 'other_billing_revenue',
+                    'label' => 'Otros recaudos de facturación',
+                    'value' => $billingRevenue['total'],
+                    'format' => 'currency',
+                    'helper' => 'Acumulado del año',
+                    'breakdown' => $billingRevenue['breakdown'],
+                ]]);
+
+                return $cards;
+            })
             ->when(
                 ! $canViewMonetaryValues,
                 fn (Collection $cards) => $cards->reject(
@@ -243,6 +305,7 @@ class KpiDashboardService
             'report_links' => $this->buildReportLinks($year, $month, $selectedGroupId, $canViewMonetaryValues),
             'permissions' => [
                 'can_view_monetary_values' => $canViewMonetaryValues,
+                'can_view_billing_revenue' => $canViewBillingRevenue,
             ],
             'assist_report' => $attendanceMetrics['attendance_mix_report'],
             'monthly_report' => $monthlyTrendReport,
@@ -278,6 +341,8 @@ class KpiDashboardService
             'monthly_payments_paid' => 0,
             'compliance_denominator' => 0,
             'total_compliance_percentage' => 0.0,
+            'monthly_partial_received' => 0.0,
+            'enrollment_partial_received' => 0.0,
         ];
         $monthlyTrend = [];
 
@@ -321,6 +386,10 @@ class KpiDashboardService
             $groupRows[$groupId]['total_enrollment'] += $enrollmentReportAmount;
             $summary['total_enrollment'] += $enrollmentReportAmount;
 
+            if ($enrollmentStatus === Payment::$paid_) {
+                $summary['enrollment_partial_received'] += $enrollmentReportAmount;
+            }
+
             foreach ($monthlyFieldMap as $field) {
                 $status = $payment->{$field} === null ? null : (int) $payment->{$field};
                 $amountField = Payment::amountFieldFor((string) $field);
@@ -330,6 +399,10 @@ class KpiDashboardService
                 $groupRows[$groupId]['total_raised'] += $reportAmount;
                 $summary['total_raised'] += $reportAmount;
                 $monthlyTrend[$field]['amount'] += $reportAmount;
+
+                if ($status === Payment::$paid_) {
+                    $summary['monthly_partial_received'] += $reportAmount;
+                }
 
                 if ($this->statusSumsInReports($status)) {
                     $groupRows[$groupId]['monthly_payments_paid']++;
@@ -387,6 +460,8 @@ class KpiDashboardService
 
         $summary['total_raised'] = round($summary['total_raised'], 2);
         $summary['total_enrollment'] = round($summary['total_enrollment'], 2);
+        $summary['monthly_partial_received'] = round($summary['monthly_partial_received'], 2);
+        $summary['enrollment_partial_received'] = round($summary['enrollment_partial_received'], 2);
         $summary['total_compliance_percentage'] = $this->percentage(
             $summary['monthly_payments_paid'],
             $summary['compliance_denominator']
@@ -766,9 +841,13 @@ class KpiDashboardService
         ];
     }
 
-    private function scopeKey(User $user): string
+    private function scopeKey(User $user, bool $canViewBillingRevenue): string
     {
-        return $this->isInstructor($user) ? "user-{$user->id}" : 'admin';
+        if ($this->isInstructor($user)) {
+            return "user-{$user->id}";
+        }
+
+        return $canViewBillingRevenue ? 'admin-billing' : 'admin';
     }
 
     private function isInstructor(User $user): bool
@@ -799,7 +878,93 @@ class KpiDashboardService
 
     private function reportAmount(?int $status, float $amount): float
     {
-        return $this->statusSumsInReports($status) ? $amount : 0.0;
+        return $this->statusHasReceivedAmount($status) ? $amount : 0.0;
+    }
+
+    private function statusHasReceivedAmount(?int $status): bool
+    {
+        return $status === Payment::$paid_ || $this->statusSumsInReports($status);
+    }
+
+    private function buildOtherBillingRevenue(int $schoolId, int $year, ?int $selectedGroupId): array
+    {
+        $invoiceItems = InvoiceItem::query()
+            ->whereHas('invoice', fn ($query) => $query
+                ->where('school_id', $schoolId)
+                ->where('year', $year)
+                ->where('status', '!=', 'cancelled')
+                ->when($selectedGroupId, fn ($query, $groupId) => $query->where('training_group_id', $groupId)));
+
+        $paidAdditional = (float) (clone $invoiceItems)
+            ->where('type', 'additional')
+            ->where('is_paid', true)
+            ->sum('total');
+        $pendingAdditional = (float) (clone $invoiceItems)
+            ->where('type', 'additional')
+            ->where('is_paid', false)
+            ->sum('total');
+        $categorizedRevenue = (float) (clone $invoiceItems)
+            ->whereIn('type', ['monthly', 'enrollment'])
+            ->where('is_paid', true)
+            ->sum('total');
+
+        $directCharges = InscriptionCustomCharge::query()
+            ->join('inscriptions', 'inscriptions.id', '=', 'inscription_custom_charges.inscription_id')
+            ->where('inscription_custom_charges.school_id', $schoolId)
+            ->where('inscription_custom_charges.status', InscriptionCustomCharge::STATUS_PAID)
+            ->whereNull('inscription_custom_charges.invoice_item_id')
+            ->whereYear('inscription_custom_charges.due_date', $year)
+            ->when($selectedGroupId, fn ($query, $groupId) => $query->where('inscriptions.training_group_id', $groupId))
+            ->sum('inscription_custom_charges.value');
+
+        return [
+            'total' => round($paidAdditional + (float) $directCharges, 2),
+            'breakdown' => [
+                'included' => [
+                    ['label' => 'Conceptos adicionales facturados y pagados', 'amount' => round($paidAdditional, 2)],
+                    ['label' => 'Cargos personalizados pagados sin factura', 'amount' => round((float) $directCharges, 2)],
+                ],
+                'excluded' => [
+                    [
+                        'label' => 'Matrículas y mensualidades facturadas',
+                        'amount' => round($categorizedRevenue, 2),
+                        'reason' => 'Ya están incluidas en sus KPI de recaudo correspondientes.',
+                    ],
+                    [
+                        'label' => 'Conceptos adicionales aún no pagados',
+                        'amount' => round($pendingAdditional, 2),
+                        'reason' => 'No representan dinero recibido.',
+                    ],
+                    [
+                        'label' => 'Facturas canceladas o eliminadas',
+                        'amount' => null,
+                        'reason' => 'No forman parte del recaudo vigente.',
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    private function receivedBreakdown(float $total, float $partial, string $concept): array
+    {
+        return [
+            'included' => [
+                ['label' => ucfirst($concept).' pagadas', 'amount' => round($total - $partial, 2)],
+                ['label' => 'Abonos registrados', 'amount' => round($partial, 2)],
+            ],
+            'excluded' => [
+                [
+                    'label' => ucfirst($concept).' pendientes o con deuda',
+                    'amount' => null,
+                    'reason' => 'No representan dinero recibido.',
+                ],
+                [
+                    'label' => ucfirst($concept).' incluidas en facturas',
+                    'amount' => null,
+                    'reason' => 'No se suman nuevamente; permanecen en este KPI.',
+                ],
+            ],
+        ];
     }
 
     private function paymentLookupKey(int $groupId, int $inscriptionId, int $year): string

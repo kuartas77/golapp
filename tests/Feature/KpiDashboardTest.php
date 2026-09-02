@@ -6,8 +6,11 @@ namespace Tests\Feature;
 
 use App\Models\Assist;
 use App\Models\Inscription;
+use App\Models\InscriptionCustomCharge;
+use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Player;
+use App\Models\School;
 use App\Models\SchoolUser;
 use App\Models\TrainingGroup;
 use App\Models\User;
@@ -149,6 +152,7 @@ final class KpiDashboardTest extends TestCase
             ->getJson("/api/v2/kpis?year={$year}&month={$month}")
             ->assertOk()
             ->assertJsonPath('permissions.can_view_monetary_values', false)
+            ->assertJsonPath('permissions.can_view_billing_revenue', false)
             ->assertJsonPath('payment_group_report.categories.0', $groupA->name)
             ->assertJsonCount(1, 'payment_group_report.categories')
             ->assertJsonCount(1, 'group_options')
@@ -162,6 +166,95 @@ final class KpiDashboardTest extends TestCase
             ->assertJsonPath('monthly_trend_report.data.0.name', 'Pagos')
             ->assertJsonPath('report_links.payments', null)
             ->assertJsonMissing(['label' => $groupB->name]);
+    }
+
+    public function test_billing_kpi_only_adds_paid_additional_revenue_and_explains_exclusions(): void
+    {
+        $this->actingAs($this->user);
+
+        $year = 2026;
+        $group = $this->createTrainingGroup('Finanzas');
+        $player = $this->makePlayer('KPI-BILLING');
+        $inscription = $this->createInscription($player, $group, $year);
+        $payment = $this->createPaymentRecord($inscription, $group, $year, [
+            'enrollment' => ['status' => Payment::$paid_, 'amount' => 20000],
+            'april' => ['status' => Payment::$paid_cash, 'amount' => 60000],
+        ]);
+
+        $invoice = $this->createInvoice($inscription, $group, 'FAC-KPI-001');
+        $invoice->items()->create([
+            'type' => 'monthly',
+            'description' => 'Mensualidad abril',
+            'quantity' => 1,
+            'unit_price' => 60000,
+            'month' => 'april',
+            'payment_id' => $payment->id,
+            'is_paid' => true,
+        ]);
+        $invoice->items()->create([
+            'type' => 'additional',
+            'description' => 'Uniforme',
+            'quantity' => 1,
+            'unit_price' => 30000,
+            'is_paid' => true,
+        ]);
+        $invoice->items()->create([
+            'type' => 'additional',
+            'description' => 'Balón pendiente',
+            'quantity' => 1,
+            'unit_price' => 40000,
+            'is_paid' => false,
+        ]);
+
+        $cancelledInvoice = $this->createInvoice($inscription, $group, 'FAC-KPI-CANCELLED');
+        $cancelledInvoice->items()->create([
+            'type' => 'additional',
+            'description' => 'No contabilizar',
+            'quantity' => 1,
+            'unit_price' => 50000,
+            'is_paid' => true,
+        ]);
+        $cancelledInvoice->forceFill(['status' => 'cancelled'])->save();
+
+        InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'player_id' => $player->id,
+            'name' => 'Carné',
+            'value' => 10000,
+            'status' => InscriptionCustomCharge::STATUS_PAID,
+            'due_date' => '2026-04-01',
+        ]);
+
+        $response = $this->getJson("/api/v2/kpis?year={$year}&month=4")
+            ->assertOk()
+            ->assertJsonPath('permissions.can_view_billing_revenue', true);
+
+        $cards = collect($response->json('summary_cards'))->keyBy('key');
+
+        $this->assertSame(60000.0, (float) $cards['monthly_revenue']['value']);
+        $this->assertSame(20000.0, (float) $cards['enrollment_revenue']['value']);
+        $this->assertSame(40000.0, (float) $cards['other_billing_revenue']['value']);
+        $this->assertSame(20000.0, (float) $cards['enrollment_revenue']['breakdown']['included'][1]['amount']);
+        $this->assertSame(60000.0, (float) $cards['other_billing_revenue']['breakdown']['excluded'][0]['amount']);
+        $this->assertSame(40000.0, (float) $cards['other_billing_revenue']['breakdown']['excluded'][1]['amount']);
+    }
+
+    public function test_billing_kpi_is_omitted_when_the_school_module_is_disabled(): void
+    {
+        $permissions = $this->school['school_permissions'];
+        $permissions['school.module.billing'] = false;
+        School::query()->findOrFail($this->school['id'])->update([
+            'school_permissions' => $permissions,
+        ]);
+
+        $this->actingAs($this->user)
+            ->getJson('/api/v2/kpis?year=2026&month=4')
+            ->assertOk()
+            ->assertJsonPath('permissions.can_view_billing_revenue', false)
+            ->assertJsonMissing(['key' => 'other_billing_revenue'])
+            ->assertJsonFragment(['key' => 'monthly_revenue'])
+            ->assertJsonFragment(['key' => 'enrollment_revenue']);
     }
 
     public function test_kpi_cache_version_changes_when_assist_is_updated(): void
@@ -179,6 +272,35 @@ final class KpiDashboardTest extends TestCase
         $assist->save();
 
         $this->assertSame($versionBefore + 1, $cacheService->currentVersion($this->school['id']));
+    }
+
+    public function test_kpi_cache_version_changes_when_billing_revenue_is_updated(): void
+    {
+        $this->actingAs($this->user);
+
+        $group = $this->createTrainingGroup('Facturación versionada');
+        $player = $this->makePlayer('KPI-BILLING-CACHE');
+        $inscription = $this->createInscription($player, $group, 2026);
+        $invoice = $this->createInvoice($inscription, $group, 'FAC-KPI-CACHE');
+        $cacheService = app(KpiCacheService::class);
+
+        $versionBeforeInvoice = $cacheService->currentVersion($this->school['id']);
+        $invoice->forceFill(['notes' => 'Actualizada'])->save();
+        $this->assertSame($versionBeforeInvoice + 1, $cacheService->currentVersion($this->school['id']));
+
+        $charge = InscriptionCustomCharge::query()->create([
+            'school_id' => $this->school['id'],
+            'inscription_id' => $inscription->id,
+            'player_id' => $player->id,
+            'name' => 'Carné',
+            'value' => 10000,
+            'status' => InscriptionCustomCharge::STATUS_PAID,
+            'due_date' => '2026-04-01',
+        ]);
+        $versionBeforeCharge = $cacheService->currentVersion($this->school['id']);
+        $charge->update(['value' => 12000]);
+
+        $this->assertSame($versionBeforeCharge + 1, $cacheService->currentVersion($this->school['id']));
     }
 
     private function createTrainingGroup(string $name): TrainingGroup
@@ -281,6 +403,24 @@ final class KpiDashboardTest extends TestCase
         $payment->save();
 
         return $payment->fresh();
+    }
+
+    private function createInvoice(Inscription $inscription, TrainingGroup $group, string $number): Invoice
+    {
+        return Invoice::query()->create([
+            'invoice_number' => $number,
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $group->id,
+            'year' => $inscription->year,
+            'student_name' => $inscription->unique_code,
+            'total_amount' => 0,
+            'paid_amount' => 0,
+            'status' => 'pending',
+            'issue_date' => "{$inscription->year}-04-01",
+            'due_date' => "{$inscription->year}-04-30",
+            'school_id' => $this->school['id'],
+            'created_by' => $this->user->id,
+        ]);
     }
 
     private function createSchoolScopedUser(array $roles, string $email): User

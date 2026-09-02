@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\School;
 use App\Models\SchoolInvoiceSequence;
 use App\Service\Auth\AuthUserContext;
+use App\Service\Kpi\KpiCacheService;
 
 class SchoolObserver
 {
@@ -27,6 +28,7 @@ class SchoolObserver
     {
         School::forgetCachedSchool($school->id);
         AuthUserContext::forgetSchool($school->id);
+        app(KpiCacheService::class)->invalidateSchool((int) $school->id);
     }
 
     /**

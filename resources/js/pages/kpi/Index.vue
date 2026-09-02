@@ -111,6 +111,43 @@
                         </span>
                         <h4 class="mb-2">{{ formatMetricValue(card.value, card.format) }}</h4>
                         <small class="text-muted mt-auto">{{ card.helper }}</small>
+
+                        <details v-if="card.breakdown" class="mt-3 border-top pt-3">
+                            <summary class="text-primary small fw-semibold">
+                                Cómo se calcula
+                            </summary>
+
+                            <div class="small mt-3">
+                                <p class="fw-semibold mb-2">Se incluye</p>
+                                <ul class="list-unstyled mb-3">
+                                    <li
+                                        v-for="item in card.breakdown.included"
+                                        :key="`${card.key}-included-${item.label}`"
+                                        class="d-flex justify-content-between gap-3 mb-2">
+                                        <span>{{ item.label }}</span>
+                                        <strong>{{ formatMetricValue(item.amount, 'currency') }}</strong>
+                                    </li>
+                                </ul>
+
+                                <p class="fw-semibold mb-2">Se excluye</p>
+                                <ul class="list-unstyled mb-0">
+                                    <li
+                                        v-for="item in card.breakdown.excluded"
+                                        :key="`${card.key}-excluded-${item.label}`"
+                                        class="mb-2">
+                                        <div class="d-flex justify-content-between gap-3">
+                                            <span>{{ item.label }}</span>
+                                            <strong v-if="item.amount !== null && item.amount !== undefined">
+                                                {{ formatMetricValue(item.amount, 'currency') }}
+                                            </strong>
+                                        </div>
+                                        <span v-if="item.reason" class="text-muted d-block">
+                                            {{ item.reason }}
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </details>
                     </div>
                 </div>
             </div>

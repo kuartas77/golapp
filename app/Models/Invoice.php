@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Observers\FinancialKpiObserver;
 use App\Traits\GeneralScopes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -42,6 +43,11 @@ class Invoice extends Model
     ];
 
     protected $appends = ['url_print'/* 'url_destroy' */];
+
+    protected static function booted(): void
+    {
+        self::observe(FinancialKpiObserver::class);
+    }
 
     public function getUrlDestroyAttribute(): string
     {

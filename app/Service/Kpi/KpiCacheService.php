@@ -14,10 +14,10 @@ class KpiCacheService
         return (int) (Cache::get($this->versionKey($schoolId)) ?: 1);
     }
 
-    public function rememberFilters(int $schoolId, Closure $resolver): array
+    public function rememberFilters(int $schoolId, Closure $resolver, bool $billingEnabled = false): array
     {
         return Cache::remember(
-            $this->filtersKey($schoolId),
+            $this->filtersKey($schoolId, $billingEnabled),
             now()->addMinutes(15),
             fn () => $resolver()
         );
@@ -52,11 +52,12 @@ class KpiCacheService
         return "kpis:version:school:{$schoolId}";
     }
 
-    private function filtersKey(int $schoolId): string
+    private function filtersKey(int $schoolId, bool $billingEnabled): string
     {
         $version = $this->currentVersion($schoolId);
+        $billingKey = $billingEnabled ? 'billing' : 'base';
 
-        return "kpis:filters:v{$version}:school:{$schoolId}";
+        return "kpis:filters:v{$version}:school:{$schoolId}:{$billingKey}";
     }
 
     private function payloadKey(

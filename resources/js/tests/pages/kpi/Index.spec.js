@@ -251,4 +251,50 @@ describe('KPI dashboard page', () => {
         expect(wrapper.text()).not.toContain('Recaudo mensualidades')
         expect(wrapper.text()).not.toContain('Recaudo inscripciones')
     })
+
+    it('shows the billing revenue calculation breakdown returned by the API', async () => {
+        const wrapper = await mountPage(createPayload({
+            summary_cards: [
+                {
+                    key: 'other_billing_revenue',
+                    label: 'Otros recaudos de facturación',
+                    value: 40000,
+                    format: 'currency',
+                    helper: 'Acumulado del año',
+                    breakdown: {
+                        included: [
+                            { label: 'Conceptos adicionales facturados y pagados', amount: 30000 },
+                            { label: 'Cargos personalizados pagados sin factura', amount: 10000 },
+                        ],
+                        excluded: [
+                            {
+                                label: 'Matrículas y mensualidades facturadas',
+                                amount: 60000,
+                                reason: 'Ya están incluidas en sus KPI de recaudo correspondientes.',
+                            },
+                            {
+                                label: 'Facturas canceladas o eliminadas',
+                                amount: null,
+                                reason: 'No forman parte del recaudo vigente.',
+                            },
+                        ],
+                    },
+                },
+            ],
+            permissions: {
+                can_view_monetary_values: true,
+                can_view_billing_revenue: true,
+            },
+        }))
+
+        const details = wrapper.get('details')
+
+        expect(wrapper.text()).toContain('Otros recaudos de facturación')
+        expect(details.get('summary').text()).toBe('Cómo se calcula')
+        expect(details.text()).toContain('Conceptos adicionales facturados y pagados')
+        expect(details.text()).toContain('30.000')
+        expect(details.text()).toContain('Matrículas y mensualidades facturadas')
+        expect(details.text()).toContain('Ya están incluidas en sus KPI de recaudo correspondientes.')
+        expect(details.text()).toContain('No forman parte del recaudo vigente.')
+    })
 })
