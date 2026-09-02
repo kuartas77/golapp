@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\CompetitionGroup;
 use App\Models\Schedule;
 use App\Models\School;
+use App\Models\SchoolUser;
 use App\Models\Tournament;
 use App\Models\TrainingGroup;
+use App\Models\User;
 use App\Service\Groups\GroupCatalogCache;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -79,6 +82,131 @@ final class AdminGroupCatalogsTest extends TestCase
 
         $this->actingAs($this->user)
             ->getJson('/api/v2/admin/tournaments')
+            ->assertOk();
+    }
+
+    public function test_group_settings_only_expose_school_and_instructor_users(): void
+    {
+        $instructor = $this->createUser([
+            'email' => 'group-instructor@example.com',
+            'school_id' => $this->school['id'],
+        ], [User::INSTRUCTOR]);
+        $assistant = $this->createUser([
+            'email' => 'group-assistant@example.com',
+            'school_id' => $this->school['id'],
+        ], [User::ASSISTANT]);
+        $viewer = $this->createUser([
+            'email' => 'group-viewer@example.com',
+            'school_id' => $this->school['id'],
+        ], [User::VIEWER]);
+
+        foreach ([$instructor, $assistant, $viewer] as $user) {
+            $this->linkUserToSchool($user, (int) $this->school['id']);
+        }
+
+        Cache::forget("KEY_GROUP_ASSIGNABLE_USERS_{$this->school['id']}");
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/v2/settings/groups')
+            ->assertOk();
+
+        $userIds = collect($response->json('users'))->pluck('id');
+
+        $this->assertTrue($userIds->contains($this->user->id));
+        $this->assertTrue($userIds->contains($instructor->id));
+        $this->assertFalse($userIds->contains($assistant->id));
+        $this->assertFalse($userIds->contains($viewer->id));
+    }
+
+    public function test_group_creation_rejects_users_without_an_assignable_role_or_from_another_school(): void
+    {
+        $assistant = $this->createUser([
+            'email' => 'invalid-group-assistant@example.com',
+            'school_id' => $this->school['id'],
+        ], [User::ASSISTANT]);
+        $this->linkUserToSchool($assistant, (int) $this->school['id']);
+
+        [, $otherInstructor] = $this->createSchoolAndUser([
+            'email' => 'other-group-school@example.com',
+            'slug' => 'other-group-school',
+        ], [User::INSTRUCTOR]);
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/training_groups', [
+                'name' => 'Grupo con usuario no permitido',
+                'users_id' => [$assistant->id],
+                'categories' => [],
+                'schedules' => [],
+                'days' => ['Lunes'],
+                'year_active' => now()->year,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('users_id.0');
+
+        $tournament = Tournament::query()->create([
+            'name' => 'Copa usuarios permitidos',
+            'school_id' => $this->school['id'],
+        ]);
+
+        $this->actingAs($this->user)
+            ->postJson('/api/v2/admin/competition_groups', [
+                'name' => 'Grupo con instructor externo',
+                'user_id' => $otherInstructor->id,
+                'tournament_id' => $tournament->id,
+                'categories' => ['SUB-9'],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('user_id');
+    }
+
+    public function test_group_updates_can_preserve_a_historical_assignee(): void
+    {
+        $assistant = $this->createUser([
+            'email' => 'historical-group-assistant@example.com',
+            'school_id' => $this->school['id'],
+        ], [User::ASSISTANT]);
+        $this->linkUserToSchool($assistant, (int) $this->school['id']);
+
+        $trainingGroup = TrainingGroup::query()->create([
+            'name' => 'Entrenamiento histórico',
+            'school_id' => $this->school['id'],
+            'year_active' => now()->year,
+            'days' => ['Lunes'],
+        ]);
+        $trainingGroup->instructors()->syncWithPivotValues([$assistant->id], [
+            'assigned_year' => now()->year,
+        ]);
+
+        $this->actingAs($this->user)
+            ->putJson("/api/v2/admin/training_groups/{$trainingGroup->id}", [
+                'name' => 'Entrenamiento histórico editado',
+                'users_id' => [$assistant->id],
+                'categories' => [],
+                'schedules' => [],
+                'days' => ['Lunes'],
+                'year_active' => now()->year,
+            ])
+            ->assertOk();
+
+        $tournament = Tournament::query()->create([
+            'name' => 'Copa histórica',
+            'school_id' => $this->school['id'],
+        ]);
+        $competitionGroup = CompetitionGroup::query()->create([
+            'name' => 'Competencia histórica',
+            'user_id' => $assistant->id,
+            'tournament_id' => $tournament->id,
+            'categories' => ['SUB-9'],
+            'school_id' => $this->school['id'],
+        ]);
+
+        $this->actingAs($this->user)
+            ->putJson("/api/v2/admin/competition_groups/{$competitionGroup->id}", [
+                'name' => 'Competencia histórica editada',
+                'user_id' => $assistant->id,
+                'tournament_id' => $tournament->id,
+                'categories' => ['SUB-9'],
+            ])
             ->assertOk();
     }
 
@@ -487,5 +615,13 @@ final class AdminGroupCatalogsTest extends TestCase
         ])->save();
 
         School::forgetCachedSchool($school->id);
+    }
+
+    private function linkUserToSchool(User $user, int $schoolId): void
+    {
+        $schoolUser = new SchoolUser;
+        $schoolUser->user_id = $user->id;
+        $schoolUser->school_id = $schoolId;
+        $schoolUser->save();
     }
 }

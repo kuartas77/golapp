@@ -25,11 +25,22 @@ class CompetitionGroupRequest extends FormRequest
      */
     public function rules()
     {
+        $school = getSchool(auth()->user());
+        $assignableUserIds = $school
+            ->groupAssignableUsers()
+            ->pluck('users.id')
+            ->all();
+        $competitionGroup = $this->route('competition_group') ?? $this->route('competitionGroup');
+
+        if ($competitionGroup && (int) $competitionGroup->school_id === (int) $school->id) {
+            $assignableUserIds[] = (int) $competitionGroup->user_id;
+        }
+
         return [
             'name' => ['required'],
             'year' => ['required_without:categories'],
             'tournament_id' => ['required', 'exists:tournaments,id'],
-            'user_id' => ['required'],
+            'user_id' => ['required', 'integer', Rule::in($assignableUserIds)],
             'category' => ['required_without:categories'],
             'categories' => ['required', 'array', 'min:1', 'max:12'],
             'categories.*' => [

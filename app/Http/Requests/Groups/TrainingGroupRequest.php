@@ -4,6 +4,7 @@ namespace App\Http\Requests\Groups;
 
 use App\Models\Inscription;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class TrainingGroupRequest extends FormRequest
@@ -25,8 +26,23 @@ class TrainingGroupRequest extends FormRequest
      */
     public function rules()
     {
+        $school = getSchool(auth()->user());
+        $assignableUserIds = $school
+            ->groupAssignableUsers()
+            ->pluck('users.id')
+            ->all();
+        $trainingGroup = $this->route('training_group') ?? $this->route('trainingGroup');
+
+        if ($trainingGroup && (int) $trainingGroup->school_id === (int) $school->id) {
+            $assignableUserIds = array_unique([
+                ...$assignableUserIds,
+                ...$trainingGroup->instructors()->withTrashed()->pluck('users.id')->all(),
+            ]);
+        }
+
         return [
             'users_id' => ['required', 'array'],
+            'users_id.*' => ['required', 'integer', 'distinct', Rule::in($assignableUserIds)],
             'name' => ['required'],
             'stage' => ['nullable'],
             'categories' => ['nullable'],

@@ -37,6 +37,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public const VIEWER = 'viewer';
 
+    public const GROUP_ASSIGNABLE_ROLES = ['school', 'instructor'];
+
     /**
      * The attributes that are mass assignable.
      *

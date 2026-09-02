@@ -95,7 +95,7 @@ class SettingsCatalogService
 
         return [
             'training_group_monthly_payment_enabled' => (bool) $school->training_group_monthly_payment_enabled,
-            'users' => Cache::remember("KEY_USERS_{$id}", now()->addMinute(), fn () => $school->users()->get(['users.id', 'users.name'])->map(fn ($user) => ['id' => $user->id, 'name' => $user->name])),
+            'users' => Cache::remember("KEY_GROUP_ASSIGNABLE_USERS_{$id}", now()->addMinute(), fn () => $school->groupAssignableUsers()->get(['users.id', 'users.name'])->map(fn ($user) => ['id' => $user->id, 'name' => $user->name])),
             'year_active' => $years,
             'schedules' => Cache::remember("SCHEDULES_{$id}", now()->addMinute(), fn () => Schedule::query()->schoolId()->get(['schedule']))->map(fn ($item) => ['id' => $item->schedule, 'name' => $item->schedule]),
             'categories' => Cache::remember(

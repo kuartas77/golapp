@@ -212,6 +212,17 @@ class School extends Model
         return $this->hasManyThrough(User::class, SchoolUser::class, 'school_id', 'id', 'id', 'user_id');
     }
 
+    public function groupAssignableUsers(): HasManyThrough
+    {
+        $users = $this->users();
+        $users->whereHas(
+            'roles',
+            fn ($query) => $query->whereIn('name', User::GROUP_ASSIGNABLE_ROLES)
+        );
+
+        return $users;
+    }
+
     public function admin(): HasOneThrough
     {
         return $this->hasOneThrough(User::class, SchoolUser::class, 'school_id', 'id', 'id', 'user_id');
