@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\CheckSettingNotification;
 use App\Http\Middleware\EncryptCookies;
+use App\Http\Middleware\EnsureBackofficeUser;
 use App\Http\Middleware\EnsureGuardian;
 use App\Http\Middleware\EnsureSchoolPermission;
 use App\Http\Middleware\HttpRedirect;
@@ -95,6 +96,7 @@ class BootstrapConfigurationTest extends TestCase
 
         $this->assertSame(Authenticate::class, $aliases['auth']);
         $this->assertSame(RedirectIfAuthenticated::class, $aliases['guest']);
+        $this->assertSame(EnsureBackofficeUser::class, $aliases['ensure.backoffice-user']);
         $this->assertSame(EnsureGuardian::class, $aliases['ensure.guardian']);
         $this->assertSame(RoleMiddleware::class, $aliases['role']);
         $this->assertSame(EnsureSchoolPermission::class, $aliases['school.permission']);

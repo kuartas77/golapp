@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\CheckSettingNotification;
 use App\Http\Middleware\EncryptCookies;
+use App\Http\Middleware\EnsureBackofficeUser;
 use App\Http\Middleware\EnsureGuardian;
 use App\Http\Middleware\EnsureSchoolModuleView;
 use App\Http\Middleware\EnsureSchoolPermission;
@@ -87,6 +88,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth' => Authenticate::class,
             'guest' => RedirectIfAuthenticated::class,
+            'ensure.backoffice-user' => EnsureBackofficeUser::class,
             'ensure.guardian' => EnsureGuardian::class,
             'role' => RoleMiddleware::class,
             'school.permission' => EnsureSchoolPermission::class,

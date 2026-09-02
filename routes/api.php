@@ -7,7 +7,7 @@ require __DIR__.'/api/legacy.php';
 Route::prefix('v2')->group(function () {
     require __DIR__.'/api/v2/public.php';
 
-    Route::middleware(['auth:sanctum'])->group(function () {
+    Route::middleware(['auth:sanctum', 'ensure.backoffice-user'])->group(function () {
         require __DIR__.'/api/v2/session.php';
         require __DIR__.'/api/v2/admin.php';
         require __DIR__.'/api/v2/modules.php';

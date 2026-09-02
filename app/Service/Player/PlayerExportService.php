@@ -3,6 +3,7 @@
 namespace App\Service\Player;
 
 use App\Models\Player;
+use App\Models\User;
 use App\Traits\PDFTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -12,18 +13,28 @@ use Mpdf\MpdfException;
 class PlayerExportService
 {
     use PDFTrait;
+
     /**
      * @throws MpdfException
      */
-    public function makePDFInscriptionDetail(int $player_id, int $inscription_id, string $year = null, string $quarter = '', bool $stream = true)
-    {
+    public function makePDFInscriptionDetail(
+        int $player_id,
+        int $inscription_id,
+        ?string $year = null,
+        string $quarter = '',
+        bool $stream = true,
+        ?int $schoolId = null
+    ) {
         $from = null;
         $to = null;
-        $year = $year ? (int)$year : now()->year;
+        $year = $year ? (int) $year : now()->year;
         $quarter_text = 'Actuales';
         $months = [];
         $observations_assists = [];
         $observations_skills = [];
+        $authenticatedUser = auth()->user();
+        $isAssistant = $authenticatedUser instanceof User
+            && $authenticatedUser->hasRole(User::ASSISTANT);
 
         $this->quarter($quarter, $from, $to, $quarter_text, $year, $months);
 
@@ -34,21 +45,37 @@ class PlayerExportService
             'payments',
         ];
 
-        if (! isAssistant()) {
+        if (! $isAssistant) {
             $inscriptionRelations = array_merge($inscriptionRelations, [
-                'assistance' => fn($q) => $q
+                'assistance' => fn ($q) => $q
                     ->with(['trainingGroup' => fn ($query) => $query->withTrashed()])
-                    ->when($months, fn($q) => $q->whereIn('month', $months))
-                    ->orderByRaw("MONTH(CONCAT('2000-', assists.month, '-01')) asc")
+                    ->when($months, fn ($q) => $q->whereIn('month', $months))
+                    ->orderByRaw(<<<'SQL'
+                        CASE assists.month
+                            WHEN 'Enero' THEN 1
+                            WHEN 'Febrero' THEN 2
+                            WHEN 'Marzo' THEN 3
+                            WHEN 'Abril' THEN 4
+                            WHEN 'Mayo' THEN 5
+                            WHEN 'Junio' THEN 6
+                            WHEN 'Julio' THEN 7
+                            WHEN 'Agosto' THEN 8
+                            WHEN 'Septiembre' THEN 9
+                            WHEN 'Octubre' THEN 10
+                            WHEN 'Noviembre' THEN 11
+                            WHEN 'Diciembre' THEN 12
+                            ELSE 13
+                        END asc
+                        SQL)
                     ->orderBy('training_group_id'),
-                'skillsControls' => fn($q) => $q->when(($from && $to), fn($q) => $q->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to)),
+                'skillsControls' => fn ($q) => $q->when(($from && $to), fn ($q) => $q->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to)),
             ]);
         }
 
-        $schoolId = getSchool(auth()->user())->id;
+        $schoolId ??= (int) getSchool($authenticatedUser)->id;
         $player = Player::query()->with([
             'schoolData',
-            'inscriptions' => fn($q) => $q
+            'inscriptions' => fn ($q) => $q
                 ->where('id', $inscription_id)
                 ->where('school_id', $schoolId)
                 ->with($inscriptionRelations),
@@ -56,7 +83,7 @@ class PlayerExportService
 
         abort_if($player->inscriptions->isEmpty(), 404);
 
-        if (isAssistant()) {
+        if ($isAssistant) {
             $player->inscriptions->each(function ($inscription): void {
                 $inscription->setRelation('assistance', collect());
                 $inscription->setRelation('skillsControls', collect());
@@ -87,12 +114,12 @@ class PlayerExportService
             }
         });
 
-        if (! isAssistant()) {
+        if (! $isAssistant) {
             $player->inscriptions->setAppends(['format_average']);
         }
         $data['player'] = $player;
         $data['school'] = $player->schoolData;
-        $data['show_payments_assists'] = !($from && $to);
+        $data['show_payments_assists'] = ! ($from && $to);
         $data['quarter_text'] = $quarter_text;
         $data['quarter'] = $quarter;
         $data['observations_assists'] = $observations_assists;
@@ -104,6 +131,7 @@ class PlayerExportService
 
         $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'inscription_detail.blade.php');
+
         return $stream ? $this->stream($filename) : $this->output($filename);
     }
 
@@ -147,7 +175,7 @@ class PlayerExportService
      */
     public function makePDFPlayer(Player $player, bool $stream = true): mixed
     {
-        $player->load(['schoolData', 'people', 'inscription' => fn($query) => $query->with(['trainingGroup', 'competitionGroup'])]);
+        $player->load(['schoolData', 'people', 'inscription' => fn ($query) => $query->with(['trainingGroup', 'competitionGroup'])]);
         $player->setAppends(['photo_local']);
         $player->photo_local = $player->photo_local;
         $data['player'] = $player;

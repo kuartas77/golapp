@@ -24,8 +24,7 @@ class GuardianPlayerController extends Controller
         private GuardianAccessService $guardianAccessService,
         private GuardianPlayerExperienceService $experienceService,
         private PlayerEvaluationComparisonService $comparisonService
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -66,7 +65,7 @@ class GuardianPlayerController extends Controller
         $playerModel = $this->guardianAccessService->findEligiblePlayer($guardian, $player);
         $saved = $playerRepository->updatePlayerPortal($playerModel, $request);
 
-        if (!$saved) {
+        if (! $saved) {
             return response()->json([
                 'message' => 'No fue posible actualizar los datos del deportista.',
             ], 500);
@@ -98,7 +97,8 @@ class GuardianPlayerController extends Controller
         return $playerExportService->makePDFInscriptionDetail(
             player_id: $playerModel->id,
             inscription_id: $inscriptionModel->id,
-            year: (string) $inscriptionModel->year
+            year: (string) $inscriptionModel->year,
+            schoolId: (int) $playerModel->school_id
         );
     }
 
@@ -123,5 +123,4 @@ class GuardianPlayerController extends Controller
             ),
         ]);
     }
-
 }

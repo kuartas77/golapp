@@ -17,6 +17,7 @@ use App\Models\TrainingGroup;
 use App\Modules\Inscriptions\Actions\Create\InviteGuardianAction;
 use App\Modules\Inscriptions\Actions\Create\Passable;
 use App\Notifications\GuardianPasswordResetNotification;
+use App\Service\Player\PlayerExportService;
 use App\Service\Portal\GuardianAccessService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
@@ -24,6 +25,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
+use Mockery;
 use Tests\TestCase;
 
 final class PortalGuardiansTest extends TestCase
@@ -53,6 +55,47 @@ final class PortalGuardiansTest extends TestCase
         $meResponse->assertOk();
         $meResponse->assertJsonPath('email', 'guardian@example.com');
         $meResponse->assertJsonPath('identification_card', $guardian->identification_card);
+    }
+
+    public function testGuardianSessionCannotAccessBackofficeApiRoutes(): void
+    {
+        [$guardian] = $this->createGuardianScenario([
+            'email' => 'portal-only.guardian@example.com',
+            'password' => 'portal-only-secret',
+        ]);
+
+        $this->actingAs($guardian, 'guardians')
+            ->getJson('/api/v2/settings/general')
+            ->assertUnauthorized()
+            ->assertJsonPath('message', 'Una sesión de backoffice es requerida.');
+
+        $this->actingAs($guardian, 'guardians')
+            ->getJson('/api/v2/portal/acudientes/me')
+            ->assertOk()
+            ->assertJsonPath('email', 'portal-only.guardian@example.com');
+    }
+
+    public function testGuardianCanDownloadOwnedInscriptionReportWithoutRoleChecks(): void
+    {
+        [$guardian, $player, $inscription, $school] = $this->createGuardianScenario([
+            'email' => 'report.guardian@example.com',
+            'password' => 'report-secret',
+        ]);
+
+        $export = Mockery::mock(PlayerExportService::class)
+            ->makePartial()
+            ->shouldAllowMockingProtectedMethods();
+        $export->shouldReceive('setConfigurationMpdf')->once();
+        $export->shouldReceive('createPDF')->once();
+        $export->shouldReceive('stream')->once()->andReturn(response('guardian-report'));
+        $this->app->instance(PlayerExportService::class, $export);
+
+        $this->actingAs($guardian, 'guardians')
+            ->get("/api/v2/portal/acudientes/players/{$player->id}/inscription-report/{$inscription->id}")
+            ->assertOk()
+            ->assertSeeText('guardian-report');
+
+        $this->assertSame((int) $school->id, (int) $player->school_id);
     }
 
     public function testGuardianLogoutInvalidatesSession(): void
