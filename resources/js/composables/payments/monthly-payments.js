@@ -138,6 +138,25 @@ export default function useMonthlyPayments() {
         (payPlayer) => Boolean(payPlayer.inscription_deleted)
     ).length)
 
+    const refreshGroupOptions = (nextGroups, selectedGroupId) => {
+        if (!Array.isArray(nextGroups)) {
+            return
+        }
+
+        const selectedOption = groups.value.find(
+            (group) => String(group.value) === String(selectedGroupId)
+        )
+
+        groups.value = nextGroups
+
+        if (
+            selectedOption
+            && !groups.value.some((group) => String(group.value) === String(selectedGroupId))
+        ) {
+            groups.value = [...groups.value, selectedOption]
+        }
+    }
+
     const handleSearch = async (values, actions = null) => {
         try {
             groupPayments.value = []
@@ -165,7 +184,7 @@ export default function useMonthlyPayments() {
             if (response?.data) {
                 const data = response.data
                 categories.value = data.filter_options?.categories ?? categories.value
-                groups.value = data.filter_options?.groups ?? groups.value
+                refreshGroupOptions(data.filter_options?.groups, values.training_group_id)
                 if (data.rows.length) {
                     groupPayments.value = data.rows
                     if (!data.filter_options?.categories && !values.category) {

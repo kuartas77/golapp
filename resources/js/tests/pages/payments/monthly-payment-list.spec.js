@@ -90,6 +90,9 @@ describe('monthly payment list', () => {
     beforeEach(() => {
         apiMock.get.mockReset()
         apiMock.post.mockReset()
+        settingsStore.groups = []
+        settingsStore.normal_training_groups = []
+        settingsStore.categories = []
         authStore.hasSchoolPermission.mockReset()
         authStore.hasSchoolPermission.mockReturnValue(true)
         authStore.hasRole.mockReset()
@@ -181,6 +184,41 @@ describe('monthly payment list', () => {
         expect(wrapper.vm.hasSearched).toBe(true)
         expect(wrapper.vm.groupPayments).toEqual([])
         expect(wrapper.vm.globalError).toBe('')
+
+        wrapper.unmount()
+    })
+
+    it('keeps the selected group label when an empty search omits it from filter options', async () => {
+        settingsStore.normal_training_groups = [{
+            id: 10,
+            name: 'Halcones',
+            full_group: 'Halcones - 2014',
+        }]
+        const wrapper = mountComposable()
+        apiMock.get.mockImplementation((url) => {
+            if (url === '/api/v2/payments/status-catalog') {
+                return Promise.resolve({ data: statusCatalogFixture() })
+            }
+
+            return Promise.resolve({
+                data: {
+                    rows: [],
+                    count: 0,
+                    filter_options: { categories: [], groups: [] },
+                },
+            })
+        })
+
+        await wrapper.vm.handleSearch({
+            year: 2026,
+            training_group_id: 10,
+            category: null,
+            month: 'january',
+            status: '',
+        })
+
+        expect(wrapper.vm.groups).toContainEqual({ value: 10, label: 'Halcones - 2014' })
+        expect(wrapper.vm.selected_group).toEqual({ value: 10, label: 'Halcones - 2014' })
 
         wrapper.unmount()
     })
