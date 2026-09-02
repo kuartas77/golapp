@@ -14,7 +14,7 @@ final class EnsureBackofficeUser
 {
     public function handle(Request $request, Closure $next): mixed
     {
-        $user = Auth::guard('web')->user();
+        $user = Auth::guard('sanctum')->user();
 
         if (! $user instanceof User) {
             return new JsonResponse([
@@ -22,9 +22,24 @@ final class EnsureBackofficeUser
             ], 401);
         }
 
+        $previousDefaultGuard = Auth::getDefaultDriver();
+        $webGuard = Auth::guard('web');
+        $previousWebUser = $webGuard->user();
+
         Auth::shouldUse('web');
+        $webGuard->setUser($user);
         $request->setUserResolver(fn (): User => $user);
 
-        return $next($request);
+        try {
+            return $next($request);
+        } finally {
+            if ($previousWebUser !== null) {
+                $webGuard->setUser($previousWebUser);
+            } else {
+                $webGuard->forgetUser();
+            }
+
+            Auth::shouldUse($previousDefaultGuard);
+        }
     }
 }
