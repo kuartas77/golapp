@@ -393,7 +393,7 @@ export default function useMonthlyPayments() {
             }
         }
 
-        return error.response?.data?.message || "No fue posible guardar la mensualidad"
+        return error.response?.data?.message || "No fue posible guardar el pago"
     }
 
     const saveField = async () => {

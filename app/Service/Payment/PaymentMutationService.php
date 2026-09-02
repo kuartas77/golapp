@@ -71,7 +71,7 @@ class PaymentMutationService
     private function validateAssistantUpdate(Payment $payment, array $values): void
     {
         $column = data_get($values, 'column');
-        $monthlyFields = array_values(array_diff(Payment::paymentFields(), ['enrollment']));
+        $editableFields = Payment::paymentFields();
         $amountField = is_string($column) ? Payment::amountFieldFor($column) : null;
         $targetStatus = is_string($column) ? (int) data_get($values, $column, -1) : -1;
         $amount = $amountField ? (int) data_get($values, $amountField, 0) : 0;
@@ -83,15 +83,15 @@ class PaymentMutationService
             ]);
         }
 
-        if (! is_string($column) || ! in_array($column, $monthlyFields, true)) {
+        if (! is_string($column) || ! in_array($column, $editableFields, true)) {
             throw ValidationException::withMessages([
-                'column' => ['El auxiliar sólo puede modificar mensualidades de enero a diciembre.'],
+                'column' => ['El auxiliar sólo puede modificar matrícula o mensualidades.'],
             ]);
         }
 
-        if ((int) $payment->{$column} !== Payment::$debt) {
+        if (! in_array((int) $payment->{$column}, [Payment::$debt, Payment::$paid_], true)) {
             throw ValidationException::withMessages([
-                $column => ['La mensualidad cambió o ya no está en estado Debe. Actualiza la información.'],
+                $column => ['El pago cambió o ya no está en estado Debe o Abonó. Actualiza la información.'],
             ]);
         }
 

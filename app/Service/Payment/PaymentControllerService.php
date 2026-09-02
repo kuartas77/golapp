@@ -81,8 +81,8 @@ class PaymentControllerService
 
         $catalog['capabilities'] = isAssistant()
             ? [
-                'fields' => array_values(array_diff(Payment::paymentFields(), ['enrollment'])),
-                'source_statuses' => [Payment::$debt],
+                'fields' => Payment::paymentFields(),
+                'source_statuses' => [Payment::$debt, Payment::$paid_],
                 'target_statuses' => [Payment::$paid, Payment::$paid_cash, Payment::$paid_deposit, Payment::$paid_],
                 'bulk_update' => false,
             ]

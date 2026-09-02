@@ -358,8 +358,8 @@ describe('monthly payment list', () => {
                     data: {
                         ...statusCatalogFixture(),
                         capabilities: {
-                            fields: ['january', 'february'],
-                            source_statuses: [2],
+                            fields: ['enrollment', 'january', 'february'],
+                            source_statuses: [2, 3],
                             target_statuses: [1, 3, 9, 10],
                             bulk_update: false,
                         },
@@ -373,8 +373,9 @@ describe('monthly payment list', () => {
         await new Promise((resolve) => setTimeout(resolve, 0))
 
         expect(wrapper.vm.canEditPaymentRow(paymentRowWithStatus(2), 'january')).toBe(true)
+        expect(wrapper.vm.canEditPaymentRow(paymentRowWithStatus(3), 'january')).toBe(true)
         expect(wrapper.vm.canEditPaymentRow(paymentRowWithStatus(1), 'january')).toBe(false)
-        expect(wrapper.vm.canEditPaymentRow(paymentRowWithStatus(2), 'enrollment')).toBe(false)
+        expect(wrapper.vm.canEditPaymentRow({ ...paymentRowWithStatus(2), enrollment: 2 }, 'enrollment')).toBe(true)
         expect(wrapper.vm.editablePaymentTypes.every((option) => [1, 3, 9, 10].includes(Number(option.value)))).toBe(true)
 
         const duePayment = paymentRowWithStatus(2)

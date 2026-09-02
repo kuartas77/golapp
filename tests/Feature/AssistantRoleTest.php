@@ -37,14 +37,14 @@ final class AssistantRoleTest extends TestCase
             ->getJson('/api/v2/payments/status-catalog')
             ->assertOk()
             ->assertJsonPath('capabilities.bulk_update', false)
-            ->assertJsonPath('capabilities.source_statuses', [Payment::$debt])
+            ->assertJsonPath('capabilities.source_statuses', [Payment::$debt, Payment::$paid_])
             ->assertJsonPath('capabilities.target_statuses', [
                 Payment::$paid,
                 Payment::$paid_cash,
                 Payment::$paid_deposit,
                 Payment::$paid_,
             ])
-            ->assertJsonMissing(['value' => 'enrollment', 'number' => 0]);
+            ->assertJsonPath('capabilities.fields.0', 'enrollment');
     }
 
     public function test_user_form_role_catalog_exposes_the_assistant_without_a_fixed_id(): void
@@ -88,9 +88,19 @@ final class AssistantRoleTest extends TestCase
             ->assertJsonPath('data.roles.0', User::ASSISTANT);
     }
 
-    public function test_assistant_can_close_a_due_month_once_and_the_change_is_audited(): void
+    public function test_assistant_can_close_due_enrollment_and_month_once_and_the_changes_are_audited(): void
     {
         [$inscription, $payment] = $this->paymentFixture();
+
+        $this->actingAs($this->assistant)
+            ->putJson("/api/v2/payments/{$payment->id}", [
+                'column' => 'enrollment',
+                'enrollment' => Payment::$paid,
+                'enrollment_amount' => 72000,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.enrollment', Payment::$paid)
+            ->assertJsonPath('data.enrollment_amount', 72000);
 
         $this->actingAs($this->assistant)
             ->putJson("/api/v2/payments/{$payment->id}", [
@@ -100,6 +110,18 @@ final class AssistantRoleTest extends TestCase
             ])
             ->assertOk()
             ->assertJsonPath('data.january', Payment::$paid_cash);
+
+        $this->assertDatabaseHas('payment_change_logs', [
+            'payment_id' => $payment->id,
+            'inscription_id' => $inscription->id,
+            'changed_by' => $this->assistant->id,
+            'field' => 'enrollment',
+            'old_status' => Payment::$debt,
+            'new_status' => Payment::$paid,
+            'old_amount' => 70000,
+            'new_amount' => 72000,
+            'source' => 'assistant',
+        ]);
 
         $this->assertDatabaseHas('payment_change_logs', [
             'payment_id' => $payment->id,
@@ -119,18 +141,70 @@ final class AssistantRoleTest extends TestCase
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('january');
-    }
-
-    public function test_assistant_cannot_edit_enrollment_full_rows_bulk_rows_or_retired_inscriptions(): void
-    {
-        [$inscription, $payment] = $this->paymentFixture();
 
         $this->actingAs($this->assistant)
             ->putJson("/api/v2/payments/{$payment->id}", [
                 'column' => 'enrollment',
-                'enrollment' => Payment::$paid,
-                'enrollment_amount' => 70000,
-            ])->assertUnprocessable();
+                'enrollment' => Payment::$paid_cash,
+                'enrollment_amount' => 73000,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('enrollment');
+    }
+
+    public function test_assistant_can_update_a_partial_payment_until_it_is_fully_paid(): void
+    {
+        [$inscription, $payment] = $this->paymentFixture();
+        $payment->update([
+            'february' => Payment::$paid_,
+            'february_amount' => 20000,
+        ]);
+
+        $this->actingAs($this->assistant)
+            ->putJson("/api/v2/payments/{$payment->id}", [
+                'column' => 'february',
+                'february' => Payment::$paid_,
+                'february_amount' => 30000,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.february', Payment::$paid_)
+            ->assertJsonPath('data.february_amount', 30000);
+
+        $this->assertDatabaseHas('payment_change_logs', [
+            'payment_id' => $payment->id,
+            'inscription_id' => $inscription->id,
+            'changed_by' => $this->assistant->id,
+            'field' => 'february',
+            'old_status' => Payment::$paid_,
+            'new_status' => Payment::$paid_,
+            'old_amount' => 20000,
+            'new_amount' => 30000,
+            'source' => 'assistant',
+        ]);
+
+        $this->actingAs($this->assistant)
+            ->putJson("/api/v2/payments/{$payment->id}", [
+                'column' => 'february',
+                'february' => Payment::$paid_cash,
+                'february_amount' => 50000,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.february', Payment::$paid_cash)
+            ->assertJsonPath('data.february_amount', 50000);
+
+        $this->actingAs($this->assistant)
+            ->putJson("/api/v2/payments/{$payment->id}", [
+                'column' => 'february',
+                'february' => Payment::$paid_deposit,
+                'february_amount' => 50000,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('february');
+    }
+
+    public function test_assistant_cannot_edit_full_rows_bulk_rows_or_retired_inscriptions(): void
+    {
+        [$inscription, $payment] = $this->paymentFixture();
 
         $this->actingAs($this->assistant)
             ->putJson("/api/v2/payments/{$payment->id}", [
