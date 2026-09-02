@@ -9,25 +9,31 @@ use App\Models\Payment;
 use App\Models\PaymentChangeLog;
 use App\Models\School;
 use App\Models\Setting;
+use App\Models\TrainingGroup;
 use App\Service\PaymentAmountResolver;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 class InscriptionPaymentService
 {
+    /** @var array<int, School> */
+    private array $schools = [];
+
+    /** @var array<string, TrainingGroup|null> */
+    private array $trainingGroups = [];
+
     public function __construct(private PaymentAmountResolver $paymentAmountResolver) {}
 
     /** @param array<string, mixed> $requestData */
-    public function prepareMonthlyPaymentData(array &$requestData): void
+    public function prepareMonthlyPaymentData(array &$requestData, ?School $school = null): void
     {
-        $school = School::query()
-            ->with('settingsValues')
-            ->findOrFail($requestData['school_id']);
+        $school ??= $this->schoolFor((int) $requestData['school_id']);
 
         if ($school->training_group_monthly_payment_enabled) {
-            $trainingGroup = $school->trainingGroups()
-                ->where('is_complementary', false)
-                ->find($requestData['training_group_id']);
+            $trainingGroup = $this->trainingGroupForSchool(
+                (int) $school->id,
+                (int) $requestData['training_group_id']
+            );
 
             if (! $trainingGroup) {
                 throw ValidationException::withMessages([
@@ -61,6 +67,13 @@ class InscriptionPaymentService
         $requestData['brother_payment'] = $type === Setting::BROTHER_MONTHLY_PAYMENT;
     }
 
+    public function schoolFor(int $schoolId): School
+    {
+        return $this->schools[$schoolId] ??= School::query()
+            ->with('settingsValues')
+            ->findOrFail($schoolId);
+    }
+
     /** @param array<string, mixed> $requestData */
     public function preserveMonthlyPaymentData(array &$requestData, Inscription $inscription): void
     {
@@ -70,28 +83,57 @@ class InscriptionPaymentService
     }
 
     /** @param array<string, mixed> $requestData */
-    public function shouldInitializeGroupTariff(array $requestData, Inscription $inscription): bool
-    {
+    public function shouldInitializeGroupTariff(
+        array $requestData,
+        Inscription $inscription,
+        ?School $school = null
+    ): bool {
         if ($inscription->monthly_payment_amount !== null) {
             return false;
         }
 
-        $school = School::query()->find($requestData['school_id']);
+        $school ??= $this->schoolFor((int) $requestData['school_id']);
 
-        if (! $school?->training_group_monthly_payment_enabled) {
+        if (! $school->training_group_monthly_payment_enabled) {
             return false;
         }
 
-        $originalGroup = $school->trainingGroups()
-            ->withTrashed()
-            ->find($inscription->training_group_id);
-        $newGroup = $school->trainingGroups()
-            ->where('is_complementary', false)
-            ->find($requestData['training_group_id']);
+        $originalGroup = $this->trainingGroupForSchool(
+            (int) $school->id,
+            $inscription->training_group_id ? (int) $inscription->training_group_id : null,
+            true
+        );
+        $newGroup = $this->trainingGroupForSchool(
+            (int) $school->id,
+            (int) $requestData['training_group_id']
+        );
 
         return $originalGroup?->name === 'Provisional'
             && $newGroup?->name !== 'Provisional'
             && (int) $newGroup?->monthly_payment_amount > 0;
+    }
+
+    private function trainingGroupForSchool(
+        int $schoolId,
+        ?int $trainingGroupId,
+        bool $withTrashed = false
+    ): ?TrainingGroup {
+        if (! $trainingGroupId) {
+            return null;
+        }
+
+        $key = $schoolId.':'.$trainingGroupId.':'.(int) $withTrashed;
+
+        if (array_key_exists($key, $this->trainingGroups)) {
+            return $this->trainingGroups[$key];
+        }
+
+        $query = TrainingGroup::query()
+            ->when($withTrashed, fn ($query) => $query->withTrashed())
+            ->where('school_id', $schoolId)
+            ->where('is_complementary', false);
+
+        return $this->trainingGroups[$key] = $query->find($trainingGroupId);
     }
 
     public function applyScholarshipMonthlyPayments(Inscription $inscription): void

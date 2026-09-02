@@ -125,7 +125,7 @@ final class InscriptionCustomChargesTest extends TestCase
             ->assertJsonPath('recordsFiltered', 2)
             ->assertJsonFragment(['name' => $currentCharge->name])
             ->assertJsonFragment(['name' => $priorDueCharge->name])
-            ->assertJsonPath('data.0.player_name', $priorDueCharge->player->full_names)
+            ->assertJsonPath('data.0.player_name', e($priorDueCharge->player->full_names))
             ->assertJsonPath('data.0.player_unique_code', $priorDueCharge->player->unique_code)
             ->assertJsonPath('data.0.inscription_year', now()->subYear()->year)
             ->assertJsonPath('data.0.invoice_number', null)
@@ -147,7 +147,7 @@ final class InscriptionCustomChargesTest extends TestCase
             ->getJson('/api/v2/admin/inscription-custom-charges?'.http_build_query($params))
             ->assertOk()
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.player_name', $currentCharge->player->full_names);
+            ->assertJsonPath('data.0.player_name', e($currentCharge->player->full_names));
     }
 
     private function datatableParams(): array

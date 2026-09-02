@@ -42,10 +42,10 @@ class TrainingGroupAssignmentService
             'training_group_id' => $targetGroup->id,
         ];
         $shouldInitializeGroupTariff = $this->paymentService
-            ->shouldInitializeGroupTariff($requestData, $inscription);
+            ->shouldInitializeGroupTariff($requestData, $inscription, $school);
 
         if ($shouldInitializeGroupTariff) {
-            $this->paymentService->prepareMonthlyPaymentData($requestData);
+            $this->paymentService->prepareMonthlyPaymentData($requestData, $school);
         }
 
         $updated = DB::transaction(function () use (

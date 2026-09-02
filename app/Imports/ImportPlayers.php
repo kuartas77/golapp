@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Models\Inscription;
 use App\Models\People;
 use App\Models\Player;
+use App\Models\School;
 use App\Repositories\InscriptionRepository;
 use App\Repositories\PlayerRepository;
 use Carbon\Carbon;
@@ -30,6 +31,8 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
     private Collection $playersByDocument;
 
     private Collection $activeInscriptionPlayerIds;
+
+    private ?School $school = null;
 
     private int $createdPlayers = 0;
 
@@ -212,7 +215,7 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
             'pre_inscription' => false,
             'brother_payment' => false,
             'send_notification' => false,
-        ]);
+        ], $this->school);
 
         if (! data_get($result, 'success')) {
             throw new Exception('Imported player inscription could not be created.');
@@ -244,6 +247,10 @@ class ImportPlayers implements ToCollection, WithBatchInserts, WithChunkReading,
         if ($rows->isEmpty()) {
             return;
         }
+
+        $this->school ??= School::query()
+            ->with('settingsValues')
+            ->findOrFail($this->school_id);
 
         $peopleNames = $rows
             ->map(fn ($row) => Str::upper($this->rowValue($row, 'nombres_y_apellidos')))

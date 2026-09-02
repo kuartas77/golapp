@@ -14,7 +14,9 @@ use App\Models\TrainingGroup;
 use App\Models\User;
 use App\Service\Groups\GroupCatalogCache;
 use App\Service\School\CurrentSchoolContext;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Tests\TestCase;
 
@@ -50,6 +52,27 @@ final class GroupCatalogContextTest extends TestCase
             ->assertForbidden();
 
         $this->assertSame($this->school['id'], app(CurrentSchoolContext::class)->current($this->user)->id);
+    }
+
+    public function test_current_school_is_resolved_once_within_the_request_scope(): void
+    {
+        $this->actingAs($this->user);
+        $context = app(CurrentSchoolContext::class);
+        $context->allowedSchoolIds($this->user);
+        Cache::forget(School::cacheKeyFor(School::CACHE_PREFIX_SCHOOL, (int) $this->school['id']));
+        $schoolQueries = 0;
+
+        DB::listen(function (QueryExecuted $query) use (&$schoolQueries): void {
+            $sql = str_replace(['`', '"'], '', strtolower($query->sql));
+
+            if (str_contains($sql, 'from schools')) {
+                $schoolQueries++;
+            }
+        });
+
+        $this->assertSame($this->school['id'], $context->current($this->user)->id);
+        $this->assertSame($this->school['id'], $context->current($this->user)->id);
+        $this->assertSame(1, $schoolQueries);
     }
 
     public function test_instructor_can_switch_schools_and_receives_only_assigned_groups(): void

@@ -39,7 +39,9 @@ final class SchoolModuleAccess
 
     public static function viewerModules(User $user): array
     {
-        $permissionNames = $user->permissions()
+        $user->loadMissing('permissions');
+
+        $permissionNames = $user->permissions
             ->whereIn('name', self::permissionNames())
             ->pluck('name')
             ->all();

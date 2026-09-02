@@ -17,6 +17,9 @@ class CurrentSchoolContext
 
     private array $allowedIdsByUser = [];
 
+    /** @var array<string, School> */
+    private array $currentSchools = [];
+
     public function current(?User $user = null): School
     {
         $user ??= auth()->user();
@@ -33,6 +36,11 @@ class CurrentSchoolContext
 
         $prefix = $this->cachePrefix($user);
         $key = School::cacheKeyFor($prefix, $selectedId);
+        $requestKey = $user->id.':'.$selectedId;
+
+        if (isset($this->currentSchools[$requestKey])) {
+            return $this->currentSchools[$requestKey];
+        }
 
         $school = Cache::remember(
             $key,
@@ -48,7 +56,7 @@ class CurrentSchoolContext
             $school = School::query()->with('settingsValues')->findOrFail($selectedId);
         }
 
-        return $school;
+        return $this->currentSchools[$requestKey] = $school;
     }
 
     public function allowedSchools(?User $user = null): Collection
@@ -115,6 +123,15 @@ class CurrentSchoolContext
         $this->current($user);
 
         return true;
+    }
+
+    public function forgetSchool(int $schoolId): void
+    {
+        foreach ($this->currentSchools as $key => $school) {
+            if ((int) $school->id === $schoolId) {
+                unset($this->currentSchools[$key]);
+            }
+        }
     }
 
     public function initialize(User $user): void

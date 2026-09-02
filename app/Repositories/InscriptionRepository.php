@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Models\Inscription;
+use App\Models\School;
 use App\Service\Inscription\InscriptionMutationService;
 use App\Service\Inscription\InscriptionYearRenewalService;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -34,9 +34,9 @@ class InscriptionRepository
      * @param  array<string, mixed>  $requestData
      * @return array{success: bool, reactivated: bool}
      */
-    public function createInscription(array $requestData): array
+    public function createInscription(array $requestData, ?School $school = null): array
     {
-        return $this->mutationService->create($requestData);
+        return $this->mutationService->create($requestData, $school);
     }
 
     /**
@@ -47,9 +47,6 @@ class InscriptionRepository
         return $this->mutationService->update($requestData, $inscription);
     }
 
-    /**
-     * @return Builder[]|Collection
-     */
     public function getInscriptionsEnabled(): Builder
     {
         return Inscription::query()->select('inscriptions.*')->with(['player.people', 'trainingGroup' => fn ($q) => $q->withTrashed()])
@@ -58,9 +55,6 @@ class InscriptionRepository
             ->schoolId();
     }
 
-    /**
-     * @return Builder[]|Collection
-     */
     public function getInscriptionsDisabled(): Builder
     {
         return $this->inscription->with(['player.people', 'trainingGroup'])

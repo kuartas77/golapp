@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\School;
 use App\Support\SchoolModuleAccess;
 use Illuminate\Http\Request;
 
@@ -66,15 +65,10 @@ class AppController extends Controller
         }
 
         $school = getSchool($user);
-        $freshSchool = School::query()->find($school->id);
-
-        if (! $freshSchool) {
-            return false;
-        }
 
         return str_starts_with($permission, 'school.module.')
-            ? SchoolModuleAccess::canView($user, $freshSchool, $permission)
-            : $freshSchool->hasSchoolPermission($permission);
+            ? SchoolModuleAccess::canView($user, $school, $permission)
+            : $school->hasSchoolPermission($permission);
     }
 
     private function electronicInvoicingEnabled(Request $request): bool
@@ -87,7 +81,7 @@ class AppController extends Controller
 
         $school = getSchool($user);
 
-        return (bool) School::query()->find($school->id)?->electronic_invoicing_enabled;
+        return (bool) $school->electronic_invoicing_enabled;
     }
 
     private function isMutationOnlySpaPath(string $path): bool

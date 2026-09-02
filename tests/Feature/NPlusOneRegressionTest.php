@@ -7,7 +7,9 @@ namespace Tests\Feature;
 use App\Models\Inscription;
 use App\Models\Payment;
 use App\Models\Player;
+use App\Models\School;
 use App\Models\TrainingGroup;
+use App\Service\Inscription\InscriptionPaymentService;
 use App\Service\Reports\DebtorReportService;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Carbon;
@@ -78,6 +80,53 @@ final class NPlusOneRegressionTest extends TestCase
         $inscription->update(['category' => 'SUB-12']);
 
         $this->assertSame(1, Payment::query()->where('inscription_id', $inscription->id)->count());
+    }
+
+    public function test_group_tariff_transition_reuses_the_target_group_query(): void
+    {
+        $school = School::query()->findOrFail($this->school['id']);
+        $school->update(['training_group_monthly_payment_enabled' => true]);
+        $provisional = TrainingGroup::query()
+            ->where('school_id', $school->id)
+            ->where('name', 'Provisional')
+            ->firstOrFail();
+        $target = TrainingGroup::query()->create([
+            'school_id' => $school->id,
+            'name' => 'Grupo tarifa N+1',
+            'year_active' => now()->year,
+            'is_complementary' => false,
+            'monthly_payment_amount' => 90000,
+        ]);
+        $player = Player::factory()->create(['school_id' => $school->id]);
+        $inscription = Inscription::factory()->create([
+            'school_id' => $school->id,
+            'player_id' => $player->id,
+            'unique_code' => $player->unique_code,
+            'training_group_id' => $provisional->id,
+            'competition_group_id' => null,
+            'monthly_payment_type' => Inscription::TRAINING_GROUP_MONTHLY_PAYMENT,
+            'monthly_payment_amount' => null,
+        ]);
+        $requestData = [
+            'school_id' => $school->id,
+            'training_group_id' => $target->id,
+        ];
+        $trainingGroupQueries = 0;
+
+        DB::listen(function (QueryExecuted $query) use (&$trainingGroupQueries): void {
+            $sql = str_replace(['`', '"'], '', strtolower($query->sql));
+
+            if (str_contains($sql, 'from training_groups')) {
+                $trainingGroupQueries++;
+            }
+        });
+
+        $service = app(InscriptionPaymentService::class);
+        $this->assertTrue($service->shouldInitializeGroupTariff($requestData, $inscription, $school));
+        $service->prepareMonthlyPaymentData($requestData, $school);
+
+        $this->assertSame(2, $trainingGroupQueries);
+        $this->assertSame(90000, $requestData['monthly_payment_amount']);
     }
 
     public function test_player_debt_lookup_does_not_reload_player_relations_for_each_year(): void

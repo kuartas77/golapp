@@ -14,9 +14,11 @@ use App\Notifications\InscriptionNotification;
 use App\Repositories\InscriptionRepository;
 use App\Repositories\PlayerRepository;
 use App\Service\Import\ImportService;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
@@ -498,6 +500,35 @@ final class ImportPlayersTest extends TestCase
 
         $this->assertSame('ACTUALIZADO', $existing->refresh()->names);
         $this->assertSame(1, Inscription::query()->where('player_id', $existing->id)->where('year', getYearInscription())->count());
+    }
+
+    public function test_bulk_import_reuses_school_and_setting_queries_across_rows(): void
+    {
+        Notification::fake();
+
+        $schoolQueries = 0;
+        $settingQueries = 0;
+
+        DB::listen(function (QueryExecuted $query) use (&$schoolQueries, &$settingQueries): void {
+            $sql = str_replace(['`', '"'], '', strtolower($query->sql));
+
+            if (str_contains($sql, 'from schools')) {
+                $schoolQueries++;
+            }
+
+            if (str_contains($sql, 'from setting_values')) {
+                $settingQueries++;
+            }
+        });
+
+        $this->importRows([
+            $this->playerRow(['numero_de_documento' => 'DOC-IMPORT-N1-1']),
+            $this->playerRow(['numero_de_documento' => 'DOC-IMPORT-N1-2']),
+            $this->playerRow(['numero_de_documento' => 'DOC-IMPORT-N1-3']),
+        ]);
+
+        $this->assertLessThanOrEqual(2, $schoolQueries);
+        $this->assertLessThanOrEqual(2, $settingQueries);
     }
 
     private function makeImportFile(array $rows): UploadedFile

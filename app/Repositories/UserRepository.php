@@ -130,6 +130,7 @@ class UserRepository
             ->get();
 
         $user->permissions()->detach($viewerPermissions->modelKeys());
+        $user->unsetRelation('permissions');
 
         if ($roleName === User::VIEWER) {
             $selectedPermissions = collect($formRequest->input('viewer_modules', []))
@@ -139,6 +140,7 @@ class UserRepository
             $user->givePermissionTo($selectedPermissions);
         }
 
+        $user->unsetRelation('permissions');
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }

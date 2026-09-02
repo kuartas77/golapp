@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Models\Concerns\ResolvesLocalAssetPath;
 use App\Observers\SchoolObserver;
+use App\Service\School\CurrentSchoolContext;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -150,6 +151,10 @@ class School extends Model
     {
         foreach (self::cacheKeysFor($schoolId) as $cacheKey) {
             Cache::forget($cacheKey);
+        }
+
+        if (app()->bound(CurrentSchoolContext::class)) {
+            app(CurrentSchoolContext::class)->forgetSchool($schoolId);
         }
     }
 

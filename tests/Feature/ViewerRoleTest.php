@@ -8,6 +8,8 @@ use App\Models\School;
 use App\Models\SchoolUser;
 use App\Models\User;
 use App\Support\SchoolModuleAccess;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -166,6 +168,25 @@ final class ViewerRoleTest extends TestCase
         $this->assertEqualsCanonicalizing(SchoolModuleAccess::keys(), $keys->all());
         $this->assertFalse($keys->contains('school.feature.system_notify'));
         $response->assertJsonStructure(['data' => [['key', 'label', 'group', 'school_enabled']]]);
+    }
+
+    public function test_viewer_modules_reuses_the_loaded_permission_relation(): void
+    {
+        $viewer = $this->viewer(['school.module.players']);
+        $viewer->unsetRelation('permissions');
+        $permissionQueries = 0;
+
+        DB::listen(function (QueryExecuted $query) use (&$permissionQueries): void {
+            $sql = str_replace(['`', '"'], '', strtolower($query->sql));
+
+            if (str_contains($sql, 'from permissions')) {
+                $permissionQueries++;
+            }
+        });
+
+        $this->assertSame(['school.module.players'], SchoolModuleAccess::viewerModules($viewer));
+        $this->assertSame(['school.module.players'], SchoolModuleAccess::viewerModules($viewer));
+        $this->assertSame(1, $permissionQueries);
     }
 
     public function test_an_existing_assignment_is_retained_while_its_school_module_is_disabled(): void

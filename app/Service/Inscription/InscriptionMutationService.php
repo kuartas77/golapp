@@ -31,7 +31,7 @@ class InscriptionMutationService
      * @param  array<string, mixed>  $requestData
      * @return array{success: bool, reactivated: bool}
      */
-    public function create(array $requestData): array
+    public function create(array $requestData, ?School $school = null): array
     {
         $result = [
             'success' => false,
@@ -45,6 +45,9 @@ class InscriptionMutationService
             $complementaryGroupIds = $requestData['complementary_group_ids'] ?? [];
             unset($requestData['custom_charges'], $requestData['custom_charges_due_date'], $requestData['send_notification'], $requestData['complementary_group_ids']);
             $requestData['deleted_at'] = null;
+            $school = $school && (int) $school->id === (int) $requestData['school_id']
+                ? $school
+                : $this->paymentService->schoolFor((int) $requestData['school_id']);
 
             DB::beginTransaction();
 
@@ -65,7 +68,7 @@ class InscriptionMutationService
                 : null;
 
             $shouldInitializeGroupTariff = $existingInscription?->trashed()
-                && $this->paymentService->shouldInitializeGroupTariff($requestData, $existingInscription);
+                && $this->paymentService->shouldInitializeGroupTariff($requestData, $existingInscription, $school);
 
             if (
                 $existingInscription?->trashed()
@@ -74,19 +77,22 @@ class InscriptionMutationService
             ) {
                 $this->paymentService->preserveMonthlyPaymentData($requestData, $existingInscription);
             } else {
-                $this->paymentService->prepareMonthlyPaymentData($requestData);
+                $this->paymentService->prepareMonthlyPaymentData($requestData, $school);
             }
 
             $this->inscriptionLimitService->assertCanCreate(
-                School::query()->with('settingsValues')->findOrFail($requestData['school_id']),
+                $school,
                 (int) $requestData['year']
             );
 
             if ($existingInscription?->trashed()) {
+                $existingInscription->setRelation('school', $school);
                 $inscription = $this->reactivate($existingInscription, $requestData);
                 $result['reactivated'] = true;
             } else {
-                $inscription = $this->inscription->create($requestData);
+                $inscription = $this->inscription->newInstance($requestData);
+                $inscription->setRelation('school', $school);
+                $inscription->save();
             }
 
             $this->groupService->syncComplementaryGroups($inscription, $complementaryGroupIds);
@@ -107,7 +113,7 @@ class InscriptionMutationService
                 $this->paymentService->syncScholarshipPayments($inscription->fresh());
             }
 
-            $inscription->load(['player', 'school']);
+            $inscription->loadMissing(['player', 'school']);
 
             if ($sendNotification && checkEmail(data_get($inscription, 'player.email'))) {
                 $inscription->player->notify(
@@ -151,7 +157,7 @@ class InscriptionMutationService
             }
 
             $shouldInitializeGroupTariff = $this->paymentService
-                ->shouldInitializeGroupTariff($requestData, $inscription);
+                ->shouldInitializeGroupTariff($requestData, $inscription, $school);
             $hasHistoricalGroupTariff = $inscription->monthly_payment_type === Inscription::TRAINING_GROUP_MONTHLY_PAYMENT
                 && $inscription->monthly_payment_amount !== null;
             $hasIncompleteGroupTariff = $inscription->monthly_payment_type === Inscription::TRAINING_GROUP_MONTHLY_PAYMENT
@@ -165,7 +171,7 @@ class InscriptionMutationService
                 && (bool) data_get($requestData, 'recalculate_monthly_payments', false));
 
             if ($shouldInitializeGroupTariff || $shouldRecalculateMonthlyPayments) {
-                $this->paymentService->prepareMonthlyPaymentData($requestData);
+                $this->paymentService->prepareMonthlyPaymentData($requestData, $school);
             } else {
                 $this->paymentService->preserveMonthlyPaymentData($requestData, $inscription);
             }
