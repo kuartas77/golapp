@@ -30,6 +30,7 @@ vi.mock('@/tutorials/admin', () => ({
 }))
 
 import UsersList from '@/pages/admin/users/UsersList.vue'
+import { visibleViewerModuleOptions } from '@/composables/admin/users/usersList'
 import { useAuthUser } from '@/store/auth-user'
 
 const DatatableTemplateStub = defineComponent({
@@ -202,5 +203,29 @@ describe('UsersList profile modal', () => {
         expect(wrapper.find('button[title="Editar usuario"]').exists()).toBe(false)
         expect(wrapper.find('button[title="Ver perfil"]').exists()).toBe(true)
         wrapper.unmount()
+    })
+
+    it('only offers school-enabled modules when creating a viewer', () => {
+        const options = [
+            { key: 'school.module.players', school_enabled: true },
+            { key: 'school.module.inventory', school_enabled: false },
+        ]
+
+        expect(visibleViewerModuleOptions(options, {
+            id: null,
+            viewer_modules: [],
+        })).toEqual([options[0]])
+    })
+
+    it('keeps an inactive historical assignment visible only while editing it', () => {
+        const options = [
+            { key: 'school.module.players', school_enabled: true },
+            { key: 'school.module.inventory', school_enabled: false },
+        ]
+
+        expect(visibleViewerModuleOptions(options, {
+            id: 21,
+            viewer_modules: ['school.module.inventory'],
+        })).toEqual(options)
     })
 })

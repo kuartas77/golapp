@@ -6,6 +6,11 @@ import * as yup from 'yup'
 import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 import { useAuthUser } from '@/store/auth-user'
 
+export const visibleViewerModuleOptions = (options, values = {}) => options.filter((option) => (
+    option.school_enabled
+    || (Boolean(values.id) && values.viewer_modules?.includes(option.key))
+))
+
 export default function useUsersList() {
     const auth = useAuthUser()
     const isReadOnly = computed(() => auth.hasRole('viewer'))
@@ -194,6 +199,12 @@ export default function useUsersList() {
     const isViewerRole = (roleId) => roleOptions.value
         .find((role) => String(role.value) === String(roleId))?.name === 'viewer'
 
+    const visibleModuleOptions = (values) => visibleViewerModuleOptions(moduleOptions.value, values)
+
+    const visibleModuleGroups = (values) => [
+        ...new Set(visibleModuleOptions(values).map((option) => option.group)),
+    ]
+
     return {
         table,
         options,
@@ -213,6 +224,8 @@ export default function useUsersList() {
         closeProfile,
         roleOptions,
         moduleOptions,
+        visibleModuleOptions,
+        visibleModuleGroups,
         isViewerRole,
         isReadOnly,
     }

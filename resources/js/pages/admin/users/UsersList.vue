@@ -98,9 +98,9 @@
                                 <p class="text-muted small mb-2">
                                     El acceso también depende de que el módulo continúe habilitado para la escuela.
                                 </p>
-                                <div v-for="group in [...new Set(moduleOptions.map(option => option.group))]" :key="group" class="mb-3">
+                                <div v-for="group in visibleModuleGroups(values)" :key="group" class="mb-3">
                                     <strong class="d-block mb-2">{{ group }}</strong>
-                                    <div v-for="module in moduleOptions.filter(option => option.group === group)" :key="module.key" class="form-check">
+                                    <div v-for="module in visibleModuleOptions(values).filter(option => option.group === group)" :key="module.key" class="form-check">
                                         <Field
                                             :id="`viewer-module-${module.key}`"
                                             name="viewer_modules"
@@ -222,7 +222,8 @@ const {
     showProfile,
     closeProfile,
     roleOptions,
-    moduleOptions,
+    visibleModuleOptions,
+    visibleModuleGroups,
     isViewerRole,
     isReadOnly,
 } = useUsersList()
