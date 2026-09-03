@@ -13,9 +13,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Tournament extends Model
 {
-    use SoftDeletes;
     use GeneralScopes;
     use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
         'name', 'school_id',

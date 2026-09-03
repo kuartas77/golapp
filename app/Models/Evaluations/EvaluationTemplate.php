@@ -2,15 +2,13 @@
 
 namespace App\Models\Evaluations;
 
-use App\Models\Evaluations\EvaluationTemplateCriterion;
-use App\Models\Evaluations\PlayerEvaluation;
 use App\Models\TrainingGroup;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
 
 class EvaluationTemplate extends Model
 {
@@ -24,7 +22,7 @@ class EvaluationTemplate extends Model
         'status',
         'version',
         'created_by',
-        'school_id'
+        'school_id',
     ];
 
     protected $casts = [

@@ -11,14 +11,14 @@ class Configuration extends Model
 {
     use HasFactory;
 
-    protected $table = "configurations";
+    protected $table = 'configurations';
 
     protected $fillable = [
         'options',
     ];
 
     protected $casts = [
-        'options' => 'array'
+        'options' => 'array',
     ];
 
     public function setOptionsAttribute($value): void
@@ -26,7 +26,7 @@ class Configuration extends Model
         $options = [];
 
         foreach ($value as $array_item) {
-            if (!is_null($array_item['key'])) {
+            if (! is_null($array_item['key'])) {
                 $options[] = $array_item;
             }
         }

@@ -16,8 +16,8 @@ use Illuminate\Support\Str;
  */
 class Incident extends Model
 {
-    use SoftDeletes;
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'incidents';
 
@@ -31,7 +31,7 @@ class Incident extends Model
     ];
 
     protected $appends = [
-        'url_show', 'url_print', 'incidence_upper', 'description_upper'
+        'url_show', 'url_print', 'incidence_upper', 'description_upper',
     ];
 
     public function getIncidenceUpperAttribute($value): string
@@ -42,6 +42,7 @@ class Incident extends Model
     public function getDescriptionUpperAttribute($value): string
     {
         $description = is_null($this->description) ? '' : $this->description;
+
         return Str::upper(wordwrap($description, 120, '<br>'));
     }
 

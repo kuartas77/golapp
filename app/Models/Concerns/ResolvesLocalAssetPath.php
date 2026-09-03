@@ -28,7 +28,7 @@ trait ResolvesLocalAssetPath
 
     protected function localAssetPathCandidates(?string $value): array
     {
-        if (!is_string($value)) {
+        if (! is_string($value)) {
             return [];
         }
 
@@ -47,7 +47,7 @@ trait ResolvesLocalAssetPath
         $normalizedValue = ltrim($value, '/');
 
         if (Storage::disk('public')->exists($normalizedValue)) {
-            $candidates[] = storage_path('app/public/' . $normalizedValue);
+            $candidates[] = storage_path('app/public/'.$normalizedValue);
         }
 
         $path = parse_url($value, PHP_URL_PATH);
@@ -57,14 +57,14 @@ trait ResolvesLocalAssetPath
 
             if ($normalizedPath !== '') {
                 if (Storage::disk('public')->exists($normalizedPath)) {
-                    $candidates[] = storage_path('app/public/' . $normalizedPath);
+                    $candidates[] = storage_path('app/public/'.$normalizedPath);
                 }
 
                 if (Str::startsWith($normalizedPath, 'storage/')) {
                     $storageRelativePath = Str::after($normalizedPath, 'storage/');
 
                     if (Storage::disk('public')->exists($storageRelativePath)) {
-                        $candidates[] = storage_path('app/public/' . $storageRelativePath);
+                        $candidates[] = storage_path('app/public/'.$storageRelativePath);
                     }
                 }
 
@@ -72,7 +72,7 @@ trait ResolvesLocalAssetPath
                     $storageRelativePath = urldecode($matches[1]);
 
                     if (Storage::disk('public')->exists($storageRelativePath)) {
-                        $candidates[] = storage_path('app/public/' . $storageRelativePath);
+                        $candidates[] = storage_path('app/public/'.$storageRelativePath);
                     }
                 }
 

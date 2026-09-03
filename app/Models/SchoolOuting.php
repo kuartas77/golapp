@@ -18,7 +18,9 @@ class SchoolOuting extends Model
     use SoftDeletes;
 
     public const STATUS_OPEN = 'open';
+
     public const STATUS_CLOSED = 'closed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public const STATUSES = [

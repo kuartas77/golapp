@@ -5,20 +5,21 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Traits\GeneralScopes;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TrainingSession extends Model
 {
     public const FORMAT_STANDARD = 'standard';
+
     public const FORMAT_PLANNED = 'planned';
 
-    use SoftDeletes;
     use GeneralScopes;
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'training_sessions';
 

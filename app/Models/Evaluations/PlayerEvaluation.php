@@ -2,7 +2,6 @@
 
 namespace App\Models\Evaluations;
 
-use App\Models\Evaluations\PlayerEvaluationScore;
 use App\Models\Inscription;
 use App\Models\School;
 use App\Models\User;
@@ -28,7 +27,7 @@ class PlayerEvaluation extends Model
         'improvement_opportunities',
         'recommendations',
         'overall_score',
-        'school_id'
+        'school_id',
     ];
 
     protected $casts = [

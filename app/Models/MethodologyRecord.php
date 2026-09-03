@@ -12,13 +12,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MethodologyRecord extends Model
 {
-    use HasFactory;
     use GeneralScopes;
+    use HasFactory;
     use SoftDeletes;
 
     public const TYPE_PLANNING = 'planning';
+
     public const TYPE_CHARACTERIZATION_SHEET = 'characterization_sheet';
+
     public const TYPE_MONTHLY_REPORT = 'monthly_report';
+
     public const TYPE_CATEGORY_MONTHLY_REPORT = 'category_monthly_report';
 
     public const TYPES = [

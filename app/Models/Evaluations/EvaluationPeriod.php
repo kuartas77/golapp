@@ -2,7 +2,6 @@
 
 namespace App\Models\Evaluations;
 
-use App\Models\Evaluations\PlayerEvaluation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,7 +18,7 @@ class EvaluationPeriod extends Model
         'ends_at',
         'sort_order',
         'is_active',
-        'school_id'
+        'school_id',
     ];
 
     protected $casts = [

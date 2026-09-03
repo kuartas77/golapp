@@ -2,8 +2,6 @@
 
 namespace App\Models\Evaluations;
 
-use App\Models\Evaluations\EvaluationTemplateCriterion;
-use App\Models\Evaluations\PlayerEvaluation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -42,7 +40,7 @@ class PlayerEvaluationScore extends Model
 
         $scoreType = $this->criterion?->score_type;
 
-        if (!$scoreType) {
+        if (! $scoreType) {
             return $this->scale_value;
         }
 

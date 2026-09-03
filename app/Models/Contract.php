@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Contract extends Model
 {
-    use HasFactory;
     use GeneralScopes;
+    use HasFactory;
 
     protected $table = 'contracts';
 
@@ -26,7 +26,7 @@ class Contract extends Model
         'body',
         'footer',
         'parameters',
-        'contract_type_id'
+        'contract_type_id',
     ];
 
     public function school(): BelongsTo

@@ -13,6 +13,7 @@ class SchoolDocument extends Model
     use HasFactory;
 
     public const SCOPE_CLUB = 'club_document';
+
     public const SCOPE_PLANNING = 'document_planning';
 
     protected $fillable = [

@@ -14,10 +14,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Day extends Model
 {
-    use SoftDeletes;
     use HasFactory;
+    use SoftDeletes;
 
-    protected $table = "days";
+    protected $table = 'days';
 
     protected $fillable = [
         'days',
@@ -25,9 +25,9 @@ class Day extends Model
     ];
 
     protected $hidden = [
-        "created_at",
-        "updated_at",
-        "deleted_at"
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     public function schedules(): HasMany

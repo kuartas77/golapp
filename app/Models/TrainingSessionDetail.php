@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Traits\GeneralScopes;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TrainingSessionDetail extends Model
 {
-    use SoftDeletes;
     use GeneralScopes;
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'training_session_details';
 
@@ -30,7 +30,7 @@ class TrainingSessionDetail extends Model
         'ts',
         'sr',
         'tt',
-        'observations'
+        'observations',
     ];
 
     public function trainingSession(): BelongsTo

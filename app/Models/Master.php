@@ -14,15 +14,16 @@ use Throwable;
 class Master extends Model
 {
     use HasFactory;
-    protected $table = "master";
+
+    protected $table = 'master';
 
     protected $fillable = [
         'field',
-        'autocomplete'
+        'autocomplete',
     ];
 
     protected $appends = [
-        'autocomplete_explode'
+        'autocomplete_explode',
     ];
 
     public static function getAutocomplete($request): Collection
@@ -44,9 +45,9 @@ class Master extends Model
         try {
             DB::beginTransaction();
             $counter = count($keys);
-            for ($i = 0; $i < $counter; ++$i) {
+            for ($i = 0; $i < $counter; $i++) {
                 $key = $keys[$i];
-                if (array_key_exists($key, $data) && !is_null($data[$key])) {
+                if (array_key_exists($key, $data) && ! is_null($data[$key])) {
 
                     $fieldRequest = Str::upper(trim($data[$key]));
 
@@ -54,13 +55,12 @@ class Master extends Model
                         ['field' => $key],
                     );
 
-                    if(isset($master->autocomplete)) {
+                    if (isset($master->autocomplete)) {
                         $autocomplete = array_unique(
                             array_merge(
                                 explode(',', data_get($master, 'autocomplete', '')),
                                 explode(',', $fieldRequest)
-                            )
-                            , SORT_STRING);
+                            ), SORT_STRING);
                         $master->update(['autocomplete' => $autocomplete]);
                     }
                 }
@@ -80,6 +80,6 @@ class Master extends Model
 
     public function setAutoCompleteAttribute($value): void
     {
-        $this->attributes['autocomplete'] = implode(',', array_values(array_diff($value, array(''))));
+        $this->attributes['autocomplete'] = implode(',', array_values(array_diff($value, [''])));
     }
 }

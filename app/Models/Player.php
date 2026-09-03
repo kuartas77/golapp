@@ -24,16 +24,16 @@ use Laravel\Sanctum\HasApiTokens;
  */
 class Player extends Authenticatable
 {
-    use HasApiTokens;
-    use ResolvesLocalAssetPath;
-    use SoftDeletes;
     use GeneralScopes;
+    use HasApiTokens;
     use HasFactory;
     use Notifiable;
+    use ResolvesLocalAssetPath;
+    use SoftDeletes;
 
-    protected $table = "players";
+    protected $table = 'players';
 
-    protected $dateFormat = "Y-m-d";
+    protected $dateFormat = 'Y-m-d';
 
     protected $fillable = [
         'id',
@@ -68,8 +68,8 @@ class Player extends Authenticatable
     ];
 
     protected $casts = [
-        'date_birth' => "datetime:Y-m-d",
-        'created_at' => "datetime:Y-m-d",
+        'date_birth' => 'datetime:Y-m-d',
+        'created_at' => 'datetime:Y-m-d',
     ];
 
     protected $hidden = [
@@ -77,7 +77,7 @@ class Player extends Authenticatable
         'remember_token',
     ];
 
-    protected $appends = ['full_names', 'photo_url', 'photo_local', 'photo_url_public', /*'url_edit', 'url_show', 'url_impression',*/];
+    protected $appends = ['full_names', 'photo_url', 'photo_local', 'photo_url_public'/* 'url_edit', 'url_show', 'url_impression', */];
 
     public function getRouteKeyName(): string
     {
@@ -86,8 +86,8 @@ class Player extends Authenticatable
 
     public function setPhotoAttribute($value): void
     {
-        if (!empty($value)) {
-            if (!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
+        if (! empty($value)) {
+            if (! empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
                 Storage::disk('public')->delete($this->attributes['photo']);
             }
 
@@ -127,7 +127,7 @@ class Player extends Authenticatable
 
     public function getPhotoUrlAttribute(): string
     {
-        if (!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
+        if (! empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
             return route('images', $this->attributes['photo']);
         }
 
@@ -136,7 +136,7 @@ class Player extends Authenticatable
 
     public function getPhotoUrlPublicAttribute(): string
     {
-        if (!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
+        if (! empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
             return route('api.v2.portal.player.images', $this->attributes['photo']);
         }
 
@@ -145,8 +145,8 @@ class Player extends Authenticatable
 
     public function getPhotoLocalAttribute(): string
     {
-        if (!empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
-            return storage_path('app/public/' . $this->attributes['photo']);
+        if (! empty($this->attributes['photo']) && Storage::disk('public')->exists($this->attributes['photo'])) {
+            return storage_path('app/public/'.$this->attributes['photo']);
         }
 
         return url('img/user.webp');
@@ -208,7 +208,7 @@ class Player extends Authenticatable
             ->using(PlayerTopicNotification::class)
             ->withPivot(['is_read'])
             ->orderBy('topic_notifications.created_at', 'desc')
-            ->whereRaw("topic_notifications.created_at >= NOW() - INTERVAL 8 DAY");
+            ->whereRaw('topic_notifications.created_at >= NOW() - INTERVAL 8 DAY');
     }
 
     public function scopeSchool($query)

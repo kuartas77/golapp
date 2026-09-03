@@ -10,10 +10,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class InvoiceCustomItem extends Model
 {
-    use HasFactory;
     use GeneralScopes;
+    use HasFactory;
 
-    protected $table = "invoice_custom_items";
+    protected $table = 'invoice_custom_items';
 
     protected $fillable = [
         'type',

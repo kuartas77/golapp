@@ -11,10 +11,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class TopicNotification extends Model
 {
-    use HasFactory;
     use GeneralScopes;
+    use HasFactory;
 
-    protected $table = "topic_notifications";
+    protected $table = 'topic_notifications';
 
     protected $fillable = [
         'school_id',
@@ -23,7 +23,7 @@ class TopicNotification extends Model
         'body',
         'image_url',
         'type',
-        'priority'
+        'priority',
     ];
 
     public function school(): BelongsTo

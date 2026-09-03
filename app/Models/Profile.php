@@ -11,10 +11,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Profile extends Model
 {
-    use SoftDeletes;
     use HasFactory;
+    use SoftDeletes;
 
-    protected $table = "profiles";
+    protected $table = 'profiles';
 
     protected $fillable = [
         'id',
@@ -45,5 +45,4 @@ class Profile extends Model
     {
         return route('profiles.update', [$this->attributes['id']]);
     }
-
 }

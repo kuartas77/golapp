@@ -11,10 +11,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TournamentPayout extends Model
 {
-    use HasFactory;
     use GeneralScopes;
+    use HasFactory;
 
-    protected $table = "tournament_payouts";
+    protected $table = 'tournament_payouts';
 
     protected $fillable = [
         'school_id',

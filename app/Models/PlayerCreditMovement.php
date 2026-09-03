@@ -15,6 +15,7 @@ class PlayerCreditMovement extends Model
     use HasFactory;
 
     public const TYPE_CREDIT = 'credit';
+
     public const TYPE_DEBIT = 'debit';
 
     protected $fillable = [

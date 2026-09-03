@@ -12,20 +12,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Schedule extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
     use GeneralScopes;
+    use HasFactory;
+    use SoftDeletes;
 
-    protected $table = "schedules";
+    protected $table = 'schedules';
 
     protected $fillable = [
         'schedule', 'day_id', 'school_id',
     ];
 
     protected $hidden = [
-        "created_at",
-        "updated_at",
-        "deleted_at"
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     public function school(): BelongsTo

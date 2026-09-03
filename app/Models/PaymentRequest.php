@@ -12,6 +12,7 @@ class PaymentRequest extends Model
     use GeneralScopes;
 
     protected $table = 'payment_request';
+
     protected $fillable = [
         'school_id',
         'invoice_id',
@@ -46,7 +47,7 @@ class PaymentRequest extends Model
 
     public function getUrlImageAttribute(): ?string
     {
-        if (!empty($this->attributes['image']) && Storage::disk('public')->exists($this->attributes['image'])) {
+        if (! empty($this->attributes['image']) && Storage::disk('public')->exists($this->attributes['image'])) {
             return route('api.v2.notifications.payment-requests.proof', ['paymentRequest' => $this->getKey()]);
         }
 

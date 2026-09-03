@@ -13,9 +13,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SkillsControl extends Model
 {
-    use SoftDeletes;
     use GeneralScopes;
     use HasFactory;
+    use SoftDeletes;
 
     public $table = 'skills_control';
 
@@ -50,5 +50,4 @@ class SkillsControl extends Model
     {
         return $this->belongsTo(Game::class, 'game_id', 'id');
     }
-
 }

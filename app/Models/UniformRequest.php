@@ -9,10 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UniformRequest extends Model
 {
-    use HasFactory;
     use GeneralScopes;
+    use HasFactory;
 
-    protected $table = "uniform_request";
+    protected $table = 'uniform_request';
 
     protected $fillable = [
         'school_id',
