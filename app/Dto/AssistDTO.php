@@ -11,12 +11,20 @@ final class AssistDTO
     use ToArray;
 
     public readonly int $school_id;
+
     public readonly int $training_group_id;
+
     public readonly int $inscription_id;
+
     public readonly int $month;
+
     public readonly int $year;
+
     public readonly string $column;
-    public readonly int|null $value;
-    public readonly string|null $attendance_date;
-    public readonly string|null $observations;
+
+    public readonly ?int $value;
+
+    public readonly ?string $attendance_date;
+
+    public readonly ?string $observations;
 }

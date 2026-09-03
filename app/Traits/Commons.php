@@ -7,13 +7,11 @@ use Illuminate\Support\Facades\Cache;
 trait Commons
 {
     /**
-     * @param $name
-     * @param null $data
-     * @param int $seconds
-     *
+     * @param  null  $data
+     * @param  int  $seconds
      * @return mixed $data
      */
-    public function cacheData($name, $data = null, $seconds = 3000)
+    public function cacheData(string $name, $data = null, $seconds = 3000)
     {
         if (Cache::has($name)) {
             return Cache::get($name);
@@ -24,7 +22,7 @@ trait Commons
         }
     }
 
-    public function deleteCacheData($key)
+    public function deleteCacheData(string $key)
     {
         if (Cache::has($key)) {
             Cache::forget($key);

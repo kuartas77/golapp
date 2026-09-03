@@ -12,9 +12,7 @@ use Illuminate\Http\Request;
 
 class MonthlyPaymentReceiptController extends Controller
 {
-    public function __construct(private MonthlyPaymentReceiptService $receiptService)
-    {
-    }
+    public function __construct(private MonthlyPaymentReceiptService $receiptService) {}
 
     public function index(Request $request): JsonResponse
     {

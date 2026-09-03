@@ -29,19 +29,19 @@ class TopicNotificationsController extends Controller
         [$topicCategories, $topicGroups, $topicUniqueCodes, $topicCompetitionGroups] = $this->repository->getTopics();
 
         return response()->json([
-            'categories' => collect($topicCategories)->map(fn(array $item) => [
+            'categories' => collect($topicCategories)->map(fn (array $item) => [
                 'value' => $item['topic'],
                 'label' => $item['name'],
             ])->values(),
-            'training_groups' => collect($topicGroups)->map(fn(array $item) => [
+            'training_groups' => collect($topicGroups)->map(fn (array $item) => [
                 'value' => $item['topic'],
                 'label' => $item['name'],
             ])->values(),
-            'players' => collect($topicUniqueCodes)->map(fn(array $item) => [
+            'players' => collect($topicUniqueCodes)->map(fn (array $item) => [
                 'value' => $item['search'],
                 'label' => $item['name'],
             ])->values(),
-            'competition_groups' => collect($topicCompetitionGroups)->map(fn(array $item) => [
+            'competition_groups' => collect($topicCompetitionGroups)->map(fn (array $item) => [
                 'value' => $item['topic'],
                 'label' => $item['name'],
             ])->values(),

@@ -15,8 +15,7 @@ class GuardianPlayerExperienceService
     public function __construct(
         private GuardianAccessService $guardianAccessService,
         private GuardianPlayerFeedbackService $feedbackService
-    ) {
-    }
+    ) {}
 
     public function portalDetailPayload(People $guardian, int $playerId, Request $request): array
     {

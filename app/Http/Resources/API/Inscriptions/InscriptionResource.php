@@ -2,10 +2,10 @@
 
 namespace App\Http\Resources\API\Inscriptions;
 
-use JsonSerializable;
 use App\Models\Inscription;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Resources\Json\JsonResource;
+use JsonSerializable;
 
 class InscriptionResource extends JsonResource
 {
@@ -19,8 +19,7 @@ class InscriptionResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @param Request $request
-     * @return array|Arrayable|JsonSerializable
+     * @param  Request  $request
      */
     public function toArray($request): array|JsonSerializable|Arrayable
     {

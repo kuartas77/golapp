@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-
 use App\Models\Incident;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +12,6 @@ use Illuminate\Support\Str;
 
 class IncidentRepository extends BaseRepository
 {
-
     public function __construct(Incident $incident)
     {
         parent::__construct($incident, ['professor']);
@@ -36,21 +34,21 @@ class IncidentRepository extends BaseRepository
     }
 
     /**
-     * @param $request
      * @return Incident
      */
     public function createIncident($request): Model
     {
         $arguments = [];
         $professor = User::query()->find($request->input('user_incident_id'));
-        if($professor) {
+        if ($professor) {
             $arguments = $request->validated();
             $arguments['user_created_id'] = auth()->id();
             $arguments['slug_name'] = Str::slug($professor->name);
         }
-        if(!empty($arguments)) {
+        if (! empty($arguments)) {
             return Incident::query()->create($arguments);
         }
+
         return new Incident;
     }
 }

@@ -31,11 +31,12 @@ class InscriptionCGroupController extends Controller
 
             $inscriptions = Inscription::query()->schoolId()->with(['player'])->where('year', now()->year)->get();
 
-            list($rows, $count) = $this->groupRepository->makeInscriptionRows($inscriptions);
+            [$rows, $count] = $this->groupRepository->makeInscriptionRows($inscriptions);
+
             return response()->json([
                 'rows' => $rows,
                 'count' => $count,
-                'groups' => $groupsCompetition
+                'groups' => $groupsCompetition,
             ]);
         }
 
@@ -49,29 +50,21 @@ class InscriptionCGroupController extends Controller
         return view('groups.competition.admin_group');
     }
 
-    /**
-     * @param CompetitionGroup $competitionGroup
-     * @return JsonResponse
-     */
     public function makeRows(CompetitionGroup $competitionGroup): JsonResponse
     {
         $inscriptions = Inscription::query()->schoolId()->with(['player'])->where('year', now()->year)->get();
 
-        list($rows, $count) = $this->groupRepository->makeRows($competitionGroup);
-        list($inscriptionRows, $inscriptioncount) = $this->groupRepository->makeInscriptionRows($inscriptions);
+        [$rows, $count] = $this->groupRepository->makeRows($competitionGroup);
+        [$inscriptionRows, $inscriptioncount] = $this->groupRepository->makeInscriptionRows($inscriptions);
 
         return response()->json(['rows' => $rows, 'count' => $count, 'inscriptionRows' => $inscriptionRows, 'inscriptioncount' => $inscriptioncount]);
     }
 
-    /**
-     * @param $inscription
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function assignGroup($inscription, Request $request): JsonResponse
     {
         abort_unless($request->ajax(), 401);
         $response = $this->groupRepository->assignInscriptionGroup($inscription, $request->destination_group, filter_var($request->assign, FILTER_VALIDATE_BOOL));
+
         return response()->json(['response' => $response]);
     }
 }

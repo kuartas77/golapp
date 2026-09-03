@@ -12,11 +12,11 @@ class GuardianInvitationService
 {
     public function hasUniqueTutorEmail(People $guardian): bool
     {
-        if (!checkEmail($guardian->email)) {
+        if (! checkEmail($guardian->email)) {
             return false;
         }
 
-        return !People::query()
+        return ! People::query()
             ->where('tutor', true)
             ->where('email', $guardian->email)
             ->whereKeyNot($guardian->id)
@@ -25,7 +25,7 @@ class GuardianInvitationService
 
     public function invite(People $guardian): bool
     {
-        if (!$this->hasUniqueTutorEmail($guardian)) {
+        if (! $this->hasUniqueTutorEmail($guardian)) {
             return false;
         }
 

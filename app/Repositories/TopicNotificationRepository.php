@@ -2,8 +2,8 @@
 
 namespace App\Repositories;
 
-use App\Models\TopicNotification;
 use App\Models\PlayerTopicNotification;
+use App\Models\TopicNotification;
 use App\Service\Notification\TopicService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
@@ -15,6 +15,7 @@ class TopicNotificationRepository
     {
         $player = request()->user();
         $player->load('notifications');
+
         return $player->notifications;
     }
 
@@ -50,6 +51,7 @@ class TopicNotificationRepository
     {
         $player = request()->user();
         $player->load('notifications');
+
         return $player->notifications->firstWhere('id', $id);
     }
 
@@ -57,7 +59,7 @@ class TopicNotificationRepository
     {
         $notification = $this->getPlayersNotifications($players)->firstWhere('id', (int) $id);
 
-        if (!$notification instanceof TopicNotification) {
+        if (! $notification instanceof TopicNotification) {
             throw new ModelNotFoundException('Notification not found for guardian players');
         }
 
@@ -104,7 +106,7 @@ class TopicNotificationRepository
             ->whereIn('player_id', $players->pluck('id'))
             ->where('topic_notification_id', $notificationId);
 
-        if (!$query->exists()) {
+        if (! $query->exists()) {
             throw new ModelNotFoundException('Notification not found for guardian players');
         }
 
@@ -142,7 +144,7 @@ class TopicNotificationRepository
                         ->orWhere('topics', 'like', "%,{$topic}");
                 }
             })
-            ->whereRaw("created_at >= NOW() - INTERVAL 1 DAY");
+            ->whereRaw('created_at >= NOW() - INTERVAL 1 DAY');
 
     }
 

@@ -7,17 +7,16 @@ use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
-
 trait ErrorTrait
 {
     public function logError(string $message, Throwable $th, array $extraContext = []): void
     {
         $context = array_merge([
-            "error" => $th->getMessage(),
-            "line" => $th->getLine(),
-            "file" => $th->getFile(),
-            "code" => $th->getCode(),
-            "exception" => get_class($th),
+            'error' => $th->getMessage(),
+            'line' => $th->getLine(),
+            'file' => $th->getFile(),
+            'code' => $th->getCode(),
+            'exception' => get_class($th),
         ], $extraContext);
 
         try {

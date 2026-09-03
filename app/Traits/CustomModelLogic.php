@@ -16,9 +16,10 @@ trait CustomModelLogic
      */
     protected function getArrayableAppends()
     {
-        if(self::$withoutAppends){
+        if (self::$withoutAppends) {
             return [];
         }
+
         return parent::getArrayableAppends();
     }
 }

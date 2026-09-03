@@ -11,12 +11,13 @@ use JsonSerializable;
 class UniformRequestResource extends JsonResource
 {
     public static $wrap = null;
+
     public $resource = UniformRequest::class;
+
     /**
      * Transform the resource into an array.
      *
-     * @param Request $request
-     * @return array|Arrayable|JsonSerializable
+     * @param  Request  $request
      */
     public function toArray($request): array|JsonSerializable|Arrayable
     {

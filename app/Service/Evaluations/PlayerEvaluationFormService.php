@@ -11,9 +11,7 @@ use App\Models\TrainingGroup;
 
 class PlayerEvaluationFormService
 {
-    public function __construct(private PlayerEvaluationQueryService $queries)
-    {
-    }
+    public function __construct(private PlayerEvaluationQueryService $queries) {}
 
     public function options(int $schoolId, ?int $inscriptionId = null): array
     {
@@ -176,7 +174,7 @@ class PlayerEvaluationFormService
                         '#%s - %s%s',
                         $inscription->id,
                         $this->playerName($inscription->player),
-                        $inscription->trainingGroup?->name ? ' - ' . $inscription->trainingGroup->name : ''
+                        $inscription->trainingGroup?->name ? ' - '.$inscription->trainingGroup->name : ''
                     ),
                 ];
             })
@@ -192,7 +190,7 @@ class PlayerEvaluationFormService
                 ->whereKey($inscriptionId)
                 ->value('training_group_id');
 
-            if (!$trainingGroupId) {
+            if (! $trainingGroupId) {
                 return collect();
             }
         }
@@ -231,7 +229,7 @@ class PlayerEvaluationFormService
                     'weight' => $criterion->weight,
                     'sort_order' => $criterion->sort_order,
                     'is_required' => (bool) $criterion->is_required,
-                    'scale_options' => config('evaluations.scale_options.' . $criterion->score_type, []),
+                    'scale_options' => config('evaluations.scale_options.'.$criterion->score_type, []),
                 ])->values();
             })
             ->toArray();
@@ -287,13 +285,13 @@ class PlayerEvaluationFormService
 
     private function playerName(?Player $player): string
     {
-        if (!$player) {
+        if (! $player) {
             return 'Jugador sin nombre';
         }
 
         return $player->full_names
             ?? $player->full_name
             ?? $player->name
-            ?? ('Jugador #' . $player->id);
+            ?? ('Jugador #'.$player->id);
     }
 }

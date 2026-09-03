@@ -26,7 +26,7 @@ class UserStore extends FormRequest
         return [
             'name' => ['required'],
             'email' => ['required', 'email', 'unique:users'],
-            'rol_id' => ['required']
+            'rol_id' => ['required'],
         ];
     }
 

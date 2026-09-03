@@ -11,7 +11,7 @@ class FirebaseTopicChannel
 
     public function __construct()
     {
-        $this->firebaseService = new FirebaseTopicNotificationService();
+        $this->firebaseService = new FirebaseTopicNotificationService;
     }
 
     /**
@@ -20,7 +20,7 @@ class FirebaseTopicChannel
     public function send($notifiable, Notification $notification)
     {
         // Verificar si la notificación tiene el método toFirebaseTopic
-        if (!method_exists($notification, 'toFirebaseTopic')) {
+        if (! method_exists($notification, 'toFirebaseTopic')) {
             $className = get_class($notification);
             throw new \RuntimeException(
                 "La notificación {$className} debe implementar el método toFirebaseTopic"
@@ -31,14 +31,14 @@ class FirebaseTopicChannel
         $message = $notification->toFirebaseTopic($notifiable);
 
         // Validar que el mensaje sea un array
-        if (!is_array($message)) {
+        if (! is_array($message)) {
             throw new \InvalidArgumentException(
                 'El método toFirebaseTopic debe retornar un array'
             );
         }
 
         // Validar que tenga al menos un destino
-        if (!isset($message['topic']) && !isset($message['topics']) && !isset($message['condition'])) {
+        if (! isset($message['topic']) && ! isset($message['topics']) && ! isset($message['condition'])) {
             throw new \InvalidArgumentException(
                 'La notificación debe definir al menos un topic, topics o condition'
             );

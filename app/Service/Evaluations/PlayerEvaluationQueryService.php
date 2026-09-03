@@ -45,6 +45,7 @@ class PlayerEvaluationQueryService
             $query->whereHas('inscription.trainingGroup', fn ($groupQuery) => $groupQuery->byInstructor());
         }
         abort_unless($query->exists(), 404);
+
         return $evaluation;
     }
 

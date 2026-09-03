@@ -77,6 +77,7 @@ class SchoolOutingService
     {
         $this->authorizeOuting($outing, $schoolId);
         $this->assertUnlocked($outing);
+
         return $outing->activities()->create($data + ['school_id' => $schoolId, 'is_default' => false]);
     }
 
@@ -86,6 +87,7 @@ class SchoolOutingService
         $this->authorizeActivity($outing, $activity, $schoolId);
         $this->assertUnlocked($outing);
         $activity->update($data);
+
         return $activity->fresh();
     }
 

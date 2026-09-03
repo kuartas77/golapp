@@ -35,7 +35,7 @@ class ScheduleController extends Controller
     public function store(ScheduleRequest $request): JsonResponse
     {
         return $this->persistSchedule(
-            new Schedule(),
+            new Schedule,
             $request,
             'Horario creado correctamente.',
             201

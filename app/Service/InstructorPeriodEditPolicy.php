@@ -23,7 +23,7 @@ class InstructorPeriodEditPolicy
         $school ??= getSchool(auth()->user());
 
         return filter_var(
-            data_get($school, 'settings.' . Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED, false),
+            data_get($school, 'settings.'.Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED, false),
             FILTER_VALIDATE_BOOLEAN
         );
     }

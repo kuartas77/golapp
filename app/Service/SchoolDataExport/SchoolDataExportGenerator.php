@@ -15,7 +15,9 @@ use ZipArchive;
 class SchoolDataExportGenerator
 {
     private const DISK_EXPORT = 'export';
+
     private const DISK_LOCAL = 'local';
+
     private const DISK_PUBLIC = 'public';
 
     private const SECRET_COLUMNS = [
@@ -48,7 +50,7 @@ class SchoolDataExportGenerator
 
             Storage::disk(self::DISK_EXPORT)->makeDirectory(dirname($zipPath));
 
-            $zip = new ZipArchive();
+            $zip = new ZipArchive;
             if ($zip->open($absoluteZipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
                 throw new \RuntimeException('No fue posible crear el archivo ZIP de exportacion.');
             }
@@ -408,7 +410,7 @@ class SchoolDataExportGenerator
 
         $extension = pathinfo($relativePath, PATHINFO_EXTENSION);
         $safeLabel = Str::slug((string) $file['label']) ?: 'archivo';
-        $safeName = $safeLabel . '_' . md5($relativePath) . ($extension ? ".{$extension}" : '');
+        $safeName = $safeLabel.'_'.md5($relativePath).($extension ? ".{$extension}" : '');
         $archivePath = sprintf('archivos/%s/%s', $file['directory'], $safeName);
 
         $zip->addFile(Storage::disk(self::DISK_PUBLIC)->path($relativePath), $archivePath);
@@ -478,7 +480,7 @@ class SchoolDataExportGenerator
             'Exportacion masiva de datos de escuela - Golapp',
             '',
             "Escuela: {$school->name}",
-            "Generado: " . now()->format('Y-m-d H:i:s'),
+            'Generado: '.now()->format('Y-m-d H:i:s'),
             '',
             'Estructura:',
             '- datos/: archivos CSV por tabla, agrupados por dominio funcional.',

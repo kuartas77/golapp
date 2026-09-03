@@ -28,12 +28,14 @@ class TopicNotificationsController extends Controller
     public function read(): JsonResponse
     {
         $this->repository->markRead();
+
         return response()->json();
     }
 
     public function readAll(): JsonResponse
     {
         $this->repository->markReadAll();
+
         return response()->json();
     }
 }

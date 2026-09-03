@@ -2,11 +2,11 @@
 
 namespace App\Http\Resources\API\TournamentPays;
 
-use JsonSerializable;
+use App\Http\Resources\API\Players\PlayerResource;
 use App\Models\TournamentPayout;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\API\Players\PlayerResource;
+use JsonSerializable;
 
 class TournamentPaymentResource extends JsonResource
 {
@@ -20,7 +20,7 @@ class TournamentPaymentResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @param Request $request
+     * @param  Request  $request
      * @return array|Arrayable|JsonSerializables
      */
     public function toArray($request): array|JsonSerializable|Arrayable
@@ -32,7 +32,7 @@ class TournamentPaymentResource extends JsonResource
             'tournament_id' => $this->tournament_id,
             'unique_code' => $this->unique_code,
             'year' => $this->year,
-            'player' => new PlayerResource($this->inscription->player)
+            'player' => new PlayerResource($this->inscription->player),
         ];
     }
 }

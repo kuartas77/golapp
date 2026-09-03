@@ -12,10 +12,7 @@ use Illuminate\Http\JsonResponse;
 
 class UniformRequestController extends Controller
 {
-    public function __construct(private UniformRequestRepository $repository)
-    {
-
-    }
+    public function __construct(private UniformRequestRepository $repository) {}
 
     public function statistics(): UniformRequestStatistcsResource
     {
@@ -42,6 +39,7 @@ class UniformRequestController extends Controller
     public function cancel(int $uniformRequest): JsonResponse
     {
         $success = $this->repository->cancel($this->repository->findPlayerRequestOrFail($uniformRequest));
+
         return response()->json(['success' => $success]);
     }
 }

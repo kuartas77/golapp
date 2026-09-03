@@ -12,12 +12,13 @@ use JsonSerializable;
 class InvoiceResource extends JsonResource
 {
     public static $wrap = null;
+
     public $resource = Invoice::class;
+
     /**
      * Transform the resource into an array.
      *
-     * @param Request $request
-     * @return array|Arrayable|JsonSerializable
+     * @param  Request  $request
      */
     public function toArray($request): array|JsonSerializable|Arrayable
     {
@@ -26,7 +27,7 @@ class InvoiceResource extends JsonResource
             'invoice_id' => $this->id,
             'invoice_number' => $this->invoice_number,
             'amount' => $this->total_amount,
-            'status' => Str::upper($this->status), //PENDING, PARTIAL, PAID, CANCELLED
+            'status' => Str::upper($this->status), // PENDING, PARTIAL, PAID, CANCELLED
             'image_url' => null,
             'due_date' => Carbon::parse($this->due_date)->getPreciseTimestamp(3),
             'created_at' => Carbon::parse($this->created_at)->getPreciseTimestamp(3),

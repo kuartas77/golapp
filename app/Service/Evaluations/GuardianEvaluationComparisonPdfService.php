@@ -18,7 +18,7 @@ class GuardianEvaluationComparisonPdfService
         $inscription->loadMissing([
             'player',
             'school',
-            'trainingGroup'
+            'trainingGroup',
         ]);
 
         $comparison = $this->comparisonService->compare(
@@ -50,7 +50,6 @@ class GuardianEvaluationComparisonPdfService
             'clubName' => config('app.name'),
             'playerName' => $playerName,
         ], 'evaluations/guardian-evaluation-comparison-report');
-
 
         return $this->stream($fileName);
     }

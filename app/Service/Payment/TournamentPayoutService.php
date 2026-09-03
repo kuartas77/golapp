@@ -14,7 +14,7 @@ class TournamentPayoutService
 
         $rows = $this->makeRows($tournamentPayouts, $groupName, $deleted);
 
-        list($pdf, $excel) = $this->makeLinks($data, $deleted);
+        [$pdf, $excel] = $this->makeLinks($data, $deleted);
 
         return $this->generateResponse($groupName, $rows, $tournamentPayouts->count(), $pdf, $excel);
     }
@@ -24,7 +24,7 @@ class TournamentPayoutService
         $tournamentPayouts = $tournamentPayouts->get();
         $groupName = $competitionGroup->full_name_group;
 
-        list($pdf, $excel) = $this->makeLinks($data, $deleted);
+        [$pdf, $excel] = $this->makeLinks($data, $deleted);
 
         return $this->generateResponse($groupName, $tournamentPayouts, $tournamentPayouts->count(), $pdf, $excel);
     }
@@ -36,9 +36,10 @@ class TournamentPayoutService
             $rows .= View::make('templates.payments.tournaments.row', [
                 'tournamentPayout' => $tournamentPayout,
                 'group' => $groupName,
-                'deleted' => $deleted
+                'deleted' => $deleted,
             ])->render();
         }
+
         return $rows;
     }
 
@@ -48,7 +49,7 @@ class TournamentPayoutService
             'tournament_id' => $data['tournament_id'],
             'competition_group_id' => $data['competition_group_id'],
             'unique_code' => $data['unique_code'] ?? null,
-            'deleted' => $deleted
+            'deleted' => $deleted,
         ];
 
         return [
@@ -64,7 +65,7 @@ class TournamentPayoutService
             'rows' => $rows,
             'count' => $rowsCount,
             'url_print' => $pdf,
-            'url_print_excel' => $excel
+            'url_print_excel' => $excel,
         ];
     }
 }

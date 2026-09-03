@@ -44,7 +44,6 @@ class VerificationController extends Controller
     /**
      * The user has been verified.
      *
-     * @param Request $request
      * @return mixed
      */
     protected function verified(Request $request)

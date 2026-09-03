@@ -13,9 +13,7 @@ class GuardianPlayerController extends Controller
 {
     use ResolvesGuardianPlayers;
 
-    public function __construct(private GuardianAccessService $guardianAccessService)
-    {
-    }
+    public function __construct(private GuardianAccessService $guardianAccessService) {}
 
     public function index(Request $request): JsonResponse
     {

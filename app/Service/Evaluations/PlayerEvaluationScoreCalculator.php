@@ -90,7 +90,7 @@ class PlayerEvaluationScoreCalculator
         foreach ($evaluation->scores as $score) {
             $criterion = $score->criterion;
 
-            if (!$criterion || $score->score === null) {
+            if (! $criterion || $score->score === null) {
                 continue;
             }
 

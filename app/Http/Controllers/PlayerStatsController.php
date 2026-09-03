@@ -8,9 +8,7 @@ use Illuminate\Http\Request;
 
 class PlayerStatsController extends Controller
 {
-    public function __construct(private PlayerStatsService $playerStatsService)
-    {
-    }
+    public function __construct(private PlayerStatsService $playerStatsService) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -39,7 +37,7 @@ class PlayerStatsController extends Controller
         $school = getSchool(auth()->user());
         $payload = $this->playerStatsService->getPlayerDetailPayload($id, $school->id);
 
-        if (!$payload) {
+        if (! $payload) {
             return response()->json([
                 'message' => 'Jugador no encontrado o sin estadísticas',
             ], 404);

@@ -2,16 +2,13 @@
 
 namespace App\Http\Requests\API;
 
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class AssistsRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -20,12 +17,11 @@ class AssistsRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
     public function rules(): array
     {
-        $months = range(1,12);
+        $months = range(1, 12);
+
         return [
             'school_id' => ['required', 'numeric'],
             'training_group_id' => ['required', 'numeric'],
@@ -39,7 +35,7 @@ class AssistsRequest extends FormRequest
     {
         $this->merge([
             'year' => $this->input('year', now()->year),
-            'school_id' => auth()->user()->school_id
+            'school_id' => auth()->user()->school_id,
         ]);
     }
 
@@ -70,7 +66,7 @@ class AssistsRequest extends FormRequest
             'assistance_twenty_two',
             'assistance_twenty_three',
             'assistance_twenty_four',
-            'assistance_twenty_five'
+            'assistance_twenty_five',
         ];
     }
 }

@@ -39,7 +39,7 @@ class UserRequest extends FormRequest
         $this->merge([
             'page' => $page,
             'per_page' => $per_page,
-            'skip' => ($per_page * ($page - 1))
+            'skip' => ($per_page * ($page - 1)),
         ]);
     }
 }

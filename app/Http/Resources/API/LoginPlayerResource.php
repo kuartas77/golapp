@@ -15,8 +15,7 @@ class LoginPlayerResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @param Request $request
-     * @return array|Arrayable|JsonSerializable
+     * @param  Request  $request
      */
     public function toArray($request): array|JsonSerializable|Arrayable
     {
@@ -31,7 +30,7 @@ class LoginPlayerResource extends JsonResource
             'access_token' => $accessToken->plainTextToken,
             'refresh_token' => $refreshToken->plainTextToken,
             'expires_at' => $date->getTimestampMs(),
-            'player' => new PlayerResource($this, $loadRelations)
+            'player' => new PlayerResource($this, $loadRelations),
         ];
     }
 }

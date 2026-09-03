@@ -32,7 +32,7 @@ class InvoiceController extends Controller
     {
         $invoice = $this->payment_request_repository->createPaymentRequest($request->validated());
 
-        if (!$invoice) {
+        if (! $invoice) {
             return response()->json([
                 'message' => 'No fue posible registrar el comprobante de pago.',
             ], 500);

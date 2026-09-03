@@ -15,9 +15,7 @@ use Illuminate\View\View;
 
 class PaymentController extends Controller
 {
-    public function __construct(private PaymentControllerService $payments)
-    {
-    }
+    public function __construct(private PaymentControllerService $payments) {}
 
     /**
      * @return array|Application|Factory|View
@@ -57,6 +55,7 @@ class PaymentController extends Controller
     public function show($id, Request $request)
     {
         abort_unless($request->ajax() || $request->is('api/*'), 401);
+
         return $this->responseJson($this->payments->decoratedPayment((int) $id));
     }
 

@@ -4,58 +4,60 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Collection as SupportCollection;
-use Illuminate\Database\Eloquent\Builder;
-use Exception;
+use App\Dto\AssistDTO;
+use App\Models\Assist;
+use App\Models\Inscription;
+use App\Models\TrainingGroup;
+use App\Service\Assist\AssistService;
 use App\Traits\ErrorTrait;
 use App\Traits\PDFTrait;
-use App\Service\Assist\AssistService;
-use App\Models\TrainingGroup;
-use App\Models\Inscription;
-use App\Models\Assist;
-use App\Dto\AssistDTO;
+use Exception;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class AssistRepository
 {
     use ErrorTrait;
     use PDFTrait;
+
     public const RETIRED_INSCRIPTION_MESSAGE = 'La inscripción está retirada; reactívala antes de modificar pagos o asistencias.';
+
     protected AssistService $service;
 
     public function __construct(protected Assist $assist)
     {
-        $this->service = new AssistService();
+        $this->service = new AssistService;
     }
 
     /**
-     * @param false $deleted
+     * @param  false  $deleted
      */
     public function search(array $params, bool $deleted = false, bool $raw = false): array
     {
-        if (!$deleted) {
+        if (! $deleted) {
             $params['year'] = now()->year;
         }
 
         $params['month'] = getMonthNumber($params['month']);
 
         $trainingGroup = TrainingGroup::query()->schoolId()
-            ->when(isInstructor(), fn($query) => $query->byInstructor($params['year']))
-            ->when($deleted, fn($q) => $q->onlyTrashedRelations())->findOrFail($params['training_group_id']);
+            ->when(isInstructor(), fn ($query) => $query->byInstructor($params['year']))
+            ->when($deleted, fn ($q) => $q->onlyTrashedRelations())->findOrFail($params['training_group_id']);
 
         $assists = $this->assist->schoolId()
             ->with('inscription:id,player_id,category,deleted_at', 'inscription.player:id,names,last_names,unique_code,category')
-            ->when($deleted, fn($q) => $q->withTrashed())
+            ->when($deleted, fn ($q) => $q->withTrashed())
             ->where([
                 ['training_group_id', $params['training_group_id']],
                 ['month',  $params['month']],
-                ['year', $params['year']]
+                ['year', $params['year']],
             ]);
 
-        if(!$raw) {
+        if (! $raw) {
             return $this->service->generateTable($assists, $trainingGroup, $params, $deleted);
-        }else {
+        } else {
             return $this->service->generateData($assists, $trainingGroup, $params, $deleted);
         }
     }
@@ -74,7 +76,7 @@ class AssistRepository
 
             $trainingGroup = TrainingGroup::query()
                 ->schoolId()
-                ->when(isInstructor(), fn($query) => $query->byInstructor($dataAssist['year']))
+                ->when(isInstructor(), fn ($query) => $query->byInstructor($dataAssist['year']))
                 ->findOrFail($dataAssist['training_group_id']);
 
             if ($training_group_id == $trainingGroup->id) {
@@ -91,7 +93,6 @@ class AssistRepository
                 )
                 ->where('year', $dataAssist['year'])
                 ->pluck('id');
-
 
             $assistsQuery = $this->assist->schoolId()->with('inscription.player')->where($dataAssist);
 
@@ -120,7 +121,7 @@ class AssistRepository
     {
         $transactionStarted = false;
         try {
-            if(is_null($assistDto->value)) {
+            if (is_null($assistDto->value)) {
                 return true;
             }
 
@@ -143,9 +144,10 @@ class AssistRepository
                 ->where('training_group_id', $assistDto->training_group_id)
                 ->first();
 
-            if($assist) {
+            if ($assist) {
                 if ($this->assistBelongsToDeletedInscription($assist)) {
                     DB::rollBack();
+
                     return false;
                 }
 
@@ -161,12 +163,11 @@ class AssistRepository
 
                 $assist->save();
 
-
             }
 
             DB::commit();
 
-            Cache::delete("statistics.groups.user." . auth()->user()->id);
+            Cache::delete('statistics.groups.user.'.auth()->user()->id);
 
             return true;
         } catch (Exception $exception) {
@@ -178,6 +179,7 @@ class AssistRepository
                 'training_group_id' => $assistDto->training_group_id,
                 'column' => $assistDto->column,
             ]);
+
             return false;
         }
     }
@@ -199,7 +201,7 @@ class AssistRepository
                     $observations = new \stdClass;
                 }
 
-                if(isset($validated['attendance_date'])) {
+                if (isset($validated['attendance_date'])) {
                     $observations->{$validated['attendance_date']} = $validated['observations'];
                     $validated['observations'] = $observations;
                 }
@@ -207,6 +209,7 @@ class AssistRepository
 
             $updated = $assist->update($validated);
             DB::commit();
+
             return $updated;
         } catch (Exception $exception) {
             if ($transactionStarted) {
@@ -215,6 +218,7 @@ class AssistRepository
             $this->logError('AssistRepository update failed', $exception, [
                 'assist_id' => $assist->id ?? null,
             ]);
+
             return false;
         }
     }
@@ -255,7 +259,7 @@ class AssistRepository
 
             DB::commit();
 
-            Cache::delete("statistics.groups.user." . auth()->user()->id);
+            Cache::delete('statistics.groups.user.'.auth()->user()->id);
 
             return [
                 'requested_count' => $assistIds->count(),
@@ -318,14 +322,14 @@ class AssistRepository
                         'year' => $dataAssist['year'],
                         'month' => $dataAssist['month'],
                         'training_group_id' => $dataAssist['training_group_id'],
-                        'school_id' => $school_id
+                        'school_id' => $school_id,
                     ],
                     [
                         'inscription_id' => $idDiff,
                         'year' => $dataAssist['year'],
                         'month' => $dataAssist['month'],
                         'training_group_id' => $dataAssist['training_group_id'],
-                        'school_id' => $school_id
+                        'school_id' => $school_id,
                     ]
                 );
             }

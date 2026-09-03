@@ -2,17 +2,17 @@
 
 namespace App\Traits;
 
-use Symfony\Component\HttpFoundation\File\File;
-use Intervention\Image\Facades\Image;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Foundation\Http\FormRequest;
 use App\Models\School;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Facades\Image;
+use Symfony\Component\HttpFoundation\File\File;
 
 trait UploadFile
 {
-    public function saveFile(FormRequest $request, $field, bool $resize = true)
+    public function saveFile(FormRequest $request, string $field, bool $resize = true)
     {
         $path = null;
 
@@ -25,7 +25,7 @@ trait UploadFile
             switch ($field) {
                 case 'player':
                 case 'photo':
-                    $path = $file->hashName($school . DIRECTORY_SEPARATOR . "players");
+                    $path = $file->hashName($school.DIRECTORY_SEPARATOR.'players');
                     break;
                 case 'logo':
                 default:
@@ -34,12 +34,13 @@ trait UploadFile
             }
 
             $img = Image::make($file);
-            if($resize) {
+            if ($resize) {
                 $img->resize(200, 200)->orientate();
             }
 
-            Storage::disk('public')->put($path, (string)$img->encode('jpg', 75), 'public');
+            Storage::disk('public')->put($path, (string) $img->encode('jpg', 75), 'public');
         }
+
         return $path;
     }
 
@@ -52,11 +53,11 @@ trait UploadFile
         $path = $file->hashName("{$schoolFolder}/{$folder}");
 
         $img = Image::make($file);
-        if($resize) {
+        if ($resize) {
             $img->resize(200, 200);
         }
 
-        Storage::disk('public')->put($path, (string)$img->encode(), 'public');
+        Storage::disk('public')->put($path, (string) $img->encode(), 'public');
 
         return $path;
     }
@@ -70,7 +71,7 @@ trait UploadFile
             throw new \InvalidArgumentException('Invalid signature image.');
         }
 
-        $tmpFilePath = sys_get_temp_dir() . '/' . Str::uuid()->toString();
+        $tmpFilePath = sys_get_temp_dir().'/'.Str::uuid()->toString();
 
         try {
             if (file_put_contents($tmpFilePath, $decoded_image) === false) {

@@ -11,12 +11,13 @@ use stdClass;
 class PaymentExportService
 {
     use PDFTrait;
+
     public function paymentsPdfByGroup($payments, $request, bool $stream)
     {
         if ($request->training_group_id != 0) {
             $group = TrainingGroup::query()->find($request->training_group_id);
         } else {
-            $group = new stdClass();
+            $group = new stdClass;
             $group->name = 'Todos los grupos';
         }
 
@@ -28,9 +29,10 @@ class PaymentExportService
 
         // return view()->file(resource_path("views/templates/pdf/payments/payments.blade.php"), $data)->render();
 
-        $filename = "Pagos.pdf";
+        $filename = 'Pagos.pdf';
         $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'payments/payments.blade.php');
+
         return $stream ? $this->stream($filename) : $this->output($filename);
     }
 
@@ -49,6 +51,7 @@ class PaymentExportService
         $filename = "Pagos torneos {$tournament->name} {$date}.pdf";
         $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'payments/tournaments.blade.php');
+
         return $stream ? $this->stream($filename) : $this->output($filename);
     }
 }

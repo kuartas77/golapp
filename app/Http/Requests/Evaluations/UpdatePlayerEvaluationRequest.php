@@ -42,7 +42,7 @@ class UpdatePlayerEvaluationRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => getSchool(auth()->user())->id
+            'school_id' => getSchool(auth()->user())->id,
         ]);
     }
 }

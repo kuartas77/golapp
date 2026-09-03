@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Inscriptions\Actions\Create;
 
-use Illuminate\Support\Facades\Storage;
-use Closure;
-use App\Service\Contracts\ContractTemplateService;
-use App\Traits\UploadFile;
-use App\Traits\PDFTrait;
-use App\Models\School;
 use App\Models\Player;
+use App\Models\School;
+use App\Service\Contracts\ContractTemplateService;
+use App\Traits\PDFTrait;
+use App\Traits\UploadFile;
+use Closure;
+use Illuminate\Support\Facades\Storage;
 
 final class CreateContractAction implements IContractPassable
 {
@@ -31,8 +31,7 @@ final class CreateContractAction implements IContractPassable
 
     public function __construct(
         private readonly ContractTemplateService $contractTemplateService
-    ) {
-    }
+    ) {}
 
     public function handle(Passable $passable, Closure $next)
     {
@@ -72,10 +71,10 @@ final class CreateContractAction implements IContractPassable
 
     private function makeDirectory(): void
     {
-        $base = 'tmp'. DIRECTORY_SEPARATOR .$this->school->slug;
+        $base = 'tmp'.DIRECTORY_SEPARATOR.$this->school->slug;
         $short = data_get($this->school, 'short_name', 'tmp');
         $folderPlayer = sprintf('%s-%s', $short, $this->player->unique_code);
-        $this->folderDocuments = trim($base, "/\\") . DIRECTORY_SEPARATOR . $folderPlayer;
+        $this->folderDocuments = trim($base, '/\\').DIRECTORY_SEPARATOR.$folderPlayer;
         Storage::disk('local')->makeDirectory($this->folderDocuments);
     }
 
@@ -98,7 +97,7 @@ final class CreateContractAction implements IContractPassable
         foreach ($this->contractTemplateService->availablePortalContracts($this->school) as $contractDefinition) {
             $code = $contractDefinition['code'];
 
-            if (($contractDefinition['requires_player_signature'] ?? false) && !isset($this->paths['sign_player'])) {
+            if (($contractDefinition['requires_player_signature'] ?? false) && ! isset($this->paths['sign_player'])) {
                 continue;
             }
 
@@ -108,7 +107,7 @@ final class CreateContractAction implements IContractPassable
                 continue;
             }
 
-            $relativePath = $this->folderDocuments . DIRECTORY_SEPARATOR . sprintf(
+            $relativePath = $this->folderDocuments.DIRECTORY_SEPARATOR.sprintf(
                 '%s %s.pdf',
                 $this->contractTemplateService->fileLabelForCode($code),
                 $year
@@ -153,8 +152,8 @@ final class CreateContractAction implements IContractPassable
         $lines = [
             'MANIFIESTO DE INTEGRIDAD DE DOCUMENTOS FIRMADOS',
             '',
-            'Inscripción: ' . $passable->getInscription()->unique_code,
-            'Fecha de firma: ' . $signedAt->format(DATE_ATOM),
+            'Inscripción: '.$passable->getInscription()->unique_code,
+            'Fecha de firma: '.$signedAt->format(DATE_ATOM),
             'Algoritmo: SHA-256',
             '',
         ];
@@ -162,13 +161,13 @@ final class CreateContractAction implements IContractPassable
         foreach ($this->documentHashes as $code => $hash) {
             $contractPath = array_values($this->paths['contracts'][$code])[0];
             $lines[] = basename($contractPath);
-            $lines[] = 'SHA-256: ' . $hash;
+            $lines[] = 'SHA-256: '.$hash;
             $lines[] = '';
         }
 
-        $manifestPath = $this->folderDocuments . DIRECTORY_SEPARATOR . 'MANIFIESTO_SHA256.txt';
+        $manifestPath = $this->folderDocuments.DIRECTORY_SEPARATOR.'MANIFIESTO_SHA256.txt';
 
-        if (!Storage::disk('local')->put($manifestPath, implode("\n", $lines))) {
+        if (! Storage::disk('local')->put($manifestPath, implode("\n", $lines))) {
             throw new \RuntimeException('No fue posible crear el manifiesto de hashes de la inscripción.');
         }
     }

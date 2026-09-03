@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Resources\API;
 
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 

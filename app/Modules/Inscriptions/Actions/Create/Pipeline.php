@@ -5,13 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Inscriptions\Actions\Create;
 
 use Illuminate\Pipeline\Pipeline as BasePipeline;
-use App\Modules\Inscriptions\Actions\Create\SendDocumentsAction;
-use App\Modules\Inscriptions\Actions\Create\Passable;
-use App\Modules\Inscriptions\Actions\Create\CreatePlayerAction;
-use App\Modules\Inscriptions\Actions\Create\CreatePeoplePlayerAction;
-use App\Modules\Inscriptions\Actions\Create\CreateInscriptionAction;
-use App\Modules\Inscriptions\Actions\Create\CreateContractAction;
-use App\Modules\Inscriptions\Actions\Create\InviteGuardianAction;
 
 final class Pipeline
 {
@@ -29,7 +22,7 @@ final class Pipeline
                 CreateInscriptionAction::class,
                 InviteGuardianAction::class,
                 CreateContractAction::class,
-                SendDocumentsAction::class
+                SendDocumentsAction::class,
             ])
             ->thenReturn();
     }

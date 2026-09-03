@@ -32,7 +32,7 @@ class TrainingSessionsController extends Controller
 
         $trainingSession = $this->repository->store($request->validated());
 
-        if (!$trainingSession) {
+        if (! $trainingSession) {
             return response()->json([
                 'message' => __('messages.error_general'),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -78,7 +78,7 @@ class TrainingSessionsController extends Controller
         $payload = $request->validated();
         unset($payload['user_id']);
 
-        if (!$this->repository->update($model, $payload)) {
+        if (! $this->repository->update($model, $payload)) {
             return response()->json([
                 'message' => __('messages.error_general'),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -94,7 +94,7 @@ class TrainingSessionsController extends Controller
     {
         $model = $this->repository->findAccessibleForMutationOrFail($trainingSession);
 
-        if (!$this->repository->destroy($model)) {
+        if (! $this->repository->destroy($model)) {
             return response()->json([
                 'message' => __('messages.error_general'),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);

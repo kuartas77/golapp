@@ -8,8 +8,6 @@ class SetTournamentPaymentRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -18,8 +16,6 @@ class SetTournamentPaymentRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -38,6 +34,6 @@ class SetTournamentPaymentRequest extends FormRequest
 
     private function cleanString($value)
     {
-        return preg_replace("/[^0-9]/", "", $value);
+        return preg_replace('/[^0-9]/', '', $value);
     }
 }

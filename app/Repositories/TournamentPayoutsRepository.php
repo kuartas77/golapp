@@ -19,21 +19,21 @@ class TournamentPayoutsRepository
 
     public function __construct(private TournamentPayout $tournamentPayout)
     {
-        $this->service = new TournamentPayoutService();
+        $this->service = new TournamentPayoutService;
     }
 
     public function search(array $data, bool $dataRaw = false, bool $deleted = false): array
     {
         $competitionGroup = CompetitionGroup::query()->schoolId()
-            ->when($deleted, fn($q) => $q->onlyTrashedRelations())->findOrFail($data['competition_group_id']);
+            ->when($deleted, fn ($q) => $q->onlyTrashedRelations())->findOrFail($data['competition_group_id']);
 
         $tournamentPayouts = $this->tournamentPayout->schoolId()->with(['inscription.player', 'tournament'])
-            ->when($deleted, fn($q) => $q->withTrashed())
-            ->when(!empty($data['tournament_id']), fn($q) => $q->where('tournament_id', $data['tournament_id']))
-            ->when(!empty($data['competition_group_id']), fn($q) => $q->where('competition_group_id', $data['competition_group_id']))
-            ->when(!empty($data['unique_code']), fn($q) => $q->where('unique_code', $data['unique_code']));
+            ->when($deleted, fn ($q) => $q->withTrashed())
+            ->when(! empty($data['tournament_id']), fn ($q) => $q->where('tournament_id', $data['tournament_id']))
+            ->when(! empty($data['competition_group_id']), fn ($q) => $q->where('competition_group_id', $data['competition_group_id']))
+            ->when(! empty($data['unique_code']), fn ($q) => $q->where('unique_code', $data['unique_code']));
 
-        if($dataRaw){
+        if ($dataRaw) {
             return $this->service->generateData($tournamentPayouts, $competitionGroup, $data, $deleted);
         }
 
@@ -46,14 +46,14 @@ class TournamentPayoutsRepository
 
         if ($deleted) {
             $query = $this->tournamentPayout->schoolId()->with([
-                'inscription' => fn($query) => $query->with(['player'])->withTrashed()
+                'inscription' => fn ($query) => $query->with(['player'])->withTrashed(),
             ])->withTrashed();
         }
 
         $query->where('tournament_id', $data['tournament_id'])
             ->where('competition_group_id', $data['competition_group_id'])
-            ->when(!empty($data['year']), fn($q) => $q->where('year', $data['year']))
-            ->when(!empty($data['unique_code']), fn($q) => $q->where('unique_code', $data['unique_code']))
+            ->when(! empty($data['year']), fn ($q) => $q->where('year', $data['year']))
+            ->when(! empty($data['unique_code']), fn ($q) => $q->where('unique_code', $data['unique_code']))
             ->orderBy('inscription_id', 'asc');
 
         return $query;
@@ -70,8 +70,8 @@ class TournamentPayoutsRepository
             $data['year'] = now()->year;
 
             $tournamentPayouts = $this->tournamentPayout->schoolId()->with(['inscription.player', 'tournament'])
-                ->when(!empty($data['tournament_id']), fn($q) => $q->where('tournament_id', $data['tournament_id']))
-                ->when(!empty($data['competition_group_id']), fn($q) => $q->where('competition_group_id', $data['competition_group_id']));
+                ->when(! empty($data['tournament_id']), fn ($q) => $q->where('tournament_id', $data['tournament_id']))
+                ->when(! empty($data['competition_group_id']), fn ($q) => $q->where('competition_group_id', $data['competition_group_id']));
 
             $competitionGroup = CompetitionGroup::query()->schoolId()->findOrFail($data['competition_group_id']);
 
@@ -95,9 +95,10 @@ class TournamentPayoutsRepository
                 DB::beginTransaction();
                 foreach ($idsDiff as $idDiff) {
                     $unique_code = $inscriptions->firstWhere('id', $idDiff)->unique_code ?? null;
-                    if (!$unique_code) {
+                    if (! $unique_code) {
 
-                        logger('inscription deshabilitada ' . $idDiff);
+                        logger('inscription deshabilitada '.$idDiff);
+
                         continue;
                     }
 
@@ -115,7 +116,7 @@ class TournamentPayoutsRepository
                             'school_id' => $school_id,
                             'tournament_id' => $data['tournament_id'],
                             'competition_group_id' => $data['competition_group_id'],
-                            'unique_code' => $unique_code
+                            'unique_code' => $unique_code,
                         ]
                     );
                 }
@@ -139,10 +140,12 @@ class TournamentPayoutsRepository
             DB::beginTransaction();
             $updated = $tournamentPayout->update($validated);
             DB::commit();
+
             return $updated;
         } catch (Exception $exception) {
             DB::rollBack();
             report($exception);
+
             return false;
         }
     }

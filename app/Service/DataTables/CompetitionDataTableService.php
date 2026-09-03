@@ -17,7 +17,7 @@ class CompetitionDataTableService
             ->filterColumn('status', fn ($query, $keyword) => $query->where('games.status', $keyword))
             ->editColumn('final_score', fn (Game $game) => $game->final_score_array)
             ->addColumn('status_label', fn (Game $game) => $game->status_label)
-            ->addColumn('period_locked', fn (Game $game) => !$this->periodPolicy->canMutateDate($game->date))
+            ->addColumn('period_locked', fn (Game $game) => ! $this->periodPolicy->canMutateDate($game->date))
             ->toJson();
     }
 }

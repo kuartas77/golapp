@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\Portal;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Portal\InscriptionRegisterRequest;
 use App\Models\School;
+use App\Modules\Inscriptions\Actions\Create\Pipeline as InscriptionsPipeline;
 use App\Service\Portal\DataProcessingPolicyService;
 use App\Service\Portal\GuardianEmailVerificationService;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use App\Modules\Inscriptions\Actions\Create\Pipeline as InscriptionsPipeline;
-use App\Http\Requests\Portal\InscriptionRegisterRequest;
-use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
@@ -89,8 +89,7 @@ class InscriptionsController extends Controller
         InscriptionRegisterRequest $request,
         GuardianEmailVerificationService $verificationService,
         DataProcessingPolicyService $policyService
-    )
-    {
+    ) {
         $response = [];
         $code = 200;
         $verificationConsumed = false;

@@ -9,7 +9,6 @@ use App\Traits\PDFTrait;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
-
 class AttendanceReportExportController extends Controller
 {
     use PDFTrait;
@@ -46,6 +45,7 @@ class AttendanceReportExportController extends Controller
     private function resolveReport(Request $request, string $report, AttendanceReportService $service): array
     {
         $request->merge(['school_id' => getSchool(auth()->user())->id]);
+
         return match ($report) {
             'monthly-player' => $this->monthlyPlayerRows($request, $service),
             'monthly-group' => $this->monthlyGroupRows($request, $service),
@@ -152,6 +152,6 @@ class AttendanceReportExportController extends Controller
 
     private function fileName(string $report, string $extension): string
     {
-        return "attendance-{$report}-" . now()->format('Ymd_His') . ".{$extension}";
+        return "attendance-{$report}-".now()->format('Ymd_His').".{$extension}";
     }
 }

@@ -3,28 +3,29 @@
 namespace App\Exports;
 
 use App\Service\Assist\AssistExportService;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 
-class AssistExport implements ShouldQueue, FromView, WithTitle, ShouldAutoSize, WithEvents
+class AssistExport implements FromView, ShouldAutoSize, ShouldQueue, WithEvents, WithTitle
 {
     use Exportable;
 
     private $params;
+
     private $deleted;
+
     private $group_name;
 
     /**
      * PaymentsExport constructor.
-     * @param array $params
-     * @param $deleted
      */
     public function __construct(array $params, $deleted)
     {
@@ -34,10 +35,11 @@ class AssistExport implements ShouldQueue, FromView, WithTitle, ShouldAutoSize, 
 
     public function view(): View
     {
-        list($assists, $classDays, $group_name, $group) = app(AssistExportService::class)->dataExport($this->params, $this->deleted);
+        [$assists, $classDays, $group_name, $group] = app(AssistExportService::class)->dataExport($this->params, $this->deleted);
 
         $this->group_name = $group_name;
         $group->instructors_names = $group->instructors_names;
+
         return view('exports.assists_excel', [
             'group' => $group,
             'assists' => $assists,
@@ -61,12 +63,12 @@ class AssistExport implements ShouldQueue, FromView, WithTitle, ShouldAutoSize, 
                 $lastColumn = $event->sheet->getHighestColumn();
                 $lastRow = $event->sheet->getHighestRow();
 
-                $range = 'A1:' . $lastColumn . $lastRow;
+                $range = 'A1:'.$lastColumn.$lastRow;
 
                 $event->sheet->getStyle($range)->applyFromArray([
                     'borders' => [
                         'allBorders' => [
-                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'borderStyle' => Border::BORDER_THIN,
                             'color' => ['argb' => '#000000'],
                         ],
                     ],
@@ -76,7 +78,7 @@ class AssistExport implements ShouldQueue, FromView, WithTitle, ShouldAutoSize, 
                     'horizontal' => Alignment::HORIZONTAL_CENTER,
                     'vertical' => Alignment::VERTICAL_CENTER,
                 ]);
-            }
+            },
         ];
     }
 }

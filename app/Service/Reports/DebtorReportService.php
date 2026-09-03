@@ -326,8 +326,7 @@ class DebtorReportService
         array $inscriptionIds = [],
         ?Carbon $asOf = null,
         ?string $excludedMonthlyField = null
-    ): Collection
-    {
+    ): Collection {
         return InvoiceItem::query()
             ->where('is_paid', false)
             ->whereNotNull('payment_id')
@@ -477,8 +476,7 @@ class DebtorReportService
         ?string $category,
         ?string $trainingGroup,
         ?int $trainingGroupId = null
-    ): array
-    {
+    ): array {
         return [
             'player_id' => $playerId,
             'inscription_id' => $inscriptionId,

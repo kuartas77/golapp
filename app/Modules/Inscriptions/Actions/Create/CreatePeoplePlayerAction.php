@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Inscriptions\Actions\Create;
 
-use Closure;
-use App\Repositories\PeopleRepository;
-use App\Models\Player;
 use App\Models\People;
+use App\Models\Player;
+use App\Repositories\PeopleRepository;
+use Closure;
 
 final class CreatePeoplePlayerAction implements IContractPassable
 {
@@ -58,5 +58,4 @@ final class CreatePeoplePlayerAction implements IContractPassable
             'position' => $passable->getPropertyFromData('tutor_position_held'),
         ];
     }
-
 }

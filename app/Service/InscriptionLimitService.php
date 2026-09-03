@@ -49,7 +49,7 @@ class InscriptionLimitService
         $school->loadMissing('settingsValues');
 
         $value = filter_var(
-            data_get($school, 'settings.' . Setting::MAX_INSCRIPTIONS),
+            data_get($school, 'settings.'.Setting::MAX_INSCRIPTIONS),
             FILTER_VALIDATE_INT,
             ['options' => ['min_range' => 0]]
         );

@@ -14,18 +14,20 @@ use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class TournamentPayoutsExport implements FromView, WithTitle, WithColumnFormatting, ShouldAutoSize
+class TournamentPayoutsExport implements FromView, ShouldAutoSize, WithColumnFormatting, WithTitle
 {
     use Exportable;
 
     private $data;
+
     private $deleted;
+
     private $tournament;
 
     /**
      * TournamentPayoutsExport constructor.
-     * @param Request $request
-     * @param $deleted
+     *
+     * @param  Request  $request
      */
     public function __construct(array $data, $deleted)
     {
@@ -38,16 +40,17 @@ class TournamentPayoutsExport implements FromView, WithTitle, WithColumnFormatti
         $payments = app(TournamentPayoutsRepository::class)->filterSelect($this->data, $this->deleted);
         $this->tournament = Tournament::query()->find($this->data['tournament_id']);
         $group = CompetitionGroup::query()->without(['inscriptions'])->find($this->data['competition_group_id']);
+
         return view('exports.tournament_payouts_excel', [
             'payments' => $payments->get(),
             'tournament' => $this->tournament,
-            'group' => $group
+            'group' => $group,
         ]);
     }
 
     public function title(): string
     {
-        return "Pagos torneos";
+        return 'Pagos torneos';
     }
 
     public function columnFormats(): array

@@ -7,7 +7,6 @@ use App\Models\School;
 use App\Models\User;
 use App\Repositories\InscriptionRepository;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
@@ -39,13 +38,11 @@ class VerifyInscriptionStatus extends Command
 
     /**
      * Execute the console command.
-     *
-     * @return int
      */
     public function handle(): int
     {
         $schools = School::with(['settingsValues', 'trainingGroups'])->where('is_enable', true)->get();
-        /** @var \App\Models\School $school */
+        /** @var School $school */
         foreach ($schools as $school) {
             try {
                 $trainingGroupId = $school->trainingGroups->sortBy('id')->first()?->id;

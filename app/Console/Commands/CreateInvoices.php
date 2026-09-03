@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Collection;
 class CreateInvoices extends Command
 {
     protected $signature = 'create:invoices';
+
     protected $description = 'Create monthly invoices';
 
     public function __construct(
@@ -28,13 +29,13 @@ class CreateInvoices extends Command
 
         School::query()
             ->with(['settingsValues'])
-            ->withWhereHas('inscriptions', fn($q) => $q->select(['id', 'player_id', 'school_id'])->where('year', now()->year))
-            ->where('is_enable',  true)
-            ->where('auto_invoice',  true)
+            ->withWhereHas('inscriptions', fn ($q) => $q->select(['id', 'player_id', 'school_id'])->where('year', now()->year))
+            ->where('is_enable', true)
+            ->where('auto_invoice', true)
             ->chunkById(10, function ($schools) use ($currentDate) {
 
                 foreach ($schools as $school) {
-                    if (!$school->hasSchoolPermission('school.feature.system_notify')) {
+                    if (! $school->hasSchoolPermission('school.feature.system_notify')) {
                         continue;
                     }
 
@@ -60,7 +61,8 @@ class CreateInvoices extends Command
                         }
 
                         if (is_null($inscription->training_group_id)) {
-                            logger("training_group_id is null", [$inscription->id, $inscription->training_group_id]);
+                            logger('training_group_id is null', [$inscription->id, $inscription->training_group_id]);
+
                             continue;
                         }
 
@@ -93,7 +95,7 @@ class CreateInvoices extends Command
                         }
                     }
 
-                    if ($school->hasSchoolPermission('school.feature.system_notify') && !empty($topics) && !empty($playerIds)) {
+                    if ($school->hasSchoolPermission('school.feature.system_notify') && ! empty($topics) && ! empty($playerIds)) {
                         $data = [
                             'school_id' => $school->id,
                             'notification_title' => 'Nueva factura de mensualidad',
@@ -114,11 +116,11 @@ class CreateInvoices extends Command
             $pendingMonth['description'] = $pendingMonth['name'];
             $pendingMonth['quantity'] = 1;
             $pendingMonth['unit_price'] = $pendingMonth['amount'];
+
             return $pendingMonth;
         }, $pendingMonths);
 
-
-        if (!empty($pendingUniformRequests)) {
+        if (! empty($pendingUniformRequests)) {
 
             $pendingRequest = array_map(function ($pending) {
                 $pending['type'] = 'additional';
@@ -126,6 +128,7 @@ class CreateInvoices extends Command
                 $pending['quantity'] = $pending['quantity'];
                 $pending['uniform_request_id'] = $pending['uniform_request_id'];
                 $pending['unit_price'] = $pending['unit_price'];
+
                 return $pending;
             }, $pendingUniformRequests);
 
@@ -140,6 +143,7 @@ class CreateInvoices extends Command
                 $pendingCharge['description'] = $customCharge['name'];
                 $pendingCharge['quantity'] = 1;
                 $pendingCharge['unit_price'] = $customCharge['value'];
+
                 return $pendingCharge;
             });
 

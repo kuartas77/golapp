@@ -120,6 +120,6 @@ class AttendancePaymentReportExportController extends Controller
 
     private function fileName(string $report, string $extension): string
     {
-        return "attendance-payment-{$report}-" . now()->format('Ymd_His') . ".{$extension}";
+        return "attendance-payment-{$report}-".now()->format('Ymd_His').".{$extension}";
     }
 }

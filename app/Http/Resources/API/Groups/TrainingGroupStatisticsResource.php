@@ -2,17 +2,17 @@
 
 namespace App\Http\Resources\API\Groups;
 
-use JsonSerializable;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Request;
-use Illuminate\Contracts\Support\Arrayable;
-use App\Models\TrainingGroup;
 use App\Models\Assist;
+use App\Models\TrainingGroup;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\DB;
+use JsonSerializable;
 
 class TrainingGroupStatisticsResource extends JsonResource
 {
-/**
+    /**
      * The resource that this resource collects.
      *
      * @var string
@@ -22,8 +22,7 @@ class TrainingGroupStatisticsResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @param Request $request
-     * @return array|Arrayable|JsonSerializable
+     * @param  Request  $request
      */
     public function toArray($request): array|JsonSerializable|Arrayable
     {
@@ -39,7 +38,7 @@ class TrainingGroupStatisticsResource extends JsonResource
             array_map('dayToNumber', $this->explode_days)
         );
 
-        $columns = $classDays->map(fn($classDay) => DB::raw("sum(case when {$classDay['column']} is not null then 1 else 0 end) as {$classDay['column']}"));
+        $columns = $classDays->map(fn ($classDay) => DB::raw("sum(case when {$classDay['column']} is not null then 1 else 0 end) as {$classDay['column']}"));
 
         if ($columns->isEmpty()) {
             return $this->statisticsResponse(0, 0);
@@ -53,7 +52,7 @@ class TrainingGroupStatisticsResource extends JsonResource
 
         $assist = $query->select($columns->toArray())->first();
 
-        $assistTaken = !is_null($assist) ? array_sum($assist->toArray()) : 0;
+        $assistTaken = ! is_null($assist) ? array_sum($assist->toArray()) : 0;
 
         $total = $columns->count() * $query->count();
 
@@ -71,7 +70,7 @@ class TrainingGroupStatisticsResource extends JsonResource
             'attendances_taken' => $assistTaken,
             'attendances_total' => $total,
             'attendances_no_taken' => $noTaken,
-            'avg' => $percentage
+            'avg' => $percentage,
         ];
     }
 }

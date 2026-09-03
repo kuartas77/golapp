@@ -47,9 +47,9 @@ class SchoolDataExportResource extends JsonResource
         }
 
         if ($bytes >= 1024 * 1024) {
-            return round($bytes / 1024 / 1024, 2) . ' MB';
+            return round($bytes / 1024 / 1024, 2).' MB';
         }
 
-        return round($bytes / 1024, 2) . ' KB';
+        return round($bytes / 1024, 2).' KB';
     }
 }

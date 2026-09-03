@@ -16,8 +16,7 @@ class GuardianPlayerExperienceController extends Controller
     public function __construct(
         private GuardianAccessService $guardianAccessService,
         private GuardianPlayerExperienceService $experienceService
-    ) {
-    }
+    ) {}
 
     public function sportsSummary(Request $request, int $player): JsonResponse
     {

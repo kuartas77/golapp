@@ -42,6 +42,7 @@ class TrainingSessionAttendanceService
             if (in_array((int) $status, self::PROTECTED_STATUSES, true)) {
                 $player['status_label'] = config('variables.KEY_ASSIST')[(int) $status] ?? 'Estado protegido';
                 $protectedPlayers[] = $player;
+
                 continue;
             }
 

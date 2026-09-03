@@ -9,11 +9,11 @@ use JsonSerializable;
 class InvoiceCollection extends ResourceCollection
 {
     public static $wrap = null;
+
     /**
      * Transform the resource into an array.
      *
-     * @param Request $request
-     * @return array|Arrayable|JsonSerializable
+     * @param  Request  $request
      */
     public function toArray($request): array|JsonSerializable|Arrayable
     {

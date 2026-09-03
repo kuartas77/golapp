@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Portal;
 
-use App\Models\School;
 use App\Http\Controllers\Controller;
+use App\Models\School;
 use App\Service\Contracts\ContractTemplateService;
 use App\Service\InscriptionLimitService;
 use App\Service\Portal\DataProcessingPolicyService;
@@ -16,8 +16,7 @@ class SchoolsController extends Controller
         private readonly ContractTemplateService $contractTemplateService,
         private readonly InscriptionLimitService $inscriptionLimitService,
         private readonly DataProcessingPolicyService $dataProcessingPolicyService
-    ) {
-    }
+    ) {}
 
     public function index()
     {
@@ -27,9 +26,10 @@ class SchoolsController extends Controller
     public function show($slug)
     {
         $school = School::query()->where('is_enable', true)->firstWhere('slug', $slug);
-        if(!$school) {
+        if (! $school) {
             return response('La escuela está deshabilitada', 404);
         }
+
         return view('portal.schools.show', compact('school'));
     }
 
@@ -98,7 +98,7 @@ class SchoolsController extends Controller
             'fileSizeMb' => 3,
             'storageKey' => "portal-inscription-form-{$school->slug}",
             'links' => [
-                'schoolIndex' => '',//route('portal.school.index.data'),
+                'schoolIndex' => '', // route('portal.school.index.data'),
                 'guardianLogin' => url('/portal/acudientes/login'),
                 'schoolLogin' => url('/login'),
             ],
@@ -120,11 +120,11 @@ class SchoolsController extends Controller
                 'url' => route('portal.school.data-processing-policy', [$school]),
             ],
             'options' => [
-                'genders' => Cache::remember('KEY_GENDERS', now()->addYear(), fn() => config('variables.KEY_GENDERS')),
+                'genders' => Cache::remember('KEY_GENDERS', now()->addYear(), fn () => config('variables.KEY_GENDERS')),
                 'relationships' => $this->cachedConfigOptions('KEY_RELATIONSHIPS_SELECT'),
-                'bloodTypes' => Cache::remember('KEY_BLOOD_TYPES', now()->addYear(), fn() => config('variables.KEY_BLOOD_TYPES')),
-                'documentTypes' => Cache::remember('KEY_DOCUMENT_TYPES', now()->addYear(), fn() => config('variables.KEY_DOCUMENT_TYPES')),
-                'jornada' => Cache::remember('KEY_JORNADA_TYPES', now()->addYear(), fn() => config('variables.KEY_JORNADA')),
+                'bloodTypes' => Cache::remember('KEY_BLOOD_TYPES', now()->addYear(), fn () => config('variables.KEY_BLOOD_TYPES')),
+                'documentTypes' => Cache::remember('KEY_DOCUMENT_TYPES', now()->addYear(), fn () => config('variables.KEY_DOCUMENT_TYPES')),
+                'jornada' => Cache::remember('KEY_JORNADA_TYPES', now()->addYear(), fn () => config('variables.KEY_JORNADA')),
             ],
             'recaptcha' => [
                 'enabled' => ! app()->environment(['local', 'testing']),

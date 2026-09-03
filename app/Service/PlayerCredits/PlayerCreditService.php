@@ -8,7 +8,6 @@ use App\Models\Payment;
 use App\Models\Player;
 use App\Models\PlayerCreditMovement;
 use Illuminate\Http\Response;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class PlayerCreditService

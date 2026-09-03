@@ -13,7 +13,10 @@ final class UserDTO
     use ToArray;
 
     public readonly ?int $id;
+
     public readonly string $name;
+
     public readonly string $email;
+
     public readonly int $school_id;
 }

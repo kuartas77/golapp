@@ -34,14 +34,14 @@ class RegisterRequest extends FormRequest
             'address' => ['nullable', 'string'],
             'phone' => ['nullable', 'string'],
             'slug' => ['required', 'string'],
-            'is_enable' => ['required']
+            'is_enable' => ['required'],
         ];
     }
 
     protected function prepareForValidation()
     {
         $this->merge([
-            'slug' => Str::slug($this->name)
+            'slug' => Str::slug($this->name),
         ]);
     }
 }

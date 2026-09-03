@@ -9,8 +9,8 @@ use App\Models\Inscription;
 use App\Models\People;
 use App\Models\Player;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class GuardianAccessService
 {
@@ -59,8 +59,8 @@ class GuardianAccessService
     {
         $player = $this->eligiblePlayersQuery($guardian)->firstWhere('players.id', $playerId);
 
-        if (!$player instanceof Player) {
-            throw (new ModelNotFoundException())->setModel(Player::class, [$playerId]);
+        if (! $player instanceof Player) {
+            throw (new ModelNotFoundException)->setModel(Player::class, [$playerId]);
         }
 
         return $player;
@@ -70,8 +70,8 @@ class GuardianAccessService
     {
         $inscription = $this->eligibleInscriptionsQuery($guardian)->find($inscriptionId);
 
-        if (!$inscription instanceof Inscription) {
-            throw (new ModelNotFoundException())->setModel(Inscription::class, [$inscriptionId]);
+        if (! $inscription instanceof Inscription) {
+            throw (new ModelNotFoundException)->setModel(Inscription::class, [$inscriptionId]);
         }
 
         return $inscription;

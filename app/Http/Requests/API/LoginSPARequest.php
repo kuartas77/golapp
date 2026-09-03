@@ -15,7 +15,7 @@ class LoginSPARequest extends FormRequest
     {
         return [
             'email' => ['required', 'string', 'email:rfc,dns'],
-            'password' => ['required']
+            'password' => ['required'],
         ];
     }
 }

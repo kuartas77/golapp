@@ -13,6 +13,7 @@ use Illuminate\Validation\ValidationException;
 class VisualResourceImageService
 {
     public const MODE_DIAGRAM = 'diagram';
+
     public const MODE_IMAGE = 'image';
 
     public const PLANNING_PHASE_KEYS = [
@@ -26,7 +27,7 @@ class VisualResourceImageService
     {
         $school = getSchool(auth()->user());
 
-        return $file->store($school->slug . '/methodology', 'public');
+        return $file->store($school->slug.'/methodology', 'public');
     }
 
     public function url(?string $path): ?string
@@ -55,7 +56,7 @@ class VisualResourceImageService
         collect($paths)->filter()->unique()->each(fn (string $path) => $this->delete($path));
     }
 
-    public function methodologyPayload(array $validated, array $input, array $files = [], MethodologyRecord $record = null): array
+    public function methodologyPayload(array $validated, array $input, array $files = [], ?MethodologyRecord $record = null): array
     {
         if (($validated['type'] ?? null) !== MethodologyRecord::TYPE_PLANNING) {
             $oldPaths = collect($record?->diagram_media ?? [])->pluck('path')->filter()->all();
@@ -118,7 +119,7 @@ class VisualResourceImageService
         return [array_replace($validated, ['diagram_media' => $media]), $newPaths, $deleteAfterCommit];
     }
 
-    public function sessionPayload(array $validated, array $input, array $files = [], TrainingSession $session = null): array
+    public function sessionPayload(array $validated, array $input, array $files = [], ?TrainingSession $session = null): array
     {
         $oldPhases = $session
             ? $session->phases()->get(['position', 'visual_mode', 'image_path'])->keyBy('position')

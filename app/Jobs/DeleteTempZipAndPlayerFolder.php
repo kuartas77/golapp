@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 class DeleteTempZipAndPlayerFolder implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
     /**
      * Ruta RELATIVA en el disk local. Ej: tmp/zips/ABC_uuid.zip
      */
@@ -22,16 +23,14 @@ class DeleteTempZipAndPlayerFolder implements ShouldQueue
 
     public function handle(): void
     {
-        retry(2, function() {
+        retry(2, function () {
 
             // Borrar el archivo (si ya no existe, no falla)
             Storage::disk('local')->delete($this->relativePath);
 
             Storage::disk('local')->deleteDirectory($this->playerFolder);
 
-        }, fn(\Exception $e) => report($e));
-
-
+        }, fn (\Exception $e) => report($e));
 
     }
 }

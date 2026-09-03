@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -13,7 +14,7 @@ class InscriptionController extends Controller
      *
      * @return Response
      */
-    public function index(): \Illuminate\Http\RedirectResponse
+    public function index(): RedirectResponse
     {
         return back();
     }
@@ -21,10 +22,9 @@ class InscriptionController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param Request $request
      * @return Response
      */
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         return back();
     }
@@ -32,10 +32,10 @@ class InscriptionController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param int $id
+     * @param  int  $id
      * @return Response
      */
-    public function show($id): \Illuminate\Http\RedirectResponse
+    public function show($id): RedirectResponse
     {
         return back();
     }
@@ -43,11 +43,10 @@ class InscriptionController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param Request $request
-     * @param int $id
+     * @param  int  $id
      * @return Response
      */
-    public function update(Request $request, $id): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, $id): RedirectResponse
     {
         return back();
     }
@@ -55,10 +54,10 @@ class InscriptionController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
+     * @param  int  $id
      * @return Response
      */
-    public function destroy($id): \Illuminate\Http\RedirectResponse
+    public function destroy($id): RedirectResponse
     {
         return back();
     }

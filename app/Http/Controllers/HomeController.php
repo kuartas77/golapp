@@ -12,14 +12,12 @@ use Illuminate\View\View;
 
 class HomeController extends Controller
 {
-
     private PaymentRepository $paymentRepository;
+
     private PlayerRepository $playerRepository;
 
     /**
      * Create a new controller instance.
-     *
-     * @param PaymentRepository $paymentRepository
      */
     public function __construct(PaymentRepository $paymentRepository, PlayerRepository $playerRepository)
     {
@@ -31,7 +29,6 @@ class HomeController extends Controller
     /**
      * Show the application dashboard.
      *
-     * @param Request $request
      * @return Application|Factory|JsonResponse|View
      */
     public function index(Request $request)

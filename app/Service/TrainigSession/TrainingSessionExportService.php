@@ -30,6 +30,7 @@ class TrainingSessionExportService
         $filename = "Sesion de entrenamiento {$trainingSession->training_group->name} {$date}.pdf";
         $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'training_session.blade.php');
+
         return $stream ? $this->stream($filename) : $this->output($filename);
     }
 
@@ -48,6 +49,7 @@ class TrainingSessionExportService
         $filename = "Planificacion de sesion {$trainingSession->training_group->name} {$trainingSession->date}.pdf";
         $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'session_planning.blade.php');
+
         return $stream ? $this->stream($filename) : $this->output($filename);
     }
 }

@@ -30,7 +30,7 @@ class SchoolPermissionsUpdateRequest extends FormRequest
             $allowedPermissions = array_keys(School::permissionCatalog());
             $unknownPermissions = array_diff(array_keys($permissions), $allowedPermissions);
 
-            if (!empty($unknownPermissions)) {
+            if (! empty($unknownPermissions)) {
                 $validator->errors()->add(
                     'permissions',
                     'Se encontraron permisos de escuela no válidos.'

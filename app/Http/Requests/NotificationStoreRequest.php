@@ -101,41 +101,29 @@ class NotificationStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'categories.required' =>
-            'Debes seleccionar al menos una categoría.',
+            'categories.required' => 'Debes seleccionar al menos una categoría.',
 
-            'categories.min' =>
-            'Debes seleccionar al menos una categoría.',
+            'categories.min' => 'Debes seleccionar al menos una categoría.',
 
-            'training_groups.required' =>
-            'Debes seleccionar al menos un grupo de entrenamiento.',
+            'training_groups.required' => 'Debes seleccionar al menos un grupo de entrenamiento.',
 
-            'training_groups.min' =>
-            'Debes seleccionar al menos un grupo de entrenamiento.',
+            'training_groups.min' => 'Debes seleccionar al menos un grupo de entrenamiento.',
 
-            'competition_groups.required' =>
-            'Debes seleccionar al menos un grupo de competencia.',
+            'competition_groups.required' => 'Debes seleccionar al menos un grupo de competencia.',
 
-            'competition_groups.min' =>
-            'Debes seleccionar al menos un grupo de competencia.',
+            'competition_groups.min' => 'Debes seleccionar al menos un grupo de competencia.',
 
-            'players.required' =>
-            'Debes seleccionar al menos un jugador.',
+            'players.required' => 'Debes seleccionar al menos un jugador.',
 
-            'players.min' =>
-            'Debes seleccionar al menos un jugador.',
+            'players.min' => 'Debes seleccionar al menos un jugador.',
 
-            'categories.*.integer' =>
-            'Las categorías seleccionadas no son válidas.',
+            'categories.*.integer' => 'Las categorías seleccionadas no son válidas.',
 
-            'training_groups.*.integer' =>
-            'Los grupos de entrenamiento seleccionados no son válidos.',
+            'training_groups.*.integer' => 'Los grupos de entrenamiento seleccionados no son válidos.',
 
-            'competition_groups.*.integer' =>
-            'Los grupos de competencia seleccionados no son válidos.',
+            'competition_groups.*.integer' => 'Los grupos de competencia seleccionados no son válidos.',
 
-            'players.*.integer' =>
-            'Los jugadores seleccionados no son válidos.',
+            'players.*.integer' => 'Los jugadores seleccionados no son válidos.',
         ];
     }
 

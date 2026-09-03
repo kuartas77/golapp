@@ -22,9 +22,7 @@ class MethodologyRecordController extends Controller
         private MethodologyRecordRepository $repository,
         private InstructorPeriodEditPolicy $periodEditPolicy,
         private VisualResourceImageService $visualImages,
-    )
-    {
-    }
+    ) {}
 
     public function index(Request $request): JsonResponse
     {

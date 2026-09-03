@@ -12,10 +12,7 @@ use Illuminate\Support\Facades\Storage;
 
 class PaymentRequestController extends Controller
 {
-    public function __construct(private PaymentRequestRepository $repository)
-    {
-
-    }
+    public function __construct(private PaymentRequestRepository $repository) {}
 
     public function index(Request $request)
     {
@@ -31,7 +28,7 @@ class PaymentRequestController extends Controller
         $paymentRequestModel = $this->repository->findForCurrentSchoolOrFail($paymentRequest);
         $path = $paymentRequestModel->image;
 
-        if (blank($path) || !Storage::disk('public')->exists($path)) {
+        if (blank($path) || ! Storage::disk('public')->exists($path)) {
             return response(null, 404);
         }
 
@@ -40,5 +37,4 @@ class PaymentRequestController extends Controller
             'Cache-Control' => 'private, no-store, max-age=0',
         ]);
     }
-
 }

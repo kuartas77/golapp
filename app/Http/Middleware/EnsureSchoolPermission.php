@@ -13,7 +13,7 @@ class EnsureSchoolPermission
 {
     public function handle(Request $request, Closure $next, string $permission): Response
     {
-        if (!auth()->check() || !schoolCan($permission)) {
+        if (! auth()->check() || ! schoolCan($permission)) {
             if ($request->expectsJson() || $request->is('api/*')) {
                 return new JsonResponse([
                     'message' => 'No tienes permiso para acceder a este módulo.',

@@ -34,7 +34,7 @@ class MethodologyRecordExportService
 
         $this->createPDF($data, 'methodology/record.blade.php');
 
-        $filename = Str::slug($this->typeLabel($record->type) . ' ' . $record->title) . '.pdf';
+        $filename = Str::slug($this->typeLabel($record->type).' '.$record->title).'.pdf';
 
         return $stream ? $this->stream($filename) : $this->output($filename);
     }

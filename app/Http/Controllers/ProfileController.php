@@ -15,7 +15,6 @@ class ProfileController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param Profile $profile
      * @return Application|Factory|RedirectResponse|View
      */
     public function show(Profile $profile)
@@ -23,16 +22,17 @@ class ProfileController extends Controller
         if (auth()->id() == $profile->user_id || isAdmin() || isSchool()) {
             $profile->load('user');
             view()->share('profile', $profile);
+
             return view('profile.show');
         }
         Alert::error(config('app.name'), __('messages.denied'));
+
         return redirect()->to('/');
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param Profile $profile
      * @return Application|Factory|RedirectResponse|View
      */
     public function edit(Profile $profile)
@@ -40,29 +40,28 @@ class ProfileController extends Controller
         if (auth()->id() == $profile->user_id) {
             $profile->load('user');
             view()->share('profile', $profile);
+
             return view('profile.edit');
         }
         Alert::error(config('app.name'), __('messages.denied'));
+
         return redirect()->to('/');
     }
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param ProfileUpdate $request
-     * @param Profile $profile
-     * @return RedirectResponse
      */
-    public
-    function update(ProfileUpdate $request, Profile $profile): RedirectResponse
+    public function update(ProfileUpdate $request, Profile $profile): RedirectResponse
     {
         if (auth()->id() !== $profile->user_id) {
             Alert::error(config('app.name'), __('messages.denied'));
+
             return redirect()->to('/');
         }
 
         $profile->fill($request->validated())->save();
         Alert::success(config('app.name'), __('messages.profile_save'));
+
         return redirect()->to('/perfil/usuario');
     }
 }

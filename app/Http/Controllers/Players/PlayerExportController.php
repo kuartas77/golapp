@@ -14,14 +14,15 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class PlayerExportController extends Controller
 {
     /**
-     * @param Player $player
-     * @return mixed
+     * @param  Player  $player
+     *
      * @throws MpdfException
      */
     public function exportPlayerPDF(string $uniqueCode, PlayerExportService $playerExportService): mixed
     {
         $school = getSchool(auth()->user());
         $player = Player::where('school_id', $school->id)->firstWhere('unique_code', $uniqueCode);
+
         return $playerExportService->makePDFPlayer($player);
     }
 
@@ -30,9 +31,6 @@ class PlayerExportController extends Controller
         return $playerExportService->makePDFInscriptionDetail($player_id, $inscription_id, $year, $quarter);
     }
 
-    /**
-     * @return BinaryFileResponse
-     */
     public function exportInscriptionsExcel(Request $request, PlayerExportService $playerExportService): BinaryFileResponse
     {
         $year = $request->integer('inscription_year') ?: now()->year;
@@ -43,5 +41,4 @@ class PlayerExportController extends Controller
             "Inscripciones {$year} {$date}.xlsx"
         );
     }
-
 }

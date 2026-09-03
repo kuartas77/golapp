@@ -2,16 +2,13 @@
 
 namespace App\Http\Requests\API;
 
-use Illuminate\Foundation\Http\FormRequest;
-use App\Dto\DtoContract;
 use App\Dto\AssistDTO;
+use Illuminate\Foundation\Http\FormRequest;
 
 class AssistsUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -20,8 +17,6 @@ class AssistsUpdateRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
     public function rules(): array
     {

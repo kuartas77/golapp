@@ -23,14 +23,12 @@ class GolAppProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton(FirebaseTopicChannel::class, function ($app) {
-            return new FirebaseTopicChannel();
+            return new FirebaseTopicChannel;
         });
     }
 
     /**
      * Bootstrap services.
-     *
-     * @return void
      */
     public function boot(): void
     {
@@ -75,6 +73,7 @@ class GolAppProvider extends ServiceProvider
                 if (in_array($key, $attributes, true)) {
                     return Str::mask($item, $character, $index, $length);
                 }
+
                 return $item;
             });
         });
@@ -90,7 +89,7 @@ class GolAppProvider extends ServiceProvider
     private function registerChannels()
     {
         Notification::extend('firebase-topic', function ($app) {
-            return new FirebaseTopicChannel();
+            return new FirebaseTopicChannel;
         });
     }
 }

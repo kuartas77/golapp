@@ -8,7 +8,7 @@ class AssistsService
 {
     public function getAssists(array $params)
     {
-        abort_if(!instructorCanAccessTrainingGroup($params['training_group_id'], (int) $params['year']), 404);
+        abort_if(! instructorCanAccessTrainingGroup($params['training_group_id'], (int) $params['year']), 404);
 
         return Assist::query()->schoolId()->with(['player'])
             ->where('training_group_id', $params['training_group_id'])

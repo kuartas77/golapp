@@ -15,17 +15,17 @@ use Illuminate\Support\Facades\DB;
 
 class HistoricController extends Controller
 {
-
     private TrainingGroupRepository $groupRepository;
+
     private AssistRepository $assistRepository;
+
     private PaymentRepository $paymentRepository;
 
     public function __construct(
         TrainingGroupRepository $groupRepository,
-        AssistRepository        $assistRepository,
-        PaymentRepository       $paymentRepository
-    )
-    {
+        AssistRepository $assistRepository,
+        PaymentRepository $paymentRepository
+    ) {
         $this->groupRepository = $groupRepository;
         $this->assistRepository = $assistRepository;
         $this->paymentRepository = $paymentRepository;
@@ -55,6 +55,7 @@ class HistoricController extends Controller
         view()->share('year', $year);
         view()->share('monthsG', $months);
         view()->share('trainingGroup', $trainingGroup);
+
         return view('assists.historic.show');
     }
 
@@ -73,11 +74,13 @@ class HistoricController extends Controller
     {
         if ($request->ajax()) {
             $request->merge(['school_id' => getSchool(auth()->user())->id]);
+
             return $this->paymentRepository->filter($request, true);
         }
         $trainingGroup = TrainingGroup::query()->schoolId()->withTrashed()->find($trainingGroup);
         view()->share('year', $year);
         view()->share('trainingGroup', $trainingGroup);
+
         return view('payments.historic.show');
     }
 }

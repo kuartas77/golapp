@@ -7,7 +7,7 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class AttendanceRowsExport implements FromCollection, WithHeadings, ShouldAutoSize
+class AttendanceRowsExport implements FromCollection, ShouldAutoSize, WithHeadings
 {
     public function __construct(
         private array $rows

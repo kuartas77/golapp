@@ -39,7 +39,6 @@ class SchedulesController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     *
      */
     public function create()
     {
@@ -49,21 +48,17 @@ class SchedulesController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param Request $request
-     * @return RedirectResponse
+     * @param  Request  $request
      */
     public function store(ScheduleRequest $request): RedirectResponse
     {
         $this->repository->store($request->validated());
+
         return redirect(route('schedules.index'));
     }
 
     /**
      * Display the specified resource.
-     *
-     * @param Schedule $schedule
-     * @param Request $request
-     * @return JsonResponse
      */
     public function show(Schedule $schedule, Request $request): JsonResponse
     {
@@ -72,9 +67,6 @@ class SchedulesController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param Schedule $schedule
-     * @return JsonResponse
      */
     public function edit(Schedule $schedule): JsonResponse
     {
@@ -84,21 +76,20 @@ class SchedulesController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param Request $request
-     * @param Schedule $schedule
-     * @return RedirectResponse
+     * @param  Request  $request
      */
     public function update(ScheduleRequest $request, Schedule $schedule): RedirectResponse
     {
         $this->repository->update($request->validated(), $schedule);
+
         return redirect(route('schedules.index'));
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param Schedule $schedule
      * @return void
+     *
      * @throws Exception
      */
     public function destroy(Schedule $schedule)
@@ -110,5 +101,4 @@ class SchedulesController extends Controller
         }
         abort(404);
     }
-
 }

@@ -8,8 +8,6 @@ class PlayerUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -18,8 +16,6 @@ class PlayerUpdateRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -72,11 +68,11 @@ class PlayerUpdateRequest extends FormRequest
         $people = [];
         for ($i = 0; $i <= 2; $i++) {
             $people[$i]['tutor'] = $i === 0;
-            $people[$i]['names'] = $this->{'names_' . $i} !== 'null' ? $this->{'names_' . $i} : null;
-            $people[$i]['phone'] = $this->{'phone_' . $i} !== 'null' ? $this->{'phone_' . $i} : null;
-            $people[$i]['business'] = $this->{'business_' . $i} !== 'null' ? $this->{'business_' . $i} : null;
-            $people[$i]['identification_card'] = $this->{'document_' . $i} !== 'null' ? $this->{'document_' . $i} : null;
-            $people[$i]['relationship'] = $this->{'relationship_' . $i} !== 'null' ? $this->{'relationship_' . $i} : null;
+            $people[$i]['names'] = $this->{'names_'.$i} !== 'null' ? $this->{'names_'.$i} : null;
+            $people[$i]['phone'] = $this->{'phone_'.$i} !== 'null' ? $this->{'phone_'.$i} : null;
+            $people[$i]['business'] = $this->{'business_'.$i} !== 'null' ? $this->{'business_'.$i} : null;
+            $people[$i]['identification_card'] = $this->{'document_'.$i} !== 'null' ? $this->{'document_'.$i} : null;
+            $people[$i]['relationship'] = $this->{'relationship_'.$i} !== 'null' ? $this->{'relationship_'.$i} : null;
 
             if (blank($people[$i]['names']) && blank($people[$i]['phone']) && blank($people[$i]['identification_card']) && blank($people[$i]['phone'])) {
                 unset($people[$i]);
@@ -86,7 +82,7 @@ class PlayerUpdateRequest extends FormRequest
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
             'people' => $people,
-            'mobile' => $this->phones
+            'mobile' => $this->phones,
         ]);
     }
 }

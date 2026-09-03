@@ -13,14 +13,13 @@ class UniqueGuardianEmail implements ValidationRule
     public function __construct(
         private readonly ?string $identificationCard = null,
         private readonly ?int $ignoreGuardianId = null
-    ) {
-    }
+    ) {}
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         $email = filled($value) ? mb_strtolower(trim((string) $value)) : null;
 
-        if (!checkEmail($email)) {
+        if (! checkEmail($email)) {
             return;
         }
 

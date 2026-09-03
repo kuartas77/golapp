@@ -34,7 +34,7 @@ class GuardianEvaluationPdfService
             'margin_left' => 12,
             'margin_right' => 12,
             'margin_top' => 12,
-            'margin_bottom' => 12
+            'margin_bottom' => 12,
         ]);
 
         $playerName = $evaluation->inscription->player?->full_names
@@ -57,10 +57,7 @@ class GuardianEvaluationPdfService
             now()->format('YmdHis')
         );
 
-         return $this->stream($fileName);
-
-
-
+        return $this->stream($fileName);
 
     }
 }

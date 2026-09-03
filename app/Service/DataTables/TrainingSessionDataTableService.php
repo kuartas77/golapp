@@ -31,7 +31,7 @@ class TrainingSessionDataTableService
             ->addColumn('training_group_name', fn ($model) => $model->training_group?->full_group ?? '')
             ->editColumn('date', fn ($model) => Carbon::parse($model->date)->format('Y-m-d'))
             ->editColumn('created_at', fn ($model) => $model->created_at?->format('Y-m-d'))
-            ->addColumn('period_locked', fn ($model) => !$this->periodPolicy->canMutateDate($model->date))
+            ->addColumn('period_locked', fn ($model) => ! $this->periodPolicy->canMutateDate($model->date))
             ->addColumn('export_pdf_url', $pdfUrl)->toJson();
     }
 }

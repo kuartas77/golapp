@@ -22,8 +22,7 @@ class GuardianInvoiceController extends Controller
         private GuardianAccessService $guardianAccessService,
         private InvoiceRepository $invoiceRepository,
         private PaymentRequestRepository $paymentRequestRepository
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -53,7 +52,7 @@ class GuardianInvoiceController extends Controller
             $this->eligiblePlayers($request)
         );
 
-        if (!$invoice) {
+        if (! $invoice) {
             return response()->json([
                 'data' => [
                     'message' => 'No fue posible registrar el comprobante de pago.',

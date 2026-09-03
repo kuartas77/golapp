@@ -93,12 +93,14 @@ class SessionPlanningController extends Controller
             throw ValidationException::withMessages(['date' => 'La sincronización de asistencias solo está disponible para el año actual.']);
         }
         $group = $this->repository->findAccessibleTrainingGroupOrFail((int) $validated['training_group_id'], $year);
+
         return response()->json(['data' => $this->attendanceService->context($group, $validated['date'])]);
     }
 
     private function serialize(TrainingSession $session): array
     {
         $session->loadMissing(['user:id,name', 'training_group:id,name,category,days,schedules', 'phases']);
+
         return [
             'id' => $session->id, 'creator_name' => $session->user?->name,
             'training_group_id' => $session->training_group_id, 'training_group_name' => $session->training_group?->full_group,

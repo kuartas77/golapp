@@ -27,7 +27,7 @@ class PlayerEvaluationScoreResource extends JsonResource
                     'weight' => $this->criterion->weight,
                     'sort_order' => $this->criterion->sort_order,
                     'is_required' => $this->criterion->is_required,
-                    'scale_options' => config('evaluations.scale_options.' . $this->criterion->score_type, []),
+                    'scale_options' => config('evaluations.scale_options.'.$this->criterion->score_type, []),
                 ];
             }),
         ];

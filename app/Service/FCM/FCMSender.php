@@ -13,7 +13,7 @@ class FCMSender
     private function factory(): self
     {
         $factory = (new Factory)
-        ->withServiceAccount(storage_path('app/notificaciones-golapp-firebase-adminsdk-fbsvc-59f943c55c.json'));
+            ->withServiceAccount(storage_path('app/notificaciones-golapp-firebase-adminsdk-fbsvc-59f943c55c.json'));
 
         $this->cloudMessaging = $factory->createMessaging();
 
@@ -23,12 +23,12 @@ class FCMSender
     private function makeMessage(string $topic): CloudMessage
     {
         $message = CloudMessage::new()
-        ->withData(['action' => 'sync_notifications'])
-        ->withNotification([
-            'title' => 'sync all notifications',
-            'body' => 'golapp-api'
-        ])
-        ->withTopic($topic);
+            ->withData(['action' => 'sync_notifications'])
+            ->withNotification([
+                'title' => 'sync all notifications',
+                'body' => 'golapp-api',
+            ])
+            ->withTopic($topic);
 
         return $message;
     }

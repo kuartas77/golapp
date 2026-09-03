@@ -11,8 +11,7 @@ class RowCard extends Component
         public string $colInside = '12',
         public ?string $colOutside = null,
         public string $margin = ''
-    ) {
-    }
+    ) {}
 
     public function render(): View
     {

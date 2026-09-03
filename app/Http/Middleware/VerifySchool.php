@@ -11,8 +11,6 @@ class VerifySchool
     /**
      * Handle an incoming request.
      *
-     * @param Request $request
-     * @param Closure $next
      * @return mixed
      */
     public function handle(Request $request, Closure $next)
@@ -21,7 +19,7 @@ class VerifySchool
 
             $school = getSchool(auth()->user());
 
-            if (!isAdmin() && (empty($school) || !$school->is_enable)) {
+            if (! isAdmin() && (empty($school) || ! $school->is_enable)) {
                 return $this->logout();
             }
         }

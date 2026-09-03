@@ -19,13 +19,13 @@ class AttendanceQrService
         $now = now();
         $inscription = Inscription::query()->schoolId()->where('unique_code', $uniqueCode)->where('year', $now->year)
             ->with(['player', 'trainingGroup' => fn ($query) => $query->withTrashed()])->first();
-        abort_if(!$inscription, 404, 'No encontramos una inscripción vigente para este código en el año actual.');
-        abort_if(!$inscription->trainingGroup, 422, 'La inscripción no tiene un grupo de entrenamiento disponible.');
+        abort_if(! $inscription, 404, 'No encontramos una inscripción vigente para este código en el año actual.');
+        abort_if(! $inscription->trainingGroup, 422, 'La inscripción no tiene un grupo de entrenamiento disponible.');
         $this->assertInstructorAccess($inscription->training_group_id, $now->year);
 
         $assist = Assist::query()->schoolId()->where('inscription_id', $inscription->id)
             ->where('year', $now->year)->where('month', $now->month)->first();
-        abort_if(!$assist, 404, 'No existe un registro de asistencia disponible para el mes actual.');
+        abort_if(! $assist, 404, 'No existe un registro de asistencia disponible para el mes actual.');
         $classDays = $this->classDays($assist, array_map('dayToNumber', $inscription->trainingGroup->explode_days));
 
         return [
@@ -55,12 +55,12 @@ class AttendanceQrService
             'inscription:id,player_id,unique_code,training_group_id,year,deleted_at',
             'inscription.player:id,names,last_names,unique_code',
         ])->find($assistId);
-        abort_if(!$assist, 404, 'No encontramos el registro de asistencia solicitado.');
+        abort_if(! $assist, 404, 'No encontramos el registro de asistencia solicitado.');
         abort_if($assist->inscription?->trashed(), 422, 'La inscripción está retirada; reactívala antes de modificar pagos o asistencias.');
         $this->assertInstructorAccess($assist->training_group_id, (int) $assist->year);
         $this->periodEditPolicy->assertCanMutateYearMonth((int) $assist->year, (int) $assist->getRawOriginal('month'), 'assist');
         abort_if((int) $assist->year !== now()->year || (int) $assist->getRawOriginal('month') !== now()->month, 422, 'La toma rápida de asistencia sólo permite registrar clases del mes actual.');
-        abort_if(!$assist->trainingGroup, 422, 'El grupo de entrenamiento asociado ya no está disponible.');
+        abort_if(! $assist->trainingGroup, 422, 'El grupo de entrenamiento asociado ya no está disponible.');
         $allowed = $this->classDays($assist, array_map('dayToNumber', $assist->trainingGroup->explode_days))->pluck('column');
         abort_unless($allowed->contains($column), 422, 'La clase seleccionada no corresponde a los días válidos del mes actual.');
         $assist->{$column} = 1;
@@ -71,7 +71,7 @@ class AttendanceQrService
 
     private function assertInstructorAccess(int $trainingGroupId, int $year): void
     {
-        abort_if(isInstructor() && !instructorCanAccessTrainingGroup($trainingGroupId, $year), 403, 'No tienes acceso al grupo de entrenamiento de este deportista.');
+        abort_if(isInstructor() && ! instructorCanAccessTrainingGroup($trainingGroupId, $year), 403, 'No tienes acceso al grupo de entrenamiento de este deportista.');
     }
 
     private function classDays(Assist $assist, array $days): Collection
@@ -80,6 +80,7 @@ class AttendanceQrService
             ->map(function (array $day) use ($assist) {
                 $column = $day['column'];
                 $value = data_get($assist, $column);
+
                 return [
                     'label' => sprintf('#%s · %s %s', $day['number_class'], Str::ucfirst($day['name']), $day['day']),
                     'date' => $day['date'], 'day' => Str::ucfirst($day['name']), 'column' => $column,

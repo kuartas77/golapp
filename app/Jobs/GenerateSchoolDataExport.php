@@ -16,9 +16,7 @@ class GenerateSchoolDataExport implements ShouldQueue
 
     public int $timeout = 900;
 
-    public function __construct(public int $schoolDataExportId)
-    {
-    }
+    public function __construct(public int $schoolDataExportId) {}
 
     public function handle(SchoolDataExportGenerator $generator): void
     {

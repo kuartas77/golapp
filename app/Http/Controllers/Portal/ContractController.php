@@ -16,8 +16,7 @@ class ContractController extends Controller
 
     public function __construct(
         private readonly ContractTemplateService $contractTemplateService
-    ) {
-    }
+    ) {}
 
     public function show(School $school, string $contractTypeCode)
     {
@@ -35,6 +34,6 @@ class ContractController extends Controller
         $this->setConfigurationMpdf($this->contractTemplateService->pdfConfiguration());
         $this->createPDF($data, $this->contractTemplateService->pdfViewForCode($contractTypeCode), false);
 
-        return $this->stream($this->contractTemplateService->fileLabelForCode($contractTypeCode) . '.pdf');
+        return $this->stream($this->contractTemplateService->fileLabelForCode($contractTypeCode).'.pdf');
     }
 }

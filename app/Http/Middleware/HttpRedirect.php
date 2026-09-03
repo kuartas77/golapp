@@ -10,14 +10,12 @@ class HttpRedirect
     /**
      * Handle an incoming request.
      *
-     * @param Request $request
-     * @param Closure $next
-     * @param string|null ...$guards
+     * @param  string|null  ...$guards
      * @return mixed
      */
     public function handle(Request $request, Closure $next)
     {
-        if (!$request->secure() && (bool) config('app.force_https')) {
+        if (! $request->secure() && (bool) config('app.force_https')) {
             return redirect()->secure($request->getRequestUri(), 301);
         }
 

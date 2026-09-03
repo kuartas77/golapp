@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Assists;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\AssistBulkUpdateRequest;
 use App\Http\Requests\AsistUpdateRequest;
+use App\Http\Requests\AssistBulkUpdateRequest;
 use App\Models\Assist;
 use App\Service\Assist\AssistActionService;
 use Illuminate\Contracts\Foundation\Application;
@@ -15,9 +15,7 @@ use Illuminate\Http\Request;
 
 class AssistController extends Controller
 {
-    public function __construct(private AssistActionService $actions)
-    {
-    }
+    public function __construct(private AssistActionService $actions) {}
 
     public function index(Request $request): Application|Factory|View|JsonResponse
     {

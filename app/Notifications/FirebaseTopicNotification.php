@@ -3,18 +3,23 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Notification;
 
 class FirebaseTopicNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     protected $topic;
+
     protected $topics;
+
     protected $condition;
+
     protected $title;
+
     protected $body;
+
     protected $data = [];
 
     public function __construct()
@@ -24,42 +29,48 @@ class FirebaseTopicNotification extends Notification implements ShouldQueue
 
     public static function create(): self
     {
-        return new static();
+        return new static;
     }
 
     public function toTopic(string $topic): self
     {
         $this->topic = $topic;
+
         return $this;
     }
 
     public function toTopics(array $topics): self
     {
         $this->topics = $topics;
+
         return $this;
     }
 
     public function withCondition(string $condition): self
     {
         $this->condition = $condition;
+
         return $this;
     }
 
     public function withTitle(string $title): self
     {
         $this->title = $title;
+
         return $this;
     }
 
     public function withBody(string $body): self
     {
         $this->body = $body;
+
         return $this;
     }
 
     public function withData(array $data): self
     {
         $this->data = array_merge($this->data, $data);
+
         return $this;
     }
 
@@ -71,7 +82,7 @@ class FirebaseTopicNotification extends Notification implements ShouldQueue
     public function toFirebaseTopic($notifiable): array
     {
         $message = [
-            'data' => $this->data
+            'data' => $this->data,
         ];
 
         if ($this->topic) {

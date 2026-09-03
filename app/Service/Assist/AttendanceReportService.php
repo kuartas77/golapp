@@ -56,7 +56,7 @@ class AttendanceReportService
     {
         return DB::table('vw_assists_detail as d')
             ->join('training_groups as tg', 'tg.id', '=', 'd.training_group_id')
-            ->selectRaw("
+            ->selectRaw('
                 d.school_id,
                 d.training_group_id,
                 tg.name as training_group_name,
@@ -73,7 +73,7 @@ class AttendanceReportService
                     SUM(CASE WHEN d.status_id = 1 THEN 1 ELSE 0 END) * 100 / NULLIF(COUNT(*), 0),
                     2
                 ) as porcentaje_asistencia
-            ")
+            ')
             ->where('d.year', $filters['year'])
             ->where('d.month', $filters['month'])
             ->when($filters['school_id'] ?? null, fn ($q, $schoolId) => $q->where('d.school_id', $schoolId))

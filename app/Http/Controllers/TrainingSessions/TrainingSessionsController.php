@@ -28,6 +28,7 @@ class TrainingSessionsController extends Controller
     public function create(): Factory|View|Application
     {
         $numberTasks = 0;
+
         return view('training_sessions.create', compact('numberTasks'));
     }
 
@@ -35,12 +36,14 @@ class TrainingSessionsController extends Controller
     {
         $trainingSession = $this->repository->store($request->validated());
 
-        if($trainingSession){
+        if ($trainingSession) {
             Alert::success(env('APP_NAME'), __('messages.training_session_created'));
+
             return redirect()->to(route('training-sessions.index'));
         }
 
         Alert::error(env('APP_NAME'), __('messages.error_general'));
+
         return back()->withInput($request->input());
     }
 
@@ -55,12 +58,14 @@ class TrainingSessionsController extends Controller
     {
         $trainingSession = $this->repository->update($trainingSession, $request->validated());
 
-        if($trainingSession){
+        if ($trainingSession) {
             Alert::success(env('APP_NAME'), __('Actualizado'));
+
             return redirect()->to(route('training-sessions.index'));
         }
 
         Alert::error(env('APP_NAME'), __('messages.error_general'));
+
         return back()->withInput($request->input());
     }
 }

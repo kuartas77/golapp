@@ -198,7 +198,7 @@ class ContractTemplateService
                 $type = $this->resolveType($code);
                 $contract = $contracts->firstWhere('contract_type_id', $type['contract_type_id']);
 
-                if (!$this->isConfiguredContract($contract)) {
+                if (! $this->isConfiguredContract($contract)) {
                     return null;
                 }
 
@@ -237,7 +237,7 @@ class ContractTemplateService
             ->where('school_id', $school->id)
             ->firstWhere('contract_type_id', $type['contract_type_id']);
 
-        if (!$this->isConfiguredContract($contract)) {
+        if (! $this->isConfiguredContract($contract)) {
             return null;
         }
 
@@ -407,7 +407,7 @@ class ContractTemplateService
     {
         return collect($fields)
             ->flatMap(function (?string $field) {
-                if (!is_string($field) || trim($field) === '') {
+                if (! is_string($field) || trim($field) === '') {
                     return [];
                 }
 
@@ -424,7 +424,7 @@ class ContractTemplateService
 
     public function usedParametersForContract(?Contract $contract): array
     {
-        if (!$contract instanceof Contract) {
+        if (! $contract instanceof Contract) {
             return [];
         }
 
@@ -480,7 +480,7 @@ class ContractTemplateService
                     $query->orWhere('id', $type['fallback_id']);
                 }
 
-                if (!empty($type['fallback_name'])) {
+                if (! empty($type['fallback_name'])) {
                     $query->orWhere('name', $type['fallback_name']);
                 }
             })
@@ -507,7 +507,7 @@ class ContractTemplateService
         $footer = (string) $contract->footer;
 
         foreach ($parameters as $parameter) {
-            if (!array_key_exists($parameter, $variables)) {
+            if (! array_key_exists($parameter, $variables)) {
                 continue;
             }
 
@@ -524,7 +524,7 @@ class ContractTemplateService
 
     private function normalizeParameters(?string $parameters): array
     {
-        if (!is_string($parameters) || trim($parameters) === '') {
+        if (! is_string($parameters) || trim($parameters) === '') {
             return [];
         }
 
@@ -538,7 +538,7 @@ class ContractTemplateService
 
     private function isConfiguredContract(?Contract $contract): bool
     {
-        if (!$contract instanceof Contract) {
+        if (! $contract instanceof Contract) {
             return false;
         }
 
@@ -547,14 +547,14 @@ class ContractTemplateService
 
     private function schoolSignaturePath(School $school): string
     {
-        $path = storage_path('app/public/' . $school->slug . '/firma10+pro.jpg');
+        $path = storage_path('app/public/'.$school->slug.'/firma10+pro.jpg');
 
         return is_file($path) ? $path : $this->fallbackSignaturePath($school);
     }
 
     private function schoolAssetPath(School $school, string $filename): string
     {
-        $path = storage_path('app/public/' . $school->slug . '/' . $filename);
+        $path = storage_path('app/public/'.$school->slug.'/'.$filename);
 
         return is_file($path) ? $path : $school->logo_local;
     }
@@ -566,6 +566,6 @@ class ContractTemplateService
 
     private function localPath(string $relativePath): string
     {
-        return storage_path('app/' . ltrim($relativePath, '/'));
+        return storage_path('app/'.ltrim($relativePath, '/'));
     }
 }

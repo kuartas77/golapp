@@ -11,6 +11,7 @@ class ErrorLog extends Mailable
     use Queueable, SerializesModels;
 
     public $message;
+
     public $context;
 
     /**

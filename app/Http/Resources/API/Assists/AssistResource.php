@@ -2,11 +2,10 @@
 
 namespace App\Http\Resources\API\Assists;
 
-use JsonSerializable;
 use App\Models\Assist;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\API\Players\PlayerResource;
+use JsonSerializable;
 
 class AssistResource extends JsonResource
 {
@@ -20,8 +19,7 @@ class AssistResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @param Request $request
-     * @return array|Arrayable|JsonSerializable
+     * @param  Request  $request
      */
     public function toArray($request): array|JsonSerializable|Arrayable
     {
@@ -34,7 +32,7 @@ class AssistResource extends JsonResource
             'month' => $request->month,
             'column' => $request->column,
             'value' => $this->{$request->column},
-            'player_id' => $this->whenLoaded('player', $this->player->id)
+            'player_id' => $this->whenLoaded('player', $this->player->id),
         ];
     }
 }

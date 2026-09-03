@@ -2,60 +2,44 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CompetitionGroup;
 use App\Models\Master;
 use App\Models\Tournament;
-use Illuminate\Http\Request;
-use App\Models\CompetitionGroup;
-use Illuminate\Http\JsonResponse;
-use App\Repositories\PlayerRepository;
 use App\Repositories\InscriptionRepository;
+use App\Repositories\PlayerRepository;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class MasterController extends Controller
 {
+    public function __construct(private PlayerRepository $playerRepository, private InscriptionRepository $inscriptionRepository) {}
 
-    public function __construct(private PlayerRepository $playerRepository, private InscriptionRepository $inscriptionRepository)
-    {
-    }
-
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function autoComplete(Request $request): JsonResponse
     {
         abort_unless(($request->wantsJson() || $request->ajax()), 401);
+
         return response()->json(Master::getAutocomplete($request));
     }
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function existDocument(Request $request): JsonResponse
     {
         abort_unless(($request->wantsJson() || $request->ajax()), 401);
+
         return $this->responseJson($this->playerRepository->checkDocumentExists($request->input('doc')));
     }
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function codeUniqueVerify(Request $request): JsonResponse
     {
         abort_unless(($request->wantsJson() || $request->ajax()), 401);
+
         return $this->responseJson($this->playerRepository->checkUniqueCode($request->input('unique_code')));
     }
 
-
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function listUniqueCode(Request $request): JsonResponse
     {
         abort_unless(($request->wantsJson() || $request->ajax()), 401);
         $players = $this->playerRepository->getListPlayersNotInscription($request->filled('trashed'));
+
         return $this->responseJson($players);
     }
 
@@ -63,13 +47,10 @@ class MasterController extends Controller
     {
         abort_unless(($request->wantsJson() || $request->ajax()), 401);
         $players = $this->playerRepository->getListPlayersWithInscription($request->filled('trashed'));
+
         return $this->responseJson($players);
     }
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function searchUniqueCode(Request $request): JsonResponse
     {
         abort_unless(($request->wantsJson() || $request->ajax()), 401);
@@ -79,6 +60,7 @@ class MasterController extends Controller
         } else {
             $response = $this->inscriptionRepository->searchInscriptionCompetition($request->only(['unique_code', 'competition_group_id']));
         }
+
         return $this->responseJson($response);
     }
 
@@ -88,6 +70,7 @@ class MasterController extends Controller
         $response = Tournament::query()->schoolId()->orderBy('id')->get()->map(function ($tournament) {
             return ['id' => $tournament->id, 'text' => $tournament->name];
         });
+
         return $this->responseJson($response);
     }
 
@@ -97,6 +80,7 @@ class MasterController extends Controller
         $response = CompetitionGroup::query()->schoolId()->where('tournament_id', $request->tournament_id)->orderBy('name')->get()->map(function ($group) {
             return ['id' => $group->id, 'text' => $group->full_name_group];
         });
+
         return $this->responseJson($response);
     }
 

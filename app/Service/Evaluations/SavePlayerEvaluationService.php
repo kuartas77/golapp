@@ -19,7 +19,7 @@ class SavePlayerEvaluationService
                 [
                     'inscription_id' => $inscriptionId,
                     'evaluation_period_id' => $data['evaluation_period_id'],
-                    'school_id' => $data['school_id']
+                    'school_id' => $data['school_id'],
                 ],
                 [
                     'evaluation_template_id' => $data['evaluation_template_id'],
@@ -52,7 +52,7 @@ class SavePlayerEvaluationService
 
             $errors = $this->calculator->validateScores($evaluation);
 
-            if (!empty($errors)) {
+            if (! empty($errors)) {
                 throw new \DomainException(implode(' ', $errors));
             }
 

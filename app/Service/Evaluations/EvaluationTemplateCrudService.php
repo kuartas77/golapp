@@ -150,20 +150,20 @@ class EvaluationTemplateCrudService
 
     private function generateUniqueCode(string $dimension, string $name, array $usedCodes, int $fallbackIndex): string
     {
-        $baseCode = (string) Str::of(Str::ascii(trim($dimension . ' ' . $name)))
+        $baseCode = (string) Str::of(Str::ascii(trim($dimension.' '.$name)))
             ->replaceMatches('/[^A-Za-z0-9]+/', ' ')
             ->trim()
             ->snake();
 
         if ($baseCode === '') {
-            $baseCode = 'criterion_' . $fallbackIndex;
+            $baseCode = 'criterion_'.$fallbackIndex;
         }
 
         $candidate = $baseCode;
         $suffix = 2;
 
         while (in_array($candidate, $usedCodes, true)) {
-            $candidate = $baseCode . '_' . $suffix;
+            $candidate = $baseCode.'_'.$suffix;
             $suffix += 1;
         }
 
@@ -188,6 +188,7 @@ class EvaluationTemplateCrudService
             ->where(function ($query) use ($template) {
                 if ($template->training_group_id) {
                     $query->where('training_group_id', $template->training_group_id);
+
                     return;
                 }
 

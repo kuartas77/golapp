@@ -16,7 +16,7 @@ class InscriptionSheetsExport implements WithMultipleSheets
     private Collection $players;
 
     /**
-     * @param Collection<string, EloquentCollection<int, Player>> $data
+     * @param  Collection<string, EloquentCollection<int, Player>>  $data
      */
     public function __construct(Collection $data)
     {

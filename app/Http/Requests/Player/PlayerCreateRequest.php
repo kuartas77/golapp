@@ -8,8 +8,6 @@ class PlayerCreateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -18,8 +16,6 @@ class PlayerCreateRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -85,7 +81,7 @@ class PlayerCreateRequest extends FormRequest
 
         $this->merge([
             'school_id' => getSchool(auth()->user())->id,
-            'people' => array_values($people)
+            'people' => array_values($people),
         ]);
     }
 }

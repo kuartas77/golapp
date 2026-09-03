@@ -16,8 +16,11 @@ use Illuminate\Validation\ValidationException;
 class GuardianEmailVerificationService
 {
     private const CODE_TTL_SECONDS = 600;
+
     private const RESEND_SECONDS = 60;
+
     private const TOKEN_TTL_SECONDS = 1800;
+
     private const MAX_CODE_ATTEMPTS = 5;
 
     public function requestCode(School $school, string $document, string $email, string $ip): array

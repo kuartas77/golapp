@@ -36,7 +36,7 @@ class GuardianLoginRequest extends FormRequest
 
     private function shouldValidateRecaptcha(): bool
     {
-        return !$this->is('api/notify/v2/guardians/login')
-            && !app()->environment(['local', 'testing']);
+        return ! $this->is('api/notify/v2/guardians/login')
+            && ! app()->environment(['local', 'testing']);
     }
 }

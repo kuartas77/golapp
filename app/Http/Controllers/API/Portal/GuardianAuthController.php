@@ -25,8 +25,7 @@ class GuardianAuthController extends Controller
     public function __construct(
         private GuardianAccessService $guardianAccessService,
         private GuardianInvitationService $guardianInvitationService
-    ) {
-    }
+    ) {}
 
     public function login(GuardianLoginRequest $request): JsonResponse
     {
@@ -46,13 +45,13 @@ class GuardianAuthController extends Controller
         /** @var People $guardian */
         $guardian = $guardians->first();
 
-        if (blank($guardian->password) || !Hash::check((string) $request->validated('password'), $guardian->password)) {
+        if (blank($guardian->password) || ! Hash::check((string) $request->validated('password'), $guardian->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Las credenciales son incorrectas o la cuenta no está disponible.'],
             ]);
         }
 
-        if (!$this->guardianAccessService->hasEligiblePlayers($guardian)) {
+        if (! $this->guardianAccessService->hasEligiblePlayers($guardian)) {
             throw ValidationException::withMessages([
                 'email' => ['Las credenciales son incorrectas o la cuenta no está disponible.'],
             ]);

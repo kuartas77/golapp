@@ -8,8 +8,6 @@ use App\Models\InvoiceCustomItem;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
 
-use function Laravel\Prompts\alert;
-
 class InvoiceCustomItemController extends Controller
 {
     public function index(Request $request)
@@ -22,7 +20,7 @@ class InvoiceCustomItemController extends Controller
 
         $response = [];
         try {
-            $invoiceCustomItem = new InvoiceCustomItem();
+            $invoiceCustomItem = new InvoiceCustomItem;
             $invoiceCustomItem->type = $request->type;
             $invoiceCustomItem->name = $request->name;
             $invoiceCustomItem->unit_price = $request->unit_price;
@@ -46,6 +44,7 @@ class InvoiceCustomItemController extends Controller
     public function show($id)
     {
         $invoiceCustomItem = InvoiceCustomItem::query()->schoolId()->firstWhere('id', $id);
+
         return response()->json($invoiceCustomItem);
     }
 
@@ -79,6 +78,7 @@ class InvoiceCustomItemController extends Controller
         $invoiceCustomItem = InvoiceCustomItem::query()->schoolId()->firstWhere('id', $id);
         $invoiceCustomItem->forceDelete();
         Alert::success(env('APP_NAME'), 'eliminado correctamente');
+
         return back();
     }
 }

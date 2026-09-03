@@ -28,31 +28,25 @@ class InscriptionTGroupController extends Controller
         $groups->prepend($firstGroup->full_schedule_group, $firstGroup->id);
 
         view()->share('groups', $groups);
+
         return view('groups.training.admin_group');
     }
 
-    /**
-     * @param TrainingGroup $trainingGroup
-     * @return JsonResponse
-     */
     public function makeRows(TrainingGroup $trainingGroup): JsonResponse
     {
         return response()->json(['rows' => $this->repository->makeRows($trainingGroup)]);
     }
 
-    /**
-     * @param $inscription_id
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function assignGroup($inscription_id, Request $request, SharedService $sharedService): JsonResponse
     {
         if ($request->ajax()) {
-            if ($sharedService->assignTrainingGroup($inscription_id, $request))
+            if ($sharedService->assignTrainingGroup($inscription_id, $request)) {
                 return $this->responseJson(true, 200);
-            else
+            } else {
                 return $this->responseJson(false, 404);
+            }
         }
+
         return $this->responseJson(false, 404);
     }
 }

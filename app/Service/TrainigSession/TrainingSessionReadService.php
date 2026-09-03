@@ -13,8 +13,7 @@ class TrainingSessionReadService
         private TrainingSessionRepository $repository,
         private TrainingSessionAttendanceService $attendanceService,
         private InstructorPeriodEditPolicy $periodEditPolicy,
-    ) {
-    }
+    ) {}
 
     public function attendanceContext(array $validated): array
     {

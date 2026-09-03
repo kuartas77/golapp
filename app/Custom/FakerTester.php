@@ -7,8 +7,8 @@ use Illuminate\Foundation\Testing\WithFaker;
 
 class FakerTester
 {
-    use WithFaker;
     use UploadFile;
+    use WithFaker;
 
     public function __construct()
     {
@@ -22,7 +22,7 @@ class FakerTester
 
     public function payment_method()
     {
-        return $this->faker()->randomElement(['CASH','CARD','TRANSFER','CHECK','OTHER']);
+        return $this->faker()->randomElement(['CASH', 'CARD', 'TRANSFER', 'CHECK', 'OTHER']);
     }
 
     public function status()

@@ -12,9 +12,7 @@ class RedirectIfAuthenticated
     /**
      * Handle an incoming request.
      *
-     * @param Request $request
-     * @param Closure $next
-     * @param string|null ...$guards
+     * @param  string|null  ...$guards
      * @return mixed
      */
     public function handle(Request $request, Closure $next, ...$guards)
@@ -23,9 +21,10 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                if($guard == 'players'){
+                if ($guard == 'players') {
                     return redirect(RouteServiceProvider::PLAYER);
                 }
+
                 return redirect(RouteServiceProvider::HOME);
             }
         }

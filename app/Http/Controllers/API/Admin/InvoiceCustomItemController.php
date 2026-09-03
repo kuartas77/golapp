@@ -30,7 +30,7 @@ class InvoiceCustomItemController extends Controller
     public function store(InvoiceCustomItemRequest $request): JsonResponse
     {
         return $this->persistItem(
-            new InvoiceCustomItem(),
+            new InvoiceCustomItem,
             $request,
             'Item personalizado creado correctamente.',
             201

@@ -3,15 +3,15 @@
 namespace App\Console\Commands;
 
 use App\Models\Assist;
-use App\Models\School;
 use App\Models\Inscription;
+use App\Models\School;
 use App\Models\TrainingGroup;
-use Illuminate\Console\Command;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use App\Repositories\AssistRepository;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class CreateAssistsOnEndMonth extends Command
 {
@@ -41,16 +41,15 @@ class CreateAssistsOnEndMonth extends Command
 
     /**
      * Execute the console command.
-     *
-     * @return int
      */
     public function handle(): int
     {
         try {
-            $currentDate = $this->option('date') ? Carbon::parse($this->option('date')): now();
+            $currentDate = $this->option('date') ? Carbon::parse($this->option('date')) : now();
 
-            if (!$currentDate->isLastOfMonth()) {
+            if (! $currentDate->isLastOfMonth()) {
                 logger(__CLASS__, [$currentDate->format('Y-m-d H:i:s')]);
+
                 return self::SUCCESS;
             }
 

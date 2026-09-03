@@ -12,8 +12,7 @@ class AssistActionService
     public function __construct(
         private AssistRepository $repository,
         private InstructorPeriodEditPolicy $periodEditPolicy
-    ) {
-    }
+    ) {}
 
     public function search(Request $request): array
     {
@@ -128,7 +127,7 @@ class AssistActionService
 
         $observations = '';
         foreach ($assist->observations as $date => $observation) {
-            $observations .= $date . ': ' . $observation . PHP_EOL;
+            $observations .= $date.': '.$observation.PHP_EOL;
         }
 
         return $observations;

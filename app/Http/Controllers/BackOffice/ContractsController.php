@@ -2,23 +2,24 @@
 
 namespace App\Http\Controllers\BackOffice;
 
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Arr;
-use Illuminate\Http\Request;
-use App\Models\Contract;
 use App\Http\Controllers\Controller;
+use App\Models\Contract;
+use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 class ContractsController extends Controller
 {
     public function index()
     {
         $contracts = Contract::with(['school', 'contract_type'])->get();
-        return view("backoffice.contracts.index", compact('contracts'));
+
+        return view('backoffice.contracts.index', compact('contracts'));
     }
 
     public function create()
     {
-        $contract = new Contract();
+        $contract = new Contract;
+
         return view('backoffice.contracts.create', compact('contract'));
     }
 
@@ -29,13 +30,13 @@ class ContractsController extends Controller
         // $parameters = array_values(array_unique(Arr::collapse($parameters)));
         $parameters = $this->getParameters($request->only(['header', 'body', 'footer']));
 
-        $contract = new Contract();
+        $contract = new Contract;
         $contract->name = $request->input('name');
         $contract->school_id = $request->input('school_id');
         $contract->header = $request->input('header');
         $contract->body = $request->input('body');
         $contract->footer = $request->input('footer');
-        $contract->parameters = join(',', $parameters);
+        $contract->parameters = implode(',', $parameters);
         $contract->save();
 
         return redirect(route('config.contracts.index'));
@@ -54,16 +55,13 @@ class ContractsController extends Controller
         $contract->header = $request->input('header');
         $contract->body = $request->input('body');
         $contract->footer = $request->input('footer');
-        $contract->parameters = join(',', $parameters);
+        $contract->parameters = implode(',', $parameters);
         $contract->save();
 
         return redirect(route('config.contracts.index'));
     }
 
-    public function show(Contract $contract)
-    {
-
-    }
+    public function show(Contract $contract) {}
 
     private function getParameters(array $fields)
     {
@@ -72,6 +70,7 @@ class ContractsController extends Controller
             preg_match_all('/\\[[^\\]]*\\]/i', $field, $step);
             $parameters[] = Arr::collapse($step);
         }
+
         return array_values(array_unique(Arr::collapse($parameters)));
     }
 }

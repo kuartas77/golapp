@@ -70,8 +70,9 @@ class PortalGuardiansBackfill extends Command
             );
         }
 
-        if (!$shouldSend) {
+        if (! $shouldSend) {
             $this->info('Diagnóstico completado. Usa --send para enviar invitaciones a los acudientes invitables.');
+
             return self::SUCCESS;
         }
 
@@ -80,6 +81,7 @@ class PortalGuardiansBackfill extends Command
 
         if ($invitable->isEmpty()) {
             $this->info('No hay acudientes pendientes por invitar.');
+
             return self::SUCCESS;
         }
 
@@ -88,6 +90,7 @@ class PortalGuardiansBackfill extends Command
 
             if ($invited) {
                 $sent++;
+
                 return;
             }
 

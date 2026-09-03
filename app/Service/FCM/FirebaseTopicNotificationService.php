@@ -2,8 +2,8 @@
 
 namespace App\Service\FCM;
 
-use Kreait\Firebase\Factory;
 use Kreait\Firebase\Exception\MessagingException;
+use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
 
@@ -38,13 +38,13 @@ class FirebaseTopicNotificationService
             // Enviar el mensaje
             $response = $this->messaging->send($message);
 
-            logger("response-send-topic-fcm", [$response]);
+            logger('response-send-topic-fcm', [$response]);
 
             return [
                 'success' => true,
                 // 'message_id' => $response->id(),
                 'token' => $token,
-                'data' => $data
+                'data' => $data,
             ];
 
         } catch (MessagingException $e) {
@@ -53,7 +53,7 @@ class FirebaseTopicNotificationService
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'token' => $token
+                'token' => $token,
             ];
         }
     }
@@ -80,13 +80,13 @@ class FirebaseTopicNotificationService
             // Enviar el mensaje
             $response = $this->messaging->send($message);
 
-            logger("response-send-topic-fcm", [$response]);
+            logger('response-send-topic-fcm', [$response]);
 
             return [
                 'success' => true,
                 // 'message_id' => $response->id(),
                 'topic' => $topic,
-                'data' => $data
+                'data' => $data,
             ];
 
         } catch (MessagingException $e) {
@@ -95,7 +95,7 @@ class FirebaseTopicNotificationService
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'topic' => $topic
+                'topic' => $topic,
             ];
         }
     }
@@ -130,13 +130,13 @@ class FirebaseTopicNotificationService
             }
 
             $response = $this->messaging->send($message);
-            logger("response-send-condition-fcm", [$response]);
+            logger('response-send-condition-fcm', [$response]);
 
             return [
                 'success' => true,
                 // 'message_id' => $response->id(),
                 'condition' => $condition,
-                'data' => $data
+                'data' => $data,
             ];
 
         } catch (MessagingException $e) {
@@ -145,7 +145,7 @@ class FirebaseTopicNotificationService
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'condition' => $condition
+                'condition' => $condition,
             ];
         }
     }
@@ -159,7 +159,7 @@ class FirebaseTopicNotificationService
         try {
             $result = $this->messaging->subscribeToTopic($topic, $registrationTokens);
 
-            logger("response-subscribeToTopic-fcm", [$result]);
+            logger('response-subscribeToTopic-fcm', [$result]);
 
             return [
                 'success' => true,
@@ -175,7 +175,7 @@ class FirebaseTopicNotificationService
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'topic' => $topic
+                'topic' => $topic,
             ];
         }
     }
@@ -188,7 +188,7 @@ class FirebaseTopicNotificationService
         try {
             $result = $this->messaging->unsubscribeFromTopic($topic, $registrationTokens);
 
-            logger("response-unsubscribeFromTopic-fcm", [$result]);
+            logger('response-unsubscribeFromTopic-fcm', [$result]);
 
             return [
                 'success' => true,
@@ -204,7 +204,7 @@ class FirebaseTopicNotificationService
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'topic' => $topic
+                'topic' => $topic,
             ];
         }
     }

@@ -83,7 +83,7 @@ class TrainingSessionRepository
     public function findAccessibleOrFail(int $id): TrainingSession
     {
         return $this->accessibleQuery()
-            ->with(['school','tasks' => fn ($query) => $query->orderBy('task_number')])
+            ->with(['school', 'tasks' => fn ($query) => $query->orderBy('task_number')])
             ->findOrFail($id);
     }
 
@@ -119,7 +119,7 @@ class TrainingSessionRepository
         try {
             return DB::transaction(function () use ($payload): TrainingSession {
                 $this->ensureUniqueGroupDate($payload);
-                $trainingSession = $this->makeTraininSession(new TrainingSession(), $payload);
+                $trainingSession = $this->makeTraininSession(new TrainingSession, $payload);
                 $trainingSession->save();
 
                 $tasks = $this->makeTask($payload);
@@ -145,6 +145,7 @@ class TrainingSessionRepository
             throw $exception;
         } catch (\Throwable $throwable) {
             report($throwable);
+
             return null;
         }
     }
@@ -153,7 +154,7 @@ class TrainingSessionRepository
     {
         $payload['format'] = TrainingSession::FORMAT_PLANNED;
 
-        return $this->persistPlanned(new TrainingSession(), $payload);
+        return $this->persistPlanned(new TrainingSession, $payload);
     }
 
     public function updatePlanned(TrainingSession $session, array $payload): bool
@@ -186,6 +187,7 @@ class TrainingSessionRepository
             throw $exception;
         } catch (\Throwable $throwable) {
             report($throwable);
+
             return $updating ? false : null;
         }
     }
@@ -223,6 +225,7 @@ class TrainingSessionRepository
             throw $exception;
         } catch (\Throwable $throwable) {
             report($throwable);
+
             return false;
         }
     }
@@ -335,24 +338,25 @@ class TrainingSessionRepository
         $keys = array_keys($payload['task_number']);
 
         foreach ($keys as $key) {
-            if (is_null($payload["task_name"][$key])) {
+            if (is_null($payload['task_name'][$key])) {
                 continue;
             }
 
             $tasks[] = [
-                'task_number' => $payload["task_number"][$key],
-                'task_name' => $payload["task_name"][$key],
-                'general_objective' => $payload["general_objective"][$key],
-                'specific_goal' => $payload["specific_goal"][$key],
-                'content_one' => $payload["content_one"][$key],
-                'content_two' => $payload["content_two"][$key],
-                'content_three' => $payload["content_three"][$key],
-                'ts' => $payload["ts"][$key],
-                'sr' => $payload["sr"][$key],
-                'tt' => $payload["tt"][$key],
-                'observations' => $payload["observations"][$key],
+                'task_number' => $payload['task_number'][$key],
+                'task_name' => $payload['task_name'][$key],
+                'general_objective' => $payload['general_objective'][$key],
+                'specific_goal' => $payload['specific_goal'][$key],
+                'content_one' => $payload['content_one'][$key],
+                'content_two' => $payload['content_two'][$key],
+                'content_three' => $payload['content_three'][$key],
+                'ts' => $payload['ts'][$key],
+                'sr' => $payload['sr'][$key],
+                'tt' => $payload['tt'][$key],
+                'observations' => $payload['observations'][$key],
             ];
         }
+
         return $tasks;
     }
 }

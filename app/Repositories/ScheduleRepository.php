@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-
 use App\Models\Schedule;
 use Exception;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -22,15 +20,13 @@ class ScheduleRepository
         $this->schedule = $schedule;
     }
 
-
     public function all()
     {
         return $this->schedule->query()->schoolId()->get();
     }
 
-
     /**
-     * @param Request $request
+     * @param  Request  $request
      */
     public function store(array $data): void
     {
@@ -39,7 +35,7 @@ class ScheduleRepository
             $this->schedule->query()->create($data);
             DB::commit();
 
-            Cache::forget('SCHEDULES_' . $data['school_id']);
+            Cache::forget('SCHEDULES_'.$data['school_id']);
             Alert::success(env('APP_NAME'), __('messages.schedule_create_success'));
         } catch (Exception $exception) {
             DB::rollBack();
@@ -49,8 +45,8 @@ class ScheduleRepository
     }
 
     /**
-     * @param Request $request
-     * @param Day $day
+     * @param  Request  $request
+     * @param  Day  $day
      */
     public function update(array $data, Schedule $schedule): void
     {
@@ -59,7 +55,7 @@ class ScheduleRepository
             $schedule->update($data);
             DB::commit();
 
-            Cache::forget('SCHEDULES_' . $data['school_id']);
+            Cache::forget('SCHEDULES_'.$data['school_id']);
             Alert::success(env('APP_NAME'), __('messages.schedule_create_success'));
         } catch (Exception $exception) {
             DB::rollBack();

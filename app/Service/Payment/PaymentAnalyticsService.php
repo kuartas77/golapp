@@ -142,7 +142,7 @@ class PaymentAnalyticsService
     {
         $schoolId = getSchool(auth()->user())->id;
 
-        return Cache::remember('statistics.school.' . $schoolId, 1, function () use ($schoolId) {
+        return Cache::remember('statistics.school.'.$schoolId, 1, function () use ($schoolId) {
             $paymentByGroup = ReportService::paymentByGroupReport(year: now()->year, schoolId: $schoolId, groupId: null);
             $assistReport = ReportService::assistsPercentagesReport(year: now()->year, month: now()->month, groupId: null, schoolId: $schoolId);
             $monthlyReport = ReportService::monthlyReport(year: now()->year, schoolId: $schoolId, groupId: null)->first();
@@ -183,7 +183,7 @@ class PaymentAnalyticsService
             if (! is_null($monthlyReport)) {
                 foreach ($months as $month) {
                     $valueMonths[] = $monthlyReport->{$month};
-                    $paymentByMonth[] = (int) $monthlyReport->{'payments_' . $month};
+                    $paymentByMonth[] = (int) $monthlyReport->{'payments_'.$month};
                 }
             }
 

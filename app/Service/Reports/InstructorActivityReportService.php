@@ -54,8 +54,8 @@ class InstructorActivityReportService
             ])
             ->where('school_id', $schoolId)
             ->whereBetween('created_at', [
-                $startDate . ' 00:00:00',
-                $endDate . ' 23:59:59',
+                $startDate.' 00:00:00',
+                $endDate.' 23:59:59',
             ])
             ->whereNull('deleted_at')
             ->groupBy('user_id');

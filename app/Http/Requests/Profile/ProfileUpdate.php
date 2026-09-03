@@ -9,8 +9,6 @@ class ProfileUpdate extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -19,8 +17,6 @@ class ProfileUpdate extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -36,7 +32,7 @@ class ProfileUpdate extends FormRequest
             'contacts' => ['nullable', 'string', 'max:2000'],
             'experience' => ['nullable', 'string', 'max:5000'],
             'position' => ['nullable', 'string', 'max:50', Rule::in(array_keys(config('variables.KEY_POSITIONS_ASSIGNED', [])))],
-            'aptitude' => ['nullable', 'string', 'max:2000']
+            'aptitude' => ['nullable', 'string', 'max:2000'],
         ];
     }
 
@@ -47,6 +43,6 @@ class ProfileUpdate extends FormRequest
      */
     protected function prepareForValidation()
     {
-        // 
+        //
     }
 }

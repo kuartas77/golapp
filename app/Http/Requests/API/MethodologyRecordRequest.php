@@ -61,7 +61,7 @@ class MethodologyRecordRequest extends FormRequest
 
     private function normalizeFields(mixed $fields): array
     {
-        if (!is_array($fields)) {
+        if (! is_array($fields)) {
             return [];
         }
 

@@ -8,8 +8,6 @@ class IncidentStore extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -18,8 +16,6 @@ class IncidentStore extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -34,7 +30,7 @@ class IncidentStore extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => getSchool(auth()->user())->id
+            'school_id' => getSchool(auth()->user())->id,
         ]);
     }
 }

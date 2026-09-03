@@ -14,9 +14,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
+use RealRashid\SweetAlert\Facades\Alert;
 use Spatie\Permission\Models\Role;
 use Throwable;
-use RealRashid\SweetAlert\Facades\Alert;
 
 class UserController extends Controller
 {
@@ -42,10 +42,6 @@ class UserController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param UserStore $request
-     *
-     * @return RedirectResponse
      */
     public function store(UserStore $request): RedirectResponse
     {
@@ -70,7 +66,6 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param User $user
      *
      * @return Factory|Application|RedirectResponse|View
      */
@@ -82,7 +77,6 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param User $user
      *
      * @return Application|Factory|RedirectResponse|View
      */
@@ -92,6 +86,7 @@ class UserController extends Controller
             view()->share('default', 3);
             view()->share('roles', Role::query()->whereNotIn('id', [1, 2])->pluck('name', 'id'));
             view()->share('user', $user->load('roles'));
+
             return view('admin.user.edit');
         } else {
             Alert::error(config('app.name'), __('messages.denied'));
@@ -102,11 +97,6 @@ class UserController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param UserUpdate $request
-     * @param User $user
-     *
-     * @return RedirectResponse
      */
     public function update(UserUpdate $request, User $user): RedirectResponse
     {
@@ -117,15 +107,16 @@ class UserController extends Controller
         } elseif (isInstructor()) {
             return redirect()->to(route('home'));
         }
+
         return back();
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param User $user
      *
      * @return Application|Redirector|RedirectResponse
+     *
      * @throws Exception
      */
     public function destroy(User $user)
@@ -150,10 +141,6 @@ class UserController extends Controller
         return redirect(route('users.index'));
     }
 
-    /**
-     * @param $id
-     * @return RedirectResponse
-     */
     public function activate($id): RedirectResponse
     {
         abort_unless(isAdmin() || isSchool(), 401);

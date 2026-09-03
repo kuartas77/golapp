@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 class PlayerEvaluationDataTableService
 {
     private const STATUS = ['draft' => 'Borrador', 'completed' => 'Completada', 'closed' => 'Cerrada'];
+
     private const TYPES = ['initial' => 'Inicial', 'periodic' => 'Periódica', 'final' => 'Final', 'special' => 'Especial'];
 
     public function __construct(private InstructorPeriodEditPolicy $periodPolicy) {}
@@ -34,7 +35,9 @@ class PlayerEvaluationDataTableService
                     ->when($filters['status'] ?? null, fn ($q, $value) => $q->where('player_evaluations.status', $value))
                     ->when($filters['evaluation_type'] ?? null, fn ($q, $value) => $q->where('player_evaluations.evaluation_type', $value));
                 $keyword = trim((string) data_get($filters, 'search.value', ''));
-                if ($keyword === '') return;
+                if ($keyword === '') {
+                    return;
+                }
                 $like = "%{$keyword}%";
                 $status = $this->matchingKeys(self::STATUS, $keyword);
                 $types = $this->matchingKeys(self::TYPES, $keyword);
@@ -44,8 +47,12 @@ class PlayerEvaluationDataTableService
                         ->orWhere('players.unique_code', 'like', $like)->orWhere('players.names', 'like', $like)->orWhere('players.last_names', 'like', $like)
                         ->orWhereRaw("CONCAT(COALESCE(players.names, ''), ' ', COALESCE(players.last_names, '')) LIKE ?", [$like])
                         ->orWhere('training_groups.name', 'like', $like)->orWhere('evaluation_periods.name', 'like', $like)->orWhere('evaluation_templates.name', 'like', $like);
-                    if ($status) $search->orWhereIn('player_evaluations.status', $status);
-                    if ($types) $search->orWhereIn('player_evaluations.evaluation_type', $types);
+                    if ($status) {
+                        $search->orWhereIn('player_evaluations.status', $status);
+                    }
+                    if ($types) {
+                        $search->orWhereIn('player_evaluations.evaluation_type', $types);
+                    }
                 });
             })
             ->orderColumn('player_name', fn ($query, $order) => $query->orderBy('players.last_names', $order)->orderBy('players.names', $order))
@@ -64,7 +71,7 @@ class PlayerEvaluationDataTableService
             ->addColumn('evaluation_type_label', fn (PlayerEvaluation $evaluation) => self::TYPES[$evaluation->evaluation_type] ?? $evaluation->evaluation_type)
             ->addColumn('status_label', fn (PlayerEvaluation $evaluation) => self::STATUS[$evaluation->status] ?? $evaluation->status)
             ->addColumn('is_closed', fn (PlayerEvaluation $evaluation) => (bool) $evaluation->is_closed)
-            ->addColumn('period_locked', fn (PlayerEvaluation $evaluation) => !$this->periodPolicy->canMutateDate($evaluation->evaluated_at ?? now()))
+            ->addColumn('period_locked', fn (PlayerEvaluation $evaluation) => ! $this->periodPolicy->canMutateDate($evaluation->evaluated_at ?? now()))
             ->addColumn('urls', fn (PlayerEvaluation $evaluation) => ['show' => url("/player-evaluations/{$evaluation->id}"), 'edit' => url("/player-evaluations/{$evaluation->id}/edit"), 'pdf' => route('player-evaluations.pdf', $evaluation->id)])
             ->toJson();
     }
@@ -72,12 +79,14 @@ class PlayerEvaluationDataTableService
     private function playerName(PlayerEvaluation $evaluation): string
     {
         $player = $evaluation->inscription?->player;
+
         return $player ? ($player->full_names ?? $player->full_name ?? $player->name ?? 'Jugador #'.$player->id) : '';
     }
 
     private function matchingKeys(array $labels, string $keyword): array
     {
         $keyword = Str::of($keyword)->ascii()->lower()->toString();
+
         return collect($labels)->filter(fn (string $label, string $value) => Str::of($label)->ascii()->lower()->contains($keyword) || Str::of($value)->ascii()->lower()->contains($keyword))->keys()->values()->all();
     }
 }

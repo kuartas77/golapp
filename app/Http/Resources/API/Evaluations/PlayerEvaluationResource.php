@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources\API\Evaluations;
 
-
 use App\Service\Evaluations\PlayerEvaluationScoreCalculator;
 use App\Service\InstructorPeriodEditPolicy;
 use Illuminate\Http\Request;

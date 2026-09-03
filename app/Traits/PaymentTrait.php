@@ -4,14 +4,13 @@ namespace App\Traits;
 
 trait PaymentTrait
 {
-
     public function getCheckPaymentsAttribute(): int
     {
         $months = [
             'january', 'february', 'march',
             'april', 'may', 'june',
             'july', 'august', 'september',
-            'october', 'november', 'december'
+            'october', 'november', 'december',
         ];
 
         $value = 0;
@@ -28,6 +27,7 @@ trait PaymentTrait
                     break;
             }
         }
+
         return $value;
     }
 }

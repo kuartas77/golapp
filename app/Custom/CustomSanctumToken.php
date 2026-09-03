@@ -2,9 +2,9 @@
 
 namespace App\Custom;
 
-use Laravel\Sanctum\Sanctum;
-use Laravel\Sanctum\PersonalAccessToken;
 use Illuminate\Support\Facades\Route;
+use Laravel\Sanctum\PersonalAccessToken;
+use Laravel\Sanctum\Sanctum;
 
 class CustomSanctumToken
 {
@@ -12,7 +12,7 @@ class CustomSanctumToken
 
     public static function authenticateAccessTokensUsing()
     {
-        (new self())->overrideSanctumConfigurationToSupportRefreshToken();
+        (new self)->overrideSanctumConfigurationToSupportRefreshToken();
     }
 
     private function overrideSanctumConfigurationToSupportRefreshToken(): void

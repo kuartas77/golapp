@@ -11,8 +11,7 @@ class BreadCrumb extends Component
         public string $title,
         public int $option = 0,
         public int $birthdays = 0
-    ) {
-    }
+    ) {}
 
     public function render(): View
     {

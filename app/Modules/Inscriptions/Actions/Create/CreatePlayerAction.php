@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Inscriptions\Actions\Create;
 
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Illuminate\Http\UploadedFile;
-use Closure;
-use App\Traits\UploadFile;
 use App\Models\Player;
 use App\Models\School;
+use App\Traits\UploadFile;
+use Closure;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 final class CreatePlayerAction implements IContractPassable
 {
@@ -42,12 +42,12 @@ final class CreatePlayerAction implements IContractPassable
         $this->player = Player::query()
             ->where('identification_document', $passable->getPropertyFromData('identification_document'))
             ->where('school_id', $this->school->id)
-            ->firstOr(callback: fn(): Player => new Player());
+            ->firstOr(callback: fn (): Player => new Player);
     }
 
     private function setAttributes(Passable $passable): void
     {
-        $uniqueCode = $this->player->exists ? $this->player->unique_code: $this->createUniqueCode($passable);
+        $uniqueCode = $this->player->exists ? $this->player->unique_code : $this->createUniqueCode($passable);
         $this->attributes = [
             'unique_code' => $uniqueCode,
             'names' => $passable->getPropertyFromData('names'),
@@ -76,7 +76,7 @@ final class CreatePlayerAction implements IContractPassable
             'medical_history' => $passable->getPropertyFromData('medical_history'),
             'jornada' => $passable->getPropertyFromData('jornada'),
             'student_insurance' => $passable->getPropertyFromData('student_insurance'),
-            'school_id' => $this->school->id
+            'school_id' => $this->school->id,
         ];
 
         if (! $this->player->exists) {
@@ -88,13 +88,13 @@ final class CreatePlayerAction implements IContractPassable
     {
         $year = $passable->getPropertyFromData('year');
 
-        return createUniqueCode((string)$this->school->id, $year);
+        return createUniqueCode((string) $this->school->id, $year);
     }
 
     private function upsertPlayer(): void
     {
         foreach ($this->attributes as $attribute => $value) {
-            if($attribute == 'photo' && $value instanceof UploadedFile){
+            if ($attribute == 'photo' && $value instanceof UploadedFile) {
                 $this->attributes['photo'] = $this->uploadFile($value, $this->school->slug, 'players');
             }
         }
@@ -102,7 +102,7 @@ final class CreatePlayerAction implements IContractPassable
         $this->player = Player::query()->withTrashed()->updateOrCreate([
             'identification_document' => $this->attributes['identification_document'],
             'unique_code' => $this->attributes['unique_code'],
-            'school_id' => $this->attributes['school_id']
+            'school_id' => $this->attributes['school_id'],
         ], $this->attributes);
 
         if (isset($this->attributes['password'])) {

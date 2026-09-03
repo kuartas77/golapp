@@ -12,11 +12,6 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    /**
-     * @param $data
-     * @param int $code
-     * @return JsonResponse
-     */
     public function responseJson($data, int $code = 200): JsonResponse
     {
         return response()->json(['data' => $data], $code);

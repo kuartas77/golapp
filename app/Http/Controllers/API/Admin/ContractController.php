@@ -17,8 +17,7 @@ class ContractController extends Controller
 
     public function __construct(
         private readonly ContractTemplateService $contractTemplateService
-    ) {
-    }
+    ) {}
 
     public function index(): JsonResponse
     {
@@ -58,6 +57,6 @@ class ContractController extends Controller
         $this->setConfigurationMpdf($this->contractTemplateService->pdfConfiguration());
         $this->createPDF($data, $this->contractTemplateService->adminPdfViewForCode($contractTypeCode), false);
 
-        return $this->stream($this->contractTemplateService->adminFileLabelForCode($contractTypeCode) . '.pdf');
+        return $this->stream($this->contractTemplateService->adminFileLabelForCode($contractTypeCode).'.pdf');
     }
 }

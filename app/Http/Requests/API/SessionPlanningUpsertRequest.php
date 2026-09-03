@@ -122,6 +122,7 @@ class SessionPlanningUpsertRequest extends FormRequest
     private function normalizeString(mixed $value): ?string
     {
         $value = trim((string) ($value ?? ''));
+
         return $value === '' ? null : $value;
     }
 }

@@ -11,9 +11,7 @@ use Illuminate\Http\Request;
 
 class GuardianEvaluationController extends Controller
 {
-    public function __construct(private GuardianAccessService $guardianAccessService)
-    {
-    }
+    public function __construct(private GuardianAccessService $guardianAccessService) {}
 
     public function pdf(Request $request, int $evaluation, GuardianEvaluationPdfService $guardianEvaluationPdfService)
     {

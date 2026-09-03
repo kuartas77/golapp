@@ -65,7 +65,7 @@ class PlayerEvaluationComparisonController extends Controller
                                 '#%s - %s%s',
                                 $inscription->id,
                                 $playerName,
-                                $inscription->trainingGroup?->name ? ' - ' . $inscription->trainingGroup->name : ''
+                                $inscription->trainingGroup?->name ? ' - '.$inscription->trainingGroup->name : ''
                             ),
                         ];
                     })

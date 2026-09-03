@@ -25,8 +25,7 @@ class PlayerResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @param Request $request
-     * @return array|Arrayable|JsonSerializable
+     * @param  Request  $request
      */
     public function toArray($request): array|JsonSerializable|Arrayable
     {
@@ -39,21 +38,21 @@ class PlayerResource extends JsonResource
             'full_names' => $this->full_names,
             'photo_url' => str_replace('img/dynamic', 'api/img/dynamic', $this->photo_url),
             'group_id' => $this->when($request->has('group_id'), $request->group_id),
-            'inscription_id' => $this->inscription_id
+            'inscription_id' => $this->inscription_id,
         ];
 
-        if($this->loadRelations) {
+        if ($this->loadRelations) {
 
             $team = $this->when(
                 $this->relationLoaded('inscription') && $this->inscription->relationLoaded('trainingGroup'),
                 fn () => $this->inscription->trainingGroup->name
             );
 
-            $response['inscription_id'] = $this->whenLoaded('inscription',$this->inscription->id);
-            $response['school_id'] = $this->whenLoaded('schoolData',"{$this->school_id}");
-            $response['school_name'] = $this->whenLoaded('schoolData',$this->schoolData->name);
-            $response['school_slug'] = $this->whenLoaded('schoolData',$this->schoolData->slug);
-            $response['school_logo'] = $this->whenLoaded('schoolData',$this->schoolData->logo_file);
+            $response['inscription_id'] = $this->whenLoaded('inscription', $this->inscription->id);
+            $response['school_id'] = $this->whenLoaded('schoolData', "{$this->school_id}");
+            $response['school_name'] = $this->whenLoaded('schoolData', $this->schoolData->name);
+            $response['school_slug'] = $this->whenLoaded('schoolData', $this->schoolData->slug);
+            $response['school_logo'] = $this->whenLoaded('schoolData', $this->schoolData->logo_file);
             $response['team'] = $team;
             $response['topics'] = TopicService::generatePlayerTopics($this->resource->resource);
         }

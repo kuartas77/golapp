@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\IncidentStore;
 use App\Models\Incident;
 use App\Repositories\IncidentRepository;
@@ -26,7 +25,6 @@ class IncidentController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @param Request $request
      * @return Application|Factory|JsonResponse|View
      */
     public function index(Request $request)
@@ -36,14 +34,13 @@ class IncidentController extends Controller
                 ->collection($this->repository->all())
                 ->toJson();
         }
+
         return view('incidents.index');
 
     }
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return RedirectResponse
      */
     public function create(): RedirectResponse
     {
@@ -52,9 +49,6 @@ class IncidentController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param IncidentStore $request
-     * @return RedirectResponse
      */
     public function store(IncidentStore $request): RedirectResponse
     {
@@ -64,13 +58,13 @@ class IncidentController extends Controller
         } else {
             Alert::success(env('APP_NAME'), __('messages.incident_fail'));
         }
+
         return redirect()->to(route('incidents.index'));
     }
 
     /**
      * Display the specified resource.
      *
-     * @param $slug_name
      * @return Application|Factory|View
      */
     public function show($slug_name)
@@ -80,14 +74,12 @@ class IncidentController extends Controller
 
         view()->share('incidents', $incidents);
         view()->share('professor', $professor);
+
         return view('incidents.show');
     }
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param Incident $incident
-     * @return RedirectResponse
      */
     public function edit(Incident $incident): RedirectResponse
     {
@@ -96,10 +88,6 @@ class IncidentController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param Request $request
-     * @param Incident $incident
-     * @return RedirectResponse
      */
     public function update(Request $request, Incident $incident): RedirectResponse
     {
@@ -108,9 +96,6 @@ class IncidentController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param Incident $incident
-     * @return RedirectResponse
      */
     public function destroy(Incident $incident): RedirectResponse
     {

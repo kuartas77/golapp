@@ -18,8 +18,7 @@ class GuardianTopicNotificationsController extends Controller
     public function __construct(
         private GuardianAccessService $guardianAccessService,
         private TopicNotificationRepository $repository
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): JsonResponse
     {

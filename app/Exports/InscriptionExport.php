@@ -7,11 +7,12 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Events\AfterSheet;
-use Maatwebsite\Excel\Concerns\WithEvents;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 
-class InscriptionExport implements FromView, WithTitle, ShouldAutoSize, WithEvents
+class InscriptionExport implements FromView, ShouldAutoSize, WithEvents, WithTitle
 {
     /** @var Collection<int, Player> */
     public Collection $players;
@@ -19,7 +20,7 @@ class InscriptionExport implements FromView, WithTitle, ShouldAutoSize, WithEven
     public bool $trash;
 
     /**
-     * @param Collection<int, Player> $players
+     * @param  Collection<int, Player>  $players
      */
     public function __construct(Collection $players, bool $trash = false)
     {
@@ -36,7 +37,7 @@ class InscriptionExport implements FromView, WithTitle, ShouldAutoSize, WithEven
 
     public function title(): string
     {
-        return $this->trash ? "Inactivos" : "Activos";
+        return $this->trash ? 'Inactivos' : 'Activos';
     }
 
     public function registerEvents(): array
@@ -46,17 +47,17 @@ class InscriptionExport implements FromView, WithTitle, ShouldAutoSize, WithEven
                 $lastColumn = $event->sheet->getHighestColumn();
                 $lastRow = $event->sheet->getHighestRow();
 
-                $range = 'A1:' . $lastColumn . $lastRow;
+                $range = 'A1:'.$lastColumn.$lastRow;
 
                 $event->sheet->getStyle($range)->applyFromArray([
                     'borders' => [
                         'allBorders' => [
-                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'borderStyle' => Border::BORDER_THIN,
                             'color' => ['argb' => '#000000'],
                         ],
                     ],
                 ]);
-            }
+            },
         ];
     }
 }

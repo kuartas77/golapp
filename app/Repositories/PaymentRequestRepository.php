@@ -28,11 +28,11 @@ class PaymentRequestRepository
                 ->whereIn('status', ['pending', 'partial'])
                 ->first();
 
-            if (!$invoice) {
-                throw new ModelNotFoundException();
+            if (! $invoice) {
+                throw new ModelNotFoundException;
             }
 
-            $paymentRequest = new PaymentRequest();
+            $paymentRequest = new PaymentRequest;
             $paymentRequest->school_id = $player->school_id;
             $paymentRequest->player_id = $player->id;
             $paymentRequest->invoice_id = $invoice->id;
@@ -76,15 +76,15 @@ class PaymentRequestRepository
                 ->whereHas('inscription', fn ($query) => $query->whereIn('player_id', $playerIds))
                 ->first();
 
-            if (!$invoice) {
-                throw new ModelNotFoundException();
+            if (! $invoice) {
+                throw new ModelNotFoundException;
             }
 
             /** @var Player $player */
             $player = $invoice->inscription->player;
             $school = $player->schoolData;
 
-            $paymentRequest = new PaymentRequest();
+            $paymentRequest = new PaymentRequest;
             $paymentRequest->school_id = $player->school_id;
             $paymentRequest->player_id = $player->id;
             $paymentRequest->invoice_id = $invoice->id;
@@ -122,11 +122,11 @@ class PaymentRequestRepository
             ->join('invoices', 'payment_request.invoice_id', '=', 'invoices.id')
             ->join('training_groups', 'invoices.training_group_id', '=', 'training_groups.id')
             ->join('players', 'payment_request.player_id', '=', 'players.id')
-            ->whereHas('invoice', fn($q) => $q->whereIn('status', ['partial','pending']))
+            ->whereHas('invoice', fn ($q) => $q->whereIn('status', ['partial', 'pending']))
             ->schoolId();
 
         return datatables()->of($generalQuery)
-        ->filterColumn('created_at', fn($query, $keyword) => $query->whereDate('payment_request.created_at', $keyword))
-        ->toJson();
+            ->filterColumn('created_at', fn ($query, $keyword) => $query->whereDate('payment_request.created_at', $keyword))
+            ->toJson();
     }
 }

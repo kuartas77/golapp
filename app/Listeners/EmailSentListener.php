@@ -2,17 +2,15 @@
 
 namespace App\Listeners;
 
-use Illuminate\Mail\Events\MessageSent;
-use App\Notifications\InscriptionNotification;
-use App\Modules\Inscriptions\Notifications\InscriptionToSchoolNotification;
 use App\Modules\Inscriptions\Jobs\DeleteDocuments;
+use App\Notifications\InscriptionNotification;
+use Illuminate\Mail\Events\MessageSent;
 
 class EmailSentListener
 {
     /**
      * Handle the event.
      *
-     * @param  MessageSent  $event
      * @return void
      */
     public function handle(MessageSent $event)
@@ -35,6 +33,6 @@ class EmailSentListener
 
     private function notificationInscription($inscription, $school)
     {
-        dispatch(new DeleteDocuments($school->slug, (string)$inscription->unique_code));
+        dispatch(new DeleteDocuments($school->slug, (string) $inscription->unique_code));
     }
 }

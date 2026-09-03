@@ -56,6 +56,7 @@ class BackfillInvoiceIdempotencyKeys extends Command
                 if ($invoice->items->isEmpty()) {
                     $skippedWithoutItems++;
                     $this->warn("Factura {$invoice->id} omitida: no tiene items.");
+
                     continue;
                 }
 
@@ -69,6 +70,7 @@ class BackfillInvoiceIdempotencyKeys extends Command
                     $this->warn(
                         "Factura {$invoice->id} omitida: comparte llave con factura {$seenKeys[$idempotencyKey]}."
                     );
+
                     continue;
                 }
 
@@ -82,6 +84,7 @@ class BackfillInvoiceIdempotencyKeys extends Command
                     $this->warn(
                         "Factura {$invoice->id} omitida: la llave ya existe en factura {$existingInvoiceId}."
                     );
+
                     continue;
                 }
 

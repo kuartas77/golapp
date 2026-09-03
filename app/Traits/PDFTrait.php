@@ -1,10 +1,7 @@
 <?php
 
-
 namespace App\Traits;
 
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use Illuminate\Http\File;
 use Illuminate\Support\Facades\Storage;
 use Mpdf\Mpdf;
 use Mpdf\MpdfException;
@@ -12,7 +9,8 @@ use Mpdf\Output\Destination;
 
 trait PDFTrait
 {
-    protected $mpdf;
+    protected Mpdf $mpdf;
+
     /**
      * Config mpdf.
      *
@@ -29,13 +27,13 @@ trait PDFTrait
     ];
 
     protected $configWatermarkSize = [
-        40, 40
+        40, 40,
     ];
 
     /**
-     * @param array $configuration
+     * @param  array  $configuration
      */
-    public function setConfigurationMpdf($configuration = array())
+    public function setConfigurationMpdf($configuration = [])
     {
         $this->configDefault = array_merge($this->configDefault,
             ['tempDir' => storage_path('app/tmp')],
@@ -43,13 +41,14 @@ trait PDFTrait
         );
     }
 
-    public function setWatermarkSize($size = array(80, 80))
+    public function setWatermarkSize($size = [80, 80])
     {
         $this->configWatermarkSize = $size;
     }
 
     /**
      * Get instance mpdf
+     *
      * @return static
      */
     public function getMpdf()
@@ -59,10 +58,8 @@ trait PDFTrait
 
     /**
      * Save the PDF to a file
-     *
-     * @param $filename
      */
-    public function save($filename)
+    public function save(string $filename)
     {
         $this->mpdf->Output($filename, Destination::FILE);
     }
@@ -72,15 +69,13 @@ trait PDFTrait
      *
      * @return string The rendered PDF as string
      */
-    public function output($filename): string
+    public function output(string $filename): string
     {
         return Storage::disk('public')->put("{$filename}.pdf", $this->mpdf->Output(null, Destination::STRING_RETURN));
     }
 
     /**
      * Make the PDF downloadable by the user
-     *
-     * @param string $filename
      */
     public function download(string $filename = 'document.pdf')
     {
@@ -88,14 +83,12 @@ trait PDFTrait
 
         return response($content, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . str_replace('"', '', $filename) . '"',
+            'Content-Disposition' => 'attachment; filename="'.str_replace('"', '', $filename).'"',
         ]);
     }
 
     /**
      * Return a response with the PDF to show in the browser
-     *
-     * @param string $filename
      */
     public function stream(string $filename = 'document.pdf')
     {
@@ -103,14 +96,13 @@ trait PDFTrait
 
         return response($content, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . str_replace('"', '', $filename) . '"',
+            'Content-Disposition' => 'inline; filename="'.str_replace('"', '', $filename).'"',
         ]);
     }
 
     /**
      * Create pdf.
      *
-     * @param array $data
      * @throws MpdfException
      */
     protected function createPDF(array $data, string $template, $showFooter = true, $mark = true)
@@ -119,7 +111,7 @@ trait PDFTrait
 
         if (isset($data['school'])) {
             $this->mpdf->SetAuthor($data['school']->name);
-            if($mark) {
+            if ($mark) {
                 $this->mpdf->SetWatermarkImage($data['school']->logo_local, -1, $this->configWatermarkSize);
                 $this->mpdf->showWatermarkImage = $mark;
             }
@@ -135,9 +127,6 @@ trait PDFTrait
 
     /**
      * Get template.
-     *
-     * @param string $template
-     * @return string
      */
     private function getTemplate(string $template): string
     {
@@ -146,10 +135,6 @@ trait PDFTrait
 
     /**
      * Exists template.
-     *
-     * @param string $path
-     *
-     * @return bool
      */
     private function existsTemplate(string $path): bool
     {

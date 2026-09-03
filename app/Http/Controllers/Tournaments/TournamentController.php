@@ -20,7 +20,6 @@ class TournamentController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @param Request $request
      * @return Application|Factory|JsonResponse|View
      */
     public function index(Request $request)
@@ -28,14 +27,12 @@ class TournamentController extends Controller
         if ($request->ajax()) {
             return datatables()->collection(Tournament::schoolId()->get())->toJson();
         }
+
         return view('tournaments.index');
     }
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param TournamentCreateRequest $request
-     * @return RedirectResponse
      */
     public function store(TournamentCreateRequest $request): RedirectResponse
     {
@@ -45,6 +42,7 @@ class TournamentController extends Controller
             $exist->trashed() == false ?: $exist->restore();
             Alert::info(env('APP_NAME'), __('messages.tournament_exists'));
             Cache::forget("KEY_TOURNAMENT_{$request->input('school_id')}");
+
             return back();
         }
         $tournament = Tournament::create($request->validated());
@@ -54,13 +52,13 @@ class TournamentController extends Controller
         } else {
             Alert::error(env('APP_NAME'), __('messages.match_fail'));
         }
+
         return back();
 
     }
 
     /**
      * Show the form for creating a new resource.
-     *
      */
     public function create()
     {
@@ -69,10 +67,6 @@ class TournamentController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param Request $request
-     * @param Tournament $tournament
-     * @return JsonResponse
      */
     public function show(Request $request, Tournament $tournament): JsonResponse
     {
@@ -81,7 +75,6 @@ class TournamentController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
      */
     public function edit()
     {
@@ -90,10 +83,6 @@ class TournamentController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param TournamentUpdateRequest $request
-     * @param Tournament $tournament
-     * @return RedirectResponse
      */
     public function update(TournamentUpdateRequest $request, Tournament $tournament): RedirectResponse
     {
@@ -103,12 +92,12 @@ class TournamentController extends Controller
         } else {
             Alert::error(env('APP_NAME'), __('messages.match_fail'));
         }
+
         return back();
     }
 
     /**
      * Remove the specified resource from storage.
-     *
      */
     public function destroy()
     {

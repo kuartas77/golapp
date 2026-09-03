@@ -11,6 +11,7 @@ class RegisterController extends Controller
     public function register(RegisterRequest $request, RegisterService $registerService)
     {
         abort_unless(isAdmin(), 401);
+
         return response()->json($registerService->createUserSchoolUsesCase($request));
     }
 }

@@ -4,7 +4,6 @@ namespace App\Http\Requests\BackOffice;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 
 class SchoolCreateRequest extends FormRequest
 {
@@ -34,7 +33,7 @@ class SchoolCreateRequest extends FormRequest
             'phone' => ['nullable', 'string'],
             'slug' => ['required', 'string'],
             'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg'],
-            'is_campus' => ['nullable', 'bool']
+            'is_campus' => ['nullable', 'bool'],
         ];
     }
 

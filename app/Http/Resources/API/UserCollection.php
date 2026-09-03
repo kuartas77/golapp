@@ -12,7 +12,7 @@ class UserCollection extends ResourceCollection
     /**
      * Transform the resource collection into an array.
      *
-     * @param Request $request
+     * @param  Request  $request
      * @return array
      */
     public function toArray($request)
@@ -25,7 +25,7 @@ class UserCollection extends ResourceCollection
                 'created_at' => $user->created_at,
                 'url_activate' => $user->url_activate,
                 'school' => $this->formatSchool($user->school),
-                'roles' => $this->formatRoles($user->roles)
+                'roles' => $this->formatRoles($user->roles),
             ];
         })->toArray();
     }
@@ -41,6 +41,6 @@ class UserCollection extends ResourceCollection
 
     private function formatRoles(Collection $roles)
     {
-        return $roles->map(fn($role) => ['id' => $role->id, 'name' => $role->name]);
+        return $roles->map(fn ($role) => ['id' => $role->id, 'name' => $role->name]);
     }
 }

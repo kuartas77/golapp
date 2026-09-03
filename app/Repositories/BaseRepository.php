@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-
 use Illuminate\Database\Eloquent\Model;
 
 class BaseRepository
 {
-    protected \Illuminate\Database\Eloquent\Model $model;
+    protected Model $model;
 
     protected array $relations;
 
@@ -48,5 +47,4 @@ class BaseRepository
 
         return $model;
     }
-
 }

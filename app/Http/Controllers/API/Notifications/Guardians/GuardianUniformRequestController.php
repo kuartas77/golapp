@@ -20,8 +20,7 @@ class GuardianUniformRequestController extends Controller
     public function __construct(
         private GuardianAccessService $guardianAccessService,
         private UniformRequestRepository $repository
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): JsonResponse
     {

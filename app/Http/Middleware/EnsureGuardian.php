@@ -11,20 +11,18 @@ use Illuminate\Support\Facades\Auth;
 
 class EnsureGuardian
 {
-    public function __construct(private GuardianAccessService $guardianAccessService)
-    {
-    }
+    public function __construct(private GuardianAccessService $guardianAccessService) {}
 
     public function handle(Request $request, Closure $next): mixed
     {
         /** @var People|null $guardian */
         $guardian = Auth::guard('guardians')->user();
 
-        if (!$guardian instanceof People) {
+        if (! $guardian instanceof People) {
             return $this->unauthorized('No hay una sesión de acudiente activa.');
         }
 
-        if (!$this->guardianAccessService->hasEligiblePlayers($guardian)) {
+        if (! $this->guardianAccessService->hasEligiblePlayers($guardian)) {
             Auth::guard('guardians')->logout();
 
             if ($request->hasSession()) {

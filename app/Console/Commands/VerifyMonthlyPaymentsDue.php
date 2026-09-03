@@ -2,13 +2,12 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Console\Command;
-use App\Repositories\PaymentRepository;
-use App\Models\User;
-use App\Models\School;
-use App\Mail\PreinscriptionsProvitional;
 use App\Mail\DuePayments;
+use App\Models\School;
+use App\Models\User;
+use App\Repositories\PaymentRepository;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Mail;
 
 class VerifyMonthlyPaymentsDue extends Command
 {

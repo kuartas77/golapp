@@ -11,12 +11,13 @@ use JsonSerializable;
 class TopicNotificationResource extends JsonResource
 {
     public static $wrap = null;
+
     public $resource = TopicNotification::class;
+
     /**
      * Transform the resource into an array.
      *
-     * @param Request $request
-     * @return array|Arrayable|JsonSerializable
+     * @param  Request  $request
      */
     public function toArray($request): array|JsonSerializable|Arrayable
     {

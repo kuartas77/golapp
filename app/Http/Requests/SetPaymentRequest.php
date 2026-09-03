@@ -10,8 +10,6 @@ class SetPaymentRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -20,8 +18,6 @@ class SetPaymentRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -36,10 +32,11 @@ class SetPaymentRequest extends FormRequest
             if (isAssistant() && $this->input('column') !== $field) {
                 $validation[$field] = ['prohibited'];
                 $validation[$amountField] = ['prohibited'];
+
                 continue;
             }
 
-            if (!$this->filled('column')) {
+            if (! $this->filled('column')) {
                 $amountRules[0] = 'required';
             }
 
@@ -81,6 +78,7 @@ class SetPaymentRequest extends FormRequest
             }
 
             $this->merge($mergedValues);
+
             return;
         }
 
@@ -94,6 +92,6 @@ class SetPaymentRequest extends FormRequest
 
     private function cleanString($value): int
     {
-        return (int) preg_replace("/[^0-9]/", "", (string) $value);
+        return (int) preg_replace('/[^0-9]/', '', (string) $value);
     }
 }

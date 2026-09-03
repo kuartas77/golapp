@@ -55,7 +55,7 @@ class TournamentController extends Controller
         }
 
         return $this->persistTournament(
-            new Tournament(),
+            new Tournament,
             $request,
             'Torneo creado correctamente.',
             201

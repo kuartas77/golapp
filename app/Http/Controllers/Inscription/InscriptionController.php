@@ -7,11 +7,10 @@ use App\Http\Requests\Inscription\InscriptionRequest;
 use App\Http\Requests\Inscription\InscriptionUpdateRequest;
 use App\Models\Inscription;
 use App\Repositories\InscriptionRepository;
-use App\Service\TopicService;
 use Illuminate\Http\JsonResponse;
+
 class InscriptionController extends Controller
 {
-
     public function __construct(private InscriptionRepository $repository, private $response = [])
     {
         $this->repository = $repository;
@@ -26,13 +25,10 @@ class InscriptionController extends Controller
         if (in_array(now()->month, [11, 12])) {
             $year = now()->addYear()->format('Y');
         }
+
         return view('inscription.index', compact('year'));
     }
 
-    /**
-     * @param InscriptionRequest $request
-     * @return JsonResponse
-     */
     public function store(InscriptionRequest $request): JsonResponse
     {
         abort_unless(isAdmin() || isSchool(), 401);
@@ -44,14 +40,10 @@ class InscriptionController extends Controller
         $this->response['message'] = $this->response['success']
             ? __('messages.ins_create_success')
             : __('messages.ins_create_failure');
+
         return response()->json($this->response);
     }
 
-
-    /**
-     * @param $id
-     * @return JsonResponse
-     */
     public function edit($id): JsonResponse
     {
         abort_unless(isAdmin() || isSchool(), 401);
@@ -63,11 +55,6 @@ class InscriptionController extends Controller
         return response()->json($this->response);
     }
 
-    /**
-     * @param InscriptionUpdateRequest $request
-     * @param Inscription $inscription
-     * @return JsonResponse
-     */
     public function update(InscriptionUpdateRequest $request, Inscription $inscription): JsonResponse
     {
         abort_unless(isAdmin() || isSchool(), 401);
@@ -76,6 +63,7 @@ class InscriptionController extends Controller
 
         $this->response['success'] = $inscription;
         $this->response['message'] = $inscription ? __('messages.ins_update_success') : __('messages.ins_create_failure');
+
         return response()->json($this->response);
     }
 
@@ -87,6 +75,7 @@ class InscriptionController extends Controller
 
         $this->response['success'] = $delete;
         $this->response['message'] = $delete ? __('messages.ins_delete_success') : __('messages.ins_create_failure');
+
         return response()->json($this->response);
     }
 }

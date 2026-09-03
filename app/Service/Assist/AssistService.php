@@ -29,7 +29,7 @@ class AssistService
             'group_name' => $group_name,
             'count' => $assists->count(),
             'url_print' => $links[0],
-            'url_print_excel' => $links[1]
+            'url_print_excel' => $links[1],
         ];
     }
 
@@ -38,7 +38,7 @@ class AssistService
         $group_name = $trainingGroup->full_schedule_group;
         $assists = $this->decorateAssists($assists->get());
 
-        [$urlExportPDF, $urlExportExcel] = $this->makeLinks($params, $deleted);;
+        [$urlExportPDF, $urlExportExcel] = $this->makeLinks($params, $deleted);
 
         return $this->generateResponse($assists, $group_name, $urlExportPDF, $urlExportExcel);
     }
@@ -50,7 +50,7 @@ class AssistService
             'group_name' => $group_name,
             'count' => $rows->count(),
             'url_print' => $urlExportPDF,
-            'url_print_excel' => $urlExportExcel
+            'url_print_excel' => $urlExportExcel,
         ];
 
         return array_merge($response, $extra);
@@ -73,7 +73,7 @@ class AssistService
 
         return View::make('templates.assists.table', [
             'thead' => View::make('templates.assists.thead', ['classDays' => $classDays, 'column' => $column])->render(),
-            'rows' => $rows
+            'rows' => $rows,
         ])->render();
     }
 
@@ -83,12 +83,12 @@ class AssistService
             'training_group_id' => $params['training_group_id'],
             'year' => $params['year'],
             'month' => $params['month'],
-            'deleted' => $deleted
+            'deleted' => $deleted,
         ];
 
         return [
             route('export.pdf.assists', $params),
-            route('export.assists', $params)
+            route('export.assists', $params),
         ];
     }
 

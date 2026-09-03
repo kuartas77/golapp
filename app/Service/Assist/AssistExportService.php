@@ -9,15 +9,15 @@ use App\Traits\PDFTrait;
 class AssistExportService
 {
     use PDFTrait;
+
     /**
-     * @param $params
-     * @param $deleted
      * @return mixed
+     *
      * @throws MpdfException
      */
     public function generatePDF($params, $deleted)
     {
-        list($assists, $classDays, $group_name, $group, $school) = $this->dataExport($params, $deleted);
+        [$assists, $classDays, $group_name, $group, $school] = $this->dataExport($params, $deleted);
         $school->logo_local = $school->logo_local;
         $data['school'] = $school;
         $data['assists'] = $assists;
@@ -37,9 +37,7 @@ class AssistExportService
     }
 
     /**
-     * @param $params
-     * @param false $deleted
-     * @return array
+     * @param  false  $deleted
      */
     public function dataExport($params, bool $deleted = false): array
     {
@@ -49,7 +47,7 @@ class AssistExportService
             $assists = Assist::query()->onlyTrashedRelations()->schoolId()->where([
                 'training_group_id' => $params['training_group_id'],
                 'month' => $params['month'],
-                'year' => $params['year']
+                'year' => $params['year'],
             ])->get();
         } else {
             $group = TrainingGroup::query()->schoolId()->with('instructors')
@@ -57,7 +55,7 @@ class AssistExportService
 
             $assists = Assist::query()->schoolId()->with(['inscription.player'])->where([
                 'training_group_id' => $params['training_group_id'],
-                'month' => $params['month'], 'year' => $params['year']
+                'month' => $params['month'], 'year' => $params['year'],
             ])->whereHas('inscription', fn ($query) => $query->whereNull('inscriptions.deleted_at'))->get();
         }
 

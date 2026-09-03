@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Payments;
 
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use App\Models\TournamentPayout;
 use App\Http\Controllers\Controller;
-use App\Repositories\TournamentPayoutsRepository;
 use App\Http\Requests\SetTournamentPaymentRequest;
 use App\Http\Resources\API\TournamentPays\TournamentPaymentCollection;
+use App\Models\TournamentPayout;
+use App\Repositories\TournamentPayoutsRepository;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class TournamentPayoutsController extends Controller
 {
@@ -23,6 +23,7 @@ class TournamentPayoutsController extends Controller
     {
         if ($request->filled('dataRaw')) {
             $data = $this->repository->search($request->only(['tournament_id', 'competition_group_id', 'unique_code']), true);
+
             return new TournamentPaymentCollection($data);
         }
     }
@@ -47,6 +48,7 @@ class TournamentPayoutsController extends Controller
     {
         abort_unless($request->ajax(), 401);
         $isPay = $this->repository->update($tournamentpayout, $request->validated());
+
         return $this->responseJson($isPay);
     }
 }

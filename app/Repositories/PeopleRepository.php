@@ -9,7 +9,6 @@ use Illuminate\Support\Collection;
 
 class PeopleRepository
 {
-
     private People $people;
 
     public function __construct(People $people)
@@ -17,9 +16,6 @@ class PeopleRepository
         $this->people = $people;
     }
 
-    /**
-     * @param $people
-     */
     public function getPeopleIds($people): Collection
     {
         $peopleIds = collect();
@@ -64,7 +60,7 @@ class PeopleRepository
 
         return $this->people->query()->updateOrCreate(
             [
-                'identification_card' => $person['identification_card']
+                'identification_card' => $person['identification_card'],
             ],
             $attributes
         );

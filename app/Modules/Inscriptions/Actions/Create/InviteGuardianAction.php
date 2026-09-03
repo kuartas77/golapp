@@ -9,9 +9,7 @@ use Closure;
 
 final class InviteGuardianAction implements IContractPassable
 {
-    public function __construct(private GuardianInvitationService $guardianInvitationService)
-    {
-    }
+    public function __construct(private GuardianInvitationService $guardianInvitationService) {}
 
     public function handle(Passable $passable, Closure $next)
     {

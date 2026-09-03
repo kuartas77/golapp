@@ -34,7 +34,7 @@ class TournamentUpdateRequest extends FormRequest
     {
         $this->merge([
             'name' => Str::upper($this->name),
-            'school_id' => getSchool(auth()->user())->id
+            'school_id' => getSchool(auth()->user())->id,
         ]);
     }
 }

@@ -2,18 +2,22 @@
 
 namespace App\Http\Controllers\Portal;
 
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use App\Providers\RouteServiceProvider;
-use App\Models\Player;
 use App\Http\Controllers\Controller;
+use App\Models\Player;
+use App\Providers\RouteServiceProvider;
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
     use AuthenticatesUsers;
+
     /**
      * Where to redirect users after login.
      *
@@ -50,10 +54,9 @@ class LoginController extends Controller
     /**
      * Handle a login request to the application.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Http\JsonResponse
+     * @return RedirectResponse|Response|JsonResponse
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function login(Request $request)
     {
@@ -71,7 +74,7 @@ class LoginController extends Controller
 
         $player = Player::where('identification_document', $request->username)->whereHas('inscription')->first();
 
-        if($player && Hash::check($request->password, $player->password)) {
+        if ($player && Hash::check($request->password, $player->password)) {
 
             $this->guard()->login($player);
             if ($request->hasSession()) {
@@ -89,11 +92,10 @@ class LoginController extends Controller
         return $this->sendFailedLoginResponse($request);
     }
 
-        /**
+    /**
      * Log the user out of the application.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+     * @return RedirectResponse|JsonResponse
      */
     public function logout(Request $request)
     {

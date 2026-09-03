@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\Inscriptions\Actions\Create;
 
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Notification;
-use Closure;
-use App\Notifications\InscriptionNotification;
-use App\Modules\Inscriptions\Notifications\InscriptionToSchoolNotification;
-use App\Modules\Inscriptions\Actions\Create\Passable;
-use App\Models\School;
-use App\Models\Player;
 use App\Models\Inscription;
+use App\Models\Player;
+use App\Models\School;
+use App\Modules\Inscriptions\Notifications\InscriptionToSchoolNotification;
+use App\Notifications\InscriptionNotification;
+use Closure;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 
 final class SendDocumentsAction implements IContractPassable
 {
@@ -41,7 +40,7 @@ final class SendDocumentsAction implements IContractPassable
 
             $this->setAttributes($passable);
 
-            $this->storeDocumentsLocal($passable->getPropertyFromData('year'), (string)$this->player->unique_code);
+            $this->storeDocumentsLocal($passable->getPropertyFromData('year'), (string) $this->player->unique_code);
 
             $this->sendDocumentsToSchool();
         }
@@ -65,14 +64,14 @@ final class SendDocumentsAction implements IContractPassable
 
     public function storeDocumentsLocal(string $year, string $uniqueCode): void
     {
-        $base = 'tmp'. DIRECTORY_SEPARATOR .$this->school->slug;
+        $base = 'tmp'.DIRECTORY_SEPARATOR.$this->school->slug;
         $short = data_get($this->school, 'short_name', 'tmp');
         $folderPlayer = sprintf('%s-%s', $short, $this->player->unique_code);
-        $folderDocuments = trim($base, "/\\") . DIRECTORY_SEPARATOR . $folderPlayer;
+        $folderDocuments = trim($base, '/\\').DIRECTORY_SEPARATOR.$folderPlayer;
 
         foreach (Inscription::$documentFields as $field) {
 
-            if (!isset($this->attributes[$field])) {
+            if (! isset($this->attributes[$field])) {
                 continue;
             }
 
@@ -84,7 +83,7 @@ final class SendDocumentsAction implements IContractPassable
 
             switch ($field) {
                 case 'player_document':
-                    $name = "DOC_IDENTIDAD";
+                    $name = 'DOC_IDENTIDAD';
                     break;
                 case 'medical_certificate':
                     $name = 'CERT_MEDICO';
@@ -122,7 +121,7 @@ final class SendDocumentsAction implements IContractPassable
         $tutorMail = $passable->getPropertyFromData('tutor_email');
 
         if (checkEmail($playerMail)) {
-            $destinations[$playerMail] = $this->player->name . ' ' . $this->player->last_names;
+            $destinations[$playerMail] = $this->player->name.' '.$this->player->last_names;
         }
 
         if (checkEmail($tutorMail) && $tutorMail !== $playerMail) {
@@ -144,13 +143,13 @@ final class SendDocumentsAction implements IContractPassable
 
     private function cleanupTemporaryFiles(): void
     {
-        $base = 'tmp'. DIRECTORY_SEPARATOR .$this->school->slug;
+        $base = 'tmp'.DIRECTORY_SEPARATOR.$this->school->slug;
         $short = data_get($this->school, 'short_name', 'tmp');
         $folderPlayer = sprintf('%s-%s', $short, $this->player->unique_code);
-        $playerFolder = trim($base, "/\\") . DIRECTORY_SEPARATOR . $folderPlayer;
+        $playerFolder = trim($base, '/\\').DIRECTORY_SEPARATOR.$folderPlayer;
 
         if ($this->school->send_documents) {
-            $zipRelative = 'tmp/zips/' . $this->school->slug . '-' . $this->inscription->unique_code . '.zip';
+            $zipRelative = 'tmp/zips/'.$this->school->slug.'-'.$this->inscription->unique_code.'.zip';
             Storage::disk('local')->delete($zipRelative);
         }
 

@@ -2,6 +2,4 @@
 
 namespace App\Http\Requests\Evaluations;
 
-class UpdateEvaluationTemplateRequest extends UpsertEvaluationTemplateRequest
-{
-}
+class UpdateEvaluationTemplateRequest extends UpsertEvaluationTemplateRequest {}

@@ -99,6 +99,6 @@ class ReportInstructorActivityController extends Controller
 
     private function fileName(string $extension): string
     {
-        return 'instructor-activity-' . now()->format('Ymd_His') . ".{$extension}";
+        return 'instructor-activity-'.now()->format('Ymd_His').".{$extension}";
     }
 }

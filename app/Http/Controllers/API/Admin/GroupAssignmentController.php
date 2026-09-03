@@ -15,9 +15,7 @@ use Illuminate\Http\Response;
 
 class GroupAssignmentController extends Controller
 {
-    public function __construct(private readonly GroupAssignmentService $groupAssignmentService)
-    {
-    }
+    public function __construct(private readonly GroupAssignmentService $groupAssignmentService) {}
 
     public function trainingBoard(GroupAssignmentTrainingBoardRequest $request): JsonResponse
     {
@@ -36,7 +34,7 @@ class GroupAssignmentController extends Controller
             $request->integer('target_group_id')
         );
 
-        if (!$updated) {
+        if (! $updated) {
             return response()->json([
                 'success' => false,
                 'message' => 'No fue posible mover el deportista al grupo seleccionado.',

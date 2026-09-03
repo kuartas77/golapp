@@ -40,6 +40,4 @@ class UserUpdate extends FormRequest
         //     'school_id' => getSchool(auth()->user())->id
         // ]);
     }
-
-
 }

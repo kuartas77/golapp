@@ -55,7 +55,7 @@ class TopicNotificationStoreService
                         array_unique($playerIds)
                     );
 
-                    if (!empty($uniquePlayerIds)) {
+                    if (! empty($uniquePlayerIds)) {
                         $topicNotification->players()->attach(
                             $uniquePlayerIds,
                             [
@@ -75,7 +75,7 @@ class TopicNotificationStoreService
              * el registro en la base de datos.
              */
             Notification::send(
-                new AnonymousNotifiable(),
+                new AnonymousNotifiable,
                 FirebaseTopicNotification::create()
                     ->toTopics($topics)
                     ->withData([
@@ -253,11 +253,10 @@ class TopicNotificationStoreService
 
             'competition_groups' => $query->whereHas(
                 'competitionGroup',
-                fn ($competitionGroupQuery) =>
-                    $competitionGroupQuery->whereIn(
-                        'competition_groups.id',
-                        $search
-                    )
+                fn ($competitionGroupQuery) => $competitionGroupQuery->whereIn(
+                    'competition_groups.id',
+                    $search
+                )
             ),
 
             'players' => $query->whereIn(

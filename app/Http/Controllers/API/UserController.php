@@ -2,17 +2,14 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Resources\API\AuthUserResource;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\API\AuthUserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    public function check(Request $request)
-    {
-
-    }
+    public function check(Request $request) {}
 
     public function user(Request $request): AuthUserResource
     {

@@ -91,7 +91,7 @@ class PlayerEvaluationComparisonService
     {
         $evaluation = $evaluations->get($periodId);
 
-        if (!$evaluation) {
+        if (! $evaluation) {
             throw ValidationException::withMessages([
                 'period' => [
                     "No existe evaluación para la inscripción en el período {$periodId}.",
@@ -184,7 +184,7 @@ class PlayerEvaluationComparisonService
         $map = [];
 
         foreach ($evaluation->scores as $score) {
-            if (!$score->criterion) {
+            if (! $score->criterion) {
                 continue;
             }
 
@@ -195,7 +195,7 @@ class PlayerEvaluationComparisonService
 
             $key = $code
                 ? Str::lower($code)
-                : Str::lower($dimension . '|' . $name);
+                : Str::lower($dimension.'|'.$name);
 
             $map[$key] = [
                 'code' => $code,

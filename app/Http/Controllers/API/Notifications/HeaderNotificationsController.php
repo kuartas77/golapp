@@ -10,9 +10,7 @@ use Illuminate\Http\JsonResponse;
 
 class HeaderNotificationsController extends Controller
 {
-    public function __construct(private AdminNotificationSummaryService $notificationSummaryService)
-    {
-    }
+    public function __construct(private AdminNotificationSummaryService $notificationSummaryService) {}
 
     public function index(): JsonResponse
     {

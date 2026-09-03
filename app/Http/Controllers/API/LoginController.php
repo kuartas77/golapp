@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers\API;
 
-use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use App\Models\User;
-use App\Http\Resources\API\LoginResource;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\API\LoginResource;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
@@ -24,7 +23,7 @@ class LoginController extends Controller
 
         $user = User::query()->where('email', $request->input('email'))->first();
 
-        if (!$user || !Hash::check($request->input('password'), $user->password)) {
+        if (! $user || ! Hash::check($request->input('password'), $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
@@ -37,14 +36,16 @@ class LoginController extends Controller
     {
         $user = $request->user();
         $user->tokens()->delete();
+
         return $this->generateResponse($user);
     }
 
     public function logout(Request $request)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         $user->tokens()->delete();
+
         return response()->json(['success' => true]);
     }
 

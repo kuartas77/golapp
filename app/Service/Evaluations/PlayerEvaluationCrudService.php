@@ -44,7 +44,7 @@ class PlayerEvaluationCrudService
                 'recommendations' => $data['recommendations'] ?? null,
             ]);
 
-            if (!empty($data['scores'])) {
+            if (! empty($data['scores'])) {
                 $this->syncScores($evaluation, $data['scores'], false);
             }
 
@@ -124,7 +124,7 @@ class PlayerEvaluationCrudService
 
         $scoreErrors = $this->calculator->validateScores($evaluation);
 
-        if (!empty($scoreErrors)) {
+        if (! empty($scoreErrors)) {
             throw ValidationException::withMessages([
                 'scores' => $scoreErrors,
             ]);
@@ -150,7 +150,7 @@ class PlayerEvaluationCrudService
             $criterionId = (int) $scoreData['template_criterion_id'];
             $criterion = $criteria->get($criterionId);
 
-            if (!$criterion) {
+            if (! $criterion) {
                 throw ValidationException::withMessages([
                     'scores' => [
                         "El criterio {$criterionId} no pertenece a la plantilla seleccionada.",
@@ -177,7 +177,7 @@ class PlayerEvaluationCrudService
             $query = PlayerEvaluationScore::query()
                 ->where('player_evaluation_id', $evaluation->id);
 
-            if (!empty($payloadCriterionIds)) {
+            if (! empty($payloadCriterionIds)) {
                 $query->whereNotIn('template_criterion_id', $payloadCriterionIds);
             }
 
@@ -212,8 +212,8 @@ class PlayerEvaluationCrudService
         $template = EvaluationTemplate::findOrFail($templateId);
 
         if (
-            !empty($template->training_group_id) &&
-            !empty($inscription->training_group_id) &&
+            ! empty($template->training_group_id) &&
+            ! empty($inscription->training_group_id) &&
             (int) $template->training_group_id !== (int) $inscription->training_group_id
         ) {
             throw ValidationException::withMessages([
@@ -226,7 +226,7 @@ class PlayerEvaluationCrudService
 
     private function ensureRequiredCriteriaIfCompleted(PlayerEvaluation $evaluation): void
     {
-        if (!in_array($evaluation->status, ['completed', 'closed'], true)) {
+        if (! in_array($evaluation->status, ['completed', 'closed'], true)) {
             return;
         }
 
@@ -245,7 +245,7 @@ class PlayerEvaluationCrudService
 
         $missing = array_diff($requiredCriterionIds, $completedCriterionIds);
 
-        if (!empty($missing)) {
+        if (! empty($missing)) {
             throw ValidationException::withMessages([
                 'scores' => [
                     'Faltan criterios obligatorios por diligenciar para completar/cerrar la evaluación.',
