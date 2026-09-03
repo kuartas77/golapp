@@ -171,10 +171,17 @@ Route::middleware([
 });
 
 Route::middleware([
+    'role:super-admin|school',
+    'school.permission:school.module.inscriptions',
+])->group(function () {
+    Route::resource('inscriptions', WebInscriptions::class)->only(['store', 'destroy']);
+});
+
+Route::middleware([
     'role:super-admin|school|assistant',
     'school.permission:school.module.inscriptions',
 ])->group(function () {
-    Route::resource('inscriptions', WebInscriptions::class)->except(['index', 'create', 'show']);
+    Route::resource('inscriptions', WebInscriptions::class)->only(['edit', 'update']);
 });
 
 Route::middleware(['role:super-admin|school|instructor', 'school.permission:school.module.matches'])->group(function () {

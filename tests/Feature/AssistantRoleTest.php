@@ -299,6 +299,9 @@ final class AssistantRoleTest extends TestCase
             ->getJson("/api/v2/inscriptions/{$inscription->id}/edit")
             ->assertOk()
             ->assertJsonPath('id', $inscription->id);
+        $this->actingAs($this->assistant)
+            ->get(route('inscriptions.edit', $inscription->id))
+            ->assertOk();
 
         $this->actingAs($this->assistant)
             ->putJson("/api/v2/inscriptions/{$inscription->id}", [
@@ -333,6 +336,22 @@ final class AssistantRoleTest extends TestCase
             'pre_inscription' => true,
             'eps_certificate' => true,
         ]);
+
+        $this->actingAs($this->assistant)
+            ->put(route('inscriptions.update', $inscription), [
+                'id' => $inscription->id,
+                'player_id' => $inscription->player_id,
+                'unique_code' => $inscription->unique_code,
+                'start_date' => now()->startOfYear()->toDateString(),
+                'training_group_id' => $group->id,
+                'complementary_group_ids' => [],
+                'competition_groups' => [],
+                'scholarship' => false,
+                'pre_inscription' => false,
+                'monthly_payment_type' => Setting::MONTHLY_PAYMENT,
+                'recalculate_monthly_payments' => false,
+            ])
+            ->assertOk();
 
         $otherSchool = School::factory()->create();
         $otherPlayer = Player::factory()->create(['school_id' => $otherSchool->id]);

@@ -67,7 +67,14 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
         'school.permission:school.module.inscriptions',
     ])->group(function () {
         Route::post('inscriptions/activate/{id}', [InscriptionController::class, 'activate'])->name('inscriptions.activate');
-        Route::resource('inscriptions', InscriptionController::class)->except(['index', 'create', 'show']);
+        Route::resource('inscriptions', InscriptionController::class)->only(['store', 'destroy']);
+    });
+
+    Route::middleware([
+        'role:super-admin|school|assistant',
+        'school.permission:school.module.inscriptions',
+    ])->group(function () {
+        Route::resource('inscriptions', InscriptionController::class)->only(['edit', 'update']);
     });
 
     // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
