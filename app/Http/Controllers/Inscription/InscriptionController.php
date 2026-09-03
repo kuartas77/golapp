@@ -31,7 +31,7 @@ class InscriptionController extends Controller
 
     public function store(InscriptionRequest $request): JsonResponse
     {
-        abort_unless(isAdmin() || isSchool(), 401);
+        abort_unless(isAdmin() || isSchool(), 403);
 
         $result = $this->repository->createInscription(requestData: $request->validated());
 
@@ -46,7 +46,7 @@ class InscriptionController extends Controller
 
     public function edit($id): JsonResponse
     {
-        abort_unless(isAdmin() || isSchool(), 401);
+        abort_unless(isAdmin() || isSchool() || isAssistant(), 403);
 
         $this->response = $this->repository->searchInsUniqueCode($id);
 
@@ -57,7 +57,8 @@ class InscriptionController extends Controller
 
     public function update(InscriptionUpdateRequest $request, Inscription $inscription): JsonResponse
     {
-        abort_unless(isAdmin() || isSchool(), 401);
+        abort_unless(isAdmin() || isSchool() || isAssistant(), 403);
+        abort_unless((int) $inscription->school_id === (int) getSchool(auth()->user())->id, 404);
 
         $inscription = $this->repository->updateInscription(requestData: $request->validated(), inscription: $inscription);
 
@@ -69,7 +70,8 @@ class InscriptionController extends Controller
 
     public function destroy(Inscription $inscription): JsonResponse
     {
-        abort_unless(isAdmin() || isSchool(), 401);
+        abort_unless(isAdmin() || isSchool(), 403);
+        abort_unless((int) $inscription->school_id === (int) getSchool(auth()->user())->id, 404);
 
         $delete = $this->repository->disable($inscription);
 

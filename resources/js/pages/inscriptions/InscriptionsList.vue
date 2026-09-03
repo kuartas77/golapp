@@ -216,6 +216,7 @@ const filterTrainingGroups = computed(() => {
     return Array.from(uniqueGroups.values())
 })
 const canExportInscriptions = computed(() => auth.hasAnyRole(['super-admin', 'school', 'viewer']))
+const canEditInscriptions = computed(() => auth.hasAnyRole(['super-admin', 'school', 'assistant']))
 const canManageInscriptions = computed(() => auth.hasAnyRole(['super-admin', 'school']))
 const selectedYear = ref(String(route.query.inscription_year || currentYear))
 const exportExcelUrl = computed(() => `/export/inscriptions/excel?inscription_year=${encodeURIComponent(selectedYear.value || currentYear)}`)
@@ -279,7 +280,14 @@ const {
     onAttendanceQrModalToggle,
     onCancelModal,
     onSuccessModal,
-} = useInscriptionConfig(selectedYear, canManageInscriptions, loadLimitSummary, canCreateInvoice, canAddCustomCharges)
+} = useInscriptionConfig(
+    selectedYear,
+    canEditInscriptions,
+    loadLimitSummary,
+    canCreateInvoice,
+    canAddCustomCharges,
+    canManageInscriptions,
+)
 const tutorial = usePageTutorial(inscriptionsTutorial, {
     canExportInscriptions,
 })

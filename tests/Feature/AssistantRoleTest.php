@@ -8,6 +8,8 @@ use App\Models\Inscription;
 use App\Models\InvoiceCustomItem;
 use App\Models\Payment;
 use App\Models\Player;
+use App\Models\School;
+use App\Models\Setting;
 use App\Models\SchoolUser;
 use App\Models\User;
 use Tests\TestCase;
@@ -281,14 +283,91 @@ final class AssistantRoleTest extends TestCase
             ->assertJsonPath('data.evaluations', []);
 
         $this->actingAs($this->assistant)
-            ->putJson("/api/v2/inscriptions/{$inscription->id}", [])
-            ->assertForbidden();
-        $this->actingAs($this->assistant)
             ->getJson('/api/v2/reports/assists')
             ->assertForbidden();
         $this->actingAs($this->assistant)
             ->getJson('/api/v2/reports/payments')
             ->assertOk();
+    }
+
+    public function test_assistant_can_edit_existing_inscriptions_but_cannot_create_or_retire_them(): void
+    {
+        [$inscription] = $this->paymentFixture();
+        $group = getSchool($this->assistant)->trainingGroups()->firstOrFail();
+
+        $this->actingAs($this->assistant)
+            ->getJson("/api/v2/inscriptions/{$inscription->id}/edit")
+            ->assertOk()
+            ->assertJsonPath('id', $inscription->id);
+
+        $this->actingAs($this->assistant)
+            ->putJson("/api/v2/inscriptions/{$inscription->id}", [
+                'id' => $inscription->id,
+                'player_id' => $inscription->player_id,
+                'unique_code' => $inscription->unique_code,
+                'start_date' => now()->startOfYear()->toDateString(),
+                'training_group_id' => $group->id,
+                'complementary_group_ids' => [],
+                'competition_groups' => [],
+                'photos' => true,
+                'copy_identification_document' => true,
+                'eps_certificate' => true,
+                'medic_certificate' => true,
+                'study_certificate' => false,
+                'overalls' => false,
+                'ball' => false,
+                'bag' => false,
+                'presentation_uniform' => false,
+                'competition_uniform' => false,
+                'tournament_pay' => false,
+                'scholarship' => false,
+                'pre_inscription' => true,
+                'monthly_payment_type' => Setting::MONTHLY_PAYMENT,
+                'recalculate_monthly_payments' => false,
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('inscriptions', [
+            'id' => $inscription->id,
+            'pre_inscription' => true,
+            'eps_certificate' => true,
+        ]);
+
+        $otherSchool = School::factory()->create();
+        $otherPlayer = Player::factory()->create(['school_id' => $otherSchool->id]);
+        $otherInscription = Inscription::factory()->create([
+            'school_id' => $otherSchool->id,
+            'player_id' => $otherPlayer->id,
+            'unique_code' => $otherPlayer->unique_code,
+            'competition_group_id' => null,
+            'year' => now()->year,
+        ]);
+
+        $this->actingAs($this->assistant)
+            ->getJson("/api/v2/inscriptions/{$otherInscription->id}/edit")
+            ->assertNotFound();
+        $this->actingAs($this->assistant)
+            ->putJson("/api/v2/inscriptions/{$otherInscription->id}", [
+                'id' => $otherInscription->id,
+                'player_id' => $inscription->player_id,
+                'unique_code' => $inscription->unique_code,
+                'start_date' => now()->startOfYear()->toDateString(),
+                'training_group_id' => $group->id,
+                'complementary_group_ids' => [],
+                'competition_groups' => [],
+                'scholarship' => false,
+                'pre_inscription' => false,
+                'monthly_payment_type' => Setting::MONTHLY_PAYMENT,
+            ])
+            ->assertNotFound();
+
+        $this->actingAs($this->assistant)
+            ->postJson('/api/v2/inscriptions', [])
+            ->assertForbidden();
+        $this->actingAs($this->assistant)
+            ->deleteJson("/api/v2/inscriptions/{$inscription->id}")
+            ->assertForbidden();
     }
 
     public function test_assistant_spa_routes_allow_financial_work_and_reject_sports_modules(): void

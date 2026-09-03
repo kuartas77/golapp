@@ -171,7 +171,7 @@ Route::middleware([
 });
 
 Route::middleware([
-    'role:super-admin|school',
+    'role:super-admin|school|assistant',
     'school.permission:school.module.inscriptions',
 ])->group(function () {
     Route::resource('inscriptions', WebInscriptions::class)->except(['index', 'create', 'show']);

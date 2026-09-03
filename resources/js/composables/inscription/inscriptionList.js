@@ -3,7 +3,14 @@ import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef } from 'vue';
 import api from '@/utils/axios'
 import { useRouter } from 'vue-router'
 
-export default function useInscriptionConfig(selectedYear, canManageInscriptions, onDataChanged = null, canCreateInvoice = null, canAddCustomCharges = null) {
+export default function useInscriptionConfig(
+    selectedYear,
+    canEditInscriptions,
+    onDataChanged = null,
+    canCreateInvoice = null,
+    canAddCustomCharges = null,
+    canAdministerInscriptions = canEditInscriptions,
+) {
     const router = useRouter()
     const inscription_table = useTemplateRef('inscription_table')
     const selectedInscriptionId = ref(null)
@@ -17,7 +24,12 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
     const canManageSelectedYear = computed(() => {
         const year = Number(selectedYear?.value ?? currentYear)
 
-        return Boolean(canManageInscriptions?.value) && year >= currentYear
+        return Boolean(canAdministerInscriptions?.value) && year >= currentYear
+    })
+    const canEditSelectedYear = computed(() => {
+        const year = Number(selectedYear?.value ?? currentYear)
+
+        return Boolean(canEditInscriptions?.value) && year >= currentYear
     })
     const canShowCreateInvoice = computed(() => {
         return canCreateInvoice === null
@@ -101,7 +113,7 @@ export default function useInscriptionConfig(selectedYear, canManageInscriptions
                         </li>
                     `
                     : ''
-                const editAction = canManageSelectedYear.value
+                const editAction = canEditSelectedYear.value
                     ? `
                         <button
                             class="btn btn-sm btn-outline-primary"

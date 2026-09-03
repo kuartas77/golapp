@@ -16,7 +16,7 @@ class InscriptionUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return isAdmin() || isSchool();
+        return isAdmin() || isSchool() || isAssistant();
     }
 
     /**
