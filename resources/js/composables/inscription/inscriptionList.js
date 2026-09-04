@@ -2,6 +2,8 @@ import configLanguaje from '@/utils/datatableUtils';
 import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef } from 'vue';
 import api from '@/utils/axios'
 import { useRouter } from 'vue-router'
+import { useAuthUser } from '@/store/auth-user'
+import { invoiceDocumentSingularForSchool } from '@/utils/invoiceTerminology'
 
 export default function useInscriptionConfig(
     selectedYear,
@@ -12,6 +14,7 @@ export default function useInscriptionConfig(
     canAdministerInscriptions = canEditInscriptions,
 ) {
     const router = useRouter()
+    const auth = useAuthUser()
     const inscription_table = useTemplateRef('inscription_table')
     const selectedInscriptionId = ref(null)
     const isCreateModalOpen = ref(false)
@@ -36,6 +39,9 @@ export default function useInscriptionConfig(
             ? canManageSelectedYear.value
             : Boolean(canCreateInvoice?.value)
     })
+    const createDocumentLabel = computed(() => invoiceDocumentSingularForSchool(
+        Boolean(auth.user?.electronic_invoicing_enabled)
+    ).toLowerCase())
 
     const columns = [
         { data: 'player.photo_url', width: '1%', render: '#photo', searchable: false, orderable: false },
@@ -77,7 +83,7 @@ export default function useInscriptionConfig(
                                 class="dropdown-item"
                                 data-item-id="${row.id}"
                                 data-type="invoice"
-                                title="Crear factura"
+                                title="Crear ${createDocumentLabel.value}"
                                 type="button"
                             >
                                 <i
@@ -85,7 +91,7 @@ export default function useInscriptionConfig(
                                     class="fa fa-file-invoice fa-width-auto me-2"
                                     data-type="invoice"
                                 ></i>
-                                Crear factura
+                                Crear ${createDocumentLabel.value}
                             </button>
                         </li>
                     `

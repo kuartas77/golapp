@@ -77,7 +77,7 @@ describe('Invoices list states', () => {
     it('announces load errors, offers retry and explains page-scoped totals', async () => {
         const wrapper = mountPage()
 
-        expect(wrapper.get('h1').text()).toBe('Facturas')
+        expect(wrapper.get('h1').text()).toBe('Recibos de caja')
         const alert = wrapper.get('[role="alert"]')
         expect(alert.text()).toContain('El servicio de facturación no está disponible.')
         await alert.get('button').trigger('click')
@@ -103,7 +103,7 @@ describe('Invoices list states', () => {
         ])
         expect(toolbar.get('label[for="filterStatus"]').text()).toBe('Estado')
         expect(toolbar.get('label[for="filterDate"]').text()).toBe('Rango fecha facturación')
-        expect(headerActions.text()).toContain('Crear factura')
+        expect(headerActions.text()).toContain('Crear recibo de caja')
         expect(headerActions.text()).toContain('Guía')
         expect(headerActions.findAll('.invoice-toolbar-action')).toHaveLength(2)
 

@@ -13,7 +13,9 @@ use App\Models\PaymentRequest;
 use App\Models\Player;
 use App\Models\School;
 use App\Models\UniformRequest;
+use App\Notifications\InvoiceReceiptNotification;
 use App\Service\Invoice\InvoiceNumberAllocator;
+use App\Support\Invoice\InvoiceDocumentTerminology;
 use App\Traits\PDFTrait;
 use App\Traits\UploadFile;
 use Illuminate\Database\Eloquent\Builder;
@@ -267,6 +269,7 @@ class InvoiceRepository
                 ->schoolId()
                 ->lockForUpdate()
                 ->findOrFail($invoiceId);
+            $previousStatus = $invoice->status;
             $idempotencyKey = $request->validated('idempotency_key')
                 ?: 'server-'.Str::uuid();
             $existingPayment = PaymentReceived::query()
@@ -295,7 +298,7 @@ class InvoiceRepository
             abort_unless(
                 $payableItems->count() === $paidItemIds->count(),
                 422,
-                'Uno o más conceptos seleccionados ya fueron pagados o no pertenecen a esta factura.'
+                'Uno o más conceptos seleccionados ya fueron pagados o no pertenecen a este documento.'
             );
 
             $expectedAmount = round((float) $payableItems->sum('total'), 2);
@@ -340,6 +343,7 @@ class InvoiceRepository
             $invoice->markMonthsAsPaid();
             $invoice->markCustomChargesAsPaid();
             $invoice->updateTotals();
+            $this->notifyPaidInvoiceReceipt($invoice, $previousStatus);
 
             return [
                 'id' => $paymentReceived->id,
@@ -350,30 +354,31 @@ class InvoiceRepository
 
     public function addPaymentButton($invoiceId, $paymentRequestId)
     {
-        $invoice = Invoice::query()->schoolId()->findOrFail($invoiceId);
-        $paymentRequest = PaymentRequest::query()
-            ->schoolId()
-            ->where('invoice_id', $invoice->id)
-            ->findOrFail($paymentRequestId);
+        DB::transaction(function () use ($invoiceId, $paymentRequestId): void {
+            $invoice = Invoice::query()->schoolId()->lockForUpdate()->findOrFail($invoiceId);
+            $previousStatus = $invoice->status;
+            $paymentRequest = PaymentRequest::query()
+                ->schoolId()
+                ->where('invoice_id', $invoice->id)
+                ->findOrFail($paymentRequestId);
 
-        $paymentReceived = PaymentReceived::query()->create([
-            'invoice_id' => $invoiceId,
-            'amount' => $invoice->total_amount,
-            'payment_method' => $paymentRequest->payment_method,
-            'reference' => $paymentRequest->reference_number,
-            'payment_date' => now(),
-            'notes' => $paymentRequest->description,
-            'school_id' => $invoice->school_id,
-            'created_by' => $this->currentUserId(),
-        ]);
+            $paymentReceived = PaymentReceived::query()->create([
+                'invoice_id' => $invoiceId,
+                'amount' => $invoice->total_amount,
+                'payment_method' => $paymentRequest->payment_method,
+                'reference' => $paymentRequest->reference_number,
+                'payment_date' => now(),
+                'notes' => $paymentRequest->description,
+                'school_id' => $invoice->school_id,
+                'created_by' => $this->currentUserId(),
+            ]);
 
-        // Actualizar totales de la factura
-        $invoice->updateTotals();
-
-        $invoice->items()->update(['is_paid' => true, 'payment_received_id' => $paymentReceived->id]);
-        // Si hay ítems de meses marcados como pagados, actualizar la tabla payments original
-        $invoice->markMonthsAsPaid();
-        $invoice->markCustomChargesAsPaid();
+            $invoice->items()->update(['is_paid' => true, 'payment_received_id' => $paymentReceived->id]);
+            $invoice->markMonthsAsPaid();
+            $invoice->markCustomChargesAsPaid();
+            $invoice->updateTotals();
+            $this->notifyPaidInvoiceReceipt($invoice, $previousStatus);
+        });
     }
 
     public function getAllItems()
@@ -386,6 +391,25 @@ class InvoiceRepository
     private function currentUserId(): ?int
     {
         return request()->user()?->getAuthIdentifier() ?? auth()->id();
+    }
+
+    private function notifyPaidInvoiceReceipt(Invoice $invoice, string $previousStatus): void
+    {
+        $invoice->refresh()->loadMissing(['school', 'inscription.player.people']);
+
+        if ($previousStatus === 'paid'
+            || $invoice->status !== 'paid'
+            || ! in_array($invoice->numbering_type, ['internal', 'legacy'], true)
+            || ! $invoice->school?->send_invoice_receipts) {
+            return;
+        }
+
+        $guardian = $invoice->inscription?->player?->people
+            ->first(fn ($person) => (int) $person->tutor === 1 && filter_var($person->email, FILTER_VALIDATE_EMAIL));
+
+        if ($guardian) {
+            $guardian->notify(new InvoiceReceiptNotification($invoice, $invoice->school));
+        }
     }
 
     public function addUniformRequest(int $playerId, int $schoolId)
@@ -476,8 +500,11 @@ class InvoiceRepository
         $data['school'] = getSchool(auth()->user());
         $data['items'] = $items;
         $data['date'] = $date;
+        $data['documentPlural'] = InvoiceDocumentTerminology::plural(
+            (bool) $data['school']->electronic_invoicing_enabled
+        );
 
-        $filename = "Items de factura pendientes {$date}.pdf";
+        $filename = "Ítems de {$data['documentPlural']} pendientes {$date}.pdf";
         $this->setConfigurationMpdf(['format' => 'A4-L']);
         $this->createPDF($data, 'items-invoices.blade.php');
 

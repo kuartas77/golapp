@@ -309,7 +309,7 @@ describe('InscriptionSummary', () => {
         }))
 
         const tabLabels = wrapper.findAll('.nav-link').map((tab) => tab.text())
-        expect(tabLabels).toEqual(['Resumen', 'Pagos', 'Cargos personalizados', 'Facturas'])
+        expect(tabLabels).toEqual(['Resumen', 'Pagos', 'Cargos personalizados', 'Recibos de caja'])
         expect(wrapper.text()).not.toContain('Generar paz y salvo')
         expect(wrapper.text()).not.toContain('Estadísticas')
     })

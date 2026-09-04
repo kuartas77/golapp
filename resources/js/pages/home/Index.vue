@@ -171,6 +171,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useAuthUser } from '@/store/auth-user'
+import { invoiceDocumentPlural } from '@/utils/invoiceTerminology'
 import { useBackofficeAccess } from '@/composables/useBackofficeAccess'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
 import { usePageTutorial } from '@/composables/usePageTutorial'
@@ -339,12 +340,12 @@ const featureDefinitions = [
         key: 'billing',
         isAvailable: () => canBilling.value,
         short: 'FC',
-        kicker: 'Facturas',
+        kicker: invoiceDocumentPlural(Boolean(authUser.user?.electronic_invoicing_enabled)),
         title: 'Genera soporte formal para el proceso de cobro',
-        description: 'Mantiene organizada la emision de facturas y facilita el respaldo documental del recaudo.',
-        points: ['Listado de facturas', 'Creacion desde inscripciones', 'Consulta detallada por registro'],
+        description: 'Mantiene organizados los documentos de cobro y facilita el respaldo documental del recaudo.',
+        points: ['Listado de documentos', 'Creacion desde inscripciones', 'Consulta detallada por registro'],
         routeName: 'invoices.index',
-        cta: 'Ver facturas',
+        cta: `Ver ${invoiceDocumentPlural(Boolean(authUser.user?.electronic_invoicing_enabled)).toLowerCase()}`,
     },
     {
         key: 'admin',

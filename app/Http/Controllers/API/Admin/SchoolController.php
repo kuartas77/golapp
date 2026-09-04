@@ -51,6 +51,7 @@ class SchoolController extends Controller
                 'id' => $school->id,
                 'slug' => $school->slug,
                 'name' => $school->name,
+                'send_invoice_receipts' => $school->send_invoice_receipts,
             ],
         ], Response::HTTP_CREATED);
     }
@@ -86,6 +87,7 @@ class SchoolController extends Controller
                 'id' => $school->id,
                 'slug' => $school->slug,
                 'name' => $school->name,
+                'send_invoice_receipts' => $school->send_invoice_receipts,
             ],
         ]);
     }

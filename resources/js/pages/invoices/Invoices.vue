@@ -2,15 +2,15 @@
     <panel>
         <template #header>
             <AppPageHeader
-                title="Facturas"
-                subtitle="Consulta montos, pagos, estados y accesos al detalle de cada factura."
+                :title="documentPlural"
+                :subtitle="`Consulta montos, pagos, estados y accesos al detalle de cada ${documentSingular.toLowerCase()}.`"
                 icon="fa fa-file-invoice"
                 data-tour="invoices-index-actions"
             >
                 <template #actions>
                     <AppButton v-if="!isReadOnly" variant="primary" size="sm" class="invoice-toolbar-action" @click="openCreateInvoiceModal">
                         <i class="fa fa-plus" aria-hidden="true"></i>
-                        Crear factura
+                        Crear {{ documentSingular.toLowerCase() }}
                     </AppButton>
                     <AppButton variant="info" size="sm" class="invoice-toolbar-action" @click="tutorial.start()">
                         <i class="fa-regular fa-circle-question" aria-hidden="true"></i>
@@ -28,8 +28,8 @@
                             <option value="">Todos los estados</option>
                             <option value="pending">Pendiente</option>
                             <option value="partial">Parcial</option>
-                            <option value="paid">Pagada</option>
-                            <option value="cancelled">Cancelada</option>
+                            <option value="paid">{{ auth.user?.electronic_invoicing_enabled ? 'Pagada' : 'Pagado' }}</option>
+                            <option value="cancelled">{{ auth.user?.electronic_invoicing_enabled ? 'Cancelada' : 'Cancelado' }}</option>
                         </select>
                     </div>
                 </div>
@@ -62,14 +62,14 @@
                 <ContentState
                     v-if="globalError"
                     type="error"
-                    title="No fue posible cargar las facturas"
+                    :title="`No fue posible cargar ${documentPlural.toLowerCase()}`"
                     :message="globalError"
                     action-label="Reintentar"
                     class="mb-3"
                     @action="reloadTable"
                 />
                 <div v-show="!globalError">
-                <DatatableTemplate :options="options" :id="'invoives_table'" aria-label="Facturas" ref="invoives_table" @click="onClickRow">
+                <DatatableTemplate :options="options" :id="'invoives_table'" :aria-label="documentPlural" ref="invoives_table" @click="onClickRow">
                 <template #thead>
                     <thead>
                         <tr>
@@ -79,8 +79,8 @@
                                         v-model="invoiceNumberFilter"
                                         type="search"
                                         class="form-control form-control-sm datatable-header-filter-input"
-                                        placeholder="# Factura"
-                                        aria-label="Buscar por número de factura"
+                                        :placeholder="`# ${documentSingular}`"
+                                        :aria-label="`Buscar por número de ${documentSingular.toLowerCase()}`"
                                         autocomplete="off"
                                         @click.stop
                                         @keydown.stop
@@ -161,7 +161,7 @@
             <div class="modal-content">
                 <form @submit.prevent="continueToInvoiceCreate">
                     <div class="modal-header">
-                        <h5 id="create-invoice-modal-title" class="modal-title">Crear factura</h5>
+                        <h5 id="create-invoice-modal-title" class="modal-title">Crear {{ documentSingular.toLowerCase() }}</h5>
                         <button type="button" class="btn-close" aria-label="Cerrar" @click="closeCreateInvoiceModal"></button>
                     </div>
                     <div class="modal-body">
@@ -169,7 +169,7 @@
                             v-if="creationInscriptionsLoading"
                             type="loading"
                             title="Cargando inscripciones"
-                            message="Estamos preparando los deportistas disponibles para facturar."
+                            :message="`Estamos preparando los deportistas disponibles para crear el ${documentSingular.toLowerCase()}.`"
                         />
                         <ContentState
                             v-else-if="creationInscriptionsError"
@@ -193,7 +193,7 @@
                                 :options="creationInscriptionOptions"
                                 placeholder="Selecciona una inscripción"
                                 search-placeholder="Buscar por deportista, código o grupo..."
-                                aria-label="Inscripción para crear la factura"
+                                :aria-label="`Inscripción para crear ${documentSingular.toLowerCase()}`"
                             />
                         </div>
                     </div>
@@ -215,7 +215,7 @@
     </div>
     <div v-if="createInvoiceModalOpen" class="modal-backdrop fade show"></div>
 
-    <breadcrumb :parent="'Plataforma'" :current="'Facturas'" />
+    <breadcrumb :parent="'Plataforma'" :current="documentPlural" />
     <PageTutorialOverlay :tutorial="tutorial" />
 
 </template>
@@ -240,9 +240,12 @@ import 'flatpickr/dist/flatpickr.css';
 import "@/assets/sass/forms/custom-flatpickr.css";
 import { invoicesIndexTutorial } from '@/tutorials/invoices'
 import { useAuthUser } from '@/store/auth-user'
+import { invoiceDocumentPlural, invoiceDocumentSingularForSchool } from '@/utils/invoiceTerminology'
 
 const auth = useAuthUser()
 const isReadOnly = computed(() => auth.hasRole('viewer'))
+const documentPlural = computed(() => invoiceDocumentPlural(Boolean(auth.user?.electronic_invoicing_enabled)))
+const documentSingular = computed(() => invoiceDocumentSingularForSchool(Boolean(auth.user?.electronic_invoicing_enabled)))
 
 const flatpickrConfig = {
     wrap: true,

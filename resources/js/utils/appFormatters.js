@@ -18,6 +18,13 @@ const STATUS_CATALOGS = {
         cancelled: { label: 'Anulada', variant: 'secondary' },
         canceled: { label: 'Anulada', variant: 'secondary' },
     },
+    receipt: {
+        paid: { label: 'Pagado', variant: 'success' },
+        partial: { label: 'Parcial', variant: 'warning' },
+        pending: { label: 'Pendiente', variant: 'danger' },
+        cancelled: { label: 'Anulado', variant: 'secondary' },
+        canceled: { label: 'Anulado', variant: 'secondary' },
+    },
     'invoice-item': {
         true: { label: 'Pagado', variant: 'success' },
         1: { label: 'Pagado', variant: 'success' },

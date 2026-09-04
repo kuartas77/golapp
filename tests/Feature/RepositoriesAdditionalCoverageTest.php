@@ -32,6 +32,7 @@ use App\Models\TrainingGroup;
 use App\Models\TrainingSession;
 use App\Models\UniformRequest;
 use App\Models\User;
+use App\Notifications\InvoiceReceiptNotification;
 use App\Notifications\RegisterNotification;
 use App\Repositories\AssistRepository;
 use App\Repositories\BaseRepository;
@@ -990,6 +991,185 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         }
     }
 
+    public function test_internal_invoice_receipt_is_emailed_once_when_payment_is_completed(): void
+    {
+        Notification::fake();
+        $this->actingAs($this->user);
+        [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
+        $school = getSchool($this->user);
+        $school->forceFill(['send_invoice_receipts' => true])->save();
+        $guardian = People::factory()->create([
+            'tutor' => true,
+            'email' => 'invoice-receipt-guardian@example.com',
+        ]);
+        $inscription->player->people()->attach($guardian->id);
+
+        $invoice = Invoice::query()->create([
+            'invoice_number' => 'FAC-RECEIPT-'.$inscription->id,
+            'numbering_type' => 'internal',
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $trainingGroup->id,
+            'year' => now()->year,
+            'student_name' => $inscription->player->full_names,
+            'total_amount' => 80000,
+            'paid_amount' => 0,
+            'issue_date' => now()->toDateString(),
+            'due_date' => now()->addWeek()->toDateString(),
+            'status' => 'pending',
+            'school_id' => $school->id,
+            'created_by' => $this->user->id,
+        ]);
+        $partialItem = $invoice->items()->create([
+            'type' => 'additional',
+            'description' => 'Cargo parcial',
+            'quantity' => 1,
+            'unit_price' => 30000,
+            'is_paid' => false,
+        ]);
+        $item = $invoice->items()->create([
+            'type' => 'monthly',
+            'description' => 'Mensualidad Enero',
+            'quantity' => 1,
+            'unit_price' => 50000,
+            'month' => 'january',
+            'payment_id' => $payment->id,
+            'is_paid' => false,
+        ]);
+        $this->postJson(route('invoices.addPayment', $invoice->id), [
+            'idempotency_key' => 'receipt-partial-payment-'.$invoice->id,
+            'amount' => 30000,
+            'payment_method' => 'cash',
+            'issue_date' => now()->toDateString(),
+            'payment_date' => now()->toDateString(),
+            'paid_items' => [$partialItem->id],
+        ])->assertOk();
+        Notification::assertNotSentTo($guardian, InvoiceReceiptNotification::class);
+
+        $payload = [
+            'idempotency_key' => 'receipt-payment-'.$invoice->id,
+            'amount' => 50000,
+            'payment_method' => 'cash',
+            'issue_date' => now()->toDateString(),
+            'payment_date' => now()->toDateString(),
+            'paid_items' => [$item->id],
+        ];
+
+        $this->postJson(route('invoices.addPayment', $invoice->id), $payload)->assertOk();
+        $this->postJson(route('invoices.addPayment', $invoice->id), $payload)->assertOk();
+
+        Notification::assertSentTo($guardian, InvoiceReceiptNotification::class, 1);
+
+        $message = (new InvoiceReceiptNotification($invoice->fresh(), $school))->toMail($guardian);
+        $this->assertCount(1, $message->rawAttachments);
+        $this->assertSame('application/pdf', $message->rawAttachments[0]['options']['mime']);
+        $this->assertStringStartsWith('%PDF', $message->rawAttachments[0]['data']);
+        $this->assertSame("Recibo de caja #{$invoice->invoice_number}.pdf", $message->rawAttachments[0]['name']);
+    }
+
+    public function test_electronic_invoice_is_not_emailed_when_payment_is_completed(): void
+    {
+        Notification::fake();
+        $this->actingAs($this->user);
+        [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
+        getSchool($this->user)->forceFill(['send_invoice_receipts' => true])->save();
+        $guardian = People::factory()->create([
+            'tutor' => true,
+            'email' => 'electronic-invoice-guardian@example.com',
+        ]);
+        $inscription->player->people()->attach($guardian->id);
+
+        $invoice = Invoice::query()->create([
+            'invoice_number' => 'FE-EMAIL-'.$inscription->id,
+            'numbering_type' => 'electronic',
+            'inscription_id' => $inscription->id,
+            'training_group_id' => $trainingGroup->id,
+            'year' => now()->year,
+            'student_name' => $inscription->player->full_names,
+            'total_amount' => 50000,
+            'paid_amount' => 0,
+            'issue_date' => now()->toDateString(),
+            'due_date' => now()->addWeek()->toDateString(),
+            'status' => 'pending',
+            'school_id' => $this->school['id'],
+            'created_by' => $this->user->id,
+        ]);
+        $item = $invoice->items()->create([
+            'type' => 'monthly',
+            'description' => 'Mensualidad Enero',
+            'quantity' => 1,
+            'unit_price' => 50000,
+            'month' => 'january',
+            'payment_id' => $payment->id,
+            'is_paid' => false,
+        ]);
+
+        $this->postJson(route('invoices.addPayment', $invoice->id), [
+            'idempotency_key' => 'electronic-payment-'.$invoice->id,
+            'amount' => 50000,
+            'payment_method' => 'cash',
+            'issue_date' => now()->toDateString(),
+            'payment_date' => now()->toDateString(),
+            'paid_items' => [$item->id],
+        ])->assertOk();
+
+        Notification::assertNotSentTo($guardian, InvoiceReceiptNotification::class);
+    }
+
+    public function test_invoice_receipt_is_not_emailed_without_school_option_or_valid_tutor_email(): void
+    {
+        Notification::fake();
+        $this->actingAs($this->user);
+        [$inscription, , $trainingGroup] = $this->createInscriptionAndPayment();
+        $school = getSchool($this->user);
+        $guardian = People::factory()->create([
+            'tutor' => true,
+            'email' => 'disabled-receipt-guardian@example.com',
+        ]);
+        $inscription->player->people()->attach($guardian->id);
+
+        $payReceipt = function (string $suffix) use ($inscription, $trainingGroup, $school): void {
+            $invoice = Invoice::query()->create([
+                'invoice_number' => 'FAC-NO-EMAIL-'.$suffix,
+                'numbering_type' => 'legacy',
+                'inscription_id' => $inscription->id,
+                'training_group_id' => $trainingGroup->id,
+                'year' => now()->year,
+                'student_name' => $inscription->player->full_names,
+                'total_amount' => 25000,
+                'paid_amount' => 0,
+                'issue_date' => now()->toDateString(),
+                'due_date' => now()->addWeek()->toDateString(),
+                'status' => 'pending',
+                'school_id' => $school->id,
+                'created_by' => $this->user->id,
+            ]);
+            $item = $invoice->items()->create([
+                'type' => 'additional',
+                'description' => 'Cargo adicional',
+                'quantity' => 1,
+                'unit_price' => 25000,
+                'is_paid' => false,
+            ]);
+
+            $this->postJson(route('invoices.addPayment', $invoice->id), [
+                'idempotency_key' => 'no-email-'.$suffix,
+                'amount' => 25000,
+                'payment_method' => 'cash',
+                'issue_date' => now()->toDateString(),
+                'payment_date' => now()->toDateString(),
+                'paid_items' => [$item->id],
+            ])->assertOk();
+        };
+
+        $payReceipt('disabled');
+        Notification::assertNotSentTo($guardian, InvoiceReceiptNotification::class);
+
+        $school->forceFill(['send_invoice_receipts' => true])->save();
+        $guardian->forceFill(['email' => 'correo-invalido'])->save();
+        $payReceipt('invalid-email');
+        Notification::assertNotSentTo($guardian, InvoiceReceiptNotification::class);
+    }
+
     public function test_invoice_payment_rejects_an_amount_that_does_not_match_selected_items(): void
     {
         $this->actingAs($this->user);
@@ -1088,14 +1268,22 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
     public function test_payment_request_approval_stores_current_user_on_payment_history(): void
     {
+        Notification::fake();
         $this->actingAs($this->user);
         [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
+        getSchool($this->user)->forceFill(['send_invoice_receipts' => true])->save();
+        $guardian = People::factory()->create([
+            'tutor' => true,
+            'email' => 'approved-request-guardian@example.com',
+        ]);
+        $inscription->player->people()->attach($guardian->id);
 
         Schema::disableForeignKeyConstraints();
 
         try {
             $invoice = Invoice::query()->create([
                 'invoice_number' => 'FAC-REQ-'.now()->format('YmdHis'),
+                'numbering_type' => 'legacy',
                 'inscription_id' => $inscription->id,
                 'training_group_id' => $trainingGroup->id,
                 'year' => now()->year,
@@ -1136,6 +1324,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
             $this->assertNotNull($paymentReceived);
             $this->assertSame($this->user->id, $paymentReceived->created_by);
+            Notification::assertSentTo($guardian, InvoiceReceiptNotification::class);
         } finally {
             Schema::enableForeignKeyConstraints();
         }

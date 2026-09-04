@@ -9,8 +9,8 @@
             </div>
             <p>Podrás encontrar las solicitudes pendientes de uniformes generadas desde la App GOLAPPLINK.</p>
             <span class="text-muted d-block mb-3">
-                Al dar click en crear una factura las solicitudes pendientes se agregarán a esta, sin importar la
-                solicitud seleccionada del estudiante y se aprobará si está incluida en la factura.
+                Al crear {{ documentLabel.toLowerCase() }}, las solicitudes pendientes se agregarán al documento, sin importar la
+                solicitud seleccionada del estudiante, y se aprobarán si quedan incluidas.
             </span>
 
             <div class="row mb-3" data-tour="uniform-requests-filter">
@@ -52,7 +52,7 @@
                                 <th>Talla</th>
                                 <th>Notas</th>
                                 <th>Solicitado en</th>
-                                <th v-if="!isReadOnly">Crear Factura</th>
+                                <th v-if="!isReadOnly">Crear {{ documentLabel }}</th>
                             </tr>
                         </thead>
                     </template>
@@ -67,7 +67,7 @@
 </template>
 
 <script setup>
-import { onMounted, useTemplateRef } from 'vue'
+import { computed, onMounted, useTemplateRef } from 'vue'
 import DatatableTemplate from '@/components/general/DatatableTemplate.vue'
 import ContentState from '@/components/general/ContentState.vue'
 import PageTutorialOverlay from '@/components/general/PageTutorialOverlay.vue'
@@ -79,10 +79,12 @@ import { usePageTitle } from '@/composables/use-meta'
 import { uniformRequestsTutorial } from '@/tutorials/notifications'
 import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 import { useAuthUser } from '@/store/auth-user'
+import { invoiceDocumentSingularForSchool } from '@/utils/invoiceTerminology'
 
 usePageTitle('Solicitudes de Uniformes')
 const auth = useAuthUser()
 const isReadOnly = auth.isReadOnly()
+const documentLabel = computed(() => invoiceDocumentSingularForSchool(Boolean(auth.user?.electronic_invoicing_enabled)))
 
 const uniformRequestsTable = useTemplateRef('uniformRequestsTable')
 const tutorial = usePageTutorial(uniformRequestsTutorial)
@@ -198,7 +200,7 @@ const options = {
             searchable: false,
             orderable: false,
             render: (data, type, row) => `
-                <a href="/facturas/crear/${data}" class="btn btn-success btn-sm" title="Crear factura" aria-label="Crear factura para ${escapeHtml(row.full_names)}">
+                <a href="/facturas/crear/${data}" class="btn btn-success btn-sm" title="Crear ${documentLabel.value.toLowerCase()}" aria-label="Crear ${documentLabel.value.toLowerCase()} para ${escapeHtml(row.full_names)}">
                     <i class="fas fa-file-alt" aria-hidden="true"></i>
                 </a>
             `,

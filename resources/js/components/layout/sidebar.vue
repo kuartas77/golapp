@@ -267,12 +267,12 @@
                             data-bs-parent="#sidebar">
                             <li>
                                 <router-link :to="{ name: 'invoices.index' }" @click="toggleMobileMenu">
-                                    Facturas
+                                    {{ invoiceModuleLabel }}
                                 </router-link>
                             </li>
                             <li>
                                 <router-link :to="{ name: 'invoices.items.index' }" @click="toggleMobileMenu">
-                                    Items Facturas
+                                    Ítems {{ invoiceModuleLabel }}
                                 </router-link>
                             </li>
                             <li>
@@ -559,10 +559,12 @@ import { useAppState } from '@/store/app-state'
 import Can from '@/components/general/Can.vue'
 import { useBackofficeAccess } from '@/composables/useBackofficeAccess'
 import { useAuthUser } from '@/store/auth-user'
+import { invoiceDocumentPlural } from '@/utils/invoiceTerminology'
 
 const appState = useAppState();
 const route = useRoute();
 const auth = useAuthUser();
+const invoiceModuleLabel = computed(() => invoiceDocumentPlural(Boolean(auth.user?.electronic_invoicing_enabled)))
 const isAssistant = computed(() => auth.hasRole('assistant'))
 const isViewer = computed(() => auth.hasRole('viewer'))
 const { access } = useBackofficeAccess()

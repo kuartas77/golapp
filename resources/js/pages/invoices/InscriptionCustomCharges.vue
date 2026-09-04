@@ -6,7 +6,7 @@
                     <AppPageHeader
                         class="card-header"
                         title="Cargos personalizados"
-                        subtitle="Cargos asignados a inscripciones antes de facturarse."
+                        subtitle="Cargos asignados a inscripciones antes de incluirse en un documento de cobro."
                         icon="fa fa-receipt"
                         data-tour="custom-charges-actions"
                     >

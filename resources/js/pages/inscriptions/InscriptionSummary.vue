@@ -149,7 +149,7 @@
                         </button>
                     </div>
                     <div class="table-responsive"><table class="table table-bordered table-sm align-middle">
-                        <thead><tr><th>Concepto</th><th>Vencimiento</th><th>Valor</th><th>Estado</th><th>Factura</th></tr></thead>
+                        <thead><tr><th>Concepto</th><th>Vencimiento</th><th>Valor</th><th>Estado</th><th>Documento</th></tr></thead>
                         <tbody>
                             <tr v-for="charge in customCharges" :key="charge.id"><td>{{ charge.name }}</td><td>{{ charge.due_date || '—' }}</td><td>{{ formatMoney(charge.value) }}</td><td>{{ customChargeStatus(charge.status) }}</td><td>{{ charge.invoice_number || '—' }}</td></tr>
                             <tr v-if="!customCharges.length"><td colspan="5" class="text-muted">No hay cargos personalizados.</td></tr>
@@ -247,7 +247,7 @@
                     <table class="table table-bordered table-sm align-middle">
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th>Documento</th>
                                 <th>Fecha</th>
                                 <th>Estado</th>
                                 <th>Total</th>
@@ -257,9 +257,9 @@
                         </thead>
                         <tbody>
                             <tr v-for="invoice in invoices" :key="invoice.id">
-                                <td>{{ invoice.invoice_number }}</td>
+                                <td>{{ invoiceDocumentSingular(invoice) }} #{{ invoice.invoice_number }}</td>
                                 <td>{{ invoice.issue_date || '—' }}</td>
-                                <td>{{ invoiceStatusLabel(invoice.status) }}</td>
+                                <td>{{ invoiceStatusLabel(invoice) }}</td>
                                 <td>{{ formatMoney(invoice.total_amount) }}</td>
                                 <td>{{ formatMoney(invoice.paid_amount) }}</td>
                                 <td class="text-end">
@@ -272,7 +272,7 @@
                                 </td>
                             </tr>
                             <tr v-if="!invoices.length">
-                                <td colspan="6" class="text-muted">No hay facturas para esta inscripción.</td>
+                                <td colspan="6" class="text-muted">No hay documentos de cobro para esta inscripción.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -336,12 +336,15 @@ import { useSetting } from '@/store/settings-store'
 import { usePageTitle } from '@/composables/use-meta'
 import useFinancialClearance from '@/composables/player/useFinancialClearance'
 import dayjs from "@/utils/dayjs";
+import { useAuthUser } from '@/store/auth-user'
+import { invoiceDocumentPlural, invoiceDocumentSingular } from '@/utils/invoiceTerminology'
 
 usePageTitle('Resumen de inscripción')
 
 const route = useRoute()
 const router = useRouter()
 const settings = useSetting()
+const auth = useAuthUser()
 const { isGeneratingClearance, generateFinancialClearance } = useFinancialClearance()
 
 const summary = ref(null)
@@ -350,14 +353,26 @@ const activeTab = ref('summary')
 const showChargesModal = ref(false)
 const selectedAttendanceMonth = ref('')
 
-const baseTabs = [
+const invoiceTabLabel = computed(() => {
+    const documents = summary.value?.invoices || []
+    const hasElectronic = documents.some((invoice) => invoice.numbering_type === 'electronic')
+    const hasReceipt = documents.some((invoice) => invoice.numbering_type !== 'electronic')
+
+    if (hasElectronic && hasReceipt) return 'Facturas y recibos'
+    if (hasElectronic) return 'Facturas'
+    if (hasReceipt) return 'Recibos de caja'
+
+    return invoiceDocumentPlural(Boolean(auth.user?.electronic_invoicing_enabled))
+})
+
+const baseTabs = computed(() => [
     { key: 'summary', label: 'Resumen' },
     { key: 'payments', label: 'Pagos' },
     { key: 'custom-charges', label: 'Cargos personalizados' },
     { key: 'attendance', label: 'Asistencias' },
-    { key: 'invoices', label: 'Facturas' },
+    { key: 'invoices', label: invoiceTabLabel.value },
     { key: 'evaluations', label: 'Evaluaciones' },
-]
+])
 
 const paymentFields = [
     { key: 'enrollment', short: 'Mat.' },
@@ -388,6 +403,12 @@ const invoiceStatusLabels = {
     partial: 'Parcial',
     pending: 'Pendiente',
     cancelled: 'Cancelada',
+}
+const receiptStatusLabels = {
+    paid: 'Pagado',
+    partial: 'Parcial',
+    pending: 'Pendiente',
+    cancelled: 'Anulado',
 }
 
 const inscription = computed(() => summary.value?.inscription || {})
@@ -428,7 +449,7 @@ const filteredAttendance = computed(() => {
 const invoices = computed(() => summary.value?.invoices || [])
 const customCharges = computed(() => summary.value?.custom_charges || [])
 const evaluations = computed(() => summary.value?.evaluations || [])
-const tabs = computed(() => baseTabs.filter((tab) => {
+const tabs = computed(() => baseTabs.value.filter((tab) => {
     if (tab.key === 'invoices') {
         return capabilities.value.can_view_invoices
     }
@@ -486,8 +507,10 @@ function formatMoney(value) {
     })
 }
 
-function invoiceStatusLabel(status) {
-    return invoiceStatusLabels[status] || status || '—'
+function invoiceStatusLabel(invoice) {
+    const labels = invoice?.numbering_type === 'electronic' ? invoiceStatusLabels : receiptStatusLabels
+
+    return labels[invoice?.status] || invoice?.status || '—'
 }
 
 function saveErrorMessage(error, fallback) {

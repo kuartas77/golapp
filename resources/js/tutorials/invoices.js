@@ -4,7 +4,7 @@ export const invoicesIndexTutorial = {
             id: 'invoices-index-actions',
             selector: '[data-tour="invoices-index-actions"]',
             title: 'Crea una factura',
-            text: 'Usa Crear factura para seleccionar una inscripción vigente e iniciar el formulario.',
+            text: 'Usa la acción de crear documento para seleccionar una inscripción vigente e iniciar el formulario.',
         },
         {
             id: 'invoices-index-filters',

@@ -174,25 +174,28 @@
                     </div>
 
                     <div class="row g-3">
-                        <div class="col-md-6 col-xl">
+                        <div class="col-md-6 col-xl-4">
                             <checkbox label="Inscripciones habilitadas" name="inscriptions_enabled" v-tooltip.top="'Habilita las inscripciones por medio del enlace.'" />
                         </div>
-                        <div class="col-md-6 col-xl">
+                        <div class="col-md-6 col-xl-4">
                             <checkbox label="Plataforma Tutores?" name="tutor_platform" v-tooltip.top="'Permite el ingreso de los acudientes a la plataforma, sólo podrá ver información del deportista.'" />
                         </div>
-                        <div class="col-md-6 col-xl">
+                        <div class="col-md-6 col-xl-4">
                             <checkbox label="Firma Deportistas?" name="sign_player" v-tooltip.top="'Sí firma el acudiente y el deportista ó sólo el acudiente.'" />
                         </div>
-                        <div class="col-md-6 col-xl">
+                        <div class="col-md-6 col-xl-4">
                             <checkbox label="Creación de contratos?" name="create_contract" v-tooltip.top="'Se requiere el formato del contrato.'" />
                         </div>
-                        <div class="col-md-6 col-xl">
+                        <div class="col-md-6 col-xl-4">
                             <checkbox label="Envio documentos?" name="send_documents" v-tooltip.top="'Los documentos que adjuntan en la inscripción serán enviados al correo de la escuela.'" />
                         </div>
-                        <div class="col-md-6 col-xl">
+                        <div class="col-md-6 col-xl-4">
                             <checkbox label="Enviar recibos de mensualidad?" name="send_monthly_payment_receipts" v-tooltip.top="'Envía al acudiente tutor el recibo PDF cuando una mensualidad cambia a pagada.'" />
                         </div>
-                        <div class="col-md-6 col-xl">
+                        <div class="col-md-6 col-xl-4">
+                            <checkbox label="Enviar recibos de caja al completar el pago" name="send_invoice_receipts" v-tooltip.top="'Envía al acudiente tutor el recibo de caja PDF cuando un documento interno o legacy queda totalmente pagado.'" />
+                        </div>
+                        <div class="col-md-6 col-xl-4">
                             <checkbox label="Enviar notificaciones de deuda automáticamente" name="send_debt_notifications" v-tooltip.top="'Habilita el envío automático de correos de deuda en el día configurado por la escuela.'" />
                         </div>
                         <div class="col-12">
@@ -231,7 +234,7 @@
                                 <ErrorMessage name="training_group_monthly_payment_enabled" class="custom-error" as="div" />
                             </div>
                         </div>
-                        <div class="col-md-6 col-xl">
+                        <div class="col-md-6 col-xl-4">
                             <checkbox label="Limitar edición de instructores al mes actual" name="instructor_monthly_edit_lock_enabled" v-tooltip.top="'Cuando está activo, los instructores sólo pueden modificar registros operativos del mes calendario actual.'" />
                         </div>
                     </div>

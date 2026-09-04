@@ -48,6 +48,7 @@ class SchoolUpdateRequest extends FormRequest
             'send_debt_notifications' => ['prohibited'],
             'send_documents' => ['prohibited'],
             'send_monthly_payment_receipts' => ['prohibited'],
+            'send_invoice_receipts' => ['prohibited'],
             'training_group_monthly_payment_enabled' => ['prohibited'],
             'tutor_platform' => ['prohibited'],
             'sign_player' => ['prohibited'],

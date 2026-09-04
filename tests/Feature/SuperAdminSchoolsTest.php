@@ -185,6 +185,7 @@ final class SuperAdminSchoolsTest extends TestCase
                 'create_contract' => '1',
                 'send_documents' => '1',
                 'send_monthly_payment_receipts' => '1',
+                'send_invoice_receipts' => '1',
                 'send_debt_notifications' => '1',
             ])
             ->assertCreated()
@@ -199,6 +200,7 @@ final class SuperAdminSchoolsTest extends TestCase
         $this->assertTrue($school->create_contract);
         $this->assertTrue($school->send_documents);
         $this->assertTrue($school->send_monthly_payment_receipts);
+        $this->assertTrue($school->send_invoice_receipts);
         $this->assertTrue($school->send_debt_notifications);
 
         $response = $this->actingAs($superAdmin)
@@ -211,6 +213,7 @@ final class SuperAdminSchoolsTest extends TestCase
             ->assertJsonPath('school.create_contract', true)
             ->assertJsonPath('school.send_documents', true)
             ->assertJsonPath('school.send_monthly_payment_receipts', true)
+            ->assertJsonPath('school.send_invoice_receipts', true)
             ->assertJsonPath('school.send_debt_notifications', true);
 
         $this->actingAs($superAdmin)
@@ -230,6 +233,7 @@ final class SuperAdminSchoolsTest extends TestCase
                 'create_contract' => '0',
                 'send_documents' => '0',
                 'send_monthly_payment_receipts' => '0',
+                'send_invoice_receipts' => '0',
                 'send_debt_notifications' => '0',
             ])
             ->assertOk()
@@ -243,6 +247,7 @@ final class SuperAdminSchoolsTest extends TestCase
         $this->assertFalse($school->create_contract);
         $this->assertFalse($school->send_documents);
         $this->assertFalse($school->send_monthly_payment_receipts);
+        $this->assertFalse($school->send_invoice_receipts);
         $this->assertFalse($school->send_debt_notifications);
     }
 

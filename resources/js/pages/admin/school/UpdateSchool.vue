@@ -128,26 +128,29 @@
                                 <span class="badge text-bg-secondary align-self-start">Solo lectura · Solicitar cambios al super-admin</span>
                             </div>
                             <div class="row">
-                                <div class="col-md-6 col-xl">
+                                <div class="col-md-6 col-xl-4">
                                     <checkbox label="Inscripciones habilitadas" name="inscriptions_enabled" disabled />
                                 </div>
-                                <div class="col-md-6 col-xl">
+                                <div class="col-md-6 col-xl-4">
                                     <checkbox label="Plataforma Tutores?" name="tutor_platform" disabled />
                                 </div>
-                                <div class="col-md-6 col-xl">
+                                <div class="col-md-6 col-xl-4">
                                     <checkbox label="Firma Deportistas?" name="sign_player" disabled />
                                 </div>
-                                <div class="col-md-6 col-xl">
+                                <div class="col-md-6 col-xl-4">
                                     <checkbox label="Creación de contratos?" name="create_contract" disabled />
                                 </div>
-                                <div class="col-md-6 col-xl">
+                                <div class="col-md-6 col-xl-4">
                                     <checkbox label="Enviar notificaciones de deuda automáticamente" name="send_debt_notifications" disabled />
                                 </div>
-                                <div class="col-md-6 col-xl">
+                                <div class="col-md-6 col-xl-4">
                                     <checkbox label="Envio documentos?" name="send_documents" disabled />
                                 </div>
-                                <div class="col-md-6 col-xl">
+                                <div class="col-md-6 col-xl-4">
                                     <checkbox label="Enviar recibos de mensualidad?" name="send_monthly_payment_receipts" disabled />
+                                </div>
+                                <div class="col-md-6 col-xl">
+                                    <checkbox label="Enviar recibos de caja al completar el pago" name="send_invoice_receipts" disabled />
                                 </div>
                                 <div class="col-md-6 col-xl">
                                     <checkbox label="Tarifa mensual por grupo" name="training_group_monthly_payment_enabled" disabled />

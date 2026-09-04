@@ -3,14 +3,14 @@
         <ContentState
             v-if="loading"
             type="loading"
-            title="Cargando factura"
+            :title="`Cargando ${moduleDocumentSingular.toLowerCase()}`"
             message="Estamos consultando el detalle, los conceptos y el historial de pagos."
             class="layout-top-spacing"
         />
         <ContentState
             v-else-if="loadError"
             type="error"
-            title="No fue posible cargar la factura"
+            :title="`No fue posible cargar ${moduleDocumentSingular.toLowerCase()}`"
             :message="loadError"
             action-label="Reintentar"
             class="layout-top-spacing"
@@ -23,12 +23,12 @@
                 <div class="card mb-4" data-tour="invoice-show-summary">
                     <AppPageHeader
                         class="card-header"
-                        :title="`Factura #${invoice.invoice_number}`"
+                        :title="`${documentLabel} #${invoice.invoice_number}`"
                         subtitle="Detalle financiero, conceptos incluidos e historial de pagos."
                         icon="fa fa-file-invoice"
                     >
                         <template #actions>
-                            <AppStatus :value="invoice.status" context="invoice" class="text-uppercase" />
+                            <AppStatus :value="invoice.status" :context="invoice.numbering_type === 'electronic' ? 'invoice' : 'receipt'" class="text-uppercase" />
                         </template>
                     </AppPageHeader>
                     <div class="card-body">
@@ -40,7 +40,7 @@
                                 <p><strong>Año:</strong> {{ invoice.year }}</p>
                             </div>
                             <div class="col-md-6 text-right">
-                                <h5>Detalles de Factura</h5>
+                                <h5>Detalles de {{ documentLabel }}</h5>
                                 <p><strong>Fecha Emisión:</strong> <AppDate :value="invoice.issue_date" /></p>
                                 <p><strong>Fecha Vencimiento:</strong> <AppDate :value="invoice.due_date" /></p>
                                 <p><strong>Creada por:</strong> {{ invoice.creator?.name || 'Sistema' }}</p>
@@ -56,8 +56,8 @@
                                 Vigencia {{ invoice.number_range.valid_from }} a {{ invoice.number_range.valid_until }}
                             </div>
                         </div>
-                        <div v-else-if="invoice.numbering_type === 'internal'" class="alert alert-secondary py-2">
-                            Esta factura utiliza numeración interna de la escuela.
+                        <div v-else-if="invoice.numbering_type !== 'electronic'" class="alert alert-secondary py-2">
+                            Este recibo de caja es un documento de control interno; no constituye ni reemplaza una factura electrónica.
                         </div>
 
                         <!-- Ítems de la factura -->
@@ -91,7 +91,7 @@
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <td colspan="4" class="text-right"><strong>Total Factura:</strong></td>
+                                        <td colspan="4" class="text-right"><strong>Total {{ documentLabel }}:</strong></td>
                                         <td class="text-right">
                                             <strong><AppMoney :value="invoice.total_amount" /></strong>
                                         </td>
@@ -300,7 +300,7 @@
                                                 v-model="payment.issue_date"
                                                 :disabled="invoice.numbering_type === 'electronic'"
                                                 required
-                                                v-tooltip.top="invoice.numbering_type === 'electronic' ? 'La fecha de una factura electrónica es inmutable' : 'Puedes cambiar la fecha de emisión de la factura'"
+                                                v-tooltip.top="invoice.numbering_type === 'electronic' ? 'La fecha de una factura electrónica es inmutable' : 'Puedes cambiar la fecha de emisión del recibo de caja'"
                                             />
                                         </div>
                                     </div>
@@ -341,7 +341,7 @@
                                         class="btn btn-outline-danger btn-block" :disabled="deleteLoading">
                                         <span v-if="deleteLoading" class="spinner-border spinner-border-sm"></span>
                                         <i v-else class="fa fa-ban"></i>
-                                        {{ deleteLoading ? 'Anulando...' : 'Anular factura' }}
+                                        {{ deleteLoading ? 'Anulando...' : `Anular ${documentLabel.toLowerCase()}` }}
                                     </button>
 
                                 </div>
@@ -392,6 +392,7 @@ import "@/assets/sass/forms/custom-flatpickr.css";
 import { invoiceShowTutorial } from '@/tutorials/invoices'
 import { formatAppMoney } from '@/utils/appFormatters'
 import { useAuthUser } from '@/store/auth-user'
+import { invoiceDocumentSingular, invoiceDocumentSingularForSchool } from '@/utils/invoiceTerminology'
 
 const flatpickrConfig = {
     wrap: true,
@@ -403,6 +404,7 @@ const flatpickrConfig = {
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthUser()
+const moduleDocumentSingular = computed(() => invoiceDocumentSingularForSchool(Boolean(auth.user?.electronic_invoicing_enabled)))
 const isAssistant = computed(() => auth.hasRole('assistant'))
 const isReadOnly = computed(() => isAssistant.value || auth.hasRole('viewer'))
 const invoiceId = route.params.id
@@ -411,6 +413,7 @@ const todayDate = dayjs().format('YYYY-MM-DD')
 
 // Estado reactivo
 const invoice = ref({ items: [], payments: [] })
+const documentLabel = computed(() => invoiceDocumentSingular(invoice.value))
 const loading = ref(true)
 const loadError = ref('')
 const actionError = ref('')
@@ -482,8 +485,8 @@ const loadInvoice = async (showLoader = true) => {
         payment.payment_date = todayDate
 
     } catch (error) {
-        console.error('Error al cargar factura:', error)
-        const message = error.response?.data?.message || 'No fue posible cargar la factura. Intenta nuevamente.'
+        console.error('Error al cargar el documento:', error)
+        const message = error.response?.data?.message || `No fue posible cargar ${moduleDocumentSingular.value.toLowerCase()}. Intenta nuevamente.`
 
         if (showLoader) {
             loadError.value = message
@@ -575,13 +578,13 @@ const confirmDelete = async () => {
     }
 
     const result = await Swal.fire({
-        title: `¿Anular la factura #${invoice.value.invoice_number}?`,
-        text: 'La factura dejará de estar disponible para la operación diaria. Esta acción no registra un pago.',
+        title: `¿Anular ${documentLabel.value.toLowerCase()} #${invoice.value.invoice_number}?`,
+        text: `${documentLabel.value} dejará de estar disponible para la operación diaria. Esta acción no registra un pago.`,
         icon: 'warning',
         showDenyButton: false,
         showCancelButton: true,
-        confirmButtonText: 'Sí, anular factura',
-        cancelButtonText: 'Conservar factura',
+        confirmButtonText: `Sí, anular ${documentLabel.value.toLowerCase()}`,
+        cancelButtonText: `Conservar ${documentLabel.value.toLowerCase()}`,
         focusCancel: true,
     })
 
@@ -595,8 +598,8 @@ const confirmDelete = async () => {
         await api.delete(`/api/v2/invoices/${invoiceId}`)
         router.push('/facturas')
     } catch (error) {
-        console.error('Error al anular factura:', error)
-        actionError.value = error.response?.data?.message || 'No fue posible anular la factura. Intenta nuevamente.'
+        console.error('Error al anular el documento:', error)
+        actionError.value = error.response?.data?.message || `No fue posible anular ${documentLabel.value.toLowerCase()}. Intenta nuevamente.`
     } finally {
         deleteLoading.value = false
     }

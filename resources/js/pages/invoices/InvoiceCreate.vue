@@ -5,7 +5,7 @@
                 <div class="card">
                     <AppPageHeader
                         class="card-header"
-                        title="Crear factura"
+                        :title="`Crear ${documentLabel.toLowerCase()}`"
                         subtitle="Revisa el contexto, selecciona los conceptos y confirma el total antes de guardar."
                         icon="fa fa-file-invoice"
                         data-tour="invoice-create-header"
@@ -22,13 +22,13 @@
                         <ContentState
                             v-if="isLoadingData"
                             type="loading"
-                            title="Preparando la factura"
+                            :title="`Preparando ${documentLabel.toLowerCase()}`"
                             message="Estamos consultando las mensualidades y los conceptos disponibles."
                         />
                         <ContentState
                             v-else-if="loadError"
                             type="error"
-                            title="No fue posible preparar la factura"
+                            :title="`No fue posible preparar ${documentLabel.toLowerCase()}`"
                             :message="loadError"
                             action-label="Reintentar"
                             @action="loadData"
@@ -52,7 +52,7 @@
                                             </h6>
                                             <small class="text-muted">
                                                 {{ includedPendingMonthsCount }} de {{ pendingMonths.length }}
-                                                seleccionadas para esta factura.
+                                                seleccionadas para este documento.
                                             </small>
                                         </div>
                                         <div class="card-body">
@@ -270,7 +270,7 @@
 
                                     <div class="card mb-4" data-tour="invoice-create-billing">
                                         <div class="card-header">
-                                            <h5 class="mb-0"><i class="fa fa-info-circle"></i> Información de Factura
+                                            <h5 class="mb-0"><i class="fa fa-info-circle"></i> Información de {{ documentLabel }}
                                             </h5>
                                         </div>
                                         <div class="card-body">
@@ -288,7 +288,7 @@
                                                 <label>Notas</label>
                                                 <textarea class="form-control form-control-sm" v-model="notes"
                                                     rows="4"
-                                                    placeholder="Agrega observaciones internas o detalles para la factura."></textarea>
+                                                    :placeholder="`Agrega observaciones internas o detalles para ${documentLabel.toLowerCase()}.`"></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -308,7 +308,7 @@
                                             </div>
                                             <hr>
                                             <div class="d-flex justify-content-between align-items-center">
-                                                <h6 class="mb-0">Total Factura</h6>
+                                                <h6 class="mb-0">Total {{ documentLabel }}</h6>
                                                 <h4 class="mb-0"><AppMoney :value="total" /></h4>
                                             </div>
                                         </div>
@@ -331,7 +331,7 @@
                                                         loading-label="Guardando..."
                                                     >
                                                         <i class="fa fa-save" aria-hidden="true"></i>
-                                                        Guardar factura
+                                                        Guardar {{ documentLabel.toLowerCase() }}
                                                     </AppButton>
                                                 </div>
                                             </div>
@@ -371,9 +371,13 @@ import "@/assets/sass/forms/custom-flatpickr.css";
 import CurrencyInput from '@/components/general/CurrencyInput';
 import { invoiceCreateTutorial } from '@/tutorials/invoices'
 import { formatAppMoney } from '@/utils/appFormatters'
+import { useAuthUser } from '@/store/auth-user'
+import { invoiceDocumentSingularForSchool } from '@/utils/invoiceTerminology'
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthUser()
+const documentLabel = computed(() => invoiceDocumentSingularForSchool(Boolean(auth.user?.electronic_invoicing_enabled)))
 const inscriptionId = route.params.inscription
 const tutorial = usePageTutorial(invoiceCreateTutorial)
 
@@ -503,7 +507,7 @@ const loadData = async () => {
 
     } catch (error) {
         console.error('Error al cargar datos:', error)
-        loadError.value = error.response?.data?.message || 'No fue posible cargar los datos para crear la factura. Intenta nuevamente.'
+        loadError.value = error.response?.data?.message || `No fue posible cargar los datos para crear ${documentLabel.value.toLowerCase()}. Intenta nuevamente.`
     } finally {
         isLoadingData.value = false
     }
@@ -541,8 +545,8 @@ const removeAdditionalItem = (index) => {
 
 const confirmCreate = async () => {
     Swal.fire({
-        title: `¿Guardar factura por: ${formatAppMoney(total.value)} ?`,
-        text: "¡Puedes cancelar y verificar la factura!",
+        title: `¿Guardar ${documentLabel.value.toLowerCase()} por: ${formatAppMoney(total.value)}?`,
+        text: `Puedes cancelar y verificar ${documentLabel.value.toLowerCase()}.`,
         icon: "warning",
         showCancelButton: true,
         focusConfirm: true,
@@ -615,8 +619,8 @@ const submitInvoice = async () => {
         router.push({ name: 'invoices.show', params: { id: response.data.id } })
 
     } catch (error) {
-        console.error('Error al crear factura:', error)
-        createError.value = error.response?.data?.message || 'No fue posible crear la factura. Revisa los conceptos e intenta nuevamente.'
+        console.error('Error al crear el documento:', error)
+        createError.value = error.response?.data?.message || `No fue posible crear ${documentLabel.value.toLowerCase()}. Revisa los conceptos e intenta nuevamente.`
     } finally {
         loading.value = false
     }

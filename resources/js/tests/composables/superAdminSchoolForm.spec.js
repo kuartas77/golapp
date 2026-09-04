@@ -44,6 +44,7 @@ describe('useSuperAdminSchoolForm category format', () => {
                 school: {
                     name: 'Escuela Demo',
                     category_format: 'sub_age',
+                    send_invoice_receipts: true,
                 },
                 schools: [],
                 multiple_schools: [],
@@ -59,6 +60,8 @@ describe('useSuperAdminSchoolForm category format', () => {
         await nextTick()
         await nextTick()
 
+        expect(wrapper.vm.initialValues.send_invoice_receipts).toBe(true)
+
         await wrapper.vm.submit({
             ...wrapper.vm.initialValues,
             category_format: 'birth_year',
@@ -73,6 +76,7 @@ describe('useSuperAdminSchoolForm category format', () => {
             expect.any(FormData)
         )
         expect(axiosMock.post.mock.calls[0][1].get('category_format')).toBe('birth_year')
+        expect(axiosMock.post.mock.calls[0][1].get('send_invoice_receipts')).toBe('1')
         wrapper.unmount()
     })
 

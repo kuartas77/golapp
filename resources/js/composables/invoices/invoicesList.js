@@ -1,10 +1,11 @@
 import configLanguaje from '@/utils/datatableUtils';
-import { nextTick, ref, useTemplateRef, onMounted, watch } from 'vue';
+import { computed, nextTick, ref, useTemplateRef, onMounted, watch } from 'vue';
 import api from '@/utils/axios'
 import { usePageTitle } from "@/composables/use-meta";
 import { useRouter } from 'vue-router'
 import { formatAppDate, formatAppMoney, renderAppStatus } from '@/utils/appFormatters';
 import { useAuthUser } from '@/store/auth-user'
+import { invoiceDocumentPlural, invoiceDocumentSingular } from '@/utils/invoiceTerminology'
 
 export default function useInvoicesList() {
     const router = useRouter()
@@ -27,7 +28,10 @@ export default function useInvoicesList() {
         { data: 'paid_amount', searchable: false, orderable: false, render: data => formatAppMoney(data) },
         {
             data: 'status',
-            render: (data, type) => renderAppStatus(data, { context: 'invoice', type: type ?? 'display' }),
+            render: (data, type, row) => renderAppStatus(data, {
+                context: row?.numbering_type === 'electronic' ? 'invoice' : 'receipt',
+                type: type ?? 'display',
+            }),
             searchable: true,
             orderable: false,
         },
@@ -35,12 +39,14 @@ export default function useInvoicesList() {
         {
             data: 'id', searchable: false, orderable: false, render: function (data, type, row) {
                 const invoiceLabel = escapeHtml(row.invoice_number ?? row.id)
-                const buttonEye = `<button type="button" class="btn btn-sm btn-info" data-item-id="${row.id}" data-type="show" aria-label="Ver factura ${invoiceLabel}" title="Ver factura"><i class="fa fa-eye fa-lg" aria-hidden="true" data-type="show" data-item-id="${row.id}"></i></button>`
-                const buttonPrint = `<a href="${row.url_print}" target="_blank" rel="noopener noreferrer" class="btn btn-success btn-sm" aria-label="Imprimir factura ${invoiceLabel}" title="Imprimir factura"><i class="fa fa-print fa-lg" aria-hidden="true"></i></a>`
+                const documentLabel = invoiceDocumentSingular(row)
+                const documentLabelLower = documentLabel.toLowerCase()
+                const buttonEye = `<button type="button" class="btn btn-sm btn-info" data-item-id="${row.id}" data-type="show" aria-label="Ver ${documentLabelLower} ${invoiceLabel}" title="Ver ${documentLabelLower}"><i class="fa fa-eye fa-lg" aria-hidden="true" data-type="show" data-item-id="${row.id}"></i></button>`
+                const buttonPrint = `<a href="${row.url_print}" target="_blank" rel="noopener noreferrer" class="btn btn-success btn-sm" aria-label="Imprimir ${documentLabelLower} ${invoiceLabel}" title="Imprimir ${documentLabelLower}"><i class="fa fa-print fa-lg" aria-hidden="true"></i></a>`
                 let buttonDelete = ''
 
                 if (!auth.hasRole('viewer') && ['pending', 'partial'].includes(row.status)) {
-                    buttonDelete = `<button type="button" class="btn btn-danger btn-sm" data-item-id="${row.id}" data-type="delete" aria-label="Revisar anulación de factura ${invoiceLabel}" title="Revisar anulación"><i class="fa fa-trash fa-lg" aria-hidden="true" data-type="delete" data-item-id="${row.id}"></i></button>`
+                    buttonDelete = `<button type="button" class="btn btn-danger btn-sm" data-item-id="${row.id}" data-type="delete" aria-label="Revisar anulación de ${documentLabelLower} ${invoiceLabel}" title="Revisar anulación"><i class="fa fa-trash fa-lg" aria-hidden="true" data-type="delete" data-item-id="${row.id}"></i></button>`
                 }
 
                 return `<div class="btn-group">${buttonEye} ${buttonPrint} ${buttonDelete}</div>`
@@ -240,7 +246,7 @@ export default function useInvoicesList() {
     })
 
     onMounted(async () => {
-        usePageTitle('Facturas')
+        usePageTitle(computed(() => invoiceDocumentPlural(Boolean(auth.user?.electronic_invoicing_enabled))))
         await nextTick()
         setupTableFilters()
     })

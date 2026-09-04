@@ -25,10 +25,10 @@
                     <template #thead>
                         <thead>
                             <tr>
-                                <th>Factura</th>
+                                <th>Documento</th>
                                 <th>Deportista</th>
                                 <th>Grupo</th>
-                                <th class="text-right">Monto Factura</th>
+                                <th class="text-right">Monto documento</th>
                                 <th>Enviado en</th>
                                 <th>Método</th>
                                 <th>Referencia</th>
@@ -76,6 +76,7 @@ import { usePageTitle } from '@/composables/use-meta'
 import { paymentRequestsTutorial } from '@/tutorials/notifications'
 import { useRecoverableDataTable } from '@/composables/useRecoverableDataTable'
 import { useAuthUser } from '@/store/auth-user'
+import { invoiceDocumentSingular } from '@/utils/invoiceTerminology'
 
 usePageTitle('Comprobantes de Pago')
 const auth = useAuthUser()
@@ -134,7 +135,10 @@ const options = {
             name: 'invoice_number',
             searchable: true,
             orderable: true,
-            render: (data, type, row) => `<a href="/facturas/${row.invoice_id}" target="_blank" rel="noopener noreferrer" aria-label="Ver factura ${escapeHtml(data)}">${escapeHtml(data)}</a>`,
+            render: (data, type, row) => {
+                const documentLabel = invoiceDocumentSingular(row.invoice).toLowerCase()
+                return `<a href="/facturas/${row.invoice_id}" target="_blank" rel="noopener noreferrer" aria-label="Ver ${documentLabel} ${escapeHtml(data)}">${escapeHtml(data)}</a>`
+            },
         },
         {
             data: 'player.full_names',

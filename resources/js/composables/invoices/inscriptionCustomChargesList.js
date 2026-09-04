@@ -137,10 +137,10 @@ export default function useInscriptionCustomChargesList() {
         },
         {
             data: 'invoice_number',
-            title: 'Factura',
+            title: 'Documento',
             name: 'invoice_number',
-            defaultContent: 'Sin facturar',
-            render: (data, type, row) => escapeHtml(data || row.invoice_item?.invoice?.invoice_number || 'Sin facturar'),
+            defaultContent: 'Sin documento',
+            render: (data, type, row) => escapeHtml(data || row.invoice_item?.invoice?.invoice_number || 'Sin documento'),
         },
         {
             data: 'id',
@@ -200,7 +200,7 @@ export default function useInscriptionCustomChargesList() {
             createTextFilter(api.column(2), 'Cargo')
             createSelectFilter(api.column(4), STATUS_OPTIONS)
             createTextFilter(api.column(5), 'Vence', 'date')
-            createTextFilter(api.column(6), 'Factura')
+            createTextFilter(api.column(6), 'Documento')
             api.columns.adjust()
         },
     }

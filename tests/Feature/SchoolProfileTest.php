@@ -62,6 +62,7 @@ final class SchoolProfileTest extends TestCase
                 'tutor_platform' => 'true',
                 'inscriptions_enabled' => 'true',
                 'send_monthly_payment_receipts' => 'true',
+                'send_invoice_receipts' => 'true',
                 'send_debt_notifications' => 'true',
                 'training_group_monthly_payment_enabled' => 'true',
                 Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED => true,
@@ -72,6 +73,7 @@ final class SchoolProfileTest extends TestCase
                 'tutor_platform',
                 'inscriptions_enabled',
                 'send_monthly_payment_receipts',
+                'send_invoice_receipts',
                 'send_debt_notifications',
                 'training_group_monthly_payment_enabled',
                 Setting::INSTRUCTOR_MONTHLY_EDIT_LOCK_ENABLED,
@@ -83,6 +85,7 @@ final class SchoolProfileTest extends TestCase
             'tutor_platform' => false,
             'inscriptions_enabled' => false,
             'send_monthly_payment_receipts' => false,
+            'send_invoice_receipts' => false,
             'send_debt_notifications' => false,
             'training_group_monthly_payment_enabled' => false,
         ]);
@@ -93,6 +96,7 @@ final class SchoolProfileTest extends TestCase
             ->assertJsonPath('tutor_platform', false)
             ->assertJsonPath('inscriptions_enabled', false)
             ->assertJsonPath('send_monthly_payment_receipts', false)
+            ->assertJsonPath('send_invoice_receipts', false)
             ->assertJsonPath('send_debt_notifications', false)
             ->assertJsonPath('training_group_monthly_payment_enabled', false);
     }

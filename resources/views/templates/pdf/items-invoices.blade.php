@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Items Facturas Pendientes</title>
+    <title>Ítems de {{ $documentPlural }} pendientes</title>
     <link rel="stylesheet" href="{{ public_path('css/dompdf.css') }}">
     <link rel="stylesheet" href="{{ public_path('css/dompdf-overrides.css') }}">
 </head>
@@ -13,7 +13,7 @@
         <td class="text-left" width="20%">
             <img src="{{ $school->logo_local }}" width="70" height="70">
         </td>
-        <td class="text-center school-title" width="60%">{{ $school->name }}<br>Items Facturas Pendientes {{$date}}</td>
+        <td class="text-center school-title" width="60%">{{ $school->name }}<br>Ítems de {{ $documentPlural }} pendientes {{$date}}</td>
         <td class="text-right" width="20%">
             <img src="{{ $school->logo_local }}" width="70" height="70">
         </td>
@@ -23,7 +23,7 @@
 <table class="table-full detail detail-lines">
     <thead>
         <tr class="tr-tit">
-            <th>&nbsp;Factura&nbsp;</th>
+            <th>&nbsp;Documento&nbsp;</th>
             <th>&nbsp;Creado&nbsp;</th>
             <th>&nbsp;Deportista&nbsp;</th>
             <th>&nbsp;Tipo&nbsp;</th>
@@ -39,7 +39,7 @@
         @foreach($items as $item)
         <tr>
 
-            <td>&nbsp;{{ $item->invoice->invoice_number }}&nbsp;</td>
+            <td>&nbsp;{{ \App\Support\Invoice\InvoiceDocumentTerminology::singular($item->invoice) }} #{{ $item->invoice->invoice_number }}&nbsp;</td>
             <td>&nbsp;{{ $item->created_at->format('d/m/Y') }}&nbsp;</td>
             <td>&nbsp;{{ $item->invoice->student_name }}&nbsp;</td>
             <td>&nbsp;

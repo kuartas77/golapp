@@ -7,7 +7,8 @@ use App\Http\Requests\InvoiceAddPaymentRequest;
 use App\Http\Requests\InvoiceStoreRequest;
 use App\Models\Invoice;
 use App\Repositories\InvoiceRepository;
-use App\Traits\PDFTrait;
+use App\Service\Invoice\InvoicePdfService;
+use App\Support\Invoice\InvoiceDocumentTerminology;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,10 +16,10 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class InvoiceController extends Controller
 {
-    use PDFTrait;
-
-    public function __construct(private InvoiceRepository $invoice_repository)
-    {
+    public function __construct(
+        private InvoiceRepository $invoice_repository,
+        private InvoicePdfService $invoicePdfService,
+    ) {
         //
     }
 
@@ -106,11 +107,14 @@ class InvoiceController extends Controller
         $result = $this->invoice_repository->storeInvoice($request->validated());
 
         if (is_null($result['id'])) {
-            Alert::error(env('APP_NAME'), 'Factura no creada.');
+            $documentLabel = mb_strtolower(InvoiceDocumentTerminology::singular(
+                getSchool(auth()->user())->electronic_invoicing_enabled ? 'electronic' : 'internal'
+            ));
+            Alert::error(env('APP_NAME'), "No fue posible crear {$documentLabel}.");
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'No fue posible crear la factura. Verifica que los conceptos sigan disponibles e intenta nuevamente.',
+                    'message' => "No fue posible crear {$documentLabel}. Verifica que los conceptos sigan disponibles e intenta nuevamente.",
                 ], 422);
             }
 
@@ -170,11 +174,16 @@ class InvoiceController extends Controller
             ->schoolId()
             ->findOrFail($id);
 
-        abort_unless(in_array($invoice->status, ['pending', 'partial'], true), 422, 'Solo se pueden eliminar facturas pendientes o parciales.');
+        $documentLabel = mb_strtolower(InvoiceDocumentTerminology::singular($invoice));
+        abort_unless(
+            in_array($invoice->status, ['pending', 'partial'], true),
+            422,
+            "Solo se puede eliminar {$documentLabel} cuando está pendiente o parcial."
+        );
 
         $invoice->delete();
 
-        Alert::success(env('APP_NAME'), 'Factura eliminada exitosamente.');
+        Alert::success(env('APP_NAME'), 'Documento eliminado exitosamente.');
 
         if (request()->expectsJson()) {
             return response()->json(['success' => true]);
@@ -191,21 +200,6 @@ class InvoiceController extends Controller
 
         abort_if(is_null($invoice), 404, 'not found');
 
-        $data = [];
-        $data['school'] = getSchool(auth()->user());
-        $data['invoice'] = $invoice;
-        $data['tutor'] = $invoice->inscription->player->people->firstWhere('tutor', 1);
-
-        // view()->share('school', $data['school']);
-        // view()->share('invoice', $data['invoice']);
-        // view()->share('tutor', $data['tutor']);
-        // return view('templates.pdf.invoice');
-
-        $filename = "Factura #{$invoice->invoice_number}.pdf";
-        // $this->setConfigurationMpdf(['format' => [140, 200], 'mode' => 'utf-8', 'default_font' => 'dejavusans',]);
-        $this->setConfigurationMpdf(['format' => 'A4', 'default_font' => 'dejavusans']);
-        $this->createPDF($data, 'invoice.blade.php');
-
-        return $this->stream($filename);
+        return $this->invoicePdfService->stream($invoice);
     }
 }

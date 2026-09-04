@@ -2,7 +2,9 @@ import configLanguaje from '@/utils/datatableUtils';
 import api from '@/utils/axios';
 import { formatAppDate, formatAppMoney, renderAppStatus } from '@/utils/appFormatters';
 import { usePageTitle } from '@/composables/use-meta';
-import { onMounted, ref, useTemplateRef } from 'vue';
+import { computed, onMounted, ref, useTemplateRef } from 'vue';
+import { useAuthUser } from '@/store/auth-user';
+import { invoiceDocumentPlural, invoiceDocumentSingularForSchool } from '@/utils/invoiceTerminology';
 
 const TYPE_LABELS = {
     monthly: 'Mensualidad',
@@ -82,6 +84,7 @@ function createSelectFilter(column, options) {
 }
 
 export default function useInvoiceItemsList() {
+    const auth = useAuthUser();
     const invoiceItemsTable = useTemplateRef('invoice_items_table');
     const globalError = ref('');
 
@@ -202,7 +205,7 @@ export default function useInvoiceItemsList() {
         initComplete: function () {
             const api = this.api();
 
-            createTextFilter(api.column(0), 'Factura');
+            createTextFilter(api.column(0), invoiceDocumentSingularForSchool(Boolean(auth.user?.electronic_invoicing_enabled)));
             createTextFilter(api.column(1), 'Fecha', 'date');
             createTextFilter(api.column(2), 'Deportista');
             createTextFilter(api.column(4), 'Descripción');
@@ -224,7 +227,7 @@ export default function useInvoiceItemsList() {
     };
 
     onMounted(() => {
-        usePageTitle('Ítems de factura');
+        usePageTitle(computed(() => `Ítems de ${invoiceDocumentPlural(Boolean(auth.user?.electronic_invoicing_enabled)).toLowerCase()}`));
     });
 
     const reloadTable = () => {

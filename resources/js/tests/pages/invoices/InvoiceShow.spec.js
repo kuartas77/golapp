@@ -31,6 +31,7 @@ import InvoiceShow from '@/pages/invoices/InvoiceShow.vue'
 const invoicePayload = {
     id: 91,
     invoice_number: 'FAC-E2E-91',
+    numbering_type: 'legacy',
     status: 'pending',
     student_name: 'Jugador Demo',
     year: 2026,
@@ -134,8 +135,8 @@ describe('InvoiceShow financial recovery', () => {
         await flushPromises()
 
         expect(axiosMock.get).toHaveBeenCalledTimes(2)
-        expect(wrapper.get('h1').text()).toBe('Factura #FAC-E2E-91')
-        expect(wrapper.text()).toContain('Factura #FAC-E2E-91')
+        expect(wrapper.get('h1').text()).toBe('Recibo de caja #FAC-E2E-91')
+        expect(wrapper.text()).toContain('no constituye ni reemplaza una factura electrónica')
         expect(wrapper.find('[role="alert"]').exists()).toBe(false)
     })
 
@@ -172,9 +173,9 @@ describe('InvoiceShow financial recovery', () => {
         await state.confirmDelete()
 
         expect(window.Swal.fire).toHaveBeenCalledWith(expect.objectContaining({
-            title: '¿Anular la factura #FAC-E2E-91?',
-            confirmButtonText: 'Sí, anular factura',
-            cancelButtonText: 'Conservar factura',
+            title: '¿Anular recibo de caja #FAC-E2E-91?',
+            confirmButtonText: 'Sí, anular recibo de caja',
+            cancelButtonText: 'Conservar recibo de caja',
             focusCancel: true,
         }))
         expect(axiosMock.delete).not.toHaveBeenCalled()
@@ -200,6 +201,8 @@ describe('InvoiceShow financial recovery', () => {
         })
 
         expect(wrapper.text()).toContain('Resolución 18764012345678')
+        expect(wrapper.get('h1').text()).toBe('Factura #FAC-E2E-91')
+        expect(wrapper.text()).not.toContain('no constituye ni reemplaza una factura electrónica')
         expect(wrapper.get('#invoiceIssueDate').attributes('disabled')).toBeDefined()
     })
 })

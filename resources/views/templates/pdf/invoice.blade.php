@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" href="{{ public_path('css/dompdf.css') }}" media="all">
     <link rel="stylesheet" href="{{ public_path('css/dompdf-overrides.css') }}" media="all">
-    <title>Factura {{ $invoice->invoice_number }}</title>
+    <title>{{ $documentLabel }} {{ $invoice->invoice_number }}</title>
     <style>
         .clearfix:after {
             content: "";
@@ -206,9 +206,9 @@
         <div id="logo">
             <img src="{{ $school->logo_local }}" width="70" height="70">
         </div>
-        <h1>Factura #{{ $invoice->invoice_number }}</h1>
+        <h1>{{ $documentLabel }} #{{ $invoice->invoice_number }}</h1>
 
-        @if($invoice->numbering_type === 'electronic' && $invoice->numberRange)
+        @if($isElectronicDocument && $invoice->numberRange)
             <div style="text-align: center; margin: -10px 0 15px; color: #5D6975; font-size: 9pt;">
                 Resolución {{ $invoice->numberRange->resolution_number }} del
                 {{ \Carbon\Carbon::parse($invoice->numberRange->resolution_date)->format('d/m/Y') }} ·
@@ -217,9 +217,9 @@
                 Vigencia {{ \Carbon\Carbon::parse($invoice->numberRange->valid_from)->format('d/m/Y') }} a
                 {{ \Carbon\Carbon::parse($invoice->numberRange->valid_until)->format('d/m/Y') }}
             </div>
-        @elseif($invoice->numbering_type === 'internal')
+        @elseif(!$isElectronicDocument)
             <div style="text-align: center; margin: -10px 0 15px; color: #5D6975; font-size: 9pt;">
-                Numeración interna de la escuela
+                Este recibo de caja es un documento de control interno; no constituye ni reemplaza una factura electrónica.
             </div>
         @endif
 
@@ -265,13 +265,13 @@
                         <div><strong class="bold">&nbsp;Tel {{ $school->phone ?? 'N/A' }}</strong></div>
                         <div><strong class="bold">&nbsp;Email {{ $school->email ?? 'N/A' }}</strong></div>
                         <div><strong class="bold">&nbsp;Estado @if($invoice->status == 'paid')
-                        <span class="badge badge-success ">Pagada</span>
+                        <span class="badge badge-success ">{{ $isElectronicDocument ? 'Pagada' : 'Pagado' }}</span>
                         @elseif($invoice->status == 'partial')
                         <span class="badge badge-warning">Parcial</span>
                         @elseif($invoice->status == 'pending')
                         <span class="badge badge-danger">Pendiente</span>
                         @else
-                        <span class="badge badge-secondary">Cancelada</span>
+                        <span class="badge badge-secondary">{{ $isElectronicDocument ? 'Cancelada' : 'Cancelado' }}</span>
                         @endif</strong>
                         </div>
                     </div>
