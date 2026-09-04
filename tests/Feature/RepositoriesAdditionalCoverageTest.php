@@ -1385,7 +1385,7 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
             ]));
     }
 
-    public function test_store_invoice_persists_item_totals_and_keeps_pending_status(): void
+    public function test_store_invoice_persists_item_totals_and_recalculates_invoice_once(): void
     {
         // if (DB::getDriverName() === 'sqlite') {
         //     $this->markTestSkipped('SQLite invoice_items schema differs from the runtime MySQL table for payment_received_id.');
@@ -1393,6 +1393,24 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
 
         $this->actingAs($this->user);
         [$inscription, $payment, $trainingGroup] = $this->createInscriptionAndPayment();
+        $invoiceItemTotalQueries = 0;
+        $paymentReceivedTotalQueries = 0;
+
+        DB::listen(function ($query) use (&$invoiceItemTotalQueries, &$paymentReceivedTotalQueries): void {
+            $sql = str_replace(['`', '"'], '', strtolower($query->sql));
+
+            if (! str_contains($sql, 'select sum(')) {
+                return;
+            }
+
+            if (str_contains($sql, 'from invoice_items')) {
+                $invoiceItemTotalQueries++;
+            }
+
+            if (str_contains($sql, 'from payments_received')) {
+                $paymentReceivedTotalQueries++;
+            }
+        });
 
         Schema::disableForeignKeyConstraints();
 
@@ -1441,6 +1459,8 @@ final class RepositoriesAdditionalCoverageTest extends TestCase
         $this->assertSame('5000.00', $invoice->total_amount);
         $this->assertSame('0.00', $invoice->paid_amount);
         $this->assertSame('pending', $invoice->status);
+        $this->assertSame(1, $invoiceItemTotalQueries);
+        $this->assertSame(1, $paymentReceivedTotalQueries);
         $this->assertCount(2, $invoice->items);
         $this->assertSame('2000.00', $invoice->items[0]->total);
         $this->assertSame('3000.00', $invoice->items[1]->total);

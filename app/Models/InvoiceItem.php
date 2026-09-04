@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InvoiceItem extends Model
 {
+    private bool $refreshInvoiceTotalsAfterSave = true;
+
     protected $fillable = [
         'invoice_id',
         'type',
@@ -58,7 +60,9 @@ class InvoiceItem extends Model
         });
 
         static::saved(function ($item) {
-            self::refreshInvoiceTotals($item);
+            if ($item->refreshInvoiceTotalsAfterSave) {
+                self::refreshInvoiceTotals($item);
+            }
         });
 
         static::deleted(function ($item) {
@@ -69,5 +73,16 @@ class InvoiceItem extends Model
     private static function refreshInvoiceTotals(self $item): void
     {
         Invoice::query()->find($item->invoice_id)?->updateTotals();
+    }
+
+    public function saveWithoutRefreshingInvoiceTotals(): bool
+    {
+        $this->refreshInvoiceTotalsAfterSave = false;
+
+        try {
+            return $this->save();
+        } finally {
+            $this->refreshInvoiceTotalsAfterSave = true;
+        }
     }
 }

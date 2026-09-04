@@ -224,7 +224,8 @@ class InvoiceRepository
                         'custom_charge_id' => $itemData['custom_charge_id'] ?? null,
                     ];
 
-                    $invoiceItem = $invoice->items()->create($item);
+                    $invoiceItem = $invoice->items()->make($item);
+                    $invoiceItem->saveWithoutRefreshingInvoiceTotals();
 
                     if (! empty($itemData['payment_id'])) {
                         $paymentAvailable = Payment::query()
@@ -274,6 +275,8 @@ class InvoiceRepository
                         );
                     }
                 }
+
+                $invoice->updateTotals();
 
                 return [
                     'id' => $invoice->id,
