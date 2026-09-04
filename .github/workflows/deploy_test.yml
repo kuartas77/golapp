@@ -146,17 +146,14 @@ jobs:
       # Frontend / pnpm / Vite
       # -------------------------
 
-      - name: Setup pnpm
+      - name: Setup pnpm and Node.js 24
         if: steps.changes.outputs.frontend == 'true'
-        uses: pnpm/action-setup@v6
-
-      - name: Use Node.js 24
-        if: steps.changes.outputs.frontend == 'true'
-        uses: actions/setup-node@v4
+        uses: pnpm/setup@v2
         with:
-          node-version: "24"
-          cache: pnpm
+          runtime: node@24
+          cache: true
           cache-dependency-path: pnpm-lock.yaml
+          install: false
 
       - name: Build frontend with Vite
         if: steps.changes.outputs.frontend == 'true'
