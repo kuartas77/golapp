@@ -264,6 +264,10 @@ final class AssistantRoleTest extends TestCase
             ->postJson("/api/v2/inscriptions/{$inscription->id}/custom-charges", $payload)
             ->assertUnprocessable();
         $this->actingAs($this->assistant)
+            ->getJson('/api/v2/admin/inscription-custom-charges?'.http_build_query($this->datatableParams()))
+            ->assertOk()
+            ->assertJsonFragment(['name' => 'Transporte']);
+        $this->actingAs($this->assistant)
             ->putJson("/api/v2/admin/inscription-custom-charges/{$chargeId}", ['value' => 1])
             ->assertForbidden();
         $this->actingAs($this->assistant)
@@ -411,6 +415,9 @@ final class AssistantRoleTest extends TestCase
         $this->actingAs($this->assistant)
             ->get('/mensualidades/notificaciones-deuda')
             ->assertForbidden();
+        $this->actingAs($this->assistant)
+            ->get('/facturas/cargos-personalizados')
+            ->assertOk();
     }
 
     public function test_assistant_can_create_and_pay_invoices_but_cannot_annul_them(): void
@@ -539,5 +546,27 @@ final class AssistantRoleTest extends TestCase
         ]);
 
         return [$inscription, $payment];
+    }
+
+    private function datatableParams(): array
+    {
+        return [
+            'draw' => 1,
+            'start' => 0,
+            'length' => 10,
+            'columns' => [
+                ['data' => 'player_name', 'name' => 'player_name', 'searchable' => 'true', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']],
+                ['data' => 'inscription_year', 'name' => 'inscriptions.year', 'searchable' => 'true', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']],
+                ['data' => 'name', 'name' => 'inscription_custom_charges.name', 'searchable' => 'true', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']],
+                ['data' => 'value', 'name' => 'inscription_custom_charges.value', 'searchable' => 'false', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']],
+                ['data' => 'status', 'name' => 'inscription_custom_charges.status', 'searchable' => 'true', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']],
+                ['data' => 'due_date', 'name' => 'inscription_custom_charges.due_date', 'searchable' => 'true', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']],
+                ['data' => 'invoice_number', 'name' => 'invoice_number', 'searchable' => 'true', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']],
+                ['data' => 'id', 'name' => 'inscription_custom_charges.id', 'searchable' => 'false', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']],
+            ],
+            'order' => [
+                ['column' => 7, 'dir' => 'desc'],
+            ],
+        ];
     }
 }

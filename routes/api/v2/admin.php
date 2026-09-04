@@ -36,6 +36,9 @@ Route::prefix('admin')->group(function () {
         Route::apiResource('invoice-items-custom', AdminInvoiceCustomItemController::class)
             ->only(['index', 'show'])
             ->names('billing.invoice-items-custom');
+    });
+
+    Route::middleware(['role:super-admin|school|assistant|viewer', 'school.module.view:school.module.billing'])->group(function () {
         Route::get('inscription-custom-charges', [InscriptionCustomChargeController::class, 'index']);
     });
     Route::middleware(['role:super-admin|school', 'school.permission:school.module.billing'])->group(function () {

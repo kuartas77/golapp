@@ -152,7 +152,7 @@ import { customChargesTutorial } from '@/tutorials/invoices'
 import { useAuthUser } from '@/store/auth-user'
 
 const auth = useAuthUser()
-const isReadOnly = computed(() => auth.hasRole('viewer'))
+const isReadOnly = computed(() => auth.hasAnyRole(['assistant', 'viewer']))
 const saving = ref(false)
 const tutorial = usePageTutorial(customChargesTutorial)
 const deletingId = ref(null)
