@@ -4,21 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Mail\ErrorLog;
 use App\Models\Player;
 use App\Models\User;
-use Illuminate\Support\Facades\Mail;
-use App\Repositories\PlayerRepository;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Hash;
 use App\Notifications\RegisterPlayerNotification;
+use App\Repositories\PlayerRepository;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\TestResponse;
+use Tests\TestCase;
 
 final class PlayersTest extends TestCase
 {
-
-    public function testPlayerValidateForm(): void
+    public function test_player_validate_form(): void
     {
         $this->actingAs($this->user);
 
@@ -29,7 +28,7 @@ final class PlayersTest extends TestCase
     /**
      * @return mixed[]
      */
-    public function testPlayerCreate(): array
+    public function test_player_create(): array
     {
         Notification::fake();
         Mail::fake();
@@ -63,10 +62,11 @@ final class PlayersTest extends TestCase
         Mail::assertNotSent(ErrorLog::class);
         $this->assertNotNull($player?->password);
         $this->assertFalse(Hash::check($dataPlayer['identification_document'], (string) $player?->password));
+
         return $dataPlayer;
     }
 
-    public function testPlayerCreateError(): void
+    public function test_player_create_error(): void
     {
         Notification::fake();
         Mail::fake();
@@ -86,7 +86,7 @@ final class PlayersTest extends TestCase
         $testResponse->assertStatus(302);
     }
 
-    public function testPlayerUpdate(): void
+    public function test_player_update(): void
     {
         Mail::fake();
 
@@ -116,7 +116,7 @@ final class PlayersTest extends TestCase
         ]);
     }
 
-    public function testPlayerUpdateError(): void
+    public function test_player_update_error(): void
     {
         Mail::fake();
 
@@ -136,16 +136,16 @@ final class PlayersTest extends TestCase
         $testResponse->assertJsonValidationErrors(['names']);
     }
 
-    public function testPlayerIndex(): void
+    public function test_player_index(): void
     {
         $this->actingAs($this->user);
 
-        $testResponse = $this->get("/players");
+        $testResponse = $this->get('/players');
 
         $testResponse->assertSeeText('Deportistas');
     }
 
-    public function testPlayerShow(): void
+    public function test_player_show(): void
     {
         $dataPlayer = $this->dataPlayer();
 
@@ -161,16 +161,16 @@ final class PlayersTest extends TestCase
         $testResponse->assertJsonPath('names', $dataPlayer['names']);
     }
 
-    public function testPlayerCreateForm(): void
+    public function test_player_create_form(): void
     {
         $this->actingAs($this->user);
 
-        $testResponse = $this->get("/players/create");
+        $testResponse = $this->get('/players/create');
 
         $testResponse->assertSee('Agregar Deportista');
     }
 
-    public function testPlayerEditForm(): void
+    public function test_player_edit_form(): void
     {
         $dataPlayer = $this->dataPlayer();
 
@@ -186,7 +186,7 @@ final class PlayersTest extends TestCase
         $testResponse->assertJsonPath('identification_document', $dataPlayer['identification_document']);
     }
 
-    public function testPlayerDestroy(): void
+    public function test_player_destroy(): void
     {
         $dataPlayer = $this->dataPlayer();
 
@@ -196,7 +196,7 @@ final class PlayersTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $testResponse = $this->post('/players/' . $uniqueCode, ['_method' => 'DELETE']);
+        $testResponse = $this->post('/players/'.$uniqueCode, ['_method' => 'DELETE']);
 
         $testResponse->assertStatus(401);
     }
@@ -204,7 +204,7 @@ final class PlayersTest extends TestCase
     private function apiHeaders(): array
     {
         return [
-            'Authorization' => 'Bearer ' . $this->loginByApi($this->user)->json('access_token'),
+            'Authorization' => 'Bearer '.$this->loginByApi($this->user)->json('access_token'),
             'Accept' => 'application/json',
         ];
     }

@@ -49,7 +49,7 @@ class CreateInscriptionsTable extends Migration
             if ($canCreatePlayerForeignKey) {
                 $table->foreign('player_id')->references('id')->on('players');
             }
-            $table->unique(['unique_code','year']);
+            $table->unique(['unique_code', 'year']);
             // $table->unique(['unique_code','year', 'school_id]);
 
             $table->timestamps();

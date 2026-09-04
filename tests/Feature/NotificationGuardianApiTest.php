@@ -21,7 +21,7 @@ use Tests\TestCase;
 
 final class NotificationGuardianApiTest extends TestCase
 {
-    public function testGuardianMobileLoginDoesNotRequireRecaptcha(): void
+    public function test_guardian_mobile_login_does_not_require_recaptcha(): void
     {
         $this->createGuardianScenario([
             'email' => 'without.recaptcha@example.com',
@@ -43,7 +43,7 @@ final class NotificationGuardianApiTest extends TestCase
         }
     }
 
-    public function testGuardianCanLoginAndReceiveMobileTokensWithPlayers(): void
+    public function test_guardian_can_login_and_receive_mobile_tokens_with_players(): void
     {
         [$guardian, $player] = $this->createGuardianScenario([
             'email' => 'mobile.guardian@example.com',
@@ -68,11 +68,11 @@ final class NotificationGuardianApiTest extends TestCase
             ],
         ]);
         $response->assertJsonPath('data.players.0.id', $player->id);
-        $this->assertContains($player->unique_code . '-' . $player->schoolData->slug, $response->json('data.topics'));
+        $this->assertContains($player->unique_code.'-'.$player->schoolData->slug, $response->json('data.topics'));
         $this->assertNotNull($guardian->fresh()->last_login_at);
     }
 
-    public function testGuardianMobileTokenRemainsValidAfterGlobalOneMinuteWindow(): void
+    public function test_guardian_mobile_token_remains_valid_after_global_one_minute_window(): void
     {
         $this->createGuardianScenario([
             'email' => 'lasting.guardian@example.com',
@@ -88,13 +88,13 @@ final class NotificationGuardianApiTest extends TestCase
 
         $this->travel(2)->minutes();
 
-        $this->withHeader('Authorization', 'Bearer ' . $loginResponse->json('data.access_token'))
+        $this->withHeader('Authorization', 'Bearer '.$loginResponse->json('data.access_token'))
             ->getJson('/api/notify/v2/guardians/players')
             ->assertOk()
             ->assertJsonCount(1, 'data');
     }
 
-    public function testGuardianCanRegisterMobileDeviceToken(): void
+    public function test_guardian_can_register_mobile_device_token(): void
     {
         [$guardian] = $this->createGuardianScenario();
 
@@ -113,7 +113,7 @@ final class NotificationGuardianApiTest extends TestCase
         ]);
     }
 
-    public function testGuardianDeviceTokenRequiresAuthenticationAndValidPayload(): void
+    public function test_guardian_device_token_requires_authentication_and_valid_payload(): void
     {
         $this->postJson('/api/notify/v2/guardians/notifications/device-token', [
             'platform' => 'android',
@@ -131,7 +131,7 @@ final class NotificationGuardianApiTest extends TestCase
             ->assertJsonValidationErrors(['platform', 'token']);
     }
 
-    public function testGuardianAggregatedListsOnlyReturnOwnedPlayersAndIncludePlayerPayload(): void
+    public function test_guardian_aggregated_lists_only_return_owned_players_and_include_player_payload(): void
     {
         [$guardian, $ownedPlayer, $ownedInscription, $school] = $this->createGuardianScenario();
         [, $otherPlayer, $otherInscription] = $this->createGuardianScenario();
@@ -189,7 +189,7 @@ final class NotificationGuardianApiTest extends TestCase
             ->assertJsonPath('data.0.player.unique_code', $ownedPlayer->unique_code);
     }
 
-    public function testGuardianCannotAccessOtherPlayerResources(): void
+    public function test_guardian_cannot_access_other_player_resources(): void
     {
         [$guardian] = $this->createGuardianScenario();
         [, $otherPlayer, $otherInscription] = $this->createGuardianScenario();
@@ -212,7 +212,7 @@ final class NotificationGuardianApiTest extends TestCase
             ->assertNotFound();
     }
 
-    public function testGuardianCanCreateRequestForOwnedPlayerOnly(): void
+    public function test_guardian_can_create_request_for_owned_player_only(): void
     {
         [$guardian, $ownedPlayer] = $this->createGuardianScenario();
         [, $otherPlayer] = $this->createGuardianScenario();
@@ -236,7 +236,7 @@ final class NotificationGuardianApiTest extends TestCase
         ])->assertNotFound();
     }
 
-    public function testGuardianCanUploadPaymentProofForOwnedInvoiceOnly(): void
+    public function test_guardian_can_upload_payment_proof_for_owned_invoice_only(): void
     {
         Storage::fake('public');
 
@@ -266,7 +266,7 @@ final class NotificationGuardianApiTest extends TestCase
         ])->assertNotFound();
     }
 
-    public function testGuardianMarksNotificationReadForOnlyTheSelectedPlayer(): void
+    public function test_guardian_marks_notification_read_for_only_the_selected_player(): void
     {
         [$guardian, $playerA, , $school] = $this->createGuardianScenario();
         [$playerB] = $this->attachSecondPlayerToGuardian($guardian, $school);
@@ -301,7 +301,7 @@ final class NotificationGuardianApiTest extends TestCase
         ]);
     }
 
-    public function testGuardianCanMarkNotificationReadUsingMobileUrlContract(): void
+    public function test_guardian_can_mark_notification_read_using_mobile_url_contract(): void
     {
         [$guardian, $playerA, , $school] = $this->createGuardianScenario();
         [$playerB] = $this->attachSecondPlayerToGuardian($guardian, $school);
@@ -329,7 +329,7 @@ final class NotificationGuardianApiTest extends TestCase
         ]);
     }
 
-    public function testGuardianCanFetchOwnedPlayerSportsSummary(): void
+    public function test_guardian_can_fetch_owned_player_sports_summary(): void
     {
         [$guardian, $player, $inscription, $school, $trainingGroup] = $this->createGuardianScenario();
         $trainingGroup->update(['name' => 'Sub 12 Mobile']);
@@ -386,7 +386,7 @@ final class NotificationGuardianApiTest extends TestCase
             ]);
     }
 
-    public function testGuardianCanFetchOwnedPlayerMobileActivity(): void
+    public function test_guardian_can_fetch_owned_player_mobile_activity(): void
     {
         [$guardian, $player, $inscription, $school, $trainingGroup] = $this->createGuardianScenario();
         $trainingGroup->update(['days' => ['Lunes']]);
@@ -433,7 +433,7 @@ final class NotificationGuardianApiTest extends TestCase
         );
     }
 
-    public function testGuardianCannotFetchOtherPlayerMobileExperience(): void
+    public function test_guardian_cannot_fetch_other_player_mobile_experience(): void
     {
         [$guardian] = $this->createGuardianScenario();
         [, $otherPlayer] = $this->createGuardianScenario();
@@ -446,7 +446,7 @@ final class NotificationGuardianApiTest extends TestCase
             ->assertNotFound();
     }
 
-    public function testGuardianMobileExperienceEndpointsRequireAuthentication(): void
+    public function test_guardian_mobile_experience_endpoints_require_authentication(): void
     {
         [, $player] = $this->createGuardianScenario();
 
@@ -531,7 +531,7 @@ final class NotificationGuardianApiTest extends TestCase
     private function createInvoice(Inscription $inscription, School $school): Invoice
     {
         return Invoice::query()->create([
-            'invoice_number' => 'INV-' . fake()->unique()->numerify('######'),
+            'invoice_number' => 'INV-'.fake()->unique()->numerify('######'),
             'inscription_id' => $inscription->id,
             'training_group_id' => $inscription->training_group_id,
             'year' => now()->year,

@@ -15,7 +15,7 @@ use Tests\TestCase;
 
 final class BackfillInvoiceIdempotencyKeysTest extends TestCase
 {
-    public function testCommandBackfillsMissingInvoiceIdempotencyKey(): void
+    public function test_command_backfills_missing_invoice_idempotency_key(): void
     {
         [$invoice, $payment] = $this->createInvoiceWithMonthlyItem();
 
@@ -45,7 +45,7 @@ final class BackfillInvoiceIdempotencyKeysTest extends TestCase
         $this->assertSame($expectedKey, $invoice->fresh()->idempotency_key);
     }
 
-    public function testCommandSkipsDuplicateGeneratedKeys(): void
+    public function test_command_skips_duplicate_generated_keys(): void
     {
         [$firstInvoice, $payment] = $this->createInvoiceWithMonthlyItem('FAC-BACKFILL-1');
         $secondInvoice = $this->createDuplicateInvoiceWithMonthlyItem($firstInvoice, $payment, 'FAC-BACKFILL-2');

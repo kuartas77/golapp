@@ -16,6 +16,7 @@ class SchoolFactory extends Factory
     public function definition()
     {
         $name = $this->faker->name();
+
         return [
             'name' => $name,
             'agent' => $this->faker->name(),

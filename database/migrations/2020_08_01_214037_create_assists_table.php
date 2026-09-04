@@ -51,7 +51,7 @@ class CreateAssistsTable extends Migration
 
             $table->foreign('training_group_id')->references('id')->on('training_groups');
             $table->foreign('inscription_id')->references('id')->on('inscriptions');
-            $table->unique(['training_group_id', 'inscription_id','year', 'month'], 'uk_assists_unique_month');
+            $table->unique(['training_group_id', 'inscription_id', 'year', 'month'], 'uk_assists_unique_month');
         });
     }
 

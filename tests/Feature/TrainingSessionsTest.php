@@ -26,7 +26,7 @@ final class TrainingSessionsTest extends TestCase
         $this->withoutVite();
     }
 
-    public function testSessionPlanningCrudIsIsolatedFromStandardSessionsAndSharesDateUniqueness(): void
+    public function test_session_planning_crud_is_isolated_from_standard_sessions_and_shares_date_uniqueness(): void
     {
         $school = School::findOrFail($this->school['id']);
         $school->forceFill(['school_permissions' => School::normalizeSchoolPermissions([
@@ -67,7 +67,7 @@ final class TrainingSessionsTest extends TestCase
             ->assertOk()->assertHeader('content-type', 'application/pdf');
     }
 
-    public function testSessionPlanningRequiresBetweenOneAndFourNamedPhases(): void
+    public function test_session_planning_requires_between_one_and_four_named_phases(): void
     {
         $school = School::findOrFail($this->school['id']);
         $school->forceFill(['school_permissions' => School::normalizeSchoolPermissions([
@@ -82,7 +82,7 @@ final class TrainingSessionsTest extends TestCase
             ->assertUnprocessable()->assertJsonValidationErrors('phases');
     }
 
-    public function testSessionPlanningAcceptsExpandedDiagramSymbols(): void
+    public function test_session_planning_accepts_expanded_diagram_symbols(): void
     {
         $school = School::findOrFail($this->school['id']);
         $school->forceFill(['school_permissions' => School::normalizeSchoolPermissions([
@@ -120,7 +120,7 @@ final class TrainingSessionsTest extends TestCase
             ->assertJsonPath('data.phases.0.diagram.6.rotation', 45);
 
         $this->actingAs($this->user)
-            ->putJson('/api/v2/session-plannings/' . $response->json('data.id'), $this->plannedPayload($group->id, $phases))
+            ->putJson('/api/v2/session-plannings/'.$response->json('data.id'), $this->plannedPayload($group->id, $phases))
             ->assertOk()
             ->assertJsonPath('data.phases.0.diagram.6.type', 'agility_hurdle')
             ->assertJsonPath('data.phases.0.diagram.6.color', 'green')
@@ -129,7 +129,7 @@ final class TrainingSessionsTest extends TestCase
             ->assertJsonPath('data.phases.0.diagram.7.rotation', 45);
     }
 
-    public function testDiagramPdfRendersRotatedTrainingEquipment(): void
+    public function test_diagram_pdf_renders_rotated_training_equipment(): void
     {
         $html = view('templates.pdf.methodology.partials.field-diagram', [
             'items' => [
@@ -143,7 +143,7 @@ final class TrainingSessionsTest extends TestCase
         $this->assertStringContainsString('#16a34a', $html);
     }
 
-    public function testSessionPlanningCanStorePhaseImageVisualResource(): void
+    public function test_session_planning_can_store_phase_image_visual_resource(): void
     {
         Storage::fake('public');
 
@@ -166,12 +166,12 @@ final class TrainingSessionsTest extends TestCase
 
         $path = TrainingSession::findOrFail((int) $response->json('data.id'))->phases()->firstOrFail()->image_path;
 
-        $this->assertStringStartsWith($school->slug . '/methodology/', $path);
+        $this->assertStringStartsWith($school->slug.'/methodology/', $path);
         Storage::disk('public')->assertExists($path);
         $this->assertSame(route('images', $path), $response->json('data.phases.0.image_url'));
     }
 
-    public function testSchoolUserCanListShowStoreUpdateAndExportTrainingSessions(): void
+    public function test_school_user_can_list_show_store_update_and_export_training_sessions(): void
     {
         $group = $this->createTrainingGroup($this->school['id'], $this->user);
         $existingSession = $this->createTrainingSession($group, $this->user);
@@ -278,7 +278,7 @@ final class TrainingSessionsTest extends TestCase
         );
     }
 
-    public function testOnlyFirstTrainingSessionTaskIsRequired(): void
+    public function test_only_first_training_session_task_is_required(): void
     {
         $group = $this->createTrainingGroup($this->school['id'], $this->user);
         $tasks = $this->makeTasks('OP');
@@ -313,7 +313,7 @@ final class TrainingSessionsTest extends TestCase
             ->assertJsonValidationErrors('tasks.0.task_name');
     }
 
-    public function testSuperAdminCanManageTrainingSessionsForSelectedSchool(): void
+    public function test_super_admin_can_manage_training_sessions_for_selected_school(): void
     {
         $superAdmin = $this->createSuperAdminForSchool($this->school['id']);
         $secondarySchool = School::findOrFail($this->createSchool([
@@ -378,7 +378,7 @@ final class TrainingSessionsTest extends TestCase
         ]);
     }
 
-    public function testInstructorOnlyAccessesAssignedTrainingGroupSessions(): void
+    public function test_instructor_only_accesses_assigned_training_group_sessions(): void
     {
         $instructor = $this->createSchoolUserWithRole($this->school['id'], ['instructor'], 'coach-training-sessions@example.com');
         $allowedGroup = $this->createTrainingGroup($this->school['id'], $instructor, now()->year, 'Permitido');
@@ -432,7 +432,7 @@ final class TrainingSessionsTest extends TestCase
         ]);
     }
 
-    public function testSessionClosureSynchronizesAttendancesAndPreservesSpecialStatuses(): void
+    public function test_session_closure_synchronizes_attendances_and_preserves_special_statuses(): void
     {
         $group = $this->createTrainingGroup($this->school['id'], $this->user);
         $absent = $this->createActiveInscription($group, 'Ausente');
@@ -491,7 +491,7 @@ final class TrainingSessionsTest extends TestCase
         $this->assertSame(3, (int) $this->assistFor($excused, $group)->{$classDay['column']});
     }
 
-    public function testComplementaryTrainingSessionUsesComplementaryGroupMembersForAttendance(): void
+    public function test_complementary_training_session_uses_complementary_group_members_for_attendance(): void
     {
         $principalGroup = $this->createTrainingGroup($this->school['id'], $this->user, suffix: 'Principal');
         $complementaryGroup = $this->createTrainingGroup($this->school['id'], $this->user, suffix: 'Complementario', overrides: [
@@ -530,7 +530,7 @@ final class TrainingSessionsTest extends TestCase
         ]);
     }
 
-    public function testSyncedSessionRejectsIdentityChangesDuplicatesAndHistoricalAttendance(): void
+    public function test_synced_session_rejects_identity_changes_duplicates_and_historical_attendance(): void
     {
         $group = $this->createTrainingGroup($this->school['id'], $this->user);
         $this->createActiveInscription($group, 'Activo');
@@ -574,7 +574,7 @@ final class TrainingSessionsTest extends TestCase
             ->assertJsonValidationErrors('date');
     }
 
-    public function testExistingSessionSynchronizesAutomaticallyAndDeletionKeepsAttendance(): void
+    public function test_existing_session_synchronizes_automatically_and_deletion_keeps_attendance(): void
     {
         $group = $this->createTrainingGroup($this->school['id'], $this->user);
         $inscription = $this->createActiveInscription($group, 'Legado');
@@ -604,7 +604,7 @@ final class TrainingSessionsTest extends TestCase
         $this->assertSame(2, (int) $this->assistFor($inscription, $group)->{$classDay['column']});
     }
 
-    public function testAttendanceContextRejectsIneligiblePlayersAndUnscheduledDates(): void
+    public function test_attendance_context_rejects_ineligible_players_and_unscheduled_dates(): void
     {
         $group = $this->createTrainingGroup($this->school['id'], $this->user);
         $otherGroup = $this->createTrainingGroup($this->school['id'], $this->user, suffix: 'Otro');
@@ -768,6 +768,7 @@ final class TrainingSessionsTest extends TestCase
         $payload = $this->sessionPayload($trainingGroupId);
         unset($payload['tasks']);
         $payload['phases'] = $phases;
+
         return $payload;
     }
 

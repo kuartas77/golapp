@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\People;
+use App\Models\Player;
+use App\Models\User;
+
 return [
 
     /*
@@ -47,7 +51,7 @@ return [
         'players' => [
             'driver' => 'session',
             'provider' => 'players',
-        ]
+        ],
     ],
 
     /*
@@ -70,16 +74,16 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model' => User::class,
         ],
         'guardians' => [
             'driver' => 'eloquent',
-            'model' => App\Models\People::class,
+            'model' => People::class,
         ],
         'players' => [
             'driver' => 'eloquent',
-            'model' => App\Models\Player::class,
-        ]
+            'model' => Player::class,
+        ],
 
         // 'users' => [
         //     'driver' => 'database',

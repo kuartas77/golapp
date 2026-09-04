@@ -30,7 +30,6 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-
             $table->foreign('training_session_id')->references('id')->on('training_sessions');
         });
     }

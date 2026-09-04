@@ -18,7 +18,7 @@ use Tests\TestCase;
 
 final class DebtorReportTest extends TestCase
 {
-    public function testDebtorReportControlsItemAmountsAndGeneralTotalsIndependently(): void
+    public function test_debtor_report_controls_item_amounts_and_general_totals_independently(): void
     {
         $data = [
             'school' => (object) [
@@ -62,7 +62,7 @@ final class DebtorReportTest extends TestCase
         $this->assertStringContainsString('Grupo 1', $generalTotalsOnly);
     }
 
-    public function testDebtorReportConsolidatesMonthlyAndInvoiceDebts(): void
+    public function test_debtor_report_consolidates_monthly_and_invoice_debts(): void
     {
         $this->actingAs($this->user);
         $group = $this->defaultTrainingGroup();
@@ -147,7 +147,7 @@ final class DebtorReportTest extends TestCase
         ], collect($rows->first()['debt_items'])->pluck('amount')->all());
     }
 
-    public function testDebtorReportDoesNotDuplicateMonthlyDebtAlreadyInPendingInvoice(): void
+    public function test_debtor_report_does_not_duplicate_monthly_debt_already_in_pending_invoice(): void
     {
         $this->actingAs($this->user);
         $group = $this->defaultTrainingGroup();
@@ -194,7 +194,7 @@ final class DebtorReportTest extends TestCase
         $this->assertSame(60000.0, $rows->first()['total_debt']);
     }
 
-    public function testDebtorReportExcludesCurrentMonthUnlessOptionIsEnabled(): void
+    public function test_debtor_report_excludes_current_month_unless_option_is_enabled(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-07-16 10:00:00'));
 
@@ -231,7 +231,7 @@ final class DebtorReportTest extends TestCase
         }
     }
 
-    public function testDebtorReportFiltersByTrainingGroup(): void
+    public function test_debtor_report_filters_by_training_group(): void
     {
         $this->actingAs($this->user);
         $includedGroup = $this->defaultTrainingGroup();
@@ -265,7 +265,7 @@ final class DebtorReportTest extends TestCase
         $this->assertSame('1003', $rows->first()['unique_code']);
     }
 
-    public function testDebtorReportOrdersRowsByCategoryUsingNaturalNumericOrder(): void
+    public function test_debtor_report_orders_rows_by_category_using_natural_numeric_order(): void
     {
         $this->actingAs($this->user);
         $group = $this->defaultTrainingGroup();
@@ -297,7 +297,7 @@ final class DebtorReportTest extends TestCase
         $this->assertSame(['SUB-1', 'SUB-3', 'SUB-10'], $rows->pluck('category')->all());
     }
 
-    public function testDebtorReportOrdersRowsByTrainingGroupId(): void
+    public function test_debtor_report_orders_rows_by_training_group_id(): void
     {
         $this->actingAs($this->user);
 
@@ -354,7 +354,7 @@ final class DebtorReportTest extends TestCase
         );
     }
 
-    public function testDebtorReportIncludesDueCustomChargesThatAreNotInvoiced(): void
+    public function test_debtor_report_includes_due_custom_charges_that_are_not_invoiced(): void
     {
         $this->actingAs($this->user);
         $group = $this->defaultTrainingGroup();
@@ -392,7 +392,7 @@ final class DebtorReportTest extends TestCase
         $this->assertSame(90000.0, $rows->first()['total_debt']);
     }
 
-    public function testDebtorReportIgnoresCustomChargesWithoutActiveInscriptionContext(): void
+    public function test_debtor_report_ignores_custom_charges_without_active_inscription_context(): void
     {
         $this->actingAs($this->user);
         $group = $this->defaultTrainingGroup();

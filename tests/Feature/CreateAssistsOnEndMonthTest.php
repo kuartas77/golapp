@@ -19,7 +19,7 @@ final class CreateAssistsOnEndMonthTest extends TestCase
         $this->withoutVite();
     }
 
-    public function testCommandCreatesNextMonthWithinSameYearOnRegularMonthEnd(): void
+    public function test_command_creates_next_month_within_same_year_on_regular_month_end(): void
     {
         $school = School::findOrFail($this->school['id']);
         $group = $this->createTrainingGroup($school, 2026);
@@ -36,7 +36,7 @@ final class CreateAssistsOnEndMonthTest extends TestCase
         ]);
     }
 
-    public function testCommandCreatesJanuaryOnlyForNextYearInscriptionsOnDecemberEnd(): void
+    public function test_command_creates_january_only_for_next_year_inscriptions_on_december_end(): void
     {
         $school = School::findOrFail($this->school['id']);
         $group = $this->createTrainingGroup($school, 2026);
@@ -60,7 +60,7 @@ final class CreateAssistsOnEndMonthTest extends TestCase
         ]);
     }
 
-    public function testCommandDoesNotCreateJanuaryWhenNextYearHasNoInscriptions(): void
+    public function test_command_does_not_create_january_when_next_year_has_no_inscriptions(): void
     {
         $school = School::findOrFail($this->school['id']);
         $group = $this->createTrainingGroup($school, 2026);
@@ -76,12 +76,12 @@ final class CreateAssistsOnEndMonthTest extends TestCase
         ]);
     }
 
-    public function testCommandCreatesSeparateAssistsForPrincipalAndComplementaryGroups(): void
+    public function test_command_creates_separate_assists_for_principal_and_complementary_groups(): void
     {
         $school = School::findOrFail($this->school['id']);
         $principalGroup = $this->createTrainingGroup($school, 2026);
         $complementaryGroup = $this->createTrainingGroup($school, 2026, [
-            'name' => 'Command Complementary ' . fake()->unique()->numberBetween(100, 999),
+            'name' => 'Command Complementary '.fake()->unique()->numberBetween(100, 999),
             'is_complementary' => true,
         ]);
         $inscription = $this->createInscription($school, $principalGroup, 2026);
@@ -110,7 +110,7 @@ final class CreateAssistsOnEndMonthTest extends TestCase
     private function createTrainingGroup(School $school, int $year, array $overrides = []): TrainingGroup
     {
         return TrainingGroup::query()->create(array_merge([
-            'name' => 'Command Team ' . fake()->unique()->numberBetween(100, 999),
+            'name' => 'Command Team '.fake()->unique()->numberBetween(100, 999),
             'year' => $year,
             'category' => ['Todas las categorías'],
             'days' => ['Lunes', 'Martes'],
@@ -124,7 +124,7 @@ final class CreateAssistsOnEndMonthTest extends TestCase
     {
         $player = Player::factory()->create([
             'school_id' => $school->id,
-            'unique_code' => 'CMD-' . fake()->unique()->numberBetween(1000, 9999),
+            'unique_code' => 'CMD-'.fake()->unique()->numberBetween(1000, 9999),
         ]);
 
         return Inscription::factory()->create(array_merge([

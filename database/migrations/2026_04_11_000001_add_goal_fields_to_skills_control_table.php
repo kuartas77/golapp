@@ -9,11 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('skills_control', function (Blueprint $table): void {
-            if (!Schema::hasColumn('skills_control', 'goal_assists')) {
+            if (! Schema::hasColumn('skills_control', 'goal_assists')) {
                 $table->smallInteger('goal_assists')->default(0);
             }
 
-            if (!Schema::hasColumn('skills_control', 'goal_saves')) {
+            if (! Schema::hasColumn('skills_control', 'goal_saves')) {
                 $table->smallInteger('goal_saves')->default(0);
             }
         });

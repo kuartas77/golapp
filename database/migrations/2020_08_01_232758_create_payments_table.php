@@ -50,7 +50,7 @@ class CreatePaymentsTable extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->unique(['year','training_group_id','inscription_id']);
+            $table->unique(['year', 'training_group_id', 'inscription_id']);
 
             $table->foreign('training_group_id')->references('id')->on('training_groups');
             $table->foreign('inscription_id')->references('id')->on('inscriptions');

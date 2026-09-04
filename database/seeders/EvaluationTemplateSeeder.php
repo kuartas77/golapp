@@ -17,7 +17,7 @@ class EvaluationTemplateSeeder extends Seeder
                 'name' => 'Plantilla Base Jugadores de Campo',
                 'year' => $year,
                 'version' => 1,
-                'school_id' => 1
+                'school_id' => 1,
             ],
             [
                 'description' => 'Plantilla base para evaluaciones periódicas de jugadores de campo.',

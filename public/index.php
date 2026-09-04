@@ -49,7 +49,7 @@ $app = require_once __DIR__.'/../bootstrap/app.php';
 
 $kernel = $app->make(Kernel::class);
 
-$stopWatch = new StopWatch();
+$stopWatch = new StopWatch;
 
 $stopWatch->start();
 

@@ -32,7 +32,7 @@ use Tests\TestCase;
 
 final class ApiResourcesCoverageTest extends TestCase
 {
-    public function testInvoiceStatisticsResourceSummarizesStatusesAndPaidAmount(): void
+    public function test_invoice_statistics_resource_summarizes_statuses_and_paid_amount(): void
     {
         $resource = new InvoiceStatistcsResource(collect([
             (object) ['status' => 'pending', 'total_amount' => 1000],
@@ -52,7 +52,7 @@ final class ApiResourcesCoverageTest extends TestCase
         ], $resource->toArray(Request::create('/')));
     }
 
-    public function testUniformRequestStatisticsResourceSummarizesStatuses(): void
+    public function test_uniform_request_statistics_resource_summarizes_statuses(): void
     {
         $resource = new UniformRequestStatistcsResource(collect([
             (object) ['status' => 'PENDING'],
@@ -69,7 +69,7 @@ final class ApiResourcesCoverageTest extends TestCase
         ], $resource->toArray(Request::create('/')));
     }
 
-    public function testUniformRequestResourceIncludesRejectedAtAndPlayerWhenLoaded(): void
+    public function test_uniform_request_resource_includes_rejected_at_and_player_when_loaded(): void
     {
         $uniformRequest = new UniformRequest([
             'type' => 'Camiseta',
@@ -107,7 +107,7 @@ final class ApiResourcesCoverageTest extends TestCase
         $this->assertGreaterThan(0, $payload['rejected_at']);
     }
 
-    public function testUniformRequestCollectionMapsRequestsToResources(): void
+    public function test_uniform_request_collection_maps_requests_to_resources(): void
     {
         $payload = (new UniformRequestCollection(collect([
             new UniformRequest(['type' => 'Medias', 'status' => 'PENDING']),
@@ -117,7 +117,7 @@ final class ApiResourcesCoverageTest extends TestCase
         $this->assertInstanceOf(UniformRequestResource::class, $payload[0]);
     }
 
-    public function testItemInvoiceResourceKeepsInvoiceItemPayloadShape(): void
+    public function test_item_invoice_resource_keeps_invoice_item_payload_shape(): void
     {
         $resource = new ItemInvoiceResource((object) [
             'id' => 12,
@@ -140,7 +140,7 @@ final class ApiResourcesCoverageTest extends TestCase
         ], $resource->toArray(Request::create('/')));
     }
 
-    public function testItemInvoiceCollectionMapsItemsToResources(): void
+    public function test_item_invoice_collection_maps_items_to_resources(): void
     {
         $payload = (new ItemInvoiceCollection(collect([
             new InvoiceItem(['description' => 'Mensualidad', 'quantity' => 1, 'unit_price' => 50000]),
@@ -150,7 +150,7 @@ final class ApiResourcesCoverageTest extends TestCase
         $this->assertInstanceOf(ItemInvoiceResource::class, $payload[0]);
     }
 
-    public function testInvoiceResourceIncludesItemsAndPlayerWhenRelationsAreLoaded(): void
+    public function test_invoice_resource_includes_items_and_player_when_relations_are_loaded(): void
     {
         $invoice = new Invoice([
             'invoice_number' => 'INV-2026-001',
@@ -179,7 +179,7 @@ final class ApiResourcesCoverageTest extends TestCase
             'unique_code' => 'P-2026',
         ]);
         $player->id = 77;
-        $inscription = new Inscription();
+        $inscription = new Inscription;
         $inscription->setRelation('player', $player);
         $invoice->setRelation('inscription', $inscription);
 
@@ -197,7 +197,7 @@ final class ApiResourcesCoverageTest extends TestCase
         ], $payload['player']);
     }
 
-    public function testInvoiceCollectionMapsInvoicesToResources(): void
+    public function test_invoice_collection_maps_invoices_to_resources(): void
     {
         $payload = (new InvoiceCollection(collect([
             new Invoice(['invoice_number' => 'INV-1', 'status' => 'pending']),
@@ -207,7 +207,7 @@ final class ApiResourcesCoverageTest extends TestCase
         $this->assertInstanceOf(InvoiceResource::class, $payload[0]);
     }
 
-    public function testInscriptionResourceKeepsAttendancePayloadShape(): void
+    public function test_inscription_resource_keeps_attendance_payload_shape(): void
     {
         $attendance = [
             'assistance_one' => true,
@@ -259,7 +259,7 @@ final class ApiResourcesCoverageTest extends TestCase
         ]), $resource->toArray(Request::create('/')));
     }
 
-    public function testSchoolCollectionMapsSchoolSummaryFields(): void
+    public function test_school_collection_maps_school_summary_fields(): void
     {
         $school = (object) [
             'id' => 7,
@@ -312,7 +312,7 @@ final class ApiResourcesCoverageTest extends TestCase
         ]], (new SchoolCollection(collect([$school])))->toArray(Request::create('/')));
     }
 
-    public function testLoginPlayerResourceCreatesAccessAndRefreshTokens(): void
+    public function test_login_player_resource_creates_access_and_refresh_tokens(): void
     {
         $player = Player::factory()->create(['school_id' => $this->school['id']]);
         $player->abilities = ['player'];
@@ -327,7 +327,7 @@ final class ApiResourcesCoverageTest extends TestCase
         $this->assertSame($player->id, $payload['player']->resolve(Request::create('/'))['id']);
     }
 
-    public function testTopicNotificationResourceIncludesPivotReadStatusAndPlayer(): void
+    public function test_topic_notification_resource_includes_pivot_read_status_and_player(): void
     {
         $notification = new TopicNotification([
             'title' => 'Entrenamiento',
@@ -360,7 +360,7 @@ final class ApiResourcesCoverageTest extends TestCase
         ], $payload['player']);
     }
 
-    public function testTopicNotificationCollectionMapsNotificationsToResources(): void
+    public function test_topic_notification_collection_maps_notifications_to_resources(): void
     {
         $notification = new TopicNotification(['title' => 'Aviso']);
         $notification->setRelation('pivot', (object) ['is_read' => false]);
@@ -371,7 +371,7 @@ final class ApiResourcesCoverageTest extends TestCase
         $this->assertInstanceOf(TopicNotificationResource::class, $payload[0]);
     }
 
-    public function testTournamentPaymentResourceIncludesNestedPlayer(): void
+    public function test_tournament_payment_resource_includes_nested_player(): void
     {
         $payout = $this->fakeTournamentPayout();
 
@@ -396,7 +396,7 @@ final class ApiResourcesCoverageTest extends TestCase
         ], $payload['player']->resolve(Request::create('/')));
     }
 
-    public function testTournamentPaymentCollectionMapsRows(): void
+    public function test_tournament_payment_collection_maps_rows(): void
     {
         $payload = (new TournamentPaymentCollection([
             'rows' => collect([$this->fakeTournamentPayout()]),

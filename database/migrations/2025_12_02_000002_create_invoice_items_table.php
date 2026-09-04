@@ -24,7 +24,7 @@ return new class extends Migration
             $table->decimal('total', 10, 2)->default(0);
             $table->enum('month', [
                 'enrollment', 'january', 'february', 'march', 'april', 'may',
-                'june', 'july', 'august', 'september', 'october', 'november', 'december'
+                'june', 'july', 'august', 'september', 'october', 'november', 'december',
             ])->nullable();
             $table->foreignId('payment_id')->nullable()->constrained('payments')->onDelete('set null');
             $table->boolean('is_paid')->default(false);

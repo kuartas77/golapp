@@ -17,7 +17,7 @@ use Tests\TestCase;
 
 final class LegacyInstructorApiTest extends TestCase
 {
-    public function testProtectedRoutesRejectGuests(): void
+    public function test_protected_routes_reject_guests(): void
     {
         foreach ([
             ['postJson', '/api/logout'],
@@ -35,7 +35,7 @@ final class LegacyInstructorApiTest extends TestCase
         }
     }
 
-    public function testLoginUserCheckRefreshAndLogoutFlow(): void
+    public function test_login_user_check_refresh_and_logout_flow(): void
     {
         [, $instructor] = $this->createSchoolAndUser(roles: [User::INSTRUCTOR]);
 
@@ -75,7 +75,7 @@ final class LegacyInstructorApiTest extends TestCase
         $this->withToken($newAccessToken)->getJson('/api/user')->assertUnauthorized();
     }
 
-    public function testDynamicImageEndpointServesOnlyAuthenticatedAllowedImages(): void
+    public function test_dynamic_image_endpoint_serves_only_authenticated_allowed_images(): void
     {
         Storage::fake('public');
         Storage::disk('public')->put('school/player.png', base64_decode(
@@ -94,7 +94,7 @@ final class LegacyInstructorApiTest extends TestCase
             ->assertNotFound();
     }
 
-    public function testInstructorCanListShowAndGetStatisticsForAssignedGroups(): void
+    public function test_instructor_can_list_show_and_get_statistics_for_assigned_groups(): void
     {
         [$instructor, $group] = $this->instructorWithAssignedGroup();
         $this->createInscription($group);
@@ -117,7 +117,7 @@ final class LegacyInstructorApiTest extends TestCase
             ->assertJsonPath('data.0.attendances_total', 0);
     }
 
-    public function testInstructorCanListAndUpdateAttendanceForAssignedGroup(): void
+    public function test_instructor_can_list_and_update_attendance_for_assigned_group(): void
     {
         [$instructor, $group] = $this->instructorWithAssignedGroup();
         $inscription = $this->createInscription($group);

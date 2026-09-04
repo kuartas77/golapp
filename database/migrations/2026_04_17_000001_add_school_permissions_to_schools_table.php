@@ -13,7 +13,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasColumn('schools', 'school_permissions')) {
+        if (! Schema::hasColumn('schools', 'school_permissions')) {
             Schema::table('schools', function (Blueprint $table) {
                 $table->json('school_permissions')->nullable()->after('inscriptions_enabled');
             });

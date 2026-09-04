@@ -7,7 +7,7 @@ namespace Tests\Feature;
 use App\Jobs\GenerateSchoolDataExport;
 use App\Models\School;
 use App\Models\SchoolDataExport;
-use App\Models\User;
+use App\Service\SchoolDataExport\SchoolDataExportGenerator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
@@ -187,14 +187,14 @@ class SchoolDataExportsTest extends TestCase
             'disk' => 'export',
         ]);
 
-        (new GenerateSchoolDataExport($export->id))->handle(app(\App\Service\SchoolDataExport\SchoolDataExportGenerator::class));
+        (new GenerateSchoolDataExport($export->id))->handle(app(SchoolDataExportGenerator::class));
 
         $export->refresh();
 
         $this->assertSame(SchoolDataExport::STATUS_READY, $export->status);
         Storage::disk('export')->assertExists($export->path);
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         $this->assertTrue($zip->open(Storage::disk('export')->path($export->path)));
 
         $this->assertNotFalse($zip->locateName('README.txt'));

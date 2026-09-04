@@ -19,8 +19,8 @@ use App\Service\API\Instructor\TrainingGroupsService;
 use App\Service\Assist\AssistService;
 use App\Service\Groups\TrainingGroupYearFilter;
 use App\Service\Notification\TopicService;
-use App\Service\PaymentAmountResolver;
 use App\Service\Payment\PaymentExportService;
+use App\Service\PaymentAmountResolver;
 use App\Service\Player\PlayerExportService;
 use App\Service\ReportService;
 use App\Service\SharedService;
@@ -28,7 +28,6 @@ use App\Service\StopWatch;
 use App\Service\TrainigSession\TrainingSessionExportService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Mockery;
@@ -42,27 +41,27 @@ final class ServicesCoverageTest extends TestCase
         parent::tearDown();
     }
 
-    public function testStopWatchStartStopAndElapsedTime(): void
+    public function test_stop_watch_start_stop_and_elapsed_time(): void
     {
-        $stopWatch = new StopWatch();
+        $stopWatch = new StopWatch;
 
         $this->assertTrue($stopWatch->start());
         $this->assertFalse($stopWatch->start());
         $stopWatch->stop();
         $this->assertStringEndsWith('s', $stopWatch->getTimeElapsed());
 
-        $fresh = new StopWatch();
+        $fresh = new StopWatch;
         $this->assertFalse($fresh->stop());
         $this->assertSame('', $fresh->getTimeElapsed());
     }
 
-    public function testAssistsServiceGetAssists(): void
+    public function test_assists_service_get_assists(): void
     {
         $this->actingAs($this->user);
         $trainingGroup = $this->createTrainingGroup('Assists API Group');
         $inscription = $this->createInscription($this->makePlayer(), $trainingGroup);
 
-        $service = new AssistsService();
+        $service = new AssistsService;
         $assists = $service->getAssists([
             'training_group_id' => $trainingGroup->id,
             'month' => '1',
@@ -71,10 +70,10 @@ final class ServicesCoverageTest extends TestCase
 
         $this->assertInstanceOf(Collection::class, $assists);
         $this->assertGreaterThanOrEqual(1, $assists->count());
-        $this->assertTrue($assists->contains(fn(Assist $assist) => (int) $assist->inscription_id === (int) $inscription->id));
+        $this->assertTrue($assists->contains(fn (Assist $assist) => (int) $assist->inscription_id === (int) $inscription->id));
     }
 
-    public function testTrainingGroupsServiceGetGroupsAndGetGroup(): void
+    public function test_training_groups_service_get_groups_and_get_group(): void
     {
         $this->actingAs($this->user);
         $group = $this->createTrainingGroup('Searchable Group');
@@ -86,17 +85,17 @@ final class ServicesCoverageTest extends TestCase
             'page' => 1,
         ]);
 
-        $service = new TrainingGroupsService();
+        $service = new TrainingGroupsService;
         $groups = $service->getGroups();
 
-        $this->assertTrue($groups->contains(fn(TrainingGroup $item) => $item->id === $group->id));
+        $this->assertTrue($groups->contains(fn (TrainingGroup $item) => $item->id === $group->id));
         $this->assertSame($group->id, $service->getGroup($group->id)->id);
 
         $this->expectException(ModelNotFoundException::class);
         $service->getGroup(999999);
     }
 
-    public function testTrainingGroupYearFilterKeepsCurrentAndPastActiveGroups(): void
+    public function test_training_group_year_filter_keeps_current_and_past_active_groups(): void
     {
         $groups = collect([
             (object) ['id' => 1, 'year_active' => now()->year - 1],
@@ -107,7 +106,7 @@ final class ServicesCoverageTest extends TestCase
         $this->assertSame([1, 2], TrainingGroupYearFilter::activeForCurrentYear($groups)->pluck('id')->values()->all());
     }
 
-    public function testReportServiceCallsStoredProceduresWithExpectedParameters(): void
+    public function test_report_service_calls_stored_procedures_with_expected_parameters(): void
     {
         DB::shouldReceive('select')
             ->once()
@@ -134,7 +133,7 @@ final class ServicesCoverageTest extends TestCase
         $this->assertSame(4, ReportService::assistsPercentagesReport(2026, 5, null, 7)->first()->total);
     }
 
-    public function testTopicServiceGenerateTopicAndPlayerTopicsAndSchoolTopics(): void
+    public function test_topic_service_generate_topic_and_player_topics_and_school_topics(): void
     {
         $this->actingAs($this->user);
         $group = $this->createTrainingGroup('Topic Group');
@@ -159,7 +158,7 @@ final class ServicesCoverageTest extends TestCase
 
         $topics = TopicService::generatePlayerTopics($player->fresh());
         $this->assertGreaterThanOrEqual(4, count($topics));
-        $this->assertTrue(collect($topics)->contains(fn(string $topic) => str_contains($topic, 'general')));
+        $this->assertTrue(collect($topics)->contains(fn (string $topic) => str_contains($topic, 'general')));
 
         $topicsBySchool = TopicService::generateTopicBySchool($this->user->fresh());
         $this->assertCount(4, $topicsBySchool);
@@ -169,7 +168,7 @@ final class ServicesCoverageTest extends TestCase
         $this->assertNotEmpty($topicsBySchool[3]);
     }
 
-    public function testAssistServiceGenerateTable(): void
+    public function test_assist_service_generate_table(): void
     {
         $this->actingAs($this->user);
         $group = $this->createTrainingGroup('Assist Service Group');
@@ -184,7 +183,7 @@ final class ServicesCoverageTest extends TestCase
         };
         View::shouldReceive('make')->andReturn($renderable);
 
-        $service = new AssistService();
+        $service = new AssistService;
         $result = $service->generateTable(
             Assist::query()->where('training_group_id', $group->id),
             $group->fresh(),
@@ -201,7 +200,7 @@ final class ServicesCoverageTest extends TestCase
         $this->assertArrayHasKey('url_print_excel', $result);
     }
 
-    public function testPaymentAmountResolverFallsBackToRegularMonthlyAmountWhenBrotherSettingIsEmpty(): void
+    public function test_payment_amount_resolver_falls_back_to_regular_monthly_amount_when_brother_setting_is_empty(): void
     {
         $this->actingAs($this->user);
 
@@ -227,7 +226,7 @@ final class ServicesCoverageTest extends TestCase
         $this->assertSame(51000, $resolver->monthlyAmountForInscription($inscription->fresh()));
     }
 
-    public function testPaymentExportServicePdfMethods(): void
+    public function test_payment_export_service_pdf_methods(): void
     {
         $this->actingAs($this->user);
 
@@ -249,11 +248,9 @@ final class ServicesCoverageTest extends TestCase
         $streamMock->shouldReceive('setConfigurationMpdf')->once();
         $streamMock->shouldReceive('createPDF')->once();
         $streamMock->shouldReceive('stream')->once()->andReturn('streamed');
-        $requestStream = new class ((int) $trainingGroup->id)
+        $requestStream = new class((int) $trainingGroup->id)
         {
-            public function __construct(public int $training_group_id)
-            {
-            }
+            public function __construct(public int $training_group_id) {}
 
             public function input(string $key, $default = null)
             {
@@ -266,11 +263,9 @@ final class ServicesCoverageTest extends TestCase
         $outputMock->shouldReceive('setConfigurationMpdf')->twice();
         $outputMock->shouldReceive('createPDF')->twice();
         $outputMock->shouldReceive('output')->twice()->andReturn('output');
-        $requestOutput = new class (0)
+        $requestOutput = new class(0)
         {
-            public function __construct(public int $training_group_id)
-            {
-            }
+            public function __construct(public int $training_group_id) {}
 
             public function input(string $key, $default = null)
             {
@@ -284,7 +279,7 @@ final class ServicesCoverageTest extends TestCase
         ], false));
     }
 
-    public function testTrainingSessionExportServicePdfMethod(): void
+    public function test_training_session_export_service_pdf_method(): void
     {
         $this->actingAs($this->user);
         $group = $this->createTrainingGroup('Session Export Group');
@@ -318,7 +313,7 @@ final class ServicesCoverageTest extends TestCase
         $this->assertSame('session-output', $outputMock->exportSessionPDF($session->id, false));
     }
 
-    public function testPlayerExportServiceGetExcelAndLoadClassDaysAndPdf(): void
+    public function test_player_export_service_get_excel_and_load_class_days_and_pdf(): void
     {
         $this->actingAs($this->user);
         $group = $this->createTrainingGroup('Player Export Group');
@@ -347,14 +342,14 @@ final class ServicesCoverageTest extends TestCase
 
         $this->makePlayer();
 
-        $service = new PlayerExportService();
+        $service = new PlayerExportService;
         $excel = $service->getExcel();
         $this->assertArrayHasKey('enabled', $excel->toArray());
         $this->assertArrayHasKey('disabled', $excel->toArray());
         $this->assertGreaterThanOrEqual(1, $excel['enabled']->count());
 
         $playerWithRelations = Player::query()->with([
-            'inscriptions' => fn($q) => $q->with(
+            'inscriptions' => fn ($q) => $q->with(
                 'trainingGroup',
                 'complementaryGroup',
                 'assistance.trainingGroup'
@@ -454,18 +449,16 @@ final class ServicesCoverageTest extends TestCase
         ]);
     }
 
-    public function testSharedServiceAssignTrainingGroupBranches(): void
+    public function test_shared_service_assign_training_group_branches(): void
     {
         $this->actingAs($this->user);
         $origin = $this->createTrainingGroup('Origin Shared');
         $target = $this->createTrainingGroup('Target Shared');
         $inscription = $this->createInscription($this->makePlayer(), $origin);
 
-        $requestWithTarget = new class ((int) $target->id)
+        $requestWithTarget = new class((int) $target->id)
         {
-            public function __construct(private int $target)
-            {
-            }
+            public function __construct(private int $target) {}
 
             public function input(string $key, $default = null)
             {
@@ -502,7 +495,7 @@ final class ServicesCoverageTest extends TestCase
     {
         return Player::factory()->create([
             'school_id' => $this->school['id'],
-            'unique_code' => 'RC-' . fake()->unique()->numberBetween(1000, 9999),
+            'unique_code' => 'RC-'.fake()->unique()->numberBetween(1000, 9999),
             'category' => '2010-2011',
         ]);
     }

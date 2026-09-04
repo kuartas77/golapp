@@ -41,7 +41,7 @@ use Tests\TestCase;
 
 final class FormRequestsCoverageTest extends TestCase
 {
-    public function testGuardianForgotPasswordRequestNormalizesEmailAndRules(): void
+    public function test_guardian_forgot_password_request_normalizes_email_and_rules(): void
     {
         $request = GuardianForgotPasswordRequest::create('/', 'POST', [
             'email' => '  TUTOR@EXAMPLE.TEST  ',
@@ -54,7 +54,7 @@ final class FormRequestsCoverageTest extends TestCase
         $this->assertSame(['required', 'string', 'email:rfc'], $request->rules()['email']);
     }
 
-    public function testGuardianResetPasswordRequestNormalizesEmailAndPasswordRules(): void
+    public function test_guardian_reset_password_request_normalizes_email_and_password_rules(): void
     {
         $request = GuardianResetPasswordRequest::create('/', 'POST', [
             'email' => '  TUTOR@EXAMPLE.TEST  ',
@@ -72,7 +72,7 @@ final class FormRequestsCoverageTest extends TestCase
         $this->assertContainsOnlyInstancesOf(Password::class, [$rules['password'][2]]);
     }
 
-    public function testGuardianProfileUpdateRequestNormalizesEmailAndRequiresGuardianAuth(): void
+    public function test_guardian_profile_update_request_normalizes_email_and_requires_guardian_auth(): void
     {
         $request = GuardianProfileUpdateRequest::create('/', 'PUT', [
             'email' => '  TUTOR@EXAMPLE.TEST  ',
@@ -88,7 +88,7 @@ final class FormRequestsCoverageTest extends TestCase
         $this->assertContains('email:rfc', $rules['email']);
     }
 
-    public function testRegisterRequestBuildsSlugAndRules(): void
+    public function test_register_request_builds_slug_and_rules(): void
     {
         $request = RegisterRequest::create('/', 'POST', [
             'name' => 'Escuela Norte FC',
@@ -106,7 +106,7 @@ final class FormRequestsCoverageTest extends TestCase
         $this->assertSame(['required', 'string'], $rules['slug']);
     }
 
-    public function testUniformFormRequestRequiresPlayerAndMapsAdditionalNotes(): void
+    public function test_uniform_form_request_requires_player_and_maps_additional_notes(): void
     {
         $request = UniformFormRequest::create('/', 'POST', [
             'additionalNotes' => 'Enviar talla amplia',
@@ -116,7 +116,7 @@ final class FormRequestsCoverageTest extends TestCase
 
         $this->assertFalse($request->authorize());
 
-        $request->setUserResolver(fn () => new Player());
+        $request->setUserResolver(fn () => new Player);
         $this->prepare($request);
 
         $this->assertTrue($request->authorize());
@@ -129,7 +129,7 @@ final class FormRequestsCoverageTest extends TestCase
         ], $request->rules());
     }
 
-    public function testPaymentInvoiceRequestRequiresPlayerAndLowercasesPaymentMethod(): void
+    public function test_payment_invoice_request_requires_player_and_lowercases_payment_method(): void
     {
         $request = PaymentInvoiceRequest::create('/', 'POST', [
             'payment_method' => 'TRANSFER',
@@ -139,7 +139,7 @@ final class FormRequestsCoverageTest extends TestCase
 
         $this->assertFalse($request->authorize());
 
-        $request->setUserResolver(fn () => new Player());
+        $request->setUserResolver(fn () => new Player);
         $this->prepare($request);
         $rules = $request->rules();
 
@@ -152,7 +152,7 @@ final class FormRequestsCoverageTest extends TestCase
         $this->assertContains('file', $rules['image']);
     }
 
-    public function testSchoolScopedRequestsMergeCurrentSchoolAndNormalizeValues(): void
+    public function test_school_scoped_requests_merge_current_school_and_normalize_values(): void
     {
         $this->actingAs($this->user);
 
@@ -181,7 +181,7 @@ final class FormRequestsCoverageTest extends TestCase
         $this->assertSame($this->school['id'], $tournament->input('school_id'));
     }
 
-    public function testMoneyRequestsStripFormattingBeforeValidation(): void
+    public function test_money_requests_strip_formatting_before_validation(): void
     {
         $this->actingAs($this->user);
 
@@ -217,7 +217,7 @@ final class FormRequestsCoverageTest extends TestCase
         $this->assertSame(['required'], $tournamentPayment->rules()['status']);
     }
 
-    public function testNotificationStoreRequestCastsPlayerIdsAndExposesMessages(): void
+    public function test_notification_store_request_casts_player_ids_and_exposes_messages(): void
     {
         $request = NotificationStoreRequest::create('/', 'POST', [
             'players' => ['10', 'ABC', 11],
@@ -233,7 +233,7 @@ final class FormRequestsCoverageTest extends TestCase
         $this->assertContains('distinct', $request->rules()['players.*']);
     }
 
-    public function testTrainingSessionsRequestDefaultsDateHourYearAndUserContext(): void
+    public function test_training_sessions_request_defaults_date_hour_year_and_user_context(): void
     {
         $this->actingAs($this->user);
 
@@ -250,7 +250,7 @@ final class FormRequestsCoverageTest extends TestCase
         $this->assertSame(['required', 'array', 'min:3'], $request->rules()['task_number']);
     }
 
-    public function testPlayerPortalUpdateRequestDerivesCategoryAndSchool(): void
+    public function test_player_portal_update_request_derives_category_and_school(): void
     {
         $this->actingAs($this->user);
 
@@ -265,7 +265,7 @@ final class FormRequestsCoverageTest extends TestCase
         $this->assertSame(['required', 'date_format:Y-m-d'], $request->rules()['date_birth']);
     }
 
-    public function testSchoolOutingActivityRequestTrimsName(): void
+    public function test_school_outing_activity_request_trims_name(): void
     {
         $this->actingAs($this->user);
 
@@ -280,7 +280,7 @@ final class FormRequestsCoverageTest extends TestCase
         $this->assertSame('string', $request->rules()['name'][1]);
     }
 
-    public function testSchoolOutingRequestsNormalizeMoneyAndNotes(): void
+    public function test_school_outing_requests_normalize_money_and_notes(): void
     {
         $this->actingAs($this->user);
 
@@ -307,20 +307,20 @@ final class FormRequestsCoverageTest extends TestCase
         $this->assertNull($contribution->input('notes'));
         $this->assertSame(['required', 'date'], $contribution->rules()['contribution_date']);
 
-        $participant = new SchoolOutingParticipantRequest();
+        $participant = new SchoolOutingParticipantRequest;
         $this->assertTrue($participant->authorize());
         $this->assertSame(['required', 'array', 'min:1'], $participant->rules()['inscription_ids']);
 
-        $status = new SchoolOutingStatusRequest();
+        $status = new SchoolOutingStatusRequest;
         $this->assertTrue($status->authorize());
         $this->assertSame('required', $status->rules()['status'][0]);
     }
 
-    public function testEvaluationRequestsExposeComparisonAndStoreRules(): void
+    public function test_evaluation_requests_expose_comparison_and_store_rules(): void
     {
         $this->actingAs($this->user);
 
-        $compare = new ComparePlayerEvaluationsRequest();
+        $compare = new ComparePlayerEvaluationsRequest;
         $this->assertTrue($compare->authorize());
         $this->assertContains('different:period_a_id', $compare->rules()['period_b_id']);
 
@@ -333,7 +333,7 @@ final class FormRequestsCoverageTest extends TestCase
         $this->assertContains('distinct', $store->rules()['scores.*.template_criterion_id']);
     }
 
-    public function testBackOfficeSchoolRequestsBuildSlugAndRequireSuperAdmin(): void
+    public function test_back_office_school_requests_build_slug_and_require_super_admin(): void
     {
         $superAdmin = $this->createUser(['school_id' => $this->school['id']], ['super-admin']);
         $this->actingAs($superAdmin);
@@ -357,24 +357,24 @@ final class FormRequestsCoverageTest extends TestCase
         $this->assertSame(['required', 'bool'], $update->rules()['is_enable']);
     }
 
-    public function testBasicUserRequestsShareNameAndEmailRules(): void
+    public function test_basic_user_requests_share_name_and_email_rules(): void
     {
-        foreach ([new StoreUserRequest(), new UpdateUserRequest()] as $request) {
+        foreach ([new StoreUserRequest, new UpdateUserRequest] as $request) {
             $this->assertTrue($request->authorize());
             $this->assertSame(['required'], $request->rules()['name']);
             $this->assertSame(['required', 'string', 'email:rfc,dns'], $request->rules()['email']);
         }
     }
 
-    public function testLegacyUserRequestsKeepRolIdAndExistingEmailRules(): void
+    public function test_legacy_user_requests_keep_rol_id_and_existing_email_rules(): void
     {
-        $store = new LegacyUserStoreRequest();
+        $store = new LegacyUserStoreRequest;
         $this->assertTrue($store->authorize());
         $this->assertSame(['required'], $store->rules()['name']);
         $this->assertSame(['required', 'email', 'unique:users'], $store->rules()['email']);
         $this->assertSame(['required'], $store->rules()['rol_id']);
 
-        $update = new LegacyUserUpdateRequest();
+        $update = new LegacyUserUpdateRequest;
         $this->assertTrue($update->authorize());
         $this->assertSame('required', $update->rules()['name']);
         $this->assertSame('required|email|exists:users,email', $update->rules()['email']);

@@ -16,8 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('school_id');
             $table->unsignedBigInteger('player_id');
             $table->enum('type', ['UNIFORM', 'BALL', 'SOCKS', 'SHOES', 'SHORTS', 'JERSEY', 'OTHER']);
-            $table->enum('status', ['PENDING', 'APPROVED', 'REJECTED','CANCELLED'])->default('PENDING');
-            $table->smallInteger(column:'quantity', unsigned:true)->default(1);
+            $table->enum('status', ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'])->default('PENDING');
+            $table->smallInteger(column: 'quantity', unsigned: true)->default(1);
             $table->string('size', 10)->nullable();
             $table->text('additional_notes')->nullable();
             $table->string('rejection_reason')->nullable();

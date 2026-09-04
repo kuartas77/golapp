@@ -15,7 +15,7 @@ return new class extends Migration
                 ->constrained('evaluation_templates')
                 ->cascadeOnDelete();
 
-                $table->string('code', 100)->nullable()->index();// technical_pass, technical_control, tactical_positioning
+            $table->string('code', 100)->nullable()->index(); // technical_pass, technical_control, tactical_positioning
             $table->string('dimension', 100); // Técnica, Táctica, Física, Mental, Disciplina
             $table->string('name'); // Pase, Control, Remate, etc.
             $table->text('description')->nullable();

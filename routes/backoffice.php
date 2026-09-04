@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
-use App\Http\Controllers\DataTableController;
 use App\Http\Controllers\BackOffice\SchoolController;
+use App\Http\Controllers\DataTableController;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:super-admin|school'])->group(function () {
 
@@ -13,7 +13,7 @@ Route::middleware(['auth', 'role:super-admin|school'])->group(function () {
 
 Route::middleware(['auth', 'role:super-admin'])->group(function () {
 
-    Route::prefix('config')->name('config.')->group(function (){
+    Route::prefix('config')->name('config.')->group(function () {
         // El CRUD SPA de super-admin vive en resources/js/pages/admin/school y
         // consume sus datos desde /api/v2/admin/schools y /api/v2/admin/schools/options.
         Route::get('schools/{school}/edit', fn (): RedirectResponse => redirect('/configuracion/schools'))->name('schools.edit');
@@ -39,25 +39,23 @@ Route::middleware(['auth', 'role:super-admin'])->group(function () {
         });
     });
 
-    Route::post('upload', function(Request $request){
+    Route::post('upload', function (Request $request) {
         try {
 
             return response()->json([
-                        'uploaded' => true,
-                        'url' => asset('img/user.png')
-                    ]);
-        } catch (\Exception $e) {
+                'uploaded' => true,
+                'url' => asset('img/user.png'),
+            ]);
+        } catch (Exception $e) {
             report($e);
 
             return response()->json([
                 'uploaded' => false,
                 'error' => [
-                    'message' => $e->getMessage()
-                ]
+                    'message' => $e->getMessage(),
+                ],
             ]);
         }
     })->name('upload');
-
-
 
 });

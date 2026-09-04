@@ -25,7 +25,7 @@ final class PlayerEvaluationsTest extends TestCase
         $this->withoutVite();
     }
 
-    public function testPlayerEvaluationsSpaRoutesRenderThemeShell(): void
+    public function test_player_evaluations_spa_routes_render_theme_shell(): void
     {
         $fixture = $this->createEvaluationFixture();
 
@@ -43,12 +43,12 @@ final class PlayerEvaluationsTest extends TestCase
             ->assertOk()
             ->assertSee('id="app"', false);
 
-        $this->get('/player-evaluations/' . $fixture['evaluation']->id)
+        $this->get('/player-evaluations/'.$fixture['evaluation']->id)
             ->assertOk()
             ->assertSee('id="app"', false);
     }
 
-    public function testPlayerEvaluationsOptionsEndpointReturnsFiltersAndSelectionData(): void
+    public function test_player_evaluations_options_endpoint_returns_filters_and_selection_data(): void
     {
         $fixture = $this->createEvaluationFixture();
 
@@ -69,7 +69,7 @@ final class PlayerEvaluationsTest extends TestCase
             ]);
     }
 
-    public function testPlayerEvaluationsIndexEndpointReturnsSerializedEvaluations(): void
+    public function test_player_evaluations_index_endpoint_returns_serialized_evaluations(): void
     {
         $fixture = $this->createEvaluationFixture();
 
@@ -90,7 +90,7 @@ final class PlayerEvaluationsTest extends TestCase
             ]);
     }
 
-    public function testPlayerEvaluationsDatatableEndpointSupportsSearchAndExactFilters(): void
+    public function test_player_evaluations_datatable_endpoint_supports_search_and_exact_filters(): void
     {
         $fixture = $this->createEvaluationFixture();
 
@@ -163,7 +163,7 @@ final class PlayerEvaluationsTest extends TestCase
             ->assertJsonPath('data.0.id', $fixture['evaluation']->id);
     }
 
-    public function testPlayerEvaluationsCreateAndComparisonEndpointsReturnExpectedPayloads(): void
+    public function test_player_evaluations_create_and_comparison_endpoints_return_expected_payloads(): void
     {
         $fixture = $this->createEvaluationFixture();
 
@@ -197,7 +197,7 @@ final class PlayerEvaluationsTest extends TestCase
             ->assertJsonPath('comparison.overall.period_b_score', 3.8);
     }
 
-    public function testPlayerEvaluationCrudCreatesUpdatesReplacesScoresAndDeletes(): void
+    public function test_player_evaluation_crud_creates_updates_replaces_scores_and_deletes(): void
     {
         $fixture = $this->createEvaluationFixture();
         $service = app(PlayerEvaluationCrudService::class);
@@ -276,7 +276,7 @@ final class PlayerEvaluationsTest extends TestCase
         $this->assertDatabaseMissing('player_evaluations', ['id' => $evaluation->id]);
     }
 
-    public function testPlayerEvaluationCrudRejectsInvalidRelationshipsAndClosedMutations(): void
+    public function test_player_evaluation_crud_rejects_invalid_relationships_and_closed_mutations(): void
     {
         $fixture = $this->createEvaluationFixture();
         $service = app(PlayerEvaluationCrudService::class);

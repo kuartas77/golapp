@@ -30,7 +30,7 @@ use Tests\TestCase;
 
 final class PortalGuardiansTest extends TestCase
 {
-    public function testGuardianCanLoginAndLoadCurrentProfile(): void
+    public function test_guardian_can_login_and_load_current_profile(): void
     {
         [$guardian] = $this->createGuardianScenario([
             'email' => 'guardian@example.com',
@@ -57,7 +57,7 @@ final class PortalGuardiansTest extends TestCase
         $meResponse->assertJsonPath('identification_card', $guardian->identification_card);
     }
 
-    public function testGuardianSessionCannotAccessBackofficeApiRoutes(): void
+    public function test_guardian_session_cannot_access_backoffice_api_routes(): void
     {
         [$guardian] = $this->createGuardianScenario([
             'email' => 'portal-only.guardian@example.com',
@@ -75,7 +75,7 @@ final class PortalGuardiansTest extends TestCase
             ->assertJsonPath('email', 'portal-only.guardian@example.com');
     }
 
-    public function testGuardianCanDownloadOwnedInscriptionReportWithoutRoleChecks(): void
+    public function test_guardian_can_download_owned_inscription_report_without_role_checks(): void
     {
         [$guardian, $player, $inscription, $school] = $this->createGuardianScenario([
             'email' => 'report.guardian@example.com',
@@ -98,7 +98,7 @@ final class PortalGuardiansTest extends TestCase
         $this->assertSame((int) $school->id, (int) $player->school_id);
     }
 
-    public function testGuardianLogoutInvalidatesSession(): void
+    public function test_guardian_logout_invalidates_session(): void
     {
         [$guardian] = $this->createGuardianScenario([
             'email' => 'logout.guardian@example.com',
@@ -117,7 +117,7 @@ final class PortalGuardiansTest extends TestCase
             ->assertUnauthorized();
     }
 
-    public function testGuardianLoginIsBlockedWithoutCurrentYearEligiblePlayer(): void
+    public function test_guardian_login_is_blocked_without_current_year_eligible_player(): void
     {
         [$guardian] = $this->createGuardianScenario([
             'email' => 'blocked.guardian@example.com',
@@ -133,7 +133,7 @@ final class PortalGuardiansTest extends TestCase
         $response->assertJsonValidationErrors(['email']);
     }
 
-    public function testGuardianLoginIsBlockedWhenSchoolTutorPlatformIsDisabled(): void
+    public function test_guardian_login_is_blocked_when_school_tutor_platform_is_disabled(): void
     {
         [$guardian] = $this->createGuardianScenario([
             'email' => 'blocked-platform.guardian@example.com',
@@ -149,7 +149,7 @@ final class PortalGuardiansTest extends TestCase
         $response->assertJsonValidationErrors(['email']);
     }
 
-    public function testGuardianOnlySeesOwnedEligiblePlayers(): void
+    public function test_guardian_only_sees_owned_eligible_players(): void
     {
         [$guardian, $ownedPlayer] = $this->createGuardianScenario([
             'email' => 'owner.guardian@example.com',
@@ -172,7 +172,7 @@ final class PortalGuardiansTest extends TestCase
         $showResponse->assertNotFound();
     }
 
-    public function testGuardianSeesDescriptiveAttendanceStatusInsteadOfSymbols(): void
+    public function test_guardian_sees_descriptive_attendance_status_instead_of_symbols(): void
     {
         [$guardian, $player, $inscription] = $this->createGuardianScenario([
             'email' => 'attendance.guardian@example.com',
@@ -197,7 +197,7 @@ final class PortalGuardiansTest extends TestCase
             ->assertJsonPath('data.current_inscription.attendance.0.registers.0.label', 'Asistencia');
     }
 
-    public function testGuardianPlayerDetailDisablesEvaluationsWhenSchoolModuleIsDisabled(): void
+    public function test_guardian_player_detail_disables_evaluations_when_school_module_is_disabled(): void
     {
         [$guardian, $player, $inscription] = $this->createGuardianScenario([
             'email' => 'evaluations-disabled.guardian@example.com',
@@ -220,7 +220,7 @@ final class PortalGuardiansTest extends TestCase
         app(GuardianAccessService::class)->findEvaluationEnabledInscription($guardian, $inscription->id);
     }
 
-    public function testGuardianPlayerDetailReturnsOnlyMeaningfulAttendanceAndCompetitionFeedback(): void
+    public function test_guardian_player_detail_returns_only_meaningful_attendance_and_competition_feedback(): void
     {
         [$guardian, $player, $inscription, $school] = $this->createGuardianScenario([
             'email' => 'feedback.guardian@example.com',
@@ -286,7 +286,7 @@ final class PortalGuardiansTest extends TestCase
         $this->assertSame('Torneo Apertura', $feedback['competition']['tournament_name']);
     }
 
-    public function testGuardianSeesComplementaryGroupAttendanceIdentifiedByGroup(): void
+    public function test_guardian_sees_complementary_group_attendance_identified_by_group(): void
     {
         [$guardian, $player, $inscription, $school] = $this->createGuardianScenario([
             'email' => 'attendance-complementary.guardian@example.com',
@@ -340,7 +340,7 @@ final class PortalGuardiansTest extends TestCase
         $this->assertSame('Porteros portal', $attendance[$complementaryAssist->id]['group_name']);
     }
 
-    public function testGuardianCanUpdatePlayerPhoto(): void
+    public function test_guardian_can_update_player_photo(): void
     {
         Storage::fake('public');
 
@@ -387,7 +387,7 @@ final class PortalGuardiansTest extends TestCase
         $response->assertJsonPath('data.id', $player->id);
     }
 
-    public function testGuardianCannotChangeAccessEmailFromProfile(): void
+    public function test_guardian_cannot_change_access_email_from_profile(): void
     {
         [$guardian] = $this->createGuardianScenario([
             'email' => 'immutable.guardian@example.com',
@@ -410,7 +410,7 @@ final class PortalGuardiansTest extends TestCase
         $this->assertSame('immutable.guardian@example.com', $guardian->fresh()->email);
     }
 
-    public function testGuardianLoginUsesGenericErrorsAndIsRateLimitedPerIdentity(): void
+    public function test_guardian_login_uses_generic_errors_and_is_rate_limited_per_identity(): void
     {
         [$guardian] = $this->createGuardianScenario([
             'email' => 'limited.guardian@example.com',
@@ -442,7 +442,7 @@ final class PortalGuardiansTest extends TestCase
         ])->assertTooManyRequests();
     }
 
-    public function testGuardianPasswordResetRevokesExistingApiTokens(): void
+    public function test_guardian_password_reset_revokes_existing_api_tokens(): void
     {
         [$guardian] = $this->createGuardianScenario([
             'email' => 'reset.guardian@example.com',
@@ -465,7 +465,7 @@ final class PortalGuardiansTest extends TestCase
         ]);
     }
 
-    public function testBackfillInvitesOnlyUniqueEligibleGuardiansWithoutPassword(): void
+    public function test_backfill_invites_only_unique_eligible_guardians_without_password(): void
     {
         Notification::fake();
 
@@ -511,7 +511,7 @@ final class PortalGuardiansTest extends TestCase
         $this->assertNull($disabledPlatformGuardian->fresh()->invited_at);
     }
 
-    public function testInviteGuardianActionSkipsInvitationWhenTutorPlatformIsDisabled(): void
+    public function test_invite_guardian_action_skips_invitation_when_tutor_platform_is_disabled(): void
     {
         Notification::fake();
 
@@ -531,7 +531,7 @@ final class PortalGuardiansTest extends TestCase
         $this->assertNull($guardian->fresh()->invited_at);
     }
 
-    public function testInviteGuardianActionSendsInvitationWhenTutorPlatformIsEnabled(): void
+    public function test_invite_guardian_action_sends_invitation_when_tutor_platform_is_enabled(): void
     {
         Notification::fake();
 
@@ -551,7 +551,7 @@ final class PortalGuardiansTest extends TestCase
         $this->assertNotNull($guardian->fresh()->invited_at);
     }
 
-    public function testGuardianAccessEmailShowsSchoolName(): void
+    public function test_guardian_access_email_shows_school_name(): void
     {
         [$guardian, , , $school] = $this->createGuardianScenario([
             'email' => 'school-access.guardian@example.com',

@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 final class AdminInvoiceCustomItemsTest extends TestCase
 {
-    public function testSchoolUserCanManageInvoiceCustomItemsThroughApi(): void
+    public function test_school_user_can_manage_invoice_custom_items_through_api(): void
     {
         $this->actingAs($this->user);
 

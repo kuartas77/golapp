@@ -103,7 +103,7 @@ final class MethodologyRecordsTest extends TestCase
 
         $path = MethodologyRecord::findOrFail((int) $response->json('data.id'))->diagram_media['initial_phase']['path'];
 
-        $this->assertStringStartsWith(School::findOrFail($this->school['id'])->slug . '/methodology/', $path);
+        $this->assertStringStartsWith(School::findOrFail($this->school['id'])->slug.'/methodology/', $path);
         Storage::disk('public')->assertExists($path);
         $this->assertSame(route('images', $path), $response->json('data.diagram_media.initial_phase.image_url'));
     }
@@ -470,7 +470,7 @@ final class MethodologyRecordsTest extends TestCase
 
     private function methodologyDatatableUrl(string $sessionDateFilter): string
     {
-        return '/api/v2/datatables/methodology_records?' . http_build_query([
+        return '/api/v2/datatables/methodology_records?'.http_build_query([
             'draw' => 1,
             'start' => 0,
             'length' => 10,

@@ -4,40 +4,40 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\User;
-use Tests\WithLogin;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
+use Tests\TestCase;
+use Tests\WithLogin;
 
 final class LoginTest extends TestCase
 {
     use RefreshDatabase;
     use WithLogin;
 
-    public function testLoginWrongEmail(): void
+    public function test_login_wrong_email(): void
     {
         $testResponse = $this->postJson('/api/login', [
             'email' => 'test@test.com',
-            'password' => 'password'
+            'password' => 'password',
         ]);
 
         $testResponse->assertStatus(422);
         $testResponse->assertJsonValidationErrors(['email']);
     }
 
-    public function testLoginWrongPassword(): void
+    public function test_login_wrong_password(): void
     {
         $testResponse = $this->postJson('/api/login', [
             'email' => $this->user->email,
-            'password' => 'passwords'
+            'password' => 'passwords',
         ]);
 
         $testResponse->assertStatus(422);
         $testResponse->assertJsonValidationErrors(['email']);
     }
 
-    public function testLoginSchoolSuccess(): void
+    public function test_login_school_success(): void
     {
         $testResponse = $this->loginByApi($this->user);
 
@@ -47,7 +47,7 @@ final class LoginTest extends TestCase
         $this->assertContains('school', $testResponse->json('user.roles', []));
     }
 
-    public function testLoginInstructorSuccess(): void
+    public function test_login_instructor_success(): void
     {
         [, $this->user] = $this->createSchoolAndUser(roles: [User::INSTRUCTOR]);
 
@@ -59,7 +59,7 @@ final class LoginTest extends TestCase
         $this->assertContains('instructor', $testResponse->json('user.roles', []));
     }
 
-    public function testLoginSuperAdminSuccess(): void
+    public function test_login_super_admin_success(): void
     {
         [, $this->user] = $this->createSchoolAndUser(roles: [User::SUPER_ADMIN]);
 
@@ -71,7 +71,7 @@ final class LoginTest extends TestCase
         $this->assertContains('super-admin', $testResponse->json('user.roles', []));
     }
 
-    public function testLogout(): void
+    public function test_logout(): void
     {
         [, $this->user] = $this->createSchoolAndUser(roles: [User::SUPER_ADMIN]);
 
@@ -84,7 +84,7 @@ final class LoginTest extends TestCase
         $testResponse->assertJson(['success' => true]);
     }
 
-    public function testLogoutJson(): void
+    public function test_logout_json(): void
     {
         [, $this->user] = $this->createSchoolAndUser(roles: [User::SUPER_ADMIN]);
 
@@ -97,7 +97,7 @@ final class LoginTest extends TestCase
         $testResponse->assertJson(['success' => true]);
     }
 
-    public function testLegacyPlayerLoginIsRetired(): void
+    public function test_legacy_player_login_is_retired(): void
     {
         $this->postJson('/api/notify/login', [
             'email' => 'player@example.com',
@@ -110,7 +110,7 @@ final class LoginTest extends TestCase
     {
         return $this->postJson('/api/login', [
             'email' => $user->email,
-            'password' => 'password'
+            'password' => 'password',
         ]);
     }
 }

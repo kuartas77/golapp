@@ -43,7 +43,7 @@ final class InstructorMonthlyEditLockTest extends TestCase
         parent::tearDown();
     }
 
-    public function testInstructorAttendanceMutationsAreLimitedToCurrentMonthWhenEnabled(): void
+    public function test_instructor_attendance_mutations_are_limited_to_current_month_when_enabled(): void
     {
         $this->enableInstructorMonthlyLock();
         $instructor = $this->createSchoolScopedUser((int) $this->school['id'], [User::INSTRUCTOR], 'lock-attendance@example.com');
@@ -85,7 +85,7 @@ final class InstructorMonthlyEditLockTest extends TestCase
             ->assertOk();
     }
 
-    public function testSchoolUserCanCorrectPastAttendanceWhenInstructorLockIsEnabled(): void
+    public function test_school_user_can_correct_past_attendance_when_instructor_lock_is_enabled(): void
     {
         $this->enableInstructorMonthlyLock();
         $group = $this->createTrainingGroup((int) $this->school['id']);
@@ -102,7 +102,7 @@ final class InstructorMonthlyEditLockTest extends TestCase
             ->assertOk();
     }
 
-    public function testInstructorCanEditPastAttendanceWhenSettingIsDisabled(): void
+    public function test_instructor_can_edit_past_attendance_when_setting_is_disabled(): void
     {
         $instructor = $this->createSchoolScopedUser((int) $this->school['id'], [User::INSTRUCTOR], 'lock-disabled@example.com');
         $group = $this->createTrainingGroup((int) $this->school['id'], $instructor);
@@ -119,7 +119,7 @@ final class InstructorMonthlyEditLockTest extends TestCase
             ->assertOk();
     }
 
-    public function testInstructorCannotMutateClosedTrainingSessionPeriod(): void
+    public function test_instructor_cannot_mutate_closed_training_session_period(): void
     {
         $this->enableInstructorMonthlyLock();
         $instructor = $this->createSchoolScopedUser((int) $this->school['id'], [User::INSTRUCTOR], 'lock-session@example.com');
@@ -137,7 +137,7 @@ final class InstructorMonthlyEditLockTest extends TestCase
             ->assertJsonPath('message', self::LOCK_MESSAGE);
     }
 
-    public function testInstructorCannotMutateClosedMatchPeriod(): void
+    public function test_instructor_cannot_mutate_closed_match_period(): void
     {
         $this->enableInstructorMonthlyLock();
         $instructor = $this->createSchoolScopedUser((int) $this->school['id'], [User::INSTRUCTOR], 'lock-match@example.com');
@@ -155,7 +155,7 @@ final class InstructorMonthlyEditLockTest extends TestCase
             ->assertJsonPath('message', self::LOCK_MESSAGE);
     }
 
-    public function testInstructorCannotMutateClosedEvaluationPeriod(): void
+    public function test_instructor_cannot_mutate_closed_evaluation_period(): void
     {
         $this->enableInstructorMonthlyLock();
         $instructor = $this->createSchoolScopedUser((int) $this->school['id'], [User::INSTRUCTOR], 'lock-evaluation@example.com');
@@ -180,7 +180,7 @@ final class InstructorMonthlyEditLockTest extends TestCase
             ->assertJsonPath('message', self::LOCK_MESSAGE);
     }
 
-    public function testInstructorCannotMutateClosedMethodologyRecordPeriod(): void
+    public function test_instructor_cannot_mutate_closed_methodology_record_period(): void
     {
         $this->enableInstructorMonthlyLock();
         $instructor = $this->createSchoolScopedUser((int) $this->school['id'], [User::INSTRUCTOR], 'lock-methodology@example.com');

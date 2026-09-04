@@ -1,13 +1,13 @@
 <?php
 
-use App\Http\Controllers\API\Notifications\InvoiceController;
-use App\Http\Controllers\API\Notifications\Guardians\GuardianInvoiceController;
 use App\Http\Controllers\API\Notifications\Guardians\GuardianDeviceTokenController;
-use App\Http\Controllers\API\Notifications\Guardians\GuardianPlayerExperienceController;
+use App\Http\Controllers\API\Notifications\Guardians\GuardianInvoiceController;
 use App\Http\Controllers\API\Notifications\Guardians\GuardianPlayerController;
+use App\Http\Controllers\API\Notifications\Guardians\GuardianPlayerExperienceController;
 use App\Http\Controllers\API\Notifications\Guardians\GuardianTopicNotificationsController;
 use App\Http\Controllers\API\Notifications\Guardians\GuardianUniformRequestController;
 use App\Http\Controllers\API\Notifications\Guardians\LoginGuardianController;
+use App\Http\Controllers\API\Notifications\InvoiceController;
 use App\Http\Controllers\API\Notifications\LoginPlayerController;
 use App\Http\Controllers\API\Notifications\TopicNotificationsController;
 use App\Http\Controllers\API\Notifications\UniformRequestController;
@@ -60,16 +60,16 @@ Route::prefix('v2/guardians')->group(function () {
     });
 });
 
-Route::middleware(['auth:sanctum'])->group(function(){
+Route::middleware(['auth:sanctum'])->group(function () {
 
-    Route::prefix('notifications')->middleware('abilities:notification-index')->group(function() {
+    Route::prefix('notifications')->middleware('abilities:notification-index')->group(function () {
         Route::get('', [TopicNotificationsController::class, 'index']);
         Route::get('/{id}', [TopicNotificationsController::class, 'show']);
         Route::put('/read-all', [TopicNotificationsController::class, 'readAll']);
         Route::put('/read/{id}', [TopicNotificationsController::class, 'read']);
     });
 
-    Route::prefix('invoices')->group(function() {
+    Route::prefix('invoices')->group(function () {
         Route::middleware('abilities:payment-index')->group(function () {
             Route::get('', [InvoiceController::class, 'index']);
             Route::get('statistics', [InvoiceController::class, 'statistics']);
@@ -80,7 +80,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
     });
 
-    Route::prefix('requests')->group(function() {
+    Route::prefix('requests')->group(function () {
         Route::middleware('abilities:request-index')->group(function () {
             Route::get('', [UniformRequestController::class, 'index']);
             Route::get('statistics', [UniformRequestController::class, 'statistics']);

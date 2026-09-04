@@ -12,7 +12,7 @@ use Tests\TestCase;
 
 final class AuthPasswordRecoveryTest extends TestCase
 {
-    public function testLegacyPasswordRecoveryLogoRedirectsToCurrentLogo(): void
+    public function test_legacy_password_recovery_logo_redirects_to_current_logo(): void
     {
         $this->get('/img/log3.png')
             ->assertMovedPermanently()
@@ -23,7 +23,7 @@ final class AuthPasswordRecoveryTest extends TestCase
             ->assertRedirect('/img/logo-light.svg');
     }
 
-    public function testUserCanRequestPasswordRecoveryInstructions(): void
+    public function test_user_can_request_password_recovery_instructions(): void
     {
         Notification::fake();
 
@@ -37,7 +37,7 @@ final class AuthPasswordRecoveryTest extends TestCase
         Notification::assertSentTo($this->user, UserPasswordResetNotification::class);
     }
 
-    public function testUserPasswordRecoveryEmailRendersASingleLogo(): void
+    public function test_user_password_recovery_email_renders_a_single_logo(): void
     {
         $message = (new UserPasswordResetNotification($this->user, 'test-token'))->toMail($this->user);
         $html = (string) $message->render();
@@ -46,7 +46,7 @@ final class AuthPasswordRecoveryTest extends TestCase
         $this->assertSame(1, substr_count($html, 'img/logo-light.svg'));
     }
 
-    public function testUserCanResetPasswordFromRecoveryToken(): void
+    public function test_user_can_reset_password_from_recovery_token(): void
     {
         $this->user->createToken('existing-access-token');
         $token = Password::broker('users')->createToken($this->user);

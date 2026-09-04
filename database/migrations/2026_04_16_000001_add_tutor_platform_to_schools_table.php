@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasColumn('schools', 'tutor_platform')) {
+        if (! Schema::hasColumn('schools', 'tutor_platform')) {
             Schema::table('schools', function (Blueprint $table) {
                 $table->boolean('tutor_platform')->default(false)->after('is_enable');
             });

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasColumn('schools', 'send_monthly_payment_receipts')) {
+        if (! Schema::hasColumn('schools', 'send_monthly_payment_receipts')) {
             Schema::table('schools', function (Blueprint $table) {
                 $table->boolean('send_monthly_payment_receipts')
                     ->default(false)

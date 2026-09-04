@@ -8,7 +8,6 @@ use App\Models\Inscription;
 use App\Models\Player;
 use App\Models\School;
 use App\Models\SchoolOuting;
-use App\Models\SchoolOutingActivity;
 use App\Models\SchoolOutingParticipant;
 use App\Models\TrainingGroup;
 use Tests\TestCase;

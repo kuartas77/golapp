@@ -33,24 +33,24 @@ trait WithPlayer
             'degree' => '11',
             'people' => [
                 [
-                    "tutor" => "true",
-                    "relationship" => "30",
-                    "names" => "CRISTINA VANEGAS",
-                    "identification_card" => "3015614556",
-                    "phone" => "5961994"
+                    'tutor' => 'true',
+                    'relationship' => '30',
+                    'names' => 'CRISTINA VANEGAS',
+                    'identification_card' => '3015614556',
+                    'phone' => '5961994',
                 ],
                 [
-                    "tutor" => "false",
-                    "relationship" => "",
-                    "names" => "",
-                    "identification_card" => "",
-                    "phone" => ""
-                ]
-            ]
+                    'tutor' => 'false',
+                    'relationship' => '',
+                    'names' => '',
+                    'identification_card' => '',
+                    'phone' => '',
+                ],
+            ],
         ];
     }
 
-    public function createPlayer():void
+    public function createPlayer(): void
     {
         $data = $this->dataPlayer();
         unset($data['people']);

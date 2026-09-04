@@ -48,10 +48,10 @@ return new class extends Migration
             ) STORED
         ");
 
-        DB::statement("
+        DB::statement('
             CREATE UNIQUE INDEX uniq_school_type_non_other_active
             ON invoice_custom_items (school_id, unique_type_key)
-        ");
+        ');
     }
 
     /**
@@ -60,8 +60,8 @@ return new class extends Migration
     public function down(): void
     {
         try {
-            DB::statement("DROP INDEX `uniq_school_type_non_other_active` ON `invoice_custom_items`");
-        } catch (\Throwable $e) {
+            DB::statement('DROP INDEX `uniq_school_type_non_other_active` ON `invoice_custom_items`');
+        } catch (Throwable $e) {
             // Ignorar si no existe
         }
         Schema::dropIfExists('invoice_custom_items');

@@ -11,8 +11,8 @@ use App\Models\Payment;
 use App\Models\PaymentReceived;
 use App\Models\Player;
 use App\Models\School;
-use App\Models\Setting;
 use App\Models\SchoolUser;
+use App\Models\Setting;
 use App\Models\User;
 use Tests\TestCase;
 

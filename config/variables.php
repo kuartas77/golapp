@@ -8,7 +8,7 @@ return [
         'Jueves' => 'Jueves',
         'Viernes' => 'Viernes',
         'Sábado' => 'Sábado',
-        'Domingos' => 'Domingo'
+        'Domingos' => 'Domingo',
     ],
     'KEY_WEEKS_INDEX' => [
         1 => 'Lunes',
@@ -17,7 +17,7 @@ return [
         4 => 'Jueves',
         5 => 'Viernes',
         6 => 'Sábado',
-        7 => 'Domingo'
+        7 => 'Domingo',
     ],
     'KEY_ASSIST_LETTER' => [
         1 => '&#10003;',
@@ -58,7 +58,7 @@ return [
         9 => 'Septiembre',
         10 => 'Octubre',
         11 => 'Noviembre',
-        12 => 'Diciembre'
+        12 => 'Diciembre',
     ],
     'KEY_LABEL_MONTHS' => [
         'Enero', 'Febrero', 'Marzo',
@@ -78,7 +78,7 @@ return [
         9 => 'september',
         10 => 'october',
         11 => 'november',
-        12 => 'december'
+        12 => 'december',
     ],
     'KEY_INDEX_MONTHS_LABEL' => [
         'january' => 'Enero',
@@ -96,7 +96,7 @@ return [
     ],
     'KEY_GENDERS' => [
         'M' => 'Masculino',
-        'F' => 'Femenino'
+        'F' => 'Femenino',
     ],
     'KEY_POSITIONS' => [
         'Portero' => 'Portero',
@@ -149,22 +149,22 @@ return [
         'AMBIDIESTRO' => 'AMBIDIESTRO',
     ],
     'KEY_PAYMENTS_SELECT' => [
-        0 => "Pendiente",
-        1 => "Pagó",
-        9 => "Pagó - Efectivo",
-        10 => "Pagó - Consignación",
-        11 => "Pagó A. Consignación",
-        12 => "Pagó A. Efectivo",
-        13 => "Acuerdo de Pago",
-        14 => "No Aplica",
-        15 => "Pagó - Saldo a favor",
-        2 => "Debe",
-        3 => "Abonó",
-        4 => "Incapacidad",
-        5 => "Retiro Temporal",
-        6 => "Retiro Definitivo",
-        7 => "Otro",
-        8 => "Becado",
+        0 => 'Pendiente',
+        1 => 'Pagó',
+        9 => 'Pagó - Efectivo',
+        10 => 'Pagó - Consignación',
+        11 => 'Pagó A. Consignación',
+        12 => 'Pagó A. Efectivo',
+        13 => 'Acuerdo de Pago',
+        14 => 'No Aplica',
+        15 => 'Pagó - Saldo a favor',
+        2 => 'Debe',
+        3 => 'Abonó',
+        4 => 'Incapacidad',
+        5 => 'Retiro Temporal',
+        6 => 'Retiro Definitivo',
+        7 => 'Otro',
+        8 => 'Becado',
     ],
 
     'KEY_RELATIONSHIPS_SELECT' => [
@@ -289,7 +289,7 @@ return [
         'TÉCNICA ANALÍTICA' => 'TÉCNICA ANALÍTICA',
     ],
     'KEY_DOCUMENT_TYPES' => [
-        'Registro Civil'  => 'Registro Civil' ,
+        'Registro Civil' => 'Registro Civil',
         'Tarjeta de Indentidad' => 'Tarjeta de Indentidad',
         'Otro Documento' => 'Otro Documento',
     ],
@@ -300,13 +300,13 @@ return [
     ],
 
     'UNIFORM_REQUESTS_TYPES' => [
-       'UNIFORM' => 'Uniforme',
-       'BALL' => 'Balón',
-       'SOCKS' => 'Medias',
-       'SHOES' => 'Guayos',
-       'SHORTS' => 'Pantaloneta',
-       'JERSEY' => 'Camisa',
-       'OTHER' => 'Otro',
-    ]
+        'UNIFORM' => 'Uniforme',
+        'BALL' => 'Balón',
+        'SOCKS' => 'Medias',
+        'SHOES' => 'Guayos',
+        'SHORTS' => 'Pantaloneta',
+        'JERSEY' => 'Camisa',
+        'OTHER' => 'Otro',
+    ],
 
 ];

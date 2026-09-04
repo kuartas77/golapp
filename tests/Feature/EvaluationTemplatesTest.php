@@ -24,7 +24,7 @@ final class EvaluationTemplatesTest extends TestCase
         $this->withoutVite();
     }
 
-    public function testSuperAdminCanAccessEvaluationTemplatesSpaRoute(): void
+    public function test_super_admin_can_access_evaluation_templates_spa_route(): void
     {
         $superAdmin = $this->createSuperAdminForCurrentSchool();
 
@@ -35,7 +35,7 @@ final class EvaluationTemplatesTest extends TestCase
             ->assertSee('id="app"', false);
     }
 
-    public function testSchoolUserCannotAccessEvaluationTemplatesSpaOrApi(): void
+    public function test_school_user_cannot_access_evaluation_templates_spa_or_api(): void
     {
         $this->actingAs($this->user)
             ->get('/administracion/plantillas-evaluacion')
@@ -46,7 +46,7 @@ final class EvaluationTemplatesTest extends TestCase
             ->assertForbidden();
     }
 
-    public function testSuperAdminCanCreateListAndUpdateEvaluationTemplates(): void
+    public function test_super_admin_can_create_list_and_update_evaluation_templates(): void
     {
         $superAdmin = $this->createSuperAdminForCurrentSchool();
         $group = $this->trainingGroup();
@@ -200,7 +200,7 @@ final class EvaluationTemplatesTest extends TestCase
         ]);
     }
 
-    public function testInvalidScoreTypeIsRejected(): void
+    public function test_invalid_score_type_is_rejected(): void
     {
         $superAdmin = $this->createSuperAdminForCurrentSchool();
 
@@ -232,7 +232,7 @@ final class EvaluationTemplatesTest extends TestCase
             ->assertJsonValidationErrors(['criteria.0.score_type']);
     }
 
-    public function testUsedTemplateCannotBeUpdatedOrDeletedButCanBeDuplicated(): void
+    public function test_used_template_cannot_be_updated_or_deleted_but_can_be_duplicated(): void
     {
         $superAdmin = $this->createSuperAdminForCurrentSchool();
         $template = $this->createTemplateFixture();
@@ -291,7 +291,7 @@ final class EvaluationTemplatesTest extends TestCase
         $this->assertSame(1, EvaluationTemplate::query()->findOrFail($copyId)->criteria()->count());
     }
 
-    public function testStatusUpdateControlsWhatPlayerEvaluationsCanSelect(): void
+    public function test_status_update_controls_what_player_evaluations_can_select(): void
     {
         $superAdmin = $this->createSuperAdminForCurrentSchool();
 
@@ -336,7 +336,7 @@ final class EvaluationTemplatesTest extends TestCase
             'school_id' => $this->school['id'],
         ], ['super-admin']);
 
-        $schoolUser = new SchoolUser();
+        $schoolUser = new SchoolUser;
         $schoolUser->user_id = $user->id;
         $schoolUser->school_id = $this->school['id'];
         $schoolUser->save();

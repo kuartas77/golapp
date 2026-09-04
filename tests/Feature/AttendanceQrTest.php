@@ -22,13 +22,13 @@ final class AttendanceQrTest extends TestCase
         $this->withoutVite();
     }
 
-    public function testAttendanceQrApiRequiresAuthentication(): void
+    public function test_attendance_qr_api_requires_authentication(): void
     {
         $this->getJson('/api/v2/attendance-qr/QR-001')->assertUnauthorized();
         $this->postJson('/api/v2/attendance-qr/1/take', ['column' => 'assistance_one'])->assertUnauthorized();
     }
 
-    public function testSchoolUserCanResolveAttendanceQrContext(): void
+    public function test_school_user_can_resolve_attendance_qr_context(): void
     {
         $school = School::findOrFail($this->school['id']);
         $group = $this->createTrainingGroup($school);
@@ -48,13 +48,13 @@ final class AttendanceQrTest extends TestCase
         $this->assertNotEmpty($response->json('class_days'));
     }
 
-    public function testAttendanceQrUsesOnlyCurrentYearInscription(): void
+    public function test_attendance_qr_uses_only_current_year_inscription(): void
     {
         $school = School::findOrFail($this->school['id']);
         $group = $this->createTrainingGroup($school);
         $player = Player::factory()->create([
             'school_id' => $school->id,
-            'unique_code' => 'QR-OLD-' . fake()->unique()->numberBetween(1000, 9999),
+            'unique_code' => 'QR-OLD-'.fake()->unique()->numberBetween(1000, 9999),
         ]);
 
         Inscription::factory()->create([
@@ -72,7 +72,7 @@ final class AttendanceQrTest extends TestCase
             ->assertJsonPath('message', 'No encontramos una inscripción vigente para este código en el año actual.');
     }
 
-    public function testInstructorCanResolveAttendanceQrOnlyForAssignedGroup(): void
+    public function test_instructor_can_resolve_attendance_qr_only_for_assigned_group(): void
     {
         $school = School::findOrFail($this->school['id']);
         $group = $this->createTrainingGroup($school);
@@ -93,7 +93,7 @@ final class AttendanceQrTest extends TestCase
             ->assertForbidden();
     }
 
-    public function testSuperAdminCanResolveAttendanceQrForSelectedSchool(): void
+    public function test_super_admin_can_resolve_attendance_qr_for_selected_school(): void
     {
         $school = School::findOrFail($this->school['id']);
         $group = $this->createTrainingGroup($school);
@@ -112,7 +112,7 @@ final class AttendanceQrTest extends TestCase
             ->assertOk();
     }
 
-    public function testAttendanceQrTakeMarksAttendanceAsPresent(): void
+    public function test_attendance_qr_take_marks_attendance_as_present(): void
     {
         $school = School::findOrFail($this->school['id']);
         $group = $this->createTrainingGroup($school);
@@ -135,7 +135,7 @@ final class AttendanceQrTest extends TestCase
         ]);
     }
 
-    public function testAttendanceQrTakeRejectsColumnsOutsideConfiguredClassDays(): void
+    public function test_attendance_qr_take_rejects_columns_outside_configured_class_days(): void
     {
         $school = School::findOrFail($this->school['id']);
         $group = $this->createTrainingGroup($school);
@@ -153,7 +153,7 @@ final class AttendanceQrTest extends TestCase
     private function createTrainingGroup(School $school): TrainingGroup
     {
         return TrainingGroup::query()->create([
-            'name' => 'QR Team ' . fake()->unique()->numberBetween(100, 999),
+            'name' => 'QR Team '.fake()->unique()->numberBetween(100, 999),
             'year' => now()->year,
             'category' => ['Todas las categorías'],
             'days' => ['Lunes', 'Martes'],
@@ -167,7 +167,7 @@ final class AttendanceQrTest extends TestCase
     {
         $player = Player::factory()->create([
             'school_id' => $school->id,
-            'unique_code' => 'QR-' . fake()->unique()->numberBetween(1000, 9999),
+            'unique_code' => 'QR-'.fake()->unique()->numberBetween(1000, 9999),
         ]);
 
         $inscription = Inscription::factory()->create([

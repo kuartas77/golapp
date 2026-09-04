@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-
 use App\Models\Evaluations\EvaluationPeriod;
 use Illuminate\Database\Seeder;
 
@@ -56,7 +55,7 @@ class EvaluationPeriodSeeder extends Seeder
                 [
                     'year' => $period['year'],
                     'code' => $period['code'],
-                    'school_id' => 1
+                    'school_id' => 1,
                 ],
                 $period
             );

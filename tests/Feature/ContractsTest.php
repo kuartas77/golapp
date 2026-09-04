@@ -16,6 +16,7 @@ use App\Modules\Inscriptions\Actions\Create\CreateContractAction;
 use App\Modules\Inscriptions\Actions\Create\Passable;
 use App\Modules\Inscriptions\Notifications\InscriptionToSchoolNotification;
 use App\Notifications\GuardianEmailVerificationCodeNotification;
+use App\Service\Contracts\ContractTemplateService;
 use App\Service\Portal\GuardianEmailVerificationService;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
@@ -33,7 +34,7 @@ final class ContractsTest extends TestCase
         Storage::disk('local')->makeDirectory('tmp');
     }
 
-    public function testContractsPermissionMiddlewareBlocksAndAllowsAdminEndpoints(): void
+    public function test_contracts_permission_middleware_blocks_and_allows_admin_endpoints(): void
     {
         $school = School::query()->findOrFail($this->school['id']);
 
@@ -55,7 +56,7 @@ final class ContractsTest extends TestCase
             ->assertJsonPath('school.id', $school->id);
     }
 
-    public function testAdminContractsUpdateUsesActiveSchoolScopeAndRecalculatesParameters(): void
+    public function test_admin_contracts_update_uses_active_school_scope_and_recalculates_parameters(): void
     {
         $secondarySchool = School::query()->findOrFail($this->createSchool([
             'name' => 'Escuela Secundaria Contratos',
@@ -99,7 +100,7 @@ final class ContractsTest extends TestCase
         $this->assertContains('[PLAYER_FULLNAMES]', $indexResponse->json('types.0.template.used_parameters'));
     }
 
-    public function testAdminContractsIndexOnlyReturnsPreviewUrlForConfiguredTemplates(): void
+    public function test_admin_contracts_index_only_returns_preview_url_for_configured_templates(): void
     {
         $school = School::query()->findOrFail($this->school['id']);
         $this->createConfiguredContract($school, 'inscription');
@@ -117,7 +118,7 @@ final class ContractsTest extends TestCase
         $this->assertNull($types->get('affiliate')['preview_url']);
     }
 
-    public function testAdminContractsIncludesAndStoresGenericDatabaseTypesWithoutPublishingThemToPortal(): void
+    public function test_admin_contracts_includes_and_stores_generic_database_types_without_publishing_them_to_portal(): void
     {
         $school = School::query()->findOrFail($this->school['id']);
         $school->forceFill([
@@ -127,7 +128,7 @@ final class ContractsTest extends TestCase
         ])->save();
         School::forgetCachedSchool($school->id);
 
-        $customType = new ContractType();
+        $customType = new ContractType;
         $customType->code = 'custom_policy';
         $customType->name = 'Politica personalizada';
         $customType->save();
@@ -174,7 +175,7 @@ final class ContractsTest extends TestCase
         $this->assertSame([], $portalResponse->json('data.contracts.available'));
     }
 
-    public function testPortalSchoolDataOnlyReturnsConfiguredContracts(): void
+    public function test_portal_school_data_only_returns_configured_contracts(): void
     {
         $school = School::query()->findOrFail($this->school['id']);
         $school->forceFill([
@@ -203,7 +204,7 @@ final class ContractsTest extends TestCase
         $this->assertFalse($availableContracts[1]['requires_player_signature']);
     }
 
-    public function testPortalInscriptionValidationOnlyRequiresAvailableContractFields(): void
+    public function test_portal_inscription_validation_only_requires_available_contract_fields(): void
     {
         $school = School::query()->findOrFail($this->school['id']);
         $school->forceFill([
@@ -225,7 +226,7 @@ final class ContractsTest extends TestCase
         $response->assertJsonMissingValidationErrors(['signatureAlumno', 'contrato_aff']);
     }
 
-    public function testPublicContractPreviewStreamsConfiguredTemplateAndMissingTypesReturn404(): void
+    public function test_public_contract_preview_streams_configured_template_and_missing_types_return404(): void
     {
         $school = School::query()->findOrFail($this->school['id']);
         $school->forceFill([
@@ -244,7 +245,7 @@ final class ContractsTest extends TestCase
             ->assertNotFound();
     }
 
-    public function testAdminContractPreviewStreamsConfiguredTemplateEvenWhenPortalFlowIsInactive(): void
+    public function test_admin_contract_preview_streams_configured_template_even_when_portal_flow_is_inactive(): void
     {
         $school = School::query()->findOrFail($this->school['id']);
         $school->forceFill([
@@ -261,7 +262,7 @@ final class ContractsTest extends TestCase
             ->assertHeader('content-type', 'application/pdf');
     }
 
-    public function testCreateContractActionOnlyGeneratesConfiguredContracts(): void
+    public function test_create_contract_action_only_generates_configured_contracts(): void
     {
         $school = School::query()->findOrFail($this->school['id']);
         $school->forceFill([
@@ -292,7 +293,7 @@ final class ContractsTest extends TestCase
         $passable = new Passable([
             'school_data' => $school,
             'year' => now()->format('Y'),
-            'signatureTutor' => 'data:image/png;base64,' . base64_encode(
+            'signatureTutor' => 'data:image/png;base64,'.base64_encode(
                 file_get_contents(public_path('img/user.png'))
             ),
         ]);
@@ -331,7 +332,7 @@ final class ContractsTest extends TestCase
 
         $nonPdfFiles = array_values(array_filter(
             $generatedFiles,
-            fn (string $file): bool => !str_ends_with($file, '.pdf')
+            fn (string $file): bool => ! str_ends_with($file, '.pdf')
         ));
         $this->assertCount(1, $nonPdfFiles);
         $this->assertSame('MANIFIESTO_SHA256.txt', basename($nonPdfFiles[0]));
@@ -349,7 +350,7 @@ final class ContractsTest extends TestCase
         );
 
         $manifest = Storage::disk('local')->get($nonPdfFiles[0]);
-        $this->assertStringContainsString('Inscripción: ' . $inscription->unique_code, $manifest);
+        $this->assertStringContainsString('Inscripción: '.$inscription->unique_code, $manifest);
         $this->assertStringContainsString('Algoritmo: SHA-256', $manifest);
         $this->assertStringContainsString(basename($contractPath), $manifest);
         $this->assertStringContainsString($inscription->signed_document_hashes['inscription'], $manifest);
@@ -358,13 +359,13 @@ final class ContractsTest extends TestCase
         $this->assertStringNotContainsString('signature_ip_address', $manifest);
         $this->assertStringNotContainsString('signature_user_agent', $manifest);
 
-        $message = (new InscriptionToSchoolNotification($inscription, $school))->toMail(new \stdClass());
+        $message = (new InscriptionToSchoolNotification($inscription, $school))->toMail(new \stdClass);
         $this->assertSame([config('mail.from.address'), $school->name], $message->from);
 
         $zipPath = Storage::disk('local')->path(
             "tmp/zips/{$school->slug}-{$inscription->unique_code}.zip"
         );
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         $this->assertTrue($zip->open($zipPath));
         $this->assertSame(3, $zip->numFiles);
         $this->assertNotFalse($zip->locateName('MANIFIESTO_SHA256.txt'));
@@ -378,7 +379,7 @@ final class ContractsTest extends TestCase
         $zip->close();
     }
 
-    public function testTutorDocumentExpeditionPlaceholderAndVariablesAreAvailable(): void
+    public function test_tutor_document_expedition_placeholder_and_variables_are_available(): void
     {
         $school = School::query()->findOrFail($this->school['id']);
         $player = Player::factory()->create([
@@ -390,7 +391,7 @@ final class ContractsTest extends TestCase
         ]);
         $player->people()->attach($tutor->id);
 
-        $service = app(\App\Service\Contracts\ContractTemplateService::class);
+        $service = app(ContractTemplateService::class);
         $placeholders = collect($service->placeholderCatalog('inscription'))->keyBy('key');
 
         $this->assertTrue($placeholders->has('TUTOR_DOC_EXP'));
@@ -403,7 +404,7 @@ final class ContractsTest extends TestCase
         $this->assertSame('MEDELLIN', $previewVariables['TUTOR_DOC_EXP']);
     }
 
-    public function testPortalInscriptionRequiresAndStoresTutorDocumentExpeditionPlace(): void
+    public function test_portal_inscription_requires_and_stores_tutor_document_expedition_place(): void
     {
         config([
             'recaptchav3.sitekey' => null,
@@ -454,7 +455,7 @@ final class ContractsTest extends TestCase
         ];
 
         foreach ($definitions as $code => $name) {
-            $type = ContractType::query()->firstWhere('code', $code) ?? new ContractType();
+            $type = ContractType::query()->firstWhere('code', $code) ?? new ContractType;
             $type->code = $code;
             $type->name = $name;
             $type->save();
@@ -463,7 +464,7 @@ final class ContractsTest extends TestCase
 
     private function createConfiguredContract(School $school, string $code, array $overrides = []): Contract
     {
-        $type = app(\App\Service\Contracts\ContractTemplateService::class)->resolveType($code);
+        $type = app(ContractTemplateService::class)->resolveType($code);
 
         return Contract::query()->create(array_merge([
             'school_id' => $school->id,

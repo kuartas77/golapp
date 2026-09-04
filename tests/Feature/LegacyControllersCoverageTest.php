@@ -25,7 +25,7 @@ final class LegacyControllersCoverageTest extends TestCase
         parent::tearDown();
     }
 
-    public function testPaymentRequestIndexDelegatesForJsonRequestsAndAbortsForBladeAccess(): void
+    public function test_payment_request_index_delegates_for_json_requests_and_aborts_for_blade_access(): void
     {
         $repository = Mockery::mock(PaymentRequestRepository::class);
         $repository->shouldReceive('getPaymentRequestsQuery')
@@ -42,7 +42,7 @@ final class LegacyControllersCoverageTest extends TestCase
         $controller->index(Request::create('/notifications/payment-requests', 'GET'));
     }
 
-    public function testPaymentRequestProofServesStoredProofAndReturns404WhenMissing(): void
+    public function test_payment_request_proof_serves_stored_proof_and_returns404_when_missing(): void
     {
         Storage::fake('public');
         Storage::disk('public')->put('proofs/payment.jpg', 'proof-content');
@@ -51,7 +51,7 @@ final class LegacyControllersCoverageTest extends TestCase
 
         $repository = Mockery::mock(PaymentRequestRepository::class);
         $repository->shouldReceive('findForCurrentSchoolOrFail')->once()->with(15)->andReturn($paymentRequest);
-        $repository->shouldReceive('findForCurrentSchoolOrFail')->once()->with(16)->andReturn(new PaymentRequest());
+        $repository->shouldReceive('findForCurrentSchoolOrFail')->once()->with(16)->andReturn(new PaymentRequest);
 
         $controller = new PaymentRequestController($repository);
 
@@ -65,7 +65,7 @@ final class LegacyControllersCoverageTest extends TestCase
         $this->assertSame(404, $controller->proof(16)->getStatusCode());
     }
 
-    public function testUniformRequestsIndexDelegatesOnlyForJsonRequests(): void
+    public function test_uniform_requests_index_delegates_only_for_json_requests(): void
     {
         $repository = Mockery::mock(UniformRequestRepository::class);
         $repository->shouldReceive('queryTable')
@@ -82,7 +82,7 @@ final class LegacyControllersCoverageTest extends TestCase
         $controller->index(Request::create('/notifications/uniform-requests', 'GET'));
     }
 
-    public function testTournamentPayoutControllerDelegatesRawSearchAndAjaxStore(): void
+    public function test_tournament_payout_controller_delegates_raw_search_and_ajax_store(): void
     {
         $repository = Mockery::mock(TournamentPayoutsRepository::class);
         $repository->shouldReceive('search')

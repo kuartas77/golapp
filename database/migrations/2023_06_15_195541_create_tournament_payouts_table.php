@@ -25,12 +25,12 @@ class CreateTournamentPayoutsTable extends Migration
             $table->double('value')->default(0)->nullable();
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->foreign('school_id')->references('id')->on('schools');
             $table->foreign('inscription_id')->references('id')->on('inscriptions');
             $table->foreign('tournament_id')->references('id')->on('tournaments');
             $table->foreign('competition_group_id')->references('id')->on('competition_groups');
-            $table->unique(['competition_group_id','inscription_id', 'tournament_id','school_id', 'year'], 'unique_by_school');
+            $table->unique(['competition_group_id', 'inscription_id', 'tournament_id', 'school_id', 'year'], 'unique_by_school');
         });
     }
 
