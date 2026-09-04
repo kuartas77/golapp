@@ -277,7 +277,7 @@ const routes = [
                         component: () => import('@/pages/notifications/UniformRequests.vue'),
                         meta: { requiresRole: ['super-admin', 'school', 'viewer'], requiresSchoolPermission: [SCHOOL_PERMISSION_KEYS.systemNotify] }
                     },
-                    { path: 'crear/:inscription', name: 'invoices.create', component: () => import('@/pages/invoices/InvoiceCreate.vue'), meta: { requiresRole: ['super-admin', 'school'] } },
+                    { path: 'crear/:inscription', name: 'invoices.create', component: () => import('@/pages/invoices/InvoiceCreate.vue'), meta: { requiresRole: ['super-admin', 'school', 'assistant'] } },
                     { path: ':id', name: 'invoices.show', component: () => import('@/pages/invoices/InvoiceShow.vue') },
                 ]
             },

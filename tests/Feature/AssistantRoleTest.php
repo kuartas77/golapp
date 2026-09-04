@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Inscription;
+use App\Models\Invoice;
 use App\Models\InvoiceCustomItem;
 use App\Models\Payment;
+use App\Models\PaymentReceived;
 use App\Models\Player;
 use App\Models\School;
 use App\Models\Setting;
@@ -411,24 +413,81 @@ final class AssistantRoleTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_assistant_can_query_receipts_and_invoice_details_but_not_mutate_invoices(): void
+    public function test_assistant_can_create_and_pay_invoices_but_cannot_annul_them(): void
     {
+        [$inscription] = $this->paymentFixture();
+        $group = getSchool($this->assistant)->trainingGroups()->firstOrFail();
+
         $this->actingAs($this->assistant)
             ->getJson('/api/v2/payments/monthly-receipts')
             ->assertOk();
 
-        // A missing invoice reaches the read controller; mutation routes stop at authorization.
         $this->actingAs($this->assistant)
             ->getJson('/api/v2/invoices/999999')
             ->assertNotFound();
         $this->actingAs($this->assistant)
-            ->postJson('/api/v2/invoices', [])
-            ->assertForbidden();
+            ->getJson('/api/v2/invoices/creation-inscriptions')
+            ->assertOk()
+            ->assertJsonFragment([
+                'id' => $inscription->id,
+                'unique_code' => (string) $inscription->unique_code,
+            ]);
         $this->actingAs($this->assistant)
-            ->postJson('/api/v2/invoices/999999/payment', [])
-            ->assertForbidden();
+            ->getJson("/api/v2/invoices/create/{$inscription->id}")
+            ->assertOk()
+            ->assertJsonPath('inscription.id', $inscription->id);
+
+        $invoiceResponse = $this->actingAs($this->assistant)
+            ->postJson('/api/v2/invoices', [
+                'idempotency_key' => 'assistant-invoice-'.$inscription->id,
+                'inscription_id' => $inscription->id,
+                'training_group_id' => $group->id,
+                'year' => now()->year,
+                'due_date' => now()->addWeek()->toDateString(),
+                'student_name' => $inscription->player->full_names,
+                'notes' => 'Factura registrada por auxiliar',
+                'items' => [[
+                    'type' => 'additional',
+                    'description' => 'Balón auxiliar',
+                    'quantity' => 1,
+                    'unit_price' => 25000,
+                ]],
+            ])
+            ->assertOk()
+            ->assertJsonStructure(['id']);
+
+        $invoice = Invoice::query()->with('items')->findOrFail($invoiceResponse->json('id'));
+        $item = $invoice->items->firstOrFail();
+
+        $this->assertSame($this->assistant->id, $invoice->created_by);
+        $this->assertSame('pending', $invoice->status);
+
         $this->actingAs($this->assistant)
-            ->deleteJson('/api/v2/invoices/999999')
+            ->postJson("/api/v2/invoices/{$invoice->id}/payment", [
+                'idempotency_key' => 'assistant-invoice-payment-'.$invoice->id,
+                'amount' => 25000,
+                'payment_method' => 'cash',
+                'issue_date' => $invoice->issue_date->toDateString(),
+                'payment_date' => now()->toDateString(),
+                'reference' => 'AUX-001',
+                'notes' => 'Pago registrado por auxiliar',
+                'paid_items' => [$item->id],
+            ])
+            ->assertOk()
+            ->assertJsonPath('created', true);
+
+        $this->assertDatabaseHas('payments_received', [
+            'invoice_id' => $invoice->id,
+            'school_id' => $this->school['id'],
+            'created_by' => $this->assistant->id,
+            'idempotency_key' => 'assistant-invoice-payment-'.$invoice->id,
+        ]);
+        $this->assertSame('paid', $invoice->fresh()->status);
+        $this->assertTrue($item->fresh()->is_paid);
+        $this->assertSame(1, PaymentReceived::query()->where('invoice_id', $invoice->id)->count());
+
+        $this->actingAs($this->assistant)
+            ->deleteJson("/api/v2/invoices/{$invoice->id}")
             ->assertForbidden();
     }
 

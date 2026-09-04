@@ -2,7 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { axiosMock, routerPushMock, modalShowMock, modalDisposeMock } = vi.hoisted(() => ({
+const { axiosMock, routerPushMock, modalShowMock, modalDisposeMock, authState } = vi.hoisted(() => ({
     axiosMock: {
         delete: vi.fn(),
         get: vi.fn(),
@@ -11,6 +11,9 @@ const { axiosMock, routerPushMock, modalShowMock, modalDisposeMock } = vi.hoiste
     routerPushMock: vi.fn(),
     modalShowMock: vi.fn(),
     modalDisposeMock: vi.fn(),
+    authState: {
+        roles: [],
+    },
 }))
 
 vi.mock('@/utils/axios', () => ({ default: axiosMock }))
@@ -23,7 +26,11 @@ vi.mock('@/composables/usePageTutorial', () => ({
 }))
 vi.mock('@/tutorials/invoices', () => ({ invoiceShowTutorial: [] }))
 vi.mock('@/store/auth-user', () => ({
-    useAuthUser: () => ({ hasRole: () => false }),
+    useAuthUser: () => ({
+        hasRole: role => authState.roles.includes(role),
+        hasAnyRole: roles => roles.some(role => authState.roles.includes(role)),
+        user: {},
+    }),
 }))
 
 import InvoiceShow from '@/pages/invoices/InvoiceShow.vue'
@@ -111,6 +118,7 @@ describe('InvoiceShow financial recovery', () => {
         routerPushMock.mockReset()
         modalShowMock.mockReset()
         modalDisposeMock.mockReset()
+        authState.roles = []
     })
 
     afterEach(() => {
@@ -179,6 +187,15 @@ describe('InvoiceShow financial recovery', () => {
             focusCancel: true,
         }))
         expect(axiosMock.delete).not.toHaveBeenCalled()
+    })
+
+    it('lets assistants register payments without showing the annul action', async () => {
+        authState.roles = ['assistant']
+        const wrapper = await mountPage()
+
+        expect(wrapper.text()).toContain('Registrar Pago')
+        expect(wrapper.text()).toContain('Pagar')
+        expect(wrapper.text()).not.toContain('Anular recibo de caja')
     })
 
     it('shows the authorized range and locks the issue date for an electronic invoice', async () => {

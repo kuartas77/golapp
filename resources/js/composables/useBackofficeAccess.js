@@ -64,7 +64,7 @@ export const backofficeAccessRequirements = {
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.reports],
     },
     billing: {
-        roles: ['super-admin', 'school'],
+        roles: ['super-admin', 'school', 'assistant'],
         anyRole: true,
         schoolPermissions: [SCHOOL_PERMISSION_KEYS.billing],
     },

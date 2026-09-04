@@ -149,13 +149,13 @@
                                 <div class="col-md-6 col-xl-4">
                                     <checkbox label="Enviar recibos de mensualidad?" name="send_monthly_payment_receipts" disabled />
                                 </div>
-                                <div class="col-md-6 col-xl">
+                                <div class="col-md-6 col-xl-4">
                                     <checkbox label="Enviar recibos de caja al completar el pago" name="send_invoice_receipts" disabled />
                                 </div>
-                                <div class="col-md-6 col-xl">
+                                <div class="col-md-6 col-xl-4">
                                     <checkbox label="Tarifa mensual por grupo" name="training_group_monthly_payment_enabled" disabled />
                                 </div>
-                                <div class="col-md-6 col-xl">
+                                <div class="col-md-6 col-xl-4">
                                     <checkbox label="Limitar edición de instructores al mes actual" name="INSTRUCTOR_MONTH_LOCK_ENABLED" disabled />
                                 </div>
                             </div>

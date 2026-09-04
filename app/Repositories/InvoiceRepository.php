@@ -165,9 +165,11 @@ class InvoiceRepository
         try {
             return DB::transaction(function () use ($validated) {
                 $idempotencyKey = $validated['idempotency_key'] ?? null;
+                $schoolId = isset($validated['school_id']) ? (int) $validated['school_id'] : null;
 
                 if ($idempotencyKey) {
                     $existingInvoiceId = Invoice::query()
+                        ->when($schoolId, fn ($query) => $query->where('school_id', $schoolId))
                         ->where('idempotency_key', $idempotencyKey)
                         ->value('id');
 
@@ -179,8 +181,20 @@ class InvoiceRepository
                     }
                 }
 
+                throw_unless($schoolId, \InvalidArgumentException::class, 'School id is required to create an invoice.');
+
+                $inscription = Inscription::query()
+                    ->where('school_id', $schoolId)
+                    ->findOrFail($validated['inscription_id']);
+
+                abort_unless(
+                    (int) $inscription->training_group_id === (int) $validated['training_group_id'],
+                    422,
+                    'La inscripción no pertenece al grupo seleccionado.'
+                );
+
                 $issueDate = now();
-                $numbering = $this->invoiceNumberAllocator->allocate((int) $validated['school_id'], $issueDate);
+                $numbering = $this->invoiceNumberAllocator->allocate($schoolId, $issueDate);
 
                 $invoice = Invoice::create([
                     ...$numbering,
@@ -192,7 +206,7 @@ class InvoiceRepository
                     'issue_date' => $issueDate->toDateString(),
                     'due_date' => $validated['due_date'],
                     'status' => 'pending',
-                    'school_id' => $validated['school_id'],
+                    'school_id' => $schoolId,
                     'created_by' => auth()->id(),
                     'notes' => $validated['notes'] ?? null,
                 ]);
@@ -211,6 +225,20 @@ class InvoiceRepository
                     ];
 
                     $invoiceItem = $invoice->items()->create($item);
+
+                    if (! empty($itemData['payment_id'])) {
+                        $paymentAvailable = Payment::query()
+                            ->where('school_id', $invoice->school_id)
+                            ->where('inscription_id', $invoice->inscription_id)
+                            ->whereKey($itemData['payment_id'])
+                            ->exists();
+
+                        throw_if(
+                            ! $paymentAvailable,
+                            \RuntimeException::class,
+                            'Payment not available for invoice.'
+                        );
+                    }
 
                     if (! empty($itemData['custom_charge_id'])) {
                         $updatedCharge = InscriptionCustomCharge::query()
@@ -233,6 +261,8 @@ class InvoiceRepository
                     if (! empty($itemData['uniform_request_id'])) {
                         $updatedUniform = UniformRequest::query()
                             ->whereKey($itemData['uniform_request_id'])
+                            ->where('school_id', $invoice->school_id)
+                            ->where('player_id', $invoice->inscription->player_id)
                             ->update([
                                 'status' => 'APPROVED',
                             ]);

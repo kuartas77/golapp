@@ -124,6 +124,18 @@ describe('hasBackofficeAccess', () => {
         }), backofficeAccessRequirements.invoiceNumbering)).toBe(true)
     })
 
+    it('allows assistants into billing without granting invoice numbering', () => {
+        const permission = { 'school.module.billing': true }
+        const auth = makeAuth({
+            roles: ['assistant'],
+            schoolPermissions: permission,
+            electronicInvoicingEnabled: true,
+        })
+
+        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.billing)).toBe(true)
+        expect(hasBackofficeAccess(auth, backofficeAccessRequirements.invoiceNumbering)).toBe(false)
+    })
+
     it('shows viewers only modules assigned directly and enabled for the school', () => {
         const schoolPermissions = {
             'school.module.inventory': true,

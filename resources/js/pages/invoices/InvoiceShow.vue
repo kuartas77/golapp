@@ -405,8 +405,8 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthUser()
 const moduleDocumentSingular = computed(() => invoiceDocumentSingularForSchool(Boolean(auth.user?.electronic_invoicing_enabled)))
-const isAssistant = computed(() => auth.hasRole('assistant'))
-const isReadOnly = computed(() => isAssistant.value || auth.hasRole('viewer'))
+const canAnnulInvoice = computed(() => auth.hasAnyRole(['super-admin', 'school']))
+const isReadOnly = computed(() => auth.hasRole('viewer'))
 const invoiceId = route.params.id
 const tutorial = usePageTutorial(invoiceShowTutorial)
 const todayDate = dayjs().format('YYYY-MM-DD')
@@ -569,7 +569,7 @@ const resetPaymentForm = () => {
 
 const canDeleteInvoice = (invoice) => {
     // Solo permitir eliminar facturas pendientes o parciales
-    return ['pending', 'partial'].includes(invoice.status)
+    return canAnnulInvoice.value && ['pending', 'partial'].includes(invoice.status)
 }
 
 const confirmDelete = async () => {

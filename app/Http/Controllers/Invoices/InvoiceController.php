@@ -135,7 +135,7 @@ class InvoiceController extends Controller
             'numberRange',
         ];
 
-        if (! isAssistant()) {
+        if (! isViewer()) {
             $relations['paymentRequests'] = fn ($query) => $query->latest();
         }
 

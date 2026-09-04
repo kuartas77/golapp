@@ -351,14 +351,19 @@ Route::middleware(['auth', 'verified_school'])->group(function () {
 
     // La SPA equivalente vive en resources/js/router/index.js y consume sus datos desde routes/api.php.
     Route::middleware([
-        'role:super-admin|school',
+        'role:super-admin|school|assistant',
         'school.permission:school.module.billing',
     ])->group(function () {
         Route::get('invoices/create/{inscription}', [InvoiceController::class, 'create'])->name('invoices.create');
         Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
-        Route::delete('invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
         Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'addPayment'])->name('invoices.addPayment');
         Route::redirect('items/invoices', '/facturas/items')->name('items.invoices.index');
+    });
+    Route::middleware([
+        'role:super-admin|school',
+        'school.permission:school.module.billing',
+    ])->group(function () {
+        Route::delete('invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
     });
     Route::middleware([
         'role:super-admin|school|assistant|viewer',

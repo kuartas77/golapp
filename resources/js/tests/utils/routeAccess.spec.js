@@ -163,12 +163,21 @@ describe('canAccessRoute', () => {
     it('allows the assistant into enabled financial routes but not administrative or sports children', () => {
         const auth = makeAuth({
             roles: ['assistant'],
-            schoolPermissions: { 'school.module.reports': true },
+            schoolPermissions: {
+                'school.module.reports': true,
+                'school.module.billing': true,
+            },
         })
         const financialRoute = {
             matched: [{ meta: {
                 requiresRole: ['super-admin', 'school', 'assistant'],
                 requiresSchoolPermission: ['school.module.reports'],
+            } }],
+        }
+        const billingCreateRoute = {
+            matched: [{ meta: {
+                requiresRole: ['super-admin', 'school', 'assistant'],
+                requiresSchoolPermission: ['school.module.billing'],
             } }],
         }
         const sportsRoute = {
@@ -179,6 +188,7 @@ describe('canAccessRoute', () => {
         }
 
         expect(canAccessRoute(financialRoute, auth)).toBe(true)
+        expect(canAccessRoute(billingCreateRoute, auth)).toBe(true)
         expect(canAccessRoute(sportsRoute, auth)).toBe(false)
         expect(canAccessRoute(financialRoute, makeAuth({ roles: ['assistant'] }))).toBe(false)
     })

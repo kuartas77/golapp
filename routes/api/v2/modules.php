@@ -304,14 +304,20 @@ Route::middleware('role:super-admin|school')->prefix('tournament-payouts')->grou
 });
 
 Route::middleware([
-    'role:super-admin|school',
+    'role:super-admin|school|assistant',
     'school.permission:school.module.billing',
 ])->prefix('invoices')->group(function () {
     Route::get('creation-inscriptions', [InvoiceController::class, 'creationInscriptions']);
     Route::post('', [InvoiceController::class, 'store']);
     Route::get('create/{inscription}', [InvoiceController::class, 'create']);
-    Route::delete('{invoice}', [InvoiceController::class, 'destroy']);
     Route::post('{invoice}/payment', [InvoiceController::class, 'addPayment']);
+});
+
+Route::middleware([
+    'role:super-admin|school',
+    'school.permission:school.module.billing',
+])->prefix('invoices')->group(function () {
+    Route::delete('{invoice}', [InvoiceController::class, 'destroy']);
 });
 
 Route::middleware([
